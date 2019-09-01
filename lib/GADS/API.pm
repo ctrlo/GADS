@@ -656,7 +656,7 @@ sub _get_dashboard_write
     my $dashboard = _get_dashboard($id, $layout, $user);
     return $dashboard
         if logged_in_user->permission->{superadmin} # For site dashboard
-            || $layout->user_can('layout');
+            || ($layout && $layout->user_can('layout'));
     return $dashboard
         if $dashboard->user_id && $dashboard->user_id == $user->id;
     status 403;
