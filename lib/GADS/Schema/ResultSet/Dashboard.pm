@@ -36,14 +36,14 @@ sub _all_user
     my $schema = $self->result_source->schema;
     my $guard = $schema->txn_scope_guard;
 
-    my @dashboards = ($self->_shared_dashboard(layout => $layout, user => $user));
+    my @dashboards = ($self->_shared_dashboard(%params));
 
     my $dashboard = $self->search({
-        'me.instance_id' => $layout->instance_id,
+        'me.instance_id' => $layout && $layout->instance_id,
         'me.user_id'     => $user->id,
     })->next;
 
-    $dashboard = $self->create_dashboard(type => 'personal', user => $user, layout => $layout)
+    $dashboard = $self->create_dashboard(%params, type => 'personal')
         if !$dashboard;
 
     push @dashboards, $dashboard;
@@ -56,7 +56,7 @@ sub _all_user
 sub _shared_dashboard
 {   my ($self, %params) = @_;
     my $dashboard = $self->search({
-        'me.instance_id' => $params{layout}->instance_id,
+        'me.instance_id' => $params{layout} && $params{layout}->instance_id,
         'me.user_id'     => undef,
     })->next;
     $dashboard = $self->create_dashboard(%params, type => 'shared')
@@ -76,7 +76,7 @@ sub dashboard
 
     my $dashboard_rs = $self->search({
         'me.id'          => $id,
-        'me.instance_id' => $layout->instance_id,
+        'me.instance_id' => $layout && $layout->instance_id,
         'me.user_id'     => [undef, $user->id],
     },{
         prefetch => 'widgets',
@@ -98,6 +98,7 @@ sub create_dashboard
     my $type   = $params{type};
     my $user   = $params{user};
     my $layout = $params{layout};
+    my $site   = $params{site};
 
     my $schema = $self->result_source->schema;
     my $guard = $schema->txn_scope_guard;
@@ -109,10 +110,13 @@ sub create_dashboard
         # First time this has been called. Create default dashboard using legacy
         # homepage text if it exists
         $dashboard = $self->create({
-            instance_id => $layout->instance_id,
+            instance_id => $layout && $layout->instance_id,
         });
 
-        if ($layout->homepage_text2) # Assume 2 columns of homepage
+        my $homepage_text  = $layout ? $layout->homepage_text  : $site->homepage_text;
+        my $homepage_text2 = $layout ? $layout->homepage_text2 : $site->homepage_text2;
+
+        if ($homepage_text2) # Assume 2 columns of homepage
         {
             $dashboard->create_related('widgets', {
                 type    => 'notice',
@@ -120,22 +124,28 @@ sub create_dashboard
                 w       => 6,
                 x       => 6,
                 y       => 0,
-                content => $layout->homepage_text2,
+                content => $homepage_text2,
             });
         }
-        $dashboard->create_related('widgets', {
-            type    => 'notice',
-            h       => 6,
-            w       => $layout->homepage_text2 ? 6 : 12,
-            x       => 0,
-            y       => 0,
-            content => $layout->homepage_text,
-        });
+        # Ensure empty dashboard if no existing homepages. This allows an empty
+        # dashboard to be detected and different dashboards rendered
+        # accordingly
+        if ($homepage_text)
+        {
+            $dashboard->create_related('widgets', {
+                type    => 'notice',
+                h       => 6,
+                w       => $homepage_text2 ? 6 : 12,
+                x       => 0,
+                y       => 0,
+                content => $homepage_text,
+            });
+        }
     }
     elsif ($type eq 'personal')
     {
         $dashboard = $self->create({
-            instance_id => $layout->instance_id,
+            instance_id => $layout && $layout->instance_id,
             user_id     => $user->id,
         });
 

@@ -136,19 +136,6 @@ sub validate
 sub html
 {   my $self = shift;
 
-    my $layout = $self->layout
-        or panic "Missing layout";
-
-    my $user   = $layout->user;
-    my $schema = $self->result_source->schema;
-
-    my $view = GADS::View->new(
-        id                       => $self->view_id,
-        instance_id              => $layout->instance_id,
-        schema                   => $schema,
-        layout                   => $self->layout,
-    );
-
     my $params = {
         type  => $self->type,
         title => $self->title,
@@ -158,84 +145,99 @@ sub html
     {
         $params->{content} = $self->content;
     }
-    elsif ($self->type eq 'table')
-    {
-        return 'Configuration required' if !$self->view_id || !$self->rows;
-        my $records = GADS::Records->new(
-            user   => $user,
-            layout => $layout,
-            schema => $schema,
-            page   => 1,
-            view   => $view,
-            rows   => $self->rows,
-            #rewind => session('rewind'), # Maybe add in the future
-        );
-        my @columns = @{$records->columns_view};
-        $params->{records} = $records->presentation;
-        $params->{columns} = [ map $_->presentation(sort => $records->sort_first), @columns ];
-    }
-    elsif ($self->type eq 'graph')
-    {
-        return 'Configuration required' if !$self->view_id || !$self->graph_id;
-        my $records = GADS::RecordsGraph->new(
-            user                => $user,
-            layout              => $layout,
-            schema              => $schema,
-        );
-        my $gdata = GADS::Graph::Data->new(
-            id      => $self->graph_id,
-            records => $records,
-            schema  => $schema,
-            view    => $view,
-        );
-        my $plot_data = encode_base64 $gdata->as_json, ''; # base64 plugin does not like new lines in content $gdata->as_json;
-        my $graph = GADS::Graph->new(
-            id     => $self->graph_id,
-            layout => $layout,
-            schema => $schema,
-        );
-        my $options_in = encode_base64 $graph->as_json;
+    else {
+        my $layout = $self->layout
+            or panic "Missing layout";
 
-        $params->{graph_id}     = $self->graph_id;
-        $params->{plot_data}    = $plot_data;
-        $params->{plot_options} = $options_in;
-    }
-    elsif ($self->type eq 'timeline')
-    {
-        return 'Configuration required' if !$self->view_id;
-        my $records = GADS::Records->new(
-            user                => $user,
-            view                => $view,
-            layout              => $layout,
-            # No "to" - will take appropriate number from today
-            from                => DateTime->now, # Default
-            schema              => $schema,
-        );
-        my $tl_options = $self->tl_options_inflated;
-        my $timeline = $records->data_timeline(%{$tl_options});
+        my $user   = $layout->user;
+        my $schema = $self->result_source->schema;
 
-        $params->{records}      = encode_base64(encode_json(delete $timeline->{items}), '');
-        $params->{groups}       = encode_base64(encode_json(delete $timeline->{groups}), '');
-        $params->{click_to_use} = 1;
-        $params->{timeline}     = $timeline;
-    }
-    elsif ($self->type eq 'globe')
-    {
-        return 'Configuration required' if !$self->view_id;
-        my $records_options = {
-            user   => $user,
-            view   => $view,
-            layout => $layout,
-            schema => $schema,
-        };
-        my $globe_options = $self->globe_options_inflated;
-        my $globe = GADS::Globe->new(
-            group_col_id    => $globe_options->{group},
-            color_col_id    => $globe_options->{color},
-            label_col_id    => $globe_options->{label},
-            records_options => $records_options,
+        my $view = GADS::View->new(
+            id                       => $self->view_id,
+            instance_id              => $layout->instance_id,
+            schema                   => $schema,
+            layout                   => $self->layout,
         );
-        $params->{globe_data} = encode_base64(encode_json($globe->data), '');
+
+        if ($self->type eq 'table')
+        {
+            return 'Configuration required' if !$self->view_id || !$self->rows;
+            my $records = GADS::Records->new(
+                user   => $user,
+                layout => $layout,
+                schema => $schema,
+                page   => 1,
+                view   => $view,
+                rows   => $self->rows,
+                #rewind => session('rewind'), # Maybe add in the future
+            );
+            my @columns = @{$records->columns_view};
+            $params->{records} = $records->presentation;
+            $params->{columns} = [ map $_->presentation(sort => $records->sort_first), @columns ];
+        }
+        elsif ($self->type eq 'graph')
+        {
+            return 'Configuration required' if !$self->view_id || !$self->graph_id;
+            my $records = GADS::RecordsGraph->new(
+                user                => $user,
+                layout              => $layout,
+                schema              => $schema,
+            );
+            my $gdata = GADS::Graph::Data->new(
+                id      => $self->graph_id,
+                records => $records,
+                schema  => $schema,
+                view    => $view,
+            );
+            my $plot_data = encode_base64 $gdata->as_json, ''; # base64 plugin does not like new lines in content $gdata->as_json;
+            my $graph = GADS::Graph->new(
+                id     => $self->graph_id,
+                layout => $layout,
+                schema => $schema,
+            );
+            my $options_in = encode_base64 $graph->as_json;
+
+            $params->{graph_id}     = $self->graph_id;
+            $params->{plot_data}    = $plot_data;
+            $params->{plot_options} = $options_in;
+        }
+        elsif ($self->type eq 'timeline')
+        {
+            return 'Configuration required' if !$self->view_id;
+            my $records = GADS::Records->new(
+                user                => $user,
+                view                => $view,
+                layout              => $layout,
+                # No "to" - will take appropriate number from today
+                from                => DateTime->now, # Default
+                schema              => $schema,
+            );
+            my $tl_options = $self->tl_options_inflated;
+            my $timeline = $records->data_timeline(%{$tl_options});
+
+            $params->{records}      = encode_base64(encode_json(delete $timeline->{items}), '');
+            $params->{groups}       = encode_base64(encode_json(delete $timeline->{groups}), '');
+            $params->{click_to_use} = 1;
+            $params->{timeline}     = $timeline;
+        }
+        elsif ($self->type eq 'globe')
+        {
+            return 'Configuration required' if !$self->view_id;
+            my $records_options = {
+                user   => $user,
+                view   => $view,
+                layout => $layout,
+                schema => $schema,
+            };
+            my $globe_options = $self->globe_options_inflated;
+            my $globe = GADS::Globe->new(
+                group_col_id    => $globe_options->{group},
+                color_col_id    => $globe_options->{color},
+                label_col_id    => $globe_options->{label},
+                records_options => $records_options,
+            );
+            $params->{globe_data} = encode_base64(encode_json($globe->data), '');
+        }
     }
 
     my $config = GADS::Config->instance;

@@ -364,21 +364,27 @@ sub _forward_last_table
 get '/' => require_login sub {
 
     my $site = var 'site';
+    my $user    = logged_in_user;
 
-    my $homepage_text  = $site->homepage_text;
-    my $homepage_text2 = $site->homepage_text2;
-
-    if (!$site->has_main_homepage)
+    if (my $dashboard_id = query_parameters->get('did'))
     {
-        my $layout = var('instances')->first_homepage;
-        $homepage_text = $layout->homepage_text;
-        $homepage_text2 = $layout->homepage_text2;
+        session('persistent')->{dashboard}->{0} = $dashboard_id;
     }
 
+    my $dashboard_id = session('persistent')->{dashboard}->{0};
+
+    my %params = (
+        id     => $dashboard_id,
+        user   => $user,
+        site   => var('site'),
+    );
+
+    my $dashboard = schema->resultset('Dashboard')->dashboard(%params);
+
     template 'index' => {
-        homepage_text  => $homepage_text,
-        homepage_text2 => $homepage_text2,
-        page           => 'index',
+        dashboard       => $dashboard,
+        dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
+        page            => 'index',
     };
 };
 
@@ -1372,6 +1378,7 @@ prefix '/:layout_name' => sub {
             id     => $dashboard_id,
             user   => $user,
             layout => $layout,
+            site   => var('site'),
         );
 
         my $dashboard = schema->resultset('Dashboard')->dashboard(%params);
