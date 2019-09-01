@@ -1361,29 +1361,26 @@ prefix '/:layout_name' => sub {
 
         my $user    = logged_in_user;
 
-        my $homepage_text  = $layout->homepage_text;
-        my $homepage_text2 = $layout->homepage_text2;
-
-        my $site = var 'site';
-        # If no table homepage exists show site homepage, but only if no tables
-        # at all have a homepage defined
-        if (!$site->has_table_homepage)
+        if (my $dashboard_id = query_parameters->get('did'))
         {
-            $homepage_text = $site->homepage_text;
-            $homepage_text2 = $site->homepage_text2;
+            session('persistent')->{dashboard}->{$layout->instance_id} = $dashboard_id;
         }
 
-        my $dashboard = schema->resultset('Dashboard')->dashboard(
+        my $dashboard_id = session('persistent')->{dashboard}->{$layout->instance_id};
+
+        my %params = (
+            id     => $dashboard_id,
             user   => $user,
             layout => $layout,
         );
 
+        my $dashboard = schema->resultset('Dashboard')->dashboard(%params);
+
         template 'index' => {
-            dashboard      => $dashboard,
-            homepage_text  => $homepage_text,
-            homepage_text2 => $homepage_text2,
-            page           => 'index',
-            breadcrumbs    => [Crumb($layout)]
+            dashboard       => $dashboard,
+            dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
+            page            => 'index',
+            breadcrumbs     => [Crumb($layout)],
         };
     };
 

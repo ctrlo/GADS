@@ -1,6 +1,10 @@
 <div class="row">
     <div class="col-md-12">
         <form action="/widget/[% widget.grid_id %]/edit">
+            <div class="form-group">
+                <label for="title">Title (optional):</label>
+                <input type="text" class="form-control" id="title" name="title" value="[% widget.title | html %]">
+            </div>
             [% IF widget.type == "notice" %]
                 <div class="summernote"></div>
                 <input type="hidden" class="summernote_content" name="content" value="[% widget.content | html %]">

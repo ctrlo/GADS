@@ -5,17 +5,79 @@ use warnings;
 
 use parent 'DBIx::Class::ResultSet';
 
+use JSON qw/encode_json/;
 use Log::Report 'linkspace';
 
-sub dashboard
+sub dashboards_json
+{   my ($self, %params) = @_;
+
+    $self->_all_user(%params);
+    return encode_json [
+        map {
+            +{
+                id   => $_->id,
+                url  => $_->url,
+                name => $_->name,
+            }
+        } $self->_all_user(%params)
+    ];
+}
+
+sub _all_user
 {   my ($self, %params) = @_;
 
     my $user   = $params{user};
     my $layout = $params{layout};
 
-    my $dashboard_rs = $self->search({
+    # A user should have at least a personal dashboard and a shared dashboard.
+    # If they don't have a personal dashboard, then create a copy of the shared
+    # dashboard.
+
+    my $schema = $self->result_source->schema;
+    my $guard = $schema->txn_scope_guard;
+
+    my @dashboards = ($self->_shared_dashboard(layout => $layout, user => $user));
+
+    my $dashboard = $self->search({
         'me.instance_id' => $layout->instance_id,
+        'me.user_id'     => $user->id,
+    })->next;
+
+    $dashboard = $self->create_dashboard(type => 'personal', user => $user, layout => $layout)
+        if !$dashboard;
+
+    push @dashboards, $dashboard;
+
+    $guard->commit;
+
+    return @dashboards;
+}
+
+sub _shared_dashboard
+{   my ($self, %params) = @_;
+    my $dashboard = $self->search({
+        'me.instance_id' => $params{layout}->instance_id,
         'me.user_id'     => undef,
+    })->next;
+    $dashboard = $self->create_dashboard(%params, type => 'shared')
+        if !$dashboard;
+
+    return $dashboard;
+}
+
+sub dashboard
+{   my ($self, %params) = @_;
+
+    my $id = $params{id}
+        || $self->_shared_dashboard(%params)->id;
+
+    my $user   = $params{user};
+    my $layout = $params{layout};
+
+    my $dashboard_rs = $self->search({
+        'me.id'          => $id,
+        'me.instance_id' => $layout->instance_id,
+        'me.user_id'     => [undef, $user->id],
     },{
         prefetch => 'widgets',
     });
@@ -27,35 +89,72 @@ sub dashboard
         return $dashboard;
     }
 
+    error __x"Dashboard {id} not found for this user", id => $id;
+}
+
+sub create_dashboard
+{   my ($self, %params) = @_;
+
+    my $type   = $params{type};
+    my $user   = $params{user};
+    my $layout = $params{layout};
+
     my $schema = $self->result_source->schema;
     my $guard = $schema->txn_scope_guard;
 
-    # First time this has been called. Create default dashboard using legacy
-    # homepage text if it exists
-    my $dashboard = $self->create({
-        instance_id => $layout->instance_id,
-    });
+    my $dashboard;
 
-    # Can't use create_related as before_create hook does not get called
-    if ($layout->homepage_text2) # Assume 2 columns of homepage
+    if ($type eq 'shared')
     {
+        # First time this has been called. Create default dashboard using legacy
+        # homepage text if it exists
+        $dashboard = $self->create({
+            instance_id => $layout->instance_id,
+        });
+
+        if ($layout->homepage_text2) # Assume 2 columns of homepage
+        {
+            $dashboard->create_related('widgets', {
+                type    => 'notice',
+                h       => 6,
+                w       => 6,
+                x       => 6,
+                y       => 0,
+                content => $layout->homepage_text2,
+            });
+        }
+        $dashboard->create_related('widgets', {
+            type    => 'notice',
+            h       => 6,
+            w       => $layout->homepage_text2 ? 6 : 12,
+            x       => 0,
+            y       => 0,
+            content => $layout->homepage_text,
+        });
+    }
+    elsif ($type eq 'personal')
+    {
+        $dashboard = $self->create({
+            instance_id => $layout->instance_id,
+            user_id     => $user->id,
+        });
+
+        my $content = "<p>Welcome to your personal dashboard</p>
+            <p>Create widgets using the Add Widget menu. Edit widgets using their
+            edit button (including this one). Drag and resize widgets as required.</p>";
+
         $dashboard->create_related('widgets', {
             type    => 'notice',
             h       => 6,
             w       => 6,
-            x       => 6,
+            x       => 0,
             y       => 0,
-            content => $layout->homepage_text2,
+            content => $content,
         });
     }
-    $dashboard->create_related('widgets', {
-        type    => 'notice',
-        h       => 6,
-        w       => $layout->homepage_text2 ? 6 : 12,
-        x       => 0,
-        y       => 0,
-        content => $layout->homepage_text,
-    });
+    else {
+        panic "Unexpected dashboard type: $type";
+    }
 
     $guard->commit;
 

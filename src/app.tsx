@@ -75,8 +75,12 @@ class App extends React.Component<any, any> {
   }
 
   fetchEditForm = async (id) => {
-    const editFormHtml = await this.props.api.getEditFormHtml(id);
-    this.setState({ loadingEditHtml: false, editError: false, editHtml: editFormHtml });
+    const editFormHtml = await this.props.api.getEditForm(id);
+    if (editFormHtml.is_error) {
+      this.setState({ loadingEditHtml: false, editError: editFormHtml.message });
+      return;
+    }
+    this.setState({ loadingEditHtml: false, editError: false, editHtml: editFormHtml.content });
   }
 
   onEditClick = id => (event) => {
@@ -262,6 +266,8 @@ class App extends React.Component<any, any> {
           widgetTypes={this.props.widgetTypes}
           addWidget={this.addWidget}
           hMargin={this.props.gridConfig.containerPadding[0]}
+          dashboards={this.props.dashboards}
+          dashboardName={this.props.dashboardName}
         />
         {this.renderModal()}
         <ReactGridLayout

@@ -424,10 +424,11 @@ prefix '/:layout_name' => sub {
         # Check access
         my $dashboard = _get_dashboard_write(route_parameters->get('dashboard_id'), $layout, $user);
 
-        # XXX Need to check whether user has permission
+        my $content = "This is a new notice widget - click edit to update the contents";
         my $widget = schema->resultset('Widget')->create({
             dashboard_id => $dashboard->id,
             type         => $type,
+            content      => $type eq 'notice' ? $content : undef,
         });
 
         return _success($widget->grid_id);
@@ -466,7 +467,7 @@ prefix '/:layout_name' => sub {
             layout => $layout,
         );
 
-        return template 'widget' => {
+        my $content = template 'widget' => {
             widget          => $widget,
             user_views      => $views->user_views,
             graphs          => $graphs->all,
@@ -476,6 +477,12 @@ prefix '/:layout_name' => sub {
         },{
             layout => undef, # Do not render page header, footer etc
         };
+
+        # Keep consistent with return type generated on error
+        return encode_json {
+            is_error => 0,
+            content  => $content,
+        };
     };
 
     put '/api/dashboard/:dashboard_id/widget/:id/edit' => require_login sub {
@@ -483,22 +490,23 @@ prefix '/:layout_name' => sub {
         my $user   = logged_in_user;
         my $widget = _get_widget_write(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user);
 
+        $widget->title(query_parameters->get('title'));
         if ($widget->type eq 'notice')
         {
-            $widget->update({
+            $widget->set_columns({
                 content => query_parameters->get('content'),
             });
         }
         elsif ($widget->type eq 'graph')
         {
-            $widget->update({
+            $widget->set_columns({
                 graph_id => query_parameters->get('graph_id'),
                 view_id  => query_parameters->get('view_id'),
             });
         }
         elsif ($widget->type eq 'table')
         {
-            $widget->update({
+            $widget->set_columns({
                 rows     => query_parameters->get('rows'),
                 view_id  => query_parameters->get('view_id'),
             });
@@ -511,7 +519,7 @@ prefix '/:layout_name' => sub {
                 color   => query_parameters->get('tl_color'),
                 overlay => query_parameters->get('tl_overlay'),
             };
-            $widget->update({
+            $widget->set_columns({
                 tl_options => encode_json($tl_options),
                 view_id    => query_parameters->get('view_id'),
             });
@@ -523,11 +531,12 @@ prefix '/:layout_name' => sub {
                 group   => query_parameters->get('globe_group'),
                 color   => query_parameters->get('globe_color'),
             };
-            $widget->update({
+            $widget->set_columns({
                 globe_options => encode_json($globe_options),
                 view_id       => query_parameters->get('view_id'),
             });
         }
+        $widget->update;
 
         return _success("Widget updated successfully");
     };
@@ -582,15 +591,12 @@ sub _get_dashboard
 sub _get_dashboard_write
 {   my ($id, $layout, $user) = @_;
     my $dashboard = _get_dashboard($id, $layout, $user);
-    if (
-        !$layout->user_can('layout')
-        || ($dashboard->user_id && $dashboard->user_id != $user->{id})
-    )
-    {
-        status 403;
-        error __x"User does not have write access to dashboard ID {id}", id => $id;
-    }
-    return $dashboard;
+    return $dashboard
+        if $layout->user_can('layout');
+    return $dashboard
+        if $dashboard->user_id && $dashboard->user_id == $user->id;
+    status 403;
+    error __x"User does not have write access to dashboard ID {id}", id => $id;
 }
 
 sub _update_dashboard

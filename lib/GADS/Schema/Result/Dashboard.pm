@@ -52,4 +52,15 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+sub name
+{   my $self = shift;
+    $self->user_id ? 'Personal' : 'Shared';
+
+}
+
+sub url
+{   my $self = shift;
+    "?did=".$self->id;
+}
+
 1;

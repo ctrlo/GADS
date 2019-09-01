@@ -29,6 +29,8 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "type",
   { data_type => "varchar", is_nullable => 1, size => 16 },
+  "title",
+  { data_type => "text", is_nullable => 1 },
   "static",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "h",
@@ -146,9 +148,6 @@ sub validate
 sub html
 {   my $self = shift;
 
-    return $self->content
-        if $self->type eq 'notice';
-
     my $layout = $self->layout
         or panic "Missing layout";
 
@@ -162,10 +161,16 @@ sub html
         layout                   => $self->layout,
     );
 
-    my $config = GADS::Config->instance;
-    my $template = Template->new(INCLUDE_PATH => $config->template_location);
+    my $params = {
+        type  => $self->type,
+        title => $self->title,
+    };
 
-    if ($self->type eq 'table')
+    if ($self->type eq 'notice')
+    {
+        $params->{content} = $self->content;
+    }
+    elsif ($self->type eq 'table')
     {
         return 'Configuration required' if !$self->view_id || !$self->rows;
         my $records = GADS::Records->new(
@@ -178,15 +183,8 @@ sub html
             #rewind => session('rewind'), # Maybe add in the future
         );
         my @columns = @{$records->columns_view};
-        my $params = {};
         $params->{records} = $records->presentation;
-        $params->{columns} = [ map $_->presentation(
-            sort => $records->sort_first,
-        ), @columns ];
-        my $output;
-        my $t = $template->process('snippets/data_table_inner.tt', $params, \$output)
-            or panic $template->error;
-        return $output;
+        $params->{columns} = [ map $_->presentation(sort => $records->sort_first), @columns ];
     }
     elsif ($self->type eq 'graph')
     {
@@ -210,15 +208,9 @@ sub html
         );
         my $options_in = encode_base64 $graph->as_json;
 
-        my $output;
-        my $params = {
-            graph_id     => $self->graph_id,
-            plot_data    => $plot_data,
-            plot_options => $options_in,
-        };
-        my $t = $template->process('snippets/data_graph_inner.tt', $params, \$output)
-            or panic $template->error;
-        return $output;
+        $params->{graph_id}     = $self->graph_id;
+        $params->{plot_data}    = $plot_data;
+        $params->{plot_options} = $options_in;
     }
     elsif ($self->type eq 'timeline')
     {
@@ -234,16 +226,10 @@ sub html
         my $tl_options = $self->tl_options_inflated;
         my $timeline = $records->data_timeline(%{$tl_options});
 
-        my $output;
-        my $params = {
-            records      => encode_base64(encode_json(delete $timeline->{items}), ''),
-            groups       => encode_base64(encode_json(delete $timeline->{groups}), ''),
-            click_to_use => 1,
-            timeline     => $timeline,
-        };
-        my $t = $template->process('snippets/data_timeline_inner.tt', $params, \$output)
-            or panic $template->error;
-        return $output;
+        $params->{records}      = encode_base64(encode_json(delete $timeline->{items}), '');
+        $params->{groups}       = encode_base64(encode_json(delete $timeline->{groups}), '');
+        $params->{click_to_use} = 1;
+        $params->{timeline}     = $timeline;
     }
     elsif ($self->type eq 'globe')
     {
@@ -261,14 +247,15 @@ sub html
             label_col_id    => $globe_options->{label},
             records_options => $records_options,
         );
-        my $output;
-        my $params = {
-            globe_data => encode_base64(encode_json($globe->data), ''),
-        };
-        my $t = $template->process('snippets/data_globe_inner.tt', $params, \$output)
-            or panic $template->error;
-        return $output;
+        $params->{globe_data} = encode_base64(encode_json($globe->data), '');
     }
+
+    my $config = GADS::Config->instance;
+    my $template = Template->new(INCLUDE_PATH => $config->template_location);
+    my $output;
+    my $t = $template->process('snippets/widget_content.tt', $params, \$output)
+        or panic $template->error;
+    return $output;
 }
 
 1;

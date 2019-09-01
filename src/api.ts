@@ -58,9 +58,9 @@ export default class ApiClient {
 
   deleteWidget = id => this.DELETE(`/widget/${id}`)
 
-  getEditFormHtml = async id => {
-    const html = await this.GET(`/widget/${id}/edit`);
-    return html.text();
+  getEditForm = async id => {
+    const response = await this.GET(`/widget/${id}/edit`);
+    return response.json();
   }
 
   saveWidget = async (url, params) => {

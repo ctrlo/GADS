@@ -37,9 +37,11 @@ if (root) {
   ReactDOM.render(
     <App
       widgets={widgets}
-      dashboardId={root.getAttribute("data-dashboard")}
+      dashboardId={root.getAttribute("data-dashboard-id")}
+      dashboardName={root.getAttribute("data-dashboard-name")}
       api={api}
       widgetTypes={JSON.parse(root.getAttribute("data-widget-types") || "[]")}
+      dashboards={JSON.parse(root.getAttribute("data-dashboards") || "[]" )}
       gridConfig={gridConfig} />,
     root,
   );
