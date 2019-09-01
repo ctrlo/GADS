@@ -5,8 +5,8 @@
     data-widget-types='["notice", "table", "graph", "timeline", "globe"]'
     data-dashboards="[% dashboards_json | html %]"
 >
-    [% FOREACH widget IN dashboard.widgets %]
-        <div class="ld-widget-container" data-grid='[% widget.grid %]'>
+    [% FOREACH widget IN dashboard.display_widgets %]
+        <div class="ld-widget-container" data-grid='[% widget.grid | html %]'>
             [% widget.html %]
         </div>
     [% END %]

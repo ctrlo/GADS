@@ -126,18 +126,6 @@ sub before_create
     }
 }
 
-sub grid
-{   my $self = shift;
-    encode_json +{
-        i      => $self->grid_id,
-        static => $self->static,
-        h      => $self->h,
-        w      => $self->w,
-        x      => $self->x,
-        y      => $self->y,
-    };
-}
-
 sub validate
 {   my $self = shift;
     $self->type('notice') if !$self->type; # XXX Temp until widget type can be defined

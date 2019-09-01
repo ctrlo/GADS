@@ -17,6 +17,14 @@
             [% ELSIF widget.type == "globe" %]
                 [% PROCESS form_globe %]
             [% END %]
+            [% IF widget.dashboard.is_shared %]
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="static" value="static"
+                            [% IF widget.static %]checked[% END %]>Fix in place for all dashboards
+                    </label>
+                </div>
+            [% END %]
         </form>
     </div>
 </div>

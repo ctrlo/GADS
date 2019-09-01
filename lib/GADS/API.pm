@@ -491,6 +491,8 @@ prefix '/:layout_name' => sub {
         my $widget = _get_widget_write(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user);
 
         $widget->title(query_parameters->get('title'));
+        $widget->static(query_parameters->get('static') ? 1 : 0)
+            if $widget->dashboard->is_shared;
         if ($widget->type eq 'notice')
         {
             $widget->set_columns({
@@ -610,10 +612,15 @@ sub _update_dashboard
 
     foreach my $widget (@$widgets)
     {
+        # Static widgets added to personal dashboards will be passed in, but we
+        # don't want to include these in the personal dashboard as they are
+        # added anyway on dashboard render
+        next if $widget->{static} && !$dashboard->is_shared;
+        # Do not update widget static status, as this does not seem to be
+        # passed in
         my $w = schema->resultset('Widget')->update_or_create({
             dashboard_id => $dashboard->id,
             grid_id      => $widget->{i},
-            static       => $widget->{static} ? 1 : 0,
             h            => $widget->{h},
             w            => $widget->{w},
             x            => $widget->{x},

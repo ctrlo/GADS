@@ -85,7 +85,7 @@ sub dashboard
     if ($dashboard_rs->count)
     {
         my $dashboard = $dashboard_rs->next;
-        $_->layout($layout) foreach $dashboard->widgets;
+        $dashboard->layout($layout);
         return $dashboard;
     }
 

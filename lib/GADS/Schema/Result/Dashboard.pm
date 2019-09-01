@@ -6,6 +6,10 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
+use JSON qw(decode_json encode_json);
+
+__PACKAGE__->mk_group_accessors('simple' => qw/layout/);
+
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
 __PACKAGE__->table("dashboard");
@@ -52,6 +56,41 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+sub display_widgets
+{   my $self = shift;
+
+    my @widgets;
+
+    # Add static widgets first, to ensure they appear first
+    push @widgets, $self->result_source->schema->resultset('Widget')->search({
+        'dashboard.instance_id' => $self->instance_id,
+        'dashboard.user_id'     => undef,
+        'me.static'             => 1,
+    },{
+        join => 'dashboard',
+    })->all
+        if !$self->is_shared;
+
+    # Then widgets part of the specific dashboard
+    push @widgets, $self->widgets;
+
+    $_->layout($self->layout) foreach @widgets;
+
+    return [ map {
+        +{
+            html => $_->html,
+            grid => encode_json {
+                i      => $_->grid_id,
+                static => !$self->is_shared && $_->static ? \1 : \0,
+                h      => $_->h,
+                w      => $_->w,
+                x      => $_->x,
+                y      => $_->y,
+            },
+        };
+    } @widgets ];
+}
+
 sub name
 {   my $self = shift;
     $self->user_id ? 'Personal' : 'Shared';
@@ -61,6 +100,11 @@ sub name
 sub url
 {   my $self = shift;
     "?did=".$self->id;
+}
+
+sub is_shared
+{   my $self = shift;
+    !$self->user_id;
 }
 
 1;
