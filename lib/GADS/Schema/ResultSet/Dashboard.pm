@@ -68,8 +68,11 @@ sub _shared_dashboard
 sub dashboard
 {   my ($self, %params) = @_;
 
-    my $id = $params{id}
-        || $self->_shared_dashboard(%params)->id;
+    my $id = $params{id};
+
+    # Check that the ID exists - it may have been deleted
+    $id = $self->_shared_dashboard(%params)->id
+        if !$id || !$self->find($params{id});
 
     my $user   = $params{user};
     my $layout = $params{layout};
