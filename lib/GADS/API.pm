@@ -533,7 +533,7 @@ sub _get_dashboard_widget_edit {
             schema => schema,
             layout => $layout,
         );
-        $widget->{graphs} = $graphs->all;
+        $params->{graphs} = $graphs->all;
     }
 
     my $content = template 'widget' => $params, {
