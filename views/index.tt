@@ -2,7 +2,11 @@
 <div id="ld-app" class="react-grid-layout" data-dashboard-id="[% dashboard.id %]"
     data-dashboard-name="[% dashboard.name | html %]"
     data-dashboard-endpoint="[% IF layout %]/[% layout.identifier %][% END %]/api/dashboard/[% dashboard.id %]"
-    data-widget-types='["notice", "table", "graph", "timeline", "globe"]'
+    [% IF layout %]
+        data-widget-types='["notice", "table", "graph", "timeline", "globe"]'
+    [% ELSE %]
+        data-widget-types='["notice"]'
+    [% END %]
     data-dashboards="[% dashboards_json | html %]"
 >
     [% FOREACH widget IN dashboard.display_widgets %]
