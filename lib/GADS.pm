@@ -676,8 +676,6 @@ any ['get', 'post'] => '/system/?' => require_login sub {
         $site->email_welcome_subject(param 'email_welcome_subject');
         $site->email_welcome_text(param 'email_welcome_text');
         $site->name(param 'name');
-        $site->homepage_text(param 'homepage_text');
-        $site->homepage_text2(param 'homepage_text2');
 
         if (process( sub { $site->update }))
         {
@@ -789,6 +787,8 @@ any ['get', 'post'] => '/table/:id' => require_role superadmin => sub {
             }
             $layout_edit->name(param 'name');
             $layout_edit->name_short(param 'name_short');
+            $layout_edit->sort_layout_id(param('sort_layout_id') || undef);
+            $layout_edit->sort_type(param 'sort_type');
             $layout_edit->set_groups([body_parameters->get_all('permissions')]);
 
             if (process(sub {$layout_edit->write}))
@@ -2147,40 +2147,6 @@ prefix '/:layout_name' => sub {
 
         $params->{breadcrumbs} = [Crumb($layout) => Crumb( $layout, '/data' => 'records' ) => Crumb( $layout, '/purge' => 'purge records' )];
         template 'purge' => $params;
-    };
-
-    any ['get', 'post'] => '/config/?' => require_login sub {
-
-        my $layout = var('layout') or pass;
-
-        my $user        = logged_in_user;
-
-        forwardHome({ danger => "You do not have permission to manage general settings"}, $layout->identifier)
-            unless $layout->user_can("layout");
-
-        my $instance = rset('Instance')->find(var('layout')->instance_id);
-
-        if (param 'update')
-        {
-            $instance->homepage_text(param 'homepage_text');
-            $instance->homepage_text2(param 'homepage_text2');
-            $instance->sort_layout_id(param('sort_layout_id') || undef);
-            $instance->sort_type(param 'sort_type');
-
-            if (process( sub { $instance->update }))
-            {
-                return forwardHome(
-                    { success => "Configuration settings have been updated successfully" }, $layout->identifier);
-            }
-        }
-
-        my @all_columns = $layout->all;
-        template 'config' => {
-            all_columns => \@all_columns,
-            instance    => $instance,
-            page        => 'config',
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, '/config' => 'manage homepage' )],
-        };
     };
 
     get '/graph/?' => require_login sub {

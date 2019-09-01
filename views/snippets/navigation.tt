@@ -116,15 +116,11 @@
                 <li [% IF page=="topic/0" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/topic/0">Add a topic</a></li>
                 <li [% IF page=="topics" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/topics/">Manage topics</a></li>
                 <li class="divider"></li>
-                <li [% IF page=="config" %]class="active"[% END %]>
-                    <a href="[% url.page %]/[% layout.identifier %]/config/">Manage homepage</a>
-                </li>
             [% END %]
-            <li [% IF page=="file" %]class="active"[% END %]>
-                <a href="[% url.page %]/file/">Manage files</a>
-            </li>
             [% IF user.permission.superadmin %]
-                <li class="divider"></li>
+                <li [% IF page=="file" %]class="active"[% END %]>
+                    <a href="[% url.page %]/file/">Manage files</a>
+                </li>
                 <li [% IF page=="system" %]class="active"[% END %]>
                     <a href="[% url.page %]/system/">System-wide settings</a>
                 </li>

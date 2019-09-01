@@ -3,22 +3,6 @@
     <div class="col-md-12">
         <form role="form" method="post">
             <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-            <label for="sort_layout_id">Default sort:</label>
-            <div class="row">
-                <div class="col-md-6">
-                    <select class="form-control" id="sort_layout_id" name="sort_layout_id">
-                        [% FOREACH column IN all_columns %]
-                            <option value="[% column.id %]" [% IF instance.sort_layout_id == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
-                        [% END %]
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <select class="form-control" id="sort_type" name="sort_type">
-                        <option value="asc" [% IF instance.sort_type == "asc" %]selected[% END %]>Ascending</option>
-                        <option value="desc" [% IF instance.sort_type == "desc" %]selected[% END %]>Descending</option>
-                    </select>
-                </div>
-            </div>
             <p></p>
             <p class="lead">
                 Customise the homepage your users see for this table. Each table has its own
