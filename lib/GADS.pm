@@ -1383,12 +1383,24 @@ prefix '/:layout_name' => sub {
 
         my $dashboard = schema->resultset('Dashboard')->dashboard(%params);
 
+        # If the shared dashboard is blank for this table then show the site
+        # dashboard
+        if ($dashboard->is_shared && $dashboard->is_empty)
+        {
+            my %params = (
+                user   => $user,
+                site   => var('site'),
+            );
+            $dashboard = schema->resultset('Dashboard')->dashboard(%params);
+        }
+
         template 'index' => {
             dashboard       => $dashboard,
             dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
             page            => 'index',
             breadcrumbs     => [Crumb($layout)],
         };
+
     };
 
     get '/data_calendar/:time' => require_login sub {

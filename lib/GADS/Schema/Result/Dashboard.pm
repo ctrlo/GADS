@@ -107,4 +107,9 @@ sub is_shared
     !$self->user_id;
 }
 
+sub is_empty
+{   my $self = shift;
+    ! $self->widgets->count;
+}
+
 1;
