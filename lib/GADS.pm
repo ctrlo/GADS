@@ -3417,6 +3417,7 @@ sub _data_graph
         user                => $user,
         search              => session('search'),
         view_limit_extra_id => current_view_limit_extra_id($user, $layout),
+        rewind              => session('rewind'),
         layout              => $layout,
         schema              => schema,
     );
