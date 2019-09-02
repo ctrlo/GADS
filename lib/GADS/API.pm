@@ -609,6 +609,7 @@ sub _del_dashboard_widget {
     my $layout = shift;
     my $user   = logged_in_user;
     _get_widget_write(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user)->delete;
+    return _success("Widget deleted successfully");
 }
 
 sub _get_widget_write
