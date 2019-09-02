@@ -1744,7 +1744,7 @@ prefix '/:layout_name' => sub {
                 );
             }
             else {
-                $params->{graphs} = GADS::Graphs->new(user => $user, schema => schema, layout => $layout)->all;
+                $params->{graphs} = GADS::Graphs->new(current_user => $user, schema => schema, layout => $layout)->all;
             }
         }
         elsif ($viewtype eq 'calendar')
@@ -2168,47 +2168,24 @@ prefix '/:layout_name' => sub {
         template 'purge' => $params;
     };
 
-    get '/graph/?' => require_login sub {
-
-        my $layout = var('layout') or pass;
-
-        my $user        = logged_in_user;
-
-        forwardHome({ danger => "You do not have permission to manage graphs" }, '')
-            unless $layout->user_can("layout");
-
-        my $graphs = GADS::Graphs->new(schema => schema, layout => $layout)->all;
-
-        my $params = {
-            layout      => $layout,
-            page        => 'graph',
-            graphs      => $graphs,
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, '/data' => 'records' ) => Crumb( $layout, '/graph' => 'graphs' )],
-        };
-
-        template 'graphs' => $params;
-    };
-
     any ['get', 'post'] => '/graph/:id' => require_login sub {
 
         my $layout = var('layout') or pass;
 
         my $user        = logged_in_user;
 
-        forwardHome({ danger => "You do not have permission to manage graphs" }, '')
-            unless $layout->user_can("layout");
-
         my $params = {
             layout => $layout,
-            page   => defined param('id') && !param('id') ? 'graph/0' : 'graph',
+            page   => 'graph',
         };
 
         my $id = param 'id';
 
         my $graph = GADS::Graph->new(
-            id     => $id,
-            layout => $layout,
-            schema => schema,
+            id           => $id,
+            layout       => $layout,
+            schema       => schema,
+            current_user => $user,
         );
 
         if (param 'delete')
@@ -2216,7 +2193,7 @@ prefix '/:layout_name' => sub {
             if (process( sub { $graph->delete }))
             {
                 return forwardHome(
-                    { success => "The graph has been deleted successfully" }, $layout->identifier.'/graph' );
+                    { success => "The graph has been deleted successfully" }, $layout->identifier.'/graphs' );
             }
         }
 
@@ -2225,12 +2202,13 @@ prefix '/:layout_name' => sub {
             my $values = params;
             $graph->$_(param $_)
                 foreach (qw/title description type set_x_axis x_axis_grouping y_axis
-                    y_axis_label y_axis_stack group_by stackseries metric_group_id as_percent/);
+                    y_axis_label y_axis_stack group_by stackseries metric_group_id as_percent
+                    is_shared group_id/);
             if(process( sub { $graph->write }))
             {
                 my $action = param('id') ? 'updated' : 'created';
                 return forwardHome(
-                    { success => "Graph has been $action successfully" }, $layout->identifier.'/graph' );
+                    { success => "Graph has been $action successfully" }, $layout->identifier.'/graphs' );
             }
         }
 
@@ -2246,7 +2224,7 @@ prefix '/:layout_name' => sub {
         my $graph_id   = $id ? $graph->id : 0;
         $params->{breadcrumbs}   = [
             Crumb($layout) => Crumb( $layout, '/data' => 'records' )
-                => Crumb( $layout, '/graph' => 'graphs' ) => Crumb( $layout, "/graph/$graph_id" => $graph_name )
+                => Crumb( $layout, '/graphs' => 'graphs' ) => Crumb( $layout, "/graph/$graph_id" => $graph_name )
         ],
 
         template 'graph' => $params;
@@ -2271,7 +2249,7 @@ prefix '/:layout_name' => sub {
             page        => 'metric',
             metrics     => $metrics,
             breadcrumbs => [Crumb($layout) => Crumb( $layout, '/data' => 'records' )
-                => Crumb( $layout, '/graph' => 'graphs' )
+                => Crumb( $layout, '/graphs' => 'graphs' )
                 => Crumb( $layout, '/metrics' => 'metrics' )
             ],
         };
@@ -2355,7 +2333,7 @@ prefix '/:layout_name' => sub {
         my $metric_name = $id ? $metricgroup->name : "add a metric";
         my $metric_id   = $id ? $metricgroup->id : 0;
         $params->{breadcrumbs} = [Crumb($layout) => Crumb( $layout, '/data' => 'records' )
-                => Crumb( $layout, '/graph' => 'graphs' )
+                => Crumb( $layout, '/graphs' => 'graphs' )
                 => Crumb( $layout, '/metrics' => 'metrics' ) => Crumb( $layout, "/metric/$metric_id" => $metric_name )
         ],
 
@@ -3169,7 +3147,7 @@ prefix '/:layout_name' => sub {
         };
     };
 
-    any ['get', 'post'] => '/mygraphs/?' => require_login sub {
+    any ['get', 'post'] => '/graphs/?' => require_login sub {
 
         my $layout = var('layout') or pass;
         my $user   = logged_in_user;
@@ -3185,15 +3163,16 @@ prefix '/:layout_name' => sub {
         }
 
         my $graphs = GADS::Graphs->new(
-            user   => $user,
-            schema => schema,
-            layout => $layout,
+            current_user => $user,
+            schema       => schema,
+            layout       => $layout,
         );
         my $all_graphs = $graphs->all;
-        template 'mygraphs' => {
+
+        template 'graphs' => {
             graphs      => $all_graphs,
-            page        => 'mygraphs',
-            breadcrumbs => [Crumb($layout) => Crumb( '/mygraphs' => 'my graphs' )],
+            page        => 'graphs',
+            breadcrumbs => [Crumb($layout) => Crumb( $layout, '/data' => 'records' ) => Crumb( $layout, '/graph' => 'graphs' )],
         };
     };
 

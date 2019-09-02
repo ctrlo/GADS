@@ -160,7 +160,7 @@
                     </div>
                 [% ELSIF viewtype == "graph" %]
                     <div class="btn-group">
-                        <a href="[% url.page %]/[% layout.identifier %]/mygraphs/" class="btn btn-default" role="button">Select graphs...</a>
+                        <a href="[% url.page %]/[% layout.identifier %]/graphs/" class="btn btn-default" role="button">Select graphs...</a>
                     </div>
                 [% END %]
             </div>

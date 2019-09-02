@@ -33,6 +33,10 @@ has layout => (
     is => 'rw',
 );
 
+has current_user => (
+    is => 'ro',
+);
+
 # Internal DBIC object of graph
 has _graph => (
     is      => 'rw',
@@ -64,6 +68,9 @@ has set_values => (
         $self->y_axis_stack($original->{y_axis_stack});
         $self->description($original->{description});
         $self->stackseries($original->{stackseries});
+        $self->is_shared($original->{is_shared});
+        $self->user_id($original->{user_id});
+        $self->group_id($original->{group_id});
         $self->as_percent($original->{as_percent});
         $self->type($original->{type});
         $self->group_by($original->{group_by});
@@ -154,6 +161,25 @@ has stackseries => (
     builder => sub { $_[0]->_graph && $_[0]->_graph->stackseries },
 );
 
+has is_shared => (
+    is      => 'rw',
+    lazy    => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    builder => sub { $_[0]->_graph && $_[0]->_graph->is_shared },
+);
+
+has user_id => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->_graph && $_[0]->_graph->user_id },
+);
+
+has group_id => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->_graph && $_[0]->_graph->group_id },
+);
+
 has as_percent => (
     is      => 'rw',
     lazy    => 1,
@@ -200,8 +226,25 @@ has metric_group_id => (
 
 # Whether a user has the graph selected. Used by GADS::Graphs
 has selected => (
-    is  => 'rw',
+    is     => 'rw',
+    isa    => Bool,
+    coerce => sub { $_[0] ? 1 : 0 },
 );
+
+sub writable_shared
+{   my $self = shift;
+    return 1 if $self->layout->user_can("layout");
+    return 1 if $self->group_id && $self->layout->user_can("view_group");
+    return 0;
+}
+
+sub writable
+{   my $self = shift;
+    return 1 if $self->writable_shared;
+    return 1 if !$self->id && !$self->is_shared; # new graph
+    return 1 if $self->user_id && $self->current_user->id == $self->user_id;
+    return 0;
+}
 
 sub as_json
 {   my $self = shift;
@@ -218,6 +261,9 @@ sub as_json
 sub delete
 {   my $self = shift;
 
+    error __"You do not have permission to delete this graph"
+        if !$self->writable;
+
     my $schema = $self->schema;
     my $graph = $schema->resultset('Graph')->find($self->id);
     $schema->resultset('UserGraph')->search({ graph_id => $self->id })->delete;
@@ -227,6 +273,9 @@ sub delete
 # Write (updated) values to the database
 sub write
 {   my $self = shift;
+
+    error __"You do not have permission to write to this graph"
+        if !$self->writable;
 
     my $newgraph;
     $newgraph->{title}           = $self->title or error __"Please enter a title";
@@ -263,6 +312,16 @@ sub write
         or error __x"Invalid metric group ID {id}", id => $self->metric_group_id;
 
     $newgraph->{stackseries}     = $self->stackseries;
+
+    error __"You do not have permission to create shared graphs"
+        if $self->is_shared && !$self->writable_shared;
+
+    $newgraph->{is_shared}       = $self->is_shared;
+
+    $newgraph->{group_id}        = $self->group_id || undef;
+    $newgraph->{user_id}         = $self->current_user->id
+        unless $self->is_shared;
+
     $newgraph->{as_percent}      = $self->as_percent;
 
     $newgraph->{type}            = $self->type;
@@ -327,6 +386,18 @@ sub import_hash
         old => $self->stackseries, new => $values->{stackseries}, name => $self->title
             if $options{report_only} && $self->stackseries != $values->{stackseries};
     $self->stackseries($values->{stackseries});
+    notice __x"Updating is_shared from {old} to {new} for graph {name}",
+        old => $self->is_shared, new => $values->{is_shared}, name => $self->title
+            if $options{report_only} && $self->is_shared != $values->{is_shared};
+    $self->is_shared($values->{is_shared});
+    notice __x"Updating user_id from {old} to {new} for graph {name}",
+        old => $self->user_id, new => $values->{user_id}, name => $self->title
+            if $options{report_only} && ($self->user_id || 0) != ($values->{user_id} || 0);
+    $self->user_id($values->{user_id});
+    notice __x"Updating group_id from {old} to {new} for graph {name}",
+        old => $self->group_id, new => $values->{group_id}, name => $self->title
+            if $options{report_only} && ($self->group_id || 0) != ($values->{group_id} || 0);
+    $self->group_id($values->{group_id});
     notice __x"Updating as_percent from {old} to {new} for graph {name}",
         old => $self->as_percent, new => $values->{as_percent}, name => $self->title
             if $options{report_only} && $self->as_percent != $values->{as_percent};
@@ -354,6 +425,9 @@ sub export_hash
         x_axis_grouping => $self->x_axis_grouping,
         group_by        => $self->group_by,
         stackseries     => $self->stackseries,
+        is_shared       => $self->is_shared,
+        user_id         => $self->user_id,
+        group_id        => $self->group_id,
         as_percent      => $self->as_percent,
         type            => $self->type,
         metric_group_id => $self->metric_group_id,

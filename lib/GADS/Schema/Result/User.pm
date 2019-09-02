@@ -623,6 +623,43 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+# Groups that this user should be able to see for the purposes of things like
+# creating shared graphs
+sub groups_viewable
+{   my $self = shift;
+
+    my $schema = $self->result_source->schema;
+
+    # Superadmin, all groups
+    if ($self->permission->{superadmin})
+    {
+        return $schema->resultset('Group')->all;
+    }
+
+    my %groups;
+
+    # Layout admin, just groups in their layout(s)
+    my $instance_ids = $schema->resultset('InstanceGroup')->search({
+        'me.permission'       => 'layout',
+        'user_groups.user_id' => $self->id,
+    },{
+        join => {
+            group => 'user_groups',
+        },
+    })->get_column('me.instance_id');
+
+    $groups{$_->group_id} = $_->group foreach $schema->resultset('LayoutGroup')->search({
+        instance_id => { -in => $instance_ids->as_query },
+    },{
+        join => 'layout',
+    })->all;
+
+    # Normal users, just their groups
+    $groups{$_->group_id} = $_->group foreach $self->user_groups;
+
+    return values %groups;
+}
+
 =head2 user_lastrecords
 
 Type: has_many

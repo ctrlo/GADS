@@ -503,8 +503,17 @@ sub _build_layout
 sub _build_group
 {   my $self = shift;
     return if $self->no_groups;
-    my $group  = GADS::Group->new(schema => $self->schema);
-    $group->from_id;
+    my $group = GADS::Group->new(schema => $self->schema);
+    my $grs = $self->schema->resultset('Group')->search({
+        name => 'group1',
+    });
+    if ($grs->count)
+    {
+        $group->from_id($grs->next->id);
+    }
+    else {
+        $group->from_id;
+    }
     $group->name('group1');
     $group->write;
     $group;

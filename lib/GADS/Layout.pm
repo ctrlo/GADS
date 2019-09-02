@@ -1112,7 +1112,7 @@ sub import_after_all
 sub purge
 {   my $self = shift;
 
-    GADS::Graphs->new(schema => $self->schema, layout => $self)->purge;
+    GADS::Graphs->new(schema => $self->schema, layout => $self, current_user => $self->user)->purge;
     GADS::MetricGroups->new(schema => $self->schema, instance_id => $self->instance_id)->purge;
     GADS::Views->new(schema => $self->schema, instance_id => $self->instance_id, user => undef, layout => $self)->purge;
 

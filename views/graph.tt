@@ -3,6 +3,32 @@
     <input type="hidden" name="csrf_token" value="[% csrf_token %]">
     <div class="row">
         <div class="col-md-6">
+
+            [% IF layout.user_can("layout") OR layout.user_can("view_group") %]
+                <div class="form-group">
+                    <div class="checkbox">
+                        <label>
+                            <input id="is_shared" type="checkbox" name="is_shared" [% IF graph.is_shared %]checked[% END %]>Shared graph
+                        </label>
+                    </div>
+                    <div id="group_id_div">
+                        <label for="group_id">Share with:</label>
+                        <select class="form-control" id="group_id" name="group_id">
+                            [% IF layout.user_can("layout") %]
+                                <option value="" [% IF NOT graph.group_id %]selected[% END %]>&lt;All users&gt;</option>
+                            [% END %]
+                            [% IF layout.user_can("view_group") OR layout.user_can("layout") %]
+                                [% FOREACH group IN user.groups_viewable %]
+                                    <option value="[% group.id %]"
+                                        [% IF graph.group_id == group.id %]selected[% END %]>[% group.name | html %]
+                                    </option>
+                                [% END %]
+                            [% END %]
+                        </select>
+                    </div>
+                </div>
+            [% END %]
+
             [% IF graph.id %]
                 <input type="hidden" name="id" value="[% graph.id %]">
             [% END %]

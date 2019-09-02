@@ -1988,6 +1988,12 @@ Linkspace.data_calendar = function () {
     setupOtherUserViews();
 }
 
+Linkspace.graph = function () {
+    $('#is_shared').change(function () {
+        $('#group_id_div').toggle(this.checked);
+    }).change();
+}
+
 Linkspace.layout = function (context) {
     $('.tab-interface').each(Linkspace.TabPanel);
 

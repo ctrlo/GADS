@@ -496,8 +496,9 @@ foreach my $multivalue (0..1)
         }
 
         my $graph = GADS::Graph->new(
-            layout => $layout,
-            schema => $schema,
+            layout       => $layout,
+            schema       => $schema,
+            current_user => $sheet->user,
         );
         $graph->title($g->{name});
         $graph->type($g->{type});
@@ -582,6 +583,7 @@ my $graph = GADS::Graph->new(
     y_axis_stack => 'sum',
     layout       => $sheet->layout,
     schema       => $sheet->schema,
+    current_user => $sheet->user,
 );
 $graph->write;
 

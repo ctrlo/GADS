@@ -15,7 +15,7 @@
 
     [% UNLESS count %]
     <p>No graphs are selected for display. Please use the
-    <a href="[% url.page %]/[% layout.identifier %]/mygraphs/">Select graphs</a> button above to add graphs for display.</p>
+    <a href="[% url.page %]/[% layout.identifier %]/graphs/">Select graphs</a> button above to add graphs for display.</p>
     [% END %]
 [% END %]
 

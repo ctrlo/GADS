@@ -529,11 +529,11 @@ sub _get_dashboard_widget_edit {
     if ($widget->type eq 'graph')
     {
         my $graphs = GADS::Graphs->new(
-            user   => $user,
-            schema => schema,
-            layout => $layout,
+            current_user => $user,
+            schema       => schema,
+            layout       => $layout,
         );
-        $params->{graphs} = $graphs->all;
+        $params->{graphs} = $graphs;
     }
 
     my $content = template 'widget' => $params, {

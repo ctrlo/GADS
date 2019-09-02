@@ -1,9 +1,6 @@
 use utf8;
 package GADS::Schema::Result::Graph;
 
-# Created by DBIx::Class::Schema::Loader
-# DO NOT MODIFY THE FIRST PART OF THIS FILE
-
 =head1 NAME
 
 GADS::Schema::Result::Graph
@@ -154,6 +151,12 @@ __PACKAGE__->add_columns(
   "metric_group",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "instance_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "is_shared",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "user_id",
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
+  "group_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
@@ -306,10 +309,28 @@ __PACKAGE__->belongs_to(
   },
 );
 
+__PACKAGE__->belongs_to(
+  "user",
+  "GADS::Schema::Result::User",
+  { id => "user_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
 
-# Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
-# DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:oopGdIbM/BeViDcYja0kXg
+__PACKAGE__->belongs_to(
+  "group",
+  "GADS::Schema::Result::Group",
+  { id => "group_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
 
-
-# You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

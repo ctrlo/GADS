@@ -75,10 +75,23 @@
             [% IF NOT widget.graph_id %]
                 <option></option>
             [% END %]
-            [% FOREACH graph IN graphs %]
-                <option value="[% graph.id %]" [% IF widget.graph_id == graph.id %]selected[% END %]>
-                    [% graph.title | html %]
-                </option>
+            [% IF graphs.all_personal.size %]
+                <optgroup label="Personal graphs">
+                    [% FOREACH graph IN graphs.all_personal %]
+                        <option value="[% graph.id %]" [% IF widget.graph_id == graph.id %]selected[% END %]>
+                            [% graph.title | html %]
+                        </option>
+                    [% END %]
+                </optgroup>
+            [% END %]
+            [% IF graphs.all_shared.size %]
+                <optgroup label="Shared graphs">
+                    [% FOREACH graph IN graphs.all_shared %]
+                        <option value="[% graph.id %]" [% IF widget.graph_id == graph.id %]selected[% END %]>
+                            [% graph.title | html %]
+                        </option>
+                    [% END %]
+                </optgroup>
             [% END %]
         </select>
     </div>

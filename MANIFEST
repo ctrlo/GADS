@@ -2495,7 +2495,6 @@ views/login.tt
 views/metric.tt
 views/metrics.tt
 views/modal_dialog.tt
-views/mygraphs.tt
 views/purge.tt
 views/record.tt
 views/record_body.tt

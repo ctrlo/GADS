@@ -214,7 +214,7 @@
             <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
-            <li [% IF page=="graph" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/graph/">Manage graphs</a></li>
+            <li [% IF page=="graph" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/graphs/">Manage graphs</a></li>
             <li [% IF page=="graph/0" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/graph/0">Add a graph</a></li>
             <li [% IF page=="metric" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/metrics/">Metrics</a></li>
         </ul>
@@ -273,7 +273,7 @@
                         [% END %]
                         [% IF user.permission.superadmin %]
                             <li [% IF page=="table" %]class="active"[% END %]><a href="[% url.page %]/table/">Tables</a></li>
-                            <li [% IF page=="graph" %]class="active"[% END %]><a href="[% url.page %]/graph/">Graphs</a></li>
+                            <li [% IF page=="graphs" %]class="active"[% END %]><a href="[% url.page %]/graphs/">Graphs</a></li>
                             <li [% IF page=="metric" %]class="active"[% END %]><a href="[% url.page %]/metrics/">Metrics</a></li>
                             <li [% IF page=="config" %]class="active"[% END %]><a href="[% url.page %]/config/">General Settings</a></li>
                         [% END %]
@@ -320,7 +320,6 @@
                 </button>
                 <ul class="dropdown-menu" id="user-menu">
                     <li><a href="[% url.page %]/account/detail">My details</a></li>
-                    <li><a href="[% url.page %]/account/graph">My graphs</a></li>
                     <li class="divider"></li>
                     <li><a href="[% url.page %]/logout">Logout</a></li>
                 </ul>

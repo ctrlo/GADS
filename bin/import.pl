@@ -390,6 +390,12 @@ foreach my $l (@all_layouts)
         $g->{metric_group_id} = $metrics_mapping->{$g->{metric_group_id}}
             if $g->{metric_group_id};
 
+        # And users and groups where applicable
+        $g->{user_id} = $user_mapping->{$g->{user_id}}
+            if $user_mapping && $g->{user_id};
+        $g->{group_id} = $group_mapping->{$g->{group_id}}
+            if $group_mapping && $g->{group_id};
+
         my $graph;
         if ($merge || $report_only)
         {
