@@ -16,8 +16,6 @@
   }
 
   &:hover {
-    border-color: #e8e8e8;
-
     .ld-draggable-handle,
     .react-resizable-handle {
       opacity: 1;
@@ -26,6 +24,14 @@
     .ld-edit-button {
       background-color: #ebebeb !important;
       opacity: 1;
+    }
+  }
+}
+
+.react-grid-layout--editable {
+  .ld-widget-container {
+    &:hover {
+      border-color: #e8e8e8;
     }
   }
 }

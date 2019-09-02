@@ -184,8 +184,10 @@ class App extends React.Component<any, any> {
     this.state.widgets.map(widget => (
       <div key={widget.config.i} className="ld-widget-container">
         <div dangerouslySetInnerHTML={{ __html: widget.html }} />
-        <button className="ld-edit-button btn btn-sm btn-primary" onClick={this.onEditClick(widget.config.i)}>Edit</button>
-        <span className="ld-draggable-handle"><i className="fa fa-arrows"></i></span>
+        {this.props.readOnly ? null : <React.Fragment>
+          <button className="ld-edit-button btn btn-sm btn-primary" onClick={this.onEditClick(widget.config.i)}>Edit</button>
+          <span className="ld-draggable-handle"><i className="fa fa-arrows"></i></span>
+        </React.Fragment>}
       </div>
     ))
   )
@@ -268,9 +270,13 @@ class App extends React.Component<any, any> {
           hMargin={this.props.gridConfig.containerPadding[0]}
           dashboards={this.props.dashboards}
           dashboardName={this.props.dashboardName}
+          readOnly={this.props.readOnly}
         />
         {this.renderModal()}
         <ReactGridLayout
+          className={`react-grid-layout ${this.props.readOnly ? "" : "react-grid-layout--editable"}`}
+          isDraggable={!this.props.readOnly}
+          isResizable={!this.props.readOnly}
           draggableHandle=".ld-draggable-handle"
           useCSSTransforms={false}
           layout={this.state.layout}
