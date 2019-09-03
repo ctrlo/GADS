@@ -382,6 +382,7 @@ get '/' => require_login sub {
     my $dashboard = schema->resultset('Dashboard')->dashboard(%params);
 
     template 'index' => {
+        readonly        => $dashboard->is_shared && !$user->permission->{superadmin},
         dashboard       => $dashboard,
         dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
         page            => 'index',
@@ -1395,6 +1396,7 @@ prefix '/:layout_name' => sub {
         }
 
         template 'index' => {
+            readonly        => $dashboard->is_shared && !$layout->user_can('layout'),
             dashboard       => $dashboard,
             dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
             page            => 'index',
