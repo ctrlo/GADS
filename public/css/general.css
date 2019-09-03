@@ -55,6 +55,9 @@
 
 .ld-modal__content-container {
   min-height: 100px;
+  max-height: 80vh;
+  max-height: calc(100vh - 120px);
+  overflow-y: scroll;
   position: relative;
   padding: 15px; }
 
