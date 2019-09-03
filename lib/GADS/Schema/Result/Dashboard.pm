@@ -93,8 +93,13 @@ sub display_widgets
 
 sub name
 {   my $self = shift;
-    $self->user_id ? 'Personal' : 'Shared';
-
+    $self->user_id && $self->instance_id
+        ? $self->instance->name." dashboard (personal)"
+        : $self->instance_id
+        ? $self->instance->name." dashboard (shared)"
+        : $self->user_id
+        ? 'Site dashboard (personal)'
+        : 'Site dashboard (shared)';
 }
 
 sub url

@@ -29,24 +29,42 @@ sub _all_user
     my $user   = $params{user};
     my $layout = $params{layout};
 
-    # A user should have at least a personal dashboard and a shared dashboard.
+    # A user should have at least a personal dashboard, a table shared
+    # dashboard and a site dashboard.
     # If they don't have a personal dashboard, then create a copy of the shared
     # dashboard.
 
     my $schema = $self->result_source->schema;
     my $guard = $schema->txn_scope_guard;
 
-    my @dashboards = ($self->_shared_dashboard(%params));
+    my @dashboards;
 
-    my $dashboard = $self->search({
-        'me.instance_id' => $layout && $layout->instance_id,
+    # Site shared, only show if populated or superadmin
+    my $dash = $self->_shared_dashboard(%params, layout => undef);
+    push @dashboards, $dash if !$dash->is_empty || $user->permission->{superadmin};
+
+    # Site personal
+    $dash = $self->search({
+        'me.instance_id' => undef,
         'me.user_id'     => $user->id,
     })->next;
+    $dash ||= $self->create_dashboard(%params, layout => undef, type => 'personal');
+    push @dashboards, $dash;
 
-    $dashboard = $self->create_dashboard(%params, type => 'personal')
-        if !$dashboard;
+    # Table shared
+    if ($layout)
+    {
+        $dash = $self->_shared_dashboard(%params);
+        push @dashboards, $dash if !$dash->is_empty || $layout->user_can('layout');
 
-    push @dashboards, $dashboard;
+        $dash = $self->search({
+            'me.instance_id' => $layout->instance_id,
+            'me.user_id'     => $user->id,
+        })->next;
+        $dash ||= $self->create_dashboard(%params, type => 'personal');
+
+        push @dashboards, $dash;
+    }
 
     $guard->commit;
 
@@ -78,9 +96,8 @@ sub dashboard
     my $layout = $params{layout};
 
     my $dashboard_rs = $self->search({
-        'me.id'          => $id,
-        'me.instance_id' => $layout && $layout->instance_id,
-        'me.user_id'     => [undef, $user->id],
+        'me.id'      => $id,
+        'me.user_id' => [undef, $user->id],
     },{
         prefetch => 'widgets',
     });
