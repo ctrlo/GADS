@@ -1,6 +1,79 @@
-.ld-widget-container{position:relative;overflow:hidden;border:1px solid transparent}.ld-widget-container .ld-draggable-handle,.ld-widget-container .react-resizable-handle{transition:opacity 0.2s;opacity:0.2}.ld-widget-container .ld-edit-button{transition:opacity 0.2s, background-color 0.2s;background-color:transparent !important;opacity:0.2}.ld-widget-container:hover{border-color:#e8e8e8}.ld-widget-container:hover .ld-draggable-handle,.ld-widget-container:hover .react-resizable-handle{opacity:1}.ld-widget-container:hover .ld-edit-button{background-color:#ebebeb !important;opacity:1}.ld-draggable-handle{position:absolute;width:20px;height:20px;bottom:0;right:20px;cursor:move}.ld-edit-button{position:absolute;top:8px;right:8px}.ld-modal__header{padding:14px 12px;position:relative;min-width:400px;border-bottom:1px solid grey}.ld-modal__footer{padding:8px 12px;position:relative;border-top:1px solid grey}.ld-modal__right-container{position:absolute;right:12px;top:8px}.ld-modal__right-container>*{margin-right:12px}.ld-modal__right-container>*:last-child{margin-right:0}.ld-modal__content-container{min-height:100px;position:relative;padding:15px}.ld-modal__loading{position:absolute;top:50%;left:50%;margin-right:-50%;transform:translate(-50%, -50%)}.ReactModal__Body--open{overflow-y:hidden}
+.ld-widget-container {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent; }
+  .ld-widget-container .ld-draggable-handle,
+  .ld-widget-container .ld-edit-button,
+  .ld-widget-container .react-resizable-handle {
+    transition: opacity 0.2s;
+    opacity: 0.2;
+    color: #333; }
+  .ld-widget-container:hover .ld-draggable-handle,
+  .ld-widget-container:hover .ld-edit-button,
+  .ld-widget-container:hover .react-resizable-handle {
+    opacity: 1; }
 
-.ld-header-container{text-align:right}
+.ld-widget-container--editable:hover {
+  border-color: #e8e8e8; }
+
+.ld-draggable-handle,
+.ld-edit-button {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  bottom: 0; }
+
+.ld-draggable-handle {
+  right: 20px;
+  cursor: move; }
+
+.ld-edit-button {
+  right: 44px;
+  cursor: pointer; }
+
+.ld-modal__header {
+  padding: 14px 12px;
+  position: relative;
+  min-width: 400px;
+  border-bottom: 1px solid grey; }
+
+.ld-modal__footer {
+  padding: 8px 12px;
+  position: relative;
+  border-top: 1px solid grey; }
+
+.ld-modal__right-container {
+  position: absolute;
+  right: 12px;
+  top: 8px; }
+  .ld-modal__right-container > * {
+    margin-right: 12px; }
+    .ld-modal__right-container > *:last-child {
+      margin-right: 0; }
+
+.ld-modal__content-container {
+  min-height: 100px;
+  max-height: 80vh;
+  max-height: calc(100vh - 120px);
+  overflow-y: scroll;
+  position: relative;
+  padding: 15px; }
+
+.ld-modal__loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-right: -50%;
+  transform: translate(-50%, -50%); }
+
+.ReactModal__Body--open {
+  overflow-y: hidden; }
+
+.ld-header-container {
+  text-align: right; }
+  .ld-header-container .spinner {
+    display: inline-block;
+    margin-right: 10px; }
 
 .react-grid-layout {
   position: relative;

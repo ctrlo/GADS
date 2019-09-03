@@ -6,6 +6,7 @@ import Modal from "react-modal";
 import RGL, { WidthProvider } from "react-grid-layout";
 
 import Header from "./header";
+import Widget from './widget';
 
 declare global {
   interface Window {
@@ -48,6 +49,7 @@ class App extends React.Component<any, any> {
       activeItem: 0,
       editHtml: "",
       editError: null,
+      loading: false,
       loadingEditHtml: true,
     };
   }
@@ -85,8 +87,12 @@ class App extends React.Component<any, any> {
 
   onEditClick = id => (event) => {
     event.preventDefault();
-    this.fetchEditForm(id);
+    this.showEditForm(id);
+  }
+
+  showEditForm = (id) => {
     this.setState({ editModalOpen: true, loadingEditHtml: true, activeItem: id });
+    this.fetchEditForm(id);
   }
 
   closeModal = () => {
@@ -155,8 +161,10 @@ class App extends React.Component<any, any> {
 
   // eslint-disable-next-line no-unused-vars
   addWidget = async (type) => {
+    this.setState({loading: true});
     const result = await this.props.api.createWidget(type)
     if (result.error) {
+      this.setState({loading: false});
       alert(result.message);
       return;
     }
@@ -176,16 +184,16 @@ class App extends React.Component<any, any> {
         html: "Loading...",
       }),
       layout: newLayout,
+      loading: false,
     }, () => this.updateWidgetHtml(id));
     this.props.api.saveLayout(this.props.dashboardId, newLayout);
+    this.showEditForm(id);
   }
 
   generateDOM = () => (
     this.state.widgets.map(widget => (
-      <div key={widget.config.i} className="ld-widget-container">
-        <div dangerouslySetInnerHTML={{ __html: widget.html }} />
-        <button className="ld-edit-button btn btn-sm btn-primary" onClick={this.onEditClick(widget.config.i)}>Edit</button>
-        <span className="ld-draggable-handle"><i className="fa fa-arrows"></i></span>
+      <div key={widget.config.i} className={`ld-widget-container ${this.props.readOnly || widget.config.static ? "" : "ld-widget-container--editable"}`}>
+        <Widget key={widget.config.i} widget={widget} readOnly={this.props.readOnly || widget.config.static} onEditClick={this.onEditClick(widget.config.i)} />
       </div>
     ))
   )
@@ -268,9 +276,14 @@ class App extends React.Component<any, any> {
           hMargin={this.props.gridConfig.containerPadding[0]}
           dashboards={this.props.dashboards}
           dashboardName={this.props.dashboardName}
+          readOnly={this.props.readOnly}
+          loading={this.state.loading}
         />
         {this.renderModal()}
         <ReactGridLayout
+          className={`react-grid-layout ${this.props.readOnly ? "" : "react-grid-layout--editable"}`}
+          isDraggable={!this.props.readOnly}
+          isResizable={!this.props.readOnly}
           draggableHandle=".ld-draggable-handle"
           useCSSTransforms={false}
           layout={this.state.layout}

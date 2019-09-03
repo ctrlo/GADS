@@ -1557,8 +1557,9 @@ var setupGlobe = function (container) {
     Plotly.newPlot(container.get(0), data, layout, options);
 };
 
-var setupTippy = function () {
-    tippy('.timeline-foreground', {
+var setupTippy = function (context) {
+    var tippyContext = context || document;
+    tippy(tippyContext.querySelectorAll('.timeline-foreground'), {
         target: '.timeline-tippy',
         theme: 'light',
         onShown: function (e) {
@@ -1575,7 +1576,6 @@ var setupTippy = function () {
 };
 
 var setupTimeline = function (container, options_in) {
-
     var records_base64 = container.data('records');
     var json = base64.decode(records_base64);
     var items = new timeline.DataSet(JSON.parse(json));
@@ -2117,21 +2117,19 @@ Linkspace.layout = function (context) {
 
 Linkspace.index = function (context) {
     $(document).ready(function () {
-        if (context === undefined) {
-            $('.dashboard-graph').each(function () {
-                var graph = $(this);
-                var graph_data = base64.decode(graph.data('plot-data'));
-                var options_in = base64.decode(graph.data('plot-options'));
-                do_plot_json(graph_data, options_in);
-            });
-            $('.visualization').each(function () {
-                setupTimeline($(this), {});
-            });
-            $('.globe').each(function () {
-                setupGlobe($(this));
-            });
-            setupTippy();
-        }
+        $('.dashboard-graph', context).each(function () {
+            var graph = $(this);
+            var graph_data = base64.decode(graph.data('plot-data'));
+            var options_in = base64.decode(graph.data('plot-options'));
+            do_plot_json(graph_data, options_in);
+        });
+        $('.visualization', context).each(function () {
+            setupTimeline($(this), {});
+        });
+        $('.globe', context).each(function () {
+            setupGlobe($(this));
+        });
+        setupTippy(context);
     });
 }
 

@@ -39,6 +39,7 @@ if (root) {
       widgets={widgets}
       dashboardId={root.getAttribute("data-dashboard-id")}
       dashboardName={root.getAttribute("data-dashboard-name")}
+      readOnly={root.getAttribute("data-dashboard-read-only") === "true"}
       api={api}
       widgetTypes={JSON.parse(root.getAttribute("data-widget-types") || "[]")}
       dashboards={JSON.parse(root.getAttribute("data-dashboards") || "[]" )}

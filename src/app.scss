@@ -4,45 +4,44 @@
   border: 1px solid transparent;
 
   .ld-draggable-handle,
+  .ld-edit-button,
   .react-resizable-handle {
     transition: opacity 0.2s;
     opacity: 0.2;
-  }
-
-  .ld-edit-button {
-    transition: opacity 0.2s, background-color 0.2s;
-    background-color: transparent !important;
-    opacity: 0.2;
+    color: #333;
   }
 
   &:hover {
-    border-color: #e8e8e8;
-
     .ld-draggable-handle,
+    .ld-edit-button,
     .react-resizable-handle {
-      opacity: 1;
-    }
-
-    .ld-edit-button {
-      background-color: #ebebeb !important;
       opacity: 1;
     }
   }
 }
 
-.ld-draggable-handle {
+.ld-widget-container--editable {
+  &:hover {
+    border-color: #e8e8e8;
+  }
+}
+
+.ld-draggable-handle,
+.ld-edit-button {
   position: absolute;
   width: 20px;
   height: 20px;
   bottom: 0;
+}
+
+.ld-draggable-handle {
   right: 20px;
   cursor: move;
 }
 
 .ld-edit-button {
-  position: absolute;
-  top: 8px;
-  right: 8px;
+  right: 44px;
+  cursor: pointer;
 }
 
 .ld-modal__header {
@@ -72,6 +71,9 @@
 
 .ld-modal__content-container {
   min-height: 100px;
+  max-height: 80vh;
+  max-height: calc(100vh - 120px); // 120px = height of header and footer combined with some margin
+  overflow-y: scroll;
   position: relative;
   padding: 15px;
 }
