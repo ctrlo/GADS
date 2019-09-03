@@ -194,7 +194,7 @@ class App extends React.Component<any, any> {
       <div key={widget.config.i} className={`ld-widget-container ${this.props.readOnly || widget.config.static ? "" : "ld-widget-container--editable"}`}>
         <div dangerouslySetInnerHTML={{ __html: widget.html }} />
         {this.props.readOnly || widget.config.static ? null : <React.Fragment>
-          <button className="ld-edit-button btn btn-sm btn-primary" onClick={this.onEditClick(widget.config.i)}>Edit</button>
+          <a className="ld-edit-button" onClick={this.onEditClick(widget.config.i)}><i className="fa fa-edit"></i></a>
           <span className="ld-draggable-handle"><i className="fa fa-arrows"></i></span>
         </React.Fragment>}
       </div>
