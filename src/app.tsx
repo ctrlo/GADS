@@ -6,6 +6,7 @@ import Modal from "react-modal";
 import RGL, { WidthProvider } from "react-grid-layout";
 
 import Header from "./header";
+import Widget from './widget';
 
 declare global {
   interface Window {
@@ -192,11 +193,7 @@ class App extends React.Component<any, any> {
   generateDOM = () => (
     this.state.widgets.map(widget => (
       <div key={widget.config.i} className={`ld-widget-container ${this.props.readOnly || widget.config.static ? "" : "ld-widget-container--editable"}`}>
-        <div dangerouslySetInnerHTML={{ __html: widget.html }} />
-        {this.props.readOnly || widget.config.static ? null : <React.Fragment>
-          <a className="ld-edit-button" onClick={this.onEditClick(widget.config.i)}><i className="fa fa-edit"></i></a>
-          <span className="ld-draggable-handle"><i className="fa fa-arrows"></i></span>
-        </React.Fragment>}
+        <Widget key={widget.config.i} widget={widget} readOnly={this.props.readOnly || widget.config.static} onEditClick={this.onEditClick(widget.config.i)} />
       </div>
     ))
   )
