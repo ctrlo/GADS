@@ -237,6 +237,18 @@ foreach my $multivalue (0..1)
             data            => [[ 20, 35, 35, 20, 20, 30, 30, 20, 20 ]],
         },
         {
+            name            => 'Date range x-axis, integer sum y-axis, limited time period',
+            type            => 'bar',
+            x_axis          => $columns->{daterange1}->id,
+            x_axis_grouping => 'year',
+            y_axis          => $columns->{integer1}->id,
+            y_axis_stack    => 'sum',
+            from            => DateTime->new(year => 2013, month => 8, day => 15),
+            to              => DateTime->new(year => 2016, month => 6, day => 15),
+            data            => [[ 20, 30, 30, 20 ]],
+            xlabels         => [qw/2013 2014 2015 2016/],
+        },
+        {
             name            => 'Date range x-axis from curval, integer sum y-axis',
             type            => 'bar',
             x_axis          => $curval_sheet->columns->{daterange1}->id,
@@ -269,6 +281,18 @@ foreach my $multivalue (0..1)
             y_axis          => $columns->{string1}->id,
             y_axis_stack    => 'count',
             data            => [[ 1, 1, 0, 1 ]],
+        },
+        {
+            name            => 'Date x-axis, integer count y-axis, limited range',
+            type            => 'bar',
+            x_axis          => $columns->{date1}->id,
+            x_axis_grouping => 'year',
+            y_axis          => $columns->{string1}->id,
+            y_axis_stack    => 'count',
+            from            => DateTime->new(year => 2014, month => 1, day => 15),
+            to              => DateTime->new(year => 2016, month => 12, day => 15),
+            data            => [[ 1, 0, 1 ]],
+            xlabels         => [qw/2014 2015 2016/],
         },
         {
             name         => 'String x-axis, sum y-axis, group by enum',
@@ -507,6 +531,8 @@ foreach my $multivalue (0..1)
             if $g->{x_axis_link};
         $graph->x_axis_grouping($g->{x_axis_grouping})
             if $g->{x_axis_grouping};
+        $graph->from($g->{from});
+        $graph->to($g->{to});
         $graph->y_axis($g->{y_axis});
         $graph->y_axis_stack($g->{y_axis_stack});
         $graph->group_by($g->{group_by})

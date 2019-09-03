@@ -2203,7 +2203,7 @@ prefix '/:layout_name' => sub {
             $graph->$_(param $_)
                 foreach (qw/title description type set_x_axis x_axis_grouping y_axis
                     y_axis_label y_axis_stack group_by stackseries metric_group_id as_percent
-                    is_shared group_id/);
+                    is_shared group_id trend from to x_axis_range/);
             if(process( sub { $graph->write }))
             {
                 my $action = param('id') ? 'updated' : 'created';
@@ -2213,8 +2213,6 @@ prefix '/:layout_name' => sub {
         }
 
         $params->{graph}         = $graph;
-        $params->{dategroup}     = GADS::Graphs->dategroup;
-        $params->{graphtypes}    = [GADS::Graphs->types];
         $params->{metric_groups} = GADS::MetricGroups->new(
             schema      => schema,
             instance_id => session('persistent')->{instance_id},

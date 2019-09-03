@@ -24,9 +24,9 @@ use Scalar::Util qw/blessed/;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 
-# Not required so that dategroup can be called separately
 has schema => (
-    is       => 'rw',
+    is       => 'ro',
+    required => 1,
 );
 
 has current_user => (
@@ -127,15 +127,6 @@ sub purge
         $graph->delete;
     }
 }
-
-sub dategroup
-{
-    {
-        day   => '%d %B %Y',
-        month => '%B %Y',
-        year  => '%Y',
-    };
-};
 
 sub types
 { qw(bar line donut scatter pie) }

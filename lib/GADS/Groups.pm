@@ -22,9 +22,9 @@ use GADS::Group;
 use Log::Report 'linkspace';
 use Moo;
 
-# Not required so that dategroup can be called separately
 has schema => (
     is       => 'rw',
+    required => 1,
 );
 
 has all => (

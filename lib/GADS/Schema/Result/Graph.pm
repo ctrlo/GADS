@@ -158,6 +158,14 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "group_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "trend",
+  { data_type => "varchar", is_nullable => 1, size => 45 },
+  "from",
+  { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
+  "to",
+  { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
+  "x_axis_range",
+  { data_type => "varchar", is_nullable => 1, size => 45 },
 );
 
 =head1 PRIMARY KEY

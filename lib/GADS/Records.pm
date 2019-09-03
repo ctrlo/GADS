@@ -319,7 +319,7 @@ has page => (
 
 # Whether to take results from some previous point in time
 has rewind => (
-    is  => 'ro',
+    is  => 'rw',
     isa => Maybe[DateAndTime],
 );
 
@@ -2773,11 +2773,11 @@ sub _build_group_results
 
         my $dt_parser = $self->schema->storage->datetime_parser;
         # Find min/max dates from above, including linked field if required
-        my $daterange_from = $self->_min_date(
+        my $daterange_from = $self->from ? $self->from->clone : $self->_min_date(
             $result->get_column('start_date'),
             ($field_link ? $result->get_column('start_date_link') : undef)
         );
-        my $daterange_to   = $self->_max_date(
+        my $daterange_to = $self->to ? $self->to->clone : $self->_max_date(
             $result->get_column('end_date'),
             ($field_link ? $result->get_column('end_date_link') : undef)
         );

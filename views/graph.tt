@@ -4,127 +4,194 @@
     <div class="row">
         <div class="col-md-6">
 
-            [% IF layout.user_can("layout") OR layout.user_can("view_group") %]
-                <div class="form-group">
-                    <div class="checkbox">
-                        <label>
-                            <input id="is_shared" type="checkbox" name="is_shared" [% IF graph.is_shared %]checked[% END %]>Shared graph
-                        </label>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">General</h3>
+                </div>
+                <div class="panel-body">
+                    [% IF layout.user_can("layout") OR layout.user_can("view_group") %]
+                        <div class="form-group">
+                            <div class="checkbox">
+                                <label>
+                                    <input id="is_shared" type="checkbox" name="is_shared" [% IF graph.is_shared %]checked[% END %]>Shared graph
+                                </label>
+                            </div>
+                            <div id="group_id_div">
+                                <label for="group_id">Share with:</label>
+                                <select class="form-control" id="group_id" name="group_id">
+                                    [% IF layout.user_can("layout") %]
+                                        <option value="" [% IF NOT graph.group_id %]selected[% END %]>&lt;All users&gt;</option>
+                                    [% END %]
+                                    [% IF layout.user_can("view_group") OR layout.user_can("layout") %]
+                                        [% FOREACH group IN user.groups_viewable %]
+                                            <option value="[% group.id %]"
+                                                [% IF graph.group_id == group.id %]selected[% END %]>[% group.name | html %]
+                                            </option>
+                                        [% END %]
+                                    [% END %]
+                                </select>
+                            </div>
+                        </div>
+                    [% END %]
+
+                    [% IF graph.id %]
+                        <input type="hidden" name="id" value="[% graph.id %]">
+                    [% END %]
+                    <div class="form-group">
+                        <label for="firstname">Title:</label>
+                        <input type="text" name="title" class="form-control" name="name" value="[% graph.title | html_entity %]">
                     </div>
-                    <div id="group_id_div">
-                        <label for="group_id">Share with:</label>
-                        <select class="form-control" id="group_id" name="group_id">
-                            [% IF layout.user_can("layout") %]
-                                <option value="" [% IF NOT graph.group_id %]selected[% END %]>&lt;All users&gt;</option>
-                            [% END %]
-                            [% IF layout.user_can("view_group") OR layout.user_can("layout") %]
-                                [% FOREACH group IN user.groups_viewable %]
-                                    <option value="[% group.id %]"
-                                        [% IF graph.group_id == group.id %]selected[% END %]>[% group.name | html %]
-                                    </option>
-                                [% END %]
-                            [% END %]
+                    <div class="form-group">
+                        <label for="firstname">Description:</label>
+                        <textarea class="form-control" name="description" rows="3">[% graph.description | html_entity %]</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Type:</label>
+                        <select class="form-control" name="type">
+                            <option value="bar" [% IF graph.type == "bar" %]selected[% END %]>Bar</option>
+                            <option value="line" [% IF graph.type == "line" %]selected[% END %]>Line</option>
+                            <option value="donut" [% IF graph.type == "donut" %]selected[% END %]>Donut</option>
+                            <option value="scatter" [% IF graph.type == "scatter" %]selected[% END %]>Scatter</option>
+                            <option value="pie" [% IF graph.type == "pie" %]selected[% END %]>Pie</option>
                         </select>
                     </div>
                 </div>
-            [% END %]
+            </div>
 
-            [% IF graph.id %]
-                <input type="hidden" name="id" value="[% graph.id %]">
-            [% END %]
-            <div class="form-group">
-                <label for="firstname">Title:</label>
-                <input type="text" name="title" class="form-control" name="name" value="[% graph.title | html_entity %]">
-            </div>
-            <div class="form-group">
-                <label for="firstname">Description:</label>
-                <textarea class="form-control" name="description" rows="3">[% graph.description | html_entity %]</textarea>
-            </div>
-            <div class="form-group">
-                <label for="email">Type:</label>
-                <select class="form-control" name="type">
-                    [% FOREACH graphtype IN graphtypes %]
-                        <option value="[% graphtype %]" [% IF graph.type == graphtype %]selected[% END %]>[% graphtype.ucfirst %]</option>
-                    [% END %]
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="set_x_axis">X-axis:</label>
-                <select class="form-control" name="set_x_axis">
-                    [% FOREACH column IN layout.columns_for_filter %]
-                        <option value="[% column.filter_id %]" [% IF graph.x_axis_full == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]</option>
-                    [% END %]
-                    <option value="" [% IF NOT graph.x_axis %]selected[% END %]>&lt;All fields in view&gt;</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="email">X-axis grouping (optional):</label>
-                <select class="form-control" name="x_axis_grouping">
-                    <option value="" [% UNLESS graph.x_axis_grouping %]selected[% END %]></option>
-                    [% FOREACH dg IN dategroup.pairs %]
-                        <option value="[% dg.key %]" [% IF graph.x_axis_grouping == dg.key %]selected[% END %]>
-                            [% dg.key %]
-                        </option>
-                    [% END %]
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="email">Y-axis field:</label>
-                <select class="form-control" name="y_axis">
-                    [% FOREACH column IN layout.all %]
-                        <option value="[% column.id %]" [% IF graph.y_axis == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
-                    [% END %]
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="y_axis_label">Y-axis label:</label>
-                <input type="text" id="y_axis_label" class="form-control" name="y_axis_label" value="[% graph.y_axis_label | html_entity %]">
-            </div>
-            <div class="form-group">
-                <label for="email">Y-axis values:</label>
-                <select class="form-control" name="y_axis_stack">
-                    <option value="count" [% IF graph.y_axis_stack == "count" %]selected[% END %]>Count total number items</option>
-                    <option value="sum" [% IF graph.y_axis_stack == "sum" %]selected[% END %]>Calculate total sum of field values</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="email">Group by (optional):</label>
-                <select class="form-control" name="group_by">
-                    <option value="" [% UNLESS graph.group_by.id %]selected[% END %]></option>
-                    [% FOREACH column IN layout.all %]
-                        <option value="[% column.id %]" [% IF graph.group_by == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
-                    [% END %]
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="email">Plot against <a href="/[% layout.identifier %]/metrics">metrics</a> (optional):</label>
-                <select class="form-control" name="metric_group_id">
-                    <option value="" [% UNLESS graph.metric_group_id %]selected[% END %]></option>
-                    [% FOREACH metric_group IN metric_groups %]
-                        <option value="[% metric_group.id %]" [% IF graph.metric_group_id == metric_group.id %]selected[% END %]>[% metric_group.name | html_entity %]</option>
-                    [% END %]
-                </select>
-            </div>
-            <div class="form-group">
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="stackseries" value="1" [% IF graph.stackseries %]checked[% END %]>Stack data within same series
-                    </label>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">X-axis</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label for="set_x_axis">X-axis:</label>
+                        <select class="form-control date-grouping" name="set_x_axis" id="set_x_axis">
+                            [% FOREACH column IN layout.columns_for_filter %]
+                                <option value="[% column.filter_id %]"
+                                    data-is-date="[% IF coumns.return_type == "date" OR column.return_type == "daterange" %]1[% ELSE %]0[% END %]"
+                                    [% IF graph.x_axis_full == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]
+                                </option>
+                            [% END %]
+                            <option value="" [% IF NOT graph.x_axis %]selected[% END %]>&lt;All fields in view&gt;</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="trend">Historic trend:</label>
+                        <select class="form-control date-grouping" name="trend" id="trend">
+                            <option value="" [% IF NOT graph.trend %]selected[% END %]>Plot live values only</option>
+                            <option value="aggregate" [% IF graph.trend == "aggregate" %]selected[% END %]>Plot overall aggregate historical trend</option>
+                        </select>
+                    </div>
+                    <div id="x_axis_date_display">
+                        <div class="form-group">
+                            <label for="x_axis_range">X-axis range:</label>
+                            <select class="form-control" name="x_axis_range" id="x_axis_range">
+                                <option value="-1" [% IF graph.x_axis_range == "-1" %]selected[% END %]>Last month (group by day)</option>
+                                <option value="-6" [% IF graph.x_axis_range == "-6" %]selected[% END %]>Last 6 months (grouped by month)</option>
+                                <option value="-12" [% IF graph.x_axis_range == "-12" %]selected[% END %]>Last year (grouped by month)</option>
+                                <option value="-24" [% IF graph.x_axis_range == "-24" %]selected[% END %]>Last 2 years (grouped by month)</option>
+                                <option value="-120" [% IF graph.x_axis_range == "-120" %]selected[% END %]>Last 10 years (grouped by year)</option>
+                                <option value="1" [% IF graph.x_axis_range == "1" %]selected[% END %]>Next month (grouped by day)</option>
+                                <option value="6" [% IF graph.x_axis_range == "6" %]selected[% END %]>Next 6 months (grouped by month)</option>
+                                <option value="12" [% IF graph.x_axis_range == "12" %]selected[% END %]>Next year (grouped by month)</option>
+                                <option value="24" [% IF graph.x_axis_range == "24" %]selected[% END %]>Next 2 years (grouped by month)</option>
+                                <option value="120" [% IF graph.x_axis_range == "120" %]selected[% END %]>Next 10 years (grouped by year)</option>
+                                <option value="custom" [% IF graph.x_axis_range == "custom" %]selected[% END %]>Custom range</option>
+                            </select>
+                        </div>
+                        <div id="custom_range">
+                            <div class="form-group custom_range">
+                                <label>Dates of custom range:</label>
+                                <div class="input-group input-daterange">
+                                    <input type="text" name="from" class="form-control datepicker from" value="[% graph.from_formatted %]">
+                                    <span class="input-group-addon">to</span>
+                                    <input type="text" name="to" class="form-control datepicker to" value="[% graph.to_formatted %]">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="x_axis_grouping">Grouping of custom range:</label>
+                                <select class="form-control" name="x_axis_grouping" id="x_axis_grouping">
+                                    <option value="" [% UNLESS graph.x_axis_grouping %]selected[% END %]></option>
+                                    <option value="day" [% IF graph.x_axis_grouping == "day" %]selected[% END %]>Day</option>
+                                    <option value="month" [% IF graph.x_axis_grouping == "month" %]selected[% END %]>Month</option>
+                                    <option value="year" [% IF graph.x_axis_grouping == "year" %]selected[% END %]>Year</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="form-group">
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="as_percent" value="1" [% IF graph.as_percent %]checked[% END %]>Plot graph values as percentages
-                    </label>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Y-axis</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label for="y_axis_stack">Y-axis values:</label>
+                        <select class="form-control" name="y_axis_stack" id="y_axis_stack">
+                            <option value="count" [% IF graph.y_axis_stack == "count" %]selected[% END %]>Count total number items</option>
+                            <option value="sum" [% IF graph.y_axis_stack == "sum" %]selected[% END %]>Calculate total sum of field values</option>
+                        </select>
+                    </div>
+                    <div id="y_axis_div">
+                        <div class="form-group">
+                            <label for="y_axis">Y-axis field:</label>
+                            <select class="form-control" name="y_axis" id="y_axis">
+                                [% FOREACH column IN layout.all %]
+                                    [% NEXT UNLESS column.numeric %]
+                                    <option value="[% column.id %]" [% IF graph.y_axis == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                                [% END %]
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="y_axis_label">Y-axis label:</label>
+                        <input type="text" id="y_axis_label" class="form-control" name="y_axis_label" value="[% graph.y_axis_label | html_entity %]">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Group by (optional):</label>
+                        <select class="form-control" name="group_by">
+                            <option value="" [% UNLESS graph.group_by.id %]selected[% END %]></option>
+                            [% FOREACH column IN layout.all %]
+                                <option value="[% column.id %]" [% IF graph.group_by == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+                            [% END %]
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Plot against <a href="/[% layout.identifier %]/metrics">metrics</a> (optional):</label>
+                        <select class="form-control" name="metric_group_id">
+                            <option value="" [% UNLESS graph.metric_group_id %]selected[% END %]></option>
+                            [% FOREACH metric_group IN metric_groups %]
+                                <option value="[% metric_group.id %]" [% IF graph.metric_group_id == metric_group.id %]selected[% END %]>[% metric_group.name | html_entity %]</option>
+                            [% END %]
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="stackseries" value="1" [% IF graph.stackseries %]checked[% END %]>Stack data within same series
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="as_percent" value="1" [% IF graph.as_percent %]checked[% END %]>Plot graph values as percentages
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+
         <div class="col-md-6">
             <h4>X-axis</h4>
             <p>Defines the set of values to use for the x-axis. For a donut or pie graph, this defines each segment within a ring. In the case of a date field, they can be grouped together.</p>
-            <h4>X-axis grouping</h4>
-            <p>Defines the grouping for the x-axis where applicable (date fields only).
+            <h4>Historic trend</h4>
+            <p>Use this option to choose between plotting live values as the data currently is, or to plot graphs of historical changes over time. When plotting historical values, the aggregate of data will be used, which will combine all records to show the values over time. The end of the time period will be used for values, so for example a value of June will show the values as at the end of June, regardless of other edits in June.</p>
+            <h4>X-axis range</h4>
+            <p>If the x-axis will be based on a date (either because of the type of field or if plotting historical trends) then it is possible to define the range and grouping of the axis. The range specifies the period which will be plotted and the grouping shows the granuality of the plotting.</p>
             <h4>Y-axis field</h4>
             <p>The Y-axis is the field to use for the y-values of a graph. This is ignored for a donut or pie graph when counting number of items (but not when calculating the sum).</p>
             <h4>Y-axis value</h4>

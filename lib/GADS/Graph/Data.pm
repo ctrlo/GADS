@@ -240,6 +240,53 @@ sub as_json
     };
 }
 
+my $dgf = {
+    day   => '%d %B %Y',
+    month => '%B %Y',
+    year  => '%Y',
+};
+
+sub x_axis_col
+{   my $self = shift;
+    $self->records->layout->column($self->x_axis);
+}
+
+sub x_axis_grouping_validated
+{   my $self = shift;
+    # Only try grouping by date for valid date column
+    $self->x_axis &&
+    ($self->x_axis_col->return_type eq 'date' || $self->x_axis_col->return_type eq 'daterange') &&
+    $self->x_axis_grouping;
+}
+
+sub group_by_col
+{   my $self = shift;
+    return undef if $self->type eq 'pie' || !$self->group_by;
+    $self->records->layout->column($self->group_by);
+}
+
+sub y_axis_col
+{   my $self = shift;
+    $self->records->layout->column($self->y_axis);
+}
+
+sub trend_range_amount
+{   my $self = shift;
+    $self->x_axis_range < 0 ? $self->x_axis_range * -1 : $self->x_axis_range;
+}
+
+sub trend_group
+{   my $self = shift;
+    return undef if !$self->trend;
+    return $self->x_axis_grouping if $self->x_axis_range eq 'custom';
+    my $amount = $self->trend_range_amount;
+    return $amount == 1
+        ? 'day'
+        : $amount <= 24
+        ? 'month'
+        : 'year';
+}
+
 sub _build_data
 {   my $self = shift;
 
@@ -259,36 +306,30 @@ sub _build_data
     } @columns;
 
     my $layout      = $self->records->layout;
-    # $x_axis is undefined if all the fields are to appear on it
-    my $x_axis      = $self->x_axis ? $layout->column($self->x_axis) : undef;
+    my $x_axis      = $self->x_axis_col;
     # Whether the x-axis is a daterange data type. If so, we need to treat it
     # specially and span values from single records across dates.
     my $x_daterange = $x_axis && $x_axis->return_type eq 'daterange';
-    # Only try grouping by date for valid date column
-    my $x_axis_grouping =
-        $x_axis &&
-        ($x_axis->return_type eq 'date' || $x_axis->return_type eq 'daterange') &&
-        $self->x_axis_grouping;
 
     my $group_by_db = [];
     push @columns, {
         id        => $self->x_axis,
         group     => 1,
-        pluck     => $x_axis_grouping, # Whether to group x-axis dates
+        pluck     => $self->x_axis_grouping_validated, # Whether to group x-axis dates
         parent_id => $self->x_axis_link, # What the parent curval is, if we're picking a field from within a curval
     } if !$x_daterange && $self->x_axis;
 
-    my $group_by_col;
-    if ($self->type ne 'pie' && $self->group_by)
-    {
-        $group_by_col = $layout->column($self->group_by);
-        push @columns, {
-            id    => $self->group_by,
-            group => 1,
-        };
-    }
+    push @columns, {
+        id    => $self->group_by,
+        group => 1,
+    } if $self->group_by_col;
 
     my $records = $self->records;
+    if (!$self->trend) # If a trend, the from and to will be set later
+    {
+        $records->from($self->from);
+        $records->to($self->to);
+    }
 
     # If the x-axis field is one from a curval, make sure we are also
     # retrieving the parent curval field (called the link)
@@ -296,140 +337,136 @@ sub _build_data
 
     if ($x_daterange)
     {
-        $records->dr_interval($x_axis_grouping);
+        $records->dr_interval($self->x_axis_grouping);
         $records->dr_column($x_axis->id);
         $records->dr_column_parent($link);
         $records->dr_y_axis_id($self->y_axis);
     }
 
-    my $y_axis = $layout->column($self->y_axis);
     $records->view($self->view);
     push @columns, +{
         id       => $self->y_axis,
         operator => $self->y_axis_stack,
-    };
+    } if $self->y_axis;
 
     $records->columns(\@columns);
-    my $records_results = $self->records->results; # Do now so as to populate dr_from and dr_to
+
+    $self->records->results # Do now so as to populate dr_from and dr_to
+        if $x_daterange;
 
     # The view of this graph
     my $view = $self->records->view;
+
     # All the sources of the x values. May only be one column, may be several columns,
     # or may be lots of dates.
-    my @x = $x_daterange
-        ? () # Populated in a moment for daterange x-axis
-        : $x_axis
-        ? ($x_axis)
-        : $view
-        ? @{$self->records->columns_view}
-        : $layout->all(user_can_read => 1);
-
-    if ($x_daterange && $records->dr_from && $records->dr_to)
+    my @x;
+    if ($x_daterange)
     {
-        # If this is a daterange x-axis, then use the start date
-        # as calculated by GADS::Records, then interpolate
-        # until the end date. These same values will have been retrieved
-        # in the resultset.
-        my $pointer = $records->dr_from->clone;
-        while ($pointer->epoch <= $records->dr_to->epoch)
+        if ($records->dr_from && $records->dr_to)
         {
-            push @x, $pointer->clone;
-            $pointer->add("${x_axis_grouping}s" => 1);
+            # If this is a daterange x-axis, then use the start date
+            # as calculated by GADS::Records, then interpolate
+            # until the end date. These same values will have been retrieved
+            # in the resultset.
+            my $pointer = $records->dr_from->clone;
+            while ($pointer->epoch <= $records->dr_to->epoch)
+            {
+                push @x, $pointer->clone;
+                $pointer->add($self->x_axis_grouping.'s' => 1);
+            }
         }
     }
+    elsif ($self->trend)
+    {
+        my $is_custom = $self->x_axis_range eq 'custom';
 
-    my $dgf = {
-        day   => '%d %B %Y',
-        month => '%B %Y',
-        year  => '%Y',
-    };
+        # Work out suitable intervals: short range: day, medium: month, long: year
+        # It makes no sense to have dates in the future for a trend, but
+        # plot anyway as it's possible (currently) for a user to configure
+        # that
+        my $interval = $self->trend_group;
+        my %add = ($interval.'s' => 1);
+
+        # Produce a set of dates spanning the required range
+        my $pointer;
+        if ($is_custom)
+        {
+            $pointer = $self->from->clone;
+        }
+        else {
+            $pointer = DateTime->now->truncate(to => $interval);
+            # Either start now and move forwards or start in the past and move to now
+            $pointer->subtract(months => $self->trend_range_amount)->add(%add)
+                if $self->x_axis_range < 0;
+        }
+        my $to = $is_custom ? $self->to->clone : $pointer->clone->add(months => $self->trend_range_amount);
+        while ($pointer <= $to)
+        {
+            push @x, $pointer->clone;
+            $pointer->add(%add);
+        }
+    }
+    elsif ($x_axis)
+    {
+        push @x, $x_axis;
+    }
+    elsif ($view)
+    {
+        push @x, @{$self->records->columns_view};
+    }
+    else {
+        push @x, $layout->all(user_can_read => 1);
+    }
 
     # Now go into each of the retrieved database results, and create a more
     # useful hash with all the series on, which we can use to create the
     # graphs. At this point, we do not know what the x-axis values will be,
     # so we need to wait until we've retrieved them all first (we know the
     # source of the values, but not the value or quantity of them).
-    my $results = {}; # The overall results hash
-    my %series; # The names of all of the series for the graph. May only be one.
-    my $datemin; my $datemax; # For x-axis dates, min and max retrieved
+    #
+    # $results - overall results hash
+    # $series_keys - the names of all of the series for the graph. May only be one
+    # $datemin and $datemax - for x-axis dates, min and max retrieved
 
-    # For each line of results from the SQL query
-    foreach my $line (@$records_results)
+    my @xlabels;
+    my ($results, $series_keys, $datemin, $datemax);
+    if ($self->trend)
     {
-        # For each x-axis source (see above)
         foreach my $x (@x)
         {
-            my $col     = $x_daterange ? $x->epoch : $x->field;
-            my $x_value = $line->get_column($col);
-            $x_value ||= $line->get_column("${col}_link")
-                if !$x_daterange && $x->link_parent;
-
-            if (!$x_daterange && $x->type eq 'curval' && $x_value)
-            {
-                $x_value = $self->_format_curcommon($x, $line);
-            }
-
-            if ($x_axis_grouping) # Group by date, round to required interval
-            {
-                !$x_value and next;
-                my $x_dt = $x_daterange
-                         ? $x
-                         : $self->schema->storage->datetime_parser->parse_date($x_value);
-                my $df   = $dgf->{$x_axis_grouping};
-                $x_value = $self->_group_date($x_dt);
-                $datemin = $x_value if !defined $datemin || $datemin->epoch > $x_value->epoch;
-                $datemax = $x_value if !defined $datemax || $datemax->epoch < $x_value->epoch;
-                $x_value = $x_value->strftime($df) if $x_value;
-            }
-            elsif (!$x_axis) # Multiple column x-axis
-            {
-                $x_value = $x->name;
-            }
-
-            $x_value ||= '<no value>';
-
-            # The key for this series. May only be one (use "1")
-            my $k = $group_by_col && $group_by_col->is_curcommon
-                  ? $self->_format_curcommon($group_by_col, $line)
-                  : $group_by_col
-                  ? $line->get_column($group_by_col->field)
-                  : 1;
-            $k ||= $line->get_column($group_by_col->field."_link")
-                  if $group_by_col && $group_by_col->link_parent;
-            $k ||= '<blank value>';
-            $series{$k} = 1; # Hash to kill duplicate values
-
-            # Store all the results for each x value together, by series
-            $results->{$x_value} ||= {};
-
-            # The column name to retrieve from SQL record
-            my $fname = $x_daterange
-                      ? $x->epoch
-                      : !$self->x_axis
-                      ? $x->field
-                      : $self->y_axis_stack eq 'count'
-                      ? 'id_count' # Don't use field count as NULLs are not counted
-                      : $y_axis->field."_".$self->y_axis_stack;
-            no warnings 'numeric', 'uninitialized';
-            $results->{$x_value}->{$k} += $line->get_column($fname); # 2 loops for linked values
-            # Add on the linked column from another datasheet, if applicable
-            next if !$x_axis && (!$x->numeric || !$x->link_parent); # Multi x-axis
-            $results->{$x_value}->{$k} += $line->get_column("${fname}_link")
-                if $y_axis->link_parent && $self->y_axis_stack eq 'sum';
+            $records->clear;
+            $records->rewind($x->clone->subtract(seconds => 1));
+            my $this_results; my $this_series_keys;
+            ($this_results, $this_series_keys, $datemin, $datemax) = $self->_records_to_results($records,
+                x_daterange => $x_daterange,
+                x           => [$self->x_axis_col],
+                values_only => 1,
+            );
+            my $df = $dgf->{$self->trend_group};
+            my $label = $x->clone->subtract(days => 1)->strftime($df);
+            push @xlabels, $label;
+            $results->{$label} = $this_results;
+            $series_keys->{$_} = 1
+                foreach keys %$this_series_keys;
         }
+    }
+    else {
+        ($results, $series_keys, $datemin, $datemax) = $self->_records_to_results($records,
+            x_daterange => $x_daterange,
+            x           => \@x,
+        );
     }
 
     # Work out the labels for the x-axis. We now know this having processed
     # all the values.
-    my @xlabels;
-    if ($x_axis_grouping && $datemin && $datemax)
+    if ($self->x_axis_grouping_validated && $datemin && $datemax)
     {
         @xlabels = ();
         my $inc = $datemin->clone;
-        my $add = $x_axis_grouping.'s';
+        my $add = $self->x_axis_grouping.'s';
         while ($inc->epoch <= $datemax->epoch)
         {
-            my $df = $dgf->{$x_axis_grouping};
+            my $df = $dgf->{$self->x_axis_grouping};
             push @xlabels, $inc->strftime($df);
             $inc->add( $add => 1 );
         }
@@ -438,6 +475,10 @@ sub _build_data
     {
         @xlabels = map { $_->name } @x;
     }
+    elsif ($self->trend)
+    {
+        # Do nothing, already added
+    }
     else {
         @xlabels = sort keys %$results;
     }
@@ -445,7 +486,7 @@ sub _build_data
     # Now that we have all the values retrieved and know the quantity
     # of the x-axis values, we can map these into individual series
     my $series;
-    foreach my $serial (keys %series)
+    foreach my $serial (keys %$series_keys)
     {
         my @xloop = $self->x_axis ? @xlabels : @x;
         foreach my $x (@xloop)
@@ -462,7 +503,7 @@ sub _build_data
 
     if ($self->as_percent && $self->type ne "pie" && $self->type ne "donut")
     {
-        if ($group_by_col)
+        if ($self->group_by_col)
         {
             my ($random) = keys %$series;
             my $count = @{$series->{$random}->{data}}; # Number of data points for each series
@@ -581,6 +622,92 @@ sub _build_data
     }
 }
 
+sub _records_to_results
+{   my ($self, $records, %params) = @_;
+
+    my $x_daterange = $params{x_daterange};
+    my $x           = $params{x};
+
+    my ($results, $series_keys, $datemin, $datemax);
+
+    my $records_results = $self->records->results;
+
+    # For each line of results from the SQL query
+    foreach my $line (@$records_results)
+    {
+        # For each x-axis source (see above)
+        foreach my $x (@$x)
+        {
+            my $col     = $x_daterange ? $x->epoch : $x->field;
+            my $x_value = $line->get_column($col);
+            $x_value ||= $line->get_column("${col}_link")
+                if !$x_daterange && $x->link_parent;
+
+            if (!$x_daterange && $x->type eq 'curval' && $x_value)
+            {
+                $x_value = $self->_format_curcommon($x, $line);
+            }
+
+            if ($self->x_axis_grouping_validated) # Group by date, round to required interval
+            {
+                !$x_value and next;
+                my $x_dt = $x_daterange
+                         ? $x
+                         : $self->schema->storage->datetime_parser->parse_date($x_value);
+                my $df   = $dgf->{$self->x_axis_grouping};
+                $x_value = $self->_group_date($x_dt);
+                $datemin = $x_value if !defined $datemin || $datemin->epoch > $x_value->epoch;
+                $datemax = $x_value if !defined $datemax || $datemax->epoch < $x_value->epoch;
+                $x_value = $x_value->strftime($df) if $x_value;
+            }
+            elsif (!$self->x_axis) # Multiple column x-axis
+            {
+                $x_value = $x->name;
+            }
+
+            $x_value ||= '<no value>';
+
+            # The column name to retrieve from SQL record
+            my $fname = $x_daterange
+                      ? $x->epoch
+                      : !$self->x_axis
+                      ? $x->field
+                      : $self->y_axis_stack eq 'count'
+                      ? 'id_count' # Don't use field count as NULLs are not counted
+                      : $self->y_axis_col->field."_".$self->y_axis_stack;
+            my $val = $line->get_column($fname);
+
+            # Add on the linked column from another datasheet, if applicable
+            my $include_linked = !$self->x_axis && (!$x->numeric || !$x->link_parent); # Multi x-axis
+            my $val_linked     = $self->y_axis_stack eq 'sum' && $self->y_axis_col->link_parent
+                && $line->get_column("${fname}_link");
+
+            no warnings 'numeric', 'uninitialized';
+            if ($params{values_only}) {
+                $series_keys->{$x_value} = 1;
+                $results->{$x_value} += $val + $val_linked;
+            }
+            else {
+                # The key for this series. May only be one (use "1")
+                my $k = $self->group_by_col && $self->group_by_col->is_curcommon
+                      ? $self->_format_curcommon($self->group_by_col, $line)
+                      : $self->group_by_col
+                      ? $line->get_column($self->group_by_col->field)
+                      : 1;
+                $k ||= $line->get_column($self->group_by_col->field."_link")
+                      if $self->group_by_col && $self->group_by_col->link_parent;
+                $k ||= '<blank value>';
+
+                $series_keys->{$k} = 1; # Hash to kill duplicate values
+                # Store all the results for each x value together, by series
+                $results->{$x_value} ||= {};
+                $results->{$x_value}->{$k} += $val + $val_linked;
+            }
+        }
+    }
+
+    return ($results, $series_keys, $datemin, $datemax);
+}
 # Take a date and round it down according to the grouping
 sub _group_date
 {   my ($self, $val) = @_;

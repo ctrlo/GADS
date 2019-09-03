@@ -68,6 +68,10 @@ has set_values => (
         $self->y_axis_stack($original->{y_axis_stack});
         $self->description($original->{description});
         $self->stackseries($original->{stackseries});
+        $self->trend($original->{trend});
+        $self->from($original->{from});
+        $self->to($original->{to});
+        $self->x_axis_range($original->{x_axis_range});
         $self->is_shared($original->{is_shared});
         $self->user_id($original->{user_id});
         $self->group_id($original->{group_id});
@@ -161,6 +165,44 @@ has stackseries => (
     builder => sub { $_[0]->_graph && $_[0]->_graph->stackseries },
 );
 
+has trend => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->_graph && $_[0]->_graph->trend },
+);
+
+has from => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->_graph && $_[0]->_graph->from },
+);
+
+sub from_formatted
+{   my $self = shift;
+    return $self->from if !ref $self->from;
+    my $dateformat = GADS::Config->instance->dateformat;
+    $self->from && $self->from->format_cldr($dateformat);
+}
+
+has to => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->_graph && $_[0]->_graph->to },
+);
+
+sub to_formatted
+{   my $self = shift;
+    return $self->to if !ref $self->to;
+    my $dateformat = GADS::Config->instance->dateformat;
+    $self->to && $self->to->format_cldr($dateformat);
+}
+
+has x_axis_range => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->_graph && $_[0]->_graph->x_axis_range },
+);
+
 has is_shared => (
     is      => 'rw',
     lazy    => 1,
@@ -190,7 +232,7 @@ has as_percent => (
 has y_axis => (
     is      => 'rw',
     lazy    => 1,
-    builder => sub { $_[0]->_graph && $_[0]->_graph->y_axis->id },
+    builder => sub { $_[0]->_graph && $_[0]->_graph->y_axis && $_[0]->_graph->y_axis->id },
 );
 
 has y_axis_label => (
@@ -211,7 +253,8 @@ has showlegend => (
     builder => sub {
         my $graph = $_[0]->_graph or return;
         # Legend is shown for secondary groupings. No point otherwise.
-        $graph->group_by || $graph->type eq "pie" || $graph->type eq "donut" ? 1 : 0;
+        $graph->group_by || $graph->type eq "pie"
+            || $graph->type eq "donut" || $graph->trend ? 1 : 0;
     },
 );
 
@@ -282,13 +325,18 @@ sub write
 
     $newgraph->{description}     = $self->description;
 
-    $newgraph->{y_axis}          = $self->y_axis or error __"Please select a Y-axis";
-    $self->layout->column_this_instance($self->y_axis)
-        or error __x"Invalid Y-axis {y_axis}", y_axis => $self->y_axis;
+    if ($newgraph->{y_axis} = $self->y_axis)
+    {
+        $self->layout->column_this_instance($self->y_axis)
+            or error __x"Invalid Y-axis {y_axis}", y_axis => $self->y_axis;
+    }
 
     $newgraph->{y_axis_stack}    = $self->y_axis_stack or error __"A valid value is required for Y-axis stacking";
     !defined $self->y_axis_stack || $self->y_axis_stack eq 'count' || $self->y_axis_stack eq 'sum'
         or error __x"{yas} is an invalid value for Y-axis", yas => $self->y_axis_stack;
+
+    $newgraph->{y_axis_stack} eq 'sum' && !$newgraph->{y_axis}
+        and error __"Please select a Y-axis";
 
     $newgraph->{y_axis_label}    = $self->y_axis_label;
 
@@ -297,8 +345,15 @@ sub write
         or error __x"Invalid X-axis value {x_axis}", x_axis => $self->x_axis;
     $newgraph->{x_axis_link}     = $self->x_axis_link;
 
+    !$newgraph->{trend} || $newgraph->{trend} eq 'aggregate' || $newgraph->{trend} eq 'individual'
+        or error __x"Invalid trend value: {trend}", trend => $newgraph->{trend};
+    $newgraph->{trend} = $self->trend;
+    $newgraph->{from} = $self->from || undef;
+    $newgraph->{to} = $self->to || undef;
+    $newgraph->{x_axis_range} = $self->x_axis_range;
+
     $newgraph->{x_axis_grouping} = $self->x_axis_grouping;
-    !defined $self->x_axis_grouping || grep { $self->x_axis_grouping eq $_ } keys %{GADS::Graphs->new->dategroup}
+    !defined $self->x_axis_grouping || grep { $self->x_axis_grouping eq $_ } qw/day month year/
         or error __x"{xas} is an invalid value for X-axis grouping", xas => $self->x_axis_grouping;
 
     $newgraph->{group_by}        = $self->group_by;
@@ -312,6 +367,9 @@ sub write
         or error __x"Invalid metric group ID {id}", id => $self->metric_group_id;
 
     $newgraph->{stackseries}     = $self->stackseries;
+
+    $newgraph->{group_by} && $newgraph->{trend}
+        and error __"Historical trends cannot be used with y-axis grouping (Group by)";
 
     error __"You do not have permission to create shared graphs"
         if $self->is_shared && !$self->writable_shared;
@@ -386,6 +444,22 @@ sub import_hash
         old => $self->stackseries, new => $values->{stackseries}, name => $self->title
             if $options{report_only} && $self->stackseries != $values->{stackseries};
     $self->stackseries($values->{stackseries});
+    notice __x"Updating trend from {old} to {new} for graph {name}",
+        old => $self->trend, new => $values->{trend}, name => $self->title
+            if $options{report_only} && $self->trend != $values->{trend};
+    $self->trend($values->{trend});
+    notice __x"Updating from from {old} to {new} for graph {name}",
+        old => $self->from, new => $values->{from}, name => $self->title
+            if $options{report_only} && ($self->from || '') ne ($values->{from} || '');
+    $self->from($values->{from});
+    notice __x"Updating to from {old} to {new} for graph {name}",
+        old => $self->to, new => $values->{to}, name => $self->title
+            if $options{report_only} && ($self->to || '') ne ($values->{to} || '');
+    $self->to($values->{to});
+    notice __x"Updating x_axis_range from {old} to {new} for graph {name}",
+        old => $self->x_axis_range, new => $values->{x_axis_range}, name => $self->title
+            if $options{report_only} && ($self->x_axis_range || '') ne ($values->{x_axis_range} || '');
+    $self->x_axis_range($values->{x_axis_range});
     notice __x"Updating is_shared from {old} to {new} for graph {name}",
         old => $self->is_shared, new => $values->{is_shared}, name => $self->title
             if $options{report_only} && $self->is_shared != $values->{is_shared};
@@ -425,6 +499,10 @@ sub export_hash
         x_axis_grouping => $self->x_axis_grouping,
         group_by        => $self->group_by,
         stackseries     => $self->stackseries,
+        trend           => $self->trend,
+        from            => $self->from,
+        to              => $self->to,
+        x_axis_range    => $self->x_axis_range,
         is_shared       => $self->is_shared,
         user_id         => $self->user_id,
         group_id        => $self->group_id,

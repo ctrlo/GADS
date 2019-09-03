@@ -30,7 +30,7 @@
             [% END %]
         [% END %]
 
-        [% IF page.match('(layout|edit|approval|audit|bulk|data)') %]
+        [% IF page.match('(layout|edit|approval|audit|bulk|data|graph)') %]
             <link rel="stylesheet" href="[% url.css %]/jstree.min.css" />
             <link rel="stylesheet" href="[% url.css %]/bootstrap-datepicker.min.css" />
             <link rel="stylesheet" href="[% url.css %]/bootstrap-select.min.css" />
@@ -202,7 +202,7 @@
             <script src="[% scheme %]://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
             <script src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/js/tooltip.min.js"></script>
         [% END %]
-        [% IF page.match('(edit|approval|audit|bulk|data)') %]
+        [% IF page.match('(edit|approval|audit|bulk|data|graph)') %]
             <script type="text/javascript" src="[% url.js %]/bootstrap-datepicker.min.js"></script>
             <script type="text/javascript">
                 $(document).ready(function() {
