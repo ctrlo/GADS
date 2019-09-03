@@ -1,9 +1,10 @@
 import React from "react";
 import "./header.scss";
 
-const Header = ({ widgetTypes, addWidget, hMargin, dashboards, dashboardName, readOnly }) => {
+const Header = ({ widgetTypes, addWidget, hMargin, dashboards, dashboardName, readOnly, loading }) => {
   return (
     <div className='ld-header-container' style={{marginLeft: hMargin, marginRight: hMargin}}>
+      {loading ? <p className="spinner"><i className="fa fa-spinner fa-spin"></i></p> : null}
       {readOnly ? null : <div className="btn-group">
         <button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
           Add Widget <span className="caret"></span>

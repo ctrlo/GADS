@@ -48,6 +48,7 @@ class App extends React.Component<any, any> {
       activeItem: 0,
       editHtml: "",
       editError: null,
+      loading: false,
       loadingEditHtml: true,
     };
   }
@@ -85,8 +86,12 @@ class App extends React.Component<any, any> {
 
   onEditClick = id => (event) => {
     event.preventDefault();
-    this.fetchEditForm(id);
+    this.showEditForm(id);
+  }
+
+  showEditForm = (id) => {
     this.setState({ editModalOpen: true, loadingEditHtml: true, activeItem: id });
+    this.fetchEditForm(id);
   }
 
   closeModal = () => {
@@ -155,8 +160,10 @@ class App extends React.Component<any, any> {
 
   // eslint-disable-next-line no-unused-vars
   addWidget = async (type) => {
+    this.setState({loading: true});
     const result = await this.props.api.createWidget(type)
     if (result.error) {
+      this.setState({loading: false});
       alert(result.message);
       return;
     }
@@ -176,8 +183,10 @@ class App extends React.Component<any, any> {
         html: "Loading...",
       }),
       layout: newLayout,
+      loading: false,
     }, () => this.updateWidgetHtml(id));
     this.props.api.saveLayout(this.props.dashboardId, newLayout);
+    this.showEditForm(id);
   }
 
   generateDOM = () => (
@@ -271,6 +280,7 @@ class App extends React.Component<any, any> {
           dashboards={this.props.dashboards}
           dashboardName={this.props.dashboardName}
           readOnly={this.props.readOnly}
+          loading={this.state.loading}
         />
         {this.renderModal()}
         <ReactGridLayout
