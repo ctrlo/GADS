@@ -100,7 +100,7 @@
 [% BLOCK form_table %]
     [% PROCESS select_views %]
     <div class="form-group">
-        <label for="rows">Rows</label>
+        <label for="rows">Number of rows to display in table</label>
         <input type="text" class="form-control" name="rows" id="rows" value="[% widget.rows %]">
     </div>
 [% END %]
