@@ -352,6 +352,9 @@ sub write
     $newgraph->{to} = $self->to || undef;
     $newgraph->{x_axis_range} = $self->x_axis_range;
 
+    error __"An x-axis range must be selected when plotting historical trends"
+        if !$newgraph->{x_axis_range} && $self->trend;
+
     $newgraph->{x_axis_grouping} = $self->x_axis_grouping;
     !defined $self->x_axis_grouping || grep { $self->x_axis_grouping eq $_ } qw/day month year/
         or error __x"{xas} is an invalid value for X-axis grouping", xas => $self->x_axis_grouping;

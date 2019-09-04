@@ -86,6 +86,7 @@
                         <div class="form-group">
                             <label for="x_axis_range">X-axis range:</label>
                             <select class="form-control" name="x_axis_range" id="x_axis_range">
+                                <option value="" [% IF NOT graph.x_axis_range %]selected[% END %]></option>
                                 <option value="-1" [% IF graph.x_axis_range == "-1" %]selected[% END %]>Last month (group by day)</option>
                                 <option value="-6" [% IF graph.x_axis_range == "-6" %]selected[% END %]>Last 6 months (grouped by month)</option>
                                 <option value="-12" [% IF graph.x_axis_range == "-12" %]selected[% END %]>Last year (grouped by month)</option>
