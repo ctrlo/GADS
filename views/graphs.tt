@@ -49,14 +49,9 @@
                 </nav>
 
             </form>
-        [% ELSIF layout.user_can("layout") %]
-            <p>
-                No graphs have been created. Please visit <a href="/[% layout.identifier %]/graph">Manage Graphs</a> to create some.
-            </p>
         [% ELSE %]
             <p>
-                No graphs have been created yet. Please contact an administrator to create some graphs.
-                Once graphs have been created, you can select them from this page.
+                No graphs have been created. Please use the &quot;Create new graph&quot; button above to add one.
             </p>
         [% END %]
     </div>
