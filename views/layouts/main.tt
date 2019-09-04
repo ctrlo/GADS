@@ -18,6 +18,7 @@
             <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
             <link rel="stylesheet" href="[% scheme %]://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
         [% END %]
+        <link rel="stylesheet" href="[% url.css %]/general.css">
 
         <title>[% page %] | Linkspace</title>
 
@@ -29,7 +30,7 @@
             [% END %]
         [% END %]
 
-        [% IF page.match('(layout|edit|approval|audit|bulk|data)') %]
+        [% IF page.match('(layout|edit|approval|audit|bulk|data|graph)') %]
             <link rel="stylesheet" href="[% url.css %]/jstree.min.css" />
             <link rel="stylesheet" href="[% url.css %]/bootstrap-datepicker.min.css" />
             <link rel="stylesheet" href="[% url.css %]/bootstrap-select.min.css" />
@@ -37,7 +38,7 @@
         [% IF page == "data_calendar" %]
             <link rel="stylesheet" href="[% url.css %]/calendar.min.css">
         [% END %]
-        [% IF page == "data_timeline" %]
+        [% IF page == "data_timeline" OR page == "index" %]
             <link rel="stylesheet" href="[% url.css %]/timeline.min.css">
             <link rel="stylesheet" href="[% url.css %]/tippy.css">
             <link rel="stylesheet" href="[% url.css %]/light.css">
@@ -58,7 +59,7 @@
                 <link rel="stylesheet" href="[% scheme %]://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.css">
             [% END %]
         [% END %]
-        [% IF page == "config" || page == "system" %]
+        [% IF page == "config" || page == "system" || page == "index" %]
             <link href="[% url.css %]/summernote.css" rel="stylesheet">
         [% END %]
 
@@ -201,7 +202,7 @@
             <script src="[% scheme %]://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
             <script src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/js/tooltip.min.js"></script>
         [% END %]
-        [% IF page.match('(edit|approval|audit|bulk|data)') %]
+        [% IF page.match('(edit|approval|audit|bulk|data|graph)') %]
             <script type="text/javascript" src="[% url.js %]/bootstrap-datepicker.min.js"></script>
             <script type="text/javascript">
                 $(document).ready(function() {
@@ -209,16 +210,14 @@
                 });
             </script>
         [% END %]
-        [% IF page.match('(edit|bulk|approval|view|layout|data)') %]
-            <script type="text/javascript" src="[% url.js %]/base64.min.js"></script>
-        [% END %]
+        <script type="text/javascript" src="[% url.js %]/base64.min.js"></script>
         [% IF page == "login" %]
             <script type="text/javascript" src="[% url.js %]/login.js"></script>
             <!--[if (gte IE 6)&(lte IE 8)]>
                 <script type="text/javascript" src="[% url.js %]/selectivizr-min.js"></script>
             <![endif]-->
         [% END %]
-        [% IF page == "data_graph" %]
+        [% IF page == "data_graph" OR page == "index" %]
             <!--[if lt IE 9]><script language="javascript" type="text/javascript" src="/js/excanvas.min.js"></script><![endif]-->
             <script language="javascript" type="text/javascript" src="[% url.js %]/jquery.jqplot.min.js"></script>
             <script language="javascript" type="text/javascript" src="[% url.js %]/jqplot/jqplot.highlighter.min.js"></script>
@@ -235,7 +234,7 @@
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasTextRenderer.min.js"></script>
             <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasAxisLabelRenderer.min.js"></script>
         [% END %]
-        [% IF page.match('(view|data|layout)') %]
+        [% IF page.match('(view|data|layout|index)') %]
             <script type="text/javascript" src="[% url.js %]/underscore-min.js"></script>
         [% END %]
         [% IF page.match('(view|layout)') %]
@@ -247,7 +246,7 @@
         [% IF page == "data_calendar" %]
             <script type="text/javascript" src="[% url.js %]/calendar.min.js"></script>
         [% END %]
-        [% IF page == "data_timeline" %]
+        [% IF page == "data_timeline" OR page == "index" %]
             [% IF page_as_mech %]
                 <script type="text/javascript" src="[% url.js %]/requestAnimationFrame.min.js"></script>
                 [% IF hostlocal %]
@@ -259,7 +258,7 @@
             <script type="text/javascript" src="[% url.js %]/timeline.min.js"></script>
             <script type="text/javascript" src="[% url.js %]/tippy.min.js"></script>
         [% END %]
-        [% IF page == "data_globe" %]
+        [% IF page == "data_globe" OR page == "index" %]
             [% IF hostlocal %]
                 <script type="text/javascript" src="[% url.js %]/plotly-geo-1.38.2.js"></script>
             [% ELSE %]
@@ -276,7 +275,7 @@
         [% IF page.match("data") %]
             <script type='text/javascript' src='[% url.js %]/fontdetect.min.js'></script>
         [% END %]
-        [% IF page == "config" || page == "system" %]
+        [% IF page == "config" || page == "system" || page == "index" %]
             [% IF 0 %]
                 <script type="text/javascript" src="[% url.js %]/tiny_mce/tiny_mce.js"></script>
             [% ELSE %]
@@ -293,7 +292,14 @@
             [% END %]
         [% END %]
 
+        [% IF page.match('(layout|edit|approval|bulk)') %]
+            <script src="[% url.js %]/jstree.min.js"></script>
+            <script src="[% url.js %]/jstree-misc.js"></script>
+            <script src="[% url.js %]/bootstrap-select.min.js"></script>
+        [% END %]
+
         <script type="text/javascript" src="[% url.js %]/jquery.placeholder.js"></script>
+        <script src="[% url.js %]/linkspace.js"></script>
         <script type="text/javascript">
             $('[data-toggle="popover"]').popover({placement:'auto', html:true});
             if (typeof jscode != 'undefined') {
@@ -303,14 +309,8 @@
         </script>
 
 
-        [% IF page.match('(layout|edit|approval|bulk)') %]
-            <script src="[% url.js %]/jstree.min.js"></script>
-            <script src="[% url.js %]/jstree-misc.js"></script>
-            <script src="[% url.js %]/bootstrap-select.min.js"></script>
-        [% END %]
-
-        <script src="[% url.js %]/linkspace.js"></script>
-
+        <!--[if IE 8]><script src="[% url.js %]/dashboard-ie8-fallback.js"></script><![endif]-->
+        <!--[if !IE 8]><!--><script src="[% url.js %]/general.js"></script><!--<![endif]-->
     </body>
 </html>
 

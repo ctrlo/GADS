@@ -4,11 +4,32 @@
   "private": true,
   "scripts": {
     "watch": "npm-watch",
-    "sass": "sass --update --sourcemap=none sass:public/css/",
-    "jshint": "jshint public/js/*.js"
+    "sass": "sass --update --no-source-map sass:public/css/",
+    "jshint": "jshint public/js/*.js",
+    "ts": "yarn run webpack --watch",
+    "start": "npm-run-all --parallel watch ts"
   },
   "dependencies": {
-    "handlebars": "^4.0.12"
+    "@types/react": "^16.9.1",
+    "@types/react-dom": "^16.8.5",
+    "awesome-typescript-loader": "^5.2.1",
+    "core-js": "^3.2.0",
+    "css-loader": "^3.2.0",
+    "form-serialize": "^0.7.2",
+    "handlebars": "^4.0.12",
+    "mini-css-extract-plugin": "^0.8.0",
+    "node-sass": "^4.12.0",
+    "npm-run-all": "^4.1.5",
+    "react": "^16.9.0",
+    "react-app-polyfill": "^1.0.2",
+    "react-dom": "^16.9.0",
+    "react-grid-layout": "^0.16.6",
+    "react-modal": "^3.9.1",
+    "sass": "^1.22.9",
+    "sass-loader": "^7.2.0",
+    "typescript": "^3.5.3",
+    "webpack": "^4.39.1",
+    "webpack-cli": "^3.3.6"
   },
   "devDependencies": {
     "jshint": "^2.9.5",

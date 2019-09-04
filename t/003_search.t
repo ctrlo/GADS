@@ -1085,8 +1085,9 @@ foreach my $multivalue (0..1)
 
             # Basic graph test. Total of points on graph should match the number of results
             my $graph = GADS::Graph->new(
-                layout => $layout_filter || $layout,
-                schema => $schema,
+                layout       => $layout_filter || $layout,
+                schema       => $schema,
+                current_user => $sheet->user,
             );
             $graph->title('Test');
             $graph->type('bar');
@@ -2003,8 +2004,9 @@ foreach my $multivalue (0..1)
                 # Even though graphs do not use sorting, so a test with a sort
                 # as the user may still be using a view with a sort defined.
                 my $graph = GADS::Graph->new(
-                    layout => $layout,
-                    schema => $schema,
+                    layout       => $layout,
+                    schema       => $schema,
+                    current_user => $sheet->user,
                 );
                 $graph->title('Test');
                 $graph->type('bar');

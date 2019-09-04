@@ -1349,6 +1349,35 @@ var setupColumnFilters = function(context) {
     });
 }
 
+var handleHtmlEditorFileUpload = function(file, el) {
+    if(file.type.includes('image')) {
+        var data = new FormData();
+        data.append('file', file);
+        data.append('csrf_token', $('body').data('csrf-token'));
+        $.ajax({
+            url: '/file?ajax&is_independent',
+            type: 'POST',
+            contentType: false,
+            cache: false,
+            processData: false,
+            dataType: 'JSON',
+            data: data,
+            success: function (response) {
+                if(response.is_ok) {
+                    $(el).summernote('editor.insertImage', response.url);
+                } else {
+                    console.log(response.error);
+                }
+            }
+        })
+        .fail(function(e) {
+            console.log(e);
+        });
+    } else {
+        console.log("The type of file uploaded was not an image");
+    }
+}
+
 var setupHtmlEditor = function (context) {
 
     // Legacy editor - may be needed for IE8 support in the future
@@ -1363,162 +1392,198 @@ var setupHtmlEditor = function (context) {
         theme_advanced_buttons3 : ""
     });
     */
+    if (!$.summernote) {
+        return;
+    }
 
-    $('.summernote').summernote({
+    $('.summernote', context).summernote({
         height: 400,
         callbacks: {
+            // Load initial content
+            onInit: function() {
+                var $sum_div = $(this);
+                var $sum_input = $sum_div.siblings('input[type=hidden].summernote_content');
+                $(this).summernote('code', $sum_input.val());
+            },
             onImageUpload: function(files) {
                 for(var i = 0; i < files.length; i++) {
-                    upload_file(files[i], this);
+                    handleHtmlEditorFileUpload(files[i], this);
                 }
-            }
+            },
+            onChange: function (contents, $editable) {
+                var $sum_div = $(this).closest('.summernote');
+                // Ensure submitted content is empty string if blank content
+                // (easier checking for blank values)
+                if ($sum_div.summernote('isEmpty')) {
+                    contents = '';
+                }
+                var $sum_input = $sum_div.siblings('input[type=hidden].summernote_content');
+                $sum_input.val(contents);
+            },
         }
     });
-    $('#homepage_text_sn').summernote('code', $('#homepage_text').val());
-    $('#homepage_text2_sn').summernote('code', $('#homepage_text2').val());
-    $('#update').click(function(){
-        if ($('#homepage_text_sn').summernote('isEmpty')) {
-            var content = '';
-        } else {
-            var content = $('#homepage_text_sn').summernote('code');
-        }
-        $('#homepage_text').val(content);
-        if ($('#homepage_text2_sn').summernote('isEmpty')) {
-            content = '';
-        } else {
-            content = $('#homepage_text2_sn').summernote('code');
-        }
-        $('#homepage_text2').val(content);
-    });
-    function upload_file(file, el) {
-        if(file.type.includes('image')) {
-            var data = new FormData();
-            data.append('file', file);
-            data.append('csrf_token', $('body').data('csrf-token'));
-            $.ajax({
-                url: '/file?ajax&is_independent',
-                type: 'POST',
-                contentType: false,
-                cache: false,
-                processData: false,
-                dataType: 'JSON',
-                data: data,
-                success: function (response) {
-                    if(response.is_ok) {
-                        $(el).summernote('editor.insertImage', response.url);
-                    } else {
-                        console.log(response.error);
-                    }
-                }
-            })
-            .fail(function(e) {
-                console.log(e);
-            });
-        } else {
-            console.log("The type of file uploaded was not an image");
-        }
+
+    // Only setup global logic on initial setup
+    if (context !== undefined) {
+        return;
     }
 };
 
-var setupTimeline = function (context) {
+// Functions for graph plotting
+function do_plot_json(plotData, options_in) {
+    plotData = JSON.parse(plotData);
+    options_in = JSON.parse(options_in);
+    do_plot(plotData, options_in);
+};
+function do_plot (plotData, options_in) {
+    var ticks = plotData.xlabels;
+    var seriesDefaults;
+    var plotOptions = {};
+    var showmarker = (options_in.type == "line" ? true : false);
+    plotOptions.highlighter =  {
+        showMarker: showmarker,
+        tooltipContentEditor: function(str, pointIndex, index, plot){
+           return  plot._plotData[pointIndex][index][1];
+        },
+    };
+    if (options_in.type == "bar") {
+        plotOptions.seriesDefaults = {
+            renderer:$.jqplot.BarRenderer,
+            rendererOptions: {
+                shadow: false,
+                fillToZero: true,
+                barMinWidth: 10
+            },
+            pointLabels: {
+                show: false,
+                hideZeros: true
+            }
+        };
+    } else if (options_in.type == "donut") {
+        plotOptions.seriesDefaults = {
+            renderer:$.jqplot.DonutRenderer,
+            rendererOptions: {
+                sliceMargin: 3,
+                showDataLabels: true,
+                dataLabels: 'value',
+                shadow: false
+            }
+        };
+    } else if (options_in.type == "pie") {
+        plotOptions.seriesDefaults = {
+            renderer:$.jqplot.PieRenderer,
+            rendererOptions: {
+                showDataLabels: true,
+                dataLabels: 'value',
+                shadow: false
+            }
+        };
+    } else {
+        plotOptions.seriesDefaults = {
+            pointLabels: {
+                show: false
+            }
+        };
+    }
+    if (options_in.type != "donut" && options_in.type != "pie") {
+        plotOptions.series = plotData.labels;
+        plotOptions.axes = {
+            xaxis: {
+                renderer: $.jqplot.CategoryAxisRenderer,
+                ticks: ticks,
+                label: options_in.x_axis_name,
+                labelRenderer: $.jqplot.CanvasAxisLabelRenderer
+            },
+            yaxis: {
+                label: options_in.y_axis_label,
+                labelRenderer: $.jqplot.CanvasAxisLabelRenderer
+            }
+        };
+        if (plotData.options.y_max) {
+            plotOptions.axes.yaxis.max = plotData.options.y_max;
+        }
+        if (plotData.options.is_metric) {
+            plotOptions.axes.yaxis.tickOptions = {
+                formatString: '%d%'
+            };
+        }
+        plotOptions.axesDefaults = {
+            tickRenderer: $.jqplot.CanvasAxisTickRenderer ,
+            tickOptions: {
+              angle: -30,
+              fontSize: '8pt'
+            }
 
-    var container = $('#visualization');
+        };
+    }
+    plotOptions.stackSeries = options_in.stackseries;
+    plotOptions.legend = {
+        renderer:$.jqplot.EnhancedLegendRenderer,
+        show: options_in.showlegend,
+        location: 'e',
+        placement: 'outside'
+    };
+    $.jqplot('chartdiv' + options_in.id, plotData.points, plotOptions);
+};
 
+var setupGlobe = function (container) {
+
+    Plotly.setPlotConfig({locale: 'en-GB'});
+
+    var data = JSON.parse(base64.decode(container.data('globe-data')));
+
+    var layout = {
+        margin: {
+            t: 10,
+            l: 10,
+            r: 10,
+            b: 10
+        },
+        geo: {
+            scope: 'world',
+            showcountries: true,
+            countrycolor: 'grey',
+            resolution: 110
+        }
+    };
+
+    var options = {
+        showLink: false,
+        displaylogo: false,
+        'modeBarButtonsToRemove' : ['sendDataToCloud'],
+        topojsonURL: container.data('topojsonurl')
+    };
+
+    Plotly.newPlot(container.get(0), data, layout, options);
+};
+
+var setupTippy = function (context) {
+    var tippyContext = context || document;
+    tippy(tippyContext.querySelectorAll('.timeline-foreground'), {
+        target: '.timeline-tippy',
+        theme: 'light',
+        onShown: function (e) {
+            $('.moreinfo').off("click").on("click", function(e){
+                var target = $( e.target );
+                var record_id = target.data('record-id');
+                var m = $("#readmore_modal");
+                m.find('.modal-body').text('Loading...');
+                m.find('.modal-body').load('/record_body/' + record_id);
+                m.modal();
+             });
+        }
+    });
+};
+
+var setupTimeline = function (container, options_in) {
     var records_base64 = container.data('records');
     var json = base64.decode(records_base64);
     var items = new timeline.DataSet(JSON.parse(json));
     var groups = container.data('groups');
     var json_group = base64.decode(groups);
     var groups = JSON.parse(json_group);
-    var changed = {};
-
-    var template = Handlebars.templates.timelineitem;
-
-    var save_elem_sel    = '#submit_button',
-        cancel_elem_sel  = '#cancel_button',
-        changed_elem_sel = '#visualization_changes',
-        hidden_input_sel = '#changed_data';
-
-    function before_submit (e) {
-        var submit_data = _.mapObject( changed,
-            function( val, key ) {
-                return {
-                    column: val.column,
-                    current_id: val.current_id,
-                    from: val.start.toISOString().substring(0, 10),
-                    to:   (val.end || val.start).toISOString().substring(0, 10)
-                };
-            }
-        );
-        $(window).off('beforeunload');
-
-        // Store the data as JSON on the form
-        var submit_json = JSON.stringify(submit_data);
-        var data_field = $(hidden_input_sel);
-        data_field.attr('value', submit_json );
-    }
-
-    function on_move (item, callback) {
-        changed[item.id] = item;
-
-        var save_button = $( save_elem_sel );
-        if ( save_button.is(':hidden') ) {
-            $(window).bind('beforeunload', function(e) {
-                var error_msg = 'If you leave this page your changes will be lost.';
-                if (e) {
-                    e.returnValue = error_msg;
-                }
-                return error_msg;
-            });
-
-            save_button.closest('form').css('display', 'block');
-        }
-
-        var changed_item = $('<li>' + item.title + '</li>');
-        $( changed_elem_sel ).append(changed_item);
-
-        return callback(item);
-    }
-
-    function snap_to_day (datetime, scale, step) {
-        return new Date (
-            datetime.getFullYear(),
-            datetime.getMonth(),
-            datetime.getDate()
-        );
-    }
 
     var layout_identifier = $('body').data('layout-identifier');
-
-    function on_select (properties) {
-        var items = properties.items;
-        if (items.length == 0) {
-            $('.bulk_href').on('click', function(e) {
-                e.preventDefault();
-                alert("Please select some records on the timeline first");
-                return false;
-            });
-        } else {
-            var hrefs = [];
-            $("#delete_ids").empty();
-            properties.items.forEach(function(item) {
-                var id = item.replace(/\+.*/, '');
-                hrefs.push("id=" + id);
-                $("#delete_ids").append('<input type="hidden" name="delete_id" value="' + id + '">');
-            });
-            var href = hrefs.join('&');
-            $('#update_href').attr("href", "/" + layout_identifier + "/bulk/update/?" + href);
-            $('#clone_href').attr("href", "/" + layout_identifier + "/bulk/clone/?" + href);
-            $('#count_delete').text(items.length);
-            $('.bulk_href').off();
-        }
-    }
-
-    // Set up form button behaviour
-    $( save_elem_sel ).bind( 'click', before_submit );
-    $( cancel_elem_sel ).bind( 'click', function (e) {
-        $(window).off('beforeunload');
-    });
 
     // See http://visjs.org/docs/timeline/#Editing_Items
     var options = {
@@ -1530,12 +1595,14 @@ var setupTimeline = function (context) {
         moment: function (date) {
             return timeline.moment(date).utc();
         },
-        onMove:   on_move,
+        clickToUse: container.data('click-to-use') ? true : false,
         zoomFriction: 10,
-        snap:     snap_to_day,
-        template: template,
+        template: Handlebars.templates.timelineitem,
         orientation: {axis: "both"}
     };
+
+    // Merge any additional options supplied
+    for (var attrname in options_in) { options[attrname] = options_in[attrname]; }
 
     if (container.data('min')) {
         options.start = container.data('min');
@@ -1565,8 +1632,6 @@ var setupTimeline = function (context) {
     if (groups.length > 0) {
         tl.setGroups(groups);
     }
-    tl.on('select', on_select);
-    on_select({ items: [] });
 
     // functionality to add new items on range change
     var persistent_max;
@@ -1583,7 +1648,7 @@ var setupTimeline = function (context) {
             update_range_session(props);
             return;
         }
-        $('#loading-div').show();
+        container.prev('#loading-div').show();
 
         /* Calculate the range of the current items. This will min/max
             values for normal dates, but for dateranges we need to work
@@ -1641,7 +1706,7 @@ var setupTimeline = function (context) {
             persistent_min = props.start.getTime();
         }
 
-        $('#loading-div').hide();
+        container.prev('#loading-div').hide();
 
         // leave to end in case of problems rendering this range
         update_range_session(props);
@@ -1668,21 +1733,7 @@ var setupTimeline = function (context) {
         });
     }
 
-    tippy('.timeline-foreground', {
-        target: '.timeline-tippy',
-        theme: 'light',
-        onShown: function (e) {
-            $('.moreinfo').off("click").on("click", function(e){
-                var target = $( e.target );
-                var record_id = target.data('record-id');
-                var m = $("#readmore_modal");
-                m.find('.modal-body').text('Loading...');
-                m.find('.modal-body').load('/record_body/' + record_id);
-                m.modal();
-             });
-        }
-    });
-
+    return tl;
 }
 
 var setupOtherUserViews = function (context) {
@@ -1724,6 +1775,7 @@ var Linkspace = {
         setupRecordPopup(context);
         setupAccessibility(context);
         setupColumnFilters(context);
+        setupHtmlEditor(context);
     },
 
     debug: function (msg) {
@@ -1813,7 +1865,107 @@ Linkspace.system = function () {
 }
 
 Linkspace.data_timeline = function () {
-    setupTimeline();
+
+    var save_elem_sel    = '#submit_button',
+        cancel_elem_sel  = '#cancel_button',
+        changed_elem_sel = '#visualization_changes',
+        hidden_input_sel = '#changed_data';
+
+    var changed = {};
+
+    function on_move (item, callback) {
+        changed[item.id] = item;
+
+        var save_button = $( save_elem_sel );
+        if ( save_button.is(':hidden') ) {
+            $(window).bind('beforeunload', function(e) {
+                var error_msg = 'If you leave this page your changes will be lost.';
+                if (e) {
+                    e.returnValue = error_msg;
+                }
+                return error_msg;
+            });
+
+            save_button.closest('form').css('display', 'block');
+        }
+
+        var changed_item = $('<li>' + item.content + '</li>');
+        $( changed_elem_sel ).append(changed_item);
+
+        return callback(item);
+    }
+
+    function snap_to_day (datetime, scale, step) {
+        return new Date (
+            datetime.getFullYear(),
+            datetime.getMonth(),
+            datetime.getDate()
+        );
+    }
+
+    var options = {
+        onMove:   on_move,
+        snap:     snap_to_day,
+    };
+
+    var tl = setupTimeline($('.visualization'), options);
+
+    function before_submit (e) {
+        var submit_data = _.mapObject( changed,
+            function( val, key ) {
+                return {
+                    column: val.column,
+                    current_id: val.current_id,
+                    from: val.start.toISOString().substring(0, 10),
+                    to:   (val.end || val.start).toISOString().substring(0, 10)
+                };
+            }
+        );
+        $(window).off('beforeunload');
+
+        // Store the data as JSON on the form
+        var submit_json = JSON.stringify(submit_data);
+        var data_field = $(hidden_input_sel);
+        data_field.attr('value', submit_json );
+    }
+
+    // Set up form button behaviour
+    $( save_elem_sel ).bind( 'click', before_submit );
+    $( cancel_elem_sel ).bind( 'click', function (e) {
+        $(window).off('beforeunload');
+    });
+
+    var layout_identifier = $('body').data('layout-identifier');
+
+    function on_select (properties) {
+        var items = properties.items;
+        if (items.length == 0) {
+            $('.bulk_href').on('click', function(e) {
+                e.preventDefault();
+                alert("Please select some records on the timeline first");
+                return false;
+            });
+        } else {
+            var hrefs = [];
+            $("#delete_ids").empty();
+            properties.items.forEach(function(item) {
+                var id = item.replace(/\+.*/, '');
+                hrefs.push("id=" + id);
+                $("#delete_ids").append('<input type="hidden" name="delete_id" value="' + id + '">');
+            });
+            var href = hrefs.join('&');
+            $('#update_href').attr("href", "/" + layout_identifier + "/bulk/update/?" + href);
+            $('#clone_href').attr("href", "/" + layout_identifier + "/bulk/clone/?" + href);
+            $('#count_delete').text(items.length);
+            $('.bulk_href').off();
+        }
+    }
+
+    tl.on('select', on_select);
+    on_select({ items: [] });
+
+    setupTippy();
+
     setupOtherUserViews();
 }
 
@@ -1826,11 +1978,41 @@ Linkspace.data_table = function () {
 }
 
 Linkspace.data_globe = function () {
+    $('.globe').each(function () {
+        setupGlobe($(this));
+    });
     setupOtherUserViews();
 }
 
 Linkspace.data_calendar = function () {
     setupOtherUserViews();
+}
+
+Linkspace.graph = function () {
+    $('#is_shared').change(function () {
+        $('#group_id_div').toggle(this.checked);
+    }).change();
+    $('.date-grouping').change(function () {
+        if ($('#trend').val() || $('#set_x_axis').find(':selected').data('is-date')) {
+            $('#x_axis_date_display').show();
+        } else {
+            $('#x_axis_date_display').hide();
+        }
+    }).change();
+    $('#x_axis_range').change(function () {
+        if ($(this).val() == "custom") {
+            $('#custom_range').show();
+        } else {
+            $('#custom_range').hide();
+        }
+    }).change();
+    $('#y_axis_stack').change(function () {
+        if ($(this).val() == "sum") {
+            $('#y_axis_div').show();
+        } else {
+            $('#y_axis_div').hide();
+        }
+    }).change();
 }
 
 Linkspace.layout = function (context) {
@@ -1953,5 +2135,23 @@ Linkspace.layout = function (context) {
 
     $('#current-permissions .permission').each(handlePermissionChange);
 };
+
+Linkspace.index = function (context) {
+    $(document).ready(function () {
+        $('.dashboard-graph', context).each(function () {
+            var graph = $(this);
+            var graph_data = base64.decode(graph.data('plot-data'));
+            var options_in = base64.decode(graph.data('plot-options'));
+            do_plot_json(graph_data, options_in);
+        });
+        $('.visualization', context).each(function () {
+            setupTimeline($(this), {});
+        });
+        $('.globe', context).each(function () {
+            setupGlobe($(this));
+        });
+        setupTippy(context);
+    });
+}
 
 Linkspace.init();

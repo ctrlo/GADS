@@ -319,7 +319,7 @@ has page => (
 
 # Whether to take results from some previous point in time
 has rewind => (
-    is  => 'ro',
+    is  => 'rw',
     isa => Maybe[DateAndTime],
 );
 
@@ -1355,6 +1355,9 @@ sub _build_columns_view
         @cols = $self->layout->all(user_can_read => 1);
     }
 
+    unshift @cols, $self->layout->column_id
+        unless $self->is_group;
+
     return \@cols;
 }
 
@@ -2098,7 +2101,7 @@ sub csv_header
         unless $self->layout->user_can("download");
 
     my @columns = @{$self->columns_retrieved_no};
-    my @colnames = ("ID");
+    my @colnames;
     push @colnames, "Parent" if $self->has_children;
     push @colnames, map { $_->name } @columns;
     my $csv = $self->_csv;
@@ -2126,7 +2129,7 @@ sub csv_line
         or return;
 
     my @columns = @{$self->columns_retrieved_no};
-    my @items = ($line->current_id);
+    my @items;
     push @items, $line->parent_id if $self->has_children;
     push @items, map { $line->fields->{$_->id} } @columns;
     my $csv = $self->_csv;
@@ -2770,11 +2773,11 @@ sub _build_group_results
 
         my $dt_parser = $self->schema->storage->datetime_parser;
         # Find min/max dates from above, including linked field if required
-        my $daterange_from = $self->_min_date(
+        my $daterange_from = $self->from ? $self->from->clone : $self->_min_date(
             $result->get_column('start_date'),
             ($field_link ? $result->get_column('start_date_link') : undef)
         );
-        my $daterange_to   = $self->_max_date(
+        my $daterange_to = $self->to ? $self->to->clone : $self->_max_date(
             $result->get_column('end_date'),
             ($field_link ? $result->get_column('end_date_link') : undef)
         );

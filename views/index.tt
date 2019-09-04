@@ -1,14 +1,18 @@
-<div class="row">
-    [% IF homepage_text2 %]
-        <div class="col-md-6">
+<p></p> [%# Add space between buttons and line above. A better way? %]
+<div id="ld-app" class="react-grid-layout" data-dashboard-id="[% dashboard.id %]"
+    data-dashboard-name="[% dashboard.name | html %]"
+    data-dashboard-endpoint="[% IF layout %]/[% layout.identifier %][% END %]/api/dashboard/[% dashboard.id %]"
+    [% IF dashboard.instance_id %]
+        data-widget-types='["notice", "table", "graph", "timeline", "globe"]'
     [% ELSE %]
-        <div class="col-md-12">
+        data-widget-types='["notice"]'
     [% END %]
-            [% homepage_text %]
-        </div>
-    [% IF homepage_text2 %]
-        <div class="col-md-6">
-            [% homepage_text2 %]
+    data-dashboard-read-only="[% IF readonly %]true[% ELSE %]false[% END %]"
+    data-dashboards="[% dashboards_json | html %]"
+>
+    [% FOREACH widget IN dashboard.display_widgets %]
+        <div class="ld-widget-container" data-grid='[% widget.grid | html %]'>
+            [% widget.html %]
         </div>
     [% END %]
 </div>

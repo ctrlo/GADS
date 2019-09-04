@@ -3,22 +3,6 @@
     <div class="col-md-12">
         <form role="form" method="post">
             <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-            <label for="sort_layout_id">Default sort:</label>
-            <div class="row">
-                <div class="col-md-6">
-                    <select class="form-control" id="sort_layout_id" name="sort_layout_id">
-                        [% FOREACH column IN all_columns %]
-                            <option value="[% column.id %]" [% IF instance.sort_layout_id == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
-                        [% END %]
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <select class="form-control" id="sort_type" name="sort_type">
-                        <option value="asc" [% IF instance.sort_type == "asc" %]selected[% END %]>Ascending</option>
-                        <option value="desc" [% IF instance.sort_type == "desc" %]selected[% END %]>Descending</option>
-                    </select>
-                </div>
-            </div>
             <p></p>
             <p class="lead">
                 Customise the homepage your users see for this table. Each table has its own
@@ -36,7 +20,7 @@
                     <textarea class="form-control" id="homepage_text" name="homepage_text">[% instance.homepage_text | html_entity %]</textarea>
                 [% ELSE %]
                     <div class="summernote" id="homepage_text_sn"></div>
-                    <input type="hidden" name="homepage_text" id="homepage_text" value="[% instance.homepage_text | html_entity %]">
+                    <input type="hidden" name="homepage_text" id="homepage_text" class="summernote_content" value="[% instance.homepage_text | html %]">
                 [% END %]
             </div>
             <div class="form-group">
@@ -45,7 +29,7 @@
                     <textarea class="form-control" id="homepage_text2" name="homepage_text2">[% instance.homepage_text2 | html_entity %]</textarea>
                 [% ELSE %]
                     <div class="summernote" id="homepage_text2_sn"></div>
-                    <input type="hidden" name="homepage_text2" id="homepage_text2" value = "[% instance.homepage_text2 | html_entity %]">
+                    <input type="hidden" name="homepage_text2" id="homepage_text2" class="summernote_content" value="[% instance.homepage_text2 | html %]">
                 [% END %]
             </div>
             <button type="submit" id="update" name="update" value="update" class="btn btn-primary">Save</button>

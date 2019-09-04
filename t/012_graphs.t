@@ -2,6 +2,8 @@ use Test::More; # tests => 1;
 use strict;
 use warnings;
 
+use Test::MockTime qw(set_fixed_time restore_time); # Load before DateTime
+
 use JSON qw(encode_json);
 use Log::Report;
 use GADS::Graph;
@@ -10,6 +12,8 @@ use GADS::Records;
 use GADS::RecordsGraph;
 
 use t::lib::DataSheet;
+
+set_fixed_time('01/01/2015 12:00:00', '%m/%d/%Y %H:%M:%S');
 
 foreach my $multivalue (0..1)
 {
@@ -237,6 +241,38 @@ foreach my $multivalue (0..1)
             data            => [[ 20, 35, 35, 20, 20, 30, 30, 20, 20 ]],
         },
         {
+            name            => 'Date range x-axis, integer sum y-axis, limited time period by dates',
+            type            => 'bar',
+            x_axis          => $columns->{daterange1}->id,
+            x_axis_grouping => 'year',
+            y_axis          => $columns->{integer1}->id,
+            y_axis_stack    => 'sum',
+            from            => DateTime->new(year => 2013, month => 8, day => 15),
+            to              => DateTime->new(year => 2016, month => 6, day => 15),
+            data            => [[ 20, 30, 30, 20 ]],
+            xlabels         => [qw/2013 2014 2015 2016/],
+        },
+        {
+            name            => 'Date range x-axis, integer sum y-axis, limited time period by length',
+            type            => 'bar',
+            x_axis          => $columns->{daterange1}->id,
+            x_axis_range    => 6,
+            y_axis          => $columns->{integer1}->id,
+            y_axis_stack    => 'sum',
+            data            => [[ 30, 30, 30, 20, 20, 20, 20 ]],
+            xlabels         => ['January 2015', 'February 2015', 'March 2015', 'April 2015', 'May 2015', 'June 2015', 'July 2015'],
+        },
+        {
+            name            => 'Date range x-axis, integer sum y-axis, limited time period by length negative',
+            type            => 'bar',
+            x_axis          => $columns->{daterange1}->id,
+            x_axis_range    => -6,
+            y_axis          => $columns->{integer1}->id,
+            y_axis_stack    => 'sum',
+            data            => [[ 30, 30, 30, 30, 30, 30, 30 ]],
+            xlabels         => ['July 2014', 'August 2014', 'September 2014', 'October 2014', 'November 2014', 'December 2014', 'January 2015'],
+        },
+        {
             name            => 'Date range x-axis from curval, integer sum y-axis',
             type            => 'bar',
             x_axis          => $curval_sheet->columns->{daterange1}->id,
@@ -269,6 +305,66 @@ foreach my $multivalue (0..1)
             y_axis          => $columns->{string1}->id,
             y_axis_stack    => 'count',
             data            => [[ 1, 1, 0, 1 ]],
+        },
+        {
+            name            => 'Date x-axis, integer count y-axis, limited range',
+            type            => 'bar',
+            x_axis          => $columns->{date1}->id,
+            x_axis_grouping => 'year',
+            y_axis          => $columns->{string1}->id,
+            y_axis_stack    => 'count',
+            from            => DateTime->new(year => 2014, month => 1, day => 15),
+            to              => DateTime->new(year => 2016, month => 12, day => 15),
+            data            => [[ 1, 0, 1 ]],
+            xlabels         => [qw/2014 2015 2016/],
+        },
+        {
+            name            => 'Date x-axis, integer sum y-axis, limited range by length',
+            type            => 'bar',
+            x_axis          => $columns->{date1}->id,
+            x_axis_range    => 120,
+            y_axis          => $columns->{integer1}->id,
+            y_axis_stack    => 'sum',
+            data            => [[ 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]],
+            xlabels         => [qw/2015 2016 2017 2018 2019 2020 2021 2022 2023 2024 2025/],
+        },
+        {
+            name            => 'Date x-axis, integer sum y-axis, limited range by length, grouped',
+            type            => 'bar',
+            x_axis          => $columns->{date1}->id,
+            x_axis_range    => -120,
+            y_axis          => $columns->{integer1}->id,
+            y_axis_stack    => 'sum',
+            group_by        => $columns->{enum1}->id,
+            data            => [
+                [ 0, 0, 0, 0, 0, 0, 0, 0, 10, 15, 0 ],
+            ],
+            xlabels         => [qw/2005 2006 2007 2008 2009 2010 2011 2012 2013 2014 2015/],
+            labels          => [qw/foo1/],
+        },
+        {
+            name            => 'Date x-axis, integer sum y-axis, limited range by dates, grouped',
+            type            => 'bar',
+            x_axis          => $columns->{date1}->id,
+            x_axis_grouping => 'year',
+            x_axis_range    => 'custom',
+            from            => DateTime->new(year => 2012, month => 1, day => 15),
+            to              => DateTime->new(year => 2018, month => 12, day => 15),
+            y_axis          => $columns->{integer1}->id,
+            y_axis_stack    => 'sum',
+            group_by        => $columns->{enum1}->id,
+            data            => $multivalue
+            ? [
+                [ 0, 0, 0, 0, 20, 0, 0 ],
+                [ 0, 0, 0, 0, 20, 0, 0 ],
+                [ 0, 10, 15, 0, 0, 0, 0 ],
+            ]
+            : [
+                [ 0, 0, 0, 0, 20, 0, 0 ],
+                [ 0, 10, 15, 0, 0, 0, 0 ],
+            ],
+            xlabels         => [qw/2012 2013 2014 2015 2016 2017 2018/],
+            labels          => $multivalue ? [qw/foo3 foo2 foo1/] : [qw/foo2 foo1/],
         },
         {
             name         => 'String x-axis, sum y-axis, group by enum',
@@ -496,8 +592,9 @@ foreach my $multivalue (0..1)
         }
 
         my $graph = GADS::Graph->new(
-            layout => $layout,
-            schema => $schema,
+            layout       => $layout,
+            schema       => $schema,
+            current_user => $sheet->user,
         );
         $graph->title($g->{name});
         $graph->type($g->{type});
@@ -506,6 +603,10 @@ foreach my $multivalue (0..1)
             if $g->{x_axis_link};
         $graph->x_axis_grouping($g->{x_axis_grouping})
             if $g->{x_axis_grouping};
+        $graph->x_axis_range($g->{x_axis_range})
+            if $g->{x_axis_range};
+        $graph->from($g->{from});
+        $graph->to($g->{to});
         $graph->y_axis($g->{y_axis});
         $graph->y_axis_stack($g->{y_axis_stack});
         $graph->group_by($g->{group_by})
@@ -582,6 +683,7 @@ my $graph = GADS::Graph->new(
     y_axis_stack => 'sum',
     layout       => $sheet->layout,
     schema       => $sheet->schema,
+    current_user => $sheet->user,
 );
 $graph->write;
 

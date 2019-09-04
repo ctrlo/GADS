@@ -1,0 +1,12 @@
+<h4>[% title | html %]</h4>
+[% IF type == "table" %]
+    [% PROCESS snippets/data_table_inner.tt %]
+[% ELSIF type == "graph" %]
+    [% PROCESS snippets/data_graph_inner.tt %]
+[% ELSIF type == "timeline" %]
+    [% PROCESS snippets/data_timeline_inner.tt %]
+[% ELSIF type == "globe" %]
+    [% PROCESS snippets/data_globe_inner.tt %]
+[% ELSIF type == "notice" %]
+    [% content %]
+[% END %]

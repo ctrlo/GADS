@@ -110,7 +110,8 @@ our $VERSION = '0.1';
 set behind_proxy => config->{behind_proxy}; # XXX Why doesn't this work in config file
 
 GADS::Config->instance(
-    config => config,
+    config       => config,
+    app_location => app->location,
 );
 
 GADS::SchemaInstance->instance(
@@ -183,11 +184,13 @@ hook before => sub {
 
     if (request->is_post)
     {
-        # Protect against CSRF attacks
-        panic __x"csrf-token missing for uri {uri}, params {params}", uri => request->uri, params => Dumper(params)
-            if !param 'csrf_token';
+        # Protect against CSRF attacks. NB: csrf_token can be in query params
+        # or body params (different keys).
+        my $token = query_parameters->get('csrf-token') || body_parameters->get('csrf_token');
+        panic __x"csrf-token missing for uri {uri}, params {params}", uri => request->uri, params => Dumper({params})
+            if !$token;
         error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
-            if param('csrf_token') ne session('csrf_token');
+            if $token ne session('csrf_token');
 
         # If it's a potential login, change the token
         _update_csrf_token()
@@ -361,21 +364,28 @@ sub _forward_last_table
 get '/' => require_login sub {
 
     my $site = var 'site';
+    my $user    = logged_in_user;
 
-    my $homepage_text  = $site->homepage_text;
-    my $homepage_text2 = $site->homepage_text2;
-
-    if (!$site->has_main_homepage)
+    if (my $dashboard_id = query_parameters->get('did'))
     {
-        my $layout = var('instances')->first_homepage;
-        $homepage_text = $layout->homepage_text;
-        $homepage_text2 = $layout->homepage_text2;
+        session('persistent')->{dashboard}->{0} = $dashboard_id;
     }
 
+    my $dashboard_id = session('persistent')->{dashboard}->{0};
+
+    my %params = (
+        id     => $dashboard_id,
+        user   => $user,
+        site   => var('site'),
+    );
+
+    my $dashboard = schema->resultset('Dashboard')->dashboard(%params);
+
     template 'index' => {
-        homepage_text  => $homepage_text,
-        homepage_text2 => $homepage_text2,
-        page           => 'index',
+        readonly        => $dashboard->is_shared && !$user->permission->{superadmin},
+        dashboard       => $dashboard,
+        dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
+        page            => 'index',
     };
 };
 
@@ -673,8 +683,6 @@ any ['get', 'post'] => '/system/?' => require_login sub {
         $site->email_welcome_subject(param 'email_welcome_subject');
         $site->email_welcome_text(param 'email_welcome_text');
         $site->name(param 'name');
-        $site->homepage_text(param 'homepage_text');
-        $site->homepage_text2(param 'homepage_text2');
 
         if (process( sub { $site->update }))
         {
@@ -786,6 +794,8 @@ any ['get', 'post'] => '/table/:id' => require_role superadmin => sub {
             }
             $layout_edit->name(param 'name');
             $layout_edit->name_short(param 'name_short');
+            $layout_edit->sort_layout_id(param('sort_layout_id') || undef);
+            $layout_edit->sort_type(param 'sort_type');
             $layout_edit->set_groups([body_parameters->get_all('permissions')]);
 
             if (process(sub {$layout_edit->write}))
@@ -1356,24 +1366,43 @@ prefix '/:layout_name' => sub {
     get '/?' => require_login sub {
         my $layout = var('layout') or pass;
 
-        my $homepage_text  = $layout->homepage_text;
-        my $homepage_text2 = $layout->homepage_text2;
+        my $user    = logged_in_user;
 
-        my $site = var 'site';
-        # If no table homepage exists show site homepage, but only if no tables
-        # at all have a homepage defined
-        if (!$site->has_table_homepage)
+        if (my $dashboard_id = query_parameters->get('did'))
         {
-            $homepage_text = $site->homepage_text;
-            $homepage_text2 = $site->homepage_text2;
+            session('persistent')->{dashboard}->{$layout->instance_id} = $dashboard_id;
+        }
+
+        my $dashboard_id = session('persistent')->{dashboard}->{$layout->instance_id};
+
+        my %params = (
+            id     => $dashboard_id,
+            user   => $user,
+            layout => $layout,
+            site   => var('site'),
+        );
+
+        my $dashboard = schema->resultset('Dashboard')->dashboard(%params);
+
+        # If the shared dashboard is blank for this table then show the site
+        # dashboard
+        if ($dashboard->is_shared && $dashboard->is_empty)
+        {
+            my %params = (
+                user   => $user,
+                site   => var('site'),
+            );
+            $dashboard = schema->resultset('Dashboard')->dashboard(%params);
         }
 
         template 'index' => {
-            homepage_text  => $homepage_text,
-            homepage_text2 => $homepage_text2,
-            page           => 'index',
-            breadcrumbs    => [Crumb($layout)]
+            readonly        => $dashboard->is_shared && !$layout->user_can('layout'),
+            dashboard       => $dashboard,
+            dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
+            page            => 'index',
+            breadcrumbs     => [Crumb($layout)],
         };
+
     };
 
     get '/data_calendar/:time' => require_login sub {
@@ -1679,25 +1708,14 @@ prefix '/:layout_name' => sub {
             if (my $png = param('png'))
             {
                 my $gdata = _data_graph($png);
-                my $json  = encode_json {
-                    points  => $gdata->points,
-                    labels  => $gdata->labels_encoded,
-                    xlabels => $gdata->xlabels,
-                    options => $gdata->options,
-                };
+                my $json  = $gdata->as_json;
                 my $graph = GADS::Graph->new(
                     id     => $png,
                     layout => $layout,
                     schema => schema
                 );
-                my $options_in = encode_json {
-                    type         => $graph->type,
-                    x_axis_name  => $graph->x_axis_name,
-                    y_axis_label => $graph->y_axis_label,
-                    stackseries  => \$graph->stackseries,
-                    showlegend   => \$graph->showlegend,
-                    id           => $png,
-                };
+                my $options_in = $graph->as_json;
+                $params->{graph_id} = $png;
 
                 my $mech = _page_as_mech('data_graph', $params, width => 630, height => 400);
                 $mech->eval_in_page('(function(plotData, options_in){do_plot_json(plotData, options_in)})(arguments[0],arguments[1]);',
@@ -1728,7 +1746,7 @@ prefix '/:layout_name' => sub {
                 );
             }
             else {
-                $params->{graphs} = GADS::Graphs->new(user => $user, schema => schema, layout => $layout)->all;
+                $params->{graphs} = GADS::Graphs->new(current_user => $user, schema => schema, layout => $layout)->all;
             }
         }
         elsif ($viewtype eq 'calendar')
@@ -2003,7 +2021,6 @@ prefix '/:layout_name' => sub {
             }
 
             my @columns = @{$records->columns_view};
-            unshift @columns, $layout->column_id unless $records->is_group;
             $params->{user_can_edit}        = $layout->user_can('write_existing');
             $params->{sort}                 = $records->sort_first;
             $params->{subset}               = $subset;
@@ -2153,81 +2170,24 @@ prefix '/:layout_name' => sub {
         template 'purge' => $params;
     };
 
-    any ['get', 'post'] => '/config/?' => require_login sub {
-
-        my $layout = var('layout') or pass;
-
-        my $user        = logged_in_user;
-
-        forwardHome({ danger => "You do not have permission to manage general settings"}, $layout->identifier)
-            unless $layout->user_can("layout");
-
-        my $instance = rset('Instance')->find(var('layout')->instance_id);
-
-        if (param 'update')
-        {
-            $instance->homepage_text(param 'homepage_text');
-            $instance->homepage_text2(param 'homepage_text2');
-            $instance->sort_layout_id(param('sort_layout_id') || undef);
-            $instance->sort_type(param 'sort_type');
-
-            if (process( sub { $instance->update }))
-            {
-                return forwardHome(
-                    { success => "Configuration settings have been updated successfully" }, $layout->identifier);
-            }
-        }
-
-        my @all_columns = $layout->all;
-        template 'config' => {
-            all_columns => \@all_columns,
-            instance    => $instance,
-            page        => 'config',
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, '/config' => 'manage homepage' )],
-        };
-    };
-
-    get '/graph/?' => require_login sub {
-
-        my $layout = var('layout') or pass;
-
-        my $user        = logged_in_user;
-
-        forwardHome({ danger => "You do not have permission to manage graphs" }, '')
-            unless $layout->user_can("layout");
-
-        my $graphs = GADS::Graphs->new(schema => schema, layout => $layout)->all;
-
-        my $params = {
-            layout      => $layout,
-            page        => 'graph',
-            graphs      => $graphs,
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, '/data' => 'records' ) => Crumb( $layout, '/graph' => 'graphs' )],
-        };
-
-        template 'graphs' => $params;
-    };
-
     any ['get', 'post'] => '/graph/:id' => require_login sub {
 
         my $layout = var('layout') or pass;
 
         my $user        = logged_in_user;
 
-        forwardHome({ danger => "You do not have permission to manage graphs" }, '')
-            unless $layout->user_can("layout");
-
         my $params = {
             layout => $layout,
-            page   => defined param('id') && !param('id') ? 'graph/0' : 'graph',
+            page   => 'graph',
         };
 
         my $id = param 'id';
 
         my $graph = GADS::Graph->new(
-            id     => $id,
-            layout => $layout,
-            schema => schema,
+            id           => $id,
+            layout       => $layout,
+            schema       => schema,
+            current_user => $user,
         );
 
         if (param 'delete')
@@ -2235,7 +2195,7 @@ prefix '/:layout_name' => sub {
             if (process( sub { $graph->delete }))
             {
                 return forwardHome(
-                    { success => "The graph has been deleted successfully" }, $layout->identifier.'/graph' );
+                    { success => "The graph has been deleted successfully" }, $layout->identifier.'/graphs' );
             }
         }
 
@@ -2244,18 +2204,17 @@ prefix '/:layout_name' => sub {
             my $values = params;
             $graph->$_(param $_)
                 foreach (qw/title description type set_x_axis x_axis_grouping y_axis
-                    y_axis_label y_axis_stack group_by stackseries metric_group_id as_percent/);
+                    y_axis_label y_axis_stack group_by stackseries metric_group_id as_percent
+                    is_shared group_id trend from to x_axis_range/);
             if(process( sub { $graph->write }))
             {
                 my $action = param('id') ? 'updated' : 'created';
                 return forwardHome(
-                    { success => "Graph has been $action successfully" }, $layout->identifier.'/graph' );
+                    { success => "Graph has been $action successfully" }, $layout->identifier.'/graphs' );
             }
         }
 
         $params->{graph}         = $graph;
-        $params->{dategroup}     = GADS::Graphs->dategroup;
-        $params->{graphtypes}    = [GADS::Graphs->types];
         $params->{metric_groups} = GADS::MetricGroups->new(
             schema      => schema,
             instance_id => session('persistent')->{instance_id},
@@ -2265,7 +2224,7 @@ prefix '/:layout_name' => sub {
         my $graph_id   = $id ? $graph->id : 0;
         $params->{breadcrumbs}   = [
             Crumb($layout) => Crumb( $layout, '/data' => 'records' )
-                => Crumb( $layout, '/graph' => 'graphs' ) => Crumb( $layout, "/graph/$graph_id" => $graph_name )
+                => Crumb( $layout, '/graphs' => 'graphs' ) => Crumb( $layout, "/graph/$graph_id" => $graph_name )
         ],
 
         template 'graph' => $params;
@@ -2290,7 +2249,7 @@ prefix '/:layout_name' => sub {
             page        => 'metric',
             metrics     => $metrics,
             breadcrumbs => [Crumb($layout) => Crumb( $layout, '/data' => 'records' )
-                => Crumb( $layout, '/graph' => 'graphs' )
+                => Crumb( $layout, '/graphs' => 'graphs' )
                 => Crumb( $layout, '/metrics' => 'metrics' )
             ],
         };
@@ -2374,7 +2333,7 @@ prefix '/:layout_name' => sub {
         my $metric_name = $id ? $metricgroup->name : "add a metric";
         my $metric_id   = $id ? $metricgroup->id : 0;
         $params->{breadcrumbs} = [Crumb($layout) => Crumb( $layout, '/data' => 'records' )
-                => Crumb( $layout, '/graph' => 'graphs' )
+                => Crumb( $layout, '/graphs' => 'graphs' )
                 => Crumb( $layout, '/metrics' => 'metrics' ) => Crumb( $layout, "/metric/$metric_id" => $metric_name )
         ],
 
@@ -3188,7 +3147,7 @@ prefix '/:layout_name' => sub {
         };
     };
 
-    any ['get', 'post'] => '/mygraphs/?' => require_login sub {
+    any ['get', 'post'] => '/graphs/?' => require_login sub {
 
         my $layout = var('layout') or pass;
         my $user   = logged_in_user;
@@ -3204,15 +3163,16 @@ prefix '/:layout_name' => sub {
         }
 
         my $graphs = GADS::Graphs->new(
-            user   => $user,
-            schema => schema,
-            layout => $layout,
+            current_user => $user,
+            schema       => schema,
+            layout       => $layout,
         );
         my $all_graphs = $graphs->all;
-        template 'mygraphs' => {
+
+        template 'graphs' => {
             graphs      => $all_graphs,
-            page        => 'mygraphs',
-            breadcrumbs => [Crumb($layout) => Crumb( '/mygraphs' => 'my graphs' )],
+            page        => 'graphs',
+            breadcrumbs => [Crumb($layout) => Crumb( $layout, '/data' => 'records' ) => Crumb( $layout, '/graph' => 'graphs' )],
         };
     };
 

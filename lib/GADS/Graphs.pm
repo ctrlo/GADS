@@ -22,13 +22,14 @@ use GADS::Graph;
 use Log::Report 'linkspace';
 use Scalar::Util qw/blessed/;
 use Moo;
+use MooX::Types::MooseLike::Base qw/:all/;
 
-# Not required so that dategroup can be called separately
 has schema => (
-    is       => 'rw',
+    is       => 'ro',
+    required => 1,
 );
 
-has user => (
+has current_user => (
     is => 'rw',
 );
 
@@ -46,41 +47,77 @@ sub _all
 {   my $self = shift;
 
     my @graphs; my @user_graphs;
-    if (my $user = $self->user)
-    {
-        # XXX When the DBIC rel options show up, this can all be
-        # simplified with a custom join condition. For now, do
-        # two separate queries
 
-        # Get which graphs the user has first
-        @user_graphs = $self->schema->resultset('Graph')->search({
-            'user_graphs.user_id' => $user->id,
-            instance_id           => $self->layout->instance_id,
-        },{
-            join => 'user_graphs',
-        })->all;
-    }
+    # First create a hash of all the graphs the user has selected
+    my %user_selected = map {
+        $_->id => 1
+    } $self->schema->resultset('Graph')->search({
+        'user_graphs.user_id' => $self->current_user->id,
+        instance_id           => $self->layout->instance_id,
+    },{
+        join => 'user_graphs',
+    })->all;
 
-    # Now get all graphs, and use the previous query to see
-    # if the user has this graph
+    # Now get all graphs, and use the previous hash to see
+    # if the user has this graph selected
     my $all_rs = $self->schema->resultset('Graph')->search(
     {
         instance_id => $self->layout->instance_id,
+        -or         => [
+            {
+                'me.is_shared' => 1,
+                'me.group_id'  => undef,
+            },
+            {
+                'me.is_shared'        => 1,
+                'user_groups.user_id' => $self->current_user->id,
+            },
+            {
+                'me.user_id' => $self->current_user->id,
+            },
+        ],
     },{
+        join => {
+            group => 'user_groups',
+        },
+        collapse => 1,
         order_by => 'me.title',
     });
     $all_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my @all_graphs = $all_rs->all;
     foreach my $grs (@all_graphs)
     {
-        my $selected = grep { $_->id == $grs->{id} } @user_graphs;
-        my $graph = GADS::Graph->new(schema => $self->schema, layout => $self->layout);
-        $graph->set_values($grs);
-        $graph->selected($selected ? 1 : 0);
+        my $graph = GADS::Graph->new(
+            schema       => $self->schema,
+            layout       => $self->layout,
+            current_user => $self->current_user,
+            selected     => $user_selected{$grs->{id}},
+            set_values   => $grs,
+        );
         push @graphs, $graph;
     }
 
     \@graphs;
+}
+
+has all_shared => (
+    is => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_all_shared
+{   my $self = shift;
+    [ grep $_->is_shared, @{$self->all} ];
+}
+
+has all_personal => (
+    is => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_all_personal
+{   my $self = shift;
+    [ grep !$_->is_shared, @{$self->all} ];
 }
 
 sub purge
@@ -90,15 +127,6 @@ sub purge
         $graph->delete;
     }
 }
-
-sub dategroup
-{
-    {
-        day   => '%d %B %Y',
-        month => '%B %Y',
-        year  => '%Y',
-    };
-};
 
 sub types
 { qw(bar line donut scatter pie) }

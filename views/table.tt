@@ -15,6 +15,24 @@
                 <input type="text" name="name_short" class="form-control" value="[% layout_edit.name_short | html_entity %]">
             </div>
             <div class="form-group">
+                <label for="sort_layout_id">Default sort:</label>
+                <div class="row">
+                    <div class="col-md-6">
+                        <select class="form-control" id="sort_layout_id" name="sort_layout_id">
+                            [% FOREACH column IN layout_edit.all %]
+                                <option value="[% column.id %]" [% IF layout_edit.sort_layout_id == column.id %]selected[% END %]>[% column.name | html %]</option>
+                            [% END %]
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <select class="form-control" id="sort_type" name="sort_type">
+                            <option value="asc" [% IF layout_edit.sort_type == "asc" %]selected[% END %]>Ascending</option>
+                            <option value="desc" [% IF layout_edit.sort_type == "desc" %]selected[% END %]>Descending</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
                 <table class="table table-striped">
                     <thead>
                         <tr>
@@ -25,7 +43,7 @@
                             <th>Manage fields</th>
                             <th>Send messages</th>
                             <th>Create and edit views</th>
-                            <th>Create and edit group views</th>
+                            <th>Create and edit group views and graphs</th>
                             <th>Create and edit child records</th>
                             <th>Bulk update records</th>
                             <th>Create and manage linked records</th>

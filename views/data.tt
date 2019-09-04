@@ -160,7 +160,7 @@
                     </div>
                 [% ELSIF viewtype == "graph" %]
                     <div class="btn-group">
-                        <a href="[% url.page %]/[% layout.identifier %]/mygraphs/" class="btn btn-default" role="button">Select graphs...</a>
+                        <a href="[% url.page %]/[% layout.identifier %]/graphs/" class="btn btn-default" role="button">Select graphs...</a>
                     </div>
                 [% END %]
             </div>
@@ -279,43 +279,7 @@
         modal_id="modal_timeline" modal_action_text="Update options" modal_heading="Timeline view options"
         modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post"
     %]
-        <div class="form-group">
-            <label for="tl_label">Show label as field:</label>
-            <select class="form-control" name="tl_label">
-                <option value="" [% IF NOT tl_options.label %]selected[% END %]>&lt;All fields&gt;</option>
-                [% FOREACH column IN columns_read %]
-                    <option value="[% column.id %]" [% IF tl_options.label == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
-                [% END %]
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="tl_group">Group by field:</label>
-            <select class="form-control" name="tl_group">
-                <option value="" [% IF NOT tl_options.group %]selected[% END %]>&lt;All fields&gt;</option>
-                [% FOREACH column IN columns_read %]
-                    <option value="[% column.id %]" [% IF tl_options.group == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
-                [% END %]
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="tl_color">Colour by field:</label>
-            <select class="form-control" name="tl_color">
-                <option value="" [% IF NOT tl_options.color %]selected[% END %]>&lt;All fields&gt;</option>
-                [% FOREACH column IN columns_read %]
-                    <option value="[% column.id %]" [% IF tl_options.color == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
-                [% END %]
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="tl_color">Overlay items from other table:</label>
-            <select class="form-control" name="tl_overlay">
-                <option value="" [% IF NOT tl_options.overlay %]selected[% END %]></option>
-                [% FOREACH overlay_ins IN instances %]
-                    [% NEXT IF overlay_ins.instance_id == layout.instance_id %]
-                    <option value="[% overlay_ins.instance_id %]" [% IF tl_options.overlay == overlay_ins.instance_id %]selected[% END %]>[% overlay_ins.name | html %]</option>
-                [% END %]
-            </select>
-        </div>
+        [% PROCESS snippets/timeline_options.tt %]
     [% END %]
 [% END %]
 
@@ -360,35 +324,7 @@
         modal_id="modal_globe" modal_action_text="Update options" modal_heading="Globe view options"
         modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post"
     %]
-        <div class="form-group">
-            <label for="globe_label">Label by field:</label>
-            <select class="form-control" name="globe_label">
-                <option value="" [% IF NOT globe_options.label %]selected[% END %]>&lt;None&gt;</option>
-                <option value="-1" [% IF globe_options.label == -1 %]selected[% END %]>&lt;Record count&gt;</option>
-                [% FOREACH column IN columns_read %]
-                    <option value="[% column.filter_id %]" [% IF globe_options.label == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]</option>
-                [% END %]
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="globe_group">Group by field:</label>
-            <select class="form-control" name="globe_group">
-                <option value="" [% IF NOT globe_options.group %]selected[% END %]>&lt;All fields&gt;</option>
-                [% FOREACH column IN columns_read %]
-                    <option value="[% column.filter_id %]" [% IF globe_options.group == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]</option>
-                [% END %]
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="globe_color">Colour by field:</label>
-            <select class="form-control" name="globe_color">
-                <option value="" [% IF NOT globe_options.color %]selected[% END %]>&lt;All fields&gt;</option>
-                <option value="-1" [% IF globe_options.color == -1 %]selected[% END %]>&lt;Record count&gt;</option>
-                [% FOREACH column IN columns_read %]
-                    <option value="[% column.filter_id %]" [% IF globe_options.color == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]</option>
-                [% END %]
-            </select>
-        </div>
+        [% PROCESS snippets/globe_options.tt %]
     [% END %]
 [% END %]
 

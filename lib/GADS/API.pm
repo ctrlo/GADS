@@ -34,8 +34,8 @@ fatal_handler sub {
     return unless $dsl && $dsl->app->request && $dsl->app->request->uri =~ m!^/([0-9a-z]+/)?api/!i;
     status $reason eq 'PANIC' ? 'Internal Server Error' : 'Bad Request';
     $dsl->send_as(JSON => {
-        error   => 1,
-        message => $msg->toString },
+        is_error => \1,
+        message  => $msg->toString },
     { content_type => 'application/json; charset=UTF-8' });
 };
 
@@ -413,6 +413,295 @@ prefix '/:layout_name' => sub {
             ]
         };
     };
+
+    post '/api/dashboard/:dashboard_id/widget' => require_login sub {
+        my $layout = var('layout') or pass;
+        _post_dashboard_widget($layout);
+    };
+
+    put '/api/dashboard/:dashboard_id/dashboard/:id' => require_login sub {
+        my $layout = var('layout') or pass;
+        _put_dashboard_dashboard($layout);
+    };
+
+    get '/api/dashboard/:dashboard_id/widget/:id' => require_login sub {
+        my $layout = var('layout') or pass;
+        _get_dashboard_widget($layout);
+    };
+
+    get '/api/dashboard/:dashboard_id/widget/:id/edit' => require_login sub {
+        my $layout = var('layout') or pass;
+        _get_dashboard_widget_edit($layout);
+    };
+
+    put '/api/dashboard/:dashboard_id/widget/:id/edit' => require_login sub {
+        my $layout = var('layout') or pass;
+        _put_dashboard_widget_edit($layout);
+    };
+
+    del '/api/dashboard/:dashboard_id/widget/:id' => require_login sub {
+        my $layout = var('layout') or pass;
+        _del_dashboard_widget($layout);
+    };
 };
 
+# Same as prefix routes above, but without layout identifier - these are for
+# site dashboard configuration
+post '/api/dashboard/:dashboard_id/widget' => require_login sub {
+    _post_dashboard_widget();
+};
+
+put '/api/dashboard/:dashboard_id/dashboard/:id' => require_login sub {
+    _put_dashboard_dashboard();
+};
+
+get '/api/dashboard/:dashboard_id/widget/:id' => require_login sub {
+    _get_dashboard_widget();
+};
+
+get '/api/dashboard/:dashboard_id/widget/:id/edit' => require_login sub {
+    _get_dashboard_widget_edit();
+};
+
+put '/api/dashboard/:dashboard_id/widget/:id/edit' => require_login sub {
+    _put_dashboard_widget_edit();
+};
+
+del '/api/dashboard/:dashboard_id/widget/:id' => require_login sub {
+    _del_dashboard_widget();
+};
+
+sub _post_dashboard_widget {
+    my $layout = shift;
+    my $user   = logged_in_user;
+
+    my $type = query_parameters->get('type');
+
+    # Check access
+    my $dashboard = _get_dashboard_write(route_parameters->get('dashboard_id'), $layout, $user);
+
+    my $content = "This is a new notice widget - click edit to update the contents";
+    my $widget = schema->resultset('Widget')->create({
+        dashboard_id => $dashboard->id,
+        type         => $type,
+        content      => $type eq 'notice' ? $content : undef,
+    });
+
+    return _success($widget->grid_id);
+}
+
+sub _put_dashboard_dashboard {
+    my $layout = shift;
+    my $user   = logged_in_user;
+    return  _update_dashboard($layout, $user);
+}
+
+sub _get_dashboard_widget {
+    my $layout = shift;
+    my $user   = logged_in_user;
+    # _get_widget will raise an exception if it does not exist
+    return  _get_widget(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user)->html;
+}
+
+sub _get_dashboard_widget_edit {
+    my $layout = shift;
+    my $user   = logged_in_user;
+    my $widget = _get_widget_write(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user);
+
+    my $params = {
+        widget          => $widget,
+        tl_options      => $widget->tl_options_inflated,
+        globe_options   => $widget->globe_options_inflated,
+    };
+
+    unless ($widget->type eq 'notice')
+    {
+        my $views = GADS::Views->new(
+            user          => $user,
+            schema        => schema,
+            layout        => $layout,
+            instance_id   => $layout->instance_id,
+        );
+        $params->{user_views}   = $views->user_views;
+        $params->{columns_read} = [$layout->all(user_can_read => 1)];
+    }
+
+    if ($widget->type eq 'graph')
+    {
+        my $graphs = GADS::Graphs->new(
+            current_user => $user,
+            schema       => schema,
+            layout       => $layout,
+        );
+        $params->{graphs} = $graphs;
+    }
+
+    my $content = template 'widget' => $params, {
+        layout => undef, # Do not render page header, footer etc
+    };
+
+    # Keep consistent with return type generated on error
+    return encode_json {
+        is_error => 0,
+        content  => $content,
+    };
+}
+
+sub _put_dashboard_widget_edit {
+    my $layout = shift;
+    my $user   = logged_in_user;
+    my $widget = _get_widget_write(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user);
+
+    $widget->title(query_parameters->get('title'));
+    $widget->static(query_parameters->get('static') ? 1 : 0)
+        if $widget->dashboard->is_shared;
+    if ($widget->type eq 'notice')
+    {
+        $widget->set_columns({
+            content => query_parameters->get('content'),
+        });
+    }
+    elsif ($widget->type eq 'graph')
+    {
+        $widget->set_columns({
+            graph_id => query_parameters->get('graph_id'),
+            view_id  => query_parameters->get('view_id'),
+        });
+    }
+    elsif ($widget->type eq 'table')
+    {
+        $widget->set_columns({
+            rows     => query_parameters->get('rows'),
+            view_id  => query_parameters->get('view_id'),
+        });
+    }
+    elsif ($widget->type eq 'timeline')
+    {
+        my $tl_options = {
+            label   => query_parameters->get('tl_label'),
+            group   => query_parameters->get('tl_group'),
+            color   => query_parameters->get('tl_color'),
+            overlay => query_parameters->get('tl_overlay'),
+        };
+        $widget->set_columns({
+            tl_options => encode_json($tl_options),
+            view_id    => query_parameters->get('view_id'),
+        });
+    }
+    elsif ($widget->type eq 'globe')
+    {
+        my $globe_options = {
+            label   => query_parameters->get('globe_label'),
+            group   => query_parameters->get('globe_group'),
+            color   => query_parameters->get('globe_color'),
+        };
+        $widget->set_columns({
+            globe_options => encode_json($globe_options),
+            view_id       => query_parameters->get('view_id'),
+        });
+    }
+    $widget->update;
+
+    return _success("Widget updated successfully");
+}
+
+sub _del_dashboard_widget {
+    my $layout = shift;
+    my $user   = logged_in_user;
+    _get_widget_write(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user)->delete;
+    return _success("Widget deleted successfully");
+}
+
+sub _get_widget_write
+{   my ($widget_id, $dashboard_id, $layout, $user) = @_;
+    my $widget = _get_widget($widget_id, $dashboard_id, $layout, $user);
+
+    # Check write access to dashboard, borks on unauth
+    _get_dashboard_write($widget->dashboard_id, $layout, $user);
+
+    return $widget;
+}
+
+sub _get_widget
+{   my ($widget_id, $dashboard_id, $layout, $user) = @_;
+    my $widget = schema->resultset('Widget')->search({
+        dashboard_id => $dashboard_id,
+        grid_id      => route_parameters->get('id'),
+    })->next;
+    if (!$widget)
+    {
+        status 404;
+        error __x"Widget ID {id} not found", id => $widget_id;
+    }
+
+    # Check access. Borks if no access
+    _get_dashboard($widget->dashboard->id, $layout, $user);
+
+    $widget->layout($layout);
+    return $widget;
+}
+
+sub _get_dashboard
+{   my ($id, $layout, $user) = @_;
+    my $dashboard = schema->resultset('Dashboard')->find($id);
+    if (!$dashboard)
+    {
+        status 404;
+        error __x"Dashboard {id} not found", id => $id;
+    }
+    return $dashboard;
+}
+
+sub _get_dashboard_write
+{   my ($id, $layout, $user) = @_;
+    my $dashboard = _get_dashboard($id, $layout, $user);
+    return $dashboard
+        if logged_in_user->permission->{superadmin} # For site dashboard
+            || ($layout && $layout->user_can('layout'));
+    return $dashboard
+        if $dashboard->user_id && $dashboard->user_id == $user->id;
+    status 403;
+    error __x"User does not have write access to dashboard ID {id}", id => $id;
+}
+
+sub _update_dashboard
+{   my ($layout, $user) = @_;
+
+    my $id = route_parameters->get('id');
+
+    my $dashboard = _get_dashboard_write($id, $layout, $user);
+
+    my $widgets = decode_json request->body;
+
+    foreach my $widget (@$widgets)
+    {
+        # Static widgets added to personal dashboards will be passed in, but we
+        # don't want to include these in the personal dashboard as they are
+        # added anyway on dashboard render
+        next if $widget->{static} && !$dashboard->is_shared;
+        # Do not update widget static status, as this does not seem to be
+        # passed in
+        my $w = schema->resultset('Widget')->update_or_create({
+            dashboard_id => $dashboard->id,
+            grid_id      => $widget->{i},
+            h            => $widget->{h},
+            w            => $widget->{w},
+            x            => $widget->{x},
+            y            => $widget->{y},
+        }, {
+            key => 'widget_ux_dashboard_grid',
+        });
+    }
+
+    return _success("Dashboard updated successfully");
+}
+
+sub _success
+{   my $msg = shift;
+    content_type 'application/json;charset=UTF-8';
+    return encode_json {
+        is_error => 0,
+        message  => $msg,
+    };
+}
 1;

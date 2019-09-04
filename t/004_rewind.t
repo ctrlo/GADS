@@ -149,6 +149,7 @@ foreach my $multivalue (0..1)
         title        => 'Rewind graph',
         layout       => $layout,
         schema       => $schema,
+        current_user => $sheet->user,
         type         => 'bar',
         x_axis       => $string1->id,
         y_axis       => $integer1->id,
