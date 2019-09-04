@@ -116,7 +116,8 @@
             full_width_pages = {
                 data_timeline => 1,
                 data_table => 1,
-                data_calendar => 1
+                data_calendar => 1,
+                index => 1
             }
         %]
 
