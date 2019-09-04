@@ -649,7 +649,7 @@ sub _records_to_results
 
     my $records_results = $self->records->results;
 
-    my $df   = $dgf->{$self->x_axis_grouping_calculated};
+    my $df = $self->x_axis_grouping_calculated && $dgf->{$self->x_axis_grouping_calculated};
 
     # If we have a specified x-axis range but only a date field, then we need
     # to pre-populate the range of x values. This is not needed with a
