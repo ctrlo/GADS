@@ -1999,6 +1999,13 @@ Linkspace.graph = function () {
             $('#x_axis_date_display').hide();
         }
     }).change();
+    $('#trend').change(function () {
+        if ($(this).val()) {
+            $('#group_by_div').hide();
+        } else {
+            $('#group_by_div').show();
+        }
+    }).change();
     $('#x_axis_range').change(function () {
         if ($(this).val() == "custom") {
             $('#custom_range').show();

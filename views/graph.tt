@@ -66,13 +66,16 @@
                     <div class="form-group">
                         <label for="set_x_axis">X-axis:</label>
                         <select class="form-control date-grouping" name="set_x_axis" id="set_x_axis">
+                            [% IF NOT graph.id %]
+                                <option></option>
+                            [% END %]
                             [% FOREACH column IN layout.columns_for_filter %]
                                 <option value="[% column.filter_id %]"
                                     data-is-date="[% IF coumns.return_type == "date" OR column.return_type == "daterange" %]1[% ELSE %]0[% END %]"
                                     [% IF graph.x_axis_full == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]
                                 </option>
                             [% END %]
-                            <option value="" [% IF NOT graph.x_axis %]selected[% END %]>&lt;All fields in view&gt;</option>
+                            <option value="" [% IF graph.id AND NOT graph.x_axis %]selected[% END %]>&lt;All fields in view&gt;</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -150,9 +153,9 @@
                         <label for="y_axis_label">Y-axis label:</label>
                         <input type="text" id="y_axis_label" class="form-control" name="y_axis_label" value="[% graph.y_axis_label | html_entity %]">
                     </div>
-                    <div class="form-group">
-                        <label for="email">Group by (optional):</label>
-                        <select class="form-control" name="group_by">
+                    <div class="form-group" id="group_by_div">
+                        <label for="group_by">Group by (optional):</label>
+                        <select class="form-control" name="group_by" id="group_by">
                             <option value="" [% UNLESS graph.group_by.id %]selected[% END %]></option>
                             [% FOREACH column IN layout.all %]
                                 <option value="[% column.id %]" [% IF graph.group_by == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
@@ -160,7 +163,13 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="email">Plot against <a href="/[% layout.identifier %]/metrics">metrics</a> (optional):</label>
+                        <label for="email">Plot against
+                            [% IF layout.user_can('layout') %]
+                                <a href="/[% layout.identifier %]/metrics">metrics</a>
+                            [% ELSE %]
+                                metrics
+                            [% END %]
+                        (optional):</label>
                         <select class="form-control" name="metric_group_id">
                             <option value="" [% UNLESS graph.metric_group_id %]selected[% END %]></option>
                             [% FOREACH metric_group IN metric_groups %]
@@ -188,7 +197,7 @@
 
         <div class="col-md-6">
             <h4>X-axis</h4>
-            <p>Defines the set of values to use for the x-axis. For a donut or pie graph, this defines each segment within a ring. In the case of a date field, they can be grouped together.</p>
+            <p>Defines the set of values to use for the x-axis. For a donut or pie graph, this defines each segment within a ring. If plotting historical trends, this is the field to plot the trend of (the graph's actual x-axis will be the date period). In the case of a date field on the x-axis, they can be grouped together.</p>
             <h4>Historic trend</h4>
             <p>Use this option to choose between plotting live values as the data currently is, or to plot graphs of historical changes over time. When plotting historical values, the aggregate of data will be used, which will combine all records to show the values over time. The end of the time period will be used for values, so for example a value of June will show the values as at the end of June, regardless of other edits in June.</p>
             <h4>X-axis range</h4>

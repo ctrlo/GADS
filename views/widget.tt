@@ -70,7 +70,7 @@
 [% BLOCK form_graph %]
     [% PROCESS select_views %]
     <div class="form-group">
-        <label for="graph_id">Graph</label>
+        <label for="graph_id">Graph (<a href="/[% layout.identifier %]/graph/0">create new graph</a>)</label>
         <select class="form-control" id="graph_id" name="graph_id">
             [% IF NOT widget.graph_id %]
                 <option></option>
