@@ -251,12 +251,57 @@ sub x_axis_col
     $self->records->layout->column($self->x_axis);
 }
 
-sub x_axis_grouping_validated
+sub x_axis_grouping_calculated
 {   my $self = shift;
+
     # Only try grouping by date for valid date column
-    $self->x_axis &&
-    ($self->x_axis_col->return_type eq 'date' || $self->x_axis_col->return_type eq 'daterange') &&
-    $self->x_axis_grouping;
+    return undef if !$self->x_axis
+        || ($self->x_axis_col->return_type ne 'date' && $self->x_axis_col->return_type ne 'daterange');
+
+    return $self->x_axis_grouping
+        if ($self->x_axis_range && $self->x_axis_range eq 'custom')
+            || (!$self->trend && $self->x_axis_grouping);
+
+    return undef
+        if !$self->from && !$self->to && !$self->x_axis_range;
+
+    # Work out suitable intervals: short range: day, medium: month, long: year
+    my $amount = $self->trend_range_amount;
+    return $amount == 1
+        ? 'day'
+        : $amount <= 24
+        ? 'month'
+        : 'year';
+}
+
+sub from_calculated
+{   my $self = shift;
+
+    return $self->from->clone
+        if $self->from; #$self->x_axis_range && $self->x_axis_range eq 'custom';
+
+    return undef if !$self->trend_range_amount;
+
+    my $interval = $self->x_axis_grouping_calculated;
+
+    my $from = DateTime->now->truncate(to => $interval);
+
+    # Either start now and move forwards or start in the past and move to now
+    $from->subtract(months => $self->trend_range_amount) #->add($interval.'s' => 1)
+        if $self->x_axis_range < 0;
+
+    return $from;
+}
+
+sub to_calculated
+{   my $self = shift;
+
+    return $self->to->clone
+        if $self->to; #$self->x_axis_range && $self->x_axis_range eq 'custom';
+
+    return undef if !$self->trend_range_amount;
+
+    $self->from_calculated->clone->add(months => $self->trend_range_amount);
 }
 
 sub group_by_col
@@ -272,19 +317,8 @@ sub y_axis_col
 
 sub trend_range_amount
 {   my $self = shift;
+    return undef if !$self->x_axis_range;
     $self->x_axis_range < 0 ? $self->x_axis_range * -1 : $self->x_axis_range;
-}
-
-sub trend_group
-{   my $self = shift;
-    return undef if !$self->trend;
-    return $self->x_axis_grouping if $self->x_axis_range eq 'custom';
-    my $amount = $self->trend_range_amount;
-    return $amount == 1
-        ? 'day'
-        : $amount <= 24
-        ? 'month'
-        : 'year';
 }
 
 sub _build_data
@@ -315,7 +349,7 @@ sub _build_data
     push @columns, {
         id        => $self->x_axis,
         group     => 1,
-        pluck     => $self->x_axis_grouping_validated, # Whether to group x-axis dates
+        pluck     => $self->x_axis_grouping_calculated, # Whether to group x-axis dates
         parent_id => $self->x_axis_link, # What the parent curval is, if we're picking a field from within a curval
     } if !$x_daterange && $self->x_axis;
 
@@ -327,8 +361,8 @@ sub _build_data
     my $records = $self->records;
     if (!$self->trend) # If a trend, the from and to will be set later
     {
-        $records->from($self->from);
-        $records->to($self->to);
+        $records->from($self->from_calculated);
+        $records->to($self->to_calculated);
     }
 
     # If the x-axis field is one from a curval, make sure we are also
@@ -337,7 +371,7 @@ sub _build_data
 
     if ($x_daterange)
     {
-        $records->dr_interval($self->x_axis_grouping);
+        $records->dr_interval($self->x_axis_grouping_calculated);
         $records->dr_column($x_axis->id);
         $records->dr_column_parent($link);
         $records->dr_y_axis_id($self->y_axis);
@@ -372,35 +406,18 @@ sub _build_data
             while ($pointer->epoch <= $records->dr_to->epoch)
             {
                 push @x, $pointer->clone;
-                $pointer->add($self->x_axis_grouping.'s' => 1);
+                $pointer->add($self->x_axis_grouping_calculated.'s' => 1);
             }
         }
     }
-    elsif ($self->trend)
+    elsif ($self->x_axis_range)
     {
-        my $is_custom = $self->x_axis_range eq 'custom';
-
-        # Work out suitable intervals: short range: day, medium: month, long: year
-        # It makes no sense to have dates in the future for a trend, but
-        # plot anyway as it's possible (currently) for a user to configure
-        # that
-        my $interval = $self->trend_group;
+        my $interval = $self->x_axis_grouping_calculated;
         my %add = ($interval.'s' => 1);
 
         # Produce a set of dates spanning the required range
-        my $pointer;
-        if ($is_custom)
-        {
-            $pointer = $self->from->clone;
-        }
-        else {
-            $pointer = DateTime->now->truncate(to => $interval);
-            # Either start now and move forwards or start in the past and move to now
-            $pointer->subtract(months => $self->trend_range_amount)->add(%add)
-                if $self->x_axis_range < 0;
-        }
-        my $to = $is_custom ? $self->to->clone : $pointer->clone->add(months => $self->trend_range_amount);
-        while ($pointer <= $to)
+        my $pointer = $self->from_calculated->clone;
+        while ($pointer <= $self->to_calculated)
         {
             push @x, $pointer->clone;
             $pointer->add(%add);
@@ -442,7 +459,7 @@ sub _build_data
                 x           => [$self->x_axis_col],
                 values_only => 1,
             );
-            my $df = $dgf->{$self->trend_group};
+            my $df = $dgf->{$self->x_axis_grouping_calculated};
             my $label = $x->clone->subtract(days => 1)->strftime($df);
             push @xlabels, $label;
             $results->{$label} = $this_results;
@@ -459,14 +476,14 @@ sub _build_data
 
     # Work out the labels for the x-axis. We now know this having processed
     # all the values.
-    if ($self->x_axis_grouping_validated && $datemin && $datemax)
+    if ($self->x_axis_grouping_calculated && $datemin && $datemax)
     {
         @xlabels = ();
         my $inc = $datemin->clone;
-        my $add = $self->x_axis_grouping.'s';
+        my $add = $self->x_axis_grouping_calculated.'s';
         while ($inc->epoch <= $datemax->epoch)
         {
-            my $df = $dgf->{$self->x_axis_grouping};
+            my $df = $dgf->{$self->x_axis_grouping_calculated};
             push @xlabels, $inc->strftime($df);
             $inc->add( $add => 1 );
         }
@@ -632,11 +649,35 @@ sub _records_to_results
 
     my $records_results = $self->records->results;
 
+    my $df   = $dgf->{$self->x_axis_grouping_calculated};
+
+    # If we have a specified x-axis range but only a date field, then we need
+    # to pre-populate the range of x values. This is not needed with a
+    # daterange, as when results are retrieved for a daterange it includes each
+    # x-axis value in each row retrieved (dates only include the single value)
+    if ($self->x_axis_range && $self->x_axis_col->type eq 'date')
+    {
+        foreach my $x (@$x)
+        {
+            my $x_value = $self->_group_date($x);
+            $datemin = $x_value if !defined $datemin; # First loop
+            $datemax = $x_value if !defined $datemax || $datemax->epoch < $x_value->epoch;
+            $x_value = $x_value->strftime($df);
+            $results->{$x_value} = {};
+        }
+    }
+
     # For each line of results from the SQL query
     foreach my $line (@$records_results)
     {
-        # For each x-axis source (see above)
-        foreach my $x (@$x)
+        # For each x-axis point get the value.  For a normal graph this will be
+        # the list of retrieved values. For a daterange graph, all of the
+        # x-axis points will be datetime values.  For a normal date field with
+        # a specified date range, we have already interpolated the points
+        # (above) and we just need to get each individual value, not every
+        # x-axis point (which will not be available in the results)
+        my @for = $self->x_axis_range && $self->x_axis_col->type eq 'date' ? $self->x_axis_col : @$x;
+        foreach my $x (@for)
         {
             my $col     = $x_daterange ? $x->epoch : $x->field;
             my $x_value = $line->get_column($col);
@@ -648,13 +689,12 @@ sub _records_to_results
                 $x_value = $self->_format_curcommon($x, $line);
             }
 
-            if ($self->x_axis_grouping_validated) # Group by date, round to required interval
+            if ($self->x_axis_grouping_calculated) # Group by date, round to required interval
             {
                 !$x_value and next;
                 my $x_dt = $x_daterange
                          ? $x
                          : $self->schema->storage->datetime_parser->parse_date($x_value);
-                my $df   = $dgf->{$self->x_axis_grouping};
                 $x_value = $self->_group_date($x_dt);
                 $datemin = $x_value if !defined $datemin || $datemin->epoch > $x_value->epoch;
                 $datemax = $x_value if !defined $datemax || $datemax->epoch < $x_value->epoch;
@@ -712,7 +752,7 @@ sub _records_to_results
 sub _group_date
 {   my ($self, $val) = @_;
     $val or return;
-    my $grouping = $self->x_axis_grouping;
+    my $grouping = $self->x_axis_grouping_calculated;
     $val = $grouping eq 'year'
          ? DateTime->new(year => $val->year)
          : $grouping eq 'month'
