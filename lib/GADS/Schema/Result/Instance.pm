@@ -336,6 +336,11 @@ __PACKAGE__->has_many(
 #    filter_from_storage => '_scrub',
 #});
 
+sub identifier
+{   my $self = shift;
+    $self->name_short || "table".$self->id;
+}
+
 sub delete
 {   my $self = shift;
     $self->result_source->schema->resultset('Layout')->search({

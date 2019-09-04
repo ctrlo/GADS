@@ -270,15 +270,15 @@ class App extends React.Component<any, any> {
   render() {
     return (
       <React.Fragment>
-        <Header
+        {this.props.hideMenu ? null : <Header
           widgetTypes={this.props.widgetTypes}
           addWidget={this.addWidget}
           hMargin={this.props.gridConfig.containerPadding[0]}
           dashboards={this.props.dashboards}
-          dashboardName={this.props.dashboardName}
+          currentDashboard={this.props.currentDashboard}
           readOnly={this.props.readOnly}
           loading={this.state.loading}
-        />
+        />}
         {this.renderModal()}
         <ReactGridLayout
           className={`react-grid-layout ${this.props.readOnly ? "" : "react-grid-layout--editable"}`}

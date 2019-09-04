@@ -101,7 +101,7 @@ has identifier => (
 
 sub _build_identifier
 {   my $self = shift;
-    $self->name_short || "table".$self->instance_id;
+    $self->_rset->identifier;
 }
 
 has site => (

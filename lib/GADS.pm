@@ -381,12 +381,27 @@ get '/' => require_login sub {
 
     my $dashboard = schema->resultset('Dashboard')->dashboard(%params);
 
-    template 'index' => {
+    my $params = {
         readonly        => $dashboard->is_shared && !$user->permission->{superadmin},
         dashboard       => $dashboard,
         dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
         page            => 'index',
     };
+
+    if (my $download = param('download'))
+    {
+        $params->{readonly} = 1;
+        if ($download eq 'pdf')
+        {
+            my $pdf = _page_as_mech('index', $params, pdf => 1)->content_as_pdf;
+            return send_file(
+                \$pdf,
+                content_type => 'application/pdf',
+            );
+        }
+    }
+
+    template 'index' => $params;
 };
 
 get '/ping' => sub {
@@ -1395,7 +1410,7 @@ prefix '/:layout_name' => sub {
             $dashboard = schema->resultset('Dashboard')->dashboard(%params);
         }
 
-        template 'index' => {
+        my $params = {
             readonly        => $dashboard->is_shared && !$layout->user_can('layout'),
             dashboard       => $dashboard,
             dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
@@ -1403,6 +1418,20 @@ prefix '/:layout_name' => sub {
             breadcrumbs     => [Crumb($layout)],
         };
 
+        if (my $download = param('download'))
+        {
+            $params->{readonly} = 1;
+            if ($download eq 'pdf')
+            {
+                my $pdf = _page_as_mech('index', $params, pdf => 1)->content_as_pdf;
+                return send_file(
+                    \$pdf,
+                    content_type => 'application/pdf',
+                );
+            }
+        }
+
+        template 'index' => $params;
     };
 
     get '/data_calendar/:time' => require_login sub {

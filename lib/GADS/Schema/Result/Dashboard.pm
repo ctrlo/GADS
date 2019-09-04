@@ -91,6 +91,14 @@ sub display_widgets
     } @widgets ];
 }
 
+sub as_json
+{   my $self = shift;
+    encode_json {
+        name         => $self->name,
+        download_url => $self->download_url,
+    };
+}
+
 sub name
 {   my $self = shift;
     $self->user_id && $self->instance_id
@@ -104,7 +112,16 @@ sub name
 
 sub url
 {   my $self = shift;
-    "?did=".$self->id;
+    $self->instance
+        ? "/".$self->instance->identifier."?did=".$self->id
+        : "/?did=".$self->id;
+}
+
+sub download_url
+{   my $self = shift;
+    $self->instance
+        ? "/".$self->instance->identifier."?did=".$self->id.'&download=pdf'
+        : "/?did=".$self->id.'&download=pdf';
 }
 
 sub is_shared

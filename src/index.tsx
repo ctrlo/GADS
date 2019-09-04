@@ -38,8 +38,9 @@ if (root) {
     <App
       widgets={widgets}
       dashboardId={root.getAttribute("data-dashboard-id")}
-      dashboardName={root.getAttribute("data-dashboard-name")}
+      currentDashboard={JSON.parse(root.getAttribute("data-current-dashboard") || "{}")}
       readOnly={root.getAttribute("data-dashboard-read-only") === "true"}
+      hideMenu={root.getAttribute("data-dashboard-hide-menu") === "true"}
       api={api}
       widgetTypes={JSON.parse(root.getAttribute("data-widget-types") || "[]")}
       dashboards={JSON.parse(root.getAttribute("data-dashboards") || "[]" )}
