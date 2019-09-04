@@ -255,8 +255,9 @@ sub x_axis_grouping_calculated
 {   my $self = shift;
 
     # Only try grouping by date for valid date column
-    return undef if !$self->x_axis
-        || ($self->x_axis_col->return_type ne 'date' && $self->x_axis_col->return_type ne 'daterange');
+    return undef if !$self->x_axis;
+    return undef if !$self->trend
+            && $self->x_axis_col->return_type ne 'date' && $self->x_axis_col->return_type ne 'daterange';
 
     return $self->x_axis_grouping
         if ($self->x_axis_range && $self->x_axis_range eq 'custom')
@@ -277,17 +278,22 @@ sub x_axis_grouping_calculated
 sub from_calculated
 {   my $self = shift;
 
+    my $interval = $self->x_axis_grouping_calculated;
+
+    # If we are plotting a trend and have custom dates, round them down to
+    # ensure correct sample set is plotted
+    return $self->from->clone->truncate(to => $interval)
+        if $self->from && $self->trend;
+
     return $self->from->clone
-        if $self->from; #$self->x_axis_range && $self->x_axis_range eq 'custom';
+        if $self->from;
 
     return undef if !$self->trend_range_amount;
-
-    my $interval = $self->x_axis_grouping_calculated;
 
     my $from = DateTime->now->truncate(to => $interval);
 
     # Either start now and move forwards or start in the past and move to now
-    $from->subtract(months => $self->trend_range_amount) #->add($interval.'s' => 1)
+    $from->subtract(months => $self->trend_range_amount)
         if $self->x_axis_range < 0;
 
     return $from;
@@ -296,8 +302,13 @@ sub from_calculated
 sub to_calculated
 {   my $self = shift;
 
+    my $interval = $self->x_axis_grouping_calculated;
+
+    return $self->to->clone->truncate(to => $interval)
+        if $self->to && $self->trend;
+
     return $self->to->clone
-        if $self->to; #$self->x_axis_range && $self->x_axis_range eq 'custom';
+        if $self->to;
 
     return undef if !$self->trend_range_amount;
 
@@ -452,7 +463,11 @@ sub _build_data
         foreach my $x (@x)
         {
             $records->clear;
-            $records->rewind($x->clone->subtract(seconds => 1));
+            # The period to retrieve ($x) will be at the beginning of the
+            # period. Move to the end of the period, by adding on one unit
+            # (e.g. month) and then moving into the previous day by a second
+            my $rewind = $x->clone->add($self->x_axis_grouping_calculated.'s' => 1)->subtract(seconds => 1);
+            $records->rewind($rewind);
             my $this_results; my $this_series_keys;
             ($this_results, $this_series_keys, $datemin, $datemax) = $self->_records_to_results($records,
                 x_daterange => $x_daterange,
@@ -460,7 +475,7 @@ sub _build_data
                 values_only => 1,
             );
             my $df = $dgf->{$self->x_axis_grouping_calculated};
-            my $label = $x->clone->subtract(days => 1)->strftime($df);
+            my $label = $x->strftime($df);
             push @xlabels, $label;
             $results->{$label} = $this_results;
             $series_keys->{$_} = 1
@@ -689,7 +704,7 @@ sub _records_to_results
                 $x_value = $self->_format_curcommon($x, $line);
             }
 
-            if ($self->x_axis_grouping_calculated) # Group by date, round to required interval
+            if (!$self->trend && $self->x_axis_grouping_calculated) # Group by date, round to required interval
             {
                 !$x_value and next;
                 my $x_dt = $x_daterange
