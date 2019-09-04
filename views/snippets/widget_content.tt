@@ -1,4 +1,5 @@
 <h4>[% title | html %]</h4>
+[% widget = 1 %]
 [% IF type == "table" %]
     [% PROCESS snippets/data_table_inner.tt %]
 [% ELSIF type == "graph" %]
