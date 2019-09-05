@@ -1400,8 +1400,8 @@ prefix '/:layout_name' => sub {
         my $dashboard = schema->resultset('Dashboard')->dashboard(%params);
 
         # If the shared dashboard is blank for this table then show the site
-        # dashboard
-        if ($dashboard->is_shared && $dashboard->is_empty)
+        # dashboard by default
+        if ($dashboard->is_shared && $dashboard->is_empty && !$dashboard_id)
         {
             my %params = (
                 user   => $user,
