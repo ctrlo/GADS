@@ -1990,6 +1990,27 @@ Linkspace.data_graph = function () {
 
 Linkspace.data_table = function () {
     setupOtherUserViews();
+
+    $('#modal_sendemail').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var peopcol_id = button.data('peopcol_id');
+        $('#modal_sendemail_peopcol_id').val(peopcol_id);
+    });
+
+    $("#data-table").floatThead({
+        floatContainerCss: {},
+        zIndex: function($table){
+            return 999;
+        },
+        ariaLabel: function($table, $headerCell, columnIndex) {
+            return $headerCell.data('thlabel');
+        }
+    });
+
+    if (!FontDetect.isFontLoaded('14px/1 FontAwesome')) {
+        $( ".use-icon-font" ).hide();
+        $( ".use-icon-png" ).show();
+    }
 }
 
 Linkspace.data_globe = function () {
