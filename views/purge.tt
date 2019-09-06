@@ -45,16 +45,3 @@
 [% ELSE %]
     <div role="alert" class="alert alert-info">There are no deleted records in this table</div>
 [% END %]
-
-
-<script type="text/javascript">
-    var jscode='[% FILTER remove('[\n\r]+') %]
-        [% FILTER replace('\'', '\\\'') %]
-        $(document).ready(function () {
-            $('#selectall').click(function() {
-                $('.record_selected').prop('checked', this.checked);
-            });
-        }); 
-[% END %]
-[% END %]';
-</script>

@@ -2003,6 +2003,12 @@ Linkspace.data_calendar = function () {
     setupOtherUserViews();
 }
 
+Linkspace.purge = function () {
+    $('#selectall').click(function() {
+        $('.record_selected').prop('checked', this.checked);
+    });
+};
+
 Linkspace.graphs = function (context) {
     setupDataTables(context);
 };
