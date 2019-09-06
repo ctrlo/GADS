@@ -309,6 +309,7 @@ sub delete
 
     my $schema = $self->schema;
     my $graph = $schema->resultset('Graph')->find($self->id);
+    $schema->resultset('Widget')->search({ graph_id => $self->id })->update({ graph_id => undef });
     $schema->resultset('UserGraph')->search({ graph_id => $self->id })->delete;
     $schema->resultset('Graph')->search({ id => $self->id })->delete;
 }
