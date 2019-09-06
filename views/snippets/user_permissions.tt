@@ -79,30 +79,3 @@
 %]
     <p>[% global.helptext.limit_user_data %]</p>
 [% END %]
-
-<script type="text/javascript">
-    var jscode='[% FILTER remove('\n+') %]
-        [% FILTER replace('\'', '\\\'') %]
-            $(document).ready(function () {
-                $('#modalnewtitle').on('hidden.bs.modal', function (e) {
-                    $('#newtitle').val("");
-                });
-                $('#modalneworganisation').on('hidden.bs.modal', function (e) {
-                    $('#neworganisation').val("");
-                });
-                $(document).on("click", ".cloneme", function() {
-                    var parent = $(this).parents('.limit-to-view');
-                    var cloned = parent.clone();
-                    cloned.removeAttr('id').insertAfter(parent);
-                });
-                $(document).on("click", ".removeme", function() {
-                    var parent = $(this).parents('.limit-to-view');
-                    if (parent.siblings(".limit-to-view").length > 0) {
-                        parent.remove();
-                    }
-                });
-            });
-        [% END %]
-    [% END %]';
-</script>
-
