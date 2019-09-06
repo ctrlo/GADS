@@ -1734,7 +1734,7 @@ var setupTimeline = function (container, options_in) {
     }
 
     return tl;
-}
+};
 
 var setupOtherUserViews = function (context) {
 
@@ -1756,7 +1756,22 @@ var setupOtherUserViews = function (context) {
             });
         }
     });
-}
+};
+
+var setupDataTables = function (context) {
+
+    $('.dtable', context).each(function () {
+        var pagelength = $(this).data('page-length') || 10;
+        console.log(pagelength);
+        $(this).dataTable({
+            order: [
+                [ 1, 'asc' ]
+            ],
+            pageLength: pagelength
+        });
+    });
+
+};
 
 var Linkspace = {
     constants: {
@@ -1988,7 +2003,12 @@ Linkspace.data_calendar = function () {
     setupOtherUserViews();
 }
 
-Linkspace.graph = function () {
+Linkspace.graphs = function (context) {
+    setupDataTables(context);
+};
+
+Linkspace.graph = function (context) {
+
     $('#is_shared').change(function () {
         $('#group_id_div').toggle(this.checked);
     }).change();
@@ -2021,6 +2041,10 @@ Linkspace.graph = function () {
         }
     }).change();
 }
+
+Linkspace.user = function (context) {
+    setupDataTables(context);
+};
 
 Linkspace.layout = function (context) {
     $('.tab-interface').each(Linkspace.TabPanel);

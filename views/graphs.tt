@@ -9,7 +9,7 @@
             graphs can only be added by an administrator.</p>
             <form role="form" method="post">
                 <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-                <table class="table table-striped dtable">
+                <table class="table table-striped dtable" data-page-length="30">
                     <thead>
                         <tr>
                             <th>Selected</th>
@@ -56,25 +56,3 @@
         [% END %]
     </div>
 </div>
-
-<script type="text/javascript">
-    var jscode='[% FILTER remove('\n+') %]
-        [% FILTER replace('\'', '\\\'') %]
-            $(document).ready(function () {
-                    $('.dtable').dataTable({
-                        "columnDefs": [
-                            {
-                                "targets": 0,
-                                "orderable": false
-                            }
-                        ],
-                        "pageLength": 50,
-                        order: [
-                            [ 1, 'asc' ]
-                        ]
-                    });
-            });
-        [% END %]
-    [% END %]';
-</script>
-

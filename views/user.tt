@@ -351,20 +351,3 @@
             <textarea class="form-control" id="email_text" name="email_text" rows="10"></textarea>
     </div>
 [% END %]
-
-[%# Hack: only do JS if user not edited, as user edit include has its own jscode %]
-[% IF NOT edit.defined %]
-    <script type="text/javascript">
-        var jscode='[% FILTER remove('\n+') %]
-            [% FILTER replace('\'', '\\\'') %]
-                $(document).ready(function () {
-                    $('.dtable').dataTable({
-                        order: [
-                            [ 1, 'asc' ]
-                        ]
-                    });
-                });
-            [% END %]
-        [% END %]';
-    </script>
-[% END %]
