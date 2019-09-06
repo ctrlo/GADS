@@ -195,7 +195,7 @@ sub html
                 layout => $layout,
                 schema => $schema,
             );
-            my $options_in = encode_base64 $graph->as_json;
+            my $options_in = encode_base64 $graph->as_json, '';
 
             $params->{graph_id}     = $self->graph_id;
             $params->{plot_data}    = $plot_data;
