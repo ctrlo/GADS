@@ -52,7 +52,7 @@
         [% IF page.match("(view|layout)") %]
             <link rel="stylesheet" href="[% url.css %]/query-builder.css">
         [% END %]
-        [% IF page.match('(user|account)') %]
+        [% IF page.match('(user|account|graph)') %]
             [% IF hostlocal %]
                 <link rel="stylesheet" href="[% url.css %]/dataTables.bootstrap.css">
             [% ELSE %]
@@ -283,7 +283,7 @@
                 <script src="[% url.js %]/summernote.min.js"></script>
             [% END %]
         [% END %]
-        [% IF page.match('(user|account)') %]
+        [% IF page.match('(user|account|graph)') %]
             [% IF hostlocal %]
                 <script type="text/javascript" src="[% url.js %]/jquery.dataTables.min.js"></script>
                 <script type="text/javascript" src="[% url.js %]/dataTables.bootstrap.js"></script>
