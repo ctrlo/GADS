@@ -19,6 +19,7 @@
                 <div class="row">
                     <div class="col-md-6">
                         <select class="form-control" id="sort_layout_id" name="sort_layout_id">
+                            <option></option>
                             [% FOREACH column IN layout_edit.all %]
                                 <option value="[% column.id %]" [% IF layout_edit.sort_layout_id == column.id %]selected[% END %]>[% column.name | html %]</option>
                             [% END %]
@@ -26,6 +27,7 @@
                     </div>
                     <div class="col-md-6">
                         <select class="form-control" id="sort_type" name="sort_type">
+                            <option></option>
                             <option value="asc" [% IF layout_edit.sort_type == "asc" %]selected[% END %]>Ascending</option>
                             <option value="desc" [% IF layout_edit.sort_type == "desc" %]selected[% END %]>Descending</option>
                         </select>
