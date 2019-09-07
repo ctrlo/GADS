@@ -120,6 +120,33 @@ sub _build_all_personal
     [ grep !$_->is_shared, @{$self->all} ];
 }
 
+has all_all_users => (
+    is => 'lazy',
+);
+
+sub _build_all_all_users
+{   my $self = shift;
+
+    my $all_rs = $self->schema->resultset('Graph')->search(
+    {
+        instance_id => $self->layout->instance_id,
+    });
+    $all_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    my @all_graphs = $all_rs->all;
+    my @graphs;
+    foreach my $grs (@all_graphs)
+    {
+        my $graph = GADS::Graph->new(
+            schema       => $self->schema,
+            layout       => $self->layout,
+            set_values   => $grs,
+        );
+        push @graphs, $graph;
+    }
+
+    \@graphs;
+}
+
 sub purge
 {   my $self = shift;
     foreach my $graph (@{$self->all})

@@ -381,7 +381,7 @@ sub write
     $newgraph->{is_shared}       = $self->is_shared;
 
     $newgraph->{group_id}        = $self->group_id || undef;
-    $newgraph->{user_id}         = $self->current_user->id
+    $newgraph->{user_id}         = $self->user_id || $self->current_user->id
         unless $self->is_shared;
 
     $newgraph->{as_percent}      = $self->as_percent;

@@ -123,7 +123,7 @@ foreach my $layout (@instances)
 
     mkdir "$ins_dir/graphs"
         or report FAULT => "Unable to create graphs directory";
-    dump_all("$ins_dir/graphs/", @{GADS::Graphs->new(schema => schema, layout => $layout)->all});
+    dump_all("$ins_dir/graphs/", @{GADS::Graphs->new(schema => schema, layout => $layout)->all_all_users});
 
     if ($include_data)
     {
