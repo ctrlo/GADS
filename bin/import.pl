@@ -179,6 +179,8 @@ foreach my $ins (readdir $root)
     );
     $layout->create_internal_columns;
 
+    $_->{group_id} = $group_mapping->{$_->{group_id}}
+        foreach @{$instance_info->{permissions}};
     $layout->import_hash($instance_info, report_only => $report_only);
     $layout->write unless $report_only;
 

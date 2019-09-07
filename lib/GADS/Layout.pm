@@ -372,17 +372,29 @@ sub user_can_column
 
 has _group_permissions => (
     is      => 'lazy',
-    isa     => HashRef,
+    isa     => ArrayRef,
     clearer => 1,
 );
 
 sub _build__group_permissions
 {   my $self = shift;
-    my @perms = $self->schema->resultset('InstanceGroup')->search({
-        instance_id => $self->instance_id,
-    })->all;
+    [
+        $self->schema->resultset('InstanceGroup')->search({
+            instance_id => $self->instance_id,
+        })->all
+    ];
+}
+
+has _group_permissions_hash => (
+    is      => 'lazy',
+    isa     => HashRef,
+    clearer => 1,
+);
+
+sub _build__group_permissions_hash
+{   my $self = shift;
     my $return = {};
-    foreach (@perms)
+    foreach (@{$self->_group_permissions})
     {
         $return->{$_->group_id}->{$_->permission} = 1;
     }
@@ -391,8 +403,8 @@ sub _build__group_permissions
 
 sub group_has
 {   my ($self, $group_id, $permission) = @_;
-    $self->_group_permissions->{$group_id} or return 0;
-    $self->_group_permissions->{$group_id}->{$permission} or return 0;
+    $self->_group_permissions_hash->{$group_id} or return 0;
+    $self->_group_permissions_hash->{$group_id}->{$permission} or return 0;
 }
 
 has user_permission_override => (
@@ -468,7 +480,7 @@ sub write
             view_limit_extra => 1,
         );
 
-        my $existing = $self->_group_permissions;
+        my $existing = $self->_group_permissions_hash;
 
         # Parse the form submimssion. Take the existing permissions: if exists, do
         # nothing, otherwise create
@@ -611,6 +623,7 @@ sub clear
     $self->clear_forward_record_after_create;
     $self->clear_global_view_summary;
     $self->_clear_group_permissions;
+    $self->_clear_group_permissions_hash;
     $self->clear_has_children;
     $self->clear_has_globe;
     $self->clear_has_topics;
@@ -1057,12 +1070,18 @@ sub _build_global_view_summary
 sub export
 {   my $self = shift;
     +{
-        name                       => $self->name,
-        name_short                 => $self->name_short,
-        homepage_text              => $self->homepage_text,
-        homepage_text2             => $self->homepage_text2,
-        sort_layout_id             => $self->sort_layout_id,
-        sort_type                  => $self->sort_type,
+        name           => $self->name,
+        name_short     => $self->name_short,
+        homepage_text  => $self->homepage_text,
+        homepage_text2 => $self->homepage_text2,
+        sort_layout_id => $self->sort_layout_id,
+        sort_type      => $self->sort_type,
+        permissions    => [ map {
+            {
+                group_id   => $_->group_id,
+                permission => $_->permission,
+            }
+        } @{$self->_group_permissions} ],
     };
 }
 
@@ -1092,6 +1111,29 @@ sub import_hash
         old => $self->sort_type, new => $values->{sort_type}, name => $self->name
         if $report && ($self->sort_type || '') ne ($values->{sort_type} || '');
     $self->sort_type($values->{sort_type});
+
+    if ($report)
+    {
+        my $existing = $self->_group_permissions_hash;
+        my $new_hash = {};
+        foreach my $new (@{$values->{permissions}})
+        {
+            $new_hash->{$new->{group_id}}->{$new->{permission}} = 1;
+            notice __x"Adding permission {perm} for group ID {group_id}",
+                perm => $new->{permission}, group_id => $new->{group_id}
+                    if !$existing->{$new->{group_id}}->{$new->{permission}};
+        }
+        foreach my $old (@{$self->_group_permissions})
+        {
+            notice __x"Removing permission {perm} from group ID {group_id}",
+                perm => $old->permission, group_id => $old->group_id
+                    if !$new_hash->{$old->group_id}->{$old->permission};
+        }
+    }
+
+    $self->set_groups([
+        map { $_->{group_id} .'_'. $_->{permission} } @{$values->{permissions}}
+    ]);
 }
 
 sub import_after_all
