@@ -510,7 +510,7 @@
 
     [% editvalue = value.value %]
 
-    [% IF dispcol.readonly  AND page != "approval" %]
+    [% IF readonly  AND page != "approval" %]
         [% readonly = "readonly" %]
     [% ELSE %]
         [% readonly = "" %]
@@ -743,6 +743,7 @@
         or it's meant to be displayed because we're within the parent %]
     [% IF !columns_done.$cid %]
         [% dispcol = col.column %]
+        [% readonly = col.readonly %]
         [% PROCESS showcol %]
     [% END %]
 
