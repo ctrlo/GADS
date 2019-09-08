@@ -122,6 +122,20 @@ sub id_as_string
     $node->{value};
 }
 
+sub string_as_id
+{   my ($self, $value) = @_;
+    my $rs = $self->schema->resultset('Enumval')->search({
+        layout_id => $self->id,
+        deleted   => 0,
+        value     => $value,
+    });
+    error __x"More than one value for {value} in field {name}", value => $value, name => $self->name
+        if $rs->count > 1;
+    error __x"Value {value} not found in field {name}", value => $value, name => $self->name
+        if $rs->count == 0;
+    return $rs->next->id;
+}
+
 sub tjoin
 {   my $self = shift;
     +{$self->field => 'value'};
