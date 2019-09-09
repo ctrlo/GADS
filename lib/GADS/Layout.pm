@@ -525,6 +525,13 @@ sub delete
     $self->schema->resultset('InstanceGroup')->search({
         instance_id => $self->instance_id,
     })->delete;
+    my $dash_rs = $self->schema->resultset('Dashboard')->search({
+        instance_id => $self->instance_id,
+    });
+    $self->schema->resultset('Widget')->search({
+        dashboard_id => { -in => $dash_rs->get_column('id')->as_query },
+    })->delete;
+    $dash_rs->delete;
     $self->_rset->delete;
     $guard->commit;
 }
