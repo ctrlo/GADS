@@ -91,7 +91,7 @@
         [% END %]
 
         <!-- Modal -->
-        <div class="modal fade" id="modal-reset-password" tabindex="-1" role="dialog" aria-labelledby="reset-password-heading" style="display:none">
+        <div class="modal fade" id="modal-reset-password" tabindex="-1" role="dialog" aria-labelledby="reset-password-heading" style="display:none" data-open-on-load=[% IF error_modal == "resetpw" %]true[% ELSE %]false[% END %]>
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form method="post" autocomplete="off" enctype="multipart/form-data">
@@ -120,7 +120,7 @@
         </div><!-- /.modal -->
 
         <!-- Modal -->
-        <div class="modal fade" id="modalregister" tabindex="-1" role="dialog" aria-labelledby="request-account-heading" style="display:none">
+        <div class="modal fade" id="modalregister" tabindex="-1" role="dialog" aria-labelledby="request-account-heading" style="display:none" data-open-on-load=[% IF error_modal == "register" %]true[% ELSE %]false[% END %]>
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form method="post" autocomplete="off">
@@ -252,20 +252,4 @@
     [% END %]
 
 </div>
-
-[% IF error_modal %]
-<script type="text/javascript">
-    var jscode='[% FILTER remove('\n+') %]
-        [% FILTER replace('\'', '\\\'') %]
-            $(window).load(function(){
-                [% IF error_modal == "register" %]
-                    $('#modalregister').modal('show');
-                [% ELSIF error_modal == "resetpw" %]
-                    $('#modal-reset-password').modal('show');
-                [% END %]
-            });
-        [% END %]
-    [% END %]';
-</script>
-[% END %]
 

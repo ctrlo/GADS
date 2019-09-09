@@ -18,7 +18,7 @@
             <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
             <link rel="stylesheet" href="[% scheme %]://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
         [% END %]
-        <link rel="stylesheet" href="[% url.css %]/general.css">
+        <link rel="stylesheet" href="[% url.css %]/dashboard.css">
 
         <title>[% page %] | Linkspace</title>
 
@@ -80,7 +80,9 @@
 
     <body class="page [% page %]" data-page="[% page %]" data-csrf-token="[% csrf_token %]"
         data-page-as-mech="[% page_as_mech %]"
-        data-layout-identifier="[% layout.identifier %]" style="font-size:15px[% IF page_as_mech %];zoom:[% zoom %][% END %]"
+        data-layout-identifier="[% layout.identifier %]"
+        data-config-dataformat-datepicker="[% config.dateformat_datepicker %]"
+        style="font-size:15px[% IF page_as_mech %];zoom:[% zoom %][% END %]"
     >
         <header role="banner" class="container">
         [% IF header AND NOT page_as_mech %]
@@ -205,11 +207,6 @@
         [% END %]
         [% IF page.match('(edit|approval|audit|bulk|data|graph)') %]
             <script type="text/javascript" src="[% url.js %]/bootstrap-datepicker.min.js"></script>
-            <script type="text/javascript">
-                $(document).ready(function() {
-                    $('.datepicker').datepicker({format: "[% config.dateformat_datepicker %]", autoclose: true});
-                });
-            </script>
         [% END %]
         <script type="text/javascript" src="[% url.js %]/base64.min.js"></script>
         <script type="text/javascript" src="[% url.js %]/jquery.actual.min.js"></script>
@@ -302,17 +299,10 @@
 
         <script type="text/javascript" src="[% url.js %]/jquery.placeholder.js"></script>
         <script src="[% url.js %]/linkspace.js"></script>
-        <script type="text/javascript">
-            $('[data-toggle="popover"]').popover({placement:'auto', html:true});
-            if (typeof jscode != 'undefined') {
-                eval(jscode);
-            }
-            $('input, text').placeholder();
-        </script>
-
+        <script src="[% url.js %]/template.js"></script>
 
         <!--[if IE 8]><script src="[% url.js %]/dashboard-ie8-fallback.js"></script><![endif]-->
-        <!--[if !IE 8]><!--><script src="[% url.js %]/general.js"></script><!--<![endif]-->
+        <!--[if !IE 8]><!--><script src="[% url.js %]/dashboard.js"></script><!--<![endif]-->
     </body>
 </html>
 

@@ -130,7 +130,7 @@
                 </div>
             [% END %]
 
-            [% WRAPPER modal_dialog.tt modal_id="submitnewtitle" modal_action_text="Create new title" modal_heading="Add title" %] 
+            [% WRAPPER modal_dialog.tt modal_id="submitnewtitle" modal_action_text="Create new title" modal_heading="Add title" %]
                 <p>Please enter the name of a new title:</p>
                 <div class="form-group">
                     <input type="text" class="form-control" id="newtitle" name="newtitle" placeholder="New title">
@@ -158,7 +158,7 @@
 [% IF register_requests.size %]
     <h4>Active accounts</h4>
 [% END %]
-<table class="table table-striped dtable">
+<table class="table table-striped dtable" id="user-table-active">
     <thead>
         <tr>
             <th>ID</th>
@@ -214,7 +214,7 @@
 </table>
 [% IF register_requests.size %]
     <h4>Account requests</h4>
-    <table class="table table-striped dtable">
+    <table class="table table-striped dtable" id="user-table-request">
         <thead>
             <tr>
                 <th>ID</th>

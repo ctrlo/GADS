@@ -1,5 +1,5 @@
 [% IF page_as_mech %]
-    <div id="chartdiv[% graph_id %]" style="height:400px;width:600px; "></div>
+    <div id="chartdiv[% graph_id %]" data-page-as-mech="false" style="height:400px;width:600px; "></div>
 [% ELSE %]
     [% count = 0 %]
     [% FOREACH graph IN graphs %]
@@ -7,7 +7,17 @@
         <div>
             <h3>[% graph.title | html_entity %]</h3>
             [% IF graph.description %]<p>[% graph.description | html_entity %]</p>[% END %]
-            <div id="chartdiv[% graph.id %]" style="height:400px;width:80%; "></div>
+            <div
+                id="chartdiv[% graph.id %]"
+                style="height:400px;width:600px;"
+                data-graph-type="[% graph.type %]"
+                data-x-axis-name="[% graph.x_axis_name | replace('"', '\\\"') %]"
+                data-y-axis-label="[% graph.y_axis_label | replace('"', '\\\"') %]"
+                data-stackseries="[% graph.stackseries %]"
+                data-showlegend="[% IF graph.showlegend %]true[% ELSE %]false[% END %]"
+                data-graph-id="[% graph.id %]"
+                data-layout-id="[% layout.identifier %]"
+                ></div>
             <p><a href="?png=[% graph.id %]">PNG</a> | <a href="?csv=[% graph.id %]">CSV</a></p>
         </div>
         [% count = count + 1 %]
@@ -18,46 +28,3 @@
     <a href="[% url.page %]/[% layout.identifier %]/graphs/">Select graphs</a> button above to add graphs for display.</p>
     [% END %]
 [% END %]
-
-    <script type="text/javascript">
-        var jscode='[% FILTER remove('\n+') %]
-            [% FILTER replace('\'', '\\\'') %]
-            [% UNLESS page_as_mech %]
-                $(document).ready(function(){
-                    if (!FontDetect.isFontLoaded('14px/1 FontAwesome')) {
-                        $( ".use-icon-font" ).hide();
-                        $( ".use-icon-png" ).show();
-                    }
-                    var ajaxDataRenderer = function(url, plot) {
-                        var ret = null;
-                        $.ajax({
-                            async: false,
-                            url: url,
-                            dataType:'json',
-                            success: function(data) {
-                                ret = data;
-                            }
-                        });
-                        return ret;
-                    };
-                    $.jqplot.config.enablePlugins = true;
-                    [% FOREACH graph IN graphs %]
-                        [% NEXT UNLESS graph.selected %]
-                        var time = (new Date).getTime();
-                        var jsonurl = "/[% layout.identifier %]/data_graph/[% graph.id %]/" + time;
-                        var plotData = ajaxDataRenderer(jsonurl);
-                        var options_in = {
-                            type: "[% graph.type %]",
-                            x_axis_name: "[% graph.x_axis_name | replace('"', '\\\"') %]",
-                            y_axis_label: "[% graph.y_axis_label | replace('"', '\\\"') %]",
-                            stackseries: [% graph.stackseries %],
-                            showlegend: [% IF graph.showlegend %]true[% ELSE %]false[% END %],
-                            id: [% graph.id %]
-                        };
-                        do_plot(plotData, options_in);
-                    [% END %]
-                });
-            [% END %]
-            [% END %]
-        [% END %]';
-    </script>

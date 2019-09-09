@@ -3,9 +3,12 @@ const { resolve } = require('path');
 
 module.exports = {
   mode: 'production',
-  entry: './src/index.tsx',
+  entry: {
+    dashboard: './src/dashboard/index.tsx',
+    template: './src/template/index.js',
+  },
   output: {
-    filename: 'js/general.js',
+    filename: 'js/[name].js',
     path: resolve(__dirname, './public'),
   },
   module: {
@@ -37,7 +40,7 @@ module.exports = {
   devtool: 'source-map',
   plugins: [
     new MiniCssExtractPlugin({
-      filename: 'css/general.css',
+      filename: 'css/dashboard.css',
     })
   ],
   watchOptions: {
