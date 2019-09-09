@@ -324,6 +324,17 @@ sub working_days_add
     return $start->epoch;
 }
 
+# Flatten daterange return value
+sub _flatten
+{   my ($self, $val) = @_;
+    return if ! defined $val;
+    return +{
+        from => "$val->{from}",
+        to   => "$val->{to}",
+    } if $self->return_type eq 'daterange';
+    return "$val";
+}
+
 sub eval
 {   my ($self, $code, $vars) = @_;
     my $run_code = $self->_parse_code($code)->{code};
@@ -335,10 +346,10 @@ sub eval
     my $ret = $return->{return};
     if ($self->multivalue && ref $ret eq 'ARRAY')
     {
-        $ret = [ map { "$_" } @$ret ];
+        $ret = [ map { $self->_flatten($_) } @$ret ];
     }
     elsif (defined $ret) {
-        $ret = "$ret" if defined $ret;
+        $ret = $self->_flatten($ret);
     }
     my $err = $return->{error} && ''.$return->{error};
     no warnings "uninitialized";

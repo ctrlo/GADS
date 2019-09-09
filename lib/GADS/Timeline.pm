@@ -245,8 +245,20 @@ sub _build_items
                     foreach my $span (@spans)
                     {   my ($start, $end) = @$span;
 
-                        # Timespan must overlap to select
-                        (!$from || $end >= $from) && (!$to || $start <= $to)
+                        # Timespan must overlap to select.
+                        # For dates without times, we need to truncate to just
+                        # a date the value we are selecting from, because
+                        # that's what will be retrieved from the database. For
+                        # example, if selecting a from of 2nd September 14:53,
+                        # then the database query will have simply been from a
+                        # date of and including 2nd September, in which case a
+                        # record with that date will have been selected. If we
+                        # didn't truncate the time, then the record would be
+                        # discarded at this point, as the from time of 14:53 is
+                        # after the midnight time of the retrieved record.
+                        my $from_check = $from && $from->clone;
+                        $from_check->truncate(to => 'day') if $from_check && !$column->has_time;
+                        (!$from_check || $end >= $from_check) && (!$to || $start <= $to)
                              or next;
 
                         push @dates, +{
@@ -256,6 +268,7 @@ sub _build_items
                             column     => $column_datum->id,
                             count      => ++$seqnr,
                             daterange  => $is_range,
+                            has_time   => $column->has_time,
                             current_id => $d->record->current_id,
                         };
                     }
@@ -356,7 +369,9 @@ sub _build_items
 
                 if($d->{daterange})
                 {   # Add one day, otherwise ends at 00:00:00, looking like day is not included
-                    $item{end}    = _tick $d->{to}->clone->add(days => 1);
+                    my $v = $d->{to}->clone;
+                    $v->add(days => 1) unless $d->{has_time};
+                    $item{end}    = _tick $v;
                 }
                 else
                 {   $item{single} = _tick $d->{from};

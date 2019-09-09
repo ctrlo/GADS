@@ -28,6 +28,8 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Datum';
 
+with 'GADS::DateTime';
+
 has schema => (
     is      => 'ro',
     lazy    => 1,
@@ -50,7 +52,7 @@ after set_value => sub {
         # or as one long array, 2 elements per range
         my $first = shift @all;
         my ($start, $end) = ref $first eq 'ARRAY' ? @$first : ($first, shift @all);
-        my @dt = $self->_parse_dt([$start, $end], source => 'user', %options);
+        my @dt = $self->parse_daterange([$start, $end], source => 'user', %options);
         push @values, @dt if @dt;
     }
     my @text_all = sort map { $self->_as_string($_) } @values;
@@ -74,7 +76,7 @@ has values => (
     builder => sub {
         my $self = shift;
         $self->init_value or return [];
-        my @values = map { $self->_parse_dt($_, source => 'db') } @{$self->init_value};
+        my @values = map { $self->parse_daterange($_, source => 'db') } @{$self->init_value};
         $self->has_value(!!@values);
         [@values];
     },
@@ -111,84 +113,6 @@ around 'clone' => sub {
         @_,
     );
 };
-
-sub _parse_dt
-{   my ($self, $original, %options) = @_;
-    my $source = $options{source};
-
-    $original or return;
-
-    # Array ref will be received from form
-    if (ref $original eq 'ARRAY')
-    {
-        $original = {
-            from => $original->[0],
-            to   => $original->[1],
-        };
-    }
-    elsif (!ref $original)
-    {
-        # XXX Nasty hack. Would be better to pull both values from DB
-        $original =~ /^([-0-9]+) to ([-0-9]+)$/;
-        $original = {
-            from => $1,
-            to   => $2,
-        };
-    }
-
-    # Otherwise assume it's a hashref: { from => .., to => .. }
-
-    if (!$original->{from} && !$original->{to})
-    {
-        return;
-    }
-
-    my ($from, $to);
-    if ($source eq 'db')
-    {
-        my $db_parser = $self->schema->storage->datetime_parser;
-        $from = $db_parser->parse_date($original->{from});
-        $to   = $db_parser->parse_date($original->{to});
-    }
-    else { # Assume 'user'
-        # If it's not a valid value, see if it's a duration instead (only for bulk)
-        if ($self->column->validate($original, fatal => !$options{bulk}))
-        {
-            $from = $self->column->parse_date($original->{from});
-            $to   = $self->column->parse_date($original->{to});
-        }
-        elsif($options{bulk}) {
-            my $from_duration = DateTime::Format::DateManip->parse_duration($original->{from});
-            my $to_duration = DateTime::Format::DateManip->parse_duration($original->{to});
-            if ($from_duration || $to_duration)
-            {
-                if (@{$self->values})
-                {
-                    my @return;
-                    foreach my $value (@{$self->values})
-                    {
-                        $from = $value->start;
-                        $from->add_duration($from_duration) if $from_duration;
-                        $to = $value->end;
-                        $to->add_duration($to_duration) if $to_duration;
-                        push @return, DateTime::Span->from_datetimes(start => $from, end => $to);
-                    }
-                    return @return;
-                }
-                else {
-                    return; # Don't bork as we might be bulk updating, with some blank values
-                }
-            }
-            else {
-                # Nothing fits, raise fatal error
-                $self->column->validate($original, fatal => 1);
-            }
-        }
-    }
-
-    $to->subtract( days => $options{subtract_days_end} ) if $options{subtract_days_end};
-    (DateTime::Span->from_datetimes(start => $from, end => $to));
-}
 
 # XXX Why is this needed? Error when creating new record otherwise
 sub as_integer

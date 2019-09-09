@@ -221,7 +221,6 @@ has from => (
     coerce => sub {
         my $value = shift
             or return;
-        $value->truncate(to => 'day');
         return $value;
     },
 );
@@ -231,8 +230,6 @@ has to => (
     coerce => sub {
         my $value = shift
             or return;
-        return $value if $value->hms('') eq '000000';
-        $value->truncate(to => 'day')->add(days => 1);
         return $value;
     },
 );
@@ -1403,7 +1400,7 @@ sub _search_date
     }
     elsif ($c->return_type =~ /date/)
     {
-        my $dateformat = GADS::Config->instance->dateformat;
+        my $dateformat = $c->dateformat;
         # Apply any date filters if required
         my @f;
         my $sid = $options{parent_id} ? "$options{parent_id}_".$c->id : $c->id;
@@ -1816,7 +1813,7 @@ sub _search_construct
 
     my @conditions; my $gate = 'and';
     my $transform_date; # Whether to convert date value to database format
-    if ($column->type eq "daterange")
+    if ($column->return_type eq "daterange")
     {
         # If it's a daterange, we have to be intelligent about the way the
         # search is constructed. Greater than, less than, equals all require
@@ -1835,7 +1832,7 @@ sub _search_construct
             push @conditions, {
                 type     => $filter_operator,
                 operator => $operator,
-                s_field  => "from",
+                s_field  => $column->from_field,
             };
         }
         elsif ($operator eq ">=" || $operator eq "<")
@@ -1844,7 +1841,7 @@ sub _search_construct
             push @conditions, {
                 type     => $filter_operator,
                 operator => $operator,
-                s_field  => "to",
+                s_field  => $column->to_field,
             };
         }
         elsif ($operator eq "-like" || $operator eq "-not_like")
@@ -1854,12 +1851,12 @@ sub _search_construct
             push @conditions, {
                 type     => $filter_operator,
                 operator => $operator eq '-like' ? '<=' : '>=',
-                s_field  => "from",
+                s_field  => $column->from_field,
             };
             push @conditions, {
                 type     => $filter_operator,
                 operator => $operator eq '-like' ? '>=' : '<=',
-                s_field  => "to",
+                s_field  => $column->to_field,
             };
             $operator = $operator eq '-like' ? 'equal' : 'not_equal';
             $gate = 'or' if $operator eq 'not_equal';
@@ -2085,7 +2082,9 @@ sub _resolve
 sub _date_for_db
 {   my ($self, $column, $value) = @_;
     my $dt = $column->parse_date($value);
-    $self->schema->storage->datetime_parser->format_date($dt);
+    $column->has_time
+        ? $self->schema->storage->datetime_parser->format_datetime($dt)
+        : $self->schema->storage->datetime_parser->format_date($dt);
 }
 
 has _csv => (

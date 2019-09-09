@@ -112,23 +112,40 @@ sub write_cache
     });
     $rs->delete if @values != $rs->count;
 
+    my $format = $self->column->dateformat;
     foreach my $value (@values)
     {
         my $row = $rs->next;
 
+        my %to_write;
+        if ($self->column->return_type eq 'daterange')
+        {
+            if ($value)
+            {
+                my $text = $self->daterange_as_string($value, $format);
+                %to_write = (
+                    value_date_from => $value->start,
+                    value_date_to   => $value->end,
+                    value_text      => $text,
+                );
+            }
+        }
+        else {
+            %to_write = ($vfield => $value);
+        }
         if ($row)
         {
             if (!$self->equal($row->$vfield, $value))
             {
                 my %blank = %{$self->column->blank_row};
-                $row->update({ %blank, $vfield => $value });
+                $row->update({ %blank, %to_write });
             }
         }
         else {
             $self->schema->resultset($tablec)->create({
                 record_id => $self->record_id,
                 layout_id => $self->column->{id},
-                $vfield   => $value,
+                %to_write,
             });
         }
     }
@@ -172,10 +189,18 @@ sub _build_value
 
     if ($self->init_value)
     {
-        my @vs = map { ref $_ eq 'HASH' ? $_->{$column->value_field} : $_ } @{$self->init_value};
+        my @vs = map {
+            ref $_ eq 'HASH' && $self->column->return_type eq 'daterange'
+                ? { from => $_->{value_date_from}, to => $_->{value_date_to} }
+                : ref $_ eq 'HASH'
+                ? $_->{$column->value_field}
+                : $_
+        } @{$self->init_value};
         @values = map {
             $column->return_type eq 'date'
                ?  $self->_parse_date($_)
+               : $column->return_type eq 'daterange'
+               ? $self->parse_daterange($_, source => 'db')
                : $_;
         } @vs;
     }

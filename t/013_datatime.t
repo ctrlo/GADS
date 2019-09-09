@@ -224,8 +224,8 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     }
 
     $records = GADS::Records->new(
-        from    => DateTime->now, # Rounded down to midnight 1st Jan 2018
-        to      => DateTime->now->add(days => 10), # Rounded up to midnight 12th Jan 2018
+        from    => DateTime->now, # After midnight 1st Jan 2018 so only include from 2nd
+        to      => DateTime->now->add(days => 10), # Up to and including 11th but not 12th
         user    => undef,
         columns => $showcols,
         layout  => $layout,
@@ -233,7 +233,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     );
 
     # 10 days, plus one either side including rounding up/down
-    is( @{$records->data_timeline->{items}}, 12, "Retrieved correct subset of records for large timeline" );
+    is( @{$records->data_timeline->{items}}, 10, "Retrieved correct subset of records for large timeline" );
 
     # Test from exactly midnight - should be no rounding
     $records = GADS::Records->new(
