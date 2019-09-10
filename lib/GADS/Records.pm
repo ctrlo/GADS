@@ -2737,19 +2737,21 @@ sub _build_group_results
         my $dr_col     = $self->layout->column($self->dr_column); # The daterange column for x-axis
         my $field      = $dr_col->field;
         my $field_link = $dr_col->link_parent && $dr_col->link_parent->field; # Related link field
+        my $from_field = $dr_col->from_field;
+        my $to_field   = $dr_col->to_field;
 
         # First find out earliest and latest date in this result set
         my $select = [
-            { min => "$field.from", -as => 'start_date'},
-            { max => "$field.to", -as => 'end_date'},
+            { min => "$field.$from_field", -as => 'start_date'},
+            { max => "$field.$to_field", -as => 'end_date'},
         ];
         my $search = $self->search_query(search => 1, prefetch => 1, linked => 0);
         # Include linked field if applicable
         if ($field_link)
         {
             push @$select, (
-                { min => "$field_link.from", -as => 'start_date_link'},
-                { max => "$field_link.to", -as => 'end_date_link'},
+                { min => "$field_link.$from_field", -as => 'start_date_link'},
+                { max => "$field_link.$to_field", -as => 'end_date_link'},
             );
         }
 
@@ -2791,8 +2793,8 @@ sub _build_group_results
             $self->_set_dr_to  ($daterange_to);
 
             # The literal CASE statement, which we reuse for each required period
-            my $from_field      = $self->quote("$field.from");
-            my $to_field        = $self->quote("$field.to");
+            my $from_field_full = $self->quote("$field.$from_field");
+            my $to_field_full   = $self->quote("$field.$to_field");
             my $from_field_link = $field_link && $self->quote($field_link.".from");
             my $to_field_link   = $field_link && $self->quote($field_link.".to");
             my ($dr_y_axis)     = grep { $_->{id} == $self->dr_y_axis_id } @cols;
@@ -2800,11 +2802,11 @@ sub _build_group_results
 
             my $case = $field_link
                 ? "CASE WHEN "
-                  . "($from_field < %s OR $from_field_link < %s) "
-                  . "AND ($to_field >= %s OR $to_field_link >= %s) "
+                  . "($from_field_full < %s OR $from_field_link < %s) "
+                  . "AND ($to_field_full >= %s OR $to_field_link >= %s) "
                   . "THEN %s ELSE 0 END"
-                : "CASE WHEN $from_field"
-                  . " < %s AND $to_field"
+                : "CASE WHEN $from_field_full"
+                  . " < %s AND $to_field_full"
                   . " >= %s THEN %s ELSE 0 END";
 
             my $pointer = $daterange_from->clone;
