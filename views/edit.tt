@@ -440,7 +440,7 @@
 
             $(document).on('click', '.remove_datepicker', function() {
                 var dp = '.datepicker' + $(this).data("field");
-                $(dp).datepicker('remove');
+                $(dp).datepicker('destroy');
                 alert("Date selector has been disabled for this field");
             });
 
@@ -705,7 +705,7 @@
                     </div>
                 [% ELSE %]
                     [% IF dispcol.type == "date" AND dispcol.show_datepicker AND !readonly %]
-                        [% class = "form-control datepicker" %]
+                        [% class = "form-control datepicker datepicker" _ dispcol.id %]
                     [% ELSIF dispcol.type == "intgr" AND editvalue.value.defined AND dispcol.show_calculator %]
                         [% class = "form-control intcalculator" %]
                     [% ELSE %]
