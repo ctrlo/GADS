@@ -27,7 +27,6 @@ use namespace::clean;
 
 extends 'GADS::Datum::Code';
 
-with 'GADS::Role::Presentation::Datum::Calc';
 with 'GADS::DateTime';
 
 sub as_string
