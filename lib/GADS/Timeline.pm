@@ -258,7 +258,14 @@ sub _build_items
                         # after the midnight time of the retrieved record.
                         my $from_check = $from && $from->clone;
                         $from_check->truncate(to => 'day') if $from_check && !$column->has_time;
-                        (!$from_check || $end >= $from_check) && (!$to || $start <= $to)
+
+                        my $from_test = $self->records->exclusive_of_from
+                            ? (!$from_check || $end > $from_check)
+                            : (!$from_check || $end >= $from_check);
+                        my $to_test = $self->records->exclusive_of_to
+                            ? (!$to || $start < $to)
+                            : (!$to || $start <= $to);
+                        $from_test && $to_test
                              or next;
 
                         push @dates, +{
