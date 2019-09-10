@@ -163,7 +163,7 @@ sub re_evaluate
     my $old = $self->value;
     # If this is a new value, don't re-evaluate, otherwise we'll just get
     # exactly the same value and evaluation can be expensive
-    if (!$self->record->new_entry)
+    if (!$self->record->new_entry || $options{force})
     {
         $self->clear_init_value;
         $self->clear_value;

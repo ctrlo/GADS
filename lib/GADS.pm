@@ -2992,6 +2992,8 @@ prefix '/:layout_name' => sub {
                         my $newv = [body_parameters->get_all($col->field)];
                         last if $failed = !process( sub { $record_update->fields->{$col->id}->set_value($newv, bulk => 1) } );
                     }
+                    $record_update->fields->{$_->id}->re_evaluate(force => 1)
+                        foreach $layout->all(has_cache => 1);
                     if (!$failed)
                     {
                         # Use force_mandatory to skip "was previously blank" warnings. No
