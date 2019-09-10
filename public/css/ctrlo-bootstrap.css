@@ -843,6 +843,7 @@ select.input-lg {
   font-size: 15px;
   border-radius: 0px;
   cursor: auto;
+  text-decoration: none;
 }
 
 .btn-default {
