@@ -2182,6 +2182,7 @@ sub data_timeline
 
         #### AFTER
         $max = $timeline->retrieved_to;
+        my $first_from = $timeline->retrieved_from;
         my @after;
         push @{$_->{dt} < $max ? \@items : \@after}, $_ for @retrieved;
 
@@ -2206,7 +2207,7 @@ sub data_timeline
 
         @retrieved = @{$timeline->items};
         $retrieved_count = $self->records_retrieved_count;
-        $min = $timeline->retrieved_from;
+        $min = $timeline->retrieved_from || $first_from;
 
         my @before;
         # Don't including retrieved items that are the same as the min. This is

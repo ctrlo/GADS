@@ -301,6 +301,45 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     is($data_timeline->{max}->ymd, '2011-03-01', "Correct end range of timeline");
 }
 
+# Test set of records all after today, with only from set
+{
+    my $data = [
+        {
+            string1 => 'foo1',
+            date1   => '2009-01-01',
+        },
+        {
+            string1 => 'foo2',
+            date1   => '2008-03-04',
+        },
+        {
+            string1 => 'foo3',
+            date1   => '2008-10-04',
+        },
+    ];
+
+    my $sheet = t::lib::DataSheet->new(data => $data);
+    $sheet->create_records;
+    my $schema   = $sheet->schema;
+    my $layout   = $sheet->layout;
+    my $date1    = $sheet->columns->{date1}->id;
+    my $showcols = [ map { $_->id } $layout->all(exclude_internal => 1) ];
+
+    my $records = GADS::Records->new(
+        from    => DateTime->now,
+        user    => undef,
+        columns => $showcols,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    # Normal - should include all records
+    my $tl = $records->data_timeline;
+    is( @{$tl->{items}}, 3, "Records retrieved inclusive" );
+    is($tl->{min}->ymd, '2008-03-03', "Correct start range of timeline");
+    is($tl->{max}->ymd, '2009-01-03', "Correct end range of timeline");
+}
+
 # Test permissions
 {
     my $data = [

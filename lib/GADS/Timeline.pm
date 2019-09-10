@@ -99,6 +99,8 @@ sub clear
 {   my $self = shift;
     $self->records->clear;
     $self->clear_items;
+    $self->_set_retrieved_from(undef);
+    $self->_set_retrieved_to(undef);
 }
 
 has _all_items_index => (
@@ -390,10 +392,10 @@ sub _build_items
         }
 
         $self->_set_retrieved_from($newest)
-            if $to_max && $newest < ($self->retrieved_from || AT_BIGCHILL);
+            if $newest < ($self->retrieved_from || AT_BIGCHILL);
 
         $self->_set_retrieved_to($oldest)
-            if $from_min && $oldest > ($self->retrieved_to || AT_BIGBANG);
+            if $oldest > ($self->retrieved_to || AT_BIGBANG);
     }
 
     if(!@items)
