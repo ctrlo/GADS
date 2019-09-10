@@ -960,14 +960,15 @@ a.list-group-item-danger.active,a.list-group-item-danger.active:hover,a.list-gro
 
 /* Login page - Remember Username */
 
-.remember-me, .reset-password {
-    display: inline-block;
-    width: 48%;
-    vertical-align: top;
-}
+.register,
+.reset-password {
+    padding-right: 0;
+    padding-left: 0;
+    margin-bottom: 15px;
 
-.remember-me {
-    position: relative;
+    @media (min-width: 767px) {
+        margin-top: 2em;
+    }
 }
 
 #remember {
