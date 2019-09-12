@@ -77,14 +77,20 @@ has _group_count => (
     default => 0,
 );
 
-has retrieved_from => (
+# Where to show the timeline from by default. Because when retrieving records,
+# we can end up with some items (in the same record) being retrieved that we
+# weren't expecting, this tells the browser the sensible place to show from.
+# This will also take into account long date ranges, where we only want to show
+# part of the range.
+has display_from => (
     is      => 'rwp',
     isa     => Maybe[DateAndTime],
     # Do not set to an infinite value, should be undef instead
     coerce  => sub { return undef if ref($_[0]) =~ /Infinite/; $_[0] },
 );
 
-has retrieved_to => (
+# Same as above
+has display_to => (
     is      => 'rwp',
     isa     => Maybe[DateAndTime],
     # Do not set to an infinite value, should be undef instead
@@ -99,8 +105,8 @@ sub clear
 {   my $self = shift;
     $self->records->clear;
     $self->clear_items;
-    $self->_set_retrieved_from(undef);
-    $self->_set_retrieved_to(undef);
+    $self->_set_display_from(undef);
+    $self->_set_display_to(undef);
 }
 
 has _all_items_index => (
@@ -391,11 +397,11 @@ sub _build_items
             }
         }
 
-        $self->_set_retrieved_from($newest)
-            if $newest < ($self->retrieved_from || AT_BIGCHILL);
+        $self->_set_display_from($newest)
+            if $newest < ($self->display_from || AT_BIGCHILL);
 
-        $self->_set_retrieved_to($oldest)
-            if $oldest > ($self->retrieved_to || AT_BIGBANG);
+        $self->_set_display_to($oldest)
+            if $oldest > ($self->display_to || AT_BIGBANG);
     }
 
     if(!@items)
