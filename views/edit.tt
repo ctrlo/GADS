@@ -22,83 +22,85 @@
 </h2>
 
 <div class="row">
-    <div class="col-md-9">
+    <div class="col-md-[% IF record.new_entry %]12[% ELSE %]9[% END %]">
         [% PROCESS form %]
     </div>
-    <div class="col-md-3">
-        [% IF record.child_record_ids.size %]
-            <div class="panel panel-default">
-                <div class="panel-heading">Child records</div>
-                <div class="panel-body">
-                    <ul>
-                        [% FOREACH rec IN record.child_record_ids %]
-                            <li><a href="/record/[% rec %]">[% rec %]</a></li>
-                        [% END %]
-                    </ul>
-                </div>
-            </div>
-        [% END %]
-
-        <div class="panel panel-default">
-            <div class="panel-heading">Meta data</div>
-            <div class="panel-body">
-                <dl>
-                    <dt>Last updated by</dt>
-                    <dd>[% record.createdby.html %]</dd>
-                </dl>
-            </div>
-        </div>
-
-        [% UNLESS is_modal %]
-            <div class="panel panel-default">
-                <div class="panel-heading">Actions</div>
-                <div class="panel-body">
-                    [% IF NOT record.new_entry %]
-                        [% PROCESS snippets/record_edit.tt %]
-                    [% END %]
-                </div>
-            </div>
-
-            <div class="panel panel-default">
-                <div class="panel-heading">Version history</div>
-                <div class="panel-body">
-                    <div class="btn-group-vertical">
-                        [% dropdown_title = "Select version..." %]
-                        [% FOREACH version IN record.versions %]
-                            [% IF version.id == record.record_id %]
-                                [% dropdown_title = version.created %]
-                            [% END %]
-                        [% END %]
-
-                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#">[% dropdown_title | html %] <b class="caret"></b></button>
-                        <ul id="menu1" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop4">
-                            [% IF record.deleted %]
-                                [% history_link = "purgehistory" %]
-                            [% ELSE %]
-                                [% history_link = "history" %]
-                            [% END %]
-                            [% FOREACH version IN record.versions %]
-                                <li [% IF version.id == record.record_id %]class="active"[% END %] role="presentation">
-                                    <a role="menuitem" tabindex="-1" href="/[% history_link %]/[% version.id %]">[% version.created %]
-                                        [% IF version.createdby %]
-                                            ([% version.createdby.value | html %])
-                                        [% END %]
-                                    </a>
-                                </li>
+    [% UNLESS record.new_entry %]
+        <div class="col-md-3">
+            [% IF record.child_record_ids.size %]
+                <div class="panel panel-default">
+                    <div class="panel-heading">Child records</div>
+                    <div class="panel-body">
+                        <ul>
+                            [% FOREACH rec IN record.child_record_ids %]
+                                <li><a href="/record/[% rec %]">[% rec %]</a></li>
                             [% END %]
                         </ul>
                     </div>
                 </div>
-            </div>
-        [% END %]
+            [% END %]
 
-        [% IF record.has_rag_column %]
             <div class="panel panel-default">
-                <div class="panel-heading">Legend</div>
+                <div class="panel-heading">Meta data</div>
                 <div class="panel-body">
-                    [% PROCESS snippets/rag_legend.tt %]
+                    <dl>
+                        <dt>Last updated by</dt>
+                        <dd>[% record.createdby.html %]</dd>
+                    </dl>
                 </div>
             </div>
+
+            [% UNLESS is_modal %]
+                <div class="panel panel-default">
+                    <div class="panel-heading">Actions</div>
+                    <div class="panel-body">
+                        [% IF NOT record.new_entry %]
+                            [% PROCESS snippets/record_edit.tt %]
+                        [% END %]
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">Version history</div>
+                    <div class="panel-body">
+                        <div class="btn-group-vertical">
+                            [% dropdown_title = "Select version..." %]
+                            [% FOREACH version IN record.versions %]
+                                [% IF version.id == record.record_id %]
+                                    [% dropdown_title = version.created %]
+                                [% END %]
+                            [% END %]
+
+                            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#">[% dropdown_title | html %] <b class="caret"></b></button>
+                            <ul id="menu1" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop4">
+                                [% IF record.deleted %]
+                                    [% history_link = "purgehistory" %]
+                                [% ELSE %]
+                                    [% history_link = "history" %]
+                                [% END %]
+                                [% FOREACH version IN record.versions %]
+                                    <li [% IF version.id == record.record_id %]class="active"[% END %] role="presentation">
+                                        <a role="menuitem" tabindex="-1" href="/[% history_link %]/[% version.id %]">[% version.created %]
+                                            [% IF version.createdby %]
+                                                ([% version.createdby.value | html %])
+                                            [% END %]
+                                        </a>
+                                    </li>
+                                [% END %]
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            [% END %]
+
+            [% IF record.has_rag_column %]
+                <div class="panel panel-default">
+                    <div class="panel-heading">Legend</div>
+                    <div class="panel-body">
+                        [% PROCESS snippets/rag_legend.tt %]
+                    </div>
+                </div>
+            [% END %]
         [% END %]
     </div>
 </div>
