@@ -167,7 +167,7 @@
             <p role="alert" class="alert alert-danger" hidden></p>
         [% END %]
         <div class="row">
-            <div class="[% IF modal OR is_modal OR layout.max_width == 100 %]col-md-12[% ELSE %]col-md-6[% END %]">
+            <div class="col-md-12">
                 [% IF cur_id %]
                     <input type="hidden" name="current_id" value="[% record.current_id %]">
                 [% END %]

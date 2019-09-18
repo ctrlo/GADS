@@ -464,7 +464,7 @@ has widthcols => (
 sub _build_widthcols
 {   my $self = shift;
     my $multiplus = $self->multivalue && $self->has_multivalue_plus;
-    if ($self->layout->max_width == 100 && $self->width == 50)
+    if ($self->width == 50)
     {
         return $multiplus ? 4 : 6;
     }
