@@ -175,7 +175,7 @@
                 [% jscode = [] %]
                 [% typeaheads = [] %]
 
-                [% IF record.user_can_edit AND NOT record.deleted AND NOT record.new_entry AND NOT is_history AND NOT is_modal %]
+                [% IF record.user_can_edit AND NOT record.deleted AND NOT is_history AND NOT is_modal %]
                     [% editable = 1 %]
                 [% END %]
                 [% FOREACH topic IN record.topics %]
@@ -183,7 +183,7 @@
                     [% IF layout_edit.has_topics %]
                         [% PROCESS panel_start %]
                     [% END %]
-                    [% IF editable %]
+                    [% IF editable AND NOT record.new_entry %]
                         <div class="form-group">
                             <button class="btn btn-default pull-right click-to-edit" type="button" data-edit-el="#topic_forms[% block_topic.id %]" data-view-el="#topic_show[% block_topic.id %]">Edit</button>
                             [% IF block_topic.description %]
@@ -573,8 +573,6 @@
     [% IF existing %]
         [% oldvalue = existing.fields.$colid.html %] [%# All value already entity-encoded %]
     [% END %]
-
-    [% editvalue = datum %]
 
     [% IF readonly  AND page != "approval" %]
         [% readonly = "readonly" %]
