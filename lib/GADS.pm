@@ -3461,6 +3461,8 @@ sub _process_edit
     }
     else {
         # New record
+        # var 'layout' will be set for new record due to URL
+        $layout = $params{layout} = var('layout');
         $record = GADS::Record->new(%params);
         $record->initialise unless $id;
     }
