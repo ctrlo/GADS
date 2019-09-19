@@ -1861,6 +1861,7 @@ Linkspace.edit = function (context) {
     setupTreeFields(context);
     setupDependentFields(context);
     setupClickToEdit(context);
+    setupClickToViewBlank(context);
     setupCalculator(context);
 }
 
