@@ -1,6 +1,6 @@
 [% PROCESS snippets/datum.tt %]
 
-<table class="data-table table table-striped col-md-12" id="data-table">
+<table class="data-table table table-striped table-hover col-md-12" id="data-table">
     <thead>
         <tr>
             [% IF is_group %]
@@ -58,7 +58,7 @@
     </thead>
     <tbody>
         [% FOREACH record IN records %]
-            <tr>
+            <tr data-href="/record/[% record.current_id %]">
                 [% IF is_group %]
                     <td>[% record.id_count %]&nbsp;record[% IF record.id_count != 1 %]s[% END %]</td>
                 [% END %]

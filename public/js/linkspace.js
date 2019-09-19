@@ -1124,6 +1124,12 @@ var runPageSpecificCode = function (context) {
     }
 };
 
+var setupHoverableTable = function(context) {
+    $('.table tr[data-href]', context).on('click', function() {
+        window.location = $(this).data("href");
+    });
+}
+
 var setupClickToEdit = function(context) {
     $('.click-to-edit', context).on('click', function() {
         var $editToggleButton = $(this);
@@ -1987,6 +1993,7 @@ Linkspace.data_graph = function () {
 }
 
 Linkspace.data_table = function () {
+    setupHoverableTable();
     setupOtherUserViews();
 
     $('#modal_sendemail').on('show.bs.modal', function (event) {

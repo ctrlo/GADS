@@ -195,6 +195,9 @@ table {
                         overflow-x:scroll;
         }
 }
+.table-hover tr[data-href] {
+        cursor: pointer;
+}
 legend {
         margin-bottom:21px;
         font-size:22.5px;
