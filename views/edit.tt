@@ -584,7 +584,7 @@
 
     [% indents = record.indent.${dispcol.id} %]
     [% FOREACH i IN [1..indents] %]
-        <div class="row">
+        <div class="row form-group">
             <div class="col-md-11 col-md-offset-1">
     [% END %]
 
