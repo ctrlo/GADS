@@ -673,6 +673,14 @@ table {
     overflow-x: scroll;
   }
 }
+.table-hover tr[data-href] {
+  cursor: pointer;
+}
+
+.table--zebra tr.odd {
+  background-color: #f9f9f9;
+}
+
 legend {
   margin-bottom: 21px;
   font-size: 22.5px;
@@ -1052,9 +1060,11 @@ select.input-lg {
 
 .btn-group-vertical > .btn:first-child:not(:last-child) {
   border-top-right-radius: 0px;
+  border-top-left-radius: 0px;
 }
 
 .btn-group-vertical > .btn:last-child:not(:first-child) {
+  border-bottom-right-radius: 0px;
   border-bottom-left-radius: 0px;
 }
 
@@ -2613,6 +2623,10 @@ small.search_term {
 .edit-form--validating .spinner {
   display: block;
   font-style: italic;
+}
+
+.edit-form__sidebar {
+  margin-bottom: 4em;
 }
 
 .input_holder .datepicker {
