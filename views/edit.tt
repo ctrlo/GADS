@@ -26,7 +26,7 @@
         [% PROCESS form %]
     </div>
     [% UNLESS record.new_entry %]
-        <div class="col-md-3">
+        <div class="col-md-3 edit-form__sidebar">
             [% IF record.child_record_ids.size %]
                 <div class="panel panel-default">
                     <div class="panel-heading">Child records</div>
