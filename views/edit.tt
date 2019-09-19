@@ -207,7 +207,7 @@
                     </div>
                     [% UNLESS record.new_entry %]
                         <div id="topic_show[% block_topic.id %]" class="expandable expanded">
-                            <table class="table table-striped">
+                            <table class="table table--zebra">
                                 [% FOREACH col_click IN click_to_edits %]
                                     [% NEXT IF !is_history AND col_click.data.dependent_not_shown %]
                                     [% NEXT IF is_modal AND col.type == "autocur" %]

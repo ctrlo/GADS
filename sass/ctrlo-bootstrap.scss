@@ -198,6 +198,11 @@ table {
 .table-hover tr[data-href] {
         cursor: pointer;
 }
+.table--zebra {
+        tr.odd {
+                background-color: #f9f9f9;
+        }
+}
 legend {
         margin-bottom:21px;
         font-size:22.5px;

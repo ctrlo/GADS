@@ -1149,12 +1149,24 @@ var setupSubmitListener = function(context) {
     });
 }
 
+var setupZebraTable = function(context) {
+    $('.table--zebra', context).each((_, table) => {
+        let isOdd = true;
+        $(table).find("tr:visible").each((_, tr) => {
+            $(tr).toggleClass("odd", isOdd);
+            $(tr).toggleClass("even", !isOdd);
+            isOdd = !isOdd;
+        });
+    });
+}
+
 // Used to hide and then display blank fields when viewing a record
 var setupClickToViewBlank = function(context) {
     $('.click-to-view-blank', context).on('click', function() {
         var showBlankFields = this.innerHTML === "Show blank values";
         $('.click-to-view-blank-field', context).toggle(showBlankFields);
         this.innerHTML = showBlankFields ? "Hide blank values" : "Show blank values";
+        setupZebraTable(context);
     });
 }
 
@@ -1869,10 +1881,12 @@ Linkspace.edit = function (context) {
     setupClickToEdit(context);
     setupClickToViewBlank(context);
     setupCalculator(context);
+    setupZebraTable(context);
 }
 
 Linkspace.record = function (context) {
     setupClickToViewBlank(context);
+    setupZebraTable(context);
 }
 
 Linkspace.config = function () {
