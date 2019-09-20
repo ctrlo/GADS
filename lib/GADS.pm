@@ -1253,6 +1253,10 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
         return send_file(\$pdf, content_type => 'application/pdf', filename => "Record-".$record->current_id.".pdf" );
     }
 
+    if ( app->has_hook('plugin.data.before_purge_history') ) {
+        app->execute_hook( 'plugin.data.before_purge_history', record => $record );
+    }
+
     my $layout = $record->layout;
     var 'layout' => $layout;
 
