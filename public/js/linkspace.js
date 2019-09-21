@@ -1103,6 +1103,12 @@ var toggleDisclosure = function ($trigger, state, permanent) {
     }
 
     $trigger.trigger((state ? 'expand' : 'collapse'), $disclosure);
+
+    // If this element is within another element that also has a handler, then
+    // stop that second handler also doing its action. E.g. for a more-less
+    // widget within a table row, do not action both the more-less widget and
+    // the opening of a record by clicking on the row
+    event.stopPropagation();
 };
 
 
@@ -1182,10 +1188,8 @@ var setupRecordPopup = function(context) {
         m.find('.modal-body').text('Loading...');
         m.find('.modal-body').load('/record_body/' + record_id);
         m.modal();
-    });
-    // Stop the clicking of more-less buttons within the record details popping
-    // up the more-less box and the record modal
-    $(".record-popup button", context).click(function(event){
+        // Stop the clicking of this pop-up modal causing the opening of the
+        // overall record for edit in the data table
         event.stopPropagation();
     });
 }
