@@ -1208,8 +1208,11 @@ var setupRecordPopup = function(context) {
         var record_id = $(this).data('record-id');
         var instance_id = $(this).data('instance-id');
         var m = $("#readmore_modal");
-        m.find('.modal-body').text('Loading...');
-        m.find('.modal-body').load('/record_body/' + record_id);
+        var modal = m.find('.modal-body')
+        modal.text('Loading...');
+        modal.load('/record_body/' + record_id, null, function() {
+            setupZebraTable(modal);
+        });
         m.modal();
         // Stop the clicking of this pop-up modal causing the opening of the
         // overall record for edit in the data table
