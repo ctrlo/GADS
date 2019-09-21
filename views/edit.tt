@@ -499,20 +499,6 @@
                     }
                 });
             });
-            var confirmOnPageExit = function (e)
-            {
-                e = e || window.event;
-                var message = 'Please note that any changes will be lost.';
-                if (e)
-                {
-                    e.returnValue = message;
-                }
-                return message;
-            };
-            window.onbeforeunload = confirmOnPageExit;
-            $(".submit_button").click( function() {
-                window.onbeforeunload = null;
-            });
 
             $(document).on('click', '.remove_datepicker', function() {
                 var dp = '.datepicker' + $(this).data("field");
