@@ -1914,11 +1914,6 @@ Linkspace.edit = function (context) {
     setupZebraTable(context);
 }
 
-Linkspace.record = function (context) {
-    setupClickToViewBlank(context);
-    setupZebraTable(context);
-}
-
 Linkspace.config = function () {
     setupHtmlEditor();
 }

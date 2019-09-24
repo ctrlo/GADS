@@ -63,6 +63,8 @@ sub presentation {
         widthcols           => $self->widthcols,
         optional            => $self->optional,
         userinput           => $self->userinput,
+        has_display_field   => $self->has_display_field,
+        display_fields_b64  => $self->display_fields_b64,
     };
 
     if (my $sort = $options{sort})
