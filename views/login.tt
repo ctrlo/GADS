@@ -60,11 +60,13 @@
                     </div>
                     <div class="row">
                         <div class="col-xs-12 col-sm-8 col-md-8">
-                            <input type="checkbox" name="remember_me" id="remember" [% IF username %]checked="checked"[% END %] class="[% IF username %]remember--checked[% END %] visually-hidden-opacity">
-                            <label for="remember">
-                                <span class="glyphicon glyphicon-check" aria-hidden="true"></span>
-                                Remember email address
-                            </label>
+                            <span class="remember-me">
+                                <input type="checkbox" name="remember_me" id="remember" [% IF username %]checked="checked"[% END %] class="[% IF username %]remember--checked[% END %] visually-hidden-opacity">
+                                <label for="remember">
+                                    <span class="glyphicon glyphicon-check" aria-hidden="true"></span>
+                                    Remember email address
+                                </label>
+                            </span>
                             <hr>
                             <input type="submit" name="signin" class="btn btn-lg btn-success btn-block" value="Sign In">
                         </div>
