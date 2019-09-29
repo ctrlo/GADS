@@ -1219,11 +1219,12 @@ get '/record_body/:id' => require_login sub {
     my $layout = $record->layout;
     var 'layout' => $layout;
 
-    my ($params, $options) = _process_edit($id, $record);
+    my ($return, $options, $is_raw) = _process_edit($id, $record);
+    return $return if $is_raw;
     $options->{layout} = undef;
-    $params->{is_modal} = 1; # Assume modal if loaded via this route
+    $return->{view_modal} = 1; # Assume modal if loaded via this route
 
-    template 'edit' => $params, $options;
+    template 'edit' => $return, $options;
 };
 
 any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
@@ -1257,10 +1258,11 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
 
     my @first_crumb = $action eq 'purge' ? ( $layout, "/purge" => 'deleted records' ) : ( $layout, "/data" => 'records' );
 
-    my ($params, $options) = _process_edit($id, $record);
-    $params->{is_history} = $action eq 'history';
-    $params->{breadcrumbs} = [Crumb($layout) => Crumb(@first_crumb) => Crumb( "/record/".$record->current_id => 'record id ' . $record->current_id )];
-    template 'edit' => $params, $options;
+    my ($return, $options, $is_raw) = _process_edit($id, $record);
+    return $return if $is_raw;
+    $return->{is_history} = $action eq 'history';
+    $return->{breadcrumbs} = [Crumb($layout) => Crumb(@first_crumb) => Crumb( "/record/".$record->current_id => 'record id ' . $record->current_id )];
+    template 'edit' => $return, $options;
 };
 
 any ['get', 'post'] => '/audit/?' => require_role audit => sub {
@@ -3075,11 +3077,12 @@ prefix '/:layout_name' => sub {
         };
     };
 
-    any ['get', 'post'] => '/edit/?' => require_login sub {
+    any ['get', 'post'] => '/record/?' => require_login sub {
 
         my $layout = var('layout') or pass;
-        my ($params, $options) = _process_edit();
-        template 'edit' => $params, $options;
+        my ($return, $options, $is_raw) = _process_edit();
+        return $return if $is_raw;
+        template 'edit' => $return, $options;
     };
 
     any ['get', 'post'] => '/import/?' => require_any_role [qw/layout useradmin/] => sub {
@@ -3529,11 +3532,12 @@ sub _process_edit
             }
             my $message = join '; ', @validation_errors;
             content_type 'application/json; charset="utf-8"';
-            return encode_json ({
+            my $return = encode_json ({
                 error   => $message ? 1 : 0,
                 message => $message,
                 values  => +{ map { $_->field => $record->fields->{$_->id}->as_string } $layout->all },
             });
+            return ($return, undef, 1);
         }
         elsif ($modal)
         {
@@ -3602,14 +3606,14 @@ sub _process_edit
     my $breadcrumbs = [Crumb($layout), Crumb( $layout, "/data" => 'records' )];
     if ($id)
     {
-        push @$breadcrumbs, Crumb( "/edit/$id" => "edit record $id" );
+        push @$breadcrumbs, Crumb( "/record/$id" => "record $id" );
     }
     else {
-        push @$breadcrumbs, Crumb( $layout, "/edit/" => "new record" );
+        push @$breadcrumbs, Crumb( $layout, "/record/" => "new record" );
     }
 
     my $params = {
-        modal               => $modal,
+        edit_modal          => $modal,
         page                => 'edit',
         child               => $child_rec,
         layout_edit         => $layout,

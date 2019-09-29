@@ -27,8 +27,6 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column::Curcommon';
 
-with 'GADS::Role::Presentation::Column::Curval';
-
 has '+option_names' => (
     default => sub { [qw/override_permissions value_selector show_add delete_not_used/] },
 );

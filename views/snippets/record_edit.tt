@@ -2,10 +2,10 @@
     [% UNLESS layout.no_hide_blank %]
         <button type="button" class="btn btn-default click-to-view-blank">Show blank values</button>
     [% END %]
-    <a class="btn btn-default" href="/[% layout.identifier %]/edit/?from=[% record.current_id %]">Copy record</a>
+    <a class="btn btn-default" href="/[% layout.identifier %]/record/?from=[% record.current_id %]">Copy record</a>
     <a class="btn btn-default download-pdf" href="/record/[% record.current_id %]?pdf">Download as PDF</a>
     [% IF layout.user_can("create_child") AND NOT record.parent_id AND layout.has_children %]
-        <a class="btn btn-default" href="/[% layout.identifier %]/edit/?child=[% record.current_id %]">Create child record</a>
+        <a class="btn btn-default" href="/[% layout.identifier %]/record/?child=[% record.current_id %]">Create child record</a>
     [% END %]
     [% IF user.permission.link %]
         <a class="btn btn-default" href="/[% layout.identifier %]/link/[% record.current_id %]">Link record</a>
@@ -20,7 +20,7 @@
     <div class="modal fade" id="modaldelete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form role="form" method="post" enctype="multipart/form-data" action="/edit/[% record.current_id %]">
+                <form role="form" method="post" enctype="multipart/form-data" action="/record/[% record.current_id %]">
                 <input type="hidden" name="csrf_token" value="[% csrf_token %]">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>

@@ -1,31 +1,33 @@
 [% PROCESS snippets/datum.tt %]
 
-<h2>
-    [% IF page == "bulk" %]
-        [% IF bulk_type == "update" %]
-            Bulk update
-        [% ELSIF bulk_type == "clone" %]
-            Clone records
+[% UNLESS edit_modal %]
+    <h2>
+        [% IF page == "bulk" %]
+            [% IF bulk_type == "update" %]
+                Bulk update
+            [% ELSIF bulk_type == "clone" %]
+                Clone records
+            [% END %]
+        [% ELSIF NOT record.new_entry %]
+            Record ID [% record.current_id %] [% IF record.deleted %](deleted)[% END %]
+            [% IF record.parent_id %]
+                <small>(child of record [% record.parent_id %])</small>
+            [% END %]
+        [% ELSIF child %]
+            Create child record of [% child %]
+        [% ELSIF clone %]
+            New record copied from record ID [% clone | html %]
+        [% ELSE %]
+            New record
         [% END %]
-    [% ELSIF NOT record.new_entry %]
-        Record ID [% record.current_id %] [% IF record.deleted %](deleted)[% END %]
-        [% IF record.parent_id %]
-            <small>(child of record [% record.parent_id %])</small>
-        [% END %]
-    [% ELSIF child %]
-        Create child record of [% child %]
-    [% ELSIF clone %]
-        New record copied from record ID [% clone | html %]
-    [% ELSE %]
-        New record
-    [% END %]
-</h2>
+    </h2>
+[% END %]
 
 <div class="row">
-    <div class="col-md-[% IF record.new_entry %]12[% ELSE %]9[% END %]">
+    <div class="col-md-[% IF record.new_entry OR edit_modal %]12[% ELSE %]9[% END %]">
         [% PROCESS form %]
     </div>
-    [% UNLESS record.new_entry %]
+    [% IF NOT record.new_entry AND NOT edit_modal %]
         <div class="col-md-3 edit-form__sidebar">
             [% IF record.child_record_ids.size %]
                 <div class="panel panel-default">
@@ -50,7 +52,7 @@
                 </div>
             </div>
 
-            [% UNLESS is_modal %]
+            [% UNLESS view_modal %]
                 <div class="panel panel-default">
                     <div class="panel-heading">Actions</div>
                     <div class="panel-body">
@@ -146,14 +148,14 @@
 
 [% BLOCK form %]
     <form class="edit-form" method="post" enctype="multipart/form-data"
-        [% IF modal %]
+        [% IF edit_modal %]
             [% IF cur_id %]
-                [% action = "/edit/" _ cur_id %]
+                [% action = "/record/" _ cur_id %]
             [% ELSE %]
-                [% action = "/" _ layout.identifier _ "/edit/" %]
+                [% action = "/" _ layout.identifier _ "/record/" %]
             [% END %]
             action="[% action %]" [%# This form also used for bulk actions %]
-            data-curval-id="[% modal %]"
+            data-curval-id="[% edit_modal %]"
             data-current-id="[% cur_id %]"
             data-modal-field-ids="[% modal_field_ids %]"
             data-instance-name="[% layout.identifier %]"
@@ -163,7 +165,7 @@
         [% IF submission_token %]
             <input type="hidden" name="submission_token" value="[% submission_token %]">
         [% END %]
-        [% IF modal %]
+        [% IF edit_modal %]
             <p role="alert" class="alert alert-danger" hidden></p>
         [% END %]
         <div class="row">
@@ -177,7 +179,7 @@
                 [% jscode = [] %]
                 [% typeaheads = [] %]
 
-                [% IF record.user_can_edit AND NOT record.deleted AND NOT is_history AND NOT is_modal %]
+                [% IF record.user_can_edit AND NOT record.deleted AND NOT is_history AND NOT view_modal %]
                     [% editable = 1 %]
                 [% END %]
                 [% FOREACH topic IN record.topics %]
@@ -185,7 +187,7 @@
                     [% IF layout_edit.has_topics %]
                         [% PROCESS panel_start %]
                     [% END %]
-                    [% IF editable AND NOT record.new_entry %]
+                    [% IF editable AND NOT record.new_entry AND NOT edit_modal %]
                         <div class="form-group">
                             <button class="btn btn-default pull-right click-to-edit" type="button" data-edit-el="#topic_forms[% block_topic.id %]" data-view-el="#topic_show[% block_topic.id %]">Edit</button>
                             [% IF block_topic.description %]
@@ -197,7 +199,7 @@
                             <p>[% block_topic.description | html %]</p>
                         [% END %]
                     [% END %]
-                    <div id="topic_forms[% block_topic.id %]" class="[% UNLESS record.new_entry %]expandable[% END %]">
+                    <div id="topic_forms[% block_topic.id %]" class="[% IF NOT record.new_entry AND NOT edit_modal %]expandable[% END %]">
                         [% FOREACH col_panel IN topic.columns %]
                             [% IF editable AND col_panel.userinput %]
                                 [% PROCESS showcol col = col_panel %]
@@ -205,12 +207,12 @@
                             [% click_to_edits.push(col_panel) %]
                         [% END %]
                     </div>
-                    [% UNLESS record.new_entry %]
+                    [% IF NOT record.new_entry AND NOT edit_modal %]
                         <div id="topic_show[% block_topic.id %]" class="expandable expanded">
                             <table class="table table--zebra">
                                 [% FOREACH col_click IN click_to_edits %]
                                     [% NEXT IF !is_history AND col_click.data.dependent_not_shown %]
-                                    [% NEXT IF is_modal AND col.type == "autocur" %]
+                                    [% NEXT IF view_modal AND col.type == "autocur" %]
 
                                     <tr [% IF col_click.data.blank AND NOT layout.no_hide_blank %]class="click-to-view-blank-field expandable"[% END %]>
                                         <th>[% col_click.name | html_entity %]</th>
@@ -228,13 +230,13 @@
                 [% END %]
             </div>
         </div>
-        [% IF modal %]
+        [% IF edit_modal %]
             <p class="spinner" hidden>
                 Validating... <i class="fa fa-spinner fa-spin" style="font-size:24px"></i>
             </p>
             <button type="submit" class="btn btn-primary" id="curval-add">[% IF record.new_entry %]Add[% ELSE %]Update[% END %]</button>
             <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        [% ELSIF NOT is_modal %]
+        [% ELSIF NOT view_modal %]
             <div class="navbar navbar-default navbar-fixed-bottom edit-controls">
                 <div class="container">
                     <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
@@ -282,7 +284,7 @@
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
-[% UNLESS modal %]
+[% UNLESS edit_modal %]
 <script type="text/javascript">
     var jscode='[% FILTER remove('\n+') %]
         [% FILTER replace('\'', '\\\'') %]
@@ -353,8 +355,8 @@
                 var m = $("#curval_modal");
                 m.find('.modal-body').text('Loading...');
                 var url = current_id
-                    ? '/edit/' + current_id
-                    : '/' + instance_name + '/edit/';
+                    ? '/record/' + current_id
+                    : '/' + instance_name + '/record/';
                 m.find('.modal-body').load(url + '?include_draft&modal=' + layout_id + '&' + form_data, function() {
                     if (mode === "edit") {
                         m.find("form").data('guid', guid);
@@ -570,7 +572,7 @@
 
     [% indents = record.indent.${dispcol.id} %]
     [% FOREACH i IN [1..indents] %]
-        <div class="row form-group">
+        <div class="row">
             <div class="col-md-11 col-md-offset-1">
     [% END %]
 
