@@ -791,6 +791,10 @@ select.input-lg {
   padding-left: 0;
   padding-right: 0; }
 
+a.btn {
+  text-decoration: none;
+  cursor: default; }
+
 /*
 .caret {
         display:inline-block;
@@ -1330,13 +1334,15 @@ a.panel-heading {
   margin-left: -10px; }
 
 /* Login page - Remember Username */
-.remember-me, .reset-password {
-  display: inline-block;
-  width: 48%;
-  vertical-align: top; }
-
-.remember-me {
-  position: relative; }
+.register,
+.reset-password {
+  padding-right: 0;
+  padding-left: 0;
+  margin-bottom: 15px; }
+  @media (min-width: 767px) {
+    .register,
+    .reset-password {
+      margin-top: 2em; } }
 
 #remember {
   position: absolute;
@@ -1438,8 +1444,8 @@ small.search_term {
   z-index: 5;
   position: absolute; }
 
-[role="tooltip"] .tooltip,
-[role="tooltip"] + .tooltip {
+[role="tooltip"]:not(.tooltip) .tooltip,
+[role="tooltip"]:not(.tooltip) + .tooltip {
   padding: .5em;
   top: -2.7em;
   right: -5em;

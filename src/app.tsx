@@ -28,7 +28,7 @@ const modalStyle = {
     padding: 0
   },
   overlay: {
-    zIndex: 1500
+    zIndex: 100
   }
 };
 
