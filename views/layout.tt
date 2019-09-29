@@ -613,7 +613,6 @@
             [% END %]
         </tbody>
     </table>
-    <button type="submit" id="submit_saceorder" name="saveposition" value="submit" class="btn btn-primary">Save order</button>
 [% END %]
 
 [% BLOCK javascript %]
@@ -806,17 +805,19 @@
         %]
     </section>
 
-[% IF column.defined %]
-    <div class="row controls">
-        <div class="col-md-12">
+<div class="row controls">
+    <div class="col-md-12">
+        [% IF column.defined %]
             <button type="submit" id="submit_save" name="submit" value="submit" class="btn btn-primary">[% IF column.id %]Save[% ELSE %]Save[% END %]</button>
-        [% IF column.id %]
-            <a href="/[% layout.identifier %]/layout/" class="btn btn-default">Cancel</a>
-            <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
+            [% IF column.id %]
+                <a href="/[% layout.identifier %]/layout/" class="btn btn-default">Cancel</a>
+                <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
+            [% END %]
+        [% ELSE %]
+            <button type="submit" id="submit_saceorder" name="saveposition" value="submit" class="btn btn-primary">Save order</button>
         [% END %]
-        </div>
     </div>
-[% END %]
+</div>
 </form>
 
 [%
