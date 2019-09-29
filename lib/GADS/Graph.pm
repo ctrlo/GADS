@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Graph;
 
 use JSON qw(decode_json encode_json);
+use GADS::DateTime;
 use GADS::Graphs;
 use Log::Report 'linkspace';
 use Moo;
@@ -171,10 +172,15 @@ has trend => (
     builder => sub { $_[0]->_graph && $_[0]->_graph->trend },
 );
 
+my $coerce_datetime = sub {
+    GADS::DateTime::parse_datetime(shift);
+};
+
 has from => (
     is      => 'rw',
     lazy    => 1,
     builder => sub { $_[0]->_graph && $_[0]->_graph->from },
+    coerce  => $coerce_datetime,
 );
 
 sub from_formatted
@@ -188,6 +194,7 @@ has to => (
     is      => 'rw',
     lazy    => 1,
     builder => sub { $_[0]->_graph && $_[0]->_graph->to },
+    coerce  => $coerce_datetime,
 );
 
 sub to_formatted
@@ -346,6 +353,9 @@ sub write
         or error __x"Invalid X-axis value {x_axis}", x_axis => $self->x_axis;
     $newgraph->{x_axis_link}     = $self->x_axis_link;
 
+    error "Start date of custom range must be before end of custom range"
+        if $self->from && $self->to && $self->from > $self->to;
+
     !$newgraph->{trend} || $newgraph->{trend} eq 'aggregate' || $newgraph->{trend} eq 'individual'
         or error __x"Invalid trend value: {trend}", trend => $newgraph->{trend};
     $newgraph->{trend} = $self->trend;
@@ -359,6 +369,13 @@ sub write
     $newgraph->{x_axis_grouping} = $self->x_axis_grouping;
     !defined $self->x_axis_grouping || grep { $self->x_axis_grouping eq $_ } qw/day month year/
         or error __x"{xas} is an invalid value for X-axis grouping", xas => $self->x_axis_grouping;
+
+    error __"Dates and grouping must be entered for a custom range"
+        if $newgraph->{x_axis_range} && $newgraph->{x_axis_range} eq 'custom'
+            && (!$newgraph->{from} || !$newgraph->{to} || !$newgraph->{x_axis_grouping});
+
+    error __"A single field must be selected for the x-axis when using the historic trend option"
+        if !$newgraph->{x_axis} && $self->trend;
 
     $newgraph->{group_by}        = $self->group_by;
     !defined $self->group_by || $self->layout->column_this_instance($self->group_by)

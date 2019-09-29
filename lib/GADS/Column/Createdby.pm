@@ -48,6 +48,14 @@ has '+userinput' => (
 
 sub tjoin
 {   my $self = shift;
+    # If this is the column for the person that created the initial record
+    # rather than the current version, then do not return a join. This is
+    # because the join will be used to join to the current version record, and
+    # therefore will only return the user who created that. By returning no
+    # join, the column is not added to the list of main joins and columns to be
+    # returned when the record is retrieved (the value will be retrieved
+    # separately).
+    return undef if $self->name_short eq '_created_user';
     'createdby';
 }
 
