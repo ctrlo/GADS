@@ -46,8 +46,14 @@
                 <div class="panel-heading">Meta data</div>
                 <div class="panel-body">
                     <dl>
-                        <dt>Last updated by</dt>
-                        <dd>[% record.createdby.html %]</dd>
+                        <dt>Last edited by</dt>
+                        <dd>[% render_datum(record.version_user, 'full') %]</dd>
+                        <dt>Last edited time</dt>
+                        <dd>[% render_datum(record.version_datetime, 'full') %]</dd>
+                        <dt>Created by</dt>
+                        <dd>[% render_datum(record.created_user, 'full') %]</dd>
+                        <dt>Created time</dt>
+                        <dd>[% render_datum(record.created_datetime, 'full') %]</dd>
                     </dl>
                 </div>
             </div>

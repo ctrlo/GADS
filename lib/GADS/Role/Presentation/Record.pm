@@ -25,7 +25,7 @@ sub edit_columns
         ? (user_can_write_new => 1)
         : (user_can_readwrite_existing => 1);
 
-    my @columns = $self->layout->all(sort_by_topics => 1, can_child => $options{child}, %permissions);
+    my @columns = $self->layout->all(sort_by_topics => 1, can_child => $options{child}, %permissions, exclude_internal => 1);
 
     @columns = grep $_->type ne 'file', @columns
         if $options{bulk} && $options{bulk} eq 'update';
@@ -101,6 +101,9 @@ sub presentation {
 
     my @topics = sort { $a->{order} <=> $b->{order} } values %topics;
 
+    my $version_datetime_col = $self->layout->column_by_name_short('_version_datetime');
+    my $created_user_col     = $self->layout->column_by_name_short('_created_user');
+    my $created_datetime_col = $self->layout->column_by_name_short('_created');
     return {
         parent_id       => $self->parent_id,
         linked_id       => $self->linked_id,
@@ -112,7 +115,6 @@ sub presentation {
         indent          => $indent,
         deleted         => $self->deleted,
         deletedby       => $self->deletedby,
-        createdby       => $self->createdby,
         user_can_delete => $self->user_can_delete,
         user_can_edit   => $self->layout->user_can('write_existing'),
         id_count        => $self->id_count,
@@ -120,6 +122,18 @@ sub presentation {
         has_rag_column  => !!(grep { $_->type eq 'rag' } @columns),
         new_entry       => $self->new_entry,
         is_draft        => $self->is_draft,
+        version_user    => $self->layout->column_by_name_short('_version_user')->presentation(
+            datum_presentation => $self->createdby->presentation, %options
+        ),
+        version_datetime => $version_datetime_col->presentation(
+            datum_presentation => $self->fields->{$version_datetime_col->id}->presentation, %options
+        ),
+        created_user => $created_user_col->presentation(
+            datum_presentation => $self->fields->{$created_user_col->id}->presentation, %options
+        ),
+        created_datetime => $created_datetime_col->presentation(
+            datum_presentation => $self->fields->{$created_datetime_col->id}->presentation, %options
+        ),
     }
 }
 
