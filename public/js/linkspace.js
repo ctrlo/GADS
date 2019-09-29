@@ -1397,6 +1397,7 @@ var setupHtmlEditor = function (context) {
     }
 
     $('.summernote', context).summernote({
+        dialogsInBody: true,
         height: 400,
         callbacks: {
             // Load initial content

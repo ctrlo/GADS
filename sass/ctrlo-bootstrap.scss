@@ -1100,8 +1100,8 @@ small.search_term {
     position: absolute;
 }
 
-[role="tooltip"]   .tooltip,
-[role="tooltip"] + .tooltip {
+[role="tooltip"]:not(.tooltip)   .tooltip,
+[role="tooltip"]:not(.tooltip) + .tooltip {
     padding: .5em;
     top: -2.7em;
     right: -5em;
