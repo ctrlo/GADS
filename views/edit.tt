@@ -153,7 +153,7 @@
 [% END %]
 
 [% BLOCK form %]
-    <form [% UNLESS edit_modal %]class="edit-form"[% END %] method="post" enctype="multipart/form-data"
+    <form class="[% IF edit_modal %]curval-edit-form[% ELSE %]edit-form[% END %]" method="post" enctype="multipart/form-data"
         [% IF edit_modal %]
             [% IF cur_id %]
                 [% action = "/record/" _ cur_id %]
@@ -377,7 +377,7 @@
                 m.modal();
             });
 
-            $("#curval_modal").on('submit', '.edit-form', function(e){
+            $("#curval_modal").on('submit', '.curval-edit-form', function(e){
                 e.preventDefault();
                 var form = $(this);
                 var form_data = form.serialize();
