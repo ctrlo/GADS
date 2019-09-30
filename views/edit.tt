@@ -153,7 +153,7 @@
 [% END %]
 
 [% BLOCK form %]
-    <form class="edit-form" method="post" enctype="multipart/form-data"
+    <form [% UNLESS edit_modal %]class="edit-form"[% END %] method="post" enctype="multipart/form-data"
         [% IF edit_modal %]
             [% IF cur_id %]
                 [% action = "/record/" _ cur_id %]
