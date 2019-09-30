@@ -600,7 +600,15 @@ sub _build_data
         push @return, $r;
     }
 
-    return \@return;
+    return {
+        data   => \@return,
+        params => {
+            view_id                     => $self->records_options->{view}->id,
+            layout_identifier           => $self->records_options->{layout}->identifier,
+            globe_fields                => [ map $_->{col}->field, grep $_->{col}->return_type eq 'globe', @extra ],
+            default_view_limit_extra_id => $self->records_options->{layout}->default_view_limit_extra_id,
+        },
+    };
 }
 
 sub uniq_join
