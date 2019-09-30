@@ -1556,9 +1556,9 @@ var setupGlobe = function (container) {
         topojsonURL: container.data('topojsonurl')
     };
 
-    Plotly.newPlot(container.get(0), data, layout, options).then(gd => {
+    Plotly.newPlot(container.get(0), data, layout, options).then(function(gd) {
         // Set up handler to show records of country when country is clicked
-        gd.on('plotly_click', d => {
+        gd.on('plotly_click', function(d) {
             // Prevent click event when map is dragged
             if (d.event.defaultPrevented) return;
 
