@@ -1179,9 +1179,9 @@ var setupSubmitListener = function(context) {
 }
 
 var setupZebraTable = function(context) {
-    $('.table--zebra', context).each((_, table) => {
+    $('.table--zebra', context).each(function(_, table) {
         let isOdd = true;
-        $(table).children('tbody').children("tr:visible").each((_, tr) => {
+        $(table).children('tbody').children("tr:visible").each(function(_, tr) {
             $(tr).toggleClass("odd", isOdd);
             $(tr).toggleClass("even", !isOdd);
             isOdd = !isOdd;
