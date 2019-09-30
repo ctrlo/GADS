@@ -104,7 +104,7 @@ sub presentation {
     my $version_datetime_col = $self->layout->column_by_name_short('_version_datetime');
     my $created_user_col     = $self->layout->column_by_name_short('_created_user');
     my $created_datetime_col = $self->layout->column_by_name_short('_created');
-    return {
+    my $return = {
         parent_id       => $self->parent_id,
         linked_id       => $self->linked_id,
         current_id      => $self->current_id,
@@ -122,19 +122,25 @@ sub presentation {
         has_rag_column  => !!(grep { $_->type eq 'rag' } @columns),
         new_entry       => $self->new_entry,
         is_draft        => $self->is_draft,
-        version_user    => $self->layout->column_by_name_short('_version_user')->presentation(
+    };
+
+    if (!$self->new_entry)
+    {
+        $return->{version_user} = $self->layout->column_by_name_short('_version_user')->presentation(
             datum_presentation => $self->createdby->presentation, %options
-        ),
-        version_datetime => $version_datetime_col->presentation(
+        );
+        $return->{version_datetime} = $version_datetime_col->presentation(
             datum_presentation => $self->fields->{$version_datetime_col->id}->presentation, %options
-        ),
-        created_user => $created_user_col->presentation(
+        );
+        $return->{created_user} = $created_user_col->presentation(
             datum_presentation => $self->fields->{$created_user_col->id}->presentation, %options
-        ),
-        created_datetime => $created_datetime_col->presentation(
+        );
+        $return->{created_datetime} = $created_datetime_col->presentation(
             datum_presentation => $self->fields->{$created_datetime_col->id}->presentation, %options
-        ),
+        );
     }
+
+    return $return;
 }
 
 1;
