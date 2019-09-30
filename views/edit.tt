@@ -577,16 +577,13 @@
     [% END %]
 
     [% indents = record.indent.${dispcol.id} %]
-    [% FOREACH i IN [1..indents] %]
-        <div class="row">
-            <div class="col-md-11 col-md-offset-1">
-    [% END %]
 
     <div class="form-group linkspace-field" data-column-id="[% dispcol.id %]" data-column-type="[% dispcol.type %]" data-value-selector="[% dispcol.value_selector %]"
         [% dispcol.has_display_field && 'data-has-dependency="' _ dispcol.has_display_field _ '"' %]
         [% dispcol.has_display_field && 'data-dependency="' _ dispcol.display_fields_b64 _ '"' %]
         [% dispcol.multivalue && 'data-is-multivalue="true"' %]
         [% dispcol.readonly && 'data-is-readonly="true"' %]
+        style="margin-left:[% 50 * indents %]px"
     >
         [% label = dispcol.name | html_entity %]
         [% IF dispcol.optional OR page == "bulk" %]
@@ -652,11 +649,6 @@
             [% PROCESS print_field %]
         [% END %]
     </div>
-
-    [% FOREACH i IN [1..indents] %]
-        </div>
-    </div>
-    [% END %]
 
     [% last_column = dispcol %]
 
