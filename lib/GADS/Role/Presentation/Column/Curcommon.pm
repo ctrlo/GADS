@@ -8,6 +8,7 @@ sub after_presentation
     $return->{layout_parent}   = $self->layout_parent;
     $return->{value_selector}  = $self->value_selector;
     $return->{show_add}        = $self->show_add;
+    $return->{has_subvals}     = $self->has_subvals;
     $return->{filtered_values} = $self->filtered_values;
 }
 
