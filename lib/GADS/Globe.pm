@@ -534,6 +534,7 @@ sub _build_data
             : $self->has_label_col # Label by text
             ? join('<br>', map { $_ eq '_count' ? $values->{label_text}->{$_} : "$_: $values->{label_text}->{$_}" } keys %{$values->{label_text}})
             : join('<br>', @{$values->{hover}});
+        $hover = "$country<br>$hover"; # Add country to hover
         my $r = {
             hover    => $hover,
             location => $country,
