@@ -45,6 +45,7 @@ sub presentation {
         id                  => $self->id,
         type                => $self->type,
         name                => $self->name,
+        description         => $self->description,
         is_id               => $self->name_short && $self->name_short eq '_id',
         topic               => $self->topic,
         topic_id            => $self->topic && $self->topic->id,
