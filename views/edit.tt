@@ -659,7 +659,7 @@
 [% BLOCK print_field %]
     <div class="input_holder" >
         <div class="row">
-            <div class="col-md-[% dispcol.widthcols %]">
+            <div class="col-md-[% IF edit_modal %]12[% ELSE %][% dispcol.widthcols %][% END %]">
                 [% IF dispcol.type == "enum" %]
                     [% PROCESS enum_column column = dispcol %]
                 [% ELSIF dispcol.type == "curval" %]
