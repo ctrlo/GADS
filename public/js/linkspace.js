@@ -1576,7 +1576,8 @@ var setupGlobe = function (container) {
 
     Plotly.setPlotConfig({locale: 'en-GB'});
 
-    var data = JSON.parse(base64.decode(container.data('globe-data')));
+    var globe_data = JSON.parse(base64.decode(container.data('globe-data')));
+    var data = globe_data.data;
 
     var layout = {
         margin: {
@@ -1600,7 +1601,31 @@ var setupGlobe = function (container) {
         topojsonURL: container.data('topojsonurl')
     };
 
-    Plotly.newPlot(container.get(0), data, layout, options);
+    Plotly.newPlot(container.get(0), data, layout, options).then(gd => {
+        // Set up handler to show records of country when country is clicked
+        gd.on('plotly_click', d => {
+            // Prevent click event when map is dragged
+            if (d.event.defaultPrevented) return;
+
+            var pt = (d.points || [])[0]; // Point clicked
+
+            var params = globe_data.params;
+
+            // Construct filter to only show country clicked.
+            // XXX This will filter only when all globe fields of the record
+            // are equal to the country. This should be an "OR" condition
+            // instead
+            var filter = params.globe_fields.map(function(field) {
+                return field + "=" + pt.location
+            }).join('&');
+
+            var url = "/" + params.layout_identifier + "/data?viewtype=table&view_id=" + params.view_id + "&" + filter;
+            if (params.default_view_limit_extra_id) {
+                url = url + "&extra=" + params.default_view_limit_extra_id;
+            }
+            location.href = url;
+        })
+    });
 };
 
 var setupTippy = function (context) {
