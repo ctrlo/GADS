@@ -49,6 +49,8 @@ has '+value_field' => (
 
 # Dummy function so that value_selector() can be called from a curcommon class
 sub value_selector { '' }
+sub show_add { 0 }
+sub has_subvals { 0 }
 
 sub _build_sprefix { 'current' };
 
