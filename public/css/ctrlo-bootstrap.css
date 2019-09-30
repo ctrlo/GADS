@@ -561,6 +561,9 @@ output {
 .form-group:last-child {
   margin-bottom: 0; }
 
+.top-buffer {
+  margin-top: 15px; }
+
 input[type="date"] {
   line-height: 35px; }
 

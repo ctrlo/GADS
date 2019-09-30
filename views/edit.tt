@@ -237,11 +237,13 @@
             </div>
         </div>
         [% IF edit_modal %]
-            <p class="spinner" hidden>
-                Validating... <i class="fa fa-spinner fa-spin" style="font-size:24px"></i>
-            </p>
-            <button type="submit" class="btn btn-primary" id="curval-add">[% IF record.new_entry %]Add[% ELSE %]Update[% END %]</button>
-            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            <div class="top-buffer">
+                <p class="spinner" hidden>
+                    Validating... <i class="fa fa-spinner fa-spin" style="font-size:24px"></i>
+                </p>
+                <button type="submit" class="btn btn-primary" id="curval-add">[% IF record.new_entry %]Add[% ELSE %]Update[% END %]</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
         [% ELSIF NOT view_modal %]
             <div class="navbar navbar-default navbar-fixed-bottom edit-controls">
                 <div class="container">
