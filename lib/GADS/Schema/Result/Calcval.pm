@@ -92,6 +92,10 @@ __PACKAGE__->add_columns(
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "value_numeric",
   { data_type => "decimal", is_nullable => 1, size => [20, 5] },
+  "value_date_from",
+  { data_type => "datetime", datetime_undef_if_invalid => 1, is_nullable => 1 },
+  "value_date_to",
+  { data_type => "datetime", datetime_undef_if_invalid => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY

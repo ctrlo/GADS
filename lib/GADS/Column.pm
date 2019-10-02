@@ -691,13 +691,17 @@ has has_filter_typeahead => (
     default => 0,
 );
 
+sub has_time { 0 }
+
 has dateformat => (
     is      => 'rw',
     isa     => Str,
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        $self->layout->config->dateformat;
+        my $format = $self->layout->config->dateformat;
+        $format .= " HH:mm:ss" if $self->has_time;
+        $format;
     },
 );
 

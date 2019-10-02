@@ -2,6 +2,7 @@ use Test::More; # tests => 1;
 use strict;
 use warnings;
 
+use List::Util  qw(min max);
 use Test::MockTime qw(set_fixed_time restore_time); # Load before DateTime
 use DateTime;
 use JSON qw(encode_json);
@@ -184,10 +185,16 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         # may be more records of the same date)
         my $group_id = $sort eq 'enum1' && $columns->{enum1}->id;
         my $timeline = $records->data_timeline(group => $group_id);
-        # Centre of timeline (now + 100 days) minus 50 days
-        is($timeline->{min}->ymd, '2008-02-19', "Correct start range of timeline");
-        # Centre of timeline plus 100 days (plus 1 day for additional visible range)
-        is($timeline->{max}->ymd, '2008-07-20', "Correct end range of timeline");
+        my ($min, $max) = _min_max($timeline);
+
+        # Start at 10 April 01:00, rounded down to and includes first record of 10th April. Retrieve 99 records
+        # up to and including 17th July, then 49 records back up to and
+        # including 21st Feb
+        is($min->ymd, '2008-02-21', "Correct first item");
+        is($max->ymd, '2008-07-17', "Correct last item");
+        # Minimum is one day less than first item, max is 2 days after last
+        is($timeline->{min}->ymd, '2008-02-20', "Correct start range of timeline");
+        is($timeline->{max}->ymd, '2008-07-19', "Correct end range of timeline");
         my @items = @{$timeline->{items}};
         is( @items, 148, "Retrieved correct subset of records for large timeline" );
         if ($sort eq 'enum1')
@@ -224,28 +231,40 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     }
 
     $records = GADS::Records->new(
-        from    => DateTime->now, # Rounded down to midnight 1st Jan 2018
-        to      => DateTime->now->add(days => 10), # Rounded up to midnight 12th Jan 2018
+        # 1st Jan 2008 01:00, which because searching on days without times is
+        # rounded down to 1st Jan, so include that as first record
+        from    => DateTime->now,
+        # 10 days on is 11th Jan 01:00, so include 11th
+        to      => DateTime->now->add(days => 10),
         user    => undef,
         columns => $showcols,
         layout  => $layout,
         schema  => $schema,
     );
 
-    # 10 days, plus one either side including rounding up/down
-    is( @{$records->data_timeline->{items}}, 12, "Retrieved correct subset of records for large timeline" );
+    my $timeline = $records->data_timeline;
+    my $count = @{$timeline->{items}};
+    is($count, 11, "Retrieved correct subset of records for large timeline" );
+    my ($min, $max) = _min_max($timeline);
+    is($min->ymd, '2008-01-01', "Correct first item");
+    is($max->ymd, '2008-01-11', "Correct last item");
 
     # Test from exactly midnight - should be no rounding
     $records = GADS::Records->new(
-        from    => DateTime->new(year => 2008, month => 1, day => 1),
-        to      => DateTime->new(year => 2008, month => 1, day => 10),
+        from    => DateTime->new(year => 2008, month => 1, day => 1), # Include 1st Jan
+        to      => DateTime->new(year => 2008, month => 1, day => 10), # Up to and include 10th
         user    => undef,
         columns => $showcols,
         layout  => $layout,
         schema  => $schema,
     );
 
-    is( @{$records->data_timeline->{items}}, 10, "Retrieved correct subset of records for large timeline" );
+    $timeline = $records->data_timeline;
+    $count = @{$timeline->{items}};
+    is($count, 10, "Retrieved correct subset of records for large timeline" );
+    ($min, $max) = _min_max($timeline);
+    is($min->ymd, '2008-01-01', "Correct first item");
+    is($max->ymd, '2008-01-10', "Correct last item");
 }
 
 # Test exclusive functionality
@@ -299,6 +318,107 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
 
     is($data_timeline->{min}->ymd, '2009-03-01', "Correct start range of timeline");
     is($data_timeline->{max}->ymd, '2011-03-01', "Correct end range of timeline");
+}
+
+# Various time tests
+{
+    my $sheet = t::lib::DataSheet->new(data => []);
+    $sheet->create_records;
+    my $schema       = $sheet->schema;
+    my $layout       = $sheet->layout;
+    my $string_id    = $sheet->columns->{string1}->id;
+    my $date_id      = $sheet->columns->{date1}->id;
+    my $daterange_id = $sheet->columns->{daterange1}->id;
+
+    # Write records at different times
+    for my $count (1..5)
+    {
+        set_fixed_time("06/0$count/2008 12:30:00", '%m/%d/%Y %H:%M:%S');
+        my $record = GADS::Record->new(
+            user   => $sheet->user,
+            layout => $layout,
+            schema => $schema,
+        );
+        $record->initialise;
+        $record->fields->{$string_id}->set_value("Count $count");
+        # Set some date fields so that these records are always retrieved
+        $record->fields->{$date_id}->set_value("2008-07-05");
+        $record->fields->{$daterange_id}->set_value(["2008-01-01", "2008-02-01"]);
+        $record->write(no_alerts => 1);
+    }
+
+    my $showcols = [
+        $layout->column_by_name_short('_version_datetime')->id,
+        $sheet->columns->{date1}->id,
+        $sheet->columns->{daterange1}->id,
+    ];
+
+    my $records = GADS::Records->new(
+        from    => DateTime->new(year => 2008, month => 06, day => 03),
+        user    => $sheet->user,
+        columns => $showcols,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    is( @{$records->data_timeline->{items}}, 15, "All items on timeline" );
+
+    # Created times are currently converted to British Summer Time, so search
+    # for 13:30 instead of 12:30
+    $records->clear;
+    $records->from(DateTime->new(year => 2008, month => 06, day => 03, hour => 13, minute => 30));
+    $records->to(DateTime->new(year => 2008, month => 12, day => 01));
+    $records->exclusive('from');
+    # Should retrieve 5 date1 fields plus 2 version fields
+    is( @{$records->data_timeline->{items}}, 7, "Records retrieved exclusive" );
+
+    $records->clear;
+    $records->from(DateTime->new(year => 2007, month => 01, day => 01));
+    $records->to(DateTime->new(year => 2008, month => 06, day => 03, hour => 13, minute => 30));
+    $records->exclusive('to');
+    is( @{$records->data_timeline->{items}}, 7, "Records retrieved exclusive" );
+
+    # Reset
+    set_fixed_time('01/01/2008 01:00:00', '%m/%d/%Y %H:%M:%S');
+}
+
+# Test set of records all after today, with only from set
+{
+    my $data = [
+        {
+            string1 => 'foo1',
+            date1   => '2009-01-01',
+        },
+        {
+            string1 => 'foo2',
+            date1   => '2008-03-04',
+        },
+        {
+            string1 => 'foo3',
+            date1   => '2008-10-04',
+        },
+    ];
+
+    my $sheet = t::lib::DataSheet->new(data => $data);
+    $sheet->create_records;
+    my $schema   = $sheet->schema;
+    my $layout   = $sheet->layout;
+    my $date1    = $sheet->columns->{date1}->id;
+    my $showcols = [ map { $_->id } $layout->all(exclude_internal => 1) ];
+
+    my $records = GADS::Records->new(
+        from    => DateTime->now,
+        user    => undef,
+        columns => $showcols,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    # Normal - should include all records
+    my $tl = $records->data_timeline;
+    is( @{$tl->{items}}, 3, "Records retrieved inclusive" );
+    is($tl->{min}->ymd, '2008-03-03', "Correct start range of timeline");
+    is($tl->{max}->ymd, '2009-01-03', "Correct end range of timeline");
 }
 
 # Test permissions
@@ -474,10 +594,25 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     my $return = $records->data_timeline;
 
     is( @{$return->{items}}, 148, "Correct number of timeline items" );
-    # 2008-01-01 + 100 days - 50 days - 1 day
-    is($return->{min}->ymd, '2008-02-19', "Min value is same as start of records");
+    # Start retrieval from today (2008-01-01) + 100 = 2008-04-10. Time is 1am,
+    # which is rounded down to midnight for a date-only field, so first
+    # retrieved record will be 2008-04-10. Take 100 records going forward,
+    # including the start point. Last retrieved record should not be included,
+    # in case the record to be retrieved after that is the same date.  Last
+    # record is therefore 2008-04-10 + another 98 days = 2008-07-17 (99 records
+    # total, including first, excluding last)
+    my ($min, $max) = _min_max($return);
+    is($max->ymd, '2008-07-17', "Date of latest item correct");
+    # Max of range is last value, plus a day in case of daterange padding (one
+    # day is added to a daterange to make it span the whole day), plus a day
+    # for padding.
+    is($return->{max}->ymd, '2008-07-19', "Max value aligns with end of records");
+
+    # Min value starts with min of previous, then goes back 50 items/days, not
+    # including the final item.
+    is($min->ymd, '2008-02-21', "Date of earliest item correct");
+    is($return->{min}->ymd, '2008-02-20', "Min value is same as start of records");
     # 2008-01-01 + 100 days + 100 days + 2 days
-    is($return->{max}->ymd, '2008-07-21', "Max value is same as end of records");
 }
 
 # No records with date fields to display
@@ -781,10 +916,17 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     my $return = $records->data_timeline;
     # Normal - should include dateranges that go over the from/to values
     is( @{$return->{items}}, 148, "Correct number of items for timeline with only curval dates" );
-    # 10th April 2008 - 50 days = 20th February 2008, minus 1 day to show range
-    is($return->{min}->ymd, '2008-02-19', "Correct start range of timeline");
-    # 10th April 2008 + 100 days = 19th July 2008, plus 1 day for width plus 1 day to show range
-    is($return->{max}->ymd, '2008-07-21', "Correct end range of timeline");
+    my ($min, $max) = _min_max($return);
+    # Start 10th April 2008 01:00 (rounded down, included) + 100 days, do not
+    # include final record = 17th July 2008
+    is($max->ymd, '2008-07-17', "Correct last item");
+    # Plus 1 day for width plus 1 day to show range
+    is($return->{max}->ymd, '2008-07-19', "Correct end range of timeline");
+    # Min starts at 10th April 2008 01:00 (not included) - 50 days = 20th
+    # February 2008 (not included).
+    is($min->ymd, '2008-02-21', "Correct first item");
+    # Minus 1 day to show range = 20th Feb
+    is($return->{min}->ymd, '2008-02-20', "Correct start range of timeline");
 
 }
 
@@ -892,11 +1034,20 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     $return = $records->data_timeline;
     # Full set of records after the from date, nothing before as above
     is( @{$return->{items}}, 99, "Correct number of items for timeline with no access to curval dates" );
-    # Min retrieved is created date (1st Jan 2008), minus one day to show
-    # range, although there isn't anything to show at this range
-    is($return->{min}->ymd, '2007-12-31', "Correct start range of timeline");
-    # 1st Jan 2010 + 100 days = 11th April 2010, plus 1 day for width plus 1 day to show range
-    is($return->{max}->ymd, '2010-04-13', "Correct end range of timeline");
+    # Min retrieved is 2010-01-01 minus one day for padding
+    is($return->{min}->ymd, '2009-12-31', "Correct start range of timeline");
+    # 1st Jan 2010 + 98 days (99 records total) = 9th April 2010, plus 1 day for width plus 1 day to show range
+    is($return->{max}->ymd, '2010-04-11', "Correct end range of timeline");
 }
 
 done_testing();
+
+sub _min_max
+{   my $timeline = shift;
+    my @items = @{$timeline->{items}};
+    my $max = max map $_->{start}, @items;
+    my $max_dt = DateTime->from_epoch(epoch => $max / 1000);
+    my $min = min map $_->{start}, @items;
+    my $min_dt = DateTime->from_epoch(epoch => $min / 1000);
+    ($min_dt, $max_dt);
+}

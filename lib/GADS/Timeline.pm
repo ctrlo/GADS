@@ -77,14 +77,20 @@ has _group_count => (
     default => 0,
 );
 
-has retrieved_from => (
+# Where to show the timeline from by default. Because when retrieving records,
+# we can end up with some items (in the same record) being retrieved that we
+# weren't expecting, this tells the browser the sensible place to show from.
+# This will also take into account long date ranges, where we only want to show
+# part of the range.
+has display_from => (
     is      => 'rwp',
     isa     => Maybe[DateAndTime],
     # Do not set to an infinite value, should be undef instead
     coerce  => sub { return undef if ref($_[0]) =~ /Infinite/; $_[0] },
 );
 
-has retrieved_to => (
+# Same as above
+has display_to => (
     is      => 'rwp',
     isa     => Maybe[DateAndTime],
     # Do not set to an infinite value, should be undef instead
@@ -99,6 +105,8 @@ sub clear
 {   my $self = shift;
     $self->records->clear;
     $self->clear_items;
+    $self->_set_display_from(undef);
+    $self->_set_display_to(undef);
 }
 
 has _all_items_index => (
@@ -245,8 +253,27 @@ sub _build_items
                     foreach my $span (@spans)
                     {   my ($start, $end) = @$span;
 
-                        # Timespan must overlap to select
-                        (!$from || $end >= $from) && (!$to || $start <= $to)
+                        # Timespan must overlap to select.
+                        # For dates without times, we need to truncate to just
+                        # a date the value we are selecting from, because
+                        # that's what will be retrieved from the database. For
+                        # example, if selecting a from of 2nd September 14:53,
+                        # then the database query will have simply been from a
+                        # date of and including 2nd September, in which case a
+                        # record with that date will have been selected. If we
+                        # didn't truncate the time, then the record would be
+                        # discarded at this point, as the from time of 14:53 is
+                        # after the midnight time of the retrieved record.
+                        my $from_check = $from && $from->clone;
+                        $from_check->truncate(to => 'day') if $from_check && !$column->has_time;
+
+                        my $from_test = $self->records->exclusive_of_from
+                            ? (!$from_check || $end > $from_check)
+                            : (!$from_check || $end >= $from_check);
+                        my $to_test = $self->records->exclusive_of_to
+                            ? (!$to || $start < $to)
+                            : (!$to || $start <= $to);
+                        $from_test && $to_test
                              or next;
 
                         push @dates, +{
@@ -256,6 +283,7 @@ sub _build_items
                             column     => $column_datum->id,
                             count      => ++$seqnr,
                             daterange  => $is_range,
+                            has_time   => $column->has_time,
                             current_id => $d->record->current_id,
                         };
                     }
@@ -356,7 +384,9 @@ sub _build_items
 
                 if($d->{daterange})
                 {   # Add one day, otherwise ends at 00:00:00, looking like day is not included
-                    $item{end}    = _tick $d->{to}->clone->add(days => 1);
+                    my $v = $d->{to}->clone;
+                    $v->add(days => 1) unless $d->{has_time};
+                    $item{end}    = _tick $v;
                 }
                 else
                 {   $item{single} = _tick $d->{from};
@@ -367,11 +397,11 @@ sub _build_items
             }
         }
 
-        $self->_set_retrieved_from($newest)
-            if $to_max && $newest < ($self->retrieved_from || AT_BIGCHILL);
+        $self->_set_display_from($newest)
+            if $newest < ($self->display_from || AT_BIGCHILL);
 
-        $self->_set_retrieved_to($oldest)
-            if $from_min && $oldest > ($self->retrieved_to || AT_BIGBANG);
+        $self->_set_display_to($oldest)
+            if $oldest > ($self->display_to || AT_BIGBANG);
     }
 
     if(!@items)

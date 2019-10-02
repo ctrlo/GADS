@@ -26,6 +26,7 @@ use MooX::Types::MooseLike::Base qw/:all/;
 extends 'GADS::Column';
 
 with 'GADS::Role::Presentation::Column::Daterange';
+with 'GADS::DateTime';
 
 has '+return_type' => (
     builder => sub { 'daterange' },
@@ -57,9 +58,11 @@ has '+string_storage' => (
     default => sub {shift->return_type eq 'string'},
 );
 
-has '+sort_field' => (
-    default => 'from',
-);
+sub _build_sort_field { 'from' }
+
+# The from and to fields from the database table
+sub from_field { 'from' }
+sub to_field { 'to' }
 
 has show_datepicker => (
     is      => 'rw',
@@ -75,80 +78,13 @@ has show_datepicker => (
 );
 
 sub validate
-{   my ($self, $value, %options) = @_;
-
-    return 1 if !$value;
-    return 1 if !$value->{from} && !$value->{to};
-
-    if ($value->{from} xor $value->{to})
-    {
-        return 0 unless $options{fatal};
-        error __x"Please enter 2 date values for '{col}'", col => $self->name;
-    }
-    my $from;
-    if ($value->{from} && !($from = $self->parse_date($value->{from})))
-    {
-        return 0 unless $options{fatal};
-        error __x"Invalid start date {value} for {col}. Please enter as {format}.",
-            value => $value->{from}, col => $self->name, format => $self->dateformat;
-    }
-    my $to;
-    if ($value->{to} && !($to = $self->parse_date($value->{to})))
-    {
-        return 0 unless $options{fatal};
-        error __x"Invalid end date {value} for {col}. Please enter as {format}.",
-            value => $value->{to}, col => $self->name, format => $self->dateformat;
-    }
-
-    if (DateTime->compare($from, $to) == 1)
-    {
-        return 0 unless $options{fatal};
-        error __x"Start date must be before the end date for '{col}'", col => $self->name;
-    }
-
-    1;
+{   my $self = shift;
+    $self->validate_daterange(@_);
 }
 
 sub validate_search
-{   my ($self, $value, %options) = @_;
-    return 1 if !$value;
-    if ($options{single_only})
-    {
-        return 1 if $self->parse_date($value);
-        return 0 unless $options{fatal};
-        error __x"Invalid single date format {value} for {name}",
-            value => $value, name => $self->name;
-    }
-    if ($options{full_only})
-    {
-        if (my $hash = $self->split($value))
-        {
-            return $self->validate($hash, %options);
-        }
-        # Unable to split
-        return 0 unless $options{fatal};
-        error __x"Invalid full date format {value} for {name}. Please enter as {format}.",
-            value => $value, name => $self->name, format => $self->layout->config->dateformat;
-    }
-    # Accept both formats. Normal date format used to validate searches
-    return 1 if $self->parse_date($value) || ($self->split($value) && $self->validate($self->split($value)));
-    return 0 unless $options{fatal};
-    error "Invalid format {value} for {name}",
-        value => $value, name => $self->name;
-}
-
-sub split
-{   my ($self, $value) = @_;
-    if ($value =~ /(.+) to (.+)/)
-    {
-        my $from = $1; my $to = $2;
-        $self->parse_date($from) && $self->parse_date($to)
-            or return;
-        return {
-            from => $from,
-            to   => $to,
-        };
-    }
+{   my $self = shift;
+    $self->validate_daterange_search(@_);
 }
 
 sub cleanup

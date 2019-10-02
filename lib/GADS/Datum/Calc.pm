@@ -27,16 +27,22 @@ use namespace::clean;
 
 extends 'GADS::Datum::Code';
 
+with 'GADS::DateTime';
+
 sub as_string
 {   my $self = shift;
     my (@return, $df, $dc);
+
+    my $format = $df // $self->column->dateformat;
 
     foreach my $value ( @{$self->value} )
     {   push @return,
             ! defined $value
           ? ''
           : ref $value eq 'DateTime'
-          ? $value->format_cldr($df //= $self->column->dateformat)
+          ? $value->format_cldr($format)
+          : $self->column->return_type eq 'daterange'
+          ? $self->daterange_as_string($value, $format)
           : $self->column->return_type eq 'numeric'
           ? ( ($dc //= $self->column->decimal_places // 0)
             ? sprintf("%.${dc}f", $value)
@@ -53,6 +59,24 @@ sub _parse_date
     $_[0]->schema->storage->datetime_parser->parse_date($_[1]);
 }
 
+sub _convert_date
+{   my ($self, $val) = @_;
+    my @return;
+    if (defined $val && looks_like_number($val))
+    {
+        my $ret;
+        try { $ret = DateTime->from_epoch(epoch => $val) };
+        if (my $exception = $@->wasFatal)
+        {
+            warning "$@";
+        }
+        else {
+            return $ret;
+        }
+    }
+}
+
+sub values { $_[0]->value }
 sub convert_value
 {   my ($self, $in) = @_;
 
@@ -74,22 +98,29 @@ sub convert_value
 
     foreach my $val (@values)
     {
-        if ($column->return_type eq "date")
+        if ($column->return_type eq "date") # Currently no time element
         {
-            if (defined $val && looks_like_number($val))
+            $val = $self->_convert_date($val);
+            # Database only stores date part, so ensure local value reflects
+            # that
+            $val->truncate(to => 'day') if $val;
+            push @return, $val || undef;
+        }
+        elsif ($column->return_type eq "daterange") # Currently always has time element
+        {
+            if (!$val)
             {
-                my $ret;
-                try { $ret = DateTime->from_epoch(epoch => $val) };
-                if (my $exception = $@->wasFatal)
-                {
-                    warning "$@";
-                }
-                else {
-                    # Database only stores date part, so ensure local value reflects
-                    # that
-                    $ret->truncate(to => 'day') if $ret;
-                    push @return, $ret;
-                }
+                # Do nothing
+            }
+            elsif (ref $val eq 'HASH' && $val->{from} && $val->{to})
+            {
+                push @return, $self->parse_daterange({
+                    from => $self->_convert_date($val->{from}),
+                    to   => $self->_convert_date($val->{to}),
+                });
+            }
+            else {
+                warning __"Unexpected daterange return type";
             }
         }
         elsif ($column->return_type eq 'numeric' || $column->return_type eq 'integer')
@@ -141,6 +172,14 @@ sub equal
 {   my ($self, $a, $b) = @_;
     my @a = ref $a eq 'ARRAY' ? @$a : ($a);
     my @b = ref $b eq 'ARRAY' ? @$b : ($b);
+    if ($self->column->return_type eq 'daterange')
+    {
+        my $format = $self->column->dateformat;
+        # Values can be a text representation ("xx to yy") or a DateTime::Span
+        # Convert to a consistent textual value for comparison purposes
+        @a = map { ref $_ eq 'DateTime::Span' ? $self->daterange_as_string($_, $format) : $_ } @a;
+        @b = map { ref $_ eq 'DateTime::Span' ? $self->daterange_as_string($_, $format) : $_ } @b;
+    }
     @a = sort @a if defined $a[0];
     @b = sort @b if defined $b[0];
     return 0 if @a != @b;
@@ -164,6 +203,13 @@ sub equal
             ref $a2 eq 'DateTime' && ref $b2 eq 'DateTime' or return 0;
             return 0 if $a2 != $b2;
         }
+        elsif ($rt eq 'daterange')
+        {
+            # Type might have changed and old value be string
+            ref $a2 eq 'HASH' && $a2->{from} eq 'DateTime' && ref $b2 eq 'HASH' && $b2->{from} eq 'DateTime'
+                or return 0;
+            return 0 if $a2->{from} != $b2->{from} && $a2->{to} != $b2->{to};
+        }
         else {
             return 0 if $a2 ne $b2;
         }
@@ -181,6 +227,14 @@ sub _build_for_code
         if ($rt eq 'date')
         {
             push @return, $self->_date_for_code($val);
+        }
+        elsif ($rt eq 'daterange')
+        {
+            push @return, {
+                from  => $self->_date_for_code($_->start),
+                to    => $self->_date_for_code($_->end),
+                value => $self->_as_string($_),
+            };
         }
         elsif ($rt eq 'numeric')
         {

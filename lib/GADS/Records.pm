@@ -29,6 +29,7 @@ use GADS::Record;
 use GADS::Timeline;
 use GADS::View;
 use HTML::Entities;
+use List::Util  qw(min max);
 use Log::Report 'linkspace';
 use POSIX qw(ceil);
 use Scalar::Util qw(looks_like_number);
@@ -221,7 +222,6 @@ has from => (
     coerce => sub {
         my $value = shift
             or return;
-        $value->truncate(to => 'day');
         return $value;
     },
 );
@@ -231,8 +231,6 @@ has to => (
     coerce => sub {
         my $value = shift
             or return;
-        return $value if $value->hms('') eq '000000';
-        $value->truncate(to => 'day')->add(days => 1);
         return $value;
     },
 );
@@ -1403,7 +1401,7 @@ sub _search_date
     }
     elsif ($c->return_type =~ /date/)
     {
-        my $dateformat = GADS::Config->instance->dateformat;
+        my $dateformat = $c->dateformat;
         # Apply any date filters if required
         my @f;
         my $sid = $options{parent_id} ? "$options{parent_id}_".$c->id : $c->id;
@@ -1589,7 +1587,7 @@ sub order_by
         ? @{$self->_sorts_limit}
         : @{$self->_sorts};
 
-    my @order_by;
+    my @order_by; my %has_time;
     my $random_sort = $self->schema->resultset('Current')->_rand_order_by;
     foreach my $s (@sorts)
     {
@@ -1635,6 +1633,7 @@ sub order_by
                 push @order_by, {
                     $type => $sort_name,
                 };
+                $has_time{$sort_name} = 1 if $col_sort->has_time;
             }
         }
     }
@@ -1643,9 +1642,16 @@ sub order_by
     # certain date. We have to order by the date of any field in each record.
     if ($self->limit_qty && $options{with_min} && @order_by)
     {
-        my $date = $self->schema->storage->datetime_parser->format_datetime($self->from || $self->to);
+        my $gt = $self->exclusive_of_from ? '>' : '>=';
+        my $lt = $self->exclusive_of_to ? '<' : '<=';
         @order_by = map {
             my ($field) = values %$_;
+            # When using a time with a less than of a date-only field, a match
+            # is made even though it doesn't match (in SQLite anyway). E.g. "<
+            # 2019-04-05 00:00" will match a date field of "2019-04-05"
+            my $date = $has_time{$field}
+                ? $self->schema->storage->datetime_parser->format_datetime($self->from || $self->to)
+                : $self->schema->storage->datetime_parser->format_date($self->from || $self->to);
             my $quoted = $self->quote($field);
             if ($field =~ /from/) # Date range
             {
@@ -1656,14 +1662,14 @@ sub order_by
                 if ($self->limit_qty eq 'from')
                 {
                     \"CASE
-                        WHEN ($quoted > '$date') THEN $quoted
-                        WHEN ($quoted_to > '$date') THEN $quoted_to
+                        WHEN ($quoted $gt '$date') THEN $quoted
+                        WHEN ($quoted_to $gt '$date') THEN $quoted_to
                         ELSE NULL END";
                 }
                 else { # to
                     \"CASE
-                        WHEN ($quoted_to < '$date') THEN $quoted_to
-                        WHEN ($quoted < '$date') THEN $quoted
+                        WHEN ($quoted_to $lt '$date') THEN $quoted_to
+                        WHEN ($quoted $lt '$date') THEN $quoted
                         ELSE NULL END";
                 }
             }
@@ -1671,12 +1677,12 @@ sub order_by
                 if ($self->limit_qty eq 'from')
                 {
                     \"CASE
-                        WHEN ($quoted > '$date') THEN $quoted
+                        WHEN ($quoted $gt '$date') THEN $quoted
                         ELSE NULL END";
                 }
                 else {
                     \"CASE
-                        WHEN ($quoted < '$date') THEN $quoted
+                        WHEN ($quoted $lt '$date') THEN $quoted
                         ELSE NULL END";
                 }
             }
@@ -1816,7 +1822,7 @@ sub _search_construct
 
     my @conditions; my $gate = 'and';
     my $transform_date; # Whether to convert date value to database format
-    if ($column->type eq "daterange")
+    if ($column->return_type eq "daterange")
     {
         # If it's a daterange, we have to be intelligent about the way the
         # search is constructed. Greater than, less than, equals all require
@@ -1835,7 +1841,7 @@ sub _search_construct
             push @conditions, {
                 type     => $filter_operator,
                 operator => $operator,
-                s_field  => "from",
+                s_field  => $column->from_field,
             };
         }
         elsif ($operator eq ">=" || $operator eq "<")
@@ -1844,7 +1850,7 @@ sub _search_construct
             push @conditions, {
                 type     => $filter_operator,
                 operator => $operator,
-                s_field  => "to",
+                s_field  => $column->to_field,
             };
         }
         elsif ($operator eq "-like" || $operator eq "-not_like")
@@ -1854,12 +1860,12 @@ sub _search_construct
             push @conditions, {
                 type     => $filter_operator,
                 operator => $operator eq '-like' ? '<=' : '>=',
-                s_field  => "from",
+                s_field  => $column->from_field,
             };
             push @conditions, {
                 type     => $filter_operator,
                 operator => $operator eq '-like' ? '>=' : '<=',
-                s_field  => "to",
+                s_field  => $column->to_field,
             };
             $operator = $operator eq '-like' ? 'equal' : 'not_equal';
             $gate = 'or' if $operator eq 'not_equal';
@@ -2085,7 +2091,9 @@ sub _resolve
 sub _date_for_db
 {   my ($self, $column, $value) = @_;
     my $dt = $column->parse_date($value);
-    $self->schema->storage->datetime_parser->format_date($dt);
+    $column->has_time
+        ? $self->schema->storage->datetime_parser->format_datetime($dt)
+        : $self->schema->storage->datetime_parser->format_date($dt);
 }
 
 has _csv => (
@@ -2139,21 +2147,6 @@ sub csv_line
     return $csv->string."\n";
 }
 
-sub _filter_items
-{   my ($self, $from, $to) = (shift, shift, shift);
-
-    if($self->exclusive_of_to)
-    {   my $to_tick = $to->epoch * 1000;
-        return grep { $_->{single} ? $_->{dt} >= $from && $_->{dt} <= $to : $_->{end} < $to_tick } @_;
-    }
-    elsif($self->exclusive_of_from)
-    {   my $from_tick = $from->epoch * 1000;
-        return grep { $_->{single} ? $from <= $_->{dt} && $_->{dt} <= $to : $from_tick < $_->{start} } @_;
-    }
-
-    grep { $_->{single} ? $_->{dt} >= $from && $_->{dt} <= $to : 1 } @_;
-}
-
 sub data_timeline
 {   my ($self, %options) = @_;
 
@@ -2182,7 +2175,8 @@ sub data_timeline
         my $retrieved_count = $self->records_retrieved_count;
 
         #### AFTER
-        $max = $timeline->retrieved_to;
+        $max = $timeline->display_to;
+        my $first_from = $timeline->display_from;
         my @after;
         push @{$_->{dt} < $max ? \@items : \@after}, $_ for @retrieved;
 
@@ -2192,22 +2186,21 @@ sub data_timeline
         {   my @over = sort { $a->{dt} <=> $b->{dt} } @after;
             for(my $r = $retrieved_count; @items < 100 && @over; $r++)
             {   push @items, shift @over;
-                # Adjust the range of the timeline
-                $max = $items[-1]->{dt_to} if $items[-1]->{dt_to} > $max;
             }
         }
         $timeline->clear;
 
         #### BEFORE
         # Retrieve up to but not including the previous retrieval
-        $self->to($original_from->clone->subtract(days => 1));
+        $self->to($original_from->clone);
+        $self->exclusive('to');
         $self->from(undef);
         $self->max_results(50); # search 50
         $self->clear_sorts;
 
         @retrieved = @{$timeline->items};
         $retrieved_count = $self->records_retrieved_count;
-        $min = $timeline->retrieved_from;
+        $min = $timeline->display_from || $first_from;
 
         my @before;
         # Don't including retrieved items that are the same as the min. This is
@@ -2235,13 +2228,17 @@ sub data_timeline
         # local time - reset it back to midnight. This also means that invalid times are avoided
         # E.g. if a day is subtracted from 26th March 2018 01:00 London then it will be an
         # invalid time and DateTime will bork.
+        $min = min map $_->{dt}, @items;
         $min->set_time_zone('UTC')->subtract(days => 1) if $min;
 
+        # Fix the max to no longer be where we retrieved to, but actually the
+        # max value of the finalised items array. Then add some padding.
+        $max = max map $_->{dt}, @items;
         # one day already added to show period to end of day
         $max->set_time_zone('UTC')->add(days => 2) if $max;
     }
     elsif($original_from && $original_to)
-    {   @items = $self->_filter_items($original_from, $original_to, @{$timeline->items});
+    {   @items = @{$timeline->items};
         ($min, $max) = ($original_from, $original_to);
     }
     else
@@ -2291,7 +2288,6 @@ sub data_timeline
         );
 
         my @retrieved = @{$timeline_overlay->items};
-        @retrieved = $self->_filter_items($original_from, $original_to, @retrieved);
 
         foreach my $overlay (@retrieved)
         {
@@ -2738,19 +2734,21 @@ sub _build_group_results
         my $dr_col     = $self->layout->column($self->dr_column); # The daterange column for x-axis
         my $field      = $dr_col->field;
         my $field_link = $dr_col->link_parent && $dr_col->link_parent->field; # Related link field
+        my $from_field = $dr_col->from_field;
+        my $to_field   = $dr_col->to_field;
 
         # First find out earliest and latest date in this result set
         my $select = [
-            { min => "$field.from", -as => 'start_date'},
-            { max => "$field.to", -as => 'end_date'},
+            { min => "$field.$from_field", -as => 'start_date'},
+            { max => "$field.$to_field", -as => 'end_date'},
         ];
         my $search = $self->search_query(search => 1, prefetch => 1, linked => 0);
         # Include linked field if applicable
         if ($field_link)
         {
             push @$select, (
-                { min => "$field_link.from", -as => 'start_date_link'},
-                { max => "$field_link.to", -as => 'end_date_link'},
+                { min => "$field_link.$from_field", -as => 'start_date_link'},
+                { max => "$field_link.$to_field", -as => 'end_date_link'},
             );
         }
 
@@ -2792,8 +2790,8 @@ sub _build_group_results
             $self->_set_dr_to  ($daterange_to);
 
             # The literal CASE statement, which we reuse for each required period
-            my $from_field      = $self->quote("$field.from");
-            my $to_field        = $self->quote("$field.to");
+            my $from_field_full = $self->quote("$field.$from_field");
+            my $to_field_full   = $self->quote("$field.$to_field");
             my $from_field_link = $field_link && $self->quote($field_link.".from");
             my $to_field_link   = $field_link && $self->quote($field_link.".to");
             my ($dr_y_axis)     = grep { $_->{id} == $self->dr_y_axis_id } @cols;
@@ -2801,11 +2799,11 @@ sub _build_group_results
 
             my $case = $field_link
                 ? "CASE WHEN "
-                  . "($from_field < %s OR $from_field_link < %s) "
-                  . "AND ($to_field >= %s OR $to_field_link >= %s) "
+                  . "($from_field_full < %s OR $from_field_link < %s) "
+                  . "AND ($to_field_full >= %s OR $to_field_link >= %s) "
                   . "THEN %s ELSE 0 END"
-                : "CASE WHEN $from_field"
-                  . " < %s AND $to_field"
+                : "CASE WHEN $from_field_full"
+                  . " < %s AND $to_field_full"
                   . " >= %s THEN %s ELSE 0 END";
 
             my $pointer = $daterange_from->clone;

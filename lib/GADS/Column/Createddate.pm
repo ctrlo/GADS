@@ -53,5 +53,7 @@ has include_time => (
 
 sub tjoin {};
 
+sub has_time { 1 };
+
 1;
 
