@@ -480,6 +480,11 @@ sub delete
         error __x"This view cannot be deleted as it is used to limit user data. Remove the view from the limited views of the following users before deleting: {users}", users => $users;
     }
 
+    if (my $w = $self->schema->resultset('Widget')->search({ view_id => $self->id })->next)
+    {
+        error __x"This view cannot be used as it is used in widget ID {id}", id => $w->id;
+    }
+
     my $view = $self->_view
         or return; # Doesn't exist. May be attempt to delete view not yet written
     $self->schema->resultset('Sort')->search({ view_id => $view->id })->delete;
