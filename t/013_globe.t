@@ -43,7 +43,7 @@ my $simple_data = [
         records_options => $records_options,
     );
 
-    my $trace = $globe->data->[0];
+    my $trace = $globe->data->{data}->[0];
     my $items = _sort_items($trace);
     is_deeply($items->{locations}, ['France', 'Great Britain'], "Countries correct for simple view");
     like($items->{text}->[0], qr/foo2/, "Great Britain has correct enum value");
@@ -119,7 +119,7 @@ foreach my $withview (qw/none with without/)
 
         if ($test eq 'group')
         {
-            my $data = $globe->data->[0];
+            my $data = $globe->data->{data}->[0];
             foreach my $text (@{$data->{text}})
             {
                 # foo1: 17<br>foo2: 16<br>foo3: 17
@@ -130,14 +130,37 @@ foreach my $withview (qw/none with without/)
         }
         elsif ($test eq 'group_numeric')
         {
-            my $data = $globe->data->[0];
-            my $exp = [ ('Total: 500') x 10 ];
+            my $data = $globe->data->{data}->[0];
+            my $exp = [
+                'Albania<br>Total: 500',
+                'Algeria<br>Total: 500',
+                'Andorra<br>Total: 500',
+                'Angola<br>Total: 500',
+                'Australia<br>Total: 500',
+                'Bahamas<br>Total: 500',
+                'Bahrain<br>Total: 500',
+                'Barbados<br>Total: 500',
+                'Bermuda<br>Total: 500',
+                'Bolivia<br>Total: 500',
+            ];
             is($data->{hoverinfo}, 'text', "Show hover labels as text for group by numeric column");
-            is_deeply($data->{text}, $exp, "Labels correct for group by numeric column");
+            is_deeply([sort @{$data->{text}}], $exp, "Labels correct for group by numeric column");
         }
         elsif ($test eq 'label')
         {
-            is(@{$globe->data}, 2, "Correct number of traces for label globe");
+            is(@{$globe->data->{data}}, 2, "Correct number of traces for label globe");
+            my $hover = [
+                'Albania<br>Albania: 50',
+                'Algeria<br>Algeria: 50',
+                'Andorra<br>Andorra: 50',
+                'Angola<br>Angola: 50',
+                'Australia<br>Australia: 50',
+                'Bahamas<br>Bahamas: 50',
+                'Bahrain<br>Bahrain: 50',
+                'Barbados<br>Barbados: 50',
+                'Bermuda<br>Bermuda: 50',
+                'Bolivia<br>Bolivia: 50',
+            ];
             my $text = [
                 'Albania: 50',
                 'Algeria: 50',
@@ -150,19 +173,19 @@ foreach my $withview (qw/none with without/)
                 'Bermuda: 50',
                 'Bolivia: 50',
             ];
-            my $trace1 = _sort_items($globe->data->[0]);
-            is_deeply($trace1->{text}, $text, "Correct text for first trace in label");
-            my $trace2 = _sort_items($globe->data->[1]);
-            is_deeply($trace2->{hovertext}, $text, "Correct hovertext for second trace in label");
+            my $trace1 = _sort_items($globe->data->{data}->[0]);
+            is_deeply($trace1->{text}, $hover, "Correct text for first trace in label");
+            my $trace2 = _sort_items($globe->data->{data}->[1]);
+            is_deeply($trace2->{hovertext}, $hover, "Correct hovertext for second trace in label");
             is_deeply($trace2->{text}, $text, "Label of second trace is same as first trace");
         }
         elsif ($test eq 'color_count') {
-            my $got = $globe->data->[0]->{z};
+            my $got = $globe->data->{data}->[0]->{z};
             my $expected = [ (50) x 10 ];
             is_deeply($got, $expected, "Z values correct for choropleth");
         }
         else {
-            my $got = $globe->data->[0]->{z};
+            my $got = $globe->data->{data}->[0]->{z};
             my $expected = [ (500) x 10 ];
             is_deeply($got, $expected, "Z values correct for choropleth");
         }
@@ -262,9 +285,13 @@ foreach my $withview (qw/none with without/)
         Germany
         Spain
     /];
-    my $text = [ map { "Total: $_" } @$z ];
+    my $text = [
+        'France<br>Total: 50',
+        'Germany<br>Total: 25',
+        'Spain<br>Total: 25'
+    ];
 
-    my $out = $globe->data->[0];
+    my $out = $globe->data->{data}->[0];
     my @results = map {
         +{
             location => $_,
@@ -304,7 +331,7 @@ foreach my $withview (qw/none with without/)
             records_options => $records_options,
         );
 
-        my $trace = $globe->data->[0];
+        my $trace = $globe->data->{data}->[0];
         is(@{$trace->{locations}}, 2, "Country count correct for invalid column");
     }
 }
