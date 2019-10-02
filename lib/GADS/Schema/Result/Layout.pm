@@ -188,7 +188,7 @@ __PACKAGE__->add_columns(
   "name",
   { data_type => "text", is_nullable => 1 },
   "name_short",
-  { data_type => "text", is_nullable => 1 },
+  { data_type => "varchar", is_nullable => 1, size => 64 },
   "type",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "permission",
@@ -260,6 +260,24 @@ __PACKAGE__->add_columns(
 =cut
 
 __PACKAGE__->set_primary_key("id");
+
+=head1 UNIQUE CONSTRAINTS
+
+=head2 C<layout_ux_instance_name_short>
+
+=over 4
+
+=item * L</record_id>
+
+=item * L</layout_id>
+
+=back
+
+=cut
+
+# name_short should actually be unique across a whole site, but this at least
+# stops multiple internal columns being inserted into the same table
+__PACKAGE__->add_unique_constraint("layout_ux_instance_name_short", ["instance_id", "name_short"]);
 
 =head1 RELATIONS
 

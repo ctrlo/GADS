@@ -1025,7 +1025,8 @@ sub write
     $newitem->{type} = $self->type
         or error __"Please select a type for the item";
 
-    if ($newitem->{name_short} = $self->name_short)
+    $newitem->{name_short} = $self->name_short || undef;
+    if ($newitem->{name_short})
     {
         # Check format
         $self->name_short =~ /^[a-z][_0-9a-z]*$/i

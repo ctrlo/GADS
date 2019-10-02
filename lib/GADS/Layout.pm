@@ -592,15 +592,17 @@ sub create_internal_columns
             name_short  => $col->{name_short},
         })->next and next;
 
-        $self->schema->resultset('Layout')->create({
-            name        => $col->{name},
-            type        => $col->{type},
-            name_short  => $col->{name_short},
-            isunique    => $col->{isunique},
-            can_child   => 0,
-            internal    => 1,
-            instance_id => $self->instance_id,
-        });
+        try { # May have since been inserted by another process - unique constraint catches
+            $self->schema->resultset('Layout')->create({
+                name        => $col->{name},
+                type        => $col->{type},
+                name_short  => $col->{name_short},
+                isunique    => $col->{isunique},
+                can_child   => 0,
+                internal    => 1,
+                instance_id => $self->instance_id,
+            });
+        };
     }
 }
 
