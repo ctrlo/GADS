@@ -1619,7 +1619,7 @@ var setupGlobe = function (container) {
                 return field + "=" + pt.location
             }).join('&');
 
-            var url = "/" + params.layout_identifier + "/data?viewtype=table&view_id=" + params.view_id + "&" + filter;
+            var url = "/" + params.layout_identifier + "/data?viewtype=table&view=" + params.view_id + "&" + filter;
             if (params.default_view_limit_extra_id) {
                 url = url + "&extra=" + params.default_view_limit_extra_id;
             }
