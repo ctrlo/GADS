@@ -9,7 +9,7 @@ use t::lib::DataSheet;
 
 foreach my $delete_not_used (0..1)
 {
-    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, site_id => 1);
     $curval_sheet->create_records;
     my $schema  = $curval_sheet->schema;
 
