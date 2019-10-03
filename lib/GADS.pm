@@ -1253,8 +1253,8 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
         return send_file(\$pdf, content_type => 'application/pdf', filename => "Record-".$record->current_id.".pdf" );
     }
 
-    if ( app->has_hook('plugin.data.before_purge_history') ) {
-        app->execute_hook( 'plugin.data.before_purge_history', record => $record );
+    if ( app->has_hook('plugin.linkspace.record_before_template') ) {
+        app->execute_hook( 'plugin.linkspace.record_before_template', record => $record );
     }
 
     my $layout = $record->layout;
@@ -1597,8 +1597,8 @@ prefix '/:layout_name' => sub {
                 { success => "$count records successfully deleted" }, $layout->identifier.'/data' );
         }
 
-        if ( app->has_hook('plugin.data.before_request') ) {
-            app->execute_hook( 'plugin.data.before_request', user => $user );
+        if ( app->has_hook('plugin.linkspace.data_before_request') ) {
+            app->execute_hook( 'plugin.linkspace.data_before_request', user => $user );
         }
 
         # Check for rewind configuration
@@ -2090,14 +2090,14 @@ prefix '/:layout_name' => sub {
             instance_id   => $layout->instance_id,
         );
 
-        if ( app->has_hook('plugin.data.before_template') ) {
+        if ( app->has_hook('plugin.linkspace.data_before_template') ) {
             my %arg = (
                 user => $user,
                 layout => $layout,
                 params => $params,
             );
             # Note, this might modify $params
-            app->execute_hook( 'plugin.data.before_template', %arg );
+            app->execute_hook( 'plugin.linkspace.data_before_template', %arg );
         }
 
         $params->{user_views}               = $views->user_views;
