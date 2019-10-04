@@ -1163,7 +1163,7 @@ var setupClickToEdit = function(context) {
     $(".submit_button").click( function() {
         window.onbeforeunload = null;
     });
-    $(".download-pdf").click( function() {
+    $(".remove-unload-handler").click( function() {
         window.onbeforeunload = null;
     });
 }

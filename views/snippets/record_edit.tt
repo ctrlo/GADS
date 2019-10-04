@@ -3,7 +3,7 @@
         <button type="button" class="btn btn-default click-to-view-blank">Show blank values</button>
     [% END %]
     <a class="btn btn-default" href="/[% layout.identifier %]/record/?from=[% record.current_id %]">Copy record</a>
-    <a class="btn btn-default download-pdf" href="/record/[% record.current_id %]?pdf">Download as PDF</a>
+    <a class="btn btn-default remove-unload-handler" href="/record/[% record.current_id %]?pdf">Download as PDF</a>
     [% IF layout.user_can("create_child") AND NOT record.parent_id AND layout.has_children %]
         <a class="btn btn-default" href="/[% layout.identifier %]/record/?child=[% record.current_id %]">Create child record</a>
     [% END %]
