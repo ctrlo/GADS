@@ -64,6 +64,13 @@ my $end = DateTime->new(
       day        => 23,
 );
 
+my $config = GADS::Config->instance(
+    config       => config,
+    app_location => app->location,
+);
+
+my $dateformat = $config->dateformat;
+
 for (1..1000)
 {
     my @row;
@@ -80,14 +87,14 @@ for (1..1000)
         }
         elsif ($column->type eq "date")
         {
-            push @row, DateTime::Event::Random->datetime( after => $start, before => $end )->ymd;
+            push @row, DateTime::Event::Random->datetime( after => $start, before => $end )->format_cldr($dateformat);
         }
         elsif ($column->type eq "daterange")
         {
             my $date1 = DateTime::Event::Random->datetime( after => $start, before => $end );
             my $date2 = DateTime::Event::Random->datetime( after => $start, before => $end );
             ($date2, $date1) = ($date1, $date2) if DateTime->compare($date1, $date2) > 0;
-            push @row, ($date1->ymd." - ".$date2->ymd);
+            push @row, ($date1->format_cldr($dateformat)." - ".$date2->format_cldr($dateformat));
         }
         else {
             push @row, "String text";
