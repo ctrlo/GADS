@@ -1503,13 +1503,18 @@ prefix '/:layout_name' => sub {
 
         my $layout = var('layout') or pass;
 
+        # If getting data for the dashboard, then ignore all the normal records
+        # settings and retrieve according to the dashboard and its view
+        my $is_dashboard = param('dashboard');
+
         # Time variable is used to prevent caching by browser
 
         my $fromdt  = DateTime->from_epoch( epoch => int ( param('from') / 1000 ) );
         my $todt    = DateTime->from_epoch( epoch => int ( param('to') / 1000 ) );
 
         my $user    = logged_in_user;
-        my $view    = current_view($user, $layout);
+        my $view_id = $is_dashboard && param('view');
+        my $view    = current_view($user, $layout, $view_id);
 
         my $records = GADS::Records->new(
             from                => $fromdt,
@@ -1519,15 +1524,15 @@ prefix '/:layout_name' => sub {
             layout              => $layout,
             schema              => schema,
             view                => $view,
-            search              => session('search'),
-            rewind              => session('rewind'),
+            search              => $is_dashboard ? undef : session('search'),
+            rewind              => $is_dashboard ? undef : session('rewind'),
             view_limit_extra_id => current_view_limit_extra_id($user, $layout),
         );
 
         header "Cache-Control" => "max-age=0, must-revalidate, private";
         content_type 'application/json';
 
-        my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} || {};
+        my $tl_options = (!$is_dashboard && session('persistent')->{tl_options}->{$layout->instance_id}) || {};
         my $timeline = $records->data_timeline(%{$tl_options});
         encode_json($timeline->{items});
     };
@@ -3289,7 +3294,7 @@ sub welcome_text
 }
 
 sub current_view {
-    my ($user, $layout) = @_;
+    my ($user, $layout, $view_id) = @_;
 
     $layout or return undef;
 
@@ -3302,7 +3307,8 @@ sub current_view {
     my $view;
     # If an invalid view is stuck in the session, then this can result in the
     # user in a continuous loop unable to open any other views
-    try { $view = $views->view(session('persistent')->{view}->{$layout->instance_id}) };
+    $view_id || session('persistent')->{view}->{$layout->instance_id};
+    try { $view = $views->view($view_id) };
     $@->reportAll(is_fatal => 0); # XXX results in double reporting
     return $view || $views->default || undef; # Can still be undef
 };

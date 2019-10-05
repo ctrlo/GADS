@@ -215,10 +215,11 @@ sub html
             my $tl_options = $self->tl_options_inflated;
             my $timeline = $records->data_timeline(%{$tl_options});
 
-            $params->{records}      = encode_base64(encode_json(delete $timeline->{items}), '');
-            $params->{groups}       = encode_base64(encode_json(delete $timeline->{groups}), '');
-            $params->{click_to_use} = 1;
-            $params->{timeline}     = $timeline;
+            $params->{records}   = encode_base64(encode_json(delete $timeline->{items}), '');
+            $params->{groups}    = encode_base64(encode_json(delete $timeline->{groups}), '');
+            $params->{dashboard} = 1;
+            $params->{view_id}   = $view->id;
+            $params->{timeline}  = $timeline;
         }
         elsif ($self->type eq 'globe')
         {

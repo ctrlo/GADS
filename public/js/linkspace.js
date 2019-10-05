@@ -1653,6 +1653,7 @@ var setupTimeline = function (container, options_in) {
     var groups = container.data('groups');
     var json_group = base64.decode(groups);
     var groups = JSON.parse(json_group);
+    var is_dashboard = container.data('dashboard') ? true : false;
 
     var layout_identifier = $('body').data('layout-identifier');
 
@@ -1666,7 +1667,7 @@ var setupTimeline = function (container, options_in) {
         moment: function (date) {
             return timeline.moment(date).utc();
         },
-        clickToUse: container.data('click-to-use') ? true : false,
+        clickToUse: is_dashboard,
         zoomFriction: 10,
         template: Handlebars.templates.timelineitem,
         orientation: {axis: "both"}
@@ -1784,19 +1785,26 @@ var setupTimeline = function (container, options_in) {
     });
     var csrf_token = $('body').data('csrf-token');
     function update_range_session(props) {
-        $.post({
-            url: "/" + layout_identifier + "/data_timeline",
-            data: "from=" + props.start.getTime() + "&to=" + props.end.getTime() + "&csrf_token=" + csrf_token
-        });
+        // Do not remember timeline range if adjusting timeline on dashboard
+        if (!is_dashboard) {
+            $.post({
+                url: "/" + layout_identifier + "/data_timeline?" + param_dashboard,
+                data: "from=" + props.start.getTime() + "&to=" + props.end.getTime() + "&csrf_token=" + csrf_token
+            });
+        }
     }
 
     function load_items(from, to, exclusive) {
+        /* we use the exclusive parameter to not include ranges
+            that go over that date, otherwise we will retrieve
+            items that we already have */
+        var url = "/" + layout_identifier + "/data_timeline/" + "10" + "?from=" + from + "&to=" + to + "&exclusive=" + exclusive;
+        if (is_dashboard) {
+            url = url + '&dashboard=1&view=' + container.data('view');
+        }
         $.ajax({
             async: false,
-            /* we use the exclusive parameter to not include ranges
-                that go over that date, otherwise we will retrieve
-                items that we already have */
-            url: "/" + layout_identifier + "/data_timeline/" + "10" + "?from=" + from + "&to=" + to + "&exclusive=" + exclusive,
+            url: url,
             dataType:'json',
             success: function(data) {
                 items.add(data);

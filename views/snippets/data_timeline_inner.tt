@@ -4,6 +4,6 @@
     </div>
     <div class="visualization" data-records="[% records %]" data-groups="[% groups %]" data-rewind="[% session.rewind %]"
         data-width="[% tl_options.canvas_width %]" data-height="[% tl_options.canvas_height %]" data-min="[% timeline.min %]"
-        data-max="[% timeline.max %]" style="width:100%" data-click-to-use="[% click_to_use %]">
+        data-max="[% timeline.max %]" style="width:100%" data-dashboard="[% dashboard %]" data-view="[% view_id %]">
     </div>
 </div>
