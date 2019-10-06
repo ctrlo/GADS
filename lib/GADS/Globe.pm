@@ -313,8 +313,13 @@ sub _build_data
     if (my $view_id = $records->view && $records->view->id)
     {
         my %existing = map { $_->{col}->id => 1 } @extra;
-        push @extra, map { +{ col => $_ } } grep { !$existing{$_->id} }
-            @{$records->columns_view};
+        # Only add view columns if we're not colouring or grouping, otherwise
+        # they will not be used
+        if (!$self->color_col_id && !$self->group_col_id)
+        {
+            push @extra, map { +{ col => $_ } } grep { !$existing{$_->id} }
+                @{$records->columns_view};
+        }
         my @gc = $records->layout->all(is_globe => 1, user_can_read => 1);
         my $has_globe;
         $has_globe = 1
