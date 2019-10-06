@@ -1356,6 +1356,32 @@ sub validate_search
 {   shift->validate(@_);
 }
 
+sub validate_date
+{   my ($self, $value, %options) = @_;
+    if (!$self->parse_date($value))
+    {
+        return 0 unless $options{fatal};
+        error __x"Invalid date '{value}' for {col}. Please enter as {format}.",
+            value => $value, col => $self->name, format => $self->dateformat;
+    }
+    return 1;
+}
+
+sub validate_search_date
+{   my ($self, $value, %options) = @_;
+    if (!$value)
+    {
+        return 0 unless $options{fatal};
+        error __x"Date cannot be blank for {col}.",
+            col => $self->name;
+    }
+    # First check special date filter values
+    GADS::View->parse_date_filter($value)
+        and return 1;
+    # Now check standard date format
+    return $self->validate_date($value, %options);
+}
+
 # Default sub returning nothing, for columns where a "like" search is not
 # possible (e.g. integer)
 sub resultset_for_values {};

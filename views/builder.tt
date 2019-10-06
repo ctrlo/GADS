@@ -87,8 +87,14 @@ $('#builder[% builder_id %]').queryBuilder({
             {type: 'begins_with',      accept_values: true,  apply_to: ['string']},
             {type: 'not_begins_with',  accept_values: true,  apply_to: ['string']},
             {type: 'is_empty',         accept_values: false, apply_to: ['string', 'number', 'datetime']},
-            {type: 'is_not_empty',     accept_values: false, apply_to: ['string', 'number', 'datetime']}
-        ]
+            {type: 'is_not_empty',     accept_values: false, apply_to: ['string', 'number', 'datetime']},
+            {type: 'changed_after', nb_inputs: 1, accept_values:true, multiple: false, apply_to: ['string', 'number', 'datetime'] }
+        ],
+        lang: {
+            operators: {
+                changed_after: "changed on or after"
+            }
+        }
 
 });
 

@@ -1784,6 +1784,17 @@ sub _search_construct
     $column
         or return;
 
+    if ($filter->{operator} eq 'changed_after')
+    {
+        my $condition = {
+            type     => 'changed_after',
+            operator => '',
+            s_field  => '',
+            values   => $filter->{value},
+        };
+        return $self->_resolve($column, $condition);
+    }
+
     # Empty values can sometimes arrive as empty arrays, which evaluate true
     # when they should evaluate false. Therefore convert.
     $filter->{value} = '' if ref $filter->{value} eq 'ARRAY' && !@{$filter->{value}};
@@ -2012,7 +2023,37 @@ sub _resolve
     my $multivalue = $options{parent} ? $options{parent}->multivalue : $column->multivalue;
     my $reverse         = $options{reverse};
     my $previous_values = $options{previous_values};
-    if ($multivalue && $condition->{type} eq 'not_equal' && !$previous_values)
+    if ($condition->{type} eq 'changed_after')
+    {
+        local $GADS::Helper::Changed::CHANGED_PARAMS = {
+            instance_id => $self->layout->instance_id,
+            date        => $condition->{values},
+            column      => $column,
+        };
+
+        # Create 2 subqueries - one to look for values that have changed
+        # between before the required date and after the required date; and one
+        # to search for values that have changed after the required date. The
+        # second is needed for those records that were only created after the
+        # required date, otherwise they would not be returned as there is no
+        # value before the required date
+        my $sub1 = $self->schema->resultset('Changed')->search({
+            "value" => { '!=' => \"first_value" },
+        },{
+            alias  => 'me_other2',
+        })->get_column('id')->as_query;
+
+        my $sub2 = $self->schema->resultset('Changed')->search(undef, {
+            alias => 'me_other2',
+            group_by => 'id',
+            having => \[ 'count(distinct(value)) > 1' ],
+        })->get_column('id')->as_query;
+
+        return (
+            'me.id' => [{ -in => $sub1 } , { -in => $sub2}]
+        );
+    }
+    elsif ($multivalue && $condition->{type} eq 'not_equal' && !$previous_values)
     {
         # Create a non-negative match of all the IDs that we don't want to
         # match. Use a Records object so that all the normal requirements are

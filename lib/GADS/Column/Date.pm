@@ -83,25 +83,13 @@ has default_today => (
 sub validate
 {   my ($self, $value, %options) = @_;
     return 1 if !$value;
-    if (!$self->parse_date($value))
-    {
-        return 0 unless $options{fatal};
-        error __x"Invalid date '{value}' for {col}. Please enter as {format}.",
-            value => $value, col => $self->name, format => $self->dateformat;
-    }
+    $self->validate_date($value, %options);
     1;
 }
 
 sub validate_search
 {   my $self = shift;
-    my ($value, %options) = @_;
-    if (!$value)
-    {
-        return 0 unless $options{fatal};
-        error __x"Date cannot be blank for {col}.",
-            col => $self->name;
-    }
-    GADS::View->parse_date_filter($value) and return 1;
+    $self->validate_search_date(@_) and return 1;
     $self->validate(@_);
 }
 

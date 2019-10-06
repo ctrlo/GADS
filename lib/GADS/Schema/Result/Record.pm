@@ -450,4 +450,32 @@ __PACKAGE__->might_have(
     $join_sub
 );
 
+our $RECORD_EARLIER_BEFORE;
+__PACKAGE__->might_have(
+    "record_earlier",
+    "GADS::Schema::Result::Record",
+    sub {
+        my $args = shift;
+        my $return = {
+            "$args->{foreign_alias}.current_id"  => { -ident => "$args->{self_alias}.current_id" },
+            # Changed from using "id" as the key to see which record is later,
+            # as after an import the IDs may be in a different order to that in
+            # which the records were created. If the created date is the same,
+            # use the IDs (primarily for tests, which sometimes have fixed times).
+            -or => [
+                {
+                    "$args->{foreign_alias}.created" => { '<' => \"$args->{self_alias}.created" },
+                },
+                {
+                    "$args->{foreign_alias}.created" => { '=' => \"$args->{self_alias}.created" },
+                    "$args->{foreign_alias}.id"      => { '<' => \"$args->{self_alias}.id" },
+                },
+            ],
+            "$args->{foreign_alias}.approval"    => 0,
+        };
+        $return->{"$args->{foreign_alias}.created"} = { '<' => $RECORD_EARLIER_BEFORE };
+        return $return;
+    }
+);
+
 1;

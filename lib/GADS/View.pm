@@ -344,7 +344,11 @@ sub write
         my $val   = $filter->{value};
         my $op    = $filter->{operator};
         my $rtype = $col->return_type;
-        if ($rtype eq 'daterange')
+        if ($op eq 'changed_after') # Will always be a date, regardless of field type
+        {
+            $col->validate_search_date($val, fatal => $fatal);
+        }
+        elsif ($rtype eq 'daterange')
         {
             if ($op eq 'equal' || $op eq 'not_equal')
             {
