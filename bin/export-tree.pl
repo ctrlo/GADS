@@ -28,7 +28,7 @@ use Text::CSV;
 use Tree::DAG_Node;
 use Encode;
 
-schema->storage->debug(1);
+use open qw(:std :utf8);
 
 my ($layout_id) = @ARGV;
 
@@ -78,15 +78,28 @@ foreach my $n (@order)
     }
 }
 
-foreach ($root->dump_names({indent => ',', tick => ''}))
-{
-    s/\\x26/&/g;
-    s/\\x19/'/g;
-    s/\\'/'/g;
-    s/"/'/g;
-    s/^(\h*)'/$1/g;
-    s/'$//g;
-    s/,'/,/g;
-    print;
-}
+_do_node($root);
 
+my $newline;
+sub _do_node
+{   my ($node) = @_;
+    foreach my $child ($node->daughters)
+    {
+        my $level = scalar($child->ancestors);
+        if ($newline)
+        {
+            print "," foreach (1..$level - 1);
+        }
+        print '"'.$child->name.'"';
+        print "," if $child->daughters;# || !$newline;
+        if (!$child->daughters)
+        {
+            print "\n";
+            $newline = 1;
+        }
+        else {
+            $newline = 0;
+        }
+        _do_node($child);
+    }
+}
