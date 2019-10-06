@@ -84,7 +84,6 @@ sub validate
 {   my ($self, $value, %options) = @_;
     return 1 if !$value;
     $self->validate_date($value, %options);
-    1;
 }
 
 sub validate_search
