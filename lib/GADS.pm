@@ -3307,7 +3307,7 @@ sub current_view {
     my $view;
     # If an invalid view is stuck in the session, then this can result in the
     # user in a continuous loop unable to open any other views
-    $view_id || session('persistent')->{view}->{$layout->instance_id};
+    $view_id ||= session('persistent')->{view}->{$layout->instance_id};
     try { $view = $views->view($view_id) };
     $@->reportAll(is_fatal => 0); # XXX results in double reporting
     return $view || $views->default || undef; # Can still be undef
