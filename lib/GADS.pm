@@ -3439,14 +3439,8 @@ sub _process_edit
 
     my $layout;
 
-    if ($id && $record)
+    if (my $delete_id = param 'delete')
     {
-        $layout = $record->layout;
-    }
-    elsif (my $delete_id = param 'delete')
-    {
-        $record = GADS::Record->new(%params);
-        $record->find_current_id($delete_id);
         if (process( sub { $record->delete_current }))
         {
             return forwardHome(
@@ -3455,14 +3449,17 @@ sub _process_edit
     }
     elsif (param 'delete_draft')
     {
-        $record = GADS::Record->new(%params);
-        $record->find_current_id($delete_id);
         $layout = var('layout');
         if (process( sub { $record->delete_user_drafts }))
         {
             return forwardHome(
                 { success => 'Draft has been deleted successfully' }, $layout->identifier.'/data' );
         }
+    }
+
+    if ($id && $record)
+    {
+        $layout = $record->layout;
     }
     elsif ($id)
     {
