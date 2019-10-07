@@ -38,7 +38,7 @@
                         <div class="col-xs-12 col-sm-8 col-md-8">
                             <div class="form-group">
                                 <label for="username">Email address:</label>
-                                <input type="email" name="username" id="username" class="form-control input-lg" placeholder="name@example.com" value="[% username %]">
+                                <input tabindex="1" type="email" name="username" id="username" class="form-control input-lg" placeholder="name@example.com" value="[% username %]">
                             </div>
                         </div>
                         [% UNLESS site.hide_account_request %]
@@ -51,7 +51,7 @@
                         <div class="col-xs-12 col-sm-8 col-md-8">
                             <div class="form-group">
                                 <label for="password">Password:</label>
-                                <input type="password" name="password" id="password" class="form-control input-lg">
+                                <input tabindex="2" type="password" name="password" id="password" class="form-control input-lg">
                             </div>
                         </div>
                         <div class="col-xs-12 col-sm-4 col-md-4">
@@ -61,14 +61,14 @@
                     <div class="row">
                         <div class="col-xs-12 col-sm-8 col-md-8">
                             <span class="remember-me">
-                                <input type="checkbox" name="remember_me" id="remember" [% IF username %]checked="checked"[% END %] class="[% IF username %]remember--checked[% END %] visually-hidden-opacity">
+                                <input tabindex="3" type="checkbox" name="remember_me" id="remember" [% IF username %]checked="checked"[% END %] class="[% IF username %]remember--checked[% END %] visually-hidden-opacity">
                                 <label for="remember">
                                     <span class="glyphicon glyphicon-check" aria-hidden="true"></span>
                                     Remember email address
                                 </label>
                             </span>
                             <hr>
-                            <input type="submit" name="signin" class="btn btn-lg btn-success btn-block" value="Sign In">
+                            <input tabindex="4" type="submit" name="signin" class="btn btn-lg btn-success btn-block" value="Sign In">
                         </div>
                     </div>
             </form>
