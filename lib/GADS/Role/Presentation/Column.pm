@@ -101,7 +101,7 @@ sub presentation {
         }
     }
 
-    $self->after_presentation($return);
+    $self->after_presentation($return, %options);
 
     return $return;
 }
