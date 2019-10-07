@@ -51,6 +51,7 @@ has '+value_field' => (
 sub value_selector { '' }
 sub show_add { 0 }
 sub has_subvals { 0 }
+sub data_filter_fields { '' }
 
 sub _build_sprefix { 'current' };
 
