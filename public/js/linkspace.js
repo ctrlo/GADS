@@ -1788,7 +1788,7 @@ var setupTimeline = function (container, options_in) {
         // Do not remember timeline range if adjusting timeline on dashboard
         if (!is_dashboard) {
             $.post({
-                url: "/" + layout_identifier + "/data_timeline?" + param_dashboard,
+                url: "/" + layout_identifier + "/data_timeline?",
                 data: "from=" + props.start.getTime() + "&to=" + props.end.getTime() + "&csrf_token=" + csrf_token
             });
         }
