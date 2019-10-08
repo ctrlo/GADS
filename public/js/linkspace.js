@@ -1180,7 +1180,7 @@ var setupSubmitListener = function(context) {
 
 var setupZebraTable = function(context) {
     $('.table--zebra', context).each(function(_, table) {
-        let isOdd = true;
+        var isOdd = true;
         $(table).children('tbody').children("tr:visible").each(function(_, tr) {
             $(tr).toggleClass("odd", isOdd);
             $(tr).toggleClass("even", !isOdd);
