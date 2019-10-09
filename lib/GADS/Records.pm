@@ -1218,6 +1218,7 @@ sub single
             $self->_set_current_ids($cid_fetch);
             $self->clear_current_ids;
             $self->clear_results;
+            $self->_clear_cid_search_query_cache;
 
             $next_id = 0;
         }
@@ -2491,6 +2492,7 @@ sub _build_aggregate_results
         }
     } @{$self->columns_aggregate};
 
+    $self->_clear_cid_search_query_cache; # Clear any list of record IDs from previous results() call
     my $results = $self->_build_group_results(columns => \@columns, is_group => 1, aggregate => 1);
 
     panic "Unexpected number of aggregate results"
