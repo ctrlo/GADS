@@ -460,9 +460,18 @@ sub _build_data
     my ($results, $series_keys, $datemin, $datemax);
     if ($self->trend)
     {
+        # Force current IDs as of today (without rewind set) to be calculated
+        # first, otherwise the current IDs as at the start of the period will
+        # be used
+        $records->generate_cid_query;
+
+        my $search = $records->search; # Retain quick search across historical queries
+
         foreach my $x (@x)
         {
-            $records->clear;
+            $records->clear(retain_current_ids => 1); # Retain record IDs across results
+            $records->search($search);
+
             # The period to retrieve ($x) will be at the beginning of the
             # period. Move to the end of the period, by adding on one unit
             # (e.g. month) and then moving into the previous day by a second

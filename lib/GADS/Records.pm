@@ -857,32 +857,47 @@ sub _current_ids_rs
     )->get_column('me.id');
 }
 
+sub generate_cid_query
+{   my $self = shift;
+    $self->_cid_search_query;
+}
+
+has _cid_search_query_cache => (
+    is      => 'rw',
+    clearer => 1,
+);
+
 # Produce a search query that filters by all the required current IDs. This
 # needs to include the list of current IDs itself, plus a filter to ensure only
 # the required version of a record is retrieved. Assumes that REWIND has
 # already been set by the calling function.
 sub _cid_search_query
 {   my ($self, %options) = @_;
-    my $search = { map { %$_ } $self->record_later_search(prefetch => 1, sort => 1, linked => 1, group => 1, %options) };
-
-    # If this is a group query then we will not be limiting by number of
-    # records (but will be reducing number of results by group), and therefore
-    # it's best to pass the current IDs required as a SQL query (otherwise we
-    # could be passing in 1000s of ID values). If we're doing the opposite,
-    # then we would be creating some very big queries with the sub-query, and
-    # therefore performance (Pg at least) has been shown to be better if we run
-    # the ID subquery first and only pass the IDs in to the main query
-    if ($self->is_group || $options{aggregate})
+    my $search = $self->_cid_search_query_cache;
+    if (!$search)
     {
-        $search->{'me.id'} = { -in => $self->_current_ids_rs(%options)->as_query };
-    }
-    else {
-        $search->{'me.id'} = $self->current_ids;
+        $search = { map { %$_ } $self->record_later_search(prefetch => 1, sort => 1, linked => 1, group => 1, %options) };
+
+        # If this is a group query then we will not be limiting by number of
+        # records (but will be reducing number of results by group), and therefore
+        # it's best to pass the current IDs required as a SQL query (otherwise we
+        # could be passing in 1000s of ID values). If we're doing the opposite,
+        # then we would be creating some very big queries with the sub-query, and
+        # therefore performance (Pg at least) has been shown to be better if we run
+        # the ID subquery first and only pass the IDs in to the main query
+        if ($self->is_group || $options{aggregate})
+        {
+            $search->{'me.id'} = { -in => $self->_current_ids_rs(%options)->as_query };
+        }
+        else {
+            $search->{'me.id'} = $self->current_ids;
+        }
     }
 
     my $record_single = $self->record_name(linked => 0);
     $search->{"$record_single.created"} = { '<' => $self->rewind_formatted }
         if $self->rewind;
+    $self->_cid_search_query_cache($search);
     $search;
 }
 
@@ -1360,7 +1375,7 @@ sub _build_columns_view
 }
 
 sub clear
-{   my $self = shift;
+{   my ($self, %options) = @_;
     $self->clear_pages;
     $self->_clear_view_limits;
     $self->clear_columns_retrieved_no;
@@ -1375,6 +1390,8 @@ sub clear
     $self->_set__next_single_id(0);
     $self->_set_current_ids(undef);
     $self->_clear_all_cids_store;
+    $self->_clear_cid_search_query_cache
+        unless $options{retain_current_ids};
     $self->clear_default_sort;
     $self->clear_is_group;
     $self->clear_current_group_id;

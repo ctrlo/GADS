@@ -155,6 +155,47 @@ my $graphs = [
         ],
     },
     {
+        name         => 'Including quick search',
+        type         => 'bar',
+        x_axis       => $columns->{enum1}->id,
+        x_axis_range => '-12',
+        y_axis_stack => 'count',
+        labels       => [qw/foo3 foo2 foo1/],
+        search       => 'foo2',
+        data         => [
+            [0,0,0,0,0,0,0,0,0,1,1,1,0],
+            [0,0,0,0,1,1,1,1,1,0,0,0,1],
+            [1,1,1,1,0,0,0,0,0,0,0,0,0],
+        ],
+        xlabels => [
+          'June 2018', 'July 2018', 'August 2018', 'September 2018',
+          'October 2018', 'November 2018', 'December 2018', 'January 2019',
+          'February 2019', 'March 2019', 'April 2019', 'May 2019', 'June 2019'
+        ],
+    },
+    {
+        name         => 'Including filter', # Should use same record IDs for each period
+        type         => 'bar',
+        x_axis       => $columns->{enum1}->id,
+        x_axis_range => '-12',
+        y_axis_stack => 'count',
+        labels       => [qw/foo3 foo2 foo1/],
+        view         => {
+            column => $columns->{integer1}->id,
+            value  => '10',
+        },
+        data         => [
+            [0,0,0,0,0,0,0,0,0,1,1,1,0],
+            [0,0,0,0,1,1,1,1,1,0,0,0,1],
+            [1,1,1,1,0,0,0,0,0,0,0,0,0],
+        ],
+        xlabels => [
+          'June 2018', 'July 2018', 'August 2018', 'September 2018',
+          'October 2018', 'November 2018', 'December 2018', 'January 2019',
+          'February 2019', 'March 2019', 'April 2019', 'May 2019', 'June 2019'
+        ],
+    },
+    {
         name         => 'String x-axis with y-axis sum - standard 12 month range',
         type         => 'bar',
         x_axis       => $columns->{enum1}->id,
@@ -238,15 +279,42 @@ foreach my $g (@$graphs)
         if $g->{group_by};
     $graph->write;
 
+    my $view;
+    if (my $v = $g->{view})
+    {
+        my $rules = GADS::Filter->new(
+            as_hash => {
+                rules     => [{
+                    id       => $v->{column},
+                    type     => 'string',
+                    value    => $v->{value},
+                    operator => 'equal',
+                }],
+            },
+        );
+        $view = GADS::View->new(
+            name        => 'Test view',
+            filter      => $rules,
+            columns     => [$columns->{integer1}->id],
+            instance_id => $layout->instance_id,
+            layout      => $layout,
+            schema      => $schema,
+            user        => $sheet->user,
+        );
+        $view->write;
+    }
+
     my $records = GADS::RecordsGraph->new(
         user   => $sheet->user,
         layout => $layout,
         schema => $schema,
+        search => $g->{search},
     );
     my $graph_data = GADS::Graph::Data->new(
         id      => $graph->id,
         records => $records,
         schema  => $schema,
+        view   => $view,
     );
 
     is_deeply($graph_data->points, $g->{data}, "Graph data for $g->{name} is correct");
