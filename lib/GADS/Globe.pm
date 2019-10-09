@@ -313,9 +313,10 @@ sub _build_data
     if (my $view_id = $records->view && $records->view->id)
     {
         my %existing = map { $_->{col}->id => 1 } @extra;
-        # Only add view columns if we're not colouring or grouping, otherwise
-        # they will not be used
-        if (!$self->color_col_id && !$self->group_col_id)
+        # Only add view columns if we're not grouping resuylts, otherwise the
+        # column information will not be used (see addition of hover labelling
+        # below)
+        if (!$self->is_group)
         {
             push @extra, map { +{ col => $_ } } grep { !$existing{$_->id} }
                 @{$records->columns_view};
