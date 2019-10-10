@@ -24,6 +24,7 @@ export default class ApiClient {
     const opts : any = {
       method,
       headers: Object.assign(this.headers),
+      credentials: 'same-origin', // Needed for older versions of Firefox, otherwise cookies not sent
     };
     if (body) {
       opts.body = JSON.stringify(body);
