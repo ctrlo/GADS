@@ -1634,7 +1634,7 @@ var setupTippy = function (context) {
         target: '.timeline-tippy',
         theme: 'light',
         onShown: function (e) {
-            $('.moreinfo').off("click").on("click", function(e){
+            $('.moreinfo', context).off("click").on("click", function(e){
                 var target = $( e.target );
                 var record_id = target.data('record-id');
                 var m = $("#readmore_modal");

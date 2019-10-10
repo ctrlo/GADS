@@ -17,3 +17,5 @@
         </div>
     [% END %]
 </div>
+
+[% PROCESS snippets/record_readmore.tt %]
