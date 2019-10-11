@@ -792,7 +792,7 @@
 [% BLOCK curval_typeahead_column %]
     <input type="hidden" name="[% field %]" id="[% dispcol.id %]_value" value="[% editvalue.id %]">
     <input type="text" class="form-control" id="[% dispcol.id %]" autocomplete="off"
-        name="[% field %]_typeahead" value="[% IF record %][% editvalue.html %][% END %]" [% readonly %] >
+        name="[% field %]_typeahead" value="[% IF record %][% editvalue.value | html %][% END %]" [% readonly %] >
     [% typeaheads.push({id = dispcol.id, field = field }) %]
 [% END %]
 

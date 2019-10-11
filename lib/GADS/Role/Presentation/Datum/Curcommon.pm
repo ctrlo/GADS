@@ -30,6 +30,8 @@ sub presentation {
     $base->{text}    = $base->{value};
     $base->{id_hash} = $self->id_hash;
     $base->{links}   = $self->_presentation_details;
+    $base->{id}      = $self->id
+        if $self->column->value_selector eq 'typeahead' && !$multivalue;
 
     # Function to return the values for the drop-down selector, but only the
     # selected ones. This makes rendering the edit page quicker, as in the case of
