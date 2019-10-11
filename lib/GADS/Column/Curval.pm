@@ -236,6 +236,9 @@ sub write_special
         $self->_update_curvals(%options);
     }
 
+    error __"Auto-complete input boxes can not currently be multivalue fields"
+        if $self->value_selector eq 'typeahead' && $self->multivalue;
+
     # Update typeahead option
     $rset->update({
         typeahead   => 0, # No longer used, replaced with value_selector

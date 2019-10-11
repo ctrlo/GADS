@@ -30,6 +30,8 @@ sub presentation {
     $base->{text}    = $base->{value};
     $base->{id_hash} = $self->id_hash;
     $base->{links}   = $self->_presentation_details;
+    # Currently autocomplete textboxes can only be single value. May want to
+    # change this in the future
     $base->{id}      = $self->id
         if $self->column->value_selector eq 'typeahead' && !$multivalue;
 
