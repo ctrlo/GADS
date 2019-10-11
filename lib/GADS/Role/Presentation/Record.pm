@@ -48,6 +48,8 @@ sub presentation {
         ? $self->layout->column_id
         : @{$self->columns_view};
 
+    $options{record} = $self;
+
     # Work out the indentation each field should have. A field will be indented
     # if it has a display condition of an immediately-previous field. This will
     # be recursive as long as there are additional display-dependent fields.
@@ -80,7 +82,7 @@ sub presentation {
         $previous = $col;
     }
 
-    my %topics; my $order;
+    my %topics; my $order; my %has_editable;
     my @presentation_columns = $self->_presentation_map_columns(%options, columns => \@columns);
     foreach my $col (@presentation_columns)
     {
@@ -91,15 +93,21 @@ sub presentation {
             # the layout
             $order++;
             $topics{$topic_id} = {
-                order   => $order,
-                topic   => $col->{topic},
-                columns => [],
+                order    => $order,
+                topic    => $col->{topic},
+                columns  => [],
+                topic_id => $topic_id,
             }
         }
+        $has_editable{$topic_id} = 1
+            if $col->{display_for_edit};
         push @{$topics{$topic_id}->{columns}}, $col;
     }
 
     my @topics = sort { $a->{order} <=> $b->{order} } values %topics;
+
+    $_->{has_editable} = $has_editable{$_->{topic_id}}
+        foreach @topics;
 
     my $version_datetime_col = $self->layout->column_by_name_short('_version_datetime');
     my $created_user_col     = $self->layout->column_by_name_short('_created_user');

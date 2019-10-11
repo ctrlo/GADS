@@ -41,6 +41,24 @@ sub presentation {
     }
     my $url_filter_remove = join '&', @queries;
 
+    my $record = $options{record};
+
+    my $data = $options{datum_presentation};
+    my $display_for_edit;
+    if ($options{edit})
+    {
+        $display_for_edit = $self->userinput;
+        # Do not show field if it's an approval request but a value not needing approval
+        $display_for_edit = 0
+            if $options{approval} && $data && !$data->has_value;
+        # Do not show if it's a child record and the value doesn't exist
+        $display_for_edit = 0
+            if $record->parent_id && !$self->can_child && !$record->layout->user_can("create_child");
+        # Do not show if it's a linked record and the value is linked
+        $display_for_edit = 0
+            if $record->linked_id && $self->link_parent;
+    }
+
     my $return = {
         id                  => $self->id,
         type                => $self->type,
@@ -53,7 +71,7 @@ sub presentation {
         has_multivalue_plus => $self->has_multivalue_plus,
         helptext            => $self->helptext,
         readonly            => $options{new} ? !$self->user_can('write_new') : !$self->user_can('write_existing'),
-        data                => $options{datum_presentation},
+        data                => $data,
         is_group            => $options{group} && $options{group} == $self->id,
         has_filter          => $has_filter,
         url_filter_remove   => $url_filter_remove,
@@ -66,6 +84,7 @@ sub presentation {
         userinput           => $self->userinput,
         has_display_field   => $self->has_display_field,
         display_fields_b64  => $self->display_fields_b64,
+        display_for_edit    => $display_for_edit,
     };
 
     if (my $sort = $options{sort})

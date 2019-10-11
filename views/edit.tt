@@ -193,7 +193,7 @@
                     [% IF layout_edit.has_topics %]
                         [% PROCESS panel_start %]
                     [% END %]
-                    [% IF editable AND NOT record.new_entry AND NOT edit_modal %]
+                    [% IF editable AND NOT record.new_entry AND NOT edit_modal AND topic.has_editable %]
                         <div class="form-group">
                             <button class="btn btn-default pull-right click-to-edit" type="button" data-edit-el="#topic_forms[% block_topic.id %]" data-view-el="#topic_show[% block_topic.id %]">Edit</button>
                             [% IF block_topic.description %]
@@ -207,7 +207,7 @@
                     [% END %]
                     <div id="topic_forms[% block_topic.id %]" class="[% IF NOT record.new_entry AND NOT edit_modal %]expandable[% END %]">
                         [% FOREACH col_panel IN topic.columns %]
-                            [% IF editable AND col_panel.userinput %]
+                            [% IF editable AND col_panel.display_for_edit %]
                                 [% PROCESS showcol col = col_panel %]
                             [% END %]
                             [% click_to_edits.push(col_panel) %]
@@ -555,18 +555,6 @@
     [% dispcol = col %]
     [% field = 'field' _ dispcol.id %]
     [% colid = dispcol.id %]
-
-    [%# Skip field if it's an approval request but a value not needing approval %]
-    [% NEXT IF page == "approval" AND NOT (editvalue.has_value)  %]
-
-    [%# Skip if it's a child record and the value doesn't exist %]
-    [% NEXT IF record.parent_id AND NOT dispcol.can_child AND NOT layout_edit.user_can("create_child") %]
-
-    [%# Skip if it's a linked record and the value is linked %]
-    [% IF record.linked_id AND dispcol.link_parent %]
-        <input type="hidden" name="[% field %]">
-        [% NEXT %]
-    [% END %]
 
     [% IF existing %]
         [% oldvalue = existing.fields.$colid.html %] [%# All value already entity-encoded %]
