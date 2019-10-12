@@ -459,7 +459,7 @@ sub assert_on_view_record_page {
 
     $self->_assert_on_page(
         # TODO: Check the field values appear in the page content
-        'body.record',
+        'body.page.edit',
         [ { selector => 'h2', match => '\\ARecord ID ' } ],
         $name,
     );
@@ -621,7 +621,7 @@ sub delete_viewed_record_ok {
     my $test = context();
     my $webdriver = $self->gads->webdriver;
 
-    my @failure = $self->_find_and_click( [ qw( .btn-action .btn-delete ) ] );
+    my @failure = $self->_find_and_click( [ '.btn-delete' ] );
 
     my $modal_title_el = $webdriver->find('h4#myModalLabel');
     if ( $modal_title_el->size && 'Delete record' eq $modal_title_el->text ) {
