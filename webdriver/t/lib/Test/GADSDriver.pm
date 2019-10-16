@@ -620,16 +620,17 @@ sub delete_viewed_record_ok {
     $name //= 'Delete the currently viewed record';
     my $test = context();
     my $webdriver = $self->gads->webdriver;
+    my $record_title = $webdriver->find('h2')->text;
 
     my @failure = $self->_find_and_click( [ '.btn-delete' ], jquery => 1 );
 
     my $modal_title_el = $webdriver->find('h4#myModalLabel');
     if ( $modal_title_el->size && 'Delete record' eq $modal_title_el->text ) {
-        # TODO: note() that we're about to delete the record
+        $test->note("About to delete $record_title");
         $webdriver->find('#modaldelete .btn-primary.submit_button')->click;
     }
     else {
-        push @failure, "No 'Delete record' modal found";
+        push @failure, "No 'Delete record' modal found for ${record_title}";
     }
 
     $test->ok( !@failure, $name );
