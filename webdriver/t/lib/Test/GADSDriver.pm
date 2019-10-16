@@ -621,7 +621,7 @@ sub delete_viewed_record_ok {
     my $test = context();
     my $webdriver = $self->gads->webdriver;
 
-    my @failure = $self->_find_and_click( [ '.btn-delete' ] );
+    my @failure = $self->_find_and_click( [ '.btn-delete' ], jquery => 1 );
 
     my $modal_title_el = $webdriver->find('h4#myModalLabel');
     if ( $modal_title_el->size && 'Delete record' eq $modal_title_el->text ) {
@@ -688,7 +688,7 @@ sub navigate_ok {
 }
 
 sub _find_and_click {
-    my ( $self, $selectors_ref ) = @_;
+    my ( $self, $selectors_ref, %arg ) = @_;
     my $webdriver = $self->gads->webdriver;
 
     my @failure;
@@ -699,7 +699,14 @@ sub _find_and_click {
             push @failure, "No visible elements matching '${selector}' found";
         }
         else {
-            $found_el->click;
+            # TODO: Avoid using a special approach for when jQuery and
+            # WebDriver handle clicks differently
+            if ( exists $arg{jquery} and $arg{jquery} ) {
+                $webdriver->js( qq[ \$("${selector}").click() ]);
+            }
+            else {
+                $found_el->click;
+            }
         }
     }
 
