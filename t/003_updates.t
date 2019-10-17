@@ -51,6 +51,7 @@ my @update1 = (
             },
         ],
         autocur_value => ', 45, , , , , , , a_grey, ; Foo, 20, foo2, tree3, 2010-10-10, , , , a_grey, ',
+        autocur_value2 => '',
     },
     {
         updates => [
@@ -63,6 +64,7 @@ my @update1 = (
             },
         ],
         autocur_value => '',
+        autocur_value2 => '',
     },
     {
         updates => [
@@ -77,10 +79,11 @@ my @update1 = (
                 curval2    => 1,
             },
             {
-                curval1 => 1,
+                curval1 => [1, 2],
             },
         ],
         autocur_value => 'Bar, 30, foo1, tree2, 2014-10-10, 2014-03-21 to 2015-03-01, , , d_green, 2014; , 45, , , , , , , a_grey, ',
+        autocur_value2 => ', 45, , , , , , , a_grey, ',
     },
 );
 
@@ -117,6 +120,7 @@ my $sheet   = t::lib::DataSheet->new(
     data         => $data1,
     schema       => $schema,
     curval       => 2,
+    multivalue   => 1,
     column_count => {
         enum   => 1,
         curval => 2, # Test for correct number of record_later searches
@@ -183,6 +187,21 @@ foreach my $test (@update1)
     $record_curval->clear;
     $record_curval->find_current_id(1);
     is( $record_curval->fields->{$autocur1->id}->as_string, $test->{autocur_value}, "Autocur value correct after first updates");
+    # And same but accessed via GADS::Records
+    # This tests that fetch_multivalues correctly retrieves multiple values for
+    # multiple records (both curval records are referred to by the first main
+    # sheet record)
+    my $records2 = GADS::Records->new(
+        schema => $schema,
+        layout => $curval_sheet->layout,
+        user   => $user,
+    );
+    # First curval record (ID 1)
+    my $record_curval_single = $records2->single;
+    is( $record_curval_single->fields->{$autocur1->id}->as_string, $test->{autocur_value}, "Autocur value correct after first - record 1");
+    # Second curval record (ID 2)
+    $record_curval_single = $records2->single;
+    is( $record_curval_single->fields->{$autocur1->id}->as_string, $test->{autocur_value2}, "Autocur value correct after first - record 2");
 }
 
 # Then updates to the curval sheet. We need to check the number

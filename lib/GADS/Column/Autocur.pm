@@ -191,17 +191,18 @@ sub fetch_multivalues
     # It shouldn't happen under normal circumstances, but there is a chance
     # that a record will have multiple values of the same curval. In this case
     # the autocur will contain multiple values, so we de-duplicate here.
-    my @v; my %done;
+    my @v; my $done = {};
     foreach (@values)
     {
         next unless exists $retrieved{$_->{record}->{current_id}};
         my $cid = $_->{record}->{current_id};
+        my $rid = $_->{value}->{records}->[0]->{id};
         push @v, +{
             layout_id => $self->id,
-            record_id => $_->{value}->{records}->[0]->{id},
+            record_id => $rid,
             value     => $retrieved{$cid},
-        } unless $done{$cid};
-        $done{$cid} = 1;
+        } unless $done->{$cid}->{$rid};
+        $done->{$cid}->{$rid} = 1;
     }
     return @v;
 }
