@@ -1897,10 +1897,9 @@ sub write_values
         foreach my $child_id (@{$self->child_record_ids})
         {
             my $child = GADS::Record->new(
-                user                     => undef,
-                user_permission_override => 1,
-                layout                   => $self->layout,
-                schema                   => $self->schema,
+                user   => $self->user,
+                layout => $self->layout,
+                schema => $self->schema,
             );
             $child->find_current_id($child_id);
             foreach my $col ($self->layout->all(order_dependencies => 1, exclude_internal => 1))
