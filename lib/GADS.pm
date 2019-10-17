@@ -3447,15 +3447,6 @@ sub _process_edit
                 { success => 'Record has been deleted successfully' }, $record->layout->identifier.'/data' );
         }
     }
-    elsif (param 'delete_draft')
-    {
-        $layout = var('layout');
-        if (process( sub { $record->delete_user_drafts }))
-        {
-            return forwardHome(
-                { success => 'Draft has been deleted successfully' }, $layout->identifier.'/data' );
-        }
-    }
 
     if ($id && $record)
     {
@@ -3592,6 +3583,16 @@ sub _process_edit
     }
     else {
         $record->load_remembered_values;
+    }
+
+    if (param 'delete_draft')
+    {
+        $layout = var('layout');
+        if (process( sub { $record->delete_user_drafts }))
+        {
+            return forwardHome(
+                { success => 'Draft has been deleted successfully' }, $layout->identifier.'/data' );
+        }
     }
 
     foreach my $col ($layout->all(user_can_write => 1))
