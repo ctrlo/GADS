@@ -459,7 +459,7 @@ sub assert_on_view_record_page {
 
     $self->_assert_on_page(
         # TODO: Check the field values appear in the page content
-        'body.record',
+        'body.page.edit',
         [ { selector => 'h2', match => '\\ARecord ID ' } ],
         $name,
     );
@@ -620,16 +620,17 @@ sub delete_viewed_record_ok {
     $name //= 'Delete the currently viewed record';
     my $test = context();
     my $webdriver = $self->gads->webdriver;
+    my $record_title = $webdriver->find('h2')->text;
 
-    my @failure = $self->_find_and_click( [ qw( .btn-action .btn-delete ) ] );
+    my @failure = $self->_find_and_click( [ '.btn-delete' ], jquery => 1 );
 
     my $modal_title_el = $webdriver->find('h4#myModalLabel');
     if ( $modal_title_el->size && 'Delete record' eq $modal_title_el->text ) {
-        # TODO: note() that we're about to delete the record
+        $test->note("About to delete $record_title");
         $webdriver->find('#modaldelete .btn-primary.submit_button')->click;
     }
     else {
-        push @failure, "No 'Delete record' modal found";
+        push @failure, "No 'Delete record' modal found for ${record_title}";
     }
 
     $test->ok( !@failure, $name );
@@ -688,7 +689,7 @@ sub navigate_ok {
 }
 
 sub _find_and_click {
-    my ( $self, $selectors_ref ) = @_;
+    my ( $self, $selectors_ref, %arg ) = @_;
     my $webdriver = $self->gads->webdriver;
 
     my @failure;
@@ -699,7 +700,14 @@ sub _find_and_click {
             push @failure, "No visible elements matching '${selector}' found";
         }
         else {
-            $found_el->click;
+            # TODO: Avoid using a special approach for when jQuery and
+            # WebDriver handle clicks differently
+            if ( exists $arg{jquery} and $arg{jquery} ) {
+                $webdriver->js( qq[ \$("${selector}").click() ]);
+            }
+            else {
+                $found_el->click;
+            }
         }
     }
 
