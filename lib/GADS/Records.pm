@@ -76,6 +76,12 @@ has is_deleted => (
     default => 0,
 );
 
+# Whether to include deleted records as well as live records
+has include_deleted => (
+    is      => 'ro',
+    default => 0,
+);
+
 # Whether to search all previous values instead of just current record
 has previous_values => (
     is      => 'ro',
@@ -372,7 +378,7 @@ sub common_search
     {
         push @search, { "$current.deleted" => { '!=' => undef } };
     }
-    else {
+    elsif (!$self->include_deleted) {
         push @search, { "$current.deleted" => undef };
     }
     if (!$self->include_children)

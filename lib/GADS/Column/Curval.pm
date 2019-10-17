@@ -290,6 +290,7 @@ sub fetch_multivalues
         layout               => $self->layout_parent,
         schema               => $self->schema,
         columns              => $self->curval_field_ids,
+        include_deleted      => 1,
         limit_current_ids    => [map { $_->{value} } @values],
         is_draft             => $options{is_draft},
         columns              => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns),

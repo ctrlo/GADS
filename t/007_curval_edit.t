@@ -191,6 +191,12 @@ foreach my $delete_not_used (0..1)
     is($record->fields->{$calcmain->id}->as_string, "foo1", "Main calc correct");
     $curval_datum = $record->fields->{$curval->id};
     is($curval_datum->as_string, 'foo1', "Curval value has lost value");
+    # Check that previous version still refers to deleted value
+    my $version = ($record->versions)[1];
+    $record->clear;
+    $record->find_record_id($version->id);
+    $curval_datum = $record->fields->{$curval->id};
+    is($curval_datum->as_string, 'foo1; foo6', "Curval old version still has old value");
 
     # Save draft
     $record = GADS::Record->new(
