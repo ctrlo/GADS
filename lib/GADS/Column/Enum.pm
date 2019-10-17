@@ -310,7 +310,7 @@ before import_hash => sub {
         # some older imports imported enumvals in a different order to the
         # source system (now fixed) so the import routines below don't function
         # as they expect enum values in a consistent order
-        if (@old_sorted eq @new_sorted)
+        if ("@old_sorted" eq "@new_sorted")
         {
             foreach my $old (@old)
             {
