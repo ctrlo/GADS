@@ -1797,7 +1797,9 @@ sub write_values
                 }
             }
             # Note any records that will need updating that have an autocur field that refers to this
-            if ($column->type eq 'curval')
+            # No need to do this for child records which have a "copied"
+            # values, as they will otherwise be done twice
+            if ($column->type eq 'curval' && (!$self->parent_id || $column->can_child))
             {
                 foreach my $autocur (@{$column->autocurs})
                 {
@@ -1812,8 +1814,18 @@ sub write_values
                     my %affected = map { $_ => 1 } grep { !$deleted{$_} } @{$datum->ids_affected};
 
                     # Then see if any fields depend on this autocur (e.g. code fields)
-                    if ($autocur->layouts_depend_depends_on->count)
+                    foreach my $layout_depend ($autocur->layouts_depend_depends_on->all)
                     {
+                        # To reduce unnecessary updates, only count ones which may have an effect...
+                        my $depends_on = $layout_depend->depend_on;
+                        # ... don't include ones from a completely different table
+                        next unless $depends_on->related_field->instance_id == $self->layout->instance_id;
+                        # ... don't include unless they have a short name;
+                        # without a short name they cannot be used in
+                        # calculated fields so no updates will be needed
+                        next unless grep $self->fields->{$_->id}->changed,
+                            grep $_->name_short, $self->layout->all(exclude_internal => 1);
+
                         # If they do, we will need to re-evaluate them all
                         $update_autocurs{$_} ||= []
                             foreach keys %affected;
