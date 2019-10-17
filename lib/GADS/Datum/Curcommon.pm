@@ -458,7 +458,7 @@ sub set_values
 sub html_form
 {   my $self = shift;
     return $self->ids
-        unless $self->column->value_selector eq 'noshow';
+        unless $self->column->show_add;
     my @return;
     foreach my $val (@{$self->values})
     {

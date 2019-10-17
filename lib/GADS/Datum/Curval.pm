@@ -37,18 +37,28 @@ sub _transform_value
     }
     elsif (ref $value)
     {
-        $id = exists $value->{record_single} ? $value->{record_single}->{current_id} : $value->{value}; # XXX see above comment
-        $record = GADS::Record->new(
+        if (exists $value->{record_single})
+        {
+            $id = $value->{record_single}->{current_id};
+            $value = $value->{record_single};
+        }
+        else {
+            $id = $value->{value};
+        }
+        my %params = (
             schema               => $self->column->schema,
             layout               => $self->column->layout_parent,
             user                 => undef,
-            record               => exists $value->{record_single} ? $value->{record_single} : $value, # XXX see above comment
+            record               => $value,
             current_id           => $id,
-            linked_id            => $value->{linked_id},
-            parent_id            => $value->{parent_id},
-            is_draft             => $value->{draftuser_id},
             columns_retrieved_do => $self->column->curval_fields_retrieve(all_fields => $self->column->retrieve_all_columns),
         );
+        # Do not set these values, as if the values do not exist then they will
+        # not be lazily built
+        $params{linked_id} = $value->{linked_id} if exists $value->{linked_id};
+        $params{parent_id} = $value->{parent_id} if exists $value->{parent_id};
+        $params{is_draft}  = $value->{draftuser_id} if exists $value->{draftuser_id};
+        $record = GADS::Record->new(%params);
     }
     else {
         $id = $value if !ref $value && defined $value; # Just ID

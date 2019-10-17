@@ -338,8 +338,8 @@ has is_draft => (
 
 sub _build_is_draft
 {   my $self = shift;
-    return !!$self->{record}->{draftuser_id}
-        if exists $self->{record}->{draftuser_id};
+    return !!$self->record->{draftuser_id}
+        if $self->record && exists $self->record->{draftuser_id};
     return if $self->new_entry;
     !!$self->schema->resultset('Current')->find($self->current_id)->draftuser_id;
 }
