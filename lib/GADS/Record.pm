@@ -494,13 +494,10 @@ has created => (
 
 sub _build_created
 {   my $self = shift;
-    if (!$self->record)
-    {
-        return $self->schema->resultset('Record')->find($self->record_id)->created;
-    }
-    $self->schema->storage->datetime_parser->parse_datetime(
+    return $self->schema->storage->datetime_parser->parse_datetime(
         $self->record->{created}
-    );
+    ) if $self->record && exists $self->record->{created};
+    return $self->schema->resultset('Record')->find($self->record_id)->created;
 }
 
 has set_deleted => (
@@ -736,11 +733,10 @@ sub _find
         # No linked here so that we get the ones needed in accordance with this loop (could be either)
         my @prefetches = $records->jpfetch(prefetch => 1, search => 1, limit => $limit, page => $page); # Still need search in case of view limit
         last if !@prefetches && !$first_run;
-        my $search     = $find{current_id} || $find{draftuser_id}
-            ? $records->search_query(prefetch => 1, linked => 1, limit => $limit, page => $page)
-            : $records->search_query(root_table => 'record', prefetch => 1, linked => 1, limit => $limit, no_current => 1, page => $page);
-        @prefetches = $records->jpfetch(prefetch => 1, search => 1, linked => 0, limit => $limit, page => $page); # Still need search in case of view limit
-
+        my %options = $find{current_id} || $find{draftuser_id} ? () : (root_table => 'record', no_current => 1);
+        my $search = $records->search_query(prefetch => 1, linked => 1, limit => $limit, page => $page, %options);
+         # Still need search in case of view limit
+        @prefetches = $records->jpfetch(prefetch => 1, search => 1, linked => 0, limit => $limit, page => $page, %options);
 
         my $root_table;
         if (my $record_id = $find{record_id})
@@ -797,8 +793,8 @@ sub _find
             if $records->rewind;
 
         # Don't specify linked for fetching columns, we will get whataver is needed linked or not linked
-        my @columns_fetch = $records->columns_fetch(search => 1, limit => $limit, page => $page); # Still need search in case of view limit
-        my $has_linked = $records->has_linked(prefetch => 1, limit => $limit, page => $page);
+        my @columns_fetch = $records->columns_fetch(search => 1, limit => $limit, page => $page, %options); # Still need search in case of view limit
+        my $has_linked = $records->has_linked(prefetch => 1, limit => $limit, page => $page, %options);
         my $base = $find{record_id} ? 'me' : $has_linked ? 'record_single_2' : 'record_single';
         push @columns_fetch, {id => "$base.id"};
         push @columns_fetch, $find{record_id} ? {deleted => "current.deleted"} : {deleted => "me.deleted"};

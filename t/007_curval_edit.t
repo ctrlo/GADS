@@ -7,12 +7,20 @@ use Log::Report;
 
 use t::lib::DataSheet;
 
-foreach my $delete_not_used (0..1)
+foreach my $test (qw/delete_not_used typeahead normal/)
 {
+    my $delete_not_used = $test eq 'delete_not_used' ? 1 : 0;
+    my $value_selector  = $test eq 'typeahead' ? 'typeahead' : 'noshow';
+
     my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, site_id => 1);
     $curval_sheet->create_records;
     my $schema  = $curval_sheet->schema;
 
+    # Officially we do not set multivalue, which means that all fields should
+    # be single value. However, opting for a value_selector of no_show for a
+    # curval will automatically make it multivalue. Also, when a curval field
+    # is single value, it still allows multiple values to be set via set_value.
+    # Therefore, for the code values, we assume values can be either
     my $sheet   = t::lib::DataSheet->new(
         schema           => $schema,
         curval           => 2,
@@ -24,8 +32,13 @@ foreach my $delete_not_used (0..1)
                 return ""
             end
             ret = ""
-            for _, curval in ipairs(L1curval1) do
-                ret = ret .. curval.field_values.L2string1
+            -- Allow values to be single or multi value
+            if L1curval1.field_values ~= nil then
+                ret = ret .. L1curval1.field_values.L2string1
+            else
+                for _, curval in ipairs(L1curval1) do
+                    ret = ret .. curval.field_values.L2string1
+                end
             end
             return ret
         end},
@@ -61,8 +74,8 @@ foreach my $delete_not_used (0..1)
     my $curval = $columns->{curval1};
     $curval->delete_not_used($delete_not_used);
     $curval->show_add(1);
-    $curval->value_selector('noshow');
-    $curval->write(no_alerts => 1);
+    $curval->value_selector($value_selector);
+    $curval->write(no_alerts => 1, force => 1);
 
     my $record = GADS::Record->new(
         user   => $sheet->user_normal1,

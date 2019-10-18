@@ -237,7 +237,7 @@ sub write_special
     }
 
     error __"Auto-complete input boxes can not currently be multivalue fields"
-        if $self->value_selector eq 'typeahead' && $self->multivalue;
+        if $self->value_selector eq 'typeahead' && $self->multivalue && !$options{force};
 
     # Update typeahead option
     $rset->update({

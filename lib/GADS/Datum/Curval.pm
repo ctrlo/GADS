@@ -37,13 +37,16 @@ sub _transform_value
     }
     elsif (ref $value)
     {
+        my $record_id;
         if (exists $value->{record_single})
         {
             $id = $value->{record_single}->{current_id};
             $value = $value->{record_single};
+            $record_id = $value->{id};
         }
         else {
             $id = $value->{value};
+            $record_id = $value->{record_id};
         }
         my %params = (
             schema               => $self->column->schema,
@@ -51,6 +54,7 @@ sub _transform_value
             user                 => undef,
             record               => $value,
             current_id           => $id,
+            record_id            => $record_id,
             columns_retrieved_do => $self->column->curval_fields_retrieve(all_fields => $self->column->retrieve_all_columns),
         );
         # Do not set these values, as if the values do not exist then they will

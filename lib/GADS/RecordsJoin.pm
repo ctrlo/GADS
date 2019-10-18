@@ -421,6 +421,8 @@ sub columns_fetch
             if $column->userinput;
         if ($jp->{children})
         {
+            my $rec_single_name = $self->record_name(%options, prefetch => 1, column => $column);
+            push @prefetch, { $column->field.".record_id" => "$rec_single_name.id" };
             foreach my $child (@{$jp->{children}})
             {
                 my $column2 = $child->{column};
@@ -445,7 +447,7 @@ sub record_name
     # record will be joined to the Current table.
     if ($options{root_table} && $options{root_table} eq 'record')
     {
-        return 'me' if !$options{linked};
+        return 'me' if !$options{linked} && !$options{column};
         $count = 0;
     }
     elsif ($self->has_linked(%options)) {
@@ -456,9 +458,25 @@ sub record_name
     }
     if (!$options{linked})
     {
-        $count++;
+        $count++
+            unless $options{no_current};
         $count += grep { $_->{column}->type eq 'autocur' && $_->{linked} } @store;
     }
+
+    # The column options allows a record_single to be generated for a curval
+    # field. In this case, we have to work out how many previous record_single
+    # there have been up to and including the column required
+    if (my $col = $options{column})
+    {
+        foreach my $c (@store)
+        {
+            next unless $c->{column}->is_curcommon;
+            next if !@{$c->{children}}; # No record_singles unless fields selected from curval
+            $count++;
+            last if $c->{column}->id == $col->id;
+        }
+    }
+
     my $c_offset = $count == 1 ? '' : "_$count";
     return "record_single$c_offset";
 }
