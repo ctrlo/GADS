@@ -450,9 +450,9 @@ sub field_values_for_code
 
 sub set_values
 {   my $self = shift;
-    $self->column->value_selector eq 'noshow'
-        ? [ map { $_->{id} } @{$self->html_form} ]
-        : $self->html_form;
+    # Used for child records - need to always use ID for the child
+    # value (instead of any queries), otherwise duplicate records created
+    return $self->ids;
 }
 
 sub html_form

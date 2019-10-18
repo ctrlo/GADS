@@ -22,11 +22,19 @@ my $data = [
     },
 ];
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, user_permission_override => 0);
+my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, user_permission_override => 0, site_id => 1);
 $curval_sheet->create_records;
+my $curval_columns = $curval_sheet->columns;
 
 my $schema = $curval_sheet->schema;
-my $sheet = t::lib::DataSheet->new(data => $data, curval => 2, schema => $schema, user_permission_override => 0);
+my $sheet = t::lib::DataSheet->new(
+    data                     => $data,
+    curval                   => 2,
+    curval_field_ids         => [$curval_columns->{integer1}->id],
+    schema                   => $schema,
+    user_permission_override => 0,
+    site_id                  => 1
+);
 
 my $layout = $sheet->layout;
 my $columns = $sheet->columns;
@@ -92,6 +100,7 @@ $child->initialise;
 
 $child->fields->{$string1->id}->set_value('Foobar');
 $child->write(no_alerts => 1);
+my $child_id = $child->current_id;
 
 $parent->clear;
 $parent->find_current_id($parent_id);
@@ -114,5 +123,25 @@ my $curval_record = GADS::Record->new(
 $curval_record->find_current_id(1);
 is($curval_record->fields->{$autocur1->id}->as_string, "10; 10", "Autocur value correct");
 is($curval_record->fields->{$calc_curval->id}->as_string, "10Foobar10Bar", "Autocur calc value correct");
+
+# Test updating value using a query - ID should be used to pass to child
+# record, so that new curval records are not duplicated
+my $start_count = $schema->resultset('Current')->search({ instance_id => 2 })->count;
+my $curval = $columns->{curval1};
+$curval->show_add(1);
+$curval->write(no_alerts => 1, override_permissions => 1);
+$layout->clear;
+
+$parent->clear;
+$parent->find_current_id($parent_id);
+$parent->fields->{$string1->id}->set_value('Foo2');
+my $curval_int = $curval_columns->{integer1};
+$parent->fields->{$curval->id}->set_value([$curval_int->field."=20"]);
+$parent->write(no_alerts => 1);
+$child->clear;
+$child->find_current_id($child_id);
+is($child->fields->{$curval->id}->as_string, "20", "Correct curval value in child after show_add write");
+my $finish_count = $schema->resultset('Current')->search({ instance_id => 2 })->count;
+is($finish_count - $start_count, 1, "Correct number if new curvals created");
 
 done_testing();
