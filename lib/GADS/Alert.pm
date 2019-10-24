@@ -117,7 +117,8 @@ has all => (
 );
 
 has view => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_view
@@ -250,6 +251,9 @@ sub write
 
     error __"It is not possible to configure an alert on a view containing groups"
         if $self->view->is_group;
+    # Need to clear view for it to be rebuilt once the alert has been written,
+    # otherwise update_cache will think that the view does not contain an alert
+    $self->clear_view;
 
     my ($alert) = $self->schema->resultset('Alert')->search({
         view_id => $self->view_id,
