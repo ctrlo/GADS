@@ -214,18 +214,24 @@
 
 [% IF v %]
     [% WRAPPER modal_dialog.tt
-        modal_id="modal_alert" modal_action_text="Create alert" modal_heading="Configure alert for " _  v.name
+        modal_id="modal_alert" modal_action_text=!v.is_group && "Create alert" modal_heading="Configure alert for " _  v.name
         modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post"
     %]
-        <input type="hidden" value="[% v.id %]" name="view_id">
-        <div class="form-group">
-            <label for="frequency">Alert me:</label>
-            <select class="form-control" id="frequency" name="frequency">
-                <option value="" [% IF NOT v.alert %]selected[% END %]>Never</option>
-                <option value="0" [% IF v.alert.frequency == 0 %]selected[% END %]>Instantly</option>
-                <option value="24" [% IF v.alert.frequency == 24 %]selected[% END %]>Every 24 hours</option>
-            </select>
-        </div>
+        [% IF v.is_group %]
+            <div class="alert alert-danger">
+                It is not possible to configure alerts on views containing groups. Please use a view without a group.
+            </div>
+        [% ELSE %]
+            <input type="hidden" value="[% v.id %]" name="view_id">
+            <div class="form-group">
+                <label for="frequency">Alert me:</label>
+                <select class="form-control" id="frequency" name="frequency">
+                    <option value="" [% IF NOT v.alert %]selected[% END %]>Never</option>
+                    <option value="0" [% IF v.alert.frequency == 0 %]selected[% END %]>Instantly</option>
+                    <option value="24" [% IF v.alert.frequency == 24 %]selected[% END %]>Every 24 hours</option>
+                </select>
+            </div>
+        [% END %]
     [% END %]
 [% END %]
 

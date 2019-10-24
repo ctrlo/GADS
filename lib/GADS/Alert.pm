@@ -248,6 +248,9 @@ sub write
 {
     my $self = shift;
 
+    error __"It is not possible to configure an alert on a view containing groups"
+        if $self->view->is_group;
+
     my ($alert) = $self->schema->resultset('Alert')->search({
         view_id => $self->view_id,
         user_id => $self->user->id,
