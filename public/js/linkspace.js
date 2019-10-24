@@ -1055,33 +1055,33 @@ var positionDisclosure = function (offsetTop, offsetLeft, triggerHeight) {
     }
 };
 
-var onDisclosureClick = function() {
+var onDisclosureClick = function(e) {
     var $trigger = $(this);
     var currentlyPermanentExpanded = $trigger.hasClass('expanded--permanent');
 
-    toggleDisclosure($trigger, !currentlyPermanentExpanded, true);
+    toggleDisclosure(e, $trigger, !currentlyPermanentExpanded, true);
 }
 
-var onDisclosureMouseover = function() {
+var onDisclosureMouseover = function(e) {
     var $trigger = $(this);
     var currentlyExpanded = $trigger.attr('aria-expanded') === 'true';
 
     if (!currentlyExpanded) {
-        toggleDisclosure($trigger, true, false);
+        toggleDisclosure(e, $trigger, true, false);
     }
 }
 
-var onDisclosureMouseout = function() {
+var onDisclosureMouseout = function(e) {
     var $trigger = $(this);
     var currentlyExpanded = $trigger.attr('aria-expanded') === 'true';
     var currentlyPermanentExpanded = $trigger.hasClass('expanded--permanent');
 
     if (currentlyExpanded && !currentlyPermanentExpanded) {
-        toggleDisclosure($trigger, false, false);
+        toggleDisclosure(e, $trigger, false, false);
     }
 }
 
-var toggleDisclosure = function ($trigger, state, permanent) {
+var toggleDisclosure = function (e, $trigger, state, permanent) {
     $trigger.attr('aria-expanded', state);
     $trigger.toggleClass('expanded--permanent', state && permanent);
 
@@ -1108,7 +1108,7 @@ var toggleDisclosure = function ($trigger, state, permanent) {
     // stop that second handler also doing its action. E.g. for a more-less
     // widget within a table row, do not action both the more-less widget and
     // the opening of a record by clicking on the row
-    event.stopPropagation();
+    e.stopPropagation();
 };
 
 
