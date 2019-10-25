@@ -54,10 +54,11 @@ foreach my $site (schema->resultset('Site')->all)
     foreach my $layout (@{$instances->all})
     {
         my $views      = GADS::Views->new(
-            user        => undef,
-            schema      => schema,
-            layout      => $layout,
-            instance_id => $layout->instance_id,
+            user                     => undef,
+            schema                   => schema,
+            layout                   => $layout,
+            instance_id              => $layout->instance_id,
+            user_permission_override => 1,
         );
 
         foreach my $view (@{$views->all})
@@ -69,6 +70,7 @@ foreach my $site (schema->resultset('Site')->all)
                     layout    => $layout,
                     schema    => schema,
                     view_id   => $view->id,
+                    view      => $view,
                 );
                 $alert->update_cache(all_users => 1);
             }

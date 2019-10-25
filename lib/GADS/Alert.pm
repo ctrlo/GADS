@@ -153,7 +153,7 @@ sub update_cache
     # alert caches for each user that has this alert. Only need
     # to worry about this if all_users flag is set
     my @users = $view->has_curuser && $options{all_users}
-        ? $self->schema->resultset('Alert')->search({
+        ? map $_->user, $self->schema->resultset('Alert')->search({
             view_id => $view->id
         }, {
             prefetch => 'user'
