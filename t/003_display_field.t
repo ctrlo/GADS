@@ -533,6 +533,59 @@ foreach my $field (@fields)
     is($record->fields->{$integer1->id}->as_string, '600', 'Updated integer value with full tree path is correct');
 }
 
+# Test for fields that are not visible to the user. In this case, even if the
+# field depended-on has a value, the field should be assumed blank (this is
+# how the HTML form works - behaviour needs to be consistent)
+{
+    # Before changing permissions, set up required value in record
+    $record->clear;
+    $record->find_current_id(3);
+    $record->fields->{$string1->id}->set_value('Foobar');
+    $record->write(no_alerts => 1);
+
+    # Set up columns
+    $integer1->display_fields(_filter(col_id => $string1->id, regex => 'Foobar'));
+    $integer1->write;
+
+    # Drop permissions from string1
+    $string1->set_permissions({$sheet->group->id => []});
+    $string1->write;
+    $layout->clear;
+
+    $record->clear;
+    $record->find_current_id(3);
+    # Even though regex matches, values should be blanked as it's not visible to user
+    $record->fields->{$integer1->id}->set_value('250');
+    $record->write(no_alerts => 1);
+
+    $record->clear;
+    $record->find_current_id(3);
+
+    is($record->fields->{$integer1->id}->as_string, '', 'Field depending on non-visible field is correct');
+
+    # Reverse test
+
+    # Update filter
+    $integer1->display_fields(_filter(col_id => $string1->id, regex => 'Foobar', operator => 'not_equal'));
+    $integer1->write;
+
+    $record->clear;
+    $record->find_current_id(3);
+    # Even though display condition does not show field, value should still be written
+    $record->fields->{$integer1->id}->set_value('250');
+    $record->write(no_alerts => 1);
+
+    $record->clear;
+    $record->find_current_id(3);
+
+    is($record->fields->{$integer1->id}->as_string, '250', 'Field depending on non-visible field - reverse');
+
+    # Reset permissions for other tests
+    $string1->set_permissions({$sheet->group->id => $sheet->default_permissions});
+    $string1->write;
+    $layout->clear;
+}
+
 # Tests for dependent_not_shown
 {
     $integer1->display_fields(_filter(col_id => $string1->id, regex => 'Foobar'));

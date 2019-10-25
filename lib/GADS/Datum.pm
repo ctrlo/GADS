@@ -190,7 +190,11 @@ sub dependent_not_shown
         my $matchtype = $filter->{operator};
         $display_regex = '^'.$display_regex.'$'
             if $matchtype =~ /equal/;
-        my $values = $fields->{$display_field_id}->value_regex_test;
+        my $value_datum = $fields->{$display_field_id};
+        my $values = $value_datum->value_regex_test;
+        # If the user cannot read the value that is depended on, make it blank
+        # (this is how the form works)
+        $values = [''] if !$value_datum->column->user_can('read');
         my $this_not_shown = $matchtype =~ /not/ ? 0 : 1;
         $values = [''] if !@$values;
         foreach my $value (@$values)
