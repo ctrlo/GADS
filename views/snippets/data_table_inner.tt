@@ -78,7 +78,9 @@
         [% END %]
         [% IF aggregate AND count %]
             <tr class="info">
-                <td></td>
+                [% IF is_group %]
+                    <td></td>
+                [% END %]
                 [% FOREACH column IN aggregate.columns %]
                     <td class="[% column.type %]">[% render_datum(column) %]</td>
                 [% END %]
