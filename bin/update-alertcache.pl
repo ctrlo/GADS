@@ -53,30 +53,30 @@ foreach my $site (schema->resultset('Site')->all)
 
     foreach my $layout (@{$instances->all})
     {
-	my $views      = GADS::Views->new(
-	    user        => undef,
-	    schema      => schema,
-	    layout      => $layout,
-	    instance_id => $layout->instance_id,
-	);
+        my $views      = GADS::Views->new(
+            user        => undef,
+            schema      => schema,
+            layout      => $layout,
+            instance_id => $layout->instance_id,
+        );
 
-	foreach my $view (@{$views->all})
-	{
-	    if ($view->has_alerts)
-	    {
-		my $alert = GADS::Alert->new(
-		    user      => undef,
-		    layout    => $layout,
-		    schema    => schema,
-		    view_id   => $view->id,
-		);
-		$alert->update_cache(all_users => 1);
-	    }
-	    else {
-		schema->resultset('AlertCache')->search({
-		    view_id => $view->id,
-		})->delete;
-	    }
-	}
+        foreach my $view (@{$views->all})
+        {
+            if ($view->has_alerts)
+            {
+                my $alert = GADS::Alert->new(
+                    user      => undef,
+                    layout    => $layout,
+                    schema    => schema,
+                    view_id   => $view->id,
+                );
+                $alert->update_cache(all_users => 1);
+            }
+            else {
+                schema->resultset('AlertCache')->search({
+                    view_id => $view->id,
+                })->delete;
+            }
+        }
     }
 }
