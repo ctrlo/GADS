@@ -149,7 +149,7 @@ sub _build_all_all_users
 
 sub purge
 {   my $self = shift;
-    foreach my $graph (@{$self->all})
+    foreach my $graph (@{$self->all_all_users})
     {
         $graph->delete;
     }
