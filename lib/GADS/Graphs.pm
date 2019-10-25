@@ -48,7 +48,6 @@ sub _all
 
     my @graphs; my @user_graphs;
 
-    use Carp qw/cluck/; cluck "LL";
     # First create a hash of all the graphs the user has selected
     my %user_selected = map {
         $_->id => 1
@@ -150,7 +149,7 @@ sub _build_all_all_users
 
 sub purge
 {   my $self = shift;
-    foreach my $graph (@{$self->all_all_users})
+    foreach my $graph (@{$self->all})
     {
         $graph->delete;
     }
