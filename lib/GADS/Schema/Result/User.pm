@@ -863,7 +863,7 @@ sub update_user
 
     $self->groups($current_user, $params{groups})
         if $params{groups};
-    if ($params{permissions})
+    if ($params{permissions} && @{$params{permissions}})
     {
         error __"You do not have permission to set global user permissions"
             if !$current_user->permission->{superadmin};
