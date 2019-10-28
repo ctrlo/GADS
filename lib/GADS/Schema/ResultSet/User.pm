@@ -149,9 +149,9 @@ sub upload
     my $site = $self->result_source->schema->resultset('Site')->next;
     my $freetext1 = lc $site->register_freetext1_name;
     my $freetext2 = lc $site->register_freetext2_name;
-    my $org_name  = lc $site->register_organisation_name;
-    my $dep_name  = lc $site->register_department_name;
-    my $team_name = lc $site->register_team_name;
+    my $org_name  = lc $site->organisation_name;
+    my $dep_name  = lc $site->department_name;
+    my $team_name = lc $site->team_name;
 
     # Map out titles and organisations for conversion to ID
     my %titles        = map { lc $_->name => $_->id } @{$userso->titles};
