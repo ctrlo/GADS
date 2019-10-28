@@ -575,7 +575,7 @@ sub _build_data
         foreach my $metric (@metrics)
         {
             my $y_axis_grouping_value = $metric->y_axis_grouping_value || 1;
-            $metrics->{$y_axis_grouping_value}->{$metric->x_axis_value} = $metric->target;
+            $metrics->{lc $y_axis_grouping_value}->{lc $metric->x_axis_value} = $metric->target;
         }
 
         # Now go into each data item and recalculate against the metric
@@ -585,7 +585,7 @@ sub _build_data
             for my $i (0 .. $#data)
             {
                 my $x = $xlabels[$i];
-                my $target = $metrics->{$line}->{$x};
+                my $target = $metrics->{lc $line}->{lc $x};
                 my $val    = $target ? int ($data[$i] * 100 / $target ) : 0;
                 $series->{$line}->{data}->[$i] = $val;
                 $metric_max = $val if !$metric_max || $val > $metric_max;
