@@ -37,9 +37,15 @@ sub presentation {
         #
         # If this is a draft record, then the query should be used instead of
         # the ID. The query will only exist if it's a draft record
-        if (my $q = $self->html_form->[0] && $self->html_form->[0]->{as_query})
+        if ($self->column->show_add)
         {
-            $base->{autocomplete_value} = $q;
+            if (my $q = $self->html_form->[0] && $self->html_form->[0]->{as_query})
+            {
+                $base->{autocomplete_value} = $q;
+            }
+            else {
+                $base->{autocomplete_value} = $self->id;
+            }
         }
         else {
             $base->{autocomplete_value} = $self->id;
