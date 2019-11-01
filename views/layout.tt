@@ -371,7 +371,7 @@
             of other fields. You define your calculation using the Lua programming language.
         </p>
         <div class="form-group">
-            <label for="return_type">Return value conversion:</label>
+            <label for="return_type">Return value as field type:</label>
             <select class="form-control" name="return_type">
                 <option value="string" [% IF column.return_type == "string" %]selected[% END %]>String</option>
                 <option value="date" [% IF column.return_type == "date" %]selected[% END %]>Date</option>
