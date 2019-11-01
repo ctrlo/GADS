@@ -1729,27 +1729,49 @@ var setupTimeline = function (container, options_in) {
             the current items (otherwise it wouldn't have been
             retrieved)
         */
+
+        // Get date range with earliest start
         var val = items.min('start');
         var min_start = val ? new Date(val.start) : undefined;
+        // Get date range with latest start
         val = items.max('start');
         var max_start = val ? new Date(val.start) : undefined;
+        // Get date range with earliest end
         val = items.min('end');
         var min_end = val ? new Date(val.end) : undefined;
+        // If this is a date range without a time, then the range will have
+        // automatically been altered to add an extra day to its range, in
+        // order to show it across the expected period on the timeline (see
+        // Timeline.pm). When working out the range to request, we have to
+        // remove this extra day, as searching the database will not include it
+        // and we will otherwise end up with duplicates being retrieved
+        if (min_end && !val.has_time) {
+            min_end.setDate(min_end.getDate()-1);
+        }
+        // Get date range with latest end
         val = items.max('end');
         var max_end = val ? new Date(val.end) : undefined;
+        // Get earliest single date item
         val = items.min('single');
         var min_single = val ? new Date(val.single) : undefined;
+        // Get latest single date item
         val = items.max('single');
         var max_single = val ? new Date(val.single) : undefined;
+
+        // Now work out the actual range we have items for
         var have_range = {};
         if (min_end && min_single) {
+            // Date range items and single date items
             have_range.min = min_end < min_single ? min_end : min_single;
         } else {
+            // Only one or the other
             have_range.min = min_end || min_single;
         }
         if (max_start && max_single) {
+            // Date range items and single date items
             have_range.max = max_start > max_single ? max_start : max_single;
         } else {
+            // Only one or the other
             have_range.max = max_start || max_single;
         }
         /* haverange now contains the min and max of the current

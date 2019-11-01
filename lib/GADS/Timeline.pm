@@ -387,6 +387,7 @@ sub _build_items
                     my $v = $d->{to}->clone;
                     $v->add(days => 1) unless $d->{has_time};
                     $item{end}    = _tick $v;
+                    $item{has_time} = $d->{has_time};
                 }
                 else
                 {   $item{single} = _tick $d->{from};
