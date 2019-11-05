@@ -267,14 +267,16 @@ sub write
             $alert->update({ frequency => $self->frequency });
         }
         else {
-            # Any other alerts using the same view?
-            unless ($self->schema->resultset('Alert')->search({ view_id => $alert->view_id })->count > 1)
-            {
-                # Delete cache if not
-                $self->schema->resultset('AlertSend')->search({ alert_id => $alert->id })->delete;
-                $self->schema->resultset('AlertCache')->search({ view_id => $alert->view_id })->delete;
-            }
+            my $guard = $self->schema->txn_scope_guard;
+
+            # Any other alerts using the same view? Delete cache if not
+            $self->schema->resultset('AlertCache')->search({ view_id => $alert->view_id })->delete
+                unless $self->schema->resultset('Alert')->search({ view_id => $alert->view_id })->count > 1;
+            # Delete any queued alerts
+            $self->schema->resultset('AlertSend')->search({ alert_id => $alert->id })->delete;
             $alert->delete;
+
+            $guard->commit;
         }
     }
     elsif(defined $self->frequency) {
