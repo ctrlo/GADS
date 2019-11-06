@@ -3077,12 +3077,11 @@ prefix '/:layout_name' => sub {
         }
 
         template 'edit' => {
-            view                => $view,
-            record              => $record,
-            record_presentation => $record->presentation(edit => 1, new => 1, bulk => $type),
-            bulk_type           => $type,
-            page                => 'bulk',
-            breadcrumbs         => [Crumb($layout), Crumb( $layout, "/data" => 'records' ), Crumb( $layout, "/bulk/$type" => "bulk $type records" )],
+            view        => $view,
+            record      => $record->presentation(edit => 1, new => 1, bulk => $type),
+            bulk_type   => $type,
+            page        => 'bulk',
+            breadcrumbs => [Crumb($layout), Crumb( $layout, "/data" => 'records' ), Crumb( $layout, "/bulk/$type" => "bulk $type records" )],
         };
     };
 
