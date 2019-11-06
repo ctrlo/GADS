@@ -723,7 +723,7 @@
                                 [% FOREACH file IN editvalue.files %]
                                     <li class="help-block">
                                         <input type="checkbox" name="[% field %]" value="[% file.id %]" checked>Include file.
-                                        Current file name: <a href="[% file.id %]">[% file.name | html %]</a>.
+                                        Current file name: <a href="/file/[% file.id %]">[% file.name | html %]</a>.
                                     </li>
                                 [% END %]
                             </ul>
