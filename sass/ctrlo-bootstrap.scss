@@ -1205,10 +1205,10 @@ small.search_term {
 .more-less .column-content {
     padding: .5em;
     margin-top: .5em;
-    width: 80%;
     word-wrap: break-word;
     overflow-wrap: break-word;
     word-break: initial;
+    max-width: 50vw;
 }
 
 @import 'data-table';
