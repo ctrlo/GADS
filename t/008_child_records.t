@@ -9,7 +9,8 @@ use GADS::Record;
 use GADS::Records;
 use GADS::Schema;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 sub _records
 {   my ($schema, $layout, $user, $count) = @_;
@@ -23,7 +24,7 @@ sub _records
     @results;
 }
 
-my $sheet   = t::lib::DataSheet->new(multivalue => 1);
+my $sheet   = Test::GADS::DataSheet->new(multivalue => 1);
 my $schema  = $sheet->schema;
 my $columns = $sheet->columns;
 my $layout  = $sheet->layout;
@@ -138,7 +139,7 @@ foreach my $calc_depend (0..1)
     my $code = $calc_depend
         ? "function evaluate (L1string1, L1integer1) \n return string.sub(L1string1, 1, 3) .. L1integer1 \n end"
         : "function evaluate (L1string1) \n return 'XX' .. string.sub(L1string1, 1, 3) \n end";
-    my $sheet = t::lib::DataSheet->new(
+    my $sheet = Test::GADS::DataSheet->new(
         data             => $data,
         calc_code        => $code,
         calc_return_type => 'string',

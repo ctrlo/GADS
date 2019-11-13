@@ -6,11 +6,12 @@ use Test::MockTime qw(set_fixed_time restore_time); # Load before DateTime
 use GADS::Records;
 use Log::Report;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 set_fixed_time('10/10/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
 
-my $sheet   = t::lib::DataSheet->new;
+my $sheet   = Test::GADS::DataSheet->new;
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
 my $schema  = $sheet->schema;

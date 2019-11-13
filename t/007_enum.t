@@ -11,11 +11,12 @@ use GADS::Record;
 use GADS::Records;
 use GADS::Schema;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 foreach my $num_deleted (0..1)
 {
-    my $sheet   = t::lib::DataSheet->new;
+    my $sheet   = Test::GADS::DataSheet->new;
     my $schema  = $sheet->schema;
     my $layout  = $sheet->layout;
     my $columns = $sheet->columns;

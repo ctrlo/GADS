@@ -12,7 +12,8 @@ use GADS::Records;
 use GADS::RecordsGraph;
 use GADS::Schema;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 set_fixed_time('10/10/2014 01:00:00', '%m/%d/%Y %H:%M:%S'); # Fix all tests for this date so that CURDATE is consistent
 
@@ -66,10 +67,10 @@ my $data = [
     },
 ];
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, user_permission_override => 0);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, user_permission_override => 0);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
-my $sheet   = t::lib::DataSheet->new(
+my $sheet   = Test::GADS::DataSheet->new(
     data                     => $data,
     schema                   => $schema,
     curval                   => 2,
@@ -141,7 +142,7 @@ $data->[3]->{enum1} = 'foo2';
 $record->write(no_alerts => 1);
 
 # Add another curval field to a new table
-my $curval_sheet2 = t::lib::DataSheet->new(
+my $curval_sheet2 = Test::GADS::DataSheet->new(
     schema                   => $schema,
     group                    => $curval_sheet->group,
     instance_id              => 3,
@@ -1489,7 +1490,7 @@ foreach my $multivalue (0..1)
 
 {
     # Test view_limit_extra functionality
-    my $sheet = t::lib::DataSheet->new(data =>
+    my $sheet = Test::GADS::DataSheet->new(data =>
     [
         {
             string1    => 'FooBar',

@@ -11,7 +11,8 @@ use GADS::Graph::Data;
 use GADS::Records;
 use GADS::RecordsGraph;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 set_fixed_time('01/01/2015 12:00:00', '%m/%d/%Y %H:%M:%S');
 
@@ -58,7 +59,7 @@ foreach my $multivalue (0..1)
         },
     ];
 
-    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, multivalue => $multivalue);
+    my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, multivalue => $multivalue);
     $curval_sheet->create_records;
     my $schema  = $curval_sheet->schema;
 
@@ -73,7 +74,7 @@ foreach my $multivalue (0..1)
     $cr->fields->{$curval_sheet->columns->{integer1}->id}->set_value(132);
     $cr->write(no_alerts => 1);
 
-    my $sheet   = t::lib::DataSheet->new(
+    my $sheet   = Test::GADS::DataSheet->new(
         data               => $data,
         schema             => $schema,
         curval             => 2,
@@ -111,7 +112,7 @@ foreach my $multivalue (0..1)
 
     # Add linked record sheet, which will contain the integer1 value for the first
     # record of the first sheet
-    my $sheet2 = t::lib::DataSheet->new(data => [], instance_id => 3, schema => $schema);
+    my $sheet2 = Test::GADS::DataSheet->new(data => [], instance_id => 3, schema => $schema);
     my $layout2 = $sheet2->layout;
     my $columns2 = $sheet2->columns;
 
@@ -671,7 +672,7 @@ push @data, {
     integer1 => 2,
 } for (1..1000);
 
-my $sheet = t::lib::DataSheet->new(data => \@data);
+my $sheet = Test::GADS::DataSheet->new(data => \@data);
 $sheet->create_records;
 my $columns = $sheet->columns;
 

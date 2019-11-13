@@ -6,7 +6,8 @@ use JSON qw(encode_json);
 use Log::Report;
 use GADS::Globe;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 my $simple_data = [
     {
@@ -22,7 +23,7 @@ my $simple_data = [
 
 # Simple test first
 {
-    my $sheet = t::lib::DataSheet->new(
+    my $sheet = Test::GADS::DataSheet->new(
         data             => $simple_data,
         calc_code        => "function evaluate (L1string1) \n return L1string1 end",
         calc_return_type => 'globe',
@@ -69,7 +70,7 @@ foreach my $withview (qw/none with without/)
         }
     }
 
-    my $sheet = t::lib::DataSheet->new(
+    my $sheet = Test::GADS::DataSheet->new(
         data             => \@data,
         calc_code        => "function evaluate (L1string1) \n return L1string1 end",
         calc_return_type => 'globe',
@@ -218,7 +219,7 @@ foreach my $withview (qw/none with without/)
             enum1    => [qw/foo2/],
         },
     ];
-    my $curval_sheet = t::lib::DataSheet->new(
+    my $curval_sheet = Test::GADS::DataSheet->new(
         data        => $data,
         multivalue  => 1,
         instance_id => 2,
@@ -254,7 +255,7 @@ foreach my $withview (qw/none with without/)
             curval1 => 4,
         },
     ];
-    my $sheet = t::lib::DataSheet->new(
+    my $sheet = Test::GADS::DataSheet->new(
         data             => $data,
         curval           => $curval_sheet->instance_id,
         schema           => $schema,
@@ -307,7 +308,7 @@ foreach my $withview (qw/none with without/)
 
 # Invalid columns
 {
-    my $sheet = t::lib::DataSheet->new(
+    my $sheet = Test::GADS::DataSheet->new(
         data             => $simple_data,
         calc_code        => "function evaluate (L1string1) \n return L1string1 end",
         calc_return_type => 'globe',

@@ -12,7 +12,8 @@ use GADS::Record;
 use GADS::Records;
 use GADS::Schema;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 set_fixed_time('10/22/2014 01:00:00', '%m/%d/%Y %H:%M:%S'); # Fix all tests for _version_datetime calc
 
@@ -32,10 +33,10 @@ my $data = [
     },
 ];
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
 $curval_sheet->create_records;
 my $schema       = $curval_sheet->schema;
-my $sheet        = t::lib::DataSheet->new(
+my $sheet        = Test::GADS::DataSheet->new(
     data             => $data,
     schema           => $schema,
     user_count       => 2,
@@ -516,7 +517,7 @@ restore_time();
     # the string value may change but the "changed" status should be false.
     # This is so that when returning a calc based on another multi-value, it
     # doesn't matter if the order of the input changes.
-    my $sheet   = t::lib::DataSheet->new(
+    my $sheet   = Test::GADS::DataSheet->new(
         data      => [],
         calc_code => "
             function evaluate (L1integer1)
@@ -616,7 +617,7 @@ restore_time();
 
 # More "changed" tests
 {
-    my $sheet   = t::lib::DataSheet->new;
+    my $sheet   = Test::GADS::DataSheet->new;
     $sheet->create_records;
     my $schema  = $sheet->schema;
     my $layout  = $sheet->layout;
@@ -886,10 +887,10 @@ foreach my $multi (0..1)
         },
     );
 
-    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+    my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
     $curval_sheet->create_records;
     my $schema       = $curval_sheet->schema;
-    my $sheet        = t::lib::DataSheet->new(
+    my $sheet        = Test::GADS::DataSheet->new(
         data             => $data,
         multivalue       => 1,
         schema           => $schema,
@@ -941,7 +942,7 @@ foreach my $test (qw/string_empty string_null calc_empty calc_null/)
         },
     ];
 
-    my $sheet   = t::lib::DataSheet->new(
+    my $sheet   = Test::GADS::DataSheet->new(
         data             => $data,
         calc_code        => 'function evaluate (_id) return "" end',
         calc_return_type => 'string',

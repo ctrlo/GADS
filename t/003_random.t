@@ -4,7 +4,8 @@ use warnings;
 
 use Log::Report;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 # Test random sorting functionality of a view
 
@@ -16,7 +17,7 @@ for my $count (1..1000)
         enum1   => ($count % 3) + 1,
     };
 }
-my $sheet = t::lib::DataSheet->new(data => \@data);
+my $sheet = Test::GADS::DataSheet->new(data => \@data);
 $sheet->create_records;
 
 my $schema = $sheet->schema;

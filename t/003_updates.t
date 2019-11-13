@@ -9,7 +9,8 @@ use GADS::Record;
 use GADS::Records;
 use GADS::Schema;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 set_fixed_time('10/10/2014 01:00:00', '%m/%d/%Y %H:%M:%S'); # Write initial values as this date
 
@@ -113,10 +114,10 @@ my @update2 = (
     },
 );
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, data => $data2);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, data => $data2);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
-my $sheet   = t::lib::DataSheet->new(
+my $sheet   = Test::GADS::DataSheet->new(
     data         => $data1,
     schema       => $schema,
     curval       => 2,
@@ -287,11 +288,11 @@ foreach my $update (@update2)
 
 # Test changes of curval edits
 {
-    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+    my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
     $curval_sheet->create_records;
     my $curval_columns = $curval_sheet->columns;
     my $schema  = $curval_sheet->schema;
-    my $sheet   = t::lib::DataSheet->new(
+    my $sheet   = Test::GADS::DataSheet->new(
         data => [{
             curval1 => [1, 2],
         }],

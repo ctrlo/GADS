@@ -12,7 +12,8 @@ use GADS::Record;
 use GADS::Records;
 use GADS::Schema;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 my $data = [
     {
@@ -68,10 +69,10 @@ my $data2 = [
     },
 ];
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, data => $data2);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, data => $data2);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
-my $sheet   = t::lib::DataSheet->new(
+my $sheet   = Test::GADS::DataSheet->new(
     data             => $data,
     schema           => $schema,
     multivalue       => 1,
@@ -120,7 +121,7 @@ is( scalar @{$curval->all_values}, 4, "Correct number of values for curval field
 
 # Create a second curval sheet, and check that we can link to first sheet
 # (which links to second)
-my $curval_sheet2 = t::lib::DataSheet->new(schema => $schema, curval => 1, instance_id => 3, curval_offset => 12);
+my $curval_sheet2 = Test::GADS::DataSheet->new(schema => $schema, curval => 1, instance_id => 3, curval_offset => 12);
 $curval_sheet2->create_records;
 is( scalar @{$curval_sheet2->columns->{curval1}->filtered_values}, 2, "Correct number of values for curval field" );
 
@@ -652,8 +653,8 @@ foreach my $col (reverse $layout->all(order_dependencies => 1))
 # Now do the same tests again, but this time change all the field
 # types to string. This tests that any data not normally associated
 # with that particular type is still deleted.
-$curval_sheet = t::lib::DataSheet->new(schema => $schema, instance_id => 2);
-$sheet   = t::lib::DataSheet->new(data => $data, schema => $schema, curval => 2);
+$curval_sheet = Test::GADS::DataSheet->new(schema => $schema, instance_id => 2);
+$sheet   = Test::GADS::DataSheet->new(data => $data, schema => $schema, curval => 2);
 $layout  = $sheet->layout;
 $columns = $sheet->columns;
 # We don't normally allow change of type, as the wrong actions will take

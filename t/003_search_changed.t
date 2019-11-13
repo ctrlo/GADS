@@ -6,11 +6,12 @@ use Log::Report;
 
 use Test::MockTime qw(set_fixed_time restore_time); # Load before DateTime
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 # Test search of values that have changed in time period
 
-my $sheet = t::lib::DataSheet->new;
+my $sheet = Test::GADS::DataSheet->new;
 $sheet->create_records;
 
 my $schema = $sheet->schema;

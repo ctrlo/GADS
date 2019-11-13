@@ -12,7 +12,8 @@ use GADS::Record;
 use GADS::Records;
 use GADS::Schema;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 # 2 sets of data to alternate between for changes
 my $data = {
@@ -40,10 +41,10 @@ my $data = {
     ],
 };
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, no_groups => 1, users_to_create => [qw/superadmin/]);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, no_groups => 1, users_to_create => [qw/superadmin/]);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
-my $sheet   = t::lib::DataSheet->new(data => $data->{a}, schema => $schema, curval => 2, no_groups => 1, users_to_create => [qw/superadmin/]);
+my $sheet   = Test::GADS::DataSheet->new(data => $data->{a}, schema => $schema, curval => 2, no_groups => 1, users_to_create => [qw/superadmin/]);
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
 $sheet->create_records;
@@ -224,7 +225,7 @@ foreach my $user_type (qw/readwrite read limited/)
 # Check deletion of read permissions also updates dependent values
 foreach my $test (qw/single all/)
 {
-    my $sheet   = t::lib::DataSheet->new(site_id => 1);
+    my $sheet   = Test::GADS::DataSheet->new(site_id => 1);
     my $schema  = $sheet->schema;
     my $layout  = $sheet->layout;
     my $columns = $sheet->columns;
@@ -312,7 +313,7 @@ foreach my $test (qw/single all/)
 
 # Check setting of global permissions - can only be done by superadmin
 {
-    my $sheet = t::lib::DataSheet->new(site_id => 1);
+    my $sheet = Test::GADS::DataSheet->new(site_id => 1);
     $sheet->create_records;
     my $schema = $sheet->schema;
     foreach my $usertype (qw/user user_useradmin user_normal1/) # "user" is superadmin

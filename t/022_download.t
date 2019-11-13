@@ -8,7 +8,8 @@ use GADS::Graph;
 use GADS::Graph::Data;
 use GADS::Records;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 my @data;
 push @data, {
@@ -16,7 +17,7 @@ push @data, {
     integer1 => $_,
 } for (1..1000);
 
-my $sheet = t::lib::DataSheet->new(data => \@data);
+my $sheet = Test::GADS::DataSheet->new(data => \@data);
 $sheet->create_records;
 my $columns = $sheet->columns;
 

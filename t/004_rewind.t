@@ -12,7 +12,8 @@ use GADS::Record;
 use GADS::Records;
 use GADS::RecordsGraph;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 $ENV{GADS_NO_FORK} = 1;
 
@@ -28,7 +29,7 @@ foreach my $multivalue (0..1)
     # We will use 3 dates for the data: all 10th October, but years 2014, 2015, 2016
     set_fixed_time('10/10/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
 
-    my $sheet = t::lib::DataSheet->new(data => $data, multivalue => $multivalue);
+    my $sheet = Test::GADS::DataSheet->new(data => $data, multivalue => $multivalue);
     $sheet->create_records;
 
     my $schema   = $sheet->schema;

@@ -4,16 +4,17 @@ use warnings;
 
 use Log::Report;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 # Don't create users, as the normal find_or_create check won't find the
 # existing user at that ID due to the site_id constraint and will then fail
-my $sheet_site1 = t::lib::DataSheet->new(site_id => 1);
+my $sheet_site1 = Test::GADS::DataSheet->new(site_id => 1);
 my $schema      = $sheet_site1->schema;
 $sheet_site1->create_records;
 # Set the site_id. This should be use throughout the next data sheet creation
 $schema->site_id(2);
-my $sheet_site2 = t::lib::DataSheet->new(schema => $schema, instance_id => 2, curval_offset => 6);
+my $sheet_site2 = Test::GADS::DataSheet->new(schema => $schema, instance_id => 2, curval_offset => 6);
 $sheet_site2->create_records;
 
 # Check site 1 records

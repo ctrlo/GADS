@@ -9,7 +9,8 @@ use GADS::Record;
 use GADS::Records;
 use GADS::Schema;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 $ENV{GADS_NO_FORK} = 1;
 
@@ -43,11 +44,11 @@ my $data = [
     },
 ];
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, multivalue => 1);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, multivalue => 1);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
 
-my $sheet   = t::lib::DataSheet->new(
+my $sheet   = Test::GADS::DataSheet->new(
     data             => $data,
     schema           => $schema,
     curval           => 2,

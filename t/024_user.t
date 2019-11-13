@@ -4,9 +4,10 @@ use warnings;
 
 use Log::Report;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
-my $sheet = t::lib::DataSheet->new(site_id => 1);
+my $sheet = Test::GADS::DataSheet->new(site_id => 1);
 $sheet->create_records;
 my $schema = $sheet->schema;
 my $site   = $sheet->site;

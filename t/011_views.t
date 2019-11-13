@@ -6,9 +6,10 @@ use JSON qw(decode_json encode_json);
 use Log::Report;
 use MIME::Base64;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
-my $sheet = t::lib::DataSheet->new(user_permission_override => 0);
+my $sheet = Test::GADS::DataSheet->new(user_permission_override => 0);
 
 my $schema = $sheet->schema;
 $schema->storage->debug(0);
