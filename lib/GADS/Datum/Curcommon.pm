@@ -455,6 +455,11 @@ sub set_values
     return $self->ids;
 }
 
+sub filter_value
+{   my $self = shift;
+    return $self->ids->[0];
+}
+
 sub html_form
 {   my $self = shift;
     return $self->ids

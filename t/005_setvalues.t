@@ -54,6 +54,11 @@ my $values = {
         new           => 2,
         new_as_string => 'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
     },
+    curval2 => {
+        old_as_string => 'Foo, 50, foo1, , 2014-10-10, 2012-02-10 to 2013-06-15, , , c_amber, 2012',
+        new           => 2,
+        new_as_string => 'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
+    },
     person1 => {
         old_as_string => 'User1, User1',
         new           => {
@@ -98,6 +103,7 @@ my $data = {
             date1      => '',
             daterange1 => ['', ''],
             curval1    => '',
+            curval2    => '',
             file1      => '',
             person1    => '',
         },
@@ -111,6 +117,7 @@ my $data = {
             date1      => '2010-10-10',
             daterange1 => ['2000-10-10', '2001-10-10'],
             curval1    => 1,
+            curval2    => 1,
             person1    => 1,
             file1      => {
                 name     => 'file1.txt',
@@ -128,6 +135,7 @@ my $data = {
             date1      => '2011-10-10',
             daterange1 => ['2000-11-11', '2001-11-11'],
             curval1    => 2,
+            curval2    => 2,
             person1    => 2,
             file1      => {
                 name     => 'file2.txt',
@@ -144,12 +152,20 @@ foreach my $multivalue (0..1)
     my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
     $curval_sheet->create_records;
     my $sheet = t::lib::DataSheet->new(
-        curval     => 2,
-        schema     => $curval_sheet->schema,
-        multivalue => $multivalue,
+        curval       => 2,
+        schema       => $curval_sheet->schema,
+        multivalue   => $multivalue,
+        column_count => { curval => 2},
     );
     my $user = $curval_sheet->user;
     $sheet->columns; # Force columns to build
+
+    # Add curval column with show_add
+    my $curval2 = $sheet->columns->{curval2};
+    $curval2->show_add(1);
+    $curval2->write;
+    $sheet->layout->clear;
+
     my $record_new = GADS::Record->new(
         user     => $user,
         layout   => $sheet->layout,
@@ -189,19 +205,26 @@ foreach my $multivalue (0..1)
         {
             foreach my $deleted (0..1) # Test for deleted values of field, where applicable
             {
-                my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+                my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, site_id => 1);
                 $curval_sheet->create_records;
                 my $schema  = $curval_sheet->schema;
                 my $sheet   = t::lib::DataSheet->new(
-                    data       => $data->{$test},
-                    multivalue => $multivalue,
-                    schema     => $schema,
-                    curval     => 2
+                    data         => $data->{$test},
+                    multivalue   => $multivalue,
+                    schema       => $schema,
+                    curval       => 2,
+                    column_count => { curval => 2},
                 );
                 my $layout  = $sheet->layout;
                 my $columns = $sheet->columns;
                 $sheet->create_records;
                 my $user = $sheet->user;
+
+                # Add curval column with show_add
+                my $curval2 = $sheet->columns->{curval2};
+                $curval2->show_add(1);
+                $curval2->write;
+                $layout->clear;
 
                 if ($deleted)
                 {
@@ -289,12 +312,15 @@ foreach my $multivalue (0..1)
                     }
                     if ($test eq 'changed' || $test eq 'nochange')
                     {
-                        ok( $datum->oldvalue, "$type oldvalue exists$is_multi" );
-                        my $old = $test eq 'changed' ? $values->{$type}->{old_as_string} : $values->{$type}->{new_as_string};
-                        is( $datum->oldvalue && $datum->oldvalue->as_string, $old, "$type oldvalue exists and matches for test $test$is_multi" );
-                        my $html_form = $values->{$type}->{new_html_form} || $values->{$type}->{new};
-                        $html_form = [$html_form] if ref $html_form ne 'ARRAY';
-                        is_deeply( $datum->html_form, $html_form, "html_form value correct" );
+                        if ($type ne 'curval2')
+                        {
+                            ok( $datum->oldvalue, "$type oldvalue exists$is_multi" );
+                            my $old = $test eq 'changed' ? $values->{$type}->{old_as_string} : $values->{$type}->{new_as_string};
+                            is( $datum->oldvalue && $datum->oldvalue->as_string, $old, "$type oldvalue exists and matches for test $test$is_multi" );
+                            my $html_form = $values->{$type}->{new_html_form} || $values->{$type}->{new};
+                            $html_form = [$html_form] if ref $html_form ne 'ARRAY';
+                            is_deeply( $datum->html_form, $html_form, "html_form value correct" );
+                        }
                     }
                     elsif ($test eq 'blank')
                     {
@@ -347,9 +373,16 @@ foreach my $multivalue (0..1)
 my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
-my $sheet   = t::lib::DataSheet->new(schema => $schema, curval => 2);
+my $sheet   = t::lib::DataSheet->new(schema => $schema, curval => 2, column_count => { curval => 2 });
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
+
+# Add curval column with show_add
+my $curval2 = $sheet->columns->{curval2};
+$curval2->show_add(1);
+$curval2->write;
+$layout->clear;
+
 $sheet->create_records;
 
 foreach my $c (keys %$values)
