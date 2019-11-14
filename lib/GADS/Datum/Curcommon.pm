@@ -469,7 +469,7 @@ sub html_form
     {
         if ($val->{record}->is_draft)
         {
-            $val->{as_query} = $val->{record}->as_query;
+            $val->{as_query} = $val->{record}->as_query(exclude_curcommon => 1);
         }
         # New entries may have a current ID from a failed database write, but
         # don't use
