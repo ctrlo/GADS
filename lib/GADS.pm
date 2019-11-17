@@ -2891,7 +2891,7 @@ prefix '/:layout_name' => sub {
             $layout = $record->layout; # May have changed if record from other datasheet
             if ($layout->column($values->{column})->type eq 'date')
             {
-                my $to_write = $values->{from};
+                my $to_write = DateTime->from_epoch(epoch => $values->{from} / 1000);
                 unless (process sub { $record->fields->{ $values->{column} }->set_value($to_write) })
                 {
                     $failed = 1;
@@ -2900,10 +2900,10 @@ prefix '/:layout_name' => sub {
             }
             else {
                 # daterange
-                my $to_write = {
-                    from    => $values->{from},
-                    to      => $values->{to},
-                };
+                my $to_write = [
+                    DateTime->from_epoch(epoch => $values->{from} / 1000),
+                    DateTime->from_epoch(epoch => $values->{to} / 1000),
+                ];
                 # The end date as reported by the timeline will be a day later than
                 # expected (it will be midnight the following day instead.
                 # Therefore subtract one day from it

@@ -2010,11 +2010,14 @@ Linkspace.data_timeline = function () {
     }
 
     function snap_to_day (datetime, scale, step) {
-        return new Date (
-            datetime.getFullYear(),
-            datetime.getMonth(),
-            datetime.getDate()
-        );
+        // A bit of a mess, as the input to this function is in the browser's
+        // local timezone, but we need to return it from the function in UTC.
+        // Pull the UTC values from the local date, and then construct a new
+        // moment using those values.
+        var year = datetime.getUTCFullYear();
+        var month = ("0" + (datetime.getUTCMonth() + 1)).slice(-2);
+        var day = ("0" + datetime.getUTCDate()).slice(-2);
+        return timeline.moment.utc('' + year + month + day);
     }
 
     var options = {
@@ -2030,8 +2033,8 @@ Linkspace.data_timeline = function () {
                 return {
                     column: val.column,
                     current_id: val.current_id,
-                    from: val.start.toISOString().substring(0, 10),
-                    to:   (val.end || val.start).toISOString().substring(0, 10)
+                    from: val.start.getTime(),
+                    to:   (val.end || val.start).getTime()
                 };
             }
         );
