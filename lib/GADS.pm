@@ -1482,6 +1482,7 @@ prefix '/:layout_name' => sub {
             user                => $user,
             layout              => $layout,
             schema              => schema,
+            max_results         => 1000,
             view                => $view,
             search              => session('search'),
             view_limit_extra_id => current_view_limit_extra_id($user, $layout),
