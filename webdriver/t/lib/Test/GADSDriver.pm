@@ -127,7 +127,15 @@ sub _assert_error {
     );
 
     my $error_text = $error_el->text;
-    $test->note("The error message is '${error_text}'") if $error_text;
+    if ($error_text) {
+        my $diagnostic_text = "The error message is '${error_text}'";
+        if ($expect_present) {
+            $test->note($diagnostic_text);
+        }
+        else {
+            $test->diag($diagnostic_text);
+        }
+    }
 
     $test->release;
     return $self;
@@ -145,7 +153,15 @@ sub _assert_success {
     );
 
     my $success_text = $success_el->text;
-    $test->note("The success message is '${success_text}'") if $success_text;
+    if ($success_text) {
+        my $diagnostic_text = "The success message is '${success_text}'";
+        if ($expect_present) {
+            $test->note($diagnostic_text);
+        }
+        else {
+            $test->diag($diagnostic_text);
+        }
+    }
 
     $test->release;
     return $self;
