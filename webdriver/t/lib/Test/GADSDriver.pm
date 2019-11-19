@@ -839,8 +839,7 @@ sub submit_add_a_field_form_ok {
 
     my $success = $self->_fill_in_field( 'input#name', $arg{name} );
     my $type_el = $webdriver->find(
-        # TODO: "contains" isn't the same as "equals"
-        "//*[ \@id = 'type' ]/option[ contains( ., '$arg{type}' ) ]",
+        "//*[ \@id = 'type' ]/option[ text() = '$arg{type}' ]",
         method => 'xpath',
     );
     $success &&= $self->_check_only_one(
