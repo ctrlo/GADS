@@ -100,7 +100,7 @@ sub presentation {
             }
         }
         $has_editable{$topic_id} = 1
-            if $col->{display_for_edit};
+            if !$col->{readonly};
         push @{$topics{$topic_id}->{columns}}, $col;
     }
 
