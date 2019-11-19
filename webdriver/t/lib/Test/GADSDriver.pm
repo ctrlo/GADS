@@ -595,7 +595,10 @@ sub confirm_deletion_ok {
     my $test = context();
     my $webdriver = $self->gads->webdriver;
 
-    my $entity_name = $webdriver->find('input[name="name"]')->attr('value');
+    my $entity_name = $webdriver->find(
+        'input[name="name"]',
+        tries => 50,
+    )->attr('value');
 
     my $delete_button_el = $webdriver->find(
         # TODO: Use a better selector
