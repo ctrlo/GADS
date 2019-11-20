@@ -190,8 +190,9 @@ sub _build__layouts_index
 
 sub layout
 {   my ($self, $instance_id) = @_;
-    $self->_layouts_index->{$instance_id}
-        or panic "Layout for instance ID $instance_id not found";
+    my $layout = $self->_layouts_index->{$instance_id};
+    $layout // notice "Layout for instance ID $instance_id not found";
+    return $layout;
 }
 
 sub layout_by_shortname

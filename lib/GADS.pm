@@ -356,7 +356,10 @@ sub _forward_last_table
     if (my $l = session('persistent')->{instance_id})
     {
         my $instances = GADS::Instances->new(schema => schema, user => logged_in_user);
-        $forward = $instances->layout($l)->identifier;
+        my $layout = $instances->layout($l);
+        if ($layout) {
+            $forward = $layout->identifier;
+        }
     }
     forwardHome(undef, $forward);
 }
