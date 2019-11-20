@@ -31,13 +31,13 @@
                     </button>
                     <ul id="menu_view" class="dropdown-menu scrollable-menu" role="menu">
 			[% IF layout.user_can("view_create") %]
-			    <li [% IF page=="view/0" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/view/0">Add a view</a></li>
+			    <li class="[% IF page=="view/0" %]active [% END %]view-add"><a href="[% url.page %]/[% layout.identifier %]/view/0">Add a view</a></li>
 			[% END %]
 
 			[% IF v %]
                             [% IF layout.user_can("view_create") %]
 				[% IF v.writable %]
-				    <li [% IF page=="view" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/view/[% v.id %]">
+				    <li class="[% IF page=="view" %]active [% END %]view-edit"><a href="[% url.page %]/[% layout.identifier %]/view/[% v.id %]">
                                         Edit current view</a></li>
 				[% END %]
 				<li [% IF page=="view/clone" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/view/0?clone=[% v.id %]">Clone current view</a></li>
