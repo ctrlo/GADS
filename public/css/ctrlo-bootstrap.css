@@ -1721,28 +1721,39 @@ a.panel-heading {
   }
 }
 
-#remember {
+.remember,
+.show-password {
+  display: block;
+}
+
+#remember,
+#show_password {
   position: absolute;
   left: 0;
   top: 5px;
 }
 
-#remember + label {
+#remember + label,
+#show_password + label {
   padding: 5px;
   margin-left: -5px;
 }
 
 #remember:focus + label,
-#remember:hover + label {
+#remember:hover + label,
+#show_password:focus + label,
+#show_password:hover + label {
   color: #197E97;
   outline: 2px solid #197E97;
 }
 
-#remember + label span:before {
+#remember + label span:before,
+#show_password + label span:before {
   content: "";
 }
 
-#remember.remember--checked + label span:before {
+#remember.remember--checked + label span:before,
+#show_password.show_password--checked + label span:before {
   content: "";
 }
 
