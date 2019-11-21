@@ -1646,10 +1646,55 @@ var setupTippy = function (context) {
     });
 };
 
+// This function takes a color (hex) as the argument, calculates the color’s HSP value, and uses that
+// to determine whether the color is light or dark.
+// Source: https://awik.io/determine-color-bright-dark-using-javascript/
+function lightOrDark(color) {
+    // Convert it to HEX: http://gist.github.com/983661
+    var hexColor = +("0x" + color.slice(1).replace(color.length < 5 && /./g, "$&$&"));
+    var r = hexColor >> 16;
+    var g = hexColor >> 8 & 255;
+    var b = hexColor & 255;
+
+    // HSP (Perceived brightness) equation from http://alienryderflex.com/hsp.html
+    var hsp = Math.sqrt(
+        0.299 * (r * r) +
+        0.587 * (g * g) +
+        0.114 * (b * b)
+    );
+
+    // Using the HSP value, determine whether the color is light or dark.
+    // The source link suggests 127.5, but that seems a bit too low.
+    if (hsp > 150) {
+        return "light";
+    } else {
+        return "dark";
+    }
+}
+
+// If the perceived background color is dark, switch the font color to white.
+var injectContrastingColor = function(dataset) {
+    dataset.forEach(function(entry) {
+        if (entry.style && typeof(entry.style) === "string") {
+            var backgroundColorMatch = entry.style.match(/background-color:\s(#[0-9A-Fa-f]{6})/);
+            if (backgroundColorMatch && backgroundColorMatch[1]) {
+                var backgroundColor = backgroundColorMatch[1];
+                var backgroundColorLightOrDark = lightOrDark(backgroundColor);
+                if (backgroundColorLightOrDark === "dark") {
+                    entry.style = entry.style + ";" + " color: #FFFFFF";
+                }
+            }
+        }
+    });
+}
+
 var setupTimeline = function (container, options_in) {
     var records_base64 = container.data('records');
     var json = base64.decode(records_base64);
-    var items = new timeline.DataSet(JSON.parse(json));
+    var dataset = JSON.parse(json);
+    injectContrastingColor(dataset);
+
+    var items = new timeline.DataSet(dataset);
     var groups = container.data('groups');
     var json_group = base64.decode(groups);
     var groups = JSON.parse(json_group);
