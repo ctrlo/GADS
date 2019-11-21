@@ -60,6 +60,14 @@
                     </div>
                     <div class="row">
                         <div class="col-xs-12 col-sm-8 col-md-8">
+                            <span class="show-password">
+                                <input tabindex="3" type="checkbox" name="show_password" id="show_password" class="visually-hidden-opacity">
+                                <label for="show_password">
+                                    <span class="glyphicon glyphicon-check" aria-hidden="true"></span>
+                                    Show password
+                                </label>
+                            </span>
+
                             <span class="remember-me">
                                 <input tabindex="3" type="checkbox" name="remember_me" id="remember" [% IF username %]checked="checked"[% END %] class="[% IF username %]remember--checked[% END %] visually-hidden-opacity">
                                 <label for="remember">
