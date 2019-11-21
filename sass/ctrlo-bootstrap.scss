@@ -1188,10 +1188,6 @@ small.search_term {
 
 
 /* less / more */
-/* Ensure that more-less divs to not wrap away from their heading in click-to-edit topics */
-.more-less {
-    display: inline;
-}
 
 .more-less.clipped {
     max-height: 60px;
