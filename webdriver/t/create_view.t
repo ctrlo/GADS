@@ -238,12 +238,12 @@ $gads->assert_on_manage_fields_page(
     'On the manage fields page after deleting fields' );
 
 $gads->navigate_ok(
-    'Navigate to the manage tables page',
+    'Navigate back to the manage tables page',
     [ qw( .table-editor .tables-manage ) ],
 );
 $gads->assert_on_manage_tables_page;
 
-$gads->select_table_to_edit_ok( 'Select the table created',
+$gads->select_table_to_edit_ok( 'Select the table created again',
     $table_name );
 $gads->assert_on_manage_this_table_page;
 
