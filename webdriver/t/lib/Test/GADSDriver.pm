@@ -315,6 +315,27 @@ sub assert_on_add_a_field_page {
     return $self;
 }
 
+=head3 assert_on_add_a_group_page
+
+The I<< Add a group >> page is visible.
+
+=cut
+
+sub assert_on_add_a_group_page {
+    my ( $self, $name ) = @_;
+    $name //= 'The add a group page is visible';
+    my $test = context();
+
+    $self->_assert_on_page(
+        'body.group\\/0',
+        [ { selector => 'h2', text => 'Add a group' } ],
+        $name,
+    );
+
+    $test->release;
+    return $self;
+}
+
 =head3 assert_on_add_a_table_page
 
 The I<< Add a table >> page is visible.
@@ -398,6 +419,27 @@ sub assert_on_manage_fields_page {
     return $self;
 }
 
+=head3 assert_on_manage_groups_page
+
+The I<< Groups >> page is visible.
+
+=cut
+
+sub assert_on_manage_groups_page {
+    my ( $self, $name ) = @_;
+    $name //= 'The manage groups page is visible';
+    my $test = context();
+
+    $self->_assert_on_page(
+        'body.group',
+        [ { selector => 'h2', text => 'Groups' } ],
+        $name,
+    );
+
+    $test->release;
+    return $self;
+}
+
 =head3 assert_on_manage_tables_page
 
 The I<< Manage tables >> page is visible.
@@ -433,6 +475,27 @@ sub assert_on_manage_this_table_page {
     $self->_assert_on_page(
         'body.table',
         [ { selector => 'h2', text => 'Manage this table' } ],
+        $name,
+    );
+
+    $test->release;
+    return $self;
+}
+
+=head3 assert_on_manage_users_page
+
+The I<< Manage users >> page is visible.
+
+=cut
+
+sub assert_on_manage_users_page {
+    my ( $self, $name ) = @_;
+    $name //= 'The manage users page is visible';
+    my $test = context();
+
+    $self->_assert_on_page(
+        'body.user',
+        [ { selector => 'h1', match => '\AManage users\s*\z' } ],
         $name,
     );
 
@@ -602,6 +665,43 @@ sub _check_element_against_expectation {
 =head2 Action Methods
 
 These test methods perform actions against the user interface.
+
+=head3 assign_current_user_to_group_ok
+
+Assign the currently logged in user to a specified group.
+
+=cut
+
+sub assign_current_user_to_group_ok {
+    my ( $self, $name, $group_name ) = @_;
+    my $test = context();
+    my $webdriver = $self->gads->webdriver;
+
+    my $query = "//label/input[
+            \@type = 'checkbox'
+            and \@name = 'groups'
+        ]/..[
+            contains(., '${group_name}')
+        ]";
+    my $checkbox_el = $webdriver->find( $query, method => 'xpath', dies => 0 );
+
+    my $description = "checkbox for group '${group_name}'";
+    my $success = $self->_check_only_one( $checkbox_el, $description );
+    if ( $checkbox_el->selected ) {
+        $success = 0;
+        $test->diag("The ${description} is unexpectedly selected");
+    }
+    $checkbox_el->click;
+
+    my $save_el = $webdriver->find( 'button[type=submit][name=submit]', dies => 0 );
+    $success &&= $self->_check_only_one( $save_el, 'save button' );
+    $save_el->click;
+
+    $test->ok( $success, $name );
+
+    $test->release;
+    return $self;
+}
 
 =head3 confirm_deletion_ok
 
@@ -818,6 +918,18 @@ sub purge_deleted_records_ok {
     return $self;
 }
 
+=head3 select_current_user_to_edit_ok
+
+From the I<< Manage users >> page, select the currently logged in user.
+
+=cut
+
+sub select_current_user_to_edit_ok {
+    my ( $self, $name ) = @_;
+    return $self->_select_table_or_field_to_edit_ok(
+        $name, $self->gads->username, 'user' );
+}
+
 =head3 select_field_to_edit_ok
 
 From the I<< Manage fields >> page, select a named field to edit.
@@ -827,6 +939,17 @@ From the I<< Manage fields >> page, select a named field to edit.
 sub select_field_to_edit_ok {
     my $self = shift;
     return $self->_select_table_or_field_to_edit_ok( @_, 'field' );
+}
+
+=head3 select_group_to_edit_ok
+
+From the I<< Groups >> page, select a named group to edit.
+
+=cut
+
+sub select_group_to_edit_ok {
+    my $self = shift;
+    return $self->_select_table_or_field_to_edit_ok( @_, 'group' );
 }
 
 =head3 select_table_to_edit_ok
@@ -932,6 +1055,28 @@ sub submit_add_a_field_form_ok {
 
     $test->note("About to add a field named $arg{name}");
     $webdriver->find('#submit_save')->click;
+
+    my $result = $test->ok( $success, $name );
+    $test->release;
+    return $result;
+}
+
+=head3 submit_add_a_group_form_ok
+
+Submit the I<< Add a group >> form.
+
+=cut
+
+sub submit_add_a_group_form_ok {
+    my ( $self, $name, $group_name ) = @_;
+    $name //= 'Submit the add a group form';
+
+    my $test = context();
+    my $success = $self->_fill_in_field( 'input[name=name]', $group_name );
+
+    $test->note("About to add a group named ${group_name}");
+    my $webdriver = $self->gads->webdriver;
+    $webdriver->find('[type=submit][name=submit]')->click;
 
     my $result = $test->ok( $success, $name );
     $test->release;
