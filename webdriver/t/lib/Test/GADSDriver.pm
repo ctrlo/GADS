@@ -257,7 +257,7 @@ sub assert_table_not_listed {
     $name //= "The table named '$table_name' is not listed";
     my $test = context();
 
-    my $table_el = $self->_find_named_table_or_field_el($table_name);
+    my $table_el = $self->_find_named_item_row_el($table_name);
 
     my $name_selector = '../../td[ not( descendant::a ) ]';
     my @table_name = map {$_->find( $name_selector, method => 'xpath' )->text }
@@ -926,7 +926,7 @@ From the I<< Manage users >> page, select the currently logged in user.
 
 sub select_current_user_to_edit_ok {
     my ( $self, $name ) = @_;
-    return $self->_select_table_or_field_to_edit_ok(
+    return $self->_select_item_row_to_edit_ok(
         $name, $self->gads->username, 'user' );
 }
 
@@ -938,7 +938,7 @@ From the I<< Manage fields >> page, select a named field to edit.
 
 sub select_field_to_edit_ok {
     my $self = shift;
-    return $self->_select_table_or_field_to_edit_ok( @_, 'field' );
+    return $self->_select_item_row_to_edit_ok( @_, 'field' );
 }
 
 =head3 select_group_to_edit_ok
@@ -949,7 +949,7 @@ From the I<< Groups >> page, select a named group to edit.
 
 sub select_group_to_edit_ok {
     my $self = shift;
-    return $self->_select_table_or_field_to_edit_ok( @_, 'group' );
+    return $self->_select_item_row_to_edit_ok( @_, 'group' );
 }
 
 =head3 select_table_to_edit_ok
@@ -960,17 +960,17 @@ From the I<< Manage tables >> page, select a named table to edit.
 
 sub select_table_to_edit_ok {
     my $self = shift;
-    return $self->_select_table_or_field_to_edit_ok( @_, 'table' );
+    return $self->_select_item_row_to_edit_ok( @_, 'table' );
 }
 
-sub _select_table_or_field_to_edit_ok {
-    my ( $self, $name, $table_or_field_name, $type_name ) = @_;
-    $name //= "Select the '${table_or_field_name}' ${type_name} to edit";
+sub _select_item_row_to_edit_ok {
+    my ( $self, $name, $item_row_name, $type_name ) = @_;
+    $name //= "Select the '${item_row_name}' ${type_name} to edit";
     my $test = context();
 
-    my $edit_el = $self->_find_named_table_or_field_el($table_or_field_name);
+    my $edit_el = $self->_find_named_item_row_el($item_row_name);
     my $success = $self->_check_only_one(
-        $edit_el, "${type_name} named '${table_or_field_name}'" );
+        $edit_el, "${type_name} named '${item_row_name}'" );
     $edit_el->click if $success;
     $test->ok( $success, $name );
 
@@ -1300,7 +1300,7 @@ sub _fill_in_field {
 }
 
 
-sub _find_named_table_or_field_el {
+sub _find_named_item_row_el {
     my ( $self, $name ) = @_;
 
     my $webdriver = $self->gads->webdriver;
