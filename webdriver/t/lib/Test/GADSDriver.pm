@@ -692,10 +692,7 @@ sub assign_current_user_to_group_ok {
         $test->diag("The ${description} is unexpectedly selected");
     }
     $checkbox_el->click;
-
-    my $save_el = $webdriver->find( 'button[type=submit][name=submit]', dies => 0 );
-    $success &&= $self->_check_only_one( $save_el, 'save button' );
-    $save_el->click;
+    $success &&= $self->_click_submit_button;
 
     $test->ok( $success, $name );
 
@@ -1075,8 +1072,7 @@ sub submit_add_a_group_form_ok {
     my $success = $self->_fill_in_field( 'input[name=name]', $group_name );
 
     $test->note("About to add a group named ${group_name}");
-    my $webdriver = $self->gads->webdriver;
-    $webdriver->find('[type=submit][name=submit]')->click;
+    $success &&= $self->_click_submit_button;
 
     my $result = $test->ok( $success, $name );
     $test->release;
@@ -1114,7 +1110,7 @@ sub submit_add_a_table_form_ok {
     }
 
     $test->note("About to add a table named $arg{name}");
-    $webdriver->find('[type=submit][name=submit]')->click;
+    $success &&= $self->_click_submit_button;
 
     my $result = $test->ok( $success, $name );
     $test->release;
@@ -1226,7 +1222,7 @@ sub submit_login_form_ok {
     $test->note("About to log in as ${username} with password ${password}");
     my $success = $self->_fill_in_field( '#username', $username );
     $success &&= $self->_fill_in_field( '#password', $password );
-    $gads->webdriver->find('[type=submit][name=signin]')->click;
+    $success &&= $self->_click_submit_button('signin');
 
     my $result = $test->ok( $success, $name );
     $test->release;
@@ -1255,7 +1251,7 @@ sub submit_new_record_form_ok {
         $self->_new_record_selector(1), $arg[0] );
     $success &&= $self->_fill_in_field(
         $self->_new_record_selector(2), $arg[1] );
-    $self->gads->webdriver->find('[type=submit][name=submit]')->click;
+    $success &&= $self->_click_submit_button;
 
     my $result = $test->ok( $success, $name );
     $test->release;
@@ -1308,6 +1304,21 @@ sub _find_named_item_row_el {
     my $found_el = $webdriver->find( $xpath, method => 'xpath', dies => 0 );
 
     return $found_el;
+}
+
+sub _click_submit_button {
+    my ( $self, $element_name_attr ) = @_;
+    $element_name_attr //= 'submit';
+    my $webdriver = $self->gads->webdriver;
+
+    my $selector = "[type='submit'][name='${element_name_attr}']";
+    my $submit_el = $webdriver->find( $selector, dies => 0 );
+
+    my $success = $self->_check_only_one(
+        $submit_el, "${element_name_attr} button" );
+
+    $submit_el->click;
+    return $success;
 }
 
 1;
