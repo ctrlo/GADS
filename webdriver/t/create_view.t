@@ -59,6 +59,7 @@ $gads->select_table_to_edit_ok( 'Prepare to set permissions on the new table',
     $table_name );
 $gads->assert_on_manage_this_table_page;
 
+# Add fields to the new table
 $gads->follow_link_ok( undef, 'Manage fields' );
 $gads->assert_on_manage_fields_page;
 $gads->follow_link_ok( undef, 'Add a field' );
@@ -72,8 +73,8 @@ $gads->submit_add_a_field_form_ok(
 $gads->assert_success_present('A success message is visible after adding a field');
 $gads->assert_error_absent('No error message is visible after adding a field');
 $gads->follow_link_ok( undef, 'Add a field' );
+$gads->assert_on_add_a_field_page;
 
-# Add fields to the new table
 $gads->submit_add_a_field_form_ok(
     'Add an integer field to the new table',
     { name => $int_field_name, type => 'Integer', group_name => $group_name },
@@ -127,7 +128,44 @@ $gads->assert_error_absent(
     'No error message is visible after adding the second record' );
 $gads->assert_on_see_records_page;
 
-# TODO: write main tests here
+$gads->navigate_ok(
+    'Navigate to the add a view page',
+    [ qw( [aria-controls~="menu_view"] .view-add ) ],
+);
+$gads->assert_on_add_a_view_page;
+
+$gads->submit_add_a_view_form_ok(
+    name => 'Less than 100',
+    fields => [ $text_field_name, $int_field_name ],
+    filters => {
+        condition => 'AND',
+        rules => [
+            {
+                field => $text_field_name,
+                operator => 'begins with',
+                value => 'T',
+            },
+            {
+                field => $int_field_name,
+                operator => 'less',
+                value => 100,
+            },
+        ],
+    },
+);
+
+$gads->assert_on_see_records_page( 'Showing the view', 'Less than 100' );
+$gads->assert_success_present('The view was added successfully');
+
+# Tidy up: remove the view created earlier
+$gads->navigate_ok(
+    'Navigate to the edit current view page',
+    [ qw( [aria-controls~="menu_view"] .view-edit ) ],
+);
+$gads->delete_current_view_ok;
+
+$gads->assert_on_see_records_page('Back on the see records page');
+$gads->assert_success_present('The view was deleted successfully');
 
 # Tidy up: remove the records created earlier
 $gads->select_record_to_view_ok(

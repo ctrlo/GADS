@@ -127,7 +127,15 @@ sub _assert_error {
     );
 
     my $error_text = $error_el->text;
-    $test->note("The error message is '${error_text}'") if $error_text;
+    if ($error_text) {
+        my $diagnostic_text = "The error message is '${error_text}'";
+        if ($expect_present) {
+            $test->note($diagnostic_text);
+        }
+        else {
+            $test->diag($diagnostic_text);
+        }
+    }
 
     $test->release;
     return $self;
@@ -145,7 +153,15 @@ sub _assert_success {
     );
 
     my $success_text = $success_el->text;
-    $test->note("The success message is '${success_text}'") if $success_text;
+    if ($success_text) {
+        my $diagnostic_text = "The success message is '${success_text}'";
+        if ($expect_present) {
+            $test->note($diagnostic_text);
+        }
+        else {
+            $test->diag($diagnostic_text);
+        }
+    }
 
     $test->release;
     return $self;
@@ -319,6 +335,26 @@ sub assert_on_add_a_table_page {
     $test->release;
     return $self;
 }
+=head3 assert_on_add_a_view_page
+
+The I<< Add a view >> page is visisble.
+
+=cut
+
+sub assert_on_add_a_view_page {
+    my ( $self, $name ) = @_;
+    $name //= 'The add a view page is visible';
+    my $test = context();
+
+    $self->_assert_on_page(
+        'body.view\\/0',
+        [ { selector => 'h2', text => 'Add a customised view' } ],
+        $name,
+    );
+
+    $test->release;
+    return $self;
+}
 
 =head3 assert_on_login_page
 
@@ -432,13 +468,15 @@ The I<< See records >> page is visible.
 =cut
 
 sub assert_on_see_records_page {
-    my ( $self, $name ) = @_;
+    my ( $self, $name, $page_title ) = @_;
     $name //= 'The see records page is visible';
+    $page_title //= 'All data';     # Default title for no view
+    my $title = quotemeta $page_title;
     my $test = context();
 
     $self->_assert_on_page(
         'body.page.data_table',
-        [ { selector => 'h1', match => '\\AAll data\\s*' } ],
+        [ { selector => 'h1', match => "\\A${title}\\s*\\z" } ],
         $name,
     );
 
@@ -579,7 +617,10 @@ sub confirm_deletion_ok {
     my $test = context();
     my $webdriver = $self->gads->webdriver;
 
-    my $entity_name = $webdriver->find('input[name="name"]')->attr('value');
+    my $entity_name = $webdriver->find(
+        'input[name="name"]',
+        tries => 50,
+    )->attr('value');
 
     my $delete_button_el = $webdriver->find(
         # TODO: Use a better selector
@@ -609,12 +650,46 @@ sub confirm_deletion_ok {
     return $self;
 }
 
+=head3 delete_current_view_ok
+
+Delete the currently displayed view
+
+=cut
+
+# Very similar to delete_viewed_record_ok()
+sub delete_current_view_ok {
+    my ( $self, $name ) = @_;
+    $name //= 'Delete the currently displayed view';
+    my $test = context();
+    my $webdriver = $self->gads->webdriver;
+
+    my $view_name = $webdriver->find('input#name')->attr('value');
+
+    my @failure = $self->_find_and_click( [ 'a[data-target="#myModal"]' ] );
+
+    my $modal_title_el = $webdriver->find('h4#myModalLabel');
+    if ( $modal_title_el->size && 'Are you sure?' eq $modal_title_el->text ) {
+        $test->note("About to delete view ${view_name}");
+        $webdriver->find('#myModal .modal-dialog .btn-primary')->click;
+    }
+    else {
+        push @failure, "No 'Are you sure?' modal found for view ${view_name}";
+    }
+
+    $test->ok( !@failure, $name );
+    $test->diag($_) foreach @failure;
+
+    $test->release;
+    return $self
+}
+
 =head3 delete_viewed_record_ok
 
 Delete the currently viewed record
 
 =cut
 
+# Very similar to delete_current_view_ok()
 sub delete_viewed_record_ok {
     my ( $self, $name ) = @_;
     $name //= 'Delete the currently viewed record';
@@ -823,8 +898,7 @@ sub submit_add_a_field_form_ok {
 
     my $success = $self->_fill_in_field( 'input#name', $arg{name} );
     my $type_el = $webdriver->find(
-        # TODO: "contains" isn't the same as "equals"
-        "//*[ \@id = 'type' ]/option[ contains( ., '$arg{type}' ) ]",
+        "//*[ \@id = 'type' ]/option[ text() = '$arg{type}' ]",
         method => 'xpath',
     );
     $success &&= $self->_check_only_one(
@@ -898,6 +972,89 @@ sub submit_add_a_table_form_ok {
     $webdriver->find('[type=submit][name=submit]')->click;
 
     my $result = $test->ok( $success, $name );
+    $test->release;
+    return $result;
+}
+
+=head3 submit_add_a_view_form_ok
+
+Submit the I<< Add a view >> form.  Takes a hash reference of arguments
+where C<< name >> contains the name of the new field to add, C<< fields
+>> contains an array reference of human readable field names to show,
+and C<< filters >> contains a hash reference of filters, including an
+array reference of rules keyed on C<< rules >>.
+
+=cut
+
+# Does not (yet) handle the "Add group" filter option, sorting or
+# grouping.
+sub submit_add_a_view_form_ok {
+    my ( $self, %arg ) = @_;
+    $arg{name} //= 'Submit the add a view form';
+
+    my $test = context();
+
+    # Name the view
+    my $success = $self->_fill_in_field( 'input#name', $arg{name} );
+
+    # Select fields to include
+    my $webdriver = $self->gads->webdriver;
+    foreach my $field_label ( @{ $arg{fields} // [] } ) {
+        my $checkbox_el = $webdriver->find(
+            qq|//input[ \@class="col_check" and contains( .., "${field_label}" )]|,
+            method => 'xpath',
+            dies => 0,
+        );
+        $success &&= $self->_check_only_one( $checkbox_el, "checkbox titled $field_label" );
+        $checkbox_el->click;
+    }
+
+    # Specify fields to show in the view
+    my $filters_el = $webdriver->find('#builder');
+    $success &&= $self->_check_only_one( $filters_el, "#builder filter element" );
+    {
+        my $condition_label = $arg{filters}{condition};
+        my $condition_el = $filters_el->find(
+            "input[type=radio][value='${condition_label}']",
+            dies => 0,
+        );
+        $success &&= $self->_check_only_one( $condition_el, "condition titled $condition_label" );
+        $condition_el->click;
+    }
+
+    my $filter_rule_el = $filters_el->find('.rules-list li');
+    $success &&= $self->_check_only_one( $filter_rule_el, "filter rule" );
+    my $add_rule_el = $filters_el->find('.rules-group-header button[data-add="rule"]');
+    $success &&= $self->_check_only_one( $add_rule_el, "Add rule" );
+
+    # Specify filters for the view
+    foreach my $rules_ref ( @{ $arg{filters}{rules} } ) {
+        my %rule = %$rules_ref;
+        $filter_rule_el->find(
+            qq|//*[\@class = "rule-filter-container"]//option[ text() = "$rule{field}" ]|,
+            method => 'xpath',
+        )->click;
+        $filter_rule_el->find(
+            qq|//*[\@class = "rule-operator-container"]//option[ text() = "$rule{operator}" ]|,
+            method => 'xpath',
+        )->click;
+        $filter_rule_el->find(
+            '//*[ @class = "rule-value-container" ]//input[ @type = "text" ]',
+            method => 'xpath',
+        )->send_keys( $rule{value} );
+    }
+    continue {
+        $add_rule_el->click;
+        $filter_rule_el = $filter_rule_el->find(
+            './following-sibling::li',
+            method => 'xpath',
+        );
+    }
+
+    $test->note("About to add a view named $arg{name}");
+    $webdriver->find('#saveview')->click;
+
+    my $result = $test->ok( $success, "Add a view named $arg{name}" );
     $test->release;
     return $result;
 }
