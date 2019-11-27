@@ -5,9 +5,10 @@ use warnings;
 use GADS::Records;
 use Log::Report;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
-my $sheet   = t::lib::DataSheet->new(data => [{ string1 => 'foobar1' }]);
+my $sheet   = Test::GADS::DataSheet->new(data => [{ string1 => 'foobar1' }]);
 my $layout  = $sheet->layout;
 my $schema  = $sheet->schema;
 $sheet->create_records;

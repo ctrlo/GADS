@@ -5,7 +5,8 @@ use warnings;
 use Log::Report;
 use GADS::Record;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 my $data = [
     {
@@ -37,10 +38,10 @@ my %as_string = (
     file1      => 'file.txt',
 );
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
-my $sheet   = t::lib::DataSheet->new(
+my $sheet   = Test::GADS::DataSheet->new(
     data             => $data,
     schema           => $schema,
     curval           => 2,

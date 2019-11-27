@@ -5,14 +5,15 @@ use utf8;
 
 use Log::Report;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 foreach my $test (qw/delete_not_used typeahead normal/)
 {
     my $delete_not_used = $test eq 'delete_not_used' ? 1 : 0;
     my $value_selector  = $test eq 'typeahead' ? 'typeahead' : 'noshow';
 
-    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, site_id => 1);
+    my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, site_id => 1);
     $curval_sheet->create_records;
     my $schema  = $curval_sheet->schema;
 
@@ -21,7 +22,7 @@ foreach my $test (qw/delete_not_used typeahead normal/)
     # curval will automatically make it multivalue. Also, when a curval field
     # is single value, it still allows multiple values to be set via set_value.
     # Therefore, for the code values, we assume values can be either
-    my $sheet   = t::lib::DataSheet->new(
+    my $sheet   = Test::GADS::DataSheet->new(
         schema           => $schema,
         curval           => 2,
         curval_offset    => 6,

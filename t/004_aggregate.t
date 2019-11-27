@@ -5,7 +5,8 @@ use warnings;
 use GADS::Records;
 use Log::Report;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 my $data = [
     {
@@ -30,7 +31,7 @@ my $data = [
     },
 ];
 
-my $sheet   = t::lib::DataSheet->new(
+my $sheet   = Test::GADS::DataSheet->new(
     data       => $data,
     multivalue => 1,
     calc_code  => "function evaluate (L1integer1) \n return L1integer1 * 2 \n end",
@@ -124,7 +125,7 @@ is($aggregate->fields->{$calc1->id}->as_string, "410", "Correct total of calc va
         };
     }
 
-    my $sheet = t::lib::DataSheet->new(data => \@data);
+    my $sheet = Test::GADS::DataSheet->new(data => \@data);
     $sheet->create_records;
     my $schema   = $sheet->schema;
     my $layout   = $sheet->layout;

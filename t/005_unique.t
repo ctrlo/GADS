@@ -5,7 +5,8 @@ use warnings;
 use Log::Report;
 use GADS::Record;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 my $data = {
     string1    => 'Bar',
@@ -22,7 +23,7 @@ my $data = {
     },
 };
 
-my $sheet = t::lib::DataSheet->new(
+my $sheet = Test::GADS::DataSheet->new(
     data => [$data],
     calc_code => 'function evaluate (L1string1)
         return L1string1

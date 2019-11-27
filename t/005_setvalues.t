@@ -9,7 +9,8 @@ use GADS::Record;
 use GADS::Records;
 use GADS::Schema;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 my $values = {
     string1 => {
@@ -149,12 +150,12 @@ my $data = {
 # First check that we can create new record and access its blank values
 foreach my $multivalue (0..1)
 {
-    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+    my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
     $curval_sheet->create_records;
-    my $sheet = t::lib::DataSheet->new(
-        curval       => 2,
-        schema       => $curval_sheet->schema,
-        multivalue   => $multivalue,
+    my $sheet = Test::GADS::DataSheet->new(
+        curval     => 2,
+        schema     => $curval_sheet->schema,
+        multivalue => $multivalue,
         column_count => { curval => 2},
     );
     my $user = $curval_sheet->user;
@@ -205,14 +206,14 @@ foreach my $multivalue (0..1)
         {
             foreach my $deleted (0..1) # Test for deleted values of field, where applicable
             {
-                my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, site_id => 1);
+                my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, site_id => 1);
                 $curval_sheet->create_records;
                 my $schema  = $curval_sheet->schema;
-                my $sheet   = t::lib::DataSheet->new(
-                    data         => $data->{$test},
-                    multivalue   => $multivalue,
-                    schema       => $schema,
-                    curval       => 2,
+                my $sheet   = Test::GADS::DataSheet->new(
+                    data       => $data->{$test},
+                    multivalue => $multivalue,
+                    schema     => $schema,
+                    curval     => 2,
                     column_count => { curval => 2},
                 );
                 my $layout  = $sheet->layout;
@@ -370,10 +371,10 @@ foreach my $multivalue (0..1)
 
 # Set of tests to check behaviour when values start as undefined (as happens,
 # for example, when a new column is created and not added to existing records)
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
-my $sheet   = t::lib::DataSheet->new(schema => $schema, curval => 2, column_count => { curval => 2 });
+my $sheet   = Test::GADS::DataSheet->new(schema => $schema, curval => 2, column_count => { curval => 2 });
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
 
@@ -415,9 +416,9 @@ foreach my $c (keys %$values)
 
 # Test madatory fields
 {
-    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+    my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
     $curval_sheet->create_records;
-    my $sheet = t::lib::DataSheet->new(
+    my $sheet = Test::GADS::DataSheet->new(
         optional                 => 0,
         data                     => [],
         curval                   => 2,
@@ -521,7 +522,7 @@ foreach my $c (keys %$values)
 
 # Test setting person field as textual value instead of ID
 {
-    my $sheet = t::lib::DataSheet->new(user_count => 2);
+    my $sheet = Test::GADS::DataSheet->new(user_count => 2);
     $sheet->create_records;
     my $record = GADS::Records->new(
         user    => $sheet->user,
@@ -550,7 +551,7 @@ foreach my $c (keys %$values)
 }
 
 # Final special test for file with only ID number the same (no new content)
-$sheet = t::lib::DataSheet->new(
+$sheet = Test::GADS::DataSheet->new(
     data => [
         {
             file1 => undef, # This will create default dummy file

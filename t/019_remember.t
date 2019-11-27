@@ -5,7 +5,8 @@ use warnings;
 use Log::Report;
 use GADS::Record;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 my $data = {
     string1    => 'Bar',
@@ -21,7 +22,7 @@ my $expected = {
     person1    => 'User1, User1',
 };
 
-my $sheet = t::lib::DataSheet->new(data => [$data]);
+my $sheet = Test::GADS::DataSheet->new(data => [$data]);
 $sheet->create_records;
 my $columns = $sheet->columns;
 my $layout  = $sheet->layout;

@@ -12,7 +12,8 @@ use GADS::Record;
 use GADS::Records;
 use GADS::Schema;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 my $data = [
     {
@@ -31,11 +32,11 @@ my $data2 = [
     },
 ];
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, data => $data2, user_permission_override => 0);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, data => $data2, user_permission_override => 0);
 $curval_sheet->create_records;
 my $curval_columns = $curval_sheet->columns;
 my $schema  = $curval_sheet->schema;
-my $sheet   = t::lib::DataSheet->new(
+my $sheet   = Test::GADS::DataSheet->new(
     data                     => $data,
     schema                   => $schema,
     multivalue               => 1,

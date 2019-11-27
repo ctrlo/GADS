@@ -9,7 +9,8 @@ use JSON qw(encode_json);
 use Log::Report;
 use GADS::Records;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 set_fixed_time('01/01/2008 01:00:00', '%m/%d/%Y %H:%M:%S');
 
@@ -31,10 +32,10 @@ my $data = [
     },
 ];
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
 $curval_sheet->create_records;
 my $schema = $curval_sheet->schema;
-my $sheet = t::lib::DataSheet->new(data => $data, curval => 2, schema => $schema);
+my $sheet = Test::GADS::DataSheet->new(data => $data, curval => 2, schema => $schema);
 
 my $layout = $sheet->layout;
 my $columns = $sheet->columns;
@@ -149,7 +150,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         $start->add(days => 1);
     }
 
-    my $sheet = t::lib::DataSheet->new(data => \@data);
+    my $sheet = Test::GADS::DataSheet->new(data => \@data);
     $sheet->create_records;
     my $schema   = $sheet->schema;
     my $layout   = $sheet->layout;
@@ -284,7 +285,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         },
     ];
 
-    my $sheet = t::lib::DataSheet->new(data => $data);
+    my $sheet = Test::GADS::DataSheet->new(data => $data);
     $sheet->create_records;
     my $schema   = $sheet->schema;
     my $layout   = $sheet->layout;
@@ -322,7 +323,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
 
 # Various time tests
 {
-    my $sheet = t::lib::DataSheet->new(data => []);
+    my $sheet = Test::GADS::DataSheet->new(data => []);
     $sheet->create_records;
     my $schema       = $sheet->schema;
     my $layout       = $sheet->layout;
@@ -399,7 +400,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         },
     ];
 
-    my $sheet = t::lib::DataSheet->new(data => $data);
+    my $sheet = Test::GADS::DataSheet->new(data => $data);
     $sheet->create_records;
     my $schema   = $sheet->schema;
     my $layout   = $sheet->layout;
@@ -438,7 +439,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         },
     ];
 
-    my $sheet = t::lib::DataSheet->new(data => $data, user_permission_override => 0);
+    my $sheet = Test::GADS::DataSheet->new(data => $data, user_permission_override => 0);
     $sheet->create_records;
     my $schema  = $sheet->schema;
     my $layout  = $sheet->layout;
@@ -494,7 +495,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     ];
 
     my $year = 86400 * 366; # 2008 is a leap year
-    my $sheet = t::lib::DataSheet->new(
+    my $sheet = Test::GADS::DataSheet->new(
         data             => $data,
         calc_code        => "function evaluate (L1daterange1) \n return L1daterange1.from.epoch - $year \nend",
         calc_return_type => 'date',
@@ -525,7 +526,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
 
 # No records to display
 {
-    my $sheet = t::lib::DataSheet->new(data => []);
+    my $sheet = Test::GADS::DataSheet->new(data => []);
     $sheet->create_records;
     my $schema   = $sheet->schema;
     my $layout   = $sheet->layout;
@@ -546,7 +547,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
 
 # No records with date fields to display
 {
-    my $sheet = t::lib::DataSheet->new(data => [{ string1 => 'Foobar' }]);
+    my $sheet = Test::GADS::DataSheet->new(data => [{ string1 => 'Foobar' }]);
     $sheet->create_records;
     my $schema   = $sheet->schema;
     my $layout   = $sheet->layout;
@@ -577,7 +578,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         };
         $now->add(days => 1);
     }
-    my $sheet = t::lib::DataSheet->new(data => \@data);
+    my $sheet = Test::GADS::DataSheet->new(data => \@data);
     $sheet->create_records;
     my $schema   = $sheet->schema;
     my $layout   = $sheet->layout;
@@ -617,7 +618,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
 
 # No records with date fields to display
 {
-    my $sheet = t::lib::DataSheet->new;
+    my $sheet = Test::GADS::DataSheet->new;
     $sheet->create_records;
     my $schema   = $sheet->schema;
     my $layout   = $sheet->layout;
@@ -655,7 +656,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
             daterange1 => ['2010-01-01', '2010-06-01'],
         },
     ];
-    my $sheet = t::lib::DataSheet->new(data => $data);
+    my $sheet = Test::GADS::DataSheet->new(data => $data);
 
     $sheet->create_records;
     my $schema   = $sheet->schema;
@@ -693,7 +694,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
             date1   => '2018-03-26',
         },
     ];
-    my $sheet = t::lib::DataSheet->new(data => $data);
+    my $sheet = Test::GADS::DataSheet->new(data => $data);
 
     $sheet->create_records;
     my $schema   = $sheet->schema;
@@ -730,7 +731,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
             string1    => '', # Test blank
         },
     ];
-    my $curval_sheet = t::lib::DataSheet->new(data => $data, instance_id => 2);
+    my $curval_sheet = Test::GADS::DataSheet->new(data => $data, instance_id => 2);
     $curval_sheet->create_records;
     my $schema   = $curval_sheet->schema;
 
@@ -757,7 +758,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         },
     ];
 
-    my $sheet    = t::lib::DataSheet->new(
+    my $sheet    = Test::GADS::DataSheet->new(
         data             => $data,
         curval           => 2,
         schema           => $schema,
@@ -824,10 +825,10 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
             curval1 => 2,
         },
     ];
-    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+    my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
     $curval_sheet->create_records;
     my $schema = $curval_sheet->schema;
-    my $sheet = t::lib::DataSheet->new(data => $data, curval => 2, schema => $schema);
+    my $sheet = Test::GADS::DataSheet->new(data => $data, curval => 2, schema => $schema);
     $sheet->create_records;
 
     my $layout = $sheet->layout;
@@ -885,10 +886,10 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         };
     }
 
-    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, data => \@curval_data);
+    my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, data => \@curval_data);
     $curval_sheet->create_records;
     my $schema = $curval_sheet->schema;
-    my $sheet = t::lib::DataSheet->new(data => \@data, curval => 2, schema => $schema);
+    my $sheet = Test::GADS::DataSheet->new(data => \@data, curval => 2, schema => $schema);
     $sheet->create_records;
 
     my $layout = $sheet->layout;
@@ -934,7 +935,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
 # prompted its inclusion, which was a PostgreSQL error as a result of comparing
 # an integer (current_id field) with a date. Sqlite does not enforce typing.
 {
-    my $sheet = t::lib::DataSheet->new;
+    my $sheet = Test::GADS::DataSheet->new;
     $sheet->create_records;
     my $schema   = $sheet->schema;
     my $layout   = $sheet->layout;
@@ -994,7 +995,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         $start->subtract(days => 1);
     }
 
-    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, data => \@curval_data, user_permission_override => 0, multivalue => 1);
+    my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, data => \@curval_data, user_permission_override => 0, multivalue => 1);
     $curval_sheet->create_records;
     my $curval_date = $curval_sheet->columns->{date1};
     $curval_date->set_permissions({});
@@ -1002,7 +1003,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     $curval_sheet->layout->clear;
 
     my $schema = $curval_sheet->schema;
-    my $sheet = t::lib::DataSheet->new(data => \@data, curval => 2, schema => $schema, user_permission_override => 0, multivalue => 1);
+    my $sheet = Test::GADS::DataSheet->new(data => \@data, curval => 2, schema => $schema, user_permission_override => 0, multivalue => 1);
     $sheet->create_records;
 
     my $layout = $sheet->layout;

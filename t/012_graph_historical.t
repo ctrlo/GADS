@@ -11,7 +11,8 @@ use GADS::Graph::Data;
 use GADS::Records;
 use GADS::RecordsGraph;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 set_fixed_time('06/14/2019 01:00:00', '%m/%d/%Y %H:%M:%S');
 
@@ -108,7 +109,7 @@ my @records = (
     ],
 );
 
-my $sheet   = t::lib::DataSheet->new(data => []);
+my $sheet   = Test::GADS::DataSheet->new(data => []);
 my $schema  = $sheet->schema;
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;

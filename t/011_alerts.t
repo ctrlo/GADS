@@ -10,7 +10,8 @@ use GADS::Record;
 use GADS::Records;
 use GADS::Schema;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 set_fixed_time('10/10/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
 
@@ -117,12 +118,12 @@ my $data = [
     },
 ];
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, calc_return_type => 'string');
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, calc_return_type => 'string');
 $curval_sheet->create_records;
 my $curval_columns = $curval_sheet->columns;
 my $schema = $curval_sheet->schema;
 
-my $sheet = t::lib::DataSheet->new(
+my $sheet = Test::GADS::DataSheet->new(
     data                     => $data,
     schema                   => $schema,
     curval                   => 2,
@@ -765,7 +766,7 @@ $data = [
     },
 ];
 
-$sheet = t::lib::DataSheet->new(data => $data);
+$sheet = Test::GADS::DataSheet->new(data => $data);
 $schema = $sheet->schema;
 $layout = $sheet->layout;
 $columns = $sheet->columns;
@@ -906,7 +907,7 @@ foreach my $curuser_type (qw/person string/)
             },
         ];
 
-    $sheet = t::lib::DataSheet->new(data => $data, user_count => 2);
+    $sheet = Test::GADS::DataSheet->new(data => $data, user_count => 2);
     $schema = $sheet->schema;
     $layout = $sheet->layout;
     $columns = $sheet->columns;
@@ -1059,7 +1060,7 @@ foreach my $curuser_type (qw/person string/)
 }
 
 # Check alerts after update of calc column code
-$sheet = t::lib::DataSheet->new;
+$sheet = Test::GADS::DataSheet->new;
 $schema = $sheet->schema;
 $layout = $sheet->layout;
 $columns = $sheet->columns;
@@ -1123,7 +1124,7 @@ is( $schema->resultset('AlertSend')->count, 1, "Correct number of alerts to send
 # year hard-coded in the Lua code. Years of 2010 and 2014 are used for the tests.
 foreach my $viewtype (qw/normal group global/)
 {
-    $sheet = t::lib::DataSheet->new(
+    $sheet = Test::GADS::DataSheet->new(
         calc_code => "function evaluate (L1daterange1) \nif L1daterange1.from.year < 2010 then return 1 else return 0 end\nend",
     );
     $sheet->create_records;
@@ -1193,7 +1194,7 @@ $data = [ { string1 => 'Bar' } ];
 push @$data, { string1 => 'Foo' }
     for (1..1000);
 
-$sheet = t::lib::DataSheet->new(data => $data);
+$sheet = Test::GADS::DataSheet->new(data => $data);
 $schema = $sheet->schema;
 $layout = $sheet->layout;
 $columns = $sheet->columns;
@@ -1258,7 +1259,7 @@ is( $alerts_rs->count, $alert_count + 999, "Correct number of bulk alerts insert
 # previous bug where views with alerts were being searched across all tables
 # rather than just the current one.
 $schema->resultset('AlertCache')->delete;
-my $sheet2 = t::lib::DataSheet->new(schema => $schema, instance_id => 2, curval_offset => 6);
+my $sheet2 = Test::GADS::DataSheet->new(schema => $schema, instance_id => 2, curval_offset => 6);
 $sheet2->create_records;
 my $record = GADS::Record->new(
     user     => $sheet2->user,

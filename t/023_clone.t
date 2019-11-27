@@ -4,9 +4,10 @@ use warnings;
 
 use Log::Report;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
 
@@ -22,7 +23,7 @@ my $data = [
     },
 ];
 
-my $sheet   = t::lib::DataSheet->new(
+my $sheet   = Test::GADS::DataSheet->new(
     data             => $data,
     schema           => $schema,
     curval           => 2,

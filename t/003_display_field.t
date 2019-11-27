@@ -5,16 +5,17 @@ use warnings;
 use GADS::Filter;
 use Log::Report;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 # Tests to check that fields that depend on another field for their display are
 # blanked if they should not have been shown
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
 
-my $sheet   = t::lib::DataSheet->new(
+my $sheet   = Test::GADS::DataSheet->new(
     schema             => $schema,
     curval             => 2,
     curval_field_ids   => [$curval_sheet->columns->{string1}->id],
