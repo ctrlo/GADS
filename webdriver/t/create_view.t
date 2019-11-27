@@ -22,6 +22,7 @@ my $group_name = "TESTGROUPWD $$";
 my $table_name = "TESTWD $$";
 my $text_field_name = "MytestName";
 my $int_field_name = "MytestInt";
+my $view_name = 'Less than 100';
 my @record = (
     {
         name => 'One hundred and twenty three',
@@ -159,7 +160,7 @@ $gads->navigate_ok(
 $gads->assert_on_add_a_view_page;
 
 $gads->submit_add_a_view_form_ok(
-    name => 'Less than 100',
+    name => $view_name,
     fields => [ $text_field_name, $int_field_name ],
     filters => {
         condition => 'AND',
@@ -178,7 +179,7 @@ $gads->submit_add_a_view_form_ok(
     },
 );
 
-$gads->assert_on_see_records_page( 'Showing the view', 'Less than 100' );
+$gads->assert_on_see_records_page( 'Showing the view', $view_name );
 $gads->assert_success_present('The view was added successfully');
 
 # Tidy up: remove the view created earlier

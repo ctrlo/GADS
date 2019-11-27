@@ -526,7 +526,8 @@ sub assert_on_new_record_page {
 
 =head3 assert_on_see_records_page
 
-The I<< See records >> page is visible.
+The I<< See records >> page is visible.  Takes two optional arguments,
+the test name and an expected page title.
 
 =cut
 
