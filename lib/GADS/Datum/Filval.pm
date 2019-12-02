@@ -101,7 +101,6 @@ sub re_evaluate
         submission_id => $submission_id,
         layout_id     => $self->column->id,
     })->get_column('current_id')->all;
-use Data::Dumper; say STDERR "EEEEEEEEEEe ".Dumper \@ids;
     $self->set_value(\@ids);
 }
 
