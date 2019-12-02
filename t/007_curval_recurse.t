@@ -5,16 +5,17 @@ use utf8;
 
 use Log::Report;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 # Create a recursive calc situation, and check that we don't get caught in a
 # loop (in which case this test will never finish)
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
 
-my $sheet   = t::lib::DataSheet->new(
+my $sheet   = Test::GADS::DataSheet->new(
     schema           => $schema,
     data             => [],
     curval           => 2,
@@ -76,7 +77,7 @@ $record->find_current_id($current_id);
 is($record->fields->{$columns->{calc1}->id}, "Test passed", "Calc evaluated correctly");
 is($record->fields->{$columns->{curval1}->id}, "Foo", "Curval correct in record");
 
-my $curval_sheet2 = t::lib::DataSheet->new(
+my $curval_sheet2 = Test::GADS::DataSheet->new(
     schema => $schema,
     instance_id => 3,
     data => [{

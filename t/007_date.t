@@ -9,9 +9,10 @@ use JSON qw(encode_json);
 use Log::Report;
 use GADS::Record;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
-my $sheet   = t::lib::DataSheet->new;
+my $sheet   = Test::GADS::DataSheet->new;
 my $schema  = $sheet->schema;
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;

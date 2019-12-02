@@ -11,9 +11,10 @@ use Test::MockTime qw(set_fixed_time restore_time); # Load before DateTime
 use GADS::Records;
 use Log::Report;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
-my $sheet   = t::lib::DataSheet->new(
+my $sheet   = Test::GADS::DataSheet->new(
     data      => [],
     calc_code => "function evaluate (_version_datetime)
         return _version_datetime.hour

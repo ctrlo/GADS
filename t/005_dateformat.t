@@ -9,7 +9,8 @@ use GADS::Record;
 use GADS::Records;
 use GADS::Schema;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 my $tests = {
     'yyyy-MM-dd' => {
@@ -73,7 +74,7 @@ foreach my $format (qw/yyyy-MM-dd dd-MM-yyyy/)
     };
     GADS::Config->instance->config($config);
     my $test = $tests->{$format};
-    my $sheet   = t::lib::DataSheet->new(
+    my $sheet   = Test::GADS::DataSheet->new(
         data             => $test->{data},
         calc_code        => "function evaluate (L1daterange1) \n return L1daterange1.from.epoch \n end",
         calc_return_type => 'date',

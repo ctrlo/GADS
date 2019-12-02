@@ -5,7 +5,8 @@ use utf8;
 
 use Log::Report;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 # Tests to check that a curval field can refer to the same table
 
@@ -18,7 +19,7 @@ my $data = [
     },
 ];
 
-my $sheet   = t::lib::DataSheet->new(
+my $sheet   = Test::GADS::DataSheet->new(
     data => $data,
 );
 my $layout  = $sheet->layout;

@@ -13,7 +13,8 @@ use GADS::Records;
 use GADS::RecordsGraph;
 use GADS::Schema;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 # Test search of historical values. To make sure that values from other fields
 # of the same type are not being included, create 2 fields for each column
@@ -71,12 +72,12 @@ my @values = (
 );
 
 # XXX Curval tests to be done
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
 my %data1 = map +( $_->{field}.'1' => $_->{begin_set} ), @values;
 my %data2 = map +( $_->{field}.'2' => $_->{begin_set} ), @values;
-my $sheet   = t::lib::DataSheet->new(
+my $sheet   = Test::GADS::DataSheet->new(
     data         => [\%data1, \%data2],
     schema       => $schema,
     curval       => 2,
@@ -353,7 +354,7 @@ foreach my $test (@tests)
         },
     ];
 
-    my $sheet   = t::lib::DataSheet->new(
+    my $sheet   = Test::GADS::DataSheet->new(
         data       => $data,
         multivalue => 1,
     );
@@ -451,7 +452,7 @@ foreach my $test (@tests)
 {
     set_fixed_time('01/01/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
 
-    my $sheet   = t::lib::DataSheet->new(
+    my $sheet   = Test::GADS::DataSheet->new(
         data       => [{
             integer1 => 10,
         }],

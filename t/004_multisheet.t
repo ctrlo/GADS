@@ -9,16 +9,17 @@ use GADS::Record;
 use GADS::Records;
 use GADS::Schema;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 # Only use multivalue for the referenced sheet. Normal multivalue is tested elsewhere.
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 3);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 3);
 $curval_sheet->create_records;
 my $curval_columns = $curval_sheet->columns;
 my $curval_string  = $curval_columns->{string1};
 my $curval_enum    = $curval_columns->{enum1};
 my $schema = $curval_sheet->schema;
-my $sheet1 = t::lib::DataSheet->new(
+my $sheet1 = Test::GADS::DataSheet->new(
     data             => [],
     instance_id      => 1,
     schema           => $schema,
@@ -26,7 +27,7 @@ my $sheet1 = t::lib::DataSheet->new(
     curval           => 3,
     curval_field_ids => [$curval_string->id, $curval_enum->id],
 );
-my $sheet2 = t::lib::DataSheet->new(
+my $sheet2 = Test::GADS::DataSheet->new(
     data             => [],
     instance_id      => 2,
     schema           => $schema,

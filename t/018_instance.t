@@ -6,9 +6,10 @@ use Log::Report;
 use GADS::Instances;
 use GADS::Users;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
-my $sheet1 = t::lib::DataSheet->new(user_permission_override => 0);
+my $sheet1 = Test::GADS::DataSheet->new(user_permission_override => 0);
 $sheet1->create_records;
 my $schema = $sheet1->schema;
 my $layout1 = $sheet1->layout;
@@ -62,7 +63,7 @@ $layout2->purge;
 is($schema->resultset('Instance')->count, 1, "Second instance deleted");
 
 # Make sure same users is used from first sheet
-my $sheet2 = t::lib::DataSheet->new(
+my $sheet2 = Test::GADS::DataSheet->new(
     schema                   => $schema,
     instance_id              => 2,
     user_permission_override => 0,

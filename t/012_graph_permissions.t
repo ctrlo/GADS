@@ -12,9 +12,10 @@ use GADS::Record;
 use GADS::Records;
 use GADS::Schema;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
-my $sheet   = t::lib::DataSheet->new(user_permission_override => 0);
+my $sheet   = Test::GADS::DataSheet->new(user_permission_override => 0);
 my $schema  = $sheet->schema;
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
@@ -128,7 +129,7 @@ like($@, qr/do not have permission/, "Unable to create all user shared graph as 
 # Finally check what groups each user can see for sharing
 # Create new table with 2 new groups, which should not be shown to anyone but
 # superadmin to begin with
-my $sheet2 = t::lib::DataSheet->new(schema => $schema, instance_id => 2, data => []);
+my $sheet2 = Test::GADS::DataSheet->new(schema => $schema, instance_id => 2, data => []);
 $sheet2->create_records;
 # Group3 is a group with normal read permissions on a field in the table
 my $group3 = GADS::Group->new(schema => $schema);
@@ -154,7 +155,7 @@ $schema->resultset('InstanceGroup')->create({
 
 # Finally a third sheet with its own group to check this group is only shown to
 # superadmin
-my $sheet3 = t::lib::DataSheet->new(schema => $schema, instance_id => 3, data => []);
+my $sheet3 = Test::GADS::DataSheet->new(schema => $schema, instance_id => 3, data => []);
 $sheet3->create_records;
 my $group5 = GADS::Group->new(schema => $schema);
 $group5->from_id;

@@ -9,7 +9,8 @@ use GADS::Record;
 use GADS::Records;
 use GADS::Schema;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 my $data = [
     {
@@ -22,7 +23,7 @@ my $data = [
     }
 ];
 
-my $sheet = t::lib::DataSheet->new(data => $data);
+my $sheet = Test::GADS::DataSheet->new(data => $data);
 
 my $schema = $sheet->schema;
 my $columns = $sheet->columns;

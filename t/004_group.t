@@ -5,7 +5,8 @@ use warnings;
 use GADS::Records;
 use Log::Report;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 foreach my $multivalue (0..1)
 {
@@ -75,11 +76,11 @@ foreach my $multivalue (0..1)
         },
     ];
 
-    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+    my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
     $curval_sheet->create_records;
     my $schema = $curval_sheet->schema;
 
-    my $sheet   = t::lib::DataSheet->new(
+    my $sheet   = Test::GADS::DataSheet->new(
         data             => $data,
         calc_code        => "function evaluate (L1integer1) \n return L1integer1 * 2 \n end",
         schema           => $schema,
@@ -207,7 +208,7 @@ foreach my $multivalue (0..1)
 
 # Make sure that correct columns are returned from view
 {
-    my $sheet   = t::lib::DataSheet->new;
+    my $sheet   = Test::GADS::DataSheet->new;
     my $schema  = $sheet->schema;
     my $layout  = $sheet->layout;
     my $columns = $sheet->columns;
@@ -273,7 +274,7 @@ foreach my $multivalue (0..1)
         };
     }
 
-    my $sheet = t::lib::DataSheet->new(data => \@data);
+    my $sheet = Test::GADS::DataSheet->new(data => \@data);
     $sheet->create_records;
     my $schema   = $sheet->schema;
     my $layout   = $sheet->layout;

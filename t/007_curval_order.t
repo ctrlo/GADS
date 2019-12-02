@@ -5,7 +5,8 @@ use utf8;
 
 use Log::Report;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 my $data1 = [
     {
@@ -22,7 +23,7 @@ my $data1 = [
     },
 ];
 
-my $curval_sheet = t::lib::DataSheet->new(instance_id => 2, data => $data1);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, data => $data1);
 $curval_sheet->create_records;
 my $curval_string_id = $curval_sheet->columns->{string1}->id;
 my $schema  = $curval_sheet->schema;
@@ -34,7 +35,7 @@ my $data2 = [
     },
 ];
 
-my $sheet   = t::lib::DataSheet->new(
+my $sheet   = Test::GADS::DataSheet->new(
     data               => $data2,
     schema             => $schema,
     curval             => 2,

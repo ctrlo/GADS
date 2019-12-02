@@ -1,4 +1,4 @@
-package t::lib::DataSheet;
+package Test::GADS::DataSheet;
 
 use strict;
 use warnings;

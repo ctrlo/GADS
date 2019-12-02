@@ -6,13 +6,14 @@ use Test::MockTime qw(set_fixed_time restore_time); # Load before DateTime
 use Log::Report;
 use GADS::Import;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 $ENV{GADS_NO_FORK} = 1; # Prevent forking during import process
 
 # version tests
 {
-    my $sheet = t::lib::DataSheet->new(data => []);
+    my $sheet = Test::GADS::DataSheet->new(data => []);
 
     my $schema  = $sheet->schema;
     my $layout  = $sheet->layout;
@@ -52,7 +53,7 @@ $ENV{GADS_NO_FORK} = 1; # Prevent forking during import process
 # Deleted version of live enumval and tree
 foreach my $type (qw/enum tree/)
 {
-    my $sheet = t::lib::DataSheet->new(data => []);
+    my $sheet = Test::GADS::DataSheet->new(data => []);
 
     my $schema  = $sheet->schema;
     my $layout  = $sheet->layout;
@@ -168,7 +169,7 @@ foreach my $test (@tests)
 {
     foreach my $status (qw/on off/)
     {
-        my $sheet = t::lib::DataSheet->new(data => [], multivalue => 1);
+        my $sheet = Test::GADS::DataSheet->new(data => [], multivalue => 1);
 
         my $schema  = $sheet->schema;
         my $layout  = $sheet->layout;
@@ -487,7 +488,7 @@ foreach my $test (@update_tests)
     # Create initial records with this datetime
     set_fixed_time('10/10/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
 
-    my $curval_sheet = t::lib::DataSheet->new(instance_id => 2);
+    my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
     $curval_sheet->create_records;
     my $schema = $curval_sheet->schema;
     my %common = (
@@ -500,8 +501,8 @@ foreach my $test (@update_tests)
         $common{calc_return_type} = 'string';
     }
     my $sheet  = $test->{existing_data}
-        ? t::lib::DataSheet->new(data => $test->{existing_data}, %common)
-        : t::lib::DataSheet->new(%common);
+        ? Test::GADS::DataSheet->new(data => $test->{existing_data}, %common)
+        : Test::GADS::DataSheet->new(%common);
 
     my $layout  = $sheet->layout;
     my $columns = $sheet->columns;

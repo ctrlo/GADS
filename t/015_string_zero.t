@@ -4,12 +4,13 @@ use warnings;
 
 use Log::Report;
 
-use t::lib::DataSheet;
+use lib 't/lib';
+use Test::GADS::DataSheet;
 
 # Test for zero vs empty string in string
 foreach my $value ('', '0')
 {
-    my $sheet   = t::lib::DataSheet->new(data => [], calc_code => "function evaluate (L1integer1)\nreturn L1integer1\nend");
+    my $sheet   = Test::GADS::DataSheet->new(data => [], calc_code => "function evaluate (L1integer1)\nreturn L1integer1\nend");
     my $schema  = $sheet->schema;
     my $layout  = $sheet->layout;
     my $columns = $sheet->columns;
