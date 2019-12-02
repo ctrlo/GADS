@@ -9,7 +9,7 @@ sub after_presentation
     $return->{value_selector}     = $self->value_selector;
     $return->{show_add}           = $self->show_add;
     $return->{has_subvals}        = $self->has_subvals;
-    $return->{filtered_values}    = $self->filtered_values
+    $return->{filtered_values}    = $self->filtered_values($options{record}->submission_token)
         if $options{edit};
     $return->{data_filter_fields} = $self->data_filter_fields;
 }

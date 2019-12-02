@@ -34,6 +34,7 @@ use GADS::Column::Date;
 use GADS::Column::Daterange;
 use GADS::Column::Enum;
 use GADS::Column::File;
+use GADS::Column::Filval;
 use GADS::Column::Intgr;
 use GADS::Column::Person;
 use GADS::Column::Rag;
@@ -2675,6 +2676,12 @@ prefix '/:layout_name' => sub {
                     $column->curval_field_ids([@curval_field_ids]);
                     $column->related_field_id(param 'related_field_id');
                 }
+                elsif ($column->type eq "filval")
+                {
+                    my @curval_field_ids = body_parameters->get_all('filval_field_ids');
+                    $column->curval_field_ids([@curval_field_ids]);
+                    $column->related_field_id(param 'filval_related_field_id');
+                }
 
                 my $no_cache_update = $column->type eq 'rag' ? param('no_cache_update_rag') : param('no_cache_update_calc');
                 if (process( sub { $column->write(no_alerts => $no_alerts, no_cache_update => $no_cache_update) }))
@@ -3626,7 +3633,7 @@ sub _process_edit
         child               => $child_rec,
         layout_edit         => $layout,
         clone               => param('from'),
-        submission_token    => !$modal && $record->create_submission_token,
+        submission_token    => !$modal && $record->submission_token,
         breadcrumbs         => $breadcrumbs,
         record              => $record->presentation(edit => 1, new => !$id, child => $child),
     };

@@ -27,6 +27,8 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column::Curcommon';
 
+with 'GADS::Role::Curcommon::RelatedField';
+
 has '+option_names' => (
     default => sub { [qw/override_permissions/] },
 );
@@ -47,51 +49,12 @@ has '+value_field' => (
     default => 'id',
 );
 
-# Dummy function so that value_selector() can be called from a curcommon class
-sub value_selector { '' }
-sub show_add { 0 }
-sub has_subvals { 0 }
-sub data_filter_fields { '' }
-
 sub _build_sprefix { 'current' };
 
 sub _build_refers_to_instance_id
 {   my $self = shift;
     $self->related_field or return undef;
     $self->related_field->instance_id;
-}
-
-has related_field => (
-    is      => 'ro',
-    lazy    => 1,
-    clearer => 1,
-    builder => sub {
-        my $self = shift;
-        # Under normal circumstances we will have a full layout with columns
-        # built. If not, fall back to retrieving from database. The latter is
-        # needed when initialising the schema in GADS::DB::setup()
-        $self->layout->column($self->related_field_id)
-            || $self->schema->resultset('Layout')->find($self->related_field_id);
-    }
-);
-
-has related_field_id => (
-    is      => 'rw',
-    isa     => Maybe[Int], # undef when importing and ID not known at creation
-    lazy    => 1,
-    builder => sub {
-        my $self = shift;
-        $self->_rset && $self->_rset->get_column('related_field');
-    },
-    trigger => sub {
-        my ($self, $value) = @_;
-        $self->clear_related_field;
-    },
-);
-
-sub _build_related_field_id
-{   my $self = shift;
-    $self->related_field->id;
 }
 
 # XXX At some point these individual refers_from properties should be replaced

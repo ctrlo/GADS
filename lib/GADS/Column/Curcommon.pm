@@ -34,6 +34,12 @@ has '+is_curcommon' => (
     default => 1,
 );
 
+# Dummy functions, overridden in child classes
+sub value_selector { '' }
+sub show_add { 0 }
+sub has_subvals { 0 }
+sub data_filter_fields { '' }
+
 has override_permissions => (
     is      => 'rw',
     isa     => Bool,
@@ -50,7 +56,6 @@ has override_permissions => (
 
 sub clear
 {   my $self = shift;
-    $self->clear_filtered_values;
     $self->clear_values_index;
     $self->clear_all_values;
     $self->clear_view;
@@ -238,12 +243,6 @@ sub _build_all_ids
     ];
 }
 
-has filtered_values => (
-    is      => 'lazy',
-    isa     => ArrayRef,
-    clearer => 1,
-);
-
 has all_values => (
     is      => 'lazy',
     isa     => ArrayRef,
@@ -298,15 +297,37 @@ sub selected_values
     ];
 }
 
-sub _build_filtered_values
-{   my $self = shift;
+sub filval_fields { () }
+
+sub filtered_values
+{   my ($self, $submission_token) = @_;
     return [] if $self->value_selector ne 'dropdown';
     my $records = $self->_records_from_db
         or return [];
+
+    my $submission = $self->schema->resultset('Submission')->search({
+        token => $submission_token,
+    })->next;
+    foreach my $filval_field (@{$self->filval_fields})
+    {
+        $self->schema->resultset('FilteredValue')->search({
+            submission_id => $submission->id,
+            layout_id     => $filval_field->id,
+        })->delete;
+    }
+
     my @values;
     while (my $r = $records->single)
     {
         push @values, $self->_format_row($r);
+        foreach my $filval_field (@{$self->filval_fields})
+        {
+            $self->schema->resultset('FilteredValue')->create({
+                submission_id => $submission->id,
+                layout_id     => $filval_field->id,
+                current_id    => $r->current_id,
+            });
+        }
     }
 
     \@values;

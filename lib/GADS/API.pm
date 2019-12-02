@@ -369,6 +369,8 @@ prefix '/:layout_name' => sub {
         my $user   = logged_in_user;
         my $layout = var('layout') or pass;
         my $col_id = route_parameters->get('id');
+        my $submission_token = query_parameters->get('submission-token')
+            or panic "Submission ID missing";
 
         my $curval = $layout->column($col_id);
 
@@ -409,7 +411,7 @@ prefix '/:layout_name' => sub {
         return encode_json {
             "error"  => 0,
             "records"=> [
-                map { +{ id => $_->{id}, label => $_->{value} } } @{$curval->filtered_values}
+                map { +{ id => $_->{id}, label => $_->{value} } } @{$curval->filtered_values($submission_token)}
             ]
         };
     };

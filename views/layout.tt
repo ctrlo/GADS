@@ -45,6 +45,9 @@
                 <option value="calc"        [% IF column.type == "calc" %]selected      [% END %]>Calculated value</option>
                 <option value="curval"      [% IF column.type == "curval" %]selected    [% END %]>Field(s) for records from another table</option>
                 <option value="autocur"     [% IF column.type == "autocur" %]selected   [% END %]>Automatic value of other sheet's references to this one</option>
+                [% IF layout.filtered_curvals.size %]
+                    <option value="filval"     [% IF column.type == "filval" %]selected   [% END %]>Automatic filtered values of other field</option>
+                [% END %]
             </select>
         </div>
     [% END %]
@@ -492,6 +495,46 @@
             </div>
         [% END %]
     </div>
+    <div class="field-options filval">
+        <h4>Field options</h4>
+        <div class="form-group">
+            <label for="filval_related_field_id">Field to record filtered values of:</label>
+            <select class="form-control" id="filval_related_field_id" name="filval_related_field_id">
+                [% IF NOT column.related_field_id %]
+                    <option></option>
+                [% END %]
+                [% FOREACH filtered_curval IN layout.filtered_curvals %]
+                    <option value="[% filtered_curval.id %]" [% IF column.related_field_id == filtered_curval.id %]selected[% END %]>
+                        [% filtered_curval.name | html %]
+                    </option>
+                [% END %]
+            </select>
+        </div>
+        [% FOREACH filtered_curval IN layout.filtered_curvals %]
+            [% instance = instances_object.layout(filtered_curval.refers_to_instance_id) %]
+            <div id="filval_curval_[% filtered_curval.id %]" class="filval_curval"
+                [% IF !column.related_field_id OR column.related_field_id != filtered_curval.id %]
+                    style="display:none"
+                [% END %]
+                >
+                <div class="form-group">
+                    <label>Columns to show:</label>
+                    [% FOREACH c IN instance.all %]
+                        [% NEXT IF c.type == "curval" %]
+                        [% checked = "" %]
+                        [% IF column.has_curval_field(c.id) %]
+                            [% checked = "checked" %]
+                        [% END %]
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="filval_field_ids" value="[% c.id %]" [% checked %]>[% c.name | html %]
+                            </label>
+                        </div>
+                    [% END %]
+                </div>
+            </div>
+        [% END %]
+    </div>
 [% END %]
 
 [% BLOCK edit_field %]
@@ -600,6 +643,7 @@
                     [% IF col.type == "calc" %]Calculated value[% END %]
                     [% IF col.type == "curval" %]Record from other data sheet[% END %]
                     [% IF col.type == "autocur" %]Automatic value of other sheet's references to this one[% END %]
+                    [% IF col.type == "filval" %]Automatic filtered values of other field[% END %]
                 </td>
                 [% IF layout.has_topics %]
                     <td class="drag">[% col.topic.name | html %]</td>
@@ -714,6 +758,11 @@
                     var divid = $(this).find(':selected').data('instance_id');
                     $('.autocur_instance').hide();
                     $('#autocur_instance_' + divid).show();
+                });
+                $('#filval_related_field_id').change(function(){
+                    var divid = $(this).val();
+                    $('.filval_curval').hide();
+                    $('#filval_curval_' + divid).show();
                 });
 
                 [% FOREACH instance_layout IN instance_layouts %]

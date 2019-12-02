@@ -106,7 +106,7 @@ sub _add_column
     }
     else {
         $rec_class->has_many(
-            $colname => camelize($coltype),
+            $colname => $coltype eq 'filval' ? 'Curval' : camelize($coltype),
             sub {
                 my $args = shift;
 

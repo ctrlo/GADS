@@ -40,7 +40,7 @@ with 'GADS::Role::Presentation::Column';
 
 sub types
 { qw(date daterange string intgr person tree enum file rag
-    calc curval autocur id createddate createdby serial deletedby)
+    calc curval autocur id createddate createdby serial deletedby filval)
 }
 
 has schema => (
@@ -638,6 +638,7 @@ has class => (
             calc        => 'GADS::Datum::Calc',
             curval      => 'GADS::Datum::Curval',
             autocur     => 'GADS::Datum::Autocur',
+            filval      => 'GADS::Datum::Filval',
         );
         $classes{$_[0]->type};
     },

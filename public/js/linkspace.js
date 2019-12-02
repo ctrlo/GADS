@@ -396,6 +396,7 @@ var SelectWidget = function (multi) {
         var multi = $selectWidget.hasClass("multi");
         var filterEndpoint = $selectWidget.data("filter-endpoint");
         var filterFields = $selectWidget.data("filter-fields");
+        var submissionToken = $selectWidget.data("submission-token");
         if (!$.isArray(filterFields)) {
             if (typeof(console) !== 'undefined' && console.error) {
                 console.error("Invalid data-filter-fields found. It should be a proper JSON array of fields.");
@@ -405,7 +406,7 @@ var SelectWidget = function (multi) {
         var currentValues = $available.find("input:checked").map(function() { return parseInt($(this).val()); }).get();
 
         // Collect values of linked fields
-        var values = [];
+        var values = ['submission-token=' + submissionToken];
         $.each(filterFields, function(_, field) {
             $("input[name=" + field + "]").each(function(_, input) {
                 var $input = $(input);

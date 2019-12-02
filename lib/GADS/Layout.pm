@@ -31,6 +31,7 @@ use GADS::Column::Daterange;
 use GADS::Column::Deletedby;
 use GADS::Column::Enum;
 use GADS::Column::File;
+use GADS::Column::Filval;
 use GADS::Column::Id;
 use GADS::Column::Intgr;
 use GADS::Column::Person;
@@ -368,6 +369,11 @@ sub user_can_column
     }
 
     return $user_cache->{$column_id}->{$permission};
+}
+
+sub filtered_curvals
+{   my $self = shift;
+    grep $_->has_subvals, grep $_->type eq 'curval', $self->all;
 }
 
 has _group_permissions => (

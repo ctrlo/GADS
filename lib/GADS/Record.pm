@@ -32,6 +32,7 @@ use GADS::Datum::Date;
 use GADS::Datum::Daterange;
 use GADS::Datum::Enum;
 use GADS::Datum::File;
+use GADS::Datum::Filval;
 use GADS::Datum::ID;
 use GADS::Datum::Integer;
 use GADS::Datum::Person;
@@ -1251,9 +1252,12 @@ sub delete_user_drafts
     }
 }
 
-sub create_submission_token
+has submission_token => (
+    is => 'lazy',
+);
+
+sub _build_submission_token
 {   my $self = shift;
-    return undef if !$self->new_entry;
     for (1..10) # Prevent infinite loops - highly unlikely to be more than 10 clashes
     {
         my $token = Session::Token->new(length => 32)->get;
@@ -1717,6 +1721,19 @@ sub write
     $self->_need_app($need_app);
     $self->write_values(%options) unless $options{no_write_values};
 
+    # Finally delete submission token and any related cached filter values
+    if ($options{submission_token})
+    {
+        my $s = $self->schema->resultset('Submission')->search({
+            token => $options{submission_token}
+        });
+        my $iid = $s->next->id;
+        $self->schema->resultset('FilteredValue')->search({
+            submission_id => $iid,
+        })->delete;
+        $s->delete;
+    }
+
     $guard->commit;
 }
 
@@ -1909,7 +1926,7 @@ sub write_values
                 }
                 # Calc/rag values will be evaluated during write()
             }
-            $child->write(%options, update_only => 1);
+            $child->write(%options, update_only => 1, submission_token => undef);
         }
 
         # Update any records with an autocur field that are referred to by this
@@ -1927,7 +1944,7 @@ sub write_values
             $record->find_current_id($cid);
             $record->fields->{$_}->changed(1)
                 foreach @{$update_autocurs{$cid}};
-            $record->write(%options, update_only => 1, re_evaluate => 1);
+            $record->write(%options, update_only => 1, re_evaluate => 1, submission_token => undef);
         }
     }
 
@@ -2056,13 +2073,13 @@ sub _field_write
                     push @entries, \%entry;
                 }
             }
-            elsif ($column->type =~ /(file|enum|tree|person|curval)/)
+            elsif ($column->type =~ /(file|enum|tree|person|curval|filval)/)
             {
                 if ($column->type eq 'curval' && $column->show_add)
                 {
                     foreach my $record (@{$datum_write->values_as_query_records})
                     {
-                        $record->write(%options, no_draft_delete => 1, no_write_values => 1);
+                        $record->write(%options, no_draft_delete => 1, no_write_values => 1, submission_token => undef);
                         push @{$self->_records_to_write_after}, $record
                             if $record->is_edited;
                         my $id = $record->current_id;
@@ -2206,7 +2223,7 @@ sub _field_write
     }
     else {
         $datum->record_id($self->record_id);
-        $datum->re_evaluate;
+        $datum->re_evaluate(submission_token => $options{submission_token});
         $datum->write_value;
     }
 }
