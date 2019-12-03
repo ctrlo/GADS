@@ -136,6 +136,7 @@ my @tests = (
     # For this unchanged test, do the same as the previous one, but this time
     # change the curval. Unlike the previous test, this should re-evaluate the
     # list of stored values
+    {
         name         => 'unchanged sub-values, changed curval',
         delete_value => 2,
         string_value => 'Foo',
