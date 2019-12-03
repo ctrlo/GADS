@@ -310,7 +310,6 @@ Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
 MIGRATIONS
-package-lock.json
 package.json
 plotly-changes.diff
 public/404.html
@@ -2459,7 +2458,7 @@ t/020_draft.t
 t/021_topic.t
 t/022_download.t
 t/023_clone.t
-t/lib/DataSheet.pm
+t/lib/Test/GADS/DataSheet.pm
 uploads/versions/view-format-icons---x----187-40x---.png
 uploads/view-format-icons.png
 Vagrantfile
