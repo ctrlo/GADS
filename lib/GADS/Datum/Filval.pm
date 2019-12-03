@@ -91,6 +91,22 @@ after set_value => sub {
 sub re_evaluate
 {   my ($self, %options) = @_;
 
+    my $related_field = $self->column->related_field;
+    my $related_datum = $self->record->fields->{$related_field->id};
+
+    # Only re-evaluate the stored list of filtered values if something
+    # significant has changed (the values that the filtered curval depends on,
+    # or the curval itself). This is so that a simple unrelated change in a
+    # record does not reproduce a different set of stored filtered values
+    my $something_changed = $self->record->fields->{$related_field->id}->changed;
+    foreach my $col (@{$related_field->subvals_input_required})
+    {
+        $something_changed = 1
+            if $self->record->fields->{$col->id}->changed;
+    }
+
+    return if !$something_changed;
+
     my $submission_token = $options{submission_token}
         or panic "Missing submission token";
     my $submission_id = $self->column->schema->resultset('Submission')->search({

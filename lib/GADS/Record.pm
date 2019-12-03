@@ -1311,14 +1311,19 @@ has already_submitted_error => (
 sub write
 {   my ($self, %options) = @_;
 
+    # Normally all write options are passed to further writes within
+    # this call. Don't pass the submission token though, otherwise it
+    # will bork as having already been used
+    my $submission_token = delete $options{submission_token};
+
     # First check the submission token to see if this has already been
     # submitted. Do this as quickly as possible to prevent chance of 2 very
     # quick submissions, and do it before the guard so that the submitted token
     # is visible as quickly as possible
-    if ($options{submission_token} && $self->new_entry)
+    if ($submission_token && $self->new_entry)
     {
         my $sub = $self->schema->resultset('Submission')->search({
-            token => $options{submission_token},
+            token => $submission_token,
         })->next;
         if ($sub) # Should always be found, but who knows
         {
@@ -1339,10 +1344,6 @@ sub write
                 $self->_set_already_submitted_error(1);
                 error __"This form has already been submitted and is currently being processed";
             }
-            # Normally all write options are passed to further writes within
-            # this call. Don't pass the submission token though, otherwise it
-            # will bork as having already been used
-            delete $options{submission_token};
         }
     }
 
@@ -1719,13 +1720,13 @@ sub write
 
     $self->_need_rec($need_rec);
     $self->_need_app($need_app);
-    $self->write_values(%options) unless $options{no_write_values};
+    $self->write_values(%options, submission_token => $submission_token) unless $options{no_write_values};
 
     # Finally delete submission token and any related cached filter values
-    if ($options{submission_token})
+    if ($submission_token)
     {
         my $s = $self->schema->resultset('Submission')->search({
-            token => $options{submission_token}
+            token => $submission_token
         });
         my $iid = $s->next->id;
         $self->schema->resultset('FilteredValue')->search({
