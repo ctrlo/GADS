@@ -4,8 +4,10 @@ use v5.24.0;
 use Moo;
 
 use GADSDriver ();
+use List::MoreUtils 'zip';
 use Test2::API 'context';
 use Test2::Tools::Compare qw( is like unlike );
+use WebDriver::Tiny; # Enable "\N{WD_END}"
 
 =head1 NAME
 
@@ -565,6 +567,44 @@ sub assert_on_view_record_page {
         [ { selector => 'h2', match => '\\ARecord ID ' } ],
         $name,
     );
+
+    $test->release;
+    return $self;
+}
+
+=head3 assert_records_shown
+
+On the I<< See Records >> page, check which records are shown.
+
+=cut
+
+sub assert_records_shown {
+    my ( $self, $name, $expected_records_ref ) = @_;
+    $name //= 'The see records page shows the expected records';
+    my $test = context();
+    my $webdriver = $self->gads->webdriver;
+
+    my $table_el = $webdriver->find( '#data-table', dies => 0 );
+    my $success = $self->_check_only_one( $table_el, 'data table' );
+
+    my $headings_el = $table_el->find( 'thead th', dies => 0 );
+    my @heading = map $_->attr('aria-label'), $headings_el->split;
+
+    my @found_record;
+    my $records_el = $table_el->find( 'tbody tr', dies => 0 );
+    foreach my $record_el ( $records_el->split ) {
+        my @value = map $_->text, $record_el->find( 'td', dies => 0 )->split;
+        my %record = zip @heading, @value;
+        delete $record{ID};
+        push @found_record, \%record;
+    }
+
+    if ( $success ) {
+        is( \@found_record, $expected_records_ref, $name ); 
+    }
+    else {
+        $test->ok( 0, $name );
+    }
 
     $test->release;
     return $self;
@@ -1164,33 +1204,27 @@ sub submit_add_a_view_form_ok {
         $condition_el->click;
     }
 
-    my $filter_rule_el = $filters_el->find('.rules-list li');
+    my $filter_rule_el = $filters_el->find('.rules-list .rule-container');
     $success &&= $self->_check_only_one( $filter_rule_el, "filter rule" );
     my $add_rule_el = $filters_el->find('.rules-group-header button[data-add="rule"]');
     $success &&= $self->_check_only_one( $add_rule_el, "Add rule" );
 
+    # HACK: Prevent the .navbar-fixed-bottom from obscuring the filter
+    # specification fields.
+    $self->gads->webdriver->find('body')->send_keys("\N{WD_END}");
+
     # Specify filters for the view
-    foreach my $rules_ref ( @{ $arg{filters}{rules} } ) {
-        my %rule = %$rules_ref;
-        $filter_rule_el->find(
-            qq|//*[\@class = "rule-filter-container"]//option[ text() = "$rule{field}" ]|,
-            method => 'xpath',
-        )->click;
-        $filter_rule_el->find(
-            qq|//*[\@class = "rule-operator-container"]//option[ text() = "$rule{operator}" ]|,
-            method => 'xpath',
-        )->click;
-        $filter_rule_el->find(
-            '//*[ @class = "rule-value-container" ]//input[ @type = "text" ]',
-            method => 'xpath',
-        )->send_keys( $rule{value} );
-    }
-    continue {
-        $add_rule_el->click;
-        $filter_rule_el = $filter_rule_el->find(
-            './following-sibling::li',
-            method => 'xpath',
-        );
+    my $add_a_rule = 0;
+    foreach ( @{ $arg{filters}{rules} } ) {
+        if ($add_a_rule) {
+            $add_rule_el->click;
+            $filter_rule_el = $filter_rule_el->find(
+                './following-sibling::li',
+                method => 'xpath',
+            );
+        }
+        $success &&= $self->_specify_filter( $filter_rule_el, $_ );
+        $add_a_rule = 1;
     }
 
     $test->note("About to add a view named $arg{name}");
@@ -1199,6 +1233,41 @@ sub submit_add_a_view_form_ok {
     my $result = $test->ok( $success, "Add a view named $arg{name}" );
     $test->release;
     return $result;
+}
+
+sub _specify_filter {
+    my ( $self, $filter_rule_el, $rules_ref ) = @_;
+    my %rule = %$rules_ref;
+    my $success = 1;
+
+    my @option_field = (
+        {
+            type => 'filter',
+            value => $rule{field},
+        },
+        {
+            type => 'operator',
+            value => $rule{operator},
+        },
+    );
+    foreach my $option_ref (@option_field) {
+        my %option = %$option_ref;
+
+        my $selector = 
+            qq|.//*[\@class = "rule-$option{type}-container"]//option[ text() = "$option{value}" ]|;
+        my $field_el = $filter_rule_el->find( $selector, method => 'xpath' );
+        $success &&= $self->_check_only_one( $field_el, "$option{type} filter" );
+        $field_el->click;
+    }
+
+    my $value_el = $filter_rule_el->find(
+        './/*[ @class = "rule-value-container" ]//input[ @type = "text" ]',
+        method => 'xpath',
+    );
+    $success &&= $self->_check_only_one( $value_el, "text value container" );
+    $value_el->send_keys( $rule{value} );
+
+    return $success;
 }
 
 =head3 submit_login_form_ok

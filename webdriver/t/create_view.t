@@ -181,6 +181,15 @@ $gads->submit_add_a_view_form_ok(
 
 $gads->assert_on_see_records_page( 'Showing the view', $view_name );
 $gads->assert_success_present('The view was added successfully');
+$gads->assert_records_shown(
+    'The view only shows the expected record',
+    [
+        {
+            $text_field_name => 'Twenty four',
+            $int_field_name => 24,
+        },
+    ],
+);
 
 # Tidy up: remove the view created earlier
 $gads->navigate_ok(
