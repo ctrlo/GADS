@@ -13,6 +13,9 @@
             [% IF record.parent_id %]
                 <small>(child of record [% record.parent_id %])</small>
             [% END %]
+            [% IF view_modal %]
+                <a class="btn btn-default pull-right" href="/record/[% record.current_id %]">Open full record</a>
+            [% END %]
         [% ELSIF child %]
             Create child record of [% child %]
         [% ELSIF clone %]
