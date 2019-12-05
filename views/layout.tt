@@ -833,7 +833,7 @@
                     } else {
                         $('#checkbox-multivalue').show();
                     }
-                });
+                }).trigger("change");
             });
     [% END %]
     [% END %]';
