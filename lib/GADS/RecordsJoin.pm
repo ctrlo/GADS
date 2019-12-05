@@ -419,7 +419,7 @@ sub columns_fetch
         push @prefetch, {$column->field.".$_" => "$table.$_"} foreach @values; # unless $column->is_curcommon;
         push @prefetch, $column->field.'.child_unique'
             if $column->userinput;
-        if ($jp->{children})
+        if ($jp->{children} && @{$jp->{children}})
         {
             my $rec_single_name = $self->record_name(%options, prefetch => 1, column => $column);
             push @prefetch, { $column->field.".record_id" => "$rec_single_name.id" };

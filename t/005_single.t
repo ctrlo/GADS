@@ -82,4 +82,23 @@ foreach my $initial_fetch (0..1)
     is($value->as_string, "Foo", "Correct value of curval field");
 }
 
+# Check that a curval without fields selected shows as blank. Simulate this by
+# removing all permissions from the curval's field
+my $curval = $sheet->columns->{curval1};
+my $string = $curval_sheet->columns->{string1};
+$string->set_permissions({$sheet->group->id => []});
+$string->write;
+$layout->clear;
+$record = GADS::Record->new(
+    user   => $sheet->user,
+    schema => $schema,
+    layout => $layout,
+);
+$record->find_current_id(3);
+is($record->fields->{$curval->id}->as_string, '', "Curval field blank when no fields selected");
+my $record_id = $record->record_id;
+$record->clear;
+$record->find_record_id($record_id);
+is($record->fields->{$curval->id}->as_string, '', "Curval field blank when no fields selected (via record_id)");
+
 done_testing();
