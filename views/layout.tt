@@ -138,13 +138,11 @@
             <input type="checkbox" name="isunique" [% IF column.isunique %]checked[% END %]>The values for this field must be unique
         </label>
     </div>
-    [% IF column.can_multivalue %]
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" name="multivalue" [% IF column.multivalue %]checked[% END %]>Allow multiple values
-            </label>
-        </div>
-    [% END %]
+    <div class="checkbox" id="checkbox-multivalue">
+        <label>
+            <input type="checkbox" name="multivalue" [% IF column.multivalue %]checked[% END %]>Allow multiple values
+        </label>
+    </div>
 [% END %]
 
 
@@ -830,6 +828,11 @@
                     $mf.removeClass('column-type-' + current_type);
                     $mf.addClass('column-type-' + new_type);
                     $mf.data('column-type', new_type);
+                    if (new_type == 'rag' || new_type == 'intgr' || new_type == 'person') {
+                        $('#checkbox-multivalue').hide();
+                    } else {
+                        $('#checkbox-multivalue').show();
+                    }
                 });
             });
     [% END %]
