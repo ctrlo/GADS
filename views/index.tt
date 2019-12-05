@@ -9,6 +9,7 @@
     [% END %]
     data-dashboard-read-only="[% IF readonly %]true[% ELSE %]false[% END %]"
     data-dashboard-hide-menu="[% IF page_as_mech %]true[% ELSE %]false[% END %]"
+    data-dashboard-no-download="[% IF layout.no_download_pdf %]true[% ELSE %]false[% END %]"
     data-dashboards="[% dashboards_json | html %]"
 >
     [% FOREACH widget IN dashboard.display_widgets %]

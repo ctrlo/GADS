@@ -118,6 +118,10 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 1 },
   "no_hide_blank",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "no_download_pdf",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "no_copy_record",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "hide_in_selector",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
 );

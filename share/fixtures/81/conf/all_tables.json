@@ -1,0 +1,253 @@
+{
+   "belongs_to" : {
+      "fetch" : 0
+   },
+   "sets" : [
+      {
+         "quantity" : "all",
+         "class" : "CurvalField"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Submission"
+      },
+      {
+         "quantity" : "all",
+         "class" : "LayoutDepend"
+      },
+      {
+         "class" : "Calc",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "UserGraph"
+      },
+      {
+         "class" : "ViewLimit",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Alert"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Fileval"
+      },
+      {
+         "class" : "Oauthclient",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Audit",
+         "quantity" : "all"
+      },
+      {
+         "class" : "FilteredValue",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Dashboard"
+      },
+      {
+         "class" : "Title",
+         "quantity" : "all"
+      },
+      {
+         "class" : "UserGroup",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "String"
+      },
+      {
+         "class" : "MetricGroup",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "File"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Sort"
+      },
+      {
+         "class" : "Rag",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "DisplayField"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Group"
+      },
+      {
+         "quantity" : "all",
+         "class" : "ImportRow"
+      },
+      {
+         "class" : "Calcval",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "InstanceGroup"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Ragval"
+      },
+      {
+         "class" : "Widget",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Intgr",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "FileOption"
+      },
+      {
+         "class" : "Person",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Instance"
+      },
+      {
+         "quantity" : "all",
+         "class" : "AlertSend"
+      },
+      {
+         "quantity" : "all",
+         "class" : "UserPermission"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Permission"
+      },
+      {
+         "class" : "Date",
+         "quantity" : "all"
+      },
+      {
+         "class" : "ViewLayout",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Import",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Metric"
+      },
+      {
+         "class" : "User",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Enumval"
+      },
+      {
+         "class" : "Team",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Topic"
+      },
+      {
+         "quantity" : "all",
+         "class" : "AlertCache"
+      },
+      {
+         "class" : "Graph",
+         "quantity" : "all"
+      },
+      {
+         "class" : "View",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Daterange"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Layout"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Organisation"
+      },
+      {
+         "quantity" : "all",
+         "class" : "LayoutGroup"
+      },
+      {
+         "class" : "Oauthtoken",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Curval"
+      },
+      {
+         "class" : "Changed",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Enum",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "GraphColor"
+      },
+      {
+         "class" : "Filter",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Record",
+         "quantity" : "all"
+      },
+      {
+         "class" : "UserLastrecord",
+         "quantity" : "all"
+      },
+      {
+         "class" : "ViewGroup",
+         "quantity" : "all"
+      },
+      {
+         "quantity" : "all",
+         "class" : "Department"
+      },
+      {
+         "class" : "Current",
+         "quantity" : "all"
+      },
+      {
+         "class" : "Site",
+         "quantity" : "all"
+      }
+   ],
+   "has_many" : {
+      "fetch" : 0
+   },
+   "might_have" : {
+      "fetch" : 0
+   }
+}

@@ -278,6 +278,7 @@ class App extends React.Component<any, any> {
           currentDashboard={this.props.currentDashboard}
           readOnly={this.props.readOnly}
           loading={this.state.loading}
+          noDownload={this.props.noDownload}
         />}
         {this.renderModal()}
         <ReactGridLayout

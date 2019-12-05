@@ -41,6 +41,7 @@ if (root) {
       currentDashboard={JSON.parse(root.getAttribute("data-current-dashboard") || "{}")}
       readOnly={root.getAttribute("data-dashboard-read-only") === "true"}
       hideMenu={root.getAttribute("data-dashboard-hide-menu") === "true"}
+      noDownload={root.getAttribute("data-dashboard-no-download") === "true"}
       api={api}
       widgetTypes={JSON.parse(root.getAttribute("data-widget-types") || "[]")}
       dashboards={JSON.parse(root.getAttribute("data-dashboards") || "[]" )}

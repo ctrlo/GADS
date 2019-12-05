@@ -157,6 +157,22 @@ has no_hide_blank => (
     clearer => 1,
 );
 
+has no_download_pdf => (
+    is      => 'ro',
+    isa     => Bool,
+    lazy    => 1,
+    builder => sub { $_[0]->_rset->no_download_pdf },
+    clearer => 1,
+);
+
+has no_copy_record => (
+    is      => 'ro',
+    isa     => Bool,
+    lazy    => 1,
+    builder => sub { $_[0]->_rset->no_copy_record },
+    clearer => 1,
+);
+
 has no_overnight_update => (
     is      => 'ro',
     isa     => Bool,

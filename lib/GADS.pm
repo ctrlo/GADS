@@ -1252,7 +1252,7 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
     ? $record->find_deleted_recordid($id)
     : $record->find_current_id($id);
 
-    if (defined param('pdf'))
+    if (defined param('pdf') && !$record->layout->no_download_pdf)
     {
         my $pdf = $record->pdf->content;
         return send_file(\$pdf, content_type => 'application/pdf', filename => "Record-".$record->current_id.".pdf" );
@@ -1422,7 +1422,7 @@ prefix '/:layout_name' => sub {
         if (my $download = param('download'))
         {
             $params->{readonly} = 1;
-            if ($download eq 'pdf')
+            if ($download eq 'pdf' && !$layout->no_download_pdf)
             {
                 my $pdf = _page_as_mech('index', $params, pdf => 1)->content_as_pdf;
                 return send_file(
@@ -1867,7 +1867,7 @@ prefix '/:layout_name' => sub {
                     content_type => 'image/png',
                 );
             }
-            if (param('modal_pdf'))
+            if (param('modal_pdf') && !$layout->no_download_pdf)
             {
                 $tl_options->{pdf_zoom} = param('pdf_zoom');
                 my $pdf = _page_as_mech('data_timeline', $params, pdf => 1, zoom => $tl_options->{pdf_zoom})->content_as_pdf;
@@ -3483,6 +3483,7 @@ sub _process_edit
 
     my $modal = param('modal') && int param('modal');
     my $oi = param('oi') && int param('oi');
+    my $clone_from = $layout->no_copy_record ? undef : param('from');
 
 
     if (param('submit') || param('draft') || $modal || defined(param 'validate'))
@@ -3581,7 +3582,7 @@ sub _process_edit
     elsif($id) {
         # Do nothing, record already loaded
     }
-    elsif (my $from = param('from'))
+    elsif ($clone_from)
     {
         my $toclone = GADS::Record->new(
             user                 => $user,
@@ -3589,7 +3590,7 @@ sub _process_edit
             schema               => schema,
             curcommon_all_fields => 1,
         );
-        $toclone->find_current_id($from);
+        $toclone->find_current_id($clone_from);
         $record = $toclone->clone;
     }
     else {
@@ -3636,7 +3637,7 @@ sub _process_edit
         page                => 'edit',
         child               => $child_rec,
         layout_edit         => $layout,
-        clone               => param('from'),
+        clone               => $clone_from,
         submission_token    => !$modal && $record->submission_token,
         breadcrumbs         => $breadcrumbs,
         record              => $record->presentation(edit => 1, new => !$id, child => $child),

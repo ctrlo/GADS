@@ -1,11 +1,11 @@
 import React from "react";
 import "./header.scss";
 
-const Header = ({ widgetTypes, addWidget, hMargin, dashboards, currentDashboard, readOnly, loading }) => {
+const Header = ({ widgetTypes, addWidget, hMargin, dashboards, currentDashboard, readOnly, loading, noDownload }) => {
   return (
     <div className='ld-header-container' style={{marginLeft: hMargin, marginRight: hMargin}}>
       {loading ? <p className="spinner"><i className="fa fa-spinner fa-spin"></i></p> : null}
-      <div className="btn-group">
+      {noDownload ? null : <div className="btn-group">
         <button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
           Download <span className="caret"></span>
         </button>
@@ -13,7 +13,7 @@ const Header = ({ widgetTypes, addWidget, hMargin, dashboards, currentDashboard,
           <li><a href={ currentDashboard.download_url }>As PDF</a>
           </li>
         </ul>
-      </div>
+      </div>}
         &nbsp;
       {readOnly ? null : <div className="btn-group">
         <button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
