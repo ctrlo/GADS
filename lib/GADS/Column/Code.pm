@@ -405,7 +405,14 @@ sub write_special
 
     }
     else {
-        $return_options{no_cache_update} = 1;
+        # If nothing has changed then do not update all values. That is, unless
+        # no_cache_update has been explicitly specified (as it would be for a
+        # user update of the field in manage fields) in which case keep that
+        # value. That is so that a user can force update a calc field, even if
+        # nothing has changed (the user may have previously changed the
+        # calculation and now want to update all values)
+        $return_options{no_cache_update} = 1
+            unless exists $options{no_cache_update};
     }
     return %return_options;
 };
