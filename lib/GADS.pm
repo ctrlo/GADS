@@ -2964,6 +2964,7 @@ prefix '/:layout_name' => sub {
         # The records to update
         my %params = (
             view                 => $view,
+            is_group             => 0,
             search               => session('search'),
             columns              => [map { $_->id } $layout->all], # Need all columns to be able to write updated records
             schema               => schema,
