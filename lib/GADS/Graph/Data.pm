@@ -337,14 +337,14 @@ sub _build_data
 
     # Columns is either the x-axis, or if not defined, all the columns in the view
     my @columns = $self->x_axis
-        ? ($self->x_axis)
+        ? ($self->x_axis_col)
         : $self->view
         ? @{$self->view->columns}
         : $self->records->layout->all(user_can_read => 1);
 
     @columns = map {
         +{
-            id        => $_,
+            id        => $_->id,
             operator  => 'max',
             parent_id => ($self->x_axis && $_ == $self->x_axis && $self->x_axis_link)
         }
