@@ -162,6 +162,7 @@
             </button>
             <ul class="dropdown-menu" id="table-menu">
             [% FOREACH layout_menu IN instances %]
+                [% NEXT IF layout_menu.hide_in_selector AND !layout_menu.user_can("layout") %]
                 <li [% IF layout_menu.instance_id == layout.instance_id %]class="active"[% END %]>
                     <a href="/[% layout_menu.identifier %]/"
                     >[% layout_menu.name | html_entity %]</a>

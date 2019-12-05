@@ -15,6 +15,13 @@
                 <input type="text" name="name_short" class="form-control" value="[% layout_edit.name_short | html_entity %]">
             </div>
             <div class="form-group">
+                <label for="hide_in_selector">Display in table selector menu:</label>
+                <select class="form-control" id="hide_in_selector" name="hide_in_selector">
+                    <option value="0" [% IF layout_edit.hide_in_selector == 0 %]selected[% END %]>Show table in selector menu for all users with access to table</option>
+                    <option value="1" [% IF layout_edit.hide_in_selector == 1 %]selected[% END %]>Only show table in selector menu for users with Manage Fields permission for table</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label for="sort_layout_id">Default sort:</label>
                 <div class="row">
                     <div class="col-md-6">

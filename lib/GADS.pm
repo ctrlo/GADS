@@ -812,6 +812,7 @@ any ['get', 'post'] => '/table/:id' => require_role superadmin => sub {
             }
             $layout_edit->name(param 'name');
             $layout_edit->name_short(param 'name_short');
+            $layout_edit->hide_in_selector(param 'hide_in_selector');
             $layout_edit->sort_layout_id(param('sort_layout_id') || undef);
             $layout_edit->sort_type(param('sort_type') || undef);
             $layout_edit->set_groups([body_parameters->get_all('permissions')]);

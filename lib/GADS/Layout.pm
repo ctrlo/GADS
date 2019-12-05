@@ -95,6 +95,14 @@ has name_short => (
     builder => sub { $_[0]->_rset->name_short },
 );
 
+has hide_in_selector => (
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    clearer => 1,
+    builder => sub { $_[0]->_rset->hide_in_selector },
+);
+
 has identifier => (
     is      => 'lazy',
     clearer => 1,
@@ -458,12 +466,13 @@ sub write
     }
 
     $rset->update({
-        name           => $self->name,
-        name_short     => $self->name_short,
-        homepage_text  => $self->homepage_text,
-        homepage_text2 => $self->homepage_text2,
-        sort_type      => $self->sort_type,
-        sort_layout_id => $self->sort_layout_id,
+        name             => $self->name,
+        name_short       => $self->name_short,
+        hide_in_selector => $self->hide_in_selector,
+        homepage_text    => $self->homepage_text,
+        homepage_text2   => $self->homepage_text2,
+        sort_type        => $self->sort_type,
+        sort_layout_id   => $self->sort_layout_id,
     });
 
     # Now set any groups if needed
@@ -621,6 +630,7 @@ sub clear_indexes
 {   my $self = shift;
     $self->clear_name;
     $self->clear_name_short;
+    $self->clear_hide_in_selector;
     $self->clear_columns_index;
     $self->_clear_columns_namehash;
     $self->_clear_columns_name_shorthash
@@ -1071,13 +1081,14 @@ sub _build_global_view_summary
 sub export
 {   my $self = shift;
     +{
-        name           => $self->name,
-        name_short     => $self->name_short,
-        homepage_text  => $self->homepage_text,
-        homepage_text2 => $self->homepage_text2,
-        sort_layout_id => $self->sort_layout_id,
-        sort_type      => $self->sort_type,
-        permissions    => [ map {
+        name             => $self->name,
+        name_short       => $self->name_short,
+        hide_in_selector => $self->hide_in_selector,
+        homepage_text    => $self->homepage_text,
+        homepage_text2   => $self->homepage_text2,
+        sort_layout_id   => $self->sort_layout_id,
+        sort_type        => $self->sort_type,
+        permissions      => [ map {
             {
                 group_id   => $_->group_id,
                 permission => $_->permission,
@@ -1099,6 +1110,11 @@ sub import_hash
         old => $self->name_short, new => $values->{name_short}, name => $self->name
         if $report && ($self->name_short || '') ne ($values->{name_short} || '');
     $self->name_short($values->{name_short});
+
+    notice __x"Update: hide_in_selector from {old} to {new} for layout {name}",
+        old => $self->hide_in_selector, new => $values->{hide_in_selector}, name => $self->name
+        if $report && $self->hide_in_selector != $values->{hide_in_selector};
+    $self->hide_in_selector($values->{hide_in_selector});
 
     notice __x"Update homepage_text for layout {name}", name => $self->name
         if $report && ($self->homepage_text || '') ne ($values->{homepage_text} || '');
