@@ -212,6 +212,7 @@
             </script>
         [% END %]
         <script type="text/javascript" src="[% url.js %]/base64.min.js"></script>
+        <script type="text/javascript" src="[% url.js %]/jquery.actual.min.js"></script>
         [% IF page == "login" %]
             <script type="text/javascript" src="[% url.js %]/login.js"></script>
             <!--[if (gte IE 6)&(lte IE 8)]>

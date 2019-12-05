@@ -674,7 +674,10 @@ var setupLessMoreWidgets = function (context) {
 
         $ml.removeClass('transparent');
 
-        if ($ml.height() < MAX_HEIGHT) {
+        // Element may be hidden (e.g. when rendering edit fields on record page).
+        // Use jquery.actual plugin - possibly this can be removed in later
+        // jquery versions
+        if ($ml.actual('height') < MAX_HEIGHT) {
             return;
         }
 
