@@ -562,23 +562,23 @@ sub search_views
             my $decoded = $filter->as_hash;
             if (keys %$decoded)
             {
-                my $search = {
+                my @searches = ({
                     'me.instance_id'          => $self->layout->instance_id,
-                    $self->_search_construct($decoded, $self->layout, ignore_perms => 1, user => $user),
-                };
-                $search = { %$search, %$_ }
-                    foreach $self->record_later_search(linked => 1, search => 1);
+                });
+                push @searches, $self->record_later_search(linked => 1, search => 1);
+                push @searches, $self->_search_construct($decoded, $self->layout, ignore_perms => 1, user => $user);
                 my $i = 0; my @ids;
                 while ($i < @$current_ids)
                 {
                     # See comment above about searching for all current_ids
+                    my $search = { -and => \@searches };
                     unless (@$current_ids == $self->count)
                     {
                         my $max = $i + 499;
                         $max = @$current_ids-1 if $max >= @$current_ids;
                         $search->{'me.id'} = [@{$current_ids}[$i..$max]];
                     }
-                    push @ids, $self->schema->resultset('Current')->search($search,{
+                    push @ids, $self->schema->resultset('Current')->search($search, {
                         join => [
                             [$self->linked_hash(search => 1)],
                             {

@@ -116,6 +116,9 @@ my $data = [
         curval1    => 1,
         daterange1 => ['2014-01-04', '2017-06-03'],
     },
+    {
+        enum1 => 'foo1',
+    },
 ];
 
 my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, calc_return_type => 'string');
@@ -619,6 +622,26 @@ my @filters = (
         alerts => 1,
     },
     {
+        name  => 'View with previous values set', # Should not make any difference
+        rules => [{
+            id       => $columns->{enum1}->id,
+            type     => 'string',
+            value    => 'foo2',
+            operator => 'equal',
+        }],
+        previous_values => 'positive',
+        columns => [$columns->{enum1}->id],
+        current_id => 21,
+        update => [
+            {
+                column => 'enum1',
+                value  => 8,
+            },
+        ],
+        alerts => 2, # new record and updated record
+        global_view => 1,
+    },
+    {
         name  => 'Change of curval sub-field in filter',
         rules => [{
             id       => $columns->{curval1}->id . '_' . $curval_columns->{string1}->id,
@@ -648,8 +671,9 @@ my @filters = (
 foreach my $filter (@filters)
 {
     my $rules = $filter->{rules} ? {
-        rules     => $filter->{rules},
-        condition => $filter->{condition},
+        rules           => $filter->{rules},
+        condition       => $filter->{condition},
+        previous_values => $filter->{previous_values},
     } : {};
 
     my $alert_layout = $filter->{alert_layout} || $layout;
