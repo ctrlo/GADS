@@ -584,19 +584,27 @@ sub assert_records_shown {
     my $test = context();
     my $webdriver = $self->gads->webdriver;
 
+    # TODO: Replace this and %wanted_fields further down with
+    # Test2::Tools::Compare::set().
+    my %wanted_heading = map { $_ => undef }
+        map { keys %$_ } @$expected_records_ref;
+    my @wanted_heading = keys %wanted_heading;
+
     my $table_el = $webdriver->find( '#data-table', dies => 0 );
     my $success = $self->_check_only_one( $table_el, 'data table' );
 
     my $headings_el = $table_el->find( 'thead th', dies => 0 );
-    my @heading = map $_->attr('aria-label'), $headings_el->split;
+    my @heading = map
+        { $_->attr('data-thlabel') // $_->attr('aria-label') }
+        $headings_el->split;
 
     my @found_record;
     my $records_el = $table_el->find( 'tbody tr', dies => 0 );
     foreach my $record_el ( $records_el->split ) {
         my @value = map $_->text, $record_el->find( 'td', dies => 0 )->split;
         my %record = zip @heading, @value;
-        delete $record{ID};
-        push @found_record, \%record;
+        my %wanted_fields = map { $_ => $record{$_} } @wanted_heading;
+        push @found_record, \%wanted_fields;
     }
 
     if ( $success ) {

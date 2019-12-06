@@ -152,6 +152,20 @@ $gads->assert_success_present('The second record was added successfully');
 $gads->assert_error_absent(
     'No error message is visible after adding the second record' );
 $gads->assert_on_see_records_page;
+$gads->assert_records_shown(
+    'The see records page shows the added records',
+    [
+        {
+            $text_field_name => 'One hundred and twenty three',
+            $int_field_name => 123,
+        },
+        {
+            $text_field_name => 'Twenty four',
+            $int_field_name => 24,
+        },
+    ],
+);
+
 
 $gads->navigate_ok(
     'Navigate to the add a view page',
