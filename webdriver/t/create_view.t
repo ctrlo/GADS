@@ -18,13 +18,11 @@ use lib 'webdriver/t/lib';
 use Test::GADSDriver ();
 use Test::More 'no_plan';
 
-# TODO: Instead of relying on an existing named group, create a group to
-# use.
-my $group_name = $ENV{GADS_GROUPNAME} //
-    die 'Set the GADS_GROUPNAME environment variable';
+my $group_name = "TESTGROUPWD $$";
 my $table_name = "TESTWD $$";
 my $text_field_name = "MytestName";
 my $int_field_name = "MytestInt";
+my $view_name = 'Less than 100';
 my @record = (
     {
         name => 'One hundred and twenty three',
@@ -42,7 +40,34 @@ $gads->go_to_url('/');
 
 $gads->submit_login_form_ok;
 
-# Create a new table for testing
+# Create a new group
+$gads->navigate_ok(
+    'Navigate to the add a group page',
+    [ qw( .user-editor [href$="/group/0"] ) ],
+);
+$gads->assert_on_add_a_group_page;
+
+$gads->submit_add_a_group_form_ok( 'Add a group', $group_name );
+$gads->assert_success_present('A success message is visible after adding a group');
+$gads->assert_error_absent('No error message is visible after adding a group');
+
+# Add the user to the new group
+$gads->navigate_ok(
+    'Navigate to the manage users page',
+    [ qw( .user-editor [href$="/user/"] ) ],
+);
+$gads->assert_on_manage_users_page;
+
+$gads->select_current_user_to_edit_ok('Edit the logged in user');
+
+$gads->assign_current_user_to_group_ok(
+    'Assign the logged in user to the group', $group_name );
+$gads->assert_success_present(
+    'A success message is visible after adding the user to a group' );
+$gads->assert_error_absent(
+    'No error message is visible after adding the user to a group' );
+
+# Create a new table
 $gads->navigate_ok(
     'Navigate to the add a table page',
     [ qw( .table-editor .table-add ) ],
@@ -135,7 +160,7 @@ $gads->navigate_ok(
 $gads->assert_on_add_a_view_page;
 
 $gads->submit_add_a_view_form_ok(
-    name => 'Less than 100',
+    name => $view_name,
     fields => [ $text_field_name, $int_field_name ],
     filters => {
         condition => 'AND',
@@ -154,8 +179,17 @@ $gads->submit_add_a_view_form_ok(
     },
 );
 
-$gads->assert_on_see_records_page( 'Showing the view', 'Less than 100' );
+$gads->assert_on_see_records_page( 'Showing the view', $view_name );
 $gads->assert_success_present('The view was added successfully');
+$gads->assert_records_shown(
+    'The view only shows the expected record',
+    [
+        {
+            $text_field_name => 'Twenty four',
+            $int_field_name => 24,
+        },
+    ],
+);
 
 # Tidy up: remove the view created earlier
 $gads->navigate_ok(
@@ -214,12 +248,12 @@ $gads->assert_on_manage_fields_page(
     'On the manage fields page after deleting fields' );
 
 $gads->navigate_ok(
-    'Navigate to the manage tables page',
+    'Navigate back to the manage tables page',
     [ qw( .table-editor .tables-manage ) ],
 );
 $gads->assert_on_manage_tables_page;
 
-$gads->select_table_to_edit_ok( 'Select the table created',
+$gads->select_table_to_edit_ok( 'Select the table created again',
     $table_name );
 $gads->assert_on_manage_this_table_page;
 
@@ -231,5 +265,17 @@ $gads->assert_on_manage_tables_page(
     'On the manage tables page after deleting a table' );
 $gads->assert_table_not_listed( 'The deleted table is not listed',
     $table_name );
+
+# Tidy up: remove the group created earlier
+$gads->navigate_ok(
+    'Navigate to the manage groups page',
+    [ qw( .user-editor [href$="/group/"] ) ],
+);
+$gads->assert_on_manage_groups_page;
+
+$gads->select_group_to_edit_ok( 'Select the group created', $group_name);
+$gads->confirm_deletion_ok('Delete the group created');
+$gads->assert_success_present;
+$gads->assert_error_absent;
 
 done_testing();

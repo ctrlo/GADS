@@ -4,8 +4,10 @@ use v5.24.0;
 use Moo;
 
 use GADSDriver ();
+use List::MoreUtils 'zip';
 use Test2::API 'context';
 use Test2::Tools::Compare qw( is like unlike );
+use WebDriver::Tiny; # Enable "\N{WD_END}"
 
 =head1 NAME
 
@@ -257,7 +259,7 @@ sub assert_table_not_listed {
     $name //= "The table named '$table_name' is not listed";
     my $test = context();
 
-    my $table_el = $self->_find_named_table_or_field_el($table_name);
+    my $table_el = $self->_find_named_item_row_el($table_name);
 
     my $name_selector = '../../td[ not( descendant::a ) ]';
     my @table_name = map {$_->find( $name_selector, method => 'xpath' )->text }
@@ -308,6 +310,27 @@ sub assert_on_add_a_field_page {
             { selector => 'h2', match => '\\AAdd a field to ' },
             { selector => '#basic-panel h3', text => 'Field properties' },
         ],
+        $name,
+    );
+
+    $test->release;
+    return $self;
+}
+
+=head3 assert_on_add_a_group_page
+
+The I<< Add a group >> page is visible.
+
+=cut
+
+sub assert_on_add_a_group_page {
+    my ( $self, $name ) = @_;
+    $name //= 'The add a group page is visible';
+    my $test = context();
+
+    $self->_assert_on_page(
+        'body.group\\/0',
+        [ { selector => 'h2', text => 'Add a group' } ],
         $name,
     );
 
@@ -398,6 +421,27 @@ sub assert_on_manage_fields_page {
     return $self;
 }
 
+=head3 assert_on_manage_groups_page
+
+The I<< Groups >> page is visible.
+
+=cut
+
+sub assert_on_manage_groups_page {
+    my ( $self, $name ) = @_;
+    $name //= 'The manage groups page is visible';
+    my $test = context();
+
+    $self->_assert_on_page(
+        'body.group',
+        [ { selector => 'h2', text => 'Groups' } ],
+        $name,
+    );
+
+    $test->release;
+    return $self;
+}
+
 =head3 assert_on_manage_tables_page
 
 The I<< Manage tables >> page is visible.
@@ -440,6 +484,27 @@ sub assert_on_manage_this_table_page {
     return $self;
 }
 
+=head3 assert_on_manage_users_page
+
+The I<< Manage users >> page is visible.
+
+=cut
+
+sub assert_on_manage_users_page {
+    my ( $self, $name ) = @_;
+    $name //= 'The manage users page is visible';
+    my $test = context();
+
+    $self->_assert_on_page(
+        'body.user',
+        [ { selector => 'h1', match => '\AManage users\s*\z' } ],
+        $name,
+    );
+
+    $test->release;
+    return $self;
+}
+
 =head3 assert_on_new_record_page
 
 The I<< New record >> page is visible.
@@ -463,7 +528,8 @@ sub assert_on_new_record_page {
 
 =head3 assert_on_see_records_page
 
-The I<< See records >> page is visible.
+The I<< See records >> page is visible.  Takes two optional arguments,
+the test name and an expected page title.
 
 =cut
 
@@ -501,6 +567,44 @@ sub assert_on_view_record_page {
         [ { selector => 'h2', match => '\\ARecord ID ' } ],
         $name,
     );
+
+    $test->release;
+    return $self;
+}
+
+=head3 assert_records_shown
+
+On the I<< See Records >> page, check which records are shown.
+
+=cut
+
+sub assert_records_shown {
+    my ( $self, $name, $expected_records_ref ) = @_;
+    $name //= 'The see records page shows the expected records';
+    my $test = context();
+    my $webdriver = $self->gads->webdriver;
+
+    my $table_el = $webdriver->find( '#data-table', dies => 0 );
+    my $success = $self->_check_only_one( $table_el, 'data table' );
+
+    my $headings_el = $table_el->find( 'thead th', dies => 0 );
+    my @heading = map $_->attr('aria-label'), $headings_el->split;
+
+    my @found_record;
+    my $records_el = $table_el->find( 'tbody tr', dies => 0 );
+    foreach my $record_el ( $records_el->split ) {
+        my @value = map $_->text, $record_el->find( 'td', dies => 0 )->split;
+        my %record = zip @heading, @value;
+        delete $record{ID};
+        push @found_record, \%record;
+    }
+
+    if ( $success ) {
+        is( \@found_record, $expected_records_ref, $name ); 
+    }
+    else {
+        $test->ok( 0, $name );
+    }
 
     $test->release;
     return $self;
@@ -602,6 +706,40 @@ sub _check_element_against_expectation {
 =head2 Action Methods
 
 These test methods perform actions against the user interface.
+
+=head3 assign_current_user_to_group_ok
+
+Assign the currently logged in user to a specified group.
+
+=cut
+
+sub assign_current_user_to_group_ok {
+    my ( $self, $name, $group_name ) = @_;
+    my $test = context();
+    my $webdriver = $self->gads->webdriver;
+
+    my $query = "//label/input[
+            \@type = 'checkbox'
+            and \@name = 'groups'
+        ]/..[
+            contains(., '${group_name}')
+        ]";
+    my $checkbox_el = $webdriver->find( $query, method => 'xpath', dies => 0 );
+
+    my $description = "checkbox for group '${group_name}'";
+    my $success = $self->_check_only_one( $checkbox_el, $description );
+    if ( $checkbox_el->selected ) {
+        $success = 0;
+        $test->diag("The ${description} is unexpectedly selected");
+    }
+    $checkbox_el->click;
+    $success &&= $self->_click_submit_button;
+
+    $test->ok( $success, $name );
+
+    $test->release;
+    return $self;
+}
 
 =head3 confirm_deletion_ok
 
@@ -818,6 +956,18 @@ sub purge_deleted_records_ok {
     return $self;
 }
 
+=head3 select_current_user_to_edit_ok
+
+From the I<< Manage users >> page, select the currently logged in user.
+
+=cut
+
+sub select_current_user_to_edit_ok {
+    my ( $self, $name ) = @_;
+    return $self->_select_item_row_to_edit_ok(
+        $name, $self->gads->username, 'user' );
+}
+
 =head3 select_field_to_edit_ok
 
 From the I<< Manage fields >> page, select a named field to edit.
@@ -826,7 +976,18 @@ From the I<< Manage fields >> page, select a named field to edit.
 
 sub select_field_to_edit_ok {
     my $self = shift;
-    return $self->_select_table_or_field_to_edit_ok( @_, 'field' );
+    return $self->_select_item_row_to_edit_ok( @_, 'field' );
+}
+
+=head3 select_group_to_edit_ok
+
+From the I<< Groups >> page, select a named group to edit.
+
+=cut
+
+sub select_group_to_edit_ok {
+    my $self = shift;
+    return $self->_select_item_row_to_edit_ok( @_, 'group' );
 }
 
 =head3 select_table_to_edit_ok
@@ -837,17 +998,17 @@ From the I<< Manage tables >> page, select a named table to edit.
 
 sub select_table_to_edit_ok {
     my $self = shift;
-    return $self->_select_table_or_field_to_edit_ok( @_, 'table' );
+    return $self->_select_item_row_to_edit_ok( @_, 'table' );
 }
 
-sub _select_table_or_field_to_edit_ok {
-    my ( $self, $name, $table_or_field_name, $type_name ) = @_;
-    $name //= "Select the '${table_or_field_name}' ${type_name} to edit";
+sub _select_item_row_to_edit_ok {
+    my ( $self, $name, $item_row_name, $type_name ) = @_;
+    $name //= "Select the '${item_row_name}' ${type_name} to edit";
     my $test = context();
 
-    my $edit_el = $self->_find_named_table_or_field_el($table_or_field_name);
+    my $edit_el = $self->_find_named_item_row_el($item_row_name);
     my $success = $self->_check_only_one(
-        $edit_el, "${type_name} named '${table_or_field_name}'" );
+        $edit_el, "${type_name} named '${item_row_name}'" );
     $edit_el->click if $success;
     $test->ok( $success, $name );
 
@@ -938,6 +1099,27 @@ sub submit_add_a_field_form_ok {
     return $result;
 }
 
+=head3 submit_add_a_group_form_ok
+
+Submit the I<< Add a group >> form.
+
+=cut
+
+sub submit_add_a_group_form_ok {
+    my ( $self, $name, $group_name ) = @_;
+    $name //= 'Submit the add a group form';
+
+    my $test = context();
+    my $success = $self->_fill_in_field( 'input[name=name]', $group_name );
+
+    $test->note("About to add a group named ${group_name}");
+    $success &&= $self->_click_submit_button;
+
+    my $result = $test->ok( $success, $name );
+    $test->release;
+    return $result;
+}
+
 =head3 submit_add_a_table_form_ok
 
 Submit the I<< Add a table >> form.  Takes similar arguments to L<<
@@ -969,7 +1151,7 @@ sub submit_add_a_table_form_ok {
     }
 
     $test->note("About to add a table named $arg{name}");
-    $webdriver->find('[type=submit][name=submit]')->click;
+    $success &&= $self->_click_submit_button;
 
     my $result = $test->ok( $success, $name );
     $test->release;
@@ -1022,33 +1204,27 @@ sub submit_add_a_view_form_ok {
         $condition_el->click;
     }
 
-    my $filter_rule_el = $filters_el->find('.rules-list li');
+    my $filter_rule_el = $filters_el->find('.rules-list .rule-container');
     $success &&= $self->_check_only_one( $filter_rule_el, "filter rule" );
     my $add_rule_el = $filters_el->find('.rules-group-header button[data-add="rule"]');
     $success &&= $self->_check_only_one( $add_rule_el, "Add rule" );
 
+    # HACK: Prevent the .navbar-fixed-bottom from obscuring the filter
+    # specification fields.
+    $self->gads->webdriver->find('body')->send_keys("\N{WD_END}");
+
     # Specify filters for the view
-    foreach my $rules_ref ( @{ $arg{filters}{rules} } ) {
-        my %rule = %$rules_ref;
-        $filter_rule_el->find(
-            qq|//*[\@class = "rule-filter-container"]//option[ text() = "$rule{field}" ]|,
-            method => 'xpath',
-        )->click;
-        $filter_rule_el->find(
-            qq|//*[\@class = "rule-operator-container"]//option[ text() = "$rule{operator}" ]|,
-            method => 'xpath',
-        )->click;
-        $filter_rule_el->find(
-            '//*[ @class = "rule-value-container" ]//input[ @type = "text" ]',
-            method => 'xpath',
-        )->send_keys( $rule{value} );
-    }
-    continue {
-        $add_rule_el->click;
-        $filter_rule_el = $filter_rule_el->find(
-            './following-sibling::li',
-            method => 'xpath',
-        );
+    my $add_a_rule = 0;
+    foreach ( @{ $arg{filters}{rules} } ) {
+        if ($add_a_rule) {
+            $add_rule_el->click;
+            $filter_rule_el = $filter_rule_el->find(
+                './following-sibling::li',
+                method => 'xpath',
+            );
+        }
+        $success &&= $self->_specify_filter( $filter_rule_el, $_ );
+        $add_a_rule = 1;
     }
 
     $test->note("About to add a view named $arg{name}");
@@ -1057,6 +1233,41 @@ sub submit_add_a_view_form_ok {
     my $result = $test->ok( $success, "Add a view named $arg{name}" );
     $test->release;
     return $result;
+}
+
+sub _specify_filter {
+    my ( $self, $filter_rule_el, $rules_ref ) = @_;
+    my %rule = %$rules_ref;
+    my $success = 1;
+
+    my @option_field = (
+        {
+            type => 'filter',
+            value => $rule{field},
+        },
+        {
+            type => 'operator',
+            value => $rule{operator},
+        },
+    );
+    foreach my $option_ref (@option_field) {
+        my %option = %$option_ref;
+
+        my $selector = 
+            qq|.//*[\@class = "rule-$option{type}-container"]//option[ text() = "$option{value}" ]|;
+        my $field_el = $filter_rule_el->find( $selector, method => 'xpath' );
+        $success &&= $self->_check_only_one( $field_el, "$option{type} filter" );
+        $field_el->click;
+    }
+
+    my $value_el = $filter_rule_el->find(
+        './/*[ @class = "rule-value-container" ]//input[ @type = "text" ]',
+        method => 'xpath',
+    );
+    $success &&= $self->_check_only_one( $value_el, "text value container" );
+    $value_el->send_keys( $rule{value} );
+
+    return $success;
 }
 
 =head3 submit_login_form_ok
@@ -1081,7 +1292,7 @@ sub submit_login_form_ok {
     $test->note("About to log in as ${username} with password ${password}");
     my $success = $self->_fill_in_field( '#username', $username );
     $success &&= $self->_fill_in_field( '#password', $password );
-    $gads->webdriver->find('[type=submit][name=signin]')->click;
+    $success &&= $self->_click_submit_button('signin');
 
     my $result = $test->ok( $success, $name );
     $test->release;
@@ -1110,7 +1321,7 @@ sub submit_new_record_form_ok {
         $self->_new_record_selector(1), $arg[0] );
     $success &&= $self->_fill_in_field(
         $self->_new_record_selector(2), $arg[1] );
-    $self->gads->webdriver->find('[type=submit][name=submit]')->click;
+    $success &&= $self->_click_submit_button;
 
     my $result = $test->ok( $success, $name );
     $test->release;
@@ -1155,7 +1366,7 @@ sub _fill_in_field {
 }
 
 
-sub _find_named_table_or_field_el {
+sub _find_named_item_row_el {
     my ( $self, $name ) = @_;
 
     my $webdriver = $self->gads->webdriver;
@@ -1163,6 +1374,21 @@ sub _find_named_table_or_field_el {
     my $found_el = $webdriver->find( $xpath, method => 'xpath', dies => 0 );
 
     return $found_el;
+}
+
+sub _click_submit_button {
+    my ( $self, $element_name_attr ) = @_;
+    $element_name_attr //= 'submit';
+    my $webdriver = $self->gads->webdriver;
+
+    my $selector = "[type='submit'][name='${element_name_attr}']";
+    my $submit_el = $webdriver->find( $selector, dies => 0 );
+
+    my $success = $self->_check_only_one(
+        $submit_el, "${element_name_attr} button" );
+
+    $submit_el->click;
+    return $success;
 }
 
 1;
