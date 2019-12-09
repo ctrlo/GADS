@@ -62,6 +62,8 @@ foreach my $col ($layout->all(userinput => 1))
     $record->fields->{$calc->id}->set_value($data->{string1});
     try { $record->write(no_alerts => 1) };
     like($@, qr/must be unique but value .* already exists/, "Failed to write unique existing value for calc value");
+    $record->clear;
+    $record->initialise(instance_id => 1);
     $calc->isunique(0);
     $calc->write;
 }
@@ -115,6 +117,35 @@ foreach my $col ($layout->all(userinput => 1))
     try { $child->write(no_alerts => 1) };
     ok(!$@, "Wrote child with duplicate calc value");
     is($child->fields->{$calc->id}->as_string, $data->{string1}, "Duplicated child calc written");
+}
+
+# Calc unique value that the user does not have access to
+{
+    my $calc = $columns->{calc1};
+    $calc->isunique(1);
+    $calc->set_permissions({$sheet->group->id => []});
+    $calc->write;
+    $layout->clear;
+
+    my $string1 = $columns->{string1};
+
+    # First value that already exists
+    $record->fields->{$string1->id}->set_value($data->{string1});
+    try { $record->write(no_alerts => 1) };
+    like($@, qr/must be unique but value .* already exists/, "Failed to write unique existing value for calc value");
+
+    # Then value that does not exist
+    $record->clear;
+    $record->initialise(instance_id => 1);
+    $record->fields->{$string1->id}->set_value('XXX');
+    $record->write(no_alerts => 1);
+    my $cid = $record->current_id;
+    $record->clear;
+    $record->find_current_id($cid);
+    is($record->fields->{$string1->id}->as_string, "XXX");
+
+    $calc->isunique(0);
+    $calc->write;
 }
 
 done_testing();

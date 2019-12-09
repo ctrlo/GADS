@@ -663,6 +663,7 @@ sub find_unique
     );
     @retrieve_columns = ($column->id)
         unless @retrieve_columns;
+    $self->layout->user_permission_override_search(1); # Nasty hack, so as to not limit by user
     my $records = GADS::Records->new(
         user    => undef, # Do not want to limit by user
         rows    => 1,
@@ -673,7 +674,9 @@ sub find_unique
     );
 
     # Might be more, but one will do
-    return pop @{$records->results};
+    my $r = $records->single;
+    $self->layout->user_permission_override_search(0); # Return to normal
+    return $r;
 }
 
 sub clear
