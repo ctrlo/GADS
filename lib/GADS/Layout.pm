@@ -551,6 +551,10 @@ sub write
 
 sub delete
 {   my $self = shift;
+    error __"This table cannot be deleted as it contains records"
+        if $self->schema->resultset('Current')->search({
+            instance_id => $self->instance_id,
+        })->next;
     my $guard = $self->schema->txn_scope_guard;
     $self->delete_internal_columns;
     $self->schema->resultset('InstanceGroup')->search({
