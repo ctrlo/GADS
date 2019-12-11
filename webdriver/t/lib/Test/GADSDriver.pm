@@ -610,7 +610,7 @@ sub assert_records_shown {
     }
 
     if ( $success ) {
-        is( \@found_record, $expected_records_ref, $name ); 
+        is( \@found_record, $expected_records_ref, $name );
     }
     else {
         $test->ok( 0, $name );
@@ -1263,7 +1263,7 @@ sub _specify_filter {
     foreach my $option_ref (@option_field) {
         my %option = %$option_ref;
 
-        my $selector = 
+        my $selector =
             qq|.//*[\@class = "rule-$option{type}-container"]//option[ text() = "$option{value}" ]|;
         my $field_el = $filter_rule_el->find( $selector, method => 'xpath' );
         $success &&= $self->_check_only_one( $field_el, "$option{type} filter" );

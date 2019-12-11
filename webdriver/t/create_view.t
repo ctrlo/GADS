@@ -166,7 +166,6 @@ $gads->assert_records_shown(
     ],
 );
 
-
 $gads->navigate_ok(
     'Navigate to the add a view page',
     [ qw( [aria-controls~="menu_view"] .view-add ) ],
