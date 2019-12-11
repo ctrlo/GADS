@@ -574,7 +574,9 @@ sub assert_on_view_record_page {
 
 =head3 assert_records_shown
 
-On the I<< See Records >> page, check which records are shown.
+On the I<< See Records >> page, check which records are shown.  Any
+unexpected records, duplicate records, or records displayed in an
+unexpected order cause this to fail.
 
 =cut
 
