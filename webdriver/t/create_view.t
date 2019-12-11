@@ -224,6 +224,15 @@ $gads->delete_viewed_record_ok('Delete the first record created');
 
 $gads->assert_success_present('The first record was deleted successfully');
 $gads->assert_on_see_records_page;
+$gads->assert_records_shown(
+    'Only the second record is shown after deleting the first',
+    [
+        {
+            $text_field_name => 'Twenty four',
+            $int_field_name => 24,
+        },
+    ],
+);
 
 $gads->select_record_to_view_ok(
     'Select the second record created', $record[1]{name} );
