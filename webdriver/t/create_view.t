@@ -166,7 +166,6 @@ $gads->assert_records_shown(
     ],
 );
 
-
 $gads->navigate_ok(
     'Navigate to the add a view page',
     [ qw( [aria-controls~="menu_view"] .view-add ) ],
@@ -219,11 +218,27 @@ $gads->assert_success_present('The view was deleted successfully');
 $gads->select_record_to_view_ok(
     'Select the first record created', $record[0]{name} );
 $gads->assert_on_view_record_page;
+$gads->assert_record_has_fields(
+    'Viewing the first record created',
+    {
+        $text_field_name => 'One hundred and twenty three',
+        $int_field_name => 123,
+    },
+);
 
 $gads->delete_viewed_record_ok('Delete the first record created');
 
 $gads->assert_success_present('The first record was deleted successfully');
 $gads->assert_on_see_records_page;
+$gads->assert_records_shown(
+    'Only the second record is shown after deleting the first',
+    [
+        {
+            $text_field_name => 'Twenty four',
+            $int_field_name => 24,
+        },
+    ],
+);
 
 $gads->select_record_to_view_ok(
     'Select the second record created', $record[1]{name} );

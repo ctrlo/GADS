@@ -572,9 +572,47 @@ sub assert_on_view_record_page {
     return $self;
 }
 
+=head3 assert_record_has_fields
+
+On the I<< View record >> page, check that a record with the specified
+fields and values is shown.
+
+=cut
+
+sub assert_record_has_fields {
+    my ( $self, $name, $expected_fields_ref ) = @_;
+    $name //= 'A record with the specified fields is visible';
+    my $test = context();
+
+    my $table_el = $self->gads->webdriver->find( '#topic_show table', dies => 0 );
+    my $success = $self->_check_only_one( $table_el, 'table of fields' );
+
+    my %field_found;
+    foreach my $row_el ( $table_el->find('tr')->split ) {
+        my $field_el = $row_el->find('th');
+        $success &&= $self->_check_only_one( $field_el, 'field name' );
+        my $value_el = $row_el->find('td');
+        $success &&= $self->_check_only_one( $value_el, 'field value' );
+
+        $field_found{ $field_el->text } = $value_el->text;
+    }
+
+    if ($success) {
+        is( \%field_found, $expected_fields_ref, $name );
+    }
+    else {
+        $test->ok( 0, $name );
+    }
+
+    $test->release;
+    return $self;
+}
+
 =head3 assert_records_shown
 
-On the I<< See Records >> page, check which records are shown.
+On the I<< See Records >> page, check which records are shown.  Any
+unexpected records, duplicate records, or records displayed in an
+unexpected order cause this to fail.
 
 =cut
 
@@ -608,7 +646,7 @@ sub assert_records_shown {
     }
 
     if ( $success ) {
-        is( \@found_record, $expected_records_ref, $name ); 
+        is( \@found_record, $expected_records_ref, $name );
     }
     else {
         $test->ok( 0, $name );
@@ -1261,7 +1299,7 @@ sub _specify_filter {
     foreach my $option_ref (@option_field) {
         my %option = %$option_ref;
 
-        my $selector = 
+        my $selector =
             qq|.//*[\@class = "rule-$option{type}-container"]//option[ text() = "$option{value}" ]|;
         my $field_el = $filter_rule_el->find( $selector, method => 'xpath' );
         $success &&= $self->_check_only_one( $field_el, "$option{type} filter" );
