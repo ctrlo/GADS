@@ -218,6 +218,13 @@ $gads->assert_success_present('The view was deleted successfully');
 $gads->select_record_to_view_ok(
     'Select the first record created', $record[0]{name} );
 $gads->assert_on_view_record_page;
+$gads->assert_record_has_fields(
+    'Viewing the first record created',
+    {
+        $text_field_name => 'One hundred and twenty three',
+        $int_field_name => 123,
+    },
+);
 
 $gads->delete_viewed_record_ok('Delete the first record created');
 
