@@ -6,6 +6,7 @@ _build/
 Build
 !Build/
 Build.bat
+/environments/development_local.yml
 .last_cover_stats
 /Makefile
 /Makefile.old

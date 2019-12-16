@@ -25,6 +25,7 @@ cp config.yml-example config.yml
 # - plugins->DBIC->user
 # - plugins->DBIC->password
 # - engines->session->YAML->is_secure
+# Make any personal customisations in environments/development_local.yml
 
 # Create database (MySQL)
 mysql> CREATE DATABASE gads CHARACTER SET utf8 COLLATE utf8_general_ci;
