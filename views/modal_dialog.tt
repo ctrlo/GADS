@@ -35,16 +35,16 @@
             </div>
             <div class="modal-footer">
             [% IF modal_close_only %]
-                <button type="button" class="btn btn-default" data-dismiss="modal">[% modal_action_text %]</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">[% modal_action_text | html %]</button>
             [% ELSE %]
                 [% IF modal_with_cancel_button %]
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 [% END %]
                 [% IF modal_extra_action %]
-                    <button type="submit" value="submit" class="btn btn-primary" name="[% modal_extra_action %]">[% modal_extra_action_text %]</button>
+                    <button type="submit" value="submit" class="btn btn-primary" name="[% modal_extra_action %]">[% modal_extra_action_text | html %]</button>
                 [% END %]
                 [% IF modal_action_text %]
-                    <button type="submit" value="submit" class="btn btn-primary" name="[% modal_id %]">[% modal_action_text %]</button>
+                    <button type="submit" value="submit" class="btn btn-primary" name="[% modal_id %]">[% modal_action_text | html %]</button>
                 [% END %]
             [% END %]
             </div>
