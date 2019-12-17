@@ -644,18 +644,12 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
     {
         my $params = params;
         # Update of user details
-        my %update = (
-            firstname     => param('firstname')    || undef,
-            surname       => param('surname')      || undef,
-            email         => param('email'),
-            username      => param('email'),
-            freetext1     => param('freetext1')    || undef,
-            freetext2     => param('freetext2')    || undef,
-            title         => param('title')        || undef,
-            organisation  => param('organisation') || undef,
-            department_id => param('department_id') || undef,
-            team_id       => param('team_id') || undef,
-        );
+        my %update;
+        foreach my $field (var('site')->user_fields)
+        {
+            next if !$field->{editable};
+            $update{$field->{name}} = param($field->{name}) || undef;
+        }
 
         if (process( sub { $user->update_user(current_user => logged_in_user, %update) }))
         {
@@ -669,9 +663,12 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
         edit          => $user->id,
         users         => [$user],
         titles        => $users->titles,
-        organisations => $users->organisations,
-        departments   => $users->departments,
-        teams         => $users->teams,
+        values            => {
+            title            => $users->titles,
+            organisation     => $users->organisations,
+            department_id    => $users->departments,
+            team_id          => $users->teams,
+        },
         page          => 'myaccount',
         breadcrumbs   => [Crumb( '/myaccount/' => 'my details' )],
     };
@@ -702,7 +699,10 @@ any ['get', 'post'] => '/system/?' => require_login sub {
         $site->email_welcome_text(param 'email_welcome_text');
         $site->name(param 'name');
 
-        if (process( sub { $site->update }))
+        if (process( sub {
+            $site->update;
+            $site->update_user_editable_fields(body_parameters->get_all('user_editable'));
+        }))
         {
             return forwardHome(
                 { success => "Configuration settings have been updated successfully" } );
@@ -873,7 +873,6 @@ any ['get', 'post'] => '/user/upload' => require_any_role [qw/useradmin superadm
     template 'user/upload' => {
         groups      => GADS::Groups->new(schema => schema)->all,
         permissions => $userso->permissions,
-        user_fields => $userso->user_fields,
         breadcrumbs => [Crumb( '/user' => 'users' ), Crumb( '/user/upload' => "user upload" ) ],
         # XXX Horrible hack - see single user edit route
         edituser    => +{ view_limits_with_blank => [ undef ] },
@@ -1088,10 +1087,12 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
         users             => $users,
         groups            => GADS::Groups->new(schema => schema)->all,
         register_requests => $register_requests,
-        titles            => $userso->titles,
-        organisations     => $userso->organisations,
-        departments       => $userso->departments,
-        teams             => $userso->teams,
+        values            => {
+            title            => $userso->titles,
+            organisation     => $userso->organisations,
+            department_id    => $userso->departments,
+            team_id          => $userso->teams,
+        },
         permissions       => $userso->permissions,
         page              => defined $route_id && !$route_id ? 'user/0' : 'user',
         breadcrumbs       => $breadcrumbs,

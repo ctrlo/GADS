@@ -833,19 +833,17 @@ sub update_user
         or error __x"The email address \"{email}\" is invalid", email => $params{email};
 
     my $values = {
-        firstname             => $params{firstname},
-        surname               => $params{surname},
-        value                 => $params{value},
-        email                 => $params{email},
-        username              => $params{email},
-        freetext1             => $params{freetext1},
-        freetext2             => $params{freetext2},
-        title                 => $params{title} || undef,
-        organisation          => $params{organisation} || undef,
-        department_id         => $params{department_id} || undef,
-        team_id               => $params{team_id} || undef,
         account_request_notes => $params{account_request_notes},
     };
+
+    my $site = $self->result_source->schema->resultset('Site')->next;
+    foreach my $field ($site->user_fields)
+    {
+        next if !exists $params{$field->{name}};
+        $values->{$field->{name}} = $params{$field->{name}};
+        $values->{username} = $params{email}
+            if $field->{name} eq 'email';
+    }
 
     my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $current_user);
 

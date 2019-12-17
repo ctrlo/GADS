@@ -19,98 +19,26 @@
             <input type="hidden" name="page" value="[% page %]">
             <input type="hidden" name="username" value="[% edituser.username | html_entity %]">
             <input type="hidden" name="id" value="[% edituser.id %]">
-            <div class="form-group">
-                <label for="firstname">First name:</label>
-                <input type="text" class="form-control" id="firstname" name="firstname" value="[% edituser.firstname | html_entity %]">
-            </div>
-            <div class="form-group">
-                <label for="email">Surname:</label>
-                <input type="text" class="form-control" id="surname" name="surname" value="[% edituser.surname | html_entity %]">
-            </div>
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="text" class="form-control" id="email" name="email" value="[% edituser.email | html_entity %]">
-            </div>
-            [% IF site.register_freetext1_name %]
+            [% FOREACH field IN site.user_fields %]
                 <div class="form-group">
-                    <label for="freetext1">[% site.register_freetext1_name %]:</label>
-                    <input type="text" class="form-control" id="freetext1" name="freetext1" value="[% edituser.freetext1 | html_entity %]">
-                </div>
-            [% END %]
-            [% IF site.register_freetext2_name %]
-                <div class="form-group">
-                    <label for="freetext2">[% site.register_freetext2_name %]:</label>
-                    <input type="text" class="form-control" id="freetext2" name="freetext2" value="[% edituser.freetext2 | html_entity %]">
-                </div>
-            [% END %]
-            [% IF site.register_show_title %]
-                <div class="form-group">
-                    <label for="title">
-                        Title:
-                        [% IF page.match("user") %]
-                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#submitnewtitle">Add title</button>
+                    <label for="field.name">[% field.description | html %]:
+                        [% IF page.match("user") AND field.type == "dropdown" %]
+                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#submitnew[% field.name %]">
+                                Add [% field.description | html %]
+                            </button>
                         [% END %]
                     </label>
-                    <select class="form-control" id="title" name="title">
-                        <option></option>
-                        [% FOREACH title IN titles %]
-                            <option value="[% title.id %]" [% IF edituser.title.id == title.id %]selected[% END %]>[% title.name | html_entity %]</option>
-                        [% END %]
-                    </select>
-                </div>
-            [% END %]
-            [% IF site.register_show_organisation %]
-                <div class="form-group">
-                    <label for="organisation">
-                        [% site.register_organisation_name | html %]:
-                        [% IF page.match("user") %]
-                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#submitneworganisation">Add organisation</button>
-                        [% END %]
-                    </label>
-                    <select class="form-control" id="organisation" name="organisation">
-                        <option></option>
-                        [% FOREACH organisation IN organisations %]
-                            <option value="[% organisation.id %]"
-                                [% IF edituser.organisation.id == organisation.id %]selected[% END %]>[% organisation.name | html_entity %]
-                            </option>
-                        [% END %]
-                    </select>
-                </div>
-            [% END %]
-            [% IF site.register_show_department %]
-                <div class="form-group">
-                    <label for="department">
-                        [% site.department_name | html %]:
-                        [% IF page.match("user") %]
-                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#submitnewdepartment">Add [% site.department_name | html %]</button>
-                        [% END %]
-                    </label>
-                    <select class="form-control" id="department_id" name="department_id">
-                        <option></option>
-                        [% FOREACH department IN departments %]
-                            <option value="[% department.id %]"
-                                [% IF edituser.department.id == department.id %]selected[% END %]>[% department.name | html_entity %]
-                            </option>
-                        [% END %]
-                    </select>
-                </div>
-            [% END %]
-            [% IF site.register_show_team %]
-                <div class="form-group">
-                    <label for="team">
-                        [% site.team_name | html %]:
-                        [% IF page.match("user") %]
-                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#submitnewteam">Add [% site.team_name | html %]</button>
-                        [% END %]
-                    </label>
-                    <select class="form-control" id="team_id" name="team_id">
-                        <option></option>
-                        [% FOREACH team IN teams %]
-                            <option value="[% team.id %]"
-                                [% IF edituser.team.id == team.id %]selected[% END %]>[% team.name | html_entity %]
-                            </option>
-                        [% END %]
-                    </select>
+                    [% IF field.type == "freetext" %]
+                        <input type="text" class="form-control" id="[% field.name %]" name="[% field.name %]"
+                            value="[% edituser.${field.name} | html_entity %]" [% IF NOT field.editable %]disabled[% END %]>
+                    [% ELSIF field.type == "dropdown" %]
+                        <select class="form-control" id="[% field.name %]" name="[% field.name %]" [% IF NOT field.editable %]disabled[% END %]>
+                            <option></option>
+                            [% FOREACH val IN values.${field.name} %]
+                                <option value="[% val.id %]" [% IF edituser.get_column(field.name) == val.id %]selected[% END %]>[% val.name | html %]</option>
+                            [% END %]
+                        </select>
+                    [% END %]
                 </div>
             [% END %]
             [% IF page.match("user") %]
@@ -186,14 +114,14 @@
                 </div>
             [% END %]
 
-            [% WRAPPER modal_dialog.tt modal_id="submitnewdepartment" modal_action_text="Create new " _ site.department_name modal_heading="Add " _ site.department_name %]
+            [% WRAPPER modal_dialog.tt modal_id="submitnewdepartment_id" modal_action_text="Create new " _ site.department_name modal_heading="Add " _ site.department_name %]
                 <p>Please enter the name of a new [% site.department_name | html %]:</p>
                 <div class="form-group">
                     <input type="text" class="form-control" id="newdepartment" name="newdepartment" placeholder="New [% site.department_name | html %]">
                 </div>
             [% END %]
 
-            [% WRAPPER modal_dialog.tt modal_id="submitnewteam" modal_action_text="Create new " _ site.team_name modal_heading="Add " _ site.team_name %]
+            [% WRAPPER modal_dialog.tt modal_id="submitnewteam_id" modal_action_text="Create new " _ site.team_name modal_heading="Add " _ site.team_name %]
                 <p>Please enter the name of a new [% site.team_name | html %]:</p>
                 <div class="form-group">
                     <input type="text" class="form-control" id="newteam" name="newteam" placeholder="New [% site.team_name | html %]">

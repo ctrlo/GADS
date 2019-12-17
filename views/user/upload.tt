@@ -1,5 +1,5 @@
 <h2>Import Users</h2>
-<p>Use this page to upload a CSV file containing users. The CSV file can contain columns for any of: [% user_fields.join(', ') %]. Column headings in the CSV must exactly match these names. Only email address is mandatory.</p>
+<p>Use this page to upload a CSV file containing users. The CSV file can contain columns for any of: [% site.user_fields_as_string | html %]. Column headings in the CSV must exactly match these names. Only email address is mandatory.</p>
 
 <div class="row">
     <div class="col-md-6">

@@ -116,11 +116,12 @@ sub upload
         or error "Cannot use CSV: ".Text::CSV->error_diag ();
 
     my $userso = GADS::Users->new(schema => $self->result_source->schema);
+    my $site   = $self->result_source->schema->resultset('Site')->next;
 
     # Get first row for column headings
     my $row = $csv->getline($fh);
     # Valid headings
-    my %user_fields = map { lc $_ => 1 } @{$userso->user_fields};
+    my %user_fields = map { lc $_->{description} => 1 } $site->user_fields;
     my %user_mapping;
     my @invalid;
     my $count = 0;
@@ -146,7 +147,6 @@ sub upload
     defined $user_mapping{email}
         or error __"There must be an email column in the uploaded CSV";
 
-    my $site = $self->result_source->schema->resultset('Site')->next;
     my $freetext1 = lc $site->register_freetext1_name;
     my $freetext2 = lc $site->register_freetext2_name;
     my $org_name  = lc $site->organisation_name;

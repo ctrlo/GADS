@@ -75,11 +75,6 @@ has register_requests => (
     isa => ArrayRef,
 );
 
-has user_fields => (
-    is  => 'lazy',
-    isa => ArrayRef,
-);
-
 sub user_rs
 {   my $self = shift;
     my $search = {
@@ -187,19 +182,6 @@ sub _build_register_requests
 {   my $self = shift;
     my @users = $self->schema->resultset('User')->search({ account_request => 1 })->all;
     \@users;
-}
-
-sub _build_user_fields
-{   my $self = shift;
-    my $site = $self->schema->resultset('Site')->next;
-    my @fields = qw/Surname Forename Email/;
-    push @fields, $site->organisation_name if $site->register_show_organisation;
-    push @fields, $site->department_name if $site->register_show_department;
-    push @fields, $site->team_name if $site->register_show_team;
-    push @fields, 'Title' if $site->register_show_title;
-    push @fields, $site->register_freetext1_name if $site->register_freetext1_name;
-    push @fields, $site->register_freetext2_name if $site->register_freetext2_name;
-    [@fields];
 }
 
 sub title_new

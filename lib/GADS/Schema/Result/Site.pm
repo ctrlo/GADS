@@ -6,6 +6,8 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
+use JSON qw(decode_json encode_json);
+
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
 __PACKAGE__->table("site");
@@ -85,6 +87,8 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "remember_user_location",
   { data_type => "smallint", default_value => 1, is_nullable => 0 },
+  "user_editable_fields",
+  { data_type => "text", is_nullable => 1 },
 );
 
 __PACKAGE__->set_primary_key("id");
@@ -182,6 +186,89 @@ sub department_name
 sub team_name
 {   my $self = shift;
     $self->register_team_name || 'Team';
+}
+
+sub update_user_editable_fields
+{   my ($self, @fieldnames) = @_;
+
+    my %editable = map { $_ => 1 } @fieldnames;
+
+    my @fields = $self->user_fields;
+
+    $_->{editable} = $editable{$_->{name}} || 0
+        foreach @fields;
+
+    my $json = encode_json +{
+        map { $_->{name} => $_->{editable} } @fields
+    };
+
+    $self->update({
+        user_editable_fields => $json,
+    });
+}
+
+sub user_fields_as_string
+{   my $self = shift;
+    join ', ', map $_->{description}, $self->user_fields;
+}
+
+sub user_fields
+{   my $self = shift;
+
+    my @fields = (
+        {
+            name        => 'firstname',
+            description => 'Forename',
+            type        => 'freetext',
+        },
+        {
+            name        => 'surname',
+            description => 'Surname',
+            type        => 'freetext',
+        },
+        {
+            name        => 'email',
+            description => 'Email',
+            type        => 'freetext',
+        },
+    );
+    push @fields, {
+        name        => 'title',
+        description => 'Title',
+        type        => 'dropdown',
+    } if $self->register_show_title;
+    push @fields, {
+        name        => 'organisation',
+        description => $self->organisation_name,
+        type        => 'dropdown',
+    } if $self->register_show_organisation;
+    push @fields, {
+        name        => 'department_id',
+        description => $self->department_name,
+        type        => 'dropdown',
+    } if $self->register_show_department;
+    push @fields, {
+        name        => 'team_id',
+        description => $self->team_name,
+        type        => 'dropdown',
+    } if $self->register_show_team;
+    push @fields, {
+        name        => 'freetext1',
+        description => $self->register_freetext1_name,
+        type        => 'freetext',
+    } if $self->register_freetext1_name;
+    push @fields, {
+        name        => 'freetext2',
+        description => $self->register_freetext2_name,
+        type        => 'freetext',
+    } if $self->register_freetext2_name;
+
+    my $user_editable = decode_json($self->user_editable_fields || '{}');
+
+    $_->{editable} = $user_editable->{$_->{name}} // 1 # Default to editable
+        foreach @fields;
+
+    return @fields;
 }
 
 1;
