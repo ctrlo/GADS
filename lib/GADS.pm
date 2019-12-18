@@ -3532,9 +3532,6 @@ sub _process_edit
             }
         }
 
-        # Call this now, to write and blank out any non-displayed values,
-        $record->set_blank_dependents;
-
         if (defined(param 'validate'))
         {
             try { $record->write(dry_run => 1) };

@@ -531,7 +531,7 @@ sub _build_display_field_col_ids
 sub display_fields_b64
 {   my $self = shift;
     $self->has_display_field or return undef;
-    encode_base64 $self->display_fields->as_json, ''; # base64 plugin does not like new lines in content
+    $self->display_fields->base64;
 }
 
 has helptext => (

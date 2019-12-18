@@ -370,7 +370,6 @@ sub _build_values_as_query_records
             push @records, $self->record;
             $datum->set_value(\@records, allow_set_autocur => 1);
         }
-        $record->set_blank_dependents; # XXX Move to write() once back/forward functionality rewritten?
         push @records, $record;
     }
     \@records;

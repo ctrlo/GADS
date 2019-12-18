@@ -129,6 +129,10 @@ sub base64
                 text => $col->filter_value_to_text($filter->{value}),
             };
         }
+        if ($col->type eq 'filval')
+        {
+            $filter->{filtered} = $col->related_field_id,
+        }
     }
     # Now the JSON version will be built with the inserted data values
     encode_base64($self->as_json, ''); # Base64 plugin does not like new lines

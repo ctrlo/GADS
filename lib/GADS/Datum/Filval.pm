@@ -88,6 +88,12 @@ after set_value => sub {
     $self->oldvalue($clone);
 };
 
+sub value_regex_test
+{   my ($self, %options) = @_;
+    $self->re_evaluate(submission_token => $options{submission_token});
+    $self->text_all;
+}
+
 sub re_evaluate
 {   my ($self, %options) = @_;
 

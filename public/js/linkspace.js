@@ -725,7 +725,7 @@ var setupLessMoreWidgets = function (context) {
 };
 
 // get the value from a field, depending on its type
-var getFieldValues = function ($depends) {
+var getFieldValues = function ($depends, filtered) {
 
     // If a field is not shown then treat it as a blank value (e.g. if fields
     // are in a hierarchy and the top one is not shown, or if the user does
@@ -739,11 +739,19 @@ var getFieldValues = function ($depends) {
     var values = [];
 
     if (type === 'enum' || type === 'curval') {
-        var $visible = $depends.find('.select-widget .current [data-list-item]:not([hidden])');
-        $visible.each(function () {
-            var item = $(this).hasClass("current__blank") ? "" : $(this).text();
-            values.push(item)
-        });
+        if (filtered) {
+            var $visible = $depends.find('.select-widget .available .answer');
+            $visible.each(function () {
+                var item = $(this).find('[role="option"]');
+                values.push(item.text());
+            });
+        } else {
+            var $visible = $depends.find('.select-widget .current [data-list-item]:not([hidden])');
+            $visible.each(function () {
+                var item = $(this).hasClass("current__blank") ? "" : $(this).text();
+                values.push(item)
+            });
+        }
     } else if (type === 'person') {
         values = [$depends.find('option:selected').text()];
     } else if (type === 'tree') {
@@ -836,6 +844,16 @@ var setupDependentField = function () {
     var rules     = this.rules;
     var $field    = this.field;
 
+    // In order to hide the relevant fields, we used to trigger a change event
+    // on all the fields they depended on. However, this doesn't work for
+    // display fields that depend on a filval type field, as the values to
+    // check are not rendered on the page until the relevant filtered curval
+    // field is opened. As such, use the dependent-not-shown property instead,
+    // which is evaluated server-side
+    if ($field.data('dependent-not-shown')) {
+        $field.hide();
+    }
+
     var some = function (set, test) {
         for (var i = 0, j = set.length; i < j; i++) {
             if (test(set[i])) {
@@ -859,7 +877,7 @@ var setupDependentField = function () {
             var regexp      = rule.regexp;
             var is_negative = rule.is_negative;
 
-            var values = getFieldValues($depends);
+            var values = getFieldValues($depends, rule.filtered);
             var this_not_shown = is_negative ? false : true;
             $.each(values, function (index, value) {
                 if (is_negative) {
@@ -930,9 +948,6 @@ var setupDependentField = function () {
         $depends.on('change', function (e) {
             processChange();
         });
-
-        // trigger a change to toggle all dependencies
-        $depends.trigger('change');
     });
 
 
@@ -951,10 +966,17 @@ var setupDependentFields = function (context) {
             var regexp = match_type.indexOf('equal') !== -1
                 ? (new RegExp("^" + rule.value + "$"))
                 : (new RegExp(rule.value));
+            var id = rule.id;
+            var filtered = false;
+            if (rule.filtered) {
+                id = rule.filtered;
+                filtered = true;
+            }
             return {
-                dependsOn   : $('[data-column-id="' + rule.id + '"]', context),
+                dependsOn   : $('[data-column-id="' + id + '"]', context),
                 regexp      : regexp,
-                is_negative : is_negative
+                is_negative : is_negative,
+                filtered    : filtered
             };
         });
 

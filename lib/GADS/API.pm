@@ -392,6 +392,7 @@ prefix '/:layout_name' => sub {
                 dry_run           => 1,
                 missing_not_fatal => 1,
                 submitted_fields  => $curval->subvals_input_required,
+                submission_token  => $submission_token,
             );
         } # Missing values are reporting as non-fatal errors, and would therefore
           # not be caught by the try block and would be reported as normal (including

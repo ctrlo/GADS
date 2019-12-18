@@ -577,6 +577,7 @@
         [% dispcol.has_display_field && 'data-dependency="' _ dispcol.display_fields_b64 _ '"' %]
         [% dispcol.multivalue && 'data-is-multivalue="true"' %]
         [% dispcol.readonly && 'data-is-readonly="true"' %]
+        data-dependent-not-shown="[% editvalue.dependent_not_shown %]"
         style="margin-left:[% 50 * indents %]px"
     >
         [% label = dispcol.name | html_entity %]

@@ -1323,7 +1323,7 @@ sub write
     # submitted. Do this as quickly as possible to prevent chance of 2 very
     # quick submissions, and do it before the guard so that the submitted token
     # is visible as quickly as possible
-    if ($submission_token && $self->new_entry)
+    if ($submission_token && $self->new_entry && !$options{dry_run})
     {
         my $sub = $self->schema->resultset('Submission')->search({
             token => $submission_token,
@@ -1387,7 +1387,7 @@ sub write
     # This will be called before a write for a normal edit, to allow checks on
     # next/prev values, but we call it here again now, for other writes that
     # haven't explicitly called it
-    $self->set_blank_dependents;
+    $self->set_blank_dependents(submission_token => $submission_token);
 
     # First loop round: sanitise and see which if any have changed
     my %allow_update = map { $_ => 1 } @{$options{allow_update} || []};
@@ -1418,7 +1418,7 @@ sub write
         {
             # Do not require value if the field has not been showed because of
             # display condition
-            if (!$datum->dependent_not_shown)
+            if (!$datum->dependent_not_shown(submission_token => $submission_token))
             {
                 if (my $topic = $column->topic && $column->topic->prevent_edit_topic)
                 {
@@ -2021,13 +2021,14 @@ sub write_values
 }
 
 sub set_blank_dependents
-{   my $self = shift;
+{   my ($self, %options) = @_;
 
     foreach my $column ($self->layout->all(exclude_internal => 1))
     {
         my $datum = $self->fields->{$column->id};
         $datum->set_value('')
-            if $datum->dependent_not_shown && ($datum->column->can_child || !$self->parent_id);
+            if $datum->dependent_not_shown(submission_token => $options{submission_token})
+                && ($datum->column->can_child || !$self->parent_id);
     }
 }
 

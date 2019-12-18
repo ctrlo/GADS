@@ -166,7 +166,7 @@ sub html_withlinks { $_[0]->html }
 
 # Not lazy, otherwise changes in display_field will not update this
 sub dependent_not_shown
-{   my $self = shift;
+{   my ($self, %options) = @_;
 
     my @filters = @{$self->column->display_fields->filters}
         or return 0;
@@ -191,10 +191,14 @@ sub dependent_not_shown
         $display_regex = '^'.$display_regex.'$'
             if $matchtype =~ /equal/;
         my $value_datum = $fields->{$display_field_id};
-        my $values = $value_datum->value_regex_test;
+        my $values = $value_datum->value_regex_test(submission_token => $options{submission_token});
         # If the user cannot read the value that is depended on, make it blank
         # (this is how the form works)
-        $values = [''] if !$value_datum->column->user_can('read');
+        my $form_column = $value_datum->column;
+        $form_column = $form_column->related_field
+            if $form_column->type eq 'filval';
+        $values = ['']
+            if !$form_column->user_can('read');
         my $this_not_shown = $matchtype =~ /not/ ? 0 : 1;
         $values = [''] if !@$values;
         foreach my $value (@$values)
