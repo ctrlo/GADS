@@ -851,25 +851,40 @@ var setupDependentField = function () {
             return true;
         }
 
-        var is_shown = condition == 'AND' ? true : false;
+        var is_shown = false;
 
-        rules.forEach(function(rule) {
+        rules.some(function(rule) { // Break if returns true
 
             var $depends    = rule.dependsOn;
             var regexp      = rule.regexp;
             var is_negative = rule.is_negative;
 
             var values = getFieldValues($depends);
-            var this_shown = some(values, function (value) {
-                return is_negative ? !regexp.test(value) : regexp.test(value)
+            var this_not_shown = is_negative ? false : true;
+            $.each(values, function (index, value) {
+                if (is_negative) {
+                    this_not_shown = regexp.test(value);
+                } else {
+                    this_not_shown = !regexp.test(value);
+                }
             });
 
-            if (this_shown == true && condition == 'OR') {
+            if (!this_not_shown) {
                 is_shown = true;
             }
-            if (this_shown == false && condition == 'AND') {
-                is_shown = false;
+
+            if (condition) {
+                if (condition == 'OR') {
+                    return is_shown; // Whether to break
+                } else {
+                    if (this_not_shown) {
+                        is_shown = false;
+                    }
+                    return !is_shown; // Whether to break
+                }
             }
+
+            return false; // Continue loop
 
         });
 
