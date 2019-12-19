@@ -123,6 +123,13 @@ sub re_evaluate
         submission_id => $submission_id,
         layout_id     => $self->column->id,
     })->get_column('current_id')->all;
+
+    if (!@ids) # filtered_values() hasn't been called yet and the values stored
+    {
+        my $records = $self->column->related_field->filtered_values($submission_token);
+        @ids = map $_->{id}, @$records;
+    }
+
     $self->set_value(\@ids);
 }
 

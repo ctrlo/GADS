@@ -210,4 +210,93 @@ foreach my $test (@tests)
     $layout->clear;
 }
 
+@tests = (
+    {
+        string_value => 'Foo',
+        curval_value => [1],
+        date_shown   => 0,
+    },
+    {
+        string_value => 'Foo',
+        curval_value => [2],
+        date_shown   => 1,
+    },
+    {
+        string_value => 'Foo',
+        curval_value => [1,2],
+        date_shown   => 0,
+    },
+    {
+        string_value => 'Bar',
+        curval_value => [5],
+        date_shown   => 0,
+    },
+);
+
+# date1 pops-up if "40" is available but not selected from the curval filtered
+# values
+my $date1 = $columns->{date1};
+my @rules = ({
+    id       => $curval->id,
+    operator => 'not_contains',
+    value    => '40',
+},{
+    id       => $filval->id,
+    operator => 'contains',
+    value    => '40',
+});
+my $as_hash = {
+    condition => 'AND',
+    rules     => \@rules,
+};
+my $filter = GADS::Filter->new(
+    layout  => $layout,
+    as_hash => $as_hash,
+);
+$date1->display_fields($filter);
+$date1->write;
+
+$curval->curval_field_ids([$curval_sheet->columns->{string1}->id, $curval_sheet->columns->{integer1}->id]);
+$curval->write;
+
+$layout->clear;
+
+foreach my $test (@tests)
+{
+    my $record = GADS::Record->new(
+        user   => $sheet->user,
+        schema => $schema,
+        layout => $layout,
+    );
+    $record->initialise;
+
+    my $string1 = $columns->{string1};
+    $record->fields->{$string1->id}->set_value($test->{string_value});
+    $record->fields->{$date1->id}->set_value('2016-01-01');
+
+    my $submission_token = $record->submission_token;
+
+    # Specifically don't call filtered_values() before a write, to check that
+    # absence of a direct call still generates the correct list of stored
+    # values
+    $record->fields->{$curval->id}->set_value($test->{curval_value});
+    $record->write(no_alerts => 1, submission_token => $submission_token);
+    $current_id = $record->current_id;
+
+    $record->clear;
+    $record->find_current_id($current_id);
+
+    my $as_string = $test->{as_string};
+    if ($test->{date_shown})
+    {
+        ok($record->fields->{$date1->id}->as_string, "Date value is shown");
+    }
+    else {
+        ok(!$record->fields->{$date1->id}->as_string, "Date value is not shown");
+    }
+
+    $layout->clear;
+}
+
+
 done_testing();

@@ -302,8 +302,7 @@ sub filval_fields { () }
 sub filtered_values
 {   my ($self, $submission_token) = @_;
     return [] if $self->value_selector ne 'dropdown';
-    my $records = $self->_records_from_db
-        or return [];
+    my $records = $self->_records_from_db;
 
     my $submission = $self->schema->resultset('Submission')->search({
         token => $submission_token,
@@ -314,6 +313,23 @@ sub filtered_values
             submission_id => $submission->id,
             layout_id     => $filval_field->id,
         })->delete;
+    }
+
+    if (!$records)
+    {
+        # If nothing matches for the filtered values, then write a blank value,
+        # just so that we know this function has been called. This can be used
+        # later to check whether this function has been called, and call it if
+        # it hasn't.
+        foreach my $filval_field (@{$self->filval_fields})
+        {
+            $self->schema->resultset('FilteredValue')->create({
+                submission_id => $submission->id,
+                layout_id     => $filval_field->id,
+                current_id    => undef,
+            });
+        }
+        return [];
     }
 
     my @values;
