@@ -964,8 +964,8 @@ var setupDependentFields = function (context) {
             var match_type  = rule.operator;
             var is_negative = match_type.indexOf('not') !== -1 ? true : false;
             var regexp = match_type.indexOf('equal') !== -1
-                ? (new RegExp("^" + rule.value + "$"))
-                : (new RegExp(rule.value));
+                ? (new RegExp("^" + rule.value + "$", 'i'))
+                : (new RegExp(rule.value, 'i'));
             var id = rule.id;
             var filtered = false;
             if (rule.filtered) {

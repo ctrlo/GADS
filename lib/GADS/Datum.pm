@@ -204,9 +204,9 @@ sub dependent_not_shown
         foreach my $value (@$values)
         {
             if ($matchtype =~ /not/) {
-                $this_not_shown = 1 if $value =~ /$display_regex/;
+                $this_not_shown = 1 if $value =~ /$display_regex/i;
             } else {
-                $this_not_shown = 0 if $value =~ /$display_regex/;
+                $this_not_shown = 0 if $value =~ /$display_regex/i;
             }
         }
 
