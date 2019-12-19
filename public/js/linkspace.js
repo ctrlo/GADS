@@ -881,9 +881,9 @@ var setupDependentField = function () {
             var this_not_shown = is_negative ? false : true;
             $.each(values, function (index, value) {
                 if (is_negative) {
-                    this_not_shown = regexp.test(value);
+                    if (regexp.test(value)) this_not_shown = 1;
                 } else {
-                    this_not_shown = !regexp.test(value);
+                    if (regexp.test(value)) this_not_shown = 0;
                 }
             });
 
