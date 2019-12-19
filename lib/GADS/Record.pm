@@ -1323,7 +1323,7 @@ sub write
     # submitted. Do this as quickly as possible to prevent chance of 2 very
     # quick submissions, and do it before the guard so that the submitted token
     # is visible as quickly as possible
-    if ($submission_token && $self->new_entry && !$options{dry_run})
+    if ($submission_token && !$options{dry_run})
     {
         my $sub = $self->schema->resultset('Submission')->search({
             token => $submission_token,
@@ -1725,7 +1725,9 @@ sub write
     $self->_need_app($need_app);
     $self->write_values(%options, submission_token => $submission_token) unless $options{no_write_values};
 
-    # Finally delete submission token and any related cached filter values
+    # Finally delete any related cached filter values, meaning that any later
+    # attempts to delete the referenced current IDs will not throw a database
+    # relation error
     if ($submission_token)
     {
         my $s = $self->schema->resultset('Submission')->search({
@@ -1735,7 +1737,6 @@ sub write
         $self->schema->resultset('FilteredValue')->search({
             submission_id => $iid,
         })->delete;
-        $s->delete;
     }
 
     $guard->commit;
