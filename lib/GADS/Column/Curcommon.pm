@@ -691,6 +691,7 @@ sub cleanup
 {   my ($class, $schema, $id) = @_;
     $schema->resultset('Curval')->search({ layout_id => $id })->delete;
     $schema->resultset('CurvalField')->search({ parent_id => $id })->delete;
+    $schema->resultset('FilteredValue')->search({ layout_id => $id })->delete;
 }
 
 around export_hash => sub {
