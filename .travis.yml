@@ -1,0 +1,14 @@
+language: perl
+perl:
+    - "5.30"
+    - "5.28"
+addons:
+    apt:
+        packages:
+            # Required by Inline::Lua
+            - liblua5.2-dev
+before_install:
+    # See https://github.com/travis-perl/helpers/blob/master/README.md
+    - eval $(curl https://travis-perl.github.io/init) --auto
+script:
+    - prove -lrs -j$(test-jobs) $(test-files)
