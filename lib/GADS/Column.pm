@@ -700,7 +700,8 @@ has dateformat => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        my $format = $self->layout->config->dateformat;
+        my $config = GADS::Config->instance;
+        my $format = $config->dateformat;
         $format .= " HH:mm:ss" if $self->has_time;
         $format;
     },

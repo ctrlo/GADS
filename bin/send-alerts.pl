@@ -21,15 +21,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 
+use GADS::DB;
 use GADS::Schema;
 use GADS::Alert;
 use GADS::Email;
+use GADS::AlertDescription;
 use Dancer2;
 use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::LogReport 'linkspace', mode => 'NORMAL';
 
-my $url = config->{gads}->{url};
-$url =~ s!/$!!; # Remove trailing slash
+GADS::DB->setup(schema);
+
+GADS::Config->instance(
+    config => config,
+);
+
+my $alert_description = GADS::AlertDescription->new(
+    schema => schema,
+);
 
 sub _send
 {   my ($email, @notifications) = @_;
@@ -40,7 +49,7 @@ sub _send
     my $html = "<p>This email contains details of any changes in views that you have asked to be alerted to.</p>";
     $text .= join "\n", map { $_->{text} } @notifications;
     $html .= join "\n", map { $_->{html} } @notifications;
-    my $email_send = GADS::Email->new(config => config);
+    my $email_send = GADS::Email->new;
 
     $email_send->send({
         emails  => [$email],
@@ -50,16 +59,25 @@ sub _send
     });
 }
 
-sub _id_link
-{   qq(<a href="$url/record/$_[0]">record $_[0]</a>)
+sub record_description
+{   my (%params) = @_;
 }
 
 sub _do_columns
-{   my ($current_id, @columns) = @_;
+{   my ($current, $user, @columns) = @_;
     @columns or return;
     my $cols = join ', ', @columns;
-    my $notification = "* The following columns have changed in record $current_id: $cols";
-    my $link = _id_link($current_id);
+    my $description = $alert_description->description(
+        instance_id => $current->instance_id,
+        current_ids => $current->id,
+        user        => $user,
+    );
+    my $link = $alert_description->link(
+        instance_id => $current->instance_id,
+        current_ids => $current->id,
+        user        => $user,
+    );
+    my $notification = "* The following columns have changed in $description: $cols";
     my $notification_html = qq(<li>The following columns have changed in $link: $cols</li>);
     {
         text => $notification,
@@ -72,7 +90,7 @@ my @rows = rset('AlertSend')->search({}, {
     order_by => [qw/ user.id alert_id current_id /],
 })->all;
 
-my ($last_current_id, $last_alert_id, $last_user);
+my ($last_current, $last_alert_id, $last_user);
 my @notifications; my @columns;
 foreach my $row (@rows)
 {
@@ -80,7 +98,7 @@ foreach my $row (@rows)
 
     if (defined $last_user && $last_user->id != $row->alert->user_id)
     {
-        push @notifications, _do_columns($last_current_id, @columns);
+        push @notifications, _do_columns($last_current, $last_user, @columns);
         @columns = ();
         _send $last_user->email, @notifications;
         @notifications = ();
@@ -88,7 +106,7 @@ foreach my $row (@rows)
 
     if (!defined $last_alert_id || $last_alert_id != $row->alert_id)
     {
-        push @notifications, _do_columns($last_current_id, @columns);
+        push @notifications, _do_columns($last_current, $last_user, @columns);
         @columns = ();
         push @notifications, { text => '', html => '</ul><p></p>' } if @notifications; # blank line separater
         my $view_name = $row->alert->view->name;
@@ -98,30 +116,39 @@ foreach my $row (@rows)
         };
     }
 
-    if (defined $last_current_id && $last_current_id != $row->current_id && @columns)
+    if (defined $last_current && $last_current->id != $row->current_id && @columns)
     {
         my $current_id = $row->current_id;
-        push @notifications, _do_columns($last_current_id, @columns);
+        push @notifications, _do_columns($last_current, $last_user, @columns);
         @columns = ();
     }
 
+    my $current = $row->current;
+    my $description = $alert_description->description(
+        instance_id => $current->instance_id,
+        current_ids => $current->id,
+        user        => $row->alert->user,
+    );
+    my $link = $alert_description->link(
+        instance_id => $current->instance_id,
+        current_ids => $current->id,
+        user        => $row->alert->user,
+    );
     if ($row->status eq 'changed')
     {
         push @columns, $row->layout->name;
     }
     elsif ($row->status =~ /^gone/) # XXX Fixed with CHAR field pads 4 letter word
     {
-        my $link = _id_link($current_id);
         push @notifications, {
-            text => "* Record $current_id has now disappeared from the view",
-            html => "<li>Record $link has disappeared from the view</li>",
+            text => "* $description has now disappeared from the view",
+            html => "<li>$link has disappeared from the view</li>",
         };
     }
     elsif ($row->status eq 'arrived') {
-        my $link = _id_link($current_id);
         push @notifications, {
-            text => "* Record $current_id is now in the view",
-            html => "<li>Record $link is now in the view</li>",
+            text => "* $description is now in the view",
+            html => "<li>$link is now in the view</li>",
         };
     }
     else {
@@ -129,14 +156,14 @@ foreach my $row (@rows)
             status => $row->status;
     }
 
-    $last_alert_id   = $row->alert_id;
-    $last_user       = $row->alert->user;
-    $last_current_id = $row->current_id;
+    $last_alert_id = $row->alert_id;
+    $last_user     = $row->alert->user;
+    $last_current  = $row->current;
 
     $row->delete;
 }
 
-push @notifications, _do_columns($last_current_id, @columns);
+push @notifications, _do_columns($last_current, $last_user, @columns);
 push @notifications, { text => '', html => '</ul><p></p>' } if @notifications; # blank line separater
 _send $last_user->email, @notifications if $last_user;
 

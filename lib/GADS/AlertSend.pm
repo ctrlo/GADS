@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::AlertSend;
 
+use GADS::AlertDescription;
 use GADS::Config;
 use GADS::Email;
 use GADS::Records;
@@ -99,7 +100,6 @@ sub process
             user                     => undef,
             user_permission_override => 1,
             schema                   => $self->schema,
-            config                   => $self->layout->config,
             instance_id              => $instance_id,
         );
         # Get any current IDs that may have been affected, including historical
@@ -346,7 +346,7 @@ sub _process_instance
         {
             my @colnames = map { $layout->column($_)->name } @{$a->{col_ids}};
             my @cids = @{$a->{cids}};
-            $self->_send_alert('changed', \@cids, $view, [$a->{user}->email], \@colnames);
+            $self->_send_alert('changed', \@cids, $view, [$a->{user}], \@colnames);
         }
     }
 
@@ -360,7 +360,7 @@ sub _gone_arrived
 
     foreach my $item (@items)
     {
-        my @emails;
+        my @users;
         foreach my $alert (@{$item->{view}->all_alerts})
         {
             if ($alert->frequency)
@@ -380,10 +380,10 @@ sub _gone_arrived
             }
             else {
                 # send now
-                push @emails, $alert->user->email;
+                push @users, $alert->user;
             }
         }
-        $self->_send_alert($action, [$item->{current_id}], $item->{view}, \@emails) if @emails;
+        $self->_send_alert($action, [$item->{current_id}], $item->{view}, \@users) if @users;
     }
 }
 
@@ -393,74 +393,69 @@ sub _current_id_links
     wantarray ? @links : $links[0];
 }
 
+has alert_description => (
+    is => 'lazy',
+);
+
+sub _build_alert_description
+{   my $self = shift;
+    GADS::AlertDescription->new(
+        schema => $self->schema,
+    );
+}
+
 sub _send_alert
-{   my ($self, $action, $current_ids, $view, $emails, $columns) = @_;
+{   my ($self, $action, $current_ids, $view, $users, $columns) = @_;
 
-    my $view_name = $view->name;
-    my @current_ids = uniq @{$current_ids};
-    my $base = $self->base_url;
-
-    my $text; my $html;
-    if ($action eq "changed")
+    foreach my $user (@$users)
     {
-        # Individual fields to notify
-        my $cnames = join ', ', uniq @{$columns};
-        if (@current_ids > 1)
+        my $view_name = $view->name;
+        my @current_ids = uniq @{$current_ids};
+        my $base = $self->base_url;
+
+        my $alert_description = $self->alert_description;
+
+        my $text; my $html;
+        my $description = $alert_description->description(
+            instance_id => $self->layout->instance_id,
+            current_ids => \@current_ids,
+            user        => $user,
+        );
+        my $link = $alert_description->link(
+            instance_id => $self->layout->instance_id,
+            current_ids => \@current_ids,
+            user        => $user,
+        );
+        if ($action eq "changed")
         {
-            my $ids = join ', ', @current_ids;
-            $text   = "The following items were changed for record IDs $ids: $cnames\n\n";
+            # Individual fields to notify
+            my $cnames = join ', ', uniq @{$columns};
+            $text   = "The following items were changed for $description: $cnames\n\n";
             $text  .= "Links to the records are as follows:\n";
-            my $ids_html = join ', ', _current_id_links($base, @current_ids);
-            $html   = "<p>The following items were changed for record IDs $ids_html: $cnames</p>";
+            $html   = "<p>The following items were changed for $link: $cnames</p>";
         }
-        else {
-            $text   = "The following items were changed for record ID @current_ids: $cnames\n\n";
-            $text  .= "Please use the following link to access the record:\n";
-            my $id_html = _current_id_links($base, @current_ids);
-            $html   = "<p>The following items were changed for record ID $id_html: $cnames</p>";
-        }
-    }
-    elsif($action eq "arrived") {
-        if (@current_ids > 1)
-        {
-            $text   = qq(New items have appeared in the view "$view_name", with the following IDs: ).join(', ', @current_ids)."\n\n";
+        elsif($action eq "arrived") {
+            $text   = qq(New items as follows have appeared in the view "$view_name": $description\n\n);
             $text  .= "Links to the new items are as follows:\n";
-            my $ids_html = join ', ', _current_id_links($base, @current_ids);
-            $html   = "<p>New items have appeared in the view &quot;$view_name&quot;, with the following IDs: $ids_html</p>";
+            $html   = "<p>New items as follows have appeared in the view &quot;$view_name&quot;: $link</p>";
         }
-        else {
-            $text   = qq(A new item (ID @current_ids) has appeared in the view "$view_name".\n\n);
-            $text  .= "Please use the following link to access the record:\n";
-            my $id_html = _current_id_links($base, @current_ids);
-            $html   = qq(A new item (ID $id_html) has appeared in the view &quot;$view_name&quot;.</p>);
-        }
-    }
-    elsif($action eq "gone") {
-        if (@current_ids > 1)
-        {
-            $text   = qq(Items have disappeared from the view "$view_name", with the following IDs: ).join(', ', @current_ids)."\n\n";
+        elsif($action eq "gone") {
+            $text   = qq(Items as follows have disappeared from the view "$view_name": $description\n\n);
             $text  .= "Links to the removed items are as follows:\n";
-            my $ids_html = join ', ', _current_id_links($base, @current_ids);
-            $html   = "<p>Items have disappeared from the view &quot;$view_name&quot;, with the following IDs: $ids_html</p>";
+            $html   = "<p>Items as follows have disappeared from the view &quot;$view_name&quot;: $link</p>";
         }
-        else {
-            $text   = qq(An item (ID @current_ids) has disappeared from the view "$view_name".\n\n);
-            $text  .= "Please use the following link to access the original record:\n";
-            my $id_html = _current_id_links($base, @current_ids);
-            $html   = qq(<p>An item (ID $id_html) has disappeared from the view &quot;$view_name&quot;</p>);
+        foreach my $cid (@current_ids)
+        {
+            $text  .= $base."record/$cid\n";
         }
+        my $email = GADS::Email->instance;
+        $email->send({
+            subject => qq(Changes in view "$view_name"),
+            emails  => [$user->email],
+            text    => $text,
+            html    => $html,
+        });
     }
-    foreach my $cid (@current_ids)
-    {
-        $text  .= $base."record/$cid\n";
-    }
-    my $email = GADS::Email->instance;
-    $email->send({
-        subject => qq(Changes in view "$view_name"),
-        emails  => $emails,
-        text    => $text,
-        html    => $html,
-    });
 }
 
 1;

@@ -3,105 +3,141 @@
     <input type="hidden" name="csrf_token" value="[% csrf_token %]">
     <div class="row">
         <div class="col-md-12">
-            [% IF layout_edit.id %]
-                <input type="hidden" name="id" value="[% layout_edit.instance_id %]">
-            [% END %]
-            <div class="form-group">
-                <label for="name">Name of table:</label>
-                <input type="text" name="name" class="form-control" value="[% layout_edit.name | html_entity %]">
-            </div>
-            <div class="form-group">
-                <label for="name_short">Short name of table (optional):</label>
-                <input type="text" name="name_short" class="form-control" value="[% layout_edit.name_short | html_entity %]">
-            </div>
-            <div class="form-group">
-                <label for="hide_in_selector">Display in table selector menu:</label>
-                <select class="form-control" id="hide_in_selector" name="hide_in_selector">
-                    <option value="0" [% IF layout_edit.hide_in_selector == 0 %]selected[% END %]>Show table in selector menu for all users with access to table</option>
-                    <option value="1" [% IF layout_edit.hide_in_selector == 1 %]selected[% END %]>Only show table in selector menu for users with Manage Fields permission for table</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="sort_layout_id">Default sort:</label>
-                <div class="row">
-                    <div class="col-md-6">
-                        <select class="form-control" id="sort_layout_id" name="sort_layout_id">
-                            <option></option>
-                            [% FOREACH column IN layout_edit.all %]
-                                <option value="[% column.id %]" [% IF layout_edit.sort_layout_id == column.id %]selected[% END %]>[% column.name | html %]</option>
-                            [% END %]
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Table properties</h3>
+                </div>
+                <div class="panel-body">
+                    [% IF layout_edit.id %]
+                        <input type="hidden" name="id" value="[% layout_edit.instance_id %]">
+                    [% END %]
+                    <div class="form-group">
+                        <label for="name">Name of table:</label>
+                        <input type="text" name="name" class="form-control" value="[% layout_edit.name | html_entity %]">
+                    </div>
+                    <div class="form-group">
+                        <label for="name_short">Short name of table (optional):</label>
+                        <input type="text" name="name_short" class="form-control" value="[% layout_edit.name_short | html_entity %]">
+                    </div>
+                    <div class="form-group">
+                        <label for="hide_in_selector">Display in table selector menu:</label>
+                        <select class="form-control" id="hide_in_selector" name="hide_in_selector">
+                            <option value="0" [% IF layout_edit.hide_in_selector == 0 %]selected[% END %]>Show table in selector menu for all users with access to table</option>
+                            <option value="1" [% IF layout_edit.hide_in_selector == 1 %]selected[% END %]>Only show table in selector menu for users with Manage Fields permission for table</option>
                         </select>
                     </div>
-                    <div class="col-md-6">
-                        <select class="form-control" id="sort_type" name="sort_type">
-                            <option></option>
-                            <option value="asc" [% IF layout_edit.sort_type == "asc" %]selected[% END %]>Ascending</option>
-                            <option value="desc" [% IF layout_edit.sort_type == "desc" %]selected[% END %]>Descending</option>
-                        </select>
+                    <div class="form-group">
+                        <label for="sort_layout_id">Default sort:</label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <select class="form-control" id="sort_layout_id" name="sort_layout_id">
+                                    <option></option>
+                                    [% FOREACH column IN layout_edit.all %]
+                                        <option value="[% column.id %]" [% IF layout_edit.sort_layout_id == column.id %]selected[% END %]>[% column.name | html %]</option>
+                                    [% END %]
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <select class="form-control" id="sort_type" name="sort_type">
+                                    <option></option>
+                                    <option value="asc" [% IF layout_edit.sort_type == "asc" %]selected[% END %]>Ascending</option>
+                                    <option value="desc" [% IF layout_edit.sort_type == "desc" %]selected[% END %]>Descending</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="form-group">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Group name</th>
-                            <th>Delete records</th>
-                            <th>Purge deleted records</th>
-                            <th>Download records</th>
-                            <th>Manage fields</th>
-                            <th>Send messages</th>
-                            <th>Create and edit views</th>
-                            <th>Create and edit group views and graphs</th>
-                            <th>Create and edit child records</th>
-                            <th>Bulk update records</th>
-                            <th>Create and manage linked records</th>
-                            <th>Select extra view limits</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        [% FOREACH group IN groups %]
-                            <tr>
-                                <td>
-                                    [% group.name | html %]
-                                </td>
-                                <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_delete" aria-label="Delete records" [% IF layout_edit.group_has(group.id, 'delete') %]checked[% END %]>
-                                </td>
-                                <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_purge" aria-label="Purge deleted records" [% IF layout_edit.group_has(group.id, 'purge') %]checked[% END %]>
-                                </td>
-                                <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_download" aria-label="Download records" [% IF layout_edit.group_has(group.id, 'download') %]checked[% END %]>
-                                </td>
-                                <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_layout" aria-label="Manage fields" [% IF layout_edit.group_has(group.id, 'layout') %]checked[% END %]>
-                                </td>
-                                <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_message" aria-label="Send messages" [% IF layout_edit.group_has(group.id, 'message') %]checked[% END %]>
-                                </td>
-                                <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_view_create" aria-label="Create and edit views" [% IF layout_edit.group_has(group.id, 'view_create') %]checked[% END %]>
-                                </td>
-                                <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_view_group" aria-label="Create and edit group views" [% IF layout_edit.group_has(group.id, 'view_group') %]checked[% END %]>
-                                </td>
-                                <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_create_child" aria-label="Create and edit child records" [% IF layout_edit.group_has(group.id, 'create_child') %]checked[% END %]>
-                                </td>
-                                <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_bulk_update" aria-label="Bulk update records" [% IF layout_edit.group_has(group.id, 'bulk_update') %]checked[% END %]>
-                                </td>
-                                <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_link" aria-label="Create and manage linked records" [% IF layout_edit.group_has(group.id, 'link') %]checked[% END %]>
-                                </td>
-                                <td>
-                                    <input type="checkbox" name="permissions" value="[% group.id %]_view_limit_extra" aria-label="Select extra view limits" [% IF layout_edit.group_has(group.id, 'view_limit_extra') %]checked[% END %]>
-                                </td>
-                            </tr>
-                        [% END %]
-                    </tbody>
-                </table>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 role="button" data-toggle="collapse" data-target="#alert_columns" aria-expanded="false"
+                        aria-controls="alert_columns" class="panel-title">Email alerts</h3>
+                </div>
+                <div class="panel-body collapse" id="alert_columns">
+                    <label>
+                         Include the following fields for record descriptions in email alerts
+                    </label>
+                    [% FOR column IN layout_edit.all %]
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" name="alert_column" value="[% column.id %]"
+                                   [% IF layout_edit.has_alert_column(column.id) %]checked[% END %]>[% column.name | html %]
+                            </label>
+                        </div>
+                    [% END %]
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Table permissions</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Group name</th>
+                                    <th>Delete records</th>
+                                    <th>Purge deleted records</th>
+                                    <th>Download records</th>
+                                    <th>Manage fields</th>
+                                    <th>Send messages</th>
+                                    <th>Create and edit views</th>
+                                    <th>Create and edit group views and graphs</th>
+                                    <th>Create and edit child records</th>
+                                    <th>Bulk update records</th>
+                                    <th>Create and manage linked records</th>
+                                    <th>Select extra view limits</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                [% FOREACH group IN groups %]
+                                    <tr>
+                                        <td>
+                                            [% group.name | html %]
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" name="permissions" value="[% group.id %]_delete" aria-label="Delete records" [% IF layout_edit.group_has(group.id, 'delete') %]checked[% END %]>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" name="permissions" value="[% group.id %]_purge" aria-label="Purge deleted records" [% IF layout_edit.group_has(group.id, 'purge') %]checked[% END %]>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" name="permissions" value="[% group.id %]_download" aria-label="Download records" [% IF layout_edit.group_has(group.id, 'download') %]checked[% END %]>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" name="permissions" value="[% group.id %]_layout" aria-label="Manage fields" [% IF layout_edit.group_has(group.id, 'layout') %]checked[% END %]>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" name="permissions" value="[% group.id %]_message" aria-label="Send messages" [% IF layout_edit.group_has(group.id, 'message') %]checked[% END %]>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" name="permissions" value="[% group.id %]_view_create" aria-label="Create and edit views" [% IF layout_edit.group_has(group.id, 'view_create') %]checked[% END %]>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" name="permissions" value="[% group.id %]_view_group" aria-label="Create and edit group views" [% IF layout_edit.group_has(group.id, 'view_group') %]checked[% END %]>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" name="permissions" value="[% group.id %]_create_child" aria-label="Create and edit child records" [% IF layout_edit.group_has(group.id, 'create_child') %]checked[% END %]>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" name="permissions" value="[% group.id %]_bulk_update" aria-label="Bulk update records" [% IF layout_edit.group_has(group.id, 'bulk_update') %]checked[% END %]>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" name="permissions" value="[% group.id %]_link" aria-label="Create and manage linked records" [% IF layout_edit.group_has(group.id, 'link') %]checked[% END %]>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" name="permissions" value="[% group.id %]_view_limit_extra" aria-label="Select extra view limits" [% IF layout_edit.group_has(group.id, 'view_limit_extra') %]checked[% END %]>
+                                        </td>
+                                    </tr>
+                                [% END %]
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

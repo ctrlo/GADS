@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Email;
 
+use GADS::Config;
 use Log::Report 'linkspace';
 use Mail::Message;
 use Mail::Message::Body::String;
@@ -34,15 +35,19 @@ has message_prefix => (
 
 sub _build_message_prefix
 {   my $self = shift;
-    my $prefix = $self->config->{gads}->{message_prefix} || "";
+    my $prefix = $self->config->gads->{message_prefix} || "";
     $prefix .= "\n" if $prefix;
     $prefix;
 }
 
 has config => (
-    is       => 'ro',
-    required => 1,
+    is => 'lazy',
 );
+
+sub _build_config
+{   my $self = shift;
+    GADS::Config->instance;
+}
 
 has email_from => (
     is => 'lazy',
@@ -50,7 +55,7 @@ has email_from => (
 
 sub _build_email_from
 {   my $self = shift;
-    $self->config->{gads}->{email_from};
+    $self->config->gads->{email_from};
 }
 
 sub send

@@ -170,6 +170,21 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 alert_columns
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::AlertColumn>
+
+=cut
+
+__PACKAGE__->has_many(
+  "alert_columns",
+  "GADS::Schema::Result::AlertColumn",
+  { "foreign.instance_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 layouts
 
 Type: has_many

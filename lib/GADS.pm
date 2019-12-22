@@ -119,10 +119,6 @@ GADS::SchemaInstance->instance(
     schema => schema,
 );
 
-GADS::Email->instance(
-    config => config,
-);
-
 config->{plugins}->{'Auth::Extensible'}->{realms}->{dbic}->{user_as_object}
     or panic "Auth::Extensible DBIC provider needs to be configured with user_as_object";
 
@@ -816,6 +812,7 @@ any ['get', 'post'] => '/table/:id' => require_role superadmin => sub {
             $layout_edit->sort_layout_id(param('sort_layout_id') || undef);
             $layout_edit->sort_type(param('sort_type') || undef);
             $layout_edit->set_groups([body_parameters->get_all('permissions')]);
+            $layout_edit->set_alert_columns([body_parameters->get_all('alert_column')]);
 
             if (process(sub {$layout_edit->write}))
             {

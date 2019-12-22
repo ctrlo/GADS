@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Config;
 
+use Log::Report 'linkspace';
 use Path::Class qw(dir);
 use Moo;
 
@@ -60,6 +61,19 @@ has login_instance => (
     lazy    => 1,
     clearer => 1,
     builder => sub { $_[0]->gads->{login_instance} || 1 },
+);
+
+has url => (
+    is      => 'ro',
+    lazy    => 1,
+    clearer => 1,
+    builder => sub {
+        my $self = shift;
+        my $url = ref $self->gads eq 'HASH' && $self->gads->{url}
+            or panic "URL not configured";
+        $url =~ s!/$!!; # Remove trailing slash
+        $url;
+    },
 );
 
 has dateformat => (

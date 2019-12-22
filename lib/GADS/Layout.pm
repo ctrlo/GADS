@@ -59,11 +59,6 @@ has user => (
     required => 1,
 );
 
-has config => (
-    is       => 'ro',
-    required => 1,
-);
-
 has instance_id => (
     is  => 'rwp',
     isa => Int,
@@ -466,6 +461,45 @@ has set_groups => (
     isa       => ArrayRef,
     predicate => 1,
 );
+
+sub alert_columns
+{   my $self = shift;
+    my @columns = map {
+        $self->column($_->layout_id)
+    } $self->_rset->alert_columns;
+    push @columns, $self->column_by_name_short('_id')
+        if !@columns;
+    @columns;
+}
+
+has alert_columns_hash => (
+    is  => 'lazy',
+    isa => HashRef,
+);
+
+sub _build_alert_columns_hash
+{   my $self = shift;
+    +{ map { $_->id => $_ } $self->alert_columns };
+}
+
+sub has_alert_column
+{   my ($self, $column_id) = @_;
+    $self->alert_columns_hash->{$column_id};
+}
+
+sub set_alert_columns
+{   my ($self, $column_ids) = @_;
+    $self->schema->resultset('AlertColumn')->search({
+        instance_id => $self->instance_id,
+    })->delete;
+    foreach my $column_id (@$column_ids)
+    {
+        $self->schema->resultset('AlertColumn')->create({
+            layout_id   => $column_id,
+            instance_id => $self->instance_id,
+        });
+    }
+}
 
 sub write
 {   my $self = shift;

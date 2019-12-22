@@ -1312,7 +1312,7 @@ sub _build_columns_retrieved_do
         my @col_ids = map { ref $_ eq 'HASH' ? $_->{id} : $_ } @{$self->columns};
         @col_ids = grep {defined $_} @col_ids; # Remove undef column IDs
         my %col_ids = map { $_ => 1 } @col_ids;
-        @columns = grep { $col_ids{$_->id} } $layout->all;
+        @columns = grep { $col_ids{$_->id} } $layout->all_user_read;
     }
     elsif ($self->view)
     {

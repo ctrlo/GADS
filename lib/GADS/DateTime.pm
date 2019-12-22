@@ -185,8 +185,9 @@ sub validate_daterange_search
         }
         # Unable to split
         return 0 unless $options{fatal};
+        my $config = GADS::Config->instance;
         error __x"Invalid full date format {value} for {name}. Please enter as {format}.",
-            value => $value, name => $self->name, format => $self->layout->config->dateformat;
+            value => $value, name => $self->name, format => $config->dateformat;
     }
     # Accept both formats. Normal date format used to validate searches
     return 1 if $self->parse_date($value) || ($self->split($value) && $self->validate($self->split($value)));
