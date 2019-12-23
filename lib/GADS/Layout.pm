@@ -473,8 +473,9 @@ sub alert_columns
 }
 
 has alert_columns_hash => (
-    is  => 'lazy',
-    isa => HashRef,
+    is      => 'lazy',
+    isa     => HashRef,
+    clearer => 1,
 );
 
 sub _build_alert_columns_hash
@@ -687,7 +688,8 @@ sub clear_indexes
     $self->clear_hide_in_selector;
     $self->clear_columns_index;
     $self->_clear_columns_namehash;
-    $self->_clear_columns_name_shorthash
+    $self->_clear_columns_name_shorthash;
+    $self->clear_alert_columns_hash;
 }
 
 sub clear

@@ -109,13 +109,18 @@ sub descriptions
     return @descriptions;
 }
 
+sub join_delim
+{   my ($self, $instance_id) = @_;
+    $self->only_id($instance_id) ? ', ' : '; ';
+}
+
 sub description
 {   my ($self, %params) = @_;
     my $instance_id  = $params{instance_id};
     my $current_ids  = $params{current_ids};
     my $user         = $params{user};
     my @descriptions = $self->descriptions(%params);
-    my $desc = join ', ', @descriptions;
+    my $desc = join $self->join_delim($instance_id), @descriptions;
     $desc = @descriptions == 1 ? "record ID $desc" : "record IDs $desc"
         if $self->only_id($instance_id);
     return $desc;
@@ -142,7 +147,7 @@ sub link
         my $description = shift @descriptions;
         push @links, qq(<a href="$url/record/$current_id">$description</a>);
     }
-    return $prefix.join ', ', @links;
+    return $prefix.join $self->join_delim($instance_id), @links;
 }
 
 1;
