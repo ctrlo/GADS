@@ -18,7 +18,7 @@ sub aggregate_presentation
 
     my @presentation = map {
         $record->fields->{$_->id} && $_->presentation(datum_presentation => $record->fields->{$_->id}->presentation)
-    } @{$self->columns_view};
+    } @{$self->columns_render};
 
     return +{
         columns => \@presentation,

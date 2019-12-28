@@ -1080,6 +1080,35 @@ sub write
     $newitem->{display_condition} = $self->display_fields->as_hash->{condition},
     $newitem->{instance_id}       = $self->layout->instance_id;
     $newitem->{aggregate}         = $self->aggregate;
+
+    !$newitem->{aggregate} || $newitem->{aggregate} =~ /^(sum|recalc)$/
+        or error __x"Invalid aggregate value {agg}", agg => $newitem->{aggregate};
+
+    if ($newitem->{aggregate} && $newitem->{aggregate} eq 'recalc')
+    {
+        # For a recalc, all dependent fields will need to have a aggregate defined
+        foreach my $depend (@{$self->depends_on})
+        {
+            error __x"In order to recalculate this field from other aggregate values, all "
+                ."columns in its calculation need to have a defined aggregate. Currently "
+                ."column {name} does not have an aggregate defined.", name => $self->layout->column($depend)->name
+                    if !$self->layout->column($depend)->aggregate;
+        }
+    }
+    elsif (!$newitem->{aggregate} && $self->id)
+    {
+        # See if any other recalcs depend on this
+        my @depends = $self->schema->resultset('LayoutDepend')->search({
+            depends_on => $self->id,
+        })->all;
+        my @d = grep $_->layout->aggregate && $_->layout->aggregate eq 'recalc', @depends;
+        my $d = join ', ', map $_->layout->name, @d;
+        error __x"The aggregate on this column cannot be removed, as the following columns "
+            ."have an aggregate type that recalculates based on the aggregate value "
+            ."of this column: {name}", name => $d
+                if $d;
+    }
+
     if ($self->numeric)
     {
         $newitem->{group_display} = 'sum';

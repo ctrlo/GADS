@@ -440,7 +440,7 @@ sub _build_data
     }
     elsif ($view)
     {
-        push @x, @{$self->records->columns_view};
+        push @x, @{$self->records->columns_selected};
     }
     else {
         push @x, $layout->all(user_can_read => 1);

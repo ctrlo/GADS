@@ -235,7 +235,7 @@ has _columns => (
 
 sub _build__columns
 {   my $self = shift;
-    my @columns = @{$self->records->columns_retrieved_no};
+    my @columns = @{$self->records->columns_selected};
     foreach my $column (@columns)
     {
         push @columns, @{$column->curval_fields}
@@ -319,7 +319,7 @@ sub _build_data
         if (!$self->is_group)
         {
             push @extra, map { +{ col => $_ } } grep { !$existing{$_->id} }
-                @{$records->columns_view};
+                @{$records->columns_selected};
         }
         my @gc = $records->layout->all(is_globe => 1, user_can_read => 1);
         my $has_globe;

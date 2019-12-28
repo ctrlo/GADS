@@ -1791,7 +1791,7 @@ prefix '/:layout_name' => sub {
                 layout  => $layout,
                 schema  => schema,
             );
-            my @columns = @{$records->columns_view};
+            my @columns = @{$records->columns_selected};
             my @colors;
             my $graph = GADS::Graph::Data->new(
                 schema  => schema,
@@ -2054,7 +2054,7 @@ prefix '/:layout_name' => sub {
                 $subset->{pnumbers} = [1..$pages];
             }
 
-            my @columns = @{$records->columns_view};
+            my @columns = @{$records->columns_render};
             $params->{user_can_edit}        = $layout->user_can('write_existing');
             $params->{sort}                 = $records->sort_first;
             $params->{subset}               = $subset;

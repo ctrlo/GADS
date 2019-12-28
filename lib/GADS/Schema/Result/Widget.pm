@@ -171,7 +171,7 @@ sub html
                 rows   => $self->rows,
                 #rewind => session('rewind'), # Maybe add in the future
             );
-            my @columns = @{$records->columns_view};
+            my @columns = @{$records->columns_render};
             $params->{records} = $records->presentation;
             $params->{columns} = [ map $_->presentation(sort => $records->sort_first), @columns ];
         }

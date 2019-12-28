@@ -56,6 +56,7 @@ sub _transform_value
             current_id           => $id,
             record_id            => $record_id,
             columns_retrieved_do => $self->column->curval_fields_retrieve(all_fields => $self->column->retrieve_all_columns),
+            columns_retrieved_no => $self->column->curval_fields_retrieve(all_fields => $self->column->retrieve_all_columns),
         );
         # Do not set these values, as if the values do not exist then they will
         # not be lazily built

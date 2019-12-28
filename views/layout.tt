@@ -91,7 +91,10 @@
             <label for="aggregate">Aggregate for field in table view:</label>
             <select class="form-control" id="aggregate" name="aggregate">
                 <option value="" [% IF NOT column.aggregate %]selected[% END %]>&lt;no aggregate&gt;</option>
-                <option value="sum" [% IF column.aggregate == "sum" %]selected[% END %]>Sum</option>
+                <option value="sum" [% IF column.aggregate == "sum" %]selected[% END %]>Sum all record values in column</option>
+                [% IF column.type == "calc" %]
+                    <option value="recalc" [% IF column.aggregate == "recalc" %]selected[% END %]>Recalculate from other aggregate values</option>
+                [% END %]
             </select>
         </div>
     [% ELSE %]

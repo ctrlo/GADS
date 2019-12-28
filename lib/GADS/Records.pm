@@ -272,7 +272,7 @@ has columns_extra => (
     is => 'rw',
 );
 
-# Value containing the actual columns retrieved.
+# Value containing the actual columns to retrieve from the database.
 # In "normal order" as per layout.
 has columns_retrieved_no => (
     is      => 'lazy',
@@ -280,7 +280,7 @@ has columns_retrieved_no => (
     clearer => 1,
 );
 
-# Value containing the actual columns retrieved.
+# Value containing the actual columns to retrieve from the database.
 # In "dependent order", needed for calcvals
 has columns_retrieved_do => (
     is      => 'lazy',
@@ -288,13 +288,22 @@ has columns_retrieved_do => (
     clearer => 1,
 );
 
-# All the columns that will be rendered for the current view
-# XXX Possibly same as columns_retrieved_no?
-has columns_view => (
+# Columns selected for viewing (normally because of the selected view, in which
+# case all the columns in the view)
+has columns_selected => (
     is      => 'lazy',
     isa     => ArrayRef,
     clearer => 1,
 );
+
+# Columns to render. This will be similar to columns_selected, but may have
+# additional columns such as group columns
+has columns_render => (
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
+);
+
 
 has max_results => (
     is      => 'rw',
@@ -988,7 +997,8 @@ sub _build_standard_results
             layout                  => $self->layout,
             columns_retrieved_no    => $self->columns_retrieved_no,
             columns_retrieved_do    => $self->columns_retrieved_do,
-            columns_view            => $self->columns_view,
+            columns_selected        => $self->columns_selected,
+            columns_render          => $self->columns_render,
             set_deleted             => $rec->{deleted},
             set_deletedby           => $rec->{deletedby},
             set_record_created      => $rec->{record_created},
@@ -1297,42 +1307,21 @@ sub _build_has_children
 
 sub _build_columns_retrieved_do
 {   my $self = shift;
-    my $layout = $self->layout;
     # First, add all the columns in the view as a prefetch. During
     # this stage, we keep track of what we've added, so that we
     # can act accordingly during the filters
-    my @columns;
-    if ($self->columns)
+    my @columns = @{$self->columns_selected};
+
+    if ($self->columns_extra)
     {
-        # The columns property can contain straight column IDs or hash refs
-        # containing the column ID as well as more information, such as the
-        # parent curval of a curval field. At the moment we don't use this here
-        # (only when we start grouping results) but we may want to use
-        # it in the future if retrieving individual curval fields
-        my @col_ids = map { ref $_ eq 'HASH' ? $_->{id} : $_ } @{$self->columns};
-        @col_ids = grep {defined $_} @col_ids; # Remove undef column IDs
-        my %col_ids = map { $_ => 1 } @col_ids;
-        @columns = grep { $col_ids{$_->id} } $layout->all_user_read;
-    }
-    elsif ($self->view)
-    {
-        @columns = @{$self->columns_view};
-        if ($self->columns_extra)
+        foreach (@{$self->columns_extra})
         {
-            foreach (@{$self->columns_extra})
-            {
-                push @columns, $self->layout->column($_->{parent_id})
-                    if $_->{parent_id};
-                push @columns, $self->layout->column($_->{id});
-            }
+            push @columns, $self->layout->column($_->{parent_id})
+                if $_->{parent_id};
+            push @columns, $self->layout->column($_->{id});
         }
     }
-    else {
-        # Otherwise assume all columns needed, even ones the user does not have
-        # access to. This is so that any writes still write all column values,
-        # regardless of whether a user has access
-        @columns = $layout->all;
-    }
+
     foreach my $c (@columns)
     {
         # We're viewing this, so prefetch all the values
@@ -1355,24 +1344,64 @@ sub _build_columns_retrieved_no
     \@columns_retrieved_no;
 }
 
-sub _build_columns_view
+sub _build_columns_selected
 {   my $self = shift;
 
     my @cols;
-    if (my $view = $self->view)
+
+    if ($self->columns)
     {
+        # The columns property can contain straight column IDs or hash refs
+        # containing the column ID as well as more information, such as the
+        # parent curval of a curval field. At the moment we don't use this here
+        # (only when we start grouping results) but we may want to use
+        # it in the future if retrieving individual curval fields
+        my @col_ids = map { ref $_ eq 'HASH' ? $_->{id} : $_ } @{$self->columns};
+        @col_ids = grep {defined $_} @col_ids; # Remove undef column IDs
+        my %col_ids = map { $_ => 1 } @col_ids;
+        @cols = grep { $col_ids{$_->id} } $self->layout->all_user_read;
+    }
+    elsif (my $view = $self->view)
+    {
+        # Start with all fields in view as well as any fields to group by
         my %view_layouts = map { $_ => 1 } @{$view->columns}, map $_->layout_id, @{$view->groups};
+        # If the user was in a grouped view and clicked a grouped item to
+        # filter on it, then remove it
         delete $view_layouts{$self->current_group_id}
             if $self->current_group_id;
-        my $group_display = $view->is_group && !@{$self->additional_filters};
-        @cols = $self->layout->all(user_can_read => 1, group_display => $group_display, include_column_ids => \%view_layouts);
-        if ($self->current_group_id)
-        {
-            unshift @cols, $self->layout->column($self->current_group_id);
-        }
+        @cols = $self->layout->all(user_can_read => 1, include_column_ids => \%view_layouts);
+        # If a grouped view, then remove columns that are not set to
+        # specifically be shown in a grouped view (for performance reasons)
+        @cols = grep $_->group_display, @cols
+            if $view->is_group && !@{$self->additional_filters};
+        # Add filtered grouped column at beginning if required
+        unshift @cols, $self->layout->column($self->current_group_id)
+            if $self->current_group_id;
     }
     else {
-        @cols = $self->layout->all(user_can_read => 1);
+        # Otherwise assume all columns needed, even ones the user does not have
+        # access to. This is so that any writes still write all column values,
+        # regardless of whether a user has access. This is used when a single
+        # record is retrieved (e.g. find_current_id)
+        @cols = $self->layout->all;
+    }
+
+
+    \@cols;
+}
+
+sub _build_columns_render
+{   my $self = shift;
+
+    my @cols = @{$self->columns_selected};
+    @cols = grep $_->group_display, @cols
+        if $self->view && $self->view->is_group && !@{$self->additional_filters};
+    push @cols, map $self->layout->column($_->layout_id), @{$self->view->groups}
+        if $self->view;
+    if ($self->current_group_id)
+    {
+        @cols = grep $_->id != $self->current_group_id, @cols;
+        unshift @cols, $self->layout->column($self->current_group_id);
     }
 
     unshift @cols, $self->layout->column_id
@@ -1387,7 +1416,9 @@ sub clear
     $self->_clear_view_limits;
     $self->clear_columns_retrieved_no;
     $self->clear_columns_retrieved_do;
-    $self->clear_columns_view;
+    $self->clear_columns_selected;
+    $self->clear_columns_render;
+    $self->clear_columns_aggregate;
     $self->clear_count;
     $self->clear_current_ids;
     $self->_clear_search_all_fields;
@@ -2173,7 +2204,7 @@ sub csv_header
     error __"You do not have permission to download data"
         unless $self->layout->user_can("download");
 
-    my @columns = @{$self->columns_retrieved_no};
+    my @columns = @{$self->columns_render};
     my @colnames;
     push @colnames, "Parent" if $self->has_children;
     push @colnames, map { $_->name } @columns;
@@ -2201,7 +2232,7 @@ sub csv_line
     my $line = $self->single
         or return;
 
-    my @columns = @{$self->columns_retrieved_no};
+    my @columns = @{$self->columns_render};
     my @items;
     push @items, $line->parent_id if $self->has_children;
     push @items, map { $line->fields->{$_->id} } @columns;
@@ -2471,13 +2502,21 @@ sub _compare_col
 }
 
 has columns_aggregate => (
-    is  => 'lazy',
-    isa => ArrayRef,
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
 );
 
 sub _build_columns_aggregate
 {   my $self = shift;
-    [ grep { $_->aggregate } @{$self->columns_retrieved_no} ];
+    my @cols = grep { $_->aggregate } @{$self->columns_render};
+    my %retrieved = map { $_->id => 1 } @cols;
+    foreach my $c (@cols)
+    {
+        push @cols, map $self->layout->column($_), grep !$retrieved{$_}, @{$c->depends_on}
+            if $c->aggregate && $c->aggregate eq 'recalc';
+    };
+    \@cols;
 }
 
 has aggregate_results => (
@@ -2535,7 +2574,7 @@ sub _build_group_results
                 operator => $_->numeric ? 'sum' : $view_group_cols{$_->id} ? 'max' : 'distinct',
                 group    => $view_group_cols{$_->id},
             }
-        } @{$self->columns_view};
+        } @{$self->columns_selected};
     }
     else {
         @cols = @{$self->columns};
@@ -2642,6 +2681,8 @@ sub _build_group_results
         my $op = $col->{operator};
         my $column = $col->{column};
         my $parent = $col->{parent};
+
+        next if $options{aggregate} && $column->aggregate && $column->aggregate eq 'recalc';
 
         my $select;
         my $as = $column->field;
@@ -3008,7 +3049,9 @@ sub _build_group_results
             layout                  => $self->layout,
             columns_retrieved_no    => $self->columns_retrieved_no,
             columns_retrieved_do    => $self->columns_retrieved_do,
-            columns_view            => $self->columns_view,
+            columns_selected        => $self->columns_selected,
+            columns_render          => $self->columns_render,
+            columns_aggregate       => $self->columns_aggregate,
             curcommon_all_fields    => $self->curcommon_all_fields,
         );
     }

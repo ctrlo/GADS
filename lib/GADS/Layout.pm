@@ -899,7 +899,6 @@ sub all
     @columns = $self->_order_dependencies(@columns) if $options{order_dependencies};
     @columns = grep { !$_->internal } @columns if $options{exclude_internal};
     @columns = grep { $_->internal } @columns if $options{only_internal};
-    @columns = grep { $_->group_display } @columns if $options{group_display};
     @columns = grep { $options{include_column_ids}->{$_->id} } @columns
         if $options{include_column_ids};
     @columns = grep { $_->isunique } @columns if $options{only_unique};

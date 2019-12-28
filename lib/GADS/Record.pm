@@ -226,7 +226,16 @@ has columns_retrieved_do => (
 );
 
 # Same as GADS::Records property
-has columns_view => (
+has columns_selected => (
+    is => 'rw',
+);
+
+has columns_render => (
+    is      => 'rw',
+    default => sub { [] },
+);
+
+has columns_aggregate => (
     is => 'rw',
 );
 
@@ -729,7 +738,8 @@ sub _find
 
     $self->columns_retrieved_do($records->columns_retrieved_do);
     $self->columns_retrieved_no($records->columns_retrieved_no);
-    $self->columns_view($records->columns_view);
+    $self->columns_selected($records->columns_selected);
+    $self->columns_render($records->columns_render);
 
     my $record = {}; my $limit = 10; my $page = 1; my $first_run = 1;
     while (1)
@@ -1008,15 +1018,19 @@ sub _transform_values
 
     my $original = $self->record or panic "Record data has not been set";
 
-    my $fields = {};
-    # If any columns are multivalue, then the values will not have been
-    # prefetched, as prefetching can result in an exponential amount of
-    # rows being fetched from the database in one go. It's better to pull
-    # all types of value together though, so we store them in this hashref.
-    my $multi_values = {};
-    # We must do these columns in dependent order, otherwise the
-    # column values may not exist for the calc values.
-    foreach my $column (@{$self->columns_retrieved_do})
+    my $fields = {}; my @cols;
+    if ($self->is_group)
+    {
+        my %cols = map { $_->id => $_ } @{$self->columns_aggregate};
+        $cols{$_->id} = $_ foreach @{$self->columns_retrieved_no};
+        @cols = values %cols;
+    }
+    else {
+        my %cols = map { $_->id => $_ } @{$self->columns_render};
+        $cols{$_->id} = $_ foreach @{$self->columns_retrieved_no};
+        @cols = values %cols;
+    }
+    foreach my $column (@cols)
     {
         next if $column->internal;
         my $key = $self->linked_id && $column->link_parent ? $column->link_parent->field : $column->field;
@@ -1047,13 +1061,17 @@ sub _transform_values
             record           => $self,
             record_id        => $self->record_id,
             current_id       => $self->current_id,
-            init_value       => ref $value eq 'ARRAY' ? $value : defined $value ? [$value] : [],
             child_unique     => $child_unique,
             column           => $column,
             init_no_value    => $self->init_no_value,
             schema           => $self->schema,
             layout           => $self->layout,
         );
+        # Do not add initial value for calculated fields that are aggregate and
+        # defined as recalc. This means that the value will automatically
+        # calculate from the other aggregate field values instead
+        $params{init_value} = ref $value eq 'ARRAY' ? $value : defined $value ? [$value] : []
+            unless $self->is_group && $column->aggregate && $column->aggregate eq 'recalc';
         # For curcommon fields, flag that this field has had all its columns if
         # that is what has happened. Then we know during any later process of
         # this column that there is no need to retrieve any other columns

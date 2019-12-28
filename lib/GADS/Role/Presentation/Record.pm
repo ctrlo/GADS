@@ -43,10 +43,10 @@ sub presentation {
         : $options{curval_fields}
         ? @{$options{curval_fields}}
         : $options{group}
-        ? @{$self->columns_view}
+        ? @{$self->columns_render}
         : $options{purge}
         ? $self->layout->column_id
-        : @{$self->columns_view};
+        : @{$self->columns_render};
 
     $options{record} = $self;
 

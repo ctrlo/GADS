@@ -244,7 +244,7 @@ foreach my $multivalue (0..1)
             additional_filters => $run == 1 ? \@additional : [],
         );
 
-        my $vids = join ' ', map { $_->id } @{$records->columns_view};
+        my $vids = join ' ', map { $_->id } @{$records->columns_selected};
         my $expected = $run == 0
             ? $enum1->id.' '.$integer1->id
             : $enum1->id.' '.$string1->id.' '.$integer1->id;

@@ -156,7 +156,7 @@ sub _build_items
     my $from_min =  $from && !$to ? $from->clone->truncate(to => 'day') : undef;
     my $to_max   = !$from &&  $to ? $to->clone->truncate(to => 'day')->add(days => 1) : undef;
 
-    my @columns  = grep $_->user_can('read'), @{$records->columns_retrieved_no};
+    my @columns  = grep $_->user_can('read'), @{$records->columns_selected};
 
     my $date_column_count = 0;
     foreach my $column (@columns)
