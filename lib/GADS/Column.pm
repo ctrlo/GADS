@@ -27,7 +27,6 @@ use GADS::Filter;
 use GADS::Groups;
 use GADS::Type::Permission;
 use GADS::View;
-use MIME::Base64 'encode_base64';
 
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
