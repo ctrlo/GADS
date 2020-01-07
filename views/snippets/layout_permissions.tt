@@ -117,7 +117,7 @@
                     <div class="summary">
                         <h4 class="group-name">[% group.name %]</h4>
                         <div class="configuration">
-                            [% FOREACH permission IN col_permissions %]
+                            [% FOREACH permission IN permissions %]
                             [% short = permission.short %]
                             [% abbr = permission_mapping.$short %]
                             [% short_class = short.replace('_','-') %]
