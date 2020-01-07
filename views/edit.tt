@@ -250,9 +250,21 @@
         [% ELSIF NOT view_modal %]
             <div class="navbar navbar-default navbar-fixed-bottom edit-controls">
                 <div class="container">
-                    <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
-                        Submit
-                    </button>
+                    <div class="btn-group dropup">
+                        <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
+                            Submit
+                        </button>
+                        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown">
+                            <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <button type="submit" name="submit" value="submit-and-remain" class="btn btn-link">
+                                    Submit and keep editing
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
                     [% IF record.new_entry AND page != "bulk" %]
                         <button type="submit" name="draft" value="submit" class="btn btn-primary submit_button">
                             Save draft
