@@ -30,9 +30,11 @@
                     </label>
                     [% IF field.type == "freetext" %]
                         <input type="text" class="form-control" id="[% field.name %]" name="[% field.name %]"
-                            value="[% edituser.${field.name} | html_entity %]" [% IF NOT field.editable %]disabled[% END %]>
+                            value="[% edituser.${field.name} | html_entity %]"
+                                [% IF page == "myaccount" AND NOT field.editable %] disabled[% END %]>
                     [% ELSIF field.type == "dropdown" %]
-                        <select class="form-control" id="[% field.name %]" name="[% field.name %]" [% IF NOT field.editable %]disabled[% END %]>
+                        <select class="form-control" id="[% field.name %]" name="[% field.name %]"
+                            [% IF page == "myaccount" AND NOT field.editable %]disabled[% END %]>
                             <option></option>
                             [% FOREACH val IN values.${field.name} %]
                                 <option value="[% val.id %]" [% IF edituser.get_column(field.name) == val.id %]selected[% END %]>[% val.name | html %]</option>
