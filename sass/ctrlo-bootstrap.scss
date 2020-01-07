@@ -486,6 +486,12 @@ a.btn {
         margin-top:-5px;
 }
 */
+.navbar-fixed-bottom .dropup {
+        .caret {
+                border-top: 4px dashed;
+                border-bottom: 0;
+        }
+}
 .dropdown-menu {
         font-size:15px;
         border:1px solid $primary-navy;
@@ -507,6 +513,16 @@ a.btn {
 }
 .dropdown-menu>.disabled>a,.dropdown-menu>.disabled>a:hover,.dropdown-menu>.disabled>a:focus {
         color:#999999;
+}
+.dropdown-menu > li > .btn-link {
+        padding: 3px 20px;
+        color: #333;
+
+        &:hover {
+                color: #1460aa;
+                text-decoration: none;
+                cursor: pointer;
+        }
 }
 .dropdown-header {
         font-size:13px;
