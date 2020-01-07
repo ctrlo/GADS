@@ -260,7 +260,7 @@
                         <ul class="dropdown-menu">
                             <li>
                                 <button type="submit" name="submit" value="submit-and-remain" class="btn btn-link">
-                                    Submit and keep editing
+                                    Save and keep editing
                                 </button>
                             </li>
                         </ul>
