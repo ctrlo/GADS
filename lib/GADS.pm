@@ -3565,7 +3565,9 @@ sub _process_edit
         {
             if (process( sub { $record->write(submission_token => param('submission_token')) }))
             {
-                my $forward = !$id && $layout->forward_record_after_create ? 'record/'.$record->current_id : $layout->identifier.'/data';
+                my $forward = (!$id && $layout->forward_record_after_create) || param('submit') eq 'submit-and-remain'
+                    ? 'record/'.$record->current_id
+                    : $layout->identifier.'/data';
                 return forwardHome(
                     { success => 'Submission has been completed successfully for record ID '.$record->current_id }, $forward );
             }
