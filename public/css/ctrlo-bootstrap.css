@@ -2417,8 +2417,11 @@ small.search_term {
 .select-widget .form-group button.select-widget-value__delete,
 .select-widget .form-group:hover button.select-widget-value__delete {
   border: none;
-  margin: 0 -2px 0 8px;
   background-color: transparent;
+  position: absolute;
+  right: 7px;
+  top: 0;
+  margin: 0;
 }
 .select-widget .form-group button.select-widget-value__delete:hover,
 .select-widget .form-group:hover button.select-widget-value__delete:hover {
@@ -2513,6 +2516,8 @@ small.search_term {
   border-radius: 3px;
   padding: 0 0.5em;
   white-space: nowrap;
+  max-width: 100%;
+  vertical-align: top;
 }
 
 .select-widget .current li[data-list-item].current__blank {
@@ -2520,6 +2525,17 @@ small.search_term {
   background-color: initial;
   border-radius: 0;
   padding: 0;
+}
+
+.select-widget.multi .current li[data-list-item] {
+  position: relative;
+  padding-right: 26px;
+}
+
+.select-widget .widget-value__value {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .select-widget .current .none-selected {
