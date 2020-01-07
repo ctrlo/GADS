@@ -1338,7 +1338,7 @@ sub submit_login_form_ok {
     $test->note("About to log in as ${username} with password ${password}");
     my $success = $self->_fill_in_field( '#username', $username );
     $success &&= $self->_fill_in_field( '#password', $password );
-    $success &&= $self->_click_submit_button('signin');
+    $success &&= $self->_click_submit_button( name_attr => 'signin' );
 
     my $result = $test->ok( $success, $name );
     $test->release;
@@ -1367,7 +1367,7 @@ sub submit_new_record_form_ok {
         $self->_new_record_selector(1), $arg[0] );
     $success &&= $self->_fill_in_field(
         $self->_new_record_selector(2), $arg[1] );
-    $success &&= $self->_click_submit_button;
+    $success &&= $self->_click_submit_button( value_attr => 'submit' );
 
     my $result = $test->ok( $success, $name );
     $test->release;
@@ -1423,15 +1423,18 @@ sub _find_named_item_row_el {
 }
 
 sub _click_submit_button {
-    my ( $self, $element_name_attr ) = @_;
-    $element_name_attr //= 'submit';
+    my ( $self, %arg ) = @_;
+    $arg{name_attr} //= 'submit';
     my $webdriver = $self->gads->webdriver;
 
-    my $selector = "[type='submit'][name='${element_name_attr}']";
+    my $selector = "[type='submit'][name='$arg{name_attr}']";
+    if ( exists $arg{value_attr} ) {
+        $selector .= "[value='$arg{value_attr}']";
+    }
     my $submit_el = $webdriver->find( $selector, dies => 0 );
 
     my $success = $self->_check_only_one(
-        $submit_el, "${element_name_attr} button" );
+        $submit_el, "$arg{name_attr} button" );
 
     $submit_el->click;
     return $success;
