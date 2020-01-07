@@ -90,7 +90,12 @@ after set_value => sub {
 
 sub value_regex_test
 {   my ($self, %options) = @_;
-    $self->re_evaluate(submission_token => $options{submission_token});
+    # This may be called during record write, in which case we need to
+    # re-evaluate the list of values, or it may be called during standard
+    # record viewing, in which case we don't (and submission_token will not be
+    # set)
+    $self->re_evaluate(submission_token => $options{submission_token})
+        if $options{submission_token};
     $self->text_all;
 }
 
