@@ -363,7 +363,8 @@ var SelectWidget = function (multi) {
 
         var valueId = value ? field + "_" + value : field + "__blank";
         var className = value ? "": "current__blank"
-        return $('<li ' + (checked ? '' : 'hidden') + ' data-list-item="' + valueId + '" class="' + className + '">' + label + '</li>');
+        var deleteButton = multi ? '<button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>' : "";
+        return $('<li ' + (checked ? '' : 'hidden') + ' data-list-item="' + valueId + '" class="' + className + '">' + label + deleteButton + '</li>');
     }
 
     var availableLi = function(multi, field, value, label, checked) {
@@ -582,6 +583,17 @@ var SelectWidget = function (multi) {
       e.stopPropagation();
       expand($widget, $trigger, $target);
     }
+
+    $widget.delegate('.select-widget-value__delete', 'click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Uncheck checkbox
+        var checkboxId = e.target.parentElement.getAttribute("data-list-item");
+        var checkbox = document.querySelector("#" + checkboxId);
+        checkbox.checked = false;
+        $(checkbox).trigger("change");
+    });
 
     $search.unbind('focus', expandWidgetHandler);
     $search.on('focus', expandWidgetHandler);

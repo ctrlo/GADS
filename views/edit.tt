@@ -467,7 +467,8 @@
                     }).join(", ");
 
                     guid = window.guid();
-                    $search.before('<li data-list-item="field' + col_id + '_' + guid + '">' + textValue + '</li>');
+                    var deleteButton = multi ? '<button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>' : "";
+                    $search.before('<li data-list-item="field' + col_id + '_' + guid + '">' + textValue + deleteButton + '</li>');
                     var inputType = multi ? "checkbox" : "radio";
                     $answersList.append('<li class="answer">' +
                         '<span class="control">' +
@@ -946,7 +947,10 @@
                     [% NEXT IF value.deleted %]
                     [% checked = editvalue.id_hash.${value.id} %]
                     [% value_id = field _ '_' _ value.id %]
-                    <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">[% value.value | html_entity %]</li>
+                    <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">
+                        [% value.value | html_entity %]
+                        <button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
+                    </li>
                 [% END %]
                     [% IF !readonly %]
                         <li class="search">

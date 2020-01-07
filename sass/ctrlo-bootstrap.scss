@@ -1262,6 +1262,21 @@ small.search_term {
     display: none;
 }
 
+.select-widget .form-group button.select-widget-value__delete,
+.select-widget .form-group:hover button.select-widget-value__delete {
+    border: none;
+    margin: 0 -2px 0 8px;
+    background-color: transparent;
+
+    &:hover {
+        background-color: transparent;
+    }
+
+    &:focus {
+        outline: 0;
+    }
+}
+
 .select-widget .form-control-search {
     border: 0;
     outline: 0;
