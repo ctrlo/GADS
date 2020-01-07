@@ -2,6 +2,16 @@ use Test::More;
 use strict;
 use warnings;
 
+# Run in a BEGIN block to run before "use GADS;"
+BEGIN {
+    if ( ! -f 'config.yml' ) {
+        plan skip_all => 'No application configuration in config.yml';
+    }
+    else {
+        plan tests => 9;
+    }
+}
+
 use GADS;
 use Plack::Test;
 use HTTP::Request::Common;
