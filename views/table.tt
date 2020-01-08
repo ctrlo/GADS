@@ -56,8 +56,11 @@
                         aria-controls="alert_columns" class="panel-title">Email alerts</h3>
                 </div>
                 <div class="panel-body collapse" id="alert_columns">
+                    <div role="alert" class="alert alert-warning">
+                        Warning: as these fields will be sent via emails external to Linkspace, only include fields that do not contain sensitive data.
+                    </div>
                     <label>
-                         Include the following fields for record descriptions in email alerts
+                        Include the following fields for record descriptions in email alerts:
                     </label>
                     [% FOR column IN layout_edit.all %]
                         <div class="checkbox">
