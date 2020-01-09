@@ -13,8 +13,8 @@ migrate {
 
     # If there is more than one site ID then the site dashboard will belong to
     # only one of those. Comment out this error statement and then fix that.
-    #error "More than one site, manual intervention required"
-    #    if $schema->resultset('Site')->count > 1;
+    error "More than one site, manual intervention required"
+        if $schema->resultset('Site')->count > 1;
 
     foreach my $dashboard ($schema->resultset('Dashboard')->all)
     {
