@@ -17,6 +17,8 @@ __PACKAGE__->table("dashboard");
 __PACKAGE__->add_columns(
   "id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+  "site_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "instance_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "user_id",
@@ -24,6 +26,18 @@ __PACKAGE__->add_columns(
 );
 
 __PACKAGE__->set_primary_key("id");
+
+__PACKAGE__->belongs_to(
+  "site",
+  "GADS::Schema::Result::Site",
+  { id => "site_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
 
 __PACKAGE__->belongs_to(
   "instance",

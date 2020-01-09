@@ -156,6 +156,13 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+__PACKAGE__->has_many(
+  "dashboards",
+  "GADS::Schema::Result::Dashboard",
+  { "foreign.site_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 sub has_main_homepage
 {   my $self = shift;
     return 1 if $self->homepage_text && $self->homepage_text !~ /^\s*$/;
