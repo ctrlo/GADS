@@ -1418,7 +1418,7 @@ sub clear
     $self->clear_columns_retrieved_do;
     $self->clear_columns_selected;
     $self->clear_columns_render;
-    $self->clear_columns_aggregate;
+    $self->clear_columns_recalc_extra;
     $self->clear_count;
     $self->clear_current_ids;
     $self->_clear_search_all_fields;
@@ -2501,22 +2501,23 @@ sub _compare_col
     return 1;
 }
 
-has columns_aggregate => (
+has columns_recalc_extra => (
     is      => 'lazy',
     isa     => ArrayRef,
     clearer => 1,
 );
 
-sub _build_columns_aggregate
+sub _build_columns_recalc_extra
 {   my $self = shift;
     my @cols = grep { $_->aggregate } @{$self->columns_render};
     my %retrieved = map { $_->id => 1 } @cols;
+    my @cols_extra;
     foreach my $c (@cols)
     {
-        push @cols, map $self->layout->column($_), grep !$retrieved{$_}, @{$c->depends_on}
+        push @cols_extra, map $self->layout->column($_), grep !$retrieved{$_}, @{$c->depends_on}
             if $c->aggregate && $c->aggregate eq 'recalc';
     };
-    \@cols;
+    return \@cols_extra;
 }
 
 has aggregate_results => (
@@ -2527,15 +2528,15 @@ has aggregate_results => (
 sub _build_aggregate_results
 {   my $self = shift;
 
-    return undef if ! @{$self->columns_aggregate};
-
     my @columns = map {
         +{
             id       => $_->id,
             column   => $_,
             operator => $_->aggregate,
         }
-    } @{$self->columns_aggregate};
+    } grep { $_->aggregate } @{$self->columns_render}, @{$self->columns_recalc_extra};
+
+    return undef if ! @columns;
 
     $self->_clear_cid_search_query_cache; # Clear any list of record IDs from previous results() call
     my $results = $self->_build_group_results(columns => \@columns, is_group => 1, aggregate => 1);
@@ -2574,7 +2575,7 @@ sub _build_group_results
                 operator => $_->numeric ? 'sum' : $view_group_cols{$_->id} ? 'max' : 'distinct',
                 group    => $view_group_cols{$_->id},
             }
-        } @{$self->columns_selected};
+        } @{$self->columns_selected}, @{$self->columns_recalc_extra};
     }
     else {
         @cols = @{$self->columns};
@@ -3051,7 +3052,7 @@ sub _build_group_results
             columns_retrieved_do    => $self->columns_retrieved_do,
             columns_selected        => $self->columns_selected,
             columns_render          => $self->columns_render,
-            columns_aggregate       => $self->columns_aggregate,
+            columns_recalc_extra    => $self->columns_recalc_extra,
             curcommon_all_fields    => $self->curcommon_all_fields,
         );
     }

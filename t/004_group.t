@@ -360,4 +360,93 @@ foreach my $multivalue (0..1)
 
 }
 
+# Test of recalc aggregate type, whereby calc values are recalculated based on
+# other aggregate fields. Do not include all required columns in the view -
+# this should still work
+{
+    my $data = [
+        {
+            string1    => 'foo1',
+            integer1   => 250,
+            integer2   => 500,
+        },
+        {
+            string1    => 'foo1',
+            integer1   => 50,
+            integer2   => 50,
+        },
+        {
+            string1    => 'foo2',
+            integer1   => 3,
+            integer2   => 4,
+        },
+        {
+            string1    => 'foo2',
+            integer1   => 120,
+            integer2   => 240,
+        },
+    ];
+
+    my $sheet   = Test::GADS::DataSheet->new(
+        data         => $data,
+        multivalue   => 1,
+        calc_code    => "function evaluate (L1integer1, L1integer2) \n return (L1integer1 / L1integer2) * 100 \n end",
+        column_count => { integer => 2 },
+    );
+    my $schema  = $sheet->schema;
+    my $layout  = $sheet->layout;
+    my $columns = $sheet->columns;
+    $sheet->create_records;
+
+    my $string1 = $columns->{string1};
+    my $integer1 = $columns->{integer1};
+    $integer1->aggregate('sum');
+    $integer1->write;
+    my $integer2 = $columns->{integer2};
+    $integer2->aggregate('sum');
+    $integer2->write;
+    my $calc1   = $columns->{calc1};
+    $calc1->aggregate('recalc');
+    $calc1->write;
+    $layout->clear;
+
+    my $view = GADS::View->new(
+        name        => 'Group view',
+        columns     => [$string1->id, $calc1->id],
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+    );
+    $view->write;
+    $view->set_groups([$string1->id]);
+
+    my $records = GADS::Records->new(
+        view   => $view,
+        layout => $layout,
+        user   => $sheet->user,
+        schema => $schema,
+    );
+
+    my @expected = (
+        {
+            string1 => 'foo1',
+            calc1   => 55,
+        },
+        {
+            string1 => 'foo2',
+            calc1   => 50,
+        },
+    );
+
+    my @results = @{$records->results};
+    is(@results, 2, "Correct number of rows for group by string");
+    foreach my $row (@results)
+    {
+        my $expected = shift @expected;
+        is($row->fields->{$string1->id}, $expected->{string1}, "Group text correct");
+        is($row->fields->{$calc1->id}, $expected->{calc1}, "Group calc correct");
+    }
+}
+
 done_testing();

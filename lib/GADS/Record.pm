@@ -235,7 +235,7 @@ has columns_render => (
     default => sub { [] },
 );
 
-has columns_aggregate => (
+has columns_recalc_extra => (
     is => 'rw',
 );
 
@@ -1021,7 +1021,7 @@ sub _transform_values
     my $fields = {}; my @cols;
     if ($self->is_group)
     {
-        my %cols = map { $_->id => $_ } @{$self->columns_aggregate};
+        my %cols = map { $_->id => $_ } @{$self->columns_selected}, @{$self->columns_recalc_extra};
         $cols{$_->id} = $_ foreach @{$self->columns_retrieved_no};
         @cols = values %cols;
     }
