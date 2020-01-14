@@ -126,11 +126,25 @@ sub before_create
     }
 }
 
+sub is_integer
+{   $_[0] =~ /^[0-9]+$/;
+}
+
 sub validate
 {   my $self = shift;
     $self->type('notice') if !$self->type; # XXX Temp until widget type can be defined
     $self->type =~ /^(notice|table|graph|timeline|globe)$/
         or error __x"Invalid widget type: {type}", type => $self->type;
+    ! defined $self->h || is_integer($self->h)
+        or error __x"Invalid h value {value}", value => $self->h;
+    ! defined $self->w || is_integer($self->w)
+        or error __x"Invalid w value {value}", value => $self->w;
+    ! defined $self->x || is_integer($self->x)
+        or error __x"Invalid x value {value}", value => $self->x;
+    ! defined $self->y || is_integer($self->y)
+        or error __x"Invalid y value {value}", value => $self->y;
+    ! defined $self->rows || is_integer($self->rows)
+        or error __x"Invalid rows value {value}", value => $self->rows;
 }
 
 sub html
