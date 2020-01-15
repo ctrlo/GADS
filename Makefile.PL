@@ -52,6 +52,7 @@ our %prereq_pm = (
     'PDF::Table'                                => 0.11.0,
     'Session::Token'                            => 0,
     'String::CamelCase'                         => 0,
+    'Template'                                  => 3.004,
     'Test::MockTime'                            => 0,
     'Test::More'                                => 0,
     'Text::Autoformat'                          => 0,
