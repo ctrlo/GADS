@@ -743,6 +743,7 @@ sub _build__search_all_fields
         }
         my @currents = $self->schema->resultset('Current')->search({ -and => \@search},{
             join => $joins,
+            rows => 500,
         })->all;
 
         foreach my $current (@currents)
@@ -768,6 +769,8 @@ sub _build__search_all_fields
                 $found{$current->id} = 1;
             }
         }
+
+        last if keys %found > 500;
     }
 
     # Limit to maximum of 500 results, otherwise the stack limit is exceeded

@@ -1,7 +1,9 @@
 [% IF search %]
     <div class="row search-results">
         <h1>
-            Search results <small class="search_term">for term "[% search | html_entity %]" ([% count %] results)</small>
+            Search results <small class="search_term">for term "[% search | html_entity %]"
+                [% UNLESS search_limit_reached %]([% count %] results)[% END %]
+            </small>
 	    <form id="clear_search" action="/[% layout.identifier %]/data" method="post">
                 <input type="hidden" name="csrf_token" value="[% csrf_token %]">
 		<button type="submit" name="clear_search" value="clear_search" class="btn btn-default">
@@ -16,7 +18,7 @@
     <h1>All data</h1>
 [% END %]
 [% IF search_limit_reached %]
-    <h3>Only showing first [% search_limit_reached %] of [% count %] results</h3>
+    <h3>Only showing first [% search_limit_reached %] results</h3>
 [% END %]
 
     <div class="row">
