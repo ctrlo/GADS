@@ -31,13 +31,9 @@ use Tie::Cache;
 
 GADS::DB->setup(schema);
 
-# Setup these singleton classes with required parameters for if/when
+# Setup singleton classes with required parameters for if/when
 # they are called in classes later.
 GADS::Config->instance(
-    config => config,
-);
-
-GADS::Email->instance(
     config => config,
 );
 
