@@ -216,9 +216,11 @@ sub add_linked_join
 
 sub has_linked
 {   my ($self, %options) = @_;
-    # Need to rely on the layout, as the linked fields might all be multivalue
-    # and therefore won't be part of the join set
-    return !!grep $_->link_parent, $self->layout->all;
+    # Check all joins, regardless of options, as we still need to add a linked
+    # join even if the linked fields are all multivalue (and won't be retrieved
+    # as part of the standard query). The linked join is needed to retrieve the
+    # linked record IDs.
+    return !!grep $_->{linked}, @{$self->_jp_store};
 }
 
 sub record_later_search
