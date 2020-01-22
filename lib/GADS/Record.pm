@@ -129,11 +129,6 @@ sub has_record
     %$rec and return 1;
 }
 
-# The raw parent linked record from the database, if applicable
-has linked_record_raw => (
-    is      => 'rw',
-);
-
 # The parent linked record as a GADS::Record object
 has linked_record => (
     is => 'lazy',
@@ -1056,8 +1051,6 @@ sub _transform_values
             }
         }
         my $value = $self->linked_id && $column->link_parent ? $original->{$key} : $original->{$key};
-        $value = $self->linked_record_raw && $self->linked_record_raw->{$key}
-            if $self->linked_record_raw && $column->link_parent && !$self->is_historic;
 
         my $child_unique = ref $value eq 'ARRAY' && @$value > 0
             ? $value->[0]->{child_unique} # Assume same for all parts of value

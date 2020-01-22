@@ -440,12 +440,6 @@ sub search_query
     [@search];
 }
 
-has _plus_select => (
-    is      => 'rw',
-    isa     => ArrayRef,
-    default => sub { [] },
-);
-
 sub clear_sorts
 {   my $self = shift;
     $self->_clear_sorts;
@@ -856,7 +850,6 @@ sub _current_ids_rs
                 ],
             },
         ],
-        '+select' => $self->_plus_select, # Used for additional sort columns
         order_by  => $self->order_by(search => 1, with_min => 1, %limit),
         distinct  => 1, # Otherwise multiple records returned for multivalue fields
     };
@@ -1063,7 +1056,6 @@ sub _build_standard_results
             schema                  => $self->schema,
             record                  => $rec,
             serial                  => $rec->{serial},
-            linked_record_raw       => $rec->{linked}->{record_single}, # XXX
             child_records           => \@children,
             parent_id               => $rec->{parent_id},
             linked_id               => $rec->{linked_id},
@@ -1083,8 +1075,6 @@ sub _build_standard_results
         );
         push @created_ids, $rec->{record_created_user};
         push @record_ids, $rec->{id};
-        push @record_ids, $rec->{linked}->{record_single}->{id} # XXX
-            if $rec->{linked}->{record_single};
     }
 
     # Fetch and add multi-values (standard columns)
@@ -1116,7 +1106,6 @@ sub fetch_multivalues
     my $records       = $params{records};
 
     my @linked_ids;
-    push @linked_ids, map { $_->linked_record_raw->{id} } grep { $_->linked_record_raw } @$records;
     push @linked_ids, map { $_->linked_record_id } grep { $_->linked_record_id } @$records;
 
     my %curval_fields;
@@ -1157,14 +1146,6 @@ sub fetch_multivalues
                             {
                                 my @vals = ref $rec->{$parent_curval_field} eq 'ARRAY' ? @{$rec->{$parent_curval_field}} : $rec->{$parent_curval_field};
                                 push @retrieve_ids, map $_->{value}, @vals;
-                            }
-                            elsif ($rec->{record_single}) # XXX Legacy prefetch - can be removed once all prefetching removed
-                            {
-                                foreach (@{$rec->{record_single}->{$parent_curval_field}})
-                                {
-                                    push @retrieve_ids, $_->{value}->{record_single}->{id}
-                                       if $_->{value};
-                                }
                             }
                         }
                     }
@@ -1225,24 +1206,11 @@ sub fetch_multivalues
                 foreach my $subrecord (@subs) # Foreach whole curval value
                 {
                     $subrecord->{value} or next;
-
-                    if (my $sub_record2 = ref $subrecord->{value} && $subrecord->{value}->{record_single}) # XXX Legacy prefetch
-                    {
-                        $sub_record2->{$curval_subfield} = $multi{$sub_record2->{id}}->{$curval_subfield};
-                    }
-                    else {
-                        $subrecord->{$curval_subfield} = $multi{$subrecord->{value}}->{$curval_subfield};
-                    }
+                    $subrecord->{$curval_subfield} = $multi{$subrecord->{value}}->{$curval_subfield};
                 }
             }
         }
-        if ($row->linked_record_raw)
-        {
-            my $record_linked = $row->linked_record_raw;
-            my $record_id_linked = $record_linked->{id};
-            $record_linked->{$_} = $multi{$record_id_linked}->{$_} foreach keys %{$multi{$record_id_linked}};
-        }
-        elsif ($row->linked_record_id)
+        if ($row->linked_record_id)
         {
             $record->{$_} = $multi{$row->linked_record_id}->{$_} foreach keys %{$multi{$row->linked_record_id}};
         }
@@ -1713,7 +1681,6 @@ sub _sort_builder
 sub order_by
 {   my ($self, %options) = @_;
 
-    $self->_plus_select([]);
     my @sorts = $options{with_min} && $self->limit_qty
         ? @{$self->_sorts_limit}
         : @{$self->_sorts};
