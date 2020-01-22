@@ -833,10 +833,14 @@ sub _build_current_group_id
 sub _current_ids_rs
 {   my ($self, %options) = @_;
 
+    my %limit = (
+        limit => $options{limit},
+        page  => $options{limit},
+    );
     # Build the search query first, to ensure that all join numbers are correct
-    my $search_query    = $self->search_query(search => 1, sort => 1, linked => 1); # Need to call first to build joins
-    my @prefetches      = $self->jpfetch(prefetch => 1, linked => 0);
-    my @linked_prefetch = $self->linked_hash(prefetch => 1);
+    my $search_query    = $self->search_query(search => 1, sort => 1, linked => 1, %limit); # Need to call first to build joins
+    my @prefetches      = $self->jpfetch(prefetch => 1, linked => 0, %limit);
+    my @linked_prefetch = $self->linked_hash(prefetch => 1, %limit);
 
     # Run 2 queries. First to get the current IDs of the matching records, then
     # the second to get the actual data for the records. Although this means
@@ -844,16 +848,16 @@ sub _current_ids_rs
     # clauses, which can be very slow (with Pg at least).
     my $select = {
         join     => [
-            [$self->linked_hash(search => 1, sort => 1)],
+            [$self->linked_hash(search => 1, sort => 1, %limit)],
             {
                 'record_single' => [ # The (assumed) single record for the required version of current
                     'record_later',  # The record after the single record (undef when single is latest)
-                    $self->jpfetch(search => 1, sort => 1, linked => 0),
+                    $self->jpfetch(search => 1, sort => 1, linked => 0, %limit),
                 ],
             },
         ],
         '+select' => $self->_plus_select, # Used for additional sort columns
-        order_by  => $self->order_by(search => 1, with_min => 1),
+        order_by  => $self->order_by(search => 1, with_min => 1, %limit),
         distinct  => 1, # Otherwise multiple records returned for multivalue fields
     };
     my $page = $self->page;
@@ -931,29 +935,54 @@ sub _build_standard_results
     local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
         if $self->rewind;
 
-    my $search_query = $self->search_query(search => 1, sort => 1, linked => 1); # Need to call first to build joins
+    # XXX A lot of this code is duplicated in GADS::Record
 
-    my @prefetches = $self->jpfetch(prefetch => 1, linked => 0);
+    # Need to call first to build all joins
+    my $search_query = $self->search_query(search => 1, sort => 1, linked => 1);
 
-    my $rec1 = @prefetches ? { record_single => [@prefetches] } : 'record_single';
-    # Add joins for sorts, but only if they're not already a prefetch (otherwise ordering can be messed up).
-    # We also add the join for record_later, so that we can take only the latest required record
-    my @j = $self->jpfetch(sort => 1, prefetch => 0, linked => 0);
-    my $rec2 = @j ? { record_single => [@j, 'record_later'] } : { record_single => 'record_later' };
-    my @linked_prefetch = $self->linked_hash(prefetch => 1);
+    my $records = {}; my $limit = 10; my $page = 1; my $first_run = 1;
+    my @retrieved_order;
+    while (1)
+    {
+        # No linked here so that we get the ones needed in accordance with this loop (could be either)
+        my @prefetches = $self->jpfetch(prefetch => 1, search => 1, sort => 1, limit => $limit, page => $page);
+        last if !@prefetches && !$first_run;
+        # We need to use the retain_join_order as we are only using joins, not
+        # joins as well as prefetches. With the commit that this comment is
+        # going in with, it looks like this may always be the case now.
+        # Therefore, retain_join_order may now be redundent and could possibly
+        # be made the default and removed in a future commit.
+        @prefetches = $self->jpfetch(prefetch => 1, search => 1, sort => 1, linked => 0, limit => $limit, page => $page, retain_join_order => 1);
 
-    my $select = {
-        prefetch => [
+        @prefetches = (
+            $self->linked_hash(prefetch => 1, sort => 1, search => 1, limit => $limit, page => $page, retain_join_order => 1),
             'deletedby',
-            [@linked_prefetch],
-            $rec1,
-        ],
-        join     => [
-            [$self->linked_hash(sort => 1)],
-            $rec2,
-        ],
-        '+select' => $self->_plus_select, # Used for additional sort columns
-        '+columns' => [
+            'currents',
+            {
+                'record_single' => [
+                    'record_later',
+                    @prefetches,
+                ],
+            },
+        );
+
+        # Don't specify linked for fetching columns, we will get whataver is needed linked or not linked
+        my @columns_fetch = $self->columns_fetch(search => 1, sort => 1, limit => $limit, page => $page, retain_join_order => 1);
+        my $has_linked = $self->has_linked(prefetch => 1, sort => 1, search => 1, limit => $limit, page => $page);
+        my $base = $self->record_name(prefetch => 1, sort => 1, search => 1, limit => $limit, page => $page);
+        push @columns_fetch, {id => "$base.id"};
+        push @columns_fetch, {deleted => "me.deleted"};
+        push @columns_fetch, {linked_id => "me.linked_id"};
+        push @columns_fetch, {linked_record_id => "record_single.id"}
+            if $has_linked;
+        push @columns_fetch, {draftuser_id => "me.draftuser_id"};
+        push @columns_fetch, {current_id => "$base.current_id"};
+        push @columns_fetch, {created => "$base.created"};
+        push @columns_fetch, {serial => "me.serial"};
+        push @columns_fetch, {parent_id => "me.parent_id"};
+        push @columns_fetch, "deletedby.$_" foreach @GADS::Column::Person::person_properties;
+
+        push @columns_fetch, (
             {
                 record_created => $self->schema->resultset('Current')
                   ->correlate('records')
@@ -974,27 +1003,71 @@ sub _build_standard_results
                     alias => 'me_created',
                 })->get_column('createdby')->as_query,
             },
-        ],
-        order_by  => $self->order_by(prefetch => 1),
-    };
+        );
 
-    my $result = $self->schema->resultset('Current')->search($self->_cid_search_query, $select);
+        $self->_clear_cid_search_query_cache;
+        my $result = $self->schema->resultset('Current')->search($self->_cid_search_query(prefetch => 1, sort => 1, search => 1, limit => $limit, page => $page),
+            {
+                join     => [@prefetches],
+                columns  => \@columns_fetch,
+                order_by => $self->order_by(prefetch => 1, search => 1, limit => $limit, page => $page, retain_join_order => 1),
+            },
+        );
 
-    $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
+        $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
+
+        my @recs = $result->all;
+
+        # We shouldn't normally receive more than one row per record here, as
+        # multiple values for single fields are retrieved separately. However,
+        # if a field was previously a multiple-value field, and it was
+        # subsequently changed to a single-value field, then there may be some
+        # remaining multiple values for the single-value field. In that case,
+        # multiple records will be returned from the database.
+        foreach my $rec (@recs)
+        {
+            my $current_id = $rec->{current_id};
+            push @retrieved_order, $current_id
+                if $first_run && !$records->{$current_id};
+            foreach my $key (keys %$rec)
+            {
+                # If we have multiple records, check whether we already have a
+                # value for that field, and if so add it, but only if it is
+                # different to the first (the ID will be different)
+                if ($key =~ /^field/ && $records->{$current_id}->{$key})
+                {
+                    my @existing = ref $records->{$current_id}->{$key} eq 'ARRAY'
+                        ? @{$records->{$current_id}->{$key}}
+                        : ($records->{$current_id}->{$key});
+                    @existing = grep { $_->{id} } @existing;
+                    push @existing, $rec->{$key}
+                        if ! grep { $rec->{$key}->{id} == $_->{id} } @existing;
+                    $records->{$current_id}->{$key} = \@existing;
+                }
+                else {
+                    $records->{$current_id}->{$key} = $rec->{$key};
+                }
+            }
+        }
+        $page++;
+        $first_run = 0;
+    }
 
     my @all; my @record_ids; my @created_ids;
-    my @retrieved = $result->all;
-    foreach my $rec (@retrieved)
+    foreach my $current_id (@retrieved_order)
     {
+        my $rec = $records->{$current_id};
         my @children = map { $_->{id} } @{$rec->{currents}};
+        # XXX Need to retrieve and set approval information if applicable
         push @all, GADS::Record->new(
             schema                  => $self->schema,
-            record                  => $rec->{record_single},
+            record                  => $rec,
             serial                  => $rec->{serial},
-            linked_record_raw       => $rec->{linked}->{record_single},
+            linked_record_raw       => $rec->{linked}->{record_single}, # XXX
             child_records           => \@children,
             parent_id               => $rec->{parent_id},
             linked_id               => $rec->{linked_id},
+            linked_record_id        => $rec->{linked_record_id},
             is_draft                => $rec->{draftuser_id},
             user                    => $self->user,
             layout                  => $self->layout,
@@ -1009,15 +1082,15 @@ sub _build_standard_results
             curcommon_all_fields    => $self->curcommon_all_fields,
         );
         push @created_ids, $rec->{record_created_user};
-        push @record_ids, $rec->{record_single}->{id};
-        push @record_ids, $rec->{linked}->{record_single}->{id}
+        push @record_ids, $rec->{id};
+        push @record_ids, $rec->{linked}->{record_single}->{id} # XXX
             if $rec->{linked}->{record_single};
     }
 
     # Fetch and add multi-values (standard columns)
     $self->fetch_multivalues(
         record_ids => \@record_ids,
-        retrieved  => \@retrieved,
+        retrieved  => [values %$records],
         records    => \@all,
     );
 
@@ -1044,7 +1117,7 @@ sub fetch_multivalues
 
     my @linked_ids;
     push @linked_ids, map { $_->linked_record_raw->{id} } grep { $_->linked_record_raw } @$records;
-    push @linked_ids, map { $_->linked_id } grep { $_->linked_id } @$records;
+    push @linked_ids, map { $_->linked_record_id } grep { $_->linked_record_id } @$records;
 
     my %curval_fields;
 
@@ -1169,9 +1242,9 @@ sub fetch_multivalues
             my $record_id_linked = $record_linked->{id};
             $record_linked->{$_} = $multi{$record_id_linked}->{$_} foreach keys %{$multi{$record_id_linked}};
         }
-        elsif ($row->linked_id)
+        elsif ($row->linked_record_id)
         {
-            $record->{$_} = $multi{$row->linked_id}->{$_} foreach keys %{$multi{$row->linked_id}};
+            $record->{$_} = $multi{$row->linked_record_id}->{$_} foreach keys %{$multi{$row->linked_record_id}};
         }
     };
 }

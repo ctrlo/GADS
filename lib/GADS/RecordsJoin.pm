@@ -216,7 +216,9 @@ sub add_linked_join
 
 sub has_linked
 {   my ($self, %options) = @_;
-    return !!$self->jpfetch(%options, linked => 1);
+    # Need to rely on the layout, as the linked fields might all be multivalue
+    # and therefore won't be part of the join set
+    return !!grep $_->link_parent, $self->layout->all;
 }
 
 sub record_later_search
@@ -316,8 +318,10 @@ sub _jpfetch
         my $end = $options{limit}-1+$offset ;
         $end = @joins-1 if $end > @joins-1;
         push @return, grep { $_->{search} } @joins[0..$offset-1] if $options{search};
+        push @return, grep { $_->{sort} } @joins[0..$offset-1] if $options{sort};
         push @return, @joins[$offset..$end];
         push @return, grep { $_->{search} } @joins[$end+1..@joins-1] if $options{search};
+        push @return, grep { $_->{sort} } @joins[$end+1..@joins-1] if $options{sort};
     }
     else {
         @return = @$joins;
@@ -341,6 +345,7 @@ sub _jpfetch_add
     my $join    = $params{join};
     my $return  = $params{return};
     my $parent  = $params{parent};
+
     if (
         ($options->{search} && $_->{search})
         || ($options->{sort} && $_->{sort})
@@ -438,6 +443,12 @@ sub columns_fetch
     return @prefetch;
 }
 
+sub _record_name_by_count
+{   my $count = shift;
+    my $c_offset = $count == 1 ? '' : "_$count";
+    return "record_single$c_offset";
+}
+
 sub record_name
 {   my ($self, %options) = @_;
     my @store = $self->_jpfetch(%options);
@@ -456,12 +467,25 @@ sub record_name
     else {
         $count = 0;
     }
-    if (!$options{linked})
+
+    # Linked is always first. Drop straight back if that's what's wanted
+    return _record_name_by_count($count)
+        if $options{linked};
+
+    # Now add on for any curval columns in the linked section
+    foreach my $c (@store)
     {
-        $count++
-            unless $options{no_current};
-        $count += grep { $_->{column}->type eq 'autocur' && $_->{linked} } @store;
+        next unless $c->{column}->is_curcommon && $c->{linked};
+        next if !@{$c->{children}}; # No record_singles unless fields selected from curval
+        $count++;
+        return _record_name_by_count($count) if $options{column} && $options{column}->id == $c->{column}->id;
     }
+
+    # Now the query of the main record
+    $count++
+        unless $options{no_current};
+
+    # And now add on any curval columns in the normal section
 
     # The column options allows a record_single to be generated for a curval
     # field. In this case, we have to work out how many previous record_single
@@ -470,7 +494,7 @@ sub record_name
     {
         foreach my $c (@store)
         {
-            next unless $c->{column}->is_curcommon;
+            next unless $c->{column}->is_curcommon && !$c->{linked};
             next if !@{$c->{children}}; # No record_singles unless fields selected from curval
             $count++;
             last if $c->{column}->id == $col->id;
@@ -478,7 +502,7 @@ sub record_name
     }
 
     my $c_offset = $count == 1 ? '' : "_$count";
-    return "record_single$c_offset";
+    return _record_name_by_count($count);
 }
 
 =pod
