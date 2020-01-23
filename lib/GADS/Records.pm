@@ -938,17 +938,17 @@ sub _build_standard_results
     while (1)
     {
         # No linked here so that we get the ones needed in accordance with this loop (could be either)
-        my @prefetches = $self->jpfetch(prefetch => 1, search => 1, sort => 1, limit => $limit, page => $page);
+        my @prefetches = $self->jpfetch(prefetch => 1, sort => 1, limit => $limit, page => $page);
         last if !@prefetches && !$first_run;
         # We need to use the retain_join_order as we are only using joins, not
         # joins as well as prefetches. With the commit that this comment is
         # going in with, it looks like this may always be the case now.
         # Therefore, retain_join_order may now be redundent and could possibly
         # be made the default and removed in a future commit.
-        @prefetches = $self->jpfetch(prefetch => 1, search => 1, sort => 1, linked => 0, limit => $limit, page => $page, retain_join_order => 1);
+        @prefetches = $self->jpfetch(prefetch => 1, sort => 1, linked => 0, limit => $limit, page => $page, retain_join_order => 1);
 
         @prefetches = (
-            $self->linked_hash(prefetch => 1, sort => 1, search => 1, limit => $limit, page => $page, retain_join_order => 1),
+            $self->linked_hash(prefetch => 1, sort => 1, limit => $limit, page => $page, retain_join_order => 1),
             'deletedby',
             'currents',
             {
@@ -960,9 +960,9 @@ sub _build_standard_results
         );
 
         # Don't specify linked for fetching columns, we will get whataver is needed linked or not linked
-        my @columns_fetch = $self->columns_fetch(search => 1, sort => 1, limit => $limit, page => $page, retain_join_order => 1);
-        my $has_linked = $self->has_linked(prefetch => 1, sort => 1, search => 1, limit => $limit, page => $page);
-        my $base = $self->record_name(prefetch => 1, sort => 1, search => 1, limit => $limit, page => $page);
+        my @columns_fetch = $self->columns_fetch(sort => 1, limit => $limit, page => $page, retain_join_order => 1);
+        my $has_linked = $self->has_linked(prefetch => 1, sort => 1, limit => $limit, page => $page);
+        my $base = $self->record_name(prefetch => 1, sort => 1, limit => $limit, page => $page);
         push @columns_fetch, {id => "$base.id"};
         push @columns_fetch, {deleted => "me.deleted"};
         push @columns_fetch, {linked_id => "me.linked_id"};
@@ -999,11 +999,11 @@ sub _build_standard_results
         );
 
         $self->_clear_cid_search_query_cache;
-        my $result = $self->schema->resultset('Current')->search($self->_cid_search_query(prefetch => 1, sort => 1, search => 1, limit => $limit, page => $page),
+        my $result = $self->schema->resultset('Current')->search($self->_cid_search_query(prefetch => 1, sort => 1, limit => $limit, page => $page),
             {
                 join     => [@prefetches],
                 columns  => \@columns_fetch,
-                order_by => $self->order_by(prefetch => 1, search => 1, limit => $limit, page => $page, retain_join_order => 1),
+                order_by => $self->order_by(prefetch => 1, limit => $limit, page => $page, retain_join_order => 1),
             },
         );
 
