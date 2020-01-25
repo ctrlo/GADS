@@ -879,18 +879,28 @@ sub fetch_multivalues
 {   my ($self, $record_ids) = @_;
 
     my $select = {
-        join     => 'layout',
         # Order by values so that multiple values appear in consistent order as
         # field values
         order_by => "me.".$self->value_field,
     };
+
+    my @cols = (@{$self->retrieve_fields}, 'id');
+    my @cols_mapped = ('me.layout_id', 'me.record_id');
     if (ref $self->tjoin)
     {
         my ($left, $prefetch) = %{$self->tjoin}; # Prefetch table is 2nd part of join
-        $select->{prefetch} = $prefetch;
+        $select->{join} = ['layout', $prefetch];
         # Override previous setting
         $select->{order_by} = "$prefetch.".$self->value_field;
+        push @cols_mapped, map "$prefetch.$_", @cols;
     }
+    else {
+        $select->{join} = 'layout';
+        push @cols_mapped, map "me.$_", @cols;
+    }
+    push @cols_mapped, 'me.child_unique', 'me.layout_id', 'me.record_id'
+        if $self->userinput;
+    $select->{columns} = \@cols_mapped;
     my $m_rs = $self->schema->resultset($self->table)->search({
         'me.record_id'      => $record_ids,
         'layout.multivalue' => 1,
