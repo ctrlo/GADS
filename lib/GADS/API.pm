@@ -399,13 +399,15 @@ prefix '/:layout_name' => sub {
           # to the message session). We need to hide these and report them now.
           hide => 'ERROR';
 
-        $@->reportFatal; # Report any unexpected fatal messages from the try block
-
-        if (my @excps = grep { $_->reason eq 'ERROR' } $@->exceptions)
+        # See whether any unexpected exceptions first, and if so throw them
+        if (my ($fatal) = grep { $_->isFatal && $_->reason ne 'ERROR' } $@->exceptions)
         {
-            my $msg = "The following fields need to be completed first: "
-                .join ', ', map { $_->message->toString } @excps;
-
+            $fatal->throw;
+        }
+        # Otherwise report any normal errors back to the caller
+        elsif (my @excps = grep { $_->reason eq 'ERROR' } $@->exceptions)
+        {
+            my $msg = join ', ', map { $_->message->toString } @excps;
             return encode_json { error => 1, message => $msg };
         }
 
