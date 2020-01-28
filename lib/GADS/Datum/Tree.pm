@@ -85,7 +85,10 @@ has value_hash => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        $self->has_init_value or return {};
+        $self->has_init_value or return {
+            ids  => [],
+            text => [],
+        };
         # XXX - messy to account for different initial values. Can be tidied once
         # we are no longer pre-fetching multiple records
 
@@ -186,9 +189,14 @@ has text_all => (
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
+    my %value_hash = ( # Ensure true copy
+        ids     => [@{$self->value_hash->{ids}}],
+        text    => [@{$self->value_hash->{text}}],
+    );
     $orig->($self,
-        ids     => $self->ids,
-        text    => $self->text,
+        ids        => $self->ids,
+        text       => $self->text,
+        value_hash => \%value_hash,
         @_,
     );
 };

@@ -66,6 +66,19 @@ for my $reload (0..1)
     $record->find_current_id(3);
     my $cloned = $record->clone;
 
+    my %expected = map { $_ => $data->[0]->{$_} } @colnames;
+    $expected{daterange1} = "2011-02-02 to 2012-02-02";
+    $expected{curval1} = "Foo";
+
+    # Check after initial clone (before write) to see whether this is correct
+    # for use in the HTML form
+    foreach my $colname (@colnames)
+    {
+        is($cloned->fields->{$columns->{$colname}->id}->as_string, $expected{$colname}, "$colname correct after cloning (pre-write)");
+        my ($textall) = @{$cloned->fields->{$columns->{$colname}->id}->text_all};
+        is($textall, $expected{$colname}, "Textall for $colname correct after cloning (pre-write)");
+    }
+
     my %vals = map {
         $columns->{$_}->id => $cloned->fields->{$columns->{$_}->id}->html_form
     } @colnames;
@@ -82,6 +95,7 @@ for my $reload (0..1)
             foreach keys %vals;
     }
 
+    # Check after write, to see whether that is correct too
     $cloned->write(no_alerts => 1);
     my $cloned_id = $cloned->current_id;
     $cloned->clear;
@@ -90,17 +104,13 @@ for my $reload (0..1)
     {
         if ($colname eq 'curval1')
         {
-            is($cloned->fields->{$curval->id}->as_string, "Foo", "Curval correct after cloning");
+            #is($cloned->fields->{$curval->id}->as_string, "Foo", "Curval correct after cloning");
             my $ids_new = join '', @{$cloned->fields->{$curval->id}->ids};
             is($ids_new, $ids, "ID of newly written field same");
         }
-        elsif ($colname eq 'daterange1')
-        {
-            is($cloned->fields->{$columns->{daterange1}->id}->as_string, "2011-02-02 to 2012-02-02", "Daterange correct after cloning");
-        }
-        else {
-            is($cloned->fields->{$columns->{$colname}->id}->as_string, $data->[0]->{$colname}, "$colname correct after cloning");
-        }
+        is($cloned->fields->{$columns->{$colname}->id}->as_string, $expected{$colname}, "$colname correct after cloning");
+        is($_, $expected{$colname}, "Textall for $colname correct after cloning")
+            foreach @{$cloned->fields->{$columns->{$colname}->id}->text_all};
     }
 }
 

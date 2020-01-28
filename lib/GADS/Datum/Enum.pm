@@ -204,7 +204,12 @@ sub html_form
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
-    $orig->($self, id => $self->id, text => $self->text, @_);
+    my %value_hash = ( # Ensure true copy
+        ids     => [@{$self->value_hash->{ids}}],
+        text    => [@{$self->value_hash->{text}}],
+        deleted => [@{$self->value_hash->{deleted}}],
+    );
+    $orig->($self, id => $self->id, text => $self->text, value_hash => \%value_hash, @_);
 };
 
 sub as_string
