@@ -9,9 +9,12 @@ sub after_presentation
     $return->{value_selector}     = $self->value_selector;
     $return->{show_add}           = $self->show_add;
     $return->{has_subvals}        = $self->has_subvals;
-    $return->{filtered_values}    = $self->filtered_values($options{record}->submission_token)
-        if $options{edit};
     $return->{data_filter_fields} = $self->data_filter_fields;
+    # Expensive to build, so avoid if possible. Only needed for an edit, and no
+    # point if they are filtered from record values as they will be rebuilt
+    # anyway
+    $return->{filtered_values}    = $self->filtered_values($options{record}->submission_token)
+        if $options{edit} && !$self->has_subvals;
 }
 
 1;
