@@ -126,11 +126,14 @@ sub presentation {
         user_can_delete => $self->user_can_delete,
         user_can_edit   => $self->layout->user_can('write_existing'),
         id_count        => $self->id_count,
-        versions        => [$self->versions],
         has_rag_column  => !!(grep { $_->type eq 'rag' } @columns),
         new_entry       => $self->new_entry,
         is_draft        => $self->is_draft,
     };
+    # Building versions is expensive, and not needed when this record is part
+    # of a curval value. It's only shown for the edit page/
+    $return->{versions} = [$self->versions]
+        if $options{edit};
 
     if (!$self->new_entry)
     {
