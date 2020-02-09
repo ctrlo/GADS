@@ -135,7 +135,7 @@ sub presentation {
     $return->{versions} = [$self->versions]
         if $options{edit};
 
-    if (!$self->new_entry)
+    if (!$self->new_entry && $options{edit}) # Expensive, only do if necessary
     {
         $return->{version_user} = $self->layout->column_by_name_short('_version_user')->presentation(
             datum_presentation => $self->createdby->presentation, %options
