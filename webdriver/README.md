@@ -7,8 +7,8 @@ WebDriver integration tests for the entire application.
 # Preparation
 
 ```
-# Install the required CPAN module
-cpan WebDriver::Tiny
+# Install the required CPAN modules
+cpan List::MoreUtils Test2::API Test2::Tools::Compare WebDriver::Tiny
 
 # Run geckodriver (or similar for your browser, perhaps chromedriver)
 geckodriver
