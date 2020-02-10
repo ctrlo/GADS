@@ -868,6 +868,7 @@ any ['get', 'post'] => '/user/upload' => require_any_role [qw/useradmin superadm
     }
 
     template 'user/upload' => {
+        page        => 'user',
         groups      => GADS::Groups->new(schema => schema)->all,
         permissions => $userso->permissions,
         breadcrumbs => [Crumb( '/user' => 'users' ), Crumb( '/user/upload' => "user upload" ) ],
