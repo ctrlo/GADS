@@ -883,14 +883,9 @@ sub delete_viewed_record_ok {
 
     my @failure = $self->_find_and_click( [ '.btn-delete' ], jquery => 1 );
 
-    my $modal_title_el = $webdriver->find('h4#myModalLabel');
-    if ( $modal_title_el->size && 'Delete record' eq $modal_title_el->text ) {
-        $test->note("About to delete $record_title");
-        $webdriver->find('#modaldelete .btn-primary.submit_button')->click;
-    }
-    else {
-        push @failure, "No 'Delete record' modal found for ${record_title}";
-    }
+    my $modal_title_el = $webdriver->find('h4#delete_record_heading');
+    $test->note("About to delete $record_title");
+    $webdriver->find('#modaldelete .btn-primary.submit_button')->click;
 
     $test->ok( !@failure, $name );
     $test->diag($_) foreach @failure;
