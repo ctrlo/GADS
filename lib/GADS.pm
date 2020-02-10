@@ -1352,6 +1352,10 @@ any ['get', 'post'] => '/resetpw/:code' => sub {
             $audit->login_change("Password reset performed for user ID ".$user->id);
             $new_password = _random_pw();
             user_password code => param('code'), new_password => $new_password;
+            report {to => 'syslog'},
+                INFO => __x"debug_login set - new password for username \"{username}\", password: \"{password}\"",
+                username => $user->username, password => $new_password
+                    if $user->debug_login;
             _update_csrf_token();
         }
         my $output  = template 'login' => {
