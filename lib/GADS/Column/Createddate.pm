@@ -46,11 +46,6 @@ has '+userinput' => (
     default => 0,
 );
 
-has include_time => (
-    is      => 'ro',
-    default => 1,
-);
-
 sub tjoin {};
 
 sub has_time { 1 };

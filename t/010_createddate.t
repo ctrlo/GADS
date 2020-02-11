@@ -58,7 +58,9 @@ $record->clear;
 $record->find_current_id(1);
 
 is($record->fields->{$version->id}->values->[0]->hour, 15, "Correct hour for daylight saving time");
+is($record->fields->{$version->id}->as_string, '2014-06-01 15:00:00', "Correct hour for daylight saving time");
 is($record->fields->{$created->id}->values->[0]->hour, 12, "Correct created hour for saving time");
+is($record->fields->{$created->id}->as_string, '2014-01-01 12:00:00', "Correct created hour for saving time");
 is($record->fields->{$calc1->id}->as_string, 15, "Correct hour for daylight saving time - calc");
 
 # Create new record in daylight saving time

@@ -174,7 +174,6 @@ sub _as_string
 {   my ($self, $value) = @_;
     return "" unless $value;
     my $format = $self->column->dateformat;
-    $format .= " HH:mm" if $self->column->include_time;
     $value->format_cldr($format);
 }
 
