@@ -210,6 +210,43 @@ foreach my $test (@tests)
     $layout->clear;
 }
 
+# Most filtering tests should be covered by the curval filtering tests in
+# 003_search. However, perform a basic test for sanity checks. This test
+# searches on an enum value within the filval field, to make sure the enum
+# field is included in the joins correctly
+{
+    my $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $filval->id.'_'.$curval_sheet->columns->{enum1}->id,
+                type     => 'string',
+                value    => 'foo1',
+                operator => 'equal',
+            }],
+        },
+    );
+    my $view = GADS::View->new(
+        name        => 'Test view',
+        filter      => $rules,
+        columns     => [$columns->{string1}->id],
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+    );
+    $view->write;
+
+    my $records = GADS::Records->new(
+        view    => $view,
+        user    => $sheet->user,
+        layout  => $layout,
+        schema  => $schema,
+    );
+    my $count = $records->count;
+    is($count, 1, "Correct count");
+    is(@{$records->results}, 1, "Correct number of records");
+}
+
 # Display condition tests
 {
     @tests = (

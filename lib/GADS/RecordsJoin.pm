@@ -623,7 +623,7 @@ sub _find
             $stash->{$value}++;
             if ($jp->{parent} && !$stash->{parents_included}->{$jp->{parent}->id})
             {
-                if ($jp->{parent}->type eq 'curval')
+                if ($jp->{parent}->type eq 'curval' || $jp->{parent}->type eq 'filval')
                 {
                     # A curval join has an extra "value" join whereas an
                     # autocur does not
