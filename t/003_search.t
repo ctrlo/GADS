@@ -1754,6 +1754,27 @@ my @sorts = (
         },
     },
     {
+        name         => 'Sort with filter on tree',
+        show_columns => [qw/string1 enum1/],
+        sort_by      => [qw/enum1/],
+        sort_type    => ['asc'],
+        first        => qr/^(3)$/,
+        last         => qr/^(6)$/,
+        max_id       => 6,
+        min_id       => 3,
+        count        => 2,
+        filter       => {
+            rules => [
+                {
+                    name     => 'tree1',
+                    type     => 'string',
+                    value    => 'tree1',
+                    operator => 'equal',
+                },
+            ],
+        },
+    },
+    {
         name         => 'Sort by enum that is after another enum in the fetched column',
         show_columns => [qw/enum1 curval1 tree1/],
         sort_by      => [qw/tree1/],
