@@ -14,7 +14,8 @@ my $data = [
         string1    => 'Foo',
         integer1   => '100',
         enum1      => 7,
-        tree1      => 10,
+        enum2      => 10,
+        tree1      => 13,
         date1      => '2010-10-10',
         daterange1 => ['2000-10-10', '2001-10-10'],
         curval1    => 1,
@@ -29,7 +30,8 @@ my $data = [
         string1    => 'Bar',
         integer1   => '200',
         enum1      => 8,
-        tree1      => 11,
+        enum2      => 10,
+        tree1      => 14,
         date1      => '2011-10-10',
         daterange1 => ['2000-11-11', '2001-11-11'],
         curval1    => 2,
@@ -46,6 +48,7 @@ my $sheet   = Test::GADS::DataSheet->new(
     curval_field_ids => [$curval_sheet->columns->{string1}->id, $curval_sheet->columns->{enum1}->id],
     calc_code        => qq(function evaluate (L1string1) \n return L1string1 .. "XX" \nend),
     calc_return_type => 'string',
+    column_count     => { enum => 2 },
 );
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
@@ -67,13 +70,13 @@ my @tests = (
     {
         name   => 'Tree',
         col    => 'tree1',
-        search => [11],
+        search => [14],
         count  => 1,
     },
     {
         name   => 'Tree multiple',
         col    => 'tree1',
-        search => [10,11],
+        search => [13,14],
         count  => 2,
     },
     {
@@ -158,19 +161,44 @@ my @tests = (
 
 foreach my $test (@tests)
 {
+    # Add a test and a sort to check no undesired affect on filter
+    my $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $columns->{enum2}->id,
+                type     => 'string',
+                value    => 'foo1',
+                operator => 'equal',
+            }],
+        },
+    );
+    my $view = GADS::View->new(
+        name        => 'Test view',
+        filter      => $rules,
+        columns     => [$columns->{string1}->id, $columns->{tree1}->id],
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+    );
+    $view->write;
+    $view->set_sorts([$columns->{enum1}->id], ['asc']);
+
     my $filters = [
-            +{
-                id    => $columns->{$test->{col}}->id,
-                value => $test->{search},
-            }
+        +{
+            id    => $columns->{$test->{col}}->id,
+            value => $test->{search},
+        }
     ];
     my $records = GADS::Records->new(
+        view               => $view,
         additional_filters => $filters,
         user               => $sheet->user,
         layout             => $layout,
         schema             => $schema,
     );
     is($records->count, $test->{count}, "Count correct for additional filters $test->{name}");
+    is(@{$records->results}, $test->{count}, "Count correct for additional filters $test->{name}");
 }
 
 done_testing();

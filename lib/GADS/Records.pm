@@ -1553,7 +1553,7 @@ sub _query_params
         # Add any date ranges to the search from above
         if (@$search_date)
         {
-            my @res = ($self->_search_construct({condition => 'OR', rules => $search_date}, $layout));
+            my @res = ($self->_search_construct({condition => 'OR', rules => $search_date}, $layout, %options));
             push @limit, @res if @res;
         }
 
@@ -1566,7 +1566,7 @@ sub _query_params
                 value       => $additional->{value},
                 value_field => $col->value_field_as_index($additional->{value}),
             };
-            push @limit, $self->_search_construct($f, $layout);
+            push @limit, $self->_search_construct($f, $layout, %options);
         }
 
         # Now add all the filters as joins (we don't need to prefetch this data). However,
