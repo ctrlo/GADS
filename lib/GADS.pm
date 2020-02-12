@@ -253,7 +253,7 @@ hook before => sub {
         }
         elsif (!$persistent->{instance_id})
         {
-            $persistent->{instance_id} = config->{gads}->{default_instance};
+            $persistent->{instance_id} = var('instances')->all->[0]->instance_id;
         }
 
         if (my $layout_name = route_parameters->get('layout_name'))
