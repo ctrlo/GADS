@@ -1438,10 +1438,13 @@ sub _build_columns_render
 {   my $self = shift;
 
     my @cols = @{$self->columns_selected};
-    @cols = grep $_->group_display, @cols
-        if $self->view && $self->view->is_group && !@{$self->additional_filters};
-    push @cols, map $self->layout->column($_->layout_id), @{$self->view->groups}
-        if $self->view;
+    if (!@{$self->additional_filters})
+    {
+        @cols = grep $_->group_display, @cols
+            if $self->view && $self->view->is_group;
+        push @cols, map $self->layout->column($_->layout_id), @{$self->view->groups}
+            if $self->view;
+    }
     if ($self->current_group_id)
     {
         @cols = grep $_->id != $self->current_group_id, @cols;
