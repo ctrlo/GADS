@@ -197,19 +197,13 @@ sub layout
 
 sub layout_by_shortname
 {   my ($self, $shortname, %options) = @_;
-    my $layout = $self->schema->resultset('Instance')->search({
-        name_short => $shortname,
-    })->next;
-    if (!$layout && $shortname =~ /^table([0-9]+)$/)
-    {
-        $layout = $self->schema->resultset('Instance')->find($1);
-    }
+    my ($layout) = grep $_->identifier, @{$self->all};
     if (!$layout)
     {
         return undef if $options{no_errors};
         error __x"Table not found: {name}", name => $shortname;
     }
-    return $self->_layouts_index->{$layout->id};
+    return $layout;
 }
 
 sub is_valid
