@@ -370,6 +370,7 @@ sub _build__user_permissions_overall
 
 sub current_user_can_column
 {   my ($self, $column_id, $permission) = @_;
+    return 1 if $self->user_permission_override;
     my $user = $self->user
         or return;
     my $user_id  = $user->id;
