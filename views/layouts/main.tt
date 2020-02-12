@@ -24,7 +24,7 @@
 
         <!-- Custom styles for this template -->
         [% UNLESS page_as_mech %]
-            <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap.css?v=2">
+            <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap.css?v=10">
             [% IF config.gads.legacy_menu %]
                 <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap-legacy.css">
             [% END %]
@@ -301,7 +301,7 @@
         [% END %]
 
         <script type="text/javascript" src="[% url.js %]/jquery.placeholder.js"></script>
-        <script src="[% url.js %]/linkspace.js"></script>
+        <script src="[% url.js %]/linkspace.js?v=10"></script>
         <script type="text/javascript">
             $('[data-toggle="popover"]').popover({placement:'auto', html:true});
             if (typeof jscode != 'undefined') {
