@@ -891,7 +891,7 @@ sub _cid_search_query
     my $search = $self->_cid_search_query_cache;
     if (!$search)
     {
-        $search = { map { %$_ } $self->record_later_search(prefetch => 1, sort => 1, linked => 1, group => 1, %options) };
+        $search = { map { %$_ } $self->record_later_search(prefetch => 1, sort => 1, linked => 1, group => 1, retain_join_order => 1, %options) };
 
         # If this is a group query then we will not be limiting by number of
         # records (but will be reducing number of results by group), and therefore
