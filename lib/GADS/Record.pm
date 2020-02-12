@@ -720,7 +720,7 @@ sub _find
     error __"You do not have access to this deleted record"
         if $find{deleted} && !$self->layout->user_can("purge");
 
-    my $records = GADS::Records->new(
+    my %params = (
         curcommon_all_fields => $self->curcommon_all_fields,
         user                 => $self->user,
         layout               => $self->layout,
@@ -734,6 +734,9 @@ sub _find
         include_children     => 1,
         view_limit_extra_id  => undef, # Remove any default extra view
     );
+    $params{columns_selected} = [$self->layout->all]
+        if !$self->columns;
+    my $records = GADS::Records->new(%params);
 
     $self->columns_retrieved_do($records->columns_retrieved_do);
     $self->columns_retrieved_no($records->columns_retrieved_no);

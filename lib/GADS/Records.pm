@@ -1423,11 +1423,7 @@ sub _build_columns_selected
             if $self->current_group_id;
     }
     else {
-        # Otherwise assume all columns needed, even ones the user does not have
-        # access to. This is so that any writes still write all column values,
-        # regardless of whether a user has access. This is used when a single
-        # record is retrieved (e.g. find_current_id)
-        @cols = $self->layout->all;
+        @cols = $self->layout->all(user_can_read => 1);
     }
 
 

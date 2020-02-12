@@ -176,18 +176,40 @@ foreach my $user_type (qw/readwrite read limited/)
         layout  => $layout,
         schema  => $schema,
     );
-    my @records = @{$records->results};
 
-    is( scalar @records, 1, "One record in test dataset");
+    is( @{$records->results}, 1, "One record in test dataset");
 
-    # Add another blank one
-    my $record = GADS::Record->new(
+    # Check user has access to correct normal columns
+    my $record  = $records->single;
+    my $string1 = $columns->{string1};
+    my $enum1   = $columns->{enum1};
+    if ($user_type eq 'limited')
+    {
+        ok(defined $record->fields->{$string1->id}, "Limited user has access to correct field");
+        ok(!defined $record->fields->{$enum1->id}, "Limited user does not have access to limited field");
+    }
+    else {
+        ok(defined $record->fields->{$string1->id}, "Other user has access to string1");
+        ok(defined $record->fields->{$enum1->id}, "Other user has access to enum1");
+    }
+
+    # Load record from scratch for edit so that it contains all columns
+    my $cid = $record->current_id;
+    $record = GADS::Record->new(
         user     => $user,
         layout   => $layout,
         schema   => $schema,
     );
-    $record->initialise;
-    push @records, $record;
+    $record->find_current_id($cid);
+    my @records = ($record);
+    # Add another blank one
+    my $record_blank = GADS::Record->new(
+        user     => $user,
+        layout   => $layout,
+        schema   => $schema,
+    );
+    $record_blank->initialise;
+    push @records, $record_blank;
 
     foreach my $rec (@records)
     {
