@@ -197,7 +197,7 @@ sub layout
 
 sub layout_by_shortname
 {   my ($self, $shortname, %options) = @_;
-    my ($layout) = grep $_->identifier, @{$self->all};
+    my ($layout) = grep $_->identifier eq $shortname, @{$self->all};
     if (!$layout)
     {
         return undef if $options{no_errors};
