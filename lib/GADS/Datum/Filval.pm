@@ -139,7 +139,7 @@ sub re_evaluate
 }
 
 sub write_value
-{   my $self = shift;
+{   my ($self, %options) = @_;
 
     my @entries;
 
@@ -162,6 +162,11 @@ sub write_value
     }
     $self->column->schema->resultset('Curval')->create($_)
         foreach @entries;
+
+    $self->column->schema->resultset('FilteredValue')->search({
+        layout_id     => $self->column->id,
+        submission_id => $options{submission_id},
+    })->delete;
 }
 
 1;
