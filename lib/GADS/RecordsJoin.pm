@@ -96,6 +96,11 @@ sub _add_jp
 
     return if !$column->tjoin;
 
+    # Catch a bug whereby fields could be made to be linked to fields within
+    # the same table. This results in data not being retrieved properly.
+    panic __x"Link parent of field ID {id} is from same table as field itself", id => $column->id
+        if $column->link_parent && $column->link_parent->instance_id == $column->instance_id;
+
     my $key;
     my $toadd = $column->tjoin(all_fields => $options{all_fields});
     ($key) = keys %$toadd if ref $toadd eq 'HASH';

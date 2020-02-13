@@ -1063,6 +1063,10 @@ sub write
     if ($self->link_parent_id)
     {
         my $link_parent = $self->schema->resultset('Layout')->find($self->link_parent_id);
+
+        error __"Cannot link to field within the same table"
+            if $link_parent->instance_id == $self->instance_id;
+
         if ($link_parent->type eq 'curval')
         {
             foreach ($link_parent->curval_fields_parents)

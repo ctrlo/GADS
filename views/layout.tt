@@ -112,6 +112,7 @@
             <select class="form-control" id="link_parent_id" name="link_parent_id">
                 <option value="">&lt;Not linked&gt;</option>
                 [% FOREACH instance_layout IN instance_layouts %]
+                    [% NEXT IF instance_layout.instance_id == layout.instance_id %]
                     [% FOREACH c IN instance_layout.all %]
                         <option value="[% c.id %]" [% IF column.link_parent.id == c.id %]selected[% END %]>[% instance_layout.name | html %] - [% c.name | html %]</option>
                     [% END %]
