@@ -775,6 +775,10 @@ sub group_summary
 
 sub _build_instance_id
 {   my $self = shift;
+    # Always take instance_id value from field if it's already written. If it's
+    # new, take it from the supplier layout parameter.
+    return $self->_rset->instance_id
+        if $self->_rset;
     $self->layout
         or panic "layout is not set - specify instance_id on creation instead?";
     $self->layout->instance_id;
