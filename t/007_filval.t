@@ -122,6 +122,19 @@ my @tests = (
         as_string    => '99; 200',
     },
     {
+        # A slightly odd test to check that the curval filter gets written when
+        # the record has been created from a draft and the curval field has not
+        # had a value set
+        name         => 'draft and no set value',
+        new          => 1,
+        draft        => 1,
+        no_set_value => 1,
+        string_value => 'Bar',
+        count_values => 2,
+        curval_value => 4,
+        as_string    => '99; 200',
+    },
+    {
         name         => 'edit',
         string_value => 'Foo',
         count_values => 3,
@@ -204,7 +217,8 @@ foreach my $test (@tests)
         my $count = $test->{count_values};
         is( scalar @{$layout->column($curval->id)->filtered_values($submission_token)}, $count, "Correct number of values for curval field with filter" );
     }
-    $record->fields->{$curval->id}->set_value([$test->{curval_value}]);
+    $record->fields->{$curval->id}->set_value([$test->{curval_value}])
+        unless $test->{no_set_value};
     $record->write(no_alerts => 1, submission_token => $submission_token);
     $current_id = $record->current_id;
 

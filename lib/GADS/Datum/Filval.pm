@@ -116,7 +116,7 @@ sub re_evaluate
             if $self->record->fields->{$col->id}->changed;
     }
 
-    return if !$something_changed;
+    return if !$something_changed && !$options{new_entry};
 
     my $submission_token = $options{submission_token}
         or panic "Missing submission token";
