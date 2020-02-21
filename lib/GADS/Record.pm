@@ -1273,6 +1273,10 @@ sub delete_user_drafts
             $draft->purge_current;
             $_->purge_drafts foreach @purge_curval;
         }
+        # Horribly hacky: reset reference to current self within the layout.
+        # This is used by filtered value fields (e.g. curval) to retrieve
+        # values from the record
+        $self->layout->record($self);
     }
 }
 

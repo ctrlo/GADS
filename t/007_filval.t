@@ -113,6 +113,15 @@ my @tests = (
         as_string    => '99; 200',
     },
     {
+        name         => 'draft',
+        new          => 1,
+        draft        => 1,
+        string_value => 'Bar',
+        count_values => 2,
+        curval_value => 4,
+        as_string    => '99; 200',
+    },
+    {
         name         => 'edit',
         string_value => 'Foo',
         count_values => 3,
@@ -180,12 +189,21 @@ foreach my $test (@tests)
     $record->fields->{$date1->id}->set_value($test->{date_value})
         if $test->{date_value};
 
+    if ($test->{draft})
+    {
+        $record->write(draft => 1);
+        $record->clear;
+        $record->load_remembered_values(instance_id => $layout->instance_id);
+    }
+
     my $submission_token = $record->submission_token;
 
-    my $cv = $layout->column($curval->id);
-    my $count = $test->{count_values};
-    is( scalar @{$layout->column($curval->id)->filtered_values($submission_token)}, $count, "Correct number of values for curval field with filter" );
-
+    unless ($test->{draft})
+    {
+        # Simulate a record write where the user hasn't clicked the curval drop-down
+        my $count = $test->{count_values};
+        is( scalar @{$layout->column($curval->id)->filtered_values($submission_token)}, $count, "Correct number of values for curval field with filter" );
+    }
     $record->fields->{$curval->id}->set_value([$test->{curval_value}]);
     $record->write(no_alerts => 1, submission_token => $submission_token);
     $current_id = $record->current_id;
