@@ -23,6 +23,8 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
+__PACKAGE__->add_unique_constraint("ux_submission_layout_current", ["submission_id", "layout_id", "current_id"]);
+
 __PACKAGE__->belongs_to(
   "submission",
   "GADS::Schema::Result::Submission",
