@@ -253,8 +253,12 @@ hook before => sub {
         }
         elsif (!$persistent->{instance_id})
         {
-            $persistent->{instance_id} = var('instances')->all->[0]->instance_id;
+            $persistent->{instance_id} = var('instances')->all->[0]->instance_id
+                if @{var('instances')->all};
         }
+
+        notice __"You do not have permission to access any part of this application. Please contact your system administrator."
+            if !@{var('instances')->all};
 
         if (my $layout_name = route_parameters->get('layout_name'))
         {
