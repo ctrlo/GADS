@@ -1420,10 +1420,14 @@ sub write
         error __"Unable to edit record that has been retrieved with rewind";
     }
 
+    my @cols = $options{submitted_fields}
+        ? @{$options{submitted_fields}}
+        : $self->layout->all(exclude_internal => 1);
+
     # This will be called before a write for a normal edit, to allow checks on
     # next/prev values, but we call it here again now, for other writes that
     # haven't explicitly called it
-    $self->set_blank_dependents(submission_token => $submission_token);
+    $self->set_blank_dependents(submission_token => $submission_token, columns => \@cols);
 
     # First loop round: sanitise and see which if any have changed
     my %allow_update = map { $_ => 1 } @{$options{allow_update} || []};
@@ -1432,9 +1436,6 @@ sub write
     # Whether any topics cannot be written because of missing fields in
     # other topics
     my %no_write_topics;
-    my @cols = $options{submitted_fields}
-        ? @{$options{submitted_fields}}
-        : $self->layout->all(exclude_internal => 1);
     foreach my $column (@cols)
     {
         next unless $column->userinput;
@@ -2054,7 +2055,7 @@ sub write_values
 sub set_blank_dependents
 {   my ($self, %options) = @_;
 
-    foreach my $column ($self->layout->all(exclude_internal => 1))
+    foreach my $column (@{$options{columns}})
     {
         my $datum = $self->fields->{$column->id};
         $datum->set_value('')
