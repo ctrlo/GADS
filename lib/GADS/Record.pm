@@ -936,6 +936,10 @@ sub load_remembered_values
             if !$options{instance_id};
         if ($self->find_draftuser_id($self->user->id))
         {
+            # Set created date to latest time rather than time draft was saved,
+            # in case used in any calculated values
+            my $record_created_col = $self->layout->column_by_name_short('_created');
+            $self->initialise_field($self->fields, $record_created_col->id);
             $self->remove_id;
             return;
         }
@@ -1074,7 +1078,8 @@ sub _transform_values
         # defined as recalc. This means that the value will automatically
         # calculate from the other aggregate field values instead
         $params{init_value} = ref $value eq 'ARRAY' ? $value : defined $value ? [$value] : []
-            unless $self->is_group && $column->aggregate && $column->aggregate eq 'recalc';
+            unless ($self->is_group && $column->aggregate && $column->aggregate eq 'recalc')
+                || ($self->is_draft && !$column->userinput); # Calc fields are not saved for a draft
         # For curcommon fields, flag that this field has had all its columns if
         # that is what has happened. Then we know during any later process of
         # this column that there is no need to retrieve any other columns
@@ -1187,25 +1192,26 @@ sub initialise
     my $instance_id = $options{instance_id};
     $self->_set_instance_id($instance_id)
         if $instance_id;
-    my $fields;
+    my $fields = {};
     foreach my $column ($self->layout->all(include_internal => 1))
     {
-        $fields->{$column->id} = $self->initialise_field($column->id);
+        $self->initialise_field($fields, $column->id);
     }
+
     $self->columns_retrieved_do([ $self->layout->all(include_internal => 1) ]);
     $self->fields($fields);
 }
 
 sub initialise_field
-{   my ($self, $id) = @_;
+{   my ($self, $fields, $id) = @_;
     my $layout = $self->layout;
     my $column = $layout->column($id);
     if ($self->linked_id && $column->link_parent)
     {
-        $self->linked_record->fields->{$column->link_parent->id};
+        $fields->{$id} = $self->linked_record->fields->{$column->link_parent->id};
     }
     else {
-        $column->class->new(
+        my $f = $column->class->new(
             record           => $self,
             record_id        => $self->record_id,
             column           => $column,
@@ -1213,6 +1219,11 @@ sub initialise_field
             layout           => $self->layout,
             datetime_parser  => $self->schema->storage->datetime_parser,
         );
+        # Unlike other fields this has a default value, so set it now.
+        # XXX Probably need to do created_by field as well.
+        $f->set_value(DateTime->now, is_parent_value => 1)
+            if $column->name_short && $column->name_short eq '_created';
+        $fields->{$id} = $f;
     }
 }
 
@@ -1580,12 +1591,6 @@ sub write
     }
 
     my $created_date = $options{version_datetime} || DateTime->now;
-
-    if ($self->new_entry)
-    {
-        my $record_created_col = $self->layout->column_by_name_short('_created');
-        $self->fields->{$record_created_col->id}->set_value($created_date, is_parent_value => 1);
-    }
 
     my $user_id = $self->user ? $self->user->id : undef;
 

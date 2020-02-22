@@ -58,7 +58,16 @@ my $data = [
     },
 ];
 
-my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, data => $data);
+my $curval_sheet = Test::GADS::DataSheet->new(
+    instance_id => 2,
+    data        => $data,
+    calc_code   => "function evaluate (_created)
+        if _created == nil then
+            return
+        end
+        return 1000
+    end",
+);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
 my $sheet   = Test::GADS::DataSheet->new(
@@ -67,6 +76,12 @@ my $sheet   = Test::GADS::DataSheet->new(
     multivalue       => 1,
     curval           => 2,
     curval_field_ids => [ $curval_sheet->columns->{string1}->id ],
+    calc_code        => "function evaluate (_created)
+        if _created == nil then
+            return
+        end
+        return 1000
+    end",
 );
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
@@ -77,12 +92,21 @@ my $curval = $columns->{curval1};
 # Filter on curval tests
 $curval->filter(GADS::Filter->new(
     as_hash => {
-        rules => [{
-            id       => $curval_sheet->columns->{string1}->id,
-            type     => 'string',
-            value    => '$L1string1',
-            operator => 'equal',
-        }],
+        rules => [
+            {
+                id       => $curval_sheet->columns->{string1}->id,
+                type     => 'string',
+                value    => '$L1string1',
+                operator => 'equal',
+            },
+            {
+                id       => $curval_sheet->columns->{calc1}->id,
+                type     => 'string',
+                value    => '$L1calc1',
+                operator => 'equal',
+            },
+        ],
+        condition => 'AND',
     },
 ));
 $curval->write;
