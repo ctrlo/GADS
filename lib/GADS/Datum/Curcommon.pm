@@ -309,7 +309,15 @@ sub id
 # field. These will be removed when the main draft is removed.
 sub purge_drafts
 {   my $self = shift;
-    $_->delete_current, $_->purge_current foreach grep { $_->is_draft } @{$self->_records};
+    # Do not use _records() if there are already records in the init_value.
+    # This is faster, but also necessary, as all the values to build the full
+    # _records() field may not have been retrieved.
+    # XXX Ideally all the various properties containing records need tidying up
+    # and unifying.
+    my @records = $self->_init_value_hash->{records}
+        ? @{$self->_init_value_hash->{records}}
+        : @{$self->_records};
+    $_->delete_current, $_->purge_current foreach grep { $_->is_draft } @records;
 }
 
 # Values as a URI query string. These are values submitted as queries via the

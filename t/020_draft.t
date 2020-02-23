@@ -179,7 +179,7 @@ is($record_rs->count, 3, "Additional normal record written");
         curcommon_all_fields => 1,
     );
     $record->load_remembered_values;
-    is($record->fields->{$curval->id}->as_string, "bar, 50, ; foo, 25, ", "Remembered subrecord curval");
+    is($record->fields->{$curval->id}->as_string, "bar, 50, a_grey; foo, 25, a_grey", "Remembered subrecord curval");
     my ($id) = @{$record->fields->{$curval->id}->ids};
     $curval_count = $schema->resultset('Current')->search({
         instance_id  => 2,
