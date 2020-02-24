@@ -1797,6 +1797,7 @@ prefix '/:layout_name' => sub {
             # Get details of the view and work out color markers for date fields
             my $records = GADS::Records->new(
                 user    => $user,
+                view    => $view,
                 layout  => $layout,
                 schema  => schema,
             );
