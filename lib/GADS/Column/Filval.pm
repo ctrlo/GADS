@@ -37,10 +37,6 @@ has '+userinput' => (
     default => 0,
 );
 
-has '+value_field' => (
-    default => 'id',
-);
-
 has '+table' => (
     default => 'Curval',
 );

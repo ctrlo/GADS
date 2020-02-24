@@ -302,6 +302,42 @@ foreach my $test (@tests)
     is($count, 1, "Correct count");
     is(@{$records->results}, 1, "Correct number of records");
 }
+# And the same for searching by ID
+{
+    my $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $filval->id,
+                type     => 'string',
+                value    => '5',
+                operator => 'equal',
+            }],
+        },
+    );
+    my $string1 = $columns->{string1};
+    my $view = GADS::View->new(
+        name        => 'Test view',
+        filter      => $rules,
+        columns     => [$string1->id],
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+    );
+    $view->write;
+
+    my $records = GADS::Records->new(
+        view    => $view,
+        user    => $sheet->user,
+        layout  => $layout,
+        schema  => $schema,
+    );
+    my $count = $records->count;
+    is($count, 2, "Correct count for search by ID");
+    my @recs = @{$records->results};
+    is(@recs, 2, "Correct number of records for search by ID");
+    is($recs[0]->fields->{$string1->id}->as_string, 'Bar', "Correct string value for retrieved record");
+}
 
 # Display condition tests
 {
