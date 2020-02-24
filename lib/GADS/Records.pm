@@ -1026,8 +1026,11 @@ sub _build_standard_results
             {
                 # If we have multiple records, check whether we already have a
                 # value for that field, and if so add it, but only if it is
-                # different to the first (the ID will be different)
-                if ($key =~ /^field/ && $records->{$current_id}->{$key})
+                # different to the first (the ID will be different).
+                # Sometimes fields will be retrieved that have no value at all
+                # (e.g. a new field has been created since the record was
+                # written)
+                if ($key =~ /^field/ && $records->{$current_id}->{$key} && $rec->{$key} && $rec->{$key}->{id})
                 {
                     my @existing = ref $records->{$current_id}->{$key} eq 'ARRAY'
                         ? @{$records->{$current_id}->{$key}}
