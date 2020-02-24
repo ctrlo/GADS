@@ -1494,6 +1494,8 @@ prefix '/:layout_name' => sub {
             user                => $user,
             layout              => $layout,
             schema              => schema,
+            from                => $fromdt,
+            to                  => $todt,
             max_results         => 1000,
             view                => $view,
             search              => session('search'),
@@ -1502,10 +1504,7 @@ prefix '/:layout_name' => sub {
 
         header "Cache-Control" => "max-age=0, must-revalidate, private";
         content_type 'application/json';
-        my $data = $records->data_calendar(
-            from => $fromdt,
-            to   => $todt,
-        );
+        my $data = $records->data_calendar;
         encode_json({
             "success" => 1,
             "result"  => $data,

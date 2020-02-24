@@ -2466,8 +2466,6 @@ sub data_calendar
     my $timeline = GADS::Timeline->new(
         type    => 'calendar',
         records => $self,
-        from    => $options{from},
-        to      => $options{to},
     );
 
     return $timeline->items;
