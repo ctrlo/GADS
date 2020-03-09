@@ -93,7 +93,7 @@
 [% END %]
 
 [% MACRO render_group BLOCK %]
-    <a href="?group_filter&field[% col.id %]=[% col.data.filter_value %]">[% col.data.value OR '<blank>' | html %]</a>
+    <a href="?[% col.filter_url %]">[% col.data.value OR '<blank>' | html %]</a>
 [% END %]
 
 [% MACRO render_datum(col, render_options) BLOCK;

@@ -72,7 +72,6 @@ sub presentation {
         helptext            => $self->helptext,
         readonly            => $options{new} ? !$self->user_can('write_new') : !$self->user_can('write_existing'),
         data                => $data,
-        is_group            => $options{group} && $options{group} == $self->id,
         has_filter          => $has_filter,
         url_filter_remove   => $url_filter_remove,
         filter_values       => encode_json \@filter_values,
@@ -86,6 +85,18 @@ sub presentation {
         display_fields_b64  => $self->display_fields_b64,
         display_for_edit    => $display_for_edit,
     };
+    if ($options{group})
+    {
+        $return->{is_group}   = grep $_, @{$options{group_col_ids}};
+        my @filter_urls;
+        foreach my $group_col_id (@{$options{group_col_ids}})
+        {
+            my $filter_value = $group_col_id == $self->id ? $data->{filter_value} : $options{data}->{$group_col_id}->{filter_value};
+            push @filter_urls, "field$group_col_id=".uri_escape_utf8($filter_value);
+            last if $group_col_id == $self->id;
+        }
+        $return->{filter_url} = "group_filter&".join('&', @filter_urls);
+    }
 
     if (my $sort = $options{sort})
     {

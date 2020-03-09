@@ -809,20 +809,6 @@ sub _build_is_group
     $self->view && $self->view->is_group;
 }
 
-# The current field that is being grouped by in the table view, where a view
-# has more than one group and they can be drilled down into
-has current_group_id => (
-    is      => 'lazy',
-    clearer => 1,
-);
-
-sub _build_current_group_id
-{   my $self = shift;
-    return undef if !$self->is_group || !$self->view;
-    return undef if !@{$self->view->groups};
-    $self->view->groups->[0]->layout_id;
-}
-
 # Produce a standard set of results without grouping
 sub _current_ids_rs
 {   my ($self, %options) = @_;
@@ -1391,6 +1377,31 @@ sub _build_columns_retrieved_no
     \@columns_retrieved_no;
 }
 
+has group_col_ids => (
+    is      => 'lazy',
+    isa     => ArrayRef,
+    clearer => 1,
+);
+
+sub _build_group_col_ids
+{   my $self = shift;
+    return [] if !$self->view;
+    [map $_->layout_id, @{$self->view->groups}];
+}
+
+has has_group_col_id => (
+    is      => 'lazy',
+    isa     => HashRef,
+    clearer => 1,
+);
+
+sub _build_has_group_col_id
+{   my $self = shift;
+    +{
+        map { $_ => 1 } @{$self->group_col_ids}
+    };
+}
+
 sub _build_columns_selected
 {   my $self = shift;
 
@@ -1410,20 +1421,18 @@ sub _build_columns_selected
     }
     elsif (my $view = $self->view)
     {
-        # Start with all fields in view as well as any fields to group by
-        my %view_layouts = map { $_ => 1 } @{$view->columns}, map $_->layout_id, @{$view->groups};
-        # If the user was in a grouped view and clicked a grouped item to
-        # filter on it, then remove it
-        delete $view_layouts{$self->current_group_id}
-            if $self->current_group_id;
+        # All fields selected in view, but if a grouped view, then remove
+        # columns that are not set to specifically be shown in a grouped view
+        # (for performance reasons).
+        my @col_ids = @{$view->columns};
+        # Always add grouped fields, so that the column is selected for the
+        # grouped view itself, and then when drilling down into the view using
+        # filters it is apparaent what filters are set
+        push @col_ids, $_->layout_id foreach @{$view->groups};
+        my %view_layouts = map { $_ => 1 } @col_ids;
         @cols = $self->layout->all(user_can_read => 1, include_column_ids => \%view_layouts);
-        # If a grouped view, then remove columns that are not set to
-        # specifically be shown in a grouped view (for performance reasons)
-        @cols = grep $_->group_display, @cols
-            if $view->is_group && !@{$self->additional_filters};
-        # Add filtered grouped column at beginning if required
-        unshift @cols, $self->layout->column($self->current_group_id)
-            if $self->current_group_id;
+        @cols = grep { !$view->is_group || $_->group_display || $self->has_group_col_id->{$_->id} } @cols
+            unless @{$self->additional_filters};
     }
     else {
         @cols = $self->layout->all(user_can_read => 1);
@@ -1437,17 +1446,14 @@ sub _build_columns_render
 {   my $self = shift;
 
     my @cols = @{$self->columns_selected};
-    if (!@{$self->additional_filters})
+    if ($self->view && !@{$self->additional_filters})
     {
-        @cols = grep $_->group_display, @cols
-            if $self->view && $self->view->is_group;
-        push @cols, map $self->layout->column($_->layout_id), @{$self->view->groups}
-            if $self->view;
-    }
-    if ($self->current_group_id)
-    {
-        @cols = grep $_->id != $self->current_group_id, @cols;
-        unshift @cols, $self->layout->column($self->current_group_id);
+        # If in the normal grouped view, then move the grouped columns first in
+        # the order selected
+        @cols = grep !$self->has_group_col_id->{$_->id}, @cols
+            if $self->view->is_group;
+        unshift @cols, map $self->layout->column($_), @{$self->group_col_ids}
+            if $self->view->is_group;
     }
 
     unshift @cols, $self->layout->column_id
@@ -1478,8 +1484,9 @@ sub clear
         unless $options{retain_current_ids};
     $self->clear_default_sort;
     $self->clear_is_group;
-    $self->clear_current_group_id;
     $self->clear_additional_filters;
+    $self->clear_has_group_col_id;
+    $self->clear_group_col_ids;
 }
 
 has additional_filters => (

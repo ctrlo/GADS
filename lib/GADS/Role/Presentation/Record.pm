@@ -7,8 +7,13 @@ sub _presentation_map_columns {
 
     my @columns = @{delete $options{columns}};
 
+    # When rendering a grouped column, in order to show all its filters, it may
+    # also need the filter values of grouped columns before it. Pass these in
+    # using the data key
+    my $mapping_done;
     my @mapped = map {
-        $_->presentation(datum_presentation => $self->fields->{$_->id}->presentation, %options);
+        my $pres = $mapping_done->{$_->id} = $self->fields->{$_->id}->presentation;
+        $_->presentation(datum_presentation => $pres, data => $mapping_done, %options);
     } @columns;
 
     return @mapped;
