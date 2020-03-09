@@ -244,9 +244,11 @@ foreach my $multivalue (0..1)
             additional_filters => $run == 1 ? \@additional : [],
         );
 
-        my $vids = join ' ', map { $_->id } @{$records->columns_selected};
+        my $vids = join ' ', map { $_->id } @{$records->columns_render};
         my $expected = $run == 0
             ? $enum1->id.' '.$integer1->id
+            : $run == 1
+            ? $string1->id.' '.$integer1->id.' '.$enum1->id
             : $enum1->id.' '.$string1->id.' '.$integer1->id;
         is($vids, $expected, "Correct columns in group view");
 
