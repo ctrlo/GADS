@@ -83,4 +83,89 @@ is($record->fields->{$version->id}->values->[0]->hour, 17, "Correct hour for day
 is($record->fields->{$created->id}->values->[0]->hour, 17, "Correct created hour for saving time");
 is($record->fields->{$calc1->id}->as_string, 17, "Correct hour for daylight saving time - calc");
 
+# Check that sorting by created field works
+{
+    # First ensure that we have more records than the standard page size of 100
+    set_fixed_time('07/01/2014 16:00:00', '%m/%d/%Y %H:%M:%S');
+    my $record = GADS::Record->new(
+        layout => $layout,
+        user   => $sheet->user,
+        schema => $schema,
+    );
+    for (1..200)
+    {
+        $record->initialise(instance_id => 1);
+        $record->fields->{$string1->id}->set_value('foobar4');
+        $record->write(no_alerts => 1);
+        $record->clear;
+    }
+    # Then add a later one one, which should appear at one end of the sort
+    set_fixed_time('08/01/2014 16:00:00', '%m/%d/%Y %H:%M:%S');
+    $record->initialise(instance_id => 1);
+    $record->fields->{$string1->id}->set_value('foobar4');
+    $record->write(no_alerts => 1);
+    $record->clear;
+
+    # Finally update the first record, so that it has the latest version time
+    # but the earliest created time
+    set_fixed_time('10/01/2014 14:00:00', '%m/%d/%Y %H:%M:%S');
+    $record->find_current_id(1);
+    $record->fields->{$string1->id}->set_value('Foobar5');
+    $record->write(no_alerts => 1);
+
+    my $view = GADS::View->new(
+        name        => 'Test view',
+        instance_id => 1,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+    );
+    $view->write;
+    $view->set_sorts([$created->id], ['asc']);
+
+    my $records = GADS::Records->new(
+        user    => $sheet->user,
+        view    => $view,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    is($records->single->current_id, 1, "First record correct (ascending)");
+    $view->set_sorts([$created->id], ['desc']);
+    $records->clear;
+    is($records->single->current_id, 203, "First record correct (descending)");
+}
+
+# Test searching by created time
+{
+    my $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $created->id,
+                type     => 'string',
+                value    => '2014-01-01 12:00:00',
+                operator => 'equal',
+            }],
+        },
+    );
+    my $view = GADS::View->new(
+        name        => 'Test view',
+        filter      => $rules,
+        instance_id => 1,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+    );
+    $view->write;
+
+    my $records = GADS::Records->new(
+        user    => $sheet->user,
+        view    => $view,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    is($records->count, 1, "Correct number of records for search by created user");
+    is($records->single->current_id, 1, "Record correct, search by created user");
+}
 done_testing();
