@@ -36,7 +36,7 @@ sub from
     # XXX It would be nice to pull the Current resultset from somewhere common,
     # with things like "records.approval = 0" already set
     local $GADS::Schema::Result::Record::RECORD_EARLIER_BEFORE = $CHANGED_PARAMS->{date};
-    return $self->schema->resultset('Current')->search({
+    my $query = $self->schema->resultset('Current')->search({
         'records.approval' => 0,
         'me_other.instance_id'   => $CHANGED_PARAMS->{instance_id},
         'records.created'  => { '>' => $CHANGED_PARAMS->{date} },
@@ -58,6 +58,8 @@ sub from
         },
         #group_by => 'me_other.id',
     })->as_query;
+    local $GADS::Schema::Result::Record::RECORD_EARLIER_BEFORE = undef;
+    return $query;
 }
 
 1;

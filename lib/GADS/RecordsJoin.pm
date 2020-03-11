@@ -232,6 +232,9 @@ sub record_later_search
 {   my ($self, %options) = @_;
 
     return () if $self->previous_values;
+    return ({
+        "record_earlier.id" => undef,
+    }) if $self->record_earlier;
 
     my $count = $options{no_current} ? 0 : 1; # Always at least one if joining onto current
 

@@ -88,6 +88,11 @@ has previous_values => (
     default => 0,
 );
 
+has record_earlier => (
+    is      => 'ro',
+    default => 0,
+);
+
 # Whether to build all fields for any curvals. This is needed when producing a
 # record for editing that contains draft curvals (in which case all the fields
 # are rendered as a query), and when needing to retrieve the curcommon values
@@ -809,6 +814,55 @@ sub _build_is_group
     $self->view && $self->view->is_group;
 }
 
+# Additional columns that will be added to a query as +select. As these refer
+# to earlier records than those being retrieved, these need to be performed as
+# correlated subqueries
+sub _created_plus_select
+{   my $self = shift;
+    [
+        {
+            "" => $self->schema->resultset('Record')->search({
+                'me_created_date.id' => {
+                    -in => $self->schema->resultset('Current')
+                        ->correlate('records')
+                        ->get_column('id')
+                        ->min_rs->as_query,
+                },
+            },{
+                alias => 'me_created_date',
+            })->get_column('created')->as_query,
+            -as => 'record_created_date',
+        },
+        {
+            "" => $self->schema->resultset('Record')->search({
+                'me_created.id' => {
+                    -in => $self->schema->resultset('Current')
+                        ->correlate('records')
+                        ->get_column('id')
+                        ->min_rs->as_query,
+                },
+            },{
+                alias => 'me_created',
+            })->get_column('createdby')->as_query,
+            -as => 'record_created_user',
+        },
+        {
+            "" => $self->schema->resultset('Record')->search({
+                'me_created_value.id' => {
+                    -in => $self->schema->resultset('Current')
+                        ->correlate('records')
+                        ->get_column('id')
+                        ->min_rs->as_query,
+                },
+            },{
+                alias => 'me_created_value',
+                join  => 'createdby',
+            })->get_column('createdby.value')->as_query,
+            -as => 'record_created_value',
+        }
+    ];
+}
+
 # Produce a standard set of results without grouping
 sub _current_ids_rs
 {   my ($self, %options) = @_;
@@ -831,13 +885,25 @@ sub _current_ids_rs
             [$self->linked_hash(search => 1, sort => 1, %limit)],
             {
                 'record_single' => [ # The (assumed) single record for the required version of current
-                    'record_later',  # The record after the single record (undef when single is latest)
+                    $self->record_earlier ? 'record_earlier' : 'record_later',  # The record after the single record (undef when single is latest)
                     $self->jpfetch(search => 1, sort => 1, linked => 0, %limit),
                 ],
             },
         ],
         order_by  => $self->order_by(search => 1, with_min => 1, %limit),
         distinct  => 1, # Otherwise multiple records returned for multivalue fields
+        select => [
+            'me.id',
+        ],
+        '+select' => $self->_created_plus_select,
+        '+as' => [
+            'record_created_date',
+            'record_created_user',
+            'record_created_value',
+        ],
+        as => [
+            'id',
+        ],
     };
     my $page = $self->page;
     $page = $self->pages
@@ -961,35 +1027,13 @@ sub _build_standard_results
         push @columns_fetch, {parent_id => "me.parent_id"};
         push @columns_fetch, "deletedby.$_" foreach @GADS::Column::Person::person_properties;
 
-        push @columns_fetch, (
-            {
-                record_created => $self->schema->resultset('Current')
-                  ->correlate('records')
-                  ->get_column('created')
-                  ->min_rs->as_query,
-            },
-            # This makes the assumption that the lowest record ID will be the
-            # first created
-            {
-                record_created_user => $self->schema->resultset('Record')->search({
-                    'me_created.id' => {
-                        -in => $self->schema->resultset('Current')
-                            ->correlate('records')
-                            ->get_column('id')
-                            ->min_rs->as_query,
-                    },
-                },{
-                    alias => 'me_created',
-                })->get_column('createdby')->as_query,
-            },
-        );
-
         $self->_clear_cid_search_query_cache;
         my $result = $self->schema->resultset('Current')->search($self->_cid_search_query(prefetch => 1, sort => 1, limit => $limit, page => $page),
             {
-                join     => [@prefetches],
-                columns  => \@columns_fetch,
-                order_by => $self->order_by(prefetch => 1, limit => $limit, page => $page, retain_join_order => 1),
+                join      => [@prefetches],
+                columns   => \@columns_fetch,
+                '+select' => $self->_created_plus_select,
+                order_by  => $self->order_by(prefetch => 1, limit => $limit, page => $page, retain_join_order => 1),
             },
         );
 
@@ -1058,7 +1102,7 @@ sub _build_standard_results
             columns_render          => $self->columns_render,
             set_deleted             => $rec->{deleted},
             set_deletedby           => $rec->{deletedby},
-            set_record_created      => $rec->{record_created},
+            set_record_created      => $rec->{record_created_date},
             set_record_created_user => $rec->{record_created_user},
             curcommon_all_fields    => $self->curcommon_all_fields,
         );
@@ -1483,6 +1527,7 @@ sub clear
     $self->_clear_cid_search_query_cache
         unless $options{retain_current_ids};
     $self->clear_default_sort;
+    $self->clear_sorts;
     $self->clear_is_group;
     $self->clear_additional_filters;
     $self->clear_has_group_col_id;
@@ -1723,7 +1768,15 @@ sub order_by
                 }
                 my $s_table = $self->table_name($col_sort, sort => 1, %options, parent => $column_parent || $column->sort_parent);
                 my $sort_name;
-                if ($column->link_parent) # Original column, not the sub-column ($col_sort)
+                if ($column->name_short eq '_created_user')
+                {
+                    $sort_name = 'record_created_value';
+                }
+                elsif ($column->name_short eq '_created')
+                {
+                    $sort_name = 'record_created_date';
+                }
+                elsif ($column->link_parent) # Original column, not the sub-column ($col_sort)
                 {
                     my $col_link = shift @cols_link;
                     $self->add_join($col_link, sort => 1);
@@ -2221,6 +2274,34 @@ sub _resolve
                 }
             );
         }
+    }
+    elsif ($column->name_short eq '_created_user' || $column->name_short eq '_created')
+    {
+        my %filter = %{$options{filter}};
+        my $version_id = $column->name_short eq '_created'
+            ? $self->layout->column_by_name_short('_version_datetime')->id
+            : $self->layout->column_by_name_short('_version_user')->id;
+        $filter{column_id} = $version_id;
+        $filter{id}        = $version_id;
+        my $records = GADS::Records->new(
+            schema       => $self->schema,
+            user         => $self->user,
+            layout       => $self->layout,
+            _view_limits => [], # Don't limit by view this as well, otherwise recursive loop happens
+            record_earlier => 1,
+            view  => GADS::View->new(
+                filter      => \%filter,
+                instance_id => $self->layout->instance_id,
+                layout      => $self->layout,
+                schema      => $self->schema,
+                user        => $self->user,
+            ),
+        );
+        return (
+            'me.id' => {
+                -in => $records->_current_ids_rs->as_query,
+            }
+        );
     }
     else {
         my $combiner = $condition->{type} =~ /(is_not_empty|not_equal|not_begins_with)/ ? '-and' : '-or';

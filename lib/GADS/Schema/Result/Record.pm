@@ -473,7 +473,8 @@ __PACKAGE__->might_have(
             ],
             "$args->{foreign_alias}.approval"    => 0,
         };
-        $return->{"$args->{foreign_alias}.created"} = { '<' => $RECORD_EARLIER_BEFORE };
+        $return->{"$args->{foreign_alias}.created"} = { '<' => $RECORD_EARLIER_BEFORE }
+            if $RECORD_EARLIER_BEFORE;
         return $return;
     }
 );
