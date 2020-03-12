@@ -1768,11 +1768,11 @@ sub order_by
                 }
                 my $s_table = $self->table_name($col_sort, sort => 1, %options, parent => $column_parent || $column->sort_parent);
                 my $sort_name;
-                if ($column->name_short eq '_created_user')
+                if ($column->name_short && $column->name_short eq '_created_user')
                 {
                     $sort_name = 'record_created_value';
                 }
-                elsif ($column->name_short eq '_created')
+                elsif ($column->name_short && $column->name_short eq '_created')
                 {
                     $sort_name = 'record_created_date';
                 }
