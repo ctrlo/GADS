@@ -4,7 +4,7 @@
                         <li><span class="pull-left event" style="background-color:<%= event['color'] %>"></span>
                                 <a href="<%= event.url ? event.url : 'javascript:void(0)' %>" data-event-id="<%= event.id %>"
                                         data-event-class="<%= event['class'] %>" class="event-item">
-                                        <%= event.title %></a></li>
+                                        <%- event.title %></a></li>
                 <% }) %>
         </ul>
 <% } else  { %>
