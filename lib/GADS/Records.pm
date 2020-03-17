@@ -2275,7 +2275,7 @@ sub _resolve
             );
         }
     }
-    elsif ($column->name_short eq '_created_user' || $column->name_short eq '_created')
+    elsif ($column->name_short && ($column->name_short eq '_created_user' || $column->name_short eq '_created'))
     {
         my %filter = %{$options{filter}};
         my $version_id = $column->name_short eq '_created'
