@@ -1591,7 +1591,15 @@ sub write
         $child_unique = 1 if $column->can_child;
     }
 
-    my $created_date = $options{version_datetime} || DateTime->now;
+    # If a new record, ensure that the time of the version exactly matches the
+    # time of record creation. This is so that calculated fields can use this
+    # comparison to see if the 2 are the same and therefore it is likely a new
+    # record.
+    my $created_date = $options{version_datetime}
+        ? $options{version_datetime}
+        : $self->new_entry
+        ? $self->fields->{$self->layout->column_by_name_short('_created')->id}->values->[0]
+        : DateTime->now;
 
     my $user_id = $self->user ? $self->user->id : undef;
 
