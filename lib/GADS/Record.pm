@@ -577,6 +577,8 @@ sub remove_id
     $self->current_id(undef);
     $self->linked_id(undef);
     $self->clear_new_entry;
+    my $created_col = $self->layout->column_by_name_short('_created');
+    $self->fields->{$created_col->id}->set_value(DateTime->now);
 }
 
 sub find_record_id
