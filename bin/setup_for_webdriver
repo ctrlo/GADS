@@ -1,0 +1,39 @@
+#!/bin/sh
+
+set -eu
+
+# Read config.yml from this directory
+export DANCER_CONFDIR=webdriver
+
+: ${GADS_HOSTNAME:=localhost}
+: ${PSQL_USER:=linkspace}
+: ${PSQL_PASSWORD:=linkspace}
+: ${PSQL_DATABASE:=linkspace}
+
+echo "
+    CREATE USER ${PSQL_USER} WITH PASSWORD '${PSQL_USER}';
+    CREATE DATABASE ${PSQL_DATABASE} OWNER ${PSQL_USER};
+" | psql -U postgres
+echo "
+    CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
+" | psql -U postgres ${PSQL_DATABASE}
+
+# Deploy the database
+perl bin/seed-database.pl \
+    --initial_username "${GADS_USERNAME}" \
+    --instance_name WebDriverTestSheet \
+    --site "${GADS_HOSTNAME}"
+
+perl -Ilib -MDancer2 -MDancer2::Plugin::Auth::Extensible -wE \
+    "user_password username => '${GADS_USERNAME}', new_password => '${GADS_PASSWORD}'"
+
+echo "
+    UPDATE public.site SET host = '${GADS_HOSTNAME}';
+    UPDATE public.user SET account_request = 0, pwchanged = NOW();
+" | psql -U postgres ${PSQL_DATABASE}
+
+# Start Linkspace
+perl bin/app.pl &
+
+# Start geckodriver (TODO: Read up on Travis background jobs)
+MOZ_HEADLESS=1 geckodriver --log warn &
