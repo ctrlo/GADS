@@ -1,0 +1,52 @@
+# Webdriver integration testing configuration
+
+appname: "Linkspace Integration Tests"
+layout: "main"
+charset: "UTF-8"
+template: "template_toolkit"
+logger: LogReport
+session: "Simple"
+gads:
+    header: "Example Application"
+    hostlocal: 1
+    dateformat: "yyyy-MM-dd"
+    email_from: "Linkspace Integration Tests <nobody@example.com>"
+    aup: 0
+    login_instance: 1
+    default_instance: 1
+    url: "http://invalidhost.example.com/"
+    user_status: 0
+
+plugins:
+    LogReport:
+        session_messages: [ NOTICE, MISTAKE, ERROR, FAULT, ALERT, FAILURE, PANIC ]
+    DBIC:
+        default:
+            dsn: dbi:Pg:database=linkspace
+            schema_class: GADS::Schema
+            user: linkspace
+            password: linkspace
+            options:
+                RaiseError: 1
+                PrintError: 1
+                quote_names: 1
+    Auth::Extensible:
+        no_default_pages: 1
+        no_login_handler: 1
+        record_lastlogin: 1
+        realms:
+            dbic:
+                provider: DBIC
+                user_as_object: 1
+                users_resultset: User
+                roles_resultset: Permission
+                user_roles_resultset: UserPermission
+                roles_role_column: name
+                roles_key: permission
+                password_expiry_days: 5
+                users_pwchanged_column: pwchanged
+                users_pwresetcode_column: resetpw
+                encryption_algorithm: SHA-512
+                user_valid_conditions:
+                    deleted: ~
+                    account_request: 0
