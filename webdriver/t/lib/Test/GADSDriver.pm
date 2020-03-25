@@ -892,7 +892,7 @@ sub delete_viewed_record_ok {
 
     my $modal_title_el = $webdriver->find('h4#delete_record_heading');
     $test->note("About to delete $record_title");
-    $webdriver->find('#modaldelete .btn-primary.submit_button')->click;
+    push @failure, $self->_find_and_click( [ '#modaldelete .btn-primary.submit_button' ] );
 
     $test->ok( !@failure, $name );
     $test->diag($_) foreach @failure;
