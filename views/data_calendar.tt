@@ -36,7 +36,7 @@
     id="calendar"
     data-event-source="[% layout.identifier %]"
     data-view="[% calendar.view OR 'month' %]"
-    [% IF calendar.day.asdlkas %]data-calendar-day-ymd="[% calendar.day.ymd %]"[% END %]></div>
+    [% IF calendar.day %]data-calendar-day-ymd="[% calendar.day.ymd %]"[% END %]></div>
 <p></p>
 
 
