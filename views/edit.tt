@@ -185,7 +185,6 @@
                 [% IF child %]
                     <input type="hidden" name="child" value="[% child %]">
                 [% END %]
-                [% jscode = [] %]
                 [% typeaheads = [] %]
 
                 [% IF record.user_can_edit AND NOT record.deleted AND NOT is_history AND NOT view_modal %]
@@ -296,7 +295,7 @@
 
 [% PROCESS snippets/record_readmore.tt %]
 
-<div class="modal fade" id="curval_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+<div class="modal fade" id="curval_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-dateformat-datepicker="[% config.dateformat_datepicker %]">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-body">
@@ -306,264 +305,6 @@
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
-
-[% UNLESS edit_modal %]
-<script type="text/javascript">
-    var jscode='[% FILTER remove('\n+') %]
-        [% FILTER replace('\'', '\\\'') %]
-        $(document).ready(function () {
-            $(document).on("click", ".cloneme", function() {
-                var parent = $(this).parents('.input_holder');
-                var cloned = parent.clone();
-                cloned.removeAttr('id').insertAfter(parent);
-                cloned.find(":text").val('');
-                cloned.find(".datepicker").datepicker({format: "[% config.dateformat_datepicker %]", autoclose: true});
-            });
-            $(document).on("click", ".removeme", function() {
-                var parent = $(this).parents('.input_holder');
-                if (parent.siblings(".input_holder").length > 0) {
-                    parent.remove();
-                }
-            });
-
-            $('#helptext_modal').on('show.bs.modal', function (e) {
-                var loadurl = $(e.relatedTarget).data('load-url');
-                $(this).find('.modal-body').load(loadurl);
-            });
-
-            $(document).on("click", ".more-info", function(e) {
-                var record_id = $(e.target).data('record-id');
-                var m = $("#readmore_modal");
-                m.find('.modal-body').text('Loading...');
-                m.find('.modal-body').load('/record_body/' + record_id);
-
-                /* Trigger focus restoration on modal close */
-                m.one('show.bs.modal', function (showEvent) {
-                    /* Only register focus restorer if modal will actually get shown */
-                    if (showEvent.isDefaultPrevented()) {
-                        return;
-                    }
-                    m.one('hidden.bs.modal', function () {
-                        $(e.target).is(':visible') && $(e.target).trigger('focus');
-                    });
-                });
-
-                /* Stop propagation of the escape key, as may have side effects, like closing select widgets. */
-                m.one('keyup', function(e) {
-                    if (e.keyCode == 27) {
-                        e.stopPropagation();
-                    }
-                });
-
-                m.modal();
-            });
-
-            $(document).on("mousedown", ".curval-modal", function(e) {
-                var layout_id = $(e.target).data('layout-id');
-                var instance_name = $(e.target).data('instance-name');
-                var current_id = $(e.target).data('current-id');
-                var hidden = $(e.target).closest('.curval_item').find("input[name=field" + layout_id + "]");
-                var form_data = hidden.val();
-                var mode = hidden.length ? "edit" : "add";
-                var guid;
-
-                if (mode === "edit") {
-                    guid = hidden.data('guid');
-                    if (!guid) {
-                        guid = window.guid();
-                        hidden.attr('data-guid', guid);
-                    }
-                }
-
-                var m = $("#curval_modal");
-                m.find('.modal-body').text('Loading...');
-                var url = current_id
-                    ? '/record/' + current_id
-                    : '/' + instance_name + '/record/';
-                m.find('.modal-body').load(url + '?include_draft&modal=' + layout_id + '&' + form_data, function() {
-                    if (mode === "edit") {
-                        m.find("form").data('guid', guid);
-                    }
-                    Linkspace.init(m);
-                });
-                m.on("focus", ".datepicker", function(e) {
-                    $(this).datepicker({format: "[% config.dateformat_datepicker %]", autoclose: true});
-                });
-                m.modal();
-            });
-
-            $("#curval_modal").on('submit', '.curval-edit-form', function(e){
-                e.preventDefault();
-                var form = $(this);
-                var form_data = form.serialize();
-
-                form.addClass('edit-form--validating');
-                form.find(".alert").attr('hidden', '');
-
-                $.post(form.attr("action") + "?validate&include_draft", form_data, function(data) {
-                    if (data.error === 0) {
-                        curvalModalValidationSucceeded(form, data.values);
-                    } else {
-                        var errorMessage = data.error === 1 ? data.message : "Oops! Something went wrong.";
-                        curvalModalValidationFailed(form, errorMessage);
-                    }
-                }, "json")
-                .fail(function(jqXHR, textstatus, errorthrown) {
-                    var errorMessage = "Oops! Something went wrong: " + textstatus + ": " + errorthrown;
-                    curvalModalValidationFailed(form, errorMessage);
-                })
-                .always(function() {
-                    form.removeClass('edit-form--validating');
-                });
-            });
-
-            var curvalModalValidationSucceeded = function(form, values) {
-                var form_data = form.serialize();
-                var modal_field_ids = form.data("modal-field-ids");
-                var col_id = form.data( "curval-id" );
-                var instance_name = form.data( "instance-name" );
-                var current_id = form.data( "current-id" );
-                var guid = form.data("guid");
-                var hidden_input = $('<input>').attr({type: 'hidden', name: 'field' + col_id, value: form_data});
-                var $formGroup = $("div[data-column-id=" + col_id + "]");
-                var valueSelector = $formGroup.data("value-selector");
-
-                if (valueSelector === "noshow") {
-                    var row_cells = $('<tr class="curval_item">');
-                    var text_values = jQuery.map(modal_field_ids, function(element) {
-                        var control = form.find('[data-column-id="' + element + '"]');
-                        var value = getFieldValues(control);
-                        value = values["field" + element];
-                        value = $('<div />').text(value).html();
-                        row_cells.append($('<td class="curval-inner-text">').append(value));
-                    });
-                    var links = $('<td><a class="curval-modal" style="cursor:pointer" data-layout-id="' + col_id + '" data-instance-name="' + instance_name + '">edit</a> | <a class="curval_remove" style="cursor:pointer">remove</a></td>');
-                    row_cells.append(links.append(hidden_input));
-                    if (guid) {
-                        var hidden = $('input[data-guid="' + guid + '"]').val(form_data);
-                        hidden.closest('.curval_item').replaceWith(row_cells);
-                    }
-                    else {
-                        $('#curval_list_' + col_id).find("tbody").append(row_cells);
-                    }
-                } else if (valueSelector === "dropdown") {
-                    var $widget = $formGroup.find(".select-widget").first();
-                    var multi = $widget.hasClass('multi');
-
-                    $currentItems = $formGroup.find(".current [data-list-item]");
-                    $search = $formGroup.find(".current .search");
-                    $answersList = $formGroup.find(".available");
-
-                    if (!multi) {
-                        /* Deselect current selected value */
-                        $currentItems.attr('hidden', '');
-                        $answersList.find("li input").prop("checked", false);
-                    }
-
-                    var textValue = jQuery.map(modal_field_ids, function(element) {
-                        var control = form.find('[data-column-id="' + element + '"]');
-                        value = values["field" + element];
-                        return $('<div />').text(value).html();
-                    }).join(", ");
-
-                    guid = window.guid();
-                    var deleteButton = multi ? '<button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>' : "";
-                    $search.before('<li data-list-item="field' + col_id + '_' + guid + '">' + textValue + deleteButton + '</li>');
-                    var inputType = multi ? "checkbox" : "radio";
-                    $answersList.append('<li class="answer">' +
-                        '<span class="control">' +
-                            '<label id="field' + col_id + '_' + guid + '_label" for="field' + col_id + '_' + guid + '">' +
-                                '<input id="field' + col_id + '_' + guid + '" name="field' + col_id + '" type="' + inputType + '" value="' + form_data + '" class="' + (multi ? "" : "visually-hidden") + '" checked  aria-labelledby="field' + col_id + '_' + guid + '_label"> ' +
-                                '<span>' + textValue + '</span>' +
-                            '</label>' +
-                        '</span>' +
-                        '<span class="details">' +
-                            '<a class="curval_remove" style="cursor:pointer">remove</a>' +
-                        '</span>' +
-                    '</li>');
-
-                    /* Reinitialize widget */
-                    setupSelectWidgets($formGroup);
-                } else if (valueSelector === "typeahead") {
-                    $hiddenInput = $formGroup.find("input[name=field" + col_id + "]");
-                    $typeaheadInput = $formGroup.find("input[name=field" + col_id + "_typeahead]");
-
-                    var textValue = jQuery.map(modal_field_ids, function(element) {
-                        var control = form.find('[data-column-id="' + element + '"]');
-                        value = values["field" + element];
-                        return $('<div />').text(value).html();
-                    }).join(", ");
-
-                    $hiddenInput.val(form_data);
-                    $typeaheadInput.val(textValue);
-                }
-
-                $('.modal.in').modal('hide');
-            };
-
-            var curvalModalValidationFailed = function(form, errorMessage) {
-                form.find(".alert").text(errorMessage).removeAttr('hidden');
-                form.parents(".modal-content").get(0).scrollIntoView();
-                form.find('button[type=submit]').prop('disabled', false);
-            };
-
-            $(".curval_group").on('click', '.curval_remove', function() {
-                $(this).closest('.curval_item').remove();
-            });
-
-            $(".select-widget").on('click', '.curval_remove', function() {
-                var fieldId = $(this).closest(".answer").find("input").prop("id");
-                $(this).closest(".select-widget").find(".current li[data-list-item=" + fieldId + "]").remove();
-                $(this).closest('.answer').remove();
-            });
-
-            $('.input-daterange input.from').each(function (){
-                $(this).on('changeDate', function(e) {
-                    var toDatepicker = $(this).parents('.input-daterange').find('.datepicker.to');
-                    if (!toDatepicker.val()) {
-                        toDatepicker.datepicker('update', $(this).datepicker('getDate'));
-                    }
-                });
-            });
-
-            $(document).on('click', '.remove_datepicker', function() {
-                var dp = '.datepicker' + $(this).data("field");
-                $(dp).datepicker('destroy');
-                alert("Date selector has been disabled for this field");
-            });
-
-            [% FOREACH typeahead IN typeaheads %]
-                $("#[% typeahead.id %]").change( function() {
-                    if (!($( this ).val()))
-                    {
-                        $("#[% typeahead.id %]_value").val("");
-                    }
-                });
-                $("#[% typeahead.id %]").typeahead({
-                    delay: 500,
-                    matcher: function () { return true; },
-                    sorter: function (items) { return items; },
-                    afterSelect: function (selected) {
-                        $("#[% typeahead.id %]_value").val(selected.id);
-                    },
-                    source: function (query, process) {
-                        return $.ajax({
-                            type: 'GET',
-                            url: '/[% layout.identifier %]/match/layout/[% typeahead.id | uri %]',
-                            data: { q: query },
-                            success: function(result) { process(result) },
-                            dataType: 'json'
-                        });
-                    }
-                });
-            [% END %]
-
-            [% jscode.join('') %]
-        });
-[% END %]
-[% END %]';
-</script>
-[% END %]
 
 [% BLOCK showcol %]
 
@@ -663,7 +404,7 @@
 [% END %]
 
 [% BLOCK print_field %]
-    <div class="input_holder" >
+    <div class="input_holder" data-dateformat-datepicker="[% config.dateformat_datepicker %]">
         <div class="row">
             <div class="col-md-[% IF edit_modal %]12[% ELSE %][% dispcol.widthcols %][% END %]">
                 [% IF dispcol.type == "enum" %]
@@ -792,8 +533,9 @@
 [% END %]
 
 [% BLOCK curval_typeahead_column %]
-    <input type="hidden" name="[% field %]" id="[% dispcol.id %]_value" value="[% editvalue.autocomplete_value | html %]">
-    <input type="text" class="form-control" id="[% dispcol.id %]" autocomplete="off"
+    <input type="hidden" name="[% field %]" id="typeahead_[% dispcol.id %]_value" value="[% editvalue.autocomplete_value | html %]">
+    <input type="text" class="form-control" id="typeahead_[% dispcol.id %]" autocomplete="off"
+        data-layout-id="[% layout.identifier %]" data-typeahead-id="[% dispcol.id %]"
         name="[% field %]_typeahead" value="[% IF record %][% editvalue.value | html %][% END %]" [% readonly %] >
     [% typeaheads.push({id = dispcol.id, field = field }) %]
 [% END %]

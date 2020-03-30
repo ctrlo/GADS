@@ -7,6 +7,7 @@
     "sass": "sass --update --no-source-map sass:public/css/",
     "jshint": "jshint public/js/*.js",
     "ts": "yarn run webpack --watch",
+    "lint": "eslint src",
     "start": "npm-run-all --parallel watch ts"
   },
   "dependencies": {
@@ -33,7 +34,12 @@
   },
   "devDependencies": {
     "jshint": "^2.9.5",
-    "npm-watch": "^0.2.0"
+    "npm-watch": "^0.2.0",
+    "eslint-config-prettier": "^6.3.0",
+    "eslint-config-problems": "^3.0.1",
+    "eslint-plugin-jsdoc": "^15.9.2",
+    "eslint-plugin-prettier": "^3.1.0",
+    "prettier-eslint": "^9.0.0"
   },
   "watch": {
     "sass": {

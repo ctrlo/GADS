@@ -1,116 +1,20 @@
-$('#builder[% builder_id %]').queryBuilder({
-    [% IF include_previous %]
-        showPreviousValues: true,
-    [% END %]
-    filters: [
-        [% FOR col IN builder_layout.columns_for_filter("override_permissions", override_permissions) %]
-            {
-                id: '[% col.filter_id %]',
-                label: '[% col.filter_name | html_entity %]',
-                [% IF col.type == "intgr" %]
-                    type: 'string', [%# Allow variable names %]
-                [% ELSIF col.return_type == "date" %]
-                    type: 'string',
-                    operators: ['equal', 'not_equal', 'less', 'less_or_equal', 'greater',
-                        'greater_or_equal',
-                        'is_empty', 'is_not_empty'
-                    ],
-                [% ELSIF col.return_type == "daterange" %]
-                    type: 'string',
-                    operators: ['equal', 'not_equal', 'less', 'less_or_equal', 'greater',
-                        'greater_or_equal', 'contains',
-                        'is_empty', 'is_not_empty'
-                    ],
-                [% ELSE %]
-                    type: 'string',
-                [% END %]
-                [% IF col.type == "rag" %]
-                    input: 'select',
-                    values: {
-                        'b_red': 'Red',
-                        'c_amber': 'Amber',
-                        'c_yellow': 'Yellow',
-                        'd_green': 'Green',
-                        'a_grey': 'Grey',
-                        'e_purple': 'Purple'
-                    },
-                [% ELSIF col.has_filter_typeahead %]
-                    input: function(container, rule, input_name) {
-                        return '
-                            <input class="typeahead_text" type="text" name="' + input_name + '_text">
-                            <input class="typeahead_hidden" type="hidden" name="' + input_name + '">
-                        ';
-                    },
-                    valueSetter: function($rule, value, filter, operator, data) {
-                        $rule.find('.typeahead_text').val(data.text);
-                        $rule.find('.typeahead_hidden').val(value);
-                    },
-                    onAfterCreateRuleInput: function($rule, filter) {
-                        var $ruleInputText = $( '#' + $rule.attr('id') + ' .rule-value-container input[type="text"]');
-                        var $ruleInputHidden = $( '#' + $rule.attr('id') + ' .rule-value-container input[type="hidden"]');
-                        $ruleInputText.attr('autocomplete', 'off');
-                        $ruleInputText.typeahead({
-                            delay: 100,
-                            matcher: function () { return true; },
-                            sorter: function (items) { return items; },
-                            afterSelect: function (selected) {
-                                if (typeof selected === 'object') {
-                                    $ruleInputHidden.val(selected.id);
-                                } else {
-                                    $ruleInputHidden.val(selected);
-                                }
-                            },
-                            source: function (query, process) {
-                                return $.ajax({
-                                    type: 'GET',
-                                    url: '/[% layout.identifier %]/match/layout/[% col.id | uri %]',
-                                    data: { q: query, oi: [% col.layout.instance_id %] },
-                                    success: function(result) { process(result) },
-                                    dataType: 'json'
-                                });
-                            }
-                        });
-                    }
-                [% END %]
-            },
-        [% END %] 
-        ],
-        operators: [
-            {type: 'equal',            accept_values: true,  apply_to: ['string', 'number', 'datetime']},
-            {type: 'not_equal',        accept_values: true,  apply_to: ['string', 'number', 'datetime']},
-            {type: 'less',             accept_values: true,  apply_to: ['string', 'number', 'datetime']},
-            {type: 'less_or_equal',    accept_values: true,  apply_to: ['string', 'number', 'datetime']},
-            {type: 'greater',          accept_values: true,  apply_to: ['string', 'number', 'datetime']},
-            {type: 'greater_or_equal', accept_values: true,  apply_to: ['string', 'number', 'datetime']},
-            {type: 'contains',         accept_values: true,  apply_to: ['datetime', 'string']},
-            {type: 'not_contains',     accept_values: true,  apply_to: ['datetime', 'string']},
-            {type: 'begins_with',      accept_values: true,  apply_to: ['string']},
-            {type: 'not_begins_with',  accept_values: true,  apply_to: ['string']},
-            {type: 'is_empty',         accept_values: false, apply_to: ['string', 'number', 'datetime']},
-            {type: 'is_not_empty',     accept_values: false, apply_to: ['string', 'number', 'datetime']},
-            {type: 'changed_after', nb_inputs: 1, accept_values:true, multiple: false, apply_to: ['string', 'number', 'datetime'] }
-        ],
-        lang: {
-            operators: {
-                changed_after: "changed on or after"
-            }
-        }
-
-});
-
-[%# values for the fielter are taken from the hidden field, so ensure that
-  any freetext inputs on the visible control are copied into the hidden field
-  (which is otherwise only populated when a value is selected on the typeahead
-%]
-$(document).on("input", ".typeahead_text", function(e){
-    var value = $(this).val();
-    $(this).next('.typeahead_hidden').val(value);
-});
-
-[% UNLESS update_filter_done %]
-    function UpdateFilter(builder) {
-        var res = builder.queryBuilder('getRules');
-        $("#filter").val(JSON.stringify(res, null, 2));
-    };
-    [% update_filter_done = 1 %]
-[% END %]
+<script id="builder_json_[% builder_id %]" type="application/json">
+  {
+    [% UNLESS update_filter_done %]"filterNotDone": true,[% update_filter_done = 1 %][% END %]
+    "builderId": "[% builder_id %]",
+    "layoutId": "[% layout.identifier %]",
+    "showPreviousValues": [% IF include_previous %]true[% ELSE %]false[% END %],
+    "filters": [
+      [% FOR col IN builder_layout.columns_for_filter("override_permissions", override_permissions) %]
+        {
+          "filterId": "[% col.filter_id %]",
+          "label": "[% col.filter_name | html_entity %]",
+          "type": "[% col.type %]",
+          "hasFilterTypeahead": [% col.has_filter_typeahead %],
+          "urlSuffix": "[% col.id | uri %]",
+          "instanceId": "[% col.layout.instance_id %]"
+        }[% IF NOT loop.last %],[% END %]
+      [% END %]
+    ]
+  }
+</script>
