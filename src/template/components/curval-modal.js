@@ -38,7 +38,7 @@ const curvalModalValidationSucceeded = (form, values, context) => {
     } else {
       $(`#curval_list_${col_id}`, context)
         .find("tbody")
-        .append(row_cells);
+        .prepend(row_cells);
     }
   } else if (valueSelector === "dropdown") {
     var $widget = $formGroup.find(".select-widget").first();
