@@ -85,6 +85,8 @@ sub presentation {
         has_display_field   => $self->has_display_field,
         display_fields_b64  => $self->display_fields_b64,
         display_for_edit    => $display_for_edit,
+        addable             => $self->addable,
+        return_type         => $self->return_type,
     };
 
     if (my $sort = $options{sort})
