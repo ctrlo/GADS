@@ -20,8 +20,8 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <a class="btn btn-primary btn-sm cloneme"><i class="fa fa-lg fa-plus" style="cursor: pointer"></i></a>
-                    <a class="btn btn-primary btn-sm removeme"><i class="fa fa-lg fa-minus" style="cursor: pointer"></i></a>
+                    <a class="btn btn-primary btn-sm cloneme-user"><i class="fa fa-lg fa-plus" style="cursor: pointer"></i></a>
+                    <a class="btn btn-primary btn-sm removeme-user"><i class="fa fa-lg fa-minus" style="cursor: pointer"></i></a>
                 </div>
             </div>
         </div>
