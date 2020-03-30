@@ -6,7 +6,7 @@ addons:
     apt:
         packages:
             # Required by Inline::Lua
-            - liblua5.2-dev
+            - liblua5.3-dev
 before_install:
     # See https://github.com/travis-perl/helpers/blob/master/README.md
     - eval $(curl https://travis-perl.github.io/init) --auto
