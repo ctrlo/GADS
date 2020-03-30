@@ -10,7 +10,7 @@
           "filterId": "[% col.filter_id %]",
           "label": "[% col.filter_name | html_entity %]",
           "type": "[% col.type %]",
-          "hasFilterTypeahead": "[% col.has_filter_typeahead %]",
+          "hasFilterTypeahead": [% col.has_filter_typeahead %],
           "urlSuffix": "[% col.id | uri %]",
           "instanceId": "[% col.layout.instance_id %]"
         }[% IF NOT loop.last %],[% END %]
