@@ -364,7 +364,7 @@ var SelectWidget = function (multi) {
         var valueId = value ? field + "_" + value : field + "__blank";
         var className = value ? "": "current__blank"
         var deleteButton = multi ? '<button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>' : "";
-        return $('<li ' + (checked ? '' : 'hidden') + ' data-list-item="' + valueId + '" class="' + className + '"><span class="widget-value__value">' + label + '</span>' + deleteButton + '</li>');
+        return $('<li ' + (checked ? '' : 'hidden') + ' data-list-item="' + valueId + '" data-list-text="' + label + '" class="' + className + '"><span class="widget-value__value">' + label + '</span>' + deleteButton + '</li>');
     }
 
     var availableLi = function(multi, field, value, label, checked) {
@@ -761,7 +761,7 @@ var getFieldValues = function ($depends, filtered) {
         } else {
             var $visible = $depends.find('.select-widget .current [data-list-item]:not([hidden])');
             $visible.each(function () {
-                var item = $(this).hasClass("current__blank") ? "" : $(this).text();
+                var item = $(this).hasClass("current__blank") ? "" : $(this).data('list-text');
                 values.push(item)
             });
         }

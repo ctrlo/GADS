@@ -560,7 +560,7 @@
                     [% NEXT IF value.deleted %]
                     [% checked = editvalue.id_hash.${value.id} %]
                     [% value_id = field _ '_' _ value.id %]
-                    <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">[% value.value | html_entity %]</li>
+                    <li [% !checked && 'hidden' %] data-list-item="[% value_id %]" data-list-text="[% value.value | html %]">[% value.value | html_entity %]</li>
                 [% END %]
                     [% IF !readonly %]
                         <li class="search">
@@ -689,7 +689,7 @@
                     [% NEXT IF value.deleted %]
                     [% checked = editvalue.id_hash.${value.id} %]
                     [% value_id = field _ '_' _ value.id %]
-                    <li [% !checked && 'hidden' %] data-list-item="[% value_id %]">
+                    <li [% !checked && 'hidden' %] data-list-item="[% value_id %]" data-list-text="[% value.value | html %]">
                         <span class="widget-value__value">[% value.value | html_entity %]</span>
                         <button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
                     </li>
