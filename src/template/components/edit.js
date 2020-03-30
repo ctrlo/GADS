@@ -58,7 +58,7 @@ const setupHelpTextModal = context => {
 };
 
 const setupTypeahead = context => {
-  $('div[id^="typeahead_"]', context).each((i, typeaheadEl) => {
+  $('input[type="text"][id^="typeahead_"]', context).each((i, typeaheadEl) => {
     $(typeaheadEl, context).change(function() {
       if (!$(this).val()) {
         $(`#${typeaheadEl.id}_value`, context).val("");

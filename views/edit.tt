@@ -533,8 +533,9 @@
 [% END %]
 
 [% BLOCK curval_typeahead_column %]
-    <input type="hidden" name="[% field %]" id="typeahead_[% dispcol.id %]_value" value="[% editvalue.autocomplete_value | html %]" data-typeahead-id="[% dispcol.id %]" data-layout-id="[% layout.identifier %]">
+    <input type="hidden" name="[% field %]" id="typeahead_[% dispcol.id %]_value" value="[% editvalue.autocomplete_value | html %]">
     <input type="text" class="form-control" id="typeahead_[% dispcol.id %]" autocomplete="off"
+        data-layout-id="[% layout.identifier %]" data-typeahead-id="[% dispcol.id %]"
         name="[% field %]_typeahead" value="[% IF record %][% editvalue.value | html %][% END %]" [% readonly %] >
     [% typeaheads.push({id = dispcol.id, field = field }) %]
 [% END %]
