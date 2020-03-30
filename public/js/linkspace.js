@@ -447,6 +447,7 @@ var SelectWidget = function (multi) {
 
             if (data.error === 0) {
                 var checked = currentValues.includes(NaN);
+                $search.parent().prev('.none-selected').remove(); // Prevent duplicate blank entries
                 $search.parent().before(currentLi(multi, field, null, "blank", checked));
                 $available.append(availableLi(multi, field, null, 'blank', checked));
 
