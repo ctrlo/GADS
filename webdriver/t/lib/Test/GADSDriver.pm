@@ -764,11 +764,9 @@ sub assign_current_user_to_group_ok {
     my $test = context();
     my $webdriver = $self->gads->webdriver;
 
-    my $query = "//label/input[
+    my $query = "//label[ contains(., '${group_name}') ]/input[
             \@type = 'checkbox'
             and \@name = 'groups'
-        ]/..[
-            contains(., '${group_name}')
         ]";
     my $checkbox_el = $webdriver->find( $query, method => 'xpath', dies => 0 );
 
