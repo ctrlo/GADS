@@ -696,7 +696,7 @@ sub _assert_on_page {
     my $webdriver = $self->gads->webdriver;
 
     # TODO: Move 'tries' to configuration
-    my %find_arg = ( dies => 0, tries => 50 );
+    my %find_arg = ( dies => 0, tries => 60 );
     my $page_el = $webdriver->find( $page_selector, %find_arg );
 
     my @failure;
@@ -764,13 +764,12 @@ sub assign_current_user_to_group_ok {
     my $test = context();
     my $webdriver = $self->gads->webdriver;
 
-    my $query = "//label/input[
+    my $query = "//label[ contains(., '${group_name}') ]/input[
             \@type = 'checkbox'
             and \@name = 'groups'
-        ]/..[
-            contains(., '${group_name}')
         ]";
-    my $checkbox_el = $webdriver->find( $query, method => 'xpath', dies => 0 );
+    my $checkbox_el = $webdriver->find( $query,
+        method => 'xpath', dies => 0, tries => 40 );
 
     my $description = "checkbox for group '${group_name}'";
     my $success = $self->_check_only_one( $checkbox_el, $description );
@@ -779,6 +778,9 @@ sub assign_current_user_to_group_ok {
         $test->diag("The ${description} is unexpectedly selected");
     }
     $checkbox_el->click;
+
+    my $group_id = $checkbox_el->attr('value');
+    $webdriver->find( "input[name='groups'][value='${group_id}']:checked" );
     $success &&= $self->_click_submit_button;
 
     $test->ok( $success, $name );
@@ -880,6 +882,11 @@ sub delete_viewed_record_ok {
     my $test = context();
     my $webdriver = $self->gads->webdriver;
     my $record_title = $webdriver->find('h2')->text;
+
+    # Disable Bootstrap transitions to avoid timing issues.  Trying to
+    # click on an element whilst it animates fails with an "Element ...
+    # could not be scrolled into view" error.
+    $webdriver->js( '$.support.transition = false' );
 
     my @failure = $self->_find_and_click( [ '.btn-delete' ], jquery => 1 );
 
@@ -1406,13 +1413,13 @@ sub _fill_in_field {
     return ( defined $result ) ? 1 : 0;
 }
 
-
 sub _find_named_item_row_el {
     my ( $self, $name ) = @_;
 
     my $webdriver = $self->gads->webdriver;
     my $xpath = "//tr[ contains( ., '$name' ) ]//a";
-    my $found_el = $webdriver->find( $xpath, method => 'xpath', dies => 0 );
+    my $found_el = $webdriver->find( $xpath,
+        method => 'xpath', dies => 0, tries => 10 );
 
     return $found_el;
 }
