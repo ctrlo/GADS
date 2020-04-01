@@ -881,6 +881,11 @@ sub delete_viewed_record_ok {
     my $webdriver = $self->gads->webdriver;
     my $record_title = $webdriver->find('h2')->text;
 
+    # Disable Bootstrap transitions to avoid timing issues.  Trying to
+    # click on an element whilst it animates fails with an "Element ...
+    # could not be scrolled into view" error.
+    $webdriver->js( '$.support.transition = false' );
+
     my @failure = $self->_find_and_click( [ '.btn-delete' ], jquery => 1 );
 
     my $modal_title_el = $webdriver->find('h4#delete_record_heading');
