@@ -97,7 +97,7 @@ sub type_into_field {
     my ( $self, $selector, $value ) = @_;
     my $webdriver = $self->webdriver;
 
-    my $field_el = $webdriver->find( $selector, dies => 0 );
+    my $field_el = $webdriver->find( $selector, dies => 0, tries => 20 );
     if ( 0 == $field_el->size ) {
         return undef;
     }
