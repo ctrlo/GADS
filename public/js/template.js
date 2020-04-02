@@ -1,2 +1,1305 @@
-!function(e){var t={};function a(n){if(t[n])return t[n].exports;var r=t[n]={i:n,l:!1,exports:{}};return e[n].call(r.exports,r,r.exports,a),r.l=!0,r.exports}a.m=e,a.c=t,a.d=function(e,t,n){a.o(e,t)||Object.defineProperty(e,t,{enumerable:!0,get:n})},a.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})},a.t=function(e,t){if(1&t&&(e=a(e)),8&t)return e;if(4&t&&"object"==typeof e&&e&&e.__esModule)return e;var n=Object.create(null);if(a.r(n),Object.defineProperty(n,"default",{enumerable:!0,value:e}),2&t&&"string"!=typeof e)for(var r in e)a.d(n,r,function(t){return e[t]}.bind(null,r));return n},a.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return a.d(t,"a",t),t},a.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)},a.p="",a(a.s=568)}({568:function(e,t,a){"use strict";a.r(t);const n=e=>{if(!["date","daterange"].includes(e))return;const t=["equal","not_equal","less","less_or_equal","greater","greater_or_equal","is_empty","is_not_empty"];return"daterange"===e&&t.push("contain"),t},r=(e,t,a)=>({input:(e,t,a)=>`<input class="typeahead_text" type="text" name="${a}_text">\n    <input class="typeahead_hidden" type="hidden" name="${a}"></input>`,valueSetter:(e,t,a,n,r)=>{e.find(".typeahead_text").val(r.text),e.find(".typeahead_hidden").val(t)},onAfterCreateRuleInput:n=>{var r=$(`#${n.attr("id")} .rule-value-container input[type="text"]`),i=$(`#${n.attr("id")} .rule-value-container input[type="hidden"]`);r.attr("autocomplete","off"),r.typeahead({delay:100,matcher:function(){return!0},sorter:function(e){return e},afterSelect:function(e){"object"==typeof e?i.val(e.id):i.val(e)},source:function(n,r){return $.ajax({type:"GET",url:`/${t}/match/layout/${e}`,data:{q:n,oi:a},success:function(e){r(e)},dataType:"json"})}})}}),i={input:"select",values:{b_red:"Red",c_amber:"Amber",c_yellow:"Yellow",d_green:"Green",a_grey:"Grey",e_purple:"Purple"}},l=[{type:"equal",accept_values:!0,apply_to:["string","number","datetime"]},{type:"not_equal",accept_values:!0,apply_to:["string","number","datetime"]},{type:"less",accept_values:!0,apply_to:["string","number","datetime"]},{type:"less_or_equal",accept_values:!0,apply_to:["string","number","datetime"]},{type:"greater",accept_values:!0,apply_to:["string","number","datetime"]},{type:"greater_or_equal",accept_values:!0,apply_to:["string","number","datetime"]},{type:"contains",accept_values:!0,apply_to:["datetime","string"]},{type:"not_contains",accept_values:!0,apply_to:["datetime","string"]},{type:"begins_with",accept_values:!0,apply_to:["string"]},{type:"not_begins_with",accept_values:!0,apply_to:["string"]},{type:"is_empty",accept_values:!1,apply_to:["string","number","datetime"]},{type:"is_not_empty",accept_values:!1,apply_to:["string","number","datetime"]},{type:"changed_after",nb_inputs:1,accept_values:!0,multiple:!1,apply_to:["string","number","datetime"]}],o=e=>{const t=JSON.parse($(e).html());t.filterNotDone&&(window.UpdateFilter=e=>{var t=e.queryBuilder("getRules");$("#filter").val(JSON.stringify(t,null,2))}),$(`#builder${t.builderId}`).queryBuilder({showPreviousValues:t.showPreviousValues,filters:t.filters.map(e=>((e,t)=>({id:t.filterId,label:t.label,type:"string",operators:n(t.type),..."rag"===t.type?i:t.hasFilterTypeahead?r(t.urlSuffix,e.layoutId,t.instanceId):{}}))(t,e)),operators:l,lang:{operators:{changed_after:"changed on or after"}}})},d=e=>{$(document,e).on("input",".typeahead_text",function(){var e=$(this).val();$(this).next(".typeahead_hidden").val(e)})};const s=()=>{window.FontDetect&&(FontDetect.isFontLoaded("14px/1 FontAwesome")||($(".use-icon-font").hide(),$(".use-icon-png").show()))},c=e=>{var t=$("#calendar",e);if(!t.length)return!1;var a={events_source:`/${t.attr("data-event-source")}/data_calendar/${(new Date).getTime()}`,view:t.data("view"),tmpl_path:"/tmpls/",tmpl_cache:!1,onAfterEventsLoad:function(e){if(e){var t=$("#eventlist");t.html(""),$.each(e,function(e,a){$(document.createElement("li")).html(`<a href="${a.url}">${a.title}</a>`).appendTo(t)})}},onAfterViewLoad:function(e){$("#caltitle").text(this.getTitle()),$(".btn-group button").removeClass("active"),$(`button[data-calendar-view="${e}"]`).addClass("active")},classes:{months:{general:"label"}}};const n=t.data("calendar-day-ymd");return n&&(a.day=n),t.calendar(a)},u=(e,t)=>{$(".btn-group button[data-calendar-nav]",t).each(function(){var t=$(this);t.click(function(){e.navigate(t.data("calendar-nav"))})}),$(".btn-group button[data-calendar-view]",t).each(function(){var t=$(this);t.click(function(){e.view(t.data("calendar-view"))})})},p=(e,t)=>{$("#first_day",t).change(function(){var t=$(this).val();t=t.length?parseInt(t):null,e.setOptions({first_day:t}),e.view()}),$("#language",t).change(function(){e.setLanguage($(this).val()),e.view()}),$("#events-in-modal",t).change(function(){var t=$(this).is(":checked")?$(this).val():null;e.setOptions({modal:t})}),$("#events-modal .modal-header, #events-modal .modal-footer",t).click(function(){})};var v=e=>{const t=c(e);t&&(u(t,e),p(t,e),s())};const m=(e,t)=>{e.find(".alert").text(t).removeAttr("hidden"),e.parents(".modal-content").get(0).scrollIntoView(),e.find("button[type=submit]").prop("disabled",!1)},f=e=>{$(document,e).on("mousedown",".curval-modal",function(t){var a,n=$(t.target).data("layout-id"),r=$(t.target).data("instance-name"),i=$(t.target).data("current-id"),l=$(t.target).closest(".curval_item").find(`input[name=field${n}]`),o=l.val(),d=l.length?"edit":"add";"edit"===d&&((a=l.data("guid"))||(a=window.guid(),l.attr("data-guid",a)));var s=$("#curval_modal",e);s.find(".modal-body").text("Loading...");var c=i?`/record/${i}`:`/${r}/record/`;s.find(".modal-body").load(`${c}?include_draft&modal=${n}&${o}`,function(){"edit"===d&&s.find("form").data("guid",a),Linkspace.init(s)}),s.on("focus",".datepicker",function(){$(this).datepicker({format:s.attr("data-dateformat-datepicker"),autoclose:!0})}),s.modal()})},h=e=>{$("#curval_modal",e).on("submit",".curval-edit-form",function(e){e.preventDefault();var t=$(this),a=t.serialize();t.addClass("edit-form--validating"),t.find(".alert").attr("hidden",""),$.post(t.attr("action")+"?validate&include_draft",a,function(e){if(0===e.error)((e,t,a)=>{var n=e.serialize(),r=e.data("modal-field-ids"),i=e.data("curval-id"),l=e.data("instance-name"),o=e.data("guid"),d=$("<input>",a).attr({type:"hidden",name:"field"+i,value:n}),s=$("div[data-column-id="+i+"]",a),c=s.data("value-selector");if("noshow"===c){var u=$('<tr class="curval_item">',a);jQuery.map(r,function(n){var r=e.find('[data-column-id="'+n+'"]'),i=getFieldValues(r);i=t["field"+n],i=$("<div />",a).text(i).html(),u.append($('<td class="curval-inner-text">',a).append(i))});var p=$(`<td>\n      <a class="curval-modal" style="cursor:pointer" data-layout-id="${i} data-instance-name=${l}>edit</a> | <a class="curval_remove" style="cursor:pointer">remove</a>\n    </td>`,a);if(u.append(p.append(d)),o)$('input[data-guid="'+o+'"]',a).val(n).closest(".curval_item").replaceWith(u);else $(`#curval_list_${i}`,a).find("tbody").prepend(u)}else if("dropdown"===c){var v=s.find(".select-widget").first().hasClass("multi"),m=s.find(".current [data-list-item]"),f=s.find(".current .search"),h=s.find(".available");v||(m.attr("hidden",""),h.find("li input").prop("checked",!1));var g=jQuery.map(r,function(e){var a=t["field"+e];return $("<div />").text(a).html()}).join(", ");const e=`field${i}_${o=window.guid()}`;var _=v?'<button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>':"";f.before(`<li data-list-item="${e}">${g}${_}</li>`);var y=v?"checkbox":"radio";h.append(`<li class="answer">\n      <span class="control">\n          <label id="${e}_label" for="${e}">\n              <input id="${e}" name="field${i}" type="${y}" value="${n}" class="${v?"":"visually-hidden"}" checked aria-labelledby="${e}_label">\n              <span>${g}</span>\n          </label>\n      </span>\n      <span class="details">\n          <a class="curval_remove" style="cursor:pointer">remove</a>\n      </span>\n    </li>`),setupSelectWidgets(s)}else if("typeahead"===c){var b=s.find(`input[name=field${i}]`),w=s.find(`input[name=field${i}_typeahead]`),k=jQuery.map(r,function(e){var a=t["field"+e];return $("<div />").text(a).html()}).join(", ");b.val(n),w.val(k)}$(".modal.in",a).modal("hide")})(t,e.values);else{var a=1===e.error?e.message:"Oops! Something went wrong.";m(t,a)}},"json").fail(function(e,a,n){m(t,`Oops! Something went wrong: ${a}: ${n}`)}).always(function(){t.removeClass("edit-form--validating")})})},g=e=>{$(".curval_group",e).on("click",".curval_remove",function(){$(this).closest(".curval_item").remove()}),$(".select-widget",e).on("click",".curval_remove",function(){var e=$(this).closest(".answer").find("input").prop("id");$(this).closest(".select-widget").find(`.current li[data-list-item=${e}]`).remove(),$(this).closest(".answer").remove()})};var _=e=>{f(e),h(e),g(e)};const y=e=>{$(".input-daterange input.from",e).each(function(){$(this).on("changeDate",function(){var e=$(this).parents(".input-daterange").find(".datepicker.to");e.val()||e.datepicker("update",$(this).datepicker("getDate"))})})},b=e=>{$(document,e).on("click",".remove_datepicker",function(){var e=".datepicker"+$(this).data("field");$(e).datepicker("destroy"),alert("Date selector has been disabled for this field")})};var w=e=>{(e=>{$(".datepicker",e).datepicker({format:$(document.body).data("config-dataformat-datepicker"),autoclose:!0})})(e),y(e),b(e)};const k=e=>{$(document,e).on("click",".cloneme",function(){var e=$(this).parents(".input_holder"),t=e.clone();t.removeAttr("id").insertAfter(e),t.find(":text").val(""),t.find(".datepicker").datepicker({format:e.attr("data-dateformat-datepicker"),autoclose:!0})}),$(document,e).on("click",".removeme",function(){var e=$(this).parents(".input_holder");e.siblings(".input_holder").length>0&&e.remove()})},x=e=>{$("#helptext_modal",e).on("show.bs.modal",function(e){var t=$(e.relatedTarget).data("load-url");$(this).find(".modal-body").load(t)}),$(document,e).on("click",".more-info",function(t){var a=$(t.target).data("record-id"),n=$("#readmore_modal",e);n.find(".modal-body").text("Loading..."),n.find(".modal-body").load("/record_body/"+a),n.one("show.bs.modal",function(a){a.isDefaultPrevented()||n.one("hidden.bs.modal",function(){$(t.target,e).is(":visible")&&$(t.target,e).trigger("focus")})}),n.one("keyup",function(e){27==e.keyCode&&e.stopPropagation()}),n.modal()})},j=e=>{$('input[type="text"][id^="typeahead_"]',e).each((t,a)=>{$(a,e).change(function(){$(this).val()||$(`#${a.id}_value`,e).val("")}),$(a,e).typeahead({delay:500,matcher:function(){return!0},sorter:function(e){return e},afterSelect:function(t){$(`#${a.id}_value`,e).val(t.id)},source:function(t,n){return $.ajax({type:"GET",url:`/${$(a,e).data("layout-id")}/match/layout/${$(a).data("typeahead-id")}`,data:{q:t},success:function(e){n(e)},dataType:"json"})}})})};var q=e=>{k(e),x(e),_(e),w(e),j(e)};var T=e=>{(e=>{const t=$("#globe",e);if(t.length){Plotly.setPlotConfig({locale:"en-GB"});var a=JSON.parse(base64.decode(t.attr("data-globe"))),n={showLink:!1,displaylogo:!1,modeBarButtonsToRemove:["sendDataToCloud"],topojsonURL:`${t.attr("data-url")}/`};Plotly.newPlot("globe",a,{margin:{t:10,l:10,r:10,b:10},geo:{scope:"world",showcountries:!0,countrycolor:"grey",resolution:110}},n)}})(e)};const O=(e,t)=>{var a=e.xlabels,n={},r="line"==t.type;n.highlighter={showMarker:r,tooltipContentEditor:(e,t,a,n)=>n._plotData[t][a][1]};const i=(()=>({bar:{renderer:$.jqplot.BarRenderer,rendererOptions:{shadow:!1,fillToZero:!0,barMinWidth:10},pointLabels:{show:!1,hideZeros:!0}},donut:{renderer:$.jqplot.DonutRenderer,rendererOptions:{sliceMargin:3,showDataLabels:!0,dataLabels:"value",shadow:!1}},pie:{renderer:$.jqplot.PieRenderer,rendererOptions:{showDataLabels:!0,dataLabels:"value",shadow:!1}},default:{pointLabels:{show:!1}}}))();t.type in i?n.seriesDefaults=i[t.type]:n.seriesDefaults=i.default,"donut"!=t.type&&"pie"!=t.type&&(n.series=e.labels,n.axes={xaxis:{renderer:$.jqplot.CategoryAxisRenderer,ticks:a,label:t.x_axis_name,labelRenderer:$.jqplot.CanvasAxisLabelRenderer},yaxis:{label:t.y_axis_label,labelRenderer:$.jqplot.CanvasAxisLabelRenderer}},e.options.y_max&&(n.axes.yaxis.max=e.options.y_max),e.options.is_metric&&(n.axes.yaxis.tickOptions={formatString:"%d%"}),n.axesDefaults={tickRenderer:$.jqplot.CanvasAxisTickRenderer,tickOptions:{angle:-30,fontSize:"8pt"}}),n.stackSeries=t.stackseries,n.legend={renderer:$.jqplot.EnhancedLegendRenderer,show:t.showlegend,location:"e",placement:"outside"},$.jqplot(`chartdiv${t.id}`,e.points,n)},S=e=>{s(),$.jqplot.config.enablePlugins=!0,e.each((e,t)=>{const a=$(t).data();var n=(new Date).getTime(),r=(e=>{var t=null;return $.ajax({async:!1,url:e,dataType:"json",success:function(e){t=e}}),t})(`/${a.layoutId}/data_graph/${a.graphId}/${n}`),i={type:a.graphType,x_axis_name:a.xAxisName,y_axis_label:a.yAxisLabel,stackseries:a.stackseries,showlegend:a.showlegend,id:a.graphId};O(r,i)})};var R=e=>{(e=>{const t=$("#chartdiv",e),a=$("[id^=chartdiv]",e);!t.length&&a.length&&S(a)})(e)};const C=e=>{$("#related_field_id",e).change(t=>{var a=$(t.currentTarget).find(":selected").data("instance_id");$(".autocur_instance",e).hide(),$(`#autocur_instance_${a}`,e).show()}),$("#filval_related_field_id",e).change(function(){var t=$(this).val();$(".filval_curval",e).hide(),$("#filval_curval_"+t,e).show()})},D=e=>{$("#type",e).on("change",function(){var t=$("#manage-fields",e),a=t.data("column-type"),n=$(this).val();t.removeClass("column-type-"+a),t.addClass("column-type-"+n),t.data("column-type",n),"rag"==n||"intgr"==n||"person"==n?$("#checkbox-multivalue",e).hide():$("#checkbox-multivalue",e).show()}).trigger("change")};var L=e=>{(e=>{$("#btnDeleteNode",e).click(()=>{var t=$("#jstree_demo_div",e).jstree(!0),a=t.get_selected();if(!a.length)return!1;t.delete_node(a)});$("#btnAddNode",e).click(()=>{var t=$("#jstree_demo_div",e).jstree(!0),a=t.get_selected();a=a.length?a[0]:"#",(a=t.create_node(a,{type:"file"}))&&t.edit(a)});$("#btnRenameNode",e).click(()=>{var t=$("#jstree_demo_div",e).jstree(!0),a=t.get_selected();if(!a.length)return!1;a=a[0],t.edit(a)})})(e),(e=>{$("#selectall",e).click(()=>{7==$(".check_perm:checked",e).length?$(".check_perm",e).prop("checked",!1):$(".check_perm",e).prop("checked",!0)})})(e),(e=>{$(".sortable",e).length&&$(".sortable",e).sortable({handle:".drag"})})(e),(e=>{const t=$("#jstree_demo_div",e);t.length&&t.jstree({core:{check_callback:!0,force_text:!0,themes:{stripes:!0},data:{url:()=>`/${t.data("layout-identifier")}/tree${(new Date).getTime()}/${t.data("column-id")}?`,data:e=>({id:e.id})}}})})(e),(e=>{$("div#legs",e).on("click",".add",t=>{$(t.currentTarget,e).closest("#legs").find(".sortable").append('\n        <div class="request-row">\n          <p>\n            <input type="hidden" name="enumval_id">\n            <input type="text" class="form-control" style="width:80%; display:inline" name="enumval">\n            <button type="button" class="close closeme" style="float:none">&times;</button>\n            <span class="fa fa-hand-paper-o fa-lg use-icon-font close drag" style="float:none"></span>\n          </p>\n        </div>\n    '),$(".sortable",e).sortable("refresh")}),$("div#legs").on("click",".closeme",t=>{$(".request-row",e).length<2||$(t.currentTarget,e).parents(".request-row").remove()})})(e),(e=>{$("#refers_to_instance_id",e).change(t=>{var a=`#instance_fields_${$(t.currentTarget,e).val()}`;$(".instance_fields",e).hide(),$(a,e).show()})})(e),C(e),(e=>{$('div[id^="builder"]',e).each((e,t)=>{const a=$(t).data("filter-base");if(a){var n=base64.decode(a);$(t).queryBuilder("setRules",JSON.parse(n))}})})(e),(e=>{const t=$("#displayConditionsBuilder",e);if(!t.length)return;const a=t.data();if(t.queryBuilder({filters:a.filters,allow_groups:0,operators:[{type:"equal",accept_values:!0,apply_to:["string"]},{type:"contains",accept_values:!0,apply_to:["string"]},{type:"not_equal",accept_values:!0,apply_to:["string"]},{type:"not_contains",accept_values:!0,apply_to:["string"]}]}),a.filterBase){const e=base64.decode(a.filterBase);t.queryBuilder("setRules",JSON.parse(e))}})(e),(e=>{$("#submit_save",e).click(function(){const t=$("#displayConditionsBuilder",e).queryBuilder("getRules");$("#displayConditions",e).val(JSON.stringify(t,null,2));const a=`#builder${$("#refers_to_instance_id",e).val()}`,n=$("#jstree_demo_div",e);if(n.length&&n.is(":visible")){const e=n.jstree(!0).get_json("#",{flat:!1}),t=JSON.stringify(e),a=n.data();return $.ajax({async:!1,type:"POST",url:`/${a.layoutIdentifier}/tree/${a.columnId}`,data:{data:t,csrf_token:a.csrfToken}}).done(()=>{alert("Tree has been updated")}),!0}return $(a,e).is(":visible")&&UpdateFilter($(a,e)),!0})})(e),D(e)};const A=(e,t)=>{const a=$(e,t);a.data("open-on-load")&&a.modal("show")};var P=e=>{A("#modalregister",e),A("#modal-reset-password",e)};var B=e=>{(e=>{const t=$("#modal_metric",e);t.length&&t.on("show.bs.modal",t=>{var a=$(t.relatedTarget),n=a.data("metric_id");$("#metric_id",e).val(n),n?$("#delete_metric",e).show():$("#delete_metric",e).hide();var r=a.data("target_value");$("#target_value",e).val(r);var i=a.data("x_axis_value");$("#x_axis_value",e).val(i);var l=a.data("y_axis_grouping_value");$("#y_axis_grouping_value",e).val(l)})})(e)};var N=e=>{(e=>{const t=$("#mygraphs-table",e);t.length&&t.dataTable({columnDefs:[{targets:0,orderable:!1}],pageLength:50,order:[[1,"asc"]]})})(e)};var I=e=>{(e=>{$("input, text",e).placeholder()})(e)};var J=e=>{(e=>{$('[data-toggle="popover"]',e).popover({placement:"auto",html:!0})})(e)};const F=e=>{$("#selectall",e).click(function(){$(".record_selected",e).prop("checked",this.checked)})};var M=e=>{F(e)};var E=e=>{(e=>{$("#modal_sendemail",e).on("show.bs.modal",e=>{var t=$(e.relatedTarget).data("peopcol_id");$("#modal_sendemail_peopcol_id").val(t)})})(e),(e=>{$("#modal_helptext",e).on("show.bs.modal",t=>{var a=$(t.relatedTarget),n=a.data("col_name");$("#modal_helptext",e).find(".modal-title").text(n);var r=a.data("col_id");$.get("/helptext/"+r,t=>{$("#modal_helptext",e).find(".modal-body").html(t)})})})(e),(e=>{$("#data-table",e).length&&$("#data-table",e).floatThead({floatContainerCss:{},zIndex:()=>999,ariaLabel:(e,t)=>t.data("thlabel")})})(e),s()};var G=e=>{};const V=e=>{$(document,e).on("click",".cloneme",function(){var e=$(this).parents(".limit-to-view");e.clone().removeAttr("id").insertAfter(e)}),$(document,e).on("click",".removeme",function(){var e=$(this).parents(".limit-to-view");e.siblings(".limit-to-view").length>0&&e.remove()})};var z=e=>{(e=>{$("#modalnewtitle",e).on("hidden.bs.modal",()=>{$("#newtitle",e).val("")}),$("#modalneworganisation",e).on("hidden.bs.modal",()=>{$("#neworganisation",e).val("")})})(e),V(e)};var Q=e=>{(e=>{$(".col_check",e).length&&$("#selectall",e).click(t=>{$(".col_check",e).prop("checked",t.currentTarget.checked)})})(e),(e=>{$("#global",e).change(t=>{$("#group_id_div",e).toggle(t.currentTarget.checked)}).change()})(e),(e=>{const t=$("div#sorts",e);t.length&&(t.on("click",".closeme",e=>{$(".request-row").length<1||$(e.currentTarget).parents(".request-row").remove()}),t.on("click",".add",e=>{$(e.currentTarget).parents(".sort-add").before(t.data("sortrow"))}))})(e),(e=>{const t=$("div#groups",e);t.length&&(t.on("click",".closeme",e=>{$(".request-row").length&&$(e.currentTarget).parents(".request-row").remove()}),t.on("click",".add",e=>{$(e.currentTarget).parents(".group-add").before(t.data("grouprow"))}))})(e),(e=>{const t=$("#builder",e);if(t.length&&t.data("use-json")){var a=base64.decode(t.data("base-filter"));t.queryBuilder("setRules",JSON.parse(a))}})(e),(e=>{$("#saveview",e).click(()=>{var t=$("#builder",e).queryBuilder("getRules");$("#filter",e).val(JSON.stringify(t,null,2))})})(e)};var U;(e=>{(e=>{$('script[id^="builder_json_"]',e).each((e,t)=>{o(t)})})(e),d(e)})(U),v(U),q(U),T(U),R(U),L(U),P(U),B(U),N(U),I(U),J(U),M(U),E(U),G(U),z(U),Q(U)}});
-//# sourceMappingURL=template.js.map
+"use strict";
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+//
+// setupFontAwesome
+//
+var setupFontAwesome = function setupFontAwesome() {
+  if (!window.FontDetect) return;
+
+  if (!FontDetect.isFontLoaded("14px/1 FontAwesome")) {
+    $(".use-icon-font").hide();
+    $(".use-icon-png").show();
+  }
+}; //
+// setupBuilder
+//
+
+
+var setupBuilder = function () {
+  var buildFilterOperators = function buildFilterOperators(type) {
+    if (!["date", "daterange"].includes(type)) return undefined;
+    var operators = ["equal", "not_equal", "less", "less_or_equal", "greater", "greater_or_equal", "is_empty", "is_not_empty"];
+    type === "daterange" && operators.push("contain");
+    return operators;
+  };
+
+  var typeaheadProperties = function typeaheadProperties(urlSuffix, layoutId, instanceId) {
+    return {
+      input: function input(container, rule, input_name) {
+        return "<input class=\"typeahead_text\" type=\"text\" name=\"".concat(input_name, "_text\">\n      <input class=\"typeahead_hidden\" type=\"hidden\" name=\"").concat(input_name, "\"></input>");
+      },
+      valueSetter: function valueSetter($rule, value, filter, operator, data) {
+        $rule.find(".typeahead_text").val(data.text);
+        $rule.find(".typeahead_hidden").val(value);
+      },
+      onAfterCreateRuleInput: function onAfterCreateRuleInput($rule) {
+        var $ruleInputText = $("#".concat($rule.attr("id"), " .rule-value-container input[type=\"text\"]"));
+        var $ruleInputHidden = $("#".concat($rule.attr("id"), " .rule-value-container input[type=\"hidden\"]"));
+        $ruleInputText.attr("autocomplete", "off");
+        $ruleInputText.typeahead({
+          delay: 100,
+          matcher: function matcher() {
+            return true;
+          },
+          sorter: function sorter(items) {
+            return items;
+          },
+          afterSelect: function afterSelect(selected) {
+            if (_typeof(selected) === "object") {
+              $ruleInputHidden.val(selected.id);
+            } else {
+              $ruleInputHidden.val(selected);
+            }
+          },
+          source: function source(query, process) {
+            return $.ajax({
+              type: "GET",
+              url: "/".concat(layoutId, "/match/layout/").concat(urlSuffix),
+              data: {
+                q: query,
+                oi: instanceId
+              },
+              success: function success(result) {
+                process(result);
+              },
+              dataType: "json"
+            });
+          }
+        });
+      }
+    };
+  };
+
+  var ragProperties = {
+    input: "select",
+    values: {
+      b_red: "Red",
+      c_amber: "Amber",
+      c_yellow: "Yellow",
+      d_green: "Green",
+      a_grey: "Grey",
+      e_purple: "Purple"
+    }
+  };
+
+  var buildFilter = function buildFilter(builderConfig, col) {
+    return _objectSpread({
+      id: col.filterId,
+      label: col.label,
+      type: "string",
+      operators: buildFilterOperators(col.type)
+    }, col.type === "rag" ? ragProperties : col.hasFilterTypeahead ? typeaheadProperties(col.urlSuffix, builderConfig.layoutId, col.instanceId) : {});
+  };
+
+  var makeUpdateFilter = function makeUpdateFilter() {
+    window.UpdateFilter = function (builder) {
+      var res = builder.queryBuilder("getRules");
+      $("#filter").val(JSON.stringify(res, null, 2));
+    };
+  };
+
+  var operators = [{
+    type: "equal",
+    accept_values: true,
+    apply_to: ["string", "number", "datetime"]
+  }, {
+    type: "not_equal",
+    accept_values: true,
+    apply_to: ["string", "number", "datetime"]
+  }, {
+    type: "less",
+    accept_values: true,
+    apply_to: ["string", "number", "datetime"]
+  }, {
+    type: "less_or_equal",
+    accept_values: true,
+    apply_to: ["string", "number", "datetime"]
+  }, {
+    type: "greater",
+    accept_values: true,
+    apply_to: ["string", "number", "datetime"]
+  }, {
+    type: "greater_or_equal",
+    accept_values: true,
+    apply_to: ["string", "number", "datetime"]
+  }, {
+    type: "contains",
+    accept_values: true,
+    apply_to: ["datetime", "string"]
+  }, {
+    type: "not_contains",
+    accept_values: true,
+    apply_to: ["datetime", "string"]
+  }, {
+    type: "begins_with",
+    accept_values: true,
+    apply_to: ["string"]
+  }, {
+    type: "not_begins_with",
+    accept_values: true,
+    apply_to: ["string"]
+  }, {
+    type: "is_empty",
+    accept_values: false,
+    apply_to: ["string", "number", "datetime"]
+  }, {
+    type: "is_not_empty",
+    accept_values: false,
+    apply_to: ["string", "number", "datetime"]
+  }, {
+    type: "changed_after",
+    nb_inputs: 1,
+    accept_values: true,
+    multiple: false,
+    apply_to: ["string", "number", "datetime"]
+  }];
+
+  var setupBuilder = function setupBuilder(builderEl) {
+    var builderConfig = JSON.parse($(builderEl).html());
+    if (builderConfig.filterNotDone) makeUpdateFilter();
+    $("#builder".concat(builderConfig.builderId)).queryBuilder({
+      showPreviousValues: builderConfig.showPreviousValues,
+      filters: builderConfig.filters.map(function (col) {
+        return buildFilter(builderConfig, col);
+      }),
+      operators: operators,
+      lang: {
+        operators: {
+          changed_after: "changed on or after"
+        }
+      }
+    });
+  };
+
+  var setupAllBuilders = function setupAllBuilders(context) {
+    $('script[id^="builder_json_"]', context).each(function (i, builderEl) {
+      setupBuilder(builderEl);
+    });
+  };
+
+  var setupTypeahead = function setupTypeahead(context) {
+    $(document, context).on("input", ".typeahead_text", function () {
+      var value = $(this).val();
+      $(this).next(".typeahead_hidden").val(value);
+    });
+  };
+
+  return function (context) {
+    setupAllBuilders(context);
+    setupTypeahead(context);
+  };
+}(); //
+// setupCalendar
+//
+
+
+var setupCalendar = function () {
+  var initCalendar = function initCalendar(context) {
+    var calendarEl = $("#calendar", context);
+    if (!calendarEl.length) return false;
+    var options = {
+      events_source: "/".concat(calendarEl.attr("data-event-source"), "/data_calendar/").concat(new Date().getTime()),
+      view: calendarEl.data("view"),
+      tmpl_path: "/tmpls/",
+      tmpl_cache: false,
+      onAfterEventsLoad: function onAfterEventsLoad(events) {
+        if (!events) {
+          return;
+        }
+
+        var list = $("#eventlist");
+        list.html("");
+        $.each(events, function (key, val) {
+          $(document.createElement("li")).html("<a href=\"".concat(val.url, "\">").concat(val.title, "</a>")).appendTo(list);
+        });
+      },
+      onAfterViewLoad: function onAfterViewLoad(view) {
+        $("#caltitle").text(this.getTitle());
+        $(".btn-group button").removeClass("active");
+        $("button[data-calendar-view=\"".concat(view, "\"]")).addClass("active");
+      },
+      classes: {
+        months: {
+          general: "label"
+        }
+      }
+    };
+    var day = calendarEl.data("calendar-day-ymd");
+
+    if (day) {
+      options.day = day;
+    }
+
+    return calendarEl.calendar(options);
+  };
+
+  var setupButtons = function setupButtons(calendar, context) {
+    $(".btn-group button[data-calendar-nav]", context).each(function () {
+      var $this = $(this);
+      $this.click(function () {
+        calendar.navigate($this.data("calendar-nav"));
+      });
+    });
+    $(".btn-group button[data-calendar-view]", context).each(function () {
+      var $this = $(this);
+      $this.click(function () {
+        calendar.view($this.data("calendar-view"));
+      });
+    });
+  };
+
+  var setupSpecifics = function setupSpecifics(calendar, context) {
+    $("#first_day", context).change(function () {
+      var value = $(this).val();
+      value = value.length ? parseInt(value) : null;
+      calendar.setOptions({
+        first_day: value
+      });
+      calendar.view();
+    });
+    $("#language", context).change(function () {
+      calendar.setLanguage($(this).val());
+      calendar.view();
+    });
+    $("#events-in-modal", context).change(function () {
+      var val = $(this).is(":checked") ? $(this).val() : null;
+      calendar.setOptions({
+        modal: val
+      });
+    });
+    $("#events-modal .modal-header, #events-modal .modal-footer", context).click(function () {});
+  };
+
+  return function (context) {
+    var calendar = initCalendar(context);
+
+    if (calendar) {
+      setupButtons(calendar, context);
+      setupSpecifics(calendar, context);
+      setupFontAwesome();
+    }
+  };
+}(); //
+// setupCurvalModal
+//
+
+
+var setupCurvalModal = function () {
+  var curvalModalValidationSucceeded = function curvalModalValidationSucceeded(form, values, context) {
+    var form_data = form.serialize();
+    var modal_field_ids = form.data("modal-field-ids");
+    var col_id = form.data("curval-id");
+    var instance_name = form.data("instance-name");
+    var guid = form.data("guid");
+    var hidden_input = $("<input>", context).attr({
+      type: "hidden",
+      name: "field" + col_id,
+      value: form_data
+    });
+    var $formGroup = $("div[data-column-id=" + col_id + "]", context);
+    var valueSelector = $formGroup.data("value-selector");
+
+    if (valueSelector === "noshow") {
+      var row_cells = $('<tr class="curval_item">', context);
+      jQuery.map(modal_field_ids, function (element) {
+        var control = form.find('[data-column-id="' + element + '"]');
+        var value = getFieldValues(control);
+        value = values["field" + element];
+        value = $("<div />", context).text(value).html();
+        row_cells.append($('<td class="curval-inner-text">', context).append(value));
+      });
+      var links = $("<td>\n        <a class=\"curval-modal\" style=\"cursor:pointer\" data-layout-id=\"".concat(col_id, " data-instance-name=").concat(instance_name, ">edit</a> | <a class=\"curval_remove\" style=\"cursor:pointer\">remove</a>\n      </td>"), context);
+      row_cells.append(links.append(hidden_input));
+
+      if (guid) {
+        var hidden = $('input[data-guid="' + guid + '"]', context).val(form_data);
+        hidden.closest(".curval_item").replaceWith(row_cells);
+      } else {
+        $("#curval_list_".concat(col_id), context).find("tbody").prepend(row_cells);
+      }
+    } else if (valueSelector === "dropdown") {
+      var $widget = $formGroup.find(".select-widget").first();
+      var multi = $widget.hasClass("multi");
+      var $currentItems = $formGroup.find(".current [data-list-item]");
+      var $search = $formGroup.find(".current .search");
+      var $answersList = $formGroup.find(".available");
+
+      if (!multi) {
+        /* Deselect current selected value */
+        $currentItems.attr("hidden", "");
+        $answersList.find("li input").prop("checked", false);
+      }
+
+      var textValue = jQuery.map(modal_field_ids, function (element) {
+        var value = values["field" + element];
+        return $("<div />").text(value).html();
+      }).join(", ");
+      guid = window.guid();
+      var id = "field".concat(col_id, "_").concat(guid);
+      var deleteButton = multi ? '<button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>' : "";
+      $search.before("<li data-list-item=\"".concat(id, "\">").concat(textValue).concat(deleteButton, "</li>"));
+      var inputType = multi ? "checkbox" : "radio";
+      $answersList.append("<li class=\"answer\">\n        <span class=\"control\">\n            <label id=\"".concat(id, "_label\" for=\"").concat(id, "\">\n                <input id=\"").concat(id, "\" name=\"field").concat(col_id, "\" type=\"").concat(inputType, "\" value=\"").concat(form_data, "\" class=\"").concat(multi ? "" : "visually-hidden", "\" checked aria-labelledby=\"").concat(id, "_label\">\n                <span>").concat(textValue, "</span>\n            </label>\n        </span>\n        <span class=\"details\">\n            <a class=\"curval_remove\" style=\"cursor:pointer\">remove</a>\n        </span>\n      </li>"));
+      /* Reinitialize widget */
+
+      setupSelectWidgets($formGroup);
+    } else if (valueSelector === "typeahead") {
+      var $hiddenInput = $formGroup.find("input[name=field".concat(col_id, "]"));
+      var $typeaheadInput = $formGroup.find("input[name=field".concat(col_id, "_typeahead]"));
+      var textValueHead = jQuery.map(modal_field_ids, function (element) {
+        var value = values["field" + element];
+        return $("<div />").text(value).html();
+      }).join(", ");
+      $hiddenInput.val(form_data);
+      $typeaheadInput.val(textValueHead);
+    }
+
+    $(".modal.in", context).modal("hide");
+  };
+
+  var curvalModalValidationFailed = function curvalModalValidationFailed(form, errorMessage) {
+    form.find(".alert").text(errorMessage).removeAttr("hidden");
+    form.parents(".modal-content").get(0).scrollIntoView();
+    form.find("button[type=submit]").prop("disabled", false);
+  };
+
+  var setupAddButton = function setupAddButton(context) {
+    $(document, context).on("mousedown", ".curval-modal", function (e) {
+      var layout_id = $(e.target).data("layout-id");
+      var instance_name = $(e.target).data("instance-name");
+      var current_id = $(e.target).data("current-id");
+      var hidden = $(e.target).closest(".curval_item").find("input[name=field".concat(layout_id, "]"));
+      var form_data = hidden.val();
+      var mode = hidden.length ? "edit" : "add";
+      var guid;
+
+      if (mode === "edit") {
+        guid = hidden.data("guid");
+
+        if (!guid) {
+          guid = window.guid();
+          hidden.attr("data-guid", guid);
+        }
+      }
+
+      var m = $("#curval_modal", context);
+      m.find(".modal-body").text("Loading...");
+      var url = current_id ? "/record/".concat(current_id) : "/".concat(instance_name, "/record/");
+      m.find(".modal-body").load("".concat(url, "?include_draft&modal=").concat(layout_id, "&").concat(form_data), function () {
+        if (mode === "edit") {
+          m.find("form").data("guid", guid);
+        }
+
+        Linkspace.init(m);
+      });
+      m.on("focus", ".datepicker", function () {
+        $(this).datepicker({
+          format: m.attr("data-dateformat-datepicker"),
+          autoclose: true
+        });
+      });
+      m.modal();
+    });
+  };
+
+  var setupSubmit = function setupSubmit(context) {
+    $("#curval_modal", context).on("submit", ".curval-edit-form", function (e) {
+      e.preventDefault();
+      var form = $(this);
+      var form_data = form.serialize();
+      form.addClass("edit-form--validating");
+      form.find(".alert").attr("hidden", "");
+      $.post(form.attr("action") + "?validate&include_draft", form_data, function (data) {
+        if (data.error === 0) {
+          curvalModalValidationSucceeded(form, data.values);
+        } else {
+          var errorMessage = data.error === 1 ? data.message : "Oops! Something went wrong.";
+          curvalModalValidationFailed(form, errorMessage);
+        }
+      }, "json").fail(function (jqXHR, textstatus, errorthrown) {
+        var errorMessage = "Oops! Something went wrong: ".concat(textstatus, ": ").concat(errorthrown);
+        curvalModalValidationFailed(form, errorMessage);
+      }).always(function () {
+        form.removeClass("edit-form--validating");
+      });
+    });
+  };
+
+  var setupRemoveCurval = function setupRemoveCurval(context) {
+    $(".curval_group", context).on("click", ".curval_remove", function () {
+      $(this).closest(".curval_item").remove();
+    });
+    $(".select-widget", context).on("click", ".curval_remove", function () {
+      var fieldId = $(this).closest(".answer").find("input").prop("id");
+      $(this).closest(".select-widget").find(".current li[data-list-item=".concat(fieldId, "]")).remove();
+      $(this).closest(".answer").remove();
+    });
+  };
+
+  return function (context) {
+    setupAddButton(context);
+    setupSubmit(context);
+    setupRemoveCurval(context);
+  };
+}(); //
+// setupDatePicker
+//
+
+
+var setupDatePicker = function () {
+  var setupDatePickers = function setupDatePickers(context) {
+    $(".datepicker", context).datepicker({
+      format: $(document.body).data("config-dataformat-datepicker"),
+      autoclose: true
+    });
+  };
+
+  var setupDateRange = function setupDateRange(context) {
+    $(".input-daterange input.from", context).each(function () {
+      $(this).on("changeDate", function () {
+        var toDatepicker = $(this).parents(".input-daterange").find(".datepicker.to");
+
+        if (!toDatepicker.val()) {
+          toDatepicker.datepicker("update", $(this).datepicker("getDate"));
+        }
+      });
+    });
+  };
+
+  var setupRemoveDatePicker = function setupRemoveDatePicker(context) {
+    $(document, context).on("click", ".remove_datepicker", function () {
+      var dp = ".datepicker" + $(this).data("field");
+      $(dp).datepicker("destroy"); //eslint-disable-next-line no-alert
+
+      alert("Date selector has been disabled for this field");
+    });
+  };
+
+  return function (context) {
+    setupDatePickers(context);
+    setupDateRange(context);
+    setupRemoveDatePicker(context);
+  };
+}(); //
+// setupEdit
+//
+
+
+var setupEdit = function () {
+  var setupCloneAndRemove = function setupCloneAndRemove(context) {
+    $(document, context).on("click", ".cloneme", function () {
+      var parent = $(this).parents(".input_holder");
+      var cloned = parent.clone();
+      cloned.removeAttr("id").insertAfter(parent);
+      cloned.find(":text").val("");
+      cloned.find(".datepicker").datepicker({
+        format: parent.attr("data-dateformat-datepicker"),
+        autoclose: true
+      });
+    });
+    $(document, context).on("click", ".removeme", function () {
+      var parent = $(this).parents(".input_holder");
+
+      if (parent.siblings(".input_holder").length > 0) {
+        parent.remove();
+      }
+    });
+  };
+
+  var setupHelpTextModal = function setupHelpTextModal(context) {
+    $("#helptext_modal", context).on("show.bs.modal", function (e) {
+      var loadurl = $(e.relatedTarget).data("load-url");
+      $(this).find(".modal-body").load(loadurl);
+    });
+    $(document, context).on("click", ".more-info", function (e) {
+      var record_id = $(e.target).data("record-id");
+      var m = $("#readmore_modal", context);
+      m.find(".modal-body").text("Loading...");
+      m.find(".modal-body").load("/record_body/" + record_id);
+      /* Trigger focus restoration on modal close */
+
+      m.one("show.bs.modal", function (showEvent) {
+        /* Only register focus restorer if modal will actually get shown */
+        if (showEvent.isDefaultPrevented()) {
+          return;
+        }
+
+        m.one("hidden.bs.modal", function () {
+          $(e.target, context).is(":visible") && $(e.target, context).trigger("focus");
+        });
+      });
+      /* Stop propagation of the escape key, as may have side effects, like closing select widgets. */
+
+      m.one("keyup", function (e) {
+        if (e.keyCode == 27) {
+          e.stopPropagation();
+        }
+      });
+      m.modal();
+    });
+  };
+
+  var setupTypeahead = function setupTypeahead(context) {
+    $('input[type="text"][id^="typeahead_"]', context).each(function (i, typeaheadEl) {
+      $(typeaheadEl, context).change(function () {
+        if (!$(this).val()) {
+          $("#".concat(typeaheadEl.id, "_value"), context).val("");
+        }
+      });
+      $(typeaheadEl, context).typeahead({
+        delay: 500,
+        matcher: function matcher() {
+          return true;
+        },
+        sorter: function sorter(items) {
+          return items;
+        },
+        afterSelect: function afterSelect(selected) {
+          $("#".concat(typeaheadEl.id, "_value"), context).val(selected.id);
+        },
+        source: function source(query, process) {
+          return $.ajax({
+            type: "GET",
+            url: "/".concat($(typeaheadEl, context).data("layout-id"), "/match/layout/").concat($(typeaheadEl).data("typeahead-id")),
+            data: {
+              q: query
+            },
+            success: function success(result) {
+              process(result);
+            },
+            dataType: "json"
+          });
+        }
+      });
+    });
+  };
+
+  return function (context) {
+    setupCloneAndRemove(context);
+    setupHelpTextModal(context);
+    setupCurvalModal(context);
+    setupDatePicker(context);
+    setupTypeahead(context);
+  };
+}(); //
+// setupGlobe
+//
+
+
+var setupGlobe = function () {
+  var initGlobe = function initGlobe(context) {
+    var globeEl = $("#globe", context);
+    if (!globeEl.length) return;
+    Plotly.setPlotConfig({
+      locale: "en-GB"
+    });
+    var data = JSON.parse(base64.decode(globeEl.attr("data-globe")));
+    var layout = {
+      margin: {
+        t: 10,
+        l: 10,
+        r: 10,
+        b: 10
+      },
+      geo: {
+        scope: "world",
+        showcountries: true,
+        countrycolor: "grey",
+        resolution: 110
+      }
+    };
+    var options = {
+      showLink: false,
+      displaylogo: false,
+      modeBarButtonsToRemove: ["sendDataToCloud"],
+      topojsonURL: "".concat(globeEl.attr("data-url"), "/")
+    };
+    Plotly.newPlot("globe", data, layout, options);
+  };
+
+  return function (context) {
+    initGlobe(context);
+  };
+}(); // setupGraph
+
+
+var setupGraph = function () {
+  var makeSeriesDefaults = function makeSeriesDefaults() {
+    return {
+      bar: {
+        renderer: $.jqplot.BarRenderer,
+        rendererOptions: {
+          shadow: false,
+          fillToZero: true,
+          barMinWidth: 10
+        },
+        pointLabels: {
+          show: false,
+          hideZeros: true
+        }
+      },
+      donut: {
+        renderer: $.jqplot.DonutRenderer,
+        rendererOptions: {
+          sliceMargin: 3,
+          showDataLabels: true,
+          dataLabels: "value",
+          shadow: false
+        }
+      },
+      pie: {
+        renderer: $.jqplot.PieRenderer,
+        rendererOptions: {
+          showDataLabels: true,
+          dataLabels: "value",
+          shadow: false
+        }
+      },
+      "default": {
+        pointLabels: {
+          show: false
+        }
+      }
+    };
+  };
+
+  var do_plot = function do_plot(plotData, options_in) {
+    var ticks = plotData.xlabels;
+    var plotOptions = {};
+    var showmarker = options_in.type == "line" ? true : false;
+    plotOptions.highlighter = {
+      showMarker: showmarker,
+      tooltipContentEditor: function tooltipContentEditor(str, pointIndex, index, plot) {
+        return plot._plotData[pointIndex][index][1];
+      }
+    };
+    var seriesDefaults = makeSeriesDefaults();
+
+    if (options_in.type in seriesDefaults) {
+      plotOptions.seriesDefaults = seriesDefaults[options_in.type];
+    } else {
+      plotOptions.seriesDefaults = seriesDefaults["default"];
+    }
+
+    if (options_in.type != "donut" && options_in.type != "pie") {
+      plotOptions.series = plotData.labels;
+      plotOptions.axes = {
+        xaxis: {
+          renderer: $.jqplot.CategoryAxisRenderer,
+          ticks: ticks,
+          label: options_in.x_axis_name,
+          labelRenderer: $.jqplot.CanvasAxisLabelRenderer
+        },
+        yaxis: {
+          label: options_in.y_axis_label,
+          labelRenderer: $.jqplot.CanvasAxisLabelRenderer
+        }
+      };
+
+      if (plotData.options.y_max) {
+        plotOptions.axes.yaxis.max = plotData.options.y_max;
+      }
+
+      if (plotData.options.is_metric) {
+        plotOptions.axes.yaxis.tickOptions = {
+          formatString: "%d%"
+        };
+      }
+
+      plotOptions.axesDefaults = {
+        tickRenderer: $.jqplot.CanvasAxisTickRenderer,
+        tickOptions: {
+          angle: -30,
+          fontSize: "8pt"
+        }
+      };
+    }
+
+    plotOptions.stackSeries = options_in.stackseries;
+    plotOptions.legend = {
+      renderer: $.jqplot.EnhancedLegendRenderer,
+      show: options_in.showlegend,
+      location: "e",
+      placement: "outside"
+    };
+    $.jqplot("chartdiv".concat(options_in.id), plotData.points, plotOptions);
+  };
+
+  var ajaxDataRenderer = function ajaxDataRenderer(url) {
+    var ret = null;
+    $.ajax({
+      async: false,
+      url: url,
+      dataType: "json",
+      success: function success(data) {
+        ret = data;
+      }
+    });
+    return ret;
+  };
+
+  var setupCharts = function setupCharts(chartDivs) {
+    setupFontAwesome();
+    $.jqplot.config.enablePlugins = true;
+    chartDivs.each(function (i, val) {
+      var data = $(val).data();
+      var time = new Date().getTime();
+      var jsonurl = "/".concat(data.layoutId, "/data_graph/").concat(data.graphId, "/").concat(time);
+      var plotData = ajaxDataRenderer(jsonurl);
+      var options_in = {
+        type: data.graphType,
+        x_axis_name: data.xAxisName,
+        y_axis_label: data.yAxisLabel,
+        stackseries: data.stackseries,
+        showlegend: data.showlegend,
+        id: data.graphId
+      };
+      do_plot(plotData, options_in);
+    });
+  };
+
+  var initGraph = function initGraph(context) {
+    var chartDiv = $("#chartdiv", context);
+    var chartDivs = $("[id^=chartdiv]", context);
+    if (!chartDiv.length && chartDivs.length) setupCharts(chartDivs);
+  };
+
+  return function (context) {
+    initGraph(context);
+  };
+}(); //
+// setupLayout
+//
+
+
+var setupLayout = function () {
+  var setupDemoButtons = function setupDemoButtons(context) {
+    var demo_delete = function demo_delete() {
+      var ref = $("#jstree_demo_div", context).jstree(true),
+          sel = ref.get_selected();
+
+      if (!sel.length) {
+        return false;
+      }
+
+      ref.delete_node(sel);
+    };
+
+    $("#btnDeleteNode", context).click(demo_delete);
+
+    var demo_create = function demo_create() {
+      var ref = $("#jstree_demo_div", context).jstree(true),
+          sel = ref.get_selected();
+
+      if (sel.length) {
+        sel = sel[0];
+      } else {
+        sel = "#";
+      }
+
+      sel = ref.create_node(sel, {
+        type: "file"
+      });
+
+      if (sel) {
+        ref.edit(sel);
+      }
+    };
+
+    $("#btnAddNode", context).click(demo_create);
+
+    var demo_rename = function demo_rename() {
+      var ref = $("#jstree_demo_div", context).jstree(true),
+          sel = ref.get_selected();
+
+      if (!sel.length) {
+        return false;
+      }
+
+      sel = sel[0];
+      ref.edit(sel);
+    };
+
+    $("#btnRenameNode", context).click(demo_rename);
+  }; // No longer used? Where is #selectall ?
+
+
+  var setupSelectAll = function setupSelectAll(context) {
+    $("#selectall", context).click(function () {
+      if ($(".check_perm:checked", context).length == 7) {
+        $(".check_perm", context).prop("checked", false);
+      } else {
+        $(".check_perm", context).prop("checked", true);
+      }
+    });
+  };
+
+  var setupSortableHandle = function setupSortableHandle(context) {
+    if (!$(".sortable", context).length) return;
+    $(".sortable", context).sortable({
+      handle: ".drag"
+    });
+  };
+
+  var setupTreeDemo = function setupTreeDemo(context) {
+    var treeEl = $("#jstree_demo_div", context);
+    if (!treeEl.length) return;
+    treeEl.jstree({
+      core: {
+        check_callback: true,
+        force_text: true,
+        themes: {
+          stripes: true
+        },
+        data: {
+          url: function url() {
+            return "/".concat(treeEl.data("layout-identifier"), "/tree").concat(new Date().getTime(), "/").concat(treeEl.data("column-id"), "?");
+          },
+          data: function data(node) {
+            return {
+              id: node.id
+            };
+          }
+        }
+      }
+    });
+  };
+
+  var setupDropdownValues = function setupDropdownValues(context) {
+    $("div#legs", context).on("click", ".add", function (event) {
+      $(event.currentTarget, context).closest("#legs").find(".sortable").append("\n          <div class=\"request-row\">\n            <p>\n              <input type=\"hidden\" name=\"enumval_id\">\n              <input type=\"text\" class=\"form-control\" style=\"width:80%; display:inline\" name=\"enumval\">\n              <button type=\"button\" class=\"close closeme\" style=\"float:none\">&times;</button>\n              <span class=\"fa fa-hand-paper-o fa-lg use-icon-font close drag\" style=\"float:none\"></span>\n            </p>\n          </div>\n      ");
+      $(".sortable", context).sortable("refresh");
+    });
+    $("div#legs").on("click", ".closeme", function (event) {
+      var count = $(".request-row", context).length;
+      if (count < 2) return;
+      $(event.currentTarget, context).parents(".request-row").remove();
+    });
+  };
+
+  var setupTableDropdown = function setupTableDropdown(context) {
+    $("#refers_to_instance_id", context).change(function (event) {
+      var divid = "#instance_fields_".concat($(event.currentTarget, context).val());
+      $(".instance_fields", context).hide();
+      $(divid, context).show();
+    });
+  };
+
+  var setupAutoValueField = function setupAutoValueField(context) {
+    $("#related_field_id", context).change(function (event) {
+      var divid = $(event.currentTarget).find(":selected").data("instance_id");
+      $(".autocur_instance", context).hide();
+      $("#autocur_instance_".concat(divid), context).show();
+    });
+    $("#filval_related_field_id", context).change(function () {
+      var divid = $(this).val();
+      $(".filval_curval", context).hide();
+      $("#filval_curval_" + divid, context).show();
+    });
+  };
+
+  var setupJsonFilters = function setupJsonFilters(context) {
+    $('div[id^="builder"]', context).each(function (i, builderEl) {
+      var filterBase = $(builderEl).data("filter-base");
+      if (!filterBase) return;
+      var data = base64.decode(filterBase);
+      $(builderEl).queryBuilder("setRules", JSON.parse(data));
+    });
+  };
+
+  var setupDisplayConditionsBuilder = function setupDisplayConditionsBuilder(context) {
+    var conditionsBuilder = $("#displayConditionsBuilder", context);
+    if (!conditionsBuilder.length) return;
+    var builderData = conditionsBuilder.data();
+    conditionsBuilder.queryBuilder({
+      filters: builderData.filters,
+      allow_groups: 0,
+      operators: [{
+        type: "equal",
+        accept_values: true,
+        apply_to: ["string"]
+      }, {
+        type: "contains",
+        accept_values: true,
+        apply_to: ["string"]
+      }, {
+        type: "not_equal",
+        accept_values: true,
+        apply_to: ["string"]
+      }, {
+        type: "not_contains",
+        accept_values: true,
+        apply_to: ["string"]
+      }]
+    });
+
+    if (builderData.filterBase) {
+      var data = base64.decode(builderData.filterBase);
+      conditionsBuilder.queryBuilder("setRules", JSON.parse(data));
+    }
+  };
+
+  var setupSubmitSave = function setupSubmitSave(context) {
+    $("#submit_save", context).click(function () {
+      var res = $("#displayConditionsBuilder", context).queryBuilder("getRules");
+      $("#displayConditions", context).val(JSON.stringify(res, null, 2));
+      var current_builder = "#builder".concat($("#refers_to_instance_id", context).val());
+      var jstreeDemoDivEl = $("#jstree_demo_div", context);
+
+      if (jstreeDemoDivEl.length && jstreeDemoDivEl.is(":visible")) {
+        var v = jstreeDemoDivEl.jstree(true).get_json("#", {
+          flat: false
+        });
+        var mytext = JSON.stringify(v);
+        var data = jstreeDemoDivEl.data();
+        $.ajax({
+          async: false,
+          type: "POST",
+          url: "/".concat(data.layoutIdentifier, "/tree/").concat(data.columnId),
+          data: {
+            data: mytext,
+            csrf_token: data.csrfToken
+          }
+        }).done(function () {
+          // eslint-disable-next-line no-alert
+          alert("Tree has been updated");
+        });
+        return true;
+      } else if ($(current_builder, context).is(":visible")) {
+        UpdateFilter($(current_builder, context));
+      }
+
+      return true;
+    });
+  };
+
+  var setupType = function setupType(context) {
+    $("#type", context).on("change", function () {
+      var $mf = $("#manage-fields", context);
+      var current_type = $mf.data("column-type");
+      var new_type = $(this).val();
+      $mf.removeClass("column-type-" + current_type);
+      $mf.addClass("column-type-" + new_type);
+      $mf.data("column-type", new_type);
+
+      if (new_type == "rag" || new_type == "intgr" || new_type == "person") {
+        $("#checkbox-multivalue", context).hide();
+      } else {
+        $("#checkbox-multivalue", context).show();
+      }
+    }).trigger("change");
+  };
+
+  return function (context) {
+    setupDemoButtons(context);
+    setupSelectAll(context);
+    setupSortableHandle(context);
+    setupTreeDemo(context);
+    setupDropdownValues(context);
+    setupTableDropdown(context);
+    setupAutoValueField(context);
+    setupJsonFilters(context);
+    setupDisplayConditionsBuilder(context);
+    setupSubmitSave(context);
+    setupType(context);
+  };
+}(); //
+// setupLogin
+//
+
+
+var setupLogin = function () {
+  var setupOpenModalOnLoad = function setupOpenModalOnLoad(id, context) {
+    var modalEl = $(id, context);
+
+    if (modalEl.data("open-on-load")) {
+      modalEl.modal("show");
+    }
+  };
+
+  return function (context) {
+    setupOpenModalOnLoad("#modalregister", context);
+    setupOpenModalOnLoad("#modal-reset-password", context);
+  };
+}(); //
+// setupMetric
+//
+
+
+var setupMetric = function () {
+  var setupMetricModal = function setupMetricModal(context) {
+    var modalEl = $("#modal_metric", context);
+    if (!modalEl.length) return;
+    modalEl.on("show.bs.modal", function (event) {
+      var button = $(event.relatedTarget);
+      var metric_id = button.data("metric_id");
+      $("#metric_id", context).val(metric_id);
+
+      if (metric_id) {
+        $("#delete_metric", context).show();
+      } else {
+        $("#delete_metric", context).hide();
+      }
+
+      var target_value = button.data("target_value");
+      $("#target_value", context).val(target_value);
+      var x_axis_value = button.data("x_axis_value");
+      $("#x_axis_value", context).val(x_axis_value);
+      var y_axis_grouping_value = button.data("y_axis_grouping_value");
+      $("#y_axis_grouping_value", context).val(y_axis_grouping_value);
+    });
+  };
+
+  return function (context) {
+    setupMetricModal(context);
+  };
+}(); //
+// setupMyGraphs
+//
+
+
+var setupMyGraphs = function () {
+  var setupDataTable = function setupDataTable(context) {
+    var dtableEl = $("#mygraphs-table", context);
+    if (!dtableEl.length) return;
+    dtableEl.dataTable({
+      columnDefs: [{
+        targets: 0,
+        orderable: false
+      }],
+      pageLength: 50,
+      order: [[1, "asc"]]
+    });
+  };
+
+  return function (context) {
+    setupDataTable(context);
+  };
+}(); //
+// setupPlaceholder
+//
+
+
+var setupPlaceholder = function () {
+  var setupPlaceholder = function setupPlaceholder(context) {
+    $("input, text", context).placeholder();
+  };
+
+  return function (context) {
+    setupPlaceholder(context);
+  };
+}(); //
+// setupPopover
+//
+
+
+var setupPopover = function () {
+  var setupPopover = function setupPopover(context) {
+    $('[data-toggle="popover"]', context).popover({
+      placement: "auto",
+      html: true
+    });
+  };
+
+  return function (context) {
+    setupPopover(context);
+  };
+}(); //
+// setupPurge
+//
+
+
+var setupPurge = function () {
+  var setupSelectAll = function setupSelectAll(context) {
+    $("#selectall", context).click(function () {
+      $(".record_selected", context).prop("checked", this.checked);
+    });
+  };
+
+  return function (context) {
+    setupSelectAll(context);
+  };
+}(); //
+// setupTable
+//
+
+
+var setupTable = function () {
+  var setupSendemailModal = function setupSendemailModal(context) {
+    $("#modal_sendemail", context).on("show.bs.modal", function (event) {
+      var button = $(event.relatedTarget);
+      var peopcol_id = button.data("peopcol_id");
+      $("#modal_sendemail_peopcol_id").val(peopcol_id);
+    });
+  };
+
+  var setupHelptextModal = function setupHelptextModal(context) {
+    $("#modal_helptext", context).on("show.bs.modal", function (event) {
+      var button = $(event.relatedTarget);
+      var col_name = button.data("col_name");
+      $("#modal_helptext", context).find(".modal-title").text(col_name);
+      var col_id = button.data("col_id");
+      $.get("/helptext/" + col_id, function (data) {
+        $("#modal_helptext", context).find(".modal-body").html(data);
+      });
+    });
+  };
+
+  var setupDataTable = function setupDataTable(context) {
+    if (!$("#data-table", context).length) return;
+    $("#data-table", context).floatThead({
+      floatContainerCss: {},
+      zIndex: function zIndex() {
+        return 999;
+      },
+      ariaLabel: function ariaLabel($table, $headerCell) {
+        return $headerCell.data("thlabel");
+      }
+    });
+  };
+
+  return function (context) {
+    setupSendemailModal(context);
+    setupHelptextModal(context);
+    setupDataTable(context);
+    setupFontAwesome();
+  };
+}(); //
+// setupUser
+//
+
+
+var setupUser = function () {
+  return function (context) {// Placeholder for future functionality
+  };
+}(); //
+// setupUserPermission
+//
+
+
+var setupUserPermission = function () {
+  var setupModalNew = function setupModalNew(context) {
+    $("#modalnewtitle", context).on("hidden.bs.modal", function () {
+      $("#newtitle", context).val("");
+    });
+    $("#modalneworganisation", context).on("hidden.bs.modal", function () {
+      $("#neworganisation", context).val("");
+    });
+  };
+
+  var setupCloneAndRemove = function setupCloneAndRemove(context) {
+    $(document, context).on("click", ".cloneme", function () {
+      var parent = $(this).parents(".limit-to-view");
+      var cloned = parent.clone();
+      cloned.removeAttr("id").insertAfter(parent);
+    });
+    $(document, context).on("click", ".removeme", function () {
+      var parent = $(this).parents(".limit-to-view");
+
+      if (parent.siblings(".limit-to-view").length > 0) {
+        parent.remove();
+      }
+    });
+  };
+
+  return function (context) {
+    setupModalNew(context);
+    setupCloneAndRemove(context);
+  };
+}(); //
+// setupView
+//
+
+
+var setupView = function () {
+  var setupSelectAll = function setupSelectAll(context) {
+    if (!$(".col_check", context).length) return;
+    $("#selectall", context).click(function (event) {
+      $(".col_check", context).prop("checked", event.currentTarget.checked);
+    });
+  };
+
+  var setupGlobalChange = function setupGlobalChange(context) {
+    $("#global", context).change(function (event) {
+      $("#group_id_div", context).toggle(event.currentTarget.checked);
+    }).change();
+  };
+
+  var setupSorts = function setupSorts(context) {
+    var sortsEl = $("div#sorts", context);
+    if (!sortsEl.length) return;
+    sortsEl.on("click", ".closeme", function (event) {
+      var c = $(".request-row").length;
+      if (c < 1) return;
+      $(event.currentTarget).parents(".request-row").remove();
+    });
+    sortsEl.on("click", ".add", function (event) {
+      $(event.currentTarget).parents(".sort-add").before(sortsEl.data("sortrow"));
+    });
+  };
+
+  var setupGroups = function setupGroups(context) {
+    var groupsEl = $("div#groups", context);
+    if (!groupsEl.length) return;
+    groupsEl.on("click", ".closeme", function (event) {
+      if (!$(".request-row").length) return;
+      $(event.currentTarget).parents(".request-row").remove();
+    });
+    groupsEl.on("click", ".add", function (event) {
+      $(event.currentTarget).parents(".group-add").before(groupsEl.data("grouprow"));
+    });
+  };
+
+  var setupFilter = function setupFilter(context) {
+    var builderEl = $("#builder", context);
+    if (!builderEl.length) return;
+    if (!builderEl.data("use-json")) return;
+    var data = base64.decode(builderEl.data("base-filter"));
+    builderEl.queryBuilder("setRules", JSON.parse(data));
+  };
+
+  var setupUpdateFilter = function setupUpdateFilter(context) {
+    $("#saveview", context).click(function () {
+      var res = $("#builder", context).queryBuilder("getRules");
+      $("#filter", context).val(JSON.stringify(res, null, 2));
+    });
+  };
+
+  return function (context) {
+    setupSelectAll(context);
+    setupGlobalChange(context);
+    setupSorts(context);
+    setupGroups(context);
+    setupFilter(context);
+    setupUpdateFilter(context);
+  };
+}();
+
+var setupJSFromContext = function setupJSFromContext(context) {
+  setupBuilder(context);
+  setupCalendar(context);
+  setupEdit(context);
+  setupGlobe(context);
+  setupGraph(context);
+  setupLayout(context);
+  setupLogin(context);
+  setupMetric(context);
+  setupMyGraphs(context);
+  setupPlaceholder(context);
+  setupPopover(context);
+  setupPurge(context);
+  setupTable(context);
+  setupUser(context);
+  setupUserPermission(context);
+  setupView(context);
+};
+
+setupJSFromContext();

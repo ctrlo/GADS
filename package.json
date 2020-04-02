@@ -3,12 +3,13 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "babel": "babel --no-babelrc src/template/index.js --presets=@babel/preset-env --out-file public/js/template.js",
     "watch": "npm-watch",
     "sass": "sass --update --no-source-map sass:public/css/",
     "jshint": "jshint public/js/*.js",
     "ts": "yarn run webpack --watch",
     "lint": "eslint src",
-    "start": "npm-run-all --parallel watch ts"
+    "start": "npm-run-all --parallel babel watch ts"
   },
   "dependencies": {
     "@types/react": "^16.9.1",

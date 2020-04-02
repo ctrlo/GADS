@@ -4,8 +4,7 @@ const { resolve } = require('path');
 module.exports = {
   mode: 'production',
   entry: {
-    dashboard: './src/dashboard/index.tsx',
-    template: './src/template/index.js',
+    dashboard: './src/dashboard/index.tsx'
   },
   output: {
     filename: 'js/[name].js',
