@@ -1387,11 +1387,14 @@ const setupView = (() => {
 })()
 
 const setupJSFromContext = context => {
+
+  var page = $('body').data('page');
+
   setupBuilder(context);
   setupCalendar(context);
   setupEdit(context);
   setupGlobe(context);
-  setupGraph(context);
+  if (page == "data_graph") { setupGraph(context); }
   setupLayout(context);
   setupLogin(context);
   setupMetric(context);
