@@ -75,7 +75,8 @@ use Text::CSV;
 use Text::Wrap qw(wrap $huge);
 $huge = 'overflow';
 use Tie::Cache;
-use URI::Escape qw/uri_escape_utf8/;
+use URI;
+use URI::Escape qw/uri_escape_utf8 uri_unescape/;
 use WWW::Mechanize::PhantomJS;
 
 use Dancer2; # Last to stop Moo generating conflicting namespace
@@ -575,11 +576,24 @@ any ['get', 'post'] => '/login' => sub {
                 lastfail  => undef,
             });
 
-            # Load previous settings and forward to previous table if applicable
+            # Load previous settings
             my $session_settings;
             try { $session_settings = decode_json $user->session_settings };
             session 'persistent' => ($session_settings || {});
-            _forward_last_table();
+            if (my $url = query_parameters->get('return_url'))
+            {
+                $url = uri_unescape($url);
+                return _forward_last_table() if $url eq '/';
+                my $uri = URI->new($url);
+                # Construct a URL using uri_for, which ensures that the correct base domain
+                # is used (preventing open URL redirection attacks). The query needs to be
+                # parsed and passed as an option, otherwise it is not encoded properly
+                return redirect request->uri_for($uri->path, $uri->query_form_hash);
+            }
+            else {
+                # forward to previous table if applicable
+                return _forward_last_table();
+            }
         }
         else {
             $audit->login_failure($username);
