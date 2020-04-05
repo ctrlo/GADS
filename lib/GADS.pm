@@ -384,7 +384,8 @@ get '/' => require_login sub {
         site   => var('site'),
     );
 
-    my $dashboard = schema->resultset('Dashboard')->dashboard(%params);
+    my $dashboard = schema->resultset('Dashboard')->dashboard(%params)
+        || schema->resultset('Dashboard')->shared_dashboard(%params);
 
     my $params = {
         readonly        => $dashboard->is_shared && !$user->permission->{superadmin},
@@ -1422,14 +1423,17 @@ prefix '/:layout_name' => sub {
         my $dashboard = schema->resultset('Dashboard')->dashboard(%params);
 
         # If the shared dashboard is blank for this table then show the site
-        # dashboard by default
-        if ($dashboard->is_shared && $dashboard->is_empty && !$dashboard_id)
+        # dashboard by default. That is, unless the shared dashboard has been
+        # specifically requested, in which case we allow access in order to be
+        # able to update it
+        if (!$dashboard || (!query_parameters->get('did') && $dashboard->is_shared && $dashboard->is_empty))
         {
             my %params = (
                 user   => $user,
                 site   => var('site'),
             );
-            $dashboard = schema->resultset('Dashboard')->dashboard(%params);
+            $dashboard = schema->resultset('Dashboard')->dashboard(%params)
+                || schema->resultset('Dashboard')->shared_dashboard(%params);
         }
 
         my $params = {

@@ -40,7 +40,7 @@ sub _all_user
     my @dashboards;
 
     # Site shared, only show if populated or superadmin
-    my $dash = $self->_shared_dashboard(%params, layout => undef);
+    my $dash = $self->shared_dashboard(%params, layout => undef);
     push @dashboards, $dash if !$dash->is_empty || $user->permission->{superadmin};
 
     # Site personal
@@ -54,7 +54,7 @@ sub _all_user
     # Table shared
     if ($layout)
     {
-        $dash = $self->_shared_dashboard(%params);
+        $dash = $self->shared_dashboard(%params);
         push @dashboards, $dash if !$dash->is_empty || $layout->user_can('layout');
 
         $dash = $self->search({
@@ -71,7 +71,7 @@ sub _all_user
     return @dashboards;
 }
 
-sub _shared_dashboard
+sub shared_dashboard
 {   my ($self, %params) = @_;
     my $dashboard = $self->search({
         'me.instance_id' => $params{layout} && $params{layout}->instance_id,
@@ -88,9 +88,7 @@ sub dashboard
 
     my $id = $params{id};
 
-    # Check that the ID exists - it may have been deleted
-    $id = $self->_shared_dashboard(%params)->id
-        if !$id || !$self->find($params{id});
+    return undef if !$id || !$self->find($params{id});
 
     my $user   = $params{user};
     my $layout = $params{layout};
