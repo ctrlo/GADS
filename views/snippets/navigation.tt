@@ -195,7 +195,7 @@
             [% IF user_can_approve %]
                 [% IF approve_waiting %][% appcount = " (" _ approve_waiting _ ")" %][% END %]
                 <li class="divider"></li>
-                <li [% IF page=="approval" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]approval/">Approve records[% appcount %]</a></li>
+                <li [% IF page=="approval" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/approval/">Approve records[% appcount %]</a></li>
             [% END %]
             [% IF layout.user_can("layout") %]
                 <li [% IF page=="import" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/import/">Import records</a></li>
