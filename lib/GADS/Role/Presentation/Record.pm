@@ -2,6 +2,8 @@ package GADS::Role::Presentation::Record;
 
 use Moo::Role;
 
+with 'GADS::DateTime';
+
 sub _presentation_map_columns {
     my ($self, %options) = @_;
 
@@ -135,10 +137,26 @@ sub presentation {
         new_entry       => $self->new_entry,
         is_draft        => $self->is_draft,
     };
-    # Building versions is expensive, and not needed when this record is part
-    # of a curval value. It's only shown for the edit page/
-    $return->{versions} = [$self->versions]
-        if $options{edit};
+
+    if ($options{edit})
+    {
+        # Building versions is expensive, and not needed when this record is part
+        # of a curval value. It's only shown for the edit page
+        my $config = GADS::Config->instance;
+        my $format = $config->dateformat." HH:mm:ss";
+        $return->{versions} = [
+            map {
+                my $created = $_->created;
+                # See timezone comments in GADS::Datum::Date
+                $created->time_zone->is_floating && $created->set_time_zone('UTC');
+                +{
+                    id        => $_->id,
+                    created   => $self->date_as_string($created, $format),
+                    createdby => $_->createdby,
+                }
+            } $self->versions
+        ]
+    }
 
     if (!$self->new_entry && $options{edit}) # Expensive, only do if necessary
     {

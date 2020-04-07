@@ -125,11 +125,20 @@ sub parse_daterange
     (DateTime::Span->from_datetimes(start => $from, end => $to));
 }
 
+sub date_as_string
+{   my ($self, $value, $format) = @_;
+    $value or return '';
+    $format or panic "Missing format for date_as_string";
+    $value->clone->set_time_zone('Europe/London')->format_cldr($format);
+}
+
 sub daterange_as_string
 {   my ($self, $value, $format) = @_;
     $value or return '';
     $format or panic "Missing format for daterange_as_string";
-    $value->start->format_cldr($format) . " to " . $value->end->format_cldr($format);
+    my $start = $value->start->clone->set_time_zone('Europe/London');
+    my $end   = $value->end->clone->set_time_zone('Europe/London');
+    $start->format_cldr($format) . " to " . $end->format_cldr($format);
 }
 
 sub validate_daterange
