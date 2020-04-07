@@ -364,10 +364,9 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
 
     is( @{$records->data_timeline->{items}}, 15, "All items on timeline" );
 
-    # Created times are currently converted to British Summer Time, so search
-    # for 13:30 instead of 12:30
+    # Created times are now stored in UTC
     $records->clear;
-    $records->from(DateTime->new(year => 2008, month => 06, day => 03, hour => 13, minute => 30));
+    $records->from(DateTime->new(year => 2008, month => 06, day => 03, hour => 12, minute => 30));
     $records->to(DateTime->new(year => 2008, month => 12, day => 01));
     $records->exclusive('from');
     # Should retrieve 5 date1 fields plus 2 version fields
@@ -375,7 +374,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
 
     $records->clear;
     $records->from(DateTime->new(year => 2007, month => 01, day => 01));
-    $records->to(DateTime->new(year => 2008, month => 06, day => 03, hour => 13, minute => 30));
+    $records->to(DateTime->new(year => 2008, month => 06, day => 03, hour => 12, minute => 30));
     $records->exclusive('to');
     is( @{$records->data_timeline->{items}}, 7, "Records retrieved exclusive" );
 
