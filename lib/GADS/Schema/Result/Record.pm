@@ -479,4 +479,20 @@ __PACKAGE__->might_have(
     }
 );
 
+# XXX Temporary record earlier ID to identify records of problem fixed by 146bb73
+__PACKAGE__->might_have(
+    "record_earlier_id",
+    "GADS::Schema::Result::Record",
+    sub {
+        my $args = shift;
+        my $return = {
+            "$args->{foreign_alias}.current_id"  => { -ident => "$args->{self_alias}.current_id" },
+            "$args->{foreign_alias}.id"      => { '<' => \"$args->{self_alias}.id" },
+        };
+        $return->{"$args->{foreign_alias}.created"} = { '<' => $RECORD_EARLIER_BEFORE }
+            if $RECORD_EARLIER_BEFORE;
+        return $return;
+    }
+);
+
 1;
