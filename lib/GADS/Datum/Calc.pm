@@ -40,7 +40,7 @@ sub as_string
             ! defined $value
           ? ''
           : ref $value eq 'DateTime'
-          ? $value->format_cldr($format)
+          ? $self->date_as_string($value, $format)
           : $self->column->return_type eq 'daterange'
           ? $self->daterange_as_string($value, $format)
           : $self->column->return_type eq 'numeric'
@@ -226,13 +226,13 @@ sub _build_for_code
     {
         if ($rt eq 'date')
         {
-            push @return, $self->_date_for_code($val);
+            push @return, $self->date_for_code($val);
         }
         elsif ($rt eq 'daterange')
         {
             push @return, {
-                from  => $self->_date_for_code($_->start),
-                to    => $self->_date_for_code($_->end),
+                from  => $self->date_for_code($_->start),
+                to    => $self->date_for_code($_->end),
                 value => $self->_as_string($_),
             };
         }

@@ -128,10 +128,8 @@ sub as_string
 
 sub _as_string
 {   my ($self, $range) = @_;
-    return "" unless $range;
-    return "" unless $range->start && $range->end;
     my $format = $self->column->dateformat;
-    $range->start->format_cldr($format) . " to " . $range->end->format_cldr($format);
+    $self->daterange_as_string($range, $format);
 }
 
 has html_form => (
@@ -161,8 +159,8 @@ sub _build_for_code
     return undef if !$self->column->multivalue && $self->blank;
     my @return = map {
         +{
-            from  => $self->_date_for_code($_->start),
-            to    => $self->_date_for_code($_->end),
+            from  => $self->date_for_code($_->start),
+            to    => $self->date_for_code($_->end),
             value => $self->_as_string($_),
         };
     } @{$self->values};

@@ -276,9 +276,10 @@ sub _build_for_code
     $self->as_string; # Default
 }
 
-sub _date_for_code
+sub date_for_code
 {   my ($self, $value) = @_;
     $value or return undef;
+    $value = $value->clone->set_time_zone('Europe/London');
     +{
         year   => $value->year,
         month  => $value->month,

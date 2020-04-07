@@ -27,6 +27,7 @@ use MooX::Types::MooseLike::Base qw/:all/;
 use namespace::clean;
 
 extends 'GADS::Datum';
+with 'GADS::DateTime';
 
 has schema => (
     is      => 'ro',
@@ -74,8 +75,6 @@ has values => (
         # database which do not have timezones stored). Set it as UTC, as
         # otherwise any changes to another timezone will not make any effect
         $_->time_zone->is_floating && $_->set_time_zone('UTC') foreach @$values;
-        # May want to support other timezones in the future
-        $_->set_time_zone('Europe/London') foreach @$values;
         return $values;
     },
     builder => sub {
@@ -174,7 +173,7 @@ sub _as_string
 {   my ($self, $value) = @_;
     return "" unless $value;
     my $format = $self->column->dateformat;
-    $value->format_cldr($format);
+    $self->date_as_string($value, $format);
 }
 
 sub as_string
@@ -198,7 +197,7 @@ sub _build_for_code
     return undef if !$self->column->multivalue && $self->blank;
 
     my @return = map {
-        $self->_date_for_code($_)
+        $self->date_for_code($_)
     } @{$self->values};
 
     $self->column->multivalue || @return > 1 ? \@return : $return[0];
