@@ -80,6 +80,18 @@ has values => (
         $self->has_value(!!@values);
         [@values];
     },
+    coerce  => sub {
+        my $values = shift;
+        # If the timezone is floating, then assume it is UTC (e.g. from MySQL
+        # database which do not have timezones stored). Set it as UTC, as
+        # otherwise any changes to another timezone will not make any effect
+        foreach my $v (@$values)
+        {
+            $v->start->time_zone->is_floating && $v->set_time_zone('UTC');
+            #$v->end->time_zone->is_floating && $v->end->set_time_zone('UTC');
+        }
+        return $values;
+    },
 );
 
 has text_all => (

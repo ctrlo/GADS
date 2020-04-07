@@ -37,6 +37,20 @@ has value => (
     is      => 'lazy',
     isa     => ArrayRef,
     clearer => 1,
+    coerce  => sub {
+        my $values = shift;
+        # If the timezone is floating, then assume it is UTC (e.g. from MySQL
+        # database which do not have timezones stored). Set it as UTC, as
+        # otherwise any changes to another timezone will not make any effect
+        foreach my $v (@$values)
+        {
+            $v->time_zone->is_floating && $v->set_time_zone('UTC')
+                if ref $v eq 'DateTime';
+            $v->start->time_zone->is_floating && $v->set_time_zone('UTC')
+                if ref $v eq 'DateTime::Span';
+        }
+        return $values;
+    },
 );
 
 has has_value => (
