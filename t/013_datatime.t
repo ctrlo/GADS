@@ -67,35 +67,42 @@ $records = GADS::Records->new(
 );
 is( @{$records->data_timeline->{items}}, 8, "Retrieving all data returns correct number of points to plot for timeline" );
 
-# Add a filter and only retrieve one column
-my $rules = encode_json({
-    rules     => [{
-        id       => $columns->{string1}->id,
-        type     => 'string',
-        value    => 'Foo',
-        operator => 'equal',
-    }],
-    # condition => 'AND', # Default
-});
+# Add a filter and only retrieve one column. Test both normal date column and
+# special created date column (the latter test added as Pg does not support
+# subquery column in LEAST clause. Sqlite appears to do so, so need to add Pg
+# to tests).
+my $view;
+foreach my $col_id ($layout->column_by_name_short('_created')->id, $columns->{date1}->id)
+{
+    my $rules = encode_json({
+        rules     => [{
+            id       => $columns->{string1}->id,
+            type     => 'string',
+            value    => 'Foo',
+            operator => 'equal',
+        }],
+        # condition => 'AND', # Default
+    });
 
-my $view = GADS::View->new(
-    name        => 'Test view',
-    columns     => [$columns->{date1}->id],
-    filter      => $rules,
-    instance_id => 1,
-    layout      => $layout,
-    schema      => $schema,
-    user        => undef,
-);
-$view->write;
+    $view = GADS::View->new(
+        name        => 'Test view',
+        columns     => [$col_id],
+        filter      => $rules,
+        instance_id => 1,
+        layout      => $layout,
+        schema      => $schema,
+        user        => undef,
+    );
+    $view->write;
 
-$records = GADS::Records->new(
-    user   => undef,
-    from   => DateTime->now,
-    layout => $layout,
-    schema => $schema,
-    view   => $view,
-);
+    $records = GADS::Records->new(
+        user   => undef,
+        from   => DateTime->now,
+        layout => $layout,
+        schema => $schema,
+        view   => $view,
+    );
+}
 
 is( @{$records->data_calendar}, 1, "Filter and single column returns correct number of points to plot for calendar" );
 $records->clear;

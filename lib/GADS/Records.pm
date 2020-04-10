@@ -814,6 +814,20 @@ sub _build_is_group
     $self->view && $self->view->is_group;
 }
 
+sub _me_created_date
+{   my $self = shift;
+    $self->schema->resultset('Record')->search({
+        'me_created_date.id' => {
+            -in => $self->schema->resultset('Current')
+                ->correlate('records')
+                ->get_column('id')
+                ->min_rs->as_query,
+        },
+    },{
+        alias => 'me_created_date',
+    })->get_column('created')->as_query;
+}
+
 # Additional columns that will be added to a query as +select. As these refer
 # to earlier records than those being retrieved, these need to be performed as
 # correlated subqueries
@@ -821,16 +835,7 @@ sub _created_plus_select
 {   my $self = shift;
     [
         {
-            "" => $self->schema->resultset('Record')->search({
-                'me_created_date.id' => {
-                    -in => $self->schema->resultset('Current')
-                        ->correlate('records')
-                        ->get_column('id')
-                        ->min_rs->as_query,
-                },
-            },{
-                alias => 'me_created_date',
-            })->get_column('created')->as_query,
+            ""  => $self->_me_created_date,
             -as => 'record_created_date',
         },
         {
@@ -1813,7 +1818,12 @@ sub order_by
                 ? $self->schema->storage->datetime_parser->format_datetime($self->from || $self->to)
                 : $self->schema->storage->datetime_parser->format_date($self->from || $self->to);
             my $quoted = $self->quote($field);
-            if ($field =~ /from/) # Date range
+            if ($field eq 'record_created_date')
+            {
+                # Can't use record_created_date subquery within LEAST statement
+                $self->_me_created_date
+            }
+            elsif ($field =~ /from/) # Date range
             {
                 (my $to = $field) =~ s/from/to/;
                 my $quoted_to = $self->quote($to);
@@ -1852,7 +1862,8 @@ sub order_by
         {
             # When we have a group_by, we need an additional aggregate function
             my $func = $self->limit_qty eq 'from' ? 'min' : 'max';
-            @order_by = map { +{ $func => { -ident => $_ } } } @order_by;
+            # Exclude record_created_date (ref of REF)
+            @order_by = map { ref eq 'REF' ? $_ : +{ $func => { -ident => $_ } } } @order_by;
         }
         if ($self->limit_qty eq 'from')
         {
