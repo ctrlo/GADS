@@ -1470,16 +1470,18 @@ sub _build_columns_selected
     }
     elsif (my $view = $self->view)
     {
-        # All fields selected in view, but if a grouped view, then remove
-        # columns that are not set to specifically be shown in a grouped view
-        # (for performance reasons).
+        # Start with all fields selected in view
         my @col_ids = @{$view->columns};
+        my %view_layouts = map { $_ => 1 } @col_ids;
+        @cols = $self->layout->all(user_can_read => 1, include_column_ids => \%view_layouts);
+
         # Always add grouped fields, so that the column is selected for the
         # grouped view itself, and then when drilling down into the view using
         # filters it is apparaent what filters are set
-        push @col_ids, $_->layout_id foreach @{$view->groups};
-        my %view_layouts = map { $_ => 1 } @col_ids;
-        @cols = $self->layout->all(user_can_read => 1, include_column_ids => \%view_layouts);
+        push @cols, map $self->layout->column($_), grep !$view_layouts{$_}, $_->layout_id foreach @{$view->groups};
+        # If a grouped view, then remove columns that are not set to
+        # specifically be shown in a grouped view
+        # (for performance reasons).
         @cols = grep { !$view->is_group || $_->group_display || $self->has_group_col_id->{$_->id} } @cols
             unless @{$self->additional_filters};
     }
@@ -2709,13 +2711,14 @@ sub _build_group_results
     }
     elsif ($view && $view->is_group && $is_table_group)
     {
-        my %view_group_cols = map { $_->layout_id => 1 } @{$view->groups};
+        my %view_group_cols = map { $_->layout_id => $_->parent_id } @{$view->groups};
         @cols = map {
             +{
-                id       => $_->id,
-                column   => $_,
-                operator => $_->numeric ? 'sum' : $view_group_cols{$_->id} ? 'max' : 'distinct',
-                group    => $view_group_cols{$_->id},
+                id        => $_->id,
+                column    => $_,
+                operator  => $_->numeric ? 'sum' : exists $view_group_cols{$_->id} ? 'max' : 'distinct',
+                group     => exists $view_group_cols{$_->id},
+                parent_id => $view_group_cols{$_->id},
             }
         } @{$self->columns_selected}, @{$self->columns_recalc_extra};
     }

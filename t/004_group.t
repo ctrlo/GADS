@@ -204,6 +204,54 @@ foreach my $multivalue (0..1)
         is($row->fields->{$autocur->id}, '2 unique', "Group text correct");
     }
 
+    # Test curval (field itself)
+    $view = GADS::View->new(
+        name        => 'Group view curval',
+        columns     => [$integer1->id],
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+    );
+    $view->write;
+    $view->set_groups([$columns->{curval1}->id]);
+
+    $records = GADS::Records->new(
+        view   => $view,
+        layout => $layout,
+        user   => $sheet->user,
+        schema => $schema,
+    );
+
+    @results = @{$records->results};
+    is(@results, 2, "Correct number of rows for group by curval");
+    is($results[0]->fields->{$integer1->id}, '75', "Group by curval first result correct");
+    is($results[1]->fields->{$integer1->id}, '130', "Group by curval second result correct");
+
+    # Test curval (subfield)
+    $view = GADS::View->new(
+        name        => 'Group view curval subfield',
+        columns     => [$integer1->id],
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+    );
+    $view->write;
+    $view->set_groups([$columns->{curval1}->id."_".$curval_sheet->columns->{string1}->id]);
+
+    $records = GADS::Records->new(
+        view   => $view,
+        layout => $layout,
+        user   => $sheet->user,
+        schema => $schema,
+    );
+
+    @results = @{$records->results};
+    is(@results, 2, "Correct number of rows for group by curval subfield");
+    is($results[0]->fields->{$integer1->id}, '75', "Group by curval subfield first result correct");
+    is($results[1]->fields->{$integer1->id}, '130', "Group by curval subfield second result correct");
+
 }
 
 # Make sure that correct columns are returned from view
