@@ -2466,6 +2466,10 @@ sub purge_current
             records => $recs;
     }
 
+    $self->schema->resultset('FilteredValue')->search({
+        current_id => $id,
+    })->delete;
+
     my @records = $self->schema->resultset('Record')->search({
         current_id => $id
     })->all;
