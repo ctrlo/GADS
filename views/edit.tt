@@ -634,8 +634,8 @@
                     > <span [% label_style %]>[% label %]</span>
                 </label>
             </div>
-        [% ELSIF (dispcol.type != "curval" && dispcol.type != "enum") || dispcol.value_selector == "typeahead" || dispcol.value_selector == "noshow" %]
-            <label for="[% dispcol.id %]" [% label_style %]>
+        [% ELSE %]
+            <label id="[% field %]_label" for="[% dispcol.id %]" [% label_style %]>
                 [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
             </label>
         [% END %]
@@ -807,7 +807,6 @@
             data-filter-fields='[% column.data_filter_fields %]'
         [% END %]
         >
-        <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="select-widget-dropdown">
             <div class="form-group form-control" [% readonly %] >
                 <ul id="[% field %]_value" class="current">
@@ -938,7 +937,6 @@
             data-filter-fields='[% column.data_filter_fields %]'
         [% END %]
         >
-        <div id="[% field %]_label" class="select-widget-label [% required && 'required' %]">[% label %]</div>
         <div class="select-widget-dropdown">
             <div class="form-group form-control" [% readonly %]>
                 <ul id="[% field %]_value" class="current">
