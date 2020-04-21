@@ -2338,7 +2338,7 @@ sub as_json
 sub as_query
 {   my ($self, %options) = @_;
     my @queries;
-    foreach my $col ($self->layout->all(userinput => 1))
+    foreach my $col ($self->layout->all(userinput => 1, user_can_read => 1))
     {
         next if $options{exclude_curcommon} && $col->is_curcommon;
         push @queries, $col->field."=".uri_escape_utf8($_)

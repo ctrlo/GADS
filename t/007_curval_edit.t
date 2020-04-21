@@ -48,6 +48,11 @@ foreach my $test (qw/delete_not_used typeahead normal/)
     my $columns = $sheet->columns;
     $sheet->create_records;
 
+    # Remove permissions from one of the curval fields to check for errors
+    # relating to lack of permissions for a curval subfield
+    $curval_sheet->columns->{daterange1}->set_permissions({});
+    $curval_sheet->columns->{daterange1}->write;
+
     # Add autocur and calc of autocur to curval sheet, to check that gets
     # updated on main sheet write
     my $autocur = $curval_sheet->add_autocur(
