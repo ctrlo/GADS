@@ -54,7 +54,7 @@ after set_value => sub {
         $self->_set_values_as_records(\@records);
         @ids = map { $_->current_id } grep { !$_->new_entry } @records;
         # Exclude the parent curval to prevent recursive loops
-        my @queries = map { $_->as_query(exclude_curcommon => 1) } grep { $_->new_entry } @records;
+        my @queries = map { $_->as_query(exclude_curcommon => $options{allow_set_autocur}) } grep { $_->new_entry } @records;
         $self->_set_values_as_query(\@queries);
         $self->clear_values_as_query_records; # Rebuild for new queries
     }
@@ -476,7 +476,7 @@ sub html_form
     {
         if ($val->{record}->is_draft)
         {
-            $val->{as_query} = $val->{record}->as_query(exclude_curcommon => 1);
+            $val->{as_query} = $val->{record}->as_query;
         }
         # New entries may have a current ID from a failed database write, but
         # don't use

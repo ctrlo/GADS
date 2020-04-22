@@ -47,6 +47,12 @@ foreach my $test (qw/delete_not_used typeahead normal/)
     my $layout  = $sheet->layout;
     my $columns = $sheet->columns;
     $sheet->create_records;
+    $layout->user($sheet->user_normal1);
+
+    # Remove permissions from one of the curval fields to check for errors
+    # relating to lack of permissions for a curval subfield
+    $curval_sheet->columns->{daterange1}->set_permissions({});
+    $curval_sheet->columns->{daterange1}->write;
 
     # Add autocur and calc of autocur to curval sheet, to check that gets
     # updated on main sheet write
@@ -255,6 +261,74 @@ foreach my $test (qw/delete_not_used typeahead normal/)
     is($curval_record->fields->{$curval_string->id}->as_string, 'foo10', "Curval value contains correct string value");
     is($curval_record->fields->{$calc->id}->as_string, '50', "Curval value contains correct autocur before write");
     is($curval_record->fields->{$autocur->id}->as_string, 'Foo', "Autocur value is correct");
+}
+
+# Test to check curval value within curval subfield
+{
+    # The outer curval
+    my $curval_sheet2 = Test::GADS::DataSheet->new(instance_id => 3);
+    $curval_sheet2->create_records;
+    my $schema  = $curval_sheet2->schema;
+
+    # The standard curval which will include the above outer curval
+    my $curval_sheet1 = Test::GADS::DataSheet->new(
+        data             => [],
+        curval           => 3,
+        curval_field_ids => [ $curval_sheet2->columns->{string1}->id ],
+        instance_id      => 2,
+        schema           => $schema,
+    );
+    $curval_sheet1->create_records;
+
+    # The standard table including the standard curval
+    my $sheet   = Test::GADS::DataSheet->new(
+        data             => [],
+        schema           => $schema,
+        curval           => 2,
+        curval_field_ids => [ $curval_sheet1->columns->{string1}->id ],
+    );
+    my $layout  = $sheet->layout;
+    $layout->user($sheet->user_normal1);
+    my $columns = $sheet->columns;
+    $sheet->create_records;
+
+    # Update the curval so that it's a showadd curval
+    my $curval = $columns->{curval1};
+    $curval->show_add(1);
+    $curval->value_selector('noshow');
+    $curval->write(no_alerts => 1, force => 1);
+
+    # Create new draft record
+    my $curval_curval = $curval_sheet1->columns->{curval1};
+    my $curval_string = $curval_sheet1->columns->{string1};
+    my $record = GADS::Record->new(
+        user   => $sheet->user_normal1,
+        layout => $layout,
+        schema => $schema,
+        curcommon_all_fields => 1,
+    );
+    $record->initialise(instance_id => $layout->instance_id);
+    my $curval_datum = $record->fields->{$curval->id};
+    $curval_datum->set_value([$curval_curval->field."=1&".$curval_string->field."=foobars"]);
+    $record->write(draft => 1);
+    $record->clear;
+
+    # Load it back in and check that the inner curval is remembered
+    $record->load_remembered_values(instance_id => $layout->instance_id);
+    $curval_datum = $record->fields->{$curval->id};
+    my $curval_record_id = $curval_datum->ids->[0];
+    my ($form_value) = @{$curval_datum->html_form};
+    my $q = "field25=foobars&field26=&field27=&field32=&field33=1";
+    ok(!$form_value->{id}, "Draft curval edit does not have an ID");
+    is($form_value->{as_query}, $q, "Valid query data for draft curval edit");
+    $record->fields->{$curval->id}->set_value($form_value->{as_query});
+
+    # Save it and check the curval is saved too
+    $record->write(no_alerts => 1);
+    my $cid = $record->current_id;
+    $record->clear;
+    $record->find_current_id($cid);
+    is($record->fields->{$curval->id}->as_string, "foobars");
 }
 
 done_testing();

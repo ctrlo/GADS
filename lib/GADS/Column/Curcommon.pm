@@ -280,7 +280,11 @@ sub _records_from_db
         # retrieved, as this could include a whole load of multivalues which
         # are then fetched from the DB
         sort                 => [ map { { id => $_ } } @{$self->curval_field_ids} ],
-        is_draft             => 1, # XXX Only set this when parent record is draft?
+        # XXX This should only be set when the calling parent record is a
+        # draft, otherwise the draft records could potentially be used in other
+        # records when they shouldn't be visible (and could be removed after
+        # draft becomes permanent record)
+        is_draft             => $self->layout->user->id,
     );
 
     return $records;
