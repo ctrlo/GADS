@@ -47,6 +47,7 @@ foreach my $test (qw/delete_not_used typeahead normal/)
     my $layout  = $sheet->layout;
     my $columns = $sheet->columns;
     $sheet->create_records;
+    $layout->user($sheet->user_normal1);
 
     # Remove permissions from one of the curval fields to check for errors
     # relating to lack of permissions for a curval subfield
@@ -287,6 +288,7 @@ foreach my $test (qw/delete_not_used typeahead normal/)
         curval_field_ids => [ $curval_sheet1->columns->{string1}->id ],
     );
     my $layout  = $sheet->layout;
+    $layout->user($sheet->user_normal1);
     my $columns = $sheet->columns;
     $sheet->create_records;
 
