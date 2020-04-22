@@ -3474,7 +3474,7 @@ sub _process_edit
     elsif ($id)
     {
         $record = GADS::Record->new(%params);
-        my $include_draft = defined(param 'include_draft');
+        my $include_draft = defined(param 'include_draft') ? $user->id : undef;
         $record->find_current_id($id, include_draft => $include_draft);
         $layout = $record->layout;
         var 'layout' => $layout;

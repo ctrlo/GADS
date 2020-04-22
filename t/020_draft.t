@@ -7,7 +7,7 @@ use Log::Report;
 use lib 't/lib';
 use Test::GADS::DataSheet;
 
-my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, data => []);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
 
@@ -38,7 +38,7 @@ my $records = GADS::Records->new(
 
 # Check normal initial record and draft count
 my $record_rs = $schema->resultset('Current')->search({ draftuser_id => undef });
-is($record_rs->count, 2, "Correct number of initial records");
+is($record_rs->count, 4, "Correct number of initial records");
 my $draft_rs = $schema->resultset('Current')->search({ draftuser_id => {'!=' => undef} });
 is($draft_rs->count, 0, "No draft records to start");
 
@@ -56,7 +56,7 @@ $record->fields->{$integer1->id}->set_value(450);
 $record->write(draft => 1); # Missing date1 should not matter
 
 is($draft_rs->count, 1, "One draft saved");
-is($record_rs->count, 2, "Same normal records after draft save");
+is($record_rs->count, 4, "Same normal records after draft save");
 
 # Check draft not showing in normal view
 $records = GADS::Records->new(
@@ -101,7 +101,7 @@ like($@, qr/Cannot save draft of existing/, "Unable to write draft for normal re
 
 # Check numbers after proper record save
 is($draft_rs->count, 0, "No drafts after proper save");
-is($record_rs->count, 3, "Additional normal record written");
+is($record_rs->count, 5, "Additional normal record written");
 
 # Test saving of draft with sub-record
 {
@@ -141,8 +141,8 @@ is($record_rs->count, 3, "Additional normal record written");
     $record->initialise;
     my $string1 = $layout->column_by_name('string1');
     $record->fields->{$string1->id}->set_value("Draft3");
-    my $val  = $curval_columns->{string1}->field.'=foo&'.$curval_columns->{integer1}->field.'=25';
-    my $val2 = $curval_columns->{string1}->field.'=bar&'.$curval_columns->{integer1}->field.'=50';
+    my $val  = $curval_columns->{string1}->field.'=orange&'.$curval_columns->{integer1}->field.'=25';
+    my $val2 = $curval_columns->{string1}->field.'=apple&'.$curval_columns->{integer1}->field.'=50';
     $record->fields->{$curval->id}->set_value([$val, $val2]);
     $record->write(draft => 1);
 
@@ -179,7 +179,38 @@ is($record_rs->count, 3, "Additional normal record written");
         curcommon_all_fields => 1,
     );
     $record->load_remembered_values;
-    is($record->fields->{$curval->id}->as_string, "bar, 50, a_grey; foo, 25, a_grey", "Remembered subrecord curval");
+
+    # Check that the curval values include the draft curval records.
+    # Need to use layout object from record as it will have been rebuilt
+    my @curval_vals = @{$record->layout->column($curval->id)->filtered_values};
+    is(@curval_vals, 5, "Correct number of curval values");
+    my $curval_draft_val = grep $_->{value} eq 'Draft4, , a_grey', @curval_vals;
+    ok($curval_draft_val, "Draft curval appears in curval field for draft user");
+
+    # Now create a completely separate record with another user. The draft
+    # curval records should not appear for this user
+    {
+        my $layout2 = GADS::Layout->new(
+            user                     => $sheet->user_normal2,
+            schema                   => $schema,
+            instance_id              => $layout->instance_id,
+        );
+        my $record2 = GADS::Record->new(
+            user                 => $sheet->user_normal2,
+            layout               => $layout2,
+            schema               => $schema,
+            curcommon_all_fields => 1,
+        );
+        $record2->load_remembered_values;
+
+        # Need to use layout object from record as it will have been rebuilt
+        my @curval_vals = @{$record2->layout->column($curval->id)->filtered_values};
+        is(@curval_vals, 2, "Correct number of curval values");
+        my $curval_draft_val = grep $_->{value} eq 'Draft4, , a_grey', @curval_vals;
+        ok(!$curval_draft_val, "Draft curval appears in curval field for draft user");
+    }
+
+    is($record->fields->{$curval->id}->as_string, "apple, 50, a_grey; orange, 25, a_grey", "Remembered subrecord curval");
     my ($id) = @{$record->fields->{$curval->id}->ids};
     $curval_count = $schema->resultset('Current')->search({
         instance_id  => 2,
@@ -207,7 +238,7 @@ is($record_rs->count, 3, "Additional normal record written");
         schema => $schema,
     );
     $record->find_current_id($current_id);
-    is($record->fields->{$curval->id}->as_string, "bar, 50, a_grey; foo, 25, a_grey", "Remembered subrecord curval");
+    is($record->fields->{$curval->id}->as_string, "apple, 50, a_grey; orange, 25, a_grey", "Remembered subrecord curval");
 
     # Check the single remaining draft is the correct one
     $record = GADS::Record->new(

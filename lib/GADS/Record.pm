@@ -340,17 +340,15 @@ sub _build_serial
 
 has is_draft => (
     is      => 'lazy',
-    isa     => Bool,
-    coerce  => sub { $_[0] ? 1 : 0 }, # Allow direct passing of draftuser_id
     clearer => 1,
 );
 
 sub _build_is_draft
 {   my $self = shift;
-    return !!$self->record->{draftuser_id}
+    return $self->record->{draftuser_id}
         if $self->record && exists $self->record->{draftuser_id};
-    return if $self->new_entry;
-    !!$self->schema->resultset('Current')->find($self->current_id)->draftuser_id;
+    return undef if $self->new_entry;
+    $self->schema->resultset('Current')->find($self->current_id)->draftuser_id;
 }
 
 has approval_id => (
@@ -730,7 +728,7 @@ sub _find
         columns              => $self->columns,
         rewind               => $self->rewind,
         is_deleted           => $find{deleted},
-        is_draft             => $find{draftuser_id} || $find{include_draft} ? 1 : 0,
+        is_draft             => $find{draftuser_id} || $find{include_draft},
         no_view_limits       => !!$find{draftuser_id},
         include_approval     => $self->include_approval,
         include_children     => 1,

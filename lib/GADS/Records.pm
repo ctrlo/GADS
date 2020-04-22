@@ -114,10 +114,9 @@ sub _build_include_children
     return 0;
 }
 
-# Whether to show only draft records or only live records
+# Whether to include draft records of this user ID (should be renamed)
 has is_draft => (
-    is      => 'ro',
-    default => 0,
+    is => 'ro',
 );
 
 has view => (
@@ -399,8 +398,11 @@ sub common_search
     {
         push @search, { "$current.parent_id" => undef };
     }
-    unless ($self->is_draft)
+    if ($self->is_draft)
     {
+        push @search, { "$current.draftuser_id" => [undef, $self->is_draft] };
+    }
+    else {
         push @search, { "$current.draftuser_id" => undef }; # not draft records
     }
     return @search;
