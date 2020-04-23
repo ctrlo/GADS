@@ -1195,6 +1195,8 @@ sub initialise
     my $fields = {};
     foreach my $column ($self->layout->all(include_internal => 1))
     {
+        $column->retrieve_all_columns(1)
+            if $self->curcommon_all_fields && $column->is_curcommon;
         $self->initialise_field($fields, $column->id);
     }
 
@@ -1331,6 +1333,18 @@ has already_submitted_error => (
     isa     => Bool,
     default => 0,
 );
+
+has selector_id => (
+    is => 'lazy',
+);
+
+sub _build_selector_id
+{   my $self = shift;
+    # In theory could clash, but very unlikely, and it's also unlikely there
+    # will be more than a few entries in total that can clash
+    my $token = Session::Token->new(length => 32)->get;
+    $self->is_draft ? "query_".$self->current_id : $self->new_entry ? "new_$token" : $self->current_id;
+}
 
 # options (mostly used by onboard):
 # - update_only: update the values of the existing record instead of creating a

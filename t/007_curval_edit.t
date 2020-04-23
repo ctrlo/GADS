@@ -8,10 +8,10 @@ use Log::Report;
 use lib 't/lib';
 use Test::GADS::DataSheet;
 
-foreach my $test (qw/delete_not_used typeahead normal/)
+foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
 {
     my $delete_not_used = $test eq 'delete_not_used' ? 1 : 0;
-    my $value_selector  = $test eq 'typeahead' ? 'typeahead' : 'noshow';
+    my $value_selector  = $test eq 'delete_not_used' ? 'noshow' : $test;
 
     my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, site_id => 1);
     $curval_sheet->create_records;
@@ -48,6 +48,22 @@ foreach my $test (qw/delete_not_used typeahead normal/)
     my $columns = $sheet->columns;
     $sheet->create_records;
     $layout->user($sheet->user_normal1);
+
+    # Add a curval field in the curval layout that refers back to the main
+    # table
+    my $cc = GADS::Column::Curval->new(
+        schema => $schema,
+        user   => $sheet->user,
+        layout => $curval_sheet->layout,
+    );
+    $cc->refers_to_instance_id(1);
+    $cc->curval_field_ids([$columns->{string1}->id]);
+    $cc->type('curval');
+    $cc->name('Curval back to main table');
+    $cc->name_short('L2curval2');
+    $cc->set_permissions({$sheet->group->id => $sheet->default_permissions});
+    $cc->write;
+    $layout->clear;
 
     # Remove permissions from one of the curval fields to check for errors
     # relating to lack of permissions for a curval subfield
@@ -92,6 +108,20 @@ foreach my $test (qw/delete_not_used typeahead normal/)
     $record->find_current_id(3);
     my $curval_datum = $record->fields->{$curval->id};
     is( $curval_datum->as_string, '', "Curval blank to begin with");
+
+    if ($value_selector eq 'dropdown')
+    {
+        my $expected = [{
+            value_id    => 2,
+            selector_id => 2,
+            value       => 'Bar',
+        },{
+            value_id    => 1,
+            selector_id => 1,
+            value       => 'Foo',
+        }];
+        _check_values($curval->filtered_values, $expected, "Curval dropdown values initially correct");
+    }
 
     # Add a value to the curval on write
     my $curval_count = $schema->resultset('Current')->search({ instance_id => 2 })->count;
@@ -226,13 +256,57 @@ foreach my $test (qw/delete_not_used typeahead normal/)
         curcommon_all_fields => 1,
     );
     $record->initialise(instance_id => $layout->instance_id);
+    my $filval_count = @{$record->layout->column($curval->id)->filtered_values};
     $curval_datum = $record->fields->{$curval->id};
     $curval_datum->set_value([$curval_string->field."=foo10", $curval_string->field."=foo20"]);
     $record->fields->{$columns->{integer1}->id}->set_value(10); # Prevent calc warnings
     $record->write(draft => 1);
     $record->clear;
     $record->load_remembered_values(instance_id => $layout->instance_id);
+    if ($value_selector eq 'dropdown')
+    {
+        # For a dropdown selector, the new values for the curval should be
+        # available in the curval dropdown in the draft record
+        my @values = @{$record->layout->column($curval->id)->filtered_values};
+        is(@values, $filval_count + 2, "Correct number of new curval values");
+        my @draft = grep $_->{selector_id} =~ /query/, @values;
+        my @draft_ids = map $_->{record}->current_id, @draft;
+        my $expected = [{
+            value_id    => 'field8=foo10&field9=&field10=&field15=',
+            selector_id => 'query_'.shift @draft_ids,
+            value       => 'foo10',
+        },{
+            value_id    => 'field8=foo20&field9=&field10=&field15=',
+            selector_id => 'query_'.shift @draft_ids,
+            value       => 'foo20',
+        }];
+        _check_values(\@draft, $expected, "Curval contains draft values");
+
+        # Second test to make sure that the pop-up curval add modal can contain
+        # a curval that references back to the main record. In particular,
+        # draft values should not appear in a curval list of options unless the
+        # "show add" button is enabled
+        my $curval_layout = $curval_sheet->layout;
+        $curval_layout->clear;
+        $curval_layout->user($sheet->user_normal1);
+        my $modal_record = GADS::Record->new(
+            user   => $sheet->user_normal1,
+            layout => $curval_layout,
+            schema => $schema,
+            curcommon_all_fields => 1,
+        );
+        $modal_record->initialise(instance_id => $layout->instance_id);
+        my $filval_count = $schema->resultset('Current')->search({
+            instance_id  => $layout->instance_id,
+            draftuser_id => undef,
+            deleted      => undef,
+        })->count;
+        $modal_record->load_remembered_values(instance_id => $curval_layout->instance_id);
+        @values = @{$modal_record->layout->column($cc->id)->filtered_values};
+        is(@values, $filval_count, "Correct number of curval values");
+    }
     $curval_datum = $record->fields->{$curval->id};
+    ok(!$curval_datum->blank, "New draft value not blank");
     $curval_record_id = $curval_datum->ids->[0];
     my @form_values = @{$curval_datum->html_form};
     my @qs = ("field8=foo10&field9=&field10=&field15=", "field8=foo20&field9=&field10=&field15=");
@@ -261,6 +335,57 @@ foreach my $test (qw/delete_not_used typeahead normal/)
     is($curval_record->fields->{$curval_string->id}->as_string, 'foo10', "Curval value contains correct string value");
     is($curval_record->fields->{$calc->id}->as_string, '50', "Curval value contains correct autocur before write");
     is($curval_record->fields->{$autocur->id}->as_string, 'Foo', "Autocur value is correct");
+
+    # Try writing a record that will fail, and check values of fields returned to form.
+    # Do this firstly for a brand new record, and then for a record that was
+    # saved as draft and then submitted.
+    foreach my $is_draft (0..2) # 0 - normal write, 1 - draft, 2 - submit draft
+    {
+        $columns->{string1}->optional(0);
+        $columns->{string1}->write;
+        $layout->clear;
+        $record = GADS::Record->new(
+            user   => $sheet->user_normal1,
+            layout => $layout,
+            schema => $schema,
+            curcommon_all_fields => 1,
+        );
+        $record->initialise(instance_id => $layout->instance_id);
+        $filval_count = @{$record->layout->column($curval->id)->filtered_values};
+        $curval_datum = $record->fields->{$curval->id};
+        $curval_datum->set_value([$curval_string->field."=foo99"]);
+        $record->fields->{$columns->{integer1}->id}->set_value(50);
+        if ($is_draft == 1)
+        {
+            $record->write(no_alerts => 1, draft => 1);
+        }
+        else {
+            try { $record->write(no_alerts => 1) };
+            like($@, qr/is not optional/, "Failed to write record because of missing value");
+            my $selector_id;
+            $curval_datum = $record->fields->{$curval->id};
+            if ($value_selector eq 'dropdown')
+            {
+                my @values = @{$record->layout->column($curval->id)->filtered_values};
+                is(@values, $filval_count + 1, "Correct number of new curval values");
+                my @draft = grep $_->{selector_id} =~ /new/, @values;
+                is(@draft, 1, "Correct draft values");
+                $selector_id = $draft[0]->{selector_id};
+                like($selector_id, qr/^new/, "Selector ID correct for draft value");
+                my $expected = [{
+                    value_id    => 'field8=foo99&field9=&field10=&field15=',
+                    selector_id => $selector_id,
+                    value       => 'foo99',
+                }];
+                _check_values(\@draft, $expected, "Curval contains draft values");
+            }
+            else {
+                ($selector_id) = map $_->{record}->selector_id, @{$curval_datum->values};
+            }
+            ok($curval_datum->id_hash->{$selector_id}, "New draft value selected");
+            ok(!$curval_datum->blank, "New draft value not blank");
+        }
+    }
 }
 
 # Test to check curval value within curval subfield
@@ -329,6 +454,17 @@ foreach my $test (qw/delete_not_used typeahead normal/)
     $record->clear;
     $record->find_current_id($cid);
     is($record->fields->{$curval->id}->as_string, "foobars");
+}
+
+sub _check_values
+{   my ($got, $expected, $test) = @_;
+    foreach (@$got)
+    {
+        delete $_->{record};
+        delete $_->{values};
+        delete $_->{id};
+    }
+    is_deeply($got, $expected, $test);
 }
 
 done_testing();

@@ -283,8 +283,16 @@ sub _records_from_db
         # XXX This should only be set when the calling parent record is a
         # draft, otherwise the draft records could potentially be used in other
         # records when they shouldn't be visible (and could be removed after
-        # draft becomes permanent record)
-        is_draft             => $self->layout->user->id,
+        # draft becomes permanent record).
+        # Also, only add draft records if the show_add selector is enabled.
+        # This is really a bit of a workaround, as it's possible that the
+        # show-add modal for one curval field could contain a curval back to
+        # the parent field. This can lead to its own problems (as all_fields
+        # for the curval will not have been loaded, meaning that calc fields
+        # cannot be evaluated for the draft record in the drop-down), so given
+        # that the curval in the pop-up modal wouldn't normally contain a
+        # show-add, this ensures those problems don't transpire.
+        is_draft             => $self->show_add && $self->layout->user->id,
     );
 
     return $records;
@@ -369,6 +377,8 @@ sub filtered_values
             }
         }
     }
+
+    push @values, map $self->_format_row($_), @{$self->layout->record->fields->{$self->id}->values_as_query_records};
 
     \@values;
 }
@@ -699,11 +709,14 @@ sub _format_row
         push @values, $row->fields->{$fid};
     }
     my $text     = $self->format_value(@values);
+    my $as_query = ($row->is_draft || !$row->current_id) && $row->as_query;
     +{
-        id         => $row->current_id,
-        record     => $row,
-        $value_key => $text,
-        values     => \@values,
+        id          => $row->current_id,
+        value_id    => $as_query || $row->current_id,
+        selector_id => $row->selector_id,
+        record      => $row,
+        $value_key  => $text,
+        values      => \@values,
     };
 }
 
