@@ -45,7 +45,17 @@ has enumvals => (
             order_by => $sort
         });
         $enumrs->result_class('DBIx::Class::ResultClass::HashRefInflator');
-        my @enumvals = $enumrs->all;
+        # Make enumvals match Curval value types, as both use the same
+        # front-end code
+        my @enumvals = map {
+            +{
+                value       => $_->{value},
+                deleted     => $_->{deleted},
+                id          => $_->{id},
+                selector_id => $_->{id},
+                value_id    => $_->{id},
+            }
+        }$enumrs->all;
         \@enumvals;
     },
     trigger => sub {

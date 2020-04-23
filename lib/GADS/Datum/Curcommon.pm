@@ -208,7 +208,7 @@ sub _build__records
 
 sub _build_blank
 {   my $self = shift;
-    @{$self->ids} || @{$self->values_as_query} ? 0 : 1;
+    @{$self->values} ? 0 : 1;
 }
 
 has text => (
@@ -232,7 +232,7 @@ has id_hash => (
 
 sub _build_id_hash
 {   my $self = shift;
-    +{ map { $_ => 1 } @{$self->ids} };
+    +{ map { $_->{record}->selector_id => 1 } @{$self->values} };
 }
 
 has ids => (
