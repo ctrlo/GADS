@@ -201,6 +201,7 @@ is($record_rs->count, 5, "Additional normal record written");
             schema               => $schema,
             curcommon_all_fields => 1,
         );
+        $record2->initialise;
         $record2->load_remembered_values;
 
         # Need to use layout object from record as it will have been rebuilt
