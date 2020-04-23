@@ -378,7 +378,8 @@ sub filtered_values
         }
     }
 
-    push @values, map $self->_format_row($_), @{$self->layout->record->fields->{$self->id}->values_as_query_records};
+    push @values, map $self->_format_row($_), @{$self->layout->record->fields->{$self->id}->values_as_query_records}
+        if $self->show_add;
 
     \@values;
 }
