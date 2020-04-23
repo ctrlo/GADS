@@ -336,45 +336,56 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
     is($curval_record->fields->{$calc->id}->as_string, '50', "Curval value contains correct autocur before write");
     is($curval_record->fields->{$autocur->id}->as_string, 'Foo', "Autocur value is correct");
 
-    # Try writing a record that will fail, and check values of fields returned to form
-    $columns->{string1}->optional(0);
-    $columns->{string1}->write;
-    $layout->clear;
-    $record = GADS::Record->new(
-        user   => $sheet->user_normal1,
-        layout => $layout,
-        schema => $schema,
-        curcommon_all_fields => 1,
-    );
-    $record->initialise(instance_id => $layout->instance_id);
-    $filval_count = @{$record->layout->column($curval->id)->filtered_values};
-    $curval_datum = $record->fields->{$curval->id};
-    $curval_datum->set_value([$curval_string->field."=foo99"]);
-    $record->fields->{$columns->{integer1}->id}->set_value(50);
-    try { $record->write(no_alerts => 1) };
-    like($@, qr/is not optional/, "Failed to write record because of missing value");
-    my $selector_id;
-    $curval_datum = $record->fields->{$curval->id};
-    if ($value_selector eq 'dropdown')
+    # Try writing a record that will fail, and check values of fields returned to form.
+    # Do this firstly for a brand new record, and then for a record that was
+    # saved as draft and then submitted.
+    foreach my $is_draft (0..2) # 0 - normal write, 1 - draft, 2 - submit draft
     {
-        my @values = @{$record->layout->column($curval->id)->filtered_values};
-        is(@values, $filval_count + 1, "Correct number of new curval values");
-        my @draft = grep $_->{selector_id} =~ /new/, @values;
-        is(@draft, 1, "Correct draft values");
-        $selector_id = $draft[0]->{selector_id};
-        like($selector_id, qr/^new/, "Selector ID correct for draft value");
-        my $expected = [{
-            value_id    => 'field8=foo99&field9=&field10=&field15=',
-            selector_id => $selector_id,
-            value       => 'foo99',
-        }];
-        _check_values(\@draft, $expected, "Curval contains draft values");
+        $columns->{string1}->optional(0);
+        $columns->{string1}->write;
+        $layout->clear;
+        $record = GADS::Record->new(
+            user   => $sheet->user_normal1,
+            layout => $layout,
+            schema => $schema,
+            curcommon_all_fields => 1,
+        );
+        $record->initialise(instance_id => $layout->instance_id);
+        $filval_count = @{$record->layout->column($curval->id)->filtered_values};
+        $curval_datum = $record->fields->{$curval->id};
+        $curval_datum->set_value([$curval_string->field."=foo99"]);
+        $record->fields->{$columns->{integer1}->id}->set_value(50);
+        if ($is_draft == 1)
+        {
+            $record->write(no_alerts => 1, draft => 1);
+        }
+        else {
+            try { $record->write(no_alerts => 1) };
+            like($@, qr/is not optional/, "Failed to write record because of missing value");
+            my $selector_id;
+            $curval_datum = $record->fields->{$curval->id};
+            if ($value_selector eq 'dropdown')
+            {
+                my @values = @{$record->layout->column($curval->id)->filtered_values};
+                is(@values, $filval_count + 1, "Correct number of new curval values");
+                my @draft = grep $_->{selector_id} =~ /new/, @values;
+                is(@draft, 1, "Correct draft values");
+                $selector_id = $draft[0]->{selector_id};
+                like($selector_id, qr/^new/, "Selector ID correct for draft value");
+                my $expected = [{
+                    value_id    => 'field8=foo99&field9=&field10=&field15=',
+                    selector_id => $selector_id,
+                    value       => 'foo99',
+                }];
+                _check_values(\@draft, $expected, "Curval contains draft values");
+            }
+            else {
+                ($selector_id) = map $_->{record}->selector_id, @{$curval_datum->values};
+            }
+            ok($curval_datum->id_hash->{$selector_id}, "New draft value selected");
+            ok(!$curval_datum->blank, "New draft value not blank");
+        }
     }
-    else {
-        ($selector_id) = map $_->{record}->selector_id, @{$curval_datum->values};
-    }
-    ok($curval_datum->id_hash->{$selector_id}, "New draft value selected");
-    ok(!$curval_datum->blank, "New draft value not blank");
 }
 
 # Test to check curval value within curval subfield

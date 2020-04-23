@@ -1195,6 +1195,8 @@ sub initialise
     my $fields = {};
     foreach my $column ($self->layout->all(include_internal => 1))
     {
+        $column->retrieve_all_columns(1)
+            if $self->curcommon_all_fields && $column->is_curcommon;
         $self->initialise_field($fields, $column->id);
     }
 
