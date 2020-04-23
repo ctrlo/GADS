@@ -49,6 +49,22 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
     $sheet->create_records;
     $layout->user($sheet->user_normal1);
 
+    # Add a curval field in the curval layout that refers back to the main
+    # table
+    my $cc = GADS::Column::Curval->new(
+        schema => $schema,
+        user   => $sheet->user,
+        layout => $curval_sheet->layout,
+    );
+    $cc->refers_to_instance_id(1);
+    $cc->curval_field_ids([$columns->{string1}->id]);
+    $cc->type('curval');
+    $cc->name('Curval back to main table');
+    $cc->name_short('L2curval2');
+    $cc->set_permissions({$sheet->group->id => $sheet->default_permissions});
+    $cc->write;
+    $layout->clear;
+
     # Remove permissions from one of the curval fields to check for errors
     # relating to lack of permissions for a curval subfield
     $curval_sheet->columns->{daterange1}->set_permissions({});
@@ -265,20 +281,29 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
             value       => 'foo20',
         }];
         _check_values(\@draft, $expected, "Curval contains draft values");
-        # Second test to make sure that the draft values do not appear in a
-        # curval list of options unless the "show add" button is enabled
-        $curval->show_add(0);
-        $curval->write(no_alerts => 1);
-        $layout->clear;
-        $record->clear;
-        $record->load_remembered_values(instance_id => $layout->instance_id);
-        @values = @{$record->layout->column($curval->id)->filtered_values};
-        is(@values, $filval_count, "Correct number of new curval values");
-        $curval->show_add(1);
-        $curval->write(no_alerts => 1);
-        $layout->clear;
-        $record->clear;
-        $record->load_remembered_values(instance_id => $layout->instance_id);
+
+        # Second test to make sure that the pop-up curval add modal can contain
+        # a curval that references back to the main record. In particular,
+        # draft values should not appear in a curval list of options unless the
+        # "show add" button is enabled
+        my $curval_layout = $curval_sheet->layout;
+        $curval_layout->clear;
+        $curval_layout->user($sheet->user_normal1);
+        my $modal_record = GADS::Record->new(
+            user   => $sheet->user_normal1,
+            layout => $curval_layout,
+            schema => $schema,
+            curcommon_all_fields => 1,
+        );
+        $modal_record->initialise(instance_id => $layout->instance_id);
+        my $filval_count = $schema->resultset('Current')->search({
+            instance_id  => $layout->instance_id,
+            draftuser_id => undef,
+            deleted      => undef,
+        })->count;
+        $modal_record->load_remembered_values(instance_id => $curval_layout->instance_id);
+        @values = @{$modal_record->layout->column($cc->id)->filtered_values};
+        is(@values, $filval_count, "Correct number of curval values");
     }
     $curval_datum = $record->fields->{$curval->id};
     ok(!$curval_datum->blank, "New draft value not blank");
