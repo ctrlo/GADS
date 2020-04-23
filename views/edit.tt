@@ -944,8 +944,7 @@
                     <li class="none-selected">blank</li>
                 [% FOREACH value IN values %]
                     [% NEXT IF value.deleted %]
-                    [% value_id = value.value_id %]
-                    [% checked = editvalue.id_hash.${value_id} %]
+                    [% checked = editvalue.id_hash.${value.selector_id} %]
                     [% value_field_id = field _ '_' _ value.id %]
                     <li [% !checked && 'hidden' %] data-list-item="[% value_field_id %]">
                         <span class="widget-value__value">[% value.value | html_entity %]</span>
@@ -966,13 +965,12 @@
                 <li class="has-noresults" hidden>No results</li>
             [% FOREACH value IN values %]
                 [% NEXT IF value.deleted %]
-                [% value_id = value.value_id %]
-                [% checked = editvalue.id_hash.${value_id} %]
+                [% checked = editvalue.id_hash.${value.selector_id} %]
                 [% value_field_id = field _ '_' _ value.id %]
                 <li class="answer">
                     <span class="control">
                         <label id="[% value_field_id %]_label" for="[% value_field_id %]">
-                            <input id="[% value_field_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %] value="[% value_id | html %]" aria-labelledby="[% value_field_id %]_label">
+                            <input id="[% value_field_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %] value="[% value.value_id | html %]" aria-labelledby="[% value_field_id %]_label">
                             <span role="option">[% value.value | html_entity %]</span>
                         </label>
                     </span>
