@@ -908,8 +908,8 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
 
     if (param 'sendemail')
     {
-        my @emails = param('email_organisation')
-                   ? (map { $_->email } @{$userso->all_in_org(param 'email_organisation')})
+        my @emails = param('group_ids')
+                   ? (map { $_->email } @{$userso->all_in_groups(param 'group_ids')})
                    : (map { $_->email } @{$userso->all});
         my $email  = GADS::Email->instance;
         my $args   = {
@@ -918,10 +918,16 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
             emails  => \@emails,
         };
 
-        if (process( sub { $email->message($args, logged_in_user) }))
+        if (@emails)
         {
-            return forwardHome(
-                { success => "The message has been sent successfully" }, 'user' );
+            if (process( sub { $email->message($args, logged_in_user) }))
+            {
+                return forwardHome(
+                    { success => "The message has been sent successfully" }, 'user' );
+            }
+        }
+        else {
+            report({is_fatal => 0}, ERROR => 'The groups selected contain no users');
         }
     }
 

@@ -111,6 +111,17 @@ sub all_in_org
     \@users;
 }
 
+sub all_in_groups
+{   my ($self, $group_ids) = @_;
+    my @users = $self->user_rs->search({
+        'user_groups.group_id' => $group_ids,
+    },{
+        join     => 'user_groups',
+        collapse => 1,
+    })->all;
+    \@users;
+}
+
 sub _build_all_admins
 {   my $self = shift;
     my $search = {

@@ -264,13 +264,39 @@
     modal_form_method="post"
 %]
     <div class="form-group">
-        <label for="email_organisation" class="control-label">Users in:</label>
-            <select class="form-control" id="email_organisation" name="email_organisation">
-                <option value="">&lt;All users&gt;</option>
-                [% FOREACH org IN organisations %]
-                    <option value="[% org.id %]">[% org.name | html_entity %]</option>
+        <label for="email_groups" class="control-label">Limit to users in these groups:</label>
+        <div class="select-widget multi">
+            <div class="select-widget-dropdown">
+                <div class="form-group form-control">
+                    <ul class="current">
+                        <li class="none-selected">all users</li>
+                    [% FOREACH group IN groups %]
+                        [% group_field_id = "group" _ '_' _ group.id %]
+                        <li data-list-item="[% group_field_id %]" hidden>
+                            <span class="widget-value__value">[% group.name | html %]</span>
+                            <button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
+                        </li>
+                    [% END %]
+                            <li class="search">
+                                <input type="search" class="form-control-search" style="width:70px"  placeholder="Search..." aria-controls="group_available_values" aria-expanded="false" aria-describedby="email_groups">
+                            </li>
+                    </ul>
+                </div>
+                <ul hidden class="available [% details && 'with-details' %]" id="group_available_values" aria-labelledby="email_groups">
+                [% FOREACH group IN groups %]
+                    [% group_field_id = "group" _ '_' _ group.id %]
+                    <li class="answer">
+                        <span class="control">
+                            <label id="[% group_field_id %]_label" for="[% group_field_id %]">
+                                <input id="[% group_field_id %]" name="group_ids" type="checkbox" value="[% group.id %]" aria-labelledby="[% group_field_id %]_label">
+                                <span role="option">[% group.name | html %]</span>
+                            </label>
+                        </span>
+                    </li>
                 [% END %]
-            </select>
+                </ul>
+            </div>
+        </div>
     </div>
     <div class="form-group">
         <label for="email_subject" class="control-label">Subject</label>
