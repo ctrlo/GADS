@@ -2460,14 +2460,6 @@ small.search_term {
   padding: 0;
 }
 
-.select-widget-label {
-  margin-bottom: 0.3em;
-}
-
-.select-widget-label.required {
-  font-weight: bold;
-}
-
 .select-widget-dropdown {
   position: relative;
 }
