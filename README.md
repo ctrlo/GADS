@@ -123,6 +123,8 @@ Besides this plain javascript file webpack is put in place to compile part of th
 (only dashboards for now). Those source files live in `src`. A changes monitor and compiler is used
 by running `npm run ts`.
 
+Install all required note modules using `npm install` then `npm install --only=dev`.
+
 ### Combine
 To monitor and compile both css and js at the same time run `npm run start`.
 
