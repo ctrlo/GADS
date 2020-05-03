@@ -17,6 +17,8 @@ use Text::CSV;
 
 use base qw(DBIx::Class::ResultSet);
 
+__PACKAGE__->load_components(qw(Helper::ResultSet::CorrelateRelationship));
+
 sub active
 {   my ($self, %search) = @_;
 

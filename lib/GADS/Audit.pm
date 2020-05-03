@@ -75,6 +75,7 @@ sub audit_types{ [qw/user_action login_change login_success logout login_failure
 sub user_action
 {   my ($self, %options) = @_;
 
+    my $layout = $options{layout};
     $self->schema->resultset('Audit')->create({
         user_id     => $self->user_id,
         description => $options{description},
@@ -82,6 +83,7 @@ sub user_action
         method      => $options{method},
         url         => $options{url},
         datetime    => DateTime->now,
+        instance_id => $layout && $layout->instance_id,
     });
 }
 

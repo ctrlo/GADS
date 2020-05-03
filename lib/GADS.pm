@@ -195,6 +195,20 @@ hook before => sub {
             if request->path eq '/login';
     }
 
+    if ($user)
+    {
+        my $instances = GADS::Instances->new(schema => schema, user => $user);
+        var 'instances' => $instances;
+
+        if (my $layout_name = route_parameters->get('layout_name'))
+        {
+            if (my $layout = var('instances')->layout_by_shortname($layout_name, no_errors => 1))
+            {
+                var 'layout' => $layout;
+            }
+        }
+    }
+
     # Log to audit
     my $method      = request->method;
     my $path        = request->path;
@@ -205,11 +219,8 @@ hook before => sub {
         ? qq(User "$username" made "$method" request to "$path")
         : qq(Unauthenticated user made "$method" request to "$path");
     $description .= qq( with query "$query") if $query;
-    $audit->user_action(description => $description, url => $path, method => $method)
+    $audit->user_action(description => $description, url => $path, method => $method, layout => var('layout'))
         if $user;
-
-    my $instances = $user && GADS::Instances->new(schema => schema, user => $user);
-    var 'instances' => $instances;
 
     # The following use logged_in_user so as not to apply for API requests
     if (logged_in_user)
@@ -258,17 +269,13 @@ hook before => sub {
                 if @{var('instances')->all};
         }
 
+        if (var 'layout') {
+            $persistent->{instance_id} = var('layout')->instance_id;
+        }
+
         notice __"You do not have permission to access any part of this application. Please contact your system administrator."
             if !@{var('instances')->all};
 
-        if (my $layout_name = route_parameters->get('layout_name'))
-        {
-            if (my $layout = var('instances')->layout_by_shortname($layout_name, no_errors => 1))
-            {
-                var 'layout' => $layout;
-                session('persistent')->{instance_id} = $layout->instance_id;
-            }
-        }
     }
 };
 
@@ -1067,7 +1074,7 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
 
     if (defined param 'download')
     {
-        my $csv = $userso->csv;
+        my $csv = $userso->csv($user);
         my $now = DateTime->now();
         my $header;
         if ($header = config->{gads}->{header})

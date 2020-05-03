@@ -275,10 +275,12 @@ sub register
 }
 
 sub csv
-{   my $self = shift;
+{   my ($self, $user) = @_;
     my $csv  = Text::CSV::Encoded->new({ encoding  => undef });
 
+    my $instances = GADS::Instances->new(schema => $self->schema, user => $user);
     my $site = $self->schema->resultset('Site')->find($self->schema->site_id);
+
     # Column names
     my @columns = qw/ID Surname Forename Email Lastlogin Created/;
     push @columns, 'Title' if $site->register_show_title;
@@ -289,67 +291,80 @@ sub csv
     push @columns, $site->register_freetext2_name if $site->register_freetext2_name;
     push @columns, 'Permissions', 'Groups';
     push @columns, 'Page hits last month';
+    push @columns, 'Last hit to table "'.$_->name.'"' foreach @{$instances->all};
+
     $csv->combine(@columns)
         or error __x"An error occurred producing the CSV headings: {err}", err => $csv->error_input;
     my $csvout = $csv->string."\n";
 
     # All the data values
+    my @select_columns = (
+        {
+            max => 'me.id',
+            -as => 'id_max',
+        },
+        {
+            max => 'surname',
+            -as => 'surname_max',
+        },
+        {
+            max => 'firstname',
+            -as => 'firstname_max',
+        },
+        {
+            max => 'email',
+            -as => 'email_max',
+        },
+        {
+            max => 'lastlogin',
+            -as => 'lastlogin_max',
+        },
+        {
+            max => 'created',
+            -as => 'created_max',
+        },
+        {
+            max => 'title.name',
+            -as => 'title_max',
+        },
+        {
+            max => 'organisation.name',
+            -as => 'organisation_max',
+        },
+        {
+            max => 'department.name',
+            -as => 'department_max',
+        },
+        {
+            max => 'team.name',
+            -as => 'team_max',
+        },
+        {
+            max => 'freetext1',
+            -as => 'freetext1_max',
+        },
+        {
+            max => 'freetext2',
+            -as => 'freetext2_max',
+        },
+        {
+            count => 'audits_last_month.id',
+            -as   => 'audit_count',
+        },
+    );
+
+    push @select_columns, +{
+        max => $self->schema->resultset('User')
+            ->correlate('audits')
+            ->search({ instance_id => $_->instance_id})
+            ->get_column('datetime')
+            ->max_rs->as_query,
+        -as => 'last_'.$_->instance_id,
+    } foreach @{$instances->all};
+
     my @users = $self->user_rs->search({}, {
-        select => [
-            {
-                max => 'me.id',
-                -as => 'id_max',
-            },
-            {
-                max => 'surname',
-                -as => 'surname_max',
-            },
-            {
-                max => 'firstname',
-                -as => 'firstname_max',
-            },
-            {
-                max => 'email',
-                -as => 'email_max',
-            },
-            {
-                max => 'lastlogin',
-                -as => 'lastlogin_max',
-            },
-            {
-                max => 'created',
-                -as => 'created_max',
-            },
-            {
-                max => 'title.name',
-                -as => 'title_max',
-            },
-            {
-                max => 'organisation.name',
-                -as => 'organisation_max',
-            },
-            {
-                max => 'department.name',
-                -as => 'department_max',
-            },
-            {
-                max => 'team.name',
-                -as => 'team_max',
-            },
-            {
-                max => 'freetext1',
-                -as => 'freetext1_max',
-            },
-            {
-                max => 'freetext2',
-                -as => 'freetext2_max',
-            },
-            {
-                count => 'audits_last_month.id',
-                -as   => 'audit_count',
-            }
-        ],
-        join     => [
+        select => \@select_columns,
+        join   => [
             'audits_last_month', 'organisation', 'department', 'team', 'title',
         ],
         order_by => 'surname_max',
@@ -382,6 +397,7 @@ sub csv
         push @csv, join '; ', map { $_->permission->description } @{$user_permissions{$id}};
         push @csv, join '; ', map { $_->group->name } @{$user_groups{$id}};
         push @csv, $user->get_column('audit_count');
+        push @csv, $user->get_column('last_'.$_->instance_id) foreach @{$instances->all};
         $csv->combine(@csv)
             or error __x"An error occurred producing a line of CSV: {err}",
                 err => "".$csv->error_diag;

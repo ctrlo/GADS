@@ -101,6 +101,9 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "description",
   { data_type => "text", is_nullable => 1 },
+  "instance_id",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+
 );
 
 =head1 PRIMARY KEY
@@ -149,6 +152,18 @@ __PACKAGE__->belongs_to(
   "site",
   "GADS::Schema::Result::Site",
   { id => "site_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+__PACKAGE__->belongs_to(
+  "instance",
+  "GADS::Schema::Result::Instance",
+  { id => "instance_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",
