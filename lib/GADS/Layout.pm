@@ -883,6 +883,11 @@ sub columns_for_filter
     @columns;
 }
 
+sub all_people_notify
+{   my $self = shift;
+    grep $_->type eq 'person' && $_->notify_on_selection, $self->all;
+}
+
 sub all_user_read
 {   my $self = shift;
     $self->all(user_can_read => 1);

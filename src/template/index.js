@@ -1081,6 +1081,18 @@ const setupLayout = (() => {
       .trigger("change");
   };
 
+  const setupNotify = context => {
+    $("#notify_on_selection", context)
+      .on("change", function() {
+        if ($(this).prop('checked')) {
+          $("#notify-options", context).show();
+        } else {
+          $("#notify-options", context).hide();
+        }
+      })
+      .trigger("change");
+  };
+
   return context => {
     setupDemoButtons(context);
     setupSelectAll(context);
@@ -1093,6 +1105,7 @@ const setupLayout = (() => {
     setupDisplayConditionsBuilder(context);
     setupSubmitSave(context);
     setupType(context);
+    setupNotify(context);
   };
 })()
 

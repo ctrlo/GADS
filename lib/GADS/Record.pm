@@ -1793,6 +1793,11 @@ sub write
     }
 
     $guard->commit;
+
+    # Only now send notification emails, as we could have rolled back before
+    # the commit
+    $self->fields->{$_->id}->send_notify
+        foreach $self->layout->all_people_notify;
 }
 
 sub write_values

@@ -99,6 +99,24 @@ letter, and is only allowedcontain letters, numbers and underscores.</p>
 
 [% END %]
 
+[% global.helptext.helpnotify = BLOCK %]
+<p>The text in this box is the content of the email that will be sent to a user
+to notify them that they have been selected in this field. Write the text as a
+normal email, inserting variables to automatically insert required values.
+Variables begin with a dollar sign ($) and are defined as the short name of a
+field. For example, if the short name of a field is &quot;dob&quot; then insert
+<code>$dob</code> into the email content. Variables can also include the
+following pre-defined values:</p>
+<dl class = "dl-horizontal">
+    <dt>$_link</dt><dd>a link to the record that has been edited/created</dd>
+    <dt>$_id</dt><dd>the ID of the record</dd>
+    <dt>$_version_datetime</dt><dd>the date and time that the record was edited</dd>
+    <dt>$_version_user</dt><dd>the user that last edited the record</dd>
+    <dt>$_created</dt><dd>the date and time that the record was created</dd>
+    <dt>$_created_user</dt><dd>the user that created the record</dd>
+</dl>
+[% END %]
+
 [% global.helptext.layout_calc = BLOCK %]
 <h5>Introduction</h5>
 <p>Calculated fields (including RedAmberGreen fields) can be used to automatically generate values based on

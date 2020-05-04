@@ -998,6 +998,16 @@ var setupLayout = function () {
     }).trigger("change");
   };
 
+  var setupNotify = function setupNotify(context) {
+    $("#notify_on_selection", context).on("change", function () {
+      if ($(this).prop('checked')) {
+        $("#notify-options", context).show();
+      } else {
+        $("#notify-options", context).hide();
+      }
+    }).trigger("change");
+  };
+
   return function (context) {
     setupDemoButtons(context);
     setupSelectAll(context);
@@ -1010,6 +1020,7 @@ var setupLayout = function () {
     setupDisplayConditionsBuilder(context);
     setupSubmitSave(context);
     setupType(context);
+    setupNotify(context);
   };
 }(); //
 // setupLogin

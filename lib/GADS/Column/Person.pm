@@ -57,7 +57,7 @@ has '+fixedvals' => (
 );
 
 has '+option_names' => (
-    default => sub { [qw/default_to_login/] },
+    default => sub { [qw/default_to_login notify_on_selection notify_on_selection_message notify_on_selection_subject/] },
 );
 
 sub _build_retrieve_fields
@@ -74,6 +74,39 @@ has default_to_login => (
         my $self = shift;
         return 0 unless $self->has_options;
         $self->options->{default_to_login};
+    },
+    trigger => sub { $_[0]->reset_options },
+);
+
+has notify_on_selection => (
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    builder => sub {
+        my $self = shift;
+        return 0 unless $self->has_options;
+        $self->options->{notify_on_selection};
+    },
+    trigger => sub { $_[0]->reset_options },
+);
+
+has notify_on_selection_subject => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->options->{notify_on_selection_subject};
+    },
+    trigger => sub { $_[0]->reset_options },
+);
+
+has notify_on_selection_message => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->options->{notify_on_selection_message};
     },
     trigger => sub { $_[0]->reset_options },
 );

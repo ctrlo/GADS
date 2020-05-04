@@ -20,6 +20,7 @@ package GADS::Datum::Person;
 
 use DateTime;
 use HTML::Entities;
+use HTML::FromText qw(text2html);
 use Log::Report 'linkspace';
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
@@ -309,6 +310,46 @@ sub _build_blank { $_[0]->id ? 0 : 1 }
 
 # Make up for missing predicated value property
 sub has_value { $_[0]->has_id }
+
+sub send_notify
+{   my $self = shift;
+    return if $self->blank || !$self->changed;
+    my $email   = GADS::Email->instance;
+    my $subject = $self->column->notify_on_selection_subject;
+    my $text    = $self->column->notify_on_selection_message;
+    my $replace = sub {
+        my $var  = shift;
+        my $name = $var =~ s/^\$//r;
+        my $col  = $self->column->layout->column_by_name_short($name) or return $var;
+        $self->record->fields->{$col->id}->as_string;
+    };
+    $subject =~ s/(\$[a-z0-9_]+)\b/$replace->($1)/ge;
+    $text =~ s/(\$[a-z0-9_]+)\b/$replace->($1)/ge;
+    my $html = text2html(
+        $text,
+        lines     => 1,
+        urls      => 1,
+        email     => 1,
+        metachars => 1,
+    );
+    my $replace_links = sub {
+        my ($name, $html) = @_;
+        my $base = GADS::Config->instance->url;
+        my $cid  = $self->record->current_id;
+        my $link = "$base/record/$cid";
+        return "<a href=\"$link\">$cid</a>" if $html;
+        return $link;
+    };
+    $subject =~ s/(\$_link)\b/$replace_links->($1)/ge;
+    $text =~ s/(\$_link)\b/$replace_links->($1)/ge;
+    $html =~ s/(\$_link)\b/$replace_links->($1, 1)/ge;
+    $email->send({
+        subject => $subject,
+        emails  => [$self->email],
+        text    => $text,
+        html    => $html,
+    });
+}
 
 around 'clone' => sub {
     my $orig = shift;
