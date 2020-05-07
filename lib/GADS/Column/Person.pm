@@ -96,6 +96,7 @@ has notify_on_selection_subject => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
+        return '' unless $self->has_options;
         $self->options->{notify_on_selection_subject};
     },
     trigger => sub { $_[0]->reset_options },
@@ -106,6 +107,7 @@ has notify_on_selection_message => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
+        return '' unless $self->has_options;
         $self->options->{notify_on_selection_message};
     },
     trigger => sub { $_[0]->reset_options },
