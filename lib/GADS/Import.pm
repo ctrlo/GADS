@@ -523,11 +523,18 @@ sub _import_rows
                     my $unique_value = pop @values;
                     if ($self->update_unique == $self->layout->column_id->id) # ID
                     {
-                        try { $record->find_current_id($unique_value, instance_id => $self->layout->instance_id) };
-                        if ($@)
+                        if ($unique_value)
                         {
-                            push @bad, qq(Failed to retrieve record ID $unique_value ($@). Data will not be uploaded.);
-                            $skip = 1;
+                            try { $record->find_current_id($unique_value, instance_id => $self->layout->instance_id) };
+                            if ($@)
+                            {
+                                push @bad, qq(Failed to retrieve record ID $unique_value ($@). Data will not be uploaded.);
+                                $skip = 1;
+                            }
+                        }
+                        else {
+                            push @changes, __x"Unique identifier ID blank, data will be uploaded as new record.";
+                            $record->initialise;
                         }
                     }
                     elsif (my $existing = $record->find_unique($self->layout->column($self->update_unique), $unique_value, @all_column_ids))

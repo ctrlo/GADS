@@ -416,6 +416,21 @@ my @update_tests = (
         ],
     },
     {
+        name           => 'Attempt to update blank ID',
+        option         => 'update_unique',
+        data           => "ID,string1\n,FooBar",
+        unique         => 'ID',
+        count          => 1,
+        count_versions => 1,
+        results => {
+            string1 => 'FooBar',
+        },
+        written => 1,
+        errors  => 0,
+        skipped => 0,
+        existing_data => [],
+    },
+    {
         name           => 'Attempt to update ID from different table',
         option         => 'update_unique',
         data           => "ID,string1\n1,Bar", # ID from curval table
