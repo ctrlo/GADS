@@ -1438,10 +1438,18 @@ sub write
         ? @{$options{submitted_fields}}
         : $self->layout->all(exclude_internal => 1);
 
-    # This will be called before a write for a normal edit, to allow checks on
-    # next/prev values, but we call it here again now, for other writes that
-    # haven't explicitly called it
-    $self->set_blank_dependents(submission_token => $submission_token, columns => \@cols);
+    # There may be a situation whereby a form has been loaded and fields that
+    # contain values are hidden as a result of display dependencies (which may
+    # have changed since the record was last edited). A user will expect hidden
+    # values to be blank (and they certainly can't see them for review), as may
+    # calculated fields. Therefore, manually set to empty any such hidden
+    # values. The exception is if an import is being done and the user has
+    # selected for values not to be changed unless blank. In this circumstance
+    # unexpected behaviour can take place, whereby fields that a user hasn't
+    # even imported are set to blank, which will then throw errors as a result
+    # of the option.
+    $self->set_blank_dependents(submission_token => $submission_token, columns => \@cols)
+        unless $options{no_change_unless_blank};
 
     # First loop round: sanitise and see which if any have changed
     my %allow_update = map { $_ => 1 } @{$options{allow_update} || []};
