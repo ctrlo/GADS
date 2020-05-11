@@ -1,3 +1,5 @@
+import 'core-js/modules/es.object.keys.js';
+
 //
 // setupFontAwesome
 //

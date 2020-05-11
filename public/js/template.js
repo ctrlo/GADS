@@ -1416,9 +1416,19 @@
 	  return target;
 	}
 
-	//
+	var FAILS_ON_PRIMITIVES = fails(function () { objectKeys(1); });
+
+	// `Object.keys` method
+	// https://tc39.github.io/ecma262/#sec-object.keys
+	_export({ target: 'Object', stat: true, forced: FAILS_ON_PRIMITIVES }, {
+	  keys: function keys(it) {
+	    return objectKeys(toObject(it));
+	  }
+	});
+
 	// setupFontAwesome
 	//
+
 	var setupFontAwesome = function setupFontAwesome() {
 	  if (!window.FontDetect) return;
 
