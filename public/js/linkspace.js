@@ -2035,7 +2035,6 @@ var setupDataTables = function (context) {
 
     $('.dtable', context).each(function () {
         var pagelength = $(this).data('page-length') || 10;
-        console.log(pagelength);
         $(this).dataTable({
             order: [
                 [ 1, 'asc' ]
