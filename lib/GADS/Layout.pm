@@ -604,6 +604,13 @@ sub delete
     $self->schema->resultset('Dashboard')->search({
         instance_id => $self->instance_id,
     })->delete;
+    # Remove reference to instance rather than deleting, so that audit
+    # information is retained
+    $self->schema->resultset('Audit')->search({
+        instance_id => $self->instance_id,
+    })->update({
+        instance_id => undef,
+    });
     $self->_rset->delete;
     $guard->commit;
 }

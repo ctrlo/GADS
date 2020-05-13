@@ -1013,6 +1013,7 @@ sub delete
     $self->schema->resultset('LayoutDepend')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('LayoutGroup')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('DisplayField')->search({ layout_id => $self->id })->delete;
+    $self->schema->resultset('AlertColumn')->search({ layout_id => $self->id })->delete;
 
     $self->schema->resultset('Instance')->search({ sort_layout_id => $self->id })->update({sort_layout_id => undef});;
     $self->schema->resultset('Layout')->find($self->id)->delete;
