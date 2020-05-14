@@ -428,6 +428,7 @@ sub columns_fetch
     my @prefetch;
     foreach my $jp ($self->_jpfetch(prefetch => 1, %options))
     {
+        next unless $jp->{prefetch};
         my $column = $jp->{column};
         my $table = $self->table_name($column, prefetch => 1, %options);
         my @values = (@{$column->retrieve_fields}, 'id');
