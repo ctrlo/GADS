@@ -351,6 +351,27 @@ my $autocur1 = $curval_sheet->add_autocur(refers_to_instance_id => 1, related_fi
     $record->find_current_id($curval_id);
     is($record->fields->{$autocur1->id}->as_string, '', "Autocur with limited record not shown");
 
+    # With the view limit still in place, create a view which includes the
+    # autocur field as well as having it as a sort
+    my $view_sort = GADS::View->new(
+        name        => 'Sorted view with autocur',
+        columns     => [$autocur1->id],
+        instance_id => 2,
+        layout      => $curval_sheet->layout,
+        schema      => $schema,
+        user        => $user,
+    );
+    $view_sort->write;
+    $view_sort->set_sorts([$autocur1->id."_".$columns->{enum1}->id], ['asc']);
+    my $records = GADS::Records->new(
+        user   => $user,
+        schema => $schema,
+        layout => $curval_sheet->layout,
+        view   => $view_sort,
+    );
+    is(@{$records->results}, 4, "Correct number of records");
+    is($_->fields->{$autocur1->id}->as_string, '', "Correct autocur value") foreach @{$records->results};
+
     # Return to normal for remainder of tests
     $user->set_view_limits([]);
     $layout->clear;
