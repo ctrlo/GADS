@@ -1948,7 +1948,8 @@ prefix '/:layout_name' => sub {
             );
             # If this is a filter from a group view, then disable the group for
             # this rendering
-            $params{is_group} = 0 if defined query_parameters->get('group_filter') && @additional;
+            my $disable_group = defined query_parameters->get('group_filter') && @additional;
+            $params{is_group} = 0 if $disable_group;
 
             my $records = GADS::Records->new(%params);
 
@@ -2089,6 +2090,8 @@ prefix '/:layout_name' => sub {
                     push @filters, "field$add->{id}=".uri_escape_utf8($_)
                         foreach @{$add->{value}};
                 }
+                push @filters, "group_filter"
+                    if $disable_group;
                 $params->{filter_url} = join '&', @filters;
             }
         }
