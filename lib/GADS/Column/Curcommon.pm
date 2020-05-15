@@ -292,7 +292,7 @@ sub _records_from_db
         # cannot be evaluated for the draft record in the drop-down), so given
         # that the curval in the pop-up modal wouldn't normally contain a
         # show-add, this ensures those problems don't transpire.
-        is_draft             => $self->show_add && $self->layout->user->id,
+        is_draft             => $self->show_add && $self->layout->user && $self->layout->user->id,
     );
 
     return $records;
