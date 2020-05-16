@@ -1539,7 +1539,11 @@ const setupJSFromContext = context => {
   setupCalendar(context);
   setupEdit(context);
   setupGlobe(context);
-  if (page == "data_graph") { setupGraph(context); }
+  if (page == "data_graph") {
+      $(document).ready(function(){ // jqplot does not work in IE8 unless in document.ready
+          setupGraph(context);
+      });
+  }
   setupLayout(context);
   setupLogin(context);
   setupMetric(context);

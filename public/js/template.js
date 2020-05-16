@@ -1487,7 +1487,10 @@
     setupGlobe(context);
 
     if (page == "data_graph") {
-      setupGraph(context);
+      $(document).ready(function () {
+        // jqplot does not work in IE8 unless in document.ready
+        setupGraph(context);
+      });
     }
 
     setupLayout(context);
