@@ -2285,6 +2285,10 @@ Linkspace.data_table = function () {
         $( ".use-icon-font" ).hide();
         $( ".use-icon-png" ).show();
     }
+
+    $('#rows_per_page').on('change', function() {
+        this.form.submit();
+    });
 }
 
 Linkspace.data_globe = function () {

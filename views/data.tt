@@ -177,7 +177,7 @@
                    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
                     <div class="form-group">
                         <label for="rows_per_page" class="control-label">Rows per page</label>
-                        <select id="rows_per_page" class="form-control" name="rows" onchange="this.form.submit()" role="listbox">
+                        <select id="rows_per_page" class="form-control" name="rows" role="listbox">
                             <option value="10" [% IF subset.rows == 10 %]selected[% END %]>10</option>
                             <option value="25" [% IF subset.rows == 25 %]selected[% END %]>25</option>
                             <option value="50" [% IF subset.rows == 50 %]selected[% END %]>50</option>
