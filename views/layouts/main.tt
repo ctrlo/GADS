@@ -137,7 +137,7 @@
             versions do not work with IE8. Given that IE8 does not support CSP,
             use old version for it but newer version for everything else %]
             <!--[if lt IE 9]>
-                <script src="[% url.js %]/jquery-1.12.4.js"></script>
+                <script src="[% url.js %]/jquery-1.12.4.min.js"></script>
             <![endif]-->
             <![if gte IE 9]>
                 <script src="[% url.js %]/jquery-3.5.1.min.js"></script>
