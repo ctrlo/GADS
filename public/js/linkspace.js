@@ -1223,9 +1223,18 @@ var toggleDisclosure = function (e, $trigger, state, permanent) {
     $disclosure.toggleClass('expanded', state);
 
     if ($disclosure.hasClass('popover')) {
-        var offset = $trigger.position();
+        var offset = $trigger.offset();
+        var top = offset.top;
+        var left = offset.left;
+
+        var offsetParent = $trigger.offsetParent();
+        if (offsetParent) {
+            var offsetParentOffset = offsetParent.offset();
+            top = top - offsetParentOffset.top;
+            left = left - offsetParentOffset.left;
+        }
         positionDisclosure.call(
-            $disclosure, offset.top, offset.left, $trigger.outerHeight() + 6
+            $disclosure, top, left, $trigger.outerHeight() + 6
         );
     }
 
