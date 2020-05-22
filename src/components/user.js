@@ -1,7 +1,7 @@
 const setupUser = (() => {
-  return context => {
+  return () => {
     // Placeholder for future functionality
   };
-})()
+})();
 
 export { setupUser };

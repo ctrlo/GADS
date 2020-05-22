@@ -40,6 +40,6 @@ const setupTable = (() => {
     setupDataTable(context);
     setupFontAwesome();
   };
-})()
+})();
 
 export { setupTable };

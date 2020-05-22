@@ -8,6 +8,6 @@ const setupPurge = (() => {
   return context => {
     setupSelectAll(context);
   };
-})()
+})();
 
 export { setupPurge };

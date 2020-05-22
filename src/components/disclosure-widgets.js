@@ -1,82 +1,60 @@
-var positionDisclosure = function (offsetTop, offsetLeft, triggerHeight) {
+var positionDisclosure = function(offsetTop, offsetLeft, triggerHeight) {
   var $disclosure = this;
 
-  var left = (offsetLeft) + 'px';
-  var top  = (offsetTop + triggerHeight ) + 'px';
+  var left = offsetLeft + "px";
+  var top = offsetTop + triggerHeight + "px";
 
   $disclosure.css({
-      'left': left,
-      'top' : top
+    left: left,
+    top: top
   });
 
   // If the popover is outside the body move it a bit to the left
-  if (document.body && document.body.clientWidth && $disclosure.get(0).getBoundingClientRect) {
-      var windowOffset = document.body.clientWidth - $disclosure.get(0).getBoundingClientRect().right;
-      if (windowOffset < 0) {
-          $disclosure.css({
-              'left': (offsetLeft + windowOffset) + 'px',
-          });
-      }
+  if (
+    document.body &&
+    document.body.clientWidth &&
+    $disclosure.get(0).getBoundingClientRect
+  ) {
+    var windowOffset =
+      document.body.clientWidth -
+      $disclosure.get(0).getBoundingClientRect().right;
+    if (windowOffset < 0) {
+      $disclosure.css({
+        left: offsetLeft + windowOffset + "px"
+      });
+    }
   }
 };
 
-var onDisclosureClick = function(e) {
-  var $trigger = $(this);
-  var currentlyPermanentExpanded = $trigger.hasClass('expanded--permanent');
+var toggleDisclosure = function(e, $trigger, state, permanent) {
+  $trigger.attr("aria-expanded", state);
+  $trigger.toggleClass("expanded--permanent", state && permanent);
 
-  toggleDisclosure(e, $trigger, !currentlyPermanentExpanded, true);
-}
-
-var onDisclosureMouseover = function(e) {
-  var $trigger = $(this);
-  var currentlyExpanded = $trigger.attr('aria-expanded') === 'true';
-
-  if (!currentlyExpanded) {
-      toggleDisclosure(e, $trigger, true, false);
-  }
-}
-
-var onDisclosureMouseout = function(e) {
-  var $trigger = $(this);
-  var currentlyExpanded = $trigger.attr('aria-expanded') === 'true';
-  var currentlyPermanentExpanded = $trigger.hasClass('expanded--permanent');
-
-  if (currentlyExpanded && !currentlyPermanentExpanded) {
-      toggleDisclosure(e, $trigger, false, false);
-  }
-}
-
-var toggleDisclosure = function (e, $trigger, state, permanent) {
-  $trigger.attr('aria-expanded', state);
-  $trigger.toggleClass('expanded--permanent', state && permanent);
-
-  var expandedLabel = $trigger.data('label-expanded');
-  var collapsedLabel = $trigger.data('label-collapsed');
+  var expandedLabel = $trigger.data("label-expanded");
+  var collapsedLabel = $trigger.data("label-collapsed");
 
   if (collapsedLabel && expandedLabel) {
-      $trigger.html(state ? expandedLabel : collapsedLabel);
+    $trigger.html(state ? expandedLabel : collapsedLabel);
   }
 
-  var $disclosure = $trigger.siblings('.expandable').first();
-  $disclosure.toggleClass('expanded', state);
+  var $disclosure = $trigger.siblings(".expandable").first();
+  $disclosure.toggleClass("expanded", state);
 
-  if ($disclosure.hasClass('popover')) {
-      var offset = $trigger.offset();
-      var top = offset.top;
-      var left = offset.left;
+  if ($disclosure.hasClass("popover")) {
+    var offset = $trigger.offset();
+    var top = offset.top;
+    var left = offset.left;
 
-      var offsetParent = $trigger.offsetParent();
-      if (offsetParent) {
-          var offsetParentOffset = offsetParent.offset();
-          top = top - offsetParentOffset.top;
-          left = left - offsetParentOffset.left;
-      }
-      positionDisclosure.call(
-          $disclosure, top, left, $trigger.outerHeight() + 6
-      );
+    var offsetParent = $trigger.offsetParent();
+    if (offsetParent) {
+      var offsetParentOffset = offsetParent.offset();
+      top = top - offsetParentOffset.top;
+      left = left - offsetParentOffset.left;
+    }
+    positionDisclosure.call($disclosure, top, left, $trigger.outerHeight() + 6);
   }
 
-  $trigger.trigger((state ? 'expand' : 'collapse'), $disclosure);
+  $trigger.trigger(state ? "expand" : "collapse", $disclosure);
 
   // If this element is within another element that also has a handler, then
   // stop that second handler also doing its action. E.g. for a more-less
@@ -85,13 +63,44 @@ var toggleDisclosure = function (e, $trigger, state, permanent) {
   e.stopPropagation();
 };
 
+var onDisclosureClick = function(e) {
+  var $trigger = $(this);
+  var currentlyPermanentExpanded = $trigger.hasClass("expanded--permanent");
 
-var setupDisclosureWidgets = function (context) {
-  $('.trigger[aria-expanded]', context).on('click', onDisclosureClick);
+  toggleDisclosure(e, $trigger, !currentlyPermanentExpanded, true);
+};
+
+var onDisclosureMouseover = function(e) {
+  var $trigger = $(this);
+  var currentlyExpanded = $trigger.attr("aria-expanded") === "true";
+
+  if (!currentlyExpanded) {
+    toggleDisclosure(e, $trigger, true, false);
+  }
+};
+
+var onDisclosureMouseout = function(e) {
+  var $trigger = $(this);
+  var currentlyExpanded = $trigger.attr("aria-expanded") === "true";
+  var currentlyPermanentExpanded = $trigger.hasClass("expanded--permanent");
+
+  if (currentlyExpanded && !currentlyPermanentExpanded) {
+    toggleDisclosure(e, $trigger, false, false);
+  }
+};
+
+var setupDisclosureWidgets = function(context) {
+  $(".trigger[aria-expanded]", context).on("click", onDisclosureClick);
 
   // Also show/hide disclosures on hover in the data-table
-  $('.data-table .trigger[aria-expanded]', context).on('mouseover', onDisclosureMouseover);
-  $('.data-table .trigger[aria-expanded]', context).on('mouseout', onDisclosureMouseout);
-}
+  $(".data-table .trigger[aria-expanded]", context).on(
+    "mouseover",
+    onDisclosureMouseover
+  );
+  $(".data-table .trigger[aria-expanded]", context).on(
+    "mouseout",
+    onDisclosureMouseout
+  );
+};
 
 export { setupDisclosureWidgets, onDisclosureClick };

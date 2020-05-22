@@ -26,6 +26,6 @@ const setupUserPermission = (() => {
     setupModalNew(context);
     setupCloneAndRemove(context);
   };
-})()
+})();
 
 export { setupUserPermission };

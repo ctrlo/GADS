@@ -33,6 +33,6 @@ const setupDatePicker = (() => {
     setupDateRange(context);
     setupRemoveDatePicker(context);
   };
-})()
+})();
 
 export { setupDatePicker };

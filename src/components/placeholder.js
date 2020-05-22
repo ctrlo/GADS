@@ -6,6 +6,6 @@ const setupPlaceholder = (() => {
   return context => {
     setupPlaceholder(context);
   };
-})()
+})();
 
 export { setupPlaceholder };

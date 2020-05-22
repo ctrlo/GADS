@@ -23,6 +23,6 @@ const setupMetric = (() => {
   return context => {
     setupMetricModal(context);
   };
-})()
+})();
 
-export {  setupMetric };
+export { setupMetric };

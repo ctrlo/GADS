@@ -1,7 +1,7 @@
 if (!Object.keys) {
-  Object.keys = function (o) {
+  Object.keys = function(o) {
     if (o !== Object(o)) {
-      throw TypeError('Object.keys called on non-object');
+      throw TypeError("Object.keys called on non-object");
     }
     var ret = [],
       p;

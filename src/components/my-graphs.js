@@ -17,6 +17,6 @@ const setupMyGraphs = (() => {
   return context => {
     setupDataTable(context);
   };
-})()
+})();
 
 export { setupMyGraphs };

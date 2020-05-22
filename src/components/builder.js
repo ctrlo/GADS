@@ -81,7 +81,11 @@ const setupBuilder = (() => {
     ...(col.type === "rag"
       ? ragProperties
       : col.hasFilterTypeahead
-      ? typeaheadProperties(col.urlSuffix, builderConfig.layoutId, col.instanceId)
+      ? typeaheadProperties(
+          col.urlSuffix,
+          builderConfig.layoutId,
+          col.instanceId
+        )
       : {})
   });
 
@@ -160,7 +164,9 @@ const setupBuilder = (() => {
 
     $(`#builder${builderConfig.builderId}`).queryBuilder({
       showPreviousValues: builderConfig.showPreviousValues,
-      filters: builderConfig.filters.map(col => buildFilter(builderConfig, col)),
+      filters: builderConfig.filters.map(col =>
+        buildFilter(builderConfig, col)
+      ),
       operators,
       lang: {
         operators: {

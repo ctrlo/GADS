@@ -137,6 +137,6 @@ const setupGraph = (() => {
   return context => {
     initGraph(context);
   };
-})()
+})();
 
 export { setupGraph };

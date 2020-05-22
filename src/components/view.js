@@ -71,6 +71,6 @@ const setupView = (() => {
     setupFilter(context);
     setupUpdateFilter(context);
   };
-})()
+})();
 
 export { setupView };

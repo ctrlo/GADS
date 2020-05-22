@@ -31,10 +31,12 @@ const setupPageSpecificCode = (() => {
     purge: PurgePage,
     system: SytemPage,
     user: UserPage
-  }
+  };
 
   const setupPageSpecificCode = context => {
-    var page = $('body').data('page').match(/^(.*?)(:?\/\d+)?$/);
+    var page = $("body")
+      .data("page")
+      .match(/^(.*?)(:?\/\d+)?$/);
     if (page === null) {
       return;
     }
@@ -48,6 +50,6 @@ const setupPageSpecificCode = (() => {
   return context => {
     setupPageSpecificCode(context);
   };
-})()
+})();
 
 export { setupPageSpecificCode };

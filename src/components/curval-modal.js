@@ -1,3 +1,5 @@
+import { setupSelectWidgets } from "./select-widgets";
+import { getFieldValues } from "../lib/get-field-values";
 import { guid as Guid } from "../lib/guid";
 
 const setupCurvalModal = (() => {
@@ -36,7 +38,9 @@ const setupCurvalModal = (() => {
       );
       row_cells.append(links.append(hidden_input));
       if (guid) {
-        var hidden = $('input[data-guid="' + guid + '"]', context).val(form_data);
+        var hidden = $('input[data-guid="' + guid + '"]', context).val(
+          form_data
+        );
         hidden.closest(".curval_item").replaceWith(row_cells);
       } else {
         $(`#curval_list_${col_id}`, context)
@@ -229,6 +233,6 @@ const setupCurvalModal = (() => {
     setupSubmit(context);
     setupRemoveCurval(context);
   };
-})()
+})();
 
 export { setupCurvalModal };

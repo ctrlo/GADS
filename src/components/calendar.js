@@ -78,9 +78,10 @@ const setupCalendar = (() => {
       var val = $(this).is(":checked") ? $(this).val() : null;
       calendar.setOptions({ modal: val });
     });
-    $("#events-modal .modal-header, #events-modal .modal-footer", context).click(
-      function() {}
-    );
+    $(
+      "#events-modal .modal-header, #events-modal .modal-footer",
+      context
+    ).click(function() {});
   };
 
   return context => {
@@ -91,6 +92,6 @@ const setupCalendar = (() => {
       setupFontAwesome();
     }
   };
-})()
+})();
 
 export { setupCalendar };

@@ -27,43 +27,53 @@ import { setupView } from "../components/view";
 
 window.Linkspace = {
   constants: {
-      ARROW_LEFT: 37,
-      ARROW_RIGHT: 39
+    ARROW_LEFT: 37,
+    ARROW_RIGHT: 39
   },
 
-  init: function (context) {
-      setupAccessibility(context);
-      setupBuilder(context);
-      setupCalendar(context);
-      setupColumnFilters(context);
-      setupDisclosureWidgets(context);
-      setupEdit(context);
-      setupFileUpload(context);
-      setupFirstInputFocus(context);
-      setupGlobeById(context);
-      setupHtmlEditor(context);
-      setupLayout(context);
-      setupLessMoreWidgets(context);
-      setupLogin(context);
-      setupMetric(context);
-      setupMyGraphs(context);
-      setupPageSpecificCode(context);
-      setupPlaceholder(context);
-      setupPopover(context);
-      setupPurge(context);
-      setupRecordPopup(context);
-      setupSelectWidgets(context);
-      setupSubmitListener(context);
-      setupTable(context);
-      setupUser(context);
-      setupUserPermission(context);
-      setupView(context);
+  init: function(context) {
+    setupAccessibility(context);
+    setupBuilder(context);
+    setupCalendar(context);
+    setupColumnFilters(context);
+    setupDisclosureWidgets(context);
+    setupEdit(context);
+    setupFileUpload(context);
+    setupFirstInputFocus(context);
+    setupGlobeById(context);
+    setupHtmlEditor(context);
+    setupLayout(context);
+    setupLessMoreWidgets(context);
+    setupLogin(context);
+    setupMetric(context);
+    setupMyGraphs(context);
+    setupPageSpecificCode(context);
+    setupPlaceholder(context);
+    setupPopover(context);
+    setupPurge(context);
+    setupRecordPopup(context);
+    setupSelectWidgets(context);
+    setupSubmitListener(context);
+    setupTable(context);
+    setupUser(context);
+    setupUserPermission(context);
+    setupView(context);
   },
 
-  debug: function (msg) {
-      if (typeof(console) !== 'undefined' && console.debug) {
-          console.debug('[LINKSPACE]', msg);
-      }
+  debug: function(msg) {
+    // eslint-disable-next-line no-console
+    if (typeof console !== "undefined" && console.debug) {
+      // eslint-disable-next-line no-console
+      console.debug("[LINKSPACE]", msg);
+    }
+  },
+
+  error: function(msg) {
+    // eslint-disable-next-line no-console
+    if (typeof console !== "undefined" && console.error) {
+      // eslint-disable-next-line no-console
+      console.error("[LINKSPACE]", msg);
+    }
   }
 };
 

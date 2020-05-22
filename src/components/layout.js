@@ -209,7 +209,7 @@ const setupLayout = (() => {
   const setupNotify = context => {
     $("#notify_on_selection", context)
       .on("change", function() {
-        if ($(this).prop('checked')) {
+        if ($(this).prop("checked")) {
           $("#notify-options", context).show();
         } else {
           $("#notify-options", context).hide();
@@ -232,6 +232,6 @@ const setupLayout = (() => {
     setupType(context);
     setupNotify(context);
   };
-})()
+})();
 
 export { setupLayout };

@@ -59,38 +59,40 @@ const setupEdit = (() => {
   };
 
   const setupTypeahead = context => {
-    $('input[type="text"][id^="typeahead_"]', context).each((i, typeaheadEl) => {
-      $(typeaheadEl, context).change(function() {
-        if (!$(this).val()) {
-          $(`#${typeaheadEl.id}_value`, context).val("");
-        }
-      });
-      $(typeaheadEl, context).typeahead({
-        delay: 500,
-        matcher: function() {
-          return true;
-        },
-        sorter: function(items) {
-          return items;
-        },
-        afterSelect: function(selected) {
-          $(`#${typeaheadEl.id}_value`, context).val(selected.id);
-        },
-        source: function(query, process) {
-          return $.ajax({
-            type: "GET",
-            url: `/${$(typeaheadEl, context).data("layout-id")}/match/layout/${$(
-              typeaheadEl
-            ).data("typeahead-id")}`,
-            data: { q: query },
-            success: function(result) {
-              process(result);
-            },
-            dataType: "json"
-          });
-        }
-      });
-    });
+    $('input[type="text"][id^="typeahead_"]', context).each(
+      (i, typeaheadEl) => {
+        $(typeaheadEl, context).change(function() {
+          if (!$(this).val()) {
+            $(`#${typeaheadEl.id}_value`, context).val("");
+          }
+        });
+        $(typeaheadEl, context).typeahead({
+          delay: 500,
+          matcher: function() {
+            return true;
+          },
+          sorter: function(items) {
+            return items;
+          },
+          afterSelect: function(selected) {
+            $(`#${typeaheadEl.id}_value`, context).val(selected.id);
+          },
+          source: function(query, process) {
+            return $.ajax({
+              type: "GET",
+              url: `/${$(typeaheadEl, context).data(
+                "layout-id"
+              )}/match/layout/${$(typeaheadEl).data("typeahead-id")}`,
+              data: { q: query },
+              success: function(result) {
+                process(result);
+              },
+              dataType: "json"
+            });
+          }
+        });
+      }
+    );
   };
 
   return context => {
@@ -100,6 +102,6 @@ const setupEdit = (() => {
     setupDatePicker(context);
     setupTypeahead(context);
   };
-})()
+})();
 
 export { setupEdit };

@@ -10,6 +10,6 @@ const setupLogin = (() => {
     setupOpenModalOnLoad("#modalregister", context);
     setupOpenModalOnLoad("#modal-reset-password", context);
   };
-})()
+})();
 
 export { setupLogin };

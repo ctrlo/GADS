@@ -1,5 +1,6 @@
 if (!Array.prototype.map) {
-  Array.prototype.map = function (fun /*, thisp */ ) {
+  // eslint-disable-next-line no-extend-native
+  Array.prototype.map = function(fun /*, thisp */) {
     if (this === void 0 || this === null) {
       throw TypeError();
     }

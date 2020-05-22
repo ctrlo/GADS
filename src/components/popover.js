@@ -9,6 +9,6 @@ const setupPopover = (() => {
   return context => {
     setupPopover(context);
   };
-})()
+})();
 
 export { setupPopover };
