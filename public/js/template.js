@@ -1,71 +1,6 @@
 (function () {
   'use strict';
 
-  function _typeof(obj) {
-    "@babel/helpers - typeof";
-
-    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
-      _typeof = function (obj) {
-        return typeof obj;
-      };
-    } else {
-      _typeof = function (obj) {
-        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-      };
-    }
-
-    return _typeof(obj);
-  }
-
-  function _defineProperty(obj, key, value) {
-    if (key in obj) {
-      Object.defineProperty(obj, key, {
-        value: value,
-        enumerable: true,
-        configurable: true,
-        writable: true
-      });
-    } else {
-      obj[key] = value;
-    }
-
-    return obj;
-  }
-
-  function ownKeys(object, enumerableOnly) {
-    var keys = Object.keys(object);
-
-    if (Object.getOwnPropertySymbols) {
-      var symbols = Object.getOwnPropertySymbols(object);
-      if (enumerableOnly) symbols = symbols.filter(function (sym) {
-        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
-      });
-      keys.push.apply(keys, symbols);
-    }
-
-    return keys;
-  }
-
-  function _objectSpread2(target) {
-    for (var i = 1; i < arguments.length; i++) {
-      var source = arguments[i] != null ? arguments[i] : {};
-
-      if (i % 2) {
-        ownKeys(Object(source), true).forEach(function (key) {
-          _defineProperty(target, key, source[key]);
-        });
-      } else if (Object.getOwnPropertyDescriptors) {
-        Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
-      } else {
-        ownKeys(Object(source)).forEach(function (key) {
-          Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
-        });
-      }
-    }
-
-    return target;
-  }
-
   if (!Array.prototype.find) {
     Array.prototype.find = function (predicate) {
       // 1. Let O be ? ToObject(this value).
@@ -199,22 +134,72 @@
 
       return ret;
     };
-  } //
-  // setupFontAwesome
-  //
+  }
 
+  function _typeof(obj) {
+    "@babel/helpers - typeof";
 
-  var setupFontAwesome = function setupFontAwesome() {
-    if (!window.FontDetect) return;
-
-    if (!FontDetect.isFontLoaded("14px/1 FontAwesome")) {
-      $(".use-icon-font").hide();
-      $(".use-icon-png").show();
+    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+      _typeof = function (obj) {
+        return typeof obj;
+      };
+    } else {
+      _typeof = function (obj) {
+        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+      };
     }
-  }; //
-  // setupBuilder
-  //
 
+    return _typeof(obj);
+  }
+
+  function _defineProperty(obj, key, value) {
+    if (key in obj) {
+      Object.defineProperty(obj, key, {
+        value: value,
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
+    } else {
+      obj[key] = value;
+    }
+
+    return obj;
+  }
+
+  function ownKeys(object, enumerableOnly) {
+    var keys = Object.keys(object);
+
+    if (Object.getOwnPropertySymbols) {
+      var symbols = Object.getOwnPropertySymbols(object);
+      if (enumerableOnly) symbols = symbols.filter(function (sym) {
+        return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+      });
+      keys.push.apply(keys, symbols);
+    }
+
+    return keys;
+  }
+
+  function _objectSpread2(target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i] != null ? arguments[i] : {};
+
+      if (i % 2) {
+        ownKeys(Object(source), true).forEach(function (key) {
+          _defineProperty(target, key, source[key]);
+        });
+      } else if (Object.getOwnPropertyDescriptors) {
+        Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+      } else {
+        ownKeys(Object(source)).forEach(function (key) {
+          Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+        });
+      }
+    }
+
+    return target;
+  }
 
   var setupBuilder = function () {
     var buildFilterOperators = function buildFilterOperators(type) {
@@ -389,10 +374,16 @@
       setupAllBuilders(context);
       setupTypeahead(context);
     };
-  }(); //
-  // setupCalendar
-  //
+  }();
 
+  var setupFontAwesome = function setupFontAwesome() {
+    if (!window.FontDetect) return;
+
+    if (!FontDetect.isFontLoaded("14px/1 FontAwesome")) {
+      $(".use-icon-font").hide();
+      $(".use-icon-png").show();
+    }
+  };
 
   var setupCalendar = function () {
     var initCalendar = function initCalendar(context) {
@@ -480,10 +471,7 @@
         setupFontAwesome();
       }
     };
-  }(); //
-  // setupCurvalModal
-  //
-
+  }();
 
   var setupCurvalModal = function () {
     var curvalModalValidationSucceeded = function curvalModalValidationSucceeded(form, values, context) {
@@ -642,10 +630,7 @@
       setupSubmit(context);
       setupRemoveCurval(context);
     };
-  }(); //
-  // setupDatePicker
-  //
-
+  }();
 
   var setupDatePicker = function () {
     var setupDatePickers = function setupDatePickers(context) {
@@ -681,10 +666,7 @@
       setupDateRange(context);
       setupRemoveDatePicker(context);
     };
-  }(); //
-  // setupEdit
-  //
-
+  }();
 
   var setupEdit = function () {
     var setupCloneAndRemove = function setupCloneAndRemove(context) {
@@ -782,10 +764,7 @@
       setupDatePicker(context);
       setupTypeahead(context);
     };
-  }(); //
-  // setupGlobe
-  //
-
+  }();
 
   var setupGlobe = function () {
     var initGlobe = function initGlobe(context) {
@@ -821,8 +800,7 @@
     return function (context) {
       initGlobe(context);
     };
-  }(); // setupGraph
-
+  }();
 
   var setupGraph = function () {
     var makeSeriesDefaults = function makeSeriesDefaults() {
@@ -968,10 +946,7 @@
     return function (context) {
       initGraph(context);
     };
-  }(); //
-  // setupLayout
-  //
-
+  }();
 
   var setupLayout = function () {
     var setupDemoButtons = function setupDemoButtons(context) {
@@ -1215,10 +1190,7 @@
       setupType(context);
       setupNotify(context);
     };
-  }(); //
-  // setupLogin
-  //
-
+  }();
 
   var setupLogin = function () {
     var setupOpenModalOnLoad = function setupOpenModalOnLoad(id, context) {
@@ -1233,10 +1205,7 @@
       setupOpenModalOnLoad("#modalregister", context);
       setupOpenModalOnLoad("#modal-reset-password", context);
     };
-  }(); //
-  // setupMetric
-  //
-
+  }();
 
   var setupMetric = function () {
     var setupMetricModal = function setupMetricModal(context) {
@@ -1265,10 +1234,7 @@
     return function (context) {
       setupMetricModal(context);
     };
-  }(); //
-  // setupMyGraphs
-  //
-
+  }();
 
   var setupMyGraphs = function () {
     var setupDataTable = function setupDataTable(context) {
@@ -1287,10 +1253,7 @@
     return function (context) {
       setupDataTable(context);
     };
-  }(); //
-  // setupPlaceholder
-  //
-
+  }();
 
   var setupPlaceholder = function () {
     var setupPlaceholder = function setupPlaceholder(context) {
@@ -1300,10 +1263,7 @@
     return function (context) {
       setupPlaceholder(context);
     };
-  }(); //
-  // setupPopover
-  //
-
+  }();
 
   var setupPopover = function () {
     var setupPopover = function setupPopover(context) {
@@ -1316,10 +1276,7 @@
     return function (context) {
       setupPopover(context);
     };
-  }(); //
-  // setupPurge
-  //
-
+  }();
 
   var setupPurge = function () {
     var setupSelectAll = function setupSelectAll(context) {
@@ -1331,10 +1288,7 @@
     return function (context) {
       setupSelectAll(context);
     };
-  }(); //
-  // setupTable
-  //
-
+  }();
 
   var setupTable = function () {
     var setupSendemailModal = function setupSendemailModal(context) {
@@ -1376,10 +1330,7 @@
       setupDataTable(context);
       setupFontAwesome();
     };
-  }(); //
-  // setupUserPermission
-  //
-
+  }();
 
   var setupUserPermission = function () {
     var setupModalNew = function setupModalNew(context) {
@@ -1410,10 +1361,7 @@
       setupModalNew(context);
       setupCloneAndRemove(context);
     };
-  }(); //
-  // setupView
-  //
-
+  }();
 
   var setupView = function () {
     var setupSelectAll = function setupSelectAll(context) {
