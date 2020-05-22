@@ -17,8 +17,10 @@ module.exports = {
     'Handlebars': 'readonly',
     'Plotly': 'readonly',
     'base64': 'readonly',
+    'moment': 'readonly',
     'timeline': 'readonly',
     'tippy': 'readonly',
+    'vis': 'readonly',
   },
 
   plugins: ['prettier', 'jsdoc'],

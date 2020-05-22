@@ -9,6 +9,7 @@ import { GraphPage } from "../pages/graph";
 import { GraphsPage } from "../pages/graphs";
 import { IndexPage } from "../pages/index";
 import { LayoutPage } from "../pages/layout";
+import { LoginPage } from "../pages/login";
 import { MetricPage } from "../pages/metric";
 import { PurgePage } from "../pages/purge";
 import { SytemPage } from "../pages/system";
@@ -27,6 +28,7 @@ const setupPageSpecificCode = (() => {
     graphs: GraphsPage,
     index: IndexPage,
     layout: LayoutPage,
+    login: LoginPage,
     metric: MetricPage,
     purge: PurgePage,
     system: SytemPage,
