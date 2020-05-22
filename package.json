@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "rollup": "rollup --config rollup.config.js",
+    "rollup": "yarn run lint && rollup --config rollup.config.js",
     "watch": "npm-watch",
     "sass": "sass --update --no-source-map sass:public/css/",
     "jshint": "jshint public/js/*.js",
