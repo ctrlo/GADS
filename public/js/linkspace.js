@@ -2230,7 +2230,8 @@
             $expandable.css("left", leftOffset + overflow + "px");
           }
         });
-        $ml.empty().append($expandToggle).append($expandable); // Process any more-less divs within this. These won't be done by the
+        $ml.empty().append($expandToggle).append($expandable);
+        setupDisclosureWidgets($ml); // Process any more-less divs within this. These won't be done by the
         // original find, as the original ones will have been obliterated by
         // the more-less process
 

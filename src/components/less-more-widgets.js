@@ -1,3 +1,5 @@
+import { setupDisclosureWidgets } from "./disclosure-widgets";
+
 const setupLessMoreWidgets = (() => {
   var uuid = function() {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
@@ -127,6 +129,9 @@ const setupLessMoreWidgets = (() => {
         .empty()
         .append($expandToggle)
         .append($expandable);
+
+      setupDisclosureWidgets($ml);
+
       // Process any more-less divs within this. These won't be done by the
       // original find, as the original ones will have been obliterated by
       // the more-less process
