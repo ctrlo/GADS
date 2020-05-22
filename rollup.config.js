@@ -5,10 +5,10 @@ export default {
   input: [
     'src/polyfills/*.js',
     'src/patches/*.js',
-    'src/template/index.js'
+    'src/linkspace.js'
   ],
   output: {
-    file: 'public/js/template.js',
+    file: 'public/js/linkspace.js',
     format: 'iife'
   },
   plugins: [
