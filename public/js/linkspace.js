@@ -1766,7 +1766,7 @@ var setupGlobe = function (container) {
 
 var setupTippy = function (context) {
     var tippyContext = context || document;
-    tippy(tippyContext.querySelectorAll('.timeline-foreground'), {
+    tippy(tippyContext.querySelectorAll('.vis-foreground'), {
         target: '.timeline-tippy',
         theme: 'light',
         onShown: function (e) {
@@ -1830,7 +1830,7 @@ var setupTimeline = function (container, options_in) {
     var dataset = JSON.parse(json);
     injectContrastingColor(dataset);
 
-    var items = new timeline.DataSet(dataset);
+    var items = new vis.DataSet(dataset);
     var groups = container.data('groups');
     var json_group = base64.decode(groups);
     var groups = JSON.parse(json_group);
@@ -1846,7 +1846,7 @@ var setupTimeline = function (container, options_in) {
             }
         },
         moment: function (date) {
-            return timeline.moment(date).utc();
+            return moment(date).utc();
         },
         clickToUse: is_dashboard,
         zoomFriction: 10,
@@ -1881,7 +1881,8 @@ var setupTimeline = function (container, options_in) {
         options.multiselect = true;
     }
 
-    var tl = new timeline.Timeline(container.get(0), items, options);
+    var tl = new vis.Timeline(container.get(0), items, options);
+
     if (groups.length > 0) {
         tl.setGroups(groups);
     }

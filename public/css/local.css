@@ -192,24 +192,8 @@ img.autosize {
     100% { transform: rotate(360deg); }
 }
 
-.timeline-range .timeline-item-overflow {
+.vis-timeline .vis-item .vis-item-overflow {
     overflow: visible;
-}
-
-.timeline-item-shown-content {
-    text-overflow: ellipsis;
-    overflow: hidden;
-}
-
-.timeline-range .timeline-item-shown-content {
-    max-width: calc(100% + 150px);
-    margin-right: -240px;
-    padding: 0;
-}
-
-.timeline-box .timeline-item-shown-content {
-    max-width: 150px;
-    padding: 0;
 }
 
 .timeline-color {
@@ -231,11 +215,11 @@ img.autosize {
     white-space: nowrap;
 }
 
-.timeline-item.timeline-selected {
+.vis-item.vis-selected {
     box-shadow: 0px 0px 10px 5px black;
 }
 
-div.timeline-foreground > div.timeline-group:nth-of-type(even) {
+div.vis-foreground > div.vis-group:nth-of-type(even) {
     background-color: rgba(245, 245, 245, 0.4);
 }
 

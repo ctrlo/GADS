@@ -39,7 +39,6 @@
             <link rel="stylesheet" href="[% url.css %]/calendar.min.css">
         [% END %]
         [% IF page == "data_timeline" OR page == "index" %]
-            <link rel="stylesheet" href="[% url.css %]/timeline.min.css">
             <link rel="stylesheet" href="[% url.css %]/tippy.css">
             <link rel="stylesheet" href="[% url.css %]/light.css">
             [% IF hostlocal %]
@@ -203,7 +202,8 @@
                         <script type="text/javascript" src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.1.10/es5-shim.min.js"></script>
                 [% END %]
             [% END %]
-            <script type="text/javascript" src="[% url.js %]/timeline.min.js"></script>
+            <script type="text/javascript" src="[% url.js %]/moment.min.js"></script>
+            <script type="text/javascript" src="[% url.js %]/vis-timeline-graph2d.min.js"></script>
             <script type="text/javascript" src="[% url.js %]/tippy.min.js"></script>
         [% END %]
         [% IF page == "data_globe" OR page == "index" %]
