@@ -4,45 +4,23 @@ module.exports = {
     es6: true,
     jquery: true
   },
-  
+
 
   globals: {
     // Linkspace associated globals
     'Linkspace': 'readonly',
-    'setupCalculator': 'readonly',
-    'SelectWidget': 'readonly',
-    'setupSelectWidgets': 'readonly',
-    'setupLessMoreWidgets': 'readonly',
-    'getFieldValues': 'readonly',
-    'setupFileUpload': 'readonly',
-    'setupDependentField': 'readonly',
-    'setupDependentFields': 'readonly',
-    'setupTreeField': 'readonly',
-    'setupTreeFields': 'readonly',
-    'positionDisclosure': 'readonly',
-    'onDisclosureClick': 'readonly',
-    'onDisclosureMouseover': 'readonly',
-    'onDisclosureMouseout': 'readonly',
-    'toggleDisclosure': 'readonly',
-    'setupDisclosureWidgets': 'readonly',
-    'runPageSpecificCode': 'readonly',
-    'setupClickToEdit': 'readonly',
-    'setupSubmitListener': 'readonly',
-    'setupClickToViewBlank': 'readonly',
-    'setFirstInputFocus': 'readonly',
-    'setupRecordPopup': 'readonly',
-    'setupAccessibility': 'readonly',
-    'getParams': 'readonly',
-    'setupColumnFilters': 'readonly',
-    'setupHtmlEditor': 'readonly',
-    'setupTimeline': 'readonly',
-    'setupOtherUserViews': 'readonly',
     // builder
     'UpdateFilter': 'readonly',
     // Other libraries
+    '_': 'readonly',
     'FontDetect': 'readonly',
+    'Handlebars': 'readonly',
     'Plotly': 'readonly',
     'base64': 'readonly',
+    'moment': 'readonly',
+    'timeline': 'readonly',
+    'tippy': 'readonly',
+    'vis': 'readonly',
   },
 
   plugins: ['prettier', 'jsdoc'],

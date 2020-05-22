@@ -1,12 +1,20 @@
+import multi from '@rollup/plugin-multi-entry';
 import babel from 'rollup-plugin-babel';
 
 export default {
-  input: 'src/template/index.js',
+  input: [
+    'src/polyfills/*.js',
+    'src/patches/*.js',
+    'src/linkspace.js'
+  ],
   output: {
-    file: 'public/js/template.js',
+    file: 'public/js/linkspace.js',
     format: 'iife'
   },
   plugins: [
+    multi({
+      exports: false
+    }),
     babel({
       babelrc: false,
       exclude: 'node_modules/**',

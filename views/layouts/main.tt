@@ -247,8 +247,7 @@
         [% END %]
 
         <script type="text/javascript" src="[% url.js %]/jquery.placeholder.js"></script>
-        <script src="[% url.js %]/linkspace.js?v=11"></script>
-        <script src="[% url.js %]/template.js"></script>
+        <script src="[% url.js %]/linkspace.js"></script>
 
         <!--[if IE 8]><script src="[% url.js %]/dashboard-ie8-fallback.js"></script><![endif]-->
         <!--[if !IE 8]><!--><script src="[% url.js %]/dashboard.js"></script><!--<![endif]-->
