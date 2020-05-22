@@ -1,3 +1,5 @@
+import { guid as Guid } from "../lib/guid";
+
 const setupCurvalModal = (() => {
   const curvalModalValidationSucceeded = (form, values, context) => {
     var form_data = form.serialize();
@@ -64,7 +66,7 @@ const setupCurvalModal = (() => {
         })
         .join(", ");
 
-      guid = window.guid();
+      guid = Guid();
       const id = `field${col_id}_${guid}`;
       var deleteButton = multi
         ? '<button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>'
@@ -138,7 +140,7 @@ const setupCurvalModal = (() => {
       if (mode === "edit") {
         guid = hidden.data("guid");
         if (!guid) {
-          guid = window.guid();
+          guid = Guid();
           hidden.attr("data-guid", guid);
         }
       }

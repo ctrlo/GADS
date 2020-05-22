@@ -4,6 +4,7 @@ import babel from 'rollup-plugin-babel';
 export default {
   input: [
     'src/polyfills/*.js',
+    'src/patches/*.js',
     'src/template/index.js'
   ],
   output: {
