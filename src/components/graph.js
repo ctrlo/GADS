@@ -135,7 +135,10 @@ const setupGraph = (() => {
   };
 
   return context => {
-    initGraph(context);
+    // jqplot does not work in IE8 unless in document.ready
+    $(document).ready(function() {
+      initGraph(context);
+    });
   };
 })();
 
