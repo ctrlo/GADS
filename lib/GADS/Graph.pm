@@ -469,14 +469,16 @@ sub import_hash
         old => $self->trend, new => $values->{trend}, name => $self->title
             if $options{report_only} && $self->trend != $values->{trend};
     $self->trend($values->{trend});
+    my $from = $values->{from} && DateTime::Format::ISO8601->parse_datetime($values->{from});
     notice __x"Updating from from {old} to {new} for graph {name}",
-        old => $self->from, new => $values->{from}, name => $self->title
-            if $options{report_only} && ($self->from || '') ne ($values->{from} || '');
-    $self->from($values->{from});
+        old => $self->from, new => $from, name => $self->title
+            if $options{report_only} && ($self->from || '') ne ($from || '');
+    $self->from($from);
+    my $to = $values->{to} && DateTime::Format::ISO8601->parse_datetime($values->{to});
     notice __x"Updating to from {old} to {new} for graph {name}",
-        old => $self->to, new => $values->{to}, name => $self->title
-            if $options{report_only} && ($self->to || '') ne ($values->{to} || '');
-    $self->to($values->{to});
+        old => $self->to, new => $to, name => $self->title
+            if $options{report_only} && ($self->to || '') ne ($to || '');
+    $self->to($to);
     notice __x"Updating x_axis_range from {old} to {new} for graph {name}",
         old => $self->x_axis_range, new => $values->{x_axis_range}, name => $self->title
             if $options{report_only} && ($self->x_axis_range || '') ne ($values->{x_axis_range} || '');
@@ -521,8 +523,8 @@ sub export_hash
         group_by        => $self->group_by,
         stackseries     => $self->stackseries,
         trend           => $self->trend,
-        from            => $self->from,
-        to              => $self->to,
+        from            => $self->from && $self->from->datetime,
+        to              => $self->to && $self->to->datetime,
         x_axis_range    => $self->x_axis_range,
         is_shared       => $self->is_shared,
         user_id         => $self->user_id,
