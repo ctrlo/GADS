@@ -263,38 +263,43 @@
     modal_with_form=1
     modal_form_method="post"
 %]
-    <div class="form-group">
-        <label for="email_groups" class="control-label">Limit to users in these groups:</label>
-        <div class="select-widget multi">
-            <div class="select-widget-dropdown">
-                <div class="form-group form-control">
-                    <ul class="current">
-                        <li class="none-selected">all users</li>
+    <label for="email_groups" class="control-label">Limit to users in these groups:</label>
+    [%# select-widget needs to sit within row, col-md-12 otherwise the widget
+    collapses when clicking its scrollbar in IE. The label needs to be outside,
+    otherwise clicking it does not collapse widget %]
+    <div class="row">
+        <div class="col-md-12">
+            <div class="select-widget multi">
+                <div class="select-widget-dropdown">
+                    <div class="form-group form-control">
+                        <ul class="current">
+                            <li class="none-selected">all users</li>
+                        [% FOREACH group IN groups %]
+                            [% group_field_id = "group" _ '_' _ group.id %]
+                            <li data-list-item="[% group_field_id %]" hidden>
+                                <span class="widget-value__value">[% group.name | html %]</span>
+                                <button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
+                            </li>
+                        [% END %]
+                                <li class="search">
+                                    <input type="search" class="form-control-search" style="width:70px"  placeholder="Search..." aria-controls="group_available_values" aria-expanded="false" aria-describedby="email_groups">
+                                </li>
+                        </ul>
+                    </div>
+                    <ul hidden class="available [% details && 'with-details' %]" id="group_available_values" aria-labelledby="email_groups">
                     [% FOREACH group IN groups %]
                         [% group_field_id = "group" _ '_' _ group.id %]
-                        <li data-list-item="[% group_field_id %]" hidden>
-                            <span class="widget-value__value">[% group.name | html %]</span>
-                            <button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
+                        <li class="answer">
+                            <span class="control">
+                                <label id="[% group_field_id %]_label" for="[% group_field_id %]">
+                                    <input id="[% group_field_id %]" name="group_ids" type="checkbox" value="[% group.id %]" aria-labelledby="[% group_field_id %]_label">
+                                    <span role="option">[% group.name | html %]</span>
+                                </label>
+                            </span>
                         </li>
                     [% END %]
-                            <li class="search">
-                                <input type="search" class="form-control-search" style="width:70px"  placeholder="Search..." aria-controls="group_available_values" aria-expanded="false" aria-describedby="email_groups">
-                            </li>
                     </ul>
                 </div>
-                <ul hidden class="available [% details && 'with-details' %]" id="group_available_values" aria-labelledby="email_groups">
-                [% FOREACH group IN groups %]
-                    [% group_field_id = "group" _ '_' _ group.id %]
-                    <li class="answer">
-                        <span class="control">
-                            <label id="[% group_field_id %]_label" for="[% group_field_id %]">
-                                <input id="[% group_field_id %]" name="group_ids" type="checkbox" value="[% group.id %]" aria-labelledby="[% group_field_id %]_label">
-                                <span role="option">[% group.name | html %]</span>
-                            </label>
-                        </span>
-                    </li>
-                [% END %]
-                </ul>
             </div>
         </div>
     </div>
