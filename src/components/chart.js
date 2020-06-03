@@ -88,10 +88,14 @@ var do_plot = function(plotData, options_in) {
   $.jqplot("chartdiv" + options_in.id, plotData.points, plotOptions);
 };
 
-var do_plot_json = function(plotData, options_in) {
+// At the moment, do_plot_json needs to be exported globally, as it is used by
+// Phantomjs to produce PNG versions of the graphs. Once jqplot has been
+// replaced by a more modern graphing library, the PNG/Phantomjs functionality
+// will probably unneccessary if that functionality is built into the library.
+var do_plot_json = (window.do_plot_json = function(plotData, options_in) {
   plotData = JSON.parse(plotData);
   options_in = JSON.parse(options_in);
   do_plot(plotData, options_in);
-};
+});
 
 export { do_plot_json };
