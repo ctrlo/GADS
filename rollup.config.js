@@ -1,5 +1,6 @@
 import multi from '@rollup/plugin-multi-entry';
 import babel from 'rollup-plugin-babel';
+import { uglify } from "rollup-plugin-uglify";
 
 export default {
   input: [
@@ -30,5 +31,6 @@ export default {
         ],
       ],
     }),
+    uglify(),
   ]
 };
