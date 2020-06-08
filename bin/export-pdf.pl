@@ -87,6 +87,7 @@ foreach my $layout (@instances)
             person    => 'User on the system',
             calc      => 'Automatically calculated',
             rag       => 'RAG',
+            filval    => 'Automatic capture of filtered values',
         );
         my $type = $types{$field->type} or die "Unknown type ".$field->type;
         push @$data, ['Type', $type];
