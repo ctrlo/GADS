@@ -935,7 +935,6 @@ sub delete_viewed_record_ok {
 
     my @failure = $self->_find_and_click( [ '.btn-delete' ], jquery => 1 );
 
-    my $modal_title_el = $webdriver->find('h4#delete_record_heading');
     $test->note("About to delete $record_title");
     push @failure, $self->_find_and_click( [ '#modaldelete .btn-primary.submit_button' ] );
 
