@@ -431,6 +431,7 @@ The login page is visible.
 sub assert_on_login_page {
     my ( $self, $name ) = @_;
     $name //= 'The login page is visible';
+    my $test = context();
 
     $self->_assert_element(
         'h1',
@@ -439,6 +440,7 @@ sub assert_on_login_page {
         $name,
     );
 
+    $test->release;
     return $self;
 }
 
@@ -1055,8 +1057,13 @@ From the I<< Manage users >> page, select the currently logged in user.
 
 sub select_current_user_to_edit_ok {
     my ( $self, $name ) = @_;
-    return $self->_select_item_row_to_edit_ok(
+    my $test = context();
+
+    my $result = $self->_select_item_row_to_edit_ok(
         $name, $self->gads->username, 'user' );
+
+    $test->release;
+    return $result;
 }
 
 =head3 select_field_to_edit_ok
@@ -1067,7 +1074,12 @@ From the I<< Manage fields >> page, select a named field to edit.
 
 sub select_field_to_edit_ok {
     my $self = shift;
-    return $self->_select_item_row_to_edit_ok( @_, 'field' );
+    my $test = context();
+
+    my $result = $self->_select_item_row_to_edit_ok( @_, 'field' );
+
+    $test->release;
+    return $result;
 }
 
 =head3 select_group_to_edit_ok
@@ -1078,7 +1090,12 @@ From the I<< Groups >> page, select a named group to edit.
 
 sub select_group_to_edit_ok {
     my $self = shift;
-    return $self->_select_item_row_to_edit_ok( @_, 'group' );
+    my $test = context();
+
+    my $result = $self->_select_item_row_to_edit_ok( @_, 'group' );
+
+    $test->release;
+    return $result;
 }
 
 =head3 select_table_to_edit_ok
@@ -1089,7 +1106,12 @@ From the I<< Manage tables >> page, select a named table to edit.
 
 sub select_table_to_edit_ok {
     my $self = shift;
-    return $self->_select_item_row_to_edit_ok( @_, 'table' );
+    my $test = context();
+
+    my $result = $self->_select_item_row_to_edit_ok( @_, 'table' );
+
+    $test->release;
+    return $result;
 }
 
 sub _select_item_row_to_edit_ok {
