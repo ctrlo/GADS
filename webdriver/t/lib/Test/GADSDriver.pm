@@ -1327,7 +1327,7 @@ sub submit_add_a_view_form_ok {
 
     # Specify filters for the view
     my $add_a_rule = 0;
-    foreach ( @{ $arg{filters}{rules} } ) {
+    foreach my $rule ( @{ $arg{filters}{rules} } ) {
         if ($add_a_rule) {
             $add_rule_el->click;
             $filter_rule_el = $filter_rule_el->find(
@@ -1335,7 +1335,7 @@ sub submit_add_a_view_form_ok {
                 method => 'xpath',
             );
         }
-        $success &&= $self->_specify_filter( $filter_rule_el, $_ );
+        $success &&= $self->_specify_filter( $filter_rule_el, $rule );
         $add_a_rule = 1;
     }
 
