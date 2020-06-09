@@ -59,6 +59,7 @@ $gads->navigate_ok(
 $gads->assert_on_manage_users_page;
 
 $gads->select_current_user_to_edit_ok('Edit the logged in user');
+$gads->assert_on_edit_user_page;
 
 $gads->assign_current_user_to_group_ok(
     'Assign the logged in user to the group', $group_name );
@@ -267,11 +268,15 @@ $gads->follow_link_ok( undef, 'Manage fields' );
 $gads->assert_on_manage_fields_page;
 $gads->select_field_to_edit_ok( 'Select the text field created',
     $text_field_name );
+$gads->assert_on_edit_field_page(
+    'On the Edit field page before deleting the text field');
 $gads->confirm_deletion_ok('Delete the text field created');
 $gads->assert_on_manage_fields_page(
     'On the manage fields page after deleting the first field' );
 $gads->select_field_to_edit_ok( 'Select the integer field created',
     $int_field_name );
+$gads->assert_on_edit_field_page(
+    'On the Edit field page before deleting the integer field');
 $gads->confirm_deletion_ok('Delete the integer field created');
 $gads->assert_on_manage_fields_page(
     'On the manage fields page after deleting fields' );

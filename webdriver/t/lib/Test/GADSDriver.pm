@@ -379,6 +379,49 @@ sub assert_on_add_a_view_page {
     return $self;
 }
 
+=head3 assert_on_edit_field_page
+
+The I<< Edit field >> page is visible
+
+=cut
+
+sub assert_on_edit_field_page {
+    my ( $self, $name ) = @_;
+    $name //= 'The edit field page is visible';
+    my $test = context();
+
+    $self->_assert_on_page(
+        'body.layout',
+        [ { selector => 'h2', match => '\\AEdit field\\s*' } ],
+        $name,
+    );
+
+    $test->release;
+    return $self;
+}
+
+=head3 assert_on_edit_user_page
+
+The user editing page is visible
+
+=cut
+
+sub assert_on_edit_user_page {
+    my ( $self, $name ) = @_;
+    $name //= 'The edit user page is visible';
+    my $test = context();
+
+    $self->_assert_on_page(
+        'body.user',
+        # TODO Check the user's name appears in the heading text
+        [ { selector => 'h1', match => '\\AEdit: ' } ],
+        $name,
+    );
+
+    $test->release;
+    return $self;
+}
+
 =head3 assert_on_login_page
 
 The login page is visible.
