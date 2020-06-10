@@ -383,7 +383,7 @@
         </div>
         <div id="notify-options">
             <div class="form-group">
-                <label for="notify_on_selection_subject">You have been selected in a record</label>
+                <label for="notify_on_selection_subject">Subject line of email alert</label>
                 <input id="notify_on_selection_subject" class="form-control" type="text" name="notify_on_selection_subject"
                     value="[% column.notify_on_selection_subject OR 'You have been assigned a record' | html %]">
             </div>
