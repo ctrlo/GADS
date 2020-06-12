@@ -3,13 +3,12 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "rollup": "yarn run lint && rollup --config rollup.config.js",
-    "watch": "npm-watch",
+    "rollup": "rollup --config rollup.config.js",
     "sass": "sass --update --no-source-map sass:public/css/",
     "jshint": "jshint public/js/*.js",
     "ts": "yarn run webpack --watch",
     "lint": "eslint src",
-    "start": "npm-run-all --parallel babel watch ts"
+    "start": "npm-watch"
   },
   "dependencies": {
     "@types/react": "^16.9.34",
@@ -51,9 +50,17 @@
     "rollup-plugin-uglify": "^6.0.4"
   },
   "watch": {
+    "rollup": {
+      "patterns": "src",
+      "extensions": "js"
+    },
     "sass": {
       "patterns": "sass",
-      "extensions": "*.scss"
+      "extensions": "scss"
+    },
+    "ts": {
+      "patterns": "src/dashboard",
+      "extensions": "ts,tsx"
     }
   }
 }

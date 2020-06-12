@@ -110,23 +110,25 @@ bin/onboard.pl --take-first-enum new.csv # Import random data
 ```
 
 ## Front-end workflow
+To get started install all required dependencies by running `yarn install`.
 
 ### CSS
 CSS is written in SCSS, and compiled.
 
-The main SCSS files live in `scss/`. A changes monitor and compiler is used by running `npm run watch`.
+The main SCSS files live in `scss/`. To compile run `yarn run sass`.
 
 ### Javascript
-A bootstrapping snippet lives in `public/js/linkspace.js`.
+There are two javascript builds present, one to build `dashboard.js` and one to build
+`linkspace.js`. The former uses Webpack and is IE9+ compatible. The latter is a simpler
+process with Rollup to compile IE8+ compatible code.
 
-Besides this plain javascript file webpack is put in place to compile part of the application
-(only dashboards for now). Those source files live in `src`. A changes monitor and compiler is used
-by running `npm run ts`.
-
-Install all required note modules using `npm install` then `npm install --only=dev`.
+Those source files live in `src`. To compile `dashboard.js` run `yarn run ts` and to compile
+`linkspace.js` run `yarn run rollup`.
 
 ### Combine
-To monitor and compile both css and js at the same time run `npm run start`.
+To compile all files at the same time run `yarn run start`. This will also monitor for changed
+files and will run either `rollup`, `sass` or `ts` when needed. This is the primary command
+you want to run when developing.
 
 At this time all compiled files are added to git to support an easier deployment. This should be
 migrated to a deployment procedure which builds those files on the fly, allowing the build files
