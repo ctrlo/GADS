@@ -26,6 +26,7 @@
     "./docs",
     "./node_modules",
     "./public",
+    "./rollup.config.js",
     "./src/*.js",
     "./webpack.config.js",
   ]
