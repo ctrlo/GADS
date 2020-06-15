@@ -230,6 +230,11 @@
                 <script src="[% url.js %]/summernote.min.js"></script>
             [% END %]
         [% END %]
+        [% IF page == "login" %]
+            <!--[if (gte IE 6)&(lte IE 8)]>
+                <script type="text/javascript" src="[% url.js %]/selectivizr-min.js"></script>
+            <![endif]-->
+        [% END %]
         [% IF page.match('(user|account|graph)') %]
             [% IF hostlocal %]
                 <script type="text/javascript" src="[% url.js %]/jquery.dataTables.min.js"></script>
