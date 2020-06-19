@@ -1961,6 +1961,12 @@ sub _search_construct
 
     if ($filter->{operator} eq 'changed_after')
     {
+        if ($filter->{value} =~ /CURDATE/) # XXX repeated below, quick fix
+        {
+            my $vdt = GADS::View->parse_date_filter($filter->{value});
+            my $dtf = $self->schema->storage->datetime_parser;
+            $filter->{value} = $dtf->format_date($vdt);
+        }
         my $condition = {
             type     => 'changed_after',
             operator => '',

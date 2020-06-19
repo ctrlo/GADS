@@ -85,6 +85,8 @@ foreach my $write (@to_write)
     $write_id = $record->current_id;
 }
 
+set_fixed_time('01/14/2014 12:00', '%m/%d/%Y %H:%M:%S');
+
 my @tests = (
     {
         changed_date => '2014-09-15',
@@ -112,6 +114,10 @@ my @tests = (
     },
     {
         changed_date => '2013-12-15',
+        count        => 1,
+    },
+    {
+        changed_date => 'CURDATE + 86400',
         count        => 1,
     },
 );
