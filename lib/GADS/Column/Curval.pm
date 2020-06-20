@@ -93,6 +93,7 @@ has '+filter' => (
 after clear => sub {
     my $self = shift;
     $self->clear_has_subvals;
+    $self->clear_filter;
     $self->clear_subvals_input_required;
     $self->clear_data_filter_fields;
 };
