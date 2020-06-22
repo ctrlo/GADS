@@ -100,6 +100,28 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
     $curval->value_selector($value_selector);
     $curval->write(no_alerts => 1, force => 1);
 
+    my $curval_string = $curval_sheet->columns->{string1};
+
+    # Test brand new record first
+    {
+        my $record = GADS::Record->new(
+            user   => $sheet->user_normal1,
+            layout => $layout,
+            schema => $schema,
+        );
+        $record->initialise;
+        my $curval_datum = $record->fields->{$curval->id};
+        $curval_datum->set_value([$curval_string->field."=foo55"]);
+        $record->write(no_alerts => 1);
+        is($record->fields->{$calcmain->id}->as_string, "foo55", "Main calc correct");
+        my $cid = $record->current_id;
+        $record->clear;
+        $record->find_current_id($cid);
+        is($record->fields->{$calcmain->id}->as_string, "foo55", "Main calc correct after load");
+        $curval_datum = $record->fields->{$curval->id};
+        is($curval_datum->as_string, 'foo55', "Curval value contains new record");
+    }
+
     my $record = GADS::Record->new(
         user   => $sheet->user_normal1,
         layout => $layout,
@@ -111,21 +133,28 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
 
     if ($value_selector eq 'dropdown')
     {
-        my $expected = [{
-            value_id    => 2,
-            selector_id => 2,
-            value       => 'Bar',
-        },{
-            value_id    => 1,
-            selector_id => 1,
-            value       => 'Foo',
-        }];
+        my $expected = [
+            {
+                value_id    => 2,
+                selector_id => 2,
+                value       => 'Bar',
+            },
+            {
+                value_id    => 1,
+                selector_id => 1,
+                value       => 'Foo',
+            },
+            {
+                value_id    => 6,
+                selector_id => 6,
+                value       => 'foo55',
+            },
+        ];
         _check_values($curval->filtered_values, $expected, "Curval dropdown values initially correct");
     }
 
     # Add a value to the curval on write
     my $curval_count = $schema->resultset('Current')->search({ instance_id => 2 })->count;
-    my $curval_string = $curval_sheet->columns->{string1};
     $curval_datum->set_value([$curval_string->field."=foo1"]);
     $record->write(no_alerts => 1);
     is($record->fields->{$calcmain->id}->as_string, "foo1", "Main calc correct");
@@ -161,7 +190,7 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
     like($curval_datum->as_string, qr/^(foo1; foo2|foo2; foo1)$/, "Curval value contains second new record");
     $record->clear;
     # Check autocur from added curval
-    $record->find_current_id(6);
+    $record->find_current_id(7);
     is($record->fields->{$calc->id}->as_string, "50", "Autocur calc correct");
 
     # Edit existing

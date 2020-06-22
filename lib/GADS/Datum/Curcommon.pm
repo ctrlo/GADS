@@ -490,6 +490,11 @@ sub html_form
 sub _build_for_code
 {   my ($self, %options) = @_;
 
+    # We need to clear values now, as it may have previously been built with
+    # unwritten records (which do not have IDs and are therefore grepped out in
+    # the code below). By the time we need this, the IDs should be available
+    $self->clear_values;
+
     my $already_seen_code = $self->already_seen_code;
     # Get all field data in one chunk
     my $field_values = $self->field_values_for_code(already_seen_code => $already_seen_code, level => $self->already_seen_level);
