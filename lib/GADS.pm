@@ -1433,7 +1433,8 @@ prefix '/:layout_name' => sub {
             site   => var('site'),
         );
 
-        my $dashboard = schema->resultset('Dashboard')->dashboard(%params);
+        my $dashboard = schema->resultset('Dashboard')->dashboard(%params)
+            || schema->resultset('Dashboard')->shared_dashboard(%params);
 
         # If the shared dashboard is blank for this table then show the site
         # dashboard by default. That is, unless the shared dashboard has been

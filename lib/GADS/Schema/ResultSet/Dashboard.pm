@@ -79,6 +79,7 @@ sub shared_dashboard
     })->next;
     $dashboard = $self->create_dashboard(%params, type => 'shared')
         if !$dashboard;
+    $dashboard->layout($params{layout});
 
     return $dashboard;
 }
