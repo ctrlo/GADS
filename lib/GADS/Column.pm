@@ -1167,8 +1167,8 @@ sub write
             else {
                 $newitem->{id} = $self->id;
                 $rset = $self->schema->resultset('Layout')->create($newitem);
-                $self->_set__rset($rset);
             }
+            $self->_set__rset($rset);
         }
 
         # Write any column-specific params
