@@ -960,10 +960,15 @@ sub load_remembered_values
     })->next
         or return;
 
+    # When loading the previous record, don't use the permissions of the
+    # current user. The record may no longer be available to the user due to
+    # view limits. The user won't actually be able to see the record, they will
+    # just see values that they previously entered themselves.
     my $previous = GADS::Record->new(
-        user   => $self->user,
-        layout => $self->layout,
-        schema => $self->schema,
+        user                     => undef,
+        user_permission_override => 1,
+        layout                   => $self->layout,
+        schema                   => $self->schema,
     );
 
     $previous->columns(\@remember);

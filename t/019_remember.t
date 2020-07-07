@@ -50,6 +50,52 @@ foreach my $c (keys %$data)
     is($datum->as_string, $expected);
 }
 
+# Check that a user can still load previous values from a record they no longer
+# have access to
+{
+    # Create view limit
+    my $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $columns->{string1}->id,
+                type     => 'string',
+                value    => 'Foobar', # No match
+                operator => 'equal',
+            }],
+        },
+    );
+
+    my $view_limit = GADS::View->new(
+        name        => 'Limit to view',
+        filter      => $rules,
+        instance_id => 1,
+        layout      => $sheet->layout,
+        schema      => $sheet->schema,
+        user        => $sheet->user,
+        is_admin    => 1,
+    );
+    $view_limit->write;
+
+    $sheet->user->set_view_limits([$view_limit->id]);
+    $record = GADS::Record->new(
+        user     => $sheet->user,
+        layout   => $sheet->layout,
+        schema   => $sheet->schema,
+    );
+    $record->initialise;
+    $record->load_remembered_values;
+
+    foreach my $c (keys %$data)
+    {
+        my $col = $columns->{$c};
+        my $datum = $record->fields->{$col->id};
+        my $expected = $expected->{$col->name} || $data->{$col->name};
+        is($datum->as_string, $expected);
+    }
+
+    $sheet->user->set_view_limits([]);
+}
+
 # Check that trying to load a deleted record returns blank
 $record = GADS::Record->new(
     user     => $sheet->user,
