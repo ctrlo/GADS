@@ -61,5 +61,11 @@ $record->delete_current;
 $record->clear;
 $record->initialise;
 $record->load_remembered_values;
+foreach my $c (keys %$data)
+{
+    my $col = $columns->{$c};
+    my $datum = $record->fields->{$col->id};
+    is($datum->as_string, '');
+}
 
 done_testing();
