@@ -297,6 +297,9 @@ sub csv
         or error __x"An error occurred producing the CSV headings: {err}", err => $csv->error_input;
     my $csvout = $csv->string."\n";
 
+    # Need to run this query as 2 separate queries. Running them as one query
+    # takes far too long on a system with a lot of users
+
     # All the data values
     my @select_columns = (
         {
@@ -347,11 +350,24 @@ sub csv
             max => 'freetext2',
             -as => 'freetext2_max',
         },
+    );
+
+    my @select_columns2 = (
+        {
+            max => 'me.id',
+            -as => 'id_max',
+        },
+        {
+            max => 'surname',
+            -as => 'surname_max',
+        },
         {
             count => 'audits_last_month.id',
             -as   => 'audit_count',
         },
     );
+
+    my $guard = $self->schema->txn_scope_guard; # Try to ensure consistent data between queries
 
     push @select_columns, +{
         max => $self->schema->resultset('User')
@@ -365,7 +381,16 @@ sub csv
     my @users = $self->user_rs->search({}, {
         select => \@select_columns,
         join   => [
-            'audits_last_month', 'organisation', 'department', 'team', 'title',
+            'organisation', 'department', 'team', 'title',
+        ],
+        order_by => 'surname_max',
+        group_by => 'me.id',
+    })->all;
+
+    my @users2 = $self->user_rs->search({}, {
+        select => \@select_columns2,
+        join   => [
+            'audits_last_month',
         ],
         order_by => 'surname_max',
         group_by => 'me.id',
@@ -379,10 +404,17 @@ sub csv
 
     foreach my $user (@users)
     {
+        my $user2 = shift @users2;
+
+        # Make sure both queries are in sync
+        my $surname = $user->get_column('surname_max');
+        $surname eq $user2->get_column('surname_max')
+            or panic "Sync problem with user download";
+
         my $id = $user->get_column('id_max');
         my @csv = (
             $id,
-            $user->get_column('surname_max'),
+            $surname,
             $user->get_column('firstname_max'),
             $user->get_column('email_max'),
             $user->get_column('lastlogin_max'),
@@ -396,13 +428,16 @@ sub csv
         push @csv, $user->get_column('freetext2_max') if $site->register_freetext2_name;
         push @csv, join '; ', map { $_->permission->description } @{$user_permissions{$id}};
         push @csv, join '; ', map { $_->group->name } @{$user_groups{$id}};
-        push @csv, $user->get_column('audit_count');
+        push @csv, $user2->get_column('audit_count');
         push @csv, $user->get_column('last_'.$_->instance_id) foreach @{$instances->all};
         $csv->combine(@csv)
             or error __x"An error occurred producing a line of CSV: {err}",
                 err => "".$csv->error_diag;
         $csvout .= $csv->string."\n";
     }
+
+    $guard->commit;
+
     $csvout;
 }
 
