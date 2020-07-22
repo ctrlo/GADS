@@ -86,8 +86,16 @@ sub user_rs
 
 sub _build_all
 {   my $self = shift;
-    my @users = $self->user_rs->search({}, {
-        join     => { user_permissions => 'permission' },
+    my @users = $self->user_rs->search({},
+    {
+        columns => [
+            'me.id', 'me.surname', 'me.firstname', 'title.name', 'me.email',
+            'organisation.name', 'department.name', 'team.name', 'me.created',
+            'me.lastlogin', 'me.value',
+        ],
+        join     => [
+            'organisation', 'department', 'team', 'title',
+        ],
         order_by => 'surname',
         collapse => 1,
     })->all;
