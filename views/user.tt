@@ -21,13 +21,7 @@
             <input type="hidden" name="id" value="[% edituser.id %]">
             [% FOREACH field IN site.user_fields %]
                 <div class="form-group">
-                    <label for="field.name">[% field.description | html %]:
-                        [% IF page.match("user") AND field.type == "dropdown" %]
-                            <button type="button" class="btn btn-default" data-toggle="modal" data-target="#submitnew[% field.name %]">
-                                Add [% field.description | html %]
-                            </button>
-                        [% END %]
-                    </label>
+                    <label for="field.name">[% field.description | html %]:</label>
                     [% IF field.type == "freetext" %]
                         <input type="text" class="form-control" id="[% field.name %]" name="[% field.name %]"
                             value="[% edituser.${field.name} | html_entity %]"
@@ -108,34 +102,6 @@
                         in the tabular data view<ul></ul></dd>
                 </dl>
             </div>
-
-            [% WRAPPER modal_dialog.tt modal_id="submitneworganisation" modal_action_text="Create new " _ site.organisation_name modal_heading="Add " _ site.organisation_name %]
-                <p>Please enter the name of a new [% site.organisation_name | html %]:</p>
-                <div class="form-group">
-                    <input type="text" class="form-control" id="neworganisation" name="neworganisation" placeholder="New [% site.organisation_name | html %]">
-                </div>
-            [% END %]
-
-            [% WRAPPER modal_dialog.tt modal_id="submitnewdepartment_id" modal_action_text="Create new " _ site.department_name modal_heading="Add " _ site.department_name %]
-                <p>Please enter the name of a new [% site.department_name | html %]:</p>
-                <div class="form-group">
-                    <input type="text" class="form-control" id="newdepartment" name="newdepartment" placeholder="New [% site.department_name | html %]">
-                </div>
-            [% END %]
-
-            [% WRAPPER modal_dialog.tt modal_id="submitnewteam_id" modal_action_text="Create new " _ site.team_name modal_heading="Add " _ site.team_name %]
-                <p>Please enter the name of a new [% site.team_name | html %]:</p>
-                <div class="form-group">
-                    <input type="text" class="form-control" id="newteam" name="newteam" placeholder="New [% site.team_name | html %]">
-                </div>
-            [% END %]
-
-            [% WRAPPER modal_dialog.tt modal_id="submitnewtitle" modal_action_text="Create new title" modal_heading="Add title" %]
-                <p>Please enter the name of a new title:</p>
-                <div class="form-group">
-                    <input type="text" class="form-control" id="newtitle" name="newtitle" placeholder="New title">
-                </div>
-            [% END %]
 
         [% ELSE %]
             [% WRAPPER modal_dialog.tt modal_id="newpassword" modal_action_text="Generate new password" modal_heading="Change password" %]
