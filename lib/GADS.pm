@@ -802,6 +802,152 @@ any ['get', 'post'] => '/group/?:id?' => require_any_role [qw/useradmin superadm
     template 'group' => $params;
 };
 
+any ['get', 'post'] => '/organisation/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
+
+    my $id     = route_parameters->get('id');
+
+    my $organisation = $id
+        ? schema->resultset('Organisation')->find($id)
+        : schema->resultset('Organisation')->new({});
+
+    my $organisation_name = var('site')->organisation_name;
+
+    if (body_parameters->get('submit'))
+    {
+        $organisation->name(body_parameters->get('name'));
+        if (process( sub { $organisation->insert_or_update } ))
+        {
+            return forwardHome(
+                { success => "The $organisation_name has been updated successfully" }, 'organisation/' );
+        }
+    }
+
+    if ($id && body_parameters->get('delete'))
+    {
+        if (process( sub { $organisation->delete } ))
+        {
+            return forwardHome(
+                { success => "The $organisation_name has been deleted successfully" }, 'organisation/' );
+        }
+    }
+
+    template 'organisation' => {
+        organisation  => defined $id && $organisation,
+        organisations => [schema->resultset('Organisation')->ordered],
+        page          => 'organisation',
+    };
+
+};
+
+any ['get', 'post'] => '/department/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
+
+    my $id     = route_parameters->get('id');
+
+    my $department = $id
+        ? schema->resultset('Department')->find($id)
+        : schema->resultset('Department')->new({});
+
+    my $department_name = var('site')->department_name;
+
+    if (body_parameters->get('submit'))
+    {
+        $department->name(body_parameters->get('name'));
+        if (process( sub { $department->insert_or_update } ))
+        {
+            return forwardHome(
+                { success => "The $department_name has been updated successfully" }, 'department/' );
+        }
+    }
+
+    if ($id && body_parameters->get('delete'))
+    {
+        if (process( sub { $department->delete } ))
+        {
+            return forwardHome(
+                { success => "The $department_name has been deleted successfully" }, 'department/' );
+        }
+    }
+
+    template 'department' => {
+        department  => defined $id && $department,
+        departments => [schema->resultset('Department')->ordered],
+        page        => 'department',
+    };
+
+};
+
+any ['get', 'post'] => '/team/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
+
+    my $id     = route_parameters->get('id');
+
+    my $team = $id
+        ? schema->resultset('Team')->find($id)
+        : schema->resultset('Team')->new({});
+
+    my $team_name = var('site')->team_name;
+
+    if (body_parameters->get('submit'))
+    {
+        $team->name(body_parameters->get('name'));
+        if (process( sub { $team->insert_or_update } ))
+        {
+            return forwardHome(
+                { success => "The $team_name has been updated successfully" }, 'team/' );
+        }
+    }
+
+    if ($id && body_parameters->get('delete'))
+    {
+        if (process( sub { $team->delete } ))
+        {
+            return forwardHome(
+                { success => "The $team_name has been deleted successfully" }, 'team/' );
+        }
+    }
+
+    template 'team' => {
+        team  => defined $id && $team,
+        teams => [schema->resultset('Team')->ordered],
+        page  => 'team',
+    };
+
+};
+
+any ['get', 'post'] => '/title/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
+
+    my $id     = route_parameters->get('id');
+
+    my $title = $id
+        ? schema->resultset('Title')->find($id)
+        : schema->resultset('Title')->new({});
+
+    if (body_parameters->get('submit'))
+    {
+        $title->name(body_parameters->get('name'));
+        if (process( sub { $title->insert_or_update } ))
+        {
+            return forwardHome(
+                { success => "The title has been updated successfully" }, 'title/' );
+        }
+    }
+
+    if ($id && body_parameters->get('delete'))
+    {
+        if (process( sub { $title->delete } ))
+        {
+            return forwardHome(
+                { success => "The title has been deleted successfully" }, 'title/' );
+        }
+    }
+
+    template 'title' => {
+        title  => defined $id && $title,
+        titles => [schema->resultset('Title')->ordered],
+        page   => 'title',
+    };
+
+};
+
 get '/table/?' => require_role superadmin => sub {
 
     template 'tables' => {

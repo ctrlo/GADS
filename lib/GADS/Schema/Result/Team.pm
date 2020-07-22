@@ -6,6 +6,10 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
+use Log::Report 'linkspace';
+
+__PACKAGE__->load_components("+GADS::DBIC");
+
 __PACKAGE__->table("team");
 
 __PACKAGE__->add_columns(
@@ -37,5 +41,33 @@ __PACKAGE__->belongs_to(
     on_update     => "NO ACTION",
   },
 );
+
+sub before_delete
+{   my $self = shift;
+    my $schema = $self->result_source->schema;
+    my $count = $schema->resultset('User')->search({
+        team_id => $self->id,
+    })->count;
+    my $count_deleted = $schema->resultset('User')->search({
+        deleted       => { '!=' => undef },
+        team_id => $self->id,
+    })->count;
+    if ($count_deleted)
+    {
+        error __xn"This {name} cannot be deleted as it is in use by 1 user on the system, which is deleted"
+            ,"This {name} cannot be deleted as it is in use by {count} users on the system, of which {deleted} are deleted"
+            ,$count
+            ,name => $schema->resultset('Site')->next->team_name
+            ,count => $count
+            ,deleted => $count_deleted;
+    }
+    elsif ($count) {
+        error __xn"This {name} cannot be deleted as it is in use by 1 user on the system"
+            ,"This {name} cannot be deleted as it is in use by {count} users on the system"
+            ,$count
+            ,name => $schema->resultset('Site')->next->team_name
+            ,count => $count;
+    }
+}
 
 1;

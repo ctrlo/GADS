@@ -12,6 +12,8 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
+use Log::Report 'linkspace';
+
 =head1 COMPONENTS LOADED
 
 =over 4
@@ -22,7 +24,7 @@ use base 'DBIx::Class::Core';
 
 =cut
 
-__PACKAGE__->load_components("InflateColumn::DateTime");
+__PACKAGE__->load_components("+GADS::DBIC");
 
 =head1 TABLE: C<organisation>
 
@@ -109,5 +111,33 @@ __PACKAGE__->belongs_to(
     on_update     => "NO ACTION",
   },
 );
+
+sub before_delete
+{   my $self = shift;
+    my $schema = $self->result_source->schema;
+    my $count = $schema->resultset('User')->search({
+        organisation => $self->id,
+    })->count;
+    my $count_deleted = $schema->resultset('User')->search({
+        deleted      => { '!=' => undef },
+        organisation => $self->id,
+    })->count;
+    if ($count_deleted)
+    {
+        error __xn"This {name} cannot be deleted as it is in use by 1 user on the system, which is deleted"
+            ,"This {name} cannot be deleted as it is in use by {count} users on the system, of which {deleted} are deleted"
+            ,$count
+            ,name => $schema->resultset('Site')->next->organisation_name
+            ,count => $count
+            ,deleted => $count_deleted;
+    }
+    elsif ($count) {
+        error __xn"This {name} cannot be deleted as it is in use by 1 user on the system"
+            ,"This {name} cannot be deleted as it is in use by {count} users on the system"
+            ,$count
+            ,name => $schema->resultset('Site')->next->organisation_name
+            ,count => $count;
+    }
+}
 
 1;

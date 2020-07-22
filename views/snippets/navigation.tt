@@ -145,6 +145,25 @@
             <li [% IF page=="group" %]class="active"[% END %]><a href="[% url.page %]/group/">Manage groups</a></li>
             <li [% IF page=="group/0" %]class="active"[% END %]><a href="[% url.page %]/group/0">Add a group</a></li>
             <li class="divider"></li>
+            [% IF site.register_show_organisation %]
+                <li [% IF page=="organisation" %]class="active"[% END %]><a href="[% url.page %]/organisation/">
+                        Manage [% site.organisation_name | html %]s
+                </a></li>
+            [% END %]
+            [% IF site.register_show_department %]
+                <li [% IF page=="department" %]class="active"[% END %]><a href="[% url.page %]/department/">
+                        Manage [% site.department_name | html %]s
+                </a></li>
+            [% END %]
+            [% IF site.register_show_team %]
+                <li [% IF page=="team" %]class="active"[% END %]><a href="[% url.page %]/team/">
+                        Manage [% site.team_name | html %]s
+                </a></li>
+            [% END %]
+            <li [% IF page=="title" %]class="active"[% END %]><a href="[% url.page %]/title/">
+                    Manage Titles
+            </a></li>
+            <li class="divider"></li>
             <li [% IF page=="audit" %]class="active"[% END %]>
                 <a href="[% url.page %]/audit/">User audit logs</a>
             </li>
