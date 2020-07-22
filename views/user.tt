@@ -109,10 +109,10 @@
                 </dl>
             </div>
 
-            [% WRAPPER modal_dialog.tt modal_id="submitneworganisation" modal_action_text="Create new " _ site.register_organisation_name modal_heading="Add " _ site.register_organisation_name %]
-                <p>Please enter the name of a new [% site.register_organisation_name | html %]:</p>
+            [% WRAPPER modal_dialog.tt modal_id="submitneworganisation" modal_action_text="Create new " _ site.organisation_name modal_heading="Add " _ site.organisation_name %]
+                <p>Please enter the name of a new [% site.organisation_name | html %]:</p>
                 <div class="form-group">
-                    <input type="text" class="form-control" id="neworganisation" name="neworganisation" placeholder="New [% site.register_organisation_name | html %]">
+                    <input type="text" class="form-control" id="neworganisation" name="neworganisation" placeholder="New [% site.organisation_name | html %]">
                 </div>
             [% END %]
 
@@ -169,7 +169,7 @@
             [% END %]
             <th>Email</th>
             [% IF site.register_show_organisation %]
-                <th>[% site.register_organisation_name | html %]</th>
+                <th>[% site.organisation_name | html %]</th>
             [% END %]
             [% IF site.register_show_department %]
                 <th>[% site.department_name | html %]</th>
@@ -222,7 +222,7 @@
                 <th>Firstname</th>
                 <th>Email</th>
                 [% IF site.register_show_organisation %]
-                    <th>[% site.register_organisation_name %]</th>
+                    <th>[% site.organisation_name %]</th>
                 [% END %]
                 [% IF site.register_show_department %]
                     <th>[% site.department_name %]</th>
