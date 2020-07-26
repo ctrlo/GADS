@@ -24,6 +24,8 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column::Person';
 
+with 'GADS::Role::Presentation::Column::Createdby';
+
 has '+value_field' => (
     default => 'value',
 );
