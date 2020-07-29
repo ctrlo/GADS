@@ -107,6 +107,13 @@ table.floatThead-table {
     div{
         page-break-inside: avoid;
     }
+    body {
+        -webkit-print-color-adjust: exact !important;
+         margin: 0cm;
+    }
+    @page {
+        margin: 0.5cm;
+    }
 }
 
 .bootstrap-select .dropdown-menu li a {

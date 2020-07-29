@@ -77,7 +77,9 @@ $huge = 'overflow';
 use Tie::Cache;
 use URI;
 use URI::Escape qw/uri_escape_utf8 uri_unescape/;
-use WWW::Mechanize::PhantomJS;
+
+use Log::Log4perl qw(:easy); # Just for WWW::Mechanize::Chrome
+use WWW::Mechanize::Chrome;
 
 use Dancer2; # Last to stop Moo generating conflicting namespace
 use Dancer2::Plugin::DBIC;
@@ -406,7 +408,9 @@ get '/' => require_login sub {
         $params->{readonly} = 1;
         if ($download eq 'pdf')
         {
-            my $pdf = _page_as_mech('index', $params, pdf => 1)->content_as_pdf;
+            my $pdf = _page_as_mech('index', $params, pdf => 1)->content_as_pdf(
+                paperWidth => 16.5, paperHeight => 11.7 # A3 landscape
+            );
             return send_file(
                 \$pdf,
                 content_type => 'application/pdf',
@@ -1609,7 +1613,9 @@ prefix '/:layout_name' => sub {
             $params->{readonly} = 1;
             if ($download eq 'pdf' && !$layout->no_download_pdf)
             {
-                my $pdf = _page_as_mech('index', $params, pdf => 1)->content_as_pdf;
+                my $pdf = _page_as_mech('index', $params, pdf => 1)->content_as_pdf(
+                    paperWidth => 16.5, paperHeight => 11.7 # A3 landscape
+                );
                 return send_file(
                     \$pdf,
                     content_type => 'application/pdf',
@@ -1937,12 +1943,10 @@ prefix '/:layout_name' => sub {
                 my $options_in = $graph->as_json;
                 $params->{graph_id} = $png;
 
-                my $mech = _page_as_mech('data_graph', $params, width => 630, height => 400);
-                $mech->eval_in_page('(function(plotData, options_in){do_plot_json(plotData, options_in)})(arguments[0],arguments[1]);',
-                    $json, $options_in
-                );
+                my $mech = _page_as_mech('data_graph', $params);
+                $mech->eval_in_page("(function(plotData, options_in){do_plot_json(plotData, options_in)})('$json','$options_in');");
 
-                my $png= $mech->content_as_png();
+                my $png = $mech->content_as_png(undef, { width => 630, height => 400 });
                 # Send as inline images to make copy and paste easier
                 return send_file(
                     \$png,
@@ -2055,7 +2059,9 @@ prefix '/:layout_name' => sub {
             if (param('modal_pdf') && !$layout->no_download_pdf)
             {
                 $tl_options->{pdf_zoom} = param('pdf_zoom');
-                my $pdf = _page_as_mech('data_timeline', $params, pdf => 1, zoom => $tl_options->{pdf_zoom})->content_as_pdf;
+                my $pdf = _page_as_mech('data_timeline', $params, pdf => 1, zoom => $tl_options->{pdf_zoom})->content_as_pdf(
+                    paperWidth => 16.5, paperHeight => 11.7 # A3 landscape
+                );
                 return send_file(
                     \$pdf,
                     content_type => 'application/pdf',
@@ -3569,34 +3575,33 @@ sub _page_as_mech
     my $public              = path(setting('appdir'), 'public');
     $params->{base}         = "file://$public/";
     $params->{page_as_mech} = 1;
-    $params->{zoom}         = (int $options{zoom} || 100) / 100;
+    $params->{zoom}         = ($options{zoom} ? int($options{zoom}) : 100) / 100;
     my $timeline_html       = template $template, $params;
     my ($fh, $filename)     = tempfile(SUFFIX => '.html');
     print $fh $timeline_html;
     close $fh;
-    my $mech = WWW::Mechanize::PhantomJS->new;
+
+    my $mech = WWW::Mechanize::Chrome->new(
+	headless   => 1,
+        launch_exe => '/usr/bin/chromium',
+    );
+
+    # In order to use the full page of PDFs (rendered as A3) we need to set the
+    # applicable viewport size
     if ($options{pdf})
     {
-        $mech->eval_in_phantomjs("
-            this.paperSize = {
-                format: 'A3',
-                orientation: 'landscape',
-                margin: '0.5cm'
-            };
-        ");
+        # A3 is 29.7 × 42 cm
+        # Subtract 0.5cm * 2 for borders (see local.css)
+        # = 28.7cm x 41
+        # Pixels as per https://www.unitconverters.net/typography/centimeter-to-pixel-x.htm
+        # 1085 x 1550
+        $mech->viewport_size({ width => 1550, height => 1085 });
     }
-    elsif ($options{width} && $options{height}) {
-        $mech->eval_in_phantomjs("
-            this.viewportSize = {
-                width: $options{width},
-                height: $options{height},
-            };
-        ");
-    }
+
     $mech->get_local($filename);
     # Sometimes the timeline does not render properly (it is completely blank).
     # This only seems to happen in certain views, but adding a brief sleep
-    # seems to fix ti - maybe things are going out of scope before PhantomJS has
+    # seems to fix it - maybe things are going out of scope before Mechanize has
     # finished its work?
     sleep 1;
     unlink $filename;
