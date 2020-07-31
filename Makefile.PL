@@ -59,7 +59,7 @@ our %prereq_pm = (
     'Tie::Cache'                                => 0,
     'Tree::DAG_Node'                            => 0,
     'WWW::Form::UrlEncoded::XS'                 => 0,
-    'WWW::Mechanize::PhantomJS'                 => 0,
+    'WWW::Mechanize::Chrome'                    => 0,
     'YAML'                                      => 0,
 );
 
