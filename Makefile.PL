@@ -38,6 +38,7 @@ our %prereq_pm = (
     'Inline::Lua'                               => 0.16,
     'List::Compare'                             => 0,
     'List::MoreUtils'                           => 0,
+    'Log::Log4perl'                             => 0,
     'Log::Report'                               => 1.28,
     'Mail::Message'                             => 0,
     'Mail::Transport::Sendmail'                 => 0,
