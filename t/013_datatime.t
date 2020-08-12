@@ -692,6 +692,59 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     is($return->{max}, undef, "No max value for no range specification");
 }
 
+# Multiple items in group field, ordered correctly
+{
+    my $data = [
+        {
+            string1 => 'foo1',
+            enum1   => [1,3],
+            date1   => '2010-06-01',
+        },
+        {
+            string1 => 'foo2',
+            enum1   => [2],
+            date1   => '2010-06-05',
+        },
+    ];
+    my $sheet = Test::GADS::DataSheet->new(data => $data, multivalue => 1);
+
+    $sheet->create_records;
+    my $schema   = $sheet->schema;
+    my $layout   = $sheet->layout;
+    my $enum1    = $sheet->columns->{enum1};
+
+    my $view = GADS::View->new(
+        name        => 'Test',
+        columns     => [ $sheet->columns->{string1}->id, $sheet->columns->{date1}->id ],
+        instance_id => $layout->instance_id,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $sheet->user,
+    );
+    $view->write;
+    $view->set_sorts([$enum1->id], ['asc']);
+
+    my $records = GADS::Records->new(
+        view    => $view,
+        user    => undef,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    my $return = $records->data_timeline(group => $enum1->id);
+
+    is( @{$return->{items}}, 3, "Correct number of items for group ordering" );
+
+    # Check that the groups are in the right order. Because we are ordering by
+    # the enumvals (foo1, foo2, foo3) then number in the value should match the
+    # grouping order
+    my @groups = @{$return->{groups}};
+    is( @groups, 3, "Correct number of groups" );
+
+    ok( $_->{content} eq "foo$_->{order}", "Ordering matches content" )
+        foreach @groups;
+}
+
 # DST. Check that dates which fall on DST changes are okay.
 {
     my $data = [
