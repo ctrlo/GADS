@@ -353,9 +353,10 @@ sub _build_items
                     next DATE;
                 }
 
-                my $uid  = join '+', $cid, $d->{column}, $d->{count};
-                ! $self->_all_items_index->{$uid}
-                    or next DATE;
+                # Additional items for the same record and field can appear at
+                # any time, in particular if grouped by the field.
+                my $uid  = join '+', $cid, $d->{column};
+                $uid = "$uid+".$self->_all_items_index->{$uid}++;
 
                 # Exclude ID for pop-up values as it's included in the pop-up title
                 my @popup_values = map +{
@@ -393,7 +394,6 @@ sub _build_items
                 {   $item{single} = _tick $d->{from};
                 }
 
-                $self->_all_items_index->{$uid} = 1;
                 push @items, \%item;
             }
         }

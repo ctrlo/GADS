@@ -107,7 +107,7 @@ sub _add_jp
 
     trace __x"Checking or adding {field} to the store", field => $column->field;
 
-    my $prefetch = (!$column->multivalue || $options{include_multivalue}) && $options{prefetch};
+    my $prefetch = (!$column->multivalue || ($options{include_multivalue} && $options{include_multivalue} == $column->id)) && $options{prefetch};
 
     # A hash to ensure that we don't recurse into the same fields over and
     # over. For example, if we are viewing a curval which has an autocur that

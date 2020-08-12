@@ -1054,11 +1054,30 @@ sub _build_standard_results
         # subsequently changed to a single-value field, then there may be some
         # remaining multiple values for the single-value field. In that case,
         # multiple records will be returned from the database.
+        # For these records, we want to combine them into one record.
+        #
+        # More than one record per row will also be received when ordering by a
+        # multiple-value field and separate_records_for_multicol is set (for
+        # the timeline).
+        # For these records, we want to keep them separate, unless they happen
+        # to be consecutive, when they might as well be combined.
+        #
+        # To complicate matters further, multiple pages of retrieval for many
+        # fields will result in the same record being visited multiple times
+        # for different values. These must be combined.
+        #
+        # To manage all the abovem, we use $index_id, which is the current ID
+        # and a suffix used for different copies of the same record. Normally
+        # this is 1, but it will be incremented to deal with
+        # separate_records_for_multicol.
+        my $last_current_id;
+        my %record_count;
         foreach my $rec (@recs)
         {
             my $current_id = $rec->{current_id};
-            push @retrieved_order, $current_id
-                if $first_run && !$records->{$current_id};
+            $record_count{$current_id}++
+                unless $last_current_id && $last_current_id == $current_id;
+            my $index_id = "$current_id-$record_count{$current_id}";
             foreach my $key (keys %$rec)
             {
                 # If we have multiple records, check whether we already have a
@@ -1067,29 +1086,32 @@ sub _build_standard_results
                 # Sometimes fields will be retrieved that have no value at all
                 # (e.g. a new field has been created since the record was
                 # written)
-                if ($key =~ /^field/ && $records->{$current_id}->{$key} && $rec->{$key} && $rec->{$key}->{id})
+                if ($key =~ /^field/ && $records->{$index_id}->{$key} && $rec->{$key} && $rec->{$key}->{id})
                 {
-                    my @existing = ref $records->{$current_id}->{$key} eq 'ARRAY'
-                        ? @{$records->{$current_id}->{$key}}
-                        : ($records->{$current_id}->{$key});
+                    my @existing = ref $records->{$index_id}->{$key} eq 'ARRAY'
+                        ? @{$records->{$index_id}->{$key}}
+                        : ($records->{$index_id}->{$key});
                     @existing = grep { $_->{id} } @existing;
                     push @existing, $rec->{$key}
                         if ! grep { $rec->{$key}->{id} == $_->{id} } @existing;
-                    $records->{$current_id}->{$key} = \@existing;
+                    $records->{$index_id}->{$key} = \@existing;
                 }
                 else {
-                    $records->{$current_id}->{$key} = $rec->{$key};
+                    $records->{$index_id}->{$key} = $rec->{$key};
                 }
             }
+            push @retrieved_order, $index_id
+                if $first_run && (!$last_current_id || $last_current_id != $current_id);
+            $last_current_id = $current_id;
         }
         $page++;
         $first_run = 0;
     }
 
     my @all; my @record_ids; my @created_ids;
-    foreach my $current_id (@retrieved_order)
+    foreach my $index_id (@retrieved_order)
     {
-        my $rec = $records->{$current_id};
+        my $rec = $records->{$index_id};
         my @children = map { $_->{id} } @{$rec->{currents}};
         # XXX Need to retrieve and set approval information if applicable
         push @all, GADS::Record->new(
@@ -1176,6 +1198,12 @@ sub fetch_multivalues
                 next if $loop && !$is_linked;
                 if ($col->multivalue && !$cols_done->{$col->id})
                 {
+                    # Do not retrieve values for multivalue fields that have
+                    # been retrieved as separate records, otherwise the
+                    # separate records will have the same multiple values
+                    # rather than individual different ones
+                    next if $self->separate_records_for_multicol && $self->separate_records_for_multicol == $col->id;
+
                     my @retrieve_ids = $is_linked ? @linked_ids : @$record_ids;
                     foreach my $parent_curval_field (@{$curval_fields{$col->field}})
                     {
@@ -1295,8 +1323,6 @@ sub single
 
     # Check return if limiting to a set number of results
     return if $self->max_results && $self->records_retrieved_count >= $self->max_results;
-    # Check if we've returned all resulsts available
-    return if $self->records_retrieved_count >= @{$self->_all_cids_store};
 
     if (!$self->is_group) # Don't retrieve in chunks for group records
     {
@@ -1409,7 +1435,7 @@ sub _build_columns_retrieved_do
     foreach my $c (@columns)
     {
         # We're viewing this, so prefetch all the values
-        $self->add_prefetch($c, all_fields => $self->curcommon_all_fields);
+        $self->add_prefetch($c, all_fields => $self->curcommon_all_fields, include_multivalue => $self->separate_records_for_multicol);
         $self->add_linked_prefetch($c->link_parent) if $c->link_parent;
     }
 
@@ -1427,6 +1453,10 @@ sub _build_columns_retrieved_no
     my @columns_retrieved_no = grep { exists $columns_retrieved{$_->id} } $self->layout->all;
     \@columns_retrieved_no;
 }
+
+has separate_records_for_multicol => (
+    is => 'rw',
+);
 
 has group_col_ids => (
     is      => 'lazy',
@@ -2411,6 +2441,7 @@ sub data_timeline
         group_col_id => $options{group},
         color_col_id => $options{color},
     );
+    $self->separate_records_for_multicol($options{group});
 
     my (@items, $min, $max);
 
