@@ -1321,14 +1321,14 @@ sub single
 
     my $next_id = $self->_next_single_id;
 
-    # Check return if limiting to a set number of results
-    return if $self->max_results && $self->records_retrieved_count >= $self->max_results;
-
     if (!$self->is_group) # Don't retrieve in chunks for group records
     {
         if (
             ($next_id == 0 && $self->_single_page == 0) # First run
-            || $next_id >= $chunk # retrieved all of current chunk
+            # Retrieved all of current chunk. Make sure there aren't more
+            # results than the chunk (possible with
+            # separate_records_for_multicol)
+            || ($next_id >= $chunk && $next_id >= @{$self->results})
         )
         {
             $self->_single_page($self->_single_page + 1) # increase to next page
@@ -1561,6 +1561,7 @@ sub clear
     $self->clear_aggregate_results;
     $self->clear_search;
     $self->_set__next_single_id(0);
+    $self->_single_page(0);
     $self->_set_current_ids(undef);
     $self->_clear_all_cids_store;
     $self->_clear_cid_search_query_cache
@@ -2510,20 +2511,48 @@ sub data_timeline
         # E.g. if a day is subtracted from 26th March 2018 01:00 London then it will be an
         # invalid time and DateTime will bork.
         $min = min map $_->{dt}, @items;
-        $min->set_time_zone('UTC')->subtract(days => 1) if $min;
+        if ($min)
+        {
+            # There is a chance that $min will be the same object as $max.
+            # Clone it to ensure we don't change both below
+            $min = $min->clone;
+            $min->set_time_zone('UTC'); # ->subtract(days => 1);
+        }
 
         # Fix the max to no longer be where we retrieved to, but actually the
         # max value of the finalised items array. Then add some padding.
         $max = max map $_->{dt}, @items;
-        # one day already added to show period to end of day
-        $max->set_time_zone('UTC')->add(days => 2) if $max;
+        if ($max)
+        {
+            $max = $max->clone;
+            $max->set_time_zone('UTC');
+        }
+
+        # Set from and to so that a re-retrieval retrieves the same results
+        $self->to($max->clone->add(days => 1)) # one day already added to show period to end of day
+            if $max;
+        $self->from($min->clone)
+            if $min;
+
+        # Set the display range of the timeline
+        $original_from = $min && $min->subtract(days => 1);
+        $max->add(days => 2) if $max;
+        $original_to = $max;
     }
-    elsif($original_from && $original_to)
-    {   @items = @{$timeline->items};
-        ($min, $max) = ($original_from, $original_to);
-    }
-    else
-    {   @items = @{$timeline->items};
+    # If the $limit_qty routine above was used, re-retrieve all of the items to
+    # ensure correct sorting (in the case of grouping). XXX This only needs to
+    # be done if there was a grouping, but at the moment it is done for all
+    # conditions, to ensure they are all fully tested in the tests. What is
+    # needed is for the tests to be run twice, once for no re-retrieval and
+    # once for re-retrieval. The performance hit is probably quite low, as the
+    # above routine is only used when initially looking at the timeline, before
+    # a range has been selected by the user.
+    if (!$limit_qty || @items)
+    {
+        @items = @{$timeline->items};
+        my $m = min map $_->{dt}, @items;
+        ($min, $max) = ($original_from, $original_to)
+            if $original_from && $original_to;
     }
 
     # Remove dt (DateTime) value, otherwise JSON encoding borks

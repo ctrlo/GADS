@@ -694,18 +694,37 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
 
 # Multiple items in group field, ordered correctly
 {
-    my $data = [
-        {
-            string1 => 'foo1',
-            enum1   => [1,3],
-            date1   => '2010-06-01',
-        },
-        {
+    # Create a set of data where a multivalue record is in the middle of the
+    # right-half of the timeline. The multivalue record contains 2 values that
+    # are at the top and bottom of the grouped items. All the other values of
+    # the timeline are in the middle of the grouping. Because the multivalue
+    # record is in the middle of the date range, both should show on the
+    # grouping, one at the begninning and one at the end.
+    my $data = [];
+    my $date = DateTime->new(year => 2010, month => 1, day => 1);
+    for my $i (1..100)
+    {
+        push @$data, {
             string1 => 'foo2',
             enum1   => [2],
-            date1   => '2010-06-05',
-        },
-    ];
+            date1   => $date->add(days => 1)->ymd,
+        };
+    }
+    push @$data,{
+            string1 => 'foo1',
+            enum1   => [1,3],
+            date1   => '2010-07-01',
+    };
+    $date = DateTime->new(year => 2010, month => 8, day => 1);
+    for my $i (1..120)
+    {
+        push @$data, {
+            string1 => 'foo2',
+            enum1   => [2],
+            date1   => $date->add(days => 1)->ymd,
+        };
+    }
+
     my $sheet = Test::GADS::DataSheet->new(data => $data, multivalue => 1);
 
     $sheet->create_records;
@@ -728,12 +747,14 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         view    => $view,
         user    => undef,
         layout  => $layout,
+        from    => DateTime->new(year => 2010, month => 3, day => 1),
         schema  => $schema,
     );
 
     my $return = $records->data_timeline(group => $enum1->id);
 
-    is( @{$return->{items}}, 3, "Correct number of items for group ordering" );
+    # 149 normal results as per other tests plus 1 extra result for multivalue
+    is( @{$return->{items}}, 149, "Correct number of items for group ordering" );
 
     # Check that the groups are in the right order. Because we are ordering by
     # the enumvals (foo1, foo2, foo3) then number in the value should match the
@@ -1067,6 +1088,8 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
 
     my $layout = $sheet->layout;
     $layout->clear;
+    $layout->user($sheet->user_normal1);
+    $curval_sheet->layout->user($sheet->user_normal1);
 
     my $columns = $sheet->columns;
 
