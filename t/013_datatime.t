@@ -706,13 +706,13 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     {
         push @$data, {
             string1 => 'foo2',
-            enum1   => [2],
+            enum1   => [3],
             date1   => $date->add(days => 1)->ymd,
         };
     }
     push @$data,{
             string1 => 'foo1',
-            enum1   => [1,3],
+            enum1   => [1,4],
             date1   => '2010-07-01',
     };
     $date = DateTime->new(year => 2010, month => 8, day => 1);
@@ -725,7 +725,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         };
     }
 
-    my $sheet = Test::GADS::DataSheet->new(data => $data, multivalue => 1);
+    my $sheet = Test::GADS::DataSheet->new(data => $data, multivalue => 1, enumvals_count => 4);
 
     $sheet->create_records;
     my $schema   = $sheet->schema;
@@ -747,20 +747,20 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         view    => $view,
         user    => undef,
         layout  => $layout,
-        from    => DateTime->new(year => 2010, month => 3, day => 1),
+        from    => DateTime->new(year => 2010, month => 6, day => 1),
         schema  => $schema,
     );
 
     my $return = $records->data_timeline(group => $enum1->id);
 
-    # 149 normal results as per other tests plus 1 extra result for multivalue
+    # 148 normal results as per other tests plus 1 extra result for multivalue
     is( @{$return->{items}}, 149, "Correct number of items for group ordering" );
 
     # Check that the groups are in the right order. Because we are ordering by
     # the enumvals (foo1, foo2, foo3) then number in the value should match the
     # grouping order
     my @groups = @{$return->{groups}};
-    is( @groups, 3, "Correct number of groups" );
+    is( @groups, 4, "Correct number of groups" );
 
     ok( $_->{content} eq "foo$_->{order}", "Ordering matches content" )
         foreach @groups;

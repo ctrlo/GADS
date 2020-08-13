@@ -354,6 +354,11 @@ has column_count => (
     },
 );
 
+has enumvals_count => (
+    is      => 'ro',
+    default => 3,
+);
+
 has curval => (
     is => 'ro',
 );
@@ -598,17 +603,14 @@ sub __build_columns
         $enum->name("enum$count");
         $enum->name_short("L${instance_id}enum$count");
         $enum->multivalue(1) if $self->multivalue && $self->multivalue_columns->{enum};
-        $enum->enumvals([
-            {
-                value => 'foo1',
-            },
-            {
-                value => 'foo2',
-            },
-            {
-                value => 'foo3',
-            },
-        ]);
+        my @enumvals;
+        foreach my $i (1..$self->enumvals_count)
+        {
+            push @enumvals, {
+                value => "foo$i",
+            };
+        }
+        $enum->enumvals(\@enumvals);
         $enum->set_permissions({$self->group->id => $permissions})
             unless $self->no_groups;
         try { $enum->write };

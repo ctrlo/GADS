@@ -67,9 +67,11 @@ sub _build_colors
 }
 
 has groups => (
-    is      => 'ro',
-    default => sub { +{} },
+    is      => 'lazy',
+    clearer => 1,
 );
+
+sub _build_groups { +{} }
 
 has _group_count => (
     is      => 'rw',
@@ -107,6 +109,8 @@ sub clear
     $self->clear_items;
     $self->_set_display_from(undef);
     $self->_set_display_to(undef);
+    $self->clear_groups;
+    $self->_group_count(0);
 }
 
 has _all_items_index => (
