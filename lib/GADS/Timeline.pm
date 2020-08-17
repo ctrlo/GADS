@@ -374,7 +374,8 @@ sub _build_items
                 # Additional items for the same record and field can appear at
                 # any time, in particular if grouped by the field. Ensure that
                 # exactly the same items is not added twice.
-                my $uid  = join '+', $cid, $d->{column}, $group_to_add;
+                my $uid  = join '+', $cid, $d->{column};
+                $uid  = join '+', $uid, $group_to_add if $group_to_add;
                 ! $self->_all_items_index->{$uid}
                     or next DATE;
                 $self->_all_items_index->{$uid} = 1;
