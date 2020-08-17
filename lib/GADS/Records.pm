@@ -2436,11 +2436,12 @@ sub data_timeline
     my $limit_qty     = $original_from && ! $original_to;
 
     my $timeline = GADS::Timeline->new(
-        type         => 'timeline',
-        records      => $self,
-        label_col_id => $options{label},
-        group_col_id => $options{group},
-        color_col_id => $options{color},
+        type             => 'timeline',
+        records          => $self,
+        label_col_id     => $options{label},
+        group_col_id     => $options{group},
+        color_col_id     => $options{color},
+        all_group_values => $options{all_group_values},
     );
     $self->separate_records_for_multicol($options{group});
 

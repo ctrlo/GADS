@@ -268,6 +268,15 @@ var setupTimeline = function(container, options_in) {
     });
   }
 
+  $('#tl_group').on('change', function() {
+    var fixedvals = $(this).find(':selected').data('fixedvals');
+    if (fixedvals) {
+      $('#tl_all_group_values_div').show();
+    } else {
+      $('#tl_all_group_values_div').hide();
+    }
+  }).trigger('change');
+
   return tl;
 };
 

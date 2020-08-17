@@ -68,6 +68,11 @@ sub clear
     $self->clear_curval_fields_multivalue;
 }
 
+sub values_for_timeline
+{   my $self = shift;
+    map $_->{value}, @{$self->all_values};
+}
+
 has refers_to_instance_id => (
     is      => 'rw',
     isa     => Maybe[Int],

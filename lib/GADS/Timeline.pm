@@ -51,6 +51,10 @@ has color_col_id => (
     is => 'ro',
 );
 
+has all_group_values => (
+    is => 'ro',
+);
+
 has _used_color_keys => (
     is      => 'ro',
     default => sub { +{} },
@@ -176,11 +180,21 @@ sub _build_items
         }
     }
 
+    my $group_col  = $group_col_id ? $layout->column($group_col_id) : undef;
+
+    if ($self->all_group_values && $group_col->fixedvals)
+    {
+        foreach my $val ($group_col->values_for_timeline)
+        {
+            my $item_group = $self->_group_count($self->_group_count + 1);
+            $self->groups->{$val} = $item_group;
+        }
+    }
+
     my @items;
     while (my $record  = $records->single)
     {   my $fields     = $record->fields;
 
-        my $group_col  = $group_col_id ? $layout->column($group_col_id) : undef;
         my @groups_to_add;
         @groups_to_add = @{$fields->{$group_col_id}->text_all}
             if $group_col && $group_col->user_can('read');

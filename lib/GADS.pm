@@ -2019,10 +2019,11 @@ prefix '/:layout_name' => sub {
             my $tl_options = session('persistent')->{tl_options}->{$layout->instance_id} ||= {};
             if (param 'modal_timeline')
             {
-                $tl_options->{label}   = param('tl_label');
-                $tl_options->{group}   = param('tl_group');
-                $tl_options->{color}   = param('tl_color');
-                $tl_options->{overlay} = param('tl_overlay');
+                $tl_options->{label}            = param('tl_label');
+                $tl_options->{group}            = param('tl_group');
+                $tl_options->{all_group_values} = param('tl_all_group_values');
+                $tl_options->{color}            = param('tl_color');
+                $tl_options->{overlay}          = param('tl_overlay');
             }
 
             # See whether to restore remembered range

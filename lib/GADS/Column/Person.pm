@@ -65,6 +65,11 @@ sub _build_retrieve_fields
     \@person_properties;
 }
 
+sub values_for_timeline
+{   my $self = shift;
+    map $_->value, @{$self->people};
+}
+
 has default_to_login => (
     is      => 'rw',
     isa     => Bool,

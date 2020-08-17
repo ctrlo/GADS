@@ -9,12 +9,20 @@
 </div>
 <div class="form-group">
     <label for="tl_group">Group by field:</label>
-    <select class="form-control" name="tl_group">
+    <select class="form-control" name="tl_group" id="tl_group">
         <option value="" [% IF NOT tl_options.group %]selected[% END %]>&lt;All fields&gt;</option>
         [% FOREACH column IN columns_read %]
-            <option value="[% column.id %]" [% IF tl_options.group == column.id %]selected[% END %]>[% column.name | html_entity %]</option>
+            <option value="[% column.id %]" [% IF tl_options.group == column.id %]selected[% END %] data-fixedvals="[% column.fixedvals %]">
+                [% column.name | html_entity %]
+            </option>
         [% END %]
     </select>
+    <div id="tl_all_group_values_div">
+        <label>
+            <input type="checkbox" id="tl_all_group_values" name="tl_all_group_values" [% IF tl_options.all_group_values %]checked[% END %]>
+            Show all group values even if empty
+        </label>
+    </div>
 </div>
 <div class="form-group">
     <label for="tl_color">Colour by field:</label>

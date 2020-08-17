@@ -93,6 +93,11 @@ has enumvals => (
     },
 );
 
+sub values_for_timeline
+{   my $self = shift;
+    map $_->{value}, @{$self->enumvals};
+}
+
 sub id_as_string
 {   my ($self, $id) = @_;
     $id or return '';
