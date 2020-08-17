@@ -115,11 +115,14 @@ sub clear
     $self->_set_display_to(undef);
     $self->clear_groups;
     $self->_group_count(0);
+    $self->_clear_all_items_index;
 }
 
 has _all_items_index => (
     is      => 'ro',
-    default => sub { +{} },
+    lazy    => 1,
+    builder => sub { +{} },
+    clearer => 1,
 );
 
 has items => (
