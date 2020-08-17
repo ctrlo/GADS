@@ -281,10 +281,6 @@ sub _records_from_db
         schema               => $self->schema,
         columns              => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns),
         limit_current_ids    => $ids,
-        # Sort on all columns displayed as the Curval. Don't do all columns
-        # retrieved, as this could include a whole load of multivalues which
-        # are then fetched from the DB
-        sort                 => [ map { { id => $_ } } @{$self->curval_field_ids} ],
         # XXX This should only be set when the calling parent record is a
         # draft, otherwise the draft records could potentially be used in other
         # records when they shouldn't be visible (and could be removed after
@@ -299,6 +295,11 @@ sub _records_from_db
         # show-add, this ensures those problems don't transpire.
         is_draft             => $self->show_add && $self->layout->user && $self->layout->user->id,
     );
+    # If there is no default sort on the table, then sort on all columns
+    # displayed as the Curval. Don't do all columns retrieved, as this could
+    # include a whole load of multivalues which are then fetched from the DB
+    $records->sort([ map { { id => $_ } } @{$self->curval_field_ids} ])
+        if !$layout->sort_layout_id;
 
     return $records;
 }

@@ -65,8 +65,8 @@ foreach my $order (qw/asc desc/)
     );
     $record->find_current_id(5);
 
-    my $curval_id = $columns->{curval1}->id;
-    my $cells = [ map { $_->{values}->[0]->as_string } @{$record->fields->{$curval_id}->values} ];
+    my $curval = $layout->column($columns->{curval1}->id);
+    my $cells = [ map { $_->{values}->[0]->as_string } @{$record->fields->{$curval->id}->values} ];
 
     if ($order eq 'asc')
     {
@@ -82,7 +82,7 @@ foreach my $order (qw/asc desc/)
         layout => $layout,
     )->single;
 
-    $cells = [ map { $_->{values}->[0]->as_string } @{$record->fields->{$curval_id}->values} ];
+    $cells = [ map { $_->{values}->[0]->as_string } @{$record->fields->{$curval->id}->values} ];
 
     if ($order eq 'asc')
     {
@@ -90,6 +90,18 @@ foreach my $order (qw/asc desc/)
     }
     else {
         is_deeply($cells, [qw/foo4 foo3 foo2 foo1/], "Curvals in correct order for sort $order");
+    }
+
+    # Check order in dropdown
+    my $values = [map $_->{value}, @{$curval->all_values}];
+    if ($order eq 'asc')
+    {
+        my $expected = [qw/foo1 foo2 foo3 foo4/];
+        is_deeply($values, $expected, "Order of field values correct");
+    }
+    else {
+        my $expected = [qw/foo4 foo3 foo2 foo1/];
+        is_deeply($values, $expected, "Order of field values correct");
     }
 }
 
