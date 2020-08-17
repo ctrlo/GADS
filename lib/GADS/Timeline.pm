@@ -372,9 +372,12 @@ sub _build_items
                 }
 
                 # Additional items for the same record and field can appear at
-                # any time, in particular if grouped by the field.
-                my $uid  = join '+', $cid, $d->{column};
-                $uid = "$uid+".$self->_all_items_index->{$uid}++;
+                # any time, in particular if grouped by the field. Ensure that
+                # exactly the same items is not added twice.
+                my $uid  = join '+', $cid, $d->{column}, $group_to_add;
+                ! $self->_all_items_index->{$uid}
+                    or next DATE;
+                $self->_all_items_index->{$uid} = 1;
 
                 # Exclude ID for pop-up values as it's included in the pop-up title
                 my @popup_values = map +{
