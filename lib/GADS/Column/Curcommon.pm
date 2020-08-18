@@ -70,7 +70,7 @@ sub clear
 
 sub values_for_timeline
 {   my $self = shift;
-    map $_->{value}, @{$self->all_values};
+    map $_->{value}, @{$self->filtered_values};
 }
 
 has refers_to_instance_id => (
