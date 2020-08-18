@@ -185,7 +185,7 @@ sub _build_items
 
     my $group_col  = $group_col_id ? $layout->column($group_col_id) : undef;
 
-    if ($self->all_group_values && $group_col->fixedvals)
+    if ($self->all_group_values && $group_col && $group_col->fixedvals)
     {
         foreach my $val ($group_col->values_for_timeline)
         {
