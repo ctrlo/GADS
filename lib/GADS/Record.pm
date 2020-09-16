@@ -684,6 +684,9 @@ sub find_unique
     # Might be more, but one will do
     my $r = $records->single;
     $self->layout->user_permission_override_search(0); # Return to normal
+    # Horrible hack. The record of layout will have been overwritten during the
+    # above searches. Needs to be changed back to this record.
+    $self->layout->record($self);
     return $r;
 }
 

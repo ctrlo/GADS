@@ -100,6 +100,12 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
     $curval->value_selector($value_selector);
     $curval->write(no_alerts => 1, force => 1);
 
+    # Set up a unique field for later testing
+    my $daterange1 = $columns->{daterange1};
+    $daterange1->isunique(1);
+    $daterange1->write;
+    $layout->clear;
+
     my $curval_string = $curval_sheet->columns->{string1};
 
     # Test brand new record first
@@ -276,6 +282,33 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
     $record->find_record_id($version->id);
     $curval_datum = $record->fields->{$curval->id};
     is($curval_datum->as_string, 'foo1; foo6', "Curval old version still has old value");
+
+    # Check filtered values can still be retrieved after a write fail due to
+    # unique value existing
+    if ($value_selector eq 'dropdown')
+    {
+        my $record = GADS::Record->new(
+            user   => $sheet->user_normal1,
+            layout => $layout,
+            schema => $schema,
+        );
+        $record->find_current_id(3);
+        $record->fields->{$daterange1->id}->set_value(['2020-10-10','2021-10-10']);
+        $record->write(no_alerts => 1);
+
+        $record = GADS::Record->new(
+            user   => $sheet->user_normal1,
+            layout => $layout,
+            schema => $schema,
+            curcommon_all_fields => 1,
+        );
+        $record->initialise;
+        $record->fields->{$columns->{daterange1}->id}->set_value(['2020-10-10','2021-10-10']);
+        try { $record->write(no_alerts => 1) };
+        like($@, qr/must be unique/, "Write failed because of unique value existing");
+        my @values = @{$record->layout->column($curval->id)->filtered_values};
+        is(@values, 5, "Number of filtered values correct");
+    }
 
     # Save draft
     $record = GADS::Record->new(
