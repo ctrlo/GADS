@@ -104,9 +104,6 @@ table.floatThead-table {
 
 @media print
 {
-    div{
-        page-break-inside: avoid;
-    }
     body {
         -webkit-print-color-adjust: exact !important;
          margin: 0cm;
