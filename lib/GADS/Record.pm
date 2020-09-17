@@ -1812,8 +1812,11 @@ sub write
 
     # Only now send notification emails, as we could have rolled back before
     # the commit
-    $self->fields->{$_->id}->send_notify
-        foreach $self->layout->all_people_notify;
+    if (!$self->is_draft)
+    {
+        $self->fields->{$_->id}->send_notify
+            foreach $self->layout->all_people_notify;
+    }
 }
 
 sub write_values
