@@ -157,7 +157,7 @@ const setupSelectWidgets = (() => {
       var valueId = value ? field + "_" + value : field + "__blank";
       var className = value ? "" : "current__blank";
       var deleteButton = multi
-        ? '<button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>'
+        ? '<button type="button" class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>'
         : "";
       return $(
         "<li " +
