@@ -690,7 +690,7 @@
                     [% value_field_id = field _ '_' _ value.id %]
                     <li [% !checked && 'hidden' %] data-list-item="[% value_field_id %]" data-list-text="[% value.value | html %]">
                         <span class="widget-value__value">[% value.value | html_entity %]</span>
-                        <button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
+                        <button type="button" class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
                     </li>
                 [% END %]
                     [% IF !readonly %]
