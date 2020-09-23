@@ -12,7 +12,7 @@
                         [% col.name | html %]
                     [% ELSE %]
                         <button type="button" class="trigger" aria-expanded="false"
-                            aria-controls="col-[% col.id %]-options">
+                            aria-controls="col-[% col.id %]-options" data-expand-on-hover="true">
                             [% IF col.has_filter %]⧩[% END %][% col.sort.current %][% col.name | html_entity %]
                             &rsaquo;
                         </button>

@@ -105,6 +105,7 @@ const setupLessMoreWidgets = (() => {
         html: toggleLabel,
         type: "button",
         "aria-expanded": false,
+        "data-expand-on-hover": true,
         "data-label-expanded": "Hide " + column,
         "data-label-collapsed": toggleLabel
       });

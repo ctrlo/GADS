@@ -92,9 +92,9 @@ var onDisclosureMouseout = function(e) {
 var setupDisclosureWidgets = function(context) {
   $(".trigger[aria-expanded]", context).on("click", onDisclosureClick);
 
-  // Also show/hide disclosures on hover in the data-table
-  $(".trigger[aria-expanded]", context).on("mouseover", onDisclosureMouseover);
-  $(".trigger[aria-expanded]", context).on("mouseout", onDisclosureMouseout);
+  // Also show/hide disclosures on hover for widgets with the data-expand-on-hover attribute set to true
+  $(".trigger[aria-expanded][data-expand-on-hover=true]", context).on("mouseover", onDisclosureMouseover);
+  $(".trigger[aria-expanded][data-expand-on-hover=true]", context).on("mouseout", onDisclosureMouseout);
 };
 
 export { setupDisclosureWidgets, onDisclosureClick };
