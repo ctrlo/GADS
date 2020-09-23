@@ -76,7 +76,7 @@ foreach my $multivalue (0..1)
         },
     ];
 
-    my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
+    my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, user_permission_override => 0);
     $curval_sheet->create_records;
     my $schema = $curval_sheet->schema;
 
@@ -87,6 +87,7 @@ foreach my $multivalue (0..1)
         curval           => 2,
         curval_field_ids => [$curval_sheet->columns->{string1}->id],
         multivalue       => $multivalue,
+        user_permission_override => 0,
     );
 
     my $layout  = $sheet->layout;
@@ -176,7 +177,22 @@ foreach my $multivalue (0..1)
         is($row->fields->{$integer1->id}, $expected->{integer1}, "Group integer correct");
     }
 
+    # Remove permissions and check grouped column not in view
+    $string1->set_permissions({$sheet->group->id => []});
+    $string1->write;
+    $layout->clear;
+    $records = GADS::Records->new(
+        view   => $view,
+        layout => $layout,
+        user   => $sheet->user,
+        schema => $schema,
+    );
+    @results = @{$records->results};
+    is(@results, 2, "Correct number of rows for group by string");
+    is(@{$records->columns_render}, 1, "Only one column in view");
+
     # Test autocur
+    $autocur = $curval_sheet->layout->column($autocur->id); # Reload to get new permissions
     $autocur->group_display('unique');
     $autocur->write;
     $view = GADS::View->new(

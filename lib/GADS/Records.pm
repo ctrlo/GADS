@@ -1535,7 +1535,7 @@ sub _build_columns_render
         # the order selected
         @cols = grep !$self->has_group_col_id->{$_->id}, @cols
             if $self->view->is_group;
-        unshift @cols, map $self->layout->column($_), @{$self->group_col_ids}
+        unshift @cols, grep $_->user_can('read'), map $self->layout->column($_), @{$self->group_col_ids}
             if $self->view->is_group;
     }
 
