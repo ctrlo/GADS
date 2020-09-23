@@ -41,6 +41,7 @@ sub presentation {
     delete $base->{value};
 
     $base->{text}    = $self->text;
+    $base->{value}   = $self->text;
     $base->{details} = $self->_presentation_details;
     $base->{id}      = $self->id;
 
