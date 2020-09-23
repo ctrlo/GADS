@@ -23,6 +23,7 @@ foreach my $multivalue (0..1)
             enum1      => 8,
             tree1      => 12,
             curval1    => 1,
+            person1    => 1,
         },
         {
             string1    => 'foo1',
@@ -32,6 +33,7 @@ foreach my $multivalue (0..1)
             enum1      => $multivalue ? [7,9] : 7,
             tree1      => 12,
             curval1    => 1,
+            person1    => 1,
         },
         {
             string1    => 'foo2',
@@ -41,6 +43,7 @@ foreach my $multivalue (0..1)
             enum1      => 8,
             tree1      => 11,
             curval1    => 2,
+            person1    => 1,
         },
         {
             string1    => 'foo2',
@@ -50,6 +53,7 @@ foreach my $multivalue (0..1)
             enum1      => 8,
             tree1      => 11,
             curval1    => 2,
+            person1    => 1,
         },
     ];
 
@@ -175,6 +179,45 @@ foreach my $multivalue (0..1)
         my $expected = shift @expected;
         is($row->fields->{$string1->id}, $expected->{string1}, "Group text correct");
         is($row->fields->{$integer1->id}, $expected->{integer1}, "Group integer correct");
+    }
+
+    # Test grouping on all fields for completeness
+    foreach my $type (keys %$columns)
+    {
+        next if $type eq 'file1';
+        my $col = $columns->{$type};
+        my $view = GADS::View->new(
+            name        => 'Group view',
+            columns     => [$col->id],
+            instance_id => $layout->instance_id,
+            layout      => $layout,
+            schema      => $schema,
+            user        => $sheet->user,
+        );
+        $view->write;
+        $view->set_groups([$col->id]);
+
+        $records = GADS::Records->new(
+            view   => $view,
+            layout => $layout,
+            user   => $sheet->user,
+            schema => $schema,
+        );
+
+        my $expected = {
+            string1    => 'foo1',
+            integer1   => 25,
+            enum1      => 'foo1',
+            tree1      => 'tree2',
+            date1      => '2008-10-10',
+            rag1       => 'b_red',
+            calc1      => 50,
+            curval1    => 'Foo',
+            daterange1 => '2000-01-02 to 2001-03-03',
+            person1    => 'User1, User1',
+        };
+        @results = @{$records->results};
+        is($results[0]->fields->{$col->id}, $expected->{$type}, "Group by $type result correct");
     }
 
     # Remove permissions and check grouped column not in view
