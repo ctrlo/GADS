@@ -269,10 +269,6 @@ foreach my $ins (readdir $root)
         );
         $column->import_hash($col, report_only => $report_only, force => $force);
         $column->topic_id($topic_mapping->{$col->{topic_id}}) if $col->{topic_id};
-        # Don't add to the DBIx schema yet, as we may not have all the
-        # information needed (e.g. related field IDs)
-        $column->write(override => 1, no_db_add => 1, no_cache_update => 1, update_dependents => 0, enum_mapping => $enum_mapping);
-        $column->import_after_write($col, report_only => $updated && $report_only, force => $force, enum_mapping => $enum_mapping);
 
         my $perms_to_set = {};
         foreach my $old_id (keys %{$col->{permissions}})
@@ -281,6 +277,11 @@ foreach my $ins (readdir $root)
             $perms_to_set->{$new_id} = $col->{permissions}->{$old_id};
         }
         $column->set_permissions($perms_to_set, report_only => $report_only);
+
+        # Don't add to the DBIx schema yet, as we may not have all the
+        # information needed (e.g. related field IDs)
+        $column->write(override => 1, no_db_add => 1, no_cache_update => 1, update_dependents => 0, enum_mapping => $enum_mapping);
+        $column->import_after_write($col, report_only => $updated && $report_only, force => $force, enum_mapping => $enum_mapping);
 
         $column_mapping->{$col->{id}} = $column->id;
 
@@ -428,9 +429,12 @@ foreach my $l (@all_layouts)
 
 }
 
+my %layouts_index = map { $_->{layout}->instance_id => $_->{layout} } @all_layouts;
+
 foreach (@all_columns)
 {
-    my $col = $_->{column};
+    my $c = $_->{column};
+    my $col = $layouts_index{$c->instance_id}->column($c->id);
 
     next if $ignore_fields{$col->name};
 

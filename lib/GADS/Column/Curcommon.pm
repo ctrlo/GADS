@@ -761,10 +761,17 @@ around import_after_all => sub {
     my $filter = GADS::Filter->new(as_json => $values->{filter});
     foreach my $f (@{$filter->filters})
     {
-        $f->{id} = $mapping->{$f->{id}}
+        my $field_id = $f->{id};
+        if ($field_id =~ /^([0-9]+)\_([0-9]+)$/)
+        {
+            $field_id = $mapping->{$1} .'_'. $mapping->{$2};
+        }
+        else {
+            $field_id = $mapping->{$field_id};
+        }
+        $f->{id} = $field_id
             or panic "Missing ID";
-        $f->{field} = $mapping->{$f->{field}}
-            or panic "Missing field";
+        $f->{field} = $field_id;
         delete $f->{column_id}; # XXX See comments in GADS::Filter
     }
     $filter->clear_as_json;
