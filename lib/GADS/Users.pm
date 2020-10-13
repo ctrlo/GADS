@@ -391,7 +391,7 @@ sub csv
         join   => [
             'organisation', 'department', 'team', 'title',
         ],
-        order_by => 'surname_max',
+        order_by => ['surname_max', 'id_max'],
         group_by => 'me.id',
     })->all;
 
@@ -400,7 +400,7 @@ sub csv
         join   => [
             'audits_last_month',
         ],
-        order_by => 'surname_max',
+        order_by => ['surname_max', 'id_max'],
         group_by => 'me.id',
     })->all;
 
