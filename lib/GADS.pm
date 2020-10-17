@@ -3604,7 +3604,7 @@ sub _page_as_mech
     # This only seems to happen in certain views, but adding a brief sleep
     # seems to fix it - maybe things are going out of scope before Mechanize has
     # finished its work?
-    sleep 1;
+    sleep 3; # Extended to allow timeline to render
     unlink $filename;
     return $mech;
 }
