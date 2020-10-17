@@ -297,7 +297,7 @@ sub csv
     push @columns, $site->team_name if $site->register_show_team;
     push @columns, $site->register_freetext1_name if $site->register_freetext1_name;
     push @columns, $site->register_freetext2_name if $site->register_freetext2_name;
-    push @columns, 'Permissions', 'Groups';
+    push @columns, 'Notes', 'Permissions', 'Groups';
     push @columns, 'Page hits last month';
     push @columns, 'Last hit to table "'.$_->name.'"' foreach @{$instances->all};
 
@@ -357,6 +357,10 @@ sub csv
         {
             max => 'freetext2',
             -as => 'freetext2_max',
+        },
+        {
+            max => 'account_request_notes',
+            -as => 'account_request_notes_max',
         },
     );
 
@@ -434,6 +438,7 @@ sub csv
         push @csv, $user->get_column('team_max') if $site->register_show_team;
         push @csv, $user->get_column('freetext1_max') if $site->register_freetext1_name;
         push @csv, $user->get_column('freetext2_max') if $site->register_freetext2_name;
+        push @csv, $user->get_column('account_request_notes_max');
         push @csv, join '; ', map { $_->permission->description } @{$user_permissions{$id}};
         push @csv, join '; ', map { $_->group->name } @{$user_groups{$id}};
         push @csv, $user2->get_column('audit_count');
