@@ -61,6 +61,8 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 128 },
   "site_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "deleted",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -112,31 +114,29 @@ __PACKAGE__->belongs_to(
   },
 );
 
-sub before_delete
+sub delete_organisation
 {   my $self = shift;
     my $schema = $self->result_source->schema;
-    my $count = $schema->resultset('User')->search({
+    my $count = $schema->resultset('User')->active->search({
         organisation => $self->id,
     })->count;
+    if ($count) {
+        error __xn"This {name} cannot be deleted as it is in use by 1 user on the system"
+            ,"This {name} cannot be deleted as it is in use by {count} users on the system"
+            ,$count
+            ,name => $schema->resultset('Site')->next->organisation_name
+            ,count => $count;
+    }
     my $count_deleted = $schema->resultset('User')->search({
         deleted      => { '!=' => undef },
         organisation => $self->id,
     })->count;
     if ($count_deleted)
     {
-        error __xn"This {name} cannot be deleted as it is in use by 1 user on the system, which is deleted"
-            ,"This {name} cannot be deleted as it is in use by {count} users on the system, of which {deleted} are deleted"
-            ,$count
-            ,name => $schema->resultset('Site')->next->organisation_name
-            ,count => $count
-            ,deleted => $count_deleted;
+        $self->update({ deleted => 1 });
     }
-    elsif ($count) {
-        error __xn"This {name} cannot be deleted as it is in use by 1 user on the system"
-            ,"This {name} cannot be deleted as it is in use by {count} users on the system"
-            ,$count
-            ,name => $schema->resultset('Site')->next->organisation_name
-            ,count => $count;
+    else {
+        $self->delete;
     }
 }
 

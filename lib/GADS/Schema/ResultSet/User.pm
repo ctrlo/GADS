@@ -24,7 +24,7 @@ sub active
 
     $self->search({
         account_request => 0,
-        deleted         => undef,
+        'me.deleted'    => undef,
         %search,
     });
 }

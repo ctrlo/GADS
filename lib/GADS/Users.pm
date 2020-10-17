@@ -77,11 +77,7 @@ has register_requests => (
 
 sub user_rs
 {   my $self = shift;
-    my $search = {
-        deleted         => undef,
-        account_request => 0,
-    };
-    $self->schema->resultset('User')->search($search);
+    $self->schema->resultset('User')->active;
 }
 
 sub _build_all
@@ -149,7 +145,9 @@ sub _build_all_admins
 sub _build_titles
 {   my $self = shift;
     my @titles = $self->schema->resultset('Title')->search(
-        {},
+        {
+            deleted => 0,
+        },
         {
             order_by => 'name',
         }
@@ -160,7 +158,9 @@ sub _build_titles
 sub _build_organisations
 {   my $self = shift;
     my @organisations = $self->schema->resultset('Organisation')->search(
-        {},
+        {
+            deleted => 0,
+        },
         {
             order_by => 'name',
         }
@@ -171,7 +171,9 @@ sub _build_organisations
 sub _build_departments
 {   my $self = shift;
     my @departments = $self->schema->resultset('Department')->search(
-        {},
+        {
+            deleted => 0,
+        },
         {
             order_by => 'name',
         }
@@ -182,7 +184,9 @@ sub _build_departments
 sub _build_teams
 {   my $self = shift;
     my @teams = $self->schema->resultset('Team')->search(
-        {},
+        {
+            deleted => 0,
+        },
         {
             order_by => 'name',
         }

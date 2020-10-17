@@ -828,7 +828,7 @@ any ['get', 'post'] => '/organisation/?:id?' => require_any_role [qw/useradmin s
 
     if ($id && body_parameters->get('delete'))
     {
-        if (process( sub { $organisation->delete } ))
+        if (process( sub { $organisation->delete_organisation } ))
         {
             return forwardHome(
                 { success => "The $organisation_name has been deleted successfully" }, 'organisation/' );
@@ -865,7 +865,7 @@ any ['get', 'post'] => '/department/?:id?' => require_any_role [qw/useradmin sup
 
     if ($id && body_parameters->get('delete'))
     {
-        if (process( sub { $department->delete } ))
+        if (process( sub { $department->delete_department } ))
         {
             return forwardHome(
                 { success => "The $department_name has been deleted successfully" }, 'department/' );
@@ -902,7 +902,7 @@ any ['get', 'post'] => '/team/?:id?' => require_any_role [qw/useradmin superadmi
 
     if ($id && body_parameters->get('delete'))
     {
-        if (process( sub { $team->delete } ))
+        if (process( sub { $team->delete_team } ))
         {
             return forwardHome(
                 { success => "The $team_name has been deleted successfully" }, 'team/' );
@@ -937,7 +937,7 @@ any ['get', 'post'] => '/title/?:id?' => require_any_role [qw/useradmin superadm
 
     if ($id && body_parameters->get('delete'))
     {
-        if (process( sub { $title->delete } ))
+        if (process( sub { $title->delete_title } ))
         {
             return forwardHome(
                 { success => "The title has been deleted successfully" }, 'title/' );
