@@ -106,6 +106,10 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "instance_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "created",
+  { data_type => "datetime", datetime_undef_if_invalid => 1, is_nullable => 1 },
+  "createdby",
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -229,6 +233,18 @@ __PACKAGE__->belongs_to(
   "user",
   "GADS::Schema::Result::User",
   { id => "user_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+__PACKAGE__->belongs_to(
+  "createdby",
+  "GADS::Schema::Result::User",
+  { id => "createdby" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",

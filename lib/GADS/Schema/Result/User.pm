@@ -705,6 +705,13 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+__PACKAGE__->has_many(
+  "views_created",
+  "GADS::Schema::Result::View",
+  { "foreign.createdby" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
     $sqlt_table->add_index(name => 'user_idx_value', fields => [ { name => 'value', size => 64 } ]);

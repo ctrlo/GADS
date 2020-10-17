@@ -393,6 +393,8 @@ sub write
         }
     }
     else {
+        $vu->{created}   = DateTime->now;
+        $vu->{createdby} = $self->layout->user->id;
         my $rset = $self->schema->resultset('View')->create($vu);
         $self->_view($rset);
         $self->id($rset->id);
