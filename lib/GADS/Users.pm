@@ -91,6 +91,7 @@ sub _build_all
         columns => [
             'me.id', 'me.surname', 'me.firstname', 'title.name', 'me.email',
             'organisation.name', 'department.name', 'team.name', 'me.created',
+            'me.freetext1', 'me.freetext2',
             'me.lastlogin', 'me.value',
         ],
         join     => [
