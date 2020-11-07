@@ -467,7 +467,7 @@ sub import_hash
     $self->stackseries($values->{stackseries});
     notice __x"Updating trend from {old} to {new} for graph {name}",
         old => $self->trend, new => $values->{trend}, name => $self->title
-            if $options{report_only} && $self->trend != $values->{trend};
+            if $options{report_only} && ($self->trend||0) != ($values->{trend}||0);
     $self->trend($values->{trend});
     my $from = $values->{from} && DateTime::Format::ISO8601->parse_datetime($values->{from});
     notice __x"Updating from from {old} to {new} for graph {name}",
