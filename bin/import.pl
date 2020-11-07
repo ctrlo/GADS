@@ -197,6 +197,7 @@ foreach my $ins (readdir $root)
     $layout->write unless $report_only;
 
     my $topic_mapping; # topic ID mapping
+    my %existing_topics = map { $_->id => $_ } schema->resultset('Topic')->search({ instance_id => $instance->id })->all;
     if (-d "_export/$ins/topics")
     {
         foreach my $topic (dir("_export/$ins/topics"))
@@ -234,6 +235,16 @@ foreach my $ins (readdir $root)
             }
 
             $topic_mapping->{$topic->{id}} = $top->id;
+            delete $existing_topics{$top->id};
+        }
+        # Delete any that no longer exist
+        if ($report_only)
+        {
+            report NOTICE => __x"Deletion: Topic {name} to be deleted", name => $_->name
+                foreach values %existing_topics;
+        }
+        else {
+            $_->delete foreach values %existing_topics;
         }
     }
 
