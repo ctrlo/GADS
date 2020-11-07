@@ -96,6 +96,7 @@ schema->resultset('Group')->count && !$add && !$report_only && !$merge
 
 my $group_mapping; # ID mapping
 my $groups = GADS::Groups->new(schema => schema);
+my %existing_groups = map { $_->id => $_ } @{$groups->all};
 foreach my $g(dir('_export/groups'))
 {
     my ($group) = grep { $_->name eq $g->{name} } @{$groups->all};
@@ -115,6 +116,17 @@ foreach my $g(dir('_export/groups'))
     }
 
     $group_mapping->{$g->{id}} = $group->id;
+    delete $existing_groups{$group->id};
+}
+
+# Delete any that no longer exist
+if ($report_only)
+{
+    report NOTICE => __x"Deletion: Group {name} to be deleted", name => $_->name
+        foreach values %existing_groups;
+}
+else {
+    $_->delete foreach values %existing_groups;
 }
 
 my $user_mapping;
