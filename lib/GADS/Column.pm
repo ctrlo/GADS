@@ -1568,6 +1568,7 @@ sub export_hash
     my $return = {
         id                => $self->id,
         type              => $self->type,
+        internal          => $self->internal,
         name              => $self->name,
         name_short        => $self->name_short,
         topic_id          => $self->topic_id,
