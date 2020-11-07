@@ -403,6 +403,11 @@ foreach my $l (@all_layouts)
     $layout->write;
     $layout->clear;
 
+    my $search = { instance_id => $layout->instance_id };
+    $search->{user_id}  = undef if !$user_mapping;
+    $search->{group_id} = undef if !$group_mapping;
+    my %existing_graphs = map { $_->id => $_ } schema->resultset('Graph')->search($search)->all;
+
     foreach my $g (dir($l->{graphs}))
     {
         # Convert to new column IDs
@@ -449,8 +454,22 @@ foreach my $l (@all_layouts)
         );
         $graph->import_hash($g, report_only => $report_only);
         $graph->write unless $report_only;
+        delete $existing_graphs{$graph->id};
     }
 
+    # Delete any that no longer exist
+    if ($report_only)
+    {
+        report NOTICE => __x"Deletion: Graph {name} to be deleted", name => $_->title
+            foreach values %existing_graphs;
+    }
+    else {
+        foreach my $g (values %existing_graphs)
+        {
+            report NOTICE => __x"Deletion: Graph {name} to be deleted", name => $g->title;
+            $g->delete;
+        }
+    }
 }
 
 my %layouts_index = map { $_->{layout}->instance_id => $_->{layout} } @all_layouts;
