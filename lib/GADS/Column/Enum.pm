@@ -338,7 +338,8 @@ before import_hash => sub {
             while (@old)
             {
                 my $old = shift @old;
-                my $new = shift @new;
+                my $new = shift @new
+                    or next;
                 # If it's the same, easy, onto the next one
                 if ($old->{value} eq $new->{value})
                 {
