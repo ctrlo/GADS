@@ -749,7 +749,7 @@ sub _build_cols_db
     my $cols_rs = $schema->resultset('Layout')->search({
         'me.instance_id' => { -in => $instance_id_sql },
     },{
-        order_by => ['me.position'],
+        order_by => ['me.position', 'display_fields.id'],
         prefetch => ['calcs', 'rags', 'link_parent', 'display_fields'],
     });
     $cols_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');

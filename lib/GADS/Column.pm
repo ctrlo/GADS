@@ -362,6 +362,8 @@ has display_fields => (
         else {
             foreach my $cond ($self->schema->resultset('DisplayField')->search({
                 layout_id => $self->id
+            },{
+                order_by => 'id',
             })->all)
             {
                 push @rules, {
