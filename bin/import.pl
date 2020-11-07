@@ -126,7 +126,11 @@ if ($report_only)
         foreach values %existing_groups;
 }
 else {
-    $_->delete foreach values %existing_groups;
+    foreach my $g (values %existing_groups)
+    {
+        report NOTICE => __x"Deletion: Group {name} being deleted", name => $g->name;
+        $g->delete;
+    }
 }
 
 my $user_mapping;
@@ -244,7 +248,11 @@ foreach my $ins (readdir $root)
                 foreach values %existing_topics;
         }
         else {
-            $_->delete foreach values %existing_topics;
+            foreach my $t (values %existing_topics)
+            {
+                report NOTICE => __x"Deletion: Topic {name} being deleted", name => $t->name;
+                $t->delete;
+            }
         }
     }
 
