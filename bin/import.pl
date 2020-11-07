@@ -403,7 +403,8 @@ foreach my $l (@all_layouts)
         if ($merge || $report_only)
         {
             my $graph_rs = rset('Graph')->search({
-                title => $g->{title},
+                instance_id => $layout->instance_id,
+                title       => $g->{title},
             });
             report ERROR => "More than one existing graph titled {title}", title => $g->{title}
                 if $graph_rs->count > 1;
