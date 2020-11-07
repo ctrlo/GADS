@@ -199,7 +199,7 @@ sub write_special
             $en->{id} = $new->id;
         }
         $enum_mapping->{$en->{source_id}} = $en->{id}
-            if $enum_mapping;
+            if $enum_mapping && $en->{source_id};
     }
 
     # Then delete any that no longer exist
