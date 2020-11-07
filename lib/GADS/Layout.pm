@@ -1226,9 +1226,9 @@ sub import_after_all
     my $report = $options{report_only} && $self->instance_id;
     my $mapping = $options{mapping};
 
-    if ($values->{sort_layout_id})
+    if (exists $values->{sort_layout_id})
     {
-        my $new_id = $mapping->{$values->{sort_layout_id}};
+        my $new_id = $values->{sort_layout_id} && $mapping->{$values->{sort_layout_id}};
         notice __x"Update: sort_layout_id from {old} to {new} for {name}",
             old => $self->sort_layout_id, new => $new_id, name => $self->name
                 if $report && ($self->sort_layout_id || 0) != ($new_id || 0);
