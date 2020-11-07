@@ -1033,7 +1033,7 @@ sub write
         unless $self->layout->user_can("layout") || $options{override_permissions}; # For tests
 
     error __"Internal fields cannot be edited"
-        if $self->internal;
+        if $self->internal && !$options{allow_internal_write};
 
     my $guard = $self->schema->txn_scope_guard;
 
@@ -1044,7 +1044,7 @@ sub write
         or error __"Please select a type for the item";
 
     $newitem->{name_short} = $self->name_short || undef;
-    if ($newitem->{name_short})
+    if ($newitem->{name_short} && !$self->internal)
     {
         # Check format
         $self->name_short =~ /^[a-z][_0-9a-z]*$/i
@@ -1517,11 +1517,11 @@ sub import_hash
     $self->set_can_child($values->{can_child});
     notice __x"Update: position from {old} to {new} for {name}",
         old => $self->position, new => $values->{position}, name => $self->name
-            if $report && $self->position != $values->{position};
+            if $report && ($self->position||0) != ($values->{position}||0);
     $self->position($values->{position});
     notice __x"Update: description from {old} to {new} for {name}",
         old => $self->description, new => $values->{description}, name => $self->name
-            if $report && $self->description ne $values->{description};
+            if $report && ($self->description||'') ne ($values->{description}||'');
     $self->description($values->{description});
     notice __x"Update: aggregate from {old} to {new} for {name}",
         old => $self->aggregate, new => $values->{aggregate}, name => $self->name
@@ -1537,7 +1537,7 @@ sub import_hash
     $self->width($values->{width});
     notice __x"Update: helptext from {old} chars to {new} chars for {name}",
         old => length($self->helptext), new => length($values->{helptext}), name => $self->name
-            if $report && $self->helptext ne $values->{helptext};
+            if $report && ($self->helptext||'') ne ($values->{helptext}||'');
     $self->helptext($values->{helptext});
     notice __x"Update: multivalue from {old} to {new} for {name}",
         old => $self->multivalue, new => $values->{multivalue}, name => $self->name
@@ -1552,7 +1552,7 @@ sub import_hash
     {
         notice __x"Update: {option} from {old} to {new} for {name}",
             option => $option, old => $self->$option, new => $values->{$option}, name => $self->name
-                if $report && $self->$option ne $values->{$option};
+                if $report && ($self->$option||'') ne ($values->{$option}||'');
         $self->$option($values->{$option});
     }
 }

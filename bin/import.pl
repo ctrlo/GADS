@@ -256,7 +256,7 @@ foreach my $ins (readdir $root)
         }
     }
 
-    my %existing_columns = map { $_->id => $_ } $layout->all(exclude_internal => 1);
+    my %existing_columns = map { $_->id => $_ } $layout->all;
 
 
     my $highest_update; # The column with the highest ID that's been updated
@@ -264,7 +264,9 @@ foreach my $ins (readdir $root)
     foreach my $col (dir("_export/$ins/layout"))
     {
         my $updated;
-        my $column = $layout->column_by_name($col->{name});
+        my $column = $col->{internal}
+            ? $layout->column_by_name_short($col->{name_short})
+            : $layout->column_by_name($col->{name});
 
         if ($column && $ignore_fields{$column->name})
         {
@@ -298,6 +300,7 @@ foreach my $ins (readdir $root)
             user   => undef,
             layout => $layout,
         );
+
         $column->import_hash($col, report_only => $report_only, force => $force);
         $column->topic_id($topic_mapping->{$col->{topic_id}}) if $col->{topic_id};
 
@@ -311,7 +314,14 @@ foreach my $ins (readdir $root)
 
         # Don't add to the DBIx schema yet, as we may not have all the
         # information needed (e.g. related field IDs)
-        $column->write(override => 1, no_db_add => 1, no_cache_update => 1, update_dependents => 0, enum_mapping => $enum_mapping);
+        $column->write(
+            override             => 1,
+            no_db_add            => 1,
+            no_cache_update      => 1,
+            update_dependents    => 0,
+            enum_mapping         => $enum_mapping,
+            allow_internal_write => 1,
+        );
         $column->import_after_write($col, report_only => $updated && $report_only, force => $force, enum_mapping => $enum_mapping);
 
         $column_mapping->{$col->{id}} = $column->id;
@@ -508,7 +518,7 @@ foreach (@all_columns)
     report TRACE => __x"Final update of column {name}", name => $col->name;
     $col->import_after_all($_->{values}, mapping => $column_mapping, report_only => $report_only && $_->{updated}, force => $force);
     # Now add to the DBIx schema
-    $col->write(no_cache_update => 1, add_db => 1, update_dependents => 1, report_only => $report_only);
+    $col->write(allow_internal_write => 1, no_cache_update => 1, add_db => 1, update_dependents => 1, report_only => $report_only);
 }
 
 if (!$report_only && $update_cached)

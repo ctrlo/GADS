@@ -115,7 +115,7 @@ foreach my $layout (@instances)
     mkdir "$ins_dir/layout"
         or report FAULT => "Unable to create layout directory";
 
-    dump_all("$ins_dir/layout/", $layout->all(order_dependencies => 1, exclude_internal => 1));
+    dump_all("$ins_dir/layout/", $layout->all(order_dependencies => 1));
 
     mkdir "$ins_dir/metrics"
         or report FAULT => "Unable to create metrics directory";
