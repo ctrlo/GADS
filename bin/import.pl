@@ -475,7 +475,12 @@ foreach my $l (@all_layouts)
         foreach my $g (values %existing_graphs)
         {
             report NOTICE => __x"Deletion: Graph {name} to be deleted", name => $g->title;
-            $g->delete;
+            my $graph = GADS::Graph->new(
+                id     => $g->id,
+                layout => $layout,
+                schema => schema,
+            );
+            $graph->delete;
         }
     }
 }
