@@ -2588,6 +2588,8 @@ prefix '/:layout_name' => sub {
             instance_id => $instance_id,
         })->next;
 
+        $topic or error __x"Topic ID {id} not found", id => $id;
+
         if (param 'submit')
         {
             $topic = schema->resultset('Topic')->new({ instance_id => $instance_id })
