@@ -27,7 +27,7 @@ sub setup
 {   my ($class, $schema) = @_;
 
     my $layout_rs = $schema->resultset('Layout');
-    my @cols = $layout_rs->search({ internal => 0 })->all;
+    my @cols = $layout_rs->all;
 
     foreach my $col (@cols)
     {   $class->add_column($schema, $col);
@@ -62,6 +62,7 @@ sub add_column
 
 sub _add_column
 {   my ($class, $schema, $col, $alt) = @_;
+    return if $col->internal; # Result sources are only added for "real" columns
     my $coltype = $col->type eq "tree"
                 ? 'enum'
                 : $col->type eq "calc"
