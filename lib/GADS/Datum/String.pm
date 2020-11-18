@@ -50,7 +50,7 @@ after set_value => sub {
         {
             my $msg = __x"Invalid value \"{value}\" for {field}", value => $val, field => $self->column->name;
             # Empty values are not checked - these should be done in optional value for field
-            if ($val && $val !~ /^$regex$/)
+            if ($val && $val !~ /^$regex$/i)
             {
                 $changed ? error($msg) : warning($msg);
             }
