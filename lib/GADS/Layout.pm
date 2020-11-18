@@ -611,6 +611,22 @@ sub delete
     })->update({
         instance_id => undef,
     });
+    # Delete views
+    my $views_rs = $self->schema->resultset('View')->search({ instance_id => $self->instance_id });
+    foreach my $v ($views_rs->all)
+    {
+        my $view = GADS::View->new(
+            id          => $v->id,
+            schema      => $self->schema,
+            layout      => $self,
+            instance_id => $self->instance_id,
+        );
+        # Will not be able to delete view if it's used for limit views functionality
+        $self->schema->resultset('ViewLimit')->search({
+            view_id => $view->id,
+        })->delete;
+        $view->delete;
+    }
     $self->_rset->delete;
     $guard->commit;
 }
