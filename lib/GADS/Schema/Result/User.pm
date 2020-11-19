@@ -936,6 +936,13 @@ sub retire
         $self->result_source->schema->resultset('AlertSend')->search({ alert_id => \@alert_sends })->delete;
         $alerts->delete;
 
+        # Delete dashboards
+        my $dashboard_rs = $self->result_source->schema->resultset('Dashboard')->search({ user_id => $self->id });
+        $self->result_source->schema->resultset('Widget')->search({
+            dashboard_id => [$dashboard_rs->get_column('id')->all],
+        })->delete;
+        $dashboard_rs->delete;
+
         $self->update({ lastview => undef });
         my $views = $self->search_related('views', {});
         my @views;
