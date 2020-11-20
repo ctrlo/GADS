@@ -1992,17 +1992,21 @@ sub _search_construct
 
     if ($filter->{operator} eq 'changed_after')
     {
+        my $value;
         if ($filter->{value} =~ /CURDATE/) # XXX repeated below, quick fix
         {
             my $vdt = GADS::View->parse_date_filter($filter->{value});
             my $dtf = $self->schema->storage->datetime_parser;
-            $filter->{value} = $dtf->format_date($vdt);
+            $value = $dtf->format_date($vdt);
+        }
+        else {
+            $value = $self->_date_for_db($column, $filter->{value});
         }
         my $condition = {
             type     => 'changed_after',
             operator => '',
             s_field  => '',
-            values   => $filter->{value},
+            values   => $value,
         };
         return $self->_resolve($column, $condition);
     }
