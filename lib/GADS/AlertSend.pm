@@ -151,8 +151,10 @@ sub _process_instance
         columns => [], # Otherwise all columns retrieved during search construct
         schema  => $self->schema,
         layout  => $layout,
-        user    => $self->user,
+        user    => undef, # Alerts should not be affected by current user
     );
+
+    my $total_records = $records->count;
 
     my @to_add; # Items to add to the cache later
     if (my @views = map { $views->view($_) } @view_ids)
@@ -188,7 +190,7 @@ sub _process_instance
             # If the number of current_ids that we have been given is the same as the
             # number that exist in the database, then assume that we are searching
             # all records. Therefore don't specify (the potentially thousands) current_ids.
-            unless (@$current_ids == $records->count)
+            unless (@$current_ids == $total_records)
             {
                 my $max = $i + 499;
                 $max = @$current_ids-1 if $max >= @$current_ids;
@@ -287,7 +289,7 @@ sub _process_instance
     while ($i < @$current_ids)
     {
         # See above comments about searching current_ids
-        unless (@$current_ids == $records->count)
+        unless (@$current_ids == $total_records)
         {
             my $max = $i + 499;
             $max = @$current_ids-1 if $max >= @$current_ids;
