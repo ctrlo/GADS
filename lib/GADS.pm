@@ -1934,13 +1934,13 @@ prefix '/:layout_name' => sub {
             if (my $png = param('png'))
             {
                 my $gdata = _data_graph($png);
-                my $json  = $gdata->as_json;
+                my $json  = encode_base64($gdata->as_json,'');
                 my $graph = GADS::Graph->new(
                     id     => $png,
                     layout => $layout,
                     schema => schema
                 );
-                my $options_in = $graph->as_json;
+                my $options_in = encode_base64($graph->as_json,'');
                 $params->{graph_id} = $png;
 
                 my $mech = _page_as_mech('data_graph', $params);
