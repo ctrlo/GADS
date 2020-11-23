@@ -1132,6 +1132,40 @@ foreach my $multivalue (0..1)
         schema  => $schema,
     );
 
+    my $rules_table = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $columns->{date1}->id,
+                type     => 'date',
+                value    => '2015-10-10',
+                operator => 'equal',
+            }],
+        },
+    );
+
+    my $view_limit_table = GADS::View->new(
+        name        => 'Limit to view table',
+        filter      => $rules_table,
+        instance_id => 1,
+        layout      => $layout,
+        schema      => $schema,
+        user        => $user,
+        is_admin    => 1,
+    );
+    $view_limit_table->write;
+
+    $layout->view_limit_id($view_limit_table->id);
+    $layout->write;
+
+    $records = GADS::Records->new(
+        user    => $user,
+        layout  => $layout,
+        schema  => $schema,
+    );
+
+    is ($records->count, 1, 'Correct number of results when limiting to a view for a table');
+
+    # Add another view limit to the user
     my $rules = GADS::Filter->new(
         as_hash => {
             rules     => [{
@@ -1156,6 +1190,14 @@ foreach my $multivalue (0..1)
 
     $user->set_view_limits([$view_limit->id]);
 
+    $records->clear;
+    is ($records->count, 3, 'Correct number of results when limiting to a view for the table and a user');
+
+    # Remove the table limit
+    $layout->view_limit_id(undef);
+    $layout->write;
+
+    # And search with a normal view plus the user's limit view
     $rules = GADS::Filter->new(
         as_hash => {
             rules     => [{

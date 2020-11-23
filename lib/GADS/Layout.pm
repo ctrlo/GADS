@@ -184,6 +184,14 @@ has sort_layout_id => (
     builder => sub { $_[0]->_rset->sort_layout_id },
 );
 
+has view_limit_id => (
+    is      => 'rw',
+    isa     => Maybe[Int],
+    lazy    => 1,
+    clearer => 1,
+    builder => sub { $_[0]->_rset->view_limit_id },
+);
+
 has default_view_limit_extra => (
     is      => 'ro',
     lazy    => 1,
@@ -525,6 +533,7 @@ sub write
         homepage_text2   => $self->homepage_text2,
         sort_type        => $self->sort_type,
         sort_layout_id   => $self->sort_layout_id,
+        view_limit_id    => $self->view_limit_id,
     });
 
     # Now set any groups if needed
@@ -743,6 +752,7 @@ sub clear
     $self->_clear_rset;
     $self->clear_sort_type;
     $self->clear_sort_layout_id;
+    $self->clear_view_limit_id;
     $self->_clear_user_permissions_columns;
     $self->_clear_user_permissions_overall;
     $self->_clear_user_permissions_table;
@@ -1164,6 +1174,10 @@ sub _build_global_view_summary
 
 sub export
 {   my $self = shift;
+    warning __x"Not going to export configured table view limit for {name}", name => $self->name
+        if $self->view_limit_id;
+    warning __x"Not going to export configured table default extra view limit for {name}", name => $self->name
+        if $self->default_view_limit_extra_id;
     +{
         name             => $self->name,
         name_short       => $self->name_short,

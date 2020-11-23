@@ -75,7 +75,27 @@
 
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    <h3 class="panel-title">Table permissions</h3>
+                    <h3 role="button" data-toggle="collapse" data-target="#limit_view" aria-expanded="false"
+                        aria-controls="alert_columns" class="panel-title">Limit access to records</h3>
+                </div>
+                <div class="panel-body collapse" id="limit_view">
+                    <div class="form-group">
+                        <label for="view_limit_id">By default restrict all users to records in this view:</label>
+                        <select class="form-control" id="view_limit_id" name="view_limit_id">
+                            <option></option>
+                            [% FOREACH v IN layout_edit.global_view_summary %]
+                                <option value="[% v.id %]"
+                                    [% IF layout_edit.view_limit_id == v.id %]selected[% END %]>[% v.name | html %]
+                                </option>
+                            [% END %]
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">General table permissions</h3>
                 </div>
                 <div class="panel-body">
                     <div class="form-group">

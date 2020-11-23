@@ -135,20 +135,26 @@ sub _build__view_limits
     $self->user or return [];
 
     # User view limits first
-    my @view_limits = $self->schema->resultset('ViewLimit')->search({
-        'me.user_id' => $self->user->id,
+    my @view_limit_ids = $self->schema->resultset('ViewLimit')->search({
+        'me.user_id'       => $self->user->id,
+        'view.instance_id' => $self->layout->instance_id,
     },{
-        prefetch => 'view',
-    })->all;
+        join => 'view',
+    })->get_column('view_id')->all;
+
+    # And table defaults
+    push @view_limit_ids, $self->layout->view_limit_id
+        if $self->layout->view_limit_id;
+
     my @views;
-    foreach my $view_limit (@view_limits)
+    foreach my $view_limit_id (@view_limit_ids)
     {
         push @views, GADS::View->new(
-            id          => $view_limit->view_id,
+            id          => $view_limit_id,
             schema      => $self->schema,
             layout      => $self->layout,
             instance_id => $self->layout->instance_id,
-        ) if $view_limit->view->instance_id == $self->layout->instance_id;
+        );
     }
     \@views;
 }
