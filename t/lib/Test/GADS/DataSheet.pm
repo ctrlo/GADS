@@ -225,6 +225,15 @@ has users_to_create => (
 
 sub _build__users
 {   my $self = shift;
+
+    # Create teams
+    my $foo_team = $self->schema->resultset('Team')->create({
+        name => 'Foo',
+    });
+    my $bar_team = $self->schema->resultset('Team')->create({
+        name => 'Bar',
+    });
+
     # If the site_id is defined, then we may be cresating multiple sites.
     # Therefore, offset the ID with the number of sites, to account that the
     # row IDs may already have been used.  This assumes that when testing
@@ -240,7 +249,8 @@ sub _build__users
             : $permission eq 'superadmin'
             ? [qw/superadmin link delete purge view_group/]
             : [$permission];
-        $return->{$permission} = $self->create_user(permissions => $perms, user_id => $count);
+        my $team_id = $permission eq 'normal1' ? $foo_team->id : $bar_team->id;
+        $return->{$permission} = $self->create_user(permissions => $perms, user_id => $count, team_id => $team_id);
     }
     $return;
 }
@@ -263,6 +273,7 @@ sub create_user
         value         => "User$user_id, User$user_id",
         organisation  => $self->organisation->id,
         department_id => $self->department->id,
+        team_id       => $options{team_id},
     });
     $self->schema->resultset('UserGroup')->find_or_create({ # May already be created for schema
         user_id  => $user_id,

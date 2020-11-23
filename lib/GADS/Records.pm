@@ -2158,22 +2158,28 @@ sub _search_construct
 
             $_ =~ s/\_/\\\_/g if $operator eq '-like';
 
-            if ($_ && $_ =~ /\[CURUSER\]/)
+            if ($_ && $_ =~ /\[CURUSER(\.(ORG|DEPT|TEAM))?\]/)
             {
+                my $curuser = $options{user} || $self->user
+                    or warning "FIXME: user not set for filter";
                 if ($column->type eq "person")
                 {
-                    my $curuser = ($options{user} && $options{user}->id) || ($self->user && $self->user->id)
-                        or warning "FIXME: user not set for person filter";
-                    $curuser ||= "";
-                    $_ =~ s/\[CURUSER\]/$curuser/g;
+                    my $curuser_id = $curuser ? $curuser->id : '';
+                    $_ =~ s/\[CURUSER\]/$curuser_id/g;
                     $conditions[0]->{s_field} = "id";
                 }
                 elsif ($column->return_type eq "string")
                 {
-                    my $curuser = ($options{user} && $options{user}->value) || ($self->user && $self->user->value)
+                    my $curuser = $options{user} || $self->user
                         or warning "FIXME: user not set for string filter";
-                    $curuser ||= "";
-                    $_ =~ s/\[CURUSER\]/$curuser/g;
+                    my $curuser_value = $curuser ? $curuser->value : '';
+                    $_ =~ s/\[CURUSER\]/$curuser_value/g;
+                    my $curuser_org = $curuser->organisation ? $curuser->organisation->name : '';
+                    $_ =~ s/\[CURUSER\.ORG\]/$curuser_org/g;
+                    my $curuser_dept = $curuser->department ? $curuser->department->name : '';
+                    $_ =~ s/\[CURUSER\.DEPT\]/$curuser_dept/g;
+                    my $curuser_team = $curuser->team ? $curuser->team->name : '';
+                    $_ =~ s/\[CURUSER\.TEAM\]/$curuser_team/g;
                 }
             }
             push @values, $_;

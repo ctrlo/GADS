@@ -403,6 +403,17 @@ my @filters = (
         aggregate => 12,
     },
     {
+        name  => 'use of user team in substitution',
+        rules => [{
+            id       => $columns->{string1}->id,
+            type     => 'string',
+            value    => '[CURUSER.TEAM]',
+            operator => 'equal',
+        }],
+        count => 1,
+        aggregate => 7,
+    },
+    {
         name  => 'greater than undefined value', # matches against empty instead
         rules => [{
             id       => $columns->{integer1}->id,
