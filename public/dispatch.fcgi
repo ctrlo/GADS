@@ -10,6 +10,12 @@ use Plack::Handler::FCGI;
 set apphandler => 'PSGI';
 set environment => 'production';
 
+# Set the warning signal handler before loading GADS (via app.psgi) to
+# redirect any warnings to Log::Report during compilation, as well as
+# while the application runs.  However, there's a risk of trying to call
+# GADS::warning before it exists.
+$SIG{__WARN__} = sub { GADS::warning(@_) };
+
 my $psgi = path($RealBin, '..', 'bin', 'app.psgi');
 my $app = do($psgi);
 die "Unable to read startup script: $@" if $@;

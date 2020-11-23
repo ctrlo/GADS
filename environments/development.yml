@@ -1,10 +1,9 @@
 # configuration file for development environment
+#
+# To override or extend these values, create a
+# environments/development_local.yml file:
+# https://metacpan.org/pod/distribution/Dancer2/lib/Dancer2/Config.pod#MANIPULATING-SETTINGS-VIA-CONFIGURATION-FILES
 
-# the logger engine to use
-# console: log messages to STDOUT (your console where you started the
-#          application server)
-# file:    log message to a file in log/
-#logger: "console"
 
 # the log level for this environment
 # core is the lowest, it shows Dancer2's core log messages as well as yours
@@ -26,5 +25,7 @@ engines:
       app_name: GADS
       dispatchers:
         default:
-          type: PERL
+          type: FILE
           mode: DEBUG
+          format: LONG
+          to: /dev/stdout
