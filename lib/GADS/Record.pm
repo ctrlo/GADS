@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Record;
 
-use CtrlO::PDF;
+use CtrlO::PDF 0.06;
 use DateTime;
 use DateTime::Format::Strptime qw( );
 use DBIx::Class::ResultClass::HashRefInflator;
@@ -2392,7 +2392,10 @@ sub pdf
     my $now_formatted = $now->format_cldr($dateformat)." at ".$now->hms;
     my $updated = $self->created->format_cldr($dateformat)." at ".$self->created->hms;
 
+    my $config = GADS::Config->instance;
+    my $header = $config && $config->gads && $config->gads->{header};
     my $pdf = CtrlO::PDF->new(
+        header => $header,
         footer => "Downloaded by ".$self->user->value." on $now_formatted",
     );
 
