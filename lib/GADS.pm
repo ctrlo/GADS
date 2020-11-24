@@ -979,7 +979,7 @@ any ['get', 'post'] => '/table/:id' => require_role superadmin => sub {
             $layout_edit->hide_in_selector(param 'hide_in_selector');
             $layout_edit->sort_layout_id(param('sort_layout_id') || undef);
             $layout_edit->sort_type(param('sort_type') || undef);
-            $layout_edit->view_limit_id(param 'view_limit_id' || undef);
+            $layout_edit->view_limit_id(param('view_limit_id') || undef);
             $layout_edit->set_groups([body_parameters->get_all('permissions')]);
             $layout_edit->set_alert_columns([body_parameters->get_all('alert_column')]);
 
