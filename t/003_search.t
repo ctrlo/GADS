@@ -1239,6 +1239,27 @@ foreach my $multivalue (0..1)
 
     is ($records->count, 1, 'Correct number of results when limiting to a view');
 
+    # Remove user's permissions to the field in the view limit and check it
+    # still works as expected (user's permissions should be ignored on a view
+    # they are using directly, but not indirectly such as a defined view limit)
+    my $date1 = $columns->{date1};
+    $date1->set_permissions({$sheet->group->id, []});
+    $date1->write;
+    $layout->clear;
+
+    $records = GADS::Records->new(
+        user    => $user,
+        view    => $view,
+        layout  => $layout,
+        schema  => $schema,
+    );
+    is ($records->count, 1, 'Correct number of results when limiting to a view without permission to field');
+
+    # Reset back to normal
+    $date1->set_permissions({$sheet->group->id, $sheet->default_permissions});
+    $date1->write;
+    $layout->clear;
+
     # Check can only directly access correct records. Test with and without any
     # columns selected.
     for (0..1)

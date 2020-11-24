@@ -211,8 +211,11 @@ sub _view_limits_search
             my $decoded = $filter->as_hash;
             if (keys %$decoded)
             {
-                # Get the user search criteria
-                push @search, $self->_search_construct($decoded, $self->layout, %options);
+                # Get the user search criteria.
+                # Ignore any permissions on this view, as otherwise an
+                # administrator-defined limited view of records may not take
+                # effect
+                push @search, $self->_search_construct($decoded, $self->layout, %options, ignore_perms => 1);
             }
         }
     }
@@ -223,9 +226,10 @@ sub _view_limits_search
         my $decoded = $filter->as_hash;
         if (keys %$decoded)
         {
-            # Get the user search criteria
+            # Get the user search criteria. As above we do not let permissions
+            # affect these admin-defined views.
             $limit = [
-                -and => [ $limit, $self->_search_construct($decoded, $self->layout, %options) ],
+                -and => [ $limit, $self->_search_construct($decoded, $self->layout, %options, ignore_perms => 1) ],
             ];
         }
     }
@@ -446,7 +450,7 @@ sub search_query
     push @search, { "$current.id"          => $self->limit_current_ids } if $self->limit_current_ids; # $self->has_current_ids && $self->current_ids;
     push @search, { "$current.instance_id" => $self->layout->instance_id };
     push @search, $self->common_search($current);
-    push @search, $self->record_later_search(%options, linked => $linked);
+    push @search, $self->record_later_search(%options, linked => $linked, search => 1);
     push @search, {
         "$record_single.created" => { '<' => $self->rewind_formatted },
     } if $self->rewind;
