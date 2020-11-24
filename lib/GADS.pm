@@ -211,18 +211,10 @@ hook before => sub {
         }
     }
 
-    # Log to audit
-    my $method      = request->method;
-    my $path        = request->path;
-    my $query       = request->query_string;
-    my $audit       = GADS::Audit->new(schema => schema, user => $user);
-    my $username    = $user && $user->username;
-    my $description = $user
-        ? qq(User "$username" made "$method" request to "$path")
-        : qq(Unauthenticated user made "$method" request to "$path");
-    $description .= qq( with query "$query") if $query;
-    $audit->user_action(description => $description, url => $path, method => $method, layout => var('layout'))
-        if $user;
+    # Log to audit, unless a record view in which case we do not have the
+    # instance_id until the request is processed (log these later)
+    _audit_log()
+        unless request->path =~ m!^/(record|record_body)/!;
 
     # The following use logged_in_user so as not to apply for API requests
     if (logged_in_user)
@@ -1402,9 +1394,19 @@ get '/record_body/:id' => require_login sub {
         rewind => session('rewind'),
     );
 
-    $record->find_current_id($id);
+    # Wait until record has been found before logging to audit, so that the
+    # instance_id is known. If it's an invalid request though, log to audit and
+    # then bounce
+    try { $record->find_current_id($id) };
+    if ($@)
+    {
+        _audit_log();
+        $@->reportFatal;
+    }
+
     my $layout = $record->layout;
     var 'layout' => $layout;
+    _audit_log();
 
     my ($return, $options, $is_raw) = _process_edit($id, $record);
     return $return if $is_raw;
@@ -1426,13 +1428,28 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
         rewind => session('rewind'),
     );
 
-      $action eq 'history'
-    ? $record->find_record_id($id)
-    : $action eq 'purge'
-    ? $record->find_deleted_currentid($id)
-    : $action eq 'purgehistory'
-    ? $record->find_deleted_recordid($id)
-    : $record->find_current_id($id);
+    # Wait until record has been found before logging to audit, so that the
+    # instance_id is known. If it's an invalid request though, log to audit and
+    # then bounce
+    try {
+          $action eq 'history'
+        ? $record->find_record_id($id)
+        : $action eq 'purge'
+        ? $record->find_deleted_currentid($id)
+        : $action eq 'purgehistory'
+        ? $record->find_deleted_recordid($id)
+        : $record->find_current_id($id);
+    };
+
+    if ($@)
+    {
+        _audit_log();
+        $@->reportFatal;
+    }
+
+    my $layout = $record->layout;
+    var 'layout' => $layout;
+    _audit_log();
 
     if (defined param('pdf') && !$record->layout->no_download_pdf)
     {
@@ -1443,9 +1460,6 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
     if ( app->has_hook('plugin.linkspace.record_before_template') ) {
         app->execute_hook( 'plugin.linkspace.record_before_template', record => $record );
     }
-
-    my $layout = $record->layout;
-    var 'layout' => $layout;
 
     my @first_crumb = $action eq 'purge' ? ( $layout, "/purge" => 'deleted records' ) : ( $layout, "/data" => 'records' );
 
@@ -3567,6 +3581,21 @@ sub forwardHome {
     }
     $page ||= '';
     redirect "/$page";
+}
+
+sub _audit_log
+{   my $method      = request->method;
+    my $path        = request->path;
+    my $query       = request->query_string;
+    my $user        = logged_in_user;
+    my $audit       = GADS::Audit->new(schema => schema, user => $user);
+    my $username    = $user && $user->username;
+    my $description = $user
+        ? qq(User "$username" made "$method" request to "$path")
+        : qq(Unauthenticated user made "$method" request to "$path");
+    $description .= qq( with query "$query") if $query;
+    $audit->user_action(description => $description, url => $path, method => $method, layout => var('layout'))
+        if $user;
 }
 
 sub _random_pw
