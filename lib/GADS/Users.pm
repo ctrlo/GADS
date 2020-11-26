@@ -258,7 +258,13 @@ sub register
     $new{department_id} or delete $new{department_id};
     $new{team_id} or delete $new{team_id};
 
-    my $user = $self->schema->resultset('User')->create(\%new);
+    my $user;
+    try { $user = $self->schema->resultset('User')->create(\%new) };
+    if(my $exception = $@->wasFatal)
+    {
+        # For some reason, exceptions in the create() above are thrown as ERROR
+        $exception->throw(reason => 'PANIC');
+    }
     $user->discard_changes; # Ensure that relations such as department() are resolved
 
     # Email admins with account request
