@@ -1,3 +1,6 @@
+# Linkspace configuration.  Also see the files in the "environments"
+# directory that extend this configuration.
+#
 # Your application's name
 appname: "Linkspace"
 
