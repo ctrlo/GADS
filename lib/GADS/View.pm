@@ -282,7 +282,8 @@ sub _build_writable
     elsif ($self->global)
     {
         return 1 if !$self->group_id && $self->layout->user_can("layout");
-        return 1 if $self->group_id && $self->layout->user_can("view_group");
+        return 1 if $self->group_id
+            && ($self->layout->user_can("view_group") || $self->layout->user_can("layout"));
     }
     elsif (!$self->has_id)
     {
