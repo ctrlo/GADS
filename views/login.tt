@@ -204,12 +204,12 @@
                         [% END %]
                         [% IF site.register_show_department %]
                             <div class="form-group">
-                                <label for="department">[% site.department_name | html %]:
+                                <label for="department_id">[% site.department_name | html %]:
                                     [% IF site.register_department_help %]
                                         <span style="font-weight:normal !important">[% site.register_department_help | html %]</span>
                                     [% END %]
                                 </label>
-                                <select class="form-control" id="department" name="department">
+                                <select class="form-control" id="department_id" name="department_id">
                                     <option></option>
                                     [% FOREACH department IN departments %]
                                         <option value="[% department.id %]">[% department.name | html_entity %]</option>
@@ -219,12 +219,12 @@
                         [% END %]
                         [% IF site.register_show_team %]
                             <div class="form-group">
-                                <label for="team">[% site.team_name | html %]:
+                                <label for="team_id">[% site.team_name | html %]:
                                     [% IF site.register_team_help %]
                                         <span style="font-weight:normal !important">[% site.register_team_help | html %]</span>
                                     [% END %]
                                 </label>
-                                <select class="form-control" id="team" name="team">
+                                <select class="form-control" id="team_id" name="team_id">
                                     <option></option>
                                     [% FOREACH team IN teams %]
                                         <option value="[% team.id %]">[% team.name | html_entity %]</option>

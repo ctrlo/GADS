@@ -241,8 +241,8 @@ sub register
 
     my @fields = qw(firstname surname email account_request_notes);
     push @fields, 'organisation' if $site->register_show_organisation;
-    push @fields, 'department' if $site->register_show_department;
-    push @fields, 'team' if $site->register_show_team;
+    push @fields, 'department_id' if $site->register_show_department;
+    push @fields, 'team_id' if $site->register_show_team;
     push @fields, 'title' if $site->register_show_title;
     push @fields, 'freetext1' if $site->register_freetext1_name;
     push @fields, 'freetext2' if $site->register_freetext2_name;
