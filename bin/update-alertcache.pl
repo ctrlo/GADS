@@ -29,6 +29,9 @@ use Dancer2;
 use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::LogReport mode => 'NORMAL';
 
+# Close dancer2 special dispatcher, which tries to write to the session
+dispatcher close => 'error_handler';
+
 GADS::DB->setup(schema);
 
 # Setup these singleton classes with required parameters for if/when
