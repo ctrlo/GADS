@@ -54,6 +54,7 @@ has enumvals => (
                 id          => $_->{id},
                 selector_id => $_->{id},
                 value_id    => $_->{id},
+                position    => $_->{position},
             }
         }$enumrs->all;
         \@enumvals;
@@ -331,6 +332,9 @@ before import_hash => sub {
             {
                 my $new = shift @new;
                 $old->{source_id} = $new->{id};
+                notice __x"Position changed for enum value {value}", value => $old->{value}
+                    if $old->{position} != $new->{position} && $report;
+                $old->{position} = $new->{position};
                 push @to_write, $old;
             }
         }
@@ -345,6 +349,8 @@ before import_hash => sub {
                 {
                     trace __x"No change for enum value {value}", value => $old->{value}
                         if $report;
+                    notice __x"Position changed for enum value {value}", value => $old->{value}
+                        if $old->{position} != $new->{position} && $report;
                     $new->{source_id} = $new->{id};
                     $new->{id} = $old->{id};
                     push @to_write, $new;
@@ -356,6 +362,8 @@ before import_hash => sub {
                     # Yes, assume the previous is a value change
                     notice __x"Changing enum value {old} to {new}", old => $old->{value}, new => $new->{value}
                         if $report;
+                    notice __x"Position changed for enum value {value}", value => $old->{value}
+                        if $old->{position} != $new->{position} && $report;
                     $new->{source_id} = $new->{id};
                     $new->{id} = $old->{id};
                     push @to_write, $new;
