@@ -332,8 +332,9 @@ before import_hash => sub {
             {
                 my $new = shift @new;
                 $old->{source_id} = $new->{id};
-                notice __x"Position changed for enum value {value}", value => $old->{value}
-                    if $old->{position} != $new->{position} && $report;
+                notice __x"Position changed for enum value \"{value}\" for field \"{field}\"",
+                    value => $old->{value}, field => $self->name
+                        if $old->{position} != $new->{position} && $report;
                 $old->{position} = $new->{position};
                 push @to_write, $old;
             }
@@ -349,8 +350,9 @@ before import_hash => sub {
                 {
                     trace __x"No change for enum value {value}", value => $old->{value}
                         if $report;
-                    notice __x"Position changed for enum value {value}", value => $old->{value}
-                        if $old->{position} != $new->{position} && $report;
+                    notice __x"Position changed for enum value \"{value}\" for field \"{field}\"",
+                        value => $old->{value}, field => $self->name
+                            if $old->{position} != $new->{position} && $report;
                     $new->{source_id} = $new->{id};
                     $new->{id} = $old->{id};
                     push @to_write, $new;
@@ -360,10 +362,12 @@ before import_hash => sub {
                 if ($old[0] && $new[0] && $old[0]->{value} eq $new[0]->{value})
                 {
                     # Yes, assume the previous is a value change
-                    notice __x"Changing enum value {old} to {new}", old => $old->{value}, new => $new->{value}
-                        if $report;
-                    notice __x"Position changed for enum value {value}", value => $old->{value}
-                        if $old->{position} != $new->{position} && $report;
+                    notice __x"Changing enum value \"{old}\" to \"{new}\" for field \"{field}\"",
+                        old => $old->{value}, new => $new->{value}, field => $self->name
+                            if $report;
+                    notice __x"Position changed for enum value \"{value}\" for field \"{field}\"",
+                        value => $old->{value}, field => $self->name
+                            if $old->{position} != $new->{position} && $report;
                     $new->{source_id} = $new->{id};
                     $new->{id} = $old->{id};
                     push @to_write, $new;
@@ -378,8 +382,8 @@ before import_hash => sub {
                     # Different, don't know what to do, require manual intervention
                     if ($report)
                     {
-                        notice __x"Error: don't know how to handle enumval updates for {name}, manual intervention required. Old value: {old}, new value: {new}",
-                            name => $self->name, old => $old->{value}, new => $new->{value};
+                        notice __x"Error: don't know how to handle enumval updates for \"{name}\" in field \"{field}\", manual intervention required. Old value: {old}, new value: {new}",
+                            name => $self->name, field => $self->name, old => $old->{value}, new => $new->{value};
                         return;
                     }
                     else {
