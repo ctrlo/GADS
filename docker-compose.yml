@@ -29,6 +29,14 @@
 #   - http://localhost:8080 (pgAdmin, login with gads@ctrlo.local / gads)
 #   - http://localhost:8025 (MailHog, all sent out mails will be captured over here)
 #
+#   To login:
+#   - Request a password reset for gads@ctrlo.local
+#   - In the terminal, you should see an sql query similar to:
+#       UPDATE "user" SET "resetpw" = ? WHERE ( "id" = ? ): '[TOKEN]', '2'
+#     where TOKEN is a string made of numbers and lettres
+#   - visit: http://localhost:3000/resetpw/[TOKEN]
+#   - Follow explanation shown and you should be able to login
+#
 # Add additional npm packages
 #
 #   $ docker run -u node -w /home/node/app -v `pwd`:/home/node/app -it node:10-alpine sh
@@ -65,6 +73,7 @@ services:
   db:
     image: postgres
     environment:
+      - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     volumes:
       - db-data:/var/lib/postgresql/data
