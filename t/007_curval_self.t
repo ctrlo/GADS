@@ -20,7 +20,8 @@ my $data = [
 ];
 
 my $sheet   = Test::GADS::DataSheet->new(
-    data => $data,
+    data       => $data,
+    multivalue => 1,
 );
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;

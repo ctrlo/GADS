@@ -1193,9 +1193,11 @@ sub fetch_multivalues
     my $cols_done = {};
     foreach my $column (@{$self->columns_retrieved_no})
     {
+        my $parent_id = 0;
         my @cols = ($column);
         if ($column->type eq 'curval')
         {
+            $parent_id = $column->id;
             push @cols, @{$column->curval_fields_multivalue};
             # Flag any curval multivalue fields as also requiring fetching
             foreach (@{$column->curval_fields_multivalue})
@@ -1206,6 +1208,7 @@ sub fetch_multivalues
         }
         foreach my $col (@cols)
         {
+            my $parent_id_this = $parent_id && $col->id != $parent_id ? $parent_id : 0;
             # Perform 2 loops: one loop for the standard value, and then a
             # second for linked values (if applicable). Both loops are needed
             # as some columns may be multivalue and some may not be
@@ -1213,7 +1216,7 @@ sub fetch_multivalues
             foreach my $loop (0..1)
             {
                 next if $loop && !$is_linked;
-                if ($col->multivalue && !$cols_done->{$col->id})
+                if ($col->multivalue && !$cols_done->{$parent_id_this}->{$col->id})
                 {
                     # Do not retrieve values for multivalue fields that have
                     # been retrieved as separate records, otherwise the
@@ -1249,12 +1252,12 @@ sub fetch_multivalues
                     foreach my $val ($col->fetch_multivalues(\@retrieve_ids, is_draft => $params{is_draft}, curcommon_all_fields => $self->curcommon_all_fields))
                     {
                         my $field = "field$val->{layout_id}";
-                        next if $cols_done->{$val->{layout_id}};
+                        next if $cols_done->{$parent_id_this}->{$val->{layout_id}};
                         $multi{$val->{record_id}}->{$field} ||= [];
                         push @{$multi{$val->{record_id}}->{$field}}, $val;
                         $colsd{$val->{layout_id}} = 1;
                     }
-                    $cols_done->{$_} = 1 foreach keys %colsd; # Flag that all these columns are done, even if no values
+                    $cols_done->{$parent_id_this}->{$_} = 1 foreach keys %colsd; # Flag that all these columns are done, even if no values
                 }
 
                 if ($col->link_parent)
