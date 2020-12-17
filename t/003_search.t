@@ -1606,6 +1606,7 @@ foreach my $multivalue (0..1)
         layout      => $layout,
         schema      => $schema,
         user        => $sheet->user,
+        is_admin    => 1,
     );
     $limit_extra1->write;
 
@@ -1627,6 +1628,7 @@ foreach my $multivalue (0..1)
         layout      => $layout,
         schema      => $schema,
         user        => $sheet->user,
+        is_admin    => 1,
     );
     $limit_extra2->write;
 
@@ -1663,6 +1665,41 @@ foreach my $multivalue (0..1)
     );
     is ($records->count, 1, 'Correct number of results with both view limits and extra limits');
     is($records->single->fields->{$string1}->as_string, "FooBar", "Correct limited record for both types of limit");
+    # Reset
+    $user->set_view_limits([]);
+
+    # Turn this into a curval that is referenced - limit view extra should be
+    # ignored.
+    my $main = Test::GADS::DataSheet->new(
+        data        => [],
+        schema      => $schema,
+        curval      => 1,
+        multivalue  => 1,
+        instance_id => 2,
+    );
+    $main->create_records;
+    # Test as admin user (with permission to set own view extra ID) and normal
+    # user without the permission
+    foreach my $test (qw/admin normal/)
+    {
+        my $user = $test eq 'normal' ? $sheet->user_normal1 : $sheet->user;
+        $main->layout->user($user);
+        $main->layout->clear;
+        my $record = GADS::Record->new(
+            user    => $user,
+            layout  => $main->layout,
+            schema  => $schema,
+        );
+        $record->initialise;
+        my $curval = $main->layout->column_by_name_short('L2curval1');
+        is(@{$curval->filtered_values}, 4, "Values for curval not filtered by limit extra");
+        $record->fields->{$curval->id}->set_value([1,2,3]);
+        $record->write(no_alerts => 1 );
+        my $cid = $record->current_id;
+        $record->clear;
+        $record->find_current_id($cid);
+        is(@{$record->fields->{$curval->id}->ids}, 3, "Curval contains all values despite extra limit");
+    }
 }
 
 # Check sorting functionality

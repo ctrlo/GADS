@@ -186,13 +186,13 @@ sub update_cached
     $layout->user_permission_override(1);
 
     my $records = GADS::Records->new(
-        user                 => undef,
-        layout               => $layout,
-        schema               => $self->schema,
-        columns              => [@{$self->depends_on},$self->id],
-        view_limit_extra_id  => undef,
-        curcommon_all_fields => 1, # Code might contain curcommon fields not in normal display
-        include_children     => 1, # Update all child records regardless
+        user                    => undef,
+        layout                  => $layout,
+        schema                  => $self->schema,
+        columns                 => [@{$self->depends_on},$self->id],
+        ignore_view_limit_extra => 1,
+        curcommon_all_fields    => 1, # Code might contain curcommon fields not in normal display
+        include_children        => 1, # Update all child records regardless
     );
 
     my @changed;

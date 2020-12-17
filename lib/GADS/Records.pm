@@ -159,12 +159,19 @@ sub _build__view_limits
     \@views;
 }
 
+has ignore_view_limit_extra => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
 has _view_limit_extra => (
     is => 'lazy',
 );
 
 sub _build__view_limit_extra
 {   my $self = shift;
+    return if $self->ignore_view_limit_extra;
     my $extra   = $self->view_limit_extra_id;
     my $default = $self->_build_view_limit_extra_id;
     # Validate first - can the user set this? (may be from session and have

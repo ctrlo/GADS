@@ -16,14 +16,15 @@ sub fetch_multivalues
     $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my @values = $m_rs->all;
     my $records = GADS::Records->new(
-        user                 => $self->override_permissions ? undef : $self->layout->user,
-        layout               => $self->layout_parent,
-        schema               => $self->schema,
-        columns              => $self->curval_field_ids,
-        include_deleted      => 1,
-        limit_current_ids    => [map { $_->{value} } @values],
-        is_draft             => $options{is_draft},
-        columns              => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns),
+        user                    => $self->override_permissions ? undef : $self->layout->user,
+        layout                  => $self->layout_parent,
+        schema                  => $self->schema,
+        columns                 => $self->curval_field_ids,
+        include_deleted         => 1,
+        limit_current_ids       => [map { $_->{value} } @values],
+        is_draft                => $options{is_draft},
+        columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns),
+        ignore_view_limit_extra => 1,
     );
 
     # We need to retain the order of retrieved records, so that they are shown

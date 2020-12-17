@@ -725,17 +725,17 @@ sub _find
 
     my %params = (
         curcommon_all_fields => $self->curcommon_all_fields,
-        user                 => $self->user,
-        layout               => $self->layout,
-        schema               => $self->schema,
-        columns              => $self->columns,
-        rewind               => $self->rewind,
-        is_deleted           => $find{deleted},
-        is_draft             => $find{draftuser_id} || $find{include_draft},
-        no_view_limits       => !!$find{draftuser_id},
-        include_approval     => $self->include_approval,
-        include_children     => 1,
-        view_limit_extra_id  => undef, # Remove any default extra view
+        user                    => $self->user,
+        layout                  => $self->layout,
+        schema                  => $self->schema,
+        columns                 => $self->columns,
+        rewind                  => $self->rewind,
+        is_deleted              => $find{deleted},
+        is_draft                => $find{draftuser_id} || $find{include_draft},
+        no_view_limits          => !!$find{draftuser_id},
+        include_approval        => $self->include_approval,
+        include_children        => 1,
+        ignore_view_limit_extra => 1,
     );
     $params{columns_selected} = [$self->layout->all]
         if !$self->columns;

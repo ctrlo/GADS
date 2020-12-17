@@ -275,12 +275,13 @@ sub _records_from_db
     }
 
     my $records = GADS::Records->new(
-        user                 => $self->override_permissions ? undef : $self->layout->user,
-        view                 => $view,
-        layout               => $layout,
-        schema               => $self->schema,
-        columns              => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns),
-        limit_current_ids    => $ids,
+        user                    => $self->override_permissions ? undef : $self->layout->user,
+        view                    => $view,
+        layout                  => $layout,
+        schema                  => $self->schema,
+        columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns),
+        limit_current_ids       => $ids,
+        ignore_view_limit_extra => 1,
         # XXX This should only be set when the calling parent record is a
         # draft, otherwise the draft records could potentially be used in other
         # records when they shouldn't be visible (and could be removed after
