@@ -14,10 +14,12 @@ foreach my $multivalue (0..1)
 {
     my $data = [
         {
-            string1 => 'foo1',
+            string1 => 'Foo',
+            enum1   => $multivalue ? [1,2] : 1,
         },
         {
-            string1 => 'foo2',
+            string1 => 'Bar',
+            enum1   => $multivalue ? [2,3] : 2,
         },
     ];
 
@@ -32,6 +34,7 @@ foreach my $multivalue (0..1)
     my $user   = $sheet->user;
 
     my $string = $columns->{string1};
+    my $enum   = $columns->{enum1};
     # Create another curval fields that would cause a recursive loop. Check that it
     # fails
     my $curval = GADS::Column::Curval->new(
@@ -40,7 +43,7 @@ foreach my $multivalue (0..1)
         layout => $layout,
     );
     $curval->refers_to_instance_id($layout->instance_id);
-    $curval->curval_field_ids([$columns->{string1}->id]);
+    $curval->curval_field_ids([$columns->{string1}->id, $columns->{enum1}->id]);
     $curval->type('curval');
     $curval->name('curval1');
     $curval->set_permissions({$sheet->group->id => $sheet->default_permissions});
@@ -54,12 +57,15 @@ foreach my $multivalue (0..1)
     $record->initialise;
     $record->fields->{$string->id}->set_value('foo3');
     $record->fields->{$curval->id}->set_value(1);
+    $record->fields->{$enum->id}->set_value(3);
     $record->write(no_alerts => 1);
 
     $record->clear;
     $record->find_current_id(3);
 
-    is($record->fields->{$curval->id}->as_string, "foo1", "Curval with ID correct");
+    my $v = $multivalue ? 'Foo, foo1, foo2' : 'Foo, foo1';
+    is($record->fields->{$curval->id}->as_string, $v, "Curval with ID correct");
+    is($record->fields->{$enum->id}->as_string, "foo3", "Enum in main record is correct");
 }
 
 done_testing();
