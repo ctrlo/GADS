@@ -1187,28 +1187,28 @@ sub fetch_multivalues
     my @linked_ids;
     push @linked_ids, map { $_->linked_record_id } grep { $_->linked_record_id } @$records;
 
-    my %curval_fields;
+    my $curval_fields;
 
-    my %multi; # Stash of all the multivalues to fetch and insert
+    my $multi; # Stash of all the multivalues to fetch and insert
     my $cols_done = {};
     foreach my $column (@{$self->columns_retrieved_no})
     {
-        my $parent_id = 0;
+        my $parent_field = 'main';
         my @cols = ($column);
         if ($column->type eq 'curval')
         {
-            $parent_id = $column->id;
+            $parent_field = $column->field;
             push @cols, @{$column->curval_fields_multivalue};
             # Flag any curval multivalue fields as also requiring fetching
             foreach (@{$column->curval_fields_multivalue})
             {
-                $curval_fields{$_->field} ||= [];
-                push @{$curval_fields{$_->field}}, $column->field;
+                $curval_fields->{$column->field}->{$_->field} ||= [];
+                push @{$curval_fields->{$column->field}->{$_->field}}, $column->field;
             }
         }
         foreach my $col (@cols)
         {
-            my $parent_id_this = $parent_id && $col->id != $parent_id ? $parent_id : 0;
+            my $parent_field_this = $parent_field && $col->field ne $parent_field ? $parent_field : 'main';
             # Perform 2 loops: one loop for the standard value, and then a
             # second for linked values (if applicable). Both loops are needed
             # as some columns may be multivalue and some may not be
@@ -1216,7 +1216,7 @@ sub fetch_multivalues
             foreach my $loop (0..1)
             {
                 next if $loop && !$is_linked;
-                if ($col->multivalue && !$cols_done->{$parent_id_this}->{$col->id})
+                if ($col->multivalue && !$cols_done->{$parent_field_this}->{$col->id})
                 {
                     # Do not retrieve values for multivalue fields that have
                     # been retrieved as separate records, otherwise the
@@ -1225,7 +1225,7 @@ sub fetch_multivalues
                     next if $self->separate_records_for_multicol && $self->separate_records_for_multicol == $col->id;
 
                     my @retrieve_ids = $is_linked ? @linked_ids : @$record_ids;
-                    foreach my $parent_curval_field (@{$curval_fields{$col->field}})
+                    foreach my $parent_curval_field (@{$curval_fields->{$column->field}->{$col->field}})
                     {
                         @retrieve_ids = ();
                         foreach my $rec (@$retrieved)
@@ -1252,12 +1252,12 @@ sub fetch_multivalues
                     foreach my $val ($col->fetch_multivalues(\@retrieve_ids, is_draft => $params{is_draft}, curcommon_all_fields => $self->curcommon_all_fields))
                     {
                         my $field = "field$val->{layout_id}";
-                        next if $cols_done->{$parent_id_this}->{$val->{layout_id}};
-                        $multi{$val->{record_id}}->{$field} ||= [];
-                        push @{$multi{$val->{record_id}}->{$field}}, $val;
+                        next if $cols_done->{$parent_field_this}->{$val->{layout_id}};
+                        $multi->{$parent_field_this}->{$val->{record_id}}->{$field} ||= [];
+                        push @{$multi->{$parent_field_this}->{$val->{record_id}}->{$field}}, $val;
                         $colsd{$val->{layout_id}} = 1;
                     }
-                    $cols_done->{$parent_id_this}->{$_} = 1 foreach keys %colsd; # Flag that all these columns are done, even if no values
+                    $cols_done->{$parent_field_this}->{$_} = 1 foreach keys %colsd; # Flag that all these columns are done, even if no values
                 }
 
                 if ($col->link_parent)
@@ -1281,26 +1281,29 @@ sub fetch_multivalues
         # are also fetched, but stored with the ID of the record of the
         # curval value rather than the record from this retrieval.
         # First normal values:
-        foreach my $field (keys %{$multi{$record_id}})
+        foreach my $field (keys %{$multi->{main}->{$record_id}})
         {
-            $record->{$field} = $multi{$record_id}->{$field};
+            $record->{$field} = $multi->{main}->{$record_id}->{$field};
         }
         # Then the curval sub-fields
-        foreach my $curval_subfield (keys %curval_fields)
+        foreach my $cv (keys %$curval_fields)
         {
-            foreach my $curval_field (@{$curval_fields{$curval_subfield}})
+            foreach my $curval_subfield (keys %{$curval_fields->{$cv}})
             {
-                my @subs = ref $record->{$curval_field} eq 'ARRAY' ? @{$record->{$curval_field}} : $record->{$curval_field};
-                foreach my $subrecord (@subs) # Foreach whole curval value
+                foreach my $curval_field (@{$curval_fields->{$cv}->{$curval_subfield}})
                 {
-                    $subrecord->{value} or next;
-                    $subrecord->{$curval_subfield} = $multi{$subrecord->{value}}->{$curval_subfield};
+                    my @subs = ref $record->{$curval_field} eq 'ARRAY' ? @{$record->{$curval_field}} : $record->{$curval_field};
+                    foreach my $subrecord (@subs) # Foreach whole curval value
+                    {
+                        $subrecord->{value} or next;
+                        $subrecord->{$curval_subfield} = $multi->{$curval_field}->{$subrecord->{value}}->{$curval_subfield};
+                    }
                 }
             }
         }
         if ($row->linked_record_id)
         {
-            $record->{$_} = $multi{$row->linked_record_id}->{$_} foreach keys %{$multi{$row->linked_record_id}};
+            $record->{$_} = $multi->{main}->{$row->linked_record_id}->{$_} foreach keys %{$multi->{main}->{$row->linked_record_id}};
         }
     };
 }
