@@ -138,12 +138,13 @@ sub fetch_multivalues
     $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my @values = $m_rs->all;
     my $records = GADS::Records->new(
-        user                 => $self->override_permissions ? undef : $self->layout->user,
-        layout               => $self->layout_parent,
-        schema               => $self->schema,
-        columns              => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns),
-        limit_current_ids    => [map { $_->{record}->{current_id} } @values],
-        include_children     => 1, # Ensure all autocur records are shown even if they have the same text content
+        user                    => $self->override_permissions ? undef : $self->layout->user,
+        layout                  => $self->layout_parent,
+        schema                  => $self->schema,
+        columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns),
+        limit_current_ids       => [map { $_->{record}->{current_id} } @values],
+        include_children        => 1, # Ensure all autocur records are shown even if they have the same text content
+        ignore_view_limit_extra => 1,
     );
     my %retrieved;
     while (my $record = $records->single)

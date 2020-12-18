@@ -1678,6 +1678,7 @@ foreach my $multivalue (0..1)
         instance_id => 2,
     );
     $main->create_records;
+    my $main_string = $main->columns->{string1};
     # Test as admin user (with permission to set own view extra ID) and normal
     # user without the permission
     foreach my $test (qw/admin normal/)
@@ -1694,11 +1695,64 @@ foreach my $multivalue (0..1)
         my $curval = $main->layout->column_by_name_short('L2curval1');
         is(@{$curval->filtered_values}, 4, "Values for curval not filtered by limit extra");
         $record->fields->{$curval->id}->set_value([1,2,3]);
+        $record->fields->{$main_string->id}->set_value($test);
         $record->write(no_alerts => 1 );
         my $cid = $record->current_id;
         $record->clear;
         $record->find_current_id($cid);
         is(@{$record->fields->{$curval->id}->ids}, 3, "Curval contains all values despite extra limit");
+    }
+
+    # Same but with autocur instead of curval.
+    # First add a view limit to the just-created main table
+    $rules = GADS::Filter->new(
+        as_hash => {
+            rules     => [{
+                id       => $main_string->id,
+                type     => 'string',
+                value    => 'normal',
+                operator => 'equal',
+            }],
+        },
+    );
+    my $limit_extra_autocur = GADS::View->new(
+        name        => 'Limit to view extra',
+        filter      => $rules,
+        instance_id => $main->layout->instance_id,
+        layout      => $main->layout,
+        schema      => $schema,
+        user        => $sheet->user,
+        is_admin    => 1,
+    );
+    $limit_extra_autocur->write;
+    $schema->resultset('Instance')->find($main->layout->instance_id)->update({
+        default_view_limit_extra_id => $limit_extra_autocur->id,
+    });
+    $main->layout->clear;
+    # Now add an autocur to the original table (used as the curval sub-table)
+    # to see what is referring to it
+    my $autocur = $sheet->add_autocur(
+        refers_to_instance_id => 2,
+        related_field_id      => $main->columns->{curval1}->id,
+        curval_field_ids      => [$main->columns->{string1}->id],
+    );
+    foreach my $test (qw/admin normal/)
+    {
+        my $user = $test eq 'normal' ? $sheet->user_normal1 : $sheet->user;
+        $layout->user($user);
+        $layout->clear;
+        my $record = GADS::Record->new(
+            user    => $user,
+            layout  => $layout,
+            schema  => $schema,
+        );
+        $record->initialise;
+        # Find one of the original records first created, which should now have
+        # some records referring back to it from the previous tests
+        $record->find_current_id(1);
+        # There should be 2 records in curvals referring to this table, both
+        # created in the previous test
+        is(@{$record->fields->{$autocur->id}->ids}, 2, "Autocur contains all values despite extra limit");
     }
 }
 
