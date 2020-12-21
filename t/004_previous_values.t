@@ -334,6 +334,33 @@ my @tests = (
         count_normal   => 1,
         count_previous => 0,
     },
+    # 2 tests to check limiting previous value searches within a specified
+    # timeframe.
+    # First a standard check of all previous records, searching for an enum
+    # value that ever has been enum1.
+    {
+        field          => 'enum1',
+        value_before   => 1,
+        value_after    => 3,
+        filter_value   => 'foo1',
+        operator       => 'equal',
+        count_normal   => 0,
+        count_previous => 1,
+        last_edited    => 0,
+    },
+    # Then the same filter, this time limiting to any record edits after
+    # 1/3/2014. As enum1 was only foo1 at the first edit on 1/1/2014 this
+    # should not match anything.
+    {
+        field          => 'enum1',
+        value_before   => 1,
+        value_after    => 3,
+        filter_value   => 'foo1',
+        operator       => 'equal',
+        count_normal   => 0,
+        count_previous => 0,
+        last_edited    => 1,
+    },
     {
         # Check other multivalue
         field          => 'enum1',
@@ -354,9 +381,14 @@ foreach my $test (@tests)
         },
     ];
 
+    # Initial record values
+    set_fixed_time('01/01/2014 01:00:00', '%d/%m/%Y %H:%M:%S');
     my $sheet   = Test::GADS::DataSheet->new(
         data       => $data,
         multivalue => 1,
+        column_count => {
+            string    => 2,
+        },
     );
     $sheet->create_records;
     my $schema   = $sheet->schema;
@@ -364,6 +396,8 @@ foreach my $test (@tests)
     my $columns  = $sheet->columns;
     my $col      = $columns->{$test->{field}},
 
+    # Change to the "after" value
+    set_fixed_time('01/06/2014 01:00:00', '%d/%m/%Y %H:%M:%S');
     my $record = GADS::Record->new(
         schema => $schema,
         layout => $layout,
@@ -371,6 +405,18 @@ foreach my $test (@tests)
     );
     $record->find_current_id(1);
     $record->fields->{$col->id}->set_value($test->{value_after});
+    $record->write(no_alerts => 1);
+
+    # Now make an unrelated change in the record, so that a new version is
+    # written but that the value being tested remains the same
+    set_fixed_time('01/01/2015 01:00:00', '%d/%m/%Y %H:%M:%S');
+    $record = GADS::Record->new(
+        schema => $schema,
+        layout => $layout,
+        user   => $sheet->user,
+    );
+    $record->find_current_id(1);
+    $record->fields->{$columns->{string2}->id}->set_value('Blah');
     $record->write(no_alerts => 1);
 
     # Enable tests for both empty string and NULL values
@@ -415,17 +461,37 @@ foreach my $test (@tests)
 
     is ($records->count, $test->{count_normal}, "Correct number of results - operator $test->{operator}");
 
-    $rules = GADS::Filter->new(
-        as_hash => {
-            rules     => [{
-                id              => $columns->{$test->{field}}->id,
-                type            => 'string',
-                value           => $test->{filter_value},
-                operator        => $test->{operator},
+    $rules = $test->{last_edited}
+        ? GADS::Filter->new(
+            as_hash => {
+                rules     => [
+                    {
+                        id       => $columns->{$test->{field}}->id,
+                        type     => 'string',
+                        value    => $test->{filter_value},
+                        operator => $test->{operator},
+                    },
+                    {
+                        id        => $layout->column_by_name_short('_version_datetime')->id,
+                        type      => 'date',
+                        value     => '2014-03-01',
+                        operator  => 'greater',
+                    },
+                ],
                 previous_values => 'positive',
-            }],
-        },
-    );
+            },
+        )
+        : GADS::Filter->new(
+            as_hash => {
+                rules     => [{
+                    id              => $columns->{$test->{field}}->id,
+                    type            => 'string',
+                    value           => $test->{filter_value},
+                    operator        => $test->{operator},
+                    previous_values => 'positive',
+                }],
+            },
+        );
 
     my $view_previous = GADS::View->new(
         name        => 'Test view previous',
