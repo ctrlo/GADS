@@ -41,10 +41,22 @@ my $data = {
     ],
 };
 
-my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, no_groups => 1, users_to_create => [qw/superadmin/]);
+my $curval_sheet = Test::GADS::DataSheet->new(
+    instance_id     => 2,
+    no_groups       => 1,
+    users_to_create => [qw/superadmin/],
+    site_id         => 1,
+);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
-my $sheet   = Test::GADS::DataSheet->new(data => $data->{a}, schema => $schema, curval => 2, no_groups => 1, users_to_create => [qw/superadmin/]);
+my $sheet   = Test::GADS::DataSheet->new(
+    data            => $data->{a},
+    schema          => $schema,
+    curval          => 2,
+    no_groups       => 1,
+    users_to_create => [qw/superadmin/],
+    site_id         => 1,
+);
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
 $sheet->create_records;
@@ -186,12 +198,16 @@ foreach my $user_type (qw/readwrite read limited/)
     my $enum1   = $columns->{enum1};
     if ($user_type eq 'limited')
     {
-        ok(defined $record->fields->{$string1->id}, "Limited user has access to correct field");
-        ok(!defined $record->fields->{$enum1->id}, "Limited user does not have access to limited field");
+        my $has_string = grep $_->{id} == $string1->id, @{$record->presentation->{columns}};
+        ok($has_string, "Limited user has access to correct field");
+        my $has_enum = grep $_->{id} == $enum1->id, @{$record->presentation->{columns}};
+        ok(!$has_enum, "Limited user does not have access to limited field");
     }
     else {
-        ok(defined $record->fields->{$string1->id}, "Other user has access to string1");
-        ok(defined $record->fields->{$enum1->id}, "Other user has access to enum1");
+        my $has_string = grep $_->{id} == $string1->id, @{$record->presentation->{columns}};
+        ok($has_string, "Other user has access to string1");
+        my $has_enum = grep $_->{id} == $enum1->id, @{$record->presentation->{columns}};
+        ok($has_enum, "Other user has access to enum1");
     }
 
     # Load record from scratch for edit so that it contains all columns

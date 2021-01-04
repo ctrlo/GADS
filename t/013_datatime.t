@@ -525,7 +525,7 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
     my @items = @{$records->data_timeline->{items}};
     is( @items, 1, "Records retrieved inclusive" );
     my $item = $items[0];
-    is($item->{content}, "foo1 (calc1)", "Calc content for item");
+    is($item->{content}, "1 - foo1 (calc1)", "Calc content for item");
     my $time = DateTime->new(year => 2008, month => 1, day => 1);
     is($item->{start}, $time->epoch * 1000, "Correct date for item");
 }

@@ -1521,14 +1521,14 @@ sub _build_columns_selected
         my @col_ids = map { ref $_ eq 'HASH' ? $_->{id} : $_ } @{$self->columns};
         @col_ids = grep {defined $_} @col_ids; # Remove undef column IDs
         my %col_ids = map { $_ => 1 } @col_ids;
-        @cols = grep { $col_ids{$_->id} } $self->layout->all_user_read;
+        @cols = grep { $col_ids{$_->id} } $self->layout->all;
     }
     elsif (my $view = $self->view)
     {
         # Start with all fields selected in view
         my @col_ids = @{$view->columns};
         my %view_layouts = map { $_ => 1 } @col_ids;
-        @cols = $self->layout->all(user_can_read => 1, include_column_ids => \%view_layouts);
+        @cols = $self->layout->all(include_column_ids => \%view_layouts);
 
         # Always add grouped fields, so that the column is selected for the
         # grouped view itself, and then when drilling down into the view using
@@ -1541,7 +1541,7 @@ sub _build_columns_selected
             unless @{$self->additional_filters};
     }
     else {
-        @cols = $self->layout->all(user_can_read => 1);
+        @cols = $self->layout->all;
     }
 
 
@@ -1551,7 +1551,7 @@ sub _build_columns_selected
 sub _build_columns_render
 {   my $self = shift;
 
-    my @cols = @{$self->columns_selected};
+    my @cols = grep $_->user_can('read'), @{$self->columns_selected};
     if ($self->view && !@{$self->additional_filters})
     {
         # If in the normal grouped view, then move the grouped columns first in

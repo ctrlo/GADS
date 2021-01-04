@@ -1997,7 +1997,7 @@ prefix '/:layout_name' => sub {
                 layout  => $layout,
                 schema  => schema,
             );
-            my @columns = @{$records->columns_selected};
+            my @columns = @{$records->columns_render};
             my @colors;
             my $graph = GADS::Graph::Data->new(
                 schema  => schema,
