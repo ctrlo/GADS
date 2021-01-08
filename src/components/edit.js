@@ -29,6 +29,11 @@ const setupEdit = (() => {
         .load(loadurl);
     });
 
+    $("#helptext_modal_close")
+      .on('click', function(e) {
+        $('#helptext_modal').modal('hide');
+      })
+
     $(document, context).on("click", ".more-info", function(e) {
       var record_id = $(e.target).data("record-id");
       var m = $("#readmore_modal", context);
