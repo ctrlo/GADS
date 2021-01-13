@@ -933,6 +933,80 @@ foreach my $multi (0..1)
     }
 }
 
+# Test with multivalue field within multivalue curval. Ensure that multivalue
+# field is not selected for the curval's display values. Test with the curval
+# field itself both multivalue and non-nultivalue.
+for my $multivalue (0..1) {
+    my $data = [
+        {
+            string1    => ['Foo', 'Bar'],
+            enum1      => [2, 3],
+            date1      => ['2016-12-20', '2017-01-01'],
+        },
+    ];
+
+    my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, multivalue => 1, data => $data);
+    $curval_sheet->create_records;
+    my $schema       = $curval_sheet->schema;
+    my $curval_var   = $multivalue ? 'L1curval1[1]' : 'L1curval1';
+    my $sheet        = Test::GADS::DataSheet->new(
+        data               => [],
+        multivalue         => 1,
+        multivalue_columns => {
+            calc   => 1,
+            curval => $multivalue,
+        },
+        schema             => $schema,
+        curval             => 2,
+        curval_field_ids   => [ $curval_sheet->columns->{string1}->id, $curval_sheet->columns->{date1}->id ],
+        calc_return_type   => 'string',
+        calc_code          => "function evaluate (L1curval1)
+            curval = $curval_var
+            all_enums = {}
+            for _,enum in ipairs(curval.field_values.L2enum1.values) do
+               all_enums[#all_enums+1] = enum.value
+            end
+            return all_enums
+        end",
+    );
+    my $layout  = $sheet->layout;
+    my $columns = $sheet->columns;
+    $sheet->create_records;
+    my $curval1 = $columns->{curval1};
+    my $calc1   = $columns->{calc1};
+
+    my $curval_record = GADS::Record->new(
+        user   => $sheet->user,
+        layout => $layout,
+        schema => $schema,
+    );
+    # Make an edit of the enum value, so that we can check we are pulling out
+    # the correct version
+    $curval_record->find_current_id(1);
+    $curval_record->fields->{$curval_sheet->columns->{enum1}->id}->set_value([1,2]);
+    $curval_record->write(no_alerts => 1);
+
+    my $record = GADS::Record->new(
+        user   => $sheet->user,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->initialise;
+    $record->fields->{$curval1->id}->set_value([1]);
+    $record->write(no_alerts => 1);
+    my $expected = qr/^(foo1, foo2|foo2, foo1)$/;
+    like($record->fields->{$calc1->id}->as_string, $expected, "Calc value correct after initial write");
+    my $cid = $record->current_id;
+    $record->clear;
+    $record->find_current_id($cid);
+    like($record->fields->{$calc1->id}->as_string, $expected, "Calc value correct after load");
+    # Now do bulk update of calc field
+    $calc1->update_cached;
+    $record->clear;
+    $record->find_current_id($cid);
+    like($record->fields->{$calc1->id}->as_string, $expected, "Calc value correct after bulk-updating calc values");
+}
+
 # Ensure that blank and null string fields in the database are treated the same
 foreach my $test (qw/string_empty string_null calc_empty calc_null/)
 {

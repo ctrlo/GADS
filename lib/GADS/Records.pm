@@ -1233,7 +1233,7 @@ sub fetch_multivalues
                             if ($rec->{$parent_curval_field})
                             {
                                 my @vals = ref $rec->{$parent_curval_field} eq 'ARRAY' ? @{$rec->{$parent_curval_field}} : $rec->{$parent_curval_field};
-                                push @retrieve_ids, map $_->{value}, @vals;
+                                push @retrieve_ids, map $_->{record_id}, @vals;
                             }
                         }
                     }
@@ -1295,8 +1295,8 @@ sub fetch_multivalues
                     my @subs = ref $record->{$curval_field} eq 'ARRAY' ? @{$record->{$curval_field}} : $record->{$curval_field};
                     foreach my $subrecord (@subs) # Foreach whole curval value
                     {
-                        $subrecord->{value} or next;
-                        $subrecord->{$curval_subfield} = $multi->{$curval_field}->{$subrecord->{value}}->{$curval_subfield};
+                        $subrecord->{record_id} or next;
+                        $subrecord->{$curval_subfield} = $multi->{$curval_field}->{$subrecord->{record_id}}->{$curval_subfield};
                     }
                 }
             }

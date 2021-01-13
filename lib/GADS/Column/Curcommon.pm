@@ -166,7 +166,7 @@ has curval_fields_multivalue => (
 
 sub _build_curval_fields_multivalue
 {   my $self = shift;
-    [grep { $_->multivalue } @{$self->curval_fields}];
+    [grep { $_->multivalue } @{$self->curval_fields_all}];
 }
 
 has curval_field_ids_all => (
