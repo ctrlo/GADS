@@ -17,10 +17,26 @@ use Test::GADS::DataSheet;
 
 $ENV{GADS_NO_FORK} = 1;
 
+my $curval_data = [
+    {
+        string1 => 'Bar1',
+    },
+    {
+        string1 => 'Bar2',
+    },
+    {
+        string1 => 'Bar3',
+    },
+    {
+        string1 => 'Bar4',
+    },
+];
+
 my $data = [
     {
         string1  => 'Foo1',
         integer1 => 10,
+        curval1  => 1,
     },
 ];
 
@@ -29,13 +45,27 @@ foreach my $multivalue (0..1)
     # We will use 3 dates for the data: all 10th October, but years 2014, 2015, 2016
     set_fixed_time('10/10/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
 
-    my $sheet = Test::GADS::DataSheet->new(data => $data, multivalue => $multivalue);
+    my $curval_sheet = Test::GADS::DataSheet->new(
+        data        => $curval_data,
+        multivalue  => $multivalue,
+        instance_id => 2,
+    );
+    $curval_sheet->create_records;
+    my $schema = $curval_sheet->schema;
+
+    my $sheet = Test::GADS::DataSheet->new(
+        data             => $data,
+        multivalue       => $multivalue,
+        schema           => $schema,
+        curval           => 2,
+        curval_field_ids => [ $curval_sheet->columns->{string1}->id ],
+    );
     $sheet->create_records;
 
-    my $schema   = $sheet->schema;
     my $layout   = $sheet->layout;
     my $string1  = $sheet->columns->{string1};
     my $integer1 = $sheet->columns->{integer1};
+    my $curval1  = $sheet->columns->{curval1};
 
     my $records = GADS::Records->new(
         user    => $sheet->user,
@@ -51,16 +81,30 @@ foreach my $multivalue (0..1)
     set_fixed_time('10/10/2015 01:00:00', '%m/%d/%Y %H:%M:%S');
     $record->fields->{$string1->id}->set_value('Foo2');
     $record->fields->{$integer1->id}->set_value('20');
+    $record->fields->{$curval1->id}->set_value('2');
     $record->write;
     set_fixed_time('10/10/2016 01:00:00', '%m/%d/%Y %H:%M:%S');
     $record->fields->{$string1->id}->set_value('Foo3');
     $record->fields->{$integer1->id}->set_value('30');
+    $record->fields->{$curval1->id}->set_value('3');
     $record->write;
+
+    # Make an update to the early curval record, this should not be seen in the
+    # tests with the dates used
+    my $curval_record = GADS::Record->new(
+        user   => $sheet->user,
+        layout => $layout,
+        schema => $schema,
+    );
+    $curval_record->find_current_id(1);
+    $curval_record->fields->{$curval_sheet->columns->{string1}->id}->set_value('Bar1a');
+    $curval_record->write(no_alerts => 1);
 
     # And a new record for the third year
     $record->remove_id;
     $record->fields->{$string1->id}->set_value('Foo10');
     $record->fields->{$integer1->id}->set_value('100');
+    $record->fields->{$curval1->id}->set_value('4');
     $record->write;
 
     $records->clear;
@@ -85,6 +129,7 @@ foreach my $multivalue (0..1)
     $record = $records->single;
 
     is($record->fields->{$string1->id}->as_string, 'Foo1', "Correct old value for first record (2014)");
+    is($record->fields->{$curval1->id}->as_string, 'Bar1', "Correct old value for first record (2014)");
 
     # Go back to second set (2015)
     $previous->add(years => 1);
@@ -97,6 +142,7 @@ foreach my $multivalue (0..1)
     is($records->count, 1, "Correct number of records for previous date (2015)");
     $record = $records->single;
     is($record->fields->{$string1->id}->as_string, 'Foo2', "Correct old value for first record (2015)");
+    is($record->fields->{$curval1->id}->as_string, 'Bar2', "Correct old value for first record (2015)");
 
     # And back to today
     $records = GADS::Records->new(
@@ -107,6 +153,7 @@ foreach my $multivalue (0..1)
     is($records->count, 2, "Correct number of records for current date");
     $record = $records->single;
     is($record->fields->{$string1->id}->as_string, 'Foo3', "Correct value for first record current date");
+    is($record->fields->{$curval1->id}->as_string, 'Bar3', "Correct value for first record current date");
 
     # Retrieve single record
     $record = GADS::Record->new(
@@ -114,8 +161,9 @@ foreach my $multivalue (0..1)
         layout => $layout,
         schema => $schema,
     );
-    $record->find_current_id(1);
+    $record->find_current_id(5);
     is($record->fields->{$string1->id}->as_string, 'Foo3', "Correct value for first record current date, single retrieve");
+    is($record->fields->{$curval1->id}->as_string, 'Bar3', "Correct value for first record current date, single retrieve");
     my $vs = join ' ', map { $_->created->ymd } $record->versions;
     is($vs, "2016-10-10 2015-10-10 2014-10-10", "All versions in live version");
     $record = GADS::Record->new(
@@ -125,21 +173,24 @@ foreach my $multivalue (0..1)
         rewind => $previous,
     );
     # First check record versions within current window
-    $record->find_record_id(1);
+    $record->find_record_id(5);
     is($record->fields->{$string1->id}->as_string, 'Foo1', "Correct old value for first version");
+    is($record->fields->{$curval1->id}->as_string, 'Bar1', "Correct old value for first version");
     $vs = join ' ', map { $_->created->ymd } $record->versions;
     is($vs, "2015-10-10 2014-10-10", "Only first 2 versions in old version");
     $record->clear;
-    $record->find_record_id(2);
+    $record->find_record_id(6);
     is($record->fields->{$string1->id}->as_string, 'Foo2', "Correct old value for second version");
+    is($record->fields->{$curval1->id}->as_string, 'Bar2', "Correct old value for second version");
     $record->clear;
     # Check cannot retrieve latest version with rewind set as-is
-    try { $record->find_record_id(3) };
+    try { $record->find_record_id(7) };
     like($@, qr/Requested record not found/, "Cannot retrieve version after current rewind setting");
     $record->clear;
     # Check current version
-    $record->find_current_id(1);
+    $record->find_current_id(5);
     is($record->fields->{$string1->id}->as_string, 'Foo2', "Correct old value for first record (2015), single retrieve");
+    is($record->fields->{$curval1->id}->as_string, 'Bar2', "Correct old value for first record (2015), single retrieve");
     # Try an edit - should bork
     $record->fields->{$string1->id}->set_value('Bar');
     try { $record->write };

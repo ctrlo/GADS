@@ -17,6 +17,7 @@ sub fetch_multivalues
     my @values = $m_rs->all;
     my $records = GADS::Records->new(
         user                    => $self->override_permissions ? undef : $self->layout->user,
+        rewind                  => $options{rewind},
         layout                  => $self->layout_parent,
         schema                  => $self->schema,
         columns                 => $self->curval_field_ids,

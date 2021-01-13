@@ -1134,6 +1134,7 @@ sub _build_standard_results
         push @all, GADS::Record->new(
             schema                  => $self->schema,
             record                  => $rec,
+            rewind                  => $self->rewind,
             serial                  => $rec->{serial},
             child_records           => \@children,
             parent_id               => $rec->{parent_id},
@@ -1277,7 +1278,12 @@ sub fetch_multivalues
                     # record has the flag saying they need to be
                     $col->retrieve_all_columns(1)
                         if $col->is_curcommon && $self->curcommon_all_fields;
-                    foreach my $val ($col->fetch_multivalues(\@retrieve_ids, is_draft => $params{is_draft}, curcommon_all_fields => $self->curcommon_all_fields))
+                    foreach my $val ($col->fetch_multivalues(
+                            \@retrieve_ids,
+                            is_draft             => $params{is_draft},
+                            curcommon_all_fields => $self->curcommon_all_fields,
+                            rewind               => $self->rewind, # Would be better in a context object
+                    ))
                     {
                         my $field = "field$val->{layout_id}";
                         next if $cols_done->{$parent_field_this}->{$val->{layout_id}};

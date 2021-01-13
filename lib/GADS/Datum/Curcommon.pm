@@ -171,7 +171,7 @@ sub _build_values
         }
     }
     elsif (@{$self->ids} || @{$self->values_as_query}) {
-        @return = $self->column->ids_to_values($self->ids, fatal => 1);
+        @return = $self->column->ids_to_values($self->ids, fatal => 1, rewind => $self->record->rewind);
 
         my @records = @{$self->values_as_query_records};
         foreach my $query (@{$self->values_as_query})

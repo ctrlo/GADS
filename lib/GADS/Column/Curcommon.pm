@@ -280,6 +280,7 @@ sub _records_from_db
     my $records = GADS::Records->new(
         user                    => $self->override_permissions ? undef : $self->layout->user,
         view                    => $view,
+        rewind                  => $options{rewind},
         layout                  => $layout,
         schema                  => $self->schema,
         columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns),
@@ -448,8 +449,8 @@ sub id_as_string
 # Used to return a formatted value for a single datum. Normally called from a
 # Datum::Curval object
 sub ids_to_values
-{   my ($self, $ids) = @_;
-    my $rows = $self->_get_rows($ids);
+{   my ($self, $ids, %options) = @_;
+    my $rows = $self->_get_rows($ids, %options);
     map { $self->_format_row($_) } @$rows;
 }
 
