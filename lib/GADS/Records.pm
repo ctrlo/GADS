@@ -1241,10 +1241,15 @@ sub fetch_multivalues
                                 # IDs. We retrieve them now. This should really
                                 # be abstracted to a function elsewhere - it is
                                 # too low level.
-                                my @curs = $self->schema->resultset('Current')->search({
+                                local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
+                                    if $self->rewind;
+                                my $search = {
                                     'me.id'           => \@value_ids,
                                     'record_later.id' => undef,
-                                },{
+                                };
+                                $search->{'record_single.created'} = { '<' => $self->rewind_formatted }
+                                    if $self->rewind;
+                                my @curs = $self->schema->resultset('Current')->search($search,{
                                     select => ['me.id', 'record_single.id'],
                                     as     => ['current_id', 'record_id'],
                                     join   => {

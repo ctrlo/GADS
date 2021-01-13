@@ -40,14 +40,19 @@ my $data = [
     },
 ];
 
-foreach my $multivalue (0..1)
+foreach my $multivalue (0..3)
 {
+    # multivalue 0 - neither
+    # multivalue 1 - main only
+    # multivalue 2 - curval only
+    # multivalue 3 - both
+
     # We will use 3 dates for the data: all 10th October, but years 2014, 2015, 2016
     set_fixed_time('10/10/2014 01:00:00', '%m/%d/%Y %H:%M:%S');
 
     my $curval_sheet = Test::GADS::DataSheet->new(
         data        => $curval_data,
-        multivalue  => $multivalue,
+        multivalue  => $multivalue >= 2 ? 1 : 0,
         instance_id => 2,
     );
     $curval_sheet->create_records;
@@ -55,7 +60,7 @@ foreach my $multivalue (0..1)
 
     my $sheet = Test::GADS::DataSheet->new(
         data             => $data,
-        multivalue       => $multivalue,
+        multivalue       => $multivalue == 1 || $multivalue == 3 ? 1 : 0,
         schema           => $schema,
         curval           => 2,
         curval_field_ids => [ $curval_sheet->columns->{string1}->id ],
