@@ -177,6 +177,9 @@ has curval_field_ids_all => (
 
 sub _build_curval_field_ids_all
 {   my $self = shift;
+    # First check if this curval does not have any fields (should not normally
+    # happen)
+    return [] if !@{$self->curval_field_ids};
     my @curval_field_ids = $self->schema->resultset('Layout')->search({
         internal    => 0,
         instance_id => $self->layout_parent->instance_id,
