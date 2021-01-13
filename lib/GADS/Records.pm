@@ -1260,7 +1260,8 @@ sub fetch_multivalues
                                     push @retrieve_ids, $current->get_column('record_id');
                                     $value_mapping->{$current->get_column('current_id')} = $current->get_column('record_id');
                                 }
-                                $_->{record_id} = $value_mapping->{$_->{value}} foreach @vals;
+                                $_->{record_id} = $value_mapping->{$_->{value}}
+                                    foreach grep $_->{value}, @vals;
                             }
                         }
                     }
