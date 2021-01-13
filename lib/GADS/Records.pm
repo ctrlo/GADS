@@ -1233,7 +1233,34 @@ sub fetch_multivalues
                             if ($rec->{$parent_curval_field})
                             {
                                 my @vals = ref $rec->{$parent_curval_field} eq 'ARRAY' ? @{$rec->{$parent_curval_field}} : $rec->{$parent_curval_field};
-                                push @retrieve_ids, map $_->{record_id}, @vals;
+                                my @value_ids = map $_->{value}, @vals;
+                                # Each value of the curval field is a current
+                                # ID. In order to retrieve its multivalue
+                                # fields, we need to know the relevant record
+                                # IDs. We retrieve them now. This should really
+                                # be abstracted to a function elsewhere - it is
+                                # too low level.
+                                my @curs = $self->schema->resultset('Current')->search({
+                                    'me.id'           => \@value_ids,
+                                    'record_later.id' => undef,
+                                },{
+                                    select => ['me.id', 'record_single.id'],
+                                    as     => ['current_id', 'record_id'],
+                                    join   => {
+                                        record_single => 'record_later',
+                                    },
+                                })->all;
+                                # Once all the applicable record IDs have been
+                                # retrieved, add them back into the original
+                                # value hashes of the curval, as they will be
+                                # used later to retrieve the full values
+                                my $value_mapping;
+                                foreach my $current (@curs)
+                                {
+                                    push @retrieve_ids, $current->get_column('record_id');
+                                    $value_mapping->{$current->get_column('current_id')} = $current->get_column('record_id');
+                                }
+                                $_->{record_id} = $value_mapping->{$_->{value}} foreach @vals;
                             }
                         }
                     }
