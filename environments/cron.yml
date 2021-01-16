@@ -1,0 +1,28 @@
+# configuration file for cron jobs
+
+# only log warning and error messsages
+log: "warning"
+
+# don't consider warnings critical
+warnings: 0
+
+# hide errors
+show_errors: 0
+
+# For cron, log to both STDERR (for email to system administrator - ordinarily
+# there should be no output, so this will highlight failing calc fields), and
+# also to syslog for capture
+engines:
+  logger:
+    LogReport:
+      app_name: GADS
+      dispatchers:
+        default:
+          type: PERL
+          mode: VERBOSE
+        syslog:
+          type: SYSLOG
+          identity: GADS
+          facility: local0
+          flags: "pid ndelay nowait"
+          mode: VERBOSE

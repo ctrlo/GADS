@@ -26,8 +26,11 @@ use GADS::Instances;
 use GADS::Layout;
 use Dancer2;
 use Dancer2::Plugin::DBIC;
-use Dancer2::Plugin::LogReport mode => 'NORMAL';
+use Dancer2::Plugin::LogReport mode => 'VERBOSE';
 use Tie::Cache;
+
+# Close dancer2 special dispatcher, which tries to write to the session
+dispatcher close => 'error_handler';
 
 GADS::DB->setup(schema);
 
