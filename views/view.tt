@@ -208,6 +208,7 @@
             <div class="col-md-8">
                 <p>
                     <select class="form-control" name="groupfield">
+                        <option></option>
                         [% FOR column IN layout.columns_for_filter %]
                             <option value="[% column.filter_id %]" [% IF group.filter_id == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]</option>
                         [% END %]

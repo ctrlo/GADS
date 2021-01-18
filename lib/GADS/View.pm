@@ -609,6 +609,7 @@ sub _set_sorts_groups
     my $order; my $type_last;
     foreach my $filter_id (@fields)
     {
+        $filter_id or next;
         my ($parent_id, $layout_id);
         if ($filter_id && $filter_id =~ /^([0-9]+)_([0-9]+)$/)
         {
