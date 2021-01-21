@@ -1803,6 +1803,8 @@ prefix '/:layout_name' => sub {
         # Check for bulk delete
         if (param 'modal_delete')
         {
+            forwardHome({ danger => "You do not have permission to bulk delete records"}, $layout->identifier.'/data')
+                unless $layout->user_can("bulk_delete");
             my %params = (
                 user                => $user,
                 search              => session('search'),

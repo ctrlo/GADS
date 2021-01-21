@@ -113,7 +113,7 @@
                     </div>
                 [% END %]
 
-                [% IF layout.user_can("bulk_update") OR layout.user_can("delete") OR layout.user_can("download") %]
+                [% IF layout.user_can("bulk_update") OR layout.user_can("delete") OR layout.user_can("download") OR layout.user_can("bulk_delete") %]
                     <div class="btn-group">
                         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_action">
                                 Action <span class="caret"></span>
@@ -126,7 +126,7 @@
                             [% ELSE %]
                                 [% sel_type = "records in this view" %]
                             [% END %]
-                            [% IF layout.user_can("delete") %]
+                            [% IF layout.user_can("delete") AND layout.user_can("bulk_delete") %]
                                 <li role="presentation"><a role="menuitem" id="delete_href" class="bulk_href" tabindex="-1" data-toggle="modal" data-target="#modal_delete" style="cursor: pointer">Delete all [% sel_type %]...</a>
                             [% END %]
                             [% IF layout.user_can("bulk_update") %]

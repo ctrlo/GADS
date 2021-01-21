@@ -79,7 +79,7 @@ $sheet2->create_records;
 {
     foreach my $layout_from (qw/new instances/)
     {
-        foreach my $test (qw/delete purge download layout message view_create create_child bulk_update link/)
+        foreach my $test (qw/delete purge download layout message view_create create_child bulk_update bulk_delete link/)
         {
             foreach my $pass (1..4)
             {
@@ -260,6 +260,11 @@ $sheet2->create_records;
                 }
 
                 elsif ($test eq 'bulk_update')
+                {
+                    # Managed in controller at the moment
+                }
+
+                elsif ($test eq 'bulk_delete')
                 {
                     # Managed in controller at the moment
                 }

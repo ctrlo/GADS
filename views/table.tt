@@ -112,6 +112,7 @@
                                     <th>Create and edit group views and graphs</th>
                                     <th>Create and edit child records</th>
                                     <th>Bulk update records</th>
+                                    <th>Bulk delete records</th>
                                     <th>Create and manage linked records</th>
                                     <th>Select extra view limits</th>
                                 </tr>
@@ -148,6 +149,9 @@
                                         </td>
                                         <td>
                                             <input type="checkbox" name="permissions" value="[% group.id %]_bulk_update" aria-label="Bulk update records" [% IF layout_edit.group_has(group.id, 'bulk_update') %]checked[% END %]>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" name="permissions" value="[% group.id %]_bulk_delete" aria-label="Bulk delete records" [% IF layout_edit.group_has(group.id, 'bulk_delete') %]checked[% END %]>
                                         </td>
                                         <td>
                                             <input type="checkbox" name="permissions" value="[% group.id %]_link" aria-label="Create and manage linked records" [% IF layout_edit.group_has(group.id, 'link') %]checked[% END %]>
