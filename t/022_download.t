@@ -29,8 +29,8 @@ my $view = GADS::View->new(
     user        => $sheet->user,
     columns     => [$sheet->columns->{string1}->id, $sheet->columns->{integer1}->id],
 );
+$view->set_sorts({fields => [$sheet->columns->{integer1}->id], types => ['asc']});
 $view->write;
-$view->set_sorts([$sheet->columns->{integer1}->id], ['asc']);
 
 my $records = GADS::Records->new(
     user   => $sheet->user,

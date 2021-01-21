@@ -1071,7 +1071,8 @@ foreach my $multivalue (0..1)
                 }
             }
 
-            $view->set_sorts($view_columns, ['asc']);
+            $view->set_sorts({fields => $view_columns, types => ['asc']});
+            $view->write(no_errors => $filter->{no_errors});
             $records = GADS::Records->new(
                 user    => $user,
                 view    => $view,
@@ -2096,7 +2097,8 @@ foreach my $multivalue (0..1)
             else {
                 @sort_by = map { $_ ? $columns->{$_}->id : $layout->column_id->id } @{$sort->{sort_by}};
             }
-            $view->set_sorts([@sort_by], $sort_type);
+            $view->set_sorts({fields => [@sort_by], types => $sort_type});
+            $view->write;
 
             $records = GADS::Records->new(
                 page    => 1,

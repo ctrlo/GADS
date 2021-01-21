@@ -98,11 +98,10 @@ my $view = GADS::View->new(
     schema      => $schema,
     user        => $sheet->user,
 );
-$view->write;
-
 # Add a sort to introduce a "hidden" field in the first page that would
 # otherwise not be included
-$view->set_sorts([$columns->{enum1}->id], ['asc']);
+$view->set_sorts({fields => [$columns->{enum1}->id], types => ['asc']});
+$view->write;
 
 my $records = GADS::Records->new(
     user    => $sheet->user,

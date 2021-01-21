@@ -140,6 +140,7 @@ is($aggregate->fields->{$calc1->id}->as_string, "360", "Correct total of calc va
 # total aggregate
 {
     $view->set_groups([$enum1->id]);
+    $view->write;
     $records->clear;
 
     @results = @{$records->results};

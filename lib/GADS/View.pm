@@ -181,7 +181,18 @@ has sorts => (
     is      => 'ro',
     lazy    => 1,
     clearer => 1,
-    builder => sub { $_[0]->_view && $_[0]->_get_sorts || [] },
+    builder => sub {
+        my $self = shift;
+        if ($self->set_sorts)
+        {
+            return [ $self->_set_sorts_groups('sorts', $self->set_sorts->{fields}, $self->set_sorts->{types}) ];
+        }
+        else {
+            my $view = $self->_view
+                or return [];
+            [ $view->sorts->all ];
+        }
+    },
 );
 
 has groups => (
@@ -190,9 +201,15 @@ has groups => (
     clearer => 1,
     builder => sub {
         my $self = shift;
-        my $view = $self->_view
-            or return [];
-        [ $view->view_groups->all ];
+        if ($self->set_groups)
+        {
+            return [ $self->_set_sorts_groups('groups', $self->set_groups) ];
+        }
+        else {
+            my $view = $self->_view
+                or return [];
+            [ $view->view_groups->all ];
+        }
     },
 );
 
@@ -217,12 +234,7 @@ sub _build_all_alerts
     [ $self->_view->alerts ];
 }
 
-has has_alerts => (
-    is  => 'lazy',
-    isa => Bool,
-);
-
-sub _build_has_alerts
+sub has_alerts
 {   my $self = shift;
     $self->_view or return;
     $self->_view->alerts->count ? 1 : 0;
@@ -377,6 +389,10 @@ sub write
             ? __x("User {user_id} does not have access to modify view {id}", user_id => $self->layout->user->id, id => $self->id)
             : __x("User {user_id} does not have permission to create new views", user_id => $self->layout->user->id);
 
+    error __"It is not possible to have alerts on a grouped view. Please either "
+        ."remove the grouping or disable the alerts"
+            if $self->has_alerts && $self->is_group;
+
     if ($self->id)
     {
         $self->_view->update($vu);
@@ -402,6 +418,27 @@ sub write
     }
 
     my $schema = $self->schema;
+
+    # Update groupings and sorts
+    foreach my $table (qw/Sort ViewGroup/)
+    {
+        # Delete all old ones first
+        $schema->resultset($table)->search({ view_id => $self->id })->delete;
+        foreach my $item (@{$table eq 'Sort' ? $self->sorts : $self->groups})
+        {
+            # Create afresh as could be new row or existing one that has been
+            # deleted
+            $schema->resultset($table)->create({
+                view_id => $self->id,
+                $item->get_columns,
+            });
+        }
+    }
+    $self->clear_sorts;
+    $self->clear_groups;
+    $self->clear_set_sorts;
+    $self->clear_set_groups;
+
     my @colviews = @{$self->columns};
 
     foreach my $c ($self->layout->all(user_can_read => 1))
@@ -541,50 +578,19 @@ sub filter_types
     ]
 }
 
-sub _get_sorts
-{   my $self = shift;
+has set_sorts => (
+    is      => 'rw',
+    isa     => HashRef,
+    trigger => sub { shift->clear_sorts },
+    clearer => 1,
+);
 
-    return [] unless $self->_view;
-
-    # Sort order is defined by the database sequential ID of each sort
-    my @sorts;
-    foreach my $sort ($self->_view->sorts->all)
-    {
-        # XXX Convert from legacy internal IDs. This can be removed at some
-        # point.
-        if ($sort->layout_id && $sort->layout_id < 0)
-        {
-            my %map = (
-                -11 => $self->layout->column_by_name_short('_id'),
-                -12 => $self->layout->column_by_name_short('_version_datetime'),
-                -13 => $self->layout->column_by_name_short('_version_user'),
-                -14 => $self->layout->column_by_name_short('_deleted_by'),
-                -15 => $self->layout->column_by_name_short('_created'),
-                -16 => $self->layout->column_by_name_short('_serial'),
-            );
-            $sort->update({ layout_id => $map{$sort->layout_id}->id });
-        }
-        my $s;
-        $s->{id}        = $sort->id;
-        $s->{type}      = $sort->type;
-        $s->{layout_id} = $sort->layout_id;
-        $s->{parent_id} = $sort->parent_id;
-        $s->{filter_id} = $sort->parent_id ? $sort->parent_id.'_'.$sort->layout_id : $sort->layout_id,
-        push @sorts, $s;
-    }
-    \@sorts;
-}
-
-sub set_sorts
-{   my $self = shift;
-    $self->_set_sorts_groups('sorts', @_);
-}
-
-sub set_groups
-{   my $self = shift;
-    $self->clear_is_group;
-    $self->_set_sorts_groups('groups', @_);
-}
+has set_groups => (
+    is      => 'rw',
+    isa     => ArrayRef,
+    trigger => sub { $_[0]->clear_groups; $_[0]->clear_is_group },
+    clearer => 1,
+);
 
 sub _set_sorts_groups
 {   my ($self, $type, $sortfield, $sorttype) = @_;
@@ -601,12 +607,9 @@ sub _set_sorts_groups
     my $schema = $self->schema;
     my $table  = $type eq 'sorts' ? 'Sort' : 'ViewGroup';
 
-    # Delete all old ones first
-    $schema->resultset($table)->search({ view_id => $self->id })->delete;
-
     my @fields   = @$sortfield;
     my @sorttype = $type eq 'sorts' && @$sorttype;
-    my $order; my $type_last;
+    my $order; my $type_last; my @return;
     foreach my $filter_id (@fields)
     {
         $filter_id or next;
@@ -628,23 +631,16 @@ sub _set_sorts_groups
         error __x"Invalid field ID {id} in {type}", id => $parent_id, type => $type
             if $parent_id && !$self->layout->column($parent_id)->user_can('read');
         my $sort = {
-            view_id   => $self->id,
             layout_id => $layout_id,
             parent_id => $parent_id,
             order     => ++$order,
         };
         $sort->{type} = $sorttype if $type eq 'sorts';
-        $schema->resultset($table)->create($sort);
+        push @return, $schema->resultset($table)->new($sort);
         $type_last = $sorttype;
     }
-    $self->_clear_view;
-    if ($type eq 'sorts')
-    {
-        $self->clear_sorts;
-    }
-    else {
-        $self->clear_groups;
-    }
+
+    return @return;
 }
 
 has is_group => (

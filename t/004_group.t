@@ -129,11 +129,11 @@ foreach my $multivalue (0..1)
         schema      => $schema,
         user        => $sheet->user,
     );
-    $view->write;
     $view->set_groups([$string1->id]);
     # Also add a sort, to check that doesn't result in unwanted multi-value
     # field joins
-    $view->set_sorts([$enum1->id], ['asc']);
+    $view->set_sorts({fields => [$enum1->id], types => ['asc']});
+    $view->write;
 
     my $records = GADS::Records->new(
         view   => $view,
@@ -194,8 +194,8 @@ foreach my $multivalue (0..1)
             schema      => $schema,
             user        => $sheet->user,
         );
-        $view->write;
         $view->set_groups([$col->id]);
+        $view->write;
 
         $records = GADS::Records->new(
             view   => $view,
@@ -246,8 +246,8 @@ foreach my $multivalue (0..1)
         schema      => $schema,
         user        => $sheet->user,
     );
-    $view->write;
     $view->set_groups([$curval_sheet->columns->{string1}->id]);
+    $view->write;
 
     $records = GADS::Records->new(
         view   => $view,
@@ -272,8 +272,8 @@ foreach my $multivalue (0..1)
         schema      => $schema,
         user        => $sheet->user,
     );
-    $view->write;
     $view->set_groups([$columns->{curval1}->id]);
+    $view->write;
 
     $records = GADS::Records->new(
         view   => $view,
@@ -296,8 +296,8 @@ foreach my $multivalue (0..1)
         schema      => $schema,
         user        => $sheet->user,
     );
-    $view->write;
     $view->set_groups([$columns->{curval1}->id."_".$curval_sheet->columns->{string1}->id]);
+    $view->write;
 
     $records = GADS::Records->new(
         view   => $view,
@@ -333,8 +333,8 @@ foreach my $multivalue (0..1)
         schema      => $schema,
         user        => $sheet->user,
     );
-    $view->write;
     $view->set_groups([$enum1->id]);
+    $view->write;
 
     foreach my $run (0..2)
     {
@@ -399,8 +399,8 @@ foreach my $multivalue (0..1)
         schema      => $schema,
         user        => $sheet->user,
     );
-    $view->write;
     $view->set_groups([$string1->id]);
+    $view->write;
 
     my $records = GADS::Records->new(
         # Specify rows parameter to simulate default used for table view. This
@@ -527,8 +527,8 @@ foreach my $multivalue (0..1)
         schema      => $schema,
         user        => $sheet->user,
     );
-    $view->write;
     $view->set_groups([$string1->id]);
+    $view->write;
 
     my $records = GADS::Records->new(
         view   => $view,

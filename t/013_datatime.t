@@ -177,8 +177,8 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
             schema      => $schema,
             user        => $sheet->user,
         );
+        $view->set_sorts({fields => [$sheet->columns->{$sort}->id], types => ['asc']});
         $view->write;
-        $view->set_sorts([$sheet->columns->{$sort}->id], ['asc']);
 
         my $records = GADS::Records->new(
             from   => DateTime->now->add(days => 100),
@@ -740,8 +740,8 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         schema      => $schema,
         user        => $sheet->user,
     );
+    $view->set_sorts({fields => [$enum1->id], types => ['asc']});
     $view->write;
-    $view->set_sorts([$enum1->id], ['asc']);
 
     my $records = GADS::Records->new(
         view    => $view,
@@ -856,9 +856,9 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         schema      => $schema,
         user        => undef,
     );
-    $view->write;
     my $sort_field = $sheet->columns->{curval1}->id .'_'. $curval_sheet->columns->{string1}->id;
-    $view->set_sorts([$sort_field], ['asc']);
+    $view->set_sorts({fields => [$sort_field], types => ['asc']});
+    $view->write;
 
     my $records = GADS::Records->new(
         user   => undef,
@@ -983,8 +983,8 @@ is( @{$records->data_timeline->{items}}, 1, "Filter, single column and limited r
         schema      => $schema,
         user        => $sheet->user,
     );
+    $view->set_sorts({fields => [$sheet->columns->{string1}->id], types => ['asc']});
     $view->write;
-    $view->set_sorts([$sheet->columns->{string1}->id], ['asc']);
 
     my $records = GADS::Records->new(
         view    => $view,

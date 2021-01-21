@@ -128,8 +128,8 @@ is($record->fields->{$calc1->id}->as_string, 17, "Correct hour for daylight savi
         schema      => $schema,
         user        => $sheet->user,
     );
+    $view->set_sorts({fields => [$created->id], types => ['asc']});
     $view->write;
-    $view->set_sorts([$created->id], ['asc']);
 
     my $records = GADS::Records->new(
         user    => $sheet->user,
@@ -139,7 +139,8 @@ is($record->fields->{$calc1->id}->as_string, 17, "Correct hour for daylight savi
     );
 
     is($records->single->current_id, 1, "First record correct (ascending)");
-    $view->set_sorts([$created->id], ['desc']);
+    $view->set_sorts({fields => [$created->id], types => ['desc']});
+    $view->write;
     $records->clear;
     is($records->single->current_id, 203, "First record correct (descending)");
 }

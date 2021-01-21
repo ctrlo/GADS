@@ -181,8 +181,8 @@ foreach my $test (@tests)
         schema      => $schema,
         user        => $sheet->user,
     );
+    $view->set_sorts({fields => [$columns->{enum1}->id], types => ['asc']});
     $view->write;
-    $view->set_sorts([$columns->{enum1}->id], ['asc']);
 
     my $filters = [
         +{

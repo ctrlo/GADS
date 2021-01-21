@@ -80,8 +80,8 @@ is($record->fields->{$created_col->id}->as_string, "User1, User1", "Record retri
         schema      => $schema,
         user        => $sheet->user,
     );
+    $view->set_sorts({fields => [$created_col->id], types => ['asc']});
     $view->write;
-    $view->set_sorts([$created_col->id], ['asc']);
 
     my $records = GADS::Records->new(
         user    => $sheet->user,
@@ -91,7 +91,8 @@ is($record->fields->{$created_col->id}->as_string, "User1, User1", "Record retri
     );
 
     is($records->single->current_id, 1, "First record correct (ascending)");
-    $view->set_sorts([$created_col->id], ['desc']);
+    $view->set_sorts({fields => [$created_col->id], types => ['desc']});
+    $view->write;
     $records->clear;
     is($records->single->current_id, 202, "First record correct (descending)");
 }

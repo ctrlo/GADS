@@ -2705,15 +2705,15 @@ prefix '/:layout_name' => sub {
             $view->group_id(param 'group_id');
             $view->name  (param 'name');
             $view->filter->as_json(param 'filter');
+            $view->set_sorts({
+                fields => [body_parameters->get_all('sortfield')],
+                types  => [body_parameters->get_all('sorttype')],
+            });
+            $view->set_groups(
+                [body_parameters->get_all('groupfield')],
+            );
             if (process( sub { $view->write }))
             {
-                $view->set_sorts(
-                    [body_parameters->get_all('sortfield')],
-                    [body_parameters->get_all('sorttype')],
-                );
-                $view->set_groups(
-                    [body_parameters->get_all('groupfield')],
-                );
                 # Set current view to the one created/edited
                 session('persistent')->{view}->{$layout->instance_id} = $view->id;
                 # And remove any search to avoid confusion

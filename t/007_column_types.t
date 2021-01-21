@@ -361,8 +361,8 @@ my $autocur1 = $curval_sheet->add_autocur(refers_to_instance_id => 1, related_fi
         schema      => $schema,
         user        => $user,
     );
+    $view_sort->set_sorts({ fields => [$autocur1->id."_".$columns->{enum1}->id], types => ['asc']});
     $view_sort->write;
-    $view_sort->set_sorts([$autocur1->id."_".$columns->{enum1}->id], ['asc']);
     my $records = GADS::Records->new(
         user   => $user,
         schema => $schema,

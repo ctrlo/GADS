@@ -226,8 +226,8 @@ foreach my $multi (@multi)
             schema      => $schema,
             user        => $user2,
         );
+        $view->set_sorts({fields => [ $columns2->{daterange1}->id ], types => [ $filter->{sort} ]});
         $view->write;
-        $view->set_sorts([ $columns2->{daterange1}->id ], [ $filter->{sort} ]);
 
         my $records = GADS::Records->new(
             user    => $user2,

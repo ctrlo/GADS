@@ -32,8 +32,8 @@ my $view = GADS::View->new(
     schema      => $schema,
     user        => $sheet->user,
 );
+$view->set_sorts({fields => [$sheet->columns->{string1}->id], types => ['random']});
 $view->write;
-$view->set_sorts([$sheet->columns->{string1}->id], ['random']);
 
 # Retrieve the set of results 10 times, and assume that at some point the
 # randomness is such that a different record will be retrieved one of those
@@ -55,7 +55,8 @@ for my $loop (1..10)
 ok(keys %strings > 1, "More than one different random record");
 
 # Sanity check of normal sort
-$view->set_sorts([$sheet->columns->{string1}->id], ['asc']);
+$view->set_sorts({fields => [$sheet->columns->{string1}->id], types => ['asc']});
+$view->write;
 
 %strings = ();
 for my $loop (1..10)
@@ -73,7 +74,8 @@ for my $loop (1..10)
 
 ok(keys %strings == 1, "Same record retrieved for fixed sort");
 
-$view->set_sorts([$sheet->columns->{enum1}->id, $sheet->columns->{string1}->id], ['asc', 'random']);
+$view->set_sorts({fields => [$sheet->columns->{enum1}->id, $sheet->columns->{string1}->id], types => ['asc', 'random']});
+$view->write;
 
 my %enums;
 for my $loop (1..10)

@@ -261,6 +261,10 @@ my $alert = GADS::Alert->new(
 );
 $alert->write;
 my $view_count = $schema->resultset('View')->count;
+# First do quick check that group can't be added to view with alerts
+$view->set_groups([$columns->{string1}->id]);
+try { $view->write };
+like($@, qr/not possible to have alerts on a grouped view/, "Unable to set group on view with alerts");
 $view->delete;
 is($schema->resultset('View')->count, $view_count - 1, "View deleted successfully");
 
