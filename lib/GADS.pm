@@ -1787,6 +1787,19 @@ prefix '/:layout_name' => sub {
 
         my $user   = logged_in_user;
 
+        my @additional_filters;
+        foreach my $key (keys %{query_parameters()})
+        {
+            $key =~ /^field([0-9]+)$/
+                or next;
+            my $fid = $1;
+            my @values = query_parameters->get_all($key);
+            push @additional_filters, {
+                id    => $fid,
+                value => [query_parameters->get_all($key)],
+            };
+        }
+
         # Check for bulk delete
         if (param 'modal_delete')
         {
@@ -1798,6 +1811,7 @@ prefix '/:layout_name' => sub {
                 rewind              => session('rewind'),
                 view                => current_view($user, $layout),
                 view_limit_extra_id => current_view_limit_extra_id($user, $layout),
+                additional_filters  => \@additional_filters,
             );
             $params{limit_current_ids} = [body_parameters->get_all('delete_id')]
                 if body_parameters->get_all('delete_id');
@@ -2124,31 +2138,18 @@ prefix '/:layout_name' => sub {
             my $rows = defined param('download') ? undef : session('rows');
             my $page = defined param('download') ? undef : session('page');
 
-            my @additional;
-            foreach my $key (keys %{query_parameters()})
-            {
-                $key =~ /^field([0-9]+)$/
-                    or next;
-                my $fid = $1;
-                my @values = query_parameters->get_all($key);
-                push @additional, {
-                    id    => $fid,
-                    value => [query_parameters->get_all($key)],
-                };
-            }
-
             my %params = (
                 user                => $user,
                 search              => session('search'),
                 layout              => $layout,
                 schema              => schema,
                 rewind              => session('rewind'),
-                additional_filters  => \@additional,
+                additional_filters  => \@additional_filters,
                 view_limit_extra_id => current_view_limit_extra_id($user, $layout),
             );
             # If this is a filter from a group view, then disable the group for
             # this rendering
-            my $disable_group = defined query_parameters->get('group_filter') && @additional;
+            my $disable_group = defined query_parameters->get('group_filter') && @additional_filters;
             $params{is_group} = 0 if $disable_group;
 
             my $records = GADS::Records->new(%params);
@@ -2273,7 +2274,7 @@ prefix '/:layout_name' => sub {
             $params->{count}                = $records->count;
             $params->{columns}              = [ map $_->presentation(
                 sort             => $records->sort_first,
-                filters          => \@additional,
+                filters          => \@additional_filters,
                 query_parameters => query_parameters,
             ), @columns ];
             $params->{is_group}             = $records->is_group,
@@ -2281,11 +2282,11 @@ prefix '/:layout_name' => sub {
             $params->{viewtype}             = 'table';
             $params->{page}                 = 'data_table';
             $params->{search_limit_reached} = $records->search_limit_reached;
-            if (@additional)
+            if (@additional_filters)
             {
                 # Should be moved into presentation layer
                 my @filters;
-                foreach my $add (@additional)
+                foreach my $add (@additional_filters)
                 {
                     push @filters, "field$add->{id}=".uri_escape_utf8($_)
                         foreach @{$add->{value}};
