@@ -1812,9 +1812,9 @@ sub _sort_builder
         foreach my $sort (@{$self->view->sorts})
         {
             push @sorts, {
-                id        => $sort->{layout_id} || $column_id->id, # View column is undef for ID
-                parent_id => $sort->{parent_id},
-                type      => $sort->{type} || 'asc',
+                id        => $sort->layout_id || $column_id->id, # View column is undef for ID
+                parent_id => $sort->parent_id,
+                type      => $sort->type || 'asc',
             };
         }
     }
