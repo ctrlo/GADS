@@ -167,7 +167,9 @@ sub _build_items
     my $from_min =  $from && !$to ? $from->clone->truncate(to => 'day') : undef;
     my $to_max   = !$from &&  $to ? $to->clone->truncate(to => 'day')->add(days => 1) : undef;
 
-    my @columns  = @{$records->columns_render};
+    # Don't show the ID by default on the timeline as it clutters each item. It
+    # can be added as a field if required
+    my @columns  = grep $_->type ne 'id', @{$records->columns_render};
 
     my $date_column_count = 0;
     foreach my $column (@columns)
