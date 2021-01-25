@@ -208,9 +208,14 @@ const setupCurvalModal = (() => {
 
   const setupRemoveCurval = context => {
     $(".curval_group", context).on("click", ".curval_remove", function() {
-      $(this)
-        .closest(".curval_item")
-        .remove();
+      if (confirm("Are you sure want to permanenty remove this item?"))
+      {
+        $(this)
+          .closest(".curval_item")
+          .remove();
+      } else {
+        e.preventDefault();
+      }
     });
 
     $(".select-widget", context).on("click", ".curval_remove", function() {
