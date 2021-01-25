@@ -32,7 +32,7 @@ const setupCurvalModal = (() => {
       });
       var links = $(
         `<td>
-        <a class="curval-modal" style="cursor:pointer" data-layout-id="${col_id} data-instance-name=${instance_name}>edit</a> | <a class="curval_remove" style="cursor:pointer">remove</a>
+        <a class="curval-modal" style="cursor:pointer" data-layout-id="${col_id}" data-instance-name=${instance_name}>edit</a> | <a class="curval_remove" style="cursor:pointer">remove</a>
       </td>`,
         context
       );
