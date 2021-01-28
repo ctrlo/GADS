@@ -92,7 +92,9 @@ sub send
     $msg->head->add('Reply-to' => $reply_to) if $reply_to;
 
     # Start a mailer
-    my $mailer = Mail::Transport::Sendmail->new;
+    my $mailer = Mail::Transport::Sendmail->new(
+        sendmail_options => [-f => $self->email_from],
+    );
 
     my %done;
     foreach my $email (@$emails)
