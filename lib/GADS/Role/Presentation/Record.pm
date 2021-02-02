@@ -131,7 +131,7 @@ sub presentation {
         deleted         => $self->deleted,
         deletedby       => $self->deletedby,
         user_can_delete => $self->user_can_delete,
-        user_can_edit   => $self->layout->user_can('write_existing'),
+        user_can_edit   => $self->layout->user_can('write_existing') || $self->layout->user_can('write_new'),
         id_count        => $self->id_count,
         has_rag_column  => !!(grep { $_->type eq 'rag' } @columns),
         new_entry       => $self->new_entry,
