@@ -106,9 +106,11 @@
             <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
-            <li class="table-add[% IF page=="table/0" %] active[% END %]"><a href="[% url.page %]/table/0">Add a table</a></li>
-            <li class="tables-manage[% IF page=="table" %] active[% END %]"><a href="[% url.page %]/table/">Manage tables</a></li>
-            <li class="divider"></li>
+            [% IF user.permission.superadmin %]
+                <li class="table-add[% IF page=="table/0" %] active[% END %]"><a href="[% url.page %]/table/0">Add a table</a></li>
+                <li class="tables-manage[% IF page=="table" %] active[% END %]"><a href="[% url.page %]/table/">Manage tables</a></li>
+                <li class="divider"></li>
+            [% END %]
             [% IF layout.user_can("layout") %]
                 <li [% IF page=="layout/0" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/layout/0">Add a field</a></li>
                 <li [% IF page=="layout" %]class="active"[% END %]><a href="[% url.page %]/[% layout.identifier %]/layout/">Manage fields</a></li>
