@@ -14,6 +14,7 @@ const setupTreeFields = (() => {
         check_callback: true,
         force_text: true,
         themes: { stripes: true },
+        worker: false,
         data: {
           url: function() {
             return (
