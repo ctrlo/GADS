@@ -1,3 +1,5 @@
+[% PROCESS snippets/datum.tt %]
+
 <h2>User logs</h2>
 <p>
     <a href="" data-toggle="modal" data-target="#modal_filter" class="btn btn-default">Filter...</a>
@@ -7,7 +9,7 @@
 <table class="table table-striped">
     <tr>
         <th>ID:</th>
-        <th>Username:</th>
+        <th>User:</th>
         <th>Type:</th>
         <th>Time:</th>
         <th>Description:</th>
@@ -15,7 +17,7 @@
     [% FOREACH log IN logs %]
         <tr>
             <td>[% log.id %]</td>
-            <td>[% log.user.username | html_entity %]</td>
+            <td>[% render_datum({ data => log.user }) %]</td>
             <td>[% log.type | html_entity %]</td>
             <td>[% log.datetime | html_entity %]</td>
             <td>[% log.description | html_entity %]</td>

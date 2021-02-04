@@ -2,12 +2,12 @@ package GADS::Role::Presentation::Datum;
 
 use Moo::Role;
 
-sub presentation { shift->presentation_base } # Default, overridden
+sub presentation { shift->presentation_base(@_) } # Default, overridden
 
 sub presentation_base {
-    my $self = shift;
+    my ($self, %options) = @_;
     return {
-        type                => $self->isa('GADS::Datum::Count') ? 'count' : $self->column->type,
+        type                => $options{type} || ($self->isa('GADS::Datum::Count') ? 'count' : $self->column->type),
         value               => $self->as_string,
         filter_value        => $self->filter_value,
         blank               => $self->blank,

@@ -162,10 +162,11 @@ sub logs
     });
     $rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my @logs = $rs->all;
+    my $site = $self->schema->resultset('Site')->next;
     $_->{user} = GADS::Datum::Person->new(
         schema     => $self->schema,
-        init_value => {value => $_->{user}}
-    ) foreach @logs;
+        init_value => $_->{user},
+    )->presentation(type => 'person', site => $site) foreach @logs;
     \@logs;
 }
 

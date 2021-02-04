@@ -168,6 +168,10 @@ sub html_withlinks { $_[0]->html }
 sub dependent_not_shown
 {   my ($self, %options) = @_;
 
+    # Allow to be used to display people in the application not part of a
+    # column (e.g. audit logs)
+    return if !$self->column;
+
     my @filters = @{$self->column->display_fields->filters}
         or return 0;
 

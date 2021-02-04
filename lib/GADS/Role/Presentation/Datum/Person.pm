@@ -3,11 +3,11 @@ package GADS::Role::Presentation::Datum::Person;
 use Moo::Role;
 
 sub _presentation_details {
-    my $self = shift;
+    my ($self, %options) = @_;
 
     return [] unless $self->id;
 
-    my $site = $self->column->layout->site;
+    my $site = $options{site} || $self->column->layout->site;
 
     my @details;
 
@@ -35,14 +35,14 @@ sub _presentation_details {
 }
 
 sub presentation {
-    my $self = shift;
+    my ($self, %options) = @_;
 
-    my $base = $self->presentation_base;
+    my $base = $self->presentation_base(%options);
     delete $base->{value};
 
     $base->{text}    = $self->text;
     $base->{value}   = $self->text;
-    $base->{details} = $self->_presentation_details;
+    $base->{details} = $self->_presentation_details(%options);
     $base->{id}      = $self->id;
 
     return $base;
