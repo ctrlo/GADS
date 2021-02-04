@@ -89,6 +89,17 @@ const setupTreeFields = (() => {
 
     // hack - see https://github.com/vakata/jstree/issues/1955
     $treeContainer.jstree(true).settings.checkbox.cascade = "undetermined";
+
+    // Set up expand/collapse buttons located above widget
+    $treeContainer.prevAll('.jstree-expand-all').on('click', function() {
+        $treeContainer.jstree(true).open_all();
+    });
+    $treeContainer.prevAll('.jstree-collapse-all').on('click', function() {
+        $treeContainer.jstree(true).close_all();
+    });
+    $treeContainer.prevAll('.jstree-reload').on('click', function() {
+        $treeContainer.jstree(true).refresh();
+    });
   };
 
   var setupTreeFields = function(context) {

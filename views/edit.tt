@@ -423,9 +423,9 @@
                     [% ELSE %]
                         <div class="form-group">
                             [% # TODO: These anchors need to become buttons %]
-                            <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('open_all');">Expand all</a> |
-                            <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('close_all');">Collapse all</a> |
-                            <a style="cursor:pointer" onclick="$('#jstree[% dispcol.id %]').jstree('refresh');">Reload</a>
+                            <a class="jstree-expand-all" style="cursor:pointer">Expand all</a> |
+                            <a class="jstree-collapse-all" style="cursor:pointer">Collapse all</a> |
+                            <a class="jstree-reload" style="cursor:pointer">Reload</a>
                             <div class="tree-widget-container"
                                 data-field="[% field %]"
                                 [% dispcol.end_node_only && 'data-end-node-only="true"' %]
