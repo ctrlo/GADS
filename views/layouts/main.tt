@@ -239,7 +239,6 @@
 
         [% IF page.match('(layout|edit|approval|bulk)') %]
             <script src="[% url.js %]/jstree.min.js"></script>
-            <script src="[% url.js %]/jstree-misc.js"></script>
             <script src="[% url.js %]/bootstrap-select.min.js"></script>
         [% END %]
 
