@@ -741,7 +741,7 @@ sub _assert_on_page {
     my $webdriver = $self->gads->webdriver;
 
     # TODO: Move 'tries' to configuration
-    my %find_arg = ( dies => 0, tries => 60 );
+    my %find_arg = ( dies => 0, tries => 100 );
     my $page_el = $webdriver->find( $page_selector, %find_arg );
 
     my @failure;
