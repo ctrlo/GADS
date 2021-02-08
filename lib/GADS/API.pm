@@ -32,10 +32,11 @@ use Dancer2::Plugin::LogReport 'linkspace';
 fatal_handler sub {
     my ($dsl, $msg, $reason) = @_;
     return unless $dsl && $dsl->app->request && $dsl->app->request->uri =~ m!^/([0-9a-z]+/)?api/!i;
-    status $reason eq 'PANIC' ? 'Internal Server Error' : 'Bad Request';
+    my $is_exception = $reason eq 'PANIC';
+    status $is_exception ? 'Internal Server Error' : 'Bad Request';
     $dsl->send_as(JSON => {
         is_error => \1,
-        message  => $msg->toString },
+        message  => $is_exception ? 'An unexexpected error has occurred' : $msg->toString },
     { content_type => 'application/json; charset=UTF-8' });
 };
 
