@@ -454,6 +454,11 @@ sub csv
         push @csv, join '; ', map { $_->group->name } @{$user_groups{$id}};
         push @csv, $user2->get_column('audit_count');
         push @csv, $user->get_column('last_'.$_->instance_id) foreach @{$instances->all};
+
+        # Remove CSV vulberabilies for Excel. None of these characters should be
+        # used in username properties
+        @csv = map { $_ ? s/^[+-=@]+//r : '' } @csv;
+
         $csv->combine(@csv)
             or error __x"An error occurred producing a line of CSV: {err}",
                 err => "".$csv->error_diag;
