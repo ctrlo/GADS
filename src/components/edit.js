@@ -24,10 +24,23 @@ const setupEdit = (() => {
   const setupHelpTextModal = context => {
     $("#helptext_modal", context).on("show.bs.modal", function(e) {
       var loadurl = $(e.relatedTarget).data("load-url");
-      $(this)
-        .find(".modal-body")
-        .load(loadurl);
+      var $modal = $(this);
+      // Remove existing body first so that the previously-viewed help text
+      // doesn't show whilst the current one loads
+      var $modal_body = $modal.find('.modal-body').html('');
+
+      $.ajax(loadurl, {
+        timeout: 5000,
+        success: function (data) {
+          $modal_body.html(data)
+        },
+        error: function() {
+          alert("Failed to load help text");
+          $modal.modal('hide');
+        },
+      });
     });
+
 
     $("#helptext_modal_close")
       .on('click', function(e) {
