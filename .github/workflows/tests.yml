@@ -78,5 +78,4 @@ jobs:
           PGUSER: 'postgres'
         run: ./bin/setup_for_webdriver
       - name: 'Run the Webdriver tests'
-        # TODO: Fix the other webdriver test script and run it here
-        run: prove -lmv webdriver/t/login.t
+        run: prove -lmrsv webdriver/t

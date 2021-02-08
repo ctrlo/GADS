@@ -741,7 +741,7 @@ sub _assert_on_page {
     my $webdriver = $self->gads->webdriver;
 
     # TODO: Move 'tries' to configuration
-    my %find_arg = ( dies => 0, tries => 60 );
+    my %find_arg = ( dies => 0, tries => 100 );
     my $page_el = $webdriver->find( $page_selector, %find_arg );
 
     my @failure;
@@ -1323,7 +1323,13 @@ sub submit_add_a_view_form_ok {
 
     # HACK: Prevent the .navbar-fixed-bottom from obscuring the filter
     # specification fields.
-    $self->gads->webdriver->find('body')->send_keys("\N{WD_END}");
+    my $scroll_to_el = $filter_rule_el // $add_rule_el;
+    if (defined $scroll_to_el) {
+        $self->gads->webdriver->js(
+            'arguments[0].scrollIntoView(true)',
+            $scroll_to_el,
+        );
+    }
 
     # Specify filters for the view
     my $add_a_rule = 0;
