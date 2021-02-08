@@ -5,7 +5,7 @@
         <b>Record {{current_id}}</b><br>
         <ul class="list-unstyled">
             {{#each values}}
-                <li>{{name}}: {{{value}}}</li>
+                <li>{{this.name}}: {{this.value}}</li>
             {{/each}}
         </ul>
         <a class = "moreinfo" data-record-id="{{current_id}}">Read more</a> |

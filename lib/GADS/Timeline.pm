@@ -387,7 +387,7 @@ sub _build_items
 
                 # Exclude ID for pop-up values as it's included in the pop-up title
                 my @popup_values = map +{
-                    name  => $_->{col}->name,
+                    name  => encode_entities($_->{col}->name),
                     value => $_->{value}->html,
                 }, grep !$_->{col}->name_short || $_->{col}->name_short ne '_id', @values;
 
