@@ -1130,6 +1130,7 @@ foreach my $multivalue (0..1)
     }
 }
 
+# Test view limits defined to user accounts and tables
 foreach my $multivalue (0..1)
 {
     $sheet->set_multivalue($multivalue);
@@ -1137,13 +1138,7 @@ foreach my $multivalue (0..1)
     $layout = $sheet->layout;
     $columns = $sheet->columns;
 
-    # Search with a limited view defined
-    $records = GADS::Records->new(
-        user    => $user,
-        layout  => $layout,
-        schema  => $schema,
-    );
-
+    # Test view limit applied to table but not user
     my $rules_table = GADS::Filter->new(
         as_hash => {
             rules     => [{
@@ -1177,7 +1172,7 @@ foreach my $multivalue (0..1)
 
     is ($records->count, 1, 'Correct number of results when limiting to a view for a table');
 
-    # Add another view limit to the user
+    # Add a view limit to the user. This should replace the default table limit
     my $rules = GADS::Filter->new(
         as_hash => {
             rules     => [{
@@ -1203,7 +1198,7 @@ foreach my $multivalue (0..1)
     $user->set_view_limits([$view_limit->id]);
 
     $records->clear;
-    is ($records->count, 3, 'Correct number of results when limiting to a view for the table and a user');
+    is ($records->count, 2, 'Correct number of results when limiting to a view for the table and a user');
 
     # Remove the table limit
     $layout->view_limit_id(undef);

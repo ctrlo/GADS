@@ -134,7 +134,7 @@ sub _build__view_limits
 {   my $self = shift;
     $self->user or return [];
 
-    # User view limits first
+    # If there are user view limits these take precedence
     my @view_limit_ids = $self->schema->resultset('ViewLimit')->search({
         'me.user_id'       => $self->user->id,
         'view.instance_id' => $self->layout->instance_id,
@@ -142,9 +142,9 @@ sub _build__view_limits
         join => 'view',
     })->get_column('view_id')->all;
 
-    # And table defaults
+    # Otherwise add table defaults if they exist
     push @view_limit_ids, $self->layout->view_limit_id
-        if $self->layout->view_limit_id;
+        if !@view_limit_ids && $self->layout->view_limit_id;
 
     my @views;
     foreach my $view_limit_id (@view_limit_ids)

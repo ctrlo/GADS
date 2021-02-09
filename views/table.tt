@@ -80,7 +80,8 @@
                 </div>
                 <div class="panel-body collapse" id="limit_view">
                     <div class="form-group">
-                        <label for="view_limit_id">By default restrict all users to records in this view:</label>
+                        <label for="view_limit_id">By default restrict all users to records in this view (these are replaced
+                            by any limits applied to a specific user):</label>
                         <select class="form-control" id="view_limit_id" name="view_limit_id">
                             <option></option>
                             [% FOREACH v IN layout_edit.global_view_summary %]
