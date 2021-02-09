@@ -268,6 +268,12 @@ foreach my $ins (readdir $root)
             ? $layout->column_by_name_short($col->{name_short})
             : $layout->column_by_name($col->{name});
 
+        if ($col->{internal})
+        {
+            $column_mapping->{$col->{id}} = $column->id;
+            next;
+        }
+
         if ($column && $ignore_fields{$column->name})
         {
             $column_mapping->{$col->{id}} = $column->id;
