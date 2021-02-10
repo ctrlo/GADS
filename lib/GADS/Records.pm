@@ -425,6 +425,26 @@ sub common_search
     return @search;
 }
 
+sub _approval_query
+{   my ($self, %options) = @_;
+    return if $self->include_approval;
+    my $root_table    = $options{root_table} || 'current';
+    # There is a chance that there will be no approval records. In that case,
+    # the search will be a lot quicker without adding the approval search
+    # condition (due to indexes not spanning across tables). So, do a quick
+    # check first, and only add the condition if needed
+    my $approval_exists = $root_table eq 'current' && $self->schema->resultset('Current')->search({
+        instance_id        => $self->layout->instance_id,
+        "records.approval" => 1,
+    },{
+        join => 'records',
+        rows => 1,
+    })->next;
+    return if !$approval_exists;
+    my $record_single = $self->record_name(%options);
+    return { "$record_single.approval" => 0 };
+}
+
 # Produce the overall search condition array
 sub search_query
 {   my ($self, %options) = @_;
@@ -435,23 +455,7 @@ sub search_query
     my $root_table    = $options{root_table} || 'current';
     my $current       = $options{alias} ? $options{alias} : $root_table eq 'current' ? 'me' : 'current';
     my $record_single = $self->record_name(%options);
-    unless ($self->include_approval)
-    {
-        # There is a chance that there will be no approval records. In that case,
-        # the search will be a lot quicker without adding the approval search
-        # condition (due to indexes not spanning across tables). So, do a quick
-        # check first, and only add the condition if needed
-        my $approval_exists = $root_table eq 'current' && $self->schema->resultset('Current')->search({
-            instance_id        => $self->layout->instance_id,
-            "records.approval" => 1,
-        },{
-            join => 'records',
-            rows => 1,
-        })->next;
-        push @search, (
-            { "$record_single.approval" => 0 },
-        ) if $approval_exists;
-    }
+    push @search, $self->_approval_query(%options);
     # Current IDs from quick search if used
     push @search, { "$current.id"          => $self->_search_all_fields->{cids} } if $self->search;
     push @search, { "$current.id"          => $self->limit_current_ids } if $self->limit_current_ids; # $self->has_current_ids && $self->current_ids;
@@ -988,6 +992,8 @@ sub _cid_search_query
     my $record_single = $self->record_name(linked => 0);
     $search->{"$record_single.created"} = { '<' => $self->rewind_formatted }
         if $self->rewind;
+    my $approval_query = $self->_approval_query(%options);
+    $search = { %$search, %$approval_query } if $approval_query;
     $self->_cid_search_query_cache($search);
     $search;
 }
