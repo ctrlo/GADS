@@ -208,7 +208,10 @@ sub _build__records
 
 sub _build_blank
 {   my $self = shift;
-    @{$self->values} ? 0 : 1;
+    # Bulding values is expensive
+    return @{$self->values} ? 0 : 1
+        if $self->has_values;
+    return @{$self->ids} || @{$self->values_as_query} ? 0 : 1;
 }
 
 has text => (
