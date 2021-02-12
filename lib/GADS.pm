@@ -1107,7 +1107,8 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
         if (!param('account_request') && $id) # Original username to update (hidden field)
         {
             if (process sub {
-                my $user = rset('User')->active->search({ id => $id })->next;
+                my $user = rset('User')->active->search({ id => $id })->next
+                    or error __x"User ID {id} not found", id => $id;
                 # Don't use DBIC update directly, so that permissions etc are updated properly
                 $user->update_user(current_user => logged_in_user, %values);
             })
@@ -1237,7 +1238,9 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
 
     if ($route_id)
     {
-        $users = [ rset('User')->find($route_id) ] if !$users;
+        my $u = rset('User')->active->search({ id => $route_id})->next
+            or error __x"User id {id} not found", id => $route_id;
+        $users = [ $u ] if !$users;
     }
     elsif (!defined $route_id) {
         $users             = $userso->all;
