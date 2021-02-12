@@ -36,7 +36,13 @@ var injectContrastingColor = function(dataset) {
         var backgroundColor = backgroundColorMatch[1];
         var backgroundColorLightOrDark = lightOrDark(backgroundColor);
         if (backgroundColorLightOrDark === "dark") {
-          entry.style = entry.style + ";" + " color: #FFFFFF";
+          entry.style = entry.style + ";" + 
+                        "color: #FFFFFF;" + 
+                        "text-shadow: " + 
+                          "-1px -1px 0 " + backgroundColor + 
+                          ", 1px -1px 0 " + backgroundColor + 
+                          ", -1px 1px 0 " + backgroundColor + 
+                          ", 1px 1px 0 " + backgroundColor + ";";
         }
       }
     }
