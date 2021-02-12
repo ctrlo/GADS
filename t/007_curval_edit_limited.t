@@ -21,6 +21,8 @@ use Test::GADS::DataSheet;
 # A user is restricted access by region
 # Another sub-table is used to record the staff of a project, as a curval-edit
 # The main projects table extracts the integers from the staff sub-table
+# Finally, another curval edit table called tasks is added to the projects
+# table. This contains a reference to the staff table.
 
 # Set of offices, enum1 should be their region
 my $data = [
@@ -61,6 +63,18 @@ my $staff_sheet = Test::GADS::DataSheet->new(
 );
 $staff_sheet->create_records;
 
+# Tasks for the staff to complete within a project. Also refers to a member of
+# staff
+my $tasks_sheet = Test::GADS::DataSheet->new(
+    schema           => $schema,
+    instance_id      => 4,
+    site_id          => 1,
+    data             => [],
+    curval           => 2,
+    curval_field_ids => [ $staff_sheet->columns->{string1}->id ],
+);
+$tasks_sheet->create_records;
+
 # Main sheet with list of projects, refers to office sheet.
 # Make the calc be the region of the project (from office_sheet)
 my $project_sheet   = Test::GADS::DataSheet->new(
@@ -91,6 +105,24 @@ $staff_involved->delete_not_used(1);
 $staff_involved->show_add(1);
 $staff_involved->value_selector('noshow');
 $staff_involved->write(no_alerts => 1, force => 1);
+
+# Add third curval to main project sheet, which will use the tasks sheet. This
+# is a curval-edit field.
+my $tasks_involved = GADS::Column::Curval->new(
+    schema => $schema,
+    user   => $project_sheet->user,
+    layout => $layout,
+);
+$tasks_involved->refers_to_instance_id(4);
+$tasks_involved->curval_field_ids([$tasks_sheet->columns->{string1}->id]);
+$tasks_involved->type('curval');
+$tasks_involved->name('Tasks');
+$tasks_involved->set_permissions({$project_sheet->group->id => $project_sheet->default_permissions});
+# Standard curval-edit settings
+$tasks_involved->delete_not_used(1);
+$tasks_involved->show_add(1);
+$tasks_involved->value_selector('noshow');
+$tasks_involved->write(no_alerts => 1, force => 1);
 
 # Add a calc field to the main project table which will take values from the
 # staff involved curval-edit field. It adds up all the integers from the staff
@@ -214,6 +246,12 @@ $record->fields->{$columns->{string1}->id}->set_value('New project name');
 # Simulate a user submission from a form, which would always involve writing
 # back the ID numbers of the curval
 $record->fields->{$staff_involved->id}->set_value($staff_ids);
+# Add a task
+my ($staff_id) = @{$staff_ids};
+$record->fields->{$tasks_involved->id}->set_value([
+    $tasks_sheet->columns->{string1}->field."=MyTask&"
+    .$tasks_sheet->columns->{curval1}->field."=".$staff_id
+]);
 $record->write(no_alerts => 1);
 # Check value again
 $record = GADS::Record->new(
@@ -223,5 +261,6 @@ $record = GADS::Record->new(
 );
 $record->find_current_id($cid);
 is($record->fields->{$staff_ages->id}->as_string, "65", "Correct age");
+is($record->fields->{$tasks_involved->id}->as_string, "MyTask", "Correct tasks");
 
 done_testing();
