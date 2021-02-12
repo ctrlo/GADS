@@ -211,7 +211,12 @@ sub _build_blank
     # Bulding values is expensive
     return @{$self->values} ? 0 : 1
         if $self->has_values;
-    return @{$self->ids} || @{$self->values_as_query} ? 0 : 1;
+    return 0 if @{$self->ids} || @{$self->values_as_query};
+    # If this is part of a draft record, then there may be a draft curval edit
+    # value. In that case, ids and values_as_query are empty, but the value is
+    # in _init_value_hash
+    return 0 if $self->_init_value_hash->{records} && @{$self->_init_value_hash->{records}};
+    return 1;
 }
 
 has text => (
