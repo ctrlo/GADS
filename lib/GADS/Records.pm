@@ -1200,6 +1200,9 @@ sub fetch_multivalues
     my $cols_done = {};
     foreach my $column (@{$self->columns_retrieved_no})
     {
+        # No need to fetch any autocur values if this is a draft, we are simply
+        # fetching values the user has entered
+        next if $self->is_draft && $column->type eq 'autocur';
         my $parent_field = 'main';
         my @cols = ($column);
         if ($column->type eq 'curval')

@@ -134,6 +134,8 @@ has view => (
 sub fetch_multivalues
 {   my ($self, $record_ids) = @_;
 
+    return if !@$record_ids;
+
     my $m_rs = $self->multivalue_rs($record_ids);
     $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my @values = $m_rs->all;
