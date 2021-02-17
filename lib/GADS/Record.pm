@@ -2380,6 +2380,8 @@ sub as_query
     foreach my $col ($self->layout->all(userinput => 1, user_can_read => 1))
     {
         next if $options{exclude_curcommon} && $col->is_curcommon;
+        panic __x"Field {id} is missing from record", id => $col->id
+            if !$self->fields->{$col->id};
         push @queries, $col->field."=".uri_escape_utf8($_)
             foreach @{$self->fields->{$col->id}->html_form};
     }

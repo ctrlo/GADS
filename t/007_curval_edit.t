@@ -358,14 +358,25 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
             curcommon_all_fields => 1,
         );
         $modal_record->initialise(instance_id => $layout->instance_id);
-        my $filval_count = $schema->resultset('Current')->search({
+        my $filval_count2 = $schema->resultset('Current')->search({
             instance_id  => $layout->instance_id,
             draftuser_id => undef,
             deleted      => undef,
         })->count;
         $modal_record->load_remembered_values(instance_id => $curval_layout->instance_id);
         @values = @{$modal_record->layout->column($cc->id)->filtered_values};
-        is(@values, $filval_count, "Correct number of curval values");
+        is(@values, $filval_count2, "Correct number of curval values");
+
+        # Open an existing (non-draft) record and check the filtered values do
+        # not contain the draft curvals
+        my $existing = GADS::Record->new(
+            user   => $sheet->user_normal1,
+            layout => $layout,
+            schema => $schema,
+        );
+        $existing->find_current_id(3);
+        my @values2 = @{$existing->layout->column($curval->id)->filtered_values};
+        is(@values2, $filval_count, "Correct number of new curval values");
     }
     $curval_datum = $record->fields->{$curval->id};
     ok(!$curval_datum->blank, "New draft value not blank");

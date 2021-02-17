@@ -277,6 +277,7 @@ sub _records_from_db
             or return; # record not ready yet for sub_values
     }
 
+    my $is_draft = $self->layout->record && $self->layout->record->is_draft;
     my $records = GADS::Records->new(
         user                    => $self->override_permissions ? undef : $self->layout->user,
         view                    => $view,
@@ -298,7 +299,7 @@ sub _records_from_db
         # cannot be evaluated for the draft record in the drop-down), so given
         # that the curval in the pop-up modal wouldn't normally contain a
         # show-add, this ensures those problems don't transpire.
-        is_draft             => $self->show_add && $self->layout->user && $self->layout->user->id,
+        is_draft             => $is_draft && $self->show_add && $self->layout->user && $self->layout->user->id,
     );
     # If there is no default sort on the table, then sort on all columns
     # displayed as the Curval. Don't do all columns retrieved, as this could
