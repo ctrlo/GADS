@@ -1238,7 +1238,7 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
 
     if ($route_id)
     {
-        my $u = rset('User')->active->search({ id => $route_id})->next
+        my $u = rset('User')->active_and_requests->search({ id => $route_id})->next
             or error __x"User id {id} not found", id => $route_id;
         $users = [ $u ] if !$users;
     }

@@ -29,6 +29,15 @@ sub active
     });
 }
 
+sub active_and_requests
+{   my ($self, %search) = @_;
+
+    $self->search({
+        'me.deleted'    => undef,
+        %search,
+    });
+}
+
 sub create_user
 {   my ($self, %params) = @_;
 
