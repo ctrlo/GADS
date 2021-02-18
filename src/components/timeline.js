@@ -36,13 +36,16 @@ var injectContrastingColor = function(dataset) {
         var backgroundColor = backgroundColorMatch[1];
         var backgroundColorLightOrDark = lightOrDark(backgroundColor);
         if (backgroundColorLightOrDark === "dark") {
-          entry.style = entry.style + ";" + 
-                        "color: #FFFFFF;" + 
-                        "text-shadow: " + 
-                          "-1px -1px 0 " + backgroundColor + 
-                          ", 1px -1px 0 " + backgroundColor + 
-                          ", -1px 1px 0 " + backgroundColor + 
-                          ", 1px 1px 0 " + backgroundColor + ";";
+          entry.style = entry.style + ";" +
+                        "color: #FFFFFF;" +
+                        "text-shadow: " +
+                        "-1px -1px 0.1em " + backgroundColor +
+                        ",1px -1px 0.1em " + backgroundColor +
+                        ",-1px 1px 0.1em " + backgroundColor +
+                        ",1px 1px 0.1em " + backgroundColor +
+                        ",1px 1px 2px " + backgroundColor +
+                        ",0 0 1em " + backgroundColor +
+                        ",0 0 0.2em " + backgroundColor + ";";
         }
       }
     }
