@@ -350,6 +350,7 @@ sub _build_values_as_query_records
     foreach my $query (@{$self->values_as_query})
     {
         my $params = parse_query_string($query);
+        delete $params->{$_} foreach grep $_ =~ /_typeahead$/, keys %$params;
         grep { $_ !~ /^(?:csrf_token|current_id|field[0-9]+)$/ } keys %$params
             # Unlikely to be a user error
             and panic __x"Invalid query string: {query}", query => $query;
