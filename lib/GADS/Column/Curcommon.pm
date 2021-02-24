@@ -203,7 +203,9 @@ sub curval_field_ids_retrieve
 sub curval_fields_retrieve
 {   my ($self, %options) = @_;
     return $self->curval_fields if !$options{all_fields};
-    my $ret =  $self->curval_fields_all;
+    my $ret = $options{override_permissions}
+        ? [ map { $self->layout_parent->column($_) } @{$self->curval_field_ids_all} ]
+        : $self->curval_fields_all;
     # Prevent recursive loops of fields that refer to each other
     $ret = [grep { !$options{already_seen}->{$_->id} } @$ret];
     $options{already_seen}->{$_->id} = 1 foreach @$ret;
@@ -284,7 +286,7 @@ sub _records_from_db
         rewind                  => $options{rewind},
         layout                  => $layout,
         schema                  => $self->schema,
-        columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns),
+        columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns, %options),
         limit_current_ids       => $ids,
         ignore_view_limit_extra => 1,
         # XXX This should only be set when the calling parent record is a
@@ -463,7 +465,7 @@ sub field_values_for_code
 
     my @retrieve_cols = grep {
         $_->name_short
-    } @{$self->curval_fields_retrieve(all_fields => 1)};
+    } @{$self->curval_fields_retrieve(all_fields => 1, %options)};
 
     my $return = {};
 
@@ -511,11 +513,11 @@ sub field_values
         @need_ids = map {
             $_->current_id
         } grep {
-            !$_->has_fields($self->curval_field_ids_retrieve(all_fields => $params{all_fields}))
+            !$_->has_fields($self->curval_field_ids_retrieve(all_fields => $params{all_fields}, %params))
         } @{$params{rows}};
         # Those that don't can be added straight to the return array
         @rows = grep {
-            $_->has_fields($self->curval_field_ids_retrieve(all_fields => $params{all_fields}))
+            $_->has_fields($self->curval_field_ids_retrieve(all_fields => $params{all_fields}, %params))
         } @{$params{rows}};
     }
     elsif ($params{all_fields})
@@ -529,7 +531,7 @@ sub field_values
         # If all columns needed, flag that in the column properties. This
         # allows it to be checked later
         $self->retrieve_all_columns(1) if $params{all_fields};
-        push @rows, @{$self->_get_rows(\@need_ids)};
+        push @rows, @{$self->_get_rows(\@need_ids, %params)};
     }
     elsif ($params{rows}) {
         # Just use existing rows
@@ -545,7 +547,7 @@ sub field_values
         my $ret;
         # Curval values that have not been written yet don't have an ID
         next if !$row->current_id;
-        foreach my $col (@{$self->curval_fields_retrieve(all_fields => $params{all_fields})})
+        foreach my $col (@{$self->curval_fields_retrieve(all_fields => $params{all_fields}, %params)})
         {
             # Prevent recursive loops. It's possible that a curval and autocur
             # field will recursively refer to each other. This is complicated

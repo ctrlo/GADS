@@ -511,7 +511,11 @@ sub _build_for_code
 
     my $already_seen_code = $self->already_seen_code;
     # Get all field data in one chunk
-    my $field_values = $self->field_values_for_code(already_seen_code => $already_seen_code, level => $self->already_seen_level);
+    my $field_values = $self->field_values_for_code(
+        already_seen_code    => $already_seen_code,
+        level                => $self->already_seen_level,
+        override_permissions => 1,
+    );
 
     my @values = map {
         +{
