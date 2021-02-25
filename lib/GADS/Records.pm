@@ -695,6 +695,7 @@ sub _build__search_all_fields
     # Applies to all types of fields being searched
     my @basic_search = $self->common_search;
     # Only search limited view if configured for user
+    $self->_view_limits_search;
     push @basic_search, $self->_view_limits_search;
 
     my $date_column = GADS::Column::Date->new(

@@ -1508,6 +1508,44 @@ foreach my $multivalue (0..1)
     $records->search('foo1');
     is (@{$records->results}, 1, 'Correct number of quick search results when limiting to a view with curval');
 
+    # Same again but limited by curval subfield and enum
+    $view_limit->filter(GADS::Filter->new(
+        as_hash => {
+            rules     => [
+                {
+                    id       => $columns->{enum1}->id,
+                    type     => 'string',
+                    value    => 'foo1',
+                    operator => 'equal',
+                },
+                {
+                    id       => $columns->{curval1}->id.'_'.$curval_sheet->columns->{enum1}->id,
+                    type     => 'string',
+                    value    => 'foo1',
+                    operator => 'equal',
+                },
+            ],
+            operator => 'AND',
+        },
+    ));
+    $view_limit->write;
+    $records = GADS::Records->new(
+        user    => $user,
+        layout  => $layout,
+        schema  => $schema,
+    );
+    is ($records->count, 1, 'Correct number of results when limiting to a view with curval');
+    is (@{$records->results}, 1, 'Correct number of results when limiting to a view with curval');
+
+    $records = GADS::Records->new(
+        user    => $user,
+        layout  => $layout,
+        schema  => $schema,
+    );
+    $records->search('foo1');
+    is ($records->pages, 1, "Correct number of pages");
+    is (@{$records->results}, 1, 'Correct number of quick search results when limiting to a view with curval');
+
     # Now normal
     $user->set_view_limits([]);
     $records = GADS::Records->new(
