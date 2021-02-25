@@ -457,7 +457,7 @@ sub csv
 
         # Remove CSV vulberabilies for Excel. None of these characters should be
         # used in username properties
-        @csv = map { $_ ? s/^[+-=@]+//r : '' } @csv;
+        @csv = map { $_ ? s/^[-+=@]+//r : '' } @csv;
 
         $csv->combine(@csv)
             or error __x"An error occurred producing a line of CSV: {err}",
