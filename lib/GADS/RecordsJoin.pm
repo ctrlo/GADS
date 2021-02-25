@@ -357,12 +357,12 @@ sub _jpfetch_add
     my $parent  = $params{parent};
 
     if (
-        ($options->{search} && $_->{search})
-        || ($options->{sort} && $_->{sort})
-        || ($options->{group} && $_->{group})
-        || ($options->{drcol} && $_->{drcol})
-        || ($options->{prefetch} && $_->{prefetch})
-        || ($options->{extra_column} && $_->{column}->id == $options->{extra_column}->id)
+        ($options->{search} && $join->{search})
+        || ($options->{sort} && $join->{sort})
+        || ($options->{group} && $join->{group})
+        || ($options->{drcol} && $join->{drcol})
+        || ($options->{prefetch} && $join->{prefetch})
+        || ($options->{extra_column} && $join->{column}->id == $options->{extra_column}->id)
     )
     {
         if ($join->{column}->is_curcommon)
