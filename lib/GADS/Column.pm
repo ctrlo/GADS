@@ -910,6 +910,7 @@ sub fetch_multivalues
     my $m_rs = $self->schema->resultset($self->table)->search({
         'me.record_id'      => $record_ids,
         'layout.multivalue' => 1,
+        'me.layout_id'      => $self->id,
     }, $select);
     $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     $m_rs->all;
