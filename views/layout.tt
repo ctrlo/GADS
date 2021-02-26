@@ -156,9 +156,9 @@
 
     <div id="displayConditionsBuilder"
         [% IF column.display_fields.as_json AND NOT column.display_fields.as_json.match('^[{}\s]*$') %]
-        data-filter-base="[% column.display_fields.base64 %]"
+            data-filter-base="[% column.display_fields.base64 %]"
         [% END %]
-        data-filters='[[% FOR field IN all_columns %]{"id": "[% field.id %]", "label": "[% field.name | html | html %]", "type": "string"}[% IF NOT loop.last %],[% END %][% END %]]'
+        data-filters="[% layout.columns_for_display_condition %]"
     ></div>
     <input type="hidden" id="displayConditions" name="display_fields">
     <p>Tip: You can use patterns [% whats_this('modalhelp_match') %] in your display conditions.</p>

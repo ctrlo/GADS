@@ -2771,11 +2771,8 @@ prefix '/:layout_name' => sub {
         forwardHome({ danger => "You do not have permission to manage fields"}, '')
             unless $layout->user_can("layout");
 
-        my @all_columns = $layout->all;
-
         my $params = {
-            page        => defined param('id') && !param('id') ? 'layout/0' : 'layout',
-            all_columns => \@all_columns,
+            page => defined param('id') && !param('id') ? 'layout/0' : 'layout',
         };
 
         if (defined param('id'))

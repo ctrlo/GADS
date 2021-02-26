@@ -44,6 +44,8 @@ use GADS::Graphs;
 use GADS::MetricGroups;
 use GADS::Views;
 use Log::Report 'linkspace';
+use MIME::Base64 qw/encode_base64/;
+use JSON qw(decode_json encode_json);
 use String::CamelCase qw(camelize);
 
 use Moo;
@@ -915,6 +917,18 @@ sub columns_for_filter
         }
     }
     @columns;
+}
+
+sub columns_for_display_condition
+{   my $self = shift;
+    my @return = map {
+        +{
+            id    => $_->id,
+            label => $_->name,
+            type  => 'string',
+        }
+    } $self->all(exclude_internal => 1);
+    encode_base64(encode_json \@return, ''); # Base64 plugin does not like new lines
 }
 
 sub all_people_notify

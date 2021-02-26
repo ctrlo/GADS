@@ -139,8 +139,10 @@ const setupLayout = (() => {
     const conditionsBuilder = $("#displayConditionsBuilder", context);
     if (!conditionsBuilder.length) return;
     const builderData = conditionsBuilder.data();
+    var filters = JSON.parse(base64.decode(builderData.filters));
+    if (!filters.length) return;
     conditionsBuilder.queryBuilder({
-      filters: builderData.filters,
+      filters: filters,
       allow_groups: 0,
       operators: [
         { type: "equal", accept_values: true, apply_to: ["string"] },
