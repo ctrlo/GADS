@@ -1,3 +1,5 @@
+import { setupJStreeButtons } from "../components/jstree-buttons";
+
 const setupLayout = (() => {
   const setupDemoButtons = context => {
     const demo_delete = () => {
@@ -66,6 +68,7 @@ const setupLayout = (() => {
         check_callback: true,
         force_text: true,
         themes: { stripes: true },
+        worker: false,
         data: {
           url: () =>
             `/${treeEl.data(
@@ -75,6 +78,7 @@ const setupLayout = (() => {
         }
       }
     });
+    setupJStreeButtons(treeEl);
   };
 
   const setupDropdownValues = context => {

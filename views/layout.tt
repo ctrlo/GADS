@@ -181,8 +181,8 @@
                     <button id="btnAddNode" class="btn btn-success btn-sm" type="button">Add a node</button>
                     <button id="btnRenameNode" class="btn btn-warning btn-sm" type="button">Rename</button>
                     <button id="btnDeleteNode" class="btn btn-danger btn-sm" type="button">Delete</button>
-                    <button class="btn btn-info btn-sm" onclick="$('#jstree_demo_div').jstree('open_all');" type="button">Expand tree</button>
-                    <button class="btn btn-info btn-sm" onclick="$('#jstree_demo_div').jstree('close_all');" type="button">Collapse tree</button>
+                    <button class="btn btn-info btn-sm jstree-expand-all" type="button">Expand tree</button>
+                    <button class="btn btn-info btn-sm jstree-collapse-all" type="button">Collapse tree</button>
                     <div id="jstree_demo_div" data-layout-identifier="[% layout.identifier %]" data-column-id="[% column.id %]" data-csrf-token="[% csrf_token %]"></div>
             </div>
         [% ELSE %]
