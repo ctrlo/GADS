@@ -498,8 +498,8 @@ sub assert_on_manage_tables_page {
 
     $self->_assert_on_page(
         $name,
-        'body.table',
         { selector => 'h2', text => 'Manage tables' },
+        'body.table',
     );
 
     $test->release;
@@ -519,8 +519,8 @@ sub assert_on_manage_this_table_page {
 
     $self->_assert_on_page(
         $name,
-        'body.table',
         { selector => 'h2', text => 'Manage this table' },
+        'body.table',
     );
 
     $test->release;
