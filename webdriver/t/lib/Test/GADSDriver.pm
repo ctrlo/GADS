@@ -734,36 +734,31 @@ sub _assert_element {
 }
 
 sub _assert_on_page {
-    my ( $self, $name, $page_selector, @expectation ) = @_;
+    my ( $self, $name, @expectation ) = @_;
     my $test = context();
     my $webdriver = $self->gads->webdriver;
 
-    # TODO: Move 'tries' to configuration
-    my %find_arg = ( dies => 0, tries => 200 );
-    my $page_el = $webdriver->find( $page_selector, %find_arg );
-
     my @failure;
-    if ( 0 == $page_el->size ) {
-        push @failure, "No elements matching '${page_selector}' found";
-    }
-    else {
-        foreach my $expect_ref (@expectation) {
-            my $selector = $expect_ref->{selector};
-            my $matching_el = $webdriver->find( $selector, %find_arg );
-            if ( 0 == $matching_el->size ) {
-                push @failure, "No elements matching '${selector}' found";
-            }
-            else {
-                push @failure, $self->_check_element_against_expectation(
-                    $matching_el, $expect_ref );
-            }
+    foreach my $expect (@expectation) {
+        # Expectations can contain a string or a hashref of arguments
+        my $selector = ref($expect) ? $expect->{selector} : $expect;
+
+        # TODO: Move 'tries' to configuration
+        my $matching_el = $webdriver->find( $selector, dies => 0, tries => 200 );
+
+        if ( 0 == $matching_el->size ) {
+            push @failure, "No elements matching '${selector}' found";
+        }
+        elsif ( ref $expect ) {
+            push @failure, $self->_check_element_against_expectation(
+                $matching_el, $expect );
         }
     }
     $test->ok( !@failure, $name );
     $test->diag($_) foreach @failure;
 
     $test->release;
-    return $page_el;
+    return $self;
 }
 
 sub _check_element_against_expectation {
