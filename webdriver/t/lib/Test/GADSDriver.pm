@@ -304,13 +304,11 @@ sub assert_on_add_a_field_page {
     my $test = context();
 
     $self->_assert_on_page(
-        'body.layout\\/0',
-        [
-            # TODO: Check the table name appears in the h2 text
-            { selector => 'h2', match => '\\AAdd a field to ' },
-            { selector => '#basic-panel h3', text => 'Field properties' },
-        ],
         $name,
+        'body.layout\\/0',
+        # TODO: Check the table name appears in the h2 text
+        { selector => 'h2', match => '\\AAdd a field to ' },
+        { selector => '#basic-panel h3', text => 'Field properties' },
     );
 
     $test->release;
@@ -329,9 +327,9 @@ sub assert_on_add_a_group_page {
     my $test = context();
 
     $self->_assert_on_page(
-        'body.group\\/0',
-        [ { selector => 'h2', text => 'Add a group' } ],
         $name,
+        'body.group\\/0',
+        { selector => 'h2', text => 'Add a group' },
     );
 
     $test->release;
@@ -350,9 +348,9 @@ sub assert_on_add_a_table_page {
     my $test = context();
 
     $self->_assert_on_page(
-        'body.table\\/0',
-        [ { selector => 'h2', text => 'Add a table' } ],
         $name,
+        'body.table\\/0',
+        { selector => 'h2', text => 'Add a table' },
     );
 
     $test->release;
@@ -370,9 +368,9 @@ sub assert_on_add_a_view_page {
     my $test = context();
 
     $self->_assert_on_page(
-        'body.view\\/0',
-        [ { selector => 'h2', text => 'Add a customised view' } ],
         $name,
+        'body.view\\/0',
+        { selector => 'h2', text => 'Add a customised view' },
     );
 
     $test->release;
@@ -391,9 +389,9 @@ sub assert_on_edit_field_page {
     my $test = context();
 
     $self->_assert_on_page(
-        'body.layout',
-        [ { selector => 'h2', match => '\\AEdit field\\s*' } ],
         $name,
+        'body.layout',
+        { selector => 'h2', match => '\\AEdit field\\s*' },
     );
 
     $test->release;
@@ -412,10 +410,10 @@ sub assert_on_edit_user_page {
     my $test = context();
 
     $self->_assert_on_page(
+        $name,
         'body.user',
         # TODO Check the user's name appears in the heading text
-        [ { selector => 'h1', match => '\\AEdit: ' } ],
-        $name,
+        { selector => 'h1', match => '\\AEdit: ' },
     );
 
     $test->release;
@@ -456,10 +454,10 @@ sub assert_on_manage_fields_page {
     my $test = context();
 
     $self->_assert_on_page(
+        $name,
         'body.layout',
         # TODO: Check the table name appears in the h2 text
-        [ { selector => 'h2.list-fields', match => '\\AManage fields in ' } ],
-        $name,
+        { selector => 'h2.list-fields', match => '\\AManage fields in ' },
     );
 
     $test->release;
@@ -478,9 +476,9 @@ sub assert_on_manage_groups_page {
     my $test = context();
 
     $self->_assert_on_page(
-        'body.group',
-        [ { selector => 'h2', text => 'Groups' } ],
         $name,
+        'body.group',
+        { selector => 'h2', text => 'Groups' },
     );
 
     $test->release;
@@ -499,9 +497,9 @@ sub assert_on_manage_tables_page {
     my $test = context();
 
     $self->_assert_on_page(
-        'body.table',
-        [ { selector => 'h2', text => 'Manage tables' } ],
         $name,
+        'body.table',
+        { selector => 'h2', text => 'Manage tables' },
     );
 
     $test->release;
@@ -520,9 +518,9 @@ sub assert_on_manage_this_table_page {
     my $test = context();
 
     $self->_assert_on_page(
-        'body.table',
-        [ { selector => 'h2', text => 'Manage this table' } ],
         $name,
+        'body.table',
+        { selector => 'h2', text => 'Manage this table' },
     );
 
     $test->release;
@@ -541,9 +539,9 @@ sub assert_on_manage_users_page {
     my $test = context();
 
     $self->_assert_on_page(
-        'body.user',
-        [ { selector => 'h1', match => '\AManage users\s*\z' } ],
         $name,
+        'body.user',
+        { selector => 'h1', match => '\AManage users\s*\z' },
     );
 
     $test->release;
@@ -562,9 +560,9 @@ sub assert_on_new_record_page {
     my $test = context();
 
     $self->_assert_on_page(
-        'body.edit',
-        [ { selector => 'h2', text => 'New record' } ],
         $name,
+        'body.edit',
+        { selector => 'h2', text => 'New record' },
     );
 
     $test->release;
@@ -586,9 +584,9 @@ sub assert_on_see_records_page {
     my $test = context();
 
     $self->_assert_on_page(
-        'body.page.data_table',
-        [ { selector => 'h1', match => "\\A${title}\\s*\\z" } ],
         $name,
+        'body.page.data_table',
+        { selector => 'h1', match => "\\A${title}\\s*\\z" },
     );
 
     $test->release;
@@ -607,10 +605,10 @@ sub assert_on_view_record_page {
     my $test = context();
 
     $self->_assert_on_page(
+        $name,
         # TODO: Check the field values appear in the page content
         'body.page.edit',
-        [ { selector => 'h2', match => '\\ARecord ID ' } ],
-        $name,
+        { selector => 'h2', match => '\\ARecord ID ' },
     );
 
     $test->release;
@@ -736,7 +734,7 @@ sub _assert_element {
 }
 
 sub _assert_on_page {
-    my ( $self, $page_selector, $expectations, $name ) = @_;
+    my ( $self, $name, $page_selector, @expectation ) = @_;
     my $test = context();
     my $webdriver = $self->gads->webdriver;
 
@@ -749,7 +747,7 @@ sub _assert_on_page {
         push @failure, "No elements matching '${page_selector}' found";
     }
     else {
-        foreach my $expect_ref ( @$expectations ) {
+        foreach my $expect_ref (@expectation) {
             my $selector = $expect_ref->{selector};
             my $matching_el = $webdriver->find( $selector, %find_arg );
             if ( 0 == $matching_el->size ) {
