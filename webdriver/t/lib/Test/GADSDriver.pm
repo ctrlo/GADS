@@ -744,7 +744,7 @@ sub _assert_on_page {
         my $selector = ref($expect) ? $expect->{selector} : $expect;
 
         # TODO: Move 'tries' to configuration
-        my $matching_el = $webdriver->find( $selector, dies => 0, tries => 200 );
+        my $matching_el = $webdriver->find( $selector, dies => 0, tries => 50 );
 
         if ( 0 == $matching_el->size ) {
             push @failure, "No elements matching '${selector}' found";
