@@ -503,6 +503,11 @@ foreach my $l (@all_layouts)
 
 my %layouts_index = map { $_->{layout}->instance_id => $_->{layout} } @all_layouts;
 
+# Hack to ensure that filval fields are imported last, otherwise the curval
+# field that they refer to may not be imported fully when it is used within the
+# filval import
+@all_columns = sort { $a->{column}->type eq 'filval' ? 1 : -1 } @all_columns;
+
 foreach (@all_columns)
 {
     my $c = $_->{column};
