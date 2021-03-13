@@ -104,7 +104,7 @@ sub descriptions
                     columns => $column_ids,
                 );
                 $record->find_current_id($current_id);
-                $description = join ', ', map $record->fields->{$_}->as_string, grep $record->layout->column($_, permission => 'read'), @$column_ids;
+                $description = join ', ', grep $_, map $record->fields->{$_}->as_string, grep $record->layout->column($_, permission => 'read'), @$column_ids;
             }
         }
 
