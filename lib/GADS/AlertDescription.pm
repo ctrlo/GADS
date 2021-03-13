@@ -92,13 +92,20 @@ sub descriptions
         else {
             my $column_ids = [map $_->id, @$columns];
 
-            my $record = GADS::Record->new(
-                user    => $user,
-                schema  => $self->schema,
-                columns => $column_ids,
-            );
-            $record->find_current_id($current_id);
-            $description = join ', ', map $record->fields->{$_}->as_string, grep $record->layout->column($_, permission => 'read'), @$column_ids;
+            # Has the record since been deleted?
+            if ($self->schema->resultset('Current')->find($current_id)->deleted)
+            {
+                $description = '[record deleted]';
+            }
+            else {
+                my $record = GADS::Record->new(
+                    user    => $user,
+                    schema  => $self->schema,
+                    columns => $column_ids,
+                );
+                $record->find_current_id($current_id);
+                $description = join ', ', map $record->fields->{$_}->as_string, grep $record->layout->column($_, permission => 'read'), @$column_ids;
+            }
         }
 
         $self->_cache->{$user->id}->{$current_id} = $description;
