@@ -1006,7 +1006,7 @@ any ['get', 'post'] => '/table/:id' => require_role superadmin => sub {
     my $table_id   = $id ? $layout_edit->instance_id : 0;
 
     template 'table' => {
-        page        => $id ? 'table' : 'table/0',
+        page        => $id ? 'this_table' : 'table/0',
         layout_edit => $layout_edit,
         groups      => GADS::Groups->new(schema => schema)->all,
         breadcrumbs => [Crumb( '/table' => 'tables' ) => Crumb( "/table/$table_id" => $table_name )],
