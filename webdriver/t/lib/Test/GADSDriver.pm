@@ -498,8 +498,8 @@ sub assert_on_manage_tables_page {
 
     $self->_assert_on_page(
         $name,
-        { selector => 'h2', text => 'Manage tables' },
         'body.table',
+        { selector => 'h2', text => 'Manage tables' },
     );
 
     $test->release;
@@ -519,8 +519,8 @@ sub assert_on_manage_this_table_page {
 
     $self->_assert_on_page(
         $name,
-        { selector => 'h2', text => 'Manage this table' },
         'body.this_table',
+        { selector => 'h2', text => 'Manage this table' },
     );
 
     $test->release;
@@ -733,6 +733,9 @@ sub _assert_element {
     return $matching_el;
 }
 
+# Note: the first expression should always be a page ID, not a complex
+# hashref selector, as these don't check the full condition in a find()
+# call but instead use _check_element_against_expectation().
 sub _assert_on_page {
     my ( $self, $name, @expectation ) = @_;
     my $test = context();
