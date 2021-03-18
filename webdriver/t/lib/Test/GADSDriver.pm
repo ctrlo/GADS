@@ -520,7 +520,7 @@ sub assert_on_manage_this_table_page {
     $self->_assert_on_page(
         $name,
         { selector => 'h2', text => 'Manage this table' },
-        'body.table',
+        'body.this_table',
     );
 
     $test->release;
