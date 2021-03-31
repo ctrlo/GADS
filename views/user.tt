@@ -147,7 +147,7 @@
                 <th>[% site.register_freetext1_name | html %]</th>
             [% END %]
             <th>Created</th>
-            <th>Last login</th>
+            <th>Last login (GMT)</th>
         </tr>
     </thead>
     <tbody>
