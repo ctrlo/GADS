@@ -278,7 +278,8 @@ sub x_axis_grouping_calculated
 sub from_calculated
 {   my $self = shift;
 
-    my $interval = $self->x_axis_grouping_calculated;
+    my $interval = $self->x_axis_grouping_calculated
+        or return;
 
     # If we are plotting a trend and have custom dates, round them down to
     # ensure correct sample set is plotted
@@ -302,7 +303,8 @@ sub from_calculated
 sub to_calculated
 {   my $self = shift;
 
-    my $interval = $self->x_axis_grouping_calculated;
+    my $interval = $self->x_axis_grouping_calculated
+        or return;
 
     return $self->to->clone->truncate(to => $interval)
         if $self->to && $self->trend;
@@ -421,7 +423,7 @@ sub _build_data
             }
         }
     }
-    elsif ($self->x_axis_range)
+    elsif ($self->x_axis_range && $self->x_axis_grouping_calculated)
     {
         my $interval = $self->x_axis_grouping_calculated;
         my %add = ($interval.'s' => 1);
