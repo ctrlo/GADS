@@ -328,7 +328,8 @@ sub csv
             if ($@)
             {
                 $@->reportAll(is_fatal => 0);
-                $export->update({ result => 'Failed', completed => DateTime->now });
+                my $result = $@ && $@->wasFatal->message;
+                $export->update({ result => 'Failed', result_internal => $result, completed => DateTime->now });
             }
         }
     }
@@ -360,8 +361,7 @@ sub _produce_csv
     # Need to run this query as 2 separate queries. Running them as one query
     # takes far too long on a system with a lot of users
 
-    # All the data values
-    my @select_columns = (
+    my @common_columns = (
         {
             max => 'me.id',
             -as => 'id_max',
@@ -370,6 +370,10 @@ sub _produce_csv
             max => 'surname',
             -as => 'surname_max',
         },
+    );
+
+    # All the data values
+    my @select_columns = (
         {
             max => 'firstname',
             -as => 'firstname_max',
@@ -418,14 +422,6 @@ sub _produce_csv
 
     my @select_columns2 = (
         {
-            max => 'me.id',
-            -as => 'id_max',
-        },
-        {
-            max => 'surname',
-            -as => 'surname_max',
-        },
-        {
             count => 'audits_last_month.id',
             -as   => 'audit_count',
         },
@@ -442,23 +438,42 @@ sub _produce_csv
         -as => 'last_'.$_->instance_id,
     } foreach @{$instances->all};
 
-    my @users = $self->user_rs->search({}, {
-        select => \@select_columns,
-        join   => [
-            'organisation', 'department', 'team', 'title',
-        ],
-        order_by => ['surname_max', 'id_max'],
-        group_by => 'me.id',
-    })->all;
+    my (@users, @users2);
 
-    my @users2 = $self->user_rs->search({}, {
-        select => \@select_columns2,
-        join   => [
-            'audits_last_month',
-        ],
-        order_by => ['surname_max', 'id_max'],
-        group_by => 'me.id',
-    })->all;
+    my $page = 1;
+    while ($page)
+    {
+        my @ids = map $_->get_column('id_max'), $self->user_rs->search({},{
+            select   => \@common_columns,
+            page     => $page,
+            rows     => 100,
+            order_by => ['surname_max', 'id_max'],
+        })->all;
+
+        push @users, $self->user_rs->search({
+            'me.id' => { -in => \@ids },
+        },{
+            select => [@common_columns, @select_columns],
+            join   => [
+                'organisation', 'department', 'team', 'title',
+            ],
+            order_by => ['surname_max', 'id_max'],
+            group_by => 'me.id',
+        })->all;
+
+        push @users2, $self->user_rs->search({
+            'me.id' => { -in => \@ids },
+        },{
+            select => [@common_columns, @select_columns2],
+            join   => [
+                'audits_last_month',
+            ],
+            order_by => ['surname_max', 'id_max'],
+            group_by => 'me.id',
+        })->all;
+
+        $page = @ids == 100 ? $page + 1 : undef;
+    }
 
     my %user_groups = map { $_->id => [$_->user_groups] }
         $self->user_rs->search({}, { prefetch => { user_groups => 'group' }})->all;

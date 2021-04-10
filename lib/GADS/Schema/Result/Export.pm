@@ -25,6 +25,8 @@ __PACKAGE__->add_columns(
   { data_type => "datetime", datetime_undef_if_invalid => 1, is_nullable => 1 },
   "result",
   { data_type => "text", is_nullable => 1 },
+  "result_internal",
+  { data_type => "text", is_nullable => 1 },
   "mimetype",
   { data_type => "text", is_nullable => 1 },
   "content",
