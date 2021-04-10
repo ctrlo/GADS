@@ -141,7 +141,7 @@
         <ul class="dropdown-menu" aria-labelledby="admin-menu" id="admin-menu-options">
             <li [% IF page=="user" %]class="active"[% END %]><a href="[% url.page %]/user/">Manage users</a></li>
             <li [% IF page=="user/0" %]class="active"[% END %]><a href="[% url.page %]/user/0">Add a user</a></li>
-            <li><a href="/user?download">Download users</a></li>
+            <li><a href="/user/export">Download users</a></li>
             <li><a href="/user/upload">Upload users</a>
             <li class="divider"></li>
             <li [% IF page=="group" %]class="active"[% END %]><a href="[% url.page %]/group/">Manage groups</a></li>

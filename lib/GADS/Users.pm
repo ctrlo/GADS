@@ -21,6 +21,8 @@ package GADS::Users;
 use GADS::Email;
 use GADS::Util;
 use Log::Report 'linkspace';
+use POSIX ();
+use Scope::Guard qw(guard);
 use Text::CSV::Encoded;
 
 use Moo;
@@ -295,6 +297,45 @@ sub register
 
 sub csv
 {   my ($self, $user) = @_;
+
+    my $export = $self->schema->resultset('Export')->create({
+        user_id => $user->id,
+        type    => 'users',
+        started => DateTime->now,
+    });
+
+    if (my $kid = fork)
+    {
+        # will fire off a worker and then abandon it, thus making reaping
+        # the long running process (the grndkid) init's (pid1) problem
+        waitpid($kid, 0); # wait for child to start grandchild and clean up
+    }
+    else {
+        if (my $grandkid = fork) {
+            POSIX::_exit(0); # the child dies here
+        }
+        else {
+            # We must catch exceptions here, otherwise we will never
+            # reap the process. Set up a guard to be doubly-sure this
+            # happens.
+            my $guard = guard { POSIX::_exit(0) };
+            # Despite the guard, we still operate in a try block, so as to catch
+            # the messages from any exceptions and report them accordingly.
+            # Only collect messages at warning or higher, otherwise
+            # thousands of trace messages are stored which use lots of
+            # memory.
+            try { $self->_produce_csv($user, $export) } hide => 'ALL', accept => 'WARNING-'; # This takes a long time
+            if ($@)
+            {
+                $@->reportAll(is_fatal => 0);
+                $export->update({ result => 'Failed', completed => DateTime->now });
+            }
+        }
+    }
+}
+
+sub _produce_csv
+{   my ($self, $user, $export) = @_;
     my $csv  = Text::CSV::Encoded->new({ encoding  => undef });
 
     my $instances = GADS::Instances->new(schema => $self->schema, user => $user);
@@ -467,7 +508,12 @@ sub csv
 
     $guard->commit;
 
-    $csvout;
+    $export->update({
+        completed => DateTime->now,
+        result    => 'Success',
+        mimetype  => 'text/csv',
+        content   => $csvout,
+    });
 }
 
 1;

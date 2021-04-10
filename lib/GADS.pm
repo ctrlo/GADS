@@ -1046,6 +1046,58 @@ any ['get', 'post'] => '/user/upload' => require_any_role [qw/useradmin superadm
     };
 };
 
+any ['get', 'post'] => '/user/export/?' => require_any_role [qw/useradmin superadmin/] => sub {
+
+    my $users = GADS::Users->new(schema => schema);
+
+    if (body_parameters->get('submit'))
+    {
+        if (process( sub { $users->csv(logged_in_user) }))
+        {
+            return forwardHome(
+                { success => "The export has been started successfully" }, 'user/export' );
+        }
+    }
+
+    if (my $id = query_parameters->get('download'))
+    {
+        my $export = schema->resultset('Export')->search({
+            id      => $id,
+            user_id => logged_in_user->id,
+        })->next or error "Download not found";
+
+        my $csv = $export->content;
+        my $now = $export->completed;
+        my $header;
+        if ($header = config->{gads}->{header})
+        {
+            $csv       = "$header\n$csv" if $header;
+            $header    = "-$header" if $header;
+        }
+        utf8::encode($csv);
+        return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
+    }
+
+    if (body_parameters->get('clear'))
+    {
+        my $export = schema->resultset('Export')->search({
+            user_id => logged_in_user->id,
+        });
+
+        if (process( sub { $export->delete }))
+        {
+            return forwardHome(
+                { success => "The export has been deleted successfully" }, 'user/export' );
+        }
+    }
+
+    template 'user/export' => {
+        exports     => schema->resultset('Export')->user(logged_in_user->id),
+        page        => 'user',
+        breadcrumbs => [Crumb( '/user' => 'users' ), Crumb( '/user/export' => "user export" ) ],
+    };
+};
+
 any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
 
     my $id = body_parameters->get('id');
@@ -1214,24 +1266,6 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
             return forwardHome(
                 { success => "User has been deleted successfully" }, 'user' );
         }
-    }
-
-    if (defined param 'download')
-    {
-        my $csv = $userso->csv($user);
-        my $now = DateTime->now();
-        my $header;
-        if ($header = config->{gads}->{header})
-        {
-            $csv       = "$header\n$csv" if $header;
-            $header    = "-$header" if $header;
-        }
-        # XXX Is this correct? We can't send native utf-8 without getting the error
-        # "Strings with code points over 0xFF may not be mapped into in-memory file handles".
-        # So, encode the string (e.g. "\x{100}"  becomes "\xc4\x80) and then send it,
-        # telling the browser it's utf-8
-        utf8::encode($csv);
-        return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
     }
 
     my $route_id = route_parameters->get('id');
