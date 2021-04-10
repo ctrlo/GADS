@@ -448,6 +448,7 @@ sub _produce_csv
             page     => $page,
             rows     => 100,
             order_by => ['surname_max', 'id_max'],
+            group_by => 'me.id',
         })->all;
 
         push @users, $self->user_rs->search({
