@@ -3666,9 +3666,13 @@ sub _page_as_mech
         # Pixels as per https://www.unitconverters.net/typography/centimeter-to-pixel-x.htm
         # 1085 x 1550
         $mech->viewport_size({ width => 1550, height => 1085 });
+        $mech->get_local("${filename}?pdf=1");
+    }
+    else 
+    {
+        $mech->get_local($filename);
     }
 
-    $mech->get_local($filename);
     # Sometimes the timeline does not render properly (it is completely blank).
     # This only seems to happen in certain views, but adding a brief sleep
     # seems to fix it - maybe things are going out of scope before Mechanize has
