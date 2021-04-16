@@ -3355,9 +3355,12 @@ prefix '/:layout_name' => sub {
         template 'edit' => $return, $options;
     };
 
-    any ['get', 'post'] => '/import/?' => require_any_role [qw/layout useradmin/] => sub {
+    any ['get', 'post'] => '/import/?' => require_login sub {
 
         my $layout = var('layout') or pass; # XXX Need to search on this
+
+        forwardHome({ danger => "You do not have permission to import data"}, '')
+            unless $layout->user_can("layout");
 
         if (param 'clear')
         {
