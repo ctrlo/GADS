@@ -141,8 +141,11 @@ has value_hash => (
                 value         => $value->{value},
             };
         }
-        else {
+        elsif ($value) {
             return $self->column->id_to_hash($value);
+        }
+        else {
+            return undef;
         }
     },
 );

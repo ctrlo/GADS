@@ -37,6 +37,8 @@ sub _presentation_details {
 sub presentation {
     my ($self, %options) = @_;
 
+    return undef if !$self->id;
+
     my $base = $self->presentation_base(%options);
     delete $base->{value};
 
