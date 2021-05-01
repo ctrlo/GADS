@@ -107,7 +107,7 @@ sub _add_jp
 
     trace __x"Checking or adding {field} to the store", field => $column->field;
 
-    my $prefetch = (!$column->multivalue || ($options{include_multivalue} && $options{include_multivalue} == $column->id)) && $options{prefetch};
+    my $prefetch = ($column->fetch_with_record || ($options{include_multivalue} && $options{include_multivalue} == $column->id)) && $options{prefetch};
 
     # A hash to ensure that we don't recurse into the same fields over and
     # over. For example, if we are viewing a curval which has an autocur that
@@ -378,7 +378,7 @@ sub _jpfetch_add
             # These will be fetched later as individual columns.
             # Keep any for a sort - these still need to be used when fetching rows.
             my @children = @$children;
-            @children = grep { $_->{search} || $_->{sort} || !$_->{column}->multivalue || $options->{include_multivalue} || $_->{group} || $_->{drcol} } @$children
+            @children = grep { $_->{search} || $_->{sort} || $_->{column}->fetch_with_record || $options->{include_multivalue} || $_->{group} || $_->{drcol} } @$children
                 if $options->{prefetch};
             push @$return, {
                 parent    => $parent,

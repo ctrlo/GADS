@@ -1227,7 +1227,7 @@ sub fetch_multivalues
             foreach my $loop (0..1)
             {
                 next if $loop && !$is_linked;
-                if ($col->multivalue && !$cols_done->{$parent_field_this}->{$col->id})
+                if (!$col->fetch_with_record && !$cols_done->{$parent_field_this}->{$col->id})
                 {
                     # Do not retrieve values for multivalue fields that have
                     # been retrieved as separate records, otherwise the

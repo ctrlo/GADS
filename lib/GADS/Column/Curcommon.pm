@@ -107,6 +107,18 @@ sub tjoin
     $self->make_join(map { $_->tjoin } grep { !$_->internal } @{$self->curval_fields_retrieve(%options)});
 }
 
+sub _build_fetch_with_record
+{   my $self = shift;
+    return 0 if $self->multivalue;
+    return 0 if $self->schema->resultset('ViewLimit')->search({
+        'me.user_id'       => $self->layout_parent->user->id,
+        'view.instance_id' => $self->layout_parent->instance_id,
+    },{
+        join => 'view',
+    })->next;
+    return 1;
+}
+
 has retrieve_all_columns => (
     is      => 'rw',
     isa     => Bool,

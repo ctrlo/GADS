@@ -2174,7 +2174,14 @@ sub _field_write
                         push @entries, \%entry;
                     }
                 }
-                foreach my $id (@{$datum_write->ids})
+                my @ids = @{$datum_write->ids};
+                # Were any values not visible by the user writing?
+                push @ids, $self->schema->resultset('Curval')->search({
+                    record_id => $self->record_id_old,
+                    'value'   => { '!=' => $datum_write->oldvalue->ids },
+                })->get_column('value')->all
+                    if !$self->new_entry && $datum_write->changed && $datum_write->column->multivalue;
+                foreach my $id (@ids)
                 {
                     my %entry = %$entry; # Copy to stop referenced id being overwritten
                     $entry{value} = $id;

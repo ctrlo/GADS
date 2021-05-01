@@ -207,6 +207,19 @@ has multivalue => (
     default => 0,
 );
 
+# Whether values for this field should be retrieved at the same time as the
+# main record. Normally this is simply whether they are multivalue or not. In
+# the case of curval fields we retrieve them after if we need to restrict with
+# a limited view.
+has fetch_with_record => (
+    is => 'lazy',
+);
+
+sub _build_fetch_with_record
+{   my $self = shift;
+    !$self->multivalue;
+}
+
 has options => (
     is        => 'rwp',
     isa       => HashRef,
