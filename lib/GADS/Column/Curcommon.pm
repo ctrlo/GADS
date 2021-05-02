@@ -652,6 +652,7 @@ sub _build_layout_parent
         # but apply filtering regardless (for curval filter fields)
         user_permission_override        => $self->override_permissions || $self->user_permission_override,
         user_permission_override_search => 1,
+        _user_permissions_columns       => $self->layout->_user_permissions_columns, # Optimisation
         schema                          => $self->schema,
         config                          => GADS::Config->instance,
         instance_id                     => $self->refers_to_instance_id,
