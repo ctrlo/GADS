@@ -2191,6 +2191,7 @@ sub _field_write
                         ? @{$datum_write->oldvalue->ids}
                         : (@{$datum_write->ids}, map $_->current_id, @{$datum_write->values_as_query_records});
                     my $search = {
+                        layout_id => $column->id,
                         record_id => $self->record_id_old,
                     };
                     $search->{value} = { '!=' => [ -and => @old_ids ] }
