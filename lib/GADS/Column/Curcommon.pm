@@ -110,6 +110,7 @@ sub tjoin
 sub _build_fetch_with_record
 {   my $self = shift;
     return 0 if $self->multivalue;
+    return 1 if !$self->layout_parent->user;
     return 0 if $self->schema->resultset('ViewLimit')->search({
         'me.user_id'       => $self->layout_parent->user->id,
         'view.instance_id' => $self->layout_parent->instance_id,

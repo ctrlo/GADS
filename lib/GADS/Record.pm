@@ -2018,8 +2018,12 @@ sub write_values
             # anyway. If so, skip.
             next if grep { $_->current_id == $cid } @{$self->_records_to_write_after};
 
+            # User may not have access by this point due to limited views on
+            # the curval field, which would result in record not being found to
+            # update. Given that we are simply recalculating calc fields user
+            # is not required anyway, so use undef.
             my $record = GADS::Record->new(
-                user   => $self->user,
+                user   => undef,
                 layout => $self->layout,
                 schema => $self->schema,
             );
@@ -2176,11 +2180,23 @@ sub _field_write
                 }
                 my @ids = @{$datum_write->ids};
                 # Were any values not visible by the user writing?
-                push @ids, $self->schema->resultset('Curval')->search({
-                    record_id => $self->record_id_old,
-                    'value'   => { '!=' => $datum_write->oldvalue->ids },
-                })->get_column('value')->all
-                    if !$self->new_entry && $datum_write->changed && $datum_write->column->multivalue;
+                if ($column->type eq 'curval' && !$self->new_entry && $datum_write->column->multivalue)
+                {
+                    # If the user hasn't edited this field, we still need to
+                    # check whether there are other records they didn't have
+                    # access to. If the value hasn't changed, then we also need
+                    # to get any IDs from query records, in case the user has
+                    # written back the same value using the form
+                    my @old_ids = $datum_write->changed
+                        ? @{$datum_write->oldvalue->ids}
+                        : (@{$datum_write->ids}, map $_->current_id, @{$datum_write->values_as_query_records});
+                    my $search = {
+                        record_id => $self->record_id_old,
+                    };
+                    $search->{value} = { '!=' => [ -and => @old_ids ] }
+                        if @old_ids;
+                    push @ids, $self->schema->resultset('Curval')->search($search)->get_column('value')->all;
+                }
                 foreach my $id (@ids)
                 {
                     my %entry = %$entry; # Copy to stop referenced id being overwritten
@@ -2232,13 +2248,20 @@ sub _field_write
                         }
                         if (!$is_used)
                         {
+                            # We should only be here if the user did have
+                            # access to the relevant record, otherwise it would
+                            # not be in the old IDs of the field. However, the
+                            # user may no longer have access to it due to
+                            # changes in other values they have made (including
+                            # the deletion of it itself). Therefore, do not
+                            # require user to delete the record.
                             my $record = GADS::Record->new(
-                                user     => $self->user,
+                                user     => undef,
                                 layout   => $column->layout_parent,
                                 schema   => $self->schema,
                             );
                             $record->find_current_id($id_deleted);
-                            $record->delete_current(override => 1);
+                            $record->delete_current(override => 1, deletedby => $self->user->id);
                             push @ids_deleted, $id_deleted;
                         }
                     }
@@ -2348,7 +2371,7 @@ sub delete_current
 
     $current->update({
         deleted   => DateTime->now,
-        deletedby => $self->user && $self->user->id
+        deletedby => $options{deletedby} || ($self->user && $self->user->id),
     });
 }
 
