@@ -98,10 +98,12 @@ function correctPrintPositioningAndStyling(lastGroup) {
   // calculate how much the items should be repositioned based of the last item row's
   // position (top + pixelsToNextRowTop). the offset is calculated towards the top
   // of the bottom ruler
-  const lastItemRowOffsetTop = lastGroup.itemRows[
-    Object.keys(lastGroup.itemRows)[Object.keys(lastGroup.itemRows).length - 1]
-  ][0].offset().top;
-  const currentOffset = bottomRuler.offset().top - lastItemRowOffsetTop;
+  const lastItemRowIndex = Object.keys(lastGroup.itemRows).length - 1;
+  const lastItemRowKey = Object.keys(lastGroup.itemRows)[lastItemRowIndex];
+  const lastItemRowFirstItem = lastGroup.itemRows[lastItemRowKey][0];
+  const lastItemRowOffsetTop = Math.floor(lastItemRowFirstItem.offset().top);
+  const bottomRulerOffset = Math.floor(bottomRuler.offset().top);
+  const currentOffset = bottomRulerOffset - lastItemRowOffsetTop;
   const correctOffsetWith = lastGroup.meta.pixelsToNextRowTop - currentOffset;
 
   addCssPxValue(centerContent, correctOffsetWith, "height");
@@ -116,18 +118,25 @@ function correctPrintPositioningAndStyling(lastGroup) {
  * group and label height to match the new positioning settings.
  *
  * @param {*} group
+ * @param {number} zoomLevel
  * @returns {number}
  */
-function correctPrintVisGroup(group) {
+function correctPrintVisGroup(group, zoomLevel) {
   if (!group || !group.itemRows || group.itemRows === {} || !group.meta) {
     return 0;
   }
 
   // A3 with 0.5cm margins = 19 + 1085 + 19 pixels, margins are skipped as they should not contain content.
-  const pixelsPerPage = 1085;
+  // const defaultZoomLevel = 1;
+  // zoomLevel = zoomLevel > 0 ? zoomLevel : defaultZoomLevel;
+  const defaultPixelsPerPage = 1085;
+  // const zoomFactor = defaultZoomLevel + (defaultZoomLevel - zoomLevel);
+  const zoomFactor = Math.sqrt(zoomLevel);
+  const pixelsPerPage = defaultPixelsPerPage * zoomFactor;
+  // const pixelsPerPage = 1085;
   const firstItemNode = group.itemRows[group.meta.itemRowKeys[0]][0];
   let remainingPixelsOnPage =
-    pixelsPerPage - (firstItemNode.offset().top % pixelsPerPage);
+    pixelsPerPage - (Math.floor(firstItemNode.offset().top) % pixelsPerPage);
   let currentTop = group.meta.containerMargin;
 
   // loop through item row keys instead of itemRows, because the keys are sorted numerically ascending.
@@ -138,6 +147,28 @@ function correctPrintVisGroup(group) {
       group.meta.itemHeight -
       group.meta.containerMargin;
 
+    $.each(group.itemRows[rowKey], function(itemKey, item) {
+      item
+        .find(".timeline-tippy")
+        .html(
+            // wouldBeOnNewPage +
+            // " || " +
+            // group.top +
+            // " || " +
+            // group.meta.pixelsToNextRowTop +
+            // " || " +
+            // group.meta.itemHeight +
+            // " || " +
+            // group.meta.containerMargin +
+            // " || " +
+            // pixelsPerPage +
+            // " || " +
+            // zoomLevel +
+            // " || " +
+            // zoomFactor
+        );
+    });
+
     // reset remaining pixels on page, and update the next row top parameter so that it falls on the next page
     if (wouldBeOnNewPage <= 0) {
       currentTop += remainingPixelsOnPage + group.meta.containerMargin;
@@ -146,6 +177,10 @@ function correctPrintVisGroup(group) {
 
     $.each(group.itemRows[rowKey], function(itemKey, item) {
       item.css("top", currentTop + "px");
+
+      const currDebug = item.find(".timeline-tippy").html();
+
+      item.find(".timeline-tippy").html(currDebug + " || " + currentTop);
     });
 
     currentTop += group.meta.pixelsToNextRowTop;
@@ -180,7 +215,7 @@ function getVisGroupLabelNode(groupTop) {
   let label = null;
 
   labels.each(function() {
-    if ($(this).offset().top === groupTop) {
+    if (Math.floor($(this).offset().top) === groupTop) {
       label = $(this);
     }
   });
@@ -285,7 +320,7 @@ function getVisItemRowsInGroup(group) {
  * @returns {{backgroundGroup: *, node, itemRows: *, top, meta: *, label: *, height: (number|number)}}
  */
 function getVisForegroundGroup(group) {
-  const top = group.offset().top;
+  const top = Math.floor(group.offset().top);
   const height = getCssPxValue(group, "height");
   const itemRows = getVisItemRowsInGroup(group);
 
@@ -327,8 +362,10 @@ function getFormattedVisGroups() {
 /**
  * this function corrects the printed bars of the timeline to prevent them from running
  * across two pages during PDF printing.
+ *
+ * @param {number} zoomLevel
  */
-function correctPrintView() {
+function correctPrintView(zoomLevel) {
   $(document).ready(function() {
     // timeline item potistions (.vis-item) are calculated per group (.vis-group),
     // positioned absolute from the top of the group. The group is dynamic in height,
@@ -339,7 +376,7 @@ function correctPrintView() {
       let lastGroup = null;
 
       $.each(formattedGroups, function(index, group) {
-        correctPrintVisGroup(group);
+        correctPrintVisGroup(group, zoomLevel);
         lastGroup = group;
       });
 
@@ -630,10 +667,12 @@ const setupTimeline = function(container, options_in) {
 
 // detect print view for PDF, then correct node placement of VisJS to
 // avoid bars stretching over page breaks
-const urlStr = $(location).attr("href") || "";
+// const urlStr = $(location).attr("href") || "";
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
 
-if (urlStr.toLowerCase().indexOf("pdf=1") > -1) {
-  correctPrintView();
+if (urlParams.has("pdf")) {
+  correctPrintView(urlParams.get("pdf_zoom"));
 }
 
 export { setupTimeline };
