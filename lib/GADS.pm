@@ -3715,6 +3715,7 @@ sub _page_as_mech
     $params->{base}         = "file://$public/";
     $params->{page_as_mech} = 1;
     $params->{zoom}         = ($options{zoom} ? int($options{zoom}) : 100) / 100;
+    my $pdf_zoom            = $params->{zoom};
     my $timeline_html       = $options{html} || template $template, $params;
     my ($fh, $filename)     = tempfile(SUFFIX => '.html');
     print $fh $timeline_html;
@@ -3735,7 +3736,7 @@ sub _page_as_mech
         # Pixels as per https://www.unitconverters.net/typography/centimeter-to-pixel-x.htm
         # 1085 x 1550
         $mech->viewport_size({ width => 1550, height => 1085 });
-        $mech->get_local("${filename}?pdf=1");
+        $mech->get_local("${filename}?pdf=1&pdf_zoom=${pdf_zoom}");
     }
     else
     {
