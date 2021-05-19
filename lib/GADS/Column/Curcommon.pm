@@ -357,7 +357,7 @@ sub filtered_values
         }
     }
 
-    if (!$records || !$records->single)
+    if (!$records || !$records->count)
     {
         # If nothing matches for the filtered values, then write a blank value,
         # just so that we know this function has been called. This can be used
