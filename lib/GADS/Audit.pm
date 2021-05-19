@@ -182,7 +182,7 @@ sub csv
     # All the data values
     foreach my $row (@{$self->logs})
     {
-        $csv->combine($row->{id}, $row->{user}->username, $row->{type}, $row->{datetime}, $row->{description})
+        $csv->combine($row->{id}, $row->{user}->{text}, $row->{type}, $row->{datetime}, $row->{description})
             or error __x"An error occurred producing a line of CSV: {err}",
                 err => "".$csv->error_diag;
         $csvout .= $csv->string."\n";

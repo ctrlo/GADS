@@ -170,7 +170,7 @@ sub dependent_not_shown
 
     # Allow to be used to display people in the application not part of a
     # column (e.g. audit logs)
-    return if !$self->column;
+    return 0 if !$self->column;
 
     my @filters = @{$self->column->display_fields->filters}
         or return 0;
