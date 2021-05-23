@@ -34,6 +34,3 @@ echo "
 
 # Start Linkspace
 perl bin/app.pl &
-
-# Start geckodriver (TODO: Read up on Travis background jobs)
-MOZ_HEADLESS=1 geckodriver --log warn &
