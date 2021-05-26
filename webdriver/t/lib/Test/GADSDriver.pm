@@ -7,7 +7,6 @@ use GADSDriver ();
 use List::MoreUtils 'zip';
 use Test2::API 'context';
 use Test2::Tools::Compare qw( is like unlike );
-use WebDriver::Tiny; # Enable "\N{WD_END}"
 
 =head1 NAME
 
