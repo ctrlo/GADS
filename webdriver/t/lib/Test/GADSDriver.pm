@@ -856,6 +856,11 @@ sub confirm_deletion_ok {
         dies => 0,
     );
 
+    # Disable Bootstrap transitions to avoid timing issues.  Trying to
+    # click on an element whilst it animates fails with an "Element ...
+    # could not be scrolled into view" error.
+    $webdriver->js( '$.support.transition = false' );
+
     my $success = $self->_check_only_one( $delete_button_el, 'delete button' );
     if ($success) {
         $delete_button_el->click;
@@ -892,6 +897,11 @@ sub delete_current_view_ok {
     my $webdriver = $self->gads->webdriver;
 
     my $view_name = $webdriver->find('input#name')->attr('value');
+
+    # Disable Bootstrap transitions to avoid timing issues.  Trying to
+    # click on an element whilst it animates fails with an "Element ...
+    # could not be scrolled into view" error.
+    $webdriver->js( '$.support.transition = false' );
 
     my @failure = $self->_find_and_click( [ 'a[data-target="#myModal"]' ] );
 
@@ -1033,6 +1043,11 @@ sub purge_deleted_records_ok {
     my $title_el = $webdriver->find( 'h2', dies => 0, tries => 10 );
     push @failure, $self->_check_element_against_expectation(
         $title_el, { text => 'Manage deleted records' } );
+
+    # Disable Bootstrap transitions to avoid timing issues.  Trying to
+    # click on an element whilst it animates fails with an "Element ...
+    # could not be scrolled into view" error.
+    $webdriver->js( '$.support.transition = false' );
 
     $webdriver->find('#selectall')->click;
     $webdriver->find('button[data-target="#purge"]')->click;
