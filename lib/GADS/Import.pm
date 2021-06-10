@@ -208,6 +208,8 @@ sub process
     # it)
     my $fh = $self->fh;
 
+    my $import_rs = $self->_import_status_rs;
+
     # We need to fork for the actual import, as it could take very long.
     # The import process writes the status to the database so that the
     # user can see the progress.
@@ -245,6 +247,8 @@ sub process
             }
         }
     }
+
+    $import_rs;
 }
 
 sub _build_fields
