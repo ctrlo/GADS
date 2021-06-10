@@ -687,6 +687,11 @@ sub find_unique
     # Horrible hack. The record of layout will have been overwritten during the
     # above searches. Needs to be changed back to this record.
     $self->layout->record($self);
+    # Another nasty hack. Make the user of the retrieved record the same as the
+    # user on which find_unique() was called. This affects imports, in ensuring
+    # that the user of the new record version is as per the user running the
+    # import
+    $r->user($self->user) if $r;
     return $r;
 }
 
