@@ -1308,6 +1308,9 @@ sub purge
     $self->schema->resultset('Widget')->search({
         dashboard_id => { -in => $dash_rs->get_column('id')->as_query },
     })->delete;
+    $self->schema->resultset('Audit')->search({
+        instance_id => $self->instance_id,
+    })->delete;
     $dash_rs->delete;
     $self->_rset->delete;
 }
