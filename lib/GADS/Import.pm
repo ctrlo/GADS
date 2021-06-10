@@ -337,9 +337,10 @@ has _import_status_rs => (
 sub _build__import_status_rs
 {   my $self = shift;
     $self->schema->resultset('Import')->create({
-        user_id => $self->user->id,
-        type    => 'data',
-        started => DateTime->now,
+        user_id     => $self->user->id,
+        type        => 'data',
+        started     => DateTime->now,
+        instance_id => $self->layout->instance_id,
     });
 }
 

@@ -3357,20 +3357,26 @@ prefix '/:layout_name' => sub {
 
     any ['get', 'post'] => '/import/?' => require_login sub {
 
-        my $layout = var('layout') or pass; # XXX Need to search on this
+        my $layout = var('layout') or pass;
 
         forwardHome({ danger => "You do not have permission to import data"}, '')
             unless $layout->user_can("layout");
 
+        my $imp = rset('Import')->search({
+            instance_id => $layout->instance_id,
+        },{
+            order_by => { -desc => 'me.completed' },
+        });
+
         if (param 'clear')
         {
-            rset('Import')->search({
+            $imp->search({
                 completed => { '!=' => undef },
             })->delete;
         }
 
         template 'import' => {
-            imports     => [rset('Import')->search({},{ order_by => { -desc => 'me.completed' } })->all],
+            imports     => [$imp->all],
             page        => 'import',
             breadcrumbs => [Crumb($layout) => Crumb( $layout, "/data" => 'records' ) => Crumb( $layout, "/import" => 'imports' )],
         };
@@ -3378,15 +3384,16 @@ prefix '/:layout_name' => sub {
 
     get '/import/rows/:import_id' => require_any_role [qw/layout useradmin/] => sub {
 
-        my $layout = var('layout') or pass; # XXX Need to search on this
+        my $layout = var('layout') or pass;
 
         my $import_id = param 'import_id';
-        rset('Import')->find($import_id)
+        my $import = rset('Import')->search({
+            'me.id'          => $import_id,
+            'me.instance_id' => $layout->instance_id,
+        })->next
             or error __"Requested import not found";
 
-        my $rows = rset('ImportRow')->search({
-            import_id => param('import_id'),
-        },{
+        my $rows = $import->import_rows->search({},{
             order_by => {
                 -asc => 'me.id',
             }
