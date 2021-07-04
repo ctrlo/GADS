@@ -83,6 +83,32 @@ var getFieldValues = function($depends, filtered, for_code) {
       })
       .get()
       .join(" to ");
+  } else if (type === "date" && for_code) {
+
+    // General function to format date as per backend
+    var format_date = function(date) {
+      return {
+        year:   date.getFullYear(),
+        month:  date.getMonth() + 1, // JS returns 0-11, Perl 1-12
+        day:    date.getDate(),
+        hour:   0,
+        minute: 0,
+        second: 0,
+        //yday: > $value->doy, // TODO
+        epoch: date.getTime() / 1000,
+      };
+    };
+
+    if ($depends.data('is-multivalue')) {
+      return $depends.find(".form-control").map(function(){
+        var date = $(this).datepicker("getDate");
+        return format_date(date);
+      }).get();
+    } else {
+      var date = $depends.find(".form-control").datepicker("getDate");
+      return format_date(date);
+    }
+
   } else {
     $f = $depends.find(".form-control");
     values = [$f.val()];
