@@ -135,7 +135,6 @@ const setupSelectWidgets = (() => {
           $current.toggleClass("empty", false);
           $item.removeAttr("hidden");
 
-          $widget.trigger("change");
           collapse($widget, $trigger, $target);
         });
       });
