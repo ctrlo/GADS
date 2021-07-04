@@ -967,6 +967,7 @@ sub all
     @columns = grep { $_->user_can('read') } @columns if $options{user_can_read};
     @columns = grep { $_->user_can('write') } @columns if $options{user_can_write};
     @columns = grep { $_->user_can('write_new') } @columns if $options{user_can_write_new};
+    @columns = grep { $_->user_can('write_new') || $_->user_can('read') } @columns if $options{user_can_readwrite_new};
     @columns = grep { $_->user_can('write_existing') } @columns if $options{user_can_write_existing};
     @columns = grep { $_->user_can('write_existing') || $_->user_can('read') } @columns if $options{user_can_readwrite_existing};
     @columns = grep { $_->user_can('approve_new') } @columns if $options{user_can_approve_new};

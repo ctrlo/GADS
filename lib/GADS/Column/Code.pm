@@ -21,7 +21,9 @@ package GADS::Column::Code;
 use DateTime;
 use Date::Holidays::GB qw/ is_gb_holiday gb_holidays /;
 use GADS::AlertSend;
+use JSON qw(decode_json encode_json);
 use Log::Report 'linkspace';
+use MIME::Base64 qw/encode_base64/;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 
@@ -133,6 +135,11 @@ has code => (
     },
 );
 
+sub code_b64
+{   my $self = shift;
+    encode_base64($self->code, '');
+}
+
 sub clear
 {   my $self = shift;
     $self->clear_code;
@@ -154,6 +161,11 @@ has '+has_cache' => (
 sub params
 {   my $self = shift;
     $self->_params_from_code($self->code);
+}
+
+sub params_b64
+{   my $self = shift;
+    encode_base64(encode_json([$self->params]), '');
 }
 
 sub param_columns

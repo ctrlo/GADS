@@ -47,7 +47,7 @@ sub presentation {
     my $display_for_edit;
     if ($options{edit})
     {
-        $display_for_edit = $self->userinput;
+        $display_for_edit = 1;
         # Do not show field if it's an approval request but a value not needing approval
         $display_for_edit = 0
             if $options{approval} && $data && !$data->has_value;
@@ -63,6 +63,7 @@ sub presentation {
         id                  => $self->id,
         type                => $self->type,
         name                => $self->name,
+        name_short          => $self->name_short,
         description         => $self->description,
         is_id               => $self->name_short && $self->name_short eq '_id',
         topic               => $self->topic,
@@ -84,6 +85,9 @@ sub presentation {
         has_display_field   => $self->has_display_field,
         display_fields_b64  => $self->display_fields_b64,
         display_for_edit    => $display_for_edit,
+        depends_on_b64      => $self->depends_on_b64,
+        code_b64            => $self->type eq 'calc' ? $self->code_b64 : undef,
+        params_b64          => $self->type eq 'calc' ? $self->params_b64 : undef,
         addable             => $self->addable,
         return_type         => $self->return_type,
     };

@@ -27,6 +27,7 @@ use GADS::Filter;
 use GADS::Groups;
 use GADS::Type::Permission;
 use GADS::View;
+use MIME::Base64 qw/encode_base64/;
 
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
@@ -673,6 +674,12 @@ has depends_on => (
         [ map {$_->get_column('depends_on')} @depends ];
     },
 );
+
+sub depends_on_b64
+{   my $self = shift;
+    @{$self->depends_on} or return undef;
+    encode_base64(encode_json($self->depends_on), '');
+}
 
 # Which columns depend on this field
 has depended_by => (

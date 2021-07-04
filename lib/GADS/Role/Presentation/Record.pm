@@ -29,7 +29,7 @@ sub edit_columns
         : $options{approval}
         ? (user_can_approve_existing => 1)
         : $options{new}
-        ? (user_can_write_new => 1)
+        ? (user_can_readwrite_new => 1)
         : (user_can_readwrite_existing => 1);
 
     my @columns = $self->layout->all(sort_by_topics => 1, can_child => $options{child}, %permissions, exclude_internal => 1);

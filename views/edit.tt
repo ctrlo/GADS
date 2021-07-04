@@ -326,9 +326,12 @@
 
     [% indents = record.indent.${dispcol.id} %]
 
-    <div class="form-group linkspace-field" data-column-id="[% dispcol.id %]" data-column-type="[% dispcol.type %]" data-value-selector="[% dispcol.value_selector %]"
+    <div class="[% IF dispcol.userinput %]form-group[% END %] linkspace-field" data-column-id="[% dispcol.id %]" data-column-type="[% dispcol.type %]" data-value-selector="[% dispcol.value_selector %]" data-name-short="[% dispcol.name_short %]"
         [% dispcol.has_display_field && 'data-has-dependency="' _ dispcol.has_display_field _ '"' %]
         [% dispcol.has_display_field && 'data-dependency="' _ dispcol.display_fields_b64 _ '"' %]
+        [% dispcol.depends_on_b64 && 'data-calc-depends-on="' _ dispcol.depends_on_b64 _ '"' %]
+        [% dispcol.code_b64 && 'data-code="' _ dispcol.code_b64 _ '"' %]
+        [% dispcol.params_b64 && 'data-code-params="' _ dispcol.params_b64 _ '"' %]
         [% dispcol.multivalue && 'data-is-multivalue="true"' %]
         [% dispcol.readonly && 'data-is-readonly="true"' %]
         data-dependent-not-shown="[% editvalue.dependent_not_shown %]"
@@ -368,7 +371,8 @@
             [% END %]
             [% label = label _ label_add %]
         [% END %]
-        [% IF page == "bulk" %]
+        [% IF NOT dispcol.userinput %]
+        [% ELSIF page == "bulk" %]
             <div class="checkbox">
                 <label>
                     <input type="checkbox" name="bulk_inc_[% dispcol.id %]" value="1"
@@ -502,6 +506,12 @@
                             <input type="text" name="[% field %]" class="form-control [% datepicker %] to datepicker[% dispcol.id %]" value="[% editvalue.html_form.shift | html_entity %]"
                                 [% IF NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %] [% readonly %]>
                     </div>
+                [% ELSIF dispcol.type == "rag" # XXX To implement %]
+                [% ELSIF dispcol.type == "calc" %]
+                    [% FOREACH val IN editvalue.html_form %]
+                        <input type="hidden" class="form-control" id="[% dispcol.id %]"
+                            name="[% field %]" value="[% val | html %]">
+                    [% END %]
                 [% ELSE %]
                     [% IF dispcol.type == "date" AND dispcol.show_datepicker AND !readonly %]
                         [% class = "form-control datepicker datepicker" _ dispcol.id %]
@@ -560,7 +570,8 @@
                     [% selector_id = value.selector_id %]
                     [% checked = editvalue.id_hash.${selector_id} %]
                     [% value_field_id = field _ '_' _ value.id %]
-                    <li [% !checked && 'hidden' %] data-list-item="[% value_field_id %]" data-list-text="[% value.value | html %]">[% value.value | html_entity %]</li>
+                    <li [% !checked && 'hidden' %] data-list-item="[% value_field_id %]" data-list-id="[% value.id %]"
+                        data-list-text="[% value.value | html %]">[% value.value | html_entity %]</li>
                 [% END %]
                     [% IF !readonly %]
                         <li class="search">
@@ -688,7 +699,8 @@
                     [% NEXT IF value.deleted %]
                     [% checked = editvalue.id_hash.${value.selector_id} %]
                     [% value_field_id = field _ '_' _ value.id %]
-                    <li [% !checked && 'hidden' %] data-list-item="[% value_field_id %]" data-list-text="[% value.value | html %]">
+                    <li [% !checked && 'hidden' %] data-list-item="[% value_field_id %]" data-list-id="[% value.id %]"
+                        data-list-text="[% value.value | html %]">
                         <span class="widget-value__value">[% value.value | html_entity %]</span>
                         <button type="button" class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
                     </li>

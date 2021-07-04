@@ -125,7 +125,7 @@ const setupDependentFields = (() => {
             : new RegExp(rule.value, "i");
         var id = rule.id;
         var filtered = false;
-        if (rule.filtered) {
+        if (rule.filtered) { // Whether the field is of type "filval"
           id = rule.filtered;
           filtered = true;
         }
