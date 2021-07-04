@@ -1,3 +1,17 @@
+// General function to format date as per backend
+var format_date = function(date) {
+  return {
+    year:   date.getFullYear(),
+    month:  date.getMonth() + 1, // JS returns 0-11, Perl 1-12
+    day:    date.getDate(),
+    hour:   0,
+    minute: 0,
+    second: 0,
+    //yday: > $value->doy, // TODO
+    epoch: date.getTime() / 1000,
+  };
+};
+
 // get the value from a field, depending on its type
 var getFieldValues = function($depends, filtered, for_code) {
 
@@ -76,28 +90,50 @@ var getFieldValues = function($depends, filtered, for_code) {
       values.push($(this).data("text-value"));
     });
   } else if (type === "daterange") {
-    $f = $depends.find(".form-control");
-    values = $f
-      .map(function() {
-        return $(this).val();
-      })
-      .get()
-      .join(" to ");
-  } else if (type === "date" && for_code) {
 
-    // General function to format date as per backend
-    var format_date = function(date) {
-      return {
-        year:   date.getFullYear(),
-        month:  date.getMonth() + 1, // JS returns 0-11, Perl 1-12
-        day:    date.getDate(),
-        hour:   0,
-        minute: 0,
-        second: 0,
-        //yday: > $value->doy, // TODO
-        epoch: date.getTime() / 1000,
-      };
-    };
+    $f = $depends.find(".form-control");
+
+    // Dateranges from the form are in pairs. Convert to single objects:
+    var dateranges = [];
+    var from_date;
+    $f.each(function(index){
+      if (index % 2 == 0) {
+        // from date
+        from_date = $(this);
+      } else {
+        // to date
+        dateranges.push({
+          from: from_date,
+          to:   $(this)
+        });
+      }
+    });
+
+    if (for_code) {
+      var codevals = dateranges.map(function(dr) {
+        var from = dr.from.datepicker("getDate");
+        var to   = dr.to.datepicker("getDate");
+        if (!from || !to) {
+          return null;
+        }
+        return {
+          from:  format_date(from),
+          to:    format_date(to),
+          value: dr.from.val() + ' to ' + dr.to.val(),
+        };
+      });
+      if ($depends.data('is-multivalue')) {
+        return codevals;
+      } else {
+        return codevals[0];
+      }
+    } else {
+      values = dateranges.map(function(dr) {
+        return dr.from.val() + ' to ' + dr.to.val();
+      })
+    }
+
+  } else if (type === "date" && for_code) {
 
     if ($depends.data('is-multivalue')) {
       return $depends.find(".form-control").map(function(){
