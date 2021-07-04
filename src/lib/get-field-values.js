@@ -133,16 +133,23 @@ var getFieldValues = function($depends, filtered, for_code) {
       })
     }
 
-  } else if (type === "date" && for_code) {
+  } else if (type === "date") {
 
     if ($depends.data('is-multivalue')) {
-      return $depends.find(".form-control").map(function(){
-        var date = $(this).datepicker("getDate");
-        return format_date(date);
+      values = $depends.find(".form-control").map(function(){
+        var $df = $(this);
+        return for_code ? format_date($df.datepicker("getDate")) : $df.val();
       }).get();
+      if (for_code) {
+        return values;
+      }
     } else {
-      var date = $depends.find(".form-control").datepicker("getDate");
-      return format_date(date);
+      var $df = $depends.find(".form-control");
+      if (for_code) {
+        return format_date($df.datepicker("getDate"));
+      } else {
+        values = [$df.val()];
+      }
     }
 
   } else {
