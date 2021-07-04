@@ -326,7 +326,7 @@
 
     [% indents = record.indent.${dispcol.id} %]
 
-    <div class="[% IF dispcol.userinput %]form-group[% END %] linkspace-field" data-column-id="[% dispcol.id %]" data-column-type="[% dispcol.type %]" data-value-selector="[% dispcol.value_selector %]" data-name-short="[% dispcol.name_short %]"
+    <div class="[% IF dispcol.show_in_edit %]form-group[% END %] linkspace-field" data-column-id="[% dispcol.id %]" data-column-type="[% dispcol.type %]" data-value-selector="[% dispcol.value_selector %]" data-name-short="[% dispcol.name_short %]"
         [% dispcol.has_display_field && 'data-has-dependency="' _ dispcol.has_display_field _ '"' %]
         [% dispcol.has_display_field && 'data-dependency="' _ dispcol.display_fields_b64 _ '"' %]
         [% dispcol.depends_on_b64 && 'data-calc-depends-on="' _ dispcol.depends_on_b64 _ '"' %]
@@ -338,7 +338,7 @@
         style="margin-left:[% 50 * indents %]px"
     >
         [% label = dispcol.name | html_entity %]
-        [% IF dispcol.optional OR page == "bulk" %]
+        [% IF dispcol.optional OR page == "bulk" OR NOT dispcol.userinput %]
             [% label_style = 'style="font-weight:normal !important"' %]
         [% ELSE %]
             [% label_style = 'style="font-weight:bold !important"' %]
@@ -371,18 +371,19 @@
             [% END %]
             [% label = label _ label_add %]
         [% END %]
-        [% IF NOT dispcol.userinput %]
-        [% ELSIF page == "bulk" %]
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" name="bulk_inc_[% dispcol.id %]" value="1"
-                    > <span [% label_style %]>[% label %]</span>
+        [% IF dispcol.show_in_edit %]
+            [% IF page == "bulk" %]
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="bulk_inc_[% dispcol.id %]" value="1"
+                        > <span [% label_style %]>[% label %]</span>
+                    </label>
+                </div>
+            [% ELSE %]
+                <label id="[% field %]_label" for="[% dispcol.id %]" [% label_style %]>
+                    [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
                 </label>
-            </div>
-        [% ELSE %]
-            <label id="[% field %]_label" for="[% dispcol.id %]" [% label_style %]>
-                [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
-            </label>
+            [% END %]
         [% END %]
         [% IF dispcol.multivalue %]
             [% IF dispcol.has_multivalue_plus %]
@@ -509,8 +510,13 @@
                 [% ELSIF dispcol.type == "rag" # XXX To implement %]
                 [% ELSIF dispcol.type == "calc" %]
                     [% FOREACH val IN editvalue.html_form %]
-                        <input type="hidden" class="form-control" id="[% dispcol.id %]"
-                            name="[% field %]" value="[% val | html %]">
+                        [% IF dispcol.show_in_edit %]
+                            <input type="text" class="form-control" id="[% dispcol.id %]" readonly
+                                name="[% field %]" value="[% val | html %]">
+                        [% ELSE %]
+                            <input type="hidden" class="form-control" id="[% dispcol.id %]"
+                                name="[% field %]" value="[% val | html %]">
+                        [% END %]
                     [% END %]
                 [% ELSE %]
                     [% IF dispcol.type == "date" AND dispcol.show_datepicker AND !readonly %]

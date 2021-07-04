@@ -152,6 +152,8 @@ has return_type => (
     builder => sub { 'string' },
 );
 
+sub show_in_edit { shift->userinput };
+
 has table => (
     is  => 'lazy',
     isa => Str,

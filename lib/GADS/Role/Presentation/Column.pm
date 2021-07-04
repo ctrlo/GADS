@@ -90,6 +90,7 @@ sub presentation {
         params_b64          => $self->type eq 'calc' ? $self->params_b64 : undef,
         addable             => $self->addable,
         return_type         => $self->return_type,
+        show_in_edit        => $self->show_in_edit,
     };
     if ($options{group})
     {
