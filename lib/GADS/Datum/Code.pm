@@ -96,7 +96,7 @@ around 'clone' => sub {
 
 sub html_form
 {   my $self = shift;
-    $self->value; # Already array ref
+    @{$self->value} ? $self->value : [''];
 }
 
 sub text_all
