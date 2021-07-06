@@ -47,7 +47,7 @@ sub presentation {
     my $display_for_edit;
     if ($options{edit})
     {
-        $display_for_edit = 1;
+        $display_for_edit = $self->userinput || $self->has_browser_code;
         # Do not show field if it's an approval request but a value not needing approval
         $display_for_edit = 0
             if $options{approval} && $data && !$data->has_value;
@@ -86,8 +86,8 @@ sub presentation {
         display_fields_b64  => $self->display_fields_b64,
         display_for_edit    => $display_for_edit,
         depends_on_b64      => $self->depends_on_b64,
-        code_b64            => $self->can('code') ? $self->code_b64 : undef,
-        params_b64          => $self->can('code') ? $self->params_b64 : undef,
+        code_b64            => $self->has_browser_code ? $self->code_b64 : undef,
+        params_b64          => $self->has_browser_code ? $self->params_b64 : undef,
         addable             => $self->addable,
         return_type         => $self->return_type,
         show_in_edit        => $self->show_in_edit,

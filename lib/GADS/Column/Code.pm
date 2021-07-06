@@ -123,6 +123,15 @@ has _rset_code => (
     clearer => 1,
 );
 
+sub _build_has_browser_code {
+    my $self = shift;
+    return 1 if $self->show_in_edit;
+    return 1 if $self->schema->resultset('DisplayField')->search({
+        display_field_id => $self->id
+    })->next;
+    return 0;
+}
+
 has code => (
     is      => 'rw',
     isa     => Str,

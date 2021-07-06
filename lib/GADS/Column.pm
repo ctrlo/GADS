@@ -121,6 +121,17 @@ has hidden => (
     default => 0,
 );
 
+# Whether the code in this field is evaluated in the browser via JS
+has has_browser_code => (
+    is  => 'lazy',
+    isa => Bool,
+);
+
+sub _build_has_browser_code
+{   my $self = shift;
+    0;
+}
+
 # Used to force a database ID on creation (used in layout import)
 has set_id => (
     is  => 'rw',

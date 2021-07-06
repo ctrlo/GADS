@@ -34,6 +34,9 @@ sub edit_columns
 
     my @columns = $self->layout->all(sort_by_topics => 1, can_child => $options{child}, %permissions, exclude_internal => 1);
 
+    @columns = grep $_->userinput || $_->has_browser_code, @columns
+        if $options{new};
+
     @columns = grep $_->type ne 'file', @columns
         if $options{bulk} && $options{bulk} eq 'update';
 
