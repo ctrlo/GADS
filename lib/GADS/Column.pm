@@ -975,6 +975,18 @@ sub delete
             Please remove these before deletion.", dep => $dep;
     }
 
+    # See if any autocur fields depend on this
+    if (my @autocurs = $self->schema->resultset('Layout')->search({
+            related_field => $self->id
+        })->all
+    )
+    {
+        my @pn = map { $_->name." (".$_->instance->name.")" } @autocurs;
+        my $p  = join ', ', @pn;
+        error __x"The following fields in another table refer to this field: {p}.
+            Please remove these references before deletion of this field.", p => $p;
+    }
+
     # Now see if any Curval fields depend on this field
     if (my @parents = $self->schema->resultset('CurvalField')->search({
             child_id => $self->id
