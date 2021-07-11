@@ -23,7 +23,7 @@ use GADS::Util;
 use Log::Report 'linkspace';
 use POSIX ();
 use Scope::Guard qw(guard);
-use Text::CSV::Encoded;
+use Text::CSV;
 
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
@@ -329,6 +329,11 @@ sub csv
             {
                 $@->reportAll(is_fatal => 0);
                 my $result = $@ && $@->wasFatal->message;
+                # If produce_csv failed during the update of the export row,
+                # then it will still have the unwritten changes and another
+                # update will cause the same problem. Therefore, discard any
+                # changes before trying another update.
+                $export->discard_changes;
                 $export->update({ result => 'Failed', result_internal => $result, completed => DateTime->now });
             }
         }
@@ -337,7 +342,7 @@ sub csv
 
 sub _produce_csv
 {   my ($self, $user, $export) = @_;
-    my $csv  = Text::CSV::Encoded->new({ encoding  => undef });
+    my $csv  = Text::CSV->new({ binary => 1 });
 
     my $instances = GADS::Instances->new(schema => $self->schema, user => $user);
     my $site = $self->schema->resultset('Site')->find($self->schema->site_id);
@@ -524,6 +529,7 @@ sub _produce_csv
 
     $guard->commit;
 
+    utf8::encode($csvout);
     $export->update({
         completed => DateTime->now,
         result    => 'Success',

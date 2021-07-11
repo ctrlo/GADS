@@ -1074,7 +1074,7 @@ any ['get', 'post'] => '/user/export/?' => require_any_role [qw/useradmin supera
             $csv       = "$header\n$csv" if $header;
             $header    = "-$header" if $header;
         }
-        utf8::encode($csv);
+        # Content in database already UTF-8 encoded
         return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
     }
 
