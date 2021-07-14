@@ -391,6 +391,7 @@ sub assert_on_edit_field_page {
     $self->_assert_on_page(
         $name,
         'body.layout',
+        '#basic-panel',
         { selector => 'h2', match => '\\AEdit field\\s*' },
     );
 
