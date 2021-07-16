@@ -18,6 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Layout;
 
+use utf8;
+
 use Algorithm::Dependency::Ordered;
 use Algorithm::Dependency::Source::HoA;
 use GADS::Column;
@@ -1011,6 +1013,35 @@ sub all
     @columns;
 }
 
+# Function to check for recursive dependencies. Start at each layout and
+# descend into its dependencies, going into branches as required. If the same
+# ID is found in the same branch then throw an error
+sub _check
+{   my ($self, $deps, $key, $path) = @_;
+
+    # Path so far. Defaults to just the starting field
+    $path ||= [$key];
+    # Take the last node/field off the end for searching, otherwise it will
+    # always match
+    my @path2 = @$path;
+    my @search = @path2[0..$#path2-1];
+    if (grep $_ == $key, @search)
+    {
+        my $path = join " → ", map $self->column($_)->name, @$path;
+        error __x"Calculated value or display condition recursive dependencies: {path}",
+            path => $path;
+    }
+    foreach my $val (@{$deps->{$key}})
+    {
+        # Push onto path
+        push @$path, $val;
+        $self->_check($deps, $val, $path);
+        # And remove when coming back, so as to not match same field in
+        # different paths
+        pop @$path;
+    }
+}
+
 # Order the columns in the order that the calculated values depend
 # on other columns
 sub _order_dependencies
@@ -1021,6 +1052,15 @@ sub _order_dependencies
     my %deps = map {
         $_->id => $_->has_display_field ? $_->display_field_col_ids : $_->depends_on
     } @columns;
+
+    my %seen;
+
+    # Check for recursive dependencies, otherwise the dependency algorithm will
+    # return undef
+    foreach my $key (keys %deps)
+    {
+        $self->_check(\%deps, $key);
+    }
 
     my $source = Algorithm::Dependency::Source::HoA->new(\%deps);
     my $dep = Algorithm::Dependency::Ordered->new(source => $source)
