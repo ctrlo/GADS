@@ -142,10 +142,6 @@ sub convert_value
                 mistake __x"Failed to produce globe location: unknown country {country}", country => $val;
             }
         }
-        elsif ($column->return_type eq 'error')
-        {
-            error $val if $val;
-        }
         else {
             push @return, $val if defined $val;
         }

@@ -2346,6 +2346,10 @@ sub _field_write
     else {
         $datum->record_id($self->record_id);
         $datum->re_evaluate(submission_token => $options{submission_token}, new_entry => $self->new_entry);
+        if ($column->return_type eq 'error')
+        {
+            error $datum->as_string if $datum->as_string;
+        }
         $datum->write_value(submission_token => $options{submission_token});
     }
 }
