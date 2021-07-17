@@ -677,7 +677,7 @@ sub validate_search
 }
 
 sub values_beginning_with
-{   my ($self, $match) = @_;
+{   my ($self, $match, %options) = @_;
     return if !$self->filter_view_is_ready; # Record not ready yet in sub_values
     # First create a view to search for this value in the column.
     my @conditions = map {
@@ -721,11 +721,14 @@ sub values_beginning_with
     );
 
     my @results;
-    foreach my $row (@{$records->results})
+    if ($match || !$options{noempty})
     {
-        push @results, $self->_format_row($row, value_key => 'name');
+        foreach my $row (@{$records->results})
+        {
+            push @results, $self->_format_row($row, value_key => 'name');
+        }
     }
-    map { +{ id => $_->{id}, name => $_->{name} } } @results;
+    map { +{ id => $_->{id}, label => $_->{name} } } @results;
 }
 
 sub _format_row

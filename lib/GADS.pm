@@ -3501,7 +3501,11 @@ prefix '/:layout_name' => sub {
         my $column = $layout->column($layout_id, permission => 'read');
 
         content_type 'application/json';
-        to_json [ $column->values_beginning_with($query, with_id => $with_id) ];
+        # To match data structure returned from getting filtered curval values
+        to_json {
+            error   => 0,
+            records => [ $column->values_beginning_with($query, with_id => $with_id, noempty => query_parameters->get('noempty')) ]
+        };
     };
 
 };

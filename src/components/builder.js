@@ -54,6 +54,9 @@ const setupBuilder = (() => {
             success: function(result) {
               process(result);
             },
+            displayText: function(item){
+              return item.label;
+            },
             dataType: "json"
           });
         }

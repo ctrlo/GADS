@@ -1495,7 +1495,10 @@ sub values_beginning_with
             $value_field => {
                 -like => "${match_string}%",
             },
-        } : {};
+        }
+        : $options{noempty} && !$match_string
+        ? { \"0 = 1" } # Nothing to match, return nothing
+        : {};
     if ($resultset) {
         my $match_result = $resultset->search($search,
             {
@@ -1506,8 +1509,8 @@ sub values_beginning_with
         {
             @value = map {
                 {
-                    id   => $_->get_column('id'),
-                    name => $_->get_column($self->value_field),
+                    id    => $_->get_column('id'),
+                    label => $_->get_column($self->value_field),
                 }
             } $match_result->search({}, {
                 columns => ['id', $value_field],

@@ -183,8 +183,9 @@ const setupSelectWidgets = (() => {
       var valueId = value ? field + "_" + value : field + "__blank";
       var classNames = value ? "answer" : "answer answer--blank";
 
+      // Add space at beginning to keep format consistent with that in template
       var detailsButton =
-        '<span class="details">' +
+        ' <span class="details">' +
         '<button type="button" class="more-info" data-record-id="' +
         value +
         '" aria-describedby="' +
@@ -219,7 +220,7 @@ const setupSelectWidgets = (() => {
           '" aria-labelledby="' +
           valueId +
           '_label">' +
-          '<span role="option">' +
+          ' <span role="option">' + // Add space to keep spacing consistent with templates
           label +
           "</span>" +
           "</label>" +
@@ -227,6 +228,96 @@ const setupSelectWidgets = (() => {
           (value ? detailsButton : "") +
           "</li>"
       );
+    };
+
+    var updateJson = function(url, typeahead) {
+      $available.find(".spinner").removeAttr("hidden");
+      var currentValues = $available
+        .find("input:checked")
+        .map(function() {
+          return parseInt($(this).val());
+        })
+        .get();
+
+      var field = $selectWidget.data("field");
+      $.getJSON(url, function(data) {
+        if (typeahead) {
+          // Need to keep currently selected item
+          $currentItems.filter(':hidden').remove();
+        } else {
+          $currentItems.remove();
+        }
+
+        if (data.error === 0) {
+          var checked = currentValues.includes(NaN);
+          $search
+            .parent()
+            .prevAll(".none-selected")
+            .remove(); // Prevent duplicate blank entries
+          $search
+            .parent()
+            .before(currentLi(multi, field, null, "blank", checked));
+          $available.append(availableLi(multi, field, null, "blank", checked));
+
+          $.each(data.records, function(recordIndex, record) {
+            var checked = currentValues.includes(record.id);
+            if (typeahead && !checked) {
+              $search
+                .parent()
+                .before(
+                  currentLi(multi, field, record.id, record.label, checked)
+                ).before(' '); // Ensure space between elements
+              $available.append(
+                availableLi(multi, field, record.id, record.label, checked)
+              );
+            }
+          });
+
+          $currentItems = $current.find("[data-list-item]");
+          $available = $selectWidget.find(".available");
+          $availableItems = $selectWidget.find(".available .answer input");
+          $moreInfoButtons = $selectWidget.find(
+            ".available .answer .more-info"
+          );
+          $answers = $selectWidget.find(".answer");
+
+          updateState();
+          connect();
+
+          $availableItems.on("blur", possibleCloseWidget);
+          $moreInfoButtons.on("blur", possibleCloseWidget);
+
+        } else {
+          var errorMessage =
+            data.error === 1 ? data.message : "Oops! Something went wrong.";
+          var errorLi = $(
+            '<li class="answer answer--blank alert alert-danger"><span class="control"><label>' +
+              errorMessage +
+              "</label></span></li>"
+          );
+          $available.append(errorLi);
+        }
+      })
+        .fail(function(jqXHR, textStatus, textError) {
+          var errorMessage = "Oops! Something went wrong.";
+          Linkspace.error(
+            "Failed to make request to " +
+              filterEndpoint +
+              ": " +
+              textStatus +
+              ": " +
+              textError
+          );
+          var errorLi = $(
+            '<li class="answer answer--blank alert alert-danger"><span class="control"><label>' +
+              errorMessage +
+              "</label></span></li>"
+          );
+          $available.append(errorLi);
+        })
+        .always(function() {
+          $available.find(".spinner").attr("hidden", "");
+        });
     };
 
     var fetchOptions = function() {
@@ -240,13 +331,6 @@ const setupSelectWidgets = (() => {
           "Invalid data-filter-fields found. It should be a proper JSON array of fields."
         );
       }
-
-      var currentValues = $available
-        .find("input:checked")
-        .map(function() {
-          return parseInt($(this).val());
-        })
-        .get();
 
       // Collect values of linked fields
       var values = ["submission-token=" + submissionToken];
@@ -282,80 +366,10 @@ const setupSelectWidgets = (() => {
       lastFetchParams = null;
 
       $available.find(".answer").remove();
-      $available.find(".spinner").removeAttr("hidden");
 
-      $.getJSON(filterEndpoint + "?" + fetchParams, function(data) {
-        $currentItems.remove();
+      updateJson(filterEndpoint + "?" + fetchParams);
+      lastFetchParams = fetchParams;
 
-        if (data.error === 0) {
-          var checked = currentValues.includes(NaN);
-          $search
-            .parent()
-            .prev(".none-selected")
-            .remove(); // Prevent duplicate blank entries
-          $search
-            .parent()
-            .before(currentLi(multi, field, null, "blank", checked));
-          $available.append(availableLi(multi, field, null, "blank", checked));
-
-          $.each(data.records, function(recordIndex, record) {
-            var checked = currentValues.includes(record.id);
-            $search
-              .parent()
-              .before(
-                currentLi(multi, field, record.id, record.label, checked)
-              );
-            $available.append(
-              availableLi(multi, field, record.id, record.label, checked)
-            );
-          });
-
-          $currentItems = $current.find("[data-list-item]");
-          $available = $selectWidget.find(".available");
-          $availableItems = $selectWidget.find(".available .answer input");
-          $moreInfoButtons = $selectWidget.find(
-            ".available .answer .more-info"
-          );
-          $answers = $selectWidget.find(".answer");
-
-          updateState();
-          connect();
-
-          $availableItems.on("blur", possibleCloseWidget);
-          $moreInfoButtons.on("blur", possibleCloseWidget);
-
-          lastFetchParams = fetchParams;
-        } else {
-          var errorMessage =
-            data.error === 1 ? data.message : "Oops! Something went wrong.";
-          var errorLi = $(
-            '<li class="answer answer--blank alert alert-danger"><span class="control"><label>' +
-              errorMessage +
-              "</label></span></li>"
-          );
-          $available.append(errorLi);
-        }
-      })
-        .fail(function(jqXHR, textStatus, textError) {
-          var errorMessage = "Oops! Something went wrong.";
-          Linkspace.error(
-            "Failed to make request to " +
-              filterEndpoint +
-              ": " +
-              textStatus +
-              ": " +
-              textError
-          );
-          var errorLi = $(
-            '<li class="answer answer--blank alert alert-danger"><span class="control"><label>' +
-              errorMessage +
-              "</label></span></li>"
-          );
-          $available.append(errorLi);
-        })
-        .always(function() {
-          $available.find(".spinner").attr("hidden", "");
-        });
     };
 
     var expand = function($widget, $trigger, $target) {
@@ -500,24 +514,37 @@ const setupSelectWidgets = (() => {
       $search.css("width", $fakeInput.insertAfter($search).width() + 70);
       $fakeInput.detach();
 
-      // hide the answers that do not contain the searchvalue
-      var anyHits = false;
-      $.each($answers, function() {
-        var labelValue = $(this)
-          .find("label")[0]
-          .innerHTML.toLowerCase();
-        if (labelValue.indexOf(searchValue) === -1) {
-          $(this).attr("hidden", "");
-        } else {
-          anyHits = true;
-          $(this).removeAttr("hidden", "");
-        }
-      });
-
-      if (anyHits) {
-        $available.find(".has-noresults").attr("hidden", "");
+      if ($selectWidget.data("value-selector") == "typeahead") {
+        $available.find(".answer").each(function() {
+          var $answer = $(this);
+          if (!$answer.find('input:checked').length) {
+            $answer.remove();
+          }
+        });
+        var url = `/${$selectWidget.data(
+          "layout-id"
+        )}/match/layout/${$selectWidget.data("typeahead-id")}`;
+        updateJson(url + '?noempty=1&q=' + searchValue, true);
       } else {
-        $available.find(".has-noresults").removeAttr("hidden", "");
+        // hide the answers that do not contain the searchvalue
+        var anyHits = false;
+        $.each($answers, function() {
+          var labelValue = $(this)
+            .find("label")[0]
+            .innerHTML.toLowerCase();
+          if (labelValue.indexOf(searchValue) === -1) {
+            $(this).attr("hidden", "");
+          } else {
+            anyHits = true;
+            $(this).removeAttr("hidden", "");
+          }
+        });
+
+        if (anyHits) {
+          $available.find(".has-noresults").attr("hidden", "");
+        } else {
+          $available.find(".has-noresults").removeAttr("hidden", "");
+        }
       }
     });
 

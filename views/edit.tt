@@ -185,7 +185,6 @@
                 [% IF child %]
                     <input type="hidden" name="child" value="[% child %]">
                 [% END %]
-                [% typeaheads = [] %]
 
                 [% IF record.user_can_edit AND NOT record.deleted AND NOT is_history AND NOT view_modal %]
                     [% editable = 1 %]
@@ -553,7 +552,6 @@
     <input type="text" class="form-control" id="typeahead_[% dispcol.id %]" autocomplete="off"
         data-layout-id="[% layout.identifier %]" data-typeahead-id="[% dispcol.id %]"
         name="[% field %]_typeahead" value="[% IF record %][% editvalue.value | html %][% END %]" [% readonly %] >
-    [% typeaheads.push({id = dispcol.id, field = field }) %]
 [% END %]
 
 [% BLOCK singlevalue_column %]
@@ -664,6 +662,8 @@
             values = column.all_values;
         ELSIF column.has_subvals;
             values = editvalue.selected_values;
+        ELSIF column.value_selector == "typeahead";
+            values = editvalue.selected_values;
         ELSE;
             values = column.filtered_values;
         END;
@@ -672,9 +672,7 @@
             PROCESS curval_add_button;
         END;
 
-        IF column.value_selector == "typeahead";
-            PROCESS curval_typeahead_column;
-        ELSIF dispcol.value_selector == "noshow";
+        IF dispcol.value_selector == "noshow";
             PROCESS curval_noshow;
             %] <input type="hidden" name="[% field %]"> [%
         ELSIF column.multivalue;
@@ -690,8 +688,10 @@
 
 [% BLOCK multivalue_column %]
     <div class="select-widget [% IF readonly %]select-widget--read-only[% END %] multi"
+        data-value-selector="[% column.value_selector %]"
+        data-layout-id="[% layout.identifier %]" data-typeahead-id="[% dispcol.id %]"
+        data-field="[% field %]"
         [% IF column.has_subvals %]
-            data-field="[% field %]"
             data-filter-endpoint="/[% layout.identifier _ "/api/field/values/" _ column.id %]"
             data-submission-token="[% submission_token %]"
             data-filter-fields='[% column.data_filter_fields %]'
