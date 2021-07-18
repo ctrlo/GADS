@@ -261,7 +261,7 @@ const setupSelectWidgets = (() => {
 
           $.each(data.records, function(recordIndex, record) {
             var checked = currentValues.includes(record.id);
-            if (typeahead && !checked) {
+            if (!typeahead || (typeahead && !checked)) {
               $search
                 .parent()
                 .before(
