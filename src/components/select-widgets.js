@@ -250,14 +250,16 @@ const setupSelectWidgets = (() => {
 
         if (data.error === 0) {
           var checked = currentValues.includes(NaN);
-          $search
-            .parent()
-            .prevAll(".none-selected")
-            .remove(); // Prevent duplicate blank entries
-          $search
-            .parent()
-            .before(currentLi(multi, field, null, "blank", checked));
-          $available.append(availableLi(multi, field, null, "blank", checked));
+          if (multi) {
+            $search
+              .parent()
+              .prevAll(".none-selected")
+              .remove(); // Prevent duplicate blank entries
+            $search
+              .parent()
+              .before(currentLi(multi, field, null, "blank", checked));
+            $available.append(availableLi(multi, field, null, "blank", checked));
+          }
 
           $.each(data.records, function(recordIndex, record) {
             var checked = currentValues.includes(record.id);
@@ -515,7 +517,7 @@ const setupSelectWidgets = (() => {
       $fakeInput.detach();
 
       if ($selectWidget.data("value-selector") == "typeahead") {
-        $available.find(".answer").each(function() {
+        $available.find(".answer").not('.answer--blank').each(function() {
           var $answer = $(this);
           if (!$answer.find('input:checked').length) {
             $answer.remove();
