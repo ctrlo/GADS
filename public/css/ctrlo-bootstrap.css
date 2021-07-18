@@ -2390,6 +2390,34 @@ small.search_term {
   display: inline-block;
 }
 
+.edit-form {
+  margin-bottom: 4em;
+}
+.edit-form .table {
+  table-layout: fixed;
+}
+.edit-form .table > tbody > tr:first-child > th,
+.edit-form .table > tbody > tr:first-child > td {
+  border-top: 0;
+}
+.edit-form th {
+  width: 30%;
+}
+.edit-form .form-group:after {
+  content: " ";
+  clear: both;
+  display: table;
+}
+
+.edit-form--validating .spinner {
+  display: block;
+  font-style: italic;
+}
+
+.edit-form__sidebar {
+  margin-bottom: 4em;
+}
+
 .select-widget .form-control {
   padding-bottom: 0;
   padding-left: 6px;
@@ -2663,34 +2691,6 @@ small.search_term {
   border: 1px solid #c8c8c8;
   box-shadow: .5em .5em .5em .5em #000;
   margin-bottom: 0;
-}
-
-.edit-form {
-  margin-bottom: 4em;
-}
-.edit-form .table {
-  table-layout: fixed;
-}
-.edit-form .table > tbody > tr:first-child > th,
-.edit-form .table > tbody > tr:first-child > td {
-  border-top: 0;
-}
-.edit-form th {
-  width: 30%;
-}
-.edit-form .form-group:after {
-  content: " ";
-  clear: both;
-  display: table;
-}
-
-.edit-form--validating .spinner {
-  display: block;
-  font-style: italic;
-}
-
-.edit-form__sidebar {
-  margin-bottom: 4em;
 }
 
 .input_holder .datepicker {
