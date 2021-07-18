@@ -556,8 +556,10 @@
 
 [% BLOCK singlevalue_column %]
     <div class="select-widget [% IF readonly %]select-widget--read-only[% END %] single"
+        data-value-selector="[% column.value_selector %]"
+        data-layout-id="[% layout.identifier %]" data-typeahead-id="[% dispcol.id %]"
+        data-field="[% field %]"
         [% IF column.has_subvals %]
-            data-field="[% field %]"
             data-filter-endpoint="/[% layout.identifier _ "/api/field/values/" _ column.id %]"
             data-submission-token="[% submission_token %]"
             data-filter-fields='[% column.data_filter_fields %]'
