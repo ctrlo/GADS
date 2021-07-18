@@ -47,7 +47,7 @@ const setupCurvalModal = (() => {
           .find("tbody")
           .prepend(row_cells);
       }
-    } else if (valueSelector === "dropdown") {
+    } else {
       var $widget = $formGroup.find(".select-widget").first();
       var multi = $widget.hasClass("multi");
       var $currentItems = $formGroup.find(".current [data-list-item]");
@@ -95,23 +95,6 @@ const setupCurvalModal = (() => {
 
       /* Reinitialize widget */
       setupSelectWidgets($formGroup);
-    } else if (valueSelector === "typeahead") {
-      var $hiddenInput = $formGroup.find(`input[name=field${col_id}]`);
-      var $typeaheadInput = $formGroup.find(
-        `input[name=field${col_id}_typeahead]`
-      );
-
-      var textValueHead = jQuery
-        .map(modal_field_ids, function(element) {
-          var value = values["field" + element];
-          return $("<div />")
-            .text(value)
-            .html();
-        })
-        .join(", ");
-
-      $hiddenInput.val(form_data);
-      $typeaheadInput.val(textValueHead);
     }
 
     $(".modal.in", context).modal("hide");
