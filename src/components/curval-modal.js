@@ -77,7 +77,7 @@ const setupCurvalModal = (() => {
         : "";
       $search.before(
         `<li data-list-item="${id}">${textValue}${deleteButton}</li>`
-      );
+      ).before(' '); // Ensure space between elements in widget
       var inputType = multi ? "checkbox" : "radio";
       $answersList.append(`<li class="answer">
         <span class="control">
