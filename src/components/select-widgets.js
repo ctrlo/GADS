@@ -230,7 +230,14 @@ const setupSelectWidgets = (() => {
       );
     };
 
+    // Give each AJAX load its own ID. If a higher ID has started by the time
+    // we get the results, then cancel the current process to prevent
+    // duplicate items being added to the dropdown
+    var loadCounter = 0;
+
     var updateJson = function(url, typeahead) {
+      loadCounter++;
+      var myLoad = loadCounter; // ID of this process
       $available.find(".spinner").removeAttr("hidden");
       var currentValues = $available
         .find("input:checked")
@@ -240,6 +247,9 @@ const setupSelectWidgets = (() => {
         .get();
 
       var field = $selectWidget.data("field");
+      // If we cancel this particular loop, then we don't want to remove the
+      // spinner if another one has since started running
+      var hideSpinner = true;
       $.getJSON(url, function(data) {
         if (typeahead) {
           // Need to keep currently selected item
@@ -249,6 +259,10 @@ const setupSelectWidgets = (() => {
         }
 
         if (data.error === 0) {
+          if (myLoad != loadCounter) { // A new one has started running
+            hideSpinner = false; // Don't remove the spinner on completion
+            return;
+          }
           var checked = currentValues.includes(NaN);
           if (multi) {
             $search
@@ -318,7 +332,9 @@ const setupSelectWidgets = (() => {
           $available.append(errorLi);
         })
         .always(function() {
-          $available.find(".spinner").attr("hidden", "");
+          if (hideSpinner) {
+            $available.find(".spinner").attr("hidden", "");
+          }
         });
     };
 
@@ -502,6 +518,7 @@ const setupSelectWidgets = (() => {
     });
 
     $search.unbind("keyup");
+    var timeout;
     $search.on("keyup", function() {
       var searchValue = $(this)
         .val()
@@ -517,16 +534,22 @@ const setupSelectWidgets = (() => {
       $fakeInput.detach();
 
       if ($selectWidget.data("value-selector") == "typeahead") {
-        $available.find(".answer").not('.answer--blank').each(function() {
-          var $answer = $(this);
-          if (!$answer.find('input:checked').length) {
-            $answer.remove();
-          }
-        });
         var url = `/${$selectWidget.data(
           "layout-id"
         )}/match/layout/${$selectWidget.data("typeahead-id")}`;
-        updateJson(url + '?noempty=1&q=' + searchValue, true);
+        // Debounce the user input, only execute after 200ms if another one
+        // hasn't started
+        clearTimeout(timeout);
+        $available.find(".spinner").removeAttr("hidden");
+        timeout = setTimeout(function() {
+          $available.find(".answer").not('.answer--blank').each(function() {
+            var $answer = $(this);
+            if (!$answer.find('input:checked').length) {
+              $answer.remove();
+            }
+          });
+          updateJson(url + '?noempty=1&q=' + searchValue, true);
+        }, 200);
       } else {
         // hide the answers that do not contain the searchvalue
         var anyHits = false;
