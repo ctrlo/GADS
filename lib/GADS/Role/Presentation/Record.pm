@@ -37,6 +37,9 @@ sub edit_columns
     @columns = grep $_->userinput || $_->has_browser_code, @columns
         if $options{new};
 
+    @columns = grep !$_->is_curcommon, @columns
+        if $options{modal};
+
     @columns = grep $_->type ne 'file', @columns
         if $options{bulk} && $options{bulk} eq 'update';
 

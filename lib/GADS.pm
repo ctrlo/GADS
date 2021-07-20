@@ -3782,7 +3782,7 @@ sub _process_edit
         # just silently ignoring them, IMHO.
         my @display_on_fields;
         my @validation_errors;
-        foreach my $col ($record->edit_columns(new => !$id))
+        foreach my $col ($record->edit_columns(new => !$id, modal => $modal))
         {
             my $newv;
             if ($modal)
@@ -3921,7 +3921,7 @@ sub _process_edit
         clone               => $clone_from,
         submission_token    => !$modal && $record->submission_token,
         breadcrumbs         => $breadcrumbs,
-        record              => $record->presentation(edit => 1, new => !$id, child => $child),
+        record              => $record->presentation(edit => 1, new => !$id, child => $child, modal => $modal),
     };
 
     $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids
