@@ -99,7 +99,7 @@ const setupColumnFilters = (() => {
         $spinner.removeAttr("hidden");
 
         $.getJSON(autocompleteEndpoint + q, function(data) {
-          _.each(data, function(searchValue) {
+          _.each(data.records, function(searchValue) {
             if (autocompleteHasID) {
               if (
                 !_.some(values, function(value) {
@@ -108,7 +108,7 @@ const setupColumnFilters = (() => {
               ) {
                 values.push({
                   id: searchValue.id.toString(),
-                  value: searchValue.name
+                  value: searchValue.label
                 });
               }
             } else {
