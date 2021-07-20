@@ -1572,7 +1572,8 @@ sub write
                 {
                     # as_string() used as will be encoded on message display
                     error __x(qq(Field "{field}" must be unique but value "{value}" already exists in record {id}),
-                        field => $column->name, value => $datum->as_string, id => $r->current_id);
+                        field => $column->name, value => $datum->as_string, id => $r->current_id)
+                            if $self->new_entry || $self->current_id != $r->current_id;
                 }
             }
         }
