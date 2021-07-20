@@ -50,7 +50,7 @@ sub presentation {
         $display_for_edit = $self->userinput || $self->has_browser_code;
         # Do not show field if it's an approval request but a value not needing approval
         $display_for_edit = 0
-            if $options{approval} && $data && !$data->has_value;
+            if $options{approval} && $data && !$data->{has_value};
         # Do not show if it's a child record and the value doesn't exist
         $display_for_edit = 0
             if $record->parent_id && !$self->can_child && !$record->layout->user_can("create_child");

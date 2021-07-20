@@ -9,6 +9,7 @@ sub presentation_base {
     return {
         type                => $options{type} || ($self->isa('GADS::Datum::Count') ? 'count' : $self->column->type),
         value               => $self->as_string,
+        has_value           => $self->has_value,
         filter_value        => $self->filter_value,
         blank               => $self->blank,
         dependent_not_shown => $self->dependent_not_shown,
