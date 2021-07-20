@@ -26,6 +26,10 @@
     </h2>
 [% END %]
 
+[% IF NOT record.new_entry %]
+    [% cur_id = record.current_id %]
+[% END %]
+
 <div class="row">
     <div class="col-md-[% IF record.new_entry OR edit_modal %]12[% ELSE %]9[% END %]">
         [% PROCESS form %]
@@ -149,10 +153,6 @@
             </div>
         </div>
     </div>
-[% END %]
-
-[% IF NOT record.new_entry %]
-    [% cur_id = record.current_id %]
 [% END %]
 
 [% BLOCK form %]
