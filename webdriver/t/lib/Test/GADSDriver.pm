@@ -1008,7 +1008,10 @@ sub _find_and_click {
     foreach my $selector (@$selectors_ref) {
         # TODO: Move 'tries' to configuration
         my $found_el = $webdriver->find( $selector, dies => 0, tries => 25 );
-        if ( 0 == $found_el->size || !$found_el->visible ) {
+        if ( 0 == $found_el->size ) {
+            push @failure, "No elements matching '${selector}' found";
+        }
+        elsif ( !$found_el->visible ) {
             push @failure, "No visible elements matching '${selector}' found";
         }
         else {
