@@ -936,7 +936,7 @@ sub delete_viewed_record_ok {
     my @failure = $self->_find_and_click( [ '.btn-delete' ], jquery => 1 );
 
     $test->note("About to delete $record_title");
-    push @failure, $self->_find_and_click( [ '#modaldelete .btn-primary.submit_button' ] );
+    $webdriver->find('#modaldelete .btn-primary.submit_button')->click;
 
     $test->ok( !@failure, $name );
     $test->diag($_) foreach @failure;
