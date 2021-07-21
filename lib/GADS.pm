@@ -3802,7 +3802,7 @@ sub _process_edit
                     try { $datum->set_value($newv) };
                     if (my $e = $@->wasFatal)
                     {
-                        push @validation_errors, $e->message;
+                        push @validation_errors, $e->reason eq 'PANIC' ? 'An unexpected error occurred' : $e->message;
                     }
                 }
                 else {
@@ -3814,9 +3814,9 @@ sub _process_edit
         if (defined(param 'validate'))
         {
             try { $record->write(dry_run => 1) };
-            if (my $e = $@->died) # XXX This should be ->wasFatal() but it returns the wrong message
+            if (my $e = $@->wasFatal)
             {
-                push @validation_errors, $e;
+                push @validation_errors, $e->reason eq 'PANIC' ? 'An unexpected error occurred' : $e->message;
             }
             my $message = join '; ', @validation_errors;
             content_type 'application/json; charset="utf-8"';

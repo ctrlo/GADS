@@ -1449,7 +1449,7 @@ sub write
 
     my @cols = $options{submitted_fields}
         ? @{$options{submitted_fields}}
-        : $self->layout->all(exclude_internal => 1);
+        : $self->layout->all(userinput => 1);
 
     # There may be a situation whereby a form has been loaded and fields that
     # contain values are hidden as a result of display dependencies (which may
@@ -1473,7 +1473,6 @@ sub write
     my %no_write_topics;
     foreach my $column (@cols)
     {
-        next unless $column->userinput;
         my $datum = $self->fields->{$column->id}
             or next; # Will not be set for child records
 
