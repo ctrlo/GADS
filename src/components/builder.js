@@ -15,7 +15,7 @@ const setupBuilder = (() => {
     return operators;
   };
 
-  const typeaheadProperties = (urlSuffix, layoutId, instanceId) => ({
+  const typeaheadProperties = (urlSuffix, layoutId, instanceId, useIdInFilter) => ({
     input: (container, rule, input_name) =>
       `<input class="typeahead_text" type="text" name="${input_name}_text">
       <input class="typeahead_hidden" type="hidden" name="${input_name}"></input>`,
@@ -43,10 +43,10 @@ const setupBuilder = (() => {
               return item.label;
             },
         afterSelect: function(selected) {
-          if (typeof selected === "object") {
+          if (useIdInFilter) {
             $ruleInputHidden.val(selected.id);
           } else {
-            $ruleInputHidden.val(selected);
+            $ruleInputHidden.val(selected.label);
           }
         },
         source: function(query, process) {
@@ -87,7 +87,8 @@ const setupBuilder = (() => {
       ? typeaheadProperties(
           col.urlSuffix,
           builderConfig.layoutId,
-          col.instanceId
+          col.instanceId,
+          col.useIdInFilter
         )
       : {})
   });

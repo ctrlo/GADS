@@ -102,6 +102,10 @@ has '+fixedvals' => (
     default => 1,
 );
 
+has '+use_id_in_filter' => (
+    default => 1,
+);
+
 sub tjoin
 {   my ($self, %options) = @_;
     $self->make_join(map { $_->tjoin } grep { !$_->internal } @{$self->curval_fields_retrieve(%options)});

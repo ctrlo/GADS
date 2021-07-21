@@ -181,6 +181,12 @@ has fixedvals => (
     default => 0,
 );
 
+has use_id_in_filter => (
+    is      => 'ro',
+    isa     => Bool,
+    default => 0,
+);
+
 has can_multivalue => (
     is      => 'ro',
     isa     => Bool,

@@ -11,6 +11,7 @@
           "label": "[% col.filter_name | html_entity %]",
           "type": "[% col.type %]",
           "hasFilterTypeahead": [% col.has_filter_typeahead %],
+          "useIdInFilter": [% col.use_id_in_filter %],
           "urlSuffix": "[% col.id | uri %]",
           "instanceId": "[% col.layout.instance_id %]"
         }[% IF NOT loop.last %],[% END %]
