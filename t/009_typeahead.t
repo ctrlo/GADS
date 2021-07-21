@@ -32,10 +32,10 @@ my $columns = $sheet->columns;
 $sheet->create_records;
 
 my $column = $columns->{enum1};
-my @values = $column->values_beginning_with('foo');
+my @values = map $_->{label}, $column->values_beginning_with('foo');
 is (scalar @values, 3, "Typeahead returned correct number of results");
 is ("@values", "foo1 foo2 foo3", "Typeahead returned correct values");
-@values = $column->values_beginning_with('foo1');
+@values = map $_->{label}, $column->values_beginning_with('foo1');
 is (scalar @values, 1, "Typeahead returned correct number of results");
 is ("@values", "foo1", "Typeahead returned correct values");
 @values = $column->values_beginning_with('');
