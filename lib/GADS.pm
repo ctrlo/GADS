@@ -3495,7 +3495,6 @@ prefix '/:layout_name' => sub {
 
         my $layout = var('layout') or pass;
         my $query = param('q');
-        my $with_id = param('with_id');
         my $layout_id = param('layout_id');
 
         my $column = $layout->column($layout_id, permission => 'read');
@@ -3504,7 +3503,7 @@ prefix '/:layout_name' => sub {
         # To match data structure returned from getting filtered curval values
         to_json {
             error   => 0,
-            records => [ $column->values_beginning_with($query, with_id => $with_id, noempty => query_parameters->get('noempty')) ]
+            records => [ $column->values_beginning_with($query, noempty => query_parameters->get('noempty')) ]
         };
     };
 

@@ -39,6 +39,9 @@ const setupBuilder = (() => {
         sorter: function(items) {
           return items;
         },
+            displayText: function(item){
+              return item.label;
+            },
         afterSelect: function(selected) {
           if (typeof selected === "object") {
             $ruleInputHidden.val(selected.id);
@@ -52,10 +55,7 @@ const setupBuilder = (() => {
             url: `/${layoutId}/match/layout/${urlSuffix}`,
             data: { q: query, oi: instanceId },
             success: function(result) {
-              process(result);
-            },
-            displayText: function(item){
-              return item.label;
+              process(result.records);
             },
             dataType: "json"
           });

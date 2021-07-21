@@ -28,7 +28,7 @@
                                     Email each person in this column
                                 </button>
                             [% END %]
-                            <div class="column-filter" data-col-id="[% col.id %]" data-autocomplete-endpoint="/[% layout.identifier %]/match/layout/[% col.id %]?with_id=1&q=" data-values='[% col.filter_values %]' data-autocomplete-has-id="[% col.fixedvals %]">
+                            <div class="column-filter" data-col-id="[% col.id %]" data-autocomplete-endpoint="/[% layout.identifier %]/match/layout/[% col.id %]?q=" data-values='[% col.filter_values %]' data-autocomplete-has-id="[% col.fixedvals %]">
                                 [% IF col.has_filter %]
                                     <a class="column-filter__clear" href="?[% col.url_filter_remove %]">Clear filter</a>
                                 [% END %]

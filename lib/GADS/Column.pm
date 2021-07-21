@@ -1505,7 +1505,7 @@ sub values_beginning_with
                 rows => 10,
             },
         );
-        if ($options{with_id} && $self->fixedvals)
+        if ($self->fixedvals)
         {
             @value = map {
                 {
