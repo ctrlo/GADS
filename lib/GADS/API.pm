@@ -158,7 +158,7 @@ sub _update_record
 };
 
 # Create new record
-post '/api/record/:sheet' => require_api_user sub {
+post '/api/:sheet/record' => require_api_user sub {
 
     my $sheetname = param 'sheet';
     my $layout    = var('instances')->layout_by_shortname($sheetname); # borks on not found
@@ -186,7 +186,7 @@ post '/api/record/:sheet' => require_api_user sub {
 };
 
 # Edit existing record or new record with non-Linkspace index ID
-put '/api/record/:sheet/:id' => require_api_user sub {
+put '/api/:sheet/record/:id' => require_api_user sub {
 
     my $sheetname = param 'sheet';
     my $layout    = var('instances')->layout_by_shortname($sheetname); # borks on not found
@@ -217,7 +217,7 @@ put '/api/record/:sheet/:id' => require_api_user sub {
         }
     }
     else {
-        $record_to_update = $record_find->find_current_id($id);
+        $record_to_update = $record_find->find_serial_id($id);
     }
 
     _update_record($record_to_update, $request);
@@ -230,8 +230,8 @@ put '/api/record/:sheet/:id' => require_api_user sub {
     return;
 };
 
-# Get existing record
-get '/api/record/:sheet/:id' => require_api_user sub {
+# Get existing record - table serial identifier
+get '/api/:sheet/record/:id' => require_api_user sub {
 
     my $sheetname = param 'sheet';
     my $layout    = var('instances')->layout_by_shortname($sheetname); # borks on not found
@@ -250,8 +250,24 @@ get '/api/record/:sheet/:id' => require_api_user sub {
         $record->find_current_id($record->current_id);
     }
     else {
-        $record->find_current_id($id);
+        $record->find_serial_id($id);
     }
+
+    content_type 'application/json; charset=UTF-8';
+    return $record->as_json;
+};
+
+# Get existing record - using record ID
+get '/api/record/:id' => require_api_user sub {
+
+    my $user      = var('api_user');
+    my $id        = param 'id';
+
+    my $record = GADS::Record->new(
+        user   => $user,
+        schema => schema,
+    );
+    $record->find_serial_id($id);
 
     content_type 'application/json; charset=UTF-8';
     return $record->as_json;
