@@ -182,7 +182,7 @@ hook before => sub {
         ? var('api_user')
         : logged_in_user;
 
-    if (request->is_post)
+    if (request->is_post && request->path !~ m!^(/api/token)$!)
     {
         # Protect against CSRF attacks. NB: csrf_token can be in query params
         # or body params (different keys).
