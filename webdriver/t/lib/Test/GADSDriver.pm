@@ -904,14 +904,8 @@ sub delete_current_view_ok {
 
     my @failure = $self->_find_and_click( [ 'a[data-target="#myModal"]' ] );
 
-    my $modal_title_el = $webdriver->find('h4#myModalLabel');
-    if ( $modal_title_el->size && 'Are you sure?' eq $modal_title_el->text ) {
-        $test->note("About to delete view ${view_name}");
-        $webdriver->find('#myModal .modal-dialog .btn-primary')->click;
-    }
-    else {
-        push @failure, "No 'Are you sure?' modal found for view ${view_name}";
-    }
+    $test->note("About to delete view ${view_name}");
+    $webdriver->find('#myModal .modal-dialog .btn-primary')->click;
 
     $test->ok( !@failure, $name );
     $test->diag($_) foreach @failure;
