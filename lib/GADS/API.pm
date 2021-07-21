@@ -273,6 +273,42 @@ get '/api/record/:id' => require_api_user sub {
     return $record->as_json;
 };
 
+# Get existing record - using record ID
+get '/api/:sheet/records/view/:id' => require_api_user sub {
+
+    my $sheetname = param 'sheet';
+    my $user      = var('api_user');
+    my $view_id   = route_parameters->get('id');
+    my $layout    = var('instances')->layout_by_shortname($sheetname); # borks on not found
+
+    my $view = GADS::View->new(
+        id                       => $view_id,
+        instance_id              => $layout->instance_id,
+        schema                   => schema,
+        layout                   => $layout,
+    );
+    $view->exists
+        or error __x"View id {id} not found", id => $view_id;
+
+    my $records = GADS::Records->new(
+        user   => $user,
+        schema => schema,
+        view   => $view,
+        rows   => 100,
+        page   => query_parameterse->get('page') || 1,
+        layout => $layout,
+    );
+
+    my @return;
+    foreach my $rec (@{$records->results})
+    {
+        push @return, $rec->as_json;
+    }
+
+    content_type 'application/json; charset=UTF-8';
+    return encode_json \@return;
+};
+
 get '/clientcredentials/?' => require_any_role [qw/superadmin/] => sub {
 
     my $credentials = rset('Oauthclient')->next;
