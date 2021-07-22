@@ -150,9 +150,11 @@ sub upload
 
     if (@invalid)
     {
-        my $invalid = join ', ', @invalid;
-        error __x"The following column headings were found which are invalid: {invalid}",
-            invalid => $invalid;
+        my $invalid = join ', ', map qq("$_"), @invalid;
+        my $valid = join ', ', keys %user_fields;
+        error __x"The following column headings were found which are invalid: {invalid}. "
+            ."Only the following fields can be used: {valid}",
+                invalid => $invalid, valid => $valid;
     }
 
     defined $user_mapping{email}
