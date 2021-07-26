@@ -27,9 +27,18 @@ jobs:
           prove -lrs -j4 t
 
   webdriver_tests:
-    name: 'Webdriver Tests'
+    name: 'Webdriver Tests for ${{ matrix.browser.name }}'
     runs-on: 'ubuntu-20.04'
     timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser:
+          - name: 'Chromium'
+            command: 'chromedriver --port=4444 &'
+          - name: 'Firefox'
+            command: 'MOZ_HEADLESS=1 geckodriver --log warn &'
 
     services:
       postgres:
@@ -77,5 +86,7 @@ jobs:
           PGHOST: 'localhost'
           PGUSER: 'postgres'
         run: ./bin/setup_for_webdriver
+      - name: 'Run the Webdriver implementation'
+        run: '${{ matrix.browser.command }}'
       - name: 'Run the Webdriver tests'
         run: prove -lmrsv webdriver/t
