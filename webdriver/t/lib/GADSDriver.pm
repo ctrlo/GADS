@@ -82,7 +82,14 @@ Defaults to using an object of that class that connects to port 4444.
 
 has webdriver => (
     is => 'ro',
-    default => sub { WebDriver::Tiny->new( port => 4444 ) },
+    default => sub {
+        WebDriver::Tiny->new(
+            port => 4444,
+            capabilities => {
+                'goog:chromeOptions' => { args => ['--headless'] },
+            },
+        );
+    },
 );
 
 =head2 type_into_field

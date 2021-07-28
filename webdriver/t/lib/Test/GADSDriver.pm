@@ -7,7 +7,6 @@ use GADSDriver ();
 use List::MoreUtils 'zip';
 use Test2::API 'context';
 use Test2::Tools::Compare qw( is like unlike );
-use WebDriver::Tiny; # Enable "\N{WD_END}"
 
 =head1 NAME
 
@@ -856,6 +855,11 @@ sub confirm_deletion_ok {
         dies => 0,
     );
 
+    # Disable Bootstrap transitions to avoid timing issues.  Trying to
+    # click on an element whilst it animates fails with an "Element ...
+    # could not be scrolled into view" error.
+    $webdriver->js( '$.support.transition = false' );
+
     my $success = $self->_check_only_one( $delete_button_el, 'delete button' );
     if ($success) {
         $delete_button_el->click;
@@ -893,16 +897,15 @@ sub delete_current_view_ok {
 
     my $view_name = $webdriver->find('input#name')->attr('value');
 
+    # Disable Bootstrap transitions to avoid timing issues.  Trying to
+    # click on an element whilst it animates fails with an "Element ...
+    # could not be scrolled into view" error.
+    $webdriver->js( '$.support.transition = false' );
+
     my @failure = $self->_find_and_click( [ 'a[data-target="#myModal"]' ] );
 
-    my $modal_title_el = $webdriver->find('h4#myModalLabel');
-    if ( $modal_title_el->size && 'Are you sure?' eq $modal_title_el->text ) {
-        $test->note("About to delete view ${view_name}");
-        $webdriver->find('#myModal .modal-dialog .btn-primary')->click;
-    }
-    else {
-        push @failure, "No 'Are you sure?' modal found for view ${view_name}";
-    }
+    $test->note("About to delete view ${view_name}");
+    $webdriver->find('#myModal .modal-dialog .btn-primary')->click;
 
     $test->ok( !@failure, $name );
     $test->diag($_) foreach @failure;
@@ -933,7 +936,7 @@ sub delete_viewed_record_ok {
     my @failure = $self->_find_and_click( [ '.btn-delete' ], jquery => 1 );
 
     $test->note("About to delete $record_title");
-    push @failure, $self->_find_and_click( [ '#modaldelete .btn-primary.submit_button' ] );
+    $webdriver->find('#modaldelete .btn-primary.submit_button')->click;
 
     $test->ok( !@failure, $name );
     $test->diag($_) foreach @failure;
@@ -998,7 +1001,10 @@ sub _find_and_click {
     foreach my $selector (@$selectors_ref) {
         # TODO: Move 'tries' to configuration
         my $found_el = $webdriver->find( $selector, dies => 0, tries => 25 );
-        if ( 0 == $found_el->size || !$found_el->visible ) {
+        if ( 0 == $found_el->size ) {
+            push @failure, "No elements matching '${selector}' found";
+        }
+        elsif ( !$found_el->visible ) {
             push @failure, "No visible elements matching '${selector}' found";
         }
         else {
@@ -1034,8 +1040,15 @@ sub purge_deleted_records_ok {
     push @failure, $self->_check_element_against_expectation(
         $title_el, { text => 'Manage deleted records' } );
 
-    $webdriver->find('#selectall')->click;
-    $webdriver->find('button[data-target="#purge"]')->click;
+    # Disable Bootstrap transitions to avoid timing issues.  Trying to
+    # click on an element whilst it animates fails with an "Element ...
+    # could not be scrolled into view" error.
+    $webdriver->js( '$.support.transition = false' );
+
+    push @failure, $self->_find_and_click([
+        '#selectall',
+        'button[data-target="#purge"]',
+    ]);
     $webdriver->find('button[type="submit"][name="purge"]')->click;
 
     $test->ok( !@failure, $name );
