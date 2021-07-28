@@ -182,7 +182,7 @@ hook before => sub {
         ? var('api_user')
         : logged_in_user;
 
-    if (request->is_post && request->path !~ m!^(/api/token)$!)
+    if (request->is_post && request->path !~ m!^(/api/token|/print)$!)
     {
         # Protect against CSRF attacks. NB: csrf_token can be in query params
         # or body params (different keys).
@@ -1612,6 +1612,20 @@ get '/invalidsite' => sub {
     template 'invalidsite' => {
         page => 'invalidsite'
     };
+};
+
+post '/print' => require_login sub {
+
+    my $html = body_parameters->get('html')
+        or error __"Missing body parameter: html";
+
+    my $pdf = _page_as_mech(undef, undef, html => $html)->content_as_pdf(
+        paperWidth => 16.5, paperHeight => 11.7 # A3 landscape
+    );
+    return send_file(
+        \$pdf,
+        content_type => 'application/pdf',
+    );
 };
 
 prefix '/:layout_name' => sub {
@@ -3659,7 +3673,7 @@ sub _page_as_mech
     $params->{base}         = "file://$public/";
     $params->{page_as_mech} = 1;
     $params->{zoom}         = ($options{zoom} ? int($options{zoom}) : 100) / 100;
-    my $timeline_html       = template $template, $params;
+    my $timeline_html       = $options{html} || template $template, $params;
     my ($fh, $filename)     = tempfile(SUFFIX => '.html');
     print $fh $timeline_html;
     close $fh;
