@@ -1480,8 +1480,9 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
 
     if ($@)
     {
+        my $err = $@;
         _audit_log();
-        $@->reportFatal;
+        $err->reportFatal;
     }
 
     my $layout = $record->layout;
