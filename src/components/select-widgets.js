@@ -158,21 +158,21 @@ const setupSelectWidgets = (() => {
       var deleteButton = multi
         ? '<button type="button" class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>'
         : "";
-      return $(
+      var $li = $(
         "<li " +
           (checked ? "" : "hidden") +
           ' data-list-item="' +
           valueId +
-          '" data-list-text="' +
-          label +
           '" class="' +
           className +
           '"><span class="widget-value__value">' +
-          label +
           "</span>" +
           deleteButton +
           "</li>"
       );
+      $li.data('list-text', label);
+      $li.find('span').text(label);
+      return $li;
     };
 
     var availableLi = function(multi, field, value, label, checked) {
@@ -195,7 +195,11 @@ const setupSelectWidgets = (() => {
         "</button>" +
         "</span>";
 
-      return $(
+      var $span = $('<span role="option"></span>');
+      $span.data('list-text', label);
+      $span.data('list-id', value);
+      $span.text(label);
+      var $li = $(
         '<li class="' +
           classNames +
           '">' +
@@ -219,22 +223,14 @@ const setupSelectWidgets = (() => {
           (multi ? "" : "visually-hidden") +
           '" aria-labelledby="' +
           valueId +
-          '_label">' +
-          ' <span role="option"' + // Add space to keep spacing consistent with templates
-          ' data-list-text="' +
-          label +
-          '"' +
-          ' data-list-id="' +
-          value +
-          '"' +
-          '>' +
-          label +
-          "</span>" +
+          '_label"> ' + // Add space to keep spacing consistent with templates
           "</label>" +
           "</span>" +
           (value ? detailsButton : "") +
           "</li>"
       );
+      $li.find('label').append($span);
+      return $li;
     };
 
     // Give each AJAX load its own ID. If a higher ID has started by the time
