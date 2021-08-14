@@ -73,12 +73,25 @@ the values in records, not change any aspect of the layout. Specifically:
 [% END %]
 
 [% global.helptext.layout_match = BLOCK %]
-<p>For an exact match, enter the required text. For any other type of
-match, enter a Regular Expression (see examples below). Values of tree
-nodes are rendered as their full path, concatenated with a hash (for
-example "Level 1#Level 2#Node value").</p>
+<p>LinkSpace uses Regular Expressions (regex), which is a powerful and flexible
+way of supporting complex searching and manipulation of text strings.  Below
+are a number of examples of how regular expressions can be used to configure
+the display options you can define.</p>
+<p>For an exact match, enter the required text. If for example you want this
+field to appear as the result of selecting ‘Other’ in a drop down menu then you
+would select the field, the operator ‘equal’ and enter ‘Other’ into the text
+field. Equivalently select ‘not equal’ for negative exact matches.</p>
+<p>For any other type of match enter a regex (see examples below). In addition
+to letters and numbers there are some special characters, such as line breaks,
+that need treating differently. To support these characters and for non-exact
+matches you can select the ‘contains’ or ‘doesn’t contain’ operators. For
+example if your display option was to display fields when a multi-line text box
+had values in, which may contain line breaks, the operator ‘contains’ could be
+selected with ‘.+’</p>
+<p>Values of tree nodes are rendered as their full path, concatenated with a
+hash (for example "Level 1#Level 2#Node value").</p>
 <p>To match any non-blank value:</p>
-<tt><pre>.+</pre></tt>
+<tt><pre>[\s\S]+</pre></tt>
 <p>To match any of three values "val1", "val2" or "val3 (comment)":</p>
 <tt><pre>(val1|val2|val3 \(comment\))</pre></tt>
 <p>To match a value containing the word "foo":</p>
