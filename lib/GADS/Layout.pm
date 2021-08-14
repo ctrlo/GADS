@@ -1050,7 +1050,9 @@ sub _order_dependencies
     return unless @columns;
 
     my %deps = map {
-        $_->id => $_->has_display_field ? $_->display_field_col_ids : $_->depends_on
+        my $id = $_->id;
+        $_->id =>    # Allow fields depend on theirselves, but remove from dependencies to prevent recursion
+            [grep $_ != $id, @{$_->has_display_field ? $_->display_field_col_ids : $_->depends_on}],
     } @columns;
 
     my %seen;

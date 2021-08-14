@@ -1238,8 +1238,6 @@ sub write
         if $self->id;
     foreach my $cond (@{$self->display_fields->filters})
     {
-        $cond->{column_id} == $self->id
-            and error __"Display condition field cannot be the same as the field itself";
         $display_rs->create({
             layout_id        => $new_id || $self->id,
             display_field_id => $cond->{column_id},

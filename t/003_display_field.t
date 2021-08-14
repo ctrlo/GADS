@@ -662,9 +662,62 @@ foreach my $field (@fields)
 
 # Tests for recursive display fields
 {
-    $string1->display_fields(_filter(col_id => $string1->id, regex => 'Foobar'));
-    try { $string1->write };
-    like($@, qr/not be the same/, "Unable to write display field same as field itself");
+    my $date1 = $columns->{date1};
+    my @rules = (
+        {
+            id       => $string1->id,
+            operator => 'equal',
+            value    => 'Foobar',
+        },
+        {
+            id       => $date1->id,
+            operator => 'equal',
+            value    => '2013-02-02',
+        },
+    );
+    my $as_hash = {
+        condition => 'OR',
+        rules     => \@rules,
+    };
+    my $filter = GADS::Filter->new(
+        layout  => $layout,
+        as_hash => $as_hash,
+    );
+    $string1->display_fields($filter);
+    $string1->write;
+    $layout->clear;
+
+    # Write initial record
+    my $record = GADS::Record->new(
+        user   => $sheet->user,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->initialise;
+    $record->fields->{$string1->id}->set_value('Foobar');
+    $record->fields->{$date1->id}->set_value('2013-02-02');
+    $record->fields->{$integer1->id}->set_value('1234'); # Mandatory field
+    $record->write(no_alerts => 1);
+    my $cid = $record->current_id;
+
+    # Check written values
+    $record->clear;
+    $record->find_current_id($cid);
+    is($record->fields->{$string1->id}->as_string, "Foobar", "String correct initially");
+
+    # Now remove first condition of date
+    $record->fields->{$date1->id}->set_value('2013-02-01');
+    $record->write(no_alerts => 1);
+    $record->clear;
+    $record->find_current_id($cid);
+    is($record->fields->{$string1->id}->as_string, "Foobar", "String correct after removing first condition");
+
+    # Now remove first condition of string
+    $record->fields->{$string1->id}->set_value('Foobar2');
+    $record->write(no_alerts => 1);
+    $record->clear;
+    $record->find_current_id($cid);
+    is($record->fields->{$string1->id}->as_string, "", "String blank after removing second condition");
 }
 
 # Finally check that columns with display fields can be deleted

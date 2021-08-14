@@ -91,8 +91,10 @@ const setupDependentFields = (() => {
 
         // Trigger value check on any fields that depend on this one, e.g.
         // if this one is now hidden then that will change its value to
-        // blank
-        $field.trigger("change");
+        // blank. Don't do this if the dependent field is the same as the field
+        // with the display condition.
+        if ($field.data('column-id') != $depends.data('column-id'))
+            $field.trigger("change");
       };
 
       // If the field depended on is not actually in the form (e.g. if the
