@@ -480,7 +480,8 @@ sub _update
         # Add to existing cache.
         $new_tree->{$id} = $dbt;
         $enum_mapping->{$source_id} = $id
-            if $enum_mapping;
+            # source_id not set when more new values than old values
+            if $enum_mapping && $source_id;
     }
 
     foreach my $child (@{$t->{children}})
