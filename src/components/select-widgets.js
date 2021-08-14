@@ -220,7 +220,14 @@ const setupSelectWidgets = (() => {
           '" aria-labelledby="' +
           valueId +
           '_label">' +
-          ' <span role="option">' + // Add space to keep spacing consistent with templates
+          ' <span role="option"' + // Add space to keep spacing consistent with templates
+          ' data-list-text="' +
+          label +
+          '"' +
+          ' data-list-id="' +
+          value +
+          '"' +
+          '>' +
           label +
           "</span>" +
           "</label>" +

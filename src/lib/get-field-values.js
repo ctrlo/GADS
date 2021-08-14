@@ -43,7 +43,7 @@ var getFieldValues = function($depends, filtered, for_code) {
       $visible = $depends.find(".select-widget .available .answer");
       $visible.each(function() {
         var item = $(this).find('[role="option"]');
-        values.push(item.text());
+        values.push(item);
       });
     } else {
       $visible = $depends.find(
