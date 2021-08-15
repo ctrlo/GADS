@@ -51,7 +51,7 @@ var getFieldValues = function($depends, filtered, for_code) {
       );
       $visible.each(function() {
         var item = $(this).hasClass("current__blank")
-          ? null
+          ? undefined
           : $(this);
         values.push(item);
       });
@@ -70,7 +70,7 @@ var getFieldValues = function($depends, filtered, for_code) {
         if (values.length && values[0]) {
           return values[0].data("list-text");
         } else {
-          return null;
+          return undefined;
         }
       }
     } else {
@@ -114,7 +114,7 @@ var getFieldValues = function($depends, filtered, for_code) {
         var from = dr.from.datepicker("getDate");
         var to   = dr.to.datepicker("getDate");
         if (!from || !to) {
-          return null;
+          return undefined;
         }
         return {
           from:  format_date(from),
