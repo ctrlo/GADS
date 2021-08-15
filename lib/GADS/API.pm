@@ -295,7 +295,7 @@ get '/api/:sheet/records/view/:id' => require_api_user sub {
         schema => schema,
         view   => $view,
         rows   => 100,
-        page   => query_parameterse->get('page') || 1,
+        page   => query_parameters->get('page') || 1,
         layout => $layout,
     );
 
