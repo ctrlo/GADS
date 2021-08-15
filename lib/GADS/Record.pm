@@ -2404,10 +2404,12 @@ sub restore
 }
 
 sub as_json
-{   my $self = shift;
+{   my ($self, $view) = @_;
     my $return;
-    foreach my $col ($self->layout->all_user_read)
+    my @col_ids = $view ? @{$view->columns} : (map $_->id, $self->layout->all_user_read);
+    foreach my $col_id (@col_ids)
     {
+        my $col = $self->layout->column($col_id);
         my $short = $col->name_short or next;
         $return->{$short} = $self->fields->{$col->id}->as_string;
     }

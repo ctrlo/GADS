@@ -302,7 +302,7 @@ get '/api/:sheet/records/view/:id' => require_api_user sub {
     my @return;
     foreach my $rec (@{$records->results})
     {
-        push @return, $rec->as_json;
+        push @return, $rec->as_json($view);
     }
 
     content_type 'application/json; charset=UTF-8';
