@@ -59,12 +59,19 @@ var getFieldValues = function($depends, filtered, for_code) {
     if (for_code) {
       if ($depends.data('is-multivalue')) {
         // multivalue
-        return $.map(values, function(item) {
+        var vals = $.map(values, function(item) {
           return {
             id:    item.data("list-id"),
             value: item.data("list-text")
           };
         });
+        var plain = $.map(vals, function(item) {
+          return item.value;
+        });
+        return {
+          text: plain.join(', '),
+          values: vals
+        };
       } else {
         // single value
         if (values.length && values[0]) {
