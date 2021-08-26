@@ -160,15 +160,23 @@ var getFieldValues = function($depends, filtered, for_code) {
     }
 
   } else {
-    $f = $depends.find(".form-control");
-    values = [$f.val()];
+    // Can't use map as an undefined return value is skipped
+    values = [];
+    $depends.find(".form-control").each(function(){
+        var $df = $(this);
+        values.push($df.val().length ? $df.val() : undefined);
+    });
+    // Provide consistency with backend: single value is returned as scalar
+    if (for_code && !$depends.data('is-multivalue')) {
+        values = values.shift();
+    }
   }
 
   // A multi-select field with no values selected should be the same as a
   // single-select with no values. Ensure that both are returned as a single
   // empty string value. This is important for display_condition testing, so
   // that at least one value is tested, even if it's empty
-  if (values.length == 0) {
+  if (Array.isArray(values) && values.length == 0) {
     values = [""];
   }
 
