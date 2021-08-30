@@ -900,7 +900,7 @@ sub columns_for_filter
 {   my ($self, %options) = @_;
     my @columns;
     my %restriction = (include_internal => 1);
-    $restriction{user_can_read} = 1 unless $options{override_permissions};
+    $restriction{user_can_read} = 1 unless $options{show_all_columns};
     foreach my $col ($self->all(%restriction))
     {
         push @columns, $col;

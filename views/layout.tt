@@ -693,7 +693,7 @@
 [% END %]
 
 [% FOREACH instance_layout IN instance_layouts %]
-    [% PROCESS builder.tt builder_id = instance_layout.instance_id builder_layout = instance_layout filter_normal = column.filter filter_base64 = column.filter.base64 override_permissions = 1 %]
+    [% PROCESS builder.tt builder_id = instance_layout.instance_id builder_layout = instance_layout filter_normal = column.filter filter_base64 = column.filter.base64 show_all_columns = 1 %]
 [% END %]
 
 <form method="post">

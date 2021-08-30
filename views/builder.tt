@@ -5,7 +5,7 @@
     "layoutId": "[% layout.identifier %]",
     "showPreviousValues": [% IF include_previous %]true[% ELSE %]false[% END %],
     "filters": [
-      [% FOR col IN builder_layout.columns_for_filter("override_permissions", override_permissions) %]
+      [% FOR col IN builder_layout.columns_for_filter("show_all_columns", show_all_columns) %]
         {
           "filterId": "[% col.filter_id %]",
           "label": "[% col.filter_name | html_entity %]",
