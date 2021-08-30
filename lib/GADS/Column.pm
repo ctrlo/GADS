@@ -1082,7 +1082,7 @@ sub write
 {   my ($self, %options) = @_;
 
     error __"You do not have permission to manage fields"
-        unless $self->layout->user_can("layout") || $options{override_permissions}; # For tests
+        unless $self->layout->user_can("layout") || $options{force}; # For tests
 
     error __"Internal fields cannot be edited"
         if $self->internal && !$options{allow_internal_write};

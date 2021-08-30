@@ -130,7 +130,7 @@ is($curval_record->fields->{$calc_curval->id}->as_string, "10Foobar10Bar", "Auto
 my $start_count = $schema->resultset('Current')->search({ instance_id => 2 })->count;
 my $curval = $columns->{curval1};
 $curval->show_add(1);
-$curval->write(no_alerts => 1, override_permissions => 1);
+$curval->write(no_alerts => 1, force => 1);
 $layout->clear;
 
 $parent->clear;
