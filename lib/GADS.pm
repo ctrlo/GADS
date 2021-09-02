@@ -625,15 +625,17 @@ any ['get', 'post'] => '/login' => sub {
     }
 
     my $output  = template 'login' => {
-        error         => "".($error||""),
-        error_modal   => $error_modal,
-        username      => cookie('remember_me'),
-        titles        => $users->titles,
-        organisations => $users->organisations,
-        departments   => $users->departments,
-        teams         => $users->teams,
-        register_text => var('site')->register_text,
-        page          => 'login',
+        error           => "".($error||""),
+        error_modal     => $error_modal,
+        username        => cookie('remember_me'),
+        titles          => $users->titles,
+        organisations   => $users->organisations,
+        departments     => $users->departments,
+        teams           => $users->teams,
+        register_text   => var('site')->register_text,
+        page            => 'login',
+        container_class => 'login',
+        main_class      => 'login__main',
     };
     $output;
 };
@@ -3731,7 +3733,7 @@ sub _page_as_mech
         $mech->viewport_size({ width => 1550, height => 1085 });
         $mech->get_local("${filename}?pdf=1");
     }
-    else 
+    else
     {
         $mech->get_local($filename);
     }
