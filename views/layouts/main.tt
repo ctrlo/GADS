@@ -1,253 +1,39 @@
 <!DOCTYPE html>
-<!--[if IE 8]>        <html lang="en" class="ie8"><![endif]-->
-<!--[if gt IE 8]><!--><html lang="en"><!--<![endif]-->
+<html lang="en">
     <head>
         <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="">
-        <meta name="author" content="">
-        <link rel="shortcut icon" href="../../assets/ico/favicon.ico">
-
-        [% IF hostlocal %]
-            <link rel="stylesheet" href="[% url.css %]/font-awesome.min.css">
-            <link rel="stylesheet" href="[% url.css %]/bootstrap.min.css">
-            <!-- <link href='[% scheme %]://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'> -->
-        [% ELSE %]
-            <link href='[% scheme %]://fonts.googleapis.com/css?family=Open+Sans:400,300,700' rel='stylesheet' type='text/css'>
-            <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
-            <link rel="stylesheet" href="[% scheme %]://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-        [% END %]
-        <link rel="stylesheet" href="[% url.css %]/dashboard.css">
 
         <title>[% page %] | Linkspace</title>
 
-        <!-- Custom styles for this template -->
-        [% UNLESS page_as_mech %]
-            <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap.css?v=12">
-            [% IF config.gads.legacy_menu %]
-                <link rel="stylesheet" href="[% url.css %]/ctrlo-bootstrap-legacy.css">
-            [% END %]
-        [% END %]
+        <meta name="author" content="Digitpaint - Boilerplates">
 
-        [% IF page.match('(layout|edit|approval|audit|bulk|data|graph)') %]
-            <link rel="stylesheet" href="[% url.css %]/jstree.min.css" />
-            <link rel="stylesheet" href="[% url.css %]/bootstrap-datepicker.min.css" />
-            <link rel="stylesheet" href="[% url.css %]/bootstrap-select.min.css" />
-        [% END %]
-        [% IF page == "data_calendar" %]
-            <link rel="stylesheet" href="[% url.css %]/calendar.min.css">
-        [% END %]
-        [% IF page == "data_timeline" OR page == "index" %]
-            <link rel="stylesheet" href="[% url.css %]/tippy.css">
-            <link rel="stylesheet" href="[% url.css %]/light.css">
-            [% IF hostlocal %]
-                <script type='text/javascript' src='[% url.js %]/handlebars.runtime.min.js'></script>
-            [% ELSE %]
-                <script type='text/javascript' src='[% scheme %]://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.runtime.min.js'></script>
-            [% END %]
-            <script type='text/javascript' src='[% url.js %]/handlebars-timeline-item-template.js'></script>
-        [% END %]
-        [% IF page.match("(view|layout)") %]
-            <link rel="stylesheet" href="[% url.css %]/query-builder.css">
-        [% END %]
-        [% IF page.match('(user|account|graph)') %]
-            [% IF hostlocal %]
-                <link rel="stylesheet" href="[% url.css %]/dataTables.bootstrap.css">
-            [% ELSE %]
-                <link rel="stylesheet" href="[% scheme %]://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.css">
-            [% END %]
-        [% END %]
-        [% IF page == "config" || page == "system" || page == "index" %]
-            <link href="[% url.css %]/summernote.css" rel="stylesheet">
-        [% END %]
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <meta name="generator" content="Roger" />
+        <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
 
-        <!-- Custom styles for this template -->
-        <link rel="stylesheet" href="[% url.css %]/local.css?v=2">
+        <!-- location dependent stylesheets for CDN om prod. check if still needed-->
+        [% IF hostlocal %]
 
-        [% IF user.stylesheet %]
-            <!-- Custom styles for this user -->
-            <link rel="stylesheet" href="[% url.css %]/[% user.stylesheet %]">
+        [% ELSE %]
+
         [% END %]
-
-        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
-        <!--[if lt IE 9]>
-        <script type='text/javascript' src='[% url.js %]/html5shiv.js'></script>
-        <script type='text/javascript' src='[% url.js %]/respond.min.js'></script>
-        <![endif]-->
+        <link rel="stylesheet" href="[% url.css %]/general.css">
     </head>
 
-    <body class="page [% page %]" data-page="[% page %]" data-csrf-token="[% csrf_token %]"
-        data-page-as-mech="[% page_as_mech %]"
-        data-layout-identifier="[% layout.identifier %]"
-        data-config-dataformat-datepicker="[% config.dateformat_datepicker %]"
-        style="font-size:15px[% IF page_as_mech %];zoom:[% zoom %][% END %]"
-    >
-        <header role="banner" class="container">
-        [% IF header AND NOT page_as_mech %]
-            <p class="text-center">[% header %]</p>
-        [% END %]
+    <body class="p-0">
+        <div class="[% container_class %] container-fluid">
+            <main class="[% main_class %] row">
+                [% content %]
+            </main>
 
-        [%
-            UNLESS page == "login" OR page == "invalidsite" OR page_as_mech;
-                PROCESS snippets/navigation.tt;
-            END
-        %]
-
-        [% IF messages.size %]
-            <ul class="messages">
-            [% FOR message IN messages %]
-                <li role="alert" class="alert alert-[% message.bootstrap_color %]">
-                    [% IF message.inClass("html") %]
-                        [% message.reason %]: [% message.toString %]
-                    [% ELSE %]
-                        [% message.reason %]: [% message.toString | html_entity %]
-                    [% END %]
-                </li>
-            [% END %]
-            </ul>
-        [% END %]
-
-            [% IF session.rewind %]
-                <div role="alert" class="alert alert-info">You are viewing data as it was on [% session.rewind.format_cldr(config.dateformat) %] at [% session.rewind.hms %]</div>
-            [% END %]
-        </header>
-
-        [%
-            full_width_pages = {
-                data_timeline => 1,
-                data_table => 1,
-                data_calendar => 1,
-                index => 1
-            }
-        %]
-
-        [% main_container_class = full_width_pages.exists(page) ? 'container-fluid' : 'container' %]
-
-        <main role="main" id="main" class="[% main_container_class %]">
-            [% content %]
-        </main>
-
-        <!-- Bootstrap core JavaScript
-        ================================================== -->
-        <!-- Placed at the end of the document so the pages load faster -->
-        [% IF hostlocal %]
-            [%# Old versions of JQuery do not seem to work with CSP, but new
-            versions do not work with IE8. Given that IE8 does not support CSP,
-            use old version for it but newer version for everything else %]
-            <!--[if lt IE 9]>
-                <script src="[% url.js %]/jquery-1.12.4.min.js"></script>
-            <![endif]-->
-            <![if gte IE 9]>
-                <script src="[% url.js %]/jquery-3.5.1.min.js"></script>
-            <![endif]>
-            <script src="[% url.js %]/jquery-ui.min.js"></script>
-            <script src="[% url.js %]/bootstrap.min.js"></script>
-            <script src="[% url.js %]/tooltip.min.js"></script>
-            <script src='[% url.js %]/vendor/jquery.ui.widget.js'></script>
-            <script src='[% url.js %]/vendor/jquery.iframe-transport.js'></script>
-            <script src='[% url.js %]/vendor/jquery.fileupload.js'></script>
-        [% ELSE %]
-            <script src="[% scheme %]://code.jquery.com/jquery-1.12.4.min.js"></script>
-            <!--[if lt IE 9]>
-                <script src="[% scheme %]://code.jquery.com/jquery-1.12.4.min.js"></script>
-            <![endif]-->
-            <![if gte IE 9]>
-                <script src="[% scheme %]://code.jquery.com/jquery-3.5.1.min.js"></script>
-            <![endif]>
-            <script src="[% scheme %]://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-            <script src="[% scheme %]://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-            <script src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.2.0/js/tooltip.min.js"></script>
-        [% END %]
-        [% IF page.match('(edit|approval|audit|bulk|data|graph)') %]
-            <script type="text/javascript" src="[% url.js %]/bootstrap-datepicker.min.js"></script>
-        [% END %]
-        <script type="text/javascript" src="[% url.js %]/base64.min.js"></script>
-        <script type="text/javascript" src="[% url.js %]/jquery.actual.min.js"></script>
-        [% IF page == "data_graph" OR page == "index" %]
-            <!--[if lt IE 9]><script language="javascript" type="text/javascript" src="/js/excanvas.min.js"></script><![endif]-->
-            <script language="javascript" type="text/javascript" src="[% url.js %]/jquery.jqplot.min.js"></script>
-            <script language="javascript" type="text/javascript" src="[% url.js %]/jqplot/jqplot.highlighter.min.js"></script>
-            <link rel="stylesheet" type="text/css" href="[% url.css %]/jquery.jqplot.min.css" />
-            [% # TODO: concatenate and uglify jqplot.* %]
-            <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.barRenderer.js"></script>
-            <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.donutRenderer.js"></script>
-            <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.pieRenderer.js"></script>
-            <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.categoryAxisRenderer.js"></script>
-            <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.pointLabels.js"></script>
-            <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.dateAxisRenderer.js"></script>
-            <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasTextRenderer.js"></script>
-            <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasAxisTickRenderer.js"></script>
-            <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasTextRenderer.min.js"></script>
-            <script type="text/javascript" src="[% url.js %]/jqplot/jqplot.canvasAxisLabelRenderer.min.js"></script>
-        [% END %]
-        [% IF page.match('(view|data|layout|index)') %]
-            <script type="text/javascript" src="[% url.js %]/underscore-min.js"></script>
-        [% END %]
-        [% IF page.match('(view|layout)') %]
-            <script type="text/javascript" src="[% url.js %]/query-builder.standalone.js"></script>
-        [% END %]
-        [% IF page.match('(view|edit|layout|bulk|data|audit)') %]
-            <script type="text/javascript" src="[% url.js %]/bootstrap3-typeahead.min.js"></script>
-        [% END %]
-        [% IF page == "data_calendar" %]
-            <script type="text/javascript" src="[% url.js %]/calendar.min.js"></script>
-        [% END %]
-        [% IF page == "data_timeline" OR page == "index" %]
-            <script type="text/javascript" src="[% url.js %]/moment.min.js"></script>
-            <script type="text/javascript" src="[% url.js %]/vis-timeline-graph2d.min.js"></script>
-            <script type="text/javascript" src="[% url.js %]/tippy.min.js"></script>
-        [% END %]
-        [% IF page == "data_globe" OR page == "index" %]
-            [% IF hostlocal %]
-                <script type="text/javascript" src="[% url.js %]/plotly-geo-1.38.2.js"></script>
-            [% ELSE %]
-                <script type="text/javascript" src="[% scheme %]://cdn.plot.ly/plotly-geo-1.38.2.min.js"></script>
-            [% END %]
-        [% END %]
-        [% IF page == "data_table" %]
-            [% IF hostlocal OR 1 # CDN version not available at time of writing %]
-                <script type="text/javascript" src="[% url.js %]/jquery.floatThead.min.js"></script>
-            [% ELSE %]
-                <script type="text/javascript" src="[% scheme %]://cdnjs.cloudflare.com/ajax/libs/floatthead/2.1.4/jquery.floatThead.min.js"></script>
-            [% END %]
-        [% END %]
-        [% IF page.match("data") %]
-            <script type='text/javascript' src='[% url.js %]/fontdetect.min.js'></script>
-        [% END %]
-        [% IF page == "config" || page == "system" || page == "index" %]
-            [% IF 0 %]
-                <script type="text/javascript" src="[% url.js %]/tiny_mce/tiny_mce.js"></script>
-            [% ELSE %]
-                <script src="[% url.js %]/summernote.min.js"></script>
-            [% END %]
-        [% END %]
-        [% IF page == "login" %]
-            <!--[if (gte IE 6)&(lte IE 8)]>
-                <script type="text/javascript" src="[% url.js %]/selectivizr-min.js"></script>
-            <![endif]-->
-        [% END %]
-        [% IF page.match('(user|account|graph)') %]
-            [% IF hostlocal %]
-                <script type="text/javascript" src="[% url.js %]/jquery.dataTables.min.js"></script>
-                <script type="text/javascript" src="[% url.js %]/dataTables.bootstrap.js"></script>
-            [% ELSE %]
-                <script type="text/javascript" src="[% scheme %]://cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js"></script>
-                <script type="text/javascript" src="[% scheme %]://cdn.datatables.net/plug-ins/9dcbecd42ad/integration/bootstrap/3/dataTables.bootstrap.js"></script>
-            [% END %]
-        [% END %]
-
-        [% IF page.match('(layout|edit|approval|bulk)') %]
-            <script src="[% url.js %]/jstree.min.js"></script>
-            <script src="[% url.js %]/bootstrap-select.min.js"></script>
-        [% END %]
-
-        <script type="text/javascript" src="[% url.js %]/fengari-web.js"></script>
-        <script type="text/javascript" src="[% url.js %]/jquery.placeholder.js"></script>
-        <script src="[% url.js %]/linkspace.js?v=107"></script>
-
-        <!--[if IE 8]><script src="[% url.js %]/dashboard-ie8-fallback.js"></script><![endif]-->
-        <!--[if !IE 8]><!--><script src="[% url.js %]/dashboard.js"></script><!--<![endif]-->
+            <footer class="login__footer row">
+                <div class="login__footer-container col-md-12">
+                    a product by
+                    <img src="[% url.page %]/images/logo.svg" class="login__footer-logo">
+                </div>
+            </footer>
+        </div>
+        <script type="text/javascript" src="[% url.js %]/site.js"></script>
     </body>
 </html>
-
