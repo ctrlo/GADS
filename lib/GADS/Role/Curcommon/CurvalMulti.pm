@@ -5,6 +5,13 @@ use Moo::Role;
 sub fetch_multivalues
 {   my ($self, $record_ids, %options) = @_;
 
+    local $SL::Schema::IGNORE_PERMISSIONS = 1 if $self->override_permissions;
+    # Always ignore permissions of fields in the actual search. This doesn't
+    # affect any filters that may be applied, but is in fact the opposite: if a
+    # limited view is defined (using fields the user does not have access to)
+    # then this ensures it is properly applied
+    local $SL::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
+
     # Order by record_id so that all values for one record are grouped together
     # (enabling later code to work)
     my $m_rs = $self->schema->resultset('Curval')->search({
@@ -16,15 +23,16 @@ sub fetch_multivalues
     $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my @values = $m_rs->all;
     my $records = GADS::Records->new(
-        user                    => $self->override_permissions ? undef : $self->layout->user,
+        user                    => $self->layout->user,
         rewind                  => $options{rewind},
         layout                  => $self->layout_parent,
         schema                  => $self->schema,
         columns                 => $self->curval_field_ids,
+        already_seen            => $options{already_seen},
         include_deleted         => 1,
         limit_current_ids       => [map { $_->{value} } @values],
         is_draft                => $options{is_draft},
-        columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns),
+        columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns, %options),
         ignore_view_limit_extra => 1,
     );
 

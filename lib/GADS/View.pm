@@ -384,7 +384,7 @@ sub write
             unless $col->user_can('read');
     }
 
-    $self->writable
+    $self->writable || $options{force}
         or error $self->id
             ? __x("User {user_id} does not have access to modify view {id}", user_id => $self->layout->user->id, id => $self->id)
             : __x("User {user_id} does not have permission to create new views", user_id => $self->layout->user->id);

@@ -59,12 +59,6 @@ has permissions => (
     isa => HashRef,
 );
 
-has user_permission_override => (
-    is      => 'rw',
-    isa     => Bool,
-    default => 0,
-);
-
 # Needed for update of cached columns
 has layout => (
     is       => 'ro',
@@ -833,10 +827,9 @@ sub build_values
     {
         my $class = "GADS::Column::".camelize $link_parent->{type};
         my $column = $class->new(
-            set_values               => $link_parent,
-            user_permission_override => $self->user_permission_override,
-            schema                   => $self->schema,
-            layout                   => $self->layout,
+            set_values => $link_parent,
+            schema     => $self->schema,
+            layout     => $self->layout,
         );
         $self->link_parent($column);
     }
@@ -1083,6 +1076,7 @@ sub write
 
     error __"You do not have permission to manage fields"
         unless $self->layout->user_can("layout") || $options{force}; # For tests
+    $self->layout->clear_permissions;
 
     error __"Internal fields cannot be edited"
         if $self->internal && !$options{allow_internal_write};
@@ -1267,7 +1261,7 @@ sub write
 
 sub user_can
 {   my ($self, $permission) = @_;
-    return 1 if $self->user_permission_override;
+    return 1 if $SL::Schema::IGNORE_PERMISSIONS;
     return 1 if $self->internal && $permission eq 'read';
     return 0 if !$self->userinput && $permission ne 'read'; # Can't write to code fields
     return 1 if $self->layout->current_user_can_column($self->id, $permission);

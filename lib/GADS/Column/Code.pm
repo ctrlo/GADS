@@ -203,8 +203,8 @@ sub update_cached
 
     $self->clear; # Refresh calc for updated calculation
     my $layout = $self->layout;
-    my $override = $layout->user_permission_override;
-    $layout->user_permission_override(1);
+
+    local $SL::Schema::IGNORE_PERMISSIONS = 1;
 
     my $records = GADS::Records->new(
         user                    => undef,
@@ -224,7 +224,6 @@ sub update_cached
         $datum->write_value;
         push @changed, $record->current_id if $datum->changed;
     }
-    $layout->user_permission_override($override);
 
     return if $options{no_alert_send}; # E.g. new column, don't want to alert on all
 

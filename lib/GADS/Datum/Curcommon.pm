@@ -130,7 +130,8 @@ sub _build__init_value_hash
     }
     elsif ($self->column->type eq 'autocur' && !$self->values_as_records) # Would be nice to abstract to autocur class
     {
-        my @values = $self->column->fetch_multivalues([$self->record->record_id]);
+        my $already_seen = {};
+        my @values = $self->column->fetch_multivalues([$self->record->record_id], already_seen => $already_seen);
         @values = map { $_->{value} } @values;
         +{
             ids     => [ map { $_->current_id } @values ],
@@ -504,17 +505,15 @@ sub _build_for_code
     # the code below). By the time we need this, the IDs should be available
     $self->clear_values;
 
-    # Horrible hack. Need to ensure that for code values we retrieve all the
+    # Need to ensure that for code values we retrieve all the
     # values regardless, not restrained by the current user's permissions
-    my $previous_override = $self->column->override_permissions;
-    $self->column->override_permissions(1);
+    local $SL::Schema::IGNORE_PERMISSIONS = 1;
 
     my $already_seen_code = $self->already_seen_code;
     # Get all field data in one chunk
     my $field_values = $self->field_values_for_code(
-        already_seen_code    => $already_seen_code,
-        level                => $self->already_seen_level,
-        override_permissions => 1,
+        already_seen_code => $already_seen_code,
+        level             => $self->already_seen_level,
     );
 
     my @values = map {
@@ -524,9 +523,6 @@ sub _build_for_code
             field_values => $field_values->{$_->{id}},
         }
     } grep { $_->{id} } (@{$self->values}); # Values that have not been written will not have an ID
-
-    # Reset back
-    $self->column->override_permissions($previous_override);
 
     $self->column->multivalue || @values > 1 ? \@values : $values[0];
 }

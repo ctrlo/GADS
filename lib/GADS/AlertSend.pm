@@ -81,6 +81,8 @@ sub process
     # First the direct layout
     $self->_process_instance($self->layout, $self->current_ids);
 
+    local $SL::Schema::IGNORE_PERMISSIONS = 1;
+
     # Now see if the column changes in this layout may have changed views in
     # other layouts.
     # First, are there any views not in the main layout that contain these fields?
@@ -97,10 +99,9 @@ sub process
     foreach my $instance_id (@instance_ids)
     {
         my $layout = GADS::Layout->new(
-            user                     => undef,
-            user_permission_override => 1,
-            schema                   => $self->schema,
-            instance_id              => $instance_id,
+            user        => undef,
+            schema      => $self->schema,
+            instance_id => $instance_id,
         );
         # Get any current IDs that may have been affected, including historical
         # versions (in case a filter has been set using previous values)

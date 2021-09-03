@@ -63,9 +63,9 @@ $sheet->create_records;
 
 # Create users
 my %users = (
-    read      => $sheet->create_user,
-    limited   => $sheet->create_user,
-    readwrite => $sheet->create_user,
+    read      => $sheet->create_user(no_group => 1),
+    limited   => $sheet->create_user(no_group => 1),
+    readwrite => $sheet->create_user(no_group => 1),
 );
 
 # Groups
@@ -108,9 +108,6 @@ foreach my $column ($layout->all(exclude_internal => 1), $curval_sheet->layout->
     $column->set_permissions($permissions);
     $column->write;
 }
-# Turn off the permission override on the curval sheet so that permissions are
-# actually tested (turned on initially to populate records)
-$curval_sheet->layout->user_permission_override(0);
 
 foreach my $user_type (qw/readwrite read limited/)
 {

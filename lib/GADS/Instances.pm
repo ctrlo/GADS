@@ -35,12 +35,6 @@ has user => (
     required => 1,
 );
 
-has user_permission_override => (
-    is      => 'ro',
-    isa     => Bool,
-    default => 0,
-);
-
 has all => (
     is => 'lazy',
 );
@@ -164,7 +158,6 @@ sub _build__layouts
             name                      => $instance->name,
             name_short                => $instance->name_short,
             layout_perms              => $layout_perms->{$instance->id},
-            user_permission_override  => $self->user_permission_override,
             _user_permissions_table   => $p_table || {},
             _user_permissions_columns => $p_columns || {},
         );

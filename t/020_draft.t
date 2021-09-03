@@ -129,7 +129,7 @@ is($record_rs->count, 5, "Additional normal record written");
     my $curval = $columns->{curval1};
     $curval->show_add(1);
     $curval->curval_field_ids([$curval_columns->{string1}->id, $curval_columns->{integer1}->id, $curval_columns->{rag1}->id]);
-    $curval->write;
+    $curval->write(force => 1);
     $layout->clear;
 
     # Create draft for the main record, containing 2 draft subrecords

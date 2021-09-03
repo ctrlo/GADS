@@ -51,6 +51,7 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
 
     # Add a curval field in the curval layout that refers back to the main
     # table
+    $curval_sheet->layout->clear;
     my $cc = GADS::Column::Curval->new(
         schema => $schema,
         user   => $sheet->user,
@@ -62,7 +63,7 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
     $cc->name('Curval back to main table');
     $cc->name_short('L2curval2');
     $cc->set_permissions({$sheet->group->id => $sheet->default_permissions});
-    $cc->write;
+    $cc->write(force => 1);
     $layout->clear;
 
     # Remove permissions from one of the curval fields to check for errors
@@ -103,7 +104,7 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
     # Set up a unique field for later testing
     my $daterange1 = $columns->{daterange1};
     $daterange1->isunique(1);
-    $daterange1->write;
+    $daterange1->write(force => 1);
     $layout->clear;
 
     my $curval_string = $curval_sheet->columns->{string1};
@@ -415,7 +416,7 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
     foreach my $is_draft (0..2) # 0 - normal write, 1 - draft, 2 - submit draft
     {
         $columns->{string1}->optional(0);
-        $columns->{string1}->write;
+        $columns->{string1}->write(force => 1);
         $layout->clear;
         $record = GADS::Record->new(
             user   => $sheet->user_normal1,
@@ -486,8 +487,8 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
         curval_field_ids => [ $curval_sheet1->columns->{string1}->id ],
     );
     my $layout  = $sheet->layout;
-    $layout->user($sheet->user_normal1);
     my $columns = $sheet->columns;
+    $layout->user($sheet->user_normal1);
     $sheet->create_records;
 
     # Update the curval so that it's a showadd curval

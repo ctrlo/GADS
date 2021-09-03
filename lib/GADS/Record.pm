@@ -88,20 +88,13 @@ sub _build_layout
         or panic "instance_id not set to create layout object";
 
     return GADS::Layout->new(
-        user                     => $self->user,
-        user_permission_override => $self->user_permission_override,
-        schema                   => $self->schema,
-        instance_id              => $instance_id,
-        record                   => $self,
-        config                   => GADS::Config->instance,
+        user        => $self->user,
+        schema      => $self->schema,
+        instance_id => $instance_id,
+        record      => $self,
+        config      => GADS::Config->instance,
     );
 }
-
-has user_permission_override => (
-    is      => 'ro',
-    isa     => Bool,
-    default => 0,
-);
 
 has _set_instance_id => (
     is => 'rw',
@@ -671,7 +664,8 @@ sub find_unique
     );
     @retrieve_columns = ($column->id)
         unless @retrieve_columns;
-    $self->layout->user_permission_override_search(1); # Nasty hack, so as to not limit by user
+    # Do not limit by user
+    local $SL::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
     my $records = GADS::Records->new(
         user    => undef, # Do not want to limit by user
         rows    => 1,
@@ -683,7 +677,6 @@ sub find_unique
 
     # Might be more, but one will do
     my $r = $records->single;
-    $self->layout->user_permission_override_search(0); # Return to normal
     # Horrible hack. The record of layout will have been overwritten during the
     # above searches. Needs to be changed back to this record.
     $self->layout->record($self);
@@ -913,6 +906,7 @@ sub _find
         retrieved            => [$record],
         records              => [$self],
         is_draft             => $find{draftuser_id},
+        already_seen         => $records->already_seen,
         curcommon_all_fields => $self->curcommon_all_fields,
     );
 
@@ -972,11 +966,11 @@ sub load_remembered_values
     # current user. The record may no longer be available to the user due to
     # view limits. The user won't actually be able to see the record, they will
     # just see values that they previously entered themselves.
+    local $SL::Schema::IGNORE_PERMISSIONS = 1;
     my $previous = GADS::Record->new(
-        user                     => undef,
-        user_permission_override => 1,
-        layout                   => $self->layout,
-        schema                   => $self->schema,
+        user   => undef,
+        layout => $self->layout,
+        schema => $self->schema,
     );
 
     $previous->columns(\@remember);
@@ -1285,11 +1279,11 @@ sub delete_user_drafts
     {
         while (1)
         {
+            local $SL::Schema::IGNORE_PERMISSIONS = 1;
             my $draft = GADS::Record->new(
-                user                     => undef,
-                user_permission_override => 1,
-                layout                   => $self->layout,
-                schema                   => $self->schema,
+                user   => undef,
+                layout => $self->layout,
+                schema => $self->schema,
             );
             $draft->find_draftuser_id($self->user->id, instance_id => $self->layout->instance_id)
                 or last;
@@ -2218,11 +2212,10 @@ sub _field_write
                         foreach my $refers (@{$column->layout_parent->referred_by})
                         {
                             my $refers_layout = GADS::Layout->new(
-                                user                     => $self->layout->user,
-                                user_permission_override => 1,
-                                schema                   => $self->schema,
-                                config                   => GADS::Config->instance,
-                                instance_id              => $refers->instance_id,
+                                user        => $self->layout->user,
+                                schema      => $self->schema,
+                                config      => GADS::Config->instance,
+                                instance_id => $refers->instance_id,
                             );
                             my $rules = GADS::Filter->new(
                                 as_hash => {
@@ -2242,6 +2235,7 @@ sub _field_write
                                 schema      => $self->schema,
                                 user        => undef,
                             );
+                            local $SL::Schema::IGNORE_PERMISSIONS = 1;
                             my $refers_records = GADS::Records->new(
                                 user    => undef,
                                 view    => $view,

@@ -61,9 +61,7 @@ sub clear
     $self->clear_view;
     $self->clear_layout_parent;
     $self->clear_curval_field_ids_all;
-    $self->clear_curval_fields_all;
     $self->clear_curval_field_ids;
-    $self->clear_curval_fields;
     $self->clear_curval_field_ids_index;
     $self->clear_curval_fields_multivalue;
 }
@@ -145,18 +143,9 @@ has curval_field_ids => (
         })->all;
         [ map $_->child_id, @curval_field_ids ];
     },
-    trigger => sub {
-        $_[0]->clear_curval_fields;
-    },
 );
 
-has curval_fields => (
-    is      => 'lazy',
-    isa     => ArrayRef,
-    clearer => 1,
-);
-
-sub _build_curval_fields
+sub curval_fields
 {   my $self = shift;
     [ map { $self->layout_parent->column($_, permission => 'read') } @{$self->curval_field_ids} ];
 }
@@ -220,22 +209,14 @@ sub curval_field_ids_retrieve
 sub curval_fields_retrieve
 {   my ($self, %options) = @_;
     return $self->curval_fields if !$options{all_fields};
-    my $ret = $options{override_permissions}
-        ? [ map { $self->layout_parent->column($_) } @{$self->curval_field_ids_all} ]
-        : $self->curval_fields_all;
+    my $ret = $self->curval_fields_all;
     # Prevent recursive loops of fields that refer to each other
     $ret = [grep { !$options{already_seen}->{$_->id} } @$ret];
     $options{already_seen}->{$_->id} = 1 foreach @$ret;
     $ret;
 };
 
-has curval_fields_all => (
-    is      => 'lazy',
-    isa     => ArrayRef,
-    clearer => 1,
-);
-
-sub _build_curval_fields_all
+sub curval_fields_all
 {   my $self = shift;
     [ map { $self->layout_parent->column($_, permission => 'read') } @{$self->curval_field_ids_all} ];
 }
@@ -296,9 +277,14 @@ sub _records_from_db
             or return; # record not ready yet for sub_values
     }
 
+    # We want to honour the permissions for the fields that we retrieve,
+    # but apply filtering regardless (for curval filter fields)
+    local $SL::Schema::IGNORE_PERMISSIONS = 1 if $self->override_permissions;
+    local $SL::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
+
     my $is_draft = $self->layout->record && $self->layout->record->is_draft;
     my $records = GADS::Records->new(
-        user                    => $self->override_permissions ? undef : $self->layout->user,
+        user                    => $self->layout->user,
         view                    => $view,
         rewind                  => $options{rewind},
         layout                  => $layout,
@@ -346,6 +332,11 @@ sub filtered_values
 {   my ($self, $submission_token) = @_;
     return [] if $self->value_selector ne 'dropdown';
     my $records = $self->_records_from_db;
+
+    local $SL::Schema::IGNORE_PERMISSIONS = 1 if $self->override_permissions;
+    # Ensure that any filters applied to the field are applied regardless of
+    # whether the user has access to those fields used for filtering
+    local $SL::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
 
     my $submission = $self->schema->resultset('Submission')->search({
         token => $submission_token,
@@ -650,17 +641,7 @@ sub _update_curvals
 sub _build_layout_parent
 {   my $self = shift;
     $self->refers_to_instance_id or return;
-    GADS::Layout->new(
-        user                            => $self->layout->user,
-        # We want to honour the permissions for the fields that we retrieve,
-        # but apply filtering regardless (for curval filter fields)
-        user_permission_override        => $self->override_permissions || $self->user_permission_override,
-        user_permission_override_search => 1,
-        _user_permissions_columns       => $self->layout->_user_permissions_columns, # Optimisation
-        schema                          => $self->schema,
-        config                          => GADS::Config->instance,
-        instance_id                     => $self->refers_to_instance_id,
-    );
+    $self->layout->clone(instance_id => $self->refers_to_instance_id);
 }
 
 sub validate_search
@@ -715,8 +696,10 @@ sub values_beginning_with
         user        => undef,
     );
     $view->filter($filter) if $match;
+    local $GADS::Schema::IGNORE_PERMISSIONS = 1
+        if $self->override_permissions;
     my $records = GADS::Records->new(
-        user    => $self->override_permissions ? undef : $self->layout->user,
+        user    => $self->layout->user,
         rows    => 10,
         view    => $view,
         layout  => $self->layout_parent,
@@ -741,7 +724,7 @@ sub _format_row
     my @values;
     foreach my $fid (@{$self->curval_field_ids})
     {
-        next if !$self->layout_parent->column($fid, permission => 'read');
+        next if !$self->override_permissions && !$self->layout_parent->column($fid, permission => 'read');
         push @values, $row->fields->{$fid};
     }
     my $text     = $self->format_value(@values);

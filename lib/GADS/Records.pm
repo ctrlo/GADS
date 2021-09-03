@@ -133,6 +133,7 @@ has _view_limits => (
 sub _build__view_limits
 {   my $self = shift;
     $self->user or return [];
+    return [] if $SL::Schema::IGNORE_PERMISSIONS;
 
     # If there are user view limits these take precedence
     my @view_limit_ids = $self->schema->resultset('ViewLimit')->search({
@@ -999,6 +1000,11 @@ sub _cid_search_query
     $search;
 }
 
+has already_seen => (
+    is      => 'ro',
+    default => sub { {} },
+);
+
 sub _build_results
 {   my $self = shift;
     return $self->_build_group_results
@@ -1166,9 +1172,10 @@ sub _build_standard_results
 
     # Fetch and add multi-values (standard columns)
     $self->fetch_multivalues(
-        record_ids => \@record_ids,
-        retrieved  => [values %$records],
-        records    => \@all,
+        record_ids   => \@record_ids,
+        retrieved    => [values %$records],
+        records      => \@all,
+        already_seen => $self->already_seen,
     );
 
     # Fetch and add created users (unable to retrieve during initial query)
@@ -1191,6 +1198,7 @@ sub fetch_multivalues
     my $record_ids    = $params{record_ids};
     my $retrieved     = $params{retrieved};
     my $records       = $params{records};
+    my $already_seen  = $params{already_seen};
 
     my @linked_ids;
     push @linked_ids, map { $_->linked_record_id } grep { $_->linked_record_id } @$records;
@@ -1298,6 +1306,7 @@ sub fetch_multivalues
                             is_draft             => $params{is_draft},
                             curcommon_all_fields => $self->curcommon_all_fields,
                             rewind               => $self->rewind, # Would be better in a context object
+                            already_seen         => $already_seen,
                     ))
                     {
                         my $field = "field$val->{layout_id}";
@@ -1991,7 +2000,9 @@ sub order_by
 sub _search_construct
 {   my ($self, $filter, $layout, %options) = @_;
 
-    my $ignore_perms = $options{ignore_perms} || $self->layout->user_permission_override_search;
+    my $ignore_perms = $options{ignore_perms}
+        || $SL::Schema::IGNORE_PERMISSIONS_SEARCH || $SL::Schema::IGNORE_PERMISSIONS;
+
     if (my $rules = $filter->{rules})
     {
         # Previous values for a group. This allows previous values to be

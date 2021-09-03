@@ -132,18 +132,26 @@ has view => (
 );
 
 sub fetch_multivalues
-{   my ($self, $record_ids) = @_;
+{   my ($self, $record_ids, %options) = @_;
 
     return if !@$record_ids;
+
+    local $SL::Schema::IGNORE_PERMISSIONS = 1 if $self->override_permissions;
+    # Always ignore permissions of fields in the actual search. This doesn't
+    # affect any filters that may be applied, but is in fact the opposite: if a
+    # limited view is defined (using fields the user does not have access to)
+    # then this ensures it is properly applied
+    local $SL::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
 
     my $m_rs = $self->multivalue_rs($record_ids);
     $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my @values = $m_rs->all;
     my $records = GADS::Records->new(
-        user                    => $self->override_permissions ? undef : $self->layout->user,
+        already_seen            => $options{already_seen},
+        user                    => $self->layout->user,
         layout                  => $self->layout_parent,
         schema                  => $self->schema,
-        columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns),
+        columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns, %options),
         limit_current_ids       => [map { $_->{record}->{current_id} } @values],
         include_children        => 1, # Ensure all autocur records are shown even if they have the same text content
         ignore_view_limit_extra => 1,

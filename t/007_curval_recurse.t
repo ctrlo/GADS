@@ -46,6 +46,8 @@ my $autocur = $curval_sheet->add_autocur(
     related_field_id      => $columns->{curval1}->id,
     curval_field_ids      => [$columns->{string1}->id],
 );
+# Refresh main layout to include autocur in curval field
+$layout->clear;
 
 my $calc_recurse = GADS::Column::Calc->new(
     schema      => $schema,

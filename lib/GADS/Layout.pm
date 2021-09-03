@@ -41,6 +41,7 @@ use GADS::Column::Rag;
 use GADS::Column::Serial;
 use GADS::Column::String;
 use GADS::Column::Tree;
+use GADS::Config;
 use GADS::Instances;
 use GADS::Graphs;
 use GADS::MetricGroups;
@@ -382,7 +383,6 @@ sub _build__user_permissions_overall
 
 sub current_user_can_column
 {   my ($self, $column_id, $permission) = @_;
-    return 1 if $self->user_permission_override;
     my $user = $self->user
         or return;
     my $user_id  = $user->id;
@@ -444,18 +444,6 @@ sub group_has
     $self->_group_permissions_hash->{$group_id} or return 0;
     $self->_group_permissions_hash->{$group_id}->{$permission} or return 0;
 }
-
-has user_permission_override => (
-    is      => 'rw',
-    isa     => Bool,
-    default => 0,
-);
-
-has user_permission_override_search => (
-    is      => 'rw',
-    isa     => Bool,
-    default => 0,
-);
 
 has columns_index => (
     is      => 'rw',
@@ -730,6 +718,15 @@ sub clear_indexes
     $self->clear_alert_columns_hash;
 }
 
+sub clear_permissions
+{   my $self = shift;
+    $self->_clear_group_permissions;
+    $self->_clear_group_permissions_hash;
+    $self->_clear_user_permissions_columns;
+    $self->_clear_user_permissions_overall;
+    $self->_clear_user_permissions_table;
+}
+
 sub clear
 {   my $self = shift;
     $self->clear_api_index_layout;
@@ -742,8 +739,6 @@ sub clear
     $self->clear_forget_history;
     $self->clear_forward_record_after_create;
     $self->clear_global_view_summary;
-    $self->_clear_group_permissions;
-    $self->_clear_group_permissions_hash;
     $self->clear_has_children;
     $self->clear_has_globe;
     $self->clear_has_topics;
@@ -758,9 +753,23 @@ sub clear
     $self->clear_sort_type;
     $self->clear_sort_layout_id;
     $self->clear_view_limit_id;
-    $self->_clear_user_permissions_columns;
-    $self->_clear_user_permissions_overall;
-    $self->_clear_user_permissions_table;
+    $self->clear_permissions;
+}
+
+sub clone
+{   my ($self, %options) = @_;
+    my $instance_id = $options{instance_id}
+        or panic "Need instance_id for clone";
+    GADS::Layout->new(
+        instance_id               => $instance_id,
+        user                      => $self->user,
+        schema                    => $self->schema,
+        config                    => GADS::Config->instance,
+        columns                   => $self->columns,
+        cols_db                   => $self->cols_db,
+        columns_index             => $self->columns_index,
+        _user_permissions_columns => $self->_user_permissions_columns,
+    );
 }
 
 # The dump from the database of all the information needed to build the layout.
@@ -793,19 +802,17 @@ sub _build_columns
 {   my $self = shift;
 
     my $schema = $self->schema;
-    my $user_permission_override = $self->user_permission_override;
 
     my @return;
     foreach my $col (@{$self->cols_db})
     {
         my $class = "GADS::Column::".camelize $col->{type};
         my $column = $class->new(
-            set_values               => $col,
-            internal                 => $col->{internal},
-            user_permission_override => $user_permission_override,
-            instance_id              => $col->{instance_id},
-            schema                   => $schema,
-            layout                   => $self
+            set_values  => $col,
+            internal    => $col->{internal},
+            instance_id => $col->{instance_id},
+            schema      => $schema,
+            layout      => $self
         );
         push @return, $column;
     }
@@ -1142,14 +1149,12 @@ sub column_id
 # permissions for columns are contained in the column class.
 sub user_can
 {   my ($self, $permission) = @_;
-    return 1 if $self->user_permission_override;
     $self->_user_permissions_overall->{$permission};
 }
 
 # Whether the user has got any sort of access
 sub user_can_anything
 {   my $self = shift;
-    return 1 if $self->user_permission_override;
     !! keys %{$self->_user_permissions_overall};
 }
 

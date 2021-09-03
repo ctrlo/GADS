@@ -95,6 +95,7 @@ foreach my $multivalue (0..1)
         code           => "function evaluate (L1integer2) \n return {L1integer2, L1integer2 * 2} \nend",
         multivalue     => 1,
     );
+    $calc2->set_permissions({$sheet->group->id => $sheet->default_permissions});
     $calc2->write;
     $layout->clear;
 

@@ -40,11 +40,11 @@ sub alert_columns
 {   my ($self, $instance_id) = @_;
     my $columns = $self->_alert_columns_cache->{$instance_id};
     return $columns if $columns;
+    local $SL::Schema::IGNORE_PERMISSIONS = 1;
     my $layout = GADS::Layout->new(
-        instance_id              => $instance_id,
-        user                     => undef,
-        user_permission_override => 1,
-        schema                   => $self->schema,
+        instance_id => $instance_id,
+        user        => undef,
+        schema      => $self->schema,
     );
     $columns = [$layout->alert_columns];
     $self->_alert_columns_cache->{$instance_id} = $columns;

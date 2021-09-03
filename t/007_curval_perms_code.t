@@ -14,7 +14,7 @@ use Test::GADS::DataSheet;
 
 foreach my $test (qw/normal limited_in limited_out limited_both/)
 {
-    my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, user_permission_override => 0);
+    my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
     $curval_sheet->create_records;
     my $schema        = $curval_sheet->schema;
     my $curval_string = $curval_sheet->columns->{string1};
@@ -59,7 +59,6 @@ foreach my $test (qw/normal limited_in limited_out limited_both/)
     my $sheet   = Test::GADS::DataSheet->new(
         data                     => $data,
         schema                   => $schema,
-        user_permission_override => 0,
         curval                   => 2,
         curval_field_ids         => $curval_field_ids,
         calc_return_type         => 'string',
@@ -98,6 +97,13 @@ foreach my $test (qw/normal limited_in limited_out limited_both/)
     $record->find_current_id(3);
 
     is($record->fields->{$calc->id}->as_string, "Bar99foo2", "Calc value correct");
+    # Check the curval value is still limited as expected
+    my $expected = $test eq 'normal'
+        ? 'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008'
+        : $test eq 'limited_both'
+        ? '99, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008'
+        : '99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008';
+    is($record->fields->{$curval->id}->as_string, $expected, "Curval string value correct");
 }
 
 done_testing();

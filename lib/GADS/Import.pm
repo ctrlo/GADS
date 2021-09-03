@@ -196,7 +196,9 @@ sub process
 {   my ($self, %options) = @_;
     error __"skip_existing_unique and update_unique are mutually exclusive"
         if $self->update_unique && $self->skip_existing_unique;
-    $self->layout->user_permission_override(1);
+    # XXX In the future this should probably reflect the user's permissions,
+    # if/when importing is a separate permission
+    local $SL::Schema::IGNORE_PERMISSIONS = 1;
     # Build fields from first row before we start reading. This may error
     $self->fields;
 

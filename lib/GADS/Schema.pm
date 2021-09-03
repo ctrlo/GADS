@@ -10,6 +10,9 @@ __PACKAGE__->load_namespaces;
 
 our $VERSION = 92;
 
+our $IGNORE_PERMISSIONS;
+our $IGNORE_PERMISSIONS_SEARCH;
+
 __PACKAGE__->mk_group_accessors('simple' => qw/site_id/);
 
 # Resultset to restrict by site ID, if configured

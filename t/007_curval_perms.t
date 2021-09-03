@@ -32,17 +32,16 @@ my $data2 = [
     },
 ];
 
-my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, data => $data2, user_permission_override => 0);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, data => $data2);
 $curval_sheet->create_records;
 my $curval_columns = $curval_sheet->columns;
 my $schema  = $curval_sheet->schema;
 my $sheet   = Test::GADS::DataSheet->new(
-    data                     => $data,
-    schema                   => $schema,
-    multivalue               => 1,
-    curval                   => 2,
-    curval_field_ids         => [ $curval_columns->{string1}->id, $curval_columns->{integer1}->id ],
-    user_permission_override => 0,
+    data             => $data,
+    schema           => $schema,
+    multivalue       => 1,
+    curval           => 2,
+    curval_field_ids => [ $curval_columns->{string1}->id, $curval_columns->{integer1}->id ],
 );
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
@@ -79,12 +78,12 @@ is($record->fields->{$columns->{curval1}->id}->as_string, "Foo", "Curval correct
 
 # Now check that user_permission_override on layout works
 {
+    local $SL::Schema::IGNORE_PERMISSIONS = 1;
     my $layout = GADS::Layout->new(
-        user                     => undef,
-        user_permission_override => 1,
-        schema                   => $schema,
-        config                   => GADS::Config->instance,
-        instance_id              => $layout->instance_id,
+        user        => undef,
+        schema      => $schema,
+        config      => GADS::Config->instance,
+        instance_id => $layout->instance_id,
     );
     my $records = GADS::Records->new(
         user   => undef,
@@ -97,10 +96,9 @@ is($record->fields->{$columns->{curval1}->id}->as_string, "Foo", "Curval correct
     # A record's GADS::Layout is cleared for a find_current_id. Therefore the
     # override needs to be set directly on GADS::Record
     $record = GADS::Record->new(
-        user                     => undef,
-        user_permission_override => 1,
-        layout                   => $layout,
-        schema                   => $schema,
+        user   => undef,
+        layout => $layout,
+        schema => $schema,
     );
     $record->find_current_id(2);
     is($record->fields->{$columns->{curval1}->id}->as_string, "Foo, 50", "Curval correct with full perms");

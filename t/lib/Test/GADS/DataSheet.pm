@@ -247,7 +247,7 @@ sub _build__users
         my $perms = $permission =~ 'normal'
             ? ['view_create']
             : $permission eq 'superadmin'
-            ? [qw/superadmin link delete purge view_group/]
+            ? [qw/superadmin link delete purge view_group download view_limit_extra/]
             : [$permission];
         my $team_id = $permission eq 'normal1' ? $foo_team->id : $bar_team->id;
         $return->{$permission} = $self->create_user(permissions => $perms, user_id => $count, team_id => $team_id);
@@ -278,7 +278,7 @@ sub create_user
     $self->schema->resultset('UserGroup')->find_or_create({ # May already be created for schema
         user_id  => $user_id,
         group_id => $self->group->id,
-    }) if $self->group;
+    }) if !$options{no_group} && $self->group;
 
     foreach my $permission (@permissions)
     {
@@ -457,11 +457,6 @@ has optional => (
     default => 1,
 );
 
-has user_permission_override => (
-    is      => 'ro',
-    default => 1,
-);
-
 has config => (
     is => 'lazy',
 );
@@ -506,11 +501,10 @@ sub _build_layout
     });
 
     my $layout = GADS::Layout->new(
-        user                     => $self->user_layout,
-        schema                   => $self->schema,
-        config                   => $self->config,
-        instance_id              => $self->instance_id,
-        user_permission_override => $self->user_permission_override,
+        user        => $self->user_layout,
+        schema      => $self->schema,
+        config      => $self->config,
+        instance_id => $self->instance_id,
     );
     $layout->create_internal_columns;
     return $layout;
@@ -518,7 +512,6 @@ sub _build_layout
 
 sub _build_group
 {   my $self = shift;
-    return if $self->no_groups;
     my $group = GADS::Group->new(schema => $self->schema);
     my $grs = $self->schema->resultset('Group')->search({
         name => 'group1',
@@ -568,7 +561,7 @@ sub __build_columns
         $string->name_short("L${instance_id}string$count");
         $string->multivalue(1) if $self->multivalue && $self->multivalue_columns->{string};
         $string->set_permissions({$self->group->id => $permissions})
-            unless $self->no_groups;
+            if $self->group;
         try { $string->write };
         if ($@)
         {
@@ -591,7 +584,7 @@ sub __build_columns
         $integer->name("integer$count");
         $integer->name_short("L${instance_id}integer$count");
         $integer->set_permissions({$self->group->id => $permissions})
-            unless $self->no_groups;
+            if $self->group;
         try { $integer->write };
         if ($@)
         {
@@ -623,7 +616,7 @@ sub __build_columns
         }
         $enum->enumvals(\@enumvals);
         $enum->set_permissions({$self->group->id => $permissions})
-            unless $self->no_groups;
+            if $self->group;
         try { $enum->write };
         if ($@)
         {
@@ -646,7 +639,7 @@ sub __build_columns
         $tree->name("tree$count");
         $tree->name_short("L${instance_id}tree$count");
         $tree->set_permissions({$self->group->id => $permissions})
-            unless $self->no_groups;
+            if $self->group;
         $tree->multivalue(1) if $self->multivalue && $self->multivalue_columns->{tree};
         try { $tree->write };
         my $tree_id = $tree->id;
@@ -698,7 +691,7 @@ sub __build_columns
         $date->name("date$count");
         $date->name_short("L${instance_id}date$count");
         $date->set_permissions({$self->group->id => $permissions})
-            unless $self->no_groups;
+            if $self->group;
         $date->multivalue(1) if $self->multivalue && $self->multivalue_columns->{date};
         try { $date->write };
         if ($@)
@@ -722,7 +715,7 @@ sub __build_columns
         $daterange->name("daterange$count");
         $daterange->name_short("L${instance_id}daterange$count");
         $daterange->set_permissions({$self->group->id => $permissions})
-            unless $self->no_groups;
+            if $self->group;
         $daterange->multivalue(1) if $self->multivalue && $self->multivalue_columns->{daterange};
         try { $daterange->write };
         if ($@)
@@ -742,7 +735,7 @@ sub __build_columns
     $file1->type('file');
     $file1->name('file1');
     $file1->set_permissions({$self->group->id => $permissions})
-        unless $self->no_groups;
+        if $self->group;
     $file1->multivalue(1) if $self->multivalue && $self->multivalue_columns->{file};
     try { $file1->write };
     if ($@)
@@ -760,7 +753,7 @@ sub __build_columns
     $person1->type('person');
     $person1->name('person1');
     $person1->set_permissions({$self->group->id => $permissions})
-        unless $self->no_groups;
+        if $self->group;
     try { $person1->write };
     if ($@)
     {
@@ -793,7 +786,7 @@ sub __build_columns
             $curval->name("curval$count");
             $curval->multivalue(1) if $self->multivalue && $self->multivalue_columns->{curval};
             $curval->set_permissions({$self->group->id => $permissions})
-                unless $self->no_groups;
+                if $self->group;
             try { $curval->write };
             if ($@)
             {
@@ -813,7 +806,7 @@ sub __build_columns
     $rag1->type('rag');
     $rag1->name('rag1');
     $rag1->set_permissions({$self->group->id => $permissions})
-        unless $self->no_groups;
+        if $self->group;
     try { $rag1->write };
     if ($@)
     {
@@ -838,7 +831,7 @@ sub __build_columns
     $calc1->name_short("L${instance_id}calc1");
     $calc1->return_type($self->calc_return_type);
     $calc1->set_permissions({$self->group->id => $permissions})
-        unless $self->no_groups;
+        if $self->group;
     $calc1->multivalue(1) if $self->multivalue && $self->multivalue_columns->{calc};
     try { $calc1->write };
     if ($@)
@@ -867,6 +860,7 @@ sub __build_columns
 # Add an autocur column to this sheet
 sub add_autocur
 {   my ($self, %options) = @_;
+    $self->layout->clear;
     my $autocur = GADS::Column::Autocur->new(
         schema     => $self->schema,
         user       => undef,
@@ -891,7 +885,7 @@ sub add_autocur
     $autocur->name_short("L${instance_id}autocur$count");
     $autocur->related_field_id($options{related_field_id});
     $autocur->set_permissions({$self->group->id => $self->default_permissions})
-        unless $self->no_groups;
+        if $self->group;
     $autocur->write;
     $self->columns->{"autocur$count"} = $autocur;
     $autocur;
@@ -982,6 +976,13 @@ sub create_records
 
         $record->write(no_alerts => 1);
     }
+
+    if ($self->no_groups)
+    {
+        $self->group->delete;
+        $self->clear_group;
+    }
+
     1;
 };
 

@@ -67,7 +67,7 @@ my $data = [
     },
 ];
 
-my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, user_permission_override => 0);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
 my $sheet   = Test::GADS::DataSheet->new(
@@ -90,7 +90,6 @@ my $sheet   = Test::GADS::DataSheet->new(
             return dr1.from.epoch
         end",
     calc_return_type         => 'date',
-    user_permission_override => 0,
     column_count     => {
         enum   => 1,
         curval => 2,
@@ -148,7 +147,6 @@ my $curval_sheet2 = Test::GADS::DataSheet->new(
     instance_id              => 3,
     curval_offset            => 12,
     curval_field_ids         => [$sheet->columns->{integer1}->id],
-    user_permission_override => 0,
 );
 $curval_sheet2->create_records;
 my $curval3 = GADS::Column::Curval->new(
@@ -1758,7 +1756,7 @@ foreach my $multivalue (0..1)
         user        => $sheet->user,
         is_admin    => 1,
     );
-    $limit_extra_autocur->write;
+    $limit_extra_autocur->write(force => 1);
     $schema->resultset('Instance')->find($main->layout->instance_id)->update({
         default_view_limit_extra_id => $limit_extra_autocur->id,
     });

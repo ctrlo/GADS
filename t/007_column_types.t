@@ -314,7 +314,7 @@ my $autocur1 = $curval_sheet->add_autocur(refers_to_instance_id => 1, related_fi
 
     # Check that an override ignores the view_limit
     $curval_filter->override_permissions(1);
-    $curval_filter->write;
+    $curval_filter->write(force => 1);
     $layout->clear;
     $curval_filter = $layout->column($curval_filter->id);
     is( scalar @{$curval_filter->filtered_values}, 2, "Correct number of values for curval field with filter (filtered)" );
@@ -402,7 +402,7 @@ my $calc2 = GADS::Column::Calc->new(
     multivalue     => 1,
 );
 $calc2->set_permissions({$sheet->group->id => $sheet->default_permissions});
-$calc2->write;
+$calc2->write(force => 1);
 
 # Add display field for filtering tests
 my $date1 = $columns->{date1};
@@ -419,7 +419,7 @@ $date1->display_fields(GADS::Filter->new(
     layout  => $layout,
     as_hash => $as_hash,
 ));
-$date1->write;
+$date1->write(force => 1);
 
 $layout->clear;
 $curval_filter = $layout->column($curval_filter->id);
@@ -515,7 +515,7 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid calcmult
         ),
     );
     $curval_filter->curval_field_ids([ $curval_sheet->columns->{string1}->id ]);
-    $curval_filter->write;
+    $curval_filter->write(force => 1);
     $curval_filter->clear;
 
     my $input_required = $test eq 'displayfield'
@@ -651,7 +651,7 @@ $layout->clear; # Rebuild layout for dependencies
 # Test update of internal columns
 foreach my $internal ($layout->all(only_internal => 1))
 {
-    try { $internal->write };
+    try { $internal->write(force => 1) };
     like($@, qr/Internal fields cannot be edited/, "Failed to update internal field");
 }
 
