@@ -10,10 +10,10 @@
           "filterId": "[% col.filter_id %]",
           "label": "[% col.filter_name | html_entity %]",
           "type": "[% col.type %]",
-          "hasFilterTypeahead": [% col.has_filter_typeahead %],
-          "useIdInFilter": [% col.use_id_in_filter %],
-          "urlSuffix": "[% col.id | uri %]",
-          "instanceId": "[% col.layout.instance_id %]"
+          "hasFilterTypeahead": [% col.column.has_filter_typeahead %],
+          "useIdInFilter": [% col.column.use_id_in_filter %],
+          "urlSuffix": "[% col.column.id | uri %]",
+          "instanceId": "[% col.column.layout.instance_id %]"
         }[% IF NOT loop.last %],[% END %]
       [% END %]
     ]

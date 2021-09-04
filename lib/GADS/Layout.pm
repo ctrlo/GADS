@@ -910,7 +910,13 @@ sub columns_for_filter
     $restriction{user_can_read} = 1 unless $options{show_all_columns};
     foreach my $col ($self->all(%restriction))
     {
-        push @columns, $col;
+        push @columns, {
+            filter_id   => $col->filter_id,
+            filter_name => $col->filter_name,
+            return_type => $col->return_type,
+            type        => $col->type,
+            column      => $col,
+        };
         if ($col->is_curcommon)
         {
             foreach my $c ($col->layout_parent->all(%restriction))
@@ -919,9 +925,13 @@ sub columns_for_filter
                 # back to the same record, so the filter should be done
                 # directly on it instead
                 next if $c->type eq 'autocur';
-                $c->filter_id($col->id.'_'.$c->id);
-                $c->filter_name($col->name.' ('.$c->name.')');
-                push @columns, $c;
+                push @columns, {
+                    filter_id   => $col->id.'_'.$c->id,
+                    filter_name => $col->name.' ('.$c->name.')',
+                    return_type => $col->return_type,
+                    type        => $col->type,
+                    column      => $col,
+                };
             }
         }
     }
