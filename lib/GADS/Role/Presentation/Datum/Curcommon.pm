@@ -3,11 +3,13 @@ package GADS::Role::Presentation::Datum::Curcommon;
 use Moo::Role;
 
 sub _presentation_details {
-    my $self = shift;
+    my ($self, %options) = @_;
 
     #return [] unless $self->as_string;
 
     my $rti = $self->column->refers_to_instance_id;
+
+    my @values = $options{values} ? @{$options{values}} : @{$self->values};
 
     my @links = map +{
         id                    => $_->{id},
@@ -15,13 +17,15 @@ sub _presentation_details {
         refers_to_instance_id => $rti,
         values                => $_->{values},
         presentation          => $_->{record}->presentation(curval_fields => $self->column->curval_fields),
-    }, @{$self->values};
+        status                => $_->{status}, # For chronological view
+        version_id            => $_->{version_id}, # For chronological view
+    }, @values;
 
     return \@links;
 }
 
 sub presentation {
-    my $self = shift;
+    my ($self, %options) = @_;
 
     my $multivalue = $self->column->multivalue;
 
@@ -29,7 +33,7 @@ sub presentation {
 
     $base->{text}    = $base->{value};
     $base->{id_hash} = $self->id_hash;
-    $base->{links}   = $self->_presentation_details;
+    $base->{links}   = $self->_presentation_details(%options);
     if ($self->column->value_selector eq 'typeahead' && !$multivalue)
     {
         # Currently autocomplete textboxes can only be single value. May want to

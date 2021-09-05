@@ -462,9 +462,10 @@ sub search_query
     push @search, { "$current.id"          => $self->limit_current_ids } if $self->limit_current_ids; # $self->has_current_ids && $self->current_ids;
     push @search, { "$current.instance_id" => $self->layout->instance_id };
     push @search, $self->common_search($current);
-    push @search, $self->record_later_search(%options, linked => $linked, search => 1);
+    push @search, $self->record_later_search(%options, linked => $linked, search => 1)
+        unless $options{chronology};
     push @search, {
-        "$record_single.created" => { '<' => $self->rewind_formatted },
+        "$record_single.created" => { '<=' => $self->rewind_formatted },
     } if $self->rewind;
     [@search];
 }
@@ -992,7 +993,7 @@ sub _cid_search_query
     }
 
     my $record_single = $self->record_name(linked => 0);
-    $search->{"$record_single.created"} = { '<' => $self->rewind_formatted }
+    $search->{"$record_single.created"} = { '<=' => $self->rewind_formatted }
         if $self->rewind;
     my $approval_query = $self->_approval_query(%options);
     $search = { %$search, %$approval_query } if $approval_query;
@@ -1265,7 +1266,7 @@ sub fetch_multivalues
                                     'me.id'           => \@value_ids,
                                     'record_later.id' => undef,
                                 };
-                                $search->{'record_single.created'} = { '<' => $self->rewind_formatted }
+                                $search->{'record_single.created'} = { '<=' => $self->rewind_formatted }
                                     if $self->rewind;
                                 my @curs = $self->schema->resultset('Current')->search($search,{
                                     select => ['me.id', 'record_single.id'],

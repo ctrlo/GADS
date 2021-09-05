@@ -599,6 +599,18 @@ sub find_current_id
     $self->_find(current_id => $current_id, %options);
 }
 
+sub find_chronology_id
+{   my ($self, $current_id, %options) = @_;
+    return unless $current_id;
+    $current_id =~ /^[0-9]+$/
+        or error __x"Invalid record ID {id}", id => $current_id;
+    my $current = $self->schema->resultset('Current')->find($current_id)
+        or error __x"Record ID {id} not found", id => $current_id;
+    my $instance_id = $current->instance_id;
+    $self->_set_instance_id($current->instance_id);
+    $self->_find(current_id => $current_id, chronology => 1);
+}
+
 sub find_draftuser_id
 {   my ($self, $draftuser_id, %options) = @_;
     $draftuser_id =~ /^[0-9]+$/
@@ -744,14 +756,14 @@ sub _find
     $self->columns_selected($records->columns_selected);
     $self->columns_render($records->columns_render);
 
-    my $record = {}; my $limit = 10; my $page = 1; my $first_run = 1;
+    my $record = {}; my $limit = 10; my $page = 1; my $first_run = 1; my $current_id; my @record_ids;
     while (1)
     {
         # No linked here so that we get the ones needed in accordance with this loop (could be either)
         my @prefetches = $records->jpfetch(prefetch => 1, search => 1, limit => $limit, page => $page); # Still need search in case of view limit
         last if !@prefetches && !$first_run;
         my %options = $find{current_id} || $find{draftuser_id} ? () : (root_table => 'record', no_current => 1);
-        my $search = $records->search_query(prefetch => 1, linked => 1, limit => $limit, page => $page, %options);
+        my $search = $records->search_query(prefetch => 1, linked => 1, limit => $limit, page => $page, chronology => $find{chronology}, %options);
          # Still need search in case of view limit
         @prefetches = $records->jpfetch(prefetch => 1, search => 1, linked => 0, limit => $limit, page => $page, %options);
 
@@ -827,14 +839,16 @@ sub _find
         # another draft record
         push @prefetches, 'curvals' if $find{draftuser_id};
 
+        my $params = {
+            join     => [@prefetches],
+            columns  => \@columns_fetch,
+        };
+        $params->{order_by} = 'record_single.created'
+            if $find{chronology};
         my $result = $self->schema->resultset($root_table)->search(
             [
                 -and => $search
-            ],
-            {
-                join    => [@prefetches],
-                columns => \@columns_fetch,
-            },
+            ], $params
         );
 
         $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
@@ -849,69 +863,189 @@ sub _find
         # changed to a single-value field, then there may be some remaining
         # multiple values for the single-value field. In that case, multiple
         # records will be returned from the database.
+        my $last_record_id;
         foreach my $rec (@recs)
         {
+            my $record_id = $rec->{id};
             foreach my $key (keys %$rec)
             {
                 # If we have multiple records, check whether we already have a
                 # value for that field, and if so add it, but only if it is
                 # different to the first (the ID will be different)
-                if ($key =~ /^field/ && $record->{$key})
+                if ($key =~ /^field/ && $record->{$record_id}->{$key})
                 {
-                    my @existing = ref $record->{$key} eq 'ARRAY' ? @{$record->{$key}} : ($record->{$key});
+                    my @existing = ref $record->{$record_id}->{$key} eq 'ARRAY' ? @{$record->{$record_id}->{$key}} : ($record->{$record_id}->{$key});
                     @existing = grep { $_->{id} } @existing;
                     push @existing, $rec->{$key}
                         if ! grep { $rec->{$key}->{id} == $_->{id} } @existing;
-                    $record->{$key} = \@existing;
+                    $record->{$record_id}->{$key} = \@existing;
                 }
                 else {
-                    $record->{$key} = $rec->{$key};
+                    $record->{$record_id}->{$key} = $rec->{$key};
                 }
             }
+            $self->linked_id($rec->{linked_id}) if exists $rec->{linked_id};
+            $self->linked_record_id($rec->{linked_record_id}) if exists $rec->{linked_record_id};
+            $self->set_deleted($rec->{deleted}) if exists $rec->{deleted};
+            $self->set_deletedby($rec->{deletedby}) if exists $rec->{deletedby};
+            $current_id ||= $rec->{current_id};
+            push @record_ids, $record_id
+                if $first_run && (!$last_record_id || $record_id != $last_record_id);
+            $last_record_id = $record_id;
         }
         $page++;
         $first_run = 0;
     }
 
-    $self->linked_id($record->{linked_id});
-    $self->linked_record_id($record->{linked_record_id});
-    $self->set_deleted($record->{deleted});
-    $self->set_deletedby($record->{deletedby});
     $self->clear_is_draft;
 
     # Find the user that created this record. XXX Ideally this would be done as
     # part of the original query, as it is for GADS::Records. See comment above
     # about this function
     my $first = $self->schema->resultset('Record')->search({
-        current_id => $record->{current_id},
+        current_id => $current_id,
     })->get_column('id')->min;
     my $user = $self->schema->resultset('Record')->find($first)->createdby;
     $self->set_record_created_user({$user->get_columns})
         if $user;
 
-    # Fetch and merge and multi-values
-    my @record_ids = ($record->{id});
-    push @record_ids, $record->{linked}->{record_id}
-        if $record->{linked} && $record->{linked}->{record_id};
-
-    if ($self->_set_approval_flag($record->{approval}))
-    {
-        $self->_set_approval_record_id($record->{record_id}); # Related record if this is approval record
-    }
-    $self->record($record);
-
     # Fetch and add multi-values
-    $records->fetch_multivalues(
-        record_ids           => \@record_ids,
-        retrieved            => [$record],
-        records              => [$self],
-        is_draft             => $find{draftuser_id},
-        already_seen         => $records->already_seen,
-        curcommon_all_fields => $self->curcommon_all_fields,
-    );
+    my @record_objects;
+    if ($find{chronology})
+    {
+        foreach my $record_id (@record_ids)
+        {
+            my $record_hash = $record->{$record_id};
+            push @record_objects, GADS::Record->new(
+                schema                  => $self->schema,
+                record                  => $record_hash,
+                user                    => $self->user,
+                layout                  => $self->layout,
+                columns_retrieved_no    => $self->columns_retrieved_no,
+                columns_retrieved_do    => $self->columns_retrieved_do,
+                columns_selected        => $self->columns_selected,
+                columns_render          => $self->columns_render,
+                set_deleted             => $self->set_deleted,
+                set_deletedby           => $self->set_deletedby,
+                set_record_created      => $self->set_record_created,
+                set_record_created_user => $self->set_record_created_user,
+            );
+            # Set data for this original record to the current version (latest)
+            $self->record($record->{$record_ids[-1]});
+        }
+    }
+    else {
+        my ($rec) = values %$record;
+        @record_objects = ($self);
+        $self->record($rec);
+
+        push @record_ids, $record->{linked}->{record_id}
+            if $record->{linked} && $record->{linked}->{record_id};
+
+        if ($self->_set_approval_flag($record->{approval}))
+        {
+            $self->_set_approval_record_id($record->{record_id}); # Related record if this is approval record
+        }
+
+        # Fetch and merge and multi-values
+        $records->fetch_multivalues(
+            record_ids           => \@record_ids,
+            retrieved            => [map $record->{$_}, @record_ids],
+            records              => \@record_objects,
+            is_draft             => $find{draftuser_id},
+            already_seen         => $records->already_seen,
+            curcommon_all_fields => $self->curcommon_all_fields,
+        );
+    }
+
+    if ($find{chronology})
+    {
+        my @chronology; my $last_record;
+        foreach my $record (@record_objects)
+        {
+            $records->rewind($record->created);
+            $records->fetch_multivalues(
+                record_ids           => [$record->record_id],
+                retrieved            => [$record->{$record->record_id}],
+                records              => [$record],
+                is_draft             => $find{draftuser_id},
+                already_seen         => $records->already_seen,
+                curcommon_all_fields => $self->curcommon_all_fields,
+            );
+            my @changed;
+            foreach my $column (@{$record->columns_retrieved_no})
+            {
+                next if $column->internal;
+                my $datum = $record->fields->{$column->id};
+                my $last_datum = $last_record && $last_record->fields->{$column->id};
+
+                if (
+                    (!$last_record && !$datum->blank)
+                    || ($last_record && $last_datum->as_string ne $datum->as_string)
+                )
+                {
+                    if ($column->type eq 'curval' && $last_record)
+                    {
+                        my %old_ids = map { $_->{id} => $_ } @{$last_datum->values};
+                        my %new_ids = map { $_->{id} => $_ } @{$datum->values};
+                        my @values;
+                        # Check each value for whether it is added, removed or changed.
+                        # Look through old values first
+                        foreach my $id (keys %old_ids)
+                        {
+                            my $old_value = $old_ids{$id};
+                            my $status;
+                            # Removed?
+                            if (!$new_ids{$id})
+                            {
+                                $old_value->{status} = "Removed";
+                                $old_value->{version_id} = $old_value->{record}->record_id;
+                                push @values, $old_value;
+                            }
+                            else {
+                                # Changed?
+                                my $new_value = delete $new_ids{$id};
+                                next if $old_value->{value} eq $new_value->{value};
+                                $new_value->{status} = "Changed";
+                                $new_value->{version_id} = $new_value->{record}->record_id;
+                                push @values, $new_value;
+                            }
+                        }
+                        # Anything left has been added
+                        foreach my $id (keys %new_ids)
+                        {
+                            my $new_value = $new_ids{$id};
+                            $new_value->{status} = "Added";
+                            $new_value->{version_id} = $new_value->{record}->record_id;
+                            push @values, $new_value;
+                        }
+                        foreach my $v (@values)
+                        {
+                        }
+                        push @changed, $column->presentation(datum_presentation => $datum->presentation(values => \@values))
+                    }
+                    else {
+                        push @changed, $column->presentation(datum_presentation => $datum->presentation)
+                    }
+                }
+
+            }
+            push @chronology, {
+                editor   => $record->createdby,
+                datetime => $record->created,
+                changed  => \@changed,
+            };
+            $last_record = $record;
+        }
+        $self->_set_chronology(\@chronology);
+    }
 
     $self; # Allow chaining
 }
+
+has chronology => (
+    is => 'rwp',
+);
 
 sub clone
 {   my $self = shift;
@@ -2168,7 +2302,18 @@ sub _field_write
                 {
                     foreach my $record (@{$datum_write->values_as_query_records})
                     {
-                        $record->write(%options, no_draft_delete => 1, no_write_values => 1, submission_token => undef);
+                        my $created_col = $self->layout->column_by_name_short('_version_datetime');
+                        my $created = $self->fields->{$created_col->id}->values->[0];
+                        $record->write(%options,
+                            no_draft_delete  => 1,
+                            no_write_values  => 1,
+                            submission_token => undef,
+                            # Ensure version times match between parent and
+                            # child records. This is used in chronology view to
+                            # ensure the correct versions at the time of record
+                            # edit are used
+                            version_datetime => $created, 
+                        );
                         push @{$self->_records_to_write_after}, $record
                             if $record->is_edited;
                         my $id = $record->current_id;

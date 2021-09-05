@@ -433,7 +433,7 @@ my $join_sub = sub {
         ],
         "$args->{foreign_alias}.approval"    => 0,
     };
-    $return->{"$args->{foreign_alias}.created"} = { '<' => $REWIND }
+    $return->{"$args->{foreign_alias}.created"} = { '<=' => $REWIND }
         if $REWIND;
     return $return;
 };

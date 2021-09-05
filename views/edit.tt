@@ -78,7 +78,7 @@
                 <div class="panel panel-default">
                     <div class="panel-heading">Version history</div>
                     <div class="panel-body">
-                        <div class="btn-group-vertical">
+                        <div class="btn-group-vertical" role="group">
                             [% dropdown_title = "Select version..." %]
                             [% FOREACH version IN record.versions %]
                                 [% IF version.id == record.record_id %]
@@ -86,7 +86,8 @@
                                 [% END %]
                             [% END %]
 
-                            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#">[% dropdown_title | html %] <b class="caret"></b></button>
+                            <a class="btn btn-default remove-unload-handler" href="/chronology/[% record.current_id %]">View chronology</a>
+                            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#">Historical versions <b class="caret"></b></button>
                             <ul id="menu1" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop4">
                                 [% IF record.deleted %]
                                     [% history_link = "purgehistory" %]

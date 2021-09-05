@@ -4,10 +4,13 @@ const setupRecordPopup = (() => {
   var setupRecordPopup = function(context) {
     $(".record-popup", context).on("click", function() {
       var record_id = $(this).data("record-id");
+      var version_id = $(this).data("version-id");
       var m = $("#readmore_modal");
       var modal = m.find(".modal-body");
       modal.text("Loading...");
-      modal.load("/record_body/" + record_id, null, function() {
+      var url = "/record_body/" + record_id;
+      if (version_id) { url = url + "?version_id=" + version_id; }
+      modal.load(url, null, function() {
         setupZebraTable(modal);
       });
       m.modal();

@@ -9,7 +9,11 @@
 [% BLOCK curcommon_table %]
     <table class="table-curcommon">
         [% FOR link IN curval.links %]
-                <tr role="button" tabindex="0" class="record-popup" data-record-id="[% link.id %]">
+                <tr role="button" tabindex="0" class="record-popup" data-record-id="[% link.id %]"
+                    [% IF link.version_id %]data-version-id="[% link.version_id %]"[% END %]>
+                    [% IF link.status %]
+                        <td><em>[% link.status %]:</em></td>
+                    [% END %]
                     [% FOREACH col IN link.presentation.columns %]
                         <td class="[% col.type %]">
                             [% render_datum(col) %]

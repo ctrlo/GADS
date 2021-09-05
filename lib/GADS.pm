@@ -1422,7 +1422,8 @@ post '/file/?' => require_login sub {
 
 get '/record_body/:id' => require_login sub {
 
-    my $id = param('id');
+    my $id         = param('id');
+    my $version_id = param('version_id');
 
     my $user   = logged_in_user;
     my $record = GADS::Record->new(
@@ -1434,7 +1435,7 @@ get '/record_body/:id' => require_login sub {
     # Wait until record has been found before logging to audit, so that the
     # instance_id is known. If it's an invalid request though, log to audit and
     # then bounce
-    try { $record->find_current_id($id) };
+    try { $version_id ? $record->find_record_id($version_id) : $record->find_current_id($id) };
     if ($@)
     {
         _audit_log();
@@ -1451,6 +1452,29 @@ get '/record_body/:id' => require_login sub {
     $return->{view_modal} = 1; # Assume modal if loaded via this route
 
     template 'edit' => $return, $options;
+};
+
+get '/chronology/:id?' => require_login sub {
+
+    my $user   = logged_in_user;
+    my $id     = route_parameters->get('id');
+    my $record = GADS::Record->new(
+        user   => $user,
+        schema => schema,
+    );
+    $record->find_chronology_id($id);
+
+    my $breadcrumbs = [
+        Crumb( $record->layout ),
+        Crumb( $record->layout, "/data" => 'records' ),
+        Crumb( "/chronology/".$record->current_id => 'record id ' . $record->current_id ),
+    ];
+
+    template 'chronology' => {
+        record      => $record,
+        breadcrumbs => $breadcrumbs,
+        page        => 'chronology',
+    };
 };
 
 any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
