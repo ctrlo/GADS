@@ -8,13 +8,13 @@
     <h4 style="margin-top:20px">
         [% version.datetime.format_cldr(config.dateformat) %] [% version.datetime.hms %]
         <small>
-            record [% IF initial %]created[% ELSE %]updated[% END %] by [% version.editor | html %]
+            record [% IF initial %]created[% ELSE %]updated[% END %][% IF version.editor.id %] by [% version.editor.as_string | html %][% END %]
         </small>
     </h4>
     <ul>
         [% FOREACH field IN version.changed %]
             <dl class="dl-horizontal chronology">
-                <dt>[% field.name | html %]</dt>
+                <dt title="[% field.name | html %]">[% field.name | html %]</dt>
                 <dd>
                     [% IF field.type == "curval" OR initial %]
                         <span class="[% field.type %]">[% render_datum(field) %]</span>
