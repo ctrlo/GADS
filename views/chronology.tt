@@ -1,0 +1,28 @@
+[% PROCESS snippets/datum.tt %]
+[% PROCESS snippets/record_readmore.tt %]
+
+<h2>Chronology of edits for record [% record.current_id %]</h2>
+
+[% FOREACH version IN record.chronology %]
+    [% IF loop.first %][% initial = 1 %][% ELSE %][% initial = 0 %][% END %]
+    <h4 style="margin-top:20px">
+        [% version.datetime.format_cldr(config.dateformat) %] [% version.datetime.hms %]
+        <small>
+            record [% IF initial %]created[% ELSE %]updated[% END %] by [% version.editor | html %]
+        </small>
+    </h4>
+    <ul>
+        [% FOREACH field IN version.changed %]
+            <dl class="dl-horizontal chronology">
+                <dt>[% field.name | html %]</dt>
+                <dd>
+                    [% IF field.type == "curval" OR initial %]
+                        <span class="[% field.type %]">[% render_datum(field) %]</span>
+                    [% ELSE %]
+                        changed to <span class="[% field.type %]">[% render_datum(field) %]</span>
+                    [% END %]
+                </dd>
+            </dl>
+        [% END %]
+    </ul>
+[% END %]
