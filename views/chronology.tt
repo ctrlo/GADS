@@ -5,24 +5,28 @@
 
 [% FOREACH version IN record.chronology %]
     [% IF loop.first %][% initial = 1 %][% ELSE %][% initial = 0 %][% END %]
-    <h4 style="margin-top:20px">
-        [% version.datetime.format_cldr(config.dateformat) %] [% version.datetime.hms %]
-        <small>
-            record [% IF initial %]created[% ELSE %]updated[% END %][% IF version.editor.id %] by [% version.editor.as_string | html %][% END %]
-        </small>
-    </h4>
-    <ul>
-        [% FOREACH field IN version.changed %]
-            <dl class="dl-horizontal chronology">
-                <dt title="[% field.name | html %]">[% field.name | html %]</dt>
-                <dd>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                [% version.datetime.format_cldr(config.dateformat) %] [% version.datetime.hms %]
+                <small>
+                    record [% IF initial %]created[% ELSE %]updated[% END %][% IF version.editor.id %] by [% version.editor.as_string | html %][% END %]
+                </small>
+            </h3>
+        </div>
+        <div class="panel-body">
+            [% FOREACH field IN version.changed %]
+                <dl class="dl-horizontal chronology">
+                    <dt title="[% field.name | html %]">[% field.name | html %]</dt>
+                    <dd>
                     [% IF field.type == "curval" OR initial %]
-                        <span class="[% field.type %]">[% render_datum(field) %]</span>
+                    <span class="[% field.type %]">[% render_datum(field) %]</span>
                     [% ELSE %]
-                        changed to <span class="[% field.type %]">[% render_datum(field) %]</span>
+                    changed to <span class="[% field.type %]">[% render_datum(field) %]</span>
                     [% END %]
-                </dd>
-            </dl>
-        [% END %]
-    </ul>
+                    </dd>
+                </dl>
+            [% END %]
+        </div>
+    </div>
 [% END %]
