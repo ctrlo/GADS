@@ -164,6 +164,7 @@ const setupBuilder = (() => {
 
   const setupBuilder = builderEl => {
     const builderConfig = JSON.parse($(builderEl).html());
+    if (!builderConfig.filters.length) return;
     if (builderConfig.filterNotDone) makeUpdateFilter();
 
     $(`#builder${builderConfig.builderId}`).queryBuilder({
