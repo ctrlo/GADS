@@ -1,5 +1,6 @@
 // General function to format date as per backend
 var format_date = function(date) {
+  if (!date) return undefined;
   return {
     year:   date.getFullYear(),
     month:  date.getMonth() + 1, // JS returns 0-11, Perl 1-12
