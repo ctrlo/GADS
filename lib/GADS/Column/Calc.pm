@@ -224,6 +224,7 @@ sub validate
     }
     elsif ($self->return_type eq 'integer')
     {
+        return 1 if $value eq '[CURUSER.ID]';
         return $value =~ /^-?[0-9]+$/;
     }
     elsif ($self->return_type eq 'numeric')
