@@ -928,9 +928,9 @@ sub columns_for_filter
                 push @columns, {
                     filter_id   => $col->id.'_'.$c->id,
                     filter_name => $col->name.' ('.$c->name.')',
-                    return_type => $col->return_type,
-                    type        => $col->type,
-                    column      => $col,
+                    return_type => $c->return_type,
+                    type        => $c->type,
+                    column      => $c,
                 };
             }
         }
