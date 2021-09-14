@@ -93,7 +93,8 @@
                     or 'CURDATE' for current date. The current user using the view can also be substituted:
                     [CURUSER] can be used to specify the user; [CURUSER.ORG] can be used to specify
                     the user's organisation; [CURUSER.DEPT] can be used to specify the user's department;
-                    [CURUSER.TEAM] can be used to specify the user's team.
+                    [CURUSER.TEAM] can be used to specify the user's team; [CURUSER.ID] can be used
+                    to specify a user's ID.
                 </dd>
             </dl>
 

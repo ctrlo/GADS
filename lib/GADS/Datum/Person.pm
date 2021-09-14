@@ -388,6 +388,7 @@ sub as_integer
 sub _build_for_code
 {   my $self = shift;
     +{
+        id           => $self->id,
         surname      => $self->surname,
         firstname    => $self->firstname,
         email        => $self->email,
