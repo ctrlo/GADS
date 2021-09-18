@@ -2236,11 +2236,11 @@ sub _search_construct
 
             $_ =~ s/\_/\\\_/g if $operator eq '-like';
 
-            my $curuser = $options{user} || $self->user
-                or warning "FIXME: user not set for filter";
-            my $curuser_id = $curuser ? $curuser->id : '';
             if ($_ && $_ =~ /\[CURUSER(\.(ORG|DEPT|TEAM|ID))?\]/)
             {
+                my $curuser = $options{user} || $self->user
+                    or warning "FIXME: user not set for filter";
+                my $curuser_id = $curuser ? $curuser->id : '';
                 if ($column->type eq "person")
                 {
                     $_ =~ s/\[CURUSER\]/$curuser_id/g;
