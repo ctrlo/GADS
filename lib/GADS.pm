@@ -1438,8 +1438,9 @@ get '/record_body/:id' => require_login sub {
     try { $version_id ? $record->find_record_id($version_id) : $record->find_current_id($id) };
     if ($@)
     {
+        my $err = $@;
         _audit_log();
-        $@->reportFatal;
+        $err->reportFatal;
     }
 
     my $layout = $record->layout;
