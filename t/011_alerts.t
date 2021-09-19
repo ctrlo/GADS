@@ -119,6 +119,11 @@ my $data = [
     {
         enum1 => 'foo1',
     },
+    {
+        curval1    => 1,
+        enum1      => 'foo1',
+        daterange1 => ['2014-01-04', '2017-06-03'],
+    },
 ];
 
 my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, calc_return_type => 'string');
@@ -639,6 +644,56 @@ my @filters = (
             },
         ],
         alerts => 2, # new record and updated record
+        global_view => 1,
+    },
+    {
+        # A view containing different fields of the same curval, where each
+        # field has a "value" join. Along with a "value" join for the main
+        # table, this tests that the join order of all the "value" tables is
+        # correct.
+        name  => 'View to test multiple fields with "value" database key',
+        rules => [
+            {
+                id       => $columns->{curval1}->id . '_' . $curval_columns->{enum1}->id,
+                type     => 'string',
+                value    => 'foo1',
+                operator => 'equal',
+            },
+            # The main table's "value" table
+            {
+                id       => $columns->{enum1}->id,
+                type     => 'string',
+                value    => 'foo',
+                operator => 'begins_with',
+            },
+            # Add on the second "value" table of the curval field after the
+            # main record's value table. This should be added before the main
+            # table's value field and will thus require the main table's value
+            # field to be renumbered
+            {
+                id       => $columns->{curval1}->id . '_' . $curval_columns->{tree1}->id,
+                type     => 'string',
+                operator => 'is_empty',
+            },
+        ],
+        condition => 'AND',
+        columns => [$columns->{string1}->id],
+        current_id => 22,
+        update => [
+            {
+                column => 'enum1',
+                value  => 8,
+            },
+            {
+                column => 'curval1',
+                value  => 1,
+            },
+            {
+                column => 'daterange1',
+                value  => ['2014-01-04', '2017-06-03'],
+            },
+        ],
+        alerts => 1, # new record only (updated record should remain in view)
         global_view => 1,
     },
     {
