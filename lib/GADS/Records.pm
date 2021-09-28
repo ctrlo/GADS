@@ -599,6 +599,8 @@ sub search_views
                     'me.instance_id'          => $self->layout->instance_id,
                 });
                 push @searches, $self->record_later_search(linked => 1, search => 1);
+                # Perform search construct twice, to ensure all value joins are consistent numbers
+                $self->_search_construct($decoded, $self->layout, ignore_perms => 1, user => $user);
                 push @searches, $self->_search_construct($decoded, $self->layout, ignore_perms => 1, user => $user);
                 my $i = 0; my @ids;
                 while ($i < @$current_ids)
@@ -2236,11 +2238,11 @@ sub _search_construct
 
             $_ =~ s/\_/\\\_/g if $operator eq '-like';
 
-            my $curuser = $options{user} || $self->user
-                or warning "FIXME: user not set for filter";
-            my $curuser_id = $curuser ? $curuser->id : '';
             if ($_ && $_ =~ /\[CURUSER(\.(ORG|DEPT|TEAM|ID))?\]/)
             {
+                my $curuser = $options{user} || $self->user
+                    or warning "FIXME: user not set for filter";
+                my $curuser_id = $curuser ? $curuser->id : '';
                 if ($column->type eq "person")
                 {
                     $_ =~ s/\[CURUSER\]/$curuser_id/g;
