@@ -768,7 +768,7 @@ sub _build__search_all_fields
         }
         my @currents = $self->schema->resultset('Current')->search({ -and => \@search},{
             join => $joins,
-            rows => 500,
+            rows => 501, # Ensure that we know whether we've exceeded 500 limit
         })->all;
 
         foreach my $current (@currents)
