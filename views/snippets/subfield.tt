@@ -1,0 +1,11 @@
+[%
+IF sub_field;
+  IF sub_params;
+    FOREACH sub_param_key IN sub_params.keys;
+      ${sub_param_key} = sub_params.${sub_param_key};
+    END;
+  END;
+
+  PROCESS $sub_field;
+END;
+%]
