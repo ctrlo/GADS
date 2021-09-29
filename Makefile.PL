@@ -52,6 +52,7 @@ our %prereq_pm = (
     # Not depended on directly, but needed for features used via CtrlO::PDF
     'PDF::Table'                                => 0.11.0,
     'Session::Token'                            => 0,
+    'Starman'                                   => 0,
     'String::CamelCase'                         => 0,
     'Test::MockTime'                            => 0,
     'Test::More'                                => 1.302112,
