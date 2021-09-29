@@ -1,0 +1,25 @@
+[% IF ! hide_group %]
+<div class="form-group">
+[% END %]
+  <div class="textarea ">
+    <label for="[% id %]">
+      [% IF is_html %][% label | html %][% ELSE %][% label %][% END %]
+    </label>
+    [% IF help_text %]
+    <p id="[% id %]-help" class="form-text">
+      [% help_text | html %]
+    </p>
+    [% END %]
+    <textarea
+      class="form-control"
+      id="[% id %]"
+      name="[% name %]"
+      rows="[% rows %]"
+      placeholder="[% IF is_html %][% placeholder | html %][% ELSE %][% placeholder %][% END %]"
+      [% IF help_text %]aria-describedby="[% id %]-help"[% END %]
+    ></textarea>
+  </div>
+  [% PROCESS snippets/subfield.tt %]
+[% IF ! hide_group %]
+</div>
+[% END %]
