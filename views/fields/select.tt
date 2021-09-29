@@ -1,0 +1,63 @@
+[%
+
+display_placeholder = placeholder;
+display_value = "";
+
+IF value;
+  FOREACH item IN items;
+    IF value == item.id;
+      display_placeholder = item.name;
+      display_value = item.id;
+    END;
+  END;
+END;
+%]
+
+[% IF ! hide_group %]
+<div class="form-group">
+[% END %]
+  <div class="select dropdown">
+    <label for="[% id %]" id="[% id %]-label">
+      [% IF is_html; label | html; ELSE; label; END; %]
+    </label>
+    [% IF help_text %]
+    <p id="[% id %]-help" class="form-text">
+      [% help_text | html %]
+    </p>
+    [% END %]
+    <button
+      class="select__toggle dropdown-toggle form-control "
+      type="button"
+      id="[% id %]"
+      data-toggle="dropdown"
+      aria-haspopup="listbox"
+      aria-expanded="false"
+    >
+      <span>[% IF is_html; display_placeholder | html; ELSE; display_placeholder; END; %]</span>
+      <input type="hidden" name="[% name %]" value="[% display_value %]">
+      
+      <ul
+        class="select__menu dropdown-menu"
+        aria-labelledby="[% id %]-label"
+        [% IF help_text %]aria-describedby="[% id %]-help"[% END %]
+        role="listbox"
+      >
+        [% FOREACH item IN items %]
+        <li class="select__menu-item" role="option"[% IF value == item.id %] aria-selected="true"[% END %]>
+          <a
+            class="select__link[% IF value == item.id %] select__link--active[% END %]"
+            href="#"
+            onclick="return false;"
+            data-id="[% item.id %]"
+          >
+            [% item.name | html_entity %]
+          </a>
+        </li>
+        [% END %]
+      </ul>
+    </button>
+  </div>
+  [% PROCESS snippets/subfield.tt %]
+[% IF ! hide_group %]
+</div>
+[% END %]
