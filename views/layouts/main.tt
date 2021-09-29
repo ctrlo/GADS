@@ -1,39 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8">
+  <head>
+    <meta charset="utf-8">
 
-        <title>[% page %] | Linkspace</title>
+    <title>[% page %] | Linkspace</title>
 
-        <meta name="author" content="Digitpaint - Boilerplates">
+    <meta name="author" content="Digitpaint - Boilerplates">
 
-        <meta name="description" content="">
-        <meta name="author" content="">
-        <meta name="generator" content="Roger" />
-        <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="generator" content="Roger" />
+    <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
 
-        <!-- location dependent stylesheets for CDN om prod. check if still needed-->
-        [% IF hostlocal %]
+    <!-- location dependent stylesheets for CDN om prod. check if still needed-->
+    [% IF hostlocal %]
 
-        [% ELSE %]
+    [% ELSE %]
 
-        [% END %]
-        <link rel="stylesheet" href="[% url.css %]/general.css">
-    </head>
+    [% END %]
+    <link rel="stylesheet" href="[% url.css %]/general.css">
+  </head>
 
-    <body class="p-0">
-        <div class="[% container_class %] container-fluid">
-            <main class="[% main_class %] row">
-                [% content %]
-            </main>
-
-            <footer class="login__footer row">
-                <div class="login__footer-container col-md-12">
-                    a product by
-                    <img src="[% url.page %]/images/logo.svg" class="login__footer-logo">
-                </div>
-            </footer>
-        </div>
-        <script type="text/javascript" src="[% url.js %]/site.js"></script>
-    </body>
+  <body class="[% body_class %]">
+    <div class="[% container_class %]">
+      [%
+        IF page == "login" OR page == "register" OR page == "reset" OR page == "invalidsite" OR page_as_mech;
+          PROCESS layouts/content_without_menu.tt;
+        ELSE;
+          PROCESS layouts/content_with_menu.tt;
+        END;
+      %]
+    </div>
+    <script type="text/javascript" src="[% url.js %]/site.js"></script>
+  </body>
 </html>
