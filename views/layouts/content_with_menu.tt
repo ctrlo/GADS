@@ -1,0 +1,18 @@
+<div class="row flex-nowrap">
+  [% PROCESS snippets/navigation.tt %]
+  <main class="[% main_class %]">
+    <div class="main__container">
+      [%
+      IF detail_header;
+        PROCESS snippets/header_detail.tt;
+      ELSE;
+        PROCESS snippets/header.tt;
+      END;
+      %]
+      <div class="content-block">
+        [% PROCESS snippets/message_center.tt %]
+        [% content %]
+      </div>
+    </div>
+  </main>
+</div>
