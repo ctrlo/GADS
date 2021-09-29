@@ -11,4 +11,4 @@ RUN cpanm --notest $(perl -wE 'our %prereq_pm; require "/gads/Makefile.PL"; prin
 
 RUN sed -i 's/mailhub=mail/mailhub=mailhog:1025/' /etc/ssmtp/ssmtp.conf
 
-CMD wait-for-it db:5432 -- dbic-migration upgrade -Ilib --schema_class='GADS::Schema' --dsn='dbi:Pg:database=postgres;host=db' && perl bin/app.pl
+CMD wait-for-it db:5432 -- dbic-migration upgrade -Ilib --schema_class='GADS::Schema' --dsn='dbi:Pg:database=postgres;host=db' && starman --port 3000 bin/app.psgi
