@@ -90,7 +90,7 @@ use Dancer2::Plugin::LogReport 'linkspace';
 use GADS::API; # API routes
 
 schema->storage->debugobj(new GADS::DBICProfiler);
-schema->storage->debug(1);
+# schema->storage->debug(1);
 
 # There should never be exceptions from DBIC, so we want to panic them to
 # ensure they get notified at the correct level. Unfortunately, DBIC's internal
@@ -137,7 +137,6 @@ sub _update_csrf_token
 }
 
 hook before => sub {
-
     schema->site_id(undef);
 
     # See if there are multiple sites. If so, find site and configure in schema
@@ -396,6 +395,9 @@ get '/' => require_login sub {
         dashboard       => $dashboard,
         dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
         page            => 'index',
+        body_class      => '',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
     };
 
     if (my $download = param('download'))
@@ -546,7 +548,7 @@ any ['get', 'post'] => '/login' => sub {
         }
     }
 
-    if (param('signin'))
+    if (defined param('signin'))
     {
         my $username  = param('username');
         my $lastfail  = DateTime->now->subtract(minutes => 15);
@@ -634,8 +636,81 @@ any ['get', 'post'] => '/login' => sub {
         teams           => $users->teams,
         register_text   => var('site')->register_text,
         page            => 'login',
-        container_class => 'login',
-        main_class      => 'login__main',
+        body_class      => 'p-0',
+        container_class => 'login container-fluid',
+        main_class      => 'login__main row',
+    };
+    $output;
+};
+
+any ['get', 'post'] => '/register' => sub {
+    my $audit = GADS::Audit->new(schema => schema);
+
+    my ($error, $error_modal);
+    my $users = GADS::Users->new(schema => schema, config => config);
+
+    if (param 'register')
+    {
+        error __"Self-service account requests are not enabled on this site"
+            if var('site')->hide_account_request;
+        my $params = params;
+        # Check whether this user already has an account
+        if ($users->user_exists($params->{email}))
+        {
+            my $reset_code = Session::Token->new( length => 32 )->get;
+            my $user       = schema->resultset('User')->active->search({ username => $params->{email} })->next;
+            $user->update({ resetpw => $reset_code });
+            my %welcome_text = welcome_text(undef, code => $reset_code);
+            my $email        = GADS::Email->instance;
+            my $args = {
+                subject => $welcome_text{subject},
+                text    => $welcome_text{plain},
+                html    => $welcome_text{html},
+                emails  => [$params->{email}],
+            };
+
+            if (process( sub { $email->send($args) }))
+            {
+                # Show same message as normal request
+                return forwardHome(
+                    { success => "Your account request has been received successfully" } );
+            }
+            $audit->login_change("Account request for $params->{email}. Account already existed, resending welcome email.");
+            return forwardHome({ success => "Your account request has been received successfully" });
+        }
+        else {
+            try { $users->register($params) };
+            if(my $exception = $@->wasFatal)
+            {
+                if ($exception->reason eq 'ERROR')
+                {
+                    $error = $exception->message->toString;
+                    $error_modal = 'register';
+                }
+                else {
+                    $exception->throw;
+                }
+            }
+            else {
+                $audit->login_change("New user account request for $params->{email}");
+                return forwardHome({ success => "Your account request has been received successfully" });
+            }
+        }
+    }
+
+    my $output  = template 'register' => {
+        error           => "".($error||""),
+        error_modal     => $error_modal,
+        username        => cookie('remember_me'),
+        titles          => $users->titles,
+        organisations   => $users->organisations,
+        departments     => $users->departments,
+        teams           => $users->teams,
+        register_text   => var('site')->register_text,
+        page            => 'register',
+        body_class      => 'p-0',
+        container_class => 'login container-fluid',
+        main_class      => 'login__main row',
     };
     $output;
 };
