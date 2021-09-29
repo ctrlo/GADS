@@ -21,3 +21,5 @@ _Inline/
 node_modules/
 /.vagrant
 /public/**/*.map
+.idea/
+/dump
