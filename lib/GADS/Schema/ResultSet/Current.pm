@@ -31,7 +31,7 @@ sub import_hash
         instance_id => $params{instance}->id,
         serial      => $record->{serial},
         deleted     => $record->{deleted},
-        deletedby   => $record->{deletedby},
+        deletedby   => $record->{deletedby} && $params{user_mapping}->{$record->{deletedby}},
     });
 
     foreach my $r (@{$record->{records}})
