@@ -63,7 +63,15 @@ my $encoder = JSON->new->pretty;
 mkdir '_export/groups'
     or report FAULT => "Unable to create groups directory";
 
-foreach my $group (schema->resultset('Group')->all)
+my @groups = schema->resultset('Group')->search({
+    instance_id => [map $_->instance_id, @instances],
+},{
+    join => {
+        layout_groups => 'layout',
+    },
+})->all;
+
+foreach my $group (@groups)
 {
     my $json = $encoder->encode({
         id   => $group->id,
@@ -79,7 +87,22 @@ if ($include_data)
 {
     mkdir "_export/users"
         or report FAULT => "Unable to create users directory";
-    dump_all("_export/users/", schema->resultset('User')->all);
+    my @users;
+    if (@instance_ids)
+    {
+        @users = schema->resultset('User')->search({
+            instance_id => [map $_->instance_id, @instances],
+        },{
+            collapse => 1,
+            join => {
+                record_createdbies => 'current',
+            },
+        });
+    }
+    else {
+        @users = schema->resultset('User')->all,
+    }
+    dump_all("_export/users/", @users);
 }
 
 foreach my $layout (@instances)
