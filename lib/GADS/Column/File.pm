@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Column::File;
 
 use Log::Report 'linkspace';
-
+use MIME::Base64 qw/decode_base64/;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 
@@ -138,6 +138,22 @@ around export_hash => sub {
     $hash->{filesize} = $self->filesize;
     return $hash;
 };
+
+sub import_value
+{   my ($self, $value) = @_;
+
+    my $file = $value->{content} && $self->schema->resultset('Fileval')->create({
+        name     => $value->{name},
+        mimetype => $value->{mimetype},
+        content  => decode_base64($value->{content}),
+    });
+    $self->schema->resultset('File')->create({
+        record_id    => $value->{record_id},
+        layout_id    => $self->id,
+        child_unique => $value->{child_unique},
+        value        => $file && $file->id,
+    });
+}
 
 1;
 
