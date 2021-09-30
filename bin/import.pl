@@ -69,6 +69,8 @@ $site_id or report ERROR =>  "Please provide site ID with --site-id";
 -d '_export'
     or report ERROR => "Export directory does not exist";
 
+local $SL::Schema::IGNORE_PERMISSIONS = 1;
+
 GADS::Config->instance(
     config => config,
 );
