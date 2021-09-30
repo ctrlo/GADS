@@ -14,6 +14,7 @@ use strict;
 use warnings;
 
 use base 'DBIx::Class::Core';
+use MIME::Base64;
 
 =head1 COMPONENTS LOADED
 
@@ -165,6 +166,18 @@ __PACKAGE__->belongs_to(
     on_update     => "NO ACTION",
   },
 );
+
+sub export_hash
+{   my $self = shift;
+    my $val = $self->value;
+    +{
+        layout_id    => $self->layout_id,
+        child_unique => $self->child_unique,
+        content      => $val && encode_base64($val->content),
+        name         => $val && $val->name,
+        mimetype     => $val && $val->mimetype,
+    };
+}
 
 
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57

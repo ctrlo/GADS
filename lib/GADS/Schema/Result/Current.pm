@@ -365,6 +365,8 @@ sub export_hash
             foreach $rec->people;
         push @values, $_->export_hash
             foreach $rec->strings;
+        push @values, $_->export_hash
+            foreach $rec->files;
 
         push @records, {
             created    => $rec->created->datetime,
