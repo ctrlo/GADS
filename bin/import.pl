@@ -123,16 +123,19 @@ foreach my $g(dir('_export/groups'))
 }
 
 # Delete any that no longer exist
-if ($report_only)
+unless ($merge || $add)
 {
-    report NOTICE => __x"Deletion: Group {name} to be deleted", name => $_->name
-        foreach values %existing_groups;
-}
-else {
-    foreach my $g (values %existing_groups)
+    if ($report_only)
     {
-        report NOTICE => __x"Deletion: Group {name} being deleted", name => $g->name;
-        $g->delete;
+        report NOTICE => __x"Deletion: Group {name} to be deleted", name => $_->name
+            foreach values %existing_groups;
+    }
+    else {
+        foreach my $g (values %existing_groups)
+        {
+            report NOTICE => __x"Deletion: Group {name} being deleted", name => $g->name;
+            $g->delete;
+        }
     }
 }
 
