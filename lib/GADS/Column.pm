@@ -1075,7 +1075,7 @@ sub write
 {   my ($self, %options) = @_;
 
     error __"You do not have permission to manage fields"
-        unless $self->layout->user_can("layout") || $options{force}; # For tests
+        unless $self->layout->user_can("layout") || $SL::Schema::IGNORE_PERMISSIONS || $options{force}; # For tests
     $self->layout->clear_permissions;
 
     error __"Internal fields cannot be edited"
