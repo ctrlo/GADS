@@ -50,7 +50,7 @@ use Log::Report syntax => 'LONG';
 use String::CamelCase qw(camelize);
 use Path::Tiny;
 
-my ($site_id, $purge, $add, $report_only, $merge, $update_cached, $force, @ignore_fields);
+my ($site_id, $purge, $add, $report_only, $merge, $update_cached, $force, $create_users, @ignore_fields);
 
 GetOptions (
     'site-id=s'      => \$site_id,
@@ -60,6 +60,7 @@ GetOptions (
     'merge'          => \$merge,         # Merge into existing table
     'update-cached'  => \$update_cached,
     'force'          => \$force,         # Force updates
+    'create-users'   => \$create_users,
     'ignore-field=s' => \@ignore_fields,
 ) or exit;
 
@@ -139,7 +140,15 @@ if (-d '_export/users')
     foreach my $user (dir("_export/users"))
     {
         $user->{groups} = [map $group_mapping->{$_}, @{$user->{groups}}];
-        my $u = schema->resultset('User')->import_hash($user);
+        my $u;
+        if ($create_users)
+        {
+            $u = schema->resultset('User')->import_hash($user);
+        }
+        else {
+            $u = schema->resultset('User')->active(username => $user->{username})->next
+                or error __x"User {username} not found", username => $u;
+        }
         $user_mapping->{$user->{id}} = $u->id;
     }
 }
