@@ -63,12 +63,16 @@ my $encoder = JSON->new->pretty;
 mkdir '_export/groups'
     or report FAULT => "Unable to create groups directory";
 
-my @groups = schema->resultset('Group')->search({
-    instance_id => [map $_->instance_id, @instances],
-},{
-    join => {
-        layout_groups => 'layout',
-    },
+my @groups = schema->resultset('Group')->search([
+    'layout.instance_id'          => [map $_->instance_id, @instances],
+    'instance_groups.instance_id' => [map $_->instance_id, @instances],
+],{
+    join => [
+        {
+            layout_groups => 'layout',
+        },
+        'instance_groups',
+    ],
 })->all;
 
 foreach my $group (@groups)
@@ -90,13 +94,17 @@ if ($include_data)
     my @users;
     if (@instance_ids)
     {
-        @users = schema->resultset('User')->search({
-            instance_id => [map $_->instance_id, @instances],
-        },{
+        @users = schema->resultset('User')->search([
+            'current.instance_id' => [map $_->instance_id, @instances],
+            'current_2.instance_id' => [map $_->instance_id, @instances],
+        ],{
             collapse => 1,
-            join => {
-                record_createdbies => 'current',
-            },
+            join => [
+                {
+                    record_createdbies => 'current',
+                },
+                'current_deletedbies',
+            ],
         });
     }
     else {

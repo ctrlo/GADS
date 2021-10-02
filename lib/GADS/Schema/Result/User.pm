@@ -558,6 +558,13 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+__PACKAGE__->has_many(
+  "current_deletedbies",
+  "GADS::Schema::Result::Current",
+  { "foreign.deletedby" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 =head2 imports
 
 Type: has_many
