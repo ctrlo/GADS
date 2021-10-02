@@ -95,8 +95,8 @@ if ($include_data)
     if (@instance_ids)
     {
         @users = schema->resultset('User')->search([
-            'current.instance_id' => [map $_->instance_id, @instances],
-            'current_2.instance_id' => [map $_->instance_id, @instances],
+            'current.instance_id'             => [map $_->instance_id, @instances],
+            'current_deletedbies.instance_id' => [map $_->instance_id, @instances],
         ],{
             collapse => 1,
             join => [
