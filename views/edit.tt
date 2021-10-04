@@ -468,9 +468,15 @@
                     </select>
                 [% ELSIF dispcol.type == "file" %]
                     [% IF readonly %]
-                        [% IF editvalue.id %]
-                            <input type="hidden" name="[% field %]" value="[% editvalue.id %]">
-                            <p class="help-block">Current file name: [% editvalue.html %] (read-only field, cannot be updated).</p>
+                        [% IF editvalue.files.size %]
+                            <ul>
+                                [% FOREACH file IN editvalue.files %]
+                                    <li>
+                                        <input type="hidden" name="[% field %]" value="[% file.id %]">
+                                        [% file.name | html %]
+                                    </li>
+                                [% END %]
+                            </ul>
                         [% ELSE %]
                             <p class="help-block">No current file (read-only field, cannot be updated).</p>
                         [% END %]
