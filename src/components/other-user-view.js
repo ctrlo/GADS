@@ -1,6 +1,7 @@
 const setupOtherUserViews = (() => {
   var setupOtherUserViews = function() {
     var layout_identifier = $("body").data("layout-identifier");
+    var url = layout_identifier ? "/" + layout_identifier + "/match/user/" : "/match/user/";
     $("#views_other_user_typeahead").typeahead({
       delay: 500,
       matcher: function() {
@@ -15,7 +16,7 @@ const setupOtherUserViews = (() => {
       source: function(query, process) {
         return $.ajax({
           type: "GET",
-          url: "/" + layout_identifier + "/match/user/",
+          url: url,
           data: { q: query },
           success: function(result) {
             process(result);

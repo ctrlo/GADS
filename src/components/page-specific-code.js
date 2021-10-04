@@ -4,6 +4,7 @@ import { DataGlobePage } from "../pages/data-globe";
 import { DataGraphPage } from "../pages/data-graph";
 import { DataTablePage } from "../pages/data-table";
 import { DataTimelinePage } from "../pages/data-timeline";
+import { AuditPage } from "../pages/audit";
 import { EditPage } from "../pages/edit";
 import { GraphPage } from "../pages/graph";
 import { GraphsPage } from "../pages/graphs";
@@ -23,6 +24,7 @@ const setupPageSpecificCode = (() => {
     data_graph: DataGraphPage,
     data_table: DataTablePage,
     data_timeline: DataTimelinePage,
+    audit: AuditPage,
     edit: EditPage,
     graph: GraphPage,
     graphs: GraphsPage,

@@ -53,13 +53,10 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="user">User</label>
-                    <select class="form-control" id="user" name="user">
-                        <option value="" [% UNLESS filtering.user %]selected[% END %]>&lt;Ignore&gt;</option>
-                        [% FOREACH u IN users.all %]
-                            <option value="[% u.id %]" [% IF filtering.user == u.id %]selected[% END %]>[% u.value | html_entity %]</option>
-                        [% END %]
-                    </select>
+                    <label for="views_other_user_id">User</label>
+                        <input type="hidden" name="user" id="views_other_user_id" value="[% filtering.user %]">
+                        <input type="text" class="form-control" id="views_other_user_typeahead" autocomplete="off"
+                            name="views_other_user_typeahead" value="[% filter_user.value | html %]" placeholder="Start typing...">
                 </div>
                 <div class="form-group">
                     <label for="from">From</label>

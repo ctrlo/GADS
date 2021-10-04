@@ -1536,6 +1536,12 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
     template 'edit' => $return, $options;
 };
 
+get '/match/user/' => require_role audit => sub {
+    my $query = param('q');
+    content_type 'application/json';
+    to_json [ rset('User')->match($query) ];
+};
+
 any ['get', 'post'] => '/audit/?' => require_role audit => sub {
 
     my $audit = GADS::Audit->new(schema => schema);
@@ -1577,6 +1583,7 @@ any ['get', 'post'] => '/audit/?' => require_role audit => sub {
         logs        => $audit->logs(session 'audit_filtering'),
         users       => $users,
         filtering   => $audit->filtering,
+        filter_user => $audit->filtering->{user} && schema->resultset('User')->find($audit->filtering->{user}),
         audit_types => GADS::Audit::audit_types,
         page        => 'audit',
         breadcrumbs => [Crumb( "/audit" => 'audit logs' )],
