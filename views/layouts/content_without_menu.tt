@@ -1,7 +1,7 @@
 <main class="[% main_class %]">
   <div class="login__main-container col-lg-4">
     <div class="login__logo">
-      <img src="[% url.page %]/images/logo.svg">
+      <img src="[% url.page %]/images/logo_linkspace.svg">
     </div>
     [% content %]
   </div>
@@ -10,6 +10,6 @@
 <footer class="login__footer row">
   <div class="login__footer-container col-md-12">
     a product by
-    <img src="[% url.page %]/images/logo.svg" class="login__footer-logo">
+    <img src="[% url.page %]/images/logo_ctrlo.svg" class="login__footer-logo">
   </div>
 </footer>
