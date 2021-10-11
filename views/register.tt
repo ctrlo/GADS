@@ -1,7 +1,6 @@
-
-
 <form class="login__form" method="post" autocomplete="off">
   [% PROCESS snippets/message_center.tt %]
+  
   <div class="login__head">
     <h2 class="login__title">
       Request account
@@ -14,6 +13,7 @@
     <p>[% register_text | html %]</p>
     [% END %]
   </div>
+  
   <div class="login__fields">
   [%
     PROCESS fields/input.tt
@@ -155,9 +155,10 @@
     
     %]
   </div>
+  
   <div class="login__btns">
     
-    <a href="/" class="btn btn-cancel">
+    <a href="[% url.page %]/" class="btn btn-cancel">
       <span>Cancel</span>
     </a>
     
