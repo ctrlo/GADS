@@ -370,7 +370,6 @@ sub _forward_last_table
 }
 
 get '/' => require_login sub {
-
     my $site = var 'site';
     my $user    = logged_in_user;
 
@@ -498,55 +497,6 @@ any ['get', 'post'] => '/login' => sub {
     }
 
     my $users = GADS::Users->new(schema => schema, config => config);
-
-    if (param 'register')
-    {
-        error __"Self-service account requests are not enabled on this site"
-            if var('site')->hide_account_request;
-        my $params = params;
-        # Check whether this user already has an account
-        if ($users->user_exists($params->{email}))
-        {
-            my $reset_code = Session::Token->new( length => 32 )->get;
-            my $user       = schema->resultset('User')->active->search({ username => $params->{email} })->next;
-            $user->update({ resetpw => $reset_code });
-            my %welcome_text = welcome_text(undef, code => $reset_code);
-            my $email        = GADS::Email->instance;
-            my $args = {
-                subject => $welcome_text{subject},
-                text    => $welcome_text{plain},
-                html    => $welcome_text{html},
-                emails  => [$params->{email}],
-            };
-
-            if (process( sub { $email->send($args) }))
-            {
-                # Show same message as normal request
-                return forwardHome(
-                    { success => "Your account request has been received successfully" } );
-            }
-            $audit->login_change("Account request for $params->{email}. Account already existed, resending welcome email.");
-            return forwardHome({ success => "Your account request has been received successfully" });
-        }
-        else {
-            try { $users->register($params) };
-            if(my $exception = $@->wasFatal)
-            {
-                if ($exception->reason eq 'ERROR')
-                {
-                    $error = $exception->message->toString;
-                    $error_modal = 'register';
-                }
-                else {
-                    $exception->throw;
-                }
-            }
-            else {
-                $audit->login_change("New user account request for $params->{email}");
-                return forwardHome({ success => "Your account request has been received successfully" });
-            }
-        }
-    }
 
     if (defined param('signin'))
     {
@@ -1673,6 +1623,63 @@ get '/logout' => sub {
     forwardHome();
 };
 
+any ['get', 'post'] => '/resetpw' => sub {
+    my $audit = GADS::Audit->new(schema => schema);
+    my $user  = logged_in_user;
+
+    # Don't allow login page to be displayed when logged-in, to prevent
+    # user thinking they are logged out when they are not
+    return forwardHome() if $user;
+
+    my $error;
+
+    # Request a password reset
+    if (param('resetpwd'))
+    {
+        if (my $username = param('emailreset'))
+        {
+            if (GADS::Util->email_valid($username))
+            {
+                $audit->login_change("Password reset request for $username");
+                my $result = password_reset_send(username => $username);
+
+                if (defined $result)
+                {
+                    return forwardHome({ success => __('An email has been sent to your email address with a link to reset your password') });
+                }
+                else {
+                    report({is_fatal => 0}, ERROR => 'Failed to send a password reset link. Did you enter a valid email address?');
+                }
+
+                report INFO =>  __x"Password reset requested for non-existant username {username}", username => $username
+                    if defined $result && !$result;
+            }
+            else {
+                $error = qq("$username" is not a valid email address);
+            }
+        }
+        else {
+            $error = 'Please enter an email address for the password reset to be sent to';
+        }
+    }
+
+    my $users  = GADS::Users->new(schema => schema, config => config);
+    my $output = template 'reset_password' => {
+        error           => "".($error||""),
+        username        => cookie('remember_me'),
+        titles          => $users->titles,
+        organisations   => $users->organisations,
+        departments     => $users->departments,
+        teams           => $users->teams,
+        register_text   => var('site')->register_text,
+        page            => 'login',
+        body_class      => 'p-0',
+        container_class => 'login container-fluid',
+        main_class      => 'login__main row',
+    };
+    $output;
+};
+
 any ['get', 'post'] => '/resetpw/:code' => sub {
 
     # Strange things happen if running this code when already logged in.
@@ -1785,6 +1792,9 @@ prefix '/:layout_name' => sub {
             dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
             page            => 'index',
             breadcrumbs     => [Crumb($layout)],
+            body_class      => '',
+            container_class => 'container-fluid',
+            main_class      => 'main col-lg-10',
         };
 
         if (my $download = param('download'))
