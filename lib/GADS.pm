@@ -1611,15 +1611,9 @@ any ['get', 'post'] => '/resetpw' => sub {
             {
                 $audit->login_change("Password reset request for $username");
                 my $result = password_reset_send(username => $username);
-
-                if (defined $result)
-                {
-                    return forwardHome({ success => __('An email has been sent to your email address with a link to reset your password') });
-                }
-                else {
-                    report({is_fatal => 0}, ERROR => 'Failed to send a password reset link. Did you enter a valid email address?');
-                }
-
+                defined $result
+                    ? success(__('An email has been sent to your email address with a link to reset your password'))
+                    : report({is_fatal => 0}, ERROR => 'Failed to send a password reset link. Did you enter a valid email address?');
                 report INFO =>  __x"Password reset requested for non-existant username {username}", username => $username
                     if defined $result && !$result;
             }
@@ -1633,14 +1627,14 @@ any ['get', 'post'] => '/resetpw' => sub {
     }
 
     my $users  = GADS::Users->new(schema => schema, config => config);
-    my $output = template 'reset_password' => {
+    my $output = template 'reset_password_request' => {
         error           => "".($error||""),
         titles          => $users->titles,
         organisations   => $users->organisations,
         departments     => $users->departments,
         teams           => $users->teams,
         register_text   => var('site')->register_text,
-        page            => 'login',
+        page            => 'reset',
         body_class      => 'p-0',
         container_class => 'login container-fluid',
         main_class      => 'login__main row',
@@ -1661,10 +1655,10 @@ any ['get', 'post'] => '/resetpw/:code' => sub {
     # Perform check first in order to get user ID for audit
     if (my $username = user_password code => param('code'))
     {
-        my $new_password;
-
-        if (param 'execute_reset')
+        # Submitted the password request
+        if (defined param 'execute_reset')
         {
+            my $new_password;
             app->destroy_session;
             my $user   = rset('User')->active(username => $username)->next;
             # Now we know this user is genuine, reset any failure that would
@@ -1679,12 +1673,25 @@ any ['get', 'post'] => '/resetpw/:code' => sub {
                 username => $user->username, password => $new_password
                     if $user->debug_login;
             _update_csrf_token();
+
+            my $output  = template 'reset_password_mail_' => {
+                site_name       => var('site')->name || 'Linkspace',
+                password        => $new_password,
+                page            => 'reset',
+                body_class      => 'p-0',
+                container_class => 'login container-fluid',
+                main_class      => 'login__main row',
+            };
+            return $output;
         }
-        my $output  = template 'login' => {
-            site_name  => var('site')->name || 'Linkspace',
-            reset_code => 1,
-            password   => $new_password,
-            page       => 'login',
+
+        # Default pw reset landing page to prevent invalidating the one time use pw reset link, if the page is scanned
+        my $output  = template 'reset_password_mail_generate' => {
+            site_name       => var('site')->name || 'Linkspace',
+            page            => 'reset',
+            body_class      => 'p-0',
+            container_class => 'login container-fluid',
+            main_class      => 'login__main row',
         };
         return $output;
     }
