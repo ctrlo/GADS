@@ -8,7 +8,7 @@
     </h2>
     
     <div class="login__intro">
-      In this window you can request an account for this system.
+      Complete fields below to request an account.
     </div>
     [% IF register_text %]
     <p>[% register_text | html %]</p>
