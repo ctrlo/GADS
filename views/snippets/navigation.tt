@@ -46,4 +46,9 @@
       </div>
     </div>
   </div>
+  <div class="sidebar__bottom">
+    <div class="sidebar__logo">
+      <img src="[% url.page %]/images/logo_linkspace_small.svg"/>
+    </div>
+  </div>
 </nav>
