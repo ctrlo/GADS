@@ -468,34 +468,6 @@ any ['get', 'post'] => '/login' => sub {
     # user thinking they are logged out when they are not
     return forwardHome() if $user;
 
-    my ($error, $error_modal);
-
-    # Request a password reset
-    if (param('resetpwd'))
-    {
-        if (my $username = param('emailreset'))
-        {
-            if (GADS::Util->email_valid($username))
-            {
-                $audit->login_change("Password reset request for $username");
-                my $result = password_reset_send(username => $username);
-                defined $result
-                    ? success(__('An email has been sent to your email address with a link to reset your password'))
-                    : report({is_fatal => 0}, ERROR => 'Failed to send a password reset link. Did you enter a valid email address?');
-                report INFO =>  __x"Password reset requested for non-existant username {username}", username => $username
-                    if defined $result && !$result;
-            }
-            else {
-                $error = qq("$username" is not a valid email address);
-                $error_modal = 'resetpw';
-            }
-        }
-        else {
-            $error = 'Please enter an email address for the password reset to be sent to';
-            $error_modal = 'resetpw';
-        }
-    }
-
     my $users = GADS::Users->new(schema => schema, config => config);
 
     if (defined param('signin'))
@@ -577,8 +549,6 @@ any ['get', 'post'] => '/login' => sub {
     }
 
     my $output  = template 'login' => {
-        error           => "".($error||""),
-        error_modal     => $error_modal,
         username        => cookie('remember_me'),
         titles          => $users->titles,
         organisations   => $users->organisations,
@@ -596,7 +566,7 @@ any ['get', 'post'] => '/login' => sub {
 any ['get', 'post'] => '/register' => sub {
     my $audit = GADS::Audit->new(schema => schema);
 
-    my ($error, $error_modal);
+    my $error;
     my $users = GADS::Users->new(schema => schema, config => config);
 
     if (param 'register')
@@ -635,7 +605,6 @@ any ['get', 'post'] => '/register' => sub {
                 if ($exception->reason eq 'ERROR')
                 {
                     $error = $exception->message->toString;
-                    $error_modal = 'register';
                 }
                 else {
                     $exception->throw;
@@ -650,8 +619,6 @@ any ['get', 'post'] => '/register' => sub {
 
     my $output  = template 'register' => {
         error           => "".($error||""),
-        error_modal     => $error_modal,
-        username        => cookie('remember_me'),
         titles          => $users->titles,
         organisations   => $users->organisations,
         departments     => $users->departments,
@@ -1636,7 +1603,7 @@ any ['get', 'post'] => '/resetpw' => sub {
     my $error;
 
     # Request a password reset
-    if (param('resetpwd'))
+    if (defined param('resetpwd'))
     {
         if (my $username = param('emailreset'))
         {
@@ -1668,7 +1635,6 @@ any ['get', 'post'] => '/resetpw' => sub {
     my $users  = GADS::Users->new(schema => schema, config => config);
     my $output = template 'reset_password' => {
         error           => "".($error||""),
-        username        => cookie('remember_me'),
         titles          => $users->titles,
         organisations   => $users->organisations,
         departments     => $users->departments,
