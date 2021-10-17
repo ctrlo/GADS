@@ -231,6 +231,7 @@ sub _build_items
                     # within it to add to the timeline separately.
                     foreach my $row (@{$fields->{$column->id}->field_values})
                     {
+                        delete $row->{record};
                         foreach my $cur_col (values %$row)
                         {   my $rt = $cur_col->column->return_type;
                             push @d, $cur_col

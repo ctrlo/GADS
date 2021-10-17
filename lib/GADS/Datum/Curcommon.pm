@@ -481,6 +481,7 @@ sub field_values
     my @recs;
     push @recs, $values->{$_}
         foreach keys %$values;
+    delete $_->{record} foreach @recs;
     \@recs;
 }
 
