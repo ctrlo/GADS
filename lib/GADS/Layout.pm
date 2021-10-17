@@ -1151,7 +1151,9 @@ sub _build__columns_name_shorthash
     # Include all columns across all instances. Because short names for
     # internal columns are the same for each instance, tag the instance name on
     # the end so we can retrieve the correct one when needed.
-    my %columns = map { $_->name_short.$_->instance_id => $_ } grep {
+    my %columns = map {
+        $_->internal ? $_->name_short.$_->instance_id : $_->name_short => $_
+    } grep {
         $_->name_short
     } @{$self->use_layout->columns};
     \%columns;
@@ -1159,7 +1161,8 @@ sub _build__columns_name_shorthash
 
 sub column_by_name_short
 {   my ($self, $name) = @_;
-    $self->use_layout->_columns_name_shorthash->{$name.$self->instance_id};
+    my $sn = $name =~ /^_/ ? $name.$self->instance_id : $name;
+    $self->use_layout->_columns_name_shorthash->{$sn};
 }
 
 sub column_id
