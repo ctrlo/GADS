@@ -653,8 +653,10 @@
                             data-current-id="[% val.id %]"
                             data-instance-name="[% dispcol.layout_parent.identifier %]" data-layout-id="[% dispcol.id %]" style='cursor:pointer'
                             >edit</a>
-                        |
-                        <a class="curval_remove" style='cursor:pointer'>remove</a>
+                        [% UNLESS column.limit_rows %]
+                            |
+                            <a class="curval_remove" style='cursor:pointer'>remove</a>
+                        [% END %]
                     </td>
                 </tr>
             [% END %]

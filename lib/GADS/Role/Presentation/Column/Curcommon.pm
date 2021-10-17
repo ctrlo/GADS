@@ -10,6 +10,7 @@ sub after_presentation
     $return->{show_add}           = $self->show_add;
     $return->{has_subvals}        = $self->has_subvals;
     $return->{data_filter_fields} = $self->data_filter_fields;
+    $return->{limit_rows}         = $self->limit_rows;
     # Expensive to build, so avoid if possible. Only needed for an edit, and no
     # point if they are filtered from record values as they will be rebuilt
     # anyway
