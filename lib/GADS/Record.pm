@@ -2338,7 +2338,7 @@ sub _field_write
                         layout_id => $column->id,
                         record_id => $self->record_id_old,
                     };
-                    $search->{value} = { '!=' => [ -and => @old_ids ] }
+                    $search->{value} = { '!=' => [ -and => @old_ids, @ids ] }
                         if @old_ids;
                     push @ids, $self->schema->resultset('Curval')->search($search)->get_column('value')->all;
                 }

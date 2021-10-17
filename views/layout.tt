@@ -265,6 +265,11 @@
                 </div>
             </div>
             <div class="form-group">
+                <label for="limit_rows">Limit number of displayed rows to a maximum of:</label>
+                <input type="text" class="form-control" name="limit_rows" id="limit_rows"
+                    value="[% column.limit_rows %]" placeholder="Enter a number of leave blank for no limit">
+            </div>
+            <div class="form-group">
                 <label for="refers_to_instance_id">Use this table:</label>
                 <select class="form-control" id="refers_to_instance_id" name="refers_to_instance_id">
                     [% IF NOT rti %]

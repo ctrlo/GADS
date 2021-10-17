@@ -30,7 +30,7 @@ extends 'GADS::Column::Curcommon';
 with 'GADS::Role::Curcommon::RelatedField';
 
 has '+option_names' => (
-    default => sub { [qw/override_permissions/] },
+    default => sub { [qw/override_permissions limit_rows/] },
 );
 
 has '+multivalue' => (

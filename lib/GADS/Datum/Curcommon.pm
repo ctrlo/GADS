@@ -41,7 +41,7 @@ after set_value => sub {
     @values     = grep { ref $_ ne 'GADS::Record' } @values;
     my @ids     = grep { $_ =~ /^[0-9]+$/ } @values; # Submitted curval IDs of existing records
     my @queries = grep { $_ !~ /^[0-9]+$/ } @values; # New curval records or changes to existing ones
-    my @old_ids = sort @{$self->ids};
+    my @old_ids = sort @{$self->all_ids};
 
     panic "Records cannot be mixed with other set values"
         if @records && (@ids || @queries);
@@ -70,6 +70,14 @@ after set_value => sub {
         @old_ids = grep { !$updated{$_} } @old_ids;
     }
 
+    # If the field is only showing limited records, then add on any existing
+    # ones that won't have been shown
+    if ($self->column->limit_rows && $self->column->multivalue)
+    {
+        my %submitted = map { $_ => 1 } @ids;
+        push @ids, grep { !$submitted{$_} } @old_ids;
+    }
+
     $changed ||= "@ids" ne "@old_ids"; #  Also see if IDs have changed
 
     if ($changed)
@@ -86,6 +94,7 @@ after set_value => sub {
         $self->clear_blank;
         $self->clear_already_seen_code;
         $self->clear_already_seen_level;
+        $self->clear_all_ids;
     }
 
     # Even if nothing has changed, we still need to set ids. This is because
@@ -253,6 +262,23 @@ has ids => (
         $self->_init_value_hash->{ids} || [];
     },
 );
+
+# All the ids including any not shown through limit_rows
+has all_ids => (
+    is  => 'lazy',
+    isa => ArrayRef,
+    clearer => 1,
+);
+
+sub _build_all_ids
+{   my $self = shift;
+    return $self->ids if !$self->column->limit_rows;
+    return [] if !$self->record || $self->record->new_entry;
+    [$self->column->schema->resultset('Curval')->search({
+        record_id => $self->record->record_id_old || $self->record->record_id,
+        layout_id => $self->column->id,
+    })->get_column('value')->all];
+}
 
 has ids_removed => (
     is  => 'lazy',
@@ -449,8 +475,8 @@ sub html_withlinks
 sub field_values
 {   my $self = shift;
     my $values = $self->_records
-        ? $self->column->field_values(rows => $self->_records)
-        : $self->column->field_values(ids => $self->ids);
+        ? $self->column->field_values(rows => $self->_records, all_ids => $self->all_ids)
+        : $self->column->field_values(ids => $self->ids, all_ids => $self->all_ids);
     # Translate into something useful
     my @recs;
     push @recs, $values->{$_}
@@ -461,8 +487,8 @@ sub field_values
 sub field_values_for_code
 {   my ($self, %options) = @_;
     $self->_records
-        ? $self->column->field_values_for_code(rows => $self->_records, %options)
-        : $self->column->field_values_for_code(ids => $self->ids, %options);
+        ? $self->column->field_values_for_code(rows => $self->_records, all_ids => $self->all_ids, %options)
+        : $self->column->field_values_for_code(ids => $self->ids, all_ids => $self->all_ids, %options);
 }
 
 sub set_values
@@ -517,12 +543,13 @@ sub _build_for_code
     );
 
     my @values = map {
+        my $rec = delete $field_values->{$_}->{record};
         +{
-            id           => int $_->{id}, # Ensure passed to Lua as number not string
-            value        => $_->{value},
-            field_values => $field_values->{$_->{id}},
+            id           => int $_, # Ensure passed to Lua as number not string
+            value        => $rec,
+            field_values => $field_values->{$_},
         }
-    } grep { $_->{id} } (@{$self->values}); # Values that have not been written will not have an ID
+    } $self->changed ? (map $_->{id}, grep $_->{id}, @{$self->values}) : @{$self->all_ids};
 
     $self->column->multivalue || @values > 1 ? \@values : $values[0];
 }

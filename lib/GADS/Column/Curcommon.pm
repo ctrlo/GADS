@@ -54,6 +54,20 @@ has override_permissions => (
     predicated => 1,
 );
 
+has limit_rows => (
+    is      => 'rw',
+    isa     => Maybe[Int],
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        return 0 unless $self->has_options;
+        $self->options->{limit_rows};
+    },
+    coerce  => sub { $_[0] ? int $_[0] : undef },
+    trigger => sub { $_[0]->reset_options },
+    predicated => 1,
+);
+
 sub clear
 {   my $self = shift;
     $self->clear_values_index;
@@ -492,6 +506,7 @@ sub field_values_for_code
                 $return->{$cid}->{$col->name_short} = $d->for_code;
             }
         }
+        $return->{$cid}->{record} = $values->{$cid}->{record};
     }
 
     $return;
@@ -527,6 +542,8 @@ sub field_values
         @rows = grep {
             $_->has_fields($self->curval_field_ids_retrieve(all_fields => $params{all_fields}, %params))
         } @{$params{rows}};
+        my %has_rows = map { $_->current_id => 1 } grep $_->current_id, @{$params{rows}};
+        push @need_ids, grep !$has_rows{$_}, @{$params{all_ids}};
     }
     elsif ($params{all_fields})
     {
@@ -576,6 +593,8 @@ sub field_values
             $ret->{$col->id} = $row->fields->{$col->id};
             $params{already_seen_code}->{$col->id} = $params{level};
         }
+        my $values = $self->_format_row($row)->{values};
+        $ret->{record} = $self->format_value(@$values),
         $return{$row->current_id} = $ret;
     }
     return \%return;

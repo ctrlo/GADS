@@ -33,6 +33,7 @@ sub fetch_multivalues
         limit_current_ids       => [map { $_->{value} } @values],
         is_draft                => $options{is_draft},
         columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns, %options),
+        max_results             => $self->limit_rows,
         ignore_view_limit_extra => 1,
     );
 
