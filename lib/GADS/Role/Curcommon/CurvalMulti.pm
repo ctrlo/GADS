@@ -53,7 +53,7 @@ sub fetch_multivalues
     {
         if ($last_record_id && $last_record_id != $v->{record_id})
         {
-            @single = sort { $a->{order} && $b->{order} ? $a->{order} <=> $b->{order} : 0 } @single;
+            @single = sort { ($a->{order}||0) <=> ($b->{order}||0) } @single;
             push @return, @single;
             @single = ();
         }
@@ -67,7 +67,7 @@ sub fetch_multivalues
     };
     # Use previously stored order to sort records - records can be part of
     # multiple values
-    @single = sort { $a->{order} && $b->{order} ? $a->{order} <=> $b->{order} : 0 } @single;
+    @single = sort { ($a->{order}||0) <=> ($b->{order}||0) } @single;
     push @return, @single;
 
     return @return;
