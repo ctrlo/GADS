@@ -14,14 +14,17 @@
                     [% IF link.status %]
                         <td><em>[% link.status %]:</em></td>
                     [% END %]
-                    [% FOREACH col IN link.presentation.columns %]
-                        <td class="[% col.type %]">
-                            [% render_datum(col) %]
+                    [% FOREACH col_inner IN link.presentation.columns %]
+                        <td class="[% col_inner.type %]">
+                            [% render_datum(col_inner) %]
                         </td>
                     [% END %]
                 </tr>
         [% END %]
     </table>
+    [% IF col.limit_rows AND curval.links.size >= col.limit_rows %]
+        <p><em>(showing maximum [% col.limit_rows %] rows)</em></p>
+    [% END %]
 [% END %]
 
 [% MACRO render_curcommon_datum(is_multivalue, curval, header, full_content) BLOCK %]
