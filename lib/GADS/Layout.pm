@@ -300,6 +300,12 @@ sub _get_user_permissions
     return $return;
 }
 
+# The correct GADS::Layout object to use: itself or the parent one if cloned
+sub use_layout
+{   my $self = shift;
+    $self->_layout || $self;
+}
+
 has _user_permissions_table => (
     is      => 'lazy',
     isa     => HashRef,
@@ -356,7 +362,7 @@ sub _build__user_permissions_overall
             foreach @{$self->layout_perms};
     }
     else {
-        my $perms = $self->_user_permissions_columns->{$user_id};
+        my $perms = $self->use_layout->_user_permissions_columns->{$user_id};
         # Don't use $self->all to save all columns being built unnecessarily.
         # This may only be called to see whether the user has any access to
         # this table
@@ -392,11 +398,11 @@ sub current_user_can_column
 sub user_can_column
 {   my ($self, $user_id, $column_id, $permission) = @_;
 
-    my $user_cache = $self->_user_permissions_columns->{$user_id};
+    my $user_cache = $self->use_layout->_user_permissions_columns->{$user_id};
 
     if (!$user_cache)
     {
-        my $user_permissions = $self->_user_permissions_columns;
+        my $user_permissions = $self->use_layout->_user_permissions_columns;
         $user_cache = $user_permissions->{$user_id} = $self->_get_user_permissions($user_id);
     }
 
@@ -756,19 +762,21 @@ sub clear
     $self->clear_permissions;
 }
 
+has _layout => (
+    is => 'ro',
+    weak_ref => 1,
+);
+
 sub clone
 {   my ($self, %options) = @_;
     my $instance_id = $options{instance_id}
         or panic "Need instance_id for clone";
     GADS::Layout->new(
-        instance_id               => $instance_id,
-        user                      => $self->user,
-        schema                    => $self->schema,
-        config                    => GADS::Config->instance,
-        columns                   => $self->columns,
-        cols_db                   => $self->cols_db,
-        columns_index             => $self->columns_index,
-        _user_permissions_columns => $self->_user_permissions_columns,
+        instance_id => $instance_id,
+        user        => $self->user,
+        schema      => $self->schema,
+        config      => GADS::Config->instance,
+        _layout     => $self->use_layout,
     );
 }
 
@@ -801,6 +809,11 @@ sub _build_cols_db
 sub _build_columns
 {   my $self = shift;
 
+    # If this layout has been cloned then it should never build its own columns
+    # so as to prevent memory leaks through circular references
+    panic "Attempt to build columns when this is a sub-layout"
+        if $self->_layout;
+
     my $schema = $self->schema;
 
     my @return;
@@ -830,7 +843,7 @@ has all_ids => (
 
 sub _build_all_ids
 {   my $self = shift;
-    [ map { $_->{id} } grep { $_->{instance_id} == $self->instance_id } @{$self->cols_db} ]
+    [ map { $_->{id} } grep { $_->{instance_id} == $self->instance_id } @{$self->use_layout->cols_db} ]
 }
 
 has has_globe => (
@@ -965,7 +978,7 @@ sub all
 
     my $type = $options{type};
 
-    my @columns = grep { $_->instance_id == $self->instance_id } @{$self->columns};
+    my @columns = grep { $_->instance_id == $self->instance_id } @{$self->use_layout->columns};
     @columns = grep { !$_->hidden } @columns unless $options{include_hidden};
     @columns = grep { $options{topic_id} ? $_->topic_id == $options{topic_id} : !$_->topic_id } @columns
         if exists $options{topic_id};
@@ -1085,7 +1098,7 @@ sub _order_dependencies
     my $dep = Algorithm::Dependency::Ordered->new(source => $source)
         or die 'Failed to set up dependency algorithm';
     my @order = @{$dep->schedule_all};
-    map { $self->columns_index->{$_} } @order;
+    map { $self->use_layout->columns_index->{$_} } @order;
 }
 
 sub position
@@ -1101,7 +1114,7 @@ sub position
 sub column
 {   my ($self, $id, %options) = @_;
     $id or return;
-    my $column = $self->columns_index->{$id}
+    my $column = $self->use_layout->columns_index->{$id}
         or return; # Column does not exist
     return if $options{permission} && !$column->user_can($options{permission});
     $column;
@@ -1110,7 +1123,7 @@ sub column
 # Whether the supplied column ID is a valid one for this instance
 sub column_this_instance
 {   my ($self, $id) = @_;
-    my $col = $self->columns_index->{$id}
+    my $col = $self->use_layout->columns_index->{$id}
         or return;
     $col->instance_id == $self->instance_id;
 }
@@ -1118,7 +1131,7 @@ sub column_this_instance
 sub _build__columns_namehash
 {   my $self = shift;
     my %columns;
-    foreach (@{$self->columns})
+    foreach (@{$self->use_layout->columns})
     {
         next unless $_->instance_id == $self->instance_id;
         error __x"Column {name} exists twice - unable to find unique column",
@@ -1130,23 +1143,23 @@ sub _build__columns_namehash
 
 sub column_by_name
 {   my ($self, $name) = @_;
-    $self->_columns_namehash->{$name};
+    $self->use_layout->_columns_namehash->{$name};
 }
 
 sub _build__columns_name_shorthash
 {   my $self = shift;
-    # Include all columns across all instances, except for internal columns of
-    # other instances, which will have the same short names as the one from
-    # this instance
-    my %columns = map { $_->name_short => $_ } grep {
-        $_->name_short && (!$_->internal || $_->instance_id == $self->instance_id)
-    } @{$self->columns};
+    # Include all columns across all instances. Because short names for
+    # internal columns are the same for each instance, tag the instance name on
+    # the end so we can retrieve the correct one when needed.
+    my %columns = map { $_->name_short.$_->instance_id => $_ } grep {
+        $_->name_short
+    } @{$self->use_layout->columns};
     \%columns;
 }
 
 sub column_by_name_short
 {   my ($self, $name) = @_;
-    $self->_columns_name_shorthash->{$name};
+    $self->use_layout->_columns_name_shorthash->{$name.$self->instance_id};
 }
 
 sub column_id
