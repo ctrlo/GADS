@@ -1629,6 +1629,20 @@ sub _build_columns_render
     return \@cols;
 }
 
+sub clear_records
+{   my ($self, %options) = @_;
+    $self->clear_count;
+    $self->clear_current_ids;
+    $self->clear_results;
+    $self->clear_aggregate_results;
+    $self->_set__next_single_id(0);
+    $self->_single_page(0);
+    $self->_set_current_ids(undef);
+    $self->_clear_all_cids_store;
+    $self->_clear_cid_search_query_cache
+        unless $options{retain_current_ids};
+}
+
 sub clear
 {   my ($self, %options) = @_;
     $self->clear_pages;
@@ -1638,24 +1652,15 @@ sub clear
     $self->clear_columns_selected;
     $self->clear_columns_render;
     $self->clear_columns_recalc_extra;
-    $self->clear_count;
-    $self->clear_current_ids;
     $self->_clear_search_all_fields;
-    $self->clear_results;
-    $self->clear_aggregate_results;
     $self->clear_search;
-    $self->_set__next_single_id(0);
-    $self->_single_page(0);
-    $self->_set_current_ids(undef);
-    $self->_clear_all_cids_store;
-    $self->_clear_cid_search_query_cache
-        unless $options{retain_current_ids};
     $self->clear_default_sort;
     $self->clear_sorts;
     $self->clear_is_group;
     $self->clear_additional_filters;
     $self->clear_has_group_col_id;
     $self->clear_group_col_ids;
+    $self->clear_records;
 }
 
 has additional_filters => (
