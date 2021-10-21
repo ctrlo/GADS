@@ -1,1 +1,1 @@
-<a href="[% link %]" class="link">[% label %]</a>
+<a href="[% url.page %][% link %]" class="link">[% label %]</a>

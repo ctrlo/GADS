@@ -227,47 +227,56 @@ sub user_fields
             name        => 'firstname',
             description => 'Forename',
             type        => 'freetext',
+            placeholder => 'Forename',
         },
         {
             name        => 'surname',
             description => 'Surname',
             type        => 'freetext',
+            placeholder => 'Surname',
         },
         {
             name        => 'email',
             description => 'Email',
             type        => 'freetext',
+            placeholder => 'name@example.com',
         },
     );
     push @fields, {
         name        => 'title',
         description => 'Title',
         type        => 'dropdown',
+        placeholder => 'Select title',
     } if $self->register_show_title;
     push @fields, {
         name        => 'organisation',
         description => $self->organisation_name,
         type        => 'dropdown',
+        placeholder => 'Select ' . $self->organisation_name,
     } if $self->register_show_organisation;
     push @fields, {
         name        => 'department_id',
         description => $self->department_name,
         type        => 'dropdown',
+        placeholder => 'Select ' . $self->department_name,
     } if $self->register_show_department;
     push @fields, {
         name        => 'team_id',
         description => $self->team_name,
         type        => 'dropdown',
+        placeholder => 'Select ' . $self->team_name,
     } if $self->register_show_team;
     push @fields, {
         name        => 'freetext1',
         description => $self->register_freetext1_name,
         type        => 'freetext',
+        placeholder => 'Select ' . $self->register_freetext1_name,
     } if $self->register_freetext1_name;
     push @fields, {
         name        => 'freetext2',
         description => $self->register_freetext2_name,
         type        => 'freetext',
+        placeholder => 'Select ' . $self->register_freetext2_name,
     } if $self->register_freetext2_name;
 
     my $user_editable = decode_json($self->user_editable_fields || '{}');

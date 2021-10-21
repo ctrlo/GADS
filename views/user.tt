@@ -1,280 +1,91 @@
 [% IF edit.defined %]
 [% edituser = users.shift %]
-[% IF edituser.account_request %]
-    <h1>New account request</h1>
-[% ELSIF page == "myaccount" %]
-    <h1>[% edituser.value | html %] - My details</h1>
-[% ELSIF edituser.id %]
-    <h1>Edit: [% edituser.value | html_entity %]</h1>
-[% ELSE %]
-    <h1>Add a user</h1>
 [% END %]
-<form method="post" style="display: inline"> <!-- Prevent reset password button line break -->
+<div class="content-block__head row">
+  <div class="content-block__info col-lg-8">
+    <h2 class="content-block__title">
+      My Details
+    </h2>
+    
+    <div class="content-block__intro">
+      This is your profile, here you can change your personal details and password.
+    </div>
+  </div>
+</div>
+
+<div class="content-block__main">
+  <form method="post">
     <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-    <div class="row">
-        <div class="col-md-6">
-            [% IF edituser.account_request %]
-                <input type="hidden" name="account_request" value="[% edituser.id %]">
-            [% END %]
-            <input type="hidden" name="page" value="[% page %]">
-            <input type="hidden" name="username" value="[% edituser.username | html_entity %]">
-            <input type="hidden" name="id" value="[% edituser.id %]">
-            [% FOREACH field IN site.user_fields %]
-                <div class="form-group">
-                    <label for="field.name">[% field.description | html %]:</label>
-                    [% IF field.type == "freetext" %]
-                        <input type="text" class="form-control" id="[% field.name %]" name="[% field.name %]"
-                            value="[% edituser.${field.name} | html_entity %]"
-                                [% IF page == "myaccount" AND NOT field.editable %] disabled[% END %]>
-                    [% ELSIF field.type == "dropdown" %]
-                        <select class="form-control" id="[% field.name %]" name="[% field.name %]"
-                            [% IF page == "myaccount" AND NOT field.editable %]disabled[% END %]>
-                            <option></option>
-                            [% FOREACH val IN values.${field.name} %]
-                                <option value="[% val.id %]" [% IF edituser.get_column(field.name) == val.id %]selected[% END %]>[% val.name | html %]</option>
-                            [% END %]
-                        </select>
-                    [% END %]
-                </div>
-            [% END %]
-            [% IF page.match("user") %]
-                <div class="form-group">
-                    <label for="account_request_notes">Notes:</label>
-                    <textarea class="form-control" id="account_request_notes" name="account_request_notes">[% edituser.account_request_notes | html_entity %]</textarea>
-                </div>
-                [% INCLUDE "snippets/user_permissions.tt" %]
-            [% END %]
-            <button type="submit" name="submit" value="submit" class="btn btn-primary">[% IF edituser.account_request %]Approve request[% ELSE %]Save[% END %]</button>
-            [% IF page.match("user") AND edituser.id %]
-                [% IF edituser.account_request %]
-                    <button type="submit" name="delete" value="[% edituser.id %]" class="btn btn-default">Reject request</button>
-                [% ELSE %]
-                    <button type="submit" name="delete" value="[% edituser.id %]" class="btn btn-default">Delete</button>
-                [% END %]
-            [% END %]
-            [% IF page == "myaccount" %]
-                <button type="button" data-toggle="modal" data-target="#newpassword" class="btn btn-default">Change password</button>
-            [% END %]
-        </div>
-        [% IF page.match("user") %]
-            <div class="col-md-6">
-                <h4>Permissions help</h4>
-                <dl>
-                    <dt>No permissions selected</dt>
-                    <dd>If a user has no permissions, they cannot edit any data. They can only:
-                        <ul>
-                            <li>View data</li>
-                            <li>Create private views of data</li>
-                            <li>Add and remove the graphs displayed on their personal page</li>
-                        </ul>
-                    </dd>
-                    <dt>User can update records</dt>
-                    <dd>
-                        This permission allows a user to update an existing record:
-                        <ul>
-                            <li>Fields that are set to &quot;Open access&quot; can be updated immediately by the user</li>
-                            <li>Fields that are set to &quot;Edit with approval&quot; can be updated, but any changes
-                                will be held for approval</li>
-                            <li>Fields that are set to &quot;Read only&quot; cannot be changed</li>
-                        </ul>
-                    </dd>
-                    <dt>User does not need approval when updating records</dt>
-                    <dd>This permission is the same as the previous one, except that all fields can be updated
-                        immediately by the user (including &quot;Read only&quot; fields).<ul></ul></dt>
-                    <dt>User can create new records</dt>
-                    <dd>This permission allows a user to create a new record. All values (including &quot;Read only&quot; values)
-                        can be entered, but the entire record will require approval.<ul></ul></dd>
-                    <dt>User does not need approval when creating new records</dt>
-                    <dd>This permission allows a user to create a new record. All values (including &quot;Read only&quot; values)
-                        can be entered, and the new record will not require any approval.<ul></ul></dd>
-                    <dt>User can approve changes</dt>
-                    <dd>This permission allows a user to approve any of the above changes that require approval.<ul></ul></dd>
-                    <dt>User can manage other user accounts</dt>
-                    <dd>This permission allows a user to manage user accounts on the system, including the
-                        configuration of permissions<ul></ul></dd>
-                    <dt>User can download data</dt>
-                    <dd>This permission allows a user to download data in CSV format<ul></ul></dd>
-                    <dt>User can administer layout, views and graphs</dt>
-                    <dd>This permission allows a user to configure the system itself, including the
-                        configuration of the layout and graphs, and the creation of global views<ul></ul></dd>
-                    <dt>User can send messages</dt>
-                    <dd>This permission allows a user to send messages to users, using the messaging capability
-                        in the tabular data view<ul></ul></dd>
-                </dl>
-            </div>
-
-        [% ELSE %]
-            [% WRAPPER modal_dialog.tt modal_id="newpassword" modal_action_text="Generate new password" modal_heading="Change password" %]
-                <div class="form-group">
-                    <label for="oldpassword">
-                        Please enter your existing password in order to generate a new password.
-                        Passwords can only be auto-generated for security reasons.
-                    </label>
-                    <input id="oldpassword" type="password" class="form-control" name="oldpassword" placeholder="" autocomplete="off">
-                </div>
-            [% END %]
+    <input type="hidden" name="page" value="[% page %]">
+    <input type="hidden" name="username" value="[% edituser.username | html_entity %]">
+    <input type="hidden" name="id" value="[% edituser.id %]">
+    <div class="content-block__main">
+      [% field_counter = 0 %]
+      [% IF site.user_fields.size > 0 %]
+      <div class="row">
+      [% END %]
+      [% FOREACH field IN site.user_fields %]
+        [% IF field_counter > 0 AND field_counter % 2 == 0 %]
+      </div>
+      <div class="row">
         [% END %]
-    </div>
-</form>
-[% ELSE %]
-<h1>Manage users</h1>
-<p>
-    <a href="" data-toggle="modal" data-target="#sendemail" class="btn btn-default" role="button">Email users</a>
-</p>
-[% IF register_requests.size %]
-    <h4>Active accounts</h4>
-[% END %]
-<table class="table table-striped dtable" id="user-table-active">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Surname</th>
-            <th>Firstname</th>
-            [% IF site.register_show_title %]
-                <th>Title</th>
-            [% END %]
-            <th>Email</th>
-            [% IF site.register_show_organisation %]
-                <th>[% site.organisation_name | html %]</th>
-            [% END %]
-            [% IF site.register_show_department %]
-                <th>[% site.department_name | html %]</th>
-            [% END %]
-            [% IF site.register_show_team %]
-                <th>[% site.team_name | html %]</th>
-            [% END %]
-            [% IF site.register_freetext1_name %]
-                <th>[% site.register_freetext1_name | html %]</th>
-            [% END %]
-            <th>Created</th>
-            <th>Last login (GMT)</th>
-        </tr>
-    </thead>
-    <tbody>
-        [% FOREACH edituser IN users %]
-            <tr>
-                <td><a href="/user/[% edituser.id %]">[% edituser.id %]</a></td>
-                <td>[% edituser.surname | html_entity %]</td>
-                <td>[% edituser.firstname | html_entity %]</td>
-                [% IF site.register_show_title %]
-                    <td>[% edituser.title.name | html_entity %]</td>
-                [% END %]
-                <td>[% edituser.email | html_entity %]</td>
-                [% IF site.register_show_organisation %]
-                    <td>[% edituser.organisation.name | html_entity %]</td>
-                [% END %]
-                [% IF site.register_show_department %]
-                    <td>[% edituser.department.name | html_entity %]</td>
-                [% END %]
-                [% IF site.register_show_team %]
-                    <td>[% edituser.team.name | html_entity %]</td>
-                [% END %]
-                [% IF site.register_freetext1_name %]
-                    <td>[% edituser.freetext1 | html_entity %]</td>
-                [% END %]
-                <td>[% edituser.created OR "Unknown" %]</td>
-                <td>[% edituser.lastlogin OR "Never logged in" %]</td>
-            </tr>
-        [% END %]
-    </tbody>
-</table>
-[% IF register_requests.size %]
-    <h4>Account requests</h4>
-    <table class="table table-striped dtable" id="user-table-request">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Surname</th>
-                <th>Firstname</th>
-                <th>Email</th>
-                [% IF site.register_show_organisation %]
-                    <th>[% site.organisation_name %]</th>
-                [% END %]
-                [% IF site.register_show_department %]
-                    <th>[% site.department_name %]</th>
-                [% END %]
-                [% IF site.register_show_team %]
-                    <th>[% site.team_name %]</th>
-                [% END %]
-            </tr>
-        </thead>
-        <tbody>
-            [% FOREACH register_request IN register_requests %]
-                <tr>
-                    <td><a href="/user/[% register_request.id %]">[% register_request.id %]</a></td>
-                    <td>[% register_request.surname | html_entity %]</td>
-                    <td>[% register_request.firstname | html_entity %]</td>
-                    <td>[% register_request.email | html_entity %]</td>
-                    [% IF site.register_show_organisation %]
-                        <td>[% register_request.organisation.name | html_entity %]</td>
-                    [% END %]
-                    [% IF site.register_show_department %]
-                        <td>[% register_request.department.name | html_entity %]</td>
-                    [% END %]
-                    [% IF site.register_show_team %]
-                        <td>[% register_request.team.name | html_entity %]</td>
-                    [% END %]
-                </tr>
-            [% END %]
-        </tbody>
-    </table>
-[% END %]
-[% END %]
-
-[% WRAPPER modal_dialog.tt
-    modal_id="sendemail"
-    modal_action_text="Send e-mail"
-    modal_heading="Send an e-mail"
-    modal_with_cancel_button=1
-    modal_with_form=1
-    modal_form_method="post"
-%]
-    <label for="email_groups" class="control-label">Limit to users in these groups:</label>
-    [%# select-widget needs to sit within row, col-md-12 otherwise the widget
-    collapses when clicking its scrollbar in IE. The label needs to be outside,
-    otherwise clicking it does not collapse widget %]
-    <div class="row">
-        <div class="col-md-12">
-            <div class="select-widget multi">
-                <div class="select-widget-dropdown">
-                    <div class="form-group form-control">
-                        <ul class="current">
-                            <li class="none-selected">all users</li>
-                        [% FOREACH group IN groups %]
-                            [% group_field_id = "group" _ '_' _ group.id %]
-                            <li data-list-item="[% group_field_id %]" hidden>
-                                <span class="widget-value__value">[% group.name | html %]</span>
-                                <button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
-                            </li>
-                        [% END %]
-                                <li class="search">
-                                    <input type="search" class="form-control-search" style="width:70px"  placeholder="Search..." aria-controls="group_available_values" aria-expanded="false" aria-describedby="email_groups">
-                                </li>
-                        </ul>
-                    </div>
-                    <ul hidden class="available [% details && 'with-details' %]" id="group_available_values" aria-labelledby="email_groups">
-                    [% FOREACH group IN groups %]
-                        [% group_field_id = "group" _ '_' _ group.id %]
-                        <li class="answer">
-                            <span class="control">
-                                <label id="[% group_field_id %]_label" for="[% group_field_id %]">
-                                    <input id="[% group_field_id %]" name="group_ids" type="checkbox" value="[% group.id %]" aria-labelledby="[% group_field_id %]_label">
-                                    <span role="option">[% group.name | html %]</span>
-                                </label>
-                            </span>
-                        </li>
-                    [% END %]
-                    </ul>
-                </div>
-            </div>
+        [% field_disabled = NOT field.editable ? 1 : 0; %]
+        <div class="col-lg-5">
+          [%
+            IF field.type == "freetext";
+              IF field.name == "email";
+                field_type = "email";
+                sub_field = "fields/sub/modal_link.tt";
+                sub_params = {
+                  label => "Change password"
+                };
+              ELSE;
+                field_type = "text";
+                sub_field = "";
+                sub_params = {};
+              END;
+          
+              PROCESS fields/input.tt
+                id = field.name
+                name = field.name
+                value = edituser.${field.name}
+                label = field.description
+                placeholder = field.placeholder
+                type = field_type
+                custom_classes = ""
+                disabled = field_disabled
+                is_html = 1
+                sub_field = sub_field
+                sub_params = sub_params;
+          
+            ELSIF field.type == "dropdown";
+              PROCESS fields/select.tt
+                id = field.name
+                name = field.name
+                value = edituser.${field.name}
+                label = field.description
+                placeholder = field.placeholder
+                items = values.${field.name}
+                is_html = 1
+                sub_field = ""
+                sub_params = {};
+            END;
+          %]
         </div>
+        [% IF field.name == "email"; field_counter = field_counter + 2; ELSE; field_counter = field_counter + 1; END; %]
+      [% END %]
+      [% IF site.user_fields.size > 0 %]
+      </div>
+      [% END %]
+      
+      <button
+        type="submit"
+        name="submit"
+        value="1"
+        class="btn btn-default"
+      >
+        <span class="btn__title">Save</span>
+      </button>
     </div>
-    <div class="form-group">
-        <label for="email_subject" class="control-label">Subject</label>
-            <input type="text" class="form-control" name="email_subject" id="email_subject" placeholder="Subject">
-    </div>
-    <div class="form-group">
-        <label for="email_text" class="control-label">Message</label>
-            <textarea class="form-control" id="email_text" name="email_text" rows="10"></textarea>
-    </div>
-[% END %]
+  </form>
+</div>
