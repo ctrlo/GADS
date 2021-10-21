@@ -1,4 +1,4 @@
-[% IF messages.size OR session.rewind %]
+[% IF messages.size OR session.rewind OR error %]
 <div class="login__alert">
   [% IF messages.size %]
     [% FOR message IN messages %]
