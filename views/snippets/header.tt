@@ -8,7 +8,7 @@
           </button>
           <ul class="user__menu dropdown-menu dropdown-menu-right" aria-labelledby="usermenu">
             <li class="user__menu-item">
-              <a class="user__link" href="[% url.page %]/account/detail">My details</a>
+              <a class="user__link" href="[% url.page %]/myaccount">My details</a>
             </li>
             <li class="user__menu-item">
               <a class="user__link user__link--logout" href="[% url.page %]/logout">Logout</a>
