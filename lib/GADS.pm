@@ -1674,7 +1674,7 @@ any ['get', 'post'] => '/resetpw/:code' => sub {
                     if $user->debug_login;
             _update_csrf_token();
 
-            my $output  = template 'reset_password_mail_' => {
+            my $output  = template 'reset_password_mail_generate' => {
                 site_name       => var('site')->name || 'Linkspace',
                 password        => $new_password,
                 page            => 'reset',
@@ -1686,7 +1686,7 @@ any ['get', 'post'] => '/resetpw/:code' => sub {
         }
 
         # Default pw reset landing page to prevent invalidating the one time use pw reset link, if the page is scanned
-        my $output  = template 'reset_password_mail_generate' => {
+        my $output  = template 'reset_password_mail_landing' => {
             site_name       => var('site')->name || 'Linkspace',
             page            => 'reset',
             body_class      => 'p-0',
