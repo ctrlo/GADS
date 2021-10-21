@@ -675,17 +675,19 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
 
     my $users = GADS::Users->new(schema => schema);
     template 'user' => {
-        edit          => $user->id,
-        users         => [$user],
-        titles        => $users->titles,
-        values            => {
-            title            => $users->titles,
-            organisation     => $users->organisations,
-            department_id    => $users->departments,
-            team_id          => $users->teams,
+        edit            => $user->id,
+        users           => [$user],
+        titles          => $users->titles,
+        page            => 'myaccount',
+        body_class      => '',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+        values          => {
+            title         => $users->titles,
+            organisation  => $users->organisations,
+            department_id => $users->departments,
+            team_id       => $users->teams,
         },
-        page          => 'myaccount',
-        breadcrumbs   => [Crumb( '/myaccount/' => 'my details' )],
     };
 };
 
