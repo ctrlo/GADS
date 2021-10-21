@@ -26,15 +26,17 @@ END;
     </p>
     [% END %]
     <button
-      class="select__toggle dropdown-toggle form-control "
-      type="button"
       id="[% id %]"
+      type="button"
+      class="select__toggle dropdown-toggle form-control"
+      [% IF is_disabled %]disabled[% END %]
       data-toggle="dropdown"
       aria-haspopup="listbox"
       aria-expanded="false"
+      [% IF is_disabled %]aria-disabled="true"[% END %]
     >
       <span>[% IF is_html; display_placeholder | html; ELSE; display_placeholder; END; %]</span>
-      <input type="hidden" name="[% name %]" value="[% display_value %]">
+      <input type="hidden" name="[% name %]" value="[% display_value %]"[% IF is_disabled %] disabled[% END %]>
       
       <ul
         class="select__menu dropdown-menu"
