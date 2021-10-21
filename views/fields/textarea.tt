@@ -17,7 +17,8 @@
       rows="[% rows %]"
       placeholder="[% IF is_html %][% placeholder | html %][% ELSE %][% placeholder %][% END %]"
       [% IF help_text %]aria-describedby="[% id %]-help"[% END %]
-    ></textarea>
+      [% IF is_disabled %]disabled[% END %]
+    >[% IF is_html; value | html; ELSE; value; END; %]</textarea>
   </div>
   [% PROCESS snippets/subfield.tt %]
 [% IF ! hide_group %]

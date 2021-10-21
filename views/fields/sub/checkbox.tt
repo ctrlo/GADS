@@ -6,6 +6,7 @@
     class="[% IF checked %]remember--checked[% END %] visually-hidden-opacity"
     [% IF checked %]checked="checked"[% END %]
     [% IF tabindex %]tabindex="[% tabindex %]"[% END %]
+    [% IF is_disabled %]disabled[% END %]
   >
   <label for="[% id %]">
     [% IF is_html; label | html; ELSE; label; END; %]
