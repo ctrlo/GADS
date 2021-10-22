@@ -1660,7 +1660,7 @@ sub clear
     $self->clear_additional_filters;
     $self->clear_has_group_col_id;
     $self->clear_group_col_ids;
-    $self->clear_records;
+    $self->clear_records(%options);
 }
 
 has additional_filters => (
