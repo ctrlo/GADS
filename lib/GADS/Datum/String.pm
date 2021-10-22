@@ -41,6 +41,10 @@ after set_value => sub {
     if ("@text_all" ne "@old_texts")
     {
         s/\h+$// for @values;
+        # Remove leading new lines, as when rendered for edit browsers appear
+        # to remove them anyway. Thus text fields can be incorrectly flagged as
+        # changed when they haven't
+        s/^\v+// for @values;
     }
     my $changed = "@text_all" ne "@old_texts";
 
