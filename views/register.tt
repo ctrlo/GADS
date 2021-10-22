@@ -15,145 +15,147 @@
   </div>
   
   <div class="login__fields">
-  [%
-    PROCESS fields/input.tt
-      id = "firstname"
-      name = "firstname"
-      value = ""
-      label = "Forename"
-      placeholder = "Forename"
-      type = "text"
-      custom_classes = ""
-      is_html = 0
-      sub_field = ""
-      sub_params = {};
-    
-    PROCESS fields/input.tt
-      id = "surname"
-      name = "surname"
-      value = ""
-      label = "Surname"
-      placeholder = "Surname"
-      type = "text"
-      custom_classes = ""
-      is_html = 0
-      sub_field = ""
-      sub_params = {};
-    
-    PROCESS fields/input.tt
-      id = "email"
-      name = "email"
-      value = ""
-      label = "Email address"
-      placeholder = "name@example.com"
-      type = "email"
-      custom_classes = ""
-      help_text = site.register_email_help
-      is_html = 0
-      sub_field = ""
-      sub_params = {};
-    
-    IF site.register_show_title;
-      PROCESS fields/select.tt
-        id = "title"
-        name = "title"
-        value = ""
-        label = "Title"
-        placeholder = "Select title"
-        help_text = site.register_organisation_help
-        items = organisations
-        is_html = 0
-        sub_field = ""
-        sub_params = {};
-    END;
-    
-    IF site.register_freetext1_name;
-      PROCESS fields/input.tt
-        id = "freetext1"
-        name = "freetext1"
-        value = ""
-        label = site.register_freetext1_name
-        placeholder = site.register_freetext1_name
-        type = "text"
-        custom_classes = ""
-        help_text = site.register_freetext1_help
-        is_html = 1
-        sub_field = ""
-        sub_params = {};
-    END;
-    
-    IF site.register_freetext2_name;
-      PROCESS fields/input.tt
-        id = "freetext2"
-        name = "freetext2"
-        value = ""
-        label = site.register_freetext2_name
-        placeholder = site.register_freetext2_name
-        type = "text"
-        custom_classes = ""
-        help_text = site.register_freetext2_help
-        is_html = 1
-        sub_field = ""
-        sub_params = {};
-    END;
-    
-    IF site.register_show_organisation;
-      PROCESS fields/select.tt
-        id = "organisation"
-        name = "organisation"
-        value = ""
-        label = site.register_organisation_name
-        placeholder = "Select organisation"
-        help_text = site.register_organisation_help
-        items = organisations
-        is_html = 0
-        sub_field = ""
-        sub_params = {};
-    END;
-    
-    IF site.register_show_department;
-      PROCESS fields/select.tt
-        id = "department_id"
-        name = "department_id"
-        value = ""
-        label = site.department_name
-        placeholder = "Select " _ site.department_name
-        help_text = site.register_department_help
-        items = departments
-        is_html = 1
-        sub_field = ""
-        sub_params = {};
-    END;
-    
-    IF site.register_show_team;
-      PROCESS fields/select.tt
-        id = "team_id"
-        name = "team_id"
-        value = ""
-        label = site.team_name
-        placeholder = "Select " _ site.team_name
-        help_text = site.register_team_help
-        items = teams
-        is_html = 1
-        sub_field = ""
-        sub_params = {};
-    END;
-    
-    PROCESS fields/textarea.tt
-      id = "account_request_notes"
-      name = "account_request_notes"
-      value = ""
-      label = "Notes"
-      placeholder = ""
-      type = "email"
-      custom_classes = ""
-      help_text = site.register_notes_help
-      is_html = 1
-      rows = 5
-      sub_field = ""
-      sub_params = {};
-    
-    %]
+    <fieldset class="form-group">
+      <legend class="form-group__legend form-group__legend--hidden">Request account</legend>
+      [%
+        PROCESS fields/input.tt
+          id = "firstname"
+          name = "firstname"
+          value = ""
+          label = "Forename"
+          placeholder = "Forename"
+          type = "text"
+          custom_classes = ""
+          is_html = 0
+          sub_field = ""
+          sub_params = {};
+        
+        PROCESS fields/input.tt
+          id = "surname"
+          name = "surname"
+          value = ""
+          label = "Surname"
+          placeholder = "Surname"
+          type = "text"
+          custom_classes = ""
+          is_html = 0
+          sub_field = ""
+          sub_params = {};
+        
+        PROCESS fields/input.tt
+          id = "email"
+          name = "email"
+          value = ""
+          label = "Email address"
+          placeholder = "name@example.com"
+          type = "email"
+          custom_classes = ""
+          help_text = site.register_email_help
+          is_html = 0
+          sub_field = ""
+          sub_params = {};
+        
+        IF site.register_show_title;
+          PROCESS fields/select.tt
+            id = "title"
+            name = "title"
+            value = ""
+            label = "Title"
+            placeholder = "Select title"
+            help_text = site.register_organisation_help
+            items = organisations
+            is_html = 0
+            sub_field = ""
+            sub_params = {};
+        END;
+        
+        IF site.register_freetext1_name;
+          PROCESS fields/input.tt
+            id = "freetext1"
+            name = "freetext1"
+            value = ""
+            label = site.register_freetext1_name
+            placeholder = site.register_freetext1_name
+            type = "text"
+            custom_classes = ""
+            help_text = site.register_freetext1_help
+            is_html = 1
+            sub_field = ""
+            sub_params = {};
+        END;
+        
+        IF site.register_freetext2_name;
+          PROCESS fields/input.tt
+            id = "freetext2"
+            name = "freetext2"
+            value = ""
+            label = site.register_freetext2_name
+            placeholder = site.register_freetext2_name
+            type = "text"
+            custom_classes = ""
+            help_text = site.register_freetext2_help
+            is_html = 1
+            sub_field = ""
+            sub_params = {};
+        END;
+        
+        IF site.register_show_organisation;
+          PROCESS fields/select.tt
+            id = "organisation"
+            name = "organisation"
+            value = ""
+            label = site.register_organisation_name
+            placeholder = "Select organisation"
+            help_text = site.register_organisation_help
+            items = organisations
+            is_html = 0
+            sub_field = ""
+            sub_params = {};
+        END;
+        
+        IF site.register_show_department;
+          PROCESS fields/select.tt
+            id = "department_id"
+            name = "department_id"
+            value = ""
+            label = site.department_name
+            placeholder = "Select " _ site.department_name
+            help_text = site.register_department_help
+            items = departments
+            is_html = 1
+            sub_field = ""
+            sub_params = {};
+        END;
+        
+        IF site.register_show_team;
+          PROCESS fields/select.tt
+            id = "team_id"
+            name = "team_id"
+            value = ""
+            label = site.team_name
+            placeholder = "Select " _ site.team_name
+            help_text = site.register_team_help
+            items = teams
+            is_html = 1
+            sub_field = ""
+            sub_params = {};
+        END;
+        
+        PROCESS fields/textarea.tt
+          id = "account_request_notes"
+          name = "account_request_notes"
+          value = ""
+          label = "Notes"
+          placeholder = ""
+          type = "email"
+          custom_classes = ""
+          help_text = site.register_notes_help
+          is_html = 1
+          rows = 5
+          sub_field = ""
+          sub_params = {};
+      %]
+    </fieldset>
   </div>
   
   <div class="login__btns">

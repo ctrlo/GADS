@@ -15,77 +15,80 @@
 
 <div class="content-block__main">
   <form method="post">
-    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-    <input type="hidden" name="page" value="[% page %]">
-    <input type="hidden" name="username" value="[% edituser.username | html_entity %]">
-    <input type="hidden" name="id" value="[% edituser.id %]">
-    <div class="content-block__main">
-      [% field_counter = 0 %]
-      [% IF site.user_fields.size > 0 %]
-      <div class="row">
-      [% END %]
-      [% FOREACH field IN site.user_fields %]
-        [% IF field_counter > 0 AND field_counter % 2 == 0 %]
-      </div>
-      <div class="row">
+    <fieldset class="form-group">
+      <legend class="form-group__legend form-group__legend--hidden">My details</legend>
+      <input type="hidden" name="csrf_token" value="[% csrf_token %]">
+      <input type="hidden" name="page" value="[% page %]">
+      <input type="hidden" name="username" value="[% edituser.username | html_entity %]">
+      <input type="hidden" name="id" value="[% edituser.id %]">
+      <div class="content-block__main">
+        [% field_counter = 0 %]
+        [% IF site.user_fields.size > 0 %]
+        <div class="row">
         [% END %]
-        [% field_disabled = NOT field.editable ? 1 : 0; %]
-        <div class="col-lg-5">
-          [%
-            IF field.type == "freetext";
-              IF field.name == "email";
-                field_type = "email";
-                sub_field = "fields/sub/modal_link.tt";
-                sub_params = {
-                  label => "Change password"
-                };
-              ELSE;
-                field_type = "text";
-                sub_field = "";
-                sub_params = {};
-              END;
-          
-              PROCESS fields/input.tt
-                id = field.name
-                name = field.name
-                value = edituser.${field.name}
-                label = field.description
-                placeholder = field.placeholder
-                type = field_type
-                custom_classes = ""
-                disabled = field_disabled
-                is_html = 1
-                sub_field = sub_field
-                sub_params = sub_params;
-          
-            ELSIF field.type == "dropdown";
-              PROCESS fields/select.tt
-                id = field.name
-                name = field.name
-                value = edituser.${field.name}
-                label = field.description
-                placeholder = field.placeholder
-                items = values.${field.name}
-                is_html = 1
-                sub_field = ""
-                sub_params = {};
-            END;
-          %]
+        [% FOREACH field IN site.user_fields %]
+          [% IF field_counter > 0 AND field_counter % 2 == 0 %]
         </div>
-        [% IF field.name == "email"; field_counter = field_counter + 2; ELSE; field_counter = field_counter + 1; END; %]
-      [% END %]
-      [% IF site.user_fields.size > 0 %]
+        <div class="row">
+          [% END %]
+          [% field_disabled = NOT field.editable ? 1 : 0; %]
+          <div class="col-lg-5">
+            [%
+              IF field.type == "freetext";
+                IF field.name == "email";
+                  field_type = "email";
+                  sub_field = "fields/sub/modal_link.tt";
+                  sub_params = {
+                    label => "Change password"
+                  };
+                ELSE;
+                  field_type = "text";
+                  sub_field = "";
+                  sub_params = {};
+                END;
+            
+                PROCESS fields/input.tt
+                  id = field.name
+                  name = field.name
+                  value = edituser.${field.name}
+                  label = field.description
+                  placeholder = field.placeholder
+                  type = field_type
+                  custom_classes = ""
+                  disabled = field_disabled
+                  is_html = 1
+                  sub_field = sub_field
+                  sub_params = sub_params;
+            
+              ELSIF field.type == "dropdown";
+                PROCESS fields/select.tt
+                  id = field.name
+                  name = field.name
+                  value = edituser.${field.name}
+                  label = field.description
+                  placeholder = field.placeholder
+                  items = values.${field.name}
+                  is_html = 1
+                  sub_field = ""
+                  sub_params = {};
+              END;
+            %]
+          </div>
+          [% IF field.name == "email"; field_counter = field_counter + 2; ELSE; field_counter = field_counter + 1; END; %]
+        [% END %]
+        [% IF site.user_fields.size > 0 %]
+        </div>
+        [% END %]
+        
+        <button
+          type="submit"
+          name="submit"
+          value="1"
+          class="btn btn-default"
+        >
+          <span class="btn__title">Save</span>
+        </button>
       </div>
-      [% END %]
-      
-      <button
-        type="submit"
-        name="submit"
-        value="1"
-        class="btn btn-default"
-      >
-        <span class="btn__title">Save</span>
-      </button>
-    </div>
+    </fieldset>
   </form>
 </div>
