@@ -275,6 +275,7 @@ sub _build_all_ids
     return $self->ids if !$self->column->limit_rows;
     return [] if !$self->record || $self->record->new_entry;
     [$self->column->schema->resultset('Curval')->search({
+        value     => { '!=' => undef },
         record_id => $self->record->record_id_old || $self->record->record_id,
         layout_id => $self->column->id,
     })->get_column('value')->all];
