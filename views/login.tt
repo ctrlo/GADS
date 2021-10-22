@@ -8,43 +8,45 @@
   </div>
   
   <div class="login__fields">
-    [%
-    PROCESS fields/input.tt
-      id = "username"
-      name = "username"
-      value = username
-      label = "Email address"
-      placeholder = "name@example.com"
-      type = "email"
-      custom_classes = ""
-      is_html = 0
-      tabindex = 1
-      sub_field = "fields/sub/checkbox.tt"
-      sub_params = {
-        id => "remember"
-        name => "remember_me"
-        label => "Remember email address"
-        checked => username
-        tabindex => 2
-      };
-
-    PROCESS fields/password.tt
-      id = "password"
-      name = "password"
-      value = ""
-      label = "Password"
-      placeholder = ""
-      type = "password"
-      custom_classes = ""
-      is_html = 0
-      tabindex = 3
-      sub_field = "fields/sub/link.tt"
-      sub_params = {
-        link => "/resetpw"
-        label => "Reset password"
-      };
-    
-    %]
+    <fieldset class="form-group">
+      <legend class="form-group__legend form-group__legend--hidden">Login</legend>
+      [%
+        PROCESS fields/input.tt
+          id = "username"
+          name = "username"
+          value = username
+          label = "Email address"
+          placeholder = "name@example.com"
+          type = "email"
+          custom_classes = ""
+          is_html = 0
+          tabindex = 1
+          sub_field = "fields/sub/checkbox.tt"
+          sub_params = {
+            id => "remember"
+            name => "remember_me"
+            label => "Remember email address"
+            checked => username
+            tabindex => 2
+          };
+  
+        PROCESS fields/password.tt
+          id = "password"
+          name = "password"
+          value = ""
+          label = "Password"
+          placeholder = ""
+          type = "password"
+          custom_classes = ""
+          is_html = 0
+          tabindex = 3
+          sub_field = "fields/sub/link.tt"
+          sub_params = {
+            link => "/resetpw"
+            label => "Reset password"
+          };
+      %]
+    </fieldset>
   </div>
   
   <div class="login__btns">
