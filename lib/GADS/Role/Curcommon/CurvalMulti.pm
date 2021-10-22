@@ -76,6 +76,7 @@ sub fetch_multivalues
     }
     else {
         # Standard retrieval
+        $records->limit_current_ids([map { $_->{value} } @values]);
         while (my $record = $records->single)
         {
             $retrieved{$record->current_id} = {
