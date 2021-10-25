@@ -152,7 +152,7 @@ if (-d '_export/users')
         }
         else {
             $u = schema->resultset('User')->active(username => $user->{username})->next
-                or error __x"User {username} not found", username => $u;
+                or report ERROR => __x"User {username} not found", username => $user->{username};
         }
         $user_mapping->{$user->{id}} = $u->id;
     }
