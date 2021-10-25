@@ -2353,8 +2353,9 @@ sub _resolve
         # second is needed for those records that were only created after the
         # required date, otherwise they would not be returned as there is no
         # value before the required date
+        my $value_field = $column->value_field;
         my $sub1 = $self->schema->resultset('Changed')->search({
-            "value" => { '!=' => \"first_value" },
+            $value_field => { '!=' => \"first_value" },
         },{
             alias  => 'me_other2',
         })->get_column('id')->as_query;
@@ -2362,7 +2363,7 @@ sub _resolve
         my $sub2 = $self->schema->resultset('Changed')->search(undef, {
             alias => 'me_other2',
             group_by => 'id',
-            having => \[ 'count(distinct(value)) > 1' ],
+            having => \[ "count(distinct($value_field)) > 1" ],
         })->get_column('id')->as_query;
 
         return (

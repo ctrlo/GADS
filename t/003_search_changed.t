@@ -22,46 +22,55 @@ my @to_write = (
     {
         string1    => 'foo1',
         enum1      => 1,
+        daterange1 => ['2019-01-01', '2019-02-01'],
         version_dt => '01/01/2014 12:00',
     },
     {
         string1    => 'foo1',
         enum1      => 1,
+        daterange1 => ['2019-01-01', '2019-02-01'],
         version_dt => '02/01/2014 12:00',
     },
     {
         string1    => 'foo1',
         enum1      => 1,
+        daterange1 => ['2019-01-01', '2019-02-01'],
         version_dt => '03/01/2014 12:00',
     },
     {
         string1    => 'foo2',
         enum1      => 2,
+        daterange1 => ['2020-01-01', '2020-02-01'],
         version_dt => '04/01/2014 12:00',
     },
     {
         string1    => 'foo2',
         enum1      => 2,
+        daterange1 => ['2020-01-01', '2020-02-01'],
         version_dt => '05/01/2014 12:00',
     },
     {
         string1    => 'foo2',
         enum1      => 2,
+        daterange1 => ['2020-01-01', '2020-02-01'],
         version_dt => '06/01/2014 12:00',
     },
     {
         string1    => 'foo3',
         enum1      => 3,
+        daterange1 => ['2021-01-01', '2021-02-01'],
         version_dt => '07/01/2014 12:00',
     },
     {
         string1    => 'foo3',
         enum1      => 3,
+        daterange1 => ['2021-01-01', '2021-02-01'],
         version_dt => '08/01/2014 12:00',
     },
     {
         string1    => 'foo3',
         enum1      => 3,
+        daterange1 => ['2021-01-01', '2021-02-01'],
         version_dt => '09/01/2014 12:00',
     },
 );
@@ -81,6 +90,7 @@ foreach my $write (@to_write)
     $record->find_current_id($write_id) if $write_id;
     $record->fields->{$columns->{enum1}->id}->set_value($write->{enum1});
     $record->fields->{$columns->{string1}->id}->set_value($write->{string1});
+    $record->fields->{$columns->{daterange1}->id}->set_value($write->{daterange1});
     $record->write(no_alerts => 1);
     $write_id = $record->current_id;
 }
@@ -124,7 +134,7 @@ my @tests = (
 
 foreach my $test (@tests)
 {
-    foreach my $type (qw/enum1 string1/) # XXX Add other field types
+    foreach my $type (qw/enum1 string1 calc1/) # XXX Add other field types
     {
         my $rules = GADS::Filter->new(
             as_hash => {
