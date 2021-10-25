@@ -51,8 +51,9 @@ GADS::Config->instance(
 );
 
 schema->site_id($site_id);
+local $SL::Schema::IGNORE_PERMISSIONS = 1;
 
-my $instances_object = GADS::Instances->new(schema => schema, user => undef, user_permission_override => 1);
+my $instances_object = GADS::Instances->new(schema => schema, user => undef);
 
 my @instances = @instance_ids
     ? (map { $instances_object->layout($_) } @instance_ids)
