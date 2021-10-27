@@ -6,6 +6,6 @@ IF sub_field;
     END;
   END;
 
-  PROCESS $sub_field;
+  INCLUDE $sub_field;
 END;
 %]
