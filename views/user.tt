@@ -47,30 +47,27 @@
                   sub_params = {};
                 END;
             
-                PROCESS fields/input.tt
+                INCLUDE fields/input.tt
                   id = field.name
                   name = field.name
                   value = edituser.${field.name}
                   label = field.description
                   placeholder = field.placeholder
                   type = field_type
-                  custom_classes = ""
                   disabled = field_disabled
                   is_html = 1
                   sub_field = sub_field
                   sub_params = sub_params;
             
               ELSIF field.type == "dropdown";
-                PROCESS fields/select.tt
+                INCLUDE fields/select.tt
                   id = field.name
                   name = field.name
                   value = edituser.${field.name}
                   label = field.description
                   placeholder = field.placeholder
                   items = values.${field.name}
-                  is_html = 1
-                  sub_field = ""
-                  sub_params = {};
+                  is_html = 1;
               END;
             %]
           </div>

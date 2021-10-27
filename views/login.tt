@@ -7,19 +7,18 @@
     </h2>
   </div>
   
-  <div class="login__fields">
-    <fieldset class="form-group">
-      <legend class="form-group__legend form-group__legend--hidden">Login</legend>
+  <fieldset class="form-group">
+    <legend class="form-group__legend form-group__legend--hidden">Login</legend>
+    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
+    <div class="login__fields">
       [%
-        PROCESS fields/input.tt
+        INCLUDE fields/input.tt
           id = "username"
           name = "username"
           value = username
           label = "Email address"
           placeholder = "name@example.com"
           type = "email"
-          custom_classes = ""
-          is_html = 0
           tabindex = 1
           sub_field = "fields/sub/checkbox.tt"
           sub_params = {
@@ -30,15 +29,12 @@
             tabindex => 2
           };
   
-        PROCESS fields/password.tt
+        INCLUDE fields/password.tt
           id = "password"
           name = "password"
-          value = ""
           label = "Password"
-          placeholder = ""
           type = "password"
-          custom_classes = ""
-          is_html = 0
+          input_class = "input--password"
           tabindex = 3
           sub_field = "fields/sub/link.tt"
           sub_params = {
@@ -46,16 +42,14 @@
             label => "Reset password"
           };
       %]
-    </fieldset>
-  </div>
-  
-  <div class="login__btns">
-    <button tabindex="4" type="submit" name="signin" value="1" class="btn btn-default">
-      <span>Sign in</span>
-    </button>
-  </div>
-  
-  <input type="hidden" name="csrf_token" value="[% csrf_token %]">
+    </div>
+    
+    <div class="login__btns">
+      <button tabindex="4" type="submit" name="signin" value="1" class="btn btn-default">
+        <span class="btn__title">Sign in</span>
+      </button>
+    </div>
+  </fieldset>
 </form>
 
 [% UNLESS site.hide_account_request %]

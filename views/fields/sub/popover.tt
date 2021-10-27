@@ -1,0 +1,15 @@
+<div class="popover-container">
+  <button
+    class="popover__btn"
+    type="button"
+    title="Information popover"
+    aria-describedby="[% popover_id %]-popover"
+  >
+    <div class="arrow"></div>
+  </button>
+  <div class="popover bs-popover-bottom" role="tooltip" id="[% popover_id %]-popover">
+    <div class="popover-body">
+      [% popover_info | html %]
+    </div>
+  </div>
+</div>
