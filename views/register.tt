@@ -16,7 +16,7 @@
   
   <div class="login__fields">
     <fieldset class="form-group">
-      <legend class="form-group__legend form-group__legend--hidden">Request account</legend>
+      <legend class="form-group__legend fieldset__legend--hidden">Request account</legend>
       [%
         INCLUDE fields/input.tt
           id = "firstname"

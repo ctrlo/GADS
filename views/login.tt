@@ -8,7 +8,7 @@
   </div>
   
   <fieldset class="form-group">
-    <legend class="form-group__legend form-group__legend--hidden">Login</legend>
+    <legend class="form-group__legend fieldset__legend--hidden">Login</legend>
     <input type="hidden" name="csrf_token" value="[% csrf_token %]">
     <div class="login__fields">
       [%
