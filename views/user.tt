@@ -16,7 +16,7 @@
 <div class="content-block__main">
   <form method="post">
     <fieldset class="form-group">
-      <legend class="form-group__legend form-group__legend--hidden">My details</legend>
+      <legend class="form-group__legend fieldset__legend--hidden">My details</legend>
       <input type="hidden" name="csrf_token" value="[% csrf_token %]">
       <input type="hidden" name="page" value="[% page %]">
       <input type="hidden" name="username" value="[% edituser.username | html_entity %]">
@@ -34,19 +34,19 @@
           [% field_disabled = NOT field.editable ? 1 : 0; %]
           <div class="col-lg-5">
             [%
-              IF field.type == "freetext";
-                IF field.name == "email";
-                  field_type = "email";
-                  sub_field = "fields/sub/modal_link.tt";
-                  sub_params = {
-                    label => "Change password"
-                  };
-                ELSE;
-                  field_type = "text";
-                  sub_field = "";
-                  sub_params = {};
-                END;
+              IF field.name == "email";
+                field_type = "email";
+                sub_field  = "fields/sub/modal_link.tt";
+                sub_params = {
+                  label => "Change password"
+                };
+              ELSE;
+                field_type = "text";
+                sub_field  = "";
+                sub_params = {};
+              END;
             
+              IF field.type == "freetext";
                 INCLUDE fields/input.tt
                   id = field.name
                   name = field.name
@@ -67,7 +67,9 @@
                   label = field.description
                   placeholder = field.placeholder
                   items = values.${field.name}
-                  is_html = 1;
+                  is_html = 1
+                  sub_field = sub_field
+                  sub_params = sub_params;
               END;
             %]
           </div>
