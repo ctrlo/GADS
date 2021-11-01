@@ -943,12 +943,15 @@ any ['get', 'post'] => '/title/?:id?' => require_any_role [qw/useradmin superadm
 
 };
 
-get '/table/?' => require_role superadmin => sub {
+get '/table/?' => require_login sub {
 
     template 'tables' => {
         page        => 'table',
         instances   => [rset('Instance')->all],
         breadcrumbs => [Crumb( '/table' => 'tables' )],
+        body_class      => '',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
     };
 };
 

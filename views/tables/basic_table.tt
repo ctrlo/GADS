@@ -1,0 +1,62 @@
+[%
+  
+  # columns = [];
+  #
+  # IF table_buttons;
+  #   FOREACH button in table_buttons;
+  #     columns.push({
+  #       label = button.label || button.name || ''
+  #       type  = "button"
+  #       name  = button.name
+  #       width = button.width || ''
+  #       class = button.class
+  #       link  = button.link
+  #     });
+  #   END;
+  # END;
+
+  table_config = '{
+    "dom":"t",
+    "order":[[0,"asc"]],
+    "language":{},
+    "responsive":{
+    "details":{"type":"column","target":-1}
+    },
+    "autoWidth":false,
+    "columns":[
+    {"name":"Table","orderable":true,"width":"70%"},
+    {"name":"","orderable":false,"className":"min-tablet-l"},
+    {"name":"","orderable":false,"className":"min-tablet-l"},
+    {"name":"","orderable":false,"className":"min-tablet-l"},
+    {"name":"","orderable":false,"className":"min-tablet-l"},
+    {"orderable":false, "className":"dtr-control","targets":-1}
+    ]
+    }';
+    header_row = {
+    fields = [
+      {
+      type  = "header"
+      label = "TABLE"
+      },
+      {type  = "header"},
+      {type  = "header"},
+      {type  = "header"},
+      {type  = "header"},
+      {type  = "header"}
+    ]
+  };
+
+  data_config = table_config ? " data-config='" _ table_config _ "'" : '';
+%]
+<table class="data-table table" width="100%" [% data_config %]>
+  <thead>
+    [% INCLUDE tables/basic_row.tt row=header_row %]
+  </thead>
+  <tbody>
+  [%
+    FOREACH row IN rows;
+      INCLUDE tables/basic_row.tt;
+    END;
+  %]
+  </tbody>
+</table>

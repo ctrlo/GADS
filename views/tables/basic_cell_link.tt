@@ -1,0 +1,6 @@
+[%
+  cell_class = class ? 'class="' _ class _ '"' : '';
+%]
+<td [% cell_class %]>
+  <a href='[% url.page %][% link %]' class='link link--plain'>[% label %]</a>
+</td>
