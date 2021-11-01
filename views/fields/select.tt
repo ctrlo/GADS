@@ -34,7 +34,7 @@
 [% IF ! hide_group %]
 <div class="form-group">
 [% END %]
-  <div class="select dropdown select--select">
+  <div class="select dropdown select--select[% IF is_disabled %] select--disabled[% END %]">
     <div class="select__label">
       <label for="[% id %]" id="[% id %]-label">
         [% IF is_html; label | html; ELSE; label; END; %]
