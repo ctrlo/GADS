@@ -1,0 +1,20 @@
+[%
+  row_class = row.class ? 'class="' _ row.class _ '"' : '';
+  
+%]
+<tr [% row_class %]>
+  [%
+    FOREACH field in row.fields;
+      SWITCH field.type;
+        CASE 'link';
+          INCLUDE tables/basic_cell_link.tt class=field.class label=field.label link=field.link;
+        CASE 'button';
+          INCLUDE tables/basic_cell_button.tt class=field.class label=field.label link=field.link;
+        CASE 'header';
+          INCLUDE tables/basic_cell_header.tt class=field.class label=field.label;
+        CASE DEFAULT;
+          INCLUDE tables/basic_cell_text.tt class=field.class label=field.label;
+      END;
+    END;
+  %]
+</tr>

@@ -1,0 +1,6 @@
+[%
+  cell_class = class ? 'class="' _ class _ '"' : '';
+%]
+<th [% cell_class %]>
+  <span>[% label %]</span>
+</th>
