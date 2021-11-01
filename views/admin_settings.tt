@@ -1,0 +1,143 @@
+<div class="content-block__head row">
+  <div class="content-block__info col-lg-6">
+    <h2 class="content-block__title">
+      Admin Settings
+    </h2>
+    
+    <div class="content-block__intro">
+      In this window you can manage your general user settings or your system wide settings
+    </div>
+  </div>
+</div>
+
+<div class="content-block__main">
+  
+  [% IF user.permission.useradmin %]
+  <p><strong>User settings</strong></p>
+  
+  <div class="row mb-5">
+    
+    <div class="col-md-4 col-sm-6 mb-3">
+      <a href="[% url.page %]/title/" class="card card--settings">
+        <h3 class="card__title">
+          <div class="card__title-icon card__title-icon--user"></div>
+          <span> Manage titles </span>
+        </h3>
+        
+        <div class="card__body row">
+          <div class="card__content">
+            <p>List the <i>titles</i> that you want to assign users to.</p>
+          </div>
+        </div>
+      </a>
+    </div>
+  
+    [% IF site.register_show_organisation %]
+    <div class="col-md-4 col-sm-6 mb-3">
+      <a href="[% url.page %]/organisation/" class="card card--settings">
+        <h3 class="card__title">
+          <div class="card__title-icon card__title-icon--organisation"></div>
+          <span> Manage [% site.organisation_name | html %]s </span>
+        </h3>
+        
+        <div class="card__body row">
+          <div class="card__content">
+            <p>List the parts of the <i>[% site.organisation_name | html %]</i> that you want to assign users to.</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    [% END %]
+  
+    [% IF site.register_show_department %]
+    <div class="col-md-4 col-sm-6 mb-3">
+      <a href="[% url.page %]/department/" class="card card--settings">
+        <h3 class="card__title">
+          <div class="card__title-icon card__title-icon--department"></div>
+          <span> Manage [% site.department_name | html %]s </span>
+        </h3>
+        
+        <div class="card__body row">
+          <div class="card__content">
+            <p>List the <i>[% site.department_name | html %]s</i> that you want to assign users to.</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    [% END %]
+  
+    [% IF site.register_show_team %]
+    <div class="col-md-4 col-sm-6 mb-3">
+      <a href="[% url.page %]/team/" class="card card--settings">
+        <h3 class="card__title">
+          <div class="card__title-icon card__title-icon--groups"></div>
+          <span> Manage [% site.team_name | html %]s </span>
+        </h3>
+        
+        <div class="card__body row">
+          <div class="card__content">
+            <p>List the <i>[% site.team_name | html %]s</i> that you want to assign users to.</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    [% END %]
+    
+    <div class="col-md-4 col-sm-6 mb-3">
+      <a href="[% url.page %]/audit/" class="card card--settings">
+        <h3 class="card__title">
+          <div class="card__title-icon card__title-icon--table"></div>
+          <span> User audit logs </span>
+        </h3>
+        
+        <div class="card__body row">
+          <div class="card__content">
+            <p>View your system audit log.</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    
+  </div>
+  [% END %]
+  
+  [% IF user.permission.superadmin %]
+  <p><strong>System wide settings</strong></p>
+  
+  <div class="row">
+    
+    <div class="col-md-4 col-sm-6 mb-3">
+      <a href="[% url.page %]/system/email" class="card card--settings">
+        <h3 class="card__title">
+          <div class="card__title-icon card__title-icon--email"></div>
+          <span> Default welcome email </span>
+        </h3>
+        
+        <div class="card__body row">
+          <div class="card__content">
+            <p>Define your welcome email to new users of your system.</p>
+          </div>
+        </div>
+      </a>
+    
+    </div>
+    
+    <div class="col-md-4 col-sm-6 mb-3">
+      <a href="[% url.page %]/system/userdetails" class="card card--settings">
+        <h3 class="card__title">
+          <div class="card__title-icon card__title-icon--settings"></div>
+          <span> User-editable personal details </span>
+        </h3>
+        
+        <div class="card__body row">
+          <div class="card__content">
+            <p>Define which personal details the users are allowed to edit.</p>
+          </div>
+        </div>
+      </a>
+    </div>
+    
+  </div>
+  [% END %]
+
+</div>

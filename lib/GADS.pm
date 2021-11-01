@@ -702,6 +702,18 @@ click on the following link to retrieve your password:
 [URL]
 __BODY
 
+any ['get', 'post'] => '/settings/?' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $user   = logged_in_user;
+    my $audit  = GADS::Audit->new(schema => schema, user => $user);
+
+    template 'admin_settings' => {
+        page            => 'system_settings',
+        body_class      => '',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+    };
+};
+
 any ['get', 'post'] => '/system/?' => require_login sub {
 
     my $user = logged_in_user;
