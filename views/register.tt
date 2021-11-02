@@ -42,9 +42,7 @@
           label = "Email address"
           placeholder = "name@example.com"
           type = "email"
-          help_text = site.register_email_help
-          is_required = 1
-          popover_info="this is a popover, that is displayed when the info icon is pressed";
+          help_text = site.register_email_help;
         
         IF site.register_show_title;
           INCLUDE fields/select.tt
