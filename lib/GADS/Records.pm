@@ -1787,6 +1787,7 @@ sub _query_params
         my @cids = $self->schema->resultset('Curval')->search({
             record_id => $fc->{record_id},
             layout_id => $fc->{layout_id},
+            value     => { '!=' => undef },
         })->get_column('value')->all;
         push @limit, {
             'me.id' => {
