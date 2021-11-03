@@ -14,6 +14,8 @@ sub presentation_base {
         blank               => $self->blank,
         dependent_not_shown => $self->dependent_not_shown,
         html_form           => $self->html_form,
+        record_id           => $self->record->record_id,
+        column_id           => $self->column->id,
     };
 }
 

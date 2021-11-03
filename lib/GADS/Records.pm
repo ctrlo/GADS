@@ -70,6 +70,11 @@ has search => (
     clearer => 1,
 );
 
+has for_curval => (
+    is  => 'ro',
+    isa => HashRef,
+);
+
 # Whether to show only deleted records or only records not deleted
 has is_deleted => (
     is      => 'ro',
@@ -1772,6 +1777,22 @@ sub _query_params
         # Finish by calling order_by. This may add joins of its own, so it
         # ensures that any are added correctly.
         $self->order_by;
+    }
+
+    # Option to limit to only records associated with a specific parent record
+    # (via curval field). Add these on here so that all other limit view
+    # parameters still apply.
+    if (my $fc = $self->for_curval)
+    {
+        my @cids = $self->schema->resultset('Curval')->search({
+            record_id => $fc->{record_id},
+            layout_id => $fc->{layout_id},
+        })->get_column('value')->all;
+        push @limit, {
+            'me.id' => {
+                -in => \@cids,
+            },
+        };
     }
 
     (@limit, @search);
