@@ -1,22 +1,18 @@
-[% IF messages.size OR session.rewind OR error %]
-<div class="login__alert">
-  [% IF messages.size %]
-    [% FOR message IN messages %]
-      <div class="alert alert-[% message.bootstrap_color %]" role="alert">
-        [% message.reason %]:
-        [% IF message.inClass("html") %][% message.toString %][% ELSE %][% message.toString | html_entity %][% END %]
-      </div>
-    [% END %]
+[% IF messages.size %]
+  [% FOR message IN messages %]
+  <div class="alert alert-[% message.bootstrap_color %]" role="alert">
+    [% message.reason %]:
+    [% IF message.inClass("html") %][% message.toString %][% ELSE %][% message.toString | html_entity %][% END %]
+  </div>
   [% END %]
-  [% IF session.rewind %]
-    <div role="alert" class="alert alert-info">
-      You are viewing data as it was on [% session.rewind.format_cldr(config.dateformat) %] at [% session.rewind.hms %]
-    </div>
-  [% END %]
-  [% IF error %]
-    <div class="alert alert-danger" role="alert">
-      Error: [% error | html %]
-    </div>
-  [% END %]
-</div>
+[% END %]
+[% IF session.rewind %]
+  <div role="alert" class="alert alert-info">
+    You are viewing data as it was on [% session.rewind.format_cldr(config.dateformat) %] at [% session.rewind.hms %]
+  </div>
+[% END %]
+[% IF error %]
+  <div class="alert alert-danger" role="alert">
+    Error: [% error | html %]
+  </div>
 [% END %]
