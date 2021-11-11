@@ -422,6 +422,34 @@ get '/ping' => sub {
     'alive';
 };
 
+any ['get', 'post'] =>  '/api_test/success' => sub {
+    content_type 'application/json';
+    '{"status": "success"}';
+};
+
+any ['get', 'post'] =>  '/api_test/internal_server_error' => sub {
+    status 500;
+    content_type 'application/json';
+    '{
+        "status": "error",
+        "messages": [
+            {"message": "error 1 is the first error"},
+            {"message": "error 2 is the second error"}
+        ]
+    }';
+};
+
+any ['get', 'post'] =>  '/api_test/unauthorized' => sub {
+    status 401;
+    content_type 'application/json';
+    '{
+        "status": "error",
+        "messages": [
+            {"message": "you must be logged in to access this page"}
+        ]
+    }';
+};
+
 any ['get', 'post'] => '/aup' => require_login sub {
 
     if (param 'accepted')
