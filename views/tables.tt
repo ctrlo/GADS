@@ -1,3 +1,53 @@
+[%
+  # prepare table config
+  table_width = 85;
+
+  table_buttons = [{
+    label = "View records"
+    link  = "/{table_short_name}/data"
+  }, {
+    label = "Dashboard"
+    link  = "/{table_short_name}/"
+  }];
+
+  IF user.permission.superadmin;
+    table_width = table_width - 7.5;
+    table_buttons.push({
+      label = "Permissions"
+      link  = "/table/{table_id}/permissions"
+    });
+  END;
+
+  IF user.permission.superadmin OR layout.user_can("layout");
+    table_width = table_width - 7.5;
+    table_buttons.push({
+      label = "Edit table"
+      link  = "/table/{table_id}/edit"
+    });
+  END;
+
+  table_columns = [{
+    name = "Table"
+    orderable = 1
+    width = table_width _ "%"
+  }];
+
+  rows = [];
+
+  FOREACH instance IN instances;
+    rows.push({
+      link_placeholders = {
+        table_id = instance.instance_id
+        table_short_name = instance.identifier
+      }
+      fields = [{
+        type  = "link"
+        label = instance.name
+        link  = "/{table_short_name}/data"
+      }]
+    });
+  END;
+%]
 <div class="content-block__head row">
   <div class="content-block__info col-lg-6">
     <h2 class="content-block__title">
@@ -11,7 +61,6 @@
   
   <div class="content-block__aside col-lg-6">
     [% IF user.permission.superadmin %]
-    <form action="[% url.page %]/table/0">
     <button
       type="button"
       class="btn btn-add"
@@ -20,86 +69,8 @@
     </button>
     [% END %]
   </div>
-
 </div>
 
 <div class="content-block__main">
-  [%
-    table_config = '{
-      "dom":"t",
-      "order":[[0,"asc"]],
-      "language":{},
-      "responsive":{
-        "details":{"type":"column","target":-1}
-      },
-      "autoWidth":false,
-      "columns":[
-        {"name":"Table","orderable":true,"width":"70%"},
-        {"name":"","orderable":false,"className":"min-tablet-l"},
-        {"name":"","orderable":false,"className":"min-tablet-l"},
-        {"name":"","orderable":false,"className":"min-tablet-l"},
-        {"name":"","orderable":false,"className":"min-tablet-l"},
-        {"orderable":false, "className":"dtr-control","targets":-1}
-      ]
-    }';
-    header_row = {
-      fields = [
-        {
-          type  = "header"
-          label = "TABLE"
-        },
-        {type  = "header"},
-        {type  = "header"},
-        {type  = "header"},
-        {type  = "header"},
-        {type  = "header"}
-      ]
-    };
-    rows = [];
-  
-    FOREACH instance IN instances;
-      instance_row = {
-        fields = [
-          {
-            type  = "link"
-            label = instance.name
-            link  = "/" _ instance.identifier _ "/data"
-          },
-          {
-            type  = "button"
-            label = "View records"
-            link  = "/" _ instance.identifier _ "/data"
-          },
-          {
-            type  = "button"
-            label = "Dashboard"
-            link  = "/" _ instance.identifier _ "/"
-          },
-          {
-            type  = "button"
-            label = "Permissions"
-            link  = "/table/" _ instance.instance_id _ "/permissions"
-          },
-          {
-            type  = "button"
-            label = "Edit table"
-            link  = "/table/" _ instance.instance_id _ "/edit"
-          },
-          {type  = "text"}
-        ]
-      };
-  
-      IF user.permission.superadmin;
-        # instance_row.fields.push();
-      END;
-  
-      IF layout.user_can("layout");
-        # instance_row.fields.push();
-      END;
-      
-      rows.push(instance_row);
-    END;
-  
-    INCLUDE tables/basic_table.tt;
-  %]
+  [% INCLUDE tables/basic_table.tt; %]
 </div>
