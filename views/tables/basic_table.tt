@@ -1,54 +1,84 @@
 [%
-  
-  # columns = [];
-  #
-  # IF table_buttons;
-  #   FOREACH button in table_buttons;
-  #     columns.push({
-  #       label = button.label || button.name || ''
-  #       type  = "button"
-  #       name  = button.name
-  #       width = button.width || ''
-  #       class = button.class
-  #       link  = button.link
-  #     });
-  #   END;
-  # END;
+  tmplColumnConfig = '{_NAME_ORDERABLE_CLASSNAME_WIDTH},';
+  tmplColumnButtonConfig = '{"name":"","orderable":false,"className":"min-tablet-l"},';
 
+  columnConfig = '';
+  buttonConfig = '';
+  
+  header_row = {
+    fields = []
+  };
+
+  # create table columns and column config for each requested column.
+  FOREACH column in table_columns;
+    rowField = tmplColumnConfig
+      .replace('_NAME', column.name ? '"name":"' _ column.name _ '"' : '"name":""')
+      .replace('_ORDERABLE', column.orderable ? ',"orderable":true' : ',"orderable":false')
+      .replace('_CLASSNAME', column.class ? ',"className":"' _ column.class _ '"' : '')
+      .replace('_WIDTH', column.width ? ', "width":"' _ column.width _ '"' : '');
+
+    columnConfig = columnConfig _ rowField;
+
+    header_row.fields.push({
+      type  = "header"
+      label = column.label || column.name || ''
+    });
+  END;
+
+  IF table_buttons;
+    # create table columns and column config for each button
+    FOREACH button in table_buttons;
+      buttonConfig = buttonConfig _ tmplColumnButtonConfig;
+      header_row.fields.push({type  = "header"});
+    END;
+    
+    # add buttons to each row
+    FOREACH row in rows;
+      FOREACH button in table_buttons;
+        row.fields.push({
+          type  = "button"
+          label = button.label
+          link  = button.link
+        });
+      END;
+    END;
+  END;
+  
+  # add empty column for screen overflow expand/collapse column
+  header_row.fields.push({type = "header"});
+
+  FOREACH row in rows;
+    # replace link placeholders
+    FOREACH field in row.fields;
+      NEXT IF !field.link OR !row.link_placeholders OR row.link_placeholders.empty;
+      FOREACH key in row.link_placeholders.keys;
+        field.link = field.link.replace('{' _ key _ '}', row.link_placeholders.$key);
+      END;
+    END;
+    
+    # add empty field for screen overflow expand/collapse column
+    row.fields.push({type = "text"});
+  END;
+  
   table_config = '{
     "dom":"t",
     "order":[[0,"asc"]],
     "language":{},
     "responsive":{
-    "details":{"type":"column","target":-1}
+      "details":{"type":"column","target":-1}
     },
     "autoWidth":false,
     "columns":[
-    {"name":"Table","orderable":true,"width":"70%"},
-    {"name":"","orderable":false,"className":"min-tablet-l"},
-    {"name":"","orderable":false,"className":"min-tablet-l"},
-    {"name":"","orderable":false,"className":"min-tablet-l"},
-    {"name":"","orderable":false,"className":"min-tablet-l"},
-    {"orderable":false, "className":"dtr-control","targets":-1}
+      _COLUMNS
+      _BUTTONS
+      {"orderable":false, "className":"dtr-control","targets":-1}
     ]
-    }';
-    header_row = {
-    fields = [
-      {
-      type  = "header"
-      label = "TABLE"
-      },
-      {type  = "header"},
-      {type  = "header"},
-      {type  = "header"},
-      {type  = "header"},
-      {type  = "header"}
-    ]
-  };
+  }';
 
-  data_config = table_config ? " data-config='" _ table_config _ "'" : '';
+  table_config = table_config.replace('_COLUMNS', columnConfig);
+  table_config = table_config.replace('_BUTTONS', buttonConfig);
 %]
-<table class="data-table table" width="100%" [% data_config %]>
+<table class="data-table table" width="100%" data-config='[% table_config %]'>
   <thead>
     [% INCLUDE tables/basic_row.tt row=header_row %]
   </thead>

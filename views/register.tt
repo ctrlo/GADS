@@ -15,8 +15,11 @@
   </div>
   
   <div class="login__fields">
-    <fieldset class="form-group">
-      <legend class="form-group__legend fieldset__legend--hidden">Request account</legend>
+    <fieldset class="fieldset">
+      <legend class="fieldset__legend fieldset__legend--hidden">
+        Request account
+      </legend>
+      <input type="hidden" name="csrf_token" value="[% csrf_token %]">
       [%
         INCLUDE fields/input.tt
           id = "firstname"
@@ -127,6 +130,4 @@
     </button>
   
   </div>
-  
-  <input type="hidden" name="csrf_token" value="[% csrf_token %]">
 </form>

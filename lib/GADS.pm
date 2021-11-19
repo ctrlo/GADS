@@ -181,7 +181,8 @@ hook before => sub {
         ? var('api_user')
         : logged_in_user;
 
-    if (request->is_post && request->path !~ m!^(/api/token|/print)$!)
+    # TODO: remove api_test exclusion from regex
+    if (request->is_post && request->path !~ m!^(/api/token|/print|/api_test/.*)$!)
     {
         # Protect against CSRF attacks. NB: csrf_token can be in query params
         # or body params (different keys).
@@ -422,12 +423,14 @@ get '/ping' => sub {
     'alive';
 };
 
-any ['get', 'post'] =>  '/api_test/success' => sub {
+# TODO: remove testing endpoint after wizard is completed
+any ['get', 'post'] => '/api_test/success' => sub {
     content_type 'application/json';
     '{"status": "success"}';
 };
 
-any ['get', 'post'] =>  '/api_test/internal_server_error' => sub {
+# TODO: remove testing endpoint after wizard is completed
+any ['get', 'post'] => '/api_test/internal_server_error' => sub {
     status 500;
     content_type 'application/json';
     '{
@@ -439,6 +442,7 @@ any ['get', 'post'] =>  '/api_test/internal_server_error' => sub {
     }';
 };
 
+# TODO: remove testing endpoint after wizard is completed
 any ['get', 'post'] =>  '/api_test/unauthorized' => sub {
     status 401;
     content_type 'application/json';

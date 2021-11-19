@@ -1,6 +1,5 @@
 [%
   row_class = row.class ? 'class="' _ row.class _ '"' : '';
-  
 %]
 <tr [% row_class %]>
   [%

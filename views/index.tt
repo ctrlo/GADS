@@ -40,9 +40,9 @@
         
         <div class="card">
           
-          <h3 class="card__title">
+          <h4 class="card__title">
             Ctrl O - Helpdesk
-          </h3>
+          </h4>
           
           <div class="card__body row">
             
@@ -65,9 +65,9 @@
         
         <div class="card">
           
-          <h3 class="card__title">
+          <h4 class="card__title">
             Ctrl O - Helpdesk
-          </h3>
+          </h4>
           
           <div class="card__body row">
             

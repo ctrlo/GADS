@@ -7,10 +7,12 @@
     </h2>
   </div>
   
-  <fieldset class="form-group">
-    <legend class="form-group__legend fieldset__legend--hidden">Login</legend>
-    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-    <div class="login__fields">
+  <div class="login__fields">
+    <fieldset class="fieldset">
+      <legend class="fieldset__legend fieldset__legend--hidden">
+        Login
+      </legend>
+      <input type="hidden" name="csrf_token" value="[% csrf_token %]">
       [%
         INCLUDE fields/input.tt
           id = "username"
@@ -33,6 +35,7 @@
           id = "password"
           name = "password"
           label = "Password"
+          placeholder = "Password"
           type = "password"
           input_class = "input--password"
           tabindex = 3
@@ -42,14 +45,14 @@
             label => "Reset password"
           };
       %]
-    </div>
-    
-    <div class="login__btns">
-      <button tabindex="4" type="submit" name="signin" value="1" class="btn btn-default">
-        <span class="btn__title">Sign in</span>
-      </button>
-    </div>
-  </fieldset>
+    </fieldset>
+  </div>
+  
+  <div class="login__btns">
+    <button tabindex="4" type="submit" name="signin" value="1" class="btn btn-default">
+      <span class="btn__title">Sign in</span>
+    </button>
+  </div>
 </form>
 
 [% UNLESS site.hide_account_request %]
