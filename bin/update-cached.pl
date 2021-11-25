@@ -42,6 +42,8 @@ GADS::Config->instance(
 
 tie %{schema->storage->dbh->{CachedKids}}, 'Tie::Cache', 100;
 
+local $GADS::Schema::IGNORE_PERMISSIONS = 1;
+
 foreach my $site (schema->resultset('Site')->all)
 {
     schema->site_id($site->id);
