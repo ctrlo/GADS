@@ -619,7 +619,7 @@ sub _get_rows
     my @ids = grep !$deleted{$_}, @$ids;
     $return = [grep !$deleted{$_->current_id}, @$return];
     error __x"Invalid Curval ID list {ids}", ids => "@ids"
-        if @$return != @$ids;
+        if @$return != @ids;
     $return;
 }
 
