@@ -185,8 +185,14 @@ hook before => sub {
     if (request->is_post && request->path !~ m!^(/api/token|/print|/api_test/.*)$!)
     {
         # Protect against CSRF attacks. NB: csrf_token can be in query params
-        # or body params (different keys).
-        my $token = query_parameters->get('csrf-token') || body_parameters->get('csrf_token');
+        # or body params (different keys) and also as JSON.
+        my $token;
+        if (request->content_type eq 'application/json') # Try in body of JSON
+        {
+            my $body = try { decode_json(request->body) };
+            $token = $body->{csrf_token} if $body;
+        }
+        $token ||= query_parameters->get('csrf-token') || body_parameters->get('csrf_token');
         panic __x"csrf-token missing for uri {uri}, params {params}", uri => request->uri, params => Dumper({params})
             if !$token;
         error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
