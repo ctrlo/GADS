@@ -1181,7 +1181,7 @@ sub user_can
 # Whether the user has got any sort of access
 sub user_can_anything
 {   my $self = shift;
-    return 1 if $SL::Schema::IGNORE_PERMISSIONS;
+    return 1 if $GADS::Schema::IGNORE_PERMISSIONS;
     !! keys %{$self->_user_permissions_overall};
 }
 

@@ -306,6 +306,7 @@ sub _records_from_db
         columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns, %options),
         limit_current_ids       => $ids,
         ignore_view_limit_extra => 1,
+        include_deleted         => $options{include_deleted},
         # XXX This should only be set when the calling parent record is a
         # draft, otherwise the draft records could potentially be used in other
         # records when they shouldn't be visible (and could be removed after
@@ -609,10 +610,16 @@ sub _get_rows
         $return = [ map { $self->values_index->{$_} } @$ids ];
     }
     else {
-        $return = $self->_records_from_db(ids => $ids, %options)->results;
+        $return = $self->_records_from_db(ids => $ids, include_deleted => 1, %options)->results;
     }
-    error __x"Invalid Curval ID list {ids}", ids => "@$ids"
-        if @$return != @$ids;
+    # Remove any values that are for deleted records. These could be in the ids
+    # passed into this function, and it's not possible to know without fetching
+    # them.
+    my %deleted = map { $_->current_id => 1 } grep $_->deleted, @$return;
+    my @ids = grep !$deleted{$_}, @$ids;
+    $return = [grep !$deleted{$_->current_id}, @$return];
+    error __x"Invalid Curval ID list {ids}", ids => "@ids"
+        if @$return != @ids;
     $return;
 }
 

@@ -14,8 +14,8 @@ sub presentation_base {
         blank               => $self->blank,
         dependent_not_shown => $self->dependent_not_shown,
         html_form           => $self->html_form,
-        record_id           => $self->record->record_id,
-        column_id           => $self->column->id,
+        record_id           => $self->record && $self->record->record_id, # Not set when called from audit logs
+        column_id           => $self->column && $self->column->id,
     };
 }
 
