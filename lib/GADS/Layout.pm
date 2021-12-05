@@ -1046,7 +1046,7 @@ sub all
 # Function to check for recursive dependencies. Start at each layout and
 # descend into its dependencies, going into branches as required. If the same
 # ID is found in the same branch then throw an error
-sub _check
+sub check_recursive
 {   my ($self, $deps, $key, $path) = @_;
 
     # Path so far. Defaults to just the starting field
@@ -1057,19 +1057,20 @@ sub _check
     my @search = @path2[0..$#path2-1];
     if (grep $_ == $key, @search)
     {
-        my $path = join " → ", map $self->column($_)->name, @$path;
-        error __x"Calculated value or display condition recursive dependencies: {path}",
-            path => $path;
+        return join " → ", map $self->column($_)->name, @$path;
     }
     foreach my $val (@{$deps->{$key}})
     {
         # Push onto path
         push @$path, $val;
-        $self->_check($deps, $val, $path);
+        my $ret = $self->check_recursive($deps, $val, $path);
+        return $ret if $ret;
         # And remove when coming back, so as to not match same field in
         # different paths
         pop @$path;
     }
+
+    return ''; # Ensure no path returned as no error
 }
 
 # Order the columns in the order that the calculated values depend
@@ -1091,7 +1092,9 @@ sub _order_dependencies
     # return undef
     foreach my $key (keys %deps)
     {
-        $self->_check(\%deps, $key);
+        my $ret = $self->check_recursive(\%deps, $key);
+        error __x"Calculated value or display condition recursive dependencies: {path}",
+            path => $ret if $ret;
     }
 
     my $source = Algorithm::Dependency::Source::HoA->new(\%deps);
