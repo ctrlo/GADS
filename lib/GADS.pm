@@ -429,6 +429,51 @@ get '/ping' => sub {
     'alive';
 };
 
+# TODO: remove testing endpoint after application is completed
+any ['get', 'post'] => '/api_test/tree' => sub {
+    content_type 'application/json';
+    '[
+        {
+            "id":18
+            "text":"Test 1",
+            "children":[
+                {
+                    "id":19,
+                    "text":"Test 1.1"
+                },
+                {
+                    "id":20,
+                    "text":"Test 1.2"
+                },
+                {
+                    "text":"Test 1.3",
+                    "id":21
+                }
+            ],
+        },
+        {
+            "id":22
+            "text":"Test 2",
+            "children":[
+                {
+                    "id":23,
+                    "text":"Test 2.1"
+                }
+            ],
+        },
+        {
+            "id":24,
+            "text":"Test 3",
+            "children":[
+                {
+                    "id":25,
+                    "text":"Test 3.1"
+                }
+            ]
+        }
+    ]';
+};
+
 # TODO: remove testing endpoint after wizard is completed
 any ['get', 'post'] => '/api_test/success' => sub {
     content_type 'application/json';
@@ -712,10 +757,8 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
     }
 
     my $users = GADS::Users->new(schema => schema);
-    template 'user' => {
-        edit            => $user->id,
-        users           => [$user],
-        titles          => $users->titles,
+    template 'my_account' => {
+        user            => $user,
         page            => 'myaccount',
         body_class      => '',
         container_class => 'container-fluid',
@@ -1150,7 +1193,50 @@ any ['get', 'post'] => '/user/export/?' => require_any_role [qw/useradmin supera
     };
 };
 
-any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
+any ['get', 'post'] => '/user_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $userso          = GADS::Users->new(schema => schema);
+    my $users           = $userso->all;
+
+    template 'user_overview' => {
+        users           => $users,
+        groups          => GADS::Groups->new(schema => schema)->all,
+        values          => {
+            title         => $userso->titles,
+            organisation  => $userso->organisations,
+            department_id => $userso->departments,
+            team_id       => $userso->teams,
+        },
+        permissions     => $userso->permissions,
+        page            => 'user',
+        body_class      => '',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+    };
+};
+
+any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $userso            = GADS::Users->new(schema => schema);
+    my $users             = $userso->all;
+    my $register_requests = $userso->register_requests;
+
+    template 'user_request' => {
+        users           => $register_requests,
+        groups          => GADS::Groups->new(schema => schema)->all,
+        values          => {
+            title         => $userso->titles,
+            organisation  => $userso->organisations,
+            department_id => $userso->departments,
+            team_id       => $userso->teams,
+        },
+        permissions     => $userso->permissions,
+        page            => 'user',
+        body_class      => '',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+    };
+};
+
+any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/] => sub {
 
     my $id = body_parameters->get('id');
 
