@@ -204,7 +204,7 @@ sub update_cached
     $self->clear; # Refresh calc for updated calculation
     my $layout = $self->layout;
 
-    local $SL::Schema::IGNORE_PERMISSIONS = 1;
+    local $GADS::Schema::IGNORE_PERMISSIONS = 1;
 
     my $records = GADS::Records->new(
         user                    => undef,

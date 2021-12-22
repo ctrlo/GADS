@@ -138,7 +138,7 @@ has _view_limits => (
 sub _build__view_limits
 {   my $self = shift;
     $self->user or return [];
-    return [] if $SL::Schema::IGNORE_PERMISSIONS;
+    return [] if $GADS::Schema::IGNORE_PERMISSIONS;
 
     # If there are user view limits these take precedence
     my @view_limit_ids = $self->schema->resultset('ViewLimit')->search({
@@ -2031,7 +2031,7 @@ sub _search_construct
 {   my ($self, $filter, $layout, %options) = @_;
 
     my $ignore_perms = $options{ignore_perms}
-        || $SL::Schema::IGNORE_PERMISSIONS_SEARCH || $SL::Schema::IGNORE_PERMISSIONS;
+        || $GADS::Schema::IGNORE_PERMISSIONS_SEARCH || $GADS::Schema::IGNORE_PERMISSIONS;
 
     if (my $rules = $filter->{rules})
     {

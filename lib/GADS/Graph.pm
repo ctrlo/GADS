@@ -290,7 +290,7 @@ sub writable_shared
 
 sub writable
 {   my $self = shift;
-    return 1 if $SL::Schema::IGNORE_PERMISSIONS;
+    return 1 if $GADS::Schema::IGNORE_PERMISSIONS;
     return 1 if $self->writable_shared;
     return 1 if !$self->id && !$self->is_shared; # new graph
     return 1 if $self->user_id && $self->current_user->id == $self->user_id;
@@ -394,7 +394,7 @@ sub write
         and error __"Historical trends cannot be used with y-axis grouping (Group by)";
 
     error __"You do not have permission to create shared graphs"
-        if $self->is_shared && !$self->writable_shared && !$SL::Schema::IGNORE_PERMISSIONS;
+        if $self->is_shared && !$self->writable_shared && !$GADS::Schema::IGNORE_PERMISSIONS;
 
     $newgraph->{is_shared}       = $self->is_shared;
 
