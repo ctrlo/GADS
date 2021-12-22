@@ -136,12 +136,12 @@ sub fetch_multivalues
 
     return if !@$record_ids;
 
-    local $SL::Schema::IGNORE_PERMISSIONS = 1 if $self->override_permissions;
+    local $GADS::Schema::IGNORE_PERMISSIONS = 1 if $self->override_permissions;
     # Always ignore permissions of fields in the actual search. This doesn't
     # affect any filters that may be applied, but is in fact the opposite: if a
     # limited view is defined (using fields the user does not have access to)
     # then this ensures it is properly applied
-    local $SL::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
+    local $GADS::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
 
     my $m_rs = $self->multivalue_rs($record_ids);
     $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');

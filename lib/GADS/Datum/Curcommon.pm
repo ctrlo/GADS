@@ -535,7 +535,7 @@ sub _build_for_code
 
     # Need to ensure that for code values we retrieve all the
     # values regardless, not restrained by the current user's permissions
-    local $SL::Schema::IGNORE_PERMISSIONS = 1;
+    local $GADS::Schema::IGNORE_PERMISSIONS = 1;
 
     my $already_seen_code = $self->already_seen_code;
     # Get all field data in one chunk

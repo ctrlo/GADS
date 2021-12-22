@@ -677,7 +677,7 @@ sub find_unique
     @retrieve_columns = ($column->id)
         unless @retrieve_columns;
     # Do not limit by user
-    local $SL::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
+    local $GADS::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
     my $records = GADS::Records->new(
         user    => undef, # Do not want to limit by user
         rows    => 1,
@@ -1100,7 +1100,7 @@ sub load_remembered_values
     # current user. The record may no longer be available to the user due to
     # view limits. The user won't actually be able to see the record, they will
     # just see values that they previously entered themselves.
-    local $SL::Schema::IGNORE_PERMISSIONS = 1;
+    local $GADS::Schema::IGNORE_PERMISSIONS = 1;
     my $previous = GADS::Record->new(
         user   => undef,
         layout => $self->layout,
@@ -1413,7 +1413,7 @@ sub delete_user_drafts
     {
         while (1)
         {
-            local $SL::Schema::IGNORE_PERMISSIONS = 1;
+            local $GADS::Schema::IGNORE_PERMISSIONS = 1;
             my $draft = GADS::Record->new(
                 user   => undef,
                 layout => $self->layout,
@@ -2380,7 +2380,7 @@ sub _field_write
                                 schema      => $self->schema,
                                 user        => undef,
                             );
-                            local $SL::Schema::IGNORE_PERMISSIONS = 1;
+                            local $GADS::Schema::IGNORE_PERMISSIONS = 1;
                             my $refers_records = GADS::Records->new(
                                 user    => undef,
                                 view    => $view,

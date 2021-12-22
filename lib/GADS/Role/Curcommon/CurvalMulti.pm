@@ -5,12 +5,12 @@ use Moo::Role;
 sub fetch_multivalues
 {   my ($self, $record_ids, %options) = @_;
 
-    local $SL::Schema::IGNORE_PERMISSIONS = 1 if $self->override_permissions;
+    local $GADS::Schema::IGNORE_PERMISSIONS = 1 if $self->override_permissions;
     # Always ignore permissions of fields in the actual search. This doesn't
     # affect any filters that may be applied, but is in fact the opposite: if a
     # limited view is defined (using fields the user does not have access to)
     # then this ensures it is properly applied
-    local $SL::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
+    local $GADS::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
 
     # First find out the values required (record IDs to retrieve). Order by
     # record_id so that all values for one record are grouped together
