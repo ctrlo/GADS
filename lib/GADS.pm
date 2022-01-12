@@ -380,7 +380,6 @@ sub _forward_last_table
 }
 
 get '/' => require_login sub {
-
     my $site = var 'site';
     my $user    = logged_in_user;
 
