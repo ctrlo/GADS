@@ -237,9 +237,10 @@ sub user_fields
         },
         {
             name        => 'email',
-            description => 'Email',
+            description => 'Email address',
             type        => 'freetext',
             placeholder => 'name@example.com',
+            is_required => 1,
         },
     );
     push @fields, {
