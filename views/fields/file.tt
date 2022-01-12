@@ -1,0 +1,66 @@
+[%-
+  # Template for standardized <input type="file"> fields
+  # Implementation Example:
+  #
+  # INCLUDE fields/file.tt
+  #   id = "username"
+  #   name = "username"
+  #   value = user.name
+  #   label = "Email address"
+  #   placeholder = "No file chosen"
+  #   custom_classes = ""
+  #   input_class = "input--required"
+  #   popover_body="this is a popover, that is displayed when the info icon is pressed"
+  #   is_required = 0
+  #   is_html = 0
+  #   tabindex = 1
+  #   sub_field = "fields/sub/checkbox.tt"
+  #   sub_params = {
+  #     id => "remember"
+  #     name => "remember_me"
+  #     label => "Remember email address"
+  #     checked => username
+  #     tabindex => 2
+  #   };
+  
+  input_class = is_required AND ! input_class.match('input--required') ? input_class _ ' input--required' : input_class;
+-%]
+<div class="input input--file [% input_class %]">
+  <div class="input__label">
+    <label for="[% id %]">
+      <span class="input__file-label" role="button" aria-controls="[% id %]" tabindex="0">
+        Choose file
+      </span>
+    </label>
+    
+    [%- IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body; END; -%]
+    
+    <div class="file">
+      <label class="file__name" for="[% id %]"> [% IF is_html %][% placeholder | html %][% ELSE %][% placeholder %][% END %] </label>
+      <button type="button" class="file__delete close" aria-label="Delete">
+        <span aria-hidden="true" class="hidden">Delete file</span>
+      </button>
+    </div>
+  </div>
+  
+  [% IF help_text %]
+  <p id="[% id %]-help" class="form-text">
+    [% help_text | html %]
+  </p>
+  [% END %]
+  
+  <div class="input__field">
+    <input
+      type="file"
+      id="[% id %]"
+      name="[% name %]"
+      class="form-control-file [% custom_classes %]"[% IF tabindex %]
+      tabindex="[% tabindex %]"[% END %][% IF help_text %]
+      aria-describedby="[% id %]-help"[% END %][% IF is_disabled %]
+      disabled[% END %][% IF is_required %]
+      required
+      aria-required="true"[% END %]
+    >
+  </div>
+</div>
+[% INCLUDE snippets/subfield.tt %]

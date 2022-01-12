@@ -9,7 +9,8 @@
   </button>
   <div class="popover bs-popover-bottom" role="tooltip" id="[% popover_id %]-popover">
     <div class="popover-body">
-      [% popover_info | html %]
+      [%- IF popover_title -%]<h4>[% popover_title %]</h4>[%- END -%]
+      [% popover_body %]
     </div>
   </div>
 </div>

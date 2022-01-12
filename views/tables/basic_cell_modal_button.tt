@@ -1,12 +1,19 @@
 [%
   cell_class  = class ? ' class="' _ class _ '"' : '';
-  link_class  = link_class ? link_class : 'link link--plain';
+  # <<< continue here, this should be applied to all fields, then added to account request field config
   field_value = field_name AND field_value ? field_value : label;
   data_attr   = field_name ? ' data-' _ field_name _ '="' _ field_value _ '"' : '';
 %]
 <td [% cell_class %][% data_attr %]>
-  <a href='[% url.page %][% link %]' class='[% link_class %]'>
-    [%-
+  <button
+    type="button"
+    class="btn btn-delete btn-small btn-js-delete"
+    data-toggle="modal"
+    data-target=[% modalID %]
+    data-title=[% dataTitle %]
+    data-id=[% dataID %]
+  >
+    <span class="btn__title">[%-
       SWITCH filter;
         CASE 'html';
           label | html;
@@ -15,6 +22,6 @@
         CASE DEFAULT;
           label;
       END;
-    -%]
-  </a>
+    -%]</span>
+  </button>
 </td>

@@ -132,7 +132,7 @@ sub upload
     # Get first row for column headings
     my $row = $csv->getline($fh);
     # Valid headings
-    my %user_fields = map { lc $_->{description} => 1 } $site->user_fields;
+    my %user_fields = map { lc $_->{name} => 1 } $site->user_fields;
     my %user_mapping;
     my @invalid;
     my $count = 0;
@@ -223,7 +223,7 @@ sub upload
             username              => defined $user_mapping{email} ? $row->[$user_mapping{email}] : '',
             freetext1             => defined $user_mapping{$freetext1} ? $row->[$user_mapping{$freetext1}] : '',
             freetext2             => defined $user_mapping{$freetext2} ? $row->[$user_mapping{$freetext2}] : '',
-            title                 => defined $user_mapping{title} ? $row->[$user_mapping{title}] : '',
+            title                 => defined $user_mapping{title} ? $row->[$user_mapping{title}] : undef,
             organisation          => $org_id,
             department_id         => $dep_id,
             team_id               => $team_id,
