@@ -529,6 +529,15 @@ del '/api/dashboard/:dashboard_id/widget/:id' => require_login sub {
     _del_dashboard_widget();
 };
 
+# Wizard endpoints
+post '/api/user_account' => require_login sub {
+    _post_add_user_account();
+};
+
+post '/api/user_account_request/:id' => require_login sub {
+    _post_request_account();
+};
+
 sub _post_dashboard_widget {
     my $layout = shift;
     my $user   = logged_in_user;
@@ -670,6 +679,99 @@ sub _del_dashboard_widget {
     return _success("Widget deleted successfully");
 }
 
+sub _post_add_user_account {
+    if (request->content_type ne 'application/json') # Try in body of JSON
+    {
+        return;
+    }
+
+    my $body = try { decode_json(request->body) };
+
+    if (!$body)
+    {
+        return;
+    }
+
+    my %values = (
+        firstname             => $body->{'forename'},
+        surname               => $body->{'surname'},
+        email                 => $body->{'email'},
+        username              => $body->{'email'},
+        freetext1             => $body->{'freetext1'},
+        freetext2             => $body->{'freetext2'},
+        title                 => $body->{'title'} || undef,
+        organisation          => $body->{'organisation'} || undef,
+        department_id         => $body->{'department'} || undef,
+        team_id               => $body->{'team'} || undef,
+        account_request       => $body->{'approve-account'},
+        account_request_notes => $body->{'notes'},
+        view_limits           => $body->{'view_limits'} || [],
+        groups                => $body->{'groups'} || [],
+    );
+
+    if(logged_in_user->permission->{superadmin})
+    {
+        $values{permissions} = $body->{'permissions'} || [];
+    }
+
+    my $user = logged_in_user;
+
+    # This sends a welcome email etc
+    if (process(sub { rset('User')->create_user(current_user => $user, request_base => request->base, %values) }))
+    {
+        return _success("User has been created successfully");
+    }
+
+    return _error(422, "Unable to create user");
+}
+
+sub _post_request_account {
+    if (request->content_type ne 'application/json') # Try in body of JSON
+    {
+        return;
+    }
+
+    my $body = try { decode_json(request->body) };
+
+    if (!$body)
+    {
+        return;
+    }
+
+    my %values = (
+        firstname             => $body->{'forename'},
+        surname               => $body->{'surname'},
+        email                 => $body->{'email'},
+        username              => $body->{'email'},
+        freetext1             => $body->{'freetext1'},
+        freetext2             => $body->{'freetext2'},
+        title                 => $body->{'title'} || undef,
+        organisation          => $body->{'organisation'} || undef,
+        department_id         => $body->{'department'} || undef,
+        team_id               => $body->{'team'} || undef,
+        account_request       => $body->{'approve-account'},
+        account_request_notes => $body->{'notes'},
+        view_limits           => $body->{'view_limits'} || [],
+        groups                => $body->{'groups'} || [],
+    );
+
+    if(logged_in_user->permission->{superadmin})
+    {
+        $values{permissions} = $body->{'permissions'} || [];
+    }
+
+    my $id = route_parameters->get('id');
+
+    if (process sub {
+        my $user = rset('User')->active->search({ id => $id })->next
+            or error __x"User ID {id} not found", id => $id;
+        # Don't use DBIC update directly, so that permissions etc are updated properly
+        $user->update_user(current_user => logged_in_user, %values);
+    }) {
+        return _success("User updated successfully");
+    }
+}
+
 sub _get_widget_write
 {   my ($widget_id, $dashboard_id, $layout, $user) = @_;
     my $widget = _get_widget($widget_id, $dashboard_id, $layout, $user);
@@ -752,6 +854,15 @@ sub _update_dashboard
     }
 
     return _success("Dashboard updated successfully");
+}
+
+sub _error
+{
+    my $code = shift || 500;
+    my $msg  = shift || "Internal server error";
+
+    status $code;
+    error __x $msg;
 }
 
 sub _success
