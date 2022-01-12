@@ -1,48 +1,77 @@
-<h2>Manage uploads</h2>
-<p class="lead">Below are all the files that have been uploaded for use on homepages. Click on the file name to download any file.</p>
+[%
+  # prepare files table config
+  table_dom = "t";
+  table_order = '[0,"asc"]';
 
-<div class="row">
-    <div class="col-md-12">
-        <a href="" data-toggle="modal" data-target="#modal_upload" class="btn btn-default">Upload a file...</a>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>ID:</th>
-                    <th>Name:</th>
-                </tr>
-            </thead>
-            <tbody>
-                [% FOR file IN files %]
-                    <tr>
-                        <td>[% file.id %]</td>
-                        <td><a href="/file/[% file.id %]">[% file.name | html %]</a></td>
-                    </tr>
-                [% END %]
-            </tbody>
-        </table>
+  table_buttons = [{
+    label     = "Delete"
+    type      = "modal_button"
+    modalID   = "#deleteFile"
+  }];
+
+  table_columns = [{
+    name = "ID"
+    orderable = 1
+  }, {
+    name = "Name of file"
+    orderable = 1
+    width = "85%"
+  }];
+
+  rows = [];
+
+  FOR file IN files;
+    rows.push({
+      link_placeholders = {
+        file_id = file.id
+      }
+      modal = {
+        dataID    = file.id
+        dataTitle = file.name
+      }
+      fields = [{
+        type  = "link"
+        label = file.id
+        link  = "/file/{file_id}"
+      }, {
+        type       = "link"
+        label      = file.name
+        link_class = "btn btn-download btn-small"
+        link       = "/file/{file_id}"
+      }]
+    });
+  END;
+
+%]
+
+<div class="content-block__head row">
+  <div class="content-block__info col-lg-6">
+    
+    <h2 class="content-block__title">
+      Files
+    </h2>
+    
+    <div class="content-block__intro">
+      Below are all the files that have been uploaded for use on the dashboard or to share data with Ctrl O for
+      support purposes, such as data imports or screen shots.
     </div>
+  </div>
+  
+  <div class="content-block__aside col-lg-6">
+    <button
+      type="button"
+      class="btn btn-default"
+      data-toggle="modal" data-target=#uploadFile
+    >
+      <span class="btn__title">Upload a file</span>
+    </button>
+  </div>
 </div>
 
-<div class="modal fade" id="modal_upload" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form role="form" method="post" enctype="multipart/form-data" action="?is_independent">
-            <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="modal_filter-title">Upload File</h4>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="method">File to upload:</label>
-                    <input type="file" name="file">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="submit" name="submit" value="submit" class="btn btn-primary">Submit</button>
-            </div>
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-
+<div class="content-block__main">
+  [% INCLUDE tables/basic_table.tt; %]
+</div>
+[%-
+  INCLUDE wizard/upload_file.tt modalId="uploadFile";
+  INCLUDE wizard/delete_file.tt modalId="deleteFile";
+-%]
