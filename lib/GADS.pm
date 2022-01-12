@@ -190,13 +190,12 @@ hook before => sub {
         if (request->content_type eq 'application/json') # Try in body of JSON
         {
             my $body = try { decode_json(request->body) };
-
             $token = $body->{csrf_token} if $body;
         }
         $token ||= query_parameters->get('csrf-token') || body_parameters->get('csrf_token');
         panic __x"csrf-token missing for uri {uri}, params {params}", uri => request->uri, params => Dumper({params})
             if !$token;
-        error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again ({token} != {token2}).", token => $token, token2 => session('csrf_token')
+        error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
             if $token ne session('csrf_token');
 
         # If it's a potential login, change the token
@@ -378,6 +377,7 @@ sub _forward_last_table
 }
 
 get '/' => require_login sub {
+
     my $site = var 'site';
     my $user    = logged_in_user;
 
