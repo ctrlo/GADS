@@ -1,0 +1,25 @@
+[%-
+  row_class = row_class ? row_class : 'row mt-5';
+-%]
+<div class="[%- row_class -%]">
+  [% IF back_url %]
+  <div class="col-sm-auto mb-3 mb-sm-0">
+    <a href="[% back_url %]" class="btn btn-cancel">
+      <span class="btn__title">Back</span>
+    </a>
+  </div>
+  [% END %]
+  
+  [% IF submit_name %]
+  <div class="col-sm-auto">
+    <button
+      type="submit"
+      name="[% submit_name %]"
+      value="[% submit_value || 'submit' %]"
+      class="btn btn-default"
+    >
+      <span class="btn__title">Save changes</span>
+    </button>
+  </div>
+  [% END %]
+</div>

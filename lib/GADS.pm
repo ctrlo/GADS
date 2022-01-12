@@ -758,7 +758,7 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
     }
 
     my $users = GADS::Users->new(schema => schema);
-    template 'my_account' => {
+    template 'user/my_account' => {
         user            => $user,
         page            => 'myaccount',
         body_class      => 'page',
@@ -1132,7 +1132,7 @@ any ['get', 'post'] => '/user_upload/' => require_any_role [qw/useradmin superad
         }
     }
 
-    template 'user/upload' => {
+    template 'user/user_upload' => {
         page            => 'user',
         groups          => GADS::Groups->new(schema => schema)->all,
         permissions     => $userso->permissions,
@@ -1187,7 +1187,7 @@ any ['get', 'post'] => '/user_export/?' => require_any_role [qw/useradmin supera
         }
     }
 
-    template 'user/export' => {
+    template 'user/user_export' => {
         exports         => schema->resultset('Export')->user(logged_in_user->id),
         page            => 'user',
         body_class      => 'page',
@@ -1200,7 +1200,7 @@ any ['get', 'post'] => '/user_overview/' => require_any_role [qw/useradmin super
     my $userso          = GADS::Users->new(schema => schema);
     my $users           = $userso->all;
 
-    template 'user_overview' => {
+    template 'user/user_overview' => {
         users           => $users,
         groups          => GADS::Groups->new(schema => schema)->all,
         values          => {
@@ -1222,7 +1222,7 @@ any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin super
     my $users             = $userso->all;
     my $register_requests = $userso->register_requests;
 
-    template 'user_request' => {
+    template 'user/user_request' => {
         users           => $register_requests,
         groups          => GADS::Groups->new(schema => schema)->all,
         values          => {
@@ -1293,7 +1293,7 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
         $editUser = \%values;
     }
 
-    my $output = template 'user_edit' => {
+    my $output = template 'user/user_edit' => {
         edituser => $editUser,
         groups   => GADS::Groups->new(schema => schema)->all,
         values   => {

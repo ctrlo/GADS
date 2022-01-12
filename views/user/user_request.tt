@@ -1,0 +1,240 @@
+[%
+  # prepare table config
+  table_class = 'table-striped table-hover table-account-requests';
+  table_dom = '<\"row row--header\"<\"col\"f><\"col-lg-auto dataTables_length_wrapper\"l>><\"row row--main\"<\"col-sm-12\"tr>><\"row row--footer\"<\"col-sm-12 col-lg-6\"p><\"col-sm-12 col-lg-6 dataTables_info_wrapper\"i>>';
+  table_order = '[0,"asc"]';
+  table_language = '{"emptyTable": "There is no data available in this table","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"","searchPlaceholder":"Search through your users"}';
+
+  table_columns = [{
+    name      = "ID"
+    orderable = 1
+  },{
+    name      = "Surname"
+    orderable = 1
+  },{
+    name      = "Forename"
+    orderable = 1
+  }];
+
+  IF site.register_show_title;
+    table_columns.push({
+      name      = "Title"
+      orderable = 1
+    });
+  END;
+
+  table_columns.push({
+    name      = "Email"
+    orderable = 1
+  });
+
+  IF site.register_show_organisation;
+    table_columns.push({
+      name      = site.organisation_name
+      filter    = "html"
+      orderable = 1
+    });
+  END;
+
+  IF site.register_show_department;
+    table_columns.push({
+      name      = site.department_name
+      filter    = "html"
+      orderable = 1
+    });
+  END;
+
+  IF site.register_show_team;
+    table_columns.push({
+      name      = site.team_name
+      filter    = "html"
+      orderable = 1
+    });
+  END;
+
+  IF site.register_freetext1_name;
+    table_columns.push({
+      name      = site.register_freetext1_name
+      filter    = "html"
+      orderable = 1
+    });
+  END;
+
+  table_columns.push({
+    name      = "Created"
+    orderable = 1
+  }, {
+    name      = "Last login"
+    orderable = 1
+  });
+
+  rows = [];
+
+  FOREACH user_row IN users;
+    row = {
+      link_placeholders = {
+        user_id = user_row.id
+      }
+      fields = [{
+        type  = "link"
+        label = user_row.id
+        link  = "/user/{user_id}"
+        name  = "id"
+      }, {
+        type   = "link"
+        label  = user_row.surname
+        filter = "html_entity"
+        link   = "/user/{user_id}"
+        name   = "surname"
+      }, {
+        type   = "link"
+        label  = user_row.firstname
+        filter = "html_entity"
+        link   = "/user/{user_id}"
+        name   = "firstname"
+      }]
+    };
+
+    IF site.register_show_title;
+      row.fields.push({
+        type   = "link"
+        label  = user_row.title.name
+        filter = "html_entity"
+        link   = "/user/{user_id}"
+        name   = "title"
+      });
+    END;
+    
+    row.fields.push({
+      type   = "link"
+      label  = user_row.email
+      filter = "html_entity"
+      link   = "/user/{user_id}"
+      name   = "email"
+    });
+    
+    IF site.register_show_organisation;
+      row.fields.push({
+        type   = "link"
+        label  = user_row.organisation.name
+        filter = "html_entity"
+        link   = "/user/{user_id}"
+        name   = "organisation"
+      });
+    END;
+    
+    IF site.register_show_department;
+      row.fields.push({
+        type   = "link"
+        label  = user_row.department.name
+        filter = "html_entity"
+        link   = "/user/{user_id}"
+        name   = "department"
+      });
+    END;
+    
+    IF site.register_show_team;
+      row.fields.push({
+        type   = "link"
+        label  = user_row.team.name
+        filter = "html_entity"
+        link   = "/user/{user_id}"
+        name   = "team"
+      });
+    END;
+    
+    IF site.register_freetext1_name;
+      row.fields.push({
+        type   = "link"
+        label  = user_row.freetext1
+        filter = "html_entity"
+        link   = "/user/{user_id}"
+        name   = "custom_property_1"
+      });
+    END;
+    
+    IF site.register_freetext2_name;
+      row.fields.push({
+        type   = "link"
+        label  = user_row.freetext2
+        filter = "html_entity"
+        link   = "/user/{user_id}"
+        name   = "custom_property_2"
+      });
+    END;
+    
+    row.fields.push({
+      type  = "link"
+      label = user_row.created OR "Unknown"
+      link  = "/user/{user_id}"
+      name  = "created"
+    }, {
+      type  = "link"
+      label = user_row.lastlogin OR "Never logged in"
+      link  = "/user/{user_id}"
+      name  = "lastlogin"
+    });
+
+    rows.push(row);
+  END;
+%]
+<div class="content-block__head row">
+  <div class="content-block__info col-lg-6">
+    <h2 class="content-block__title">
+      Users
+    </h2>
+    
+    <div class="content-block__intro">
+      This is an overview of all the users within your Linkspace system.
+    </div>
+  </div>
+  
+  <div class="content-block__aside col-lg-6">
+    [% IF user.permission.useradmin %]
+    <div class="list list--horizontal list--no-borders list--buttons">
+      <ul class="list__items">
+  
+        <li class="list__item">
+          <a href="[% url.page %]/user_upload/" class="btn btn-import">Import users</a>
+        </li>
+  
+        <li class="list__item">
+          <a href="[% url.page %]/user_export/" class="btn btn-export">Export users</a>
+        </li>
+        
+        <li class="list__item">
+          <button
+            type="button"
+            class="btn btn-add"
+            data-toggle="modal"
+            data-target=#userModal
+          >
+            <span class="btn__title">Add a user</span>
+          </button>
+        </li>
+      </ul>
+    </div>
+    [% END %]
+  </div>
+</div>
+
+<div class="content-block__main">
+  <div class="row mb-4">
+    <div class="col">
+      <div class="list list--horizontal">
+        <ul class="list__items">
+          <li class="list__item">
+            <a href='[% url.page %]/user_overview/' class='link link--plain'><span>Active accounts</span></a>
+          </li>
+          
+          <li class="list__item">
+            <a href='[% url.page %]/user_requests/' class='link link--plain link--active'><span>Account requests</span></a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  [% INCLUDE tables/basic_table.tt; %]
+</div>
+[%- PROCESS wizard/user.tt endpoint="/api/user_account" -%]

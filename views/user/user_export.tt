@@ -1,0 +1,84 @@
+[%-
+  INCLUDE navigation/header_simple_back_button.tt
+    back_button_url    = url.page _ "/user_overview/"
+    back_button_title  = "Export users"
+    aside_button_name  = "submit"
+    aside_button_value = "submit"
+    aside_button_label = "Start export"
+    content_intro      = "In this window you can export the users from your system to a CSV file for download.";
+
+  table_dom = "t";
+  table_order = '[0,"asc"]';
+  table_language = '{"emptyTable": "No exports to show"}';
+
+  table_buttons = [];
+
+  table_columns = [{
+    name = "Started"
+    orderable = 1
+    width = "20%"
+  }, {
+    name = "Completed"
+    orderable = 1
+    width = "20%"
+  }, {
+    name = "Status"
+    orderable = 1
+    width = "55%"
+  }, {
+    name = ""
+    orderable = 0
+  }];
+
+  rows = [];
+
+  IF exports.count;
+    FOREACH export IN exports.all;
+      rowType = export.success ? "link" : 'text';
+
+      rows.push({
+        link_placeholders = {
+          export_id = export.id
+        }
+        fields = [{
+          type  = rowType
+          label = export.started
+          link  = "?download={export_id}"
+        }, {
+          type  = rowType
+          label = export.completed || 'In progress'
+          link  = "?download={export_id}"
+        }, {
+          type  = rowType
+          label = export.result
+          link  = "?download={export_id}"
+        }, {
+          type       = rowType
+          label      = ""
+          link_class = export.success ? "btn btn-download" : ""
+          link       = "?download={export_id}"
+        }]
+      });
+    END;
+  END;
+-%]
+
+<div class="content-block__main">
+  <div class="row justify-content-end">
+    <div class="col-auto">
+      <form method="post">
+        <input type="hidden" name="csrf_token" value="[% csrf_token %]">
+        <button
+          type="submit"
+          class="btn btn-delete btn-small btn-icon-close"
+          name="clear"
+          value="clear"
+        >
+          <span class="btn__title">Clear export logs</span>
+        </button>
+      </form>
+    </div>
+  </div>
+  
+  [% INCLUDE tables/basic_table.tt; %]
+</div>
