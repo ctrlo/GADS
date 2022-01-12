@@ -1,0 +1,28 @@
+<div class="content-block__head row">
+  <div class="content-block__info col-lg-6">
+    <h2 class="content-block__title">
+      <a href="[%- back_button_url -%]" class="btn btn-title-back">
+        <span class="btn__title">[%- back_button_title -%]</span>
+      </a>
+    </h2>
+    
+    <div class="content-block__intro">
+      [%- content_intro -%]
+    </div>
+  </div>
+  [%- IF aside_button_name -%]
+  <div class="content-block__aside col-lg-6">
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="[% csrf_token %]">
+      <button
+        type="submit"
+        class="btn btn-default"
+        name="[% aside_button_name %]"
+        value="[% aside_button_value %]"
+      >
+        <span class="btn__title">[% aside_button_label %]</span>
+      </button>
+    </form>
+  </div>
+  [%- END -%]
+</div>

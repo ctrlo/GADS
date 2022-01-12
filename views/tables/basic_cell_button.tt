@@ -1,6 +1,18 @@
 [%
-  cell_class = class ? 'class="' _ class _ '"' : '';
+  cell_class = class ? ' class="' _ class _ '"' : '';
+  data_attr  = field_name ? ' data-' _ field_name _ '="' _ field_value _ '"' : '';
 %]
-<td [% cell_class %]>
-  <a href='[% url.page %][% link %]' class='link text-nowrap'>[% label %]</a>
+<td [% cell_class %][% data_attr %]>
+  <a href='[% url.page %][% link %]' class='link text-nowrap'>
+    [%-
+      SWITCH filter;
+        CASE 'html';
+          label | html;
+        CASE 'html_entity';
+          label | html_entity;
+        CASE DEFAULT;
+          label;
+      END;
+    -%]
+  </a>
 </td>

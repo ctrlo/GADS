@@ -1,6 +1,17 @@
 [%
-  cell_class = class ? 'class="' _ class _ '"' : '';
+  cell_class = class ? ' class="' _ class _ '"' : '';
 %]
 <th [% cell_class %]>
-  <span>[% label %]</span>
+  <span>
+    [%-
+      SWITCH filter;
+        CASE 'html';
+          label | html;
+        CASE 'html_entity';
+          label | html_entity;
+        CASE DEFAULT;
+          label;
+      END;
+    -%]
+  </span>
 </th>

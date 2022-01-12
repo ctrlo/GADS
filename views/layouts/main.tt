@@ -5,7 +5,7 @@
 
     <title>[% page %] | Linkspace</title>
 
-    <meta name="author" content="Digitpaint - Boilerplates">
+    <meta name="author" content="Digitpaint">
 
     <meta name="description" content="">
     <meta name="author" content="">
@@ -19,9 +19,10 @@
 
     [% END %]
     <link rel="stylesheet" href="[% url.css %]/general.css">
+    <link rel="stylesheet" href="[% url.css %]/external.css">
   </head>
 
-  <body class="[% body_class %]">
+  <body class="[% body_class %]" data-csrf="[%- csrf_token -%]">
     <div class="[% container_class %]">
       [%
         IF page == "login" OR page == "register" OR page == "reset" OR page == "invalidsite" OR page_as_mech;
