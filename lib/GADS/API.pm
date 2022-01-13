@@ -739,7 +739,7 @@ sub _post_request_account {
     }
 
     my %values = (
-        firstname             => $body->{'forename'},
+        firstname             => $body->{'firstname'},
         surname               => $body->{'surname'},
         email                 => $body->{'email'},
         username              => $body->{'email'},
@@ -747,10 +747,10 @@ sub _post_request_account {
         freetext2             => $body->{'freetext2'},
         title                 => $body->{'title'} || undef,
         organisation          => $body->{'organisation'} || undef,
-        department_id         => $body->{'department'} || undef,
-        team_id               => $body->{'team'} || undef,
+        department_id         => $body->{'department_id'} || undef,
+        team_id               => $body->{'team_id'} || undef,
         account_request       => $body->{'approve-account'},
-        account_request_notes => $body->{'notes'},
+        account_request_notes => $body->{'notes'} || '',
         view_limits           => $body->{'view_limits'} || [],
         groups                => $body->{'groups'} || [],
     );
