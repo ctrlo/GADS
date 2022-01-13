@@ -1219,8 +1219,23 @@ any ['get', 'post'] => '/user_overview/' => require_any_role [qw/useradmin super
 
 any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin superadmin/] => sub {
     my $userso            = GADS::Users->new(schema => schema);
-    my $users             = $userso->all;
     my $register_requests = $userso->register_requests;
+
+    if (my $delete_id = param('delete'))
+    {
+        return forwardHome(
+            { danger => "Cannot delete current logged-in User" } )
+            if logged_in_user->id eq $delete_id;
+
+        my $usero = rset('User')->find($delete_id);
+
+        if (process( sub { $usero->retire(send_reject_email => 1) }))
+        {
+            $audit->login_change("User ID $delete_id deleted");
+            return forwardHome(
+                { success => "User has been deleted successfully" }, 'user_requests/' );
+        }
+    }
 
     template 'user/user_request' => {
         users           => $register_requests,
