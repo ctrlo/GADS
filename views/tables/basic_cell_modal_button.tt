@@ -13,15 +13,8 @@
     data-title=[% dataTitle %]
     data-id=[% dataID %]
   >
-    <span class="btn__title">[%-
-      SWITCH filter;
-        CASE 'html';
-          label | html;
-        CASE 'html_entity';
-          label | html_entity;
-        CASE DEFAULT;
-          label;
-      END;
-    -%]</span>
+    <span class="btn__title">
+      [% INCLUDE fields/sub/filter.tt value=label; %]
+    </span>
   </button>
 </td>

@@ -6,15 +6,6 @@
 %]
 <td [% cell_class %][% data_attr %]>
   <a href='[% url.page %][% link %]' class='[% link_class %]'>
-    [%-
-      SWITCH filter;
-        CASE 'html';
-          label | html;
-        CASE 'html_entity';
-          label | html_entity;
-        CASE DEFAULT;
-          label;
-      END;
-    -%]
+    [% INCLUDE fields/sub/filter.tt value=label; %]
   </a>
 </td>
