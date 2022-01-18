@@ -1,7 +1,4 @@
 [%-
-  # TODO: remove edituser stub
-  
-
   firstFrameFields = [];
   secondFrameFields = [];
   
@@ -102,7 +99,7 @@
                         placeholder = field.placeholder
                         type = field_type
                         disabled = field_disabled
-                        is_html = 1
+                        filter = "html"
                         is_required = field.is_required
                         sub_field = sub_field
                         sub_params = sub_params;
@@ -115,7 +112,7 @@
                         label = field.description
                         placeholder = field.placeholder
                         items = values.${field.name}
-                        is_html = 1
+                        filter = "html"
                         sub_field = sub_field
                         sub_params = sub_params;
                     END;
@@ -199,7 +196,7 @@
                         placeholder = field.placeholder
                         type = field_type
                         disabled = field_disabled
-                        is_html = 1
+                        filter = "html"
                         sub_field = sub_field
                         sub_params = sub_params;
                   
@@ -211,7 +208,7 @@
                         label = field.description
                         placeholder = field.placeholder
                         items = values.${field.name}
-                        is_html = 1
+                        filter = "html"
                         sub_field = sub_field
                         sub_params = sub_params;
                     END;
