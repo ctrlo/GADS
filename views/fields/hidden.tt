@@ -1,0 +1,10 @@
+[%-
+  # Template for standardized input type="file"
+  # Implementation Example:
+  #
+  # INCLUDE fields/hidden.tt
+  #   name = "username"
+  #   value = user.name
+  #   filter = "html" | "html_entity" | "";
+-%]
+<input type="hidden" name="[% name %]" value="[% INCLUDE fields/sub/filter.tt; %]">

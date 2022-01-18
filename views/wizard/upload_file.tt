@@ -14,7 +14,7 @@
       </div>
       
       <form role="form" method="post" enctype="multipart/form-data" action="?is_independent">
-        <input type="hidden" name="csrf_token" value="[% csrf_token %]">
+        [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
         <div class="modal-frame">
           <div class="modal-body">
             <p class="mt-3">File to upload:</p>

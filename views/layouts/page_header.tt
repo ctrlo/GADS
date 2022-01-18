@@ -52,7 +52,7 @@
               button.class = button.class ? button.class : "btn-default";
           -%]
           <form method="[% button.method %]" action="[% button.target %]">
-            <input type="hidden" name="csrf_token" value="[% csrf_token %]">
+            [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
             <button
               type="submit"
               class="btn [% button.class %]"

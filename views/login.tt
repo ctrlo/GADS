@@ -12,8 +12,9 @@
       <legend class="fieldset__legend fieldset__legend--hidden">
         Login
       </legend>
-      <input type="hidden" name="csrf_token" value="[% csrf_token %]">
       [%
+        INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
+        
         INCLUDE fields/input.tt
           id = "username"
           name = "username"

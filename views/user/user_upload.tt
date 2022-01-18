@@ -7,7 +7,7 @@
 -%]
 <div class="content-block__main">
   <form role="form" method="post" enctype="multipart/form-data">
-    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
+    [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
     <div class="row mb-4">
       <div class="col-lg-6">
         [%-

@@ -9,12 +9,16 @@
   <form method="post" action="">
     <fieldset class="fieldset">
       <legend class="fieldset__legend fieldset__legend--hidden">My details</legend>
-      <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-      <input type="hidden" name="page" value="[% page %]">
-      <input type="hidden" name="username" value="[% user.username | html_entity %]">
-      <input type="hidden" name="id" value="[% edituser.id %]">
-      [% field_counter = 0 %]
-      [% IF site.user_fields.size > 0 %]
+      [%-
+        INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
+        INCLUDE fields/hidden.tt name="page" value=page;
+        INCLUDE fields/hidden.tt name="username" value=user.username filter="html_entity";
+        INCLUDE fields/hidden.tt name="id" value=edituser.id;
+      
+        field_counter = 0;
+        
+        IF site.user_fields.size > 0;
+      -%]
       <div class="row">
         [% END %]
         [% FOREACH field IN site.user_fields %]
