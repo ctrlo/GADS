@@ -1,8 +1,9 @@
 [%-
-  INCLUDE navigation/header_simple_back_button.tt
-    back_button_url = url.page _ "/user_overview/"
-    back_button_title = "Import users"
-    content_intro = "Use this page to import users by uploading a CSV file containing user information.";
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title       = "Import users"
+    description = "Use this page to import users by uploading a CSV file containing user information."
+    back_button = { url = url.page _ "/user_overview/" };
 -%]
 <div class="content-block__main">
   <form role="form" method="post" enctype="multipart/form-data">

@@ -1,15 +1,9 @@
-<div class="content-block__head row">
-  <div class="content-block__info col-lg-6">
-    <h2 class="content-block__title">
-      My Details
-    </h2>
-    
-    <div class="content-block__intro">
-      This is your profile, here you can change your personal details and password.
-    </div>
-  </div>
-</div>
-
+[%-
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title       = "My Details"
+    description = "This is your profile, here you can change your personal details and password.";
+-%]
 <div class="content-block__main">
   <form method="post">
     <fieldset class="fieldset">

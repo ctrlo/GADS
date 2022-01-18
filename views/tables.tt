@@ -1,4 +1,4 @@
-[%
+[%-
   # prepare table config
   table_dom = "t";
   table_order = '[0,"asc"]';
@@ -49,29 +49,18 @@
       }]
     });
   END;
-%]
-<div class="content-block__head row">
-  <div class="content-block__info col-lg-6">
-    <h2 class="content-block__title">
-      Tables
-    </h2>
-    
-    <div class="content-block__intro">
-      A table in LinkSpace is comparable to a worksheet in a spreadsheet. Here you can enter, create, edit, and delete your tables.
-    </div>
-  </div>
-  
-  <div class="content-block__aside col-lg-6">
-    [% IF user.permission.superadmin %]
-    <button
-      type="button"
-      class="btn btn-add"
-    >
-      <span class="btn__title">New table</span>
-    </button>
-    [% END %]
-  </div>
-</div>
+
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title         = "Tables"
+    description   = "A table in LinkSpace is comparable to a worksheet in a spreadsheet. Here you can enter, create, edit, and delete your tables."
+    aside_buttons = ! user.permission.superadmin ? [] : [{
+      type   = "modal_button"
+      target = "#tableModal"
+      class  = "btn-add"
+      label  = "New table"
+    }];
+-%]
 
 <div class="content-block__main">
   [% INCLUDE tables/basic_table.tt; %]

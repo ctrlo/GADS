@@ -41,32 +41,18 @@
       }]
     });
   END;
-
-%]
-
-<div class="content-block__head row">
-  <div class="content-block__info col-lg-6">
-    
-    <h2 class="content-block__title">
-      Files
-    </h2>
-    
-    <div class="content-block__intro">
-      Below are all the files that have been uploaded for use on the dashboard or to share data with Ctrl O for
-      support purposes, such as data imports or screen shots.
-    </div>
-  </div>
   
-  <div class="content-block__aside col-lg-6">
-    <button
-      type="button"
-      class="btn btn-default"
-      data-toggle="modal" data-target=#uploadFile
-    >
-      <span class="btn__title">Upload a file</span>
-    </button>
-  </div>
-</div>
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title         = "Files"
+    description   = "Below are all the files that have been uploaded for use on the dashboard or to share data with Ctrl O for support purposes, such as data imports or screen shots."
+    aside_buttons = [{
+      type   = "modal_button"
+      target = "#uploadFile"
+      class  = "btn-default"
+      label  = "Upload a file"
+    }];
+%]
 
 <div class="content-block__main">
   [% INCLUDE tables/basic_table.tt; %]
