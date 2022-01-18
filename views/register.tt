@@ -61,7 +61,7 @@
             placeholder = site.register_freetext1_name
             type = "text"
             help_text = site.register_freetext1_help
-            is_html = 1;
+            filter = "html";
         END;
         
         IF site.register_freetext2_name;
@@ -72,7 +72,7 @@
             placeholder = site.register_freetext2_name
             type = "text"
             help_text = site.register_freetext2_help
-            is_html = 1;
+            filter = "html";
         END;
         
         IF site.register_show_organisation;
@@ -93,7 +93,7 @@
             placeholder = "Select " _ site.department_name
             help_text = site.register_department_help
             items = departments
-            is_html = 1;
+            filter = "html";
         END;
         
         IF site.register_show_team;
@@ -104,16 +104,15 @@
             placeholder = "Select " _ site.team_name
             help_text = site.register_team_help
             items = teams
-            is_html = 1;
+            filter = "html";
         END;
         
         INCLUDE fields/textarea.tt
           id = "account_request_notes"
           name = "account_request_notes"
           label = "Notes"
-          type = "email"
           help_text = site.register_notes_help
-          is_html = 1
+          filter = "html"
           rows = 5;
       %]
     </fieldset>

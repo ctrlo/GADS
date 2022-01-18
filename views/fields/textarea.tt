@@ -1,5 +1,5 @@
 [%
-  # Template for standardized stylized <textarea> fields
+  # Template for standardized stylized textarea
   # Implementation Example:
   #
   # INCLUDE fields/textarea.tt
@@ -8,13 +8,12 @@
   #   value = ""
   #   label = "Notes"
   #   placeholder = ""
-  #   type = "email"
   #   custom_classes = ""
   #   help_text = site.register_notes_help
   #   input_class = "input--required"
   #   popover_body="this is a popover, that is displayed when the info icon is pressed"
   #   is_required = 0
-  #   is_html = 1
+  #   filter = "html" | "html_entity" | ""
   #   rows = 5
   #   sub_field = ""
   #   sub_params = {};
@@ -28,7 +27,7 @@
   <div class="textarea [% input_class %]">
     <div class="input__label">
       <label for="[% id %]">
-        [% IF is_html; label | html; ELSE; label; END; %]
+        [% INCLUDE fields/sub/filter.tt value=label; %]
       </label>
       [% IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body; END; %]
     </div>
@@ -43,14 +42,14 @@
         id="[% id %]"
         name="[% name %]"
         rows="[% rows %]"
-        placeholder="[% IF is_html %][% placeholder | html %][% ELSE %][% placeholder %][% END %]"[% IF help_text %]
+        placeholder="[% INCLUDE fields/sub/filter.tt value=placeholder; %]"[% IF help_text %]
         aria-describedby="[% id %]-help"[% END %][% IF is_disabled %]
         disabled[% END %][% IF is_required %]
         required
         aria-required="true"[% END %]
-      >[% IF is_html; value | html; ELSE; value; END; %]</textarea>
-</div>
-</div>
+      >[% INCLUDE fields/sub/filter.tt; %]</textarea>
+    </div>
+  </div>
 [% INCLUDE snippets/subfield.tt %]
 [% IF ! hide_group %]
 </div>

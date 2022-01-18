@@ -10,6 +10,6 @@
     [%- IF is_disabled -%]disabled[%- END -%]
   >
   <label for="[%- id -%]">
-    [%- IF is_html; label | html; ELSE; label; END; -%]
+    [% INCLUDE fields/sub/filter.tt value=label; %]
   </label>
 </div>

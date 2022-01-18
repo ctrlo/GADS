@@ -1,5 +1,5 @@
 [%
-  # Template for standardized stylized <select> fields
+  # Template for standardized stylized select field
   # Implementation Example:
   #
   # INCLUDE fields/select.tt
@@ -13,7 +13,7 @@
   #   input_class = "input--required"
   #   popover_body="this is a popover, that is displayed when the info icon is pressed"
   #   is_required = 0
-  #   is_html = 0
+  #   filter = "html" | "html_entity" | ""
   #   sub_field = ""
   #   sub_params = {};
 
@@ -37,7 +37,7 @@
   <div class="select dropdown select--select">
     <div class="select__label">
       <label for="[% id %]" id="[% id %]-label">
-        [% IF is_html; label | html; ELSE; label; END; %]
+        [% INCLUDE fields/sub/filter.tt value=label; %]
       </label>
       [% IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body; END; %]
     </div>
@@ -56,14 +56,14 @@
       aria-expanded="false"
       [% IF is_disabled %]aria-disabled="true"[% END %]
     >
-      <span>[% IF is_html; display_placeholder | html; ELSE; display_placeholder; END; %]</span>
+      <span>[% INCLUDE fields/sub/filter.tt value=display_placeholder; %]</span>
     </button>
     <input
       type="hidden"
       name="[% name %]"
       value="[% display_value %]"[%- IF is_disabled -%]
       disabled[%- END -%]
-      placeholder="[% IF is_html; display_placeholder | html; ELSE; display_placeholder; END; %]"
+      placeholder="[% INCLUDE fields/sub/filter.tt value=display_placeholder; %]"
     >
     
     <ul

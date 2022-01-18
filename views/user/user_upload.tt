@@ -21,7 +21,7 @@
             popover_body=""
             help_text="The CSV file can contain columns for any of: Forename, Surname, Email, Title, Organisation. Column headings in the CSV must exactly match these names. Only email address is mandatory."
             is_required = 0
-            is_html = 0
+            filter = ""
             tabindex = 1
             sub_field = ""
             sub_params = {};
