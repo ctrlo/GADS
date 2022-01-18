@@ -44,7 +44,7 @@
           label     = button.label
           link      = button.link || ''
           filter    = button.filter || ''
-          modalID   = button.modalID || ''
+          modalId   = button.modalId || ''
           dataTitle = row.modal.dataTitle || ''
           dataID    = row.modal.dataID || ''
         });

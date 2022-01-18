@@ -55,7 +55,6 @@
         <div class="modal-frame" data-config='{"step":1,"frame":1,"item":null,"count":null}'>
           <div class="modal-body">
             <div class="container-fluid">
-              
               <div class="row">
                 <div class="col">
                   <div class="alert alert-danger alert-js-user-details" role="alert" id="modal-alert">
@@ -124,34 +123,24 @@
             </div> <!-- container end -->
           </div> <!-- modal body end -->
           
-          <div class="modal-footer">
-            <div class="modal-footer__left">
-              <button
-                type="button"
-                class="btn btn-cancel"
-                data-dismiss="modal"
-              >
-                <span class="btn__title">Cancel</span>
-              </button>
-            </div>
-            <div class="modal-footer__right">
-              <button
-                type="submit"
-                class="btn btn-danger btn-js-reject-request"
-                name=delete
-              >
-                <span class="btn__title">Reject request</span>
-              </button>
-              
-              <button
-                type="button"
-                class="btn btn-default btn-disabled btn-js-next"
-                disabled
-              >
-                <span class="btn__title">Next</span>
-              </button>
-            </div>
-          </div>
+          [%-
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel"
+                label   = "Cancel"
+                dismiss = "modal"
+              }]
+              right_buttons = [{
+                type    = "submit"
+                class   = "btn-danger btn-js-reject-request"
+                name    = "delete"
+                value   = user.id
+                label   = "Reject request"
+              }, {
+                class = "btn-default btn-disabled btn-js-next"
+                label = "Next"
+              }];
+          -%]
         </div>
         
         <div class="modal-frame" data-config='{"step":2,"frame":2,"item":null,"count":null}'>
@@ -217,36 +206,26 @@
                 [%- field_counter = field_counter + 1; -%]
               [%- END -%]
               </div>
-            </div>
-          </div>
+            </div> <!-- container end -->
+          </div> <!-- modal body end -->
           
-          <div class="modal-footer">
-            <div class="modal-footer__left">
-              <button
-                type="button"
-                class="btn btn-cancel btn-js-back"
-              >
-                <span class="btn__title">Back</span>
-              </button>
-            </div>
-            <div class="modal-footer__right">
-              <button
-                type="submit"
-                class="btn btn-danger btn-js-reject-request"
-                name=delete
-              >
-                <span class="btn__title">Reject request</span>
-              </button>
-              
-              <button
-                type="button"
-                class="btn btn-default btn-js-next"
-              >
-                <span class="btn__title">Next</span>
-              </button>
-            
-            </div>
-          </div>
+          [%-
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel btn-js-back"
+                label   = "Back"
+              }]
+              right_buttons = [{
+                type    = "submit"
+                class   = "btn-danger btn-js-reject-request"
+                name    = "delete"
+                value   = user.id
+                label   = "Reject request"
+              }, {
+                class = "btn-default btn-js-next"
+                label = "Next"
+              }];
+          -%]
         </div>
         
         <div class="modal-frame" data-config='{"step":3,"frame":3,"item":null,"count":null}'>
@@ -274,35 +253,26 @@
               <div class="row">
                 [% INCLUDE snippets/user_column_groups.tt list_class="list--no-borders list--checkboxes"; %]
               </div>
-            </div>
-          </div>
+            </div> <!-- container end -->
+          </div> <!-- modal body end -->
           
-          <div class="modal-footer">
-            <div class="modal-footer__left">
-              <button
-                type="button"
-                class="btn btn-cancel btn-js-back"
-              >
-                <span class="btn__title">Back</span>
-              </button>
-            </div>
-            <div class="modal-footer__right">
-              <button
-                type="submit"
-                class="btn btn-danger btn-js-reject-request"
-                name=delete
-              >
-                <span class="btn__title">Reject request</span>
-              </button>
-              
-              <button
-                type="button"
-                class="btn btn-default btn-js-save"
-              >
-                <span class="btn__title">Create account</span>
-              </button>
-            </div>
-          </div>
+          [%-
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel btn-js-back"
+                label   = "Back"
+              }]
+              right_buttons = [{
+                type    = "submit"
+                class   = "btn-danger btn-js-reject-request"
+                name    = "delete"
+                value   = user.id
+                label   = "Reject request"
+              }, {
+                class = "btn-default btn-js-save"
+                label = "Create account"
+              }];
+          -%]
         </div>
       </form>
     </div>

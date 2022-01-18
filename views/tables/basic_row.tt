@@ -26,7 +26,7 @@
             label=field.label
             filter=field.filter
             field_name=field.name
-            modalID=field.modalID
+            modalId=field.modalId
             dataTitle=field.dataTitle
             dataID=field.dataID;
         CASE 'header';

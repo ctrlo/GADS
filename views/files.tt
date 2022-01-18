@@ -6,7 +6,7 @@
   table_buttons = [{
     label     = "Delete"
     type      = "modal_button"
-    modalID   = "#deleteFile"
+    modalId   = "deleteFile"
   }];
 
   table_columns = [{

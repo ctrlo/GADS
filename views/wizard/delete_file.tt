@@ -1,17 +1,7 @@
 <div class="modal modal--delete"  id="[% modalId %]" tabindex="-1" role="dialog" aria-labelledby="[% modalId %]]Label" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered " role="document">
     <div class="modal-content">
-      <div class="modal-header">
-        <div class="modal-header__content">
-          <h3 class="modal-title" id="[% modalId %]Label">
-            Modal title
-          </h3>
-        </div>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true" class="hidden">Close</span>
-        </button>
-      </div>
-      
+      [% INCLUDE wizard/sub/modal_header.tt label="Delete file"; %]
       <form method="post">
         [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
         <div class="modal-frame" >
@@ -19,28 +9,21 @@
             <p>Are you sure you want to delete this file? You cannot undo this step.</p>
           </div>
           
-          <div class="modal-footer">
-            <div class="modal-footer__left">
-              <button
-                type="button"
-                class="btn btn-cancel"
-                data-dismiss="modal"
-              >
-                <span class="btn__title">Cancel</span>
-              </button>
-            </div>
-            
-            <div class="modal-footer__right">
-              <button
-                type="submit"
-                class="btn btn-danger"
-                name="delete"
-                value="delete"
-              >
-                <span class="btn__title">Delete</span>
-              </button>
-            </div>
-          </div>
+          [%-
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel"
+                dismiss = "modal"
+                label   = "Cancel"
+              }]
+              right_buttons = [{
+                type  = "submit"
+                class = "btn-danger"
+                name  = "delete"
+                value = "delete"
+                label = "Delete"
+              }];
+          -%]
         </div>
       </form>
     </div>
