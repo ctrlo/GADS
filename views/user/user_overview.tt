@@ -163,7 +163,7 @@
     description   = "This is an overview of all the users within your Linkspace system."
     aside_buttons = ! user.permission.useradmin ? [] : [{
       type    = "modal_button"
-      modalId = "emailUser"
+      modalId = "emailUsersModal"
       class   = "btn-email"
       label   = "Email users"
     }, {
@@ -204,4 +204,7 @@
   [% INCLUDE tables/basic_table.tt; %]
 </div>
 
-[%- PROCESS wizard/user_add.tt -%]
+[%-
+  INCLUDE wizard/user_add.tt modalId="userModal";
+  INCLUDE wizard/user_email.tt modalId="emailUsersModal";
+-%]

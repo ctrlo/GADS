@@ -209,4 +209,4 @@
   
   [% INCLUDE tables/basic_table.tt; %]
 </div>
-[%- PROCESS wizard/user_add.tt endpoint="/api/user_account" -%]
+[%- INCLUDE wizard/user_add.tt endpoint="/api/user_account" -%]

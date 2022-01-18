@@ -17,18 +17,12 @@
       <div class="form-control">
         <ul class="current">
           <li class="none-selected">[% INCLUDE fields/sub/filter.tt value=placeholder; %]</li>
-          [%-
-            option_counter = 0;
-            FOREACH item IN items;
-          -%]
-          <li data-list-item="[% id %]-[% option_counter %]" hidden>
+          [%- FOREACH item IN items -%]
+          <li data-list-item="[% id %]_[% item.id %]" hidden>
             <span class="widget-value__value">[% item.name | html_entity %]</span>
             <button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
           </li>
-          [%-
-              option_counter = option_counter + 1;
-            END;
-          -%]
+          [%- END -%]
           <li class="search">
             <input
               type="search"
@@ -50,25 +44,18 @@
           role="listbox"
       >
         <li class="has-noresults" hidden>No results</li>
-        [%-
-          option_counter = 0;
-          FOREACH item IN items;
-        -%]
+        [%- FOREACH item IN items -%]
         <li class="answer" role="option">
           [%-
             INCLUDE fields/sub/checkbox.tt
-              id      = id _ '-' _ option_counter
+              id      = id _ '_' _ item.id
               name    = name
               value   = item.id
               label   = item.name
-              checked = item.id == value
-              filter  = "html_entity";
+              checked = item.id == value;
           -%]
         </li>
-        [%-
-            option_counter = option_counter + 1;
-          END;
-        -%]
+        [%- END; -%]
       </ul>
     </div>
   </div>

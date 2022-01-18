@@ -58,34 +58,34 @@
       <ul class="list__items">
         <li class="list__item">
           [%-
-          INCLUDE fields/sub/checkbox.tt
-          id = "super_administrator"
-          name = "permission"
-          label = "Super-administrator"
-          value = "superadmin"
-          checked = edituser.permission.superadmin ? 1 : 0;
+            INCLUDE fields/sub/checkbox.tt
+              id = "super_administrator"
+              name = "permission"
+              label = "Super-administrator"
+              value = "superadmin"
+              checked = edituser.permission.superadmin ? 1 : 0;
           -%]
         </li>
         
         <li class="list__item">
           [%-
-          INCLUDE fields/sub/checkbox.tt
-          id = "user_can_manage_other_accounts"
-          name = "permission"
-          label = "User can manage other user accounts"
-          value = "useradmin"
-          checked = edituser.permission.useradmin ? 1 : 0;
+            INCLUDE fields/sub/checkbox.tt
+              id = "user_can_manage_other_accounts"
+              name = "permission"
+              label = "User can manage other user accounts"
+              value = "useradmin"
+              checked = edituser.permission.useradmin ? 1 : 0;
           -%]
         </li>
         
         <li class="list__item">
           [%-
-          INCLUDE fields/sub/checkbox.tt
-          id = "user_can_access_audit_data"
-          name = "permission"
-          label = "User can access audit data"
-          value = "audit"
-          checked = edituser.permission.audit ? 1 : 0;
+            INCLUDE fields/sub/checkbox.tt
+              id = "user_can_access_audit_data"
+              name = "permission"
+              label = "User can access audit data"
+              value = "audit"
+              checked = edituser.permission.audit ? 1 : 0;
           -%]
         </li>
       </ul>

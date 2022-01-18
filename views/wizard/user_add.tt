@@ -12,7 +12,7 @@
 -%]
 <div class="modal modal--wizzard modal--user"
      data-config='{"url":"[% endpoint %]"}'
-     id="userModal"
+     id="[% modalId %]"
      tabindex="-1"
      role="dialog"
      aria-labelledby="userModalLabel"

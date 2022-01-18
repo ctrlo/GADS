@@ -1200,6 +1200,30 @@ any ['get', 'post'] => '/user_overview/' => require_any_role [qw/useradmin super
     my $userso          = GADS::Users->new(schema => schema);
     my $users           = $userso->all;
 
+    if (param 'sendemail')
+    {
+        my @emails = param('group_ids')
+                   ? (map { $_->email } @{$userso->all_in_groups(param 'group_ids')})
+                   : (map { $_->email } @{$userso->all});
+        my $email  = GADS::Email->instance;
+        my $args   = {
+            subject => param('email_subject'),
+            text    => param('email_text'),
+            emails  => \@emails,
+        };
+        if (@emails)
+        {
+            if (process( sub { $email->message($args, logged_in_user) }))
+            {
+                return forwardHome(
+                    { success => "The message has been sent successfully" }, 'user_overview/' );
+            }
+        }
+        else {
+            report({is_fatal => 0}, ERROR => 'The groups selected contain no users');
+        }
+    }
+
     template 'user/user_overview' => {
         users           => $users,
         groups          => GADS::Groups->new(schema => schema)->all,
@@ -1335,31 +1359,6 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
 #     my %all_permissions = map { $_->id => $_->name } @{$userso->permissions};
 #     my $audit           = GADS::Audit->new(schema => schema, user => $user);
 #     my $users;
-#
-#     if (param 'sendemail')
-#     {
-#         my @emails = param('group_ids')
-#                    ? (map { $_->email } @{$userso->all_in_groups(param 'group_ids')})
-#                    : (map { $_->email } @{$userso->all});
-#         my $email  = GADS::Email->instance;
-#         my $args   = {
-#             subject => param('email_subject'),
-#             text    => param('email_text'),
-#             emails  => \@emails,
-#         };
-#
-#         if (@emails)
-#         {
-#             if (process( sub { $email->message($args, logged_in_user) }))
-#             {
-#                 return forwardHome(
-#                     { success => "The message has been sent successfully" }, 'user' );
-#             }
-#         }
-#         else {
-#             report({is_fatal => 0}, ERROR => 'The groups selected contain no users');
-#         }
-#     }
 #
 #     # The submit button will still be triggered on a new org/title creation,
 #     # if the user has pressed enter, in which case ignore it
