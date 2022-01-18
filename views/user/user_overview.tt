@@ -162,10 +162,10 @@
     title         = "Users"
     description   = "This is an overview of all the users within your Linkspace system."
     aside_buttons = ! user.permission.useradmin ? [] : [{
-      type   = "modal_button"
-      target = "#emailUser"
-      class  = "btn-email"
-      label  = "Email users"
+      type    = "modal_button"
+      modalId = "emailUser"
+      class   = "btn-email"
+      label   = "Email users"
     }, {
       type   = "link"
       target = url.page _ "/user_upload/"
@@ -177,10 +177,10 @@
       class  = "btn-export"
       label  = "Export users"
     }, {
-      type   = "modal_button"
-      target = "#userModal"
-      class  = "btn-add"
-      label  = "Add a user"
+      type    = "modal_button"
+      modalId = "userModal"
+      class   = "btn-add"
+      label   = "Add a user"
     }];
 %]
 
@@ -204,4 +204,4 @@
   [% INCLUDE tables/basic_table.tt; %]
 </div>
 
-[%- PROCESS wizard/user.tt -%]
+[%- PROCESS wizard/user_add.tt -%]
