@@ -36,7 +36,9 @@
     [%- IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body; END; -%]
     
     <div class="file">
-      <label class="file__name" for="[% id %]"> [% INCLUDE fields/sub/filter.tt value=placeholder; %] </label>
+      <label class="file__name" for="[% id %]">
+        [% INCLUDE fields/sub/filter.tt value=placeholder; %]
+      </label>
       <button type="button" class="file__delete close" aria-label="Delete">
         <span aria-hidden="true" class="hidden">Delete file</span>
       </button>

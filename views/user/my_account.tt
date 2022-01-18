@@ -32,7 +32,8 @@
               field_type = "email";
               sub_field  = "fields/sub/modal_link.tt";
               sub_params = {
-                label => "Change password"
+                label   => "Change password"
+                modalId => "changePasswordModal"
               };
             ELSE;
               field_type = "text";
@@ -84,3 +85,4 @@
     </fieldset>
   </form>
 </div>
+[%- INCLUDE wizard/change_password.tt modalId="changePasswordModal"; -%]
