@@ -72,7 +72,7 @@
     </div>
     [%-
       back_url = url.page _ "/user_overview/";
-      INCLUDE navigation/button_bar.tt back_url=back_url submit_name="submit";
+      INCLUDE navigation/button_bar.tt back_url=back_url submit_name="submit" submit_label="Save changes";
     -%]
   </form>
 </div>
