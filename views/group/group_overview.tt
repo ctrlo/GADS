@@ -31,7 +31,7 @@
         type   = "link"
         label  = group.name
         filter = "html_entity"
-        link   = "/group/{group_id}"
+        link   = "/group_edit/{group_id}"
       }]
     });
   END;
@@ -42,7 +42,7 @@
     description   = "Groups are the basis for LinkSpace’s fine-grained access control. Users can be allocated to any number of groups. You then set the group permissions for every field you create to control what fields users can view or edit."
     aside_buttons = [{
       type   = "link"
-      target = url.page _ "/group_overview/"
+      target = url.page _ "/group_add/"
       class  = "btn-default"
       label  = "Create group"
     }];
@@ -52,7 +52,6 @@
   [% INCLUDE tables/basic_table.tt; %]
 </div>
 [%-
-  INCLUDE wizard/file_upload.tt modalId="uploadFile";
   INCLUDE wizard/delete.tt
     modalId     = "deleteGroupModal"
     label       = "Delete group"

@@ -850,7 +850,7 @@ any ['get', 'post'] => '/group_overview/' => require_any_role [qw/useradmin supe
         }
     }
 
-    template 'group' => {
+    template 'group/group_overview' => {
         page            => 'group',
         body_class      => 'page',
         container_class => 'container-fluid',
@@ -860,52 +860,61 @@ any ['get', 'post'] => '/group_overview/' => require_any_role [qw/useradmin supe
     };
 };
 
+any ['get', 'post'] => '/group_add/' => require_any_role [qw/useradmin superadmin/] => sub {
+    if (param 'submit')
+    {
+        my $group = GADS::Group->new(schema => schema);
 
-any ['get', 'post'] => '/group/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
+        $group->name(param 'name');
 
-    my $id = param 'id';
-    my $group  = GADS::Group->new(schema => schema);
-    my $layout = var 'layout';
+        if (process(sub {$group->write}))
+        {
+            return forwardHome(
+                { success => "Group has been created successfully" }, 'group_overview/' );
+        }
+    }
+
+    template 'group/group_save' => {
+        page            => 'group',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+        group           => {}
+    };
+};
+
+any ['get', 'post'] => '/group_edit/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $id    = param 'id';
+    my $group = GADS::Group->new(schema => schema);
     $group->from_id($id);
 
-    my @permissions = GADS::Type::Permissions->all;
+    if (param('delete'))
+    {
+        if (process(sub {$group->delete}))
+        {
+            return forwardHome(
+                { success => "The group has been deleted successfully" }, 'group_overview/' );
+        }
+    }
 
     if (param 'submit')
     {
         $group->name(param 'name');
-        foreach my $perm (@permissions)
-        {
-            my $name = "default_".$perm->short;
-            $group->$name(param($name) ? 1 : 0);
-        }
+
         if (process(sub {$group->write}))
         {
-            my $action = param('id') ? 'updated' : 'created';
             return forwardHome(
-                { success => "Group has been $action successfully" }, 'group_overview/' );
+                { success => "Group has been updated successfully" }, 'group_overview/' );
         }
     }
 
-    my $params = {
-        page => defined $id && !$id ? 'group/0' : 'group'
+    template 'group/group_save' => {
+        page            => 'group',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+        group           => $group
     };
-
-    if (defined $id)
-    {
-        # id will be 0 for new group
-        $params->{group}       = $group;
-        $params->{permissions} = [@permissions];
-        my $group_name = $id ? $group->name : 'new group';
-        my $group_id   = $id ? $group->id : 0;
-        $params->{breadcrumbs} = [Crumb( '/group' => 'groups' ) => Crumb( "/group/$group_id" => $group_name )];
-    }
-    else {
-        my $groups = GADS::Groups->new(schema => schema);
-        $params->{groups}      = $groups->all;
-        $params->{layout}      = $layout;
-        $params->{breadcrumbs} = [Crumb( '/group' => 'groups' )];
-    }
-    template 'group' => $params;
 };
 
 any ['get', 'post'] => '/organisation/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
