@@ -1,6 +1,5 @@
 [%
   cell_class  = class ? ' class="' _ class _ '"' : '';
-  # <<< continue here, this should be applied to all fields, then added to account request field config
   field_value = field_name AND field_value ? field_value : label;
   data_attr   = field_name ? ' data-' _ field_name _ '="' _ field_value _ '"' : '';
 %]
@@ -9,19 +8,12 @@
     type="button"
     class="btn btn-delete btn-small btn-js-delete"
     data-toggle="modal"
-    data-target=[% modalID %]
-    data-title=[% dataTitle %]
+    data-target="#[% modalId %]"
+    data-title="[% dataTitle %]"
     data-id=[% dataID %]
   >
-    <span class="btn__title">[%-
-      SWITCH filter;
-        CASE 'html';
-          label | html;
-        CASE 'html_entity';
-          label | html_entity;
-        CASE DEFAULT;
-          label;
-      END;
-    -%]</span>
+    <span class="btn__title">
+      [% INCLUDE fields/sub/filter.tt value=label; %]
+    </span>
   </button>
 </td>

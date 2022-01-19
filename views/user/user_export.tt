@@ -1,12 +1,4 @@
 [%-
-  INCLUDE navigation/header_simple_back_button.tt
-    back_button_url    = url.page _ "/user_overview/"
-    back_button_title  = "Export users"
-    aside_button_name  = "submit"
-    aside_button_value = "submit"
-    aside_button_label = "Start export"
-    content_intro      = "In this window you can export the users from your system to a CSV file for download.";
-
   table_dom = "t";
   table_order = '[0,"asc"]';
   table_language = '{"emptyTable": "No exports to show"}';
@@ -61,13 +53,25 @@
       });
     END;
   END;
+
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title         = "Export users"
+    description   = "In this window you can export the users from your system to a CSV file for download."
+    back_button   = { url = url.page _ "/user_overview/" }
+    aside_buttons = [{
+      type  = "form"
+      name  = "submit"
+      value = "submit"
+      label = "Start export"
+    }];
 -%]
 
 <div class="content-block__main">
   <div class="row justify-content-end">
     <div class="col-auto">
       <form method="post">
-        <input type="hidden" name="csrf_token" value="[% csrf_token %]">
+        [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
         <button
           type="submit"
           class="btn btn-delete btn-small btn-icon-close"

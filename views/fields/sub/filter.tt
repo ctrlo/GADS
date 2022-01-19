@@ -1,0 +1,10 @@
+[%-
+  SWITCH filter;
+    CASE 'html';
+      value | html;
+    CASE 'html_entity';
+      value | html_entity;
+    CASE DEFAULT;
+      value;
+  END;
+-%]

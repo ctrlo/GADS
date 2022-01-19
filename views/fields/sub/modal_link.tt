@@ -1,1 +1,5 @@
-<a href="#" class="link">[% label %]</a>
+<button type="button" class="btn btn-link" data-toggle="modal" data-target="#[% modalId %]">
+  <span class="btn__title">
+    [% INCLUDE fields/sub/filter.tt value=label; %]
+  </span>
+</button>

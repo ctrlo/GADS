@@ -4,14 +4,5 @@
   data_attr  = field_name ? ' data-' _ field_name _ '="' _ field_value _ '"' : '';
 %]
 <td [% cell_class %][% data_attr %]>
-  [%-
-      SWITCH filter;
-        CASE 'html';
-          label | html;
-        CASE 'html_entity';
-          label | html_entity;
-        CASE DEFAULT;
-          label;
-      END;
-    -%]
+  [% INCLUDE fields/sub/filter.tt value=label; %]
 </td>

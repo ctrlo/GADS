@@ -1,0 +1,16 @@
+<div class="modal-footer">
+  <div class="modal-footer__left">
+    [%-
+      IF left_buttons;
+        INCLUDE wizard/sub/modal_buttons.tt buttons=left_buttons;
+      END;
+    -%]
+  </div>
+  <div class="modal-footer__right">
+    [%-
+      IF right_buttons;
+        INCLUDE wizard/sub/modal_buttons.tt buttons=right_buttons;
+      END;
+    -%]
+  </div>
+</div>

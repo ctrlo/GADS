@@ -1,0 +1,31 @@
+<div class="modal modal--delete"  id="[% modalId %]" tabindex="-1" role="dialog" aria-labelledby="[% modalId %]]Label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered " role="document">
+    <div class="modal-content">
+      [% INCLUDE wizard/sub/modal_header.tt; %]
+      <form method="post">
+        [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+        <div class="modal-frame" >
+          <div class="modal-body">
+            <p>[% description %]</p>
+          </div>
+          
+          [%-
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel"
+                dismiss = "modal"
+                label   = "Cancel"
+              }]
+              right_buttons = [{
+                type  = "submit"
+                class = "btn-danger"
+                name  = "delete"
+                value = value || "delete"
+                label = "Delete"
+              }];
+          -%]
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

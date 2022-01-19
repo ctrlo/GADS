@@ -1,15 +1,9 @@
-<div class="content-block__head row">
-  <div class="content-block__info col-lg-6">
-    <h2 class="content-block__title">
-      Admin Settings
-    </h2>
-    
-    <div class="content-block__intro">
-      In this window you can manage your general user settings or your system wide settings
-    </div>
-  </div>
-</div>
-
+[%-
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title       = "Admin Settings"
+    description = "In this window you can manage your general user settings or your system wide settings.";
+-%]
 <div class="content-block__main">
   
   [% IF user.permission.useradmin %]

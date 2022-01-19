@@ -1,0 +1,62 @@
+[%-
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title       = group.id ? "Edit group" : "Create group"
+    description = "In this window you can " _ (group.id ? "Edit" : "Create") _ " a permission group. Under table and field management you can define permissions and functions available to this group."
+    back_button = { url = url.page _ "/group_overview/" };
+-%]
+
+<div class="content-block__main">
+  <form method="post">
+    [%-
+      INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
+    
+      IF group.id;
+        INCLUDE fields/hidden.tt name="id" value=group.id;
+      END;
+    -%]
+    <div class="form-group">
+      <div class="row">
+        <div class="col-lg-6">
+          [%-
+            INCLUDE fields/input.tt
+              id = "name"
+              name = "name"
+              label = "Group"
+              placeholder = "Name of group"
+              value = group.id ? group.name : ''
+              type = "text"
+              filter = "html_entity"
+              hide_group = 1;
+          -%]
+        </div>
+        [%- IF group.id -%]
+        <div class="col align-self-end mb-3">
+          <button
+            type="button"
+            class="btn btn-delete btn-js-delete"
+            data-toggle="modal"
+            data-target=#deleteGroupModal
+            data-title="[% group.name%]"
+            data-id="[% group.id %]"
+          >
+            <span class="btn__title">Delete group</span>
+          </button>
+        </div>
+        [%- END -%]
+      </div>
+    </div>
+    [%-
+      back_url = url.page _ "/group_overview/";
+      INCLUDE navigation/button_bar.tt back_url=back_url submit_name="submit" submit_label="Save";
+    -%]
+  </form>
+</div>
+[%-
+  IF group.id;
+    INCLUDE wizard/delete.tt
+      modalId     = "deleteGroupModal"
+      label       = "Delete group"
+      description = "Are you sure you want to delete this group? You cannot undo this step.";
+  END;
+-%]

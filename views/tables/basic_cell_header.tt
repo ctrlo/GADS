@@ -3,15 +3,6 @@
 %]
 <th [% cell_class %]>
   <span>
-    [%-
-      SWITCH filter;
-        CASE 'html';
-          label | html;
-        CASE 'html_entity';
-          label | html_entity;
-        CASE DEFAULT;
-          label;
-      END;
-    -%]
+    [% INCLUDE fields/sub/filter.tt value=label; %]
   </span>
 </th>

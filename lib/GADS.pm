@@ -834,61 +834,87 @@ any ['get', 'post'] => '/system/?' => require_login sub {
     };
 };
 
-
-any ['get', 'post'] => '/group/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
-
-    my $id = param 'id';
-    my $group  = GADS::Group->new(schema => schema);
+any ['get', 'post'] => '/group_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $groups = GADS::Groups->new(schema => schema);
     my $layout = var 'layout';
-    $group->from_id($id);
 
-    my @permissions = GADS::Type::Permissions->all;
-
-    if (param 'submit')
+    if (my $delete_id = param('delete'))
     {
-        $group->name(param 'name');
-        foreach my $perm (@permissions)
+        my $group = GADS::Group->new(schema => schema);
+        $group->from_id($delete_id);
+
+        if (process(sub {$group->delete}))
         {
-            my $name = "default_".$perm->short;
-            $group->$name(param($name) ? 1 : 0);
-        }
-        if (process(sub {$group->write}))
-        {
-            my $action = param('id') ? 'updated' : 'created';
             return forwardHome(
-                { success => "Group has been $action successfully" }, 'group' );
+                { success => "The group has been deleted successfully" }, 'group_overview/' );
         }
     }
 
-    if (param 'delete')
+    template 'group/group_overview' => {
+        page            => 'group',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+        groups          => $groups->all,
+        layout          => $layout,
+    };
+};
+
+any ['get', 'post'] => '/group_add/' => require_any_role [qw/useradmin superadmin/] => sub {
+    if (param 'submit')
+    {
+        my $group = GADS::Group->new(schema => schema);
+
+        $group->name(param 'name');
+
+        if (process(sub {$group->write}))
+        {
+            return forwardHome(
+                { success => "Group has been created successfully" }, 'group_overview/' );
+        }
+    }
+
+    template 'group/group_save' => {
+        page            => 'group',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+        group           => {}
+    };
+};
+
+any ['get', 'post'] => '/group_edit/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $id    = param 'id';
+    my $group = GADS::Group->new(schema => schema);
+    $group->from_id($id);
+
+    if (param('delete'))
     {
         if (process(sub {$group->delete}))
         {
             return forwardHome(
-                { success => "The group has been deleted successfully" }, 'group' );
+                { success => "The group has been deleted successfully" }, 'group_overview/' );
         }
     }
 
-    my $params = {
-        page => defined $id && !$id ? 'group/0' : 'group'
-    };
-
-    if (defined $id)
+    if (param 'submit')
     {
-        # id will be 0 for new group
-        $params->{group}       = $group;
-        $params->{permissions} = [@permissions];
-        my $group_name = $id ? $group->name : 'new group';
-        my $group_id   = $id ? $group->id : 0;
-        $params->{breadcrumbs} = [Crumb( '/group' => 'groups' ) => Crumb( "/group/$group_id" => $group_name )];
+        $group->name(param 'name');
+
+        if (process(sub {$group->write}))
+        {
+            return forwardHome(
+                { success => "Group has been updated successfully" }, 'group_overview/' );
+        }
     }
-    else {
-        my $groups = GADS::Groups->new(schema => schema);
-        $params->{groups}      = $groups->all;
-        $params->{layout}      = $layout;
-        $params->{breadcrumbs} = [Crumb( '/group' => 'groups' )];
-    }
-    template 'group' => $params;
+
+    template 'group/group_save' => {
+        page            => 'group',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+        group           => $group
+    };
 };
 
 any ['get', 'post'] => '/organisation/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
@@ -1200,6 +1226,30 @@ any ['get', 'post'] => '/user_overview/' => require_any_role [qw/useradmin super
     my $userso          = GADS::Users->new(schema => schema);
     my $users           = $userso->all;
 
+    if (param 'sendemail')
+    {
+        my @emails = param('group_ids')
+                   ? (map { $_->email } @{$userso->all_in_groups(param 'group_ids')})
+                   : (map { $_->email } @{$userso->all});
+        my $email  = GADS::Email->instance;
+        my $args   = {
+            subject => param('email_subject'),
+            text    => param('email_text'),
+            emails  => \@emails,
+        };
+        if (@emails)
+        {
+            if (process( sub { $email->message($args, logged_in_user) }))
+            {
+                return forwardHome(
+                    { success => "The message has been sent successfully" }, 'user_overview/' );
+            }
+        }
+        else {
+            report({is_fatal => 0}, ERROR => 'The groups selected contain no users');
+        }
+    }
+
     template 'user/user_overview' => {
         users           => $users,
         groups          => GADS::Groups->new(schema => schema)->all,
@@ -1220,6 +1270,7 @@ any ['get', 'post'] => '/user_overview/' => require_any_role [qw/useradmin super
 any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin superadmin/] => sub {
     my $userso            = GADS::Users->new(schema => schema);
     my $register_requests = $userso->register_requests;
+    my $audit             = GADS::Audit->new(schema => schema, user => logged_in_user);
 
     if (my $delete_id = param('delete'))
     {
@@ -1335,31 +1386,6 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
 #     my %all_permissions = map { $_->id => $_->name } @{$userso->permissions};
 #     my $audit           = GADS::Audit->new(schema => schema, user => $user);
 #     my $users;
-#
-#     if (param 'sendemail')
-#     {
-#         my @emails = param('group_ids')
-#                    ? (map { $_->email } @{$userso->all_in_groups(param 'group_ids')})
-#                    : (map { $_->email } @{$userso->all});
-#         my $email  = GADS::Email->instance;
-#         my $args   = {
-#             subject => param('email_subject'),
-#             text    => param('email_text'),
-#             emails  => \@emails,
-#         };
-#
-#         if (@emails)
-#         {
-#             if (process( sub { $email->message($args, logged_in_user) }))
-#             {
-#                 return forwardHome(
-#                     { success => "The message has been sent successfully" }, 'user' );
-#             }
-#         }
-#         else {
-#             report({is_fatal => 0}, ERROR => 'The groups selected contain no users');
-#         }
-#     }
 #
 #     # The submit button will still be triggered on a new org/title creation,
 #     # if the user has pressed enter, in which case ignore it

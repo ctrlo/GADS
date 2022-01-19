@@ -11,16 +11,16 @@
         [% FOREACH group IN groups %]
         <li class="list__item">
           [%-
-          key = group.id;
-          
-          INCLUDE fields/sub/checkbox.tt
-          id = "group_" _ group.id
-          name = "groups"
-          label = group.name
-          value = group.id
-          checked = edituser.has_group.$key ? 1 : 0
-          is_disabled = ! user.permission.superadmin AND ! user.has_group.$key
-          is_html = 1;
+            key = group.id;
+            
+            INCLUDE fields/sub/checkbox.tt
+              id = "group_" _ group.id
+              name = "groups"
+              label = group.name
+              value = group.id
+              checked = edituser.has_group.$key ? 1 : 0
+              is_disabled = ! user.permission.superadmin AND ! user.has_group.$key
+              filter = "html";
           -%]
         </li>
         [%- END -%]

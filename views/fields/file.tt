@@ -1,5 +1,5 @@
 [%-
-  # Template for standardized <input type="file"> fields
+  # Template for standardized input type="file"
   # Implementation Example:
   #
   # INCLUDE fields/file.tt
@@ -12,7 +12,7 @@
   #   input_class = "input--required"
   #   popover_body="this is a popover, that is displayed when the info icon is pressed"
   #   is_required = 0
-  #   is_html = 0
+  #   filter = "html" | "html_entity" | ""
   #   tabindex = 1
   #   sub_field = "fields/sub/checkbox.tt"
   #   sub_params = {
@@ -36,7 +36,9 @@
     [%- IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body; END; -%]
     
     <div class="file">
-      <label class="file__name" for="[% id %]"> [% IF is_html %][% placeholder | html %][% ELSE %][% placeholder %][% END %] </label>
+      <label class="file__name" for="[% id %]">
+        [% INCLUDE fields/sub/filter.tt value=placeholder; %]
+      </label>
       <button type="button" class="file__delete close" aria-label="Delete">
         <span aria-hidden="true" class="hidden">Delete file</span>
       </button>

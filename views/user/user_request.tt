@@ -177,46 +177,18 @@
 
     rows.push(row);
   END;
+
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title         = "Users"
+    description   = "This is an overview of all the users within your Linkspace system."
+    aside_buttons = ! user.permission.useradmin ? [] : [{
+      type    = "modal_button"
+      modalId = "userModal"
+      class   = "btn-add"
+      label   = "Add a user"
+    }];
 %]
-<div class="content-block__head row">
-  <div class="content-block__info col-lg-6">
-    <h2 class="content-block__title">
-      Users
-    </h2>
-    
-    <div class="content-block__intro">
-      This is an overview of all the users within your Linkspace system.
-    </div>
-  </div>
-  
-  <div class="content-block__aside col-lg-6">
-    [% IF user.permission.useradmin %]
-    <div class="list list--horizontal list--no-borders list--buttons">
-      <ul class="list__items">
-  
-        <li class="list__item">
-          <a href="[% url.page %]/user_upload/" class="btn btn-import">Import users</a>
-        </li>
-  
-        <li class="list__item">
-          <a href="[% url.page %]/user_export/" class="btn btn-export">Export users</a>
-        </li>
-        
-        <li class="list__item">
-          <button
-            type="button"
-            class="btn btn-add"
-            data-toggle="modal"
-            data-target=#userModal
-          >
-            <span class="btn__title">Add a user</span>
-          </button>
-        </li>
-      </ul>
-    </div>
-    [% END %]
-  </div>
-</div>
 
 <div class="content-block__main">
   <div class="row mb-4">
@@ -237,4 +209,4 @@
   
   [% INCLUDE tables/basic_table.tt; %]
 </div>
-[%- PROCESS wizard/user.tt endpoint="/api/user_account" -%]
+[%- INCLUDE wizard/user_add.tt endpoint="/api/user_account" -%]

@@ -1,19 +1,24 @@
 [%-
-  INCLUDE navigation/header_simple_back_button.tt
-    back_button_url = url.page _ "/user_overview/"
-    back_button_title = "Edit user: " _ edituser.firstname _ " " _ edituser.surname
-    content_intro = "In this window you can edit a user in the system.";
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title       = "Edit user: " _ edituser.firstname _ " " _ edituser.surname
+    description = "In this window you can edit a user in the system."
+    back_button = { url = url.page _ "/user_overview/" };
 -%]
 <div class="content-block__main">
   <form method="post" action="">
     <fieldset class="fieldset">
       <legend class="fieldset__legend fieldset__legend--hidden">My details</legend>
-      <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-      <input type="hidden" name="page" value="[% page %]">
-      <input type="hidden" name="username" value="[% user.username | html_entity %]">
-      <input type="hidden" name="id" value="[% edituser.id %]">
-      [% field_counter = 0 %]
-      [% IF site.user_fields.size > 0 %]
+      [%-
+        INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
+        INCLUDE fields/hidden.tt name="page" value=page;
+        INCLUDE fields/hidden.tt name="username" value=user.username filter="html_entity";
+        INCLUDE fields/hidden.tt name="id" value=edituser.id;
+      
+        field_counter = 0;
+        
+        IF site.user_fields.size > 0;
+      -%]
       <div class="row">
         [% END %]
         [% FOREACH field IN site.user_fields %]
@@ -33,7 +38,7 @@
                 placeholder = field.placeholder
                 type = "text"
                 disabled = field_disabled
-                is_html = 1
+                filter = "html"
                 sub_field = ""
                 sub_params = {};
             
@@ -45,7 +50,7 @@
                 label = field.description
                 placeholder = field.placeholder
                 items = values.${field.name}
-                is_html = 1
+                filter = "html"
                 sub_field = ""
                 sub_params = {};
             END;
@@ -67,7 +72,7 @@
     </div>
     [%-
       back_url = url.page _ "/user_overview/";
-      INCLUDE navigation/button_bar.tt back_url=back_url submit_name="submit";
+      INCLUDE navigation/button_bar.tt back_url=back_url submit_name="submit" submit_label="Save changes";
     -%]
   </form>
 </div>

@@ -1,12 +1,13 @@
 [%-
-  INCLUDE navigation/header_simple_back_button.tt
-    back_button_url = url.page _ "/user_overview/"
-    back_button_title = "Import users"
-    content_intro = "Use this page to import users by uploading a CSV file containing user information.";
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title       = "Import users"
+    description = "Use this page to import users by uploading a CSV file containing user information."
+    back_button = { url = url.page _ "/user_overview/" };
 -%]
 <div class="content-block__main">
   <form role="form" method="post" enctype="multipart/form-data">
-    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
+    [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
     <div class="row mb-4">
       <div class="col-lg-6">
         [%-
@@ -20,7 +21,7 @@
             popover_body=""
             help_text="The CSV file can contain columns for any of: Forename, Surname, Email, Title, Organisation. Column headings in the CSV must exactly match these names. Only email address is mandatory."
             is_required = 0
-            is_html = 0
+            filter = ""
             tabindex = 1
             sub_field = ""
             sub_params = {};
@@ -44,7 +45,7 @@
     
     [%-
       back_url = url.page _ "/user_overview/";
-      INCLUDE navigation/button_bar.tt back_url=back_url submit_name="submit";
+      INCLUDE navigation/button_bar.tt back_url=back_url submit_name="submit" submit_label="Save changes";
     -%]
     
   </form>

@@ -48,7 +48,7 @@
               input_class = ""
               popover_body=""
               is_required = 0
-              is_html = 0
+              filter = ""
               sub_field = ""
               sub_params = {};
           -%]
@@ -77,7 +77,7 @@
               input_class = ""
               popover_body=""
               is_required = 0
-              is_html = 0
+              filter = ""
               sub_field = ""
               sub_params = {};
           -%]
