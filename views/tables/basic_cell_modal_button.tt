@@ -8,8 +8,8 @@
     type="button"
     class="btn btn-delete btn-small btn-js-delete"
     data-toggle="modal"
-    data-target=#[% modalId %]
-    data-title=[% dataTitle %]
+    data-target="#[% modalId %]"
+    data-title="[% dataTitle %]"
     data-id=[% dataID %]
   >
     <span class="btn__title">
