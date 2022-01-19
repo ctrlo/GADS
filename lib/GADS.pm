@@ -834,6 +834,32 @@ any ['get', 'post'] => '/system/?' => require_login sub {
     };
 };
 
+any ['get', 'post'] => '/group_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $groups = GADS::Groups->new(schema => schema);
+    my $layout = var 'layout';
+
+    if (my $delete_id = param('delete'))
+    {
+        my $group = GADS::Group->new(schema => schema);
+        $group->from_id($delete_id);
+
+        if (process(sub {$group->delete}))
+        {
+            return forwardHome(
+                { success => "The group has been deleted successfully" }, 'group_overview/' );
+        }
+    }
+
+    template 'group' => {
+        page            => 'group',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+        groups          => $groups->all,
+        layout          => $layout,
+    };
+};
+
 
 any ['get', 'post'] => '/group/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
 
@@ -856,16 +882,7 @@ any ['get', 'post'] => '/group/?:id?' => require_any_role [qw/useradmin superadm
         {
             my $action = param('id') ? 'updated' : 'created';
             return forwardHome(
-                { success => "Group has been $action successfully" }, 'group' );
-        }
-    }
-
-    if (param 'delete')
-    {
-        if (process(sub {$group->delete}))
-        {
-            return forwardHome(
-                { success => "The group has been deleted successfully" }, 'group' );
+                { success => "Group has been $action successfully" }, 'group_overview/' );
         }
     }
 
@@ -1244,6 +1261,7 @@ any ['get', 'post'] => '/user_overview/' => require_any_role [qw/useradmin super
 any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin superadmin/] => sub {
     my $userso            = GADS::Users->new(schema => schema);
     my $register_requests = $userso->register_requests;
+    my $audit             = GADS::Audit->new(schema => schema, user => logged_in_user);
 
     if (my $delete_id = param('delete'))
     {

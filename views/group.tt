@@ -1,89 +1,60 @@
-[% IF group %]
-<h2>[% IF group.id %]Rename group[% ELSE %]Add a group[% END %]</h2>
-<form role="form" method="post">
-    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-    <div class="row">
-        <div class="col-md-6">
-            [% IF group.id %]
-                <input type="hidden" name="id" value="[% group.id %]">
-            [% END %]
-            <div class="form-group">
-                <label for="name">Group name:</label>
-                <input type="text" name="name" class="form-control" value="[% group.name | html_entity %]">
-            </div>
-            <label>Default permissions (optional)</label>
-            <p>When a new field is created, by default add this group to it with these permissions</p>
-            [% FOREACH permission IN permissions %]
-                <div class="checkbox">
-                    <label>
-                        [% perm = "default_" _ permission.short %]
-                        <input type="checkbox" name="[% perm %]" value="1"
-                            [% IF group.$perm %]checked[% END %]>[% permission.long | html %]
-                    </label>
-                </div>
-            [% END %]
-        </div>
-    </div>
-    <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">Save</button>
-    [% IF group %]
-        <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
-    [% END %]
-</form>
-<p></p>
-[% ELSE %]
-    <h2>Groups</h2>
-    <p>
-        Groups are the basis for Linkspace's fine-grained access control. Users can be
-        allocated to any number of groups. You then set the group permissions for every
-        field you create to control what fields users can view or edit.
-    </p>
-    <p>
-        <a href="/group/0" class="btn btn-default" role="button">Add a group</a>
-    </p>
-    <table class="table table-striped">
-        <tr>
-            <th></th>
-            <th>Name</th>
-            <th>Permissions this group has for each field in the current table</th>
-        </tr>
-        [% FOREACH group IN groups %]
-            <tr>
-                <td><a href="/group/[% group.id %]">Edit&nbsp;name</a></td>
-                <td>[% group.name | html_entity %]</td>
-                <td>
-                    [% FOREACH column IN layout.all %]
-                        [% col_id = column.id %]
-                        [% IF group.columns.$col_id %]
-                            <strong>[% layout.column(col_id).name %]</strong>
-                            ([% group.columns.$col_id.join(', ') %])
-                            <br>
-                        [% END %]
-                    [% END %]
-                </td>
-            </tr>
-        [% END %]
-    </table>
-[% END %]
+[%-
+  # prepare files table config
+  table_dom = "t";
+  table_order = '[0,"asc"]';
 
-<!-- Modal -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form role="form" method="post" enctype="multipart/form-data">
-            <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="myModalLabel">Are you sure?</h4>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete this group?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                <button type="submit" name="delete" value="delete" class="btn btn-primary">Confirm deletion</button>
-            </div>
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+  table_buttons = [{
+    type    = "modal_button"
+    modalId = "deleteGroupModal"
+    label   = "Delete"
+    filter  = "html"
+  }];
 
+  table_columns = [{
+    name = "Group"
+    orderable = 1
+    width = "90%"
+  }];
+
+  rows = [];
+
+  FOREACH group IN groups;
+    rows.push({
+      link_placeholders = {
+        group_id = group.id
+      }
+      modal = {
+        dataID    = group.id
+        dataTitle = group.name
+      }
+      fields = [{
+        type   = "link"
+        label  = group.name
+        filter = "html_entity"
+        link   = "/group/{group_id}"
+      }]
+    });
+  END;
+
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title         = "Groups"
+    description   = "Groups are the basis for LinkSpace’s fine-grained access control. Users can be allocated to any number of groups. You then set the group permissions for every field you create to control what fields users can view or edit."
+    aside_buttons = [{
+      type   = "link"
+      target = url.page _ "/group_overview/"
+      class  = "btn-default"
+      label  = "Create group"
+    }];
+-%]
+
+<div class="content-block__main">
+  [% INCLUDE tables/basic_table.tt; %]
+</div>
+[%-
+  INCLUDE wizard/file_upload.tt modalId="uploadFile";
+  INCLUDE wizard/delete.tt
+    modalId     = "deleteGroupModal"
+    label       = "Delete group"
+    description = "Are you sure you want to delete this group? You cannot undo this step.";
+-%]
