@@ -1,0 +1,59 @@
+[%-
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title       = (item.id ? "Edit " : "Create ") _ item.type
+    description = item.description
+    back_button = { url = item.back_url };
+-%]
+
+<div class="content-block__main">
+  <form method="post">
+    [%-
+      INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
+    
+      IF item.id;
+        INCLUDE fields/hidden.tt name="id" value=item.id;
+      END;
+    -%]
+    <div class="form-group">
+      <div class="row">
+        <div class="col-lg-6">
+          [%-
+            INCLUDE fields/input.tt
+              id          = "name"
+              name        = "name"
+              label       = item.field_label
+              placeholder = "Name of " _ item.type
+              value       = item.id ? item.name : ''
+              type        = "text"
+              filter      = "html_entity"
+              hide_group  = 1;
+          -%]
+        </div>
+        [%- IF item.id -%]
+        <div class="col align-self-end mb-3">
+          <button
+            type="button"
+            class="btn btn-delete btn-js-delete"
+            data-toggle="modal"
+            data-target=#deleteModal
+            data-title="[% item.name%]"
+            data-id="[% item.id %]"
+          >
+            <span class="btn__title">Delete [% item.type %]</span>
+          </button>
+        </div>
+        [%- END -%]
+      </div>
+    </div>
+    [%- INCLUDE navigation/button_bar.tt back_url=item.back_url submit_name="submit" submit_label="Save"; -%]
+  </form>
+</div>
+[%-
+  IF item.id;
+    INCLUDE wizard/delete.tt
+      modalId     = "deleteModal"
+      label       = "Delete " _ item.type
+      description = "Are you sure you want to delete this " _ item.type _ "? You cannot undo this step.";
+  END;
+-%]

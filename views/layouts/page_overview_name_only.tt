@@ -1,0 +1,60 @@
+[%-
+  # prepare files table config
+  table_dom = "t";
+  table_order = '[0,"asc"]';
+  table_language = '{"emptyTable": "No ' _ item_type _ 's available"}';
+
+  table_buttons = [{
+    type    = "modal_button"
+    modalId = "deleteModal"
+    label   = "Delete"
+    filter  = "html"
+  }];
+
+  table_columns = [{
+    name = table_column_label
+    orderable = 1
+    width = "90%"
+  }];
+
+  rows = [];
+
+  FOREACH item IN items;
+    rows.push({
+      link_placeholders = {
+        item_id = item.id
+      }
+      modal = {
+        dataID    = item.id
+        dataTitle = item.name
+      }
+      fields = [{
+        type   = "link"
+        label  = item.name
+        filter = "html_entity"
+        link   = "/" _ edit_path _ "/{item_id}"
+      }]
+    });
+  END;
+
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title         = page_title
+    description   = page_description
+    aside_buttons = [{
+      type   = "link"
+      target = url.page _ "/" _ add_path _ "/"
+      class  = "btn-default"
+      label  = "Create " _ item_type
+    }];
+-%]
+
+<div class="content-block__main">
+  [% INCLUDE tables/basic_table.tt; %]
+</div>
+[%-
+  INCLUDE wizard/delete.tt
+    modalId     = "deleteModal"
+    label       = "Delete " _ item_type
+    description = "Are you sure you want to delete this " _ item_type _ "? You cannot undo this step.";
+-%]
