@@ -835,9 +835,6 @@ any ['get', 'post'] => '/system/?' => require_login sub {
 };
 
 any ['get', 'post'] => '/group_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
-    my $groups = GADS::Groups->new(schema => schema);
-    my $layout = var 'layout';
-
     if (my $delete_id = param('delete'))
     {
         my $group = GADS::Group->new(schema => schema);
@@ -850,13 +847,20 @@ any ['get', 'post'] => '/group_overview/' => require_any_role [qw/useradmin supe
         }
     }
 
-    template 'group/group_overview' => {
-        page            => 'group',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
-        groups          => $groups->all,
-        layout          => $layout,
+    my $groups = GADS::Groups->new(schema => schema);
+
+    template 'layouts/page_overview_name_only' => {
+        page               => 'group',
+        body_class         => 'page',
+        container_class    => 'container-fluid',
+        main_class         => 'main col-lg-10',
+        page_title         => "Group",
+        page_description   => "Groups are the basis for LinkSpace’s fine-grained access control. Users can be allocated to any number of groups. You then set the group permissions for every field you create to control what fields users can view or edit.",
+        table_column_label => "Group",
+        item_type          => "group",
+        add_path           => "group_add",
+        edit_path          => "group_edit",
+        items              => $groups->all,
     };
 };
 
@@ -874,18 +878,25 @@ any ['get', 'post'] => '/group_add/' => require_any_role [qw/useradmin superadmi
         }
     }
 
-    template 'group/group_save' => {
+    my $base_url = request->base;
+
+    template 'layouts/page_save_name_only' => {
         page            => 'group',
         body_class      => 'page',
         container_class => 'container-fluid',
         main_class      => 'main col-lg-10',
-        group           => {}
+        item            => {
+            type        => "group",
+            description => "In this window you can create a permission group. Under table and field management you can define permissions and functions available to this group.",
+            back_url    => "${base_url}group_overview/",
+            field_label => "Group",
+        }
     };
 };
 
 any ['get', 'post'] => '/group_edit/:id' => require_any_role [qw/useradmin superadmin/] => sub {
-    my $id    = param 'id';
-    my $group = GADS::Group->new(schema => schema);
+    my $id       = param 'id';
+    my $group    = GADS::Group->new(schema => schema);
     $group->from_id($id);
 
     if (param('delete'))
@@ -908,24 +919,54 @@ any ['get', 'post'] => '/group_edit/:id' => require_any_role [qw/useradmin super
         }
     }
 
-    template 'group/group_save' => {
+    my $base_url = request->base;
+
+    $group->{type}        = "group";
+    $group->{description} = "In this window you can create a permission group. Under table and field management you can define permissions and functions available to this group.";
+    $group->{back_url}    = "${base_url}group_overview/";
+    $group->{field_label} = "Group";
+
+    template 'layouts/page_save_name_only' => {
         page            => 'group',
         body_class      => 'page',
         container_class => 'container-fluid',
         main_class      => 'main col-lg-10',
-        group           => $group
+        item            => $group
     };
 };
 
-any ['get', 'post'] => '/organisation/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
+any ['get', 'post'] => '/settings/organisation_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $organisation_name = lcfirst(var('site')->organisation_name);
 
-    my $id     = route_parameters->get('id');
+    if (my $delete_id = param('delete'))
+    {
+        my $organisation      = schema->resultset('Organisation')->find($delete_id);
 
-    my $organisation = $id
-        ? schema->resultset('Organisation')->find($id)
-        : schema->resultset('Organisation')->new({});
+        if (process( sub { $organisation->delete_organisation } ))
+        {
+            return forwardHome(
+                { success => "The $organisation_name has been deleted successfully" }, 'settings/organisation_overview/' );
+        }
+    }
 
-    my $organisation_name = var('site')->organisation_name;
+    template 'layouts/page_overview_name_only' => {
+        page               => 'organisation',
+        body_class         => 'page',
+        container_class    => 'container-fluid',
+        main_class         => 'main col-lg-10',
+        page_title         => "Manage ${organisation_name}s",
+        page_description   => "In this window you can list the parts of the ${organisation_name} that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
+        table_column_label => "Name",
+        item_type          => $organisation_name,
+        add_path           => "settings/organisation_add",
+        edit_path          => "settings/organisation_edit",
+        items              => [schema->resultset('Organisation')->ordered],
+    };
+};
+
+any ['get', 'post'] => '/settings/organisation_add/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $organisation      = schema->resultset('Organisation')->new({});
+    my $organisation_name = lcfirst(var('site')->organisation_name);
 
     if (body_parameters->get('submit'))
     {
@@ -933,25 +974,54 @@ any ['get', 'post'] => '/organisation/?:id?' => require_any_role [qw/useradmin s
         if (process( sub { $organisation->insert_or_update } ))
         {
             return forwardHome(
-                { success => "The $organisation_name has been updated successfully" }, 'organisation/' );
+                { success => "The $organisation_name has been created successfully" }, 'settings/organisation_overview/' );
         }
     }
 
-    if ($id && body_parameters->get('delete'))
+    my $base_url = request->base;
+
+    $organisation->{type}        = $organisation_name;
+    $organisation->{description} = "In this window you can add a $organisation_name to assign to users.";
+    $organisation->{back_url}    = "${base_url}settings/organisation_overview/";
+    $organisation->{field_label} = ucfirst($organisation_name);
+
+    template 'layouts/page_save_name_only' => {
+        page            => 'organisation',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+        item            => $organisation
+    };
+};
+
+any ['get', 'post'] => '/settings/organisation_edit/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $id                = route_parameters->get('id');
+    my $organisation      = schema->resultset('Organisation')->find($id);
+    my $organisation_name = lcfirst(var('site')->organisation_name);
+
+    if (param('delete'))
     {
         if (process( sub { $organisation->delete_organisation } ))
         {
             return forwardHome(
-                { success => "The $organisation_name has been deleted successfully" }, 'organisation/' );
+                { success => "The $organisation_name has been deleted successfully" }, 'settings/organisation_overview/' );
         }
     }
 
-    template 'organisation' => {
-        organisation  => defined $id && $organisation,
-        organisations => [schema->resultset('Organisation')->ordered],
-        page          => 'organisation',
-    };
+    my $base_url = request->base;
 
+    $organisation->{type}        = $organisation_name;
+    $organisation->{description} = "In this window you can edit a ${organisation_name}. Changes will impact all users currently assigned if you delete or edit a value.";
+    $organisation->{back_url}    = "${base_url}settings/organisation_overview/";
+    $organisation->{field_label} = ucfirst($organisation_name);
+
+    template 'layouts/page_save_name_only' => {
+        page            => 'organisation',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+        item            => $organisation
+    };
 };
 
 any ['get', 'post'] => '/department/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
