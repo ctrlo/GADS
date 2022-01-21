@@ -1,10 +1,10 @@
-<nav class="col-lg-2 sticky-top sidebar sidebar--collapsible">
+<nav class="col-lg-2 sticky-top sidebar sidebar--collapsible" aria-label="Main">
   <div class="sidebar__container">
     <div class="sidebar__header">
       <div class="sidebar__logo">
         <img src="[% url.page %]/images/logo_linkspace.svg"/>
       </div>
-      <button type="button" class="sidebar__toggle btn btn-default">
+      <button type="button" class="sidebar__toggle btn btn-default" aria-expanded="true">
         <span>Hide menu</span>
       </button>
     </div>
