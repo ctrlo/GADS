@@ -29,28 +29,28 @@
 <div class="content-block__head row">
   <div class="content-block__info col-lg-6">
     <h2 class="content-block__title">
-      [%- IF back_button AND back_button.url -%]
+      [% IF back_button AND back_button.url %]
       <a href="[%- back_button.url -%]" class="btn btn-title-back">
         <span class="btn__title">[%- title -%]</span>
       </a>
-      [%- ELSE; title || ''; END; -%]
+      [% ELSE; title || ''; END; %]
     </h2>
     
     <div class="content-block__intro">
-      [%- description || '' -%]
+      [% description || '' %]
     </div>
   </div>
-  [%- IF aside_buttons; -%]
+  [% IF aside_buttons; %]
   <div class="content-block__aside col-lg-6">
     <div class="list list--horizontal list--no-borders list--buttons">
       <ul class="list__items">
-        [%- FOREACH button IN aside_buttons -%]
+        [% FOREACH button IN aside_buttons %]
         <li class="list__item">
-          [%-
+          [%
             IF button.type == "form";
               button.method = button.method ? button.method : "post";
               button.class = button.class ? button.class : "btn-default";
-          -%]
+          %]
           <form method="[% button.method %]" action="[% button.target %]">
             [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
             <button
@@ -62,12 +62,12 @@
               <span class="btn__title">[% button.label || button.name %]</span>
             </button>
           </form>
-          [%- ELSIF button.type == "link" -%]
+          [% ELSIF button.type == "link" %]
           <a href="[% button.target %]" class="btn [% button.class %]">[%- button.label || button.name -%]</a>
-          [%-
+          [%
             ELSIF button.type == "modal_button";
               button.class = button.class ? button.class : "btn-default";
-          -%]
+          %]
           <button
             type="button"
             class="btn [% button.class %]"
@@ -76,11 +76,11 @@
           >
             <span class="btn__title">[%- button.label || button.name -%]</span>
           </button>
-          [%- END -%]
+          [% END %]
         </li>
-        [%- END -%]
+        [% END %]
       </ul>
     </div>
   </div>
-  [%- END -%]
+  [% END %]
 </div>
