@@ -78,19 +78,16 @@
       fields = [{
         type  = "link"
         label = user_row.id
-        link  = "/user/{user_id}"
         name  = "id"
       }, {
         type   = "link"
         label  = user_row.surname
         filter = "html_entity"
-        link   = "/user/{user_id}"
         name   = "surname"
       }, {
         type   = "link"
         label  = user_row.firstname
         filter = "html_entity"
-        link   = "/user/{user_id}"
         name   = "firstname"
       }]
     };
@@ -100,7 +97,6 @@
         type   = "link"
         label  = user_row.title.name
         filter = "html_entity"
-        link   = "/user/{user_id}"
         name   = "title"
       });
     END;
@@ -109,7 +105,6 @@
       type   = "link"
       label  = user_row.email
       filter = "html_entity"
-      link   = "/user/{user_id}"
       name   = "email"
     });
     
@@ -118,7 +113,6 @@
         type   = "link"
         label  = user_row.organisation.name
         filter = "html_entity"
-        link   = "/user/{user_id}"
         name   = "organisation"
       });
     END;
@@ -128,7 +122,6 @@
         type   = "link"
         label  = user_row.department.name
         filter = "html_entity"
-        link   = "/user/{user_id}"
         name   = "department"
       });
     END;
@@ -138,7 +131,6 @@
         type   = "link"
         label  = user_row.team.name
         filter = "html_entity"
-        link   = "/user/{user_id}"
         name   = "team"
       });
     END;
@@ -148,7 +140,6 @@
         type   = "link"
         label  = user_row.freetext1
         filter = "html_entity"
-        link   = "/user/{user_id}"
         name   = "custom_property_1"
       });
     END;
@@ -158,7 +149,6 @@
         type   = "link"
         label  = user_row.freetext2
         filter = "html_entity"
-        link   = "/user/{user_id}"
         name   = "custom_property_2"
       });
     END;
@@ -166,12 +156,10 @@
     row.fields.push({
       type  = "link"
       label = user_row.created OR "Unknown"
-      link  = "/user/{user_id}"
       name  = "created"
     }, {
       type  = "link"
       label = user_row.lastlogin OR "Never logged in"
-      link  = "/user/{user_id}"
       name  = "lastlogin"
     });
 
