@@ -27,6 +27,7 @@
               value       = item.id ? item.name : ''
               type        = "text"
               filter      = "html_entity"
+              autofocus   = ! item.id
               hide_group  = 1;
           -%]
         </div>
