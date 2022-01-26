@@ -45,7 +45,7 @@
   
     [% IF site.register_show_department %]
     <div class="col-md-4 col-sm-6 mb-3">
-      <a href="[% url.page %]/department/" class="card card--settings">
+      <a href="[% url.page %]/settings/department_overview/" class="card card--settings">
         <h4 class="card__title">
           <div class="card__title-icon card__title-icon--department"></div>
           <span> Manage [% site.department_name | html %]s </span>
