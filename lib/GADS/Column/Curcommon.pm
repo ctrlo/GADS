@@ -293,8 +293,8 @@ sub _records_from_db
 
     # We want to honour the permissions for the fields that we retrieve,
     # but apply filtering regardless (for curval filter fields)
-    local $SL::Schema::IGNORE_PERMISSIONS = 1 if $self->override_permissions;
-    local $SL::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
+    local $GADS::Schema::IGNORE_PERMISSIONS = 1 if $self->override_permissions;
+    local $GADS::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
 
     my $is_draft = $self->layout->record && $self->layout->record->is_draft;
     my $records = GADS::Records->new(
@@ -348,10 +348,10 @@ sub filtered_values
     return [] if $self->value_selector ne 'dropdown';
     my $records = $self->_records_from_db;
 
-    local $SL::Schema::IGNORE_PERMISSIONS = 1 if $self->override_permissions;
+    local $GADS::Schema::IGNORE_PERMISSIONS = 1 if $self->override_permissions;
     # Ensure that any filters applied to the field are applied regardless of
     # whether the user has access to those fields used for filtering
-    local $SL::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
+    local $GADS::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
 
     my $submission = $self->schema->resultset('Submission')->search({
         token => $submission_token,

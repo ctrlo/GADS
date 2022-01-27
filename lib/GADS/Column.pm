@@ -1075,7 +1075,7 @@ sub write
 {   my ($self, %options) = @_;
 
     error __"You do not have permission to manage fields"
-        unless $self->layout->user_can("layout") || $SL::Schema::IGNORE_PERMISSIONS || $options{force}; # For tests
+        unless $self->layout->user_can("layout") || $GADS::Schema::IGNORE_PERMISSIONS || $options{force}; # For tests
     $self->layout->clear_permissions;
 
     error __"Internal fields cannot be edited"
@@ -1261,7 +1261,7 @@ sub write
 
 sub user_can
 {   my ($self, $permission) = @_;
-    return 1 if $SL::Schema::IGNORE_PERMISSIONS;
+    return 1 if $GADS::Schema::IGNORE_PERMISSIONS;
     return 1 if $self->internal && $permission eq 'read';
     return 0 if !$self->userinput && $permission ne 'read'; # Can't write to code fields
     return 1 if $self->layout->current_user_can_column($self->id, $permission);

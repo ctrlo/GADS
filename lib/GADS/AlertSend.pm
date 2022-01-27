@@ -81,7 +81,7 @@ sub process
     # First the direct layout
     $self->_process_instance($self->layout, $self->current_ids);
 
-    local $SL::Schema::IGNORE_PERMISSIONS = 1;
+    local $GADS::Schema::IGNORE_PERMISSIONS = 1;
 
     # Now see if the column changes in this layout may have changed views in
     # other layouts.

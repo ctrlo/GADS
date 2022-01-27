@@ -198,7 +198,7 @@ sub process
         if $self->update_unique && $self->skip_existing_unique;
     # XXX In the future this should probably reflect the user's permissions,
     # if/when importing is a separate permission
-    local $SL::Schema::IGNORE_PERMISSIONS = 1;
+    local $GADS::Schema::IGNORE_PERMISSIONS = 1;
     # Build fields from first row before we start reading. This may error
     $self->fields;
 

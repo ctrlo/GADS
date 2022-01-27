@@ -78,7 +78,7 @@ is($record->fields->{$columns->{curval1}->id}->as_string, "Foo", "Curval correct
 
 # Now check that user_permission_override on layout works
 {
-    local $SL::Schema::IGNORE_PERMISSIONS = 1;
+    local $GADS::Schema::IGNORE_PERMISSIONS = 1;
     my $layout = GADS::Layout->new(
         user        => undef,
         schema      => $schema,
