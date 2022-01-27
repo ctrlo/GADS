@@ -41,6 +41,7 @@
   INCLUDE layouts/page_header.tt
     title         = page_title
     description   = page_description
+    back_button   = back_url ? { url = url.page _ back_url } : ''
     aside_buttons = [{
       type   = "link"
       target = url.page _ "/" _ add_path _ "/"
