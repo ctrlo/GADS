@@ -3,7 +3,7 @@
   table_class = 'table-striped table-hover table-account-requests';
   table_dom = '<\"row row--header\"<\"col\"f><\"col-lg-auto dataTables_length_wrapper\"l>><\"row row--main\"<\"col-sm-12\"tr>><\"row row--footer\"<\"col-sm-12 col-lg-6\"p><\"col-sm-12 col-lg-6 dataTables_info_wrapper\"i>>';
   table_order = '[0,"asc"]';
-  table_language = '{"emptyTable": "There is no data available in this table","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"","searchPlaceholder":"Search through your users"}';
+  table_language = '{"emptyTable": "There are currently no account requests","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"","searchPlaceholder":"Search through your users"}';
 
   table_columns = [{
     name      = "ID"
@@ -55,6 +55,14 @@
   IF site.register_freetext1_name;
     table_columns.push({
       name      = site.register_freetext1_name
+      filter    = "html"
+      orderable = 1
+    });
+  END;
+
+  IF site.register_freetext2_name;
+    table_columns.push({
+      name      = site.register_freetext2_name
       filter    = "html"
       orderable = 1
     });
@@ -197,4 +205,4 @@
   
   [% INCLUDE tables/basic_table.tt; %]
 </div>
-[%- INCLUDE wizard/user_add.tt endpoint="/api/user_account" -%]
+[%- INCLUDE wizard/user_add.tt endpoint="/api/user_account" modalId="userModal" -%]
