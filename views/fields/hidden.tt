@@ -1,5 +1,5 @@
 [%-
-  # Template for standardized input type="file"
+  # Template for standardized input type="hidden"
   # Implementation Example:
   #
   # INCLUDE fields/hidden.tt
