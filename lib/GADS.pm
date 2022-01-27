@@ -402,9 +402,6 @@ get '/' => require_login sub {
         dashboard       => $dashboard,
         dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
         page            => 'index',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
     };
 
     if (my $download = param('download'))
@@ -759,12 +756,9 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
 
     my $users = GADS::Users->new(schema => schema);
     template 'user/my_account' => {
-        user            => $user,
-        page            => 'myaccount',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
-        values          => {
+        user   => $user,
+        page   => 'myaccount',
+        values => {
             title         => $users->titles,
             organisation  => $users->organisations,
             department_id => $users->departments,
@@ -789,10 +783,7 @@ any ['get', 'post'] => '/settings/?' => require_any_role [qw/useradmin superadmi
     my $audit  = GADS::Audit->new(schema => schema, user => $user);
 
     template 'admin_settings' => {
-        page            => 'system_settings',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
+        page => 'system_settings',
     };
 };
 
@@ -851,9 +842,6 @@ any ['get', 'post'] => '/group_overview/' => require_any_role [qw/useradmin supe
 
     template 'layouts/page_overview_name_only' => {
         page               => 'group',
-        body_class         => 'page',
-        container_class    => 'container-fluid',
-        main_class         => 'main col-lg-10',
         page_title         => "Group",
         page_description   => "Groups are the basis for LinkSpace’s fine-grained access control. Users can be allocated to any number of groups. You then set the group permissions for every field you create to control what fields users can view or edit.",
         table_column_label => "Group",
@@ -881,11 +869,8 @@ any ['get', 'post'] => '/group_add/' => require_any_role [qw/useradmin superadmi
     my $base_url = request->base;
 
     template 'layouts/page_save_name_only' => {
-        page            => 'group',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
-        item            => {
+        page => 'group',
+        item => {
             type        => "group",
             description => "In this window you can create a permission group. Under table and field management you can define permissions and functions available to this group.",
             back_url    => "${base_url}group_overview/",
@@ -928,9 +913,6 @@ any ['get', 'post'] => '/group_edit/:id' => require_any_role [qw/useradmin super
 
     template 'layouts/page_save_name_only' => {
         page            => 'group',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
         item            => $group
     };
 };
@@ -951,9 +933,6 @@ any ['get', 'post'] => '/settings/title_overview/' => require_any_role [qw/usera
 
     template 'layouts/page_overview_name_only' => {
         page               => 'title',
-        body_class         => 'page',
-        container_class    => 'container-fluid',
-        main_class         => 'main col-lg-10',
         page_title         => "Manage ${title_name}s",
         page_description   => "In this window you can list the ${title_name}s that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
         table_column_label => "Name",
@@ -987,11 +966,8 @@ any ['get', 'post'] => '/settings/title_add/' => require_any_role [qw/useradmin 
     $title->{field_label} = ucfirst($title_name);
 
     template 'layouts/page_save_name_only' => {
-        page            => 'title',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
-        item            => $title
+        page => 'title',
+        item => $title
     };
 };
 
@@ -1027,11 +1003,8 @@ any ['get', 'post'] => '/settings/title_edit/:id' => require_any_role [qw/userad
     $title->{field_label} = ucfirst($title_name);
 
     template 'layouts/page_save_name_only' => {
-        page            => 'title',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
-        item            => $title
+        page => 'title',
+        item => $title
     };
 };
 
@@ -1051,9 +1024,6 @@ any ['get', 'post'] => '/settings/organisation_overview/' => require_any_role [q
 
     template 'layouts/page_overview_name_only' => {
         page               => 'organisation',
-        body_class         => 'page',
-        container_class    => 'container-fluid',
-        main_class         => 'main col-lg-10',
         page_title         => "Manage ${organisation_name}s",
         page_description   => "In this window you can list the parts of the ${organisation_name} that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
         table_column_label => "Name",
@@ -1087,11 +1057,8 @@ any ['get', 'post'] => '/settings/organisation_add/' => require_any_role [qw/use
     $organisation->{field_label} = ucfirst($organisation_name);
 
     template 'layouts/page_save_name_only' => {
-        page            => 'organisation',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
-        item            => $organisation
+        page => 'organisation',
+        item => $organisation
     };
 };
 
@@ -1117,11 +1084,8 @@ any ['get', 'post'] => '/settings/organisation_edit/:id' => require_any_role [qw
     $organisation->{field_label} = ucfirst($organisation_name);
 
     template 'layouts/page_save_name_only' => {
-        page            => 'organisation',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
-        item            => $organisation
+        page => 'organisation',
+        item => $organisation
     };
 };
 
@@ -1141,9 +1105,6 @@ any ['get', 'post'] => '/settings/department_overview/' => require_any_role [qw/
 
     template 'layouts/page_overview_name_only' => {
         page               => 'department',
-        body_class         => 'page',
-        container_class    => 'container-fluid',
-        main_class         => 'main col-lg-10',
         page_title         => "Manage ${department_name}s",
         page_description   => "In this window you can list the ${department_name} that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
         table_column_label => "Name",
@@ -1178,9 +1139,6 @@ any ['get', 'post'] => '/settings/department_add/' => require_any_role [qw/usera
 
     template 'layouts/page_save_name_only' => {
         page            => 'department',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
         item            => $department
     };
 };
@@ -1218,9 +1176,6 @@ any ['get', 'post'] => '/settings/department_edit/:id' => require_any_role [qw/u
 
     template 'layouts/page_save_name_only' => {
         page            => 'department',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
         item            => $department
     };
 };
@@ -1241,9 +1196,6 @@ any ['get', 'post'] => '/settings/team_overview/' => require_any_role [qw/userad
 
     template 'layouts/page_overview_name_only' => {
         page               => 'team',
-        body_class         => 'page',
-        container_class    => 'container-fluid',
-        main_class         => 'main col-lg-10',
         page_title         => "Manage ${team_name}s",
         page_description   => "In this window you can list the ${team_name} that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
         table_column_label => "Name",
@@ -1278,9 +1230,6 @@ any ['get', 'post'] => '/settings/team_add/' => require_any_role [qw/useradmin s
 
     template 'layouts/page_save_name_only' => {
         page            => 'team',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
         item            => $team
     };
 };
@@ -1318,9 +1267,6 @@ any ['get', 'post'] => '/settings/team_edit/:id' => require_any_role [qw/useradm
 
     template 'layouts/page_save_name_only' => {
         page            => 'team',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
         item            => $team
     };
 };
@@ -1331,9 +1277,6 @@ get '/table/?' => require_login sub {
         page        => 'table',
         instances   => [rset('Instance')->all],
         breadcrumbs => [Crumb( '/table' => 'tables' )],
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
     };
 };
 
@@ -1424,9 +1367,6 @@ any ['get', 'post'] => '/user_upload/' => require_any_role [qw/useradmin superad
         page            => 'user',
         groups          => GADS::Groups->new(schema => schema)->all,
         permissions     => $userso->permissions,
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
     };
 };
 
@@ -1478,9 +1418,6 @@ any ['get', 'post'] => '/user_export/?' => require_any_role [qw/useradmin supera
     template 'user/user_export' => {
         exports         => schema->resultset('Export')->user(logged_in_user->id),
         page            => 'user',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
     };
 };
 
@@ -1523,9 +1460,6 @@ any ['get', 'post'] => '/user_overview/' => require_any_role [qw/useradmin super
         },
         permissions     => $userso->permissions,
         page            => 'user',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
     };
 };
 
@@ -1560,10 +1494,7 @@ any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin super
             team_id       => $userso->teams,
         },
         permissions     => $userso->permissions,
-        page            => 'user',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
+        page            => 'user'
     };
 };
 
@@ -1630,11 +1561,8 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
             department_id => $userso->departments,
             team_id       => $userso->teams,
         },
-        permissions     => $userso->permissions,
-        page            => 'user',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
+        permissions => $userso->permissions,
+        page        => 'user',
     };
     $output;
 };
@@ -1845,10 +1773,7 @@ get '/file/?' => require_login sub {
     my @files = rset('Fileval')->independent->all;
 
     template 'files' => {
-        files           => [@files],
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10'
+        files => [@files]
     };
 };
 
@@ -2290,9 +2215,6 @@ prefix '/:layout_name' => sub {
             dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
             page            => 'index',
             breadcrumbs     => [Crumb($layout)],
-            body_class      => 'page',
-            container_class => 'container-fluid',
-            main_class      => 'main col-lg-10',
         };
 
         if (my $download = param('download'))

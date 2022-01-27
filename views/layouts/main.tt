@@ -22,8 +22,8 @@
     <link rel="stylesheet" href="[% url.css %]/external.css">
   </head>
 
-  <body class="[% body_class %]" data-csrf="[%- csrf_token -%]">
-    <div class="[% container_class %]">
+  <body class="[% body_class || 'page' %]" data-csrf="[%- csrf_token -%]">
+    <div class="[% container_class || 'container-fluid' %]">
       [%
         IF page == "login" OR page == "register" OR page == "reset" OR page == "invalidsite" OR page_as_mech;
           PROCESS layouts/content_without_menu.tt;
