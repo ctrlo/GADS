@@ -935,6 +935,106 @@ any ['get', 'post'] => '/group_edit/:id' => require_any_role [qw/useradmin super
     };
 };
 
+any ['get', 'post'] => '/settings/title_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $title_name = "title";
+
+    if (my $delete_id = param('delete'))
+    {
+        my $title = schema->resultset('Title')->find($delete_id);
+
+        if (process( sub { $title->delete_title } ))
+        {
+            return forwardHome(
+                { success => "The $title_name has been deleted successfully" }, 'settings/title_overview/' );
+        }
+    }
+
+    template 'layouts/page_overview_name_only' => {
+        page               => 'title',
+        body_class         => 'page',
+        container_class    => 'container-fluid',
+        main_class         => 'main col-lg-10',
+        page_title         => "Manage ${title_name}s",
+        page_description   => "In this window you can list the ${title_name}s that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
+        table_column_label => "Name",
+        item_type          => $title_name,
+        add_path           => "settings/title_add",
+        edit_path          => "settings/title_edit",
+        back_url           => "/settings/",
+        items              => [schema->resultset('Title')->ordered],
+    };
+};
+
+any ['get', 'post'] => '/settings/title_add/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $title      = schema->resultset('Title')->new({});
+    my $title_name = "title";
+
+    if (body_parameters->get('submit'))
+    {
+        $title->name(body_parameters->get('name'));
+        if (process( sub { $title->insert_or_update } ))
+        {
+            return forwardHome(
+                { success => "The $title_name has been created successfully" }, 'settings/title_overview/' );
+        }
+    }
+
+    my $base_url = request->base;
+
+    $title->{type}        = $title_name;
+    $title->{description} = "In this window you can add a $title_name to assign to users.";
+    $title->{back_url}    = "${base_url}settings/title_overview/";
+    $title->{field_label} = ucfirst($title_name);
+
+    template 'layouts/page_save_name_only' => {
+        page            => 'title',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+        item            => $title
+    };
+};
+
+any ['get', 'post'] => '/settings/title_edit/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $id         = route_parameters->get('id');
+    my $title      = schema->resultset('Title')->find($id);
+    my $title_name = "title";
+
+    if (body_parameters->get('submit'))
+    {
+        $title->name(body_parameters->get('name'));
+        if (process( sub { $title->insert_or_update } ))
+        {
+            return forwardHome(
+                { success => "The $title_name has been updated successfully" }, 'settings/title_overview/' );
+        }
+    }
+
+    if (param('delete'))
+    {
+        if (process( sub { $title->delete_title } ))
+        {
+            return forwardHome(
+                { success => "The $title_name has been deleted successfully" }, 'settings/title_overview/' );
+        }
+    }
+
+    my $base_url = request->base;
+
+    $title->{type}        = $title_name;
+    $title->{description} = "In this window you can edit a ${title_name}. Changes will impact all users currently assigned if you delete or edit a value.";
+    $title->{back_url}    = "${base_url}settings/title_overview/";
+    $title->{field_label} = ucfirst($title_name);
+
+    template 'layouts/page_save_name_only' => {
+        page            => 'title',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+        item            => $title
+    };
+};
+
 any ['get', 'post'] => '/settings/organisation_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
     my $organisation_name = lcfirst(var('site')->organisation_name);
 
@@ -1125,115 +1225,39 @@ any ['get', 'post'] => '/settings/department_edit/:id' => require_any_role [qw/u
     };
 };
 
-any ['get', 'post'] => '/settings/title_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
-    my $title_name = "title";
+any ['get', 'post'] => '/settings/team_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $team_name = lcfirst(var('site')->team_name);
 
     if (my $delete_id = param('delete'))
     {
-        my $title = schema->resultset('Title')->find($delete_id);
+        my $team = schema->resultset('Team')->find($delete_id);
 
-        if (process( sub { $title->delete_title } ))
+        if (process( sub { $team->delete_team } ))
         {
             return forwardHome(
-                { success => "The $title_name has been deleted successfully" }, 'settings/title_overview/' );
+                { success => "The $team_name has been deleted successfully" }, 'settings/team_overview/' );
         }
     }
 
     template 'layouts/page_overview_name_only' => {
-        page               => 'title',
+        page               => 'team',
         body_class         => 'page',
         container_class    => 'container-fluid',
         main_class         => 'main col-lg-10',
-        page_title         => "Manage ${title_name}s",
-        page_description   => "In this window you can list the ${title_name}s that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
+        page_title         => "Manage ${team_name}s",
+        page_description   => "In this window you can list the ${team_name} that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
         table_column_label => "Name",
-        item_type          => $title_name,
-        add_path           => "settings/title_add",
-        edit_path          => "settings/title_edit",
+        item_type          => $team_name,
+        add_path           => "settings/team_add",
+        edit_path          => "settings/team_edit",
         back_url           => "/settings/",
-        items              => [schema->resultset('Title')->ordered],
+        items              => [schema->resultset('Team')->ordered],
     };
 };
 
-any ['get', 'post'] => '/settings/title_add/' => require_any_role [qw/useradmin superadmin/] => sub {
-    my $title      = schema->resultset('Title')->new({});
-    my $title_name = "title";
-
-    if (body_parameters->get('submit'))
-    {
-        $title->name(body_parameters->get('name'));
-        if (process( sub { $title->insert_or_update } ))
-        {
-            return forwardHome(
-                { success => "The $title_name has been created successfully" }, 'settings/title_overview/' );
-        }
-    }
-
-    my $base_url = request->base;
-
-    $title->{type}        = $title_name;
-    $title->{description} = "In this window you can add a $title_name to assign to users.";
-    $title->{back_url}    = "${base_url}settings/title_overview/";
-    $title->{field_label} = ucfirst($title_name);
-
-    template 'layouts/page_save_name_only' => {
-        page            => 'title',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
-        item            => $title
-    };
-};
-
-any ['get', 'post'] => '/settings/title_edit/:id' => require_any_role [qw/useradmin superadmin/] => sub {
-    my $id         = route_parameters->get('id');
-    my $title      = schema->resultset('Title')->find($id);
-    my $title_name = "title";
-
-    if (body_parameters->get('submit'))
-    {
-        $title->name(body_parameters->get('name'));
-        if (process( sub { $title->insert_or_update } ))
-        {
-            return forwardHome(
-                { success => "The $title_name has been updated successfully" }, 'settings/title_overview/' );
-        }
-    }
-
-    if (param('delete'))
-    {
-        if (process( sub { $title->delete_title } ))
-        {
-            return forwardHome(
-                { success => "The $title_name has been deleted successfully" }, 'settings/title_overview/' );
-        }
-    }
-
-    my $base_url = request->base;
-
-    $title->{type}        = $title_name;
-    $title->{description} = "In this window you can edit a ${title_name}. Changes will impact all users currently assigned if you delete or edit a value.";
-    $title->{back_url}    = "${base_url}settings/title_overview/";
-    $title->{field_label} = ucfirst($title_name);
-
-    template 'layouts/page_save_name_only' => {
-        page            => 'title',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
-        item            => $title
-    };
-};
-
-any ['get', 'post'] => '/team/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
-
-    my $id     = route_parameters->get('id');
-
-    my $team = $id
-        ? schema->resultset('Team')->find($id)
-        : schema->resultset('Team')->new({});
-
-    my $team_name = var('site')->team_name;
+any ['get', 'post'] => '/settings/team_add/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $team      = schema->resultset('Team')->new({});
+    my $team_name = lcfirst(var('site')->team_name);
 
     if (body_parameters->get('submit'))
     {
@@ -1241,60 +1265,64 @@ any ['get', 'post'] => '/team/?:id?' => require_any_role [qw/useradmin superadmi
         if (process( sub { $team->insert_or_update } ))
         {
             return forwardHome(
-                { success => "The $team_name has been updated successfully" }, 'team/' );
+                { success => "The $team_name has been created successfully" }, 'settings/team_overview/' );
         }
     }
 
-    if ($id && body_parameters->get('delete'))
+    my $base_url = request->base;
+
+    $team->{type}        = $team_name;
+    $team->{description} = "In this window you can add a $team_name to assign to users.";
+    $team->{back_url}    = "${base_url}settings/team_overview/";
+    $team->{field_label} = ucfirst($team_name);
+
+    template 'layouts/page_save_name_only' => {
+        page            => 'team',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+        item            => $team
+    };
+};
+
+any ['get', 'post'] => '/settings/team_edit/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $id              = route_parameters->get('id');
+    my $team      = schema->resultset('Team')->find($id);
+    my $team_name = lcfirst(var('site')->team_name);
+
+    if (body_parameters->get('submit'))
+    {
+        $team->name(body_parameters->get('name'));
+        if (process( sub { $team->insert_or_update } ))
+        {
+            return forwardHome(
+                { success => "The $team_name has been updated successfully" }, 'settings/team_overview/' );
+        }
+    }
+
+    if (param('delete'))
     {
         if (process( sub { $team->delete_team } ))
         {
             return forwardHome(
-                { success => "The $team_name has been deleted successfully" }, 'team/' );
+                { success => "The $team_name has been deleted successfully" }, 'settings/team_overview/' );
         }
     }
 
-    template 'team' => {
-        team  => defined $id && $team,
-        teams => [schema->resultset('Team')->ordered],
-        page  => 'team',
+    my $base_url = request->base;
+
+    $team->{type}        = $team_name;
+    $team->{description} = "In this window you can edit a ${team_name}. Changes will impact all users currently assigned if you delete or edit a value.";
+    $team->{back_url}    = "${base_url}settings/team_overview/";
+    $team->{field_label} = ucfirst($team_name);
+
+    template 'layouts/page_save_name_only' => {
+        page            => 'team',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+        item            => $team
     };
-
-};
-
-any ['get', 'post'] => '/title/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
-
-    my $id     = route_parameters->get('id');
-
-    my $title = $id
-        ? schema->resultset('Title')->find($id)
-        : schema->resultset('Title')->new({});
-
-    if (body_parameters->get('submit'))
-    {
-        $title->name(body_parameters->get('name'));
-        if (process( sub { $title->insert_or_update } ))
-        {
-            return forwardHome(
-                { success => "The title has been updated successfully" }, 'title/' );
-        }
-    }
-
-    if ($id && body_parameters->get('delete'))
-    {
-        if (process( sub { $title->delete_title } ))
-        {
-            return forwardHome(
-                { success => "The title has been deleted successfully" }, 'title/' );
-        }
-    }
-
-    template 'title' => {
-        title  => defined $id && $title,
-        titles => [schema->resultset('Title')->ordered],
-        page   => 'title',
-    };
-
 };
 
 get '/table/?' => require_login sub {
