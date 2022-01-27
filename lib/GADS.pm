@@ -960,6 +960,7 @@ any ['get', 'post'] => '/settings/organisation_overview/' => require_any_role [q
         item_type          => $organisation_name,
         add_path           => "settings/organisation_add",
         edit_path          => "settings/organisation_edit",
+        back_url           => "/settings/",
         items              => [schema->resultset('Organisation')->ordered],
     };
 };
@@ -1044,78 +1045,13 @@ any ['get', 'post'] => '/settings/department_overview/' => require_any_role [qw/
         container_class    => 'container-fluid',
         main_class         => 'main col-lg-10',
         page_title         => "Manage ${department_name}s",
-        page_description   => "In this window you can list the parts of the ${department_name} that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
+        page_description   => "In this window you can list the ${department_name} that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
         table_column_label => "Name",
         item_type          => $department_name,
         add_path           => "settings/department_add",
         edit_path          => "settings/department_edit",
+        back_url           => "/settings/",
         items              => [schema->resultset('Department')->ordered],
-    };
-};
-
-any ['get', 'post'] => '/settings/department_add/' => require_any_role [qw/useradmin superadmin/] => sub {
-    my $department      = schema->resultset('Department')->new({});
-    my $department_name = lcfirst(var('site')->department_name);
-
-    if (body_parameters->get('submit'))
-    {
-        $department->name(body_parameters->get('name'));
-        if (process( sub { $department->insert_or_update } ))
-        {
-            return forwardHome(
-                { success => "The $department_name has been created successfully" }, 'settings/department_overview/' );
-        }
-    }
-
-    my $base_url = request->base;
-
-    $department->{type}        = $department_name;
-    $department->{description} = "In this window you can add a $department_name to assign to users.";
-    $department->{back_url}    = "${base_url}settings/department_overview/";
-    $department->{field_label} = ucfirst($department_name);
-
-    template 'layouts/page_save_name_only' => {
-        page            => 'department',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
-        item            => $department
-    };
-};
-
-any ['get', 'post'] => '/settings/department_edit/:id' => require_any_role [qw/useradmin superadmin/] => sub {
-    my $id = route_parameters->get('id');
-    my $department = schema->resultset('Department')->find($id);
-    my $department_name = lcfirst(var('site')->department_name);
-
-    if (body_parameters->get('submit')) {
-        $department->name(body_parameters->get('name'));
-        if (process(sub {$department->insert_or_update})) {
-            return forwardHome(
-                { success => "The $department_name has been updated successfully" }, 'settings/department_overview/');
-        }
-    }
-
-    if (param('delete')) {
-        if (process(sub {$department->delete_department})) {
-            return forwardHome(
-                { success => "The $department_name has been deleted successfully" }, 'settings/department_overview/');
-        }
-    }
-
-    my $base_url = request->base;
-
-    $department->{type} = $department_name;
-    $department->{description} = "In this window you can edit a ${department_name}. Changes will impact all users currently assigned if you delete or edit a value.";
-    $department->{back_url} = "${base_url}settings/department_overview/";
-    $department->{field_label} = ucfirst($department_name);
-
-    template 'layouts/page_save_name_only' => {
-        page            => 'department',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
-        item            => $department
     };
 };
 
@@ -1186,6 +1122,106 @@ any ['get', 'post'] => '/settings/department_edit/:id' => require_any_role [qw/u
         container_class => 'container-fluid',
         main_class      => 'main col-lg-10',
         item            => $department
+    };
+};
+
+any ['get', 'post'] => '/settings/title_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $title_name = "title";
+
+    if (my $delete_id = param('delete'))
+    {
+        my $title = schema->resultset('Title')->find($delete_id);
+
+        if (process( sub { $title->delete_title } ))
+        {
+            return forwardHome(
+                { success => "The $title_name has been deleted successfully" }, 'settings/title_overview/' );
+        }
+    }
+
+    template 'layouts/page_overview_name_only' => {
+        page               => 'title',
+        body_class         => 'page',
+        container_class    => 'container-fluid',
+        main_class         => 'main col-lg-10',
+        page_title         => "Manage ${title_name}s",
+        page_description   => "In this window you can list the ${title_name}s that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
+        table_column_label => "Name",
+        item_type          => $title_name,
+        add_path           => "settings/title_add",
+        edit_path          => "settings/title_edit",
+        back_url           => "/settings/",
+        items              => [schema->resultset('Title')->ordered],
+    };
+};
+
+any ['get', 'post'] => '/settings/title_add/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $title      = schema->resultset('Title')->new({});
+    my $title_name = "title";
+
+    if (body_parameters->get('submit'))
+    {
+        $title->name(body_parameters->get('name'));
+        if (process( sub { $title->insert_or_update } ))
+        {
+            return forwardHome(
+                { success => "The $title_name has been created successfully" }, 'settings/title_overview/' );
+        }
+    }
+
+    my $base_url = request->base;
+
+    $title->{type}        = $title_name;
+    $title->{description} = "In this window you can add a $title_name to assign to users.";
+    $title->{back_url}    = "${base_url}settings/title_overview/";
+    $title->{field_label} = ucfirst($title_name);
+
+    template 'layouts/page_save_name_only' => {
+        page            => 'title',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+        item            => $title
+    };
+};
+
+any ['get', 'post'] => '/settings/title_edit/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $id         = route_parameters->get('id');
+    my $title      = schema->resultset('Title')->find($id);
+    my $title_name = "title";
+
+    if (body_parameters->get('submit'))
+    {
+        $title->name(body_parameters->get('name'));
+        if (process( sub { $title->insert_or_update } ))
+        {
+            return forwardHome(
+                { success => "The $title_name has been updated successfully" }, 'settings/title_overview/' );
+        }
+    }
+
+    if (param('delete'))
+    {
+        if (process( sub { $title->delete_title } ))
+        {
+            return forwardHome(
+                { success => "The $title_name has been deleted successfully" }, 'settings/title_overview/' );
+        }
+    }
+
+    my $base_url = request->base;
+
+    $title->{type}        = $title_name;
+    $title->{description} = "In this window you can edit a ${title_name}. Changes will impact all users currently assigned if you delete or edit a value.";
+    $title->{back_url}    = "${base_url}settings/title_overview/";
+    $title->{field_label} = ucfirst($title_name);
+
+    template 'layouts/page_save_name_only' => {
+        page            => 'title',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+        item            => $title
     };
 };
 
