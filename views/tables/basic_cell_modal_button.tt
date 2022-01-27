@@ -1,0 +1,19 @@
+[%
+  cell_class  = class ? ' class="' _ class _ '"' : '';
+  field_value = field_name AND field_value ? field_value : label;
+  data_attr   = field_name ? ' data-' _ field_name _ '="' _ field_value _ '"' : '';
+%]
+<td [% cell_class %][% data_attr %]>
+  <button
+    type="button"
+    class="btn btn-delete btn-small btn-js-delete"
+    data-toggle="modal"
+    data-target="#[% modalId %]"
+    data-title="[% dataTitle %]"
+    data-id=[% dataID %]
+  >
+    <span class="btn__title">
+      [% INCLUDE fields/sub/filter.tt value=label; %]
+    </span>
+  </button>
+</td>

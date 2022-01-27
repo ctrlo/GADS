@@ -1,5 +1,5 @@
-[%
-  # Template for standardized <input> fields
+[%-
+  # Template for standardized input
   # Implementation Example:
   #
   # INCLUDE fields/input.tt
@@ -11,9 +11,9 @@
   #   type = "email"
   #   custom_classes = ""
   #   input_class = "input--required"
-  #   popover_info="this is a popover, that is displayed when the info icon is pressed"
+  #   popover_body="this is a popover, that is displayed when the info icon is pressed"
   #   is_required = 0
-  #   is_html = 0
+  #   filter = "html" | "html_entity" | ""
   #   tabindex = 1
   #   sub_field = "fields/sub/checkbox.tt"
   #   sub_params = {
@@ -25,16 +25,16 @@
   #   };
 
   input_class = is_required AND ! input_class.match('input--required') ? input_class _ ' input--required' : input_class;
-%]
+-%]
 [% IF ! hide_group %]
 <div class="form-group">
 [% END %]
   <div class="input [% input_class %]">
     <div class="input__label">
       <label for="[% id %]">
-        [% IF is_html; label | html; ELSE; label; END; %]
+        [% INCLUDE fields/sub/filter.tt value=label; %]
       </label>
-      [% IF popover_info; INCLUDE fields/sub/popover.tt popover_id=id popover_info=popover_info; END; %]
+      [% IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body; END; %]
     </div>
     [% IF help_text %]
     <p id="[% id %]-help" class="form-text">
@@ -47,8 +47,8 @@
         class="form-control [% custom_classes %]"
         id="[% id %]"
         name="[% name %]"
-        placeholder="[% IF is_html %][% placeholder | html %][% ELSE %][% placeholder %][% END %]"
-        value="[% IF is_html; value | html; ELSE; value; END; %]"[% IF tabindex %]
+        placeholder="[% INCLUDE fields/sub/filter.tt value=placeholder; %]"
+        value="[% INCLUDE fields/sub/filter.tt; %]"[% IF tabindex %]
         tabindex="[% tabindex %]"[% END %][% IF help_text %]
         aria-describedby="[% id %]-help"[% END %][% IF is_disabled %]
         disabled[% END %][% IF is_required %]

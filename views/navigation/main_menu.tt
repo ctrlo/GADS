@@ -23,10 +23,10 @@
           </li>
           [% IF user.permission.useradmin OR user.permission.superadmin %]
           <li class="nav__item">
-            <a class="nav__link nav__link--users" href="[% url.page %]/user/"><span>Users</span></a>
+            <a class="nav__link nav__link--users" href="[% url.page %]/user_overview/"><span>Users</span></a>
           </li>
           <li class="nav__item">
-            <a class="nav__link nav__link--groups" href="[% url.page %]/group/"><span>Groups</span></a>
+            <a class="nav__link nav__link--groups" href="[% url.page %]/group_overview/"><span>Groups</span></a>
           </li>
           [% END %]
           [% IF user.permission.superadmin %]

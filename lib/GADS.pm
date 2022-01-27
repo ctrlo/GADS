@@ -377,6 +377,7 @@ sub _forward_last_table
 }
 
 get '/' => require_login sub {
+
     my $site = var 'site';
     my $user    = logged_in_user;
 
@@ -401,7 +402,7 @@ get '/' => require_login sub {
         dashboard       => $dashboard,
         dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
         page            => 'index',
-        body_class      => '',
+        body_class      => 'page',
         container_class => 'container-fluid',
         main_class      => 'main col-lg-10',
     };
@@ -427,6 +428,51 @@ get '/' => require_login sub {
 get '/ping' => sub {
     content_type 'text/plain';
     'alive';
+};
+
+# TODO: remove testing endpoint after application is completed
+any ['get', 'post'] => '/api_test/tree' => sub {
+    content_type 'application/json';
+    '[
+        {
+            "id":18
+            "text":"Test 1",
+            "children":[
+                {
+                    "id":19,
+                    "text":"Test 1.1"
+                },
+                {
+                    "id":20,
+                    "text":"Test 1.2"
+                },
+                {
+                    "text":"Test 1.3",
+                    "id":21
+                }
+            ],
+        },
+        {
+            "id":22
+            "text":"Test 2",
+            "children":[
+                {
+                    "id":23,
+                    "text":"Test 2.1"
+                }
+            ],
+        },
+        {
+            "id":24,
+            "text":"Test 3",
+            "children":[
+                {
+                    "id":25,
+                    "text":"Test 3.1"
+                }
+            ]
+        }
+    ]';
 };
 
 # TODO: remove testing endpoint after wizard is completed
@@ -712,12 +758,10 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
     }
 
     my $users = GADS::Users->new(schema => schema);
-    template 'user' => {
-        edit            => $user->id,
-        users           => [$user],
-        titles          => $users->titles,
+    template 'user/my_account' => {
+        user            => $user,
         page            => 'myaccount',
-        body_class      => '',
+        body_class      => 'page',
         container_class => 'container-fluid',
         main_class      => 'main col-lg-10',
         values          => {
@@ -746,7 +790,7 @@ any ['get', 'post'] => '/settings/?' => require_any_role [qw/useradmin superadmi
 
     template 'admin_settings' => {
         page            => 'system_settings',
-        body_class      => '',
+        body_class      => 'page',
         container_class => 'container-fluid',
         main_class      => 'main col-lg-10',
     };
@@ -790,61 +834,87 @@ any ['get', 'post'] => '/system/?' => require_login sub {
     };
 };
 
-
-any ['get', 'post'] => '/group/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
-
-    my $id = param 'id';
-    my $group  = GADS::Group->new(schema => schema);
+any ['get', 'post'] => '/group_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $groups = GADS::Groups->new(schema => schema);
     my $layout = var 'layout';
-    $group->from_id($id);
 
-    my @permissions = GADS::Type::Permissions->all;
-
-    if (param 'submit')
+    if (my $delete_id = param('delete'))
     {
-        $group->name(param 'name');
-        foreach my $perm (@permissions)
+        my $group = GADS::Group->new(schema => schema);
+        $group->from_id($delete_id);
+
+        if (process(sub {$group->delete}))
         {
-            my $name = "default_".$perm->short;
-            $group->$name(param($name) ? 1 : 0);
-        }
-        if (process(sub {$group->write}))
-        {
-            my $action = param('id') ? 'updated' : 'created';
             return forwardHome(
-                { success => "Group has been $action successfully" }, 'group' );
+                { success => "The group has been deleted successfully" }, 'group_overview/' );
         }
     }
 
-    if (param 'delete')
+    template 'group/group_overview' => {
+        page            => 'group',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+        groups          => $groups->all,
+        layout          => $layout,
+    };
+};
+
+any ['get', 'post'] => '/group_add/' => require_any_role [qw/useradmin superadmin/] => sub {
+    if (param 'submit')
+    {
+        my $group = GADS::Group->new(schema => schema);
+
+        $group->name(param 'name');
+
+        if (process(sub {$group->write}))
+        {
+            return forwardHome(
+                { success => "Group has been created successfully" }, 'group_overview/' );
+        }
+    }
+
+    template 'group/group_save' => {
+        page            => 'group',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+        group           => {}
+    };
+};
+
+any ['get', 'post'] => '/group_edit/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $id    = param 'id';
+    my $group = GADS::Group->new(schema => schema);
+    $group->from_id($id);
+
+    if (param('delete'))
     {
         if (process(sub {$group->delete}))
         {
             return forwardHome(
-                { success => "The group has been deleted successfully" }, 'group' );
+                { success => "The group has been deleted successfully" }, 'group_overview/' );
         }
     }
 
-    my $params = {
-        page => defined $id && !$id ? 'group/0' : 'group'
-    };
-
-    if (defined $id)
+    if (param 'submit')
     {
-        # id will be 0 for new group
-        $params->{group}       = $group;
-        $params->{permissions} = [@permissions];
-        my $group_name = $id ? $group->name : 'new group';
-        my $group_id   = $id ? $group->id : 0;
-        $params->{breadcrumbs} = [Crumb( '/group' => 'groups' ) => Crumb( "/group/$group_id" => $group_name )];
+        $group->name(param 'name');
+
+        if (process(sub {$group->write}))
+        {
+            return forwardHome(
+                { success => "Group has been updated successfully" }, 'group_overview/' );
+        }
     }
-    else {
-        my $groups = GADS::Groups->new(schema => schema);
-        $params->{groups}      = $groups->all;
-        $params->{layout}      = $layout;
-        $params->{breadcrumbs} = [Crumb( '/group' => 'groups' )];
-    }
-    template 'group' => $params;
+
+    template 'group/group_save' => {
+        page            => 'group',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+        group           => $group
+    };
 };
 
 any ['get', 'post'] => '/organisation/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
@@ -999,7 +1069,7 @@ get '/table/?' => require_login sub {
         page        => 'table',
         instances   => [rset('Instance')->all],
         breadcrumbs => [Crumb( '/table' => 'tables' )],
-        body_class      => '',
+        body_class      => 'page',
         container_class => 'container-fluid',
         main_class      => 'main col-lg-10',
     };
@@ -1065,7 +1135,7 @@ any ['get', 'post'] => '/table/:id' => require_role superadmin => sub {
     }
 };
 
-any ['get', 'post'] => '/user/upload' => require_any_role [qw/useradmin superadmin/] => sub {
+any ['get', 'post'] => '/user_upload/' => require_any_role [qw/useradmin superadmin/] => sub {
 
     my $userso = GADS::Users->new(schema => schema);
 
@@ -1084,21 +1154,21 @@ any ['get', 'post'] => '/user/upload' => require_any_role [qw/useradmin superadm
         )
         {
             return forwardHome(
-                { success => "$count users were successfully uploaded" }, 'user' );
+                { success => "$count users were successfully uploaded" }, 'user_overview/' );
         }
     }
 
-    template 'user/upload' => {
-        page        => 'user',
-        groups      => GADS::Groups->new(schema => schema)->all,
-        permissions => $userso->permissions,
-        breadcrumbs => [Crumb( '/user' => 'users' ), Crumb( '/user/upload' => "user upload" ) ],
-        # XXX Horrible hack - see single user edit route
-        edituser    => +{ view_limits_with_blank => [ undef ] },
+    template 'user/user_upload' => {
+        page            => 'user',
+        groups          => GADS::Groups->new(schema => schema)->all,
+        permissions     => $userso->permissions,
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
     };
 };
 
-any ['get', 'post'] => '/user/export/?' => require_any_role [qw/useradmin superadmin/] => sub {
+any ['get', 'post'] => '/user_export/?' => require_any_role [qw/useradmin superadmin/] => sub {
 
     my $users = GADS::Users->new(schema => schema);
 
@@ -1107,7 +1177,7 @@ any ['get', 'post'] => '/user/export/?' => require_any_role [qw/useradmin supera
         if (process( sub { $users->csv(logged_in_user) }))
         {
             return forwardHome(
-                { success => "The export has been started successfully" }, 'user/export' );
+                { success => "The export has been started successfully" }, 'user_export/' );
         }
     }
 
@@ -1139,26 +1209,22 @@ any ['get', 'post'] => '/user/export/?' => require_any_role [qw/useradmin supera
         if (process( sub { $export->delete }))
         {
             return forwardHome(
-                { success => "The export has been deleted successfully" }, 'user/export' );
+                { success => "The export has been deleted successfully" }, 'user_export/' );
         }
     }
 
-    template 'user/export' => {
-        exports     => schema->resultset('Export')->user(logged_in_user->id),
-        page        => 'user',
-        breadcrumbs => [Crumb( '/user' => 'users' ), Crumb( '/user/export' => "user export" ) ],
+    template 'user/user_export' => {
+        exports         => schema->resultset('Export')->user(logged_in_user->id),
+        page            => 'user',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
     };
 };
 
-any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
-
-    my $id = body_parameters->get('id');
-
-    my $user            = logged_in_user;
+any ['get', 'post'] => '/user_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
     my $userso          = GADS::Users->new(schema => schema);
-    my %all_permissions = map { $_->id => $_->name } @{$userso->permissions};
-    my $audit           = GADS::Audit->new(schema => schema, user => $user);
-    my $users;
+    my $users           = $userso->all;
 
     if (param 'sendemail')
     {
@@ -1171,13 +1237,12 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
             text    => param('email_text'),
             emails  => \@emails,
         };
-
         if (@emails)
         {
             if (process( sub { $email->message($args, logged_in_user) }))
             {
                 return forwardHome(
-                    { success => "The message has been sent successfully" }, 'user' );
+                    { success => "The message has been sent successfully" }, 'user_overview/' );
             }
         }
         else {
@@ -1185,9 +1250,75 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
         }
     }
 
+    template 'user/user_overview' => {
+        users           => $users,
+        groups          => GADS::Groups->new(schema => schema)->all,
+        values          => {
+            title         => $userso->titles,
+            organisation  => $userso->organisations,
+            department_id => $userso->departments,
+            team_id       => $userso->teams,
+        },
+        permissions     => $userso->permissions,
+        page            => 'user',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+    };
+};
+
+any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $userso            = GADS::Users->new(schema => schema);
+    my $register_requests = $userso->register_requests;
+    my $audit             = GADS::Audit->new(schema => schema, user => logged_in_user);
+
+    if (my $delete_id = param('delete'))
+    {
+        return forwardHome(
+            { danger => "Cannot delete current logged-in User" } )
+            if logged_in_user->id eq $delete_id;
+
+        my $usero = rset('User')->find($delete_id);
+
+        if (process( sub { $usero->retire(send_reject_email => 1) }))
+        {
+            $audit->login_change("User ID $delete_id deleted");
+            return forwardHome(
+                { success => "User has been deleted successfully" }, 'user_requests/' );
+        }
+    }
+
+    template 'user/user_request' => {
+        users           => $register_requests,
+        groups          => GADS::Groups->new(schema => schema)->all,
+        values          => {
+            title         => $userso->titles,
+            organisation  => $userso->organisations,
+            department_id => $userso->departments,
+            team_id       => $userso->teams,
+        },
+        permissions     => $userso->permissions,
+        page            => 'user',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
+    };
+};
+
+any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $userso = GADS::Users->new(schema => schema);
+    my $id     = route_parameters->get('id');
+
+    if (!$id) {
+        error __x"User id not available";
+    }
+
+    my $editUser = rset('User')->active_and_requests->search({id => $id})->next
+        or error __x"User id {id} not found", id => $id;
+
     # The submit button will still be triggered on a new org/title creation,
     # if the user has pressed enter, in which case ignore it
-    if (param('submit') && !param('neworganisation') && !param('newdepartment') && !param('newtitle') && !param('newteam'))
+    if (param('submit'))
     {
         my %values = (
             firstname             => param('firstname'),
@@ -1208,26 +1339,13 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
         $values{permissions} = [body_parameters->get_all('permission')]
             if logged_in_user->permission->{superadmin};
 
-        if (!param('account_request') && $id) # Original username to update (hidden field)
+        if (process sub {
+            # Don't use DBIC update directly, so that permissions etc are updated properly
+            $editUser->update_user(current_user => logged_in_user, %values);
+        })
         {
-            if (process sub {
-                my $user = rset('User')->active->search({ id => $id })->next
-                    or error __x"User ID {id} not found", id => $id;
-                # Don't use DBIC update directly, so that permissions etc are updated properly
-                $user->update_user(current_user => logged_in_user, %values);
-            })
-            {
-                return forwardHome(
-                    { success => "User has been updated successfully" }, 'user' );
-            }
-        }
-        else {
-            # This sends a welcome email etc
-            if (process(sub { rset('User')->create_user(current_user => $user, request_base => request->base, %values) }))
-            {
-                return forwardHome(
-                    { success => "User has been created successfully" }, 'user' );
-            }
+            return forwardHome(
+                { success => "User has been updated successfully" }, 'user_overview/' );
         }
 
         # In case of failure, pass back to form
@@ -1236,131 +1354,216 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
                 view_id => $_
             }
         } body_parameters->get_all('view_limits') ];
+
         $values{view_limits_with_blank} = $view_limits_with_blank;
-        $users = [\%values];
+        $editUser = \%values;
     }
 
-    my $register_requests;
-    if (param('neworganisation') || param('newtitle') || param('newdepartment') || param('newteam'))
-    {
-        if (my $org = param 'neworganisation')
-        {
-            if (process( sub { $userso->organisation_new({ name => $org })}))
-            {
-                $audit->login_change("Organisation $org created");
-                success __"The organisation has been created successfully";
-            }
-        }
-
-        if (my $dep = param 'newdepartment')
-        {
-            if (process( sub { $userso->department_new({ name => $dep })}))
-            {
-                $audit->login_change("Department $dep created");
-                my $depname = lc var('site')->register_department_name || 'department';
-                success __x"The {dep} has been created successfully", dep => $depname;
-            }
-        }
-
-        if (my $team = param 'newteam')
-        {
-            if (process( sub { $userso->team_new({ name => $team })}))
-            {
-                $audit->login_change("Team $team created");
-                my $teamname = lc var('site')->register_team_name || 'team';
-                success __x"The {team} has been created successfully", team => $teamname;
-            }
-        }
-
-        if (my $title = param 'newtitle')
-        {
-            if (process( sub { $userso->title_new({ name => $title }) }))
-            {
-                $audit->login_change("Title $title created");
-                success __"The title has been created successfully";
-            }
-        }
-
-        # Remember values of user creation in progress.
-        # XXX This is a mess (repeated code from above). Need to get
-        # DPAE to use a user object
-        my @groups      = ref param('groups') ? @{param('groups')} : (param('groups') || ());
-        my %groups      = map { $_ => 1 } @groups;
-        my $view_limits_with_blank = [ map {
-            +{
-                view_id => $_
-            }
-        } body_parameters->get_all('view_limits') ];
-
-        $users = [{
-            firstname              => param('firstname'),
-            surname                => param('surname'),
-            email                  => param('email'),
-            freetext1              => param('freetext1'),
-            freetext2              => param('freetext2'),
-            title                  => { id => param('title') },
-            organisation           => { id => param('organisation') },
-            department_id          => { id => param('department_id') },
-            team_id                => { id => param('team_id') },
-            view_limits_with_blank => $view_limits_with_blank,
-            groups                 => \%groups,
-        }];
-    }
-    elsif (my $delete_id = param('delete'))
-    {
-        return forwardHome(
-            { danger => "Cannot delete current logged-in User" } )
-            if logged_in_user->id eq $delete_id;
-        my $usero = rset('User')->find($delete_id);
-        if (process( sub { $usero->retire(send_reject_email => 1) }))
-        {
-            $audit->login_change("User ID $delete_id deleted");
-            return forwardHome(
-                { success => "User has been deleted successfully" }, 'user' );
-        }
-    }
-
-    my $route_id = route_parameters->get('id');
-
-    if ($route_id)
-    {
-        my $u = rset('User')->active_and_requests->search({ id => $route_id})->next
-            or error __x"User id {id} not found", id => $route_id;
-        $users = [ $u ] if !$users;
-    }
-    elsif (!defined $route_id) {
-        $users             = $userso->all;
-        $register_requests = $userso->register_requests;
-    }
-    else {
-        # Horrible hack to get a limit view drop-down to display
-        $users = [
-            +{
-                view_limits_with_blank => [ undef ],
-            }
-        ] if !$users; # Only if not already submitted
-    }
-
-    my $breadcrumbs = [Crumb( '/user' => 'users' )];
-    push @$breadcrumbs, Crumb( "/user/$route_id" => "edit user $route_id" ) if $route_id;
-    push @$breadcrumbs, Crumb( "/user/$route_id" => "new user" ) if defined $route_id && !$route_id;
-    my $output = template 'user' => {
-        edit              => $route_id,
-        users             => $users,
-        groups            => GADS::Groups->new(schema => schema)->all,
-        register_requests => $register_requests,
-        values            => {
-            title            => $userso->titles,
-            organisation     => $userso->organisations,
-            department_id    => $userso->departments,
-            team_id          => $userso->teams,
+    my $output = template 'user/user_edit' => {
+        edituser => $editUser,
+        groups   => GADS::Groups->new(schema => schema)->all,
+        values   => {
+            title         => $userso->titles,
+            organisation  => $userso->organisations,
+            department_id => $userso->departments,
+            team_id       => $userso->teams,
         },
-        permissions       => $userso->permissions,
-        page              => defined $route_id && !$route_id ? 'user/0' : 'user',
-        breadcrumbs       => $breadcrumbs,
+        permissions     => $userso->permissions,
+        page            => 'user',
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10',
     };
     $output;
 };
+
+# any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+#
+#     my $id = body_parameters->get('id');
+#
+#     my $user            = logged_in_user;
+#     my $userso          = GADS::Users->new(schema => schema);
+#     my %all_permissions = map { $_->id => $_->name } @{$userso->permissions};
+#     my $audit           = GADS::Audit->new(schema => schema, user => $user);
+#     my $users;
+#
+#     # The submit button will still be triggered on a new org/title creation,
+#     # if the user has pressed enter, in which case ignore it
+#     if (param('submit') && !param('neworganisation') && !param('newdepartment') && !param('newtitle') && !param('newteam'))
+#     {
+#         my %values = (
+#             firstname             => param('firstname'),
+#             surname               => param('surname'),
+#             email                 => param('email'),
+#             username              => param('email'),
+#             freetext1             => param('freetext1'),
+#             freetext2             => param('freetext2'),
+#             title                 => param('title') || undef,
+#             organisation          => param('organisation') || undef,
+#             department_id         => param('department_id') || undef,
+#             team_id               => param('team_id') || undef,
+#             account_request       => param('account_request'),
+#             account_request_notes => param('account_request_notes'),
+#             view_limits           => [body_parameters->get_all('view_limits')],
+#             groups                => [body_parameters->get_all('groups')],
+#         );
+#         $values{permissions} = [body_parameters->get_all('permission')]
+#             if logged_in_user->permission->{superadmin};
+#
+#         if (!param('account_request') && $id) # Original username to update (hidden field)
+#         {
+#             if (process sub {
+#                 my $user = rset('User')->active->search({ id => $id })->next
+#                     or error __x"User ID {id} not found", id => $id;
+#                 # Don't use DBIC update directly, so that permissions etc are updated properly
+#                 $user->update_user(current_user => logged_in_user, %values);
+#             })
+#             {
+#                 return forwardHome(
+#                     { success => "User has been updated successfully" }, 'user' );
+#             }
+#         }
+#         else {
+#             # This sends a welcome email etc
+#             if (process(sub { rset('User')->create_user(current_user => $user, request_base => request->base, %values) }))
+#             {
+#                 return forwardHome(
+#                     { success => "User has been created successfully" }, 'user' );
+#             }
+#         }
+#
+#         # In case of failure, pass back to form
+#         my $view_limits_with_blank = [ map {
+#             +{
+#                 view_id => $_
+#             }
+#         } body_parameters->get_all('view_limits') ];
+#         $values{view_limits_with_blank} = $view_limits_with_blank;
+#         $users = [\%values];
+#     }
+#
+#     my $register_requests;
+#     if (param('neworganisation') || param('newtitle') || param('newdepartment') || param('newteam'))
+#     {
+#         if (my $org = param 'neworganisation')
+#         {
+#             if (process( sub { $userso->organisation_new({ name => $org })}))
+#             {
+#                 $audit->login_change("Organisation $org created");
+#                 success __"The organisation has been created successfully";
+#             }
+#         }
+#
+#         if (my $dep = param 'newdepartment')
+#         {
+#             if (process( sub { $userso->department_new({ name => $dep })}))
+#             {
+#                 $audit->login_change("Department $dep created");
+#                 my $depname = lc var('site')->register_department_name || 'department';
+#                 success __x"The {dep} has been created successfully", dep => $depname;
+#             }
+#         }
+#
+#         if (my $team = param 'newteam')
+#         {
+#             if (process( sub { $userso->team_new({ name => $team })}))
+#             {
+#                 $audit->login_change("Team $team created");
+#                 my $teamname = lc var('site')->register_team_name || 'team';
+#                 success __x"The {team} has been created successfully", team => $teamname;
+#             }
+#         }
+#
+#         if (my $title = param 'newtitle')
+#         {
+#             if (process( sub { $userso->title_new({ name => $title }) }))
+#             {
+#                 $audit->login_change("Title $title created");
+#                 success __"The title has been created successfully";
+#             }
+#         }
+#
+#         # Remember values of user creation in progress.
+#         # XXX This is a mess (repeated code from above). Need to get
+#         # DPAE to use a user object
+#         my @groups      = ref param('groups') ? @{param('groups')} : (param('groups') || ());
+#         my %groups      = map { $_ => 1 } @groups;
+#         my $view_limits_with_blank = [ map {
+#             +{
+#                 view_id => $_
+#             }
+#         } body_parameters->get_all('view_limits') ];
+#
+#         $users = [{
+#             firstname              => param('firstname'),
+#             surname                => param('surname'),
+#             email                  => param('email'),
+#             freetext1              => param('freetext1'),
+#             freetext2              => param('freetext2'),
+#             title                  => { id => param('title') },
+#             organisation           => { id => param('organisation') },
+#             department_id          => { id => param('department_id') },
+#             team_id                => { id => param('team_id') },
+#             view_limits_with_blank => $view_limits_with_blank,
+#             groups                 => \%groups,
+#         }];
+#     }
+#     elsif (my $delete_id = param('delete'))
+#     {
+#         return forwardHome(
+#             { danger => "Cannot delete current logged-in User" } )
+#             if logged_in_user->id eq $delete_id;
+#         my $usero = rset('User')->find($delete_id);
+#         if (process( sub { $usero->retire(send_reject_email => 1) }))
+#         {
+#             $audit->login_change("User ID $delete_id deleted");
+#             return forwardHome(
+#                 { success => "User has been deleted successfully" }, 'user' );
+#         }
+#     }
+#
+#     my $route_id = route_parameters->get('id');
+#
+#     if ($route_id)
+#     {
+#         my $u = rset('User')->active_and_requests->search({ id => $route_id})->next
+#             or error __x"User id {id} not found", id => $route_id;
+#         $users = [ $u ] if !$users;
+#     }
+#     elsif (!defined $route_id) {
+#         $users             = $userso->all;
+#         $register_requests = $userso->register_requests;
+#     }
+#     else {
+#         # Horrible hack to get a limit view drop-down to display
+#         $users = [
+#             +{
+#                 view_limits_with_blank => [ undef ],
+#             }
+#         ] if !$users; # Only if not already submitted
+#     }
+#
+#     my $breadcrumbs = [Crumb( '/user' => 'users' )];
+#     push @$breadcrumbs, Crumb( "/user/$route_id" => "edit user $route_id" ) if $route_id;
+#     push @$breadcrumbs, Crumb( "/user/$route_id" => "new user" ) if defined $route_id && !$route_id;
+#     my $output = template 'user' => {
+#         edit              => $route_id,
+#         users             => $users,
+#         groups            => GADS::Groups->new(schema => schema)->all,
+#         register_requests => $register_requests,
+#         values            => {
+#             title            => $userso->titles,
+#             organisation     => $userso->organisations,
+#             department_id    => $userso->departments,
+#             team_id          => $userso->teams,
+#         },
+#         permissions       => $userso->permissions,
+#         page              => defined $route_id && !$route_id ? 'user/0' : 'user',
+#         breadcrumbs       => $breadcrumbs,
+#     };
+#     $output;
+# };
+
 
 get '/helptext/:id?' => require_login sub {
     my $id     = param 'id';
@@ -1384,8 +1587,10 @@ get '/file/?' => require_login sub {
     })->all;
 
     template 'files' => {
-        files       => [@files],
-        breadcrumbs => [Crumb( "/file" => 'files' )],
+        files           => [@files],
+        body_class      => 'page',
+        container_class => 'container-fluid',
+        main_class      => 'main col-lg-10'
     };
 };
 
@@ -1820,7 +2025,7 @@ prefix '/:layout_name' => sub {
             dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
             page            => 'index',
             breadcrumbs     => [Crumb($layout)],
-            body_class      => '',
+            body_class      => 'page',
             container_class => 'container-fluid',
             main_class      => 'main col-lg-10',
         };

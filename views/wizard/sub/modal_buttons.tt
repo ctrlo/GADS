@@ -1,0 +1,45 @@
+[%-
+  # Template for standardized modal buttons
+  # Implementation Example:
+  #
+  # INCLUDE wizard/sub/modal_buttons.tt buttons=[{
+  #    type    = "submit"
+  #    is_form = 1
+  #    method  = "post" | "get"
+  #    action  = url.page _ "/user_overview/"
+  #    class   = "btn-danger btn-js-reject-request"
+  #    name    = "delete"
+  #    value   = user.id
+  #    label   = "Reject request"
+  #  }, {
+  #    class = "btn-default btn-js-save"
+  #    label = "Create account"
+  #  };
+
+  FOREACH button IN buttons;
+    button.class   = button.class ? button.class : "btn-cancel";
+    button.type    = button.type ? button.type : 'button';
+    button_name    = button.name ? ' name="' _ button.name _ '"' : '';
+    button_value   = button.value ? ' value="' _ button.value _ '"' : '';
+    button_dismiss = button.dismiss ? ' data-dismiss="' _ button.dismiss _ '"' : '';
+
+    IF button.is_form;
+      button.method = button.method == "get" ? 'get' : 'post';
+      button_action = button.action ? ' action="' _ button.action _ '"' : '';
+-%]
+<form method="[% button.method %]"[% button_action; %]>
+[%-
+      INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
+    END;
+-%]
+  <button type="[% button.type %]" class="btn [% button.class %]"[% button_name; button_value; button_dismiss; %]>
+    <span class="btn__title">[% button.label %]</span>
+  </button>
+[%-
+    IF button.is_form;
+-%]
+</form>
+[%-
+    END;
+  END;
+-%]

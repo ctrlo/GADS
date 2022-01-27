@@ -1,5 +1,5 @@
 <div class="row flex-nowrap">
-  [% PROCESS snippets/navigation.tt %]
+  [% PROCESS navigation/main_menu.tt %]
   <main class="[% main_class %]">
     <div class="main__container">
       [%

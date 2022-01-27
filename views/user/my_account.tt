@@ -1,28 +1,23 @@
-[% IF edit.defined %]
-[% edituser = users.shift %]
-[% END %]
-<div class="content-block__head row">
-  <div class="content-block__info col-lg-6">
-    <h2 class="content-block__title">
-      My Details
-    </h2>
-    
-    <div class="content-block__intro">
-      This is your profile, here you can change your personal details and password.
-    </div>
-  </div>
-</div>
-
+[%-
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title       = "My Details"
+    description = "This is your profile, here you can change your personal details and password.";
+-%]
 <div class="content-block__main">
   <form method="post">
     <fieldset class="fieldset">
       <legend class="fieldset__legend fieldset__legend--hidden">My details</legend>
-      <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-      <input type="hidden" name="page" value="[% page %]">
-      <input type="hidden" name="username" value="[% edituser.username | html_entity %]">
-      <input type="hidden" name="id" value="[% edituser.id %]">
-      [% field_counter = 0 %]
-      [% IF site.user_fields.size > 0 %]
+      [%-
+        INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
+        INCLUDE fields/hidden.tt name="page" value=page;
+        INCLUDE fields/hidden.tt name="username" value=user.username filter="html_entity";
+        INCLUDE fields/hidden.tt name="id" value=user.id;
+      
+        field_counter = 0;
+        
+        IF site.user_fields.size > 0;
+      -%]
       <div class="row">
       [% END %]
       [% FOREACH field IN site.user_fields %]
@@ -37,7 +32,8 @@
               field_type = "email";
               sub_field  = "fields/sub/modal_link.tt";
               sub_params = {
-                label => "Change password"
+                label   => "Change password"
+                modalId => "changePasswordModal"
               };
             ELSE;
               field_type = "text";
@@ -49,12 +45,12 @@
               INCLUDE fields/input.tt
                 id = field.name
                 name = field.name
-                value = edituser.${field.name}
+                value = user.${field.name}
                 label = field.description
                 placeholder = field.placeholder
                 type = field_type
                 disabled = field_disabled
-                is_html = 1
+                filter = "html"
                 sub_field = sub_field
                 sub_params = sub_params;
           
@@ -62,11 +58,11 @@
               INCLUDE fields/select.tt
                 id = field.name
                 name = field.name
-                value = edituser.${field.name}
+                value = user.${field.name}
                 label = field.description
                 placeholder = field.placeholder
                 items = values.${field.name}
-                is_html = 1
+                filter = "html"
                 sub_field = sub_field
                 sub_params = sub_params;
             END;
@@ -89,3 +85,4 @@
     </fieldset>
   </form>
 </div>
+[%- INCLUDE wizard/change_password.tt modalId="changePasswordModal"; -%]

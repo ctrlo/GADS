@@ -1,0 +1,104 @@
+[%-
+  column_class = column_class ? column_class : 'col';
+
+  popover_title = "Limiting a user's access to records";
+  popover_body  = "
+  <p>By default, a user can see any record in Linkspace, and is only limited to what fields of that record he or she can view. This option makes it possible to also limit the records that a user can view. By selecting a view in the dropdown box, a user can only ever see records that meet the search criteria of that view (of the view's particular table), regardless of what other search criteria or views they may make themselves. By selecting multiple views, a user will only be able to see records contained in any of the listed views. Note that the limitation only applies to the particular table of the view(s). So if only View A from Table A is selected, the user will be limited to only View A's records in Table A, but will be able to see any record in Table B.</p>
+  <p>Views defined here are in addition to any view limitations applied to the relevant table. If a view is applied to a table and another view is applied here, then the user will be able to see records contained in either view.</p>
+  ";
+  view_options  = [];
+
+  FOREACH layout IN instances;
+    FOREACH v IN layout.global_view_summary;
+      view_options.push({
+        id = v.id
+        name = layout.name _ ': ' _ v.name
+      });
+    END;
+  END;
+-%]
+<div class="[% column_class %]">
+  <fieldset class="fieldset">
+    <div class="fieldset__legend">
+      <legend >
+        Only allow this user to see records in these views
+      </legend>
+      
+      [% INCLUDE fields/sub/popover.tt popover_id="view_limits_popover" popover_title=popover_title popover_body=popover_body; %]
+    </div>
+    
+    <div class="multiple-select">
+      <div class="multiple-select__list">
+        [%-
+          IF user.view_limits_with_blank AND user.view_limits_with_blank.size;
+            view_counter = 1;
+            FOREACH view_limit IN edituser.view_limits_with_blank;
+              view_row_id = view_counter > 1 ? ' id="row-' _ view_counter _ '"' : '';
+        -%]
+        <div class="multiple-select__row[% view_row_id %]">
+          [%-
+            INCLUDE fields/select.tt
+              id = "view_limits"
+              name = "view_limits"
+              value = view_limit.view_id
+              label = "Only allow this user to see records in this view"
+              placeholder = "Select view"
+              help_text = ""
+              items = view_options
+              input_class = ""
+              popover_body=""
+              is_required = 0
+              filter = ""
+              sub_field = ""
+              sub_params = {};
+          -%]
+          <button
+            type="button"
+            class="btn btn-delete"
+          >
+            <span class="btn__title">Delete view</span>
+          </button>
+        </div>
+        [%-
+              view_counter = view_counter + 1;
+            END;
+          ELSE;
+        -%]
+        <div class="multiple-select__row">
+          [%-
+            INCLUDE fields/select.tt
+              id = "view_limits"
+              name = "view_limits"
+              value = view_limit.view_id
+              label = "Only allow this user to see records in this view"
+              placeholder = "Select view"
+              help_text = ""
+              items = view_options
+              input_class = ""
+              popover_body=""
+              is_required = 0
+              filter = ""
+              sub_field = ""
+              sub_params = {};
+          -%]
+          <button
+            type="button"
+            class="btn btn-delete"
+          >
+            <span class="btn__title">Delete view</span>
+          </button>
+        </div>
+        [%-
+          END;
+        -%]
+      </div>
+      
+      <button
+        type="button"
+        class="btn btn-add-link"
+      >
+        <span class="btn__title">Add a view</span>
+      </button>
+    </div>
+  </fieldset>
+</div>

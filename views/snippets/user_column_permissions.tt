@@ -1,0 +1,94 @@
+[%-
+  column_class = column_class ? column_class : 'col';
+  popover_title = "Permissions help";
+  popover_body = '
+            <dl>
+              <dt>No permissions selected</dt>
+              <dd>If a user has no permissions, they cannot edit any data. They can only:
+                <ul>
+                  <li>View data</li>
+                  <li>Create private views of data</li>
+                  <li>Add and remove the graphs displayed on their personal page</li>
+                </ul>
+              </dd>
+              <dt>User can update records</dt>
+              <dd>
+                This permission allows a user to update an existing record:
+                <ul>
+                  <li>Fields that are set to &quot;Open access&quot; can be updated immediately by the user</li>
+                  <li>Fields that are set to &quot;Edit with approval&quot; can be updated, but any changes
+                    will be held for approval</li>
+                  <li>Fields that are set to &quot;Read only&quot; cannot be changed</li>
+                </ul>
+              </dd>
+              <dt>User does not need approval when updating records</dt>
+              <dd>This permission is the same as the previous one, except that all fields can be updated
+                immediately by the user (including &quot;Read only&quot; fields).<ul></ul></dt>
+              <dt>User can create new records</dt>
+              <dd>This permission allows a user to create a new record. All values (including &quot;Read only&quot; values)
+                can be entered, but the entire record will require approval.<ul></ul></dd>
+              <dt>User does not need approval when creating new records</dt>
+              <dd>This permission allows a user to create a new record. All values (including &quot;Read only&quot; values)
+                can be entered, and the new record will not require any approval.<ul></ul></dd>
+              <dt>User can approve changes</dt>
+              <dd>This permission allows a user to approve any of the above changes that require approval.<ul></ul></dd>
+              <dt>User can manage other user accounts</dt>
+              <dd>This permission allows a user to manage user accounts on the system, including the
+                configuration of permissions<ul></ul></dd>
+              <dt>User can download data</dt>
+              <dd>This permission allows a user to download data in CSV format<ul></ul></dd>
+              <dt>User can administer layout, views and graphs</dt>
+              <dd>This permission allows a user to configure the system itself, including the
+                configuration of the layout and graphs, and the creation of global views<ul></ul></dd>
+              <dt>User can send messages</dt>
+              <dd>This permission allows a user to send messages to users, using the messaging capability
+                in the tabular data view<ul></ul></dd>
+            </dl>
+  ';
+-%]
+<div class="[% column_class %]">
+  <fieldset class="fieldset" data-name="permissions">
+    <div class="fieldset__legend ">
+      <legend>User' system wide permissions</legend>
+  
+      [% INCLUDE fields/sub/popover.tt popover_id="permissions_popover" popover_title=popover_title popover_body=popover_body; %]
+    </div>
+    
+    <div class="list [% list_class %]">
+      <ul class="list__items">
+        <li class="list__item">
+          [%-
+            INCLUDE fields/sub/checkbox.tt
+              id = "super_administrator"
+              name = "permission"
+              label = "Super-administrator"
+              value = "superadmin"
+              checked = edituser.permission.superadmin ? 1 : 0;
+          -%]
+        </li>
+        
+        <li class="list__item">
+          [%-
+            INCLUDE fields/sub/checkbox.tt
+              id = "user_can_manage_other_accounts"
+              name = "permission"
+              label = "User can manage other user accounts"
+              value = "useradmin"
+              checked = edituser.permission.useradmin ? 1 : 0;
+          -%]
+        </li>
+        
+        <li class="list__item">
+          [%-
+            INCLUDE fields/sub/checkbox.tt
+              id = "user_can_access_audit_data"
+              name = "permission"
+              label = "User can access audit data"
+              value = "audit"
+              checked = edituser.permission.audit ? 1 : 0;
+          -%]
+        </li>
+      </ul>
+    </div>
+  </fieldset>
+</div>

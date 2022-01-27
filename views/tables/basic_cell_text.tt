@@ -1,6 +1,8 @@
 [%
-  cell_class = class ? 'class="' _ class _ '"' : '';
+  cell_class = class ? ' class="' _ class _ '"' : '';
+  field_value = field_name AND field_value ? field_value : label;
+  data_attr  = field_name ? ' data-' _ field_name _ '="' _ field_value _ '"' : '';
 %]
-<td [% cell_class %]>
-  [% label %]
+<td [% cell_class %][% data_attr %]>
+  [% INCLUDE fields/sub/filter.tt value=label; %]
 </td>

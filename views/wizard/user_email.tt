@@ -1,0 +1,53 @@
+<div class="modal modal--form"  id="[% modalId %]" tabindex="-1" role="dialog" aria-labelledby="[% modalId %]Label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      [% INCLUDE wizard/sub/modal_header.tt label="Send an email"; %]
+      
+      <form method="post">
+        <div class="modal-frame">
+          <div class="modal-body">
+            [%-
+              INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
+            
+              INCLUDE fields/select_multiple.tt
+                id          = "group"
+                name        = "group_ids"
+                items       = groups
+                filter      = "html"
+                placeholder = "All users";
+            
+              INCLUDE fields/input.tt
+                id          = "email_subject"
+                name        = "email_subject"
+                label       = "Subject"
+                placeholder = "Subject"
+                type        = "text";
+              
+              INCLUDE fields/textarea.tt
+                id    = "email_text"
+                name  = "email_text"
+                label = "Message"
+                rows  = 10;
+            -%]
+          </div>
+          
+          [%-
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel"
+                dismiss = "modal"
+                label   = "Cancel"
+              }]
+              right_buttons = [{
+                type  = "submit"
+                class = "btn-default"
+                name  = "sendemail"
+                value = "submit"
+                label = "Send e-mail"
+              }];
+          -%]
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
