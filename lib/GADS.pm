@@ -1580,11 +1580,7 @@ get '/file/?' => require_login sub {
     forwardHome({ danger => "You do not have permission to manage files"}, '')
         unless logged_in_user->permission->{superadmin};
 
-    my @files = rset('Fileval')->search({
-        is_independent => 1,
-    },{
-        order_by => 'me.id',
-    })->all;
+    my @files = rset('Fileval')->independent->all;
 
     template 'files' => {
         files           => [@files],
@@ -1594,7 +1590,7 @@ get '/file/?' => require_login sub {
     };
 };
 
-get '/file/:id' => require_login sub {
+any ['get', 'post'] => '/file/:id' => require_login sub {
     my $id = param 'id';
 
     # Need to get file details first, to be able to populate
@@ -1620,6 +1616,13 @@ get '/file/:id' => require_login sub {
         $file->schema(schema);
     }
     else {
+        if (body_parameters->get('delete'))
+        {
+            error __"You do not have permission to delete files"
+                unless logged_in_user->permission->{superadmin};
+            $fileval->delete;
+            return 1;
+        }
         $file->schema(schema);
     }
     # Call content from the Datum::File object, which will ensure the user has
