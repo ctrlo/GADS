@@ -833,6 +833,12 @@ sub update_user
     my $current_user = delete $params{current_user}
         or panic "Current user not defined on user update";
 
+    # Set null values where required for database insertions
+    delete $params{organisation} if !$params{organisation};
+    delete $params{department_id} if !$params{department_id};
+    delete $params{team_id} if !$params{team_id};
+    delete $params{title} if !$params{title};
+
     length $params{firstname} <= 128
         or error __"Forename must be less than 128 characters";
     length $params{surname} <= 128
@@ -846,11 +852,21 @@ sub update_user
     GADS::Util->email_valid($params{email})
         or error __x"The email address \"{email}\" is invalid", email => $params{email};
 
+    my $site = $self->result_source->schema->resultset('Site')->next;
+
+    error __x"Please select a {name} for the user", name => $site->organisation_name
+        if !$params{organisation} && $site->register_organisation_mandatory;
+
+    error __x"Please select a {name} for the user", name => $site->team_name
+        if !$params{team_id} && $site->register_team_mandatory;
+
+    error __x"Please select a {name} for the user", name => $site->department_name
+        if !$params{department_id} && $site->register_department_mandatory;
+
     my $values = {
         account_request_notes => $params{account_request_notes},
     };
 
-    my $site = $self->result_source->schema->resultset('Site')->next;
     foreach my $field ($site->user_fields)
     {
         next if !exists $params{$field->{name}};
@@ -870,6 +886,17 @@ sub update_user
         $audit->login_change("Username ".$self->username." (id ".$self->id.") being changed to $values->{username}");
     }
 
+    # Coerce view_limits to value expected, ensure all removed if exists
+    $params{view_limits} = []
+        if exists $params{view_limits} && !$params{view_limits};
+    # Same for groups
+    $params{groups} = []
+        if exists $params{groups} && !$params{groups};
+    # Same for permissions
+    $params{permissions} = []
+        if exists $params{permissions} && !$params{permissions};
+
+    $params{value} = _user_value(\%params);
     $values->{value} = _user_value($values);
     $self->update($values);
 

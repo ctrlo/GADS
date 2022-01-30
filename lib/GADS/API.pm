@@ -530,7 +530,7 @@ del '/api/dashboard/:dashboard_id/widget/:id' => require_login sub {
 };
 
 # Wizard endpoints
-post '/api/user_account' => require_login sub {
+post '/api/user_account/?:id?' => require_login sub {
     _post_add_user_account();
 };
 
@@ -679,50 +679,48 @@ sub _del_dashboard_widget {
     return _success("Widget deleted successfully");
 }
 
-sub _post_add_user_account {
-    if (request->content_type ne 'application/json') # Try in body of JSON
+sub _post_add_user_account
+{   my $body = _decode_json_body();
+
+    my $logged_in_user = logged_in_user;
+
+    my $id = route_parameters->get('id');
+    my $update_user;
+    if ($id)
     {
-        return;
+        $update_user = schema->resultset('User')->active->find($id)
+            or error __x"User id {id} not found", id => $id;
     }
 
-    my $body = try { decode_json(request->body) };
-
-    if (!$body)
-    {
-        return;
-    }
+    error __"Unauthorised access"
+        unless $logged_in_user->permission->{superadmin} || $logged_in_user->permission->{useradmin};
 
     my %values = (
-        firstname             => $body->{'forename'},
-        surname               => $body->{'surname'},
-        email                 => $body->{'email'},
-        username              => $body->{'email'},
-        freetext1             => $body->{'freetext1'},
-        freetext2             => $body->{'freetext2'},
-        title                 => $body->{'title'} || undef,
-        organisation          => $body->{'organisation'} || undef,
-        department_id         => $body->{'department'} || undef,
-        team_id               => $body->{'team'} || undef,
-        account_request       => $body->{'approve-account'},
-        account_request_notes => $body->{'notes'},
-        view_limits           => $body->{'view_limits'} || [],
-        groups                => $body->{'groups'} || [],
+        firstname             => $body->{firstname},
+        surname               => $body->{surname},
+        email                 => $body->{email},
+        username              => $body->{email},
+        freetext1             => $body->{freetext1},
+        freetext2             => $body->{freetext2},
+        title                 => $body->{title},
+        organisation          => $body->{organisation},
+        department_id         => $body->{department_id},
+        team_id               => $body->{team_id},
+        account_request       => 0,
+        account_request_notes => $body->{notes},
+        view_limits           => $body->{view_limits},
+        groups                => $body->{groups},
     );
 
-    if(logged_in_user->permission->{superadmin})
-    {
-        $values{permissions} = $body->{'permissions'} || [];
-    }
+    $values{permissions} = $body->{permissions}
+        if $logged_in_user->permission->{superadmin};
 
-    my $user = logged_in_user;
+    # Any exceptions/errors generated here will be automatically sent back as JSON error
+    $id ? $update_user->update_user(%values, current_user => $logged_in_user)
+        : schema->resultset('User')->create_user(%values, current_user => $logged_in_user, request_base => request->base);
 
-    # This sends a welcome email etc
-    if (process(sub { rset('User')->create_user(current_user => $user, request_base => request->base, %values) }))
-    {
-        return _success("User has been created successfully");
-    }
-
-    return _error(422, "Unable to create user");
+    my $msg = __x"User {type} successfully", type => $id ? 'updated' : 'created';
+    return _success("$msg");
 }
 
 sub _post_request_account {
@@ -873,4 +871,16 @@ sub _success
         message  => $msg,
     };
 }
+
+sub _decode_json_body
+{   my $json = shift;
+
+    error __"Request must be of type application/json"
+        if request->content_type ne 'application/json';
+
+    my $body = try { decode_json request->body }
+        or error __"Failed to decode JSON";
+    $body;
+}
+
 1;
