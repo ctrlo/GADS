@@ -778,53 +778,6 @@ click on the following link to retrieve your password:
 [URL]
 __BODY
 
-any ['get', 'post'] => '/settings/?' => require_any_role [qw/useradmin superadmin/] => sub {
-    my $user   = logged_in_user;
-    my $audit  = GADS::Audit->new(schema => schema, user => $user);
-
-    template 'admin_settings' => {
-        page => 'system_settings',
-    };
-};
-
-any ['get', 'post'] => '/system/?' => require_login sub {
-
-    my $user = logged_in_user;
-    my $site = var 'site';
-
-    forwardHome({ danger => "You do not have permission to manage system settings"}, '')
-        unless logged_in_user->permission->{superadmin};
-
-    if (param 'update')
-    {
-        $site->email_welcome_subject(param 'email_welcome_subject');
-        $site->email_welcome_text(param 'email_welcome_text');
-        $site->name(param 'name');
-
-        if (process( sub {
-            $site->update;
-            $site->update_user_editable_fields(body_parameters->get_all('user_editable'));
-        }))
-        {
-            return forwardHome(
-                { success => "Configuration settings have been updated successfully" } );
-        }
-    }
-
-    $site->email_welcome_subject($default_email_welcome_subject)
-        if !$site->email_welcome_subject;
-    $site->email_welcome_text($default_email_welcome_text)
-        if !$site->email_welcome_text;
-    $site->name(config->{gads}->{name} || 'Linkspace')
-        if !$site->name;
-
-    template 'system' => {
-        instance    => $site,
-        page        => 'system',
-        breadcrumbs => [Crumb( '/system' => 'system-wide settings' )],
-    };
-};
-
 any ['get', 'post'] => '/group_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
     if (my $delete_id = param('delete'))
     {
@@ -914,6 +867,50 @@ any ['get', 'post'] => '/group_edit/:id' => require_any_role [qw/useradmin super
     template 'layouts/page_save_name_only' => {
         page            => 'group',
         item            => $group
+    };
+};
+
+any ['get', 'post'] => '/settings/?' => require_any_role [qw/useradmin superadmin/] => sub {
+    template 'admin_settings' => {
+        page => 'system_settings',
+    };
+};
+
+any ['get', 'post'] => '/system/?' => require_login sub {
+
+    my $user = logged_in_user;
+    my $site = var 'site';
+
+    forwardHome({ danger => "You do not have permission to manage system settings"}, '')
+        unless logged_in_user->permission->{superadmin};
+
+    if (param 'update')
+    {
+        $site->email_welcome_subject(param 'email_welcome_subject');
+        $site->email_welcome_text(param 'email_welcome_text');
+        $site->name(param 'name');
+
+        if (process( sub {
+            $site->update;
+            $site->update_user_editable_fields(body_parameters->get_all('user_editable'));
+        }))
+        {
+            return forwardHome(
+                { success => "Configuration settings have been updated successfully" } );
+        }
+    }
+
+    $site->email_welcome_subject($default_email_welcome_subject)
+        if !$site->email_welcome_subject;
+    $site->email_welcome_text($default_email_welcome_text)
+        if !$site->email_welcome_text;
+    $site->name(config->{gads}->{name} || 'Linkspace')
+        if !$site->name;
+
+    template 'system' => {
+        instance    => $site,
+        page        => 'system',
+        breadcrumbs => [Crumb( '/system' => 'system-wide settings' )],
     };
 };
 
@@ -1268,6 +1265,53 @@ any ['get', 'post'] => '/settings/team_edit/:id' => require_any_role [qw/useradm
     template 'layouts/page_save_name_only' => {
         page            => 'team',
         item            => $team
+    };
+};
+
+any ['get', 'post'] => '/settings/audit/?' => require_role audit => sub {
+
+    my $audit = GADS::Audit->new(schema => schema);
+    my $users = GADS::Users->new(schema => schema, config => config);
+
+    if (param 'audit_filtering')
+    {
+        session 'audit_filtering' => {
+            method => param('method'),
+            type   => param('type'),
+            user   => param('user'),
+            from   => param('from'),
+            to     => param('to'),
+        }
+    }
+
+    $audit->filtering(session 'audit_filtering')
+        if session 'audit_filtering';
+
+    if (defined param 'download')
+    {
+        my $csv = $audit->csv;
+        my $now = DateTime->now();
+        my $header;
+        if ($header = config->{gads}->{header})
+        {
+            $csv       = "$header\n$csv" if $header;
+            $header    = "-$header" if $header;
+        }
+        # XXX Is this correct? We can't send native utf-8 without getting the error
+        # "Strings with code points over 0xFF may not be mapped into in-memory file handles".
+        # So, encode the string (e.g. "\x{100}"  becomes "\xc4\x80) and then send it,
+        # telling the browser it's utf-8
+        utf8::encode($csv);
+        return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
+    }
+
+    template 'audit' => {
+        logs        => $audit->logs(session 'audit_filtering'),
+        users       => $users,
+        filtering   => $audit->filtering,
+        filter_user => $audit->filtering->{user} && schema->resultset('User')->find($audit->filtering->{user}),
+        audit_types => GADS::Audit::audit_types,
+        page        => 'audit',
     };
 };
 
@@ -1985,54 +2029,6 @@ get '/match/user/' => require_role audit => sub {
     content_type 'application/json';
     to_json [ rset('User')->match($query) ];
 };
-
-any ['get', 'post'] => '/audit/?' => require_role audit => sub {
-
-    my $audit = GADS::Audit->new(schema => schema);
-    my $users = GADS::Users->new(schema => schema, config => config);
-
-    if (param 'audit_filtering')
-    {
-        session 'audit_filtering' => {
-            method => param('method'),
-            type   => param('type'),
-            user   => param('user'),
-            from   => param('from'),
-            to     => param('to'),
-        }
-    }
-
-    $audit->filtering(session 'audit_filtering')
-        if session 'audit_filtering';
-
-    if (defined param 'download')
-    {
-        my $csv = $audit->csv;
-        my $now = DateTime->now();
-        my $header;
-        if ($header = config->{gads}->{header})
-        {
-            $csv       = "$header\n$csv" if $header;
-            $header    = "-$header" if $header;
-        }
-        # XXX Is this correct? We can't send native utf-8 without getting the error
-        # "Strings with code points over 0xFF may not be mapped into in-memory file handles".
-        # So, encode the string (e.g. "\x{100}"  becomes "\xc4\x80) and then send it,
-        # telling the browser it's utf-8
-        utf8::encode($csv);
-        return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
-    }
-
-    template 'audit' => {
-        logs        => $audit->logs(session 'audit_filtering'),
-        users       => $users,
-        filtering   => $audit->filtering,
-        filter_user => $audit->filtering->{user} && schema->resultset('User')->find($audit->filtering->{user}),
-        audit_types => GADS::Audit::audit_types,
-        page        => 'audit',
-    };
-};
-
 
 get '/logout' => sub {
     app->destroy_session;

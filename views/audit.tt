@@ -74,7 +74,7 @@
             </li>
             
             <li class="list__item">
-              <a href="/audit?download" class="btn btn-export">
+              <a href="/settings/audit?download" class="btn btn-export">
                 <span class="btn__title">Download</span>
               </a>
             </li>

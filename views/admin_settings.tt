@@ -79,7 +79,7 @@
     
     [% IF user.permission.audit %]
     <div class="col-md-4 col-sm-6 mb-3">
-      <a href="[% url.page %]/audit/" class="card card--settings">
+      <a href="[% url.page %]/settings/audit/" class="card card--settings">
         <h4 class="card__title">
           <div class="card__title-icon card__title-icon--table"></div>
           <span> User audit logs </span>
