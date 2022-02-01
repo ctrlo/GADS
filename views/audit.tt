@@ -1,7 +1,11 @@
 [%-
+  # disabled until functionality is added by Front End
+  # PROCESS snippets/datum.tt
+
   # prepare files table config
   table_dom = "t";
   table_order = '[0,"asc"]';
+  table_show_all_records = 1;
 
   table_columns = [{
     name = "ID"
@@ -82,86 +86,4 @@
     [% INCLUDE tables/basic_table.tt; %]
   </div>
 </div>
-[% INCLUDE wizard/file_upload.tt modalId="filterAuditLogs"; %]
-
-
-
-
-[% PROCESS snippets/datum.tt %]
-
-<h2>User logs</h2>
-<p>
-    <a href="" data-toggle="modal" data-target="#modal_filter" class="btn btn-default">Filter...</a>
-    <a href="/audit?download" class="btn btn-default">Download</a>
-</p>
-
-<table class="table table-striped">
-    <tr>
-        <th>ID:</th>
-        <th>User:</th>
-        <th>Type:</th>
-        <th>Time:</th>
-        <th>Description:</th>
-    </tr>
-    [% FOREACH log IN logs %]
-        <tr>
-            <td>[% log.id %]</td>
-            <td>[% render_datum({ data => log.user }) %]</td>
-            <td>[% log.type | html_entity %]</td>
-            <td>[% log.datetime | html_entity %]</td>
-            <td>[% log.description | html_entity %]</td>
-        </tr>
-    [% END %]
-</table>
-
-<div class="modal fade" id="modal_filter" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form role="form" method="post">
-            <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="modal_filter-title">Filtering</h4>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="method">Method</label>
-                    <select class="form-control" id="method" name="method">
-                        <option value="" [% IF filtering.method == "" %]selected[% END %]>&lt;Ignore&gt;</option>
-                        <option value="get" [% IF filtering.method == "get" %]selected[% END %]>Only GET requests</option>
-                        <option value="post" [% IF filtering.method == "post" %]selected[% END %]>Only POST requests</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="type">Type [% filtering.audit_type %]</label>
-                    <select class="form-control" id="type" name="type">
-                        <option value="" [% UNLESS filtering.type %]selected[% END %]>&lt;Ignore&gt;</option>
-                        [% FOREACH audit_type IN audit_types %]
-                            <option value="[% audit_type %]" [% IF filtering.type == audit_type %]selected[% END %]>[% audit_type %]</option>
-                        [% END %]
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="views_other_user_id">User</label>
-                        <input type="hidden" name="user" id="views_other_user_id" value="[% filtering.user %]">
-                        <input type="text" class="form-control" id="views_other_user_typeahead" autocomplete="off"
-                            name="views_other_user_typeahead" value="[% filter_user.value | html %]" placeholder="Start typing...">
-                </div>
-                <div class="form-group">
-                    <label for="from">From</label>
-                    <input type="text" class="form-control datepicker" id="from"
-                        name="from" value="[% filtering.from.format_cldr(config.dateformat) %]">
-                </div>
-                <div class="form-group">
-                    <label for="to">To</label>
-                    <input type="text" class="form-control datepicker" id="to"
-                        name="to" value="[% filtering.to.format_cldr(config.dateformat) %]">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="submit" name="audit_filtering" value="submit" class="btn btn-primary">Update</button>
-            </div>
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+[% INCLUDE wizard/audit_filter.tt modalId="filterAuditLogs"; %]

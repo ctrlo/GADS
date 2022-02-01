@@ -2030,7 +2030,6 @@ any ['get', 'post'] => '/audit/?' => require_role audit => sub {
         filter_user => $audit->filtering->{user} && schema->resultset('User')->find($audit->filtering->{user}),
         audit_types => GADS::Audit::audit_types,
         page        => 'audit',
-        breadcrumbs => [Crumb( "/audit" => 'audit logs' )],
     };
 };
 
