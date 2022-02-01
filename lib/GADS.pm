@@ -876,6 +876,31 @@ any ['get', 'post'] => '/settings/?' => require_any_role [qw/useradmin superadmi
     };
 };
 
+any ['get', 'post'] => '/settings/default_welcome_email/' => require_any_role [qw/superadmin/] => sub {
+    forwardHome({ danger => "You do not have permission to manage system settings"}, '')
+        unless logged_in_user->permission->{superadmin};
+
+    my $site = var 'site';
+
+    if (param 'update')
+    {
+        $site->email_welcome_subject(param 'email_welcome_subject');
+        $site->email_welcome_text(param 'email_welcome_text');
+        $site->name(param 'name');
+
+        if (process( sub {$site->update;}))
+        {
+            return forwardHome(
+                { success => "Configuration settings have been updated successfully" }, 'settings/' );
+        }
+    }
+
+    template 'admin/default_welcome_email' => {
+        instance => $site,
+        page     => 'system',
+    };
+};
+
 any ['get', 'post'] => '/system/?' => require_login sub {
 
     my $user = logged_in_user;
