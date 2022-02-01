@@ -1,0 +1,56 @@
+[%-
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title       = "User-editable personal details"
+    description = "On this page you can define which personal details the users are allowed to edit."
+    back_button = { url = url.page _ "/settings/" };
+-%]
+
+<div class="content-block__main">
+  <div class="content-block__main-content">
+    <form role="form" method="post" class="">
+      [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+      <div class="row">
+        <div class="col-lg-5">
+          <fieldset class="fieldset" >
+            <div class="fieldset__legend ">
+              <legend >
+                Allow users to edit the following details of their account
+              </legend>
+            </div>
+            
+            <div class="form-group ">
+              <div class="list list--vertical list--checkboxes">
+                <ul class="list__items">
+                  [% FOREACH field in instance.user_fields %]
+                  <li class="list__item">
+                    [%
+                      INCLUDE fields/sub/checkbox.tt
+                        id = field.name
+                        name = "user_editable"
+                        label = field.description
+                        value = field.name
+                        checked = field.editable ? 1 : 0
+                        filter = "html";
+                    %]
+                  </li>
+                  [% END %]
+                </ul>
+              </div>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+      
+      [%-
+        back_url = url.page _ "/user_overview/";
+        INCLUDE navigation/button_bar.tt
+          row_class="row"
+          back_url=back_url
+          submit_name="update"
+          submit_value="update"
+          submit_label="Save";
+      -%]
+    </form>
+  </div>
+</div>

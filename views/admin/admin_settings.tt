@@ -119,7 +119,7 @@
     </div>
     
     <div class="col-md-4 col-sm-6 mb-3">
-      <a href="[% url.page %]/system/userdetails" class="card card--settings">
+      <a href="[% url.page %]/settings/user_editable_personal_details/" class="card card--settings">
         <h4 class="card__title">
           <div class="card__title-icon card__title-icon--settings"></div>
           <span> User-editable personal details </span>

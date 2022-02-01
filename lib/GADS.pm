@@ -901,41 +901,24 @@ any ['get', 'post'] => '/settings/default_welcome_email/' => require_any_role [q
     };
 };
 
-any ['get', 'post'] => '/system/?' => require_login sub {
-
-    my $user = logged_in_user;
-    my $site = var 'site';
-
+any ['get', 'post'] => '/settings/user_editable_personal_details/' => require_any_role [qw/superadmin/] => sub {
     forwardHome({ danger => "You do not have permission to manage system settings"}, '')
         unless logged_in_user->permission->{superadmin};
 
+    my $site = var 'site';
+
     if (param 'update')
     {
-        $site->email_welcome_subject(param 'email_welcome_subject');
-        $site->email_welcome_text(param 'email_welcome_text');
-        $site->name(param 'name');
-
-        if (process( sub {
-            $site->update;
-            $site->update_user_editable_fields(body_parameters->get_all('user_editable'));
-        }))
+        if (process( sub {$site->update_user_editable_fields(body_parameters->get_all('user_editable'));}))
         {
             return forwardHome(
-                { success => "Configuration settings have been updated successfully" } );
+                { success => "Configuration settings have been updated successfully" }, 'settings/' );
         }
     }
 
-    $site->email_welcome_subject($default_email_welcome_subject)
-        if !$site->email_welcome_subject;
-    $site->email_welcome_text($default_email_welcome_text)
-        if !$site->email_welcome_text;
-    $site->name(config->{gads}->{name} || 'Linkspace')
-        if !$site->name;
-
-    template 'system' => {
-        instance    => $site,
-        page        => 'system',
-        breadcrumbs => [Crumb( '/system' => 'system-wide settings' )],
+    template 'admin/user_editable_personal_details' => {
+        instance => $site,
+        page     => 'system',
     };
 };
 
