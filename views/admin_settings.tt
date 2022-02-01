@@ -77,6 +77,7 @@
     </div>
     [% END %]
     
+    [% IF user.permission.audit %]
     <div class="col-md-4 col-sm-6 mb-3">
       <a href="[% url.page %]/audit/" class="card card--settings">
         <h4 class="card__title">
@@ -91,6 +92,7 @@
         </div>
       </a>
     </div>
+    [% END %]
     
   </div>
   [% END %]
