@@ -107,7 +107,7 @@
                       INCLUDE fields/select.tt
                         id = field.name
                         name = field.name
-                        value = user.${field.name}
+                        value = user.get_column(field.name)
                         label = field.description
                         placeholder = field.placeholder
                         items = values.${field.name}
@@ -193,7 +193,7 @@
                       INCLUDE fields/select.tt
                         id = field.name
                         name = field.name
-                        value = user.${field.name}
+                        value = user.get_column(field.name)
                         label = field.description
                         placeholder = field.placeholder
                         items = values.${field.name}

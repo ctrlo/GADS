@@ -22,11 +22,11 @@
       <div class="row">
         [% END %]
         [% FOREACH field IN site.user_fields %]
-        [% IF field_counter > 0 AND field_counter % 2 == 0 %]
+          [% IF field_counter > 0 AND field_counter % 2 == 0 %]
       </div>
       <div class="row">
-        [% END %]
-        [% field_disabled = NOT field.editable ? 1 : 0; %]
+          [% END %]
+          [% field_disabled = NOT field.editable ? 1 : 0; %]
         <div class="col-lg-5">
           [%
             IF field.type == "freetext";
@@ -46,7 +46,7 @@
               INCLUDE fields/select.tt
                 id = field.name
                 name = field.name
-                value = edituser.${field.name}
+                value = edituser.get_column(field.name)
                 label = field.description
                 placeholder = field.placeholder
                 items = values.${field.name}
@@ -56,9 +56,15 @@
             END;
           %]
         </div>
-        [% IF field.name == "email"; field_counter = field_counter + 2; ELSE; field_counter = field_counter + 1; END; %]
-        [% END %]
-        [% IF site.user_fields.size > 0 %]
+        [%
+            IF field.name == "email";
+              field_counter = field_counter + 2;
+            ELSE;
+              field_counter = field_counter + 1;
+            END;
+          END;
+        %]
+      [% IF site.user_fields.size > 0 %]
       </div>
       [% END %]
       
