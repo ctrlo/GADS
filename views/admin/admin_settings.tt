@@ -103,7 +103,7 @@
   <div class="row">
     
     <div class="col-md-4 col-sm-6 mb-3">
-      <a href="[% url.page %]/system/email" class="card card--settings">
+      <a href="[% url.page %]/settings/default_welcome_email/" class="card card--settings">
         <h4 class="card__title">
           <div class="card__title-icon card__title-icon--email"></div>
           <span> Default welcome email </span>

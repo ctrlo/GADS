@@ -871,7 +871,7 @@ any ['get', 'post'] => '/group_edit/:id' => require_any_role [qw/useradmin super
 };
 
 any ['get', 'post'] => '/settings/?' => require_any_role [qw/useradmin superadmin/] => sub {
-    template 'admin_settings' => {
+    template 'admin/admin_settings' => {
         page => 'system_settings',
     };
 };
@@ -1305,7 +1305,7 @@ any ['get', 'post'] => '/settings/audit/?' => require_role audit => sub {
         return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
     }
 
-    template 'audit' => {
+    template 'admin/audit' => {
         logs        => $audit->logs(session 'audit_filtering'),
         users       => $users,
         filtering   => $audit->filtering,
