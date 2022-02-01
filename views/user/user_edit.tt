@@ -26,7 +26,6 @@
       </div>
       <div class="row">
           [% END %]
-          [% field_disabled = NOT field.editable ? 1 : 0; %]
         <div class="col-lg-5">
           [%
             IF field.type == "freetext";
@@ -37,7 +36,6 @@
                 label = field.description
                 placeholder = field.placeholder
                 type = "text"
-                disabled = field_disabled
                 filter = "html"
                 sub_field = ""
                 sub_params = {};

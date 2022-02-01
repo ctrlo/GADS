@@ -49,7 +49,7 @@
                 label = field.description
                 placeholder = field.placeholder
                 type = field_type
-                disabled = field_disabled
+                is_disabled = field_disabled
                 filter = "html"
                 sub_field = sub_field
                 sub_params = sub_params;
@@ -63,6 +63,7 @@
                 placeholder = field.placeholder
                 items = values.${field.name}
                 filter = "html"
+                is_disabled = field_disabled
                 sub_field = sub_field
                 sub_params = sub_params;
             END;
