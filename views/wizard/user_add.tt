@@ -92,7 +92,6 @@
                       INCLUDE fields/input.tt
                         id = field.name
                         name = field.name
-                        value = user.${field.name}
                         label = field.description
                         placeholder = field.placeholder
                         type = field_type
@@ -105,7 +104,6 @@
                       INCLUDE fields/select.tt
                         id = field.name
                         name = field.name
-                        value = user.get_column(field.name)
                         label = field.description
                         placeholder = field.placeholder
                         items = values.${field.name}
@@ -177,7 +175,6 @@
                       INCLUDE fields/input.tt
                         id = field.name
                         name = field.name
-                        value = user.${field.name}
                         label = field.description
                         placeholder = field.placeholder
                         type = field_type
@@ -189,7 +186,6 @@
                       INCLUDE fields/select.tt
                         id = field.name
                         name = field.name
-                        value = user.get_column(field.name)
                         label = field.description
                         placeholder = field.placeholder
                         items = values.${field.name}
