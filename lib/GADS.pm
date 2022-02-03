@@ -1822,14 +1822,18 @@ get '/file/?' => require_login sub {
     forwardHome({ danger => "You do not have permission to manage files"}, '')
         unless logged_in_user->permission->{superadmin};
 
-    my @files = rset('Fileval')->independent->all;
+    my @files = rset('Fileval')->search({
+        is_independent => 1,
+    },{
+        order_by => 'me.id',
+    })->all;
 
     template 'files' => {
         files => [@files]
     };
 };
 
-any ['get', 'post'] => '/file/:id' => require_login sub {
+get '/file/:id' => require_login sub {
     my $id = param 'id';
 
     # Need to get file details first, to be able to populate
@@ -1855,13 +1859,6 @@ any ['get', 'post'] => '/file/:id' => require_login sub {
         $file->schema(schema);
     }
     else {
-        if (body_parameters->get('delete'))
-        {
-            error __"You do not have permission to delete files"
-                unless logged_in_user->permission->{superadmin};
-            $fileval->delete;
-            return 1;
-        }
         $file->schema(schema);
     }
     # Call content from the Datum::File object, which will ensure the user has
@@ -1874,6 +1871,19 @@ post '/file/?' => require_login sub {
 
     my $ajax           = defined param('ajax');
     my $is_independent = defined param('is_independent') ? 1 : 0;
+
+    if (my $delete_id = param('delete'))
+    {
+        error __"You do not have permission to delete files"
+            unless logged_in_user->permission->{superadmin};
+
+        my $fileval = schema->resultset('Fileval')->find($delete_id);
+
+        $fileval->delete;
+
+        return forwardHome(
+            { success => "The file has been deleted successfully" }, 'file/' );
+    }
 
     if (my $upload = upload('file'))
     {
