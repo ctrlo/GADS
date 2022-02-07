@@ -67,7 +67,7 @@
     [% END %]
 [% ELSE %]
     <p>No groups have been created yet. Groups can be
-    created in the <a href="/group">Manage Groups</a> menu.
+    created in the <a href="[% url.page %]/group_overview/">Manage Groups</a> menu.
     </p>
 [% END %]
 
