@@ -71,6 +71,7 @@ after set_value => sub {
     ) {
         $self->changed(1);
         $self->id($new_id);
+        $self->clear;
     }
     $self->oldvalue($clone);
 };
@@ -282,7 +283,11 @@ has text => (
     lazy    => 1,
     clearer => 1,
     builder => sub {
-        $_[0]->value_hash && $_[0]->value_hash->{value};
+        my $self = shift;
+        $self->id or return;
+        my $val = $self->value_hash && $self->value_hash->{value};
+        $val ||= $self->schema->resultset('User')->find($self->id)->value;
+        $val;
     },
 );
 
@@ -323,7 +328,7 @@ sub send_notify
     my $replace = sub {
         my $var  = shift;
         my $name = $var =~ s/^\$//r;
-        my $col  = $self->column->layout->column_by_name_short($name) or return $var;
+        my $col  = $self->record->layout->column_by_name_short($name) or return $var;
         $self->record->fields->{$col->id}->as_string;
     };
     $subject =~ s/(\$[a-z0-9_]+)\b/$replace->($1)/ge;
