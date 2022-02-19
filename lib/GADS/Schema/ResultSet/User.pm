@@ -196,7 +196,7 @@ sub upload
         my $title_id;
         if (defined $user_mapping{title})
         {
-            my $name  = $row->{$user_mapping{title}};
+            my $name  = $row->[$user_mapping{title}];
             $title_id = $titles{lc $name};
             push @errors, {
                 row   => join (',', @$row),
@@ -210,7 +210,7 @@ sub upload
             username              => defined $user_mapping{email} ? $row->[$user_mapping{email}] : '',
             freetext1             => defined $user_mapping{$freetext1} ? $row->[$user_mapping{$freetext1}] : '',
             freetext2             => defined $user_mapping{$freetext2} ? $row->[$user_mapping{$freetext2}] : '',
-            title                 => defined $user_mapping{title} ? $row->[$user_mapping{title}] : undef,
+            title                 => $title_id,
             organisation          => $org_id,
             department_id         => $dep_id,
             team_id               => $team_id,
