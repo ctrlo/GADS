@@ -1774,7 +1774,13 @@ sub write
         # which case we want to record these details
         my $created = $self->layout->column_by_name_short('_version_datetime');
         $self->fields->{$created->id}->set_value($created_date, is_parent_value => 1);
-        my $createdby_col = $self->layout->column_by_name_short('_version_user');
+        my $versionby_col = $self->layout->column_by_name_short('_version_user');
+        $self->fields->{$versionby_col->id}->set_value($createdby, no_validation => 1, is_parent_value => 1);
+    }
+
+    if ($self->new_entry)
+    {
+        my $createdby_col = $self->layout->column_by_name_short('_created_user');
         $self->fields->{$createdby_col->id}->set_value($createdby, no_validation => 1, is_parent_value => 1);
     }
 
@@ -2688,15 +2694,6 @@ sub purge_current
             $_->id." ($names)";
         } @recs;
         error __x"The following records refer to this record as a value (possibly in a historical version): {records}",
-            records => $recs;
-    }
-
-    if (my @recs = $self->schema->resultset('Current')->search({
-        'me.parent_id' => $id,
-    })->all)
-    {
-        my $recs = join ', ', map $_->id, @recs;
-        error __x"The following child records have this record as their parent. Please delete this first: {records}",
             records => $recs;
     }
 
