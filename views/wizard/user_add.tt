@@ -76,7 +76,6 @@
               </div>
               <div class="row">
                 [%- END -%]
-                [%- field_disabled = NOT field.editable ? 1 : 0; -%]
                 <div class="col-lg-6">
                   [%-
                     IF field.name == "email";
@@ -93,11 +92,9 @@
                       INCLUDE fields/input.tt
                         id = field.name
                         name = field.name
-                        value = user.${field.name}
                         label = field.description
                         placeholder = field.placeholder
                         type = field_type
-                        disabled = field_disabled
                         filter = "html"
                         is_required = field.is_required
                         sub_field = sub_field
@@ -107,7 +104,6 @@
                       INCLUDE fields/select.tt
                         id = field.name
                         name = field.name
-                        value = user.${field.name}
                         label = field.description
                         placeholder = field.placeholder
                         items = values.${field.name}
@@ -161,7 +157,6 @@
               <div class="row mt-4">
                   [%- END -%]
                   [%- coll_end_class = field_counter % 2 == 1 ? ' align-self-end' : ''; -%]
-                  [%- field_disabled = NOT field.editable ? 1 : 0; -%]
                 <div class="col-lg-6[%- coll_end_class -%]">
                   [%-
                     IF field.name == "email";
@@ -180,11 +175,9 @@
                       INCLUDE fields/input.tt
                         id = field.name
                         name = field.name
-                        value = user.${field.name}
                         label = field.description
                         placeholder = field.placeholder
                         type = field_type
-                        disabled = field_disabled
                         filter = "html"
                         sub_field = sub_field
                         sub_params = sub_params;
@@ -193,7 +186,6 @@
                       INCLUDE fields/select.tt
                         id = field.name
                         name = field.name
-                        value = user.${field.name}
                         label = field.description
                         placeholder = field.placeholder
                         items = values.${field.name}

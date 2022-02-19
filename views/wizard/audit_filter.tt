@@ -1,0 +1,119 @@
+<div class="modal " id="filterAuditLogs" tabindex="-1" role="dialog" aria-labelledby="filterAuditLogsLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      [% INCLUDE wizard/sub/modal_header.tt label="Filter"; %]
+      
+      <form method="post">
+        [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+        
+        <div class="modal-frame">
+          <div class="modal-body">
+            
+            <p>In this window you can filter your user audit logs.</p>
+            <div class="row">
+              <div class="col-lg-6">
+                [%
+                  INCLUDE fields/select.tt
+                    id = "btn-method"
+                    name = "method"
+                    label = "Method"
+                    value = filtering.method
+                    placeholder = "All requests"
+                    tabindex = 1
+                    items = [
+                      {id="" name="All requests"},
+                      {id="get" name="Only GET requests"},
+                      {id="post", name="Only POST requests"}
+                    ]
+                    filter = "html";
+                %]
+              </div>
+              <div class="col-lg-6">
+                [%
+                  types = [{id="" name="All types"}];
+                
+                  FOREACH audit_type IN audit_types;
+                    types.push({id=audit_type name=audit_type});
+                  END;
+                
+                  INCLUDE fields/select.tt
+                    id = "btn-type"
+                    name = "type"
+                    label = "Type " _ filtering.audit_type
+                    value = filtering.type
+                    placeholder = "All types"
+                    items = types
+                    tabindex = 2
+                    filter = "html";
+                %]
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-lg-6">
+                [%
+                  INCLUDE fields/ajax_autocomplete.tt
+                    id = "views_other_user_id"
+                    name = "user"
+                    value = filtering.user
+                    display_value = filter_user.value
+                    label = "Name"
+                    placeholder = "Start typing..."
+                    filter = "html"
+                    tabindex = 3;
+                %]
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-lg-6">
+                [%
+                  INCLUDE fields/input.tt
+                  id = "from"
+                  name = "from"
+                  label = "From"
+                  value = filtering.from.format_cldr(config.dateformat)
+                  placeholder = config.dateformat
+                  type = "text"
+                  input_class = "input--date";
+                %]
+              </div>
+              <div class="col-lg-6">
+                [%
+                  INCLUDE fields/input.tt
+                  id = "to"
+                  name = "to"
+                  label = "To"
+                  value = filtering.to.format_cldr(config.dateformat)
+                  placeholder = config.dateformat
+                  type = "text"
+                  input_class = "input--date";
+                %]
+              </div>
+            </div>
+          
+          </div>
+          
+          [%-
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel"
+                dismiss = "modal"
+                label   = "Cancel"
+              }]
+              right_buttons = [{
+                type  = "submit"
+                class = "btn-default"
+                name  = "audit_filtering"
+                value = "submit"
+                label = "Update"
+              }];
+          -%]
+        </div>
+      
+      
+      </form>
+    
+    
+    </div>
+  </div>
+</div>

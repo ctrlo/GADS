@@ -1,0 +1,77 @@
+[%-
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title       = "Default welcome email"
+    description = "On this page you can define your welcome email to new users of your system."
+    back_button = { url = url.page _ "/settings/" };
+-%]
+
+<div class="content-block__main">
+  <div class="content-block__main-content">
+    <form role="form" method="post">
+      [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+      
+      <fieldset class="fieldset">
+        <div class="fieldset__legend fieldset__legend--hidden">
+          <legend>
+            Default welcome email
+          </legend>
+        
+        </div>
+        
+        <div class="row">
+          <div class="col-lg-5">
+            [%
+              INCLUDE fields/input.tt
+                id = "name"
+                name = "name"
+                label = "System name"
+                value = instance.name
+                placeholder = "System name"
+                filter = "html"
+                type = "text";
+            %]
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-lg-5">
+            [%
+              INCLUDE fields/input.tt
+                id = "email_welcome_subject"
+                name = "email_welcome_subject"
+                label = "Welcome email subject"
+                value = instance.email_welcome_subject
+                placeholder = "Welcome email subject"
+                filter = "html"
+                type = "text";
+            %]
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-lg-5">
+            [%
+              INCLUDE fields/textarea.tt
+                id = "email_welcome_text"
+                name = "email_welcome_text"
+                label = "Welcome email text"
+                value = instance.email_welcome_text
+                filter = "html"
+                rows = 5;
+            %]
+          </div>
+        </div>
+        [%-
+          back_url = url.page _ "/user_overview/";
+          INCLUDE navigation/button_bar.tt
+            row_class="row"
+            back_url=back_url
+            submit_name="update"
+            submit_value="update"
+            submit_label="Save";
+        -%]
+      </fieldset>
+    </form>
+  </div>
+</div>

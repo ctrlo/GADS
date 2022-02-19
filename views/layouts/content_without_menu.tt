@@ -1,4 +1,4 @@
-<main class="[% main_class %]">
+<main class="[% main_class || 'main col-lg-10' %]">
   <div class="login__main-container col-lg-4">
     <div class="login__logo">
       <img src="[% url.page %]/images/logo_linkspace.svg">

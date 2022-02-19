@@ -1,0 +1,89 @@
+[%-
+  # disabled until functionality is added by Front End
+  # PROCESS snippets/datum.tt
+
+  # prepare files table config
+  table_dom = "t";
+  table_order = '[0,"asc"]';
+  table_show_all_records = 1;
+
+  table_columns = [{
+    name = "ID"
+    orderable = 1
+  }, {
+    name = "User"
+    orderable = 1
+  }, {
+    name = "Type"
+    orderable = 1
+  }, {
+    name = "Time"
+    orderable = 1
+  }, {
+    name = "Description"
+    orderable = 1
+  }];
+
+  rows = [];
+
+  FOREACH log IN logs;
+    rows.push({
+      fields = [{
+        type  = "text"
+        label = log.id
+      },{
+        type  = "text"
+        label = log.user.text
+      },{
+        type   = "text"
+        label  = log.type
+        filter = "html"
+      },{
+        type   = "text"
+        label  = log.datetime
+        filter = "html"
+      },{
+        type   = "text"
+        label  = log.description
+        filter = "html"
+      }]
+    });
+  END;
+
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title       = "User audit logs"
+    description = "In this window you can view your system audit log."
+    back_button = { url = url.page _ "/settings/" };
+-%]
+
+<div class="content-block__main">
+  <div class="content-block__main-content">
+    <div class="row justify-content-md-end">
+      <div class="col-auto">
+        <div class="list list--horizontal list--no-borders list--buttons">
+          <ul class="list__items">
+            <li class="list__item">
+              <button
+                type="button"
+                class="btn btn-filter"
+                data-toggle="modal" data-target=#filterAuditLogs
+              >
+                <span class="btn__title">Filter</span>
+              </button>
+            </li>
+            
+            <li class="list__item">
+              <a href="/settings/audit?download" class="btn btn-export">
+                <span class="btn__title">Download</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    [% INCLUDE tables/basic_table.tt; %]
+  </div>
+</div>
+[% INCLUDE wizard/audit_filter.tt modalId="filterAuditLogs"; %]

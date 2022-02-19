@@ -1,5 +1,5 @@
   <header class="page-header row no-gutters">
-    <nav class="page-header_container">
+    <nav class="page-header_container" aria-label="Top">
       <div class="col-lg-2 offset-lg-10 p-0">
         <div class="user dropdown">
           <button class="user__toggle btn btn-default dropdown-toggle" type="button" id="usermenu"

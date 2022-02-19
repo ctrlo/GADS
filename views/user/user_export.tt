@@ -2,6 +2,7 @@
   table_dom = "t";
   table_order = '[0,"asc"]';
   table_language = '{"emptyTable": "No exports to show"}';
+  table_show_all_records = 1;
 
   table_buttons = [];
 

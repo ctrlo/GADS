@@ -27,7 +27,7 @@
         [%- ELSE -%]
         <li class="list__item">
           No groups have been created yet. Groups can be
-          created in the <a href="/group">Manage Groups</a> menu.
+          created in the <a href="[% url.page %]/group_overview/">Manage Groups</a> menu.
         </li>
         [%- END -%]
       </ul>

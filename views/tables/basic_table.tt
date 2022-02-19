@@ -78,7 +78,7 @@
     "responsive":{
       "details":{"type":"column","target":-1}
     },
-    "autoWidth":false,
+    "autoWidth":false,_SHOW_ALL_RECORDS
     "columns":[
       _COLUMNS
       _BUTTONS
@@ -86,6 +86,7 @@
     ]
   }';
 
+  table_config = table_config.replace('_SHOW_ALL_RECORDS', table_show_all_records ? "\n" _ '    "iDisplayLength":-1,' : '');
   table_config = table_config.replace('_COLUMNS', columnConfig);
   table_config = table_config.replace('_BUTTONS', buttonConfig);
 %]

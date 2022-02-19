@@ -1,13 +1,12 @@
 [%-
   input_class    = is_required AND ! input_class.match('input--required') ? input_class _ ' input--required' : input_class;
-  checkbox_value = value ? 'value="' _ value _ '"' : '';
 -%]
 <div class="checkbox [% input_class %]">
   <input
     id="[%- id -%]"
     type="checkbox"
     name="[%- name -%]"
-    [%- checkbox_value -%]
+    value="[%- IF value; INCLUDE fields/sub/filter.tt value=value; END; -%]"
     class="[% custom_classes %]"
     [%- IF checked -%]checked="checked"[%- END -%]
     [%- IF tabindex -%]tabindex="[%- tabindex -%]"[%- END -%]

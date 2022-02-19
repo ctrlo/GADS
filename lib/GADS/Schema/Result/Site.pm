@@ -271,13 +271,13 @@ sub user_fields
         name        => 'freetext1',
         description => $self->register_freetext1_name,
         type        => 'freetext',
-        placeholder => 'Select ' . $self->register_freetext1_name,
+        placeholder => $self->register_freetext1_name,
     } if $self->register_freetext1_name;
     push @fields, {
         name        => 'freetext2',
         description => $self->register_freetext2_name,
         type        => 'freetext',
-        placeholder => 'Select ' . $self->register_freetext2_name,
+        placeholder => $self->register_freetext2_name,
     } if $self->register_freetext2_name;
 
     my $user_editable = decode_json($self->user_editable_fields || '{}');

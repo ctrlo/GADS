@@ -1,7 +1,7 @@
 [%-
   column_class = column_class ? column_class : 'col';
-  popover_title = "Permissions help";
-  popover_body = '
+  permissions_help_title = "Permissions help";
+  permissions_help_body = '
             <dl>
               <dt>No permissions selected</dt>
               <dd>If a user has no permissions, they cannot edit any data. They can only:
@@ -51,7 +51,7 @@
     <div class="fieldset__legend ">
       <legend>User' system wide permissions</legend>
   
-      [% INCLUDE fields/sub/popover.tt popover_id="permissions_popover" popover_title=popover_title popover_body=popover_body; %]
+      [% INCLUDE fields/sub/popover.tt popover_id="permissions_popover" popover_title=permissions_help_title popover_body=permissions_help_body; %]
     </div>
     
     <div class="list [% list_class %]">

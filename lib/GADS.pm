@@ -402,9 +402,6 @@ get '/' => require_login sub {
         dashboard       => $dashboard,
         dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
         page            => 'index',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
     };
 
     if (my $download = param('download'))
@@ -759,12 +756,9 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
 
     my $users = GADS::Users->new(schema => schema);
     template 'user/my_account' => {
-        user            => $user,
-        page            => 'myaccount',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
-        values          => {
+        user   => $user,
+        page   => 'myaccount',
+        values => {
             title         => $users->titles,
             organisation  => $users->organisations,
             department_id => $users->departments,
@@ -784,60 +778,7 @@ click on the following link to retrieve your password:
 [URL]
 __BODY
 
-any ['get', 'post'] => '/settings/?' => require_any_role [qw/useradmin superadmin/] => sub {
-    my $user   = logged_in_user;
-    my $audit  = GADS::Audit->new(schema => schema, user => $user);
-
-    template 'admin_settings' => {
-        page            => 'system_settings',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
-    };
-};
-
-any ['get', 'post'] => '/system/?' => require_login sub {
-
-    my $user = logged_in_user;
-    my $site = var 'site';
-
-    forwardHome({ danger => "You do not have permission to manage system settings"}, '')
-        unless logged_in_user->permission->{superadmin};
-
-    if (param 'update')
-    {
-        $site->email_welcome_subject(param 'email_welcome_subject');
-        $site->email_welcome_text(param 'email_welcome_text');
-        $site->name(param 'name');
-
-        if (process( sub {
-            $site->update;
-            $site->update_user_editable_fields(body_parameters->get_all('user_editable'));
-        }))
-        {
-            return forwardHome(
-                { success => "Configuration settings have been updated successfully" } );
-        }
-    }
-
-    $site->email_welcome_subject($default_email_welcome_subject)
-        if !$site->email_welcome_subject;
-    $site->email_welcome_text($default_email_welcome_text)
-        if !$site->email_welcome_text;
-    $site->name(config->{gads}->{name} || 'Linkspace')
-        if !$site->name;
-
-    template 'system' => {
-        instance    => $site,
-        page        => 'system',
-        breadcrumbs => [Crumb( '/system' => 'system-wide settings' )],
-    };
-};
-
 any ['get', 'post'] => '/group_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
-    my $groups = GADS::Groups->new(schema => schema);
-    my $layout = var 'layout';
-
     if (my $delete_id = param('delete'))
     {
         my $group = GADS::Group->new(schema => schema);
@@ -850,13 +791,17 @@ any ['get', 'post'] => '/group_overview/' => require_any_role [qw/useradmin supe
         }
     }
 
-    template 'group/group_overview' => {
-        page            => 'group',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
-        groups          => $groups->all,
-        layout          => $layout,
+    my $groups = GADS::Groups->new(schema => schema);
+
+    template 'layouts/page_overview_name_only' => {
+        page               => 'group',
+        page_title         => "Group",
+        page_description   => "Groups are the basis for LinkSpace’s fine-grained access control. Users can be allocated to any number of groups. You then set the group permissions for every field you create to control what fields users can view or edit.",
+        table_column_label => "Group",
+        item_type          => "group",
+        add_path           => "group_add",
+        edit_path          => "group_edit",
+        items              => $groups->all,
     };
 };
 
@@ -874,18 +819,22 @@ any ['get', 'post'] => '/group_add/' => require_any_role [qw/useradmin superadmi
         }
     }
 
-    template 'group/group_save' => {
-        page            => 'group',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
-        group           => {}
+    my $base_url = request->base;
+
+    template 'layouts/page_save_name_only' => {
+        page => 'group',
+        item => {
+            type        => "group",
+            description => "In this window you can create a permission group. Under table and field management you can define permissions and functions available to this group.",
+            back_url    => "${base_url}group_overview/",
+            field_label => "Group",
+        }
     };
 };
 
 any ['get', 'post'] => '/group_edit/:id' => require_any_role [qw/useradmin superadmin/] => sub {
-    my $id    = param 'id';
-    my $group = GADS::Group->new(schema => schema);
+    my $id       = param 'id';
+    my $group    = GADS::Group->new(schema => schema);
     $group->from_id($id);
 
     if (param('delete'))
@@ -908,133 +857,101 @@ any ['get', 'post'] => '/group_edit/:id' => require_any_role [qw/useradmin super
         }
     }
 
-    template 'group/group_save' => {
+    my $base_url = request->base;
+
+    $group->{type}        = "group";
+    $group->{description} = "In this window you can create a permission group. Under table and field management you can define permissions and functions available to this group.";
+    $group->{back_url}    = "${base_url}group_overview/";
+    $group->{field_label} = "Group";
+
+    template 'layouts/page_save_name_only' => {
         page            => 'group',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
-        group           => $group
+        item            => $group
     };
 };
 
-any ['get', 'post'] => '/organisation/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
-
-    my $id     = route_parameters->get('id');
-
-    my $organisation = $id
-        ? schema->resultset('Organisation')->find($id)
-        : schema->resultset('Organisation')->new({});
-
-    my $organisation_name = var('site')->organisation_name;
-
-    if (body_parameters->get('submit'))
-    {
-        $organisation->name(body_parameters->get('name'));
-        if (process( sub { $organisation->insert_or_update } ))
-        {
-            return forwardHome(
-                { success => "The $organisation_name has been updated successfully" }, 'organisation/' );
-        }
-    }
-
-    if ($id && body_parameters->get('delete'))
-    {
-        if (process( sub { $organisation->delete_organisation } ))
-        {
-            return forwardHome(
-                { success => "The $organisation_name has been deleted successfully" }, 'organisation/' );
-        }
-    }
-
-    template 'organisation' => {
-        organisation  => defined $id && $organisation,
-        organisations => [schema->resultset('Organisation')->ordered],
-        page          => 'organisation',
+any ['get', 'post'] => '/settings/?' => require_any_role [qw/useradmin superadmin/] => sub {
+    template 'admin/admin_settings' => {
+        page => 'system_settings',
     };
-
 };
 
-any ['get', 'post'] => '/department/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
+any ['get', 'post'] => '/settings/default_welcome_email/' => require_any_role [qw/superadmin/] => sub {
+    forwardHome({ danger => "You do not have permission to manage system settings"}, '')
+        unless logged_in_user->permission->{superadmin};
 
-    my $id     = route_parameters->get('id');
+    my $site = var 'site';
 
-    my $department = $id
-        ? schema->resultset('Department')->find($id)
-        : schema->resultset('Department')->new({});
-
-    my $department_name = var('site')->department_name;
-
-    if (body_parameters->get('submit'))
+    if (param 'update')
     {
-        $department->name(body_parameters->get('name'));
-        if (process( sub { $department->insert_or_update } ))
+        $site->email_welcome_subject(param 'email_welcome_subject');
+        $site->email_welcome_text(param 'email_welcome_text');
+        $site->name(param 'name');
+
+        if (process( sub {$site->update;}))
         {
             return forwardHome(
-                { success => "The $department_name has been updated successfully" }, 'department/' );
+                { success => "Configuration settings have been updated successfully" }, 'settings/' );
         }
     }
 
-    if ($id && body_parameters->get('delete'))
-    {
-        if (process( sub { $department->delete_department } ))
-        {
-            return forwardHome(
-                { success => "The $department_name has been deleted successfully" }, 'department/' );
-        }
-    }
-
-    template 'department' => {
-        department  => defined $id && $department,
-        departments => [schema->resultset('Department')->ordered],
-        page        => 'department',
+    template 'admin/default_welcome_email' => {
+        instance => $site,
+        page     => 'system',
     };
-
 };
 
-any ['get', 'post'] => '/team/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
+any ['get', 'post'] => '/settings/user_editable_personal_details/' => require_any_role [qw/superadmin/] => sub {
+    forwardHome({ danger => "You do not have permission to manage system settings"}, '')
+        unless logged_in_user->permission->{superadmin};
 
-    my $id     = route_parameters->get('id');
+    my $site = var 'site';
 
-    my $team = $id
-        ? schema->resultset('Team')->find($id)
-        : schema->resultset('Team')->new({});
-
-    my $team_name = var('site')->team_name;
-
-    if (body_parameters->get('submit'))
+    if (param 'update')
     {
-        $team->name(body_parameters->get('name'));
-        if (process( sub { $team->insert_or_update } ))
+        if (process( sub {$site->update_user_editable_fields(body_parameters->get_all('user_editable'));}))
         {
             return forwardHome(
-                { success => "The $team_name has been updated successfully" }, 'team/' );
+                { success => "Configuration settings have been updated successfully" }, 'settings/' );
         }
     }
 
-    if ($id && body_parameters->get('delete'))
-    {
-        if (process( sub { $team->delete_team } ))
-        {
-            return forwardHome(
-                { success => "The $team_name has been deleted successfully" }, 'team/' );
-        }
-    }
-
-    template 'team' => {
-        team  => defined $id && $team,
-        teams => [schema->resultset('Team')->ordered],
-        page  => 'team',
+    template 'admin/user_editable_personal_details' => {
+        instance => $site,
+        page     => 'system',
     };
-
 };
 
-any ['get', 'post'] => '/title/?:id?' => require_any_role [qw/useradmin superadmin/] => sub {
+any ['get', 'post'] => '/settings/title_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $title_name = "title";
 
-    my $id     = route_parameters->get('id');
+    if (my $delete_id = param('delete'))
+    {
+        my $title = schema->resultset('Title')->find($delete_id);
 
-    my $title = $id
-        ? schema->resultset('Title')->find($id)
-        : schema->resultset('Title')->new({});
+        if (process( sub { $title->delete_title } ))
+        {
+            return forwardHome(
+                { success => "The $title_name has been deleted successfully" }, 'settings/title_overview/' );
+        }
+    }
+
+    template 'layouts/page_overview_name_only' => {
+        page               => 'title',
+        page_title         => "Manage ${title_name}s",
+        page_description   => "In this window you can list the ${title_name}s that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
+        table_column_label => "Name",
+        item_type          => $title_name,
+        add_path           => "settings/title_add",
+        edit_path          => "settings/title_edit",
+        back_url           => "/settings/",
+        items              => [schema->resultset('Title')->ordered],
+    };
+};
+
+any ['get', 'post'] => '/settings/title_add/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $title      = schema->resultset('Title')->new({});
+    my $title_name = "title";
 
     if (body_parameters->get('submit'))
     {
@@ -1042,25 +959,368 @@ any ['get', 'post'] => '/title/?:id?' => require_any_role [qw/useradmin superadm
         if (process( sub { $title->insert_or_update } ))
         {
             return forwardHome(
-                { success => "The title has been updated successfully" }, 'title/' );
+                { success => "The $title_name has been created successfully" }, 'settings/title_overview/' );
         }
     }
 
-    if ($id && body_parameters->get('delete'))
+    my $base_url = request->base;
+
+    $title->{type}        = $title_name;
+    $title->{description} = "In this window you can add a $title_name to assign to users.";
+    $title->{back_url}    = "${base_url}settings/title_overview/";
+    $title->{field_label} = ucfirst($title_name);
+
+    template 'layouts/page_save_name_only' => {
+        page => 'title',
+        item => $title
+    };
+};
+
+any ['get', 'post'] => '/settings/title_edit/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $id         = route_parameters->get('id');
+    my $title      = schema->resultset('Title')->find($id);
+    my $title_name = "title";
+
+    if (body_parameters->get('submit'))
+    {
+        $title->name(body_parameters->get('name'));
+        if (process( sub { $title->insert_or_update } ))
+        {
+            return forwardHome(
+                { success => "The $title_name has been updated successfully" }, 'settings/title_overview/' );
+        }
+    }
+
+    if (param('delete'))
     {
         if (process( sub { $title->delete_title } ))
         {
             return forwardHome(
-                { success => "The title has been deleted successfully" }, 'title/' );
+                { success => "The $title_name has been deleted successfully" }, 'settings/title_overview/' );
         }
     }
 
-    template 'title' => {
-        title  => defined $id && $title,
-        titles => [schema->resultset('Title')->ordered],
-        page   => 'title',
-    };
+    my $base_url = request->base;
 
+    $title->{type}        = $title_name;
+    $title->{description} = "In this window you can edit a ${title_name}. Changes will impact all users currently assigned if you delete or edit a value.";
+    $title->{back_url}    = "${base_url}settings/title_overview/";
+    $title->{field_label} = ucfirst($title_name);
+
+    template 'layouts/page_save_name_only' => {
+        page => 'title',
+        item => $title
+    };
+};
+
+any ['get', 'post'] => '/settings/organisation_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $organisation_name = lcfirst(var('site')->organisation_name);
+
+    if (my $delete_id = param('delete'))
+    {
+        my $organisation = schema->resultset('Organisation')->find($delete_id);
+
+        if (process( sub { $organisation->delete_organisation } ))
+        {
+            return forwardHome(
+                { success => "The $organisation_name has been deleted successfully" }, 'settings/organisation_overview/' );
+        }
+    }
+
+    template 'layouts/page_overview_name_only' => {
+        page               => 'organisation',
+        page_title         => "Manage ${organisation_name}s",
+        page_description   => "In this window you can list the parts of the ${organisation_name} that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
+        table_column_label => "Name",
+        item_type          => $organisation_name,
+        add_path           => "settings/organisation_add",
+        edit_path          => "settings/organisation_edit",
+        back_url           => "/settings/",
+        items              => [schema->resultset('Organisation')->ordered],
+    };
+};
+
+any ['get', 'post'] => '/settings/organisation_add/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $organisation      = schema->resultset('Organisation')->new({});
+    my $organisation_name = lcfirst(var('site')->organisation_name);
+
+    if (body_parameters->get('submit'))
+    {
+        $organisation->name(body_parameters->get('name'));
+        if (process( sub { $organisation->insert_or_update } ))
+        {
+            return forwardHome(
+                { success => "The $organisation_name has been created successfully" }, 'settings/organisation_overview/' );
+        }
+    }
+
+    my $base_url = request->base;
+
+    $organisation->{type}        = $organisation_name;
+    $organisation->{description} = "In this window you can add a $organisation_name to assign to users.";
+    $organisation->{back_url}    = "${base_url}settings/organisation_overview/";
+    $organisation->{field_label} = ucfirst($organisation_name);
+
+    template 'layouts/page_save_name_only' => {
+        page => 'organisation',
+        item => $organisation
+    };
+};
+
+any ['get', 'post'] => '/settings/organisation_edit/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $id                = route_parameters->get('id');
+    my $organisation      = schema->resultset('Organisation')->find($id);
+    my $organisation_name = lcfirst(var('site')->organisation_name);
+
+    if (param('delete'))
+    {
+        if (process( sub { $organisation->delete_organisation } ))
+        {
+            return forwardHome(
+                { success => "The $organisation_name has been deleted successfully" }, 'settings/organisation_overview/' );
+        }
+    }
+
+    my $base_url = request->base;
+
+    $organisation->{type}        = $organisation_name;
+    $organisation->{description} = "In this window you can edit a ${organisation_name}. Changes will impact all users currently assigned if you delete or edit a value.";
+    $organisation->{back_url}    = "${base_url}settings/organisation_overview/";
+    $organisation->{field_label} = ucfirst($organisation_name);
+
+    template 'layouts/page_save_name_only' => {
+        page => 'organisation',
+        item => $organisation
+    };
+};
+
+any ['get', 'post'] => '/settings/department_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $department_name = lcfirst(var('site')->department_name);
+
+    if (my $delete_id = param('delete'))
+    {
+        my $department = schema->resultset('Department')->find($delete_id);
+
+        if (process( sub { $department->delete_department } ))
+        {
+            return forwardHome(
+                { success => "The $department_name has been deleted successfully" }, 'settings/department_overview/' );
+        }
+    }
+
+    template 'layouts/page_overview_name_only' => {
+        page               => 'department',
+        page_title         => "Manage ${department_name}s",
+        page_description   => "In this window you can list the ${department_name} that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
+        table_column_label => "Name",
+        item_type          => $department_name,
+        add_path           => "settings/department_add",
+        edit_path          => "settings/department_edit",
+        back_url           => "/settings/",
+        items              => [schema->resultset('Department')->ordered],
+    };
+};
+
+any ['get', 'post'] => '/settings/department_add/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $department      = schema->resultset('Department')->new({});
+    my $department_name = lcfirst(var('site')->department_name);
+
+    if (body_parameters->get('submit'))
+    {
+        $department->name(body_parameters->get('name'));
+        if (process( sub { $department->insert_or_update } ))
+        {
+            return forwardHome(
+                { success => "The $department_name has been created successfully" }, 'settings/department_overview/' );
+        }
+    }
+
+    my $base_url = request->base;
+
+    $department->{type}        = $department_name;
+    $department->{description} = "In this window you can add a $department_name to assign to users.";
+    $department->{back_url}    = "${base_url}settings/department_overview/";
+    $department->{field_label} = ucfirst($department_name);
+
+    template 'layouts/page_save_name_only' => {
+        page            => 'department',
+        item            => $department
+    };
+};
+
+any ['get', 'post'] => '/settings/department_edit/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $id              = route_parameters->get('id');
+    my $department      = schema->resultset('Department')->find($id);
+    my $department_name = lcfirst(var('site')->department_name);
+
+    if (body_parameters->get('submit'))
+    {
+        $department->name(body_parameters->get('name'));
+        if (process( sub { $department->insert_or_update } ))
+        {
+            return forwardHome(
+                { success => "The $department_name has been updated successfully" }, 'settings/department_overview/' );
+        }
+    }
+
+    if (param('delete'))
+    {
+        if (process( sub { $department->delete_department } ))
+        {
+            return forwardHome(
+                { success => "The $department_name has been deleted successfully" }, 'settings/department_overview/' );
+        }
+    }
+
+    my $base_url = request->base;
+
+    $department->{type}        = $department_name;
+    $department->{description} = "In this window you can edit a ${department_name}. Changes will impact all users currently assigned if you delete or edit a value.";
+    $department->{back_url}    = "${base_url}settings/department_overview/";
+    $department->{field_label} = ucfirst($department_name);
+
+    template 'layouts/page_save_name_only' => {
+        page            => 'department',
+        item            => $department
+    };
+};
+
+any ['get', 'post'] => '/settings/team_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $team_name = lcfirst(var('site')->team_name);
+
+    if (my $delete_id = param('delete'))
+    {
+        my $team = schema->resultset('Team')->find($delete_id);
+
+        if (process( sub { $team->delete_team } ))
+        {
+            return forwardHome(
+                { success => "The $team_name has been deleted successfully" }, 'settings/team_overview/' );
+        }
+    }
+
+    template 'layouts/page_overview_name_only' => {
+        page               => 'team',
+        page_title         => "Manage ${team_name}s",
+        page_description   => "In this window you can list the ${team_name} that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
+        table_column_label => "Name",
+        item_type          => $team_name,
+        add_path           => "settings/team_add",
+        edit_path          => "settings/team_edit",
+        back_url           => "/settings/",
+        items              => [schema->resultset('Team')->ordered],
+    };
+};
+
+any ['get', 'post'] => '/settings/team_add/' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $team      = schema->resultset('Team')->new({});
+    my $team_name = lcfirst(var('site')->team_name);
+
+    if (body_parameters->get('submit'))
+    {
+        $team->name(body_parameters->get('name'));
+        if (process( sub { $team->insert_or_update } ))
+        {
+            return forwardHome(
+                { success => "The $team_name has been created successfully" }, 'settings/team_overview/' );
+        }
+    }
+
+    my $base_url = request->base;
+
+    $team->{type}        = $team_name;
+    $team->{description} = "In this window you can add a $team_name to assign to users.";
+    $team->{back_url}    = "${base_url}settings/team_overview/";
+    $team->{field_label} = ucfirst($team_name);
+
+    template 'layouts/page_save_name_only' => {
+        page            => 'team',
+        item            => $team
+    };
+};
+
+any ['get', 'post'] => '/settings/team_edit/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $id              = route_parameters->get('id');
+    my $team      = schema->resultset('Team')->find($id);
+    my $team_name = lcfirst(var('site')->team_name);
+
+    if (body_parameters->get('submit'))
+    {
+        $team->name(body_parameters->get('name'));
+        if (process( sub { $team->insert_or_update } ))
+        {
+            return forwardHome(
+                { success => "The $team_name has been updated successfully" }, 'settings/team_overview/' );
+        }
+    }
+
+    if (param('delete'))
+    {
+        if (process( sub { $team->delete_team } ))
+        {
+            return forwardHome(
+                { success => "The $team_name has been deleted successfully" }, 'settings/team_overview/' );
+        }
+    }
+
+    my $base_url = request->base;
+
+    $team->{type}        = $team_name;
+    $team->{description} = "In this window you can edit a ${team_name}. Changes will impact all users currently assigned if you delete or edit a value.";
+    $team->{back_url}    = "${base_url}settings/team_overview/";
+    $team->{field_label} = ucfirst($team_name);
+
+    template 'layouts/page_save_name_only' => {
+        page            => 'team',
+        item            => $team
+    };
+};
+
+any ['get', 'post'] => '/settings/audit/?' => require_role audit => sub {
+
+    my $audit = GADS::Audit->new(schema => schema);
+    my $users = GADS::Users->new(schema => schema, config => config);
+
+    if (param 'audit_filtering')
+    {
+        session 'audit_filtering' => {
+            method => param('method'),
+            type   => param('type'),
+            user   => param('user'),
+            from   => param('from'),
+            to     => param('to'),
+        }
+    }
+
+    $audit->filtering(session 'audit_filtering')
+        if session 'audit_filtering';
+
+    if (defined param 'download')
+    {
+        my $csv = $audit->csv;
+        my $now = DateTime->now();
+        my $header;
+        if ($header = config->{gads}->{header})
+        {
+            $csv       = "$header\n$csv" if $header;
+            $header    = "-$header" if $header;
+        }
+        # XXX Is this correct? We can't send native utf-8 without getting the error
+        # "Strings with code points over 0xFF may not be mapped into in-memory file handles".
+        # So, encode the string (e.g. "\x{100}"  becomes "\xc4\x80) and then send it,
+        # telling the browser it's utf-8
+        utf8::encode($csv);
+        return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
+    }
+
+    template 'admin/audit' => {
+        logs        => $audit->logs(session 'audit_filtering'),
+        users       => $users,
+        filtering   => $audit->filtering,
+        filter_user => $audit->filtering->{user} && schema->resultset('User')->find($audit->filtering->{user}),
+        audit_types => GADS::Audit::audit_types,
+        page        => 'audit',
+    };
 };
 
 get '/table/?' => require_login sub {
@@ -1069,9 +1329,6 @@ get '/table/?' => require_login sub {
         page        => 'table',
         instances   => [rset('Instance')->all],
         breadcrumbs => [Crumb( '/table' => 'tables' )],
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
     };
 };
 
@@ -1162,9 +1419,6 @@ any ['get', 'post'] => '/user_upload/' => require_any_role [qw/useradmin superad
         page            => 'user',
         groups          => GADS::Groups->new(schema => schema)->all,
         permissions     => $userso->permissions,
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
     };
 };
 
@@ -1216,9 +1470,6 @@ any ['get', 'post'] => '/user_export/?' => require_any_role [qw/useradmin supera
     template 'user/user_export' => {
         exports         => schema->resultset('Export')->user(logged_in_user->id),
         page            => 'user',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
     };
 };
 
@@ -1261,9 +1512,6 @@ any ['get', 'post'] => '/user_overview/' => require_any_role [qw/useradmin super
         },
         permissions     => $userso->permissions,
         page            => 'user',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
     };
 };
 
@@ -1298,10 +1546,7 @@ any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin super
             team_id       => $userso->teams,
         },
         permissions     => $userso->permissions,
-        page            => 'user',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
+        page            => 'user'
     };
 };
 
@@ -1368,11 +1613,8 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
             department_id => $userso->departments,
             team_id       => $userso->teams,
         },
-        permissions     => $userso->permissions,
-        page            => 'user',
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10',
+        permissions => $userso->permissions,
+        page        => 'user',
     };
     $output;
 };
@@ -1580,17 +1822,18 @@ get '/file/?' => require_login sub {
     forwardHome({ danger => "You do not have permission to manage files"}, '')
         unless logged_in_user->permission->{superadmin};
 
-    my @files = rset('Fileval')->independent->all;
+    my @files = rset('Fileval')->search({
+        is_independent => 1,
+    },{
+        order_by => 'me.id',
+    })->all;
 
     template 'files' => {
-        files           => [@files],
-        body_class      => 'page',
-        container_class => 'container-fluid',
-        main_class      => 'main col-lg-10'
+        files => [@files]
     };
 };
 
-any ['get', 'post'] => '/file/:id' => require_login sub {
+get '/file/:id' => require_login sub {
     my $id = param 'id';
 
     # Need to get file details first, to be able to populate
@@ -1616,13 +1859,6 @@ any ['get', 'post'] => '/file/:id' => require_login sub {
         $file->schema(schema);
     }
     else {
-        if (body_parameters->get('delete'))
-        {
-            error __"You do not have permission to delete files"
-                unless logged_in_user->permission->{superadmin};
-            $fileval->delete;
-            return 1;
-        }
         $file->schema(schema);
     }
     # Call content from the Datum::File object, which will ensure the user has
@@ -1635,6 +1871,19 @@ post '/file/?' => require_login sub {
 
     my $ajax           = defined param('ajax');
     my $is_independent = defined param('is_independent') ? 1 : 0;
+
+    if (my $delete_id = param('delete'))
+    {
+        error __"You do not have permission to delete files"
+            unless logged_in_user->permission->{superadmin};
+
+        my $fileval = schema->resultset('Fileval')->find($delete_id);
+
+        $fileval->delete;
+
+        return forwardHome(
+            { success => "The file has been deleted successfully" }, 'file/' );
+    }
 
     if (my $upload = upload('file'))
     {
@@ -1798,55 +2047,6 @@ get '/match/user/' => require_role audit => sub {
     content_type 'application/json';
     to_json [ rset('User')->match($query) ];
 };
-
-any ['get', 'post'] => '/audit/?' => require_role audit => sub {
-
-    my $audit = GADS::Audit->new(schema => schema);
-    my $users = GADS::Users->new(schema => schema, config => config);
-
-    if (param 'audit_filtering')
-    {
-        session 'audit_filtering' => {
-            method => param('method'),
-            type   => param('type'),
-            user   => param('user'),
-            from   => param('from'),
-            to     => param('to'),
-        }
-    }
-
-    $audit->filtering(session 'audit_filtering')
-        if session 'audit_filtering';
-
-    if (defined param 'download')
-    {
-        my $csv = $audit->csv;
-        my $now = DateTime->now();
-        my $header;
-        if ($header = config->{gads}->{header})
-        {
-            $csv       = "$header\n$csv" if $header;
-            $header    = "-$header" if $header;
-        }
-        # XXX Is this correct? We can't send native utf-8 without getting the error
-        # "Strings with code points over 0xFF may not be mapped into in-memory file handles".
-        # So, encode the string (e.g. "\x{100}"  becomes "\xc4\x80) and then send it,
-        # telling the browser it's utf-8
-        utf8::encode($csv);
-        return send_file( \$csv, content_type => 'text/csv; charset="utf-8"', filename => "$now$header.csv" );
-    }
-
-    template 'audit' => {
-        logs        => $audit->logs(session 'audit_filtering'),
-        users       => $users,
-        filtering   => $audit->filtering,
-        filter_user => $audit->filtering->{user} && schema->resultset('User')->find($audit->filtering->{user}),
-        audit_types => GADS::Audit::audit_types,
-        page        => 'audit',
-        breadcrumbs => [Crumb( "/audit" => 'audit logs' )],
-    };
-};
-
 
 get '/logout' => sub {
     app->destroy_session;
@@ -2028,9 +2228,6 @@ prefix '/:layout_name' => sub {
             dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
             page            => 'index',
             breadcrumbs     => [Crumb($layout)],
-            body_class      => 'page',
-            container_class => 'container-fluid',
-            main_class      => 'main col-lg-10',
         };
 
         if (my $download = param('download'))

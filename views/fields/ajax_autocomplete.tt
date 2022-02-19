@@ -1,35 +1,29 @@
 [%-
-  # Template for standardized input
+  # Template for standardized autocompletion input
   # Implementation Example:
   #
-  # INCLUDE fields/input.tt
-  #   id = "username"
-  #   name = "username"
-  #   value = user.name
-  #   label = "Email address"
-  #   placeholder = "name@example.com"
-  #   type = "email"
+  # INCLUDE fields/ajax_autocomplete.tt
+  #   id = "views_other_user_id"
+  #   name = "user"
+  #   value = filtering.user
+  #   display_value = filter_user.value
+  #   label = "Name"
+  #   placeholder = "Start typing..."
   #   custom_classes = ""
   #   input_class = "input--required"
   #   popover_body="this is a popover, that is displayed when the info icon is pressed"
   #   is_required = 0
-  #   filter = "html" | "html_entity" | ""
+  #   filter = "html"
   #   tabindex = 1
-  #   sub_field = "fields/sub/checkbox.tt"
-  #   sub_params = {
-  #     id => "remember"
-  #     name => "remember_me"
-  #     label => "Remember email address"
-  #     checked => username
-  #     tabindex => 2
-  #   };
+  #   sub_field = ""
+  #   sub_params = {};
 
   input_class = is_required AND ! input_class.match('input--required') ? input_class _ ' input--required' : input_class;
 -%]
 [% IF ! hide_group %]
-<div class="form-group">
+<div class="form-group ">
 [% END %]
-  <div class="input [% input_class %]">
+  <div class="input  input--autocomplete typeahead__container [% input_class %]">
     <div class="input__label">
       <label for="[% id %]">
         [% INCLUDE fields/sub/filter.tt value=label; %]
@@ -42,23 +36,24 @@
     </p>
     [% END %]
     <div class="input__field">
+      <input type="hidden" id="[% id %]" name="[% name %]" value="[% value %]">
+      
       <input
-        type="[% type %]"
+        type="text"
         class="form-control [% custom_classes %]"
-        id="[% id %]"
-        name="[% name %]"
+        id="[% id %]_typeahead"
+        name="[% name %]_typeahead"
         placeholder="[% INCLUDE fields/sub/filter.tt value=placeholder; %]"
-        value="[% INCLUDE fields/sub/filter.tt; %]"[% IF tabindex %]
+        value="[% INCLUDE fields/sub/filter.tt value=display_value; %]"
+        autocomplete="off"[% IF tabindex %]
         tabindex="[% tabindex %]"[% END %][% IF help_text %]
-        aria-describedby="[% id %]-help"[% END %][% IF autofocus %]
-        autofocus[% END %][% IF is_disabled %]
-        disabled[% END %][% IF is_required %]
-        required
-        aria-required="true"[% END %]
+        aria-describedby="[% id %]-help"[% END %]
       >
+    
     </div>
   </div>
+  
   [% INCLUDE snippets/subfield.tt %]
-[% IF ! hide_group %]
+  [% IF ! hide_group %]
 </div>
 [% END %]
