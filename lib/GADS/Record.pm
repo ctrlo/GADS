@@ -2691,6 +2691,15 @@ sub purge_current
             records => $recs;
     }
 
+    if (my @recs = $self->schema->resultset('Current')->search({
+        'me.parent_id' => $id,
+    })->all)
+    {
+        my $recs = join ', ', map $_->id, @recs;
+        error __x"The following child records have this record as their parent. Please delete this first: {records}",
+            records => $recs;
+    }
+
     $self->schema->resultset('FilteredValue')->search({
         current_id => $id,
     })->delete;

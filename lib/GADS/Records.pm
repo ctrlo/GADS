@@ -775,7 +775,7 @@ sub _build__search_all_fields
         }
         my @currents = $self->schema->resultset('Current')->search({ -and => \@search},{
             join => $joins,
-            rows => 501, # Ensure that we know whether we've exceeded 500 limit
+            rows => 1001, # Ensure that we know whether we've exceeded 1000 limit
         })->all;
 
         foreach my $current (@currents)
@@ -802,17 +802,17 @@ sub _build__search_all_fields
             }
         }
 
-        last if keys %found > 500;
+        last if keys %found > 1000;
     }
 
-    # Limit to maximum of 500 results, otherwise the stack limit is exceeded
+    # Limit to maximum of 1000 results, otherwise the stack limit is exceeded
     my @cids = keys %found;
     my $count = @cids;
     my $limit;
-    if ($count > 500)
+    if ($count > 1000)
     {
-        @cids  = @cids[0 .. 499];
-        $limit = 500;
+        @cids  = @cids[0 .. 999];
+        $limit = 1000;
     }
 
     +{

@@ -2477,6 +2477,7 @@ prefix '/:layout_name' => sub {
                 is_deleted          => 1,
                 layout              => $layout,
                 schema              => schema,
+                include_children    => 1,
                 view_limit_extra_id => undef, # Override any value that may be set
             );
             if (param 'purge')
@@ -2499,6 +2500,7 @@ prefix '/:layout_name' => sub {
             is_deleted          => 1,
             layout              => $layout,
             schema              => schema,
+            include_children    => 1,
             view_limit_extra_id => undef, # Override any value that may be set
         );
 
