@@ -731,7 +731,7 @@ sub _find
 
     # If deleted, make sure user has access to purged records
     error __"You do not have access to this deleted record"
-        if $find{deleted} && !$self->layout->user_can("purge");
+        if $find{deleted} && !$self->layout->user_can("purge") && !$GADS::Schema::IGNORE_PERMISSIONS;
 
     my %params = (
         curcommon_all_fields => $self->curcommon_all_fields,
