@@ -1328,7 +1328,7 @@ get '/file/?' => require_login sub {
     forwardHome({ danger => "You do not have permission to manage files"}, '')
         unless logged_in_user->permission->{superadmin};
 
-    my @files = rset('Fileval')->is_indepedent->all;
+    my @files = rset('Fileval')->independent->all;
 
     template 'files' => {
         files       => [@files],
