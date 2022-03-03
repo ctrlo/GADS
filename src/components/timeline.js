@@ -27,185 +27,28 @@ function lightOrDark(color) {
 }
 
 /**
- * this retrieves the css value of a property in pixels from a supplied html node, as an integer
+ * this function retrieves the css value of a property in pixels from a supplied html node, as an integer
  *
  * @param {*} node
  * @param {string} property
  * @returns {number}
  */
-function getCssPxValue(node, property) {
+function getCssPxValue(node, property = 'height') {
   if (!node || !node.length) {
     return 0;
   }
 
-  property = !property ? "height" : property;
-  const value = node.css(property);
-
-  return value ? parseInt(value.replace("px"), 10) : 0;
-}
-
-/**
- * this function adds pixels to the css value of a property for a supplied html node.
- *
- * @param {*} node
- * @param {number} addPx
- * @param {string} property
- * @returns {void}
- */
-function addCssPxValue(node, addPx, property) {
-  if (!node || !node.length) {
-    return;
-  }
-
-  property = !property ? "height" : property;
-  addPx = !addPx ? 0 : parseInt(addPx, 10);
-  const currentValue = getCssPxValue(node, property);
-  const newValue = currentValue + addPx;
-
-  node.css(property, newValue + "px");
-}
-
-/**
- * .vis-timeline's height cant be changed due to a redraw event that triggers when it is modified.
- * this is a workaround that corrects the print view styling so the PDF looks decent and all
- * elements are in the right place with the right size.
- *
- * @param {*} lastGroup
- * @returns {void}
- */
-function correctPrintPositioningAndStyling(lastGroup) {
-  const timeline = $(".vis-timeline");
-  const topRuler = $(".vis-panel.vis-top");
-  const bottomRuler = $(".vis-panel.vis-bottom");
-  const leftBar = $(".vis-panel.vis-left");
-  const centerContent = $(".vis-panel.vis-center");
-  const groupContainer = $(".vis-itemset");
-  const backgrounds = $(".vis-panel.vis-background");
-  const monthLabels = $(".vis-panel.vis-bottom .vis-text.vis-minor");
-  const yearLabels = $(".vis-panel.vis-bottom .vis-text.vis-major");
-
-  // change CSS to compensate for timeline that can't be stretched.
-  // styling will be slightly different, but uniform.
-  timeline.css("overflow-x", "visible");
-  timeline.css("overflow-y", "visible");
-  timeline.css("border", "none");
-  topRuler.css("border-top", "1px solid #c7c7c7");
-  bottomRuler.css("border-bottom", "1px solid #c7c7c7");
-  leftBar.css("border-left", "1px solid #c7c7c7");
-  monthLabels.css("border-left", "1px solid #c7c7c7");
-  yearLabels.css("border-left", "1px solid #c7c7c7");
-
-  // calculate how much the items should be repositioned based of the last item row's
-  // position (top + pixelsToNextRowTop). the offset is calculated towards the top
-  // of the bottom ruler
-  const lastItemRowIndex = Object.keys(lastGroup.itemRows).length - 1;
-  const lastItemRowKey = Object.keys(lastGroup.itemRows)[lastItemRowIndex];
-  const lastItemRowFirstItem = lastGroup.itemRows[lastItemRowKey][0];
-  const lastItemRowOffsetTop = Math.floor(lastItemRowFirstItem.offset().top);
-  const bottomRulerOffset = Math.floor(bottomRuler.offset().top);
-  const currentOffset = bottomRulerOffset - lastItemRowOffsetTop;
-  const correctOffsetWith = lastGroup.meta.pixelsToNextRowTop - currentOffset;
-
-  addCssPxValue(centerContent, correctOffsetWith, "height");
-  addCssPxValue(leftBar, correctOffsetWith, "height");
-  addCssPxValue(groupContainer, correctOffsetWith, "height");
-  addCssPxValue(backgrounds, correctOffsetWith, "height");
-  addCssPxValue(bottomRuler, correctOffsetWith, "top");
-}
-
-/**
- * function corrects all vis.item nodes in a .vis-group node to the correct positioning and corrects the
- * group and label height to match the new positioning settings.
- *
- * @param {*} group
- * @param {number} zoomLevel
- * @returns {number}
- */
-function correctPrintVisGroup(group, zoomLevel) {
-  if (!group || !group.itemRows || group.itemRows === {} || !group.meta) {
+  try {
+    const value = node.css(property);
+    return value ? parseFloat(parseFloat(value.replace('px')).toFixed(4)) : 0;
+  } catch(e) {
+    console.error('fatal error', e);
     return 0;
   }
-
-  // A3 with 0.5cm margins = 19 + 1085 + 19 pixels, margins are skipped as they should not contain content.
-  // const defaultZoomLevel = 1;
-  // zoomLevel = zoomLevel > 0 ? zoomLevel : defaultZoomLevel;
-  const defaultPixelsPerPage = 1085;
-  // const zoomFactor = defaultZoomLevel + (defaultZoomLevel - zoomLevel);
-  const zoomFactor = Math.sqrt(zoomLevel);
-  const pixelsPerPage = defaultPixelsPerPage * zoomFactor;
-  // const pixelsPerPage = 1085;
-  const firstItemNode = group.itemRows[group.meta.itemRowKeys[0]][0];
-  let remainingPixelsOnPage =
-    pixelsPerPage - (Math.floor(firstItemNode.offset().top) % pixelsPerPage);
-  let currentTop = group.meta.containerMargin;
-
-  // loop through item row keys instead of itemRows, because the keys are sorted numerically ascending.
-  // this order is not guaranteed for itemRows.
-  $.each(group.meta.itemRowKeys, function(i, rowKey) {
-    const wouldBeOnNewPage =
-      remainingPixelsOnPage -
-      group.meta.itemHeight -
-      group.meta.containerMargin;
-
-    $.each(group.itemRows[rowKey], function(itemKey, item) {
-      item
-        .find(".timeline-tippy")
-        .html(
-            // wouldBeOnNewPage +
-            // " || " +
-            // group.top +
-            // " || " +
-            // group.meta.pixelsToNextRowTop +
-            // " || " +
-            // group.meta.itemHeight +
-            // " || " +
-            // group.meta.containerMargin +
-            // " || " +
-            // pixelsPerPage +
-            // " || " +
-            // zoomLevel +
-            // " || " +
-            // zoomFactor
-        );
-    });
-
-    // reset remaining pixels on page, and update the next row top parameter so that it falls on the next page
-    if (wouldBeOnNewPage <= 0) {
-      currentTop += remainingPixelsOnPage + group.meta.containerMargin;
-      remainingPixelsOnPage = pixelsPerPage - group.meta.containerMargin;
-    }
-
-    $.each(group.itemRows[rowKey], function(itemKey, item) {
-      item.css("top", currentTop + "px");
-
-      const currDebug = item.find(".timeline-tippy").html();
-
-      item.find(".timeline-tippy").html(currDebug + " || " + currentTop);
-    });
-
-    currentTop += group.meta.pixelsToNextRowTop;
-    remainingPixelsOnPage -= group.meta.pixelsToNextRowTop;
-  });
-
-  currentTop += group.meta.containerMargin;
-
-  group.node.css("height", currentTop + "px");
-
-  // label is nog automatically stretched in the row, but styled separately.
-  if (group.label && group.label.node) {
-    group.label.node.css("height", currentTop + "px");
-  }
-
-  // the background group needs to stretch with the foreground group, as it doesnt automatically stretch.
-  if (group.backgroundGroup && group.backgroundGroup.node) {
-    group.backgroundGroup.node.css("height", currentTop + "px");
-  }
-
-  return currentTop;
 }
 
 /**
- * This function finds and returms the label belonging to a .vis-group
+ * This function finds and returns the label belonging to a .vis-group
  *
  * @param {number} groupTop
  * @returns {null|{node: *|null, text: string}}
@@ -233,57 +76,22 @@ function getVisGroupLabelNode(groupTop) {
 }
 
 /**
- * This function finds and returms the background group belonging to a .vis-group in the foreground based on the similar
- * height value
- *
- * @param {number} groupHeight
- * @returns {null|{node: *|null}}
+ * This function uses the CSS transform value of a VisJS object to determine the X and/or Y coordinate offset of
+ * @param obj
+ * @returns {{x: number, y: number}}
  */
-function getVisBackgroundGroup(groupHeight) {
-  const backgroundGroups = $(
-    ".vis-content .vis-itemset .vis-background .vis-group"
-  );
-  let backgroundGroup = null;
+function getCssTransformCoordinates(obj) {
+  const transformMatrix = obj.css("-webkit-transform") ||
+      obj.css("-moz-transform")    ||
+      obj.css("-ms-transform")     ||
+      obj.css("-o-transform")      ||
+      obj.css("transform");
 
-  backgroundGroups.each(function() {
-    if (getCssPxValue($(this), "height") === groupHeight) {
-      backgroundGroup = $(this);
-    }
-  });
+  const matrix = transformMatrix.replace(/[^0-9\-.,]/g, '').split(',');
+  const x      = matrix[12] || matrix[4]; //translate x
+  const y      = matrix[13] || matrix[5]; //translate y
 
-  return !backgroundGroup
-    ? null
-    : {
-        node: backgroundGroup
-      };
-}
-
-/**
- * function calculates the start top pixels of the first row and the space that
- * each row takes.
- *
- * @param {*} itemRows
- * @returns {{containerMargin: number, itemRowKeys: string[], pixelsToNextRowTop: number, itemHeight: number}|null}
- */
-function getItemRowsMeta(itemRows) {
-  if (!itemRows || itemRows === {}) {
-    return null;
-  }
-
-  const topKeys = Object.keys(itemRows);
-
-  if (topKeys.length <= 1) {
-    return null;
-  }
-
-  topKeys.sort((a, b) => a - b);
-
-  return {
-    containerMargin: parseInt(topKeys[0]),
-    pixelsToNextRowTop: parseInt(topKeys[1] - topKeys[0], 10),
-    itemHeight: Math.ceil(itemRows[topKeys[0]][0].height(), 10),
-    itemRowKeys: topKeys
-  };
+  return {x: parseFloat(x), y: parseFloat(y)};
 }
 
 /**
@@ -294,17 +102,35 @@ function getItemRowsMeta(itemRows) {
  * @returns {*}
  */
 function getVisItemRowsInGroup(group) {
-  const itemRows = {};
-  const items = group.find(".vis-item:visible");
+  let itemRows  = [];
+  let itemCache = {};
+  let topCache  = [];
+  const items  = group.find(".vis-item:visible");
 
   items.each(function() {
-    const top = getCssPxValue($(this), "top");
+    const top         = getCssPxValue($(this), "top");
+    const coordinates = getCssTransformCoordinates($(this));
 
-    if (!itemRows[top]) {
-      itemRows[top] = [];
+    if($.inArray(top, topCache) === -1) {
+      topCache.push(top);
     }
 
-    itemRows[top].push($(this));
+    if (!itemCache[top]) {
+      itemCache[top] = [];
+    }
+
+    itemCache[top].push({
+      node: $(this),
+      label: $(this).find(".timeline-tippy").html().trim(),
+      width: getCssPxValue($(this), 'width'),
+      x: coordinates.x,
+      y: coordinates.y,
+    });
+  });
+
+  topCache.sort(function(a, b) { return a > b ? 1 : -1 });
+  $.each(topCache, function(index, top) {
+    itemRows.push(itemCache[top]);
   });
 
   return itemRows;
@@ -317,11 +143,11 @@ function getVisItemRowsInGroup(group) {
  * and sorted by row.
  *
  * @param {*} group
- * @returns {{backgroundGroup: *, node, itemRows: *, top, meta: *, label: *, height: (number|number)}}
+ * @returns {{backgroundGroup: *, node, itemRows: *, top, label: *, height: (number|number)}}
  */
-function getVisForegroundGroup(group) {
-  const top = Math.floor(group.offset().top);
-  const height = getCssPxValue(group, "height");
+function getVisGroup(group) {
+  const top      = Math.floor(group.offset().top);
+  const height   = getCssPxValue(group, "height");
   const itemRows = getVisItemRowsInGroup(group);
 
   return {
@@ -329,9 +155,7 @@ function getVisForegroundGroup(group) {
     top: top,
     height: height,
     label: getVisGroupLabelNode(top),
-    backgroundGroup: getVisBackgroundGroup(group),
-    itemRows: itemRows,
-    meta: getItemRowsMeta(itemRows)
+    itemRows: itemRows
   };
 }
 
@@ -340,52 +164,306 @@ function getVisForegroundGroup(group) {
  *
  * @returns {*}
  */
-function getFormattedVisGroups() {
-  const groups = $(".vis-foreground .vis-group:visible");
-  const formattedGroups = {};
+function getVisGroups() {
+  const groups    = $(".vis-foreground .vis-group:visible");
+  const visGroups = {};
 
   if (!groups || groups.length === 0) {
-    return formattedGroups;
+    return visGroups;
   }
 
   groups.each(function() {
     if ($(this).html()) {
-      const group = getVisForegroundGroup($(this));
+      const group = getVisGroup($(this));
 
-      formattedGroups[group.top] = group;
+      visGroups[group.top] = group;
     }
   });
 
-  return formattedGroups;
+  return visGroups;
 }
 
 /**
- * this function corrects the printed bars of the timeline to prevent them from running
- * across two pages during PDF printing.
+ * this function reads the data objects of the VisJS timeline, to send to the PDF printer.
+ * This solution has been added to address the issue where printing the VisJS HTML through
+ * headless chrome in the backend, caused timeline items to collide when they fell over the
+ * end of a page.
  *
- * @param {number} zoomLevel
+ * see: https://brass.ctrlo.com/issue/805
  */
-function correctPrintView(zoomLevel) {
-  $(document).ready(function() {
-    // timeline item potistions (.vis-item) are calculated per group (.vis-group),
-    // positioned absolute from the top of the group. The group is dynamic in height,
-    // so we need to re-calculate the space on the printable page per group from the top.
-    const formattedGroups = getFormattedVisGroups();
+function parseTimelineForPdfPrinting() {
+    // timeline item positions (.vis-item) are calculated per group (.vis-group),
+    // positioned absolute from the top of the group. The group is dynamic in height.
+    const visGroups = getVisGroups();
 
-    if (formattedGroups !== {}) {
-      let lastGroup = null;
-
-      $.each(formattedGroups, function(index, group) {
-        correctPrintVisGroup(group, zoomLevel);
-        lastGroup = group;
-      });
-
-      // .vis-timeline's height cant be changed due to a redraw event that triggers when it is modified.
-      // this is a workaround that corrects the print view styling so the PDF looks decent and all
-      // elements are in the right place with the right size.
-      correctPrintPositioningAndStyling(lastGroup);
+    if (visGroups !== {}) {
+      parseVisGroups(visGroups);
     }
+}
+
+/**
+ * This function returns an object property based on its key index
+ * @param obj
+ * @param key
+ * @returns mixed
+ */
+function getObjectPropertyByOrderKey(obj, key = 0) {
+  return obj[Object.keys(obj)[key]] || null;
+}
+
+/**
+ * This function returns the first property value of an object, similar to jquery .first()
+ * @param obj
+ */
+function getFirst(obj) {
+  return getObjectPropertyByOrderKey(obj, 0);
+}
+
+/**
+ * This function converts the item rows of a group to the JSON format used by the PDF printer.
+ * @param itemRow
+ * @returns {string}
+ */
+function renderGroupRowItemsJson(itemRow) {
+  let itemsJson = '';
+
+  $.each(itemRow, function(index, item) {
+    itemsJson +=
+        (itemsJson === '' ? '' : ',') +
+        '{x: ' + item.x + ', width: ' + item.width + ', text: "' + item.label.trim() + '"}'
   });
+
+  return itemsJson;
+}
+
+/**
+ * This function converts a row of a group to the JSON format used by the PDF printer.
+ * @param itemRows
+ * @returns {string}
+ */
+function renderGroupRowsJson(itemRows) {
+  let itemRowsJson = '';
+
+  $.each(itemRows, function(index, itemRow) {
+    itemRowsJson +=
+        (itemRowsJson === '' ? '' : ',') +
+        '{items: [' + renderGroupRowItemsJson(itemRow) + ']}'
+  });
+
+  return itemRowsJson;
+}
+
+/**
+ * This function converts a group to the JSON format used by the PDF printer.
+ * @param visGroups
+ * @returns {string}
+ */
+function renderGroupsJson(visGroups) {
+  let groupsJson = '';
+
+  $.each(visGroups, function(index, visGroup) {
+    groupsJson +=
+        (groupsJson === '' ? '' : ',') +
+        '{label: "'+ visGroup.label.text +'", rows: [' + renderGroupRowsJson(visGroup.itemRows)+ ']}';
+  });
+
+  return 'groups: [' + groupsJson + ']';
+}
+
+/**
+ * This function converts all vis-minor nodes on the top X axis of the timeline to the JSON format used by the
+ * PDF printer. When fromX and/or toX is provided, only the nodes in between those X values will be returned.
+ * When the first vis-major node is processed, fromX is suspended. This is done because the first node can
+ * contain labels that start before the fromX position.
+ * @param xAxis
+ * @param fromX
+ * @param toX
+ * @param firstMajor
+ * @returns {string}
+ */
+function renderXAxisMinorsJson(xAxis, fromX = false, toX = false, firstMajor = true) {
+  const minorObjects   = xAxis.find('.vis-text.vis-minor:not(.vis-measure)');
+  let minorsObjectJson = '';
+
+  if(toX !== false) {
+    toX = toX - 1;
+  }
+
+  $.each(minorObjects, function() {
+    const minor       = $(this);
+    const coordinates = getCssTransformCoordinates(minor);
+
+    // skip minor labels that do not belong to the current major label when the start and end X position of the major
+    // label is provided
+    if(fromX !== false) {
+      // first major label can have a partial first minor label that is on a lower X position than the major label
+      if(firstMajor && toX !== false && coordinates.x >= toX) {
+        return true;
+      }
+      else if(! firstMajor && (coordinates.x < fromX || (toX !== false && coordinates.x >= toX))) {
+        return true;
+      }
+    }
+
+    const minorWidth = getCssPxValue(minor, 'width');
+    const minorText  = minor.html();
+
+    minorsObjectJson  +=
+        (minorsObjectJson === '' ? '' : ',') +
+        '{x: '+ coordinates.x +', width: ' + minorWidth + ', text: "' + minorText + '"}';
+  });
+
+  return '[' + minorsObjectJson + ']';
+}
+
+/**
+ * This function gathers and orders the major nodes of the VisJS timeline so that they are
+ * returned in chronological order.
+ * @param xAxis
+ * @returns {*[]}
+ */
+function getOrderedMajors(xAxis) {
+  const majorObjects = xAxis.find('.vis-text.vis-major:not(.vis-measure)');
+  let orderedObjects = [];
+
+  majorObjects.each(function(){
+    orderedObjects.push({
+      node: $(this),
+      x: getCssTransformCoordinates($(this)).x,
+      x_end: false
+    });
+  });
+
+  orderedObjects.sort(function(a, b) { return a.x > b.x ? 1 : -1 });
+  orderedObjects.reverse();
+
+  let prevX = false;
+
+  $(orderedObjects).each(function(index, value) {
+    orderedObjects[index].x_end = prevX;
+    prevX = orderedObjects[index].x;
+  });
+
+  orderedObjects.reverse();
+
+  return orderedObjects;
+}
+
+/**
+ * This function converts all vis-major nodes on the top X axis of the timeline to the JSON format used by the PDF printer.
+ * @param xAxis
+ * @returns {string}
+ */
+function renderXAxisMajorsJson(xAxis) {
+  const majorObjects   = getOrderedMajors(xAxis);
+  let majorsObjectJson = '';
+
+  if(majorObjects && majorObjects.length) {
+    $.each(majorObjects, function(index, majorObject) {
+      const majorText  = majorObject.node.find('div').first().html();
+      const minorsJson = renderXAxisMinorsJson(xAxis, majorObject.x, majorObject.x_end, index === 0);
+      majorsObjectJson +=
+          (majorsObjectJson === '' ? '' : ',') +
+          '{text: "'+majorText+'", x: ' + majorObject.x + ', minor: ' + minorsJson + '}';
+    });
+  }
+  else {
+    majorsObjectJson += '{text: "", x: ' + majorObject.x + ', minor: ' + renderXAxisMinorsJson(xAxis) + '}';
+  }
+
+  return '[' + majorsObjectJson + ']';
+}
+
+/**
+ * This function converts all information on the X Axis of the VisJS timeline to the JSON format used by the PDF printer.
+ * @param xAxis
+ * @returns {string}
+ */
+function renderXAxisJson(xAxis) {
+  const firstXAxisMinor      = xAxis.find('.vis-text.vis-minor:not(.vis-measure)').first();
+  const firstXAxisCorrection = getCssTransformCoordinates(firstXAxisMinor).x;
+
+  return 'xAxis: {' +
+      'height: tableXAxisBarHeight,' +
+      'x: '+firstXAxisCorrection+',' +
+      'major: ' + renderXAxisMajorsJson(xAxis) +
+    '}';
+}
+
+function parseVisGroups(visGroups) {
+  const targetField      = $('#html').first();
+  const timeline         = $('.vis-timeline').first();
+  const xAxis            = $(".vis-time-axis.vis-foreground").first();
+  const yAxis            = $(".vis-panel.vis-left").first();
+  const firstXAxisMinor  = xAxis.find('.vis-text.vis-minor:not(.vis-measure)').first();
+  const firstGroup       = getFirst(visGroups) || false;
+  const firstRow         = firstGroup ? getFirst(firstGroup.itemRows) : false;
+  const firstItem        = firstRow && firstRow[0] && firstRow[0].node ? firstRow[0].node : false;
+  const firstItemContent = firstItem ? firstItem.find('.vis-item-content').first() : false;
+  const firstYAxisLabel  = $(".vis-label:visible").first();
+  const currentTime      = $(".vis-current-time");
+  const showYAxisBar     = getCssPxValue(firstYAxisLabel, 'width') > 0 ? 'true' : 'false';
+  const canvasWidth      = getCssPxValue(timeline, 'width');
+  const fitToPageWidth   = $('#fit_to_page_width').prop('checked');
+  const zoomLevel        = parseInt($('#pdf_zoom').val(), 10);
+
+  const urlJS                = targetField.data('url-js');
+  const urlCSS               = targetField.data('url-css');
+  const pageWidth            = 1550; // A3 width
+  const zoomFactor           = zoomLevel / 100 > 0 ? zoomLevel / 100 : 1;
+  const pageWidthFactor      = fitToPageWidth && pageWidth / canvasWidth > 0 ? pageWidth / canvasWidth : 1;
+  const pageScaleFactor      = fitToPageWidth ? pageWidthFactor : zoomFactor;
+  const fontSize             = getCssPxValue(firstItem, 'font-size');
+  const lineHeight           = getCssPxValue(firstItem, 'line-height');
+  const tableXAxisBarHeight  = getCssPxValue(xAxis, "height");
+  const tableYAxisBarWidth   = getCssPxValue(yAxis, "width");
+  const borderSize           = getCssPxValue(firstItem, 'border-top-width');
+  const padding              = getCssPxValue(firstItemContent, 'padding-top');
+  const xAxisPadding         = getCssPxValue(firstXAxisMinor, 'padding-top');
+  const currentTimeX         = currentTime.length ? getCssTransformCoordinates(currentTime.first()).x : -1;
+  const pageData             = '{' + renderXAxisJson(xAxis) + ',' + renderGroupsJson(visGroups) + '}';
+
+  $('input#html').val(`<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Data</title>
+    <script type="application/javascript" src="${urlJS}/jquery-3.5.1.min.js"></script>
+    <script type="application/javascript" src="${urlJS}/pdf_printer.js"></script>
+    <link rel="stylesheet" type="text/css" href="${urlCSS}/pdf_printer.css">
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans">
+  </head>
+  <body>
+    <script type="application/javascript">
+      const pagePrefix = "page_";
+      const pageHeight = 1086;
+      const pageWidth = 1550;
+      const pageScaleFactor = ${pageScaleFactor};
+      const backgroundColor = "#fff";
+      const foregroundColor = "#333";
+      const xAxisMinorColor = "#ccc";
+      const xAxisTextColor = "#4d4d4d";
+      const currentTimeColor = "#ff7f6e";
+      const font = "Open Sans";
+      const fontSize = ${fontSize} * pageScaleFactor;
+      const lineHeight = ${lineHeight} * pageScaleFactor;
+      const tableXAxisBarHeight = ${tableXAxisBarHeight} * pageScaleFactor;
+      const showYAxisBar = ${showYAxisBar};
+      const tableYAxisBarWidth = showYAxisBar ? ${tableYAxisBarWidth} * pageScaleFactor : 0;
+      const borderSize = ${borderSize} * pageScaleFactor;
+      const padding = ${padding} * pageScaleFactor;
+      const xAxisPadding = ${xAxisPadding} * pageScaleFactor;
+      const currentTimeX = ${currentTimeX} * pageScaleFactor + tableYAxisBarWidth;
+      const pageData = ${pageData};
+      let pageNumber = 0;
+      let currentHeight = 0;
+      let canvas = null;
+      let context = null;
+
+      drawTimelinePdf();
+    </script>
+  </body>
+</html>`);
 }
 
 // If the perceived background color is dark, switch the font color to white.
@@ -665,14 +743,35 @@ const setupTimeline = function(container, options_in) {
   return tl;
 };
 
-// detect print view for PDF, then correct node placement of VisJS to
-// avoid bars stretching over page breaks
-// const urlStr = $(location).attr("href") || "";
-const queryString = window.location.search;
-const urlParams = new URLSearchParams(queryString);
+// timeline PDF printer actions
+$(document).ready(function() {
+  const printModal = $("#modal_pdf");
 
-if (urlParams.has("pdf")) {
-  correctPrintView(urlParams.get("pdf_zoom"));
-}
+  if (printModal.length) {
+    const printForm = printModal.find('form').first();
+    const fitToPageField = $('#fit_to_page_width').first();
+    const zoomField      = $('#pdf_zoom').first();
+
+    // add toggle settings for zoom and fit to page functions. You can either zoom, or make the timeline fit to the
+    // width of the page, but not both at the same time.
+    fitToPageField.change(function() {
+      if($(this).is(":checked")) {
+        zoomField.data('original-value', zoomField.val());
+        zoomField.val(100);
+        zoomField.prop('disabled', true);
+      } else {
+        const originalFieldValue =  parseInt(zoomField.data('original-value'), 10);
+        zoomField.val(originalFieldValue > 0 ? originalFieldValue : 100);
+        zoomField.prop('disabled', false);
+      }
+    });
+
+    // when the printing modal is submitted, scan the current timeline's structure, to send it to the PDF printer
+    printForm.submit(function() {
+      parseTimelineForPdfPrinting();
+      return true;
+    });
+  }
+});
 
 export { setupTimeline };

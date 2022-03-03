@@ -1650,11 +1650,10 @@ get '/invalidsite' => sub {
 };
 
 post '/print' => require_login sub {
-
     my $html = body_parameters->get('html')
         or error __"Missing body parameter: html";
 
-    my $pdf = _page_as_mech(undef, undef, html => $html)->content_as_pdf(
+    my $pdf  = _page_as_mech(undef, undef, html => $html)->content_as_pdf(
         paperWidth => 16.5, paperHeight => 11.7 # A3 landscape
     );
     return send_file(
@@ -1663,7 +1662,7 @@ post '/print' => require_login sub {
     );
 };
 
-prefix '/:layout_name' => sub {
+prefix '/:layout_name' => sub {data_calendar
 
     get '/?' => require_login sub {
         my $layout = var('layout') or pass;
