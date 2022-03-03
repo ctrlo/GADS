@@ -1662,7 +1662,7 @@ post '/print' => require_login sub {
     );
 };
 
-prefix '/:layout_name' => sub {
+prefix '/:layout_name' => sub {data_calendar
 
     get '/?' => require_login sub {
         my $layout = var('layout') or pass;
