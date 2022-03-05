@@ -1,0 +1,15 @@
+# Enable proper diffs of minified linkspace.js
+# See https://scripter.co/git-diff-minified-js-and-css/
+# To use:
+# npm install --global js-beautify
+#
+# Add to ~/.gitconfig
+# [diff "minjs"]
+#     textconv = js-beautify
+#     cachetextconv = true
+# [ diff "mincss"]
+#     textconv = js-beautify --css
+#     cachetextconv = true
+
+# May want to add other files later
+*linkspace.js diff=minjs

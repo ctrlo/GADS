@@ -127,8 +127,11 @@ config->{plugins}->{'Auth::Extensible'}->{realms}->{dbic}->{user_as_object}
 
 # Make sure that internal columns have been populated in tables (new feature at
 # time of writing)
-my $instances = GADS::Instances->new(schema => schema, user => undef, user_permission_override => 1);
-$_->create_internal_columns foreach @{$instances->all};
+{
+    local $GADS::Schema::IGNORE_PERMISSIONS = 1;
+    my $instances = GADS::Instances->new(schema => schema, user => undef);
+    $_->create_internal_columns foreach @{$instances->all};
+}
 
 my $password_generator = CtrlO::Crypt::XkcdPassword->new;
 
@@ -1822,7 +1825,7 @@ get '/file/?' => require_login sub {
     forwardHome({ danger => "You do not have permission to manage files"}, '')
         unless logged_in_user->permission->{superadmin};
 
-    my @files = rset('Fileval')->is_indepedent->all;
+    my @files = rset('Fileval')->independent->all;
 
     template 'files' => {
         files => [@files]
