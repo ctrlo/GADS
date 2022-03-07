@@ -454,6 +454,7 @@ function parseVisGroups(visGroups) {
       const padding = ${padding} * pageScaleFactor;
       const xAxisPadding = ${xAxisPadding} * pageScaleFactor;
       const currentTimeX = ${currentTimeX} * pageScaleFactor + tableYAxisBarWidth;
+      const currentTimeThickness = 2 * pageScaleFactor;
       const pageData = ${pageData};
       let pageNumber = 0;
       let currentHeight = 0;

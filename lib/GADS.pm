@@ -1662,7 +1662,7 @@ post '/print' => require_login sub {
     );
 };
 
-prefix '/:layout_name' => sub {data_calendar
+prefix '/:layout_name' => sub {
 
     get '/?' => require_login sub {
         my $layout = var('layout') or pass;
@@ -3707,6 +3707,7 @@ sub _random_pw
 {   $password_generator->xkcd( words => 3, digits => 2 );
 }
 
+# check if PDF printing still needs this sub
 sub _page_as_mech
 {   my ($template, $params, %options) = @_;
     $params->{scheme}       = 'http';
@@ -3714,7 +3715,6 @@ sub _page_as_mech
     $params->{base}         = "file://$public/";
     $params->{page_as_mech} = 1;
     $params->{zoom}         = ($options{zoom} ? int($options{zoom}) : 100) / 100;
-    my $pdf_zoom            = $params->{zoom};
     my $timeline_html       = $options{html} || template $template, $params;
     my ($fh, $filename)     = tempfile(SUFFIX => '.html');
     print $fh $timeline_html;
@@ -3735,7 +3735,7 @@ sub _page_as_mech
         # Pixels as per https://www.unitconverters.net/typography/centimeter-to-pixel-x.htm
         # 1085 x 1550
         $mech->viewport_size({ width => 1550, height => 1085 });
-        $mech->get_local("${filename}?pdf=1&pdf_zoom=${pdf_zoom}");
+        $mech->get_local("${filename}?pdf=1");
     }
     else
     {

@@ -1,6 +1,6 @@
 /**
  * Get end of item row Y coordinate. This includes padding to next row.
- * @returns int
+ * @returns {int}
  */
 function getCurrentRowTopY() {
     return currentHeight + padding + borderSize;
@@ -8,7 +8,8 @@ function getCurrentRowTopY() {
 
 /**
  * Get the height of the row, This includes padding to next row.
- * @returns int
+ * @param {boolean} includeNextRowPadding
+ * @returns {int}
  */
 function getRowYOffset(includeNextRowPadding = true) {
     return lineHeight + (padding * 2) + (borderSize * 2) + (includeNextRowPadding ? padding * 2 : 0);
@@ -16,7 +17,7 @@ function getRowYOffset(includeNextRowPadding = true) {
 
 /**
  * Get end of item row Y coordinate. This includes padding to next row.
- * @returns int
+ * @returns {int}
  */
 function getCurrentRowBottomY() {
     return getCurrentRowTopY() + getRowYOffset();
@@ -24,13 +25,19 @@ function getCurrentRowBottomY() {
 
 /**
  * Gets the leading zero page number that is used in the page identifier.
- * @returns string
+ * @param {number} pageNumber
+ * @returns {string}
  */
 function getLeadingZeroNumber(pageNumber) {
     return parseInt(pageNumber, 10).toString().padStart(3, "0");
 }
 
-function getTextWidthOnCanvas(text) {
+/**
+ * Calculates the width of a text on the canvas without placing the text.
+ * @param {text} string
+ * @return {number}
+ */
+function getTextWidthOnCanvas(string) {
     context.font = fontSize + "px " + font;
     return context.measureText(text).width;
 }
@@ -71,14 +78,22 @@ function drawObjects(objects) {
 
 /**
  * Draws the vertical major and minor lines on the topXAxisBar, bottomXAxisBar and the groups.
- * @returns number endX
+ * @param {number} startMajorY vertical Y coordinate to start drawing the major bars at
+ * @param {number} startMinorY vertical Y coordinate to start drawing the minor bars at
+ * @param {number} endMajorY vertical Y coordinate to end drawing the major bars at
+ * @param {number} endMinorY vertical Y coordinate to end drawing the minor bars at
+ * @param {boolean} drawLabels determines whether major and minor labels will be drawn. This is needed when rendering
+ *                             the top and bottom X axis bars. These are the years/months/days/hours above and below
+ *                             the timeline.
+ * @returns {number} endX the end coordinate where the rendering stops. This is used for drawing the right border of
+ *                        the timeline components.
  */
 function drawXAxisBarsAndSeparators(startMajorY, startMinorY, endMajorY, endMinorY, drawLabels = false) {
     const bar = pageData.xAxis;
     const startX = tableYAxisBarWidth;
 
     if(! bar.major || bar.major.length === 0) {
-        return;
+        return pageWidth;
     }
 
     let objects = [];
@@ -140,6 +155,8 @@ function drawXAxisBarsAndSeparators(startMajorY, startMinorY, endMajorY, endMino
 /**
  * This function parses rows in a group recursively to detect possible colliding rows and move the colliding
  * Items to a new row.
+ * @param {object} group
+ * @return {{label, rows: *[]}}
  */
 function preventPageGroupRowCollisions(group) {
     let cleanGroup = {
@@ -155,6 +172,7 @@ function preventPageGroupRowCollisions(group) {
         $.each(row.items, function() {
             const item = new Item(this.x, 0, this.width);
 
+            // sort items based on whether they collide with other items on the current row
             if(! item.collidesX(rowItems)) {
                 cleanRow.items.push(this);
                 rowItems.push(item);
@@ -168,8 +186,9 @@ function preventPageGroupRowCollisions(group) {
             cleanGroup.rows.push(cleanRow);
         }
 
+        // if there where collisions, move the colliding items to a new row, and check for collisions on the new row.
+        // this is done recursively until there are no more collisions.
         if(collisionRow.items.length) {
-            // recursive callback
             const cleanedCollisions = preventPageGroupRowCollisions({
                 label: group.label,
                 rows: [collisionRow]
@@ -185,7 +204,11 @@ function preventPageGroupRowCollisions(group) {
 }
 
 /**
- *
+ * Draws a row of items on a page (HTML canvas).
+ * @param {number} page
+ * @param {object} row
+ * @param {number} topY
+ * @param {number} endX
  */
 function drawPageGroupRow(page, row, topY, endX) {
     const pageId = getPageId(page);
@@ -202,8 +225,12 @@ function drawPageGroupRow(page, row, topY, endX) {
 }
 
 /**
- * Draws group borders, label, background separators
- * @return number endX
+ * Draws group borders, label and background separators on one or more pages (HTML canvasses).
+ * @param {object} group
+ * @param {number} startY
+ * @param {boolean} groupStartsOnPage
+ * @param {boolean} groupFinishesOnPage
+ * @return {number} endX
  */
 function drawGroupData(group, startY, groupStartsOnPage, groupFinishesOnPage) {
     startY = startY % pageHeight;
@@ -213,19 +240,20 @@ function drawGroupData(group, startY, groupStartsOnPage, groupFinishesOnPage) {
     // group left border
     objects.push(new Line(0, startY, 0, endY));
 
+    // group column separation border
     if(showYAxisBar) {
-        // group column separation border
         objects.push(new Line(tableYAxisBarWidth, startY, tableYAxisBarWidth, endY));
     }
 
+    // group label
     if(showYAxisBar && groupStartsOnPage) {
-        // group label
         const textX = padding + borderSize;
         const textY = startY + lineHeight + borderSize;
         const textMaxWidth = tableYAxisBarWidth - padding * 2 - borderSize * 2;
         objects.push(new Text(textX, textY, group.label, textMaxWidth, false, true));
     }
 
+    // group major and minor columns
     const endX = drawXAxisBarsAndSeparators(startY, startY, endY, endY, false);
 
     // group right border
@@ -243,6 +271,7 @@ function drawGroupData(group, startY, groupStartsOnPage, groupFinishesOnPage) {
 
 /**
  * This functions draws the page group on one or more pages (HTML canvasses).
+ * @param {object} group
  * @returns void
  */
 function drawPageGroup(group) {
@@ -269,8 +298,8 @@ function drawPageGroup(group) {
                 startY = 0;
             }
 
-            // rows are cached, so that they are drawn on top of the background lines, after the height of the group
-            // has been determined by this loop, and the pages that they fall ao*
+            // rows are cached, so that they are drawn on top of the background lines, after the height of the group,
+            // and the pages that they fall on have been determined through this loop.
             const topY = getCurrentRowTopY() % pageHeight;
             rowsCache.push({page: pageNumber, row: this, topY: topY});
             currentHeight += getRowYOffset();
@@ -278,21 +307,23 @@ function drawPageGroup(group) {
     }
 
     groupFinishesOnPage = true;
+    // draw group borders, label and background separators
     const endX = drawGroupData(group, startY, groupStartsOnPage, groupFinishesOnPage);
 
+    // draw rows in group
     if([] !== rowsCache) {
         $.each(rowsCache, function(index, row) {
             drawPageGroupRow(row.page, row.row, row.topY, endX);
 
             // current time indicator in red
             if(currentTimeX <= endX) {
-                const fromY = index === 0 ? row.topY - padding : row.topY;
-                const toY = index === rowsCache.length -1
+                // first and last item in group must overwrite the default padding
+                const startTextY = index === 0 ? row.topY - padding : row.topY;
+                const endTextY = index === rowsCache.length -1
                             ? row.topY + getRowYOffset(false) + padding
                             : row.topY + getRowYOffset();
-                const lineThickness = 2 * pageScaleFactor;
 
-                drawObjects([new Line(currentTimeX, fromY, currentTimeX, toY, currentTimeColor, lineThickness)]);
+                drawObjects([new Line(currentTimeX, startTextY, currentTimeX, endTextY, currentTimeColor, currentTimeThickness)]);
             }
         });
     }
@@ -304,19 +335,20 @@ function drawPageGroup(group) {
  */
 function drawXAxisTopBar() {
     const bar = pageData.xAxis;
-    const leftX = tableYAxisBarWidth;
+    const startX = tableYAxisBarWidth;
     const topY = currentHeight;
     const minorTopY = topY + lineHeight + (xAxisPadding * 2);
     const bottomY = topY + bar.height;
     let objects = [];
 
     // left border
-    objects.push(new Line(leftX, topY, leftX, bottomY));
+    objects.push(new Line(startX, topY, startX, bottomY));
 
+    //
     const endX = drawXAxisBarsAndSeparators(topY, minorTopY, bottomY, bottomY, true);
 
     // top border
-    objects.push(new Line(leftX, topY, endX, topY));
+    objects.push(new Line(startX, topY, endX, topY));
 
     // bottom border
     objects.push(new Line(0, bottomY, endX, bottomY));
@@ -326,7 +358,7 @@ function drawXAxisTopBar() {
 
     // current time indicator in red
     if(currentTimeX <= endX) {
-        objects.push(new Line(currentTimeX, topY, currentTimeX, bottomY, currentTimeColor, 2 * pageScaleFactor));
+        objects.push(new Line(currentTimeX, topY, currentTimeX, bottomY, currentTimeColor, currentTimeThickness));
     }
 
     drawObjects(objects);
@@ -340,8 +372,7 @@ function drawXAxisTopBar() {
  */
 function drawXAxisBottomBar() {
     const bar = pageData.xAxis;
-    const leftX = tableYAxisBarWidth;
-    const rightX = pageWidth;
+    const startX = tableYAxisBarWidth;
     let topY = currentHeight % pageHeight;
     let bottomY = topY + bar.height;
     let minorBottomY = topY + lineHeight + (xAxisPadding * 2);
@@ -356,19 +387,19 @@ function drawXAxisBottomBar() {
     }
 
     // left border
-    objects.push(new Line(leftX, topY, leftX, bottomY));
+    objects.push(new Line(startX, topY, startX, bottomY));
 
     const endX = drawXAxisBarsAndSeparators(topY, topY, bottomY, minorBottomY, true);
 
     // bottom border
-    objects.push(new Line(leftX, bottomY, endX, bottomY));
+    objects.push(new Line(startX, bottomY, endX, bottomY));
 
     // right border
     objects.push(new Line(endX, topY, endX, bottomY));
 
     // current time indicator in red
     if(currentTimeX <= endX) {
-        objects.push(new Line(currentTimeX, topY, currentTimeX, bottomY, currentTimeColor, 2 * pageScaleFactor));
+        objects.push(new Line(currentTimeX, topY, currentTimeX, bottomY, currentTimeColor, currentTimeThickness));
     }
 
     drawObjects(objects);
@@ -419,9 +450,9 @@ function createPage() {
 /**
  * Line object that draws a single line on the current draw context (a canvas)
  */
-function Line(fromX, fromY, toX, toY, color = false, thickness = 1) {
-    this.fromX = fromX;
-    this.fromY = fromY;
+function Line(startX, startY, toX, toY, color = false, thickness = 1) {
+    this.startX = startX;
+    this.startY = startY;
     this.toX = toX;
     this.toY = toY;
     this.color = color ? color : foregroundColor;
@@ -429,7 +460,7 @@ function Line(fromX, fromY, toX, toY, color = false, thickness = 1) {
 
     this.draw = function () {
         context.beginPath();
-        context.moveTo(this.fromX, this.fromY);
+        context.moveTo(this.startX, this.startY);
         context.lineTo(this.toX, this.toY);
 
         context.fillStyle = this.color;
