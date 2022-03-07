@@ -15,16 +15,6 @@
         size: A3 landscape;
     }
 
-    @page :right {
-        @bottom-left {
-            margin: 10pt 0 30pt 0;
-            border-top: .25pt solid #666;
-            content: "My book";
-            font-size: 9pt;
-            color: #333;
-        }
-    }
-
     canvas.page {
         position: absolute;
         left: 0;
