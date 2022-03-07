@@ -39,7 +39,7 @@ function getLeadingZeroNumber(pageNumber) {
  */
 function getTextWidthOnCanvas(string) {
     context.font = fontSize + "px " + font;
-    return context.measureText(text).width;
+    return context.measureText(string).width;
 }
 
 /**
