@@ -169,12 +169,12 @@
     }, {
       type   = "link"
       target = url.page _ "/user_upload/"
-      class  = "btn-import"
+      class  = "btn btn-import"
       label  = "Import users"
     }, {
       type   = "link"
       target = url.page _ "/user_export/"
-      class  = "btn-export"
+      class  = "btn btn-export"
       label  = "Export users"
     }, {
       type    = "modal_button"
