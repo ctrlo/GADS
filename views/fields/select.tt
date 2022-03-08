@@ -21,18 +21,16 @@
   display_placeholder = placeholder;
   display_value = "";
 
-  IF value;
-    FOREACH item IN items;
-      IF value == item.id;
-        display_placeholder = item.name;
-        display_value = item.id;
-      END;
+  FOREACH item IN items;
+    IF value == item.id;
+      display_placeholder = item.name;
+      display_value = item.id;
     END;
   END;
 %]
 
 [% IF ! hide_group %]
-<div class="form-group">
+<div class="form-group" data-test="[% IF 0 == false %]TRUE[% ELSE %]FALSE[% END %]">
 [% END %]
   <div class="select dropdown select--select">
     <div class="select__label">
