@@ -52,7 +52,7 @@ gads:
 
 plugins:
   LogReport:
-    session_messages: [ NOTICE, MISTAKE, ERROR, FAULT, ALERT, FAILURE, PANIC ]
+    session_messages: [ NOTICE, MISTAKE, WARNING, ERROR, FAULT, ALERT, FAILURE, PANIC ]
   DBIC:
     default:
       dsn: dbi:Pg:database=gads;host=127.0.0.1 # or dbi:mysql:database=dbname;mysql_enable_utf8=1;host=localhost
