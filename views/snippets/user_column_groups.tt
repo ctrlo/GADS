@@ -1,36 +1,21 @@
 [%- column_class = column_class ? column_class : 'col' -%]
 <div class="[% column_class %]">
-  <fieldset class="fieldset" data-name="groups">
-    <div class="fieldset__legend ">
-      <legend>Add this user to the following groups</legend>
-    </div>
-    
-    <div class="list [% list_class %]">
-      <ul class="list__items">
-        [% IF groups.size %]
-        [% FOREACH group IN groups %]
-        <li class="list__item">
-          [%-
-            key = group.id;
-            
-            INCLUDE fields/sub/checkbox.tt
-              id = "group_" _ group.id
-              name = "groups"
-              label = group.name
-              value = group.id
-              checked = edituser.has_group.$key ? 1 : 0
-              is_disabled = ! user.permission.superadmin AND ! user.has_group.$key
-              filter = "html";
-          -%]
-        </li>
-        [%- END -%]
-        [%- ELSE -%]
-        <li class="list__item">
-          No groups have been created yet. Groups can be
-          created in the <a href="[% url.page %]/group_overview/">Manage Groups</a> menu.
-        </li>
-        [%- END -%]
-      </ul>
-    </div>
-  </fieldset>
+  [%
+    FOREACH group IN groups;
+      key = group.id;
+      group.field_id = "groups_" _ item.id
+      group.is_checked = edituser.has_group.$key ? 1 : 0;
+      group.is_disabled = ! user.permission.superadmin AND ! user.has_group.$key ? 1 : 0;
+    END;
+  
+    INCLUDE fields/checkbox_list.tt
+      fieldset_name = "groups"
+      list_class = list_class
+      name = "groups"
+      label = "Add this user to the following groups"
+      items = groups
+      filter = "html"
+      message_empty = "No groups have been created yet. Groups can be created in the <a href='" _ url.page _ "/group_overview/'>Groups</a> menu."
+      hide_group = 1;
+  %]
 </div>

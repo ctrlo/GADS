@@ -47,48 +47,32 @@
   ';
 -%]
 <div class="[% column_class %]">
-  <fieldset class="fieldset" data-name="permissions">
-    <div class="fieldset__legend ">
-      <legend>User' system wide permissions</legend>
-  
-      [% INCLUDE fields/sub/popover.tt popover_id="permissions_popover" popover_title=permissions_help_title popover_body=permissions_help_body; %]
-    </div>
-    
-    <div class="list [% list_class %]">
-      <ul class="list__items">
-        <li class="list__item">
-          [%-
-            INCLUDE fields/sub/checkbox.tt
-              id = "super_administrator"
-              name = "permission"
-              label = "Super-administrator"
-              value = "superadmin"
-              checked = edituser.permission.superadmin ? 1 : 0;
-          -%]
-        </li>
-        
-        <li class="list__item">
-          [%-
-            INCLUDE fields/sub/checkbox.tt
-              id = "user_can_manage_other_accounts"
-              name = "permission"
-              label = "User can manage other user accounts"
-              value = "useradmin"
-              checked = edituser.permission.useradmin ? 1 : 0;
-          -%]
-        </li>
-        
-        <li class="list__item">
-          [%-
-            INCLUDE fields/sub/checkbox.tt
-              id = "user_can_access_audit_data"
-              name = "permission"
-              label = "User can access audit data"
-              value = "audit"
-              checked = edituser.permission.audit ? 1 : 0;
-          -%]
-        </li>
-      </ul>
-    </div>
-  </fieldset>
+  [%
+    INCLUDE fields/checkbox_list.tt
+        fieldset_name = "permissions"
+        list_class = list_class
+        name = "permission"
+        label = "User' system wide permissions"
+        items = [{
+          id = "superadmin",
+          name = "Super-administrator",
+          field_id = "super_administrator",
+          is_checked = edituser.permission.superadmin ? 1 : 0
+        }, {
+          id = "superadmin",
+          name = "User can manage other user accounts",
+          field_id = "user_can_manage_other_accounts",
+          is_checked = edituser.permission.useradmin ? 1 : 0
+        }, {
+          id = "audit",
+          name = "User can access audit data",
+          field_id = "user_can_access_audit_data",
+          is_checked = edituser.permission.audit ? 1 : 0
+        }]
+        filter = "html"
+        popover_id = "permissions_popover"
+        popover_title = permissions_help_title
+        popover_body = permissions_help_body
+        hide_group = 1;
+  %]
 </div>
