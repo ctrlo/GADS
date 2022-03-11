@@ -23,6 +23,18 @@
         [%- button.label || button.name -%]
       </a>
       [%
+        ELSIF button.type == "button";
+          button.class = button.class ? button.class : "btn-default";
+      %]
+      <button
+        type="submit"
+        name="[% button.name %]"
+        value="[% button.value || button.name %]"
+        class="btn [% button.class %]"
+      >
+        <span class="btn__title">[% button.label || button.name %]</span>
+      </button>
+      [%
         ELSIF button.type == "modal_button";
           button.class = button.class ? button.class : "btn-default";
       %]
