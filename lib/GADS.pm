@@ -1334,7 +1334,7 @@ get '/table/?' => require_login sub {
     };
 };
 
-any ['get', 'post'] => '/table/:id' => require_role superadmin => sub {
+any ['get', 'post'] => '/table/:id/edit' => require_role superadmin => sub {
 
     my $id          = param 'id';
     my $user        = logged_in_user;
@@ -1387,10 +1387,11 @@ any ['get', 'post'] => '/table/:id' => require_role superadmin => sub {
     my $table_id   = $id ? $layout_edit->instance_id : 0;
 
     template 'table' => {
-        page        => $id ? 'this_table' : 'table/0',
-        layout_edit => $layout_edit,
-        groups      => GADS::Groups->new(schema => schema)->all,
-        breadcrumbs => [Crumb( '/table' => 'tables' ) => Crumb( "/table/$table_id" => $table_name )],
+        page                         => $id ? 'table_edit' : 'table/0',
+        content_block_custom_classes => 'content-block--footer',
+        detail_header                => 1,
+        layout_edit                  => $layout_edit,
+        groups                       => GADS::Groups->new(schema => schema)->all,
     }
 };
 
