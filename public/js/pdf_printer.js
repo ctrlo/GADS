@@ -247,10 +247,17 @@ function drawGroupData(group, startY, groupStartsOnPage, groupFinishesOnPage) {
 
     // group label
     if(showYAxisBar && groupStartsOnPage) {
-        const textX = padding + borderSize;
-        const textY = startY + lineHeight + borderSize;
+        const textX        = padding + borderSize;
+        const textY        = startY + lineHeight + borderSize;
         const textMaxWidth = tableYAxisBarWidth - padding * 2 - borderSize * 2;
-        objects.push(new Text(textX, textY, group.label, textMaxWidth, false, true));
+        const textLabel    = group.label
+                                  .replace('&amp;lt;', '<')
+                                  .replace('&lt;', '<')
+                                  .replace('&amp;gt;', '>')
+                                  .replace('&gt;', '>')
+                                  .replace('&amp;', '&');
+
+        objects.push(new Text(textX, textY, textLabel, textMaxWidth, false, true));
     }
 
     // group major and minor columns
@@ -574,13 +581,23 @@ function Item(x, y, width, text, endX) {
      * @returns {boolean}
      */
     this.collidesX = function(items) {
-        const self   = this;
-        let collides = false;
+        const newItemOnRow = this;
+        let collides       = false;
 
         $.each(items, function() {
-            const loopNodeWidth = Math.max(this.w, getTextWidthOnCanvas(this.text) + padding);
+            const existingItemOnRow  = this;
+            const existingItemStartX = existingItemOnRow.x
+            const existingItemEndX   = existingItemStartX + Math.max(existingItemOnRow.w, getTextWidthOnCanvas(existingItemOnRow.text) + padding * 2);
+            const newItemStartX      = newItemOnRow.x;
+            const newItemEndX        = newItemStartX + Math.max(newItemOnRow.w, getTextWidthOnCanvas(newItemOnRow.text) + padding * 2);
 
-            if(this.x <= self.x && this.x + loopNodeWidth >= self.x) {
+            // collision scenarios
+            if(
+                // new item starts before the existing item, but overlaps with the existing item due to its width
+                (newItemStartX < existingItemStartX && newItemEndX >= existingItemStartX ) ||
+                // new item starts inside of the existing item
+                (newItemStartX >= existingItemStartX && newItemStartX <= existingItemEndX)
+            ) {
                 collides = true;
                 return false;
             }

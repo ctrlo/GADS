@@ -58,7 +58,10 @@ function getVisGroupLabelNode(groupTop) {
   let label = null;
 
   labels.each(function() {
-    if (Math.floor($(this).offset().top) === groupTop) {
+    let top = $(this).offset().top;
+    top = top ===0 ? getCssTransformCoordinates($(this)).y : top;
+
+    if (Math.floor(top) === groupTop) {
       label = $(this);
     }
   });
@@ -108,8 +111,9 @@ function getVisItemRowsInGroup(group) {
   const items  = group.find(".vis-item:visible");
 
   items.each(function() {
-    const top         = getCssPxValue($(this), "top");
+    let top           = getCssPxValue($(this), "top");
     const coordinates = getCssTransformCoordinates($(this));
+    top               = top === 0 ? coordinates.y : top;
 
     if($.inArray(top, topCache) === -1) {
       topCache.push(top);
@@ -125,6 +129,7 @@ function getVisItemRowsInGroup(group) {
       width: getCssPxValue($(this), 'width'),
       x: coordinates.x,
       y: coordinates.y,
+      top: top
     });
   });
 
@@ -146,9 +151,11 @@ function getVisItemRowsInGroup(group) {
  * @returns {{backgroundGroup: *, node, itemRows: *, top, label: *, height: (number|number)}}
  */
 function getVisGroup(group) {
-  const top      = Math.floor(group.offset().top);
+  let top        = Math.floor(group.offset().top);
   const height   = getCssPxValue(group, "height");
   const itemRows = getVisItemRowsInGroup(group);
+
+  top = top === 0 ? getCssTransformCoordinates(group).y : top;
 
   return {
     node: group,
@@ -230,7 +237,7 @@ function renderGroupRowItemsJson(itemRow) {
   $.each(itemRow, function(index, item) {
     itemsJson +=
         (itemsJson === '' ? '' : ',') +
-        '{x: ' + item.x + ', width: ' + item.width + ', text: "' + item.label.trim() + '"}'
+        '{x: ' + item.x + ', width: ' + item.width + ', text: "' + item.label.trim() + '", top: ' + item.top + ' }'
   });
 
   return itemsJson;
