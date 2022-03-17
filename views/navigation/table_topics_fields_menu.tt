@@ -3,19 +3,19 @@
     INCLUDE snippets/button_list.tt
       list_class = "list--horizontal list--no-borders list--buttons"
       buttons    = [{
-        type   = "link"
-        target = url.page _ "/table/" _ layout_edit.instance_id _ "/edit"
-        class  = "link link--plain" _ page == "table_edit" ? "link--active" : ""
+        type   = "link",
+        target = url.page _ "/table/" _ layout_edit.instance_id _ "/edit",
+        class  = "link link--plain" _ page == "table_edit" ? "link--active" : "",
         label  = "Table"
       }, {
-        type   = "link"
-        target = url.page _ "/" _ layout_edit.identifier _ "/topics/"
-        class  = "link link--plain" _ page == "topics" ? "link--active" : ""
+        type   = "link",
+        target = url.page _ "/" _ layout_edit.identifier _ "/topics/",
+        class  = "link link--plain" _ page == "topics" ? "link--active" : "",
         label  = "Topics"
       }, {
-        type   = "link"
-        target = url.page _ "/" _ layout_edit.identifier _ "/layout/"
-        class  = "link link--plain" _ page == "fields" ? "link--active" : ""
+        type   = "link",
+        target = url.page _ "/" _ layout_edit.identifier _ "/layout/",
+        class  = "link link--plain" _ page == "fields" ? "link--active" : "",
         label  = "Fields"
       }];
   %]
