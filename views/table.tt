@@ -134,13 +134,13 @@
                     END;
                   
                     INCLUDE fields/checkbox_list.tt
-                        fieldset_name = "alert_columns"
-                        list_class = list_class
-                        name = "alert_column"
-                        label = "Include the following fields for record descriptions in email alerts"
-                        items = layout_edit.all
-                        filter = "html"
-                        help_text = "Warning: as these fields will be sent via emails external to Linkspace, only include fields that do not contain sensitive data.";
+                      fieldset_name = "alert_columns"
+                      list_class = list_class
+                      name = "alert_column"
+                      label = "Include the following fields for record descriptions in email alerts"
+                      items = layout_edit.all
+                      filter = "html"
+                      help_text = "Warning: as these fields will be sent via emails external to Linkspace, only include fields that do not contain sensitive data.";
                 %]
                 </div>
               </div>
@@ -152,57 +152,45 @@
       
       <footer class="content-block__footer">
         <div class="content-block__footer-container">
-          <div class="row">
-            <div class="col-md-4 mb-3 mb-md-0">
-              [% INCLUDE snippets/button_list.tt buttons=[{
-                type = "link",
-                target = url.page _ "/table/",
-                class = "btn btn-cancel",
-                label = "Back"
-              }]%]
-            </div>
-            <div class="col-md-8 d-md-flex justify-content-md-end align-items-center">
-              [% INCLUDE snippets/button_list.tt buttons=[{
-                type = "link",
-                target = url.page _ "/table/",
-                class = "btn btn-cancel",
-                label = "Back"
-              }]%]
-              <button
-                type="button"
-                class="btn btn-danger btn-js-delete"
-                data-toggle="modal"
-                data-target=#deleteTable
-                data-title="Patients"
-                data-id="name-of-table_432053"
-              >
-                <span class="btn__title">Delete table</span>
-              </button>
-              
-              <button
-                type="submit"
-                class="btn btn-default"
-              >
-                <span class="btn__title">Save</span>
-              </button>
-            </div>
-          </div>
+          [%
+            INCLUDE navigation/button_bar.tt
+              row_class = "row"
+              columns   = [{
+                class   = "col-md-4 mb-3 mb-md-0",
+                buttons = [{
+                  type   = "link",
+                  target = url.page _ "/table/",
+                  class  = "btn btn-cancel",
+                  label  = "Back"
+                }]
+              }, {
+                class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
+                buttons = [{
+                  type      = "modal_button",
+                  modalId   = "deleteModal",
+                  dataTitle = layout_edit.name,
+                  dataId    = layout_edit.instance_id,
+                  class     = "btn btn-danger btn-js-delete",
+                  label     = "Delete table"
+                }, {
+                  type  = "button",
+                  class = "btn btn-default"
+                  id    = "submit"
+                  name  = "submit"
+                  value = "submit"
+                  label = "Save"
+                }]
+              }];
+          %]
         </div>
       </footer>
-    
-    
     </fieldset>
-  
-  
   </form>
-
-
 </div>
 
-
-[%-
+[%
   INCLUDE wizard/delete.tt
     modalId     = "deleteModal"
     label       = "Delete " _ layout_edit.name
     description = "Are you sure you want to delete this table? You cannot undo this step.";
--%]
+%]
