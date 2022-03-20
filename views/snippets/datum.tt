@@ -131,6 +131,8 @@
                 render_enum_datum(col.data, col.name, full_content);
             CASE 'rag';
                 render_rag_datum(col.data);
+            CASE 'calc';
+                render_string_datum(col.data, col.name, full_content);
             CASE;
                 col.data.value | html;
         END;
