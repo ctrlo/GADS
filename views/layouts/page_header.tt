@@ -10,7 +10,7 @@
   #     type   = "form"
   #     method = "post"
   #     target = url.page _ "/user_overview/"
-  #     class  = "btn-default"
+  #     class  = "btn btn-default"
   #     label  = "Start export"
   #     name   = "submit"
   #     value  = "submit"
@@ -22,7 +22,7 @@
   #   }, {
   #     type    = "modal_button"
   #     modalId = "userAddModal"
-  #     class   = "btn-default"
+  #     class   = "btn btn-default"
   #     label   = "Add user"
   #   }];
 -%]

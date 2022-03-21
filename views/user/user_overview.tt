@@ -164,7 +164,7 @@
     aside_buttons = ! user.permission.useradmin ? [] : [{
       type    = "modal_button"
       modalId = "emailUsersModal"
-      class   = "btn-email"
+      class   = "btn btn-email"
       label   = "Email users"
     }, {
       type   = "link"
@@ -179,7 +179,7 @@
     }, {
       type    = "modal_button"
       modalId = "userModal"
-      class   = "btn-add"
+      class   = "btn btn-add"
       label   = "Add a user"
     }];
 %]
