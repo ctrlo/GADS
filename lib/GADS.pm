@@ -1336,61 +1336,55 @@ get '/table/?' => require_login sub {
 
 any ['get', 'post'] => '/table/:id/edit' => require_role superadmin => sub {
 
-    my $id          = param 'id';
-    my $user        = logged_in_user;
-    my $layout_edit = $id && var('instances')->layout($id);
+    my $id     = param 'id';
+    my $user   = logged_in_user;
+    my $layout = $id && var('instances')->layout($id);
 
-    $id && !$layout_edit
+    $id && !$layout
         and error __x"Instance ID {id} not found", id => $id;
 
-    if (param('submit') || param('delete'))
+    if (param 'submit')
     {
-        if (param 'submit')
+        if (!$layout)
         {
-            if (!$layout_edit)
-            {
-                $layout_edit = GADS::Layout->new(
-                    user   => $user,
-                    schema => schema,
-                    config => config,
-                );
-            }
-            $layout_edit->name(param 'name');
-            $layout_edit->name_short(param 'name_short');
-            $layout_edit->hide_in_selector(param 'hide_in_selector');
-            $layout_edit->sort_layout_id(param('sort_layout_id') || undef);
-            $layout_edit->sort_type(param('sort_type') || undef);
-            $layout_edit->view_limit_id(param('view_limit_id') || undef);
-            $layout_edit->set_groups([body_parameters->get_all('permissions')]);
-            $layout_edit->set_alert_columns([body_parameters->get_all('alert_column')]);
-
-            if (process(sub {$layout_edit->write}))
-            {
-                # Switch user to new table
-                my $msg = param('id') ? 'The table has been updated successfully' : 'Your new table has been created successfully';
-                return forwardHome(
-                    { success => $msg }, 'table' );
-            }
+            $layout = GADS::Layout->new(
+                user   => $user,
+                schema => schema,
+                config => config,
+            );
         }
+        $layout->name(param 'name');
+        $layout->name_short(param 'name_short');
+        $layout->hide_in_selector(param 'hide_in_selector');
+        $layout->sort_layout_id(param('sort_layout_id') || undef);
+        $layout->sort_type(param('sort_type') || undef);
+        $layout->view_limit_id(param('view_limit_id') || undef);
+        $layout->set_groups([body_parameters->get_all('permissions')]);
+        $layout->set_alert_columns([body_parameters->get_all('alert_column')]);
 
-        if (param 'delete')
+        if (process(sub {$layout->write}))
         {
-            if (process(sub {$layout_edit->delete}))
-            {
-                return forwardHome(
-                    { success => "The table has been deleted successfully" }, 'table' );
-            }
+            # Switch user to new table
+            my $msg = param('id') ? 'The table has been updated successfully' : 'Your new table has been created successfully';
+            return forwardHome(
+                { success => $msg }, 'table' );
         }
     }
 
-    my $table_name = $id ? $layout_edit->name : 'new table';
-    my $table_id   = $id ? $layout_edit->instance_id : 0;
+    if (param 'delete')
+    {
+        if (process(sub {$layout->delete}))
+        {
+            return forwardHome(
+                { success => "The table has been deleted successfully" }, 'table' );
+        }
+    }
 
     template 'table' => {
-        page                         => $id ? 'table_edit' : 'table/0',
+        page                         => 'table_edit',
         content_block_custom_classes => 'content-block--footer',
         detail_header                => 1,
-        layout_edit                  => $layout_edit,
+        layout_obj                   => $layout,
         groups                       => GADS::Groups->new(schema => schema)->all,
     }
 };
@@ -3266,21 +3260,18 @@ prefix '/:layout_name' => sub {
     };
 
     get '/topics/?' => require_login sub {
-
         my $layout = var('layout') or pass;
-
-        my $user        = logged_in_user;
-
         my $instance_id = $layout->instance_id;
 
         forwardHome({ danger => "You do not have permission to manage topics"}, '')
             unless $layout->user_can("layout");
 
         template 'topics' => {
-            layout      => $layout,
-            topics      => [schema->resultset('Topic')->search({ instance_id => $instance_id })->all],
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, '/topics' => 'topics' )],
-            page        => 'topics',
+            page                         => 'topics',
+            content_block_custom_classes => 'content-block--footer',
+            detail_header                => 1,
+            layout_obj                   => $layout,
+            topics                       => [schema->resultset('Topic')->search({ instance_id => $instance_id })->all],
         };
     };
 

@@ -3,11 +3,11 @@
   <main class="[% main_class || 'main col-lg-10' %]">
     <div class="main__container">
       [%
-      IF detail_header;
-        INCLUDE snippets/header_table_detail.tt;
-      ELSE;
-        INCLUDE snippets/header.tt;
-      END;
+        IF detail_header;
+          INCLUDE snippets/header_table_detail.tt;
+        ELSE;
+          INCLUDE snippets/header.tt;
+        END;
       %]
       <div class="content-block [% content_block_custom_classes %]">
         [% INCLUDE snippets/message_center.tt %]

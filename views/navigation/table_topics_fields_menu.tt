@@ -4,17 +4,17 @@
       list_class = "list--horizontal list--no-borders list--buttons"
       buttons    = [{
         type   = "link",
-        target = url.page _ "/table/" _ layout_edit.instance_id _ "/edit",
+        target = url.page _ "/table/" _ layout_obj.instance_id _ "/edit",
         class  = "link link--plain" _ (page == "table_edit" ? "link--active" : ""),
         label  = "Table"
       }, {
         type   = "link",
-        target = url.page _ "/" _ layout_edit.identifier _ "/topics/",
+        target = url.page _ "/" _ layout_obj.identifier _ "/topics/",
         class  = "link link--plain" _ (page == "topics" ? "link--active" : ""),
         label  = "Topics"
       }, {
         type   = "link",
-        target = url.page _ "/" _ layout_edit.identifier _ "/layout/",
+        target = url.page _ "/" _ layout_obj.identifier _ "/layout/",
         class  = "link link--plain" _ (page == "fields" ? "link--active" : ""),
         label  = "Fields"
       }];

@@ -11,7 +11,7 @@
   <form role="form" method="post">
     [%
       INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
-      INCLUDE fields/hidden.tt name="id" value=layout_edit.instance_id;
+      INCLUDE fields/hidden.tt name="id" value=layout_obj.instance_id;
     %]
     
     <fieldset class="fieldset">
@@ -24,7 +24,7 @@
       <div class="content-block__main-content">
         <div class="card card--secundary">
           <h4 class="card__title">
-            <span> Edit your table: [% layout_edit.name %] </span>
+            <span> Edit your table: [% layout_obj.name %] </span>
           </h4>
           
           <div class="card__body row">
@@ -36,7 +36,7 @@
                       id = "name"
                       name = "name"
                       label = "Name of table"
-                      value = layout_edit.name
+                      value = layout_obj.name
                       placeholder = "Name of table"
                       filter = "html"
                       is_required = 1
@@ -49,7 +49,7 @@
                       id = "name_short"
                       name = "name_short"
                       label = "Short name of table"
-                      value = layout_edit.name_short
+                      value = layout_obj.name_short
                       placeholder = "Short name of table"
                       filter = "html"
                       is_required = 0
@@ -69,8 +69,8 @@
                       label = "Default sort"
                       placeholder = "Select default sort"
                       filter = "html"
-                      value = layout_edit.sort_layout_id
-                      items = sort_layout_items.merge(layout_edit.all);
+                      value = layout_obj.sort_layout_id
+                      items = sort_layout_items.merge(layout_obj.all);
                   %]
                 </div>
                 <div class="col-lg-6 align-self-end">
@@ -80,7 +80,7 @@
                       name = "sort_type"
                       label = ""
                       placeholder = "Select default sort direction"
-                      value = layout_edit.sort_type
+                      value = layout_obj.sort_type
                       items = [
                         {id="" name="Select default sort direction"},
                         {id="asc" name="Ascending"},
@@ -91,7 +91,7 @@
               </div>
               
               <div class="row">
-                <div class="col-lg-6">
+                <div class="col-lg-12">
                   [%
                     INCLUDE fields/select.tt
                       id = "hide_in_selector"
@@ -99,7 +99,7 @@
                       label = "Display table in menu"
                       placeholder = "Select display table in menu"
                       filter = "html"
-                      value = layout_edit.hide_in_selector || 0
+                      value = layout_obj.hide_in_selector || 0
                       items = [
                         {id="0" name="Show table in selector menu for all users with access to table"},
                         {id="1" name="Only show table in selector menu for users with Manage Fields permission for table"}
@@ -119,8 +119,8 @@
                       label = "By default restrict all users to records in this view"
                       placeholder = "All data"
                       filter = "html"
-                      value = layout_edit.view_limit_id || ''
-                      items = view_limit_items.merge(layout_edit.global_view_summary);
+                      value = layout_obj.view_limit_id || ''
+                      items = view_limit_items.merge(layout_obj.global_view_summary);
                   %]
                 </div>
               </div>
@@ -128,9 +128,9 @@
               <div class="row">
                 <div class="col-lg-12">
                   [%
-                    FOR column IN layout_edit.all;
+                    FOR column IN layout_obj.all;
                       column.field_id   = "field_" _ column.id
-                      column.is_checked = layout_edit.has_alert_column(column.id) ? 1 : 0;
+                      column.is_checked = layout_obj.has_alert_column(column.id) ? 1 : 0;
                     END;
                   
                     INCLUDE fields/checkbox_list.tt
@@ -138,7 +138,7 @@
                       list_class = list_class
                       name = "alert_column"
                       label = "Include the following fields for record descriptions in email alerts"
-                      items = layout_edit.all
+                      items = layout_obj.all
                       filter = "html"
                       help_text = "Warning: as these fields will be sent via emails external to Linkspace, only include fields that do not contain sensitive data.";
                 %]
@@ -168,8 +168,8 @@
                 buttons = [{
                   type      = "modal_button",
                   modalId   = "deleteModal",
-                  dataTitle = layout_edit.name,
-                  dataId    = layout_edit.instance_id,
+                  dataTitle = layout_obj.name,
+                  dataId    = layout_obj.instance_id,
                   class     = "btn btn-danger btn-js-delete",
                   label     = "Delete table"
                 }, {
@@ -191,6 +191,6 @@
 [%
   INCLUDE wizard/delete.tt
     modalId     = "deleteModal"
-    label       = "Delete " _ layout_edit.name
+    label       = "Delete " _ layout_obj.name
     description = "Are you sure you want to delete this table? You cannot undo this step.";
 %]

@@ -78,6 +78,7 @@
     "responsive":{
       "details":{"type":"column","target":-1}
     },
+    "scrollX":false,
     "autoWidth":false,_SHOW_ALL_RECORDS
     "columns":[
       _COLUMNS
