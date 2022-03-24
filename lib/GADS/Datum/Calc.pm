@@ -28,6 +28,7 @@ use namespace::clean;
 extends 'GADS::Datum::Code';
 
 with 'GADS::DateTime';
+with 'GADS::Role::Presentation::Datum::String';
 
 sub as_string
 {   my $self = shift;

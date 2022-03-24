@@ -2170,11 +2170,10 @@ get '/invalidsite' => sub {
 };
 
 post '/print' => require_login sub {
-
     my $html = body_parameters->get('html')
         or error __"Missing body parameter: html";
 
-    my $pdf = _page_as_mech(undef, undef, html => $html)->content_as_pdf(
+    my $pdf  = _page_as_mech(undef, undef, html => $html)->content_as_pdf(
         paperWidth => 16.5, paperHeight => 11.7 # A3 landscape
     );
     return send_file(
@@ -4228,6 +4227,7 @@ sub _random_pw
 {   $password_generator->xkcd( words => 3, digits => 2 );
 }
 
+# check if PDF printing still needs this sub
 sub _page_as_mech
 {   my ($template, $params, %options) = @_;
     $params->{scheme}       = 'http';
