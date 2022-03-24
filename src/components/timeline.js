@@ -129,7 +129,9 @@ function getVisItemRowsInGroup(group) {
       width: getCssPxValue($(this), 'width'),
       x: coordinates.x,
       y: coordinates.y,
-      top: top
+      top: top,
+      textColor: $(this).css('color') ? $(this).css('color') : false,
+      backgroundColor: $(this).css('background-color')
     });
   });
 
@@ -237,7 +239,14 @@ function renderGroupRowItemsJson(itemRow) {
   $.each(itemRow, function(index, item) {
     itemsJson +=
         (itemsJson === '' ? '' : ',') +
-        '{x: ' + item.x + ', width: ' + item.width + ', text: "' + item.label.trim() + '", top: ' + item.top + ' }'
+        '{' +
+          'x: ' + item.x + ', ' +
+          'width: ' + item.width + ', ' +
+          'text: "' + item.label.trim() + '", ' +
+          'top: ' + item.top + ', ' +
+          'textColor: "' + item.textColor + '", ' +
+          'backgroundColor: "' + item.backgroundColor + '"' +
+        ' }'
   });
 
   return itemsJson;
@@ -490,21 +499,13 @@ const injectContrastingColor = function(dataset) {
             ";" +
             "color: #FFFFFF;" +
             "text-shadow: " +
-            "-1px -1px 0.1em " +
-            backgroundColor +
-            ",1px -1px 0.1em " +
-            backgroundColor +
-            ",-1px 1px 0.1em " +
-            backgroundColor +
-            ",1px 1px 0.1em " +
-            backgroundColor +
-            ",1px 1px 2px " +
-            backgroundColor +
-            ",0 0 1em " +
-            backgroundColor +
-            ",0 0 0.2em " +
-            backgroundColor +
-            ";";
+            "-1px -1px 0.1em " + backgroundColor +
+            ",1px -1px 0.1em " + backgroundColor +
+            ",-1px 1px 0.1em " + backgroundColor +
+            ",1px 1px 0.1em " + backgroundColor +
+            ",1px 1px 2px " + backgroundColor +
+            ",0 0 1em " + backgroundColor +
+            ",0 0 0.2em " + backgroundColor + ";";
         }
       }
     }

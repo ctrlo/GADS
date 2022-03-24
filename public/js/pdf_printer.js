@@ -218,7 +218,7 @@ function drawPageGroupRow(page, row, topY, endX) {
     let objects = [];
 
     $.each(row.items, function() {
-        objects.push(new Item(this.x, topY, this.width, this.text, endX));
+        objects.push(new Item(this.x, topY, this.width, this.text, endX, this.textColor, this.backgroundColor));
     });
 
     drawObjects(objects);
@@ -257,7 +257,7 @@ function drawGroupData(group, startY, groupStartsOnPage, groupFinishesOnPage) {
                                   .replace('&gt;', '>')
                                   .replace('&amp;', '&');
 
-        objects.push(new Text(textX, textY, textLabel, textMaxWidth, false, true));
+        objects.push(new Text(textX, textY, textLabel, textMaxWidth, false, false,true));
     }
 
     // group major and minor columns
@@ -481,15 +481,27 @@ function Line(startX, startY, toX, toY, color = false, thickness = 1) {
 /**
  * Text object that draws a text on the current draw context (a canvas)
  */
-function Text(x, y, text, maxWidth = false, color = false, bold = false) {
+function Text(x, y, text, maxWidth = false, textColor = false, shadowColor = false, bold = false) {
     this.x = x;
     this.y = y;
     this.maxWidth = maxWidth;
     this.text = text;
-    this.color = color ? color : foregroundColor;
+    this.color = textColor ? textColor : foregroundColor;
+    this.shadowColor = shadowColor;
 
     this.draw = function () {
         context.font = (bold ? 'bold ' : '') + fontSize + "px " + font;
+
+        if(this.shadowColor) {
+            context.shadowColor = this.shadowColor;
+            context.shadowBlur = 1;
+            context.lineWidth = 1;
+
+            context.strokeText(this.text,this.x, this.y, this.maxWidth);
+
+            context.shadowBlur = 0;
+        }
+
         context.fillStyle = this.color;
         if(maxWidth !== false) {
             context.fillText(this.text, this.x, this.y, this.maxWidth);
@@ -520,7 +532,7 @@ function Rectangle(x, y, width, height, color = false) {
  * Item object that draws a bar with text and border (a representation of a vis-item line) on the current draw
  * context (a canvas).
  */
-function Item(x, y, width, text, endX) {
+function Item(x, y, width, text, endX, textColor = false, customBackgroundColor = false) {
     // apply pageScaleFactor to scanned properties only, as properties based on
     // page settings have already been scaled
     this.x = x * pageScaleFactor;
@@ -529,6 +541,8 @@ function Item(x, y, width, text, endX) {
     this.h = lineHeight + (padding * 2) + (borderSize * 2);
     this.text = text;
     this.endX = endX;
+    this.textColor = textColor ? textColor : foregroundColor;
+    this.backgroundColor = customBackgroundColor ? customBackgroundColor : backgroundColor;
 
     this.draw = function () {
         // reduce width and x position when part of the item falls under the tableYAxisBarWidth or
@@ -540,8 +554,8 @@ function Item(x, y, width, text, endX) {
                 return;
             }
 
-            this.w = this.w + this.x;    // reduce width by the x position
-            this.x = tableYAxisBarWidth; // start where the Y axis bar starts
+            this.w = this.w + this.x;   // reduce width by the x position
+            this.x = tableYAxisBarWidth;// start where the Y axis bar starts
         }
         // for items that are displayed fully, correct the X position on the canvas with the
         // tableYAxisBarWidth to place the item after the bar
@@ -556,13 +570,13 @@ function Item(x, y, width, text, endX) {
 
         context.strokeStyle = foregroundColor;
         context.lineWidth = borderSize;
-        context.fillStyle = backgroundColor;
+        context.fillStyle = this.backgroundColor;
         context.fillRect(this.x, this.y, this.w, this.h);
         context.strokeRect(this.x, this.y, this.w, this.h);
 
         const textX = this.x + padding + borderSize;
         const textY = this.y + padding + fontSize + borderSize;
-        const textObj = new Text(textX, textY, this.text)
+        const textObj = new Text(textX, textY, this.text, false, this.textColor, this.backgroundColor)
 
         textObj.draw();
 
