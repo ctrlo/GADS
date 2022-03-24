@@ -48,12 +48,19 @@
 </div>
 
 [% WRAPPER modal_dialog.tt
-    modal_id="modal_pdf" modal_action_text="View" modal_heading="View timeline as PDF"
-    modal_with_form = 1 modal_form_method = "get"
+    modal_id = "modal_pdf"
+    modal_action_text = "View"
+    modal_heading = "View timeline as PDF"
+    modal_with_form = 1
+    modal_form_method = "post"
+    modal_form_target = "_blank"
+    modal_form_action = url.page _ "/print"
 %]
-    <input type="hidden" name="pdf" value="1">
     <div class="form-group">
         <label for="pdf_zoom">Zoom level of PDF document (%):</label>
-        <input type="text" class="form-control" name="pdf_zoom" value="[% tl_options.pdf_zoom OR '100' %]">
+        <input type="text" class="form-control" id="pdf_zoom" name="pdf_zoom" value="[% tl_options.pdf_zoom OR '100' %]">
+        <input type="checkbox" id="fit_to_page_width" name="fit_to_page_width" style="cursor: pointer;">
+        <label for="fit_to_page_width" style="margin-left: 5px; cursor: pointer;">Fit timeline to page width</label>
+        <input type="hidden" id="html" name="html" value="" data-url-js="[% url.js %]" data-url-css="[% url.css %]">
     </div>
 [% END %]

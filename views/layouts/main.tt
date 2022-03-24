@@ -250,4 +250,3 @@
         <!--[if !IE 8]><!--><script src="[% url.js %]/dashboard.js"></script><!--<![endif]-->
     </body>
 </html>
-
