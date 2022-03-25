@@ -33,15 +33,9 @@
 
     rows.push(row);
   END;
+
+  INCLUDE layouts/page_header_edit_table.tt;
 %]
-<div class="content-block__head row">
-  <div class="content-block__info col-lg-6">
-    <h2 class="content-block__title">
-      Edit Table
-    </h2>
-  </div>
-  [% INCLUDE navigation/table_topics_fields_menu.tt %]
-</div>
 
 <div class="content-block__main">
   <div class="content-block__main-content">

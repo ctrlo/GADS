@@ -1,12 +1,4 @@
-<div class="content-block__head row">
-  <div class="content-block__info col-lg-6">
-    <h2 class="content-block__title">
-      Edit Table
-    </h2>
-  </div>
-  [% INCLUDE navigation/table_topics_fields_menu.tt %]
-</div>
-
+[% INCLUDE layouts/page_header_edit_table.tt; %]
 <div class="content-block__main">
   <form role="form" method="post">
     [%
@@ -148,7 +140,6 @@
           </div>
         </div>
       </div>
-      
       
       <footer class="content-block__footer">
         <div class="content-block__footer-container">
