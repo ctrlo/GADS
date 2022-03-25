@@ -3203,11 +3203,7 @@ prefix '/:layout_name' => sub {
     };
 
     any ['get', 'post'] => '/topic/:id' => require_login sub {
-
-        my $layout = var('layout') or pass;
-
-        my $user        = logged_in_user;
-
+        my $layout      = var('layout') or pass;
         my $instance_id = $layout->instance_id;
 
         forwardHome({ danger => "You do not have permission to manage topics"}, '')
@@ -3229,7 +3225,7 @@ prefix '/:layout_name' => sub {
             $topic->name(param 'name');
             $topic->description(param 'description');
             $topic->click_to_edit(param 'click_to_edit');
-            $topic->initial_state(param 'initial_state');
+            $topic->initial_state(param('initial_state') || 'collapsed');
             $topic->prevent_edit_topic_id(param('prevent_edit_topic_id') || undef);
 
             if (process(sub {$topic->update_or_insert}))
@@ -3240,7 +3236,7 @@ prefix '/:layout_name' => sub {
             }
         }
 
-        if (param 'delete_topic')
+        if (param 'delete')
         {
             if (process(sub {$topic->delete}))
             {
@@ -3249,14 +3245,18 @@ prefix '/:layout_name' => sub {
             }
         }
 
-        my $topic_name = $id ? $topic->name : 'new topic';
-        my $topic_id   = $id ? $topic->id : 0;
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         template 'topic' => {
-            topic       => $topic,
-            topics      => [schema->resultset('Topic')->search({ instance_id => $instance_id })->all],
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, '/topics' => 'topics' ) => Crumb( $layout, "/topic/$topic_id" => $topic_name )],
-            page        => !$id ? 'topic/0' : 'topics',
-        }
+            page                         => !$id ? 'topic_add' : 'topic_edit',
+            content_block_custom_classes => 'content-block--footer',
+            detail_header                => 1,
+            header_back_url              => "${base_url}${tableIdentifier}/topics",
+            layout_obj                   => $layout,
+            topic                        => $topic,
+            topics                       => [schema->resultset('Topic')->search({ instance_id => $instance_id })->all],
+        };
     };
 
     get '/topics/?' => require_login sub {

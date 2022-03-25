@@ -30,7 +30,7 @@
             
             [%
               IF user.permission.superadmin OR layout_obj.user_can("layout");
-                active_pages = ["table_edit", "topics", "layout"];
+                active_pages = ["table_edit", "topics", "topic_add", "topic_edit", "layout"];
             %]
             <li class="list__item">
               <a href='[% url.page %]/table/[% layout_obj.instance_id %]/edit' class="link link--plain [% IF active_pages.grep(page).size %]link--active[% END %]">
@@ -50,7 +50,7 @@
     
     <nav class="table-header-bottom row justify-content-between no-gutters">
       <div class="table-header__options-left">
-        <a href="[% url.page %]/table/" class="btn btn-title-back">
+        <a href="[% header_back_url ? header_back_url : url.page _ '/table/' %]" class="btn btn-title-back">
           <span class="btn__title">Back</span>
         </a>
       </div>
