@@ -30,7 +30,7 @@
             
             [%
               IF user.permission.superadmin OR layout_obj.user_can("layout");
-                active_pages = ["table_edit", "topics", "topic_add", "topic_edit", "layout"];
+                active_pages = ["table_edit", "topics", "topic_add", "topic_edit","layouts", "layout"];
             %]
             <li class="list__item">
               <a href='[% url.page %]/table/[% layout_obj.instance_id %]/edit' class="link link--plain [% IF active_pages.grep(page).size %]link--active[% END %]">

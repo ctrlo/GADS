@@ -3372,14 +3372,13 @@ prefix '/:layout_name' => sub {
     any ['get', 'post'] => '/layout/?:id?' => require_login sub {
 
         my $layout = var('layout') or pass;
-
-        my $user        = logged_in_user;
+        my $user   = logged_in_user;
 
         forwardHome({ danger => "You do not have permission to manage fields"}, '')
             unless $layout->user_can("layout");
 
         my $params = {
-            page => defined param('id') && !param('id') ? 'layout/0' : 'layout',
+            page => defined param('id') && !param('id') ? 'layout' : 'layouts',
         };
 
         if (defined param('id'))
@@ -3389,7 +3388,6 @@ prefix '/:layout_name' => sub {
             $params->{instances_object} = var('instances'); # For autocur. Don't conflict with other instances var
         }
 
-        my $breadcrumbs = [Crumb($layout) => Crumb( $layout, '/layout' => 'fields' )];
         if (param('id') || param('submit') || param('update_perms'))
         {
 
@@ -3520,18 +3518,20 @@ prefix '/:layout_name' => sub {
                 }
             }
             $params->{column} = $column;
-            push @$breadcrumbs, Crumb( $layout, "/layout/".$column->id => 'edit field "'.$column->name.'"' );
         }
         elsif (defined param('id'))
         {
             $params->{column} = 0; # New
-            push @$breadcrumbs, Crumb( $layout, "/layout/0" => 'new field' );
         }
-        $params->{groups}             = GADS::Groups->new(schema => schema);
-        $params->{permissions}        = [GADS::Type::Permissions->all];
-        $params->{permission_mapping} = GADS::Type::Permissions->permission_mapping;
-        $params->{permission_inputs}  = GADS::Type::Permissions->permission_inputs;
-        $params->{topics}             = [schema->resultset('Topic')->search({ instance_id => $layout->instance_id })->all];
+
+        $params->{groups}                       = GADS::Groups->new(schema => schema);
+        $params->{permissions}                  = [GADS::Type::Permissions->all];
+        $params->{permission_mapping}           = GADS::Type::Permissions->permission_mapping;
+        $params->{permission_inputs}            = GADS::Type::Permissions->permission_inputs;
+        $params->{topics}                       = [schema->resultset('Topic')->search({ instance_id => $layout->instance_id })->all];
+        $params->{content_block_custom_classes} = 'content-block--footer';
+        $params->{detail_header}                = 1;
+        $params->{layout_obj}                   = $layout;
 
         if (param 'saveposition')
         {
@@ -3543,8 +3543,9 @@ prefix '/:layout_name' => sub {
             }
         }
 
-        $params->{breadcrumbs} = $breadcrumbs;
-        template 'layout' => $params;
+        my $page = defined param('id') ? 'layout' : 'layouts';
+
+        template $page => $params;
     };
 
     any ['get', 'post'] => '/approval/?:id?' => require_login sub {
