@@ -152,7 +152,7 @@
                 type   = "link",
                 target = url.page _ "/" _ layout_obj.identifier _ "/layout/0",
                 class  = "btn btn-inverted btn-add",
-                label  = "Add a topic"
+                label  = "Add a field"
               }, {
                 type  = "button",
                 id    = "submit_saceorder",
