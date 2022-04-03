@@ -538,6 +538,10 @@ post '/api/user_account_request/:id' => require_login sub {
     _post_request_account();
 };
 
+post '/api/table_request/:id' => require_login sub {
+    _post_table_request();
+};
+
 sub _post_dashboard_widget {
     my $layout = shift;
     my $user   = logged_in_user;
@@ -767,6 +771,259 @@ sub _post_request_account {
         $user->update_user(current_user => logged_in_user, %values);
     }) {
         return _success("User updated successfully");
+    }
+}
+
+my $create_table = sub {
+    my $params = shift;
+
+    my $user = logged_in_user;
+    my $table = GADS::Layout->new(
+        user   => $user,
+        schema => schema,
+        config => config,
+    );
+    $table->name($params->{name});
+    $table->name_short($params->{shortName});
+    $table->hide_in_selector($params->{hide_in_selector});
+
+    my @group_perms;
+    foreach my $perm (@{$params->{table_permissions}})
+    {
+        # Missing: message, bulk_update, bulk_delete
+        my %pmap = (
+                delete_records           => {
+                    name => 'delete',
+                    type => 'records',
+                },
+                purge_deleted_records    => {
+                    name => 'purge',
+                    type => 'records',
+                },
+                download_records         => {
+                    name => 'download',
+                    type => 'records',
+                },
+                # bulk_import_records    => ,
+                manage_linked_records    => {
+                    name => 'link',
+                    type => 'records',
+                },
+                manage_child_records     => {
+                    name => 'create_child',
+                    type => 'records',
+                },
+                manage_views             => {
+                    name => 'view_create',
+                    type => 'views',
+                },
+                manage_group_views       => {
+                    name => 'view_group',
+                    type => 'views',
+                },
+                select_extra_view_limits => {
+                    name => 'view_limit_extra',
+                    type => 'views',
+                },
+                manage_fields            => {
+                    name => 'layout',
+                    type => 'fields',
+                },
+        );
+        my $group_id = $perm->{group_id};
+        foreach my $key (keys %pmap)
+        {
+            my $type = $pmap{$key}->{type};
+            my $name = $pmap{$key}->{name};
+            push @group_perms, "${group_id}_$name"
+                if $perm->{$type}->{$key};
+        }
+    }
+    $table->set_groups(\@group_perms);
+    $table->write;
+
+    my %topics;
+    foreach my $top (@{$params->{topics}})
+    {
+        my $topic = schema->resultset('Topic')->new({ instance_id => $table->instance_id });
+        $topic->name($top->{name});
+        $topic->description($top->{description});
+        $topic->initial_state($top->{expanded} ? 'open' : 'collapsed');
+        $topic->insert;
+        $topics{$top->{tempId}} = $topic;
+    }
+
+    my %fields;
+    foreach my $f (@{$params->{fields}})
+    {
+        my %args = (
+            schema => schema,
+            user   => $user,
+            layout => $table,
+        );
+        my $field = $f->{field_type} eq 'text'
+            ? GADS::Column::String->new(%args)
+            : $f->{field_type} eq 'integer'
+            ? GADS::Column::Intgr->new(%args)
+            : $f->{field_type} eq 'date'
+            ? GADS::Column::Date->new(%args)
+            : $f->{field_type} eq 'date-range'
+            ? GADS::Column::Daterange->new(%args)
+            : $f->{field_type} eq 'enum'
+            ? GADS::Column::Enum->new(%args)
+            : $f->{field_type} eq 'tree'
+            ? GADS::Column::Tree->new(%args)
+            : $f->{field_type} eq 'file'
+            ? GADS::Column::File->new(%args)
+            : $f->{field_type} eq 'person'
+            ? GADS::Column::Person->new(%args)
+            : $f->{field_type} eq 'rag'
+            ? GADS::Column::Rag->new(%args)
+            : $f->{field_type} eq 'calculated-value'
+            ? GADS::Column::Calc->new(%args)
+            : $f->{field_type} eq 'curval'
+            ? GADS::Column::Curval->new(%args)
+            : $f->{field_type} eq 'autocur'
+            ? GADS::Column::Autocur->new(%args)
+            : $f->{field_type} eq 'filval'
+            ? GADS::Column::Filval->new(%args)
+            : error(__x"Invalid field type: {type}", type => $f->{field_type});
+        $field->name($f->{name});
+        $field->optional($f->{optional});
+        $field->topic_id($topics{$f->{topic_tempid}}->id);
+
+        # Permissions
+        my %permissions;
+        foreach my $perm (@{$f->{custom_field_permissions}})
+        {
+            my $group_id = $perm->{group_id};
+            $permissions{$group_id} ||= [];
+            foreach my $p (qw/create read update approve write_without_approval/)
+            {
+                if ($f->{custom_field_permissions}->{create})
+                {
+                    push @{$permissions{$group_id}}, 'write_new';
+                }
+                if ($f->{custom_field_permissions}->{read})
+                {
+                    push @{$permissions{$group_id}}, 'read';
+                }
+                if ($f->{custom_field_permissions}->{update})
+                {
+                    push @{$permissions{$group_id}}, 'write_existing';
+                }
+                if ($f->{custom_field_permissions}->{approve})
+                {
+                    push @{$permissions{$group_id}}, 'approve_new';
+                    push @{$permissions{$group_id}}, 'approve_existing';
+                }
+                if ($f->{custom_field_permissions}->{write_without_approval})
+                {
+                    push @{$permissions{$group_id}}, 'write_new_no_approval';
+                    push @{$permissions{$group_id}}, 'write_existing_no_approval';
+                }
+            }
+        }
+        $field->set_permissions(\%permissions);
+
+        my $settings = $f->{field_type_settings};
+        if ($field->type eq 'string')
+        {
+            $field->textbox($f->{field_type_settings}->{textbox});
+            $field->force_regex($f->{field_type_settings}->{force_regex});
+        }
+        elsif ($field->type eq 'integer')
+        {
+            $field->show_calculator($f->{field_type_settings}->{show_calculator});
+        }
+        elsif ($field->type eq 'date')
+        {
+            $field->show_datepicker($f->{field_type_settings}->{show_datepicker});
+            $field->default_today($f->{field_type_settings}->{default_today});
+        }
+        elsif ($field->type eq 'daterange')
+        {
+            $field->show_datepicker($f->{field_type_settings}->{show_datepicker});
+        }
+        elsif ($field->type eq 'enum')
+        {
+            $field->enumvals({
+                enumvals    => $f->{field_type_settings}->{dropdown_values},
+            });
+            $field->ordering($f->{field_type_settings}->{ordering} || undef);
+        }
+        elsif ($field->type eq 'tree')
+        {
+            $field->end_node_only($f->{field_type_settings}->{end_node_only});
+        }
+        elsif ($field->type eq 'file')
+        {
+            $field->filesize($f->{field_type_settings}->{filesize} || undef);
+        }
+        elsif ($field->type eq 'person')
+        {
+            $field->default_to_login($f->{field_type_settings}->{default_to_login});
+            $field->notify_on_selection($f->{field_type_settings}->{notify_on_selection});
+            $field->notify_on_selection_message($f->{field_type_settings}->{notify_on_selection_message});
+            $field->notify_on_selection_subject($f->{field_type_settings}->{notify_on_selection_subject});
+        }
+        elsif ($field->type eq 'rag')
+        {
+            $field->code($f->{field_type_settings}->{code_rag});
+        }
+        elsif ($field->type eq 'calc')
+        {
+            $field->code($f->{field_type_settings}->{code_calc});
+            $field->return_type($f->{field_type_settings}->{return_type});
+            $field->show_in_edit($f->{field_type_settings}->{show_in_edit});
+        }
+        elsif ($field->type eq 'curval')
+        {
+            $field->refers_to_instance_id($settings->{refers_to_instance_id});
+            # $column->filter->as_json($f->{field_type_settings});
+            $field->curval_field_ids($settings->{curval_field_ids});
+            $field->override_permissions($settings->{override_permissions});
+            $field->value_selector($settings->{value_selector});
+            $field->show_add($settings->{show_add});
+            $field->delete_not_used($settings->{delete_not_used});
+            $field->limit_rows($settings->{limit_rows});
+        }
+        elsif ($field->type eq 'autocur')
+        {
+            $field->curval_field_ids($settings->{curval_field_ids});
+            $field->related_field_id($settings->{related_field_id});
+        }
+        elsif ($field->type eq 'filval')
+        {
+            $field->curval_field_ids($settings->{curval_field_ids});
+            $field->related_field_id($settings->{filval_related_field_id});
+        }
+        else {
+            panic __x"Unexpected field type: {type}", type => $field->type;
+        }
+
+        $field->write(no_alerts => 1, no_cache_update => 1);
+        # ID needs to be set before writing tree
+        $field->update($settings->{data})
+            if $field->type eq 'tree';
+        $fields{$f->{tempId}} = $field;
+    }
+};
+
+sub _post_table_request {
+
+    error __"Body content must be application/json"
+        if request->content_type ne 'application/json';
+
+    my $body = try { decode_json(request->body) }
+        or error __"No body content received";
+
+    logged_in_user->permission->{superadmin}
+        or error __"You must be a super-administrator to create tables";
+
+    if (process $create_table->($body))
+    {
+        return _success("Table created successfully");
     }
 }
 
