@@ -1,0 +1,43 @@
+<div class="form-group">
+  <div class="tree tree--config" id="tree-config">
+    [%
+      INCLUDE snippets/button_list.tt
+        list_class = "list--horizontal list--buttons"
+        buttons    = [{
+          type        = "button",
+          button_type = "button",
+          class       = "btn btn-small btn-default btn-js-tree-add",
+          label       = "Add a node"
+        }, {
+          type        = "button",
+          button_type = "button",
+          class       = "btn btn-small btn-inverted btn-js-tree-rename",
+          label       = "Rename"
+        }, {
+          type        = "button",
+          button_type = "button",
+          class       = "btn btn-small btn-danger btn-js-tree-delete",
+          label       = "Delete"
+        }, {
+          type        = "button",
+          button_type = "button",
+          class       = "btn btn-small btn-link btn-js-tree-expand",
+          label       = "Expand all"
+        }, {
+          type        = "button",
+          button_type = "button",
+          class       = "btn btn-small btn-link btn-js-tree-collapse",
+          label       = "Collapse all"
+        }, ];
+    %]
+    
+    <div
+      class="tree-widget-container"
+      id="[% id %]"
+      data-layout-identifier="[% layout_obj.identifier %]"
+      data-column-id="[% layout_id %]"
+      data-csrf-token="[% csrf_token %]"
+    >
+    </div>
+  </div>
+</div>
