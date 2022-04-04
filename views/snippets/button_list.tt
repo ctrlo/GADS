@@ -24,7 +24,7 @@
       </a>
       [% ELSIF button.type == "button" %]
       <button
-        type="submit"
+        type="[% button.button_type ? button.button_type : 'submit' %]"
         name="[% button.name %]"
         value="[% button.value || button.name %]"
         class="[% button.class %]"[% IF button.style %]
