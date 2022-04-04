@@ -1,5 +1,5 @@
 [%-
-  input_class    = is_required AND ! input_class.match('input--required') ? input_class _ ' input--required' : input_class;
+  input_class = is_required AND ! input_class.match('input--required') ? input_class _ ' input--required' : input_class;
 -%]
 <div class="checkbox [% input_class %]">
   <input
