@@ -170,7 +170,12 @@ sub _process_instance
         #
         # All the views the record is *now* in
         my $now_in_views; my $now_in_views2;
-        foreach my $now_in ($records->search_views($current_ids, @views))
+        my @foundin;
+        foreach my $view (@views)
+        {
+            push @foundin, $records->search_view($current_ids, $view);
+        }
+        foreach my $now_in (@foundin)
         {
             # Create an easy to search hash for each view, user and record
             my $view_id = $now_in->{view}->id;
