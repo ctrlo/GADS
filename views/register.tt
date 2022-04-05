@@ -50,8 +50,8 @@
             name = "title"
             label = "Title"
             placeholder = "Select title"
-            help_text = site.register_organisation_help
-            items = organisations;
+            help_text = site.register_title_help
+            items = titles;
         END;
         
         IF site.register_freetext1_name;
