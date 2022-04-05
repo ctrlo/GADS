@@ -571,84 +571,81 @@ sub linked_hash
 }
 
 # A function to see if any views have a particular record within
-sub search_views
-{   my ($self, $current_ids, @views) = @_;
+sub search_view
+{   my ($self, $current_ids, $view) = @_;
 
-    return unless @views && @$current_ids;
+    return unless $view && @$current_ids;
 
     # Need to specify no columns to be retrieved, otherwise as soon as
     # $self->joins is called, prefetch will have all the columns in
     $self->columns([]);
 
     my @foundin;
-    foreach my $view (@views)
-    {
-        # Treat each view with CURUSER as a separate view for each user
-        # that has it set as an alert
-        my @users = $view->has_curuser
-           ? $self->schema->resultset('User')->search({
-            view_id => $view->id
-        }, {
-            join => 'alerts',
-        })->all : (undef);
+    # Treat each view with CURUSER as a separate view for each user
+    # that has it set as an alert
+    my @users = $view->has_curuser
+       ? $self->schema->resultset('User')->search({
+        view_id => $view->id
+    }, {
+        join => 'alerts',
+    })->all : (undef);
 
-        foreach my $user (@users)
+    foreach my $user (@users)
+    {
+        my $filter  = $view->filter;
+        my $view_id = $view->id;
+        trace qq(About to decode filter for view ID $view_id);
+        my $decoded = $filter->as_hash;
+        if (keys %$decoded)
         {
-            my $filter  = $view->filter;
-            my $view_id = $view->id;
-            trace qq(About to decode filter for view ID $view_id);
-            my $decoded = $filter->as_hash;
-            if (keys %$decoded)
+            my @searches = ({
+                'me.instance_id'          => $self->layout->instance_id,
+            });
+            push @searches, $self->record_later_search(linked => 1, search => 1);
+            # Perform search construct twice, to ensure all value joins are consistent numbers
+            $self->_search_construct($decoded, $self->layout, ignore_perms => 1, user => $user);
+            push @searches, $self->_search_construct($decoded, $self->layout, ignore_perms => 1, user => $user);
+            my $i = 0; my @ids;
+            while ($i < @$current_ids)
             {
-                my @searches = ({
-                    'me.instance_id'          => $self->layout->instance_id,
-                });
-                push @searches, $self->record_later_search(linked => 1, search => 1);
-                # Perform search construct twice, to ensure all value joins are consistent numbers
-                $self->_search_construct($decoded, $self->layout, ignore_perms => 1, user => $user);
-                push @searches, $self->_search_construct($decoded, $self->layout, ignore_perms => 1, user => $user);
-                my $i = 0; my @ids;
-                while ($i < @$current_ids)
+                # See comment above about searching for all current_ids
+                my $search = { -and => \@searches };
+                unless (@$current_ids == $self->count)
                 {
-                    # See comment above about searching for all current_ids
-                    my $search = { -and => \@searches };
-                    unless (@$current_ids == $self->count)
-                    {
-                        my $max = $i + 499;
-                        $max = @$current_ids-1 if $max >= @$current_ids;
-                        $search->{'me.id'} = [@{$current_ids}[$i..$max]];
-                    }
-                    push @ids, $self->schema->resultset('Current')->search($search, {
-                        join => [
-                            [$self->linked_hash(search => 1)],
-                            {
-                                'record_single' => [
-                                    $self->jpfetch(search => 1),
-                                    'record_later',
-                                ],
-                            },
-                        ],
-                    })->get_column('id')->all;
-                    last unless $search->{'me.id'};
-                    $i += 500;
+                    my $max = $i + 499;
+                    $max = @$current_ids-1 if $max >= @$current_ids;
+                    $search->{'me.id'} = [@{$current_ids}[$i..$max]];
                 }
-                foreach my $id (@ids)
-                {
-                    push @foundin, {
-                        view    => $view,
-                        id      => $id,
-                        user_id => $user && $user->id,
-                    };
-                }
+                push @ids, $self->schema->resultset('Current')->search($search, {
+                    join => [
+                        [$self->linked_hash(search => 1)],
+                        {
+                            'record_single' => [
+                                $self->jpfetch(search => 1),
+                                'record_later',
+                            ],
+                        },
+                    ],
+                })->get_column('id')->all;
+                last unless $search->{'me.id'};
+                $i += 500;
             }
-            else {
-                # No filter, definitely in view
+            foreach my $id (@ids)
+            {
                 push @foundin, {
                     view    => $view,
+                    id      => $id,
                     user_id => $user && $user->id,
-                    id      => $_,
-                } foreach @$current_ids;
+                };
             }
+        }
+        else {
+            # No filter, definitely in view
+            push @foundin, {
+                view    => $view,
+                user_id => $user && $user->id,
+                id      => $_,
+            } foreach @$current_ids;
         }
     }
     @foundin;
