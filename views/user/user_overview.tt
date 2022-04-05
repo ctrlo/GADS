@@ -205,6 +205,6 @@
 </div>
 
 [%-
-  INCLUDE wizard/user_add.tt modalId="userModal";
+  INCLUDE wizard/user_add.tt endpoint="/api/user_account" modalId="userModal";
   INCLUDE wizard/user_email.tt modalId="emailUsersModal";
 -%]

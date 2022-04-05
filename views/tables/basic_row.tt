@@ -14,7 +14,8 @@
             filter=field.filter
             sub_field=field.sub_field
             sub_params=field.sub_params
-            field_name=field.name;
+            field_name=field.name
+            field_value=field.value;
         CASE 'button';
           INCLUDE tables/basic_cell_button.tt
             class=field.class
@@ -23,7 +24,8 @@
             filter=field.filter
             sub_field=field.sub_field
             sub_params=field.sub_params
-            field_name=field.name;
+            field_name=field.name
+            field_value=field.value;
         CASE 'modal_button';
           INCLUDE tables/basic_cell_modal_button.tt
             class=field.class
@@ -32,6 +34,7 @@
             sub_field=field.sub_field
             sub_params=field.sub_params
             field_name=field.name
+            field_value=field.value
             modalId=field.modalId
             dataTitle=field.dataTitle
             dataID=field.dataID;
@@ -42,7 +45,8 @@
             filter=field.filter
             sub_field=field.sub_field
             sub_params=field.sub_params
-            field_name=field.name;
+            field_name=field.name
+            field_value=field.value;
         CASE DEFAULT;
           INCLUDE tables/basic_cell_text.tt
             class=field.class
@@ -50,7 +54,8 @@
             filter=field.filter
             sub_field=field.sub_field
             sub_params=field.sub_params
-            field_name=field.name;
+            field_name=field.name
+            field_value=field.value;
       END;
     END;
   %]
