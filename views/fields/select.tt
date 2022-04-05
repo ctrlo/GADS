@@ -17,7 +17,8 @@
   #   sub_field = ""
   #   sub_params = {};
 
-  input_class = is_required AND ! input_class.match('select--required') ? input_class _ ' select--required' : input_class;
+  input_class  = is_required AND ! input_class.match('select--required') ? input_class _ ' select--required' : input_class;
+  select_class = select_class ? select_class : 'select--select';
   display_placeholder = placeholder;
   display_value = "";
 
@@ -30,9 +31,9 @@
 %]
 
 [% IF ! hide_group %]
-<div class="form-group" data-test="[% IF 0 == false %]TRUE[% ELSE %]FALSE[% END %]">
+<div class="form-group">
 [% END %]
-  <div class="select dropdown select--select">
+  <div class="select dropdown [% select_class %]">
     <div class="select__label">
       <label for="[% id %]" id="[% id %]-label">
         [% INCLUDE fields/sub/filter.tt value=label; %]
