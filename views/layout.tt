@@ -1,736 +1,1703 @@
 [% PROCESS help.tt %]
-[% PROCESS snippets/util.tt %]
-[% PROCESS snippets/layout_permissions.tt %]
-[% PROCESS snippets/layout_modals.tt %]
-
-[% BLOCK field_properties %]
-    <h3>Field properties</h3>
-
-    <div class="form-group">
-        <label for="name">Name:</label>
-        <input type="text" class="form-control" id="name" name="name" value="[% column.name | html_entity %]">
-    </div>
-
-    [% IF topics.size %]
-        <div class="form-group">
-            <label for="topic_id">Topic:</label>
-            <select class="form-control" id="topic_id" name="topic_id">
-                <option></option>
-                [% FOREACH topic IN topics %]
-                    <option value="[% topic.id %]" [% IF column.topic_id == topic.id %]selected[% END %]>[% topic.name | html %]</option>
-                [% END %]
-            </select>
-        </div>
-    [% END %]
-
-    <div class="checkbox stored-value">
-        <label>
-            <input type="checkbox" name="optional" [% IF column.optional %]checked[% END %]>This field is optional
-        </label>
-    </div>
-
-    <div class="form-group" [% IF column.id %]style="display:none"[% END %]>
-        <label for="type">Type:</label>
-        <select class="form-control" id="type" name="type">
-            <option value="string"      [% IF column.type == "string" %]selected    [% END %]>Text</option>
-            <option value="intgr"       [% IF column.type == "intgr" %]selected     [% END %]>Integer</option>
-            <option value="date"        [% IF column.type == "date" %]selected      [% END %]>Date</option>
-            <option value="daterange"   [% IF column.type == "daterange" %]selected [% END %]>Date range</option>
-            <option value="enum"        [% IF column.type == "enum" %]selected      [% END %]>Dropdown list</option>
-            <option value="tree"        [% IF column.type == "tree" %]selected      [% END %]>Tree</option>
-            <option value="file"        [% IF column.type == "file" %]selected      [% END %]>Document</option>
-            <option value="person"      [% IF column.type == "person" %]selected    [% END %]>Person</option>
-            <option value="rag"         [% IF column.type == "rag" %]selected       [% END %]>RedAmberGreen status (RAG)</option>
-            <option value="calc"        [% IF column.type == "calc" %]selected      [% END %]>Calculated value</option>
-            <option value="curval"      [% IF column.type == "curval" %]selected    [% END %]>Field(s) for records from another table</option>
-            <option value="autocur"     [% IF column.type == "autocur" %]selected   [% END %]>Automatic value of other sheet's references to this one</option>
-            [% IF layout.filtered_curvals.size %]
-                <option value="filval"     [% IF column.type == "filval" %]selected   [% END %]>Automatic filtered values of other field</option>
-            [% END %]
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label for="description">Description:</label>
-        <input type="text" class="form-control" id="description" name="description" value="[% column.description | html_entity %]">
-    </div>
-    <div class="form-group">
-        <label for="helptext">Help text for the user:</label>
-        <textarea class="form-control" rows="5" id="helptext" name="helptext">[% column.helptext | html_entity %]</textarea>
-    </div>
-[% END %]
-
-[% BLOCK field_type_settings %]
-    <h3>Field type settings</h3>
-
-    [% PROCESS field_type_properties %]
-
-[% END %]
-
-[% BLOCK advanced_field_settings %]
-    <h3>Advanced settings</h3>
-
-    [% PROCESS field_options %]
-
-    <div class="form-group">
-        <label for="name_short"><span style="font-weight:normal">Short name: [% whats_this('modalhelp_name_short') %]</span></label>
-        <input type="text" class="form-control" id="name_short" name="name_short" value="[% column.name_short | html_entity %]">
-    </div>
-    <div class="form-group">
-        <label for="width">Width of form field:</label>
-        <select class="form-control" id="width" name="width">
-            <option value="50" [% IF NOT column.width OR column.width == "50" %]selected[% END %]>Half-width</option>
-            <option value="100" [% IF column.width == "100" %]selected[% END %]>Full-width</option>
-        </select>
-    </div>
-    [% IF column.numeric %]
-        <div class="form-group">
-            <label for="aggregate">Aggregate for field in table view:</label>
-            <select class="form-control" id="aggregate" name="aggregate">
-                <option value="" [% IF NOT column.aggregate %]selected[% END %]>&lt;no aggregate&gt;</option>
-                <option value="sum" [% IF column.aggregate == "sum" %]selected[% END %]>Sum all record values in column</option>
-                [% IF column.type == "calc" %]
-                    <option value="recalc" [% IF column.aggregate == "recalc" %]selected[% END %]>Recalculate from other aggregate values</option>
-                [% END %]
-            </select>
-        </div>
-    [% ELSE %]
-        <div class="form-group">
-            <label for="group_display">Display in grouped view:</label>
-            <select class="form-control" id="group_display" name="group_display">
-                <option value="" [% IF NOT column.group_display %]selected[% END %]>Do not display in grouped views</option>
-                <option value="unique" [% IF column.group_display %]selected[% END %]>Display count of unique values in grouped views</option>
-            </select>
-        </div>
-    [% END %]
-    <div class="form-group">
-        <label for="link_parent_id">Link to a field in another table:</label>
-        [% IF instance_layouts.size %]
-            <select class="form-control" id="link_parent_id" name="link_parent_id">
-                <option value="">&lt;Not linked&gt;</option>
-                [% FOREACH instance_layout IN instance_layouts %]
-                    [% NEXT IF instance_layout.instance_id == layout.instance_id %]
-                    [% FOREACH c IN instance_layout.all %]
-                        <option value="[% c.id %]" [% IF column.link_parent.id == c.id %]selected[% END %]>[% instance_layout.name | html %] - [% c.name | html %]</option>
-                    [% END %]
-                [% END %]
-            </select>
-        [% ELSE %]
-            <select class="form-control" id="link_parent_id" name="link_parent_id" disabled readonly>
-                <option value="">&lt;No other datasheets exist&gt;</option>
-            </select>
-        [% END %]
-    </div>
-[% END %]
-
-[% BLOCK field_options %]
-   <div class="checkbox stored-value">
-        <label>
-            <input type="checkbox" name="remember" [% IF column.remember %]checked[% END %]>Remember last value for new entry
-        </label>
-    </div>
-   <div class="checkbox stored-value">
-        <label>
-            <input type="checkbox" name="set_can_child" value="1" [% IF column.can_child %]checked[% END %]>This field forms a value in child records
-        </label>
-    </div>
-    <div class="checkbox stored-value">
-        <label>
-            <input type="checkbox" name="isunique" [% IF column.isunique %]checked[% END %]>The values for this field must be unique
-        </label>
-    </div>
-    <div class="checkbox" id="checkbox-multivalue">
-        <label>
-            <input type="checkbox" name="multivalue" [% IF column.multivalue %]checked[% END %]>Allow multiple values
-        </label>
-    </div>
-[% END %]
-
-
-[% BLOCK field_display_conditions %]
-    <section id="display_conditions">
-        <h3>Display</h3>
-        <p>Use this section to define under what conditions this field is
-        displayed when editing a record. If no conditions are defined, then the
-        field will always displayed.</p>
-
-    <div id="displayConditionsBuilder"
-        [% IF column.display_fields.as_json AND NOT column.display_fields.as_json.match('^[{}\s]*$') %]
-            data-filter-base="[% column.display_fields.base64 %]"
-        [% END %]
-        data-filters="[% layout.columns_for_display_condition %]"
-    ></div>
-    <input type="hidden" id="displayConditions" name="display_fields">
-    <p>Tip: You can use patterns [% whats_this('modalhelp_match') %] in your display conditions.</p>
-    </section>
-[% END %]
-
-[% BLOCK field_type_properties %]
-    <div class="field-options tree">
-        [% IF column.id %]
-            <h4>Tree field options</h4>
-            <p>Each value in the tree is referred to as a node.</p>
-            <div class="checkbox">
-                <label>
-                    <input type="checkbox" name="end_node_only" [% IF column.end_node_only %]checked[% END %]>
-                    Only let users select an end-node
-                </label>
-            </div>
-            <h4>Tree nodes:</h4>
-            <div class="form-group">
-                    <button id="btnAddNode" class="btn btn-success btn-sm" type="button">Add a node</button>
-                    <button id="btnRenameNode" class="btn btn-warning btn-sm" type="button">Rename</button>
-                    <button id="btnDeleteNode" class="btn btn-danger btn-sm" type="button">Delete</button>
-                    <button class="btn btn-info btn-sm jstree-expand-all" type="button">Expand tree</button>
-                    <button class="btn btn-info btn-sm jstree-collapse-all" type="button">Collapse tree</button>
-                    <div id="jstree_demo_div" data-layout-identifier="[% layout.identifier %]" data-column-id="[% column.id %]" data-csrf-token="[% csrf_token %]"></div>
-            </div>
-        [% ELSE %]
-            <p>Use a tree to structure the values that users can select into categories and sub-categories.</p>
-            <p>To create your tree, please save this field first, then edit it.</p>
-        [% END %]
-    </div>
-    <div class="field-options enum">
-        <h4>Dropdown field options</h4>
-            <div class="form-group">
-                <label for="enumval">Order dropdown values:</label>
-                <select class="form-control" name="ordering">
-                    <option value="" [% IF NOT column.ordering %]selected[% END %]>As shown (drag hand to reorder)</option>
-                    <option value="asc" [% IF column.ordering == "asc" %]selected[% END %]>Ascending</option>
-                    <option value="desc" [% IF column.ordering == "desc" %]selected[% END %]>Descending</option>
-                </select>
-            </div>
-        <div>
-            <label for="enumval">Add dropdown values:</label>
-        </div>
-        <div id="legs">
-            <div class="sortable">
-                [% FOREACH enumval IN column.enumvals %]
-                    [% UNLESS enumval.deleted %]
-                    <div class="request-row">
-                        <p>
-                            [%# XXX hacky formatting - to be fixed ssss %]
-                            <input type="hidden" name="enumval_id" value="[% enumval.id %]">
-                            <input type="text" class="form-control" style="width:80%; display:inline" name="enumval" value="[% enumval.value | html_entity %]">
-                            <button type="button" class="close closeme" style="float:none">&times;</button>
-                            <span class="fa fa-hand-paper-o fa-lg use-icon-font close drag" style="float:none"></span>
-                        </p>
-                    </div>
-                    [% END %]
-                [% END %]
-            </div>
-            <div class="request-add">
-                    <div class="">
-                        <button type="button" class="btn btn-default add">
-                            Add value
-                        </button>
-                    </div>
-            </div>
-        </div>
-    </div>
-    <div class="field-options curval">
-        <h4>Field options</h4>
-        [% IF instance_layouts.size %]
-            [% rti = column.refers_to_instance_id %]
-            <div class="form-group">
-                <label for="value_selector">Type of value selector:</label>
-                <select class="form-control" id="value_selector" name="value_selector">
-                    <option value="dropdown" [% IF column.value_selector == "dropdown" %]selected[% END %]>Drop-down box</option>
-                    <option value="typeahead" [% IF column.value_selector == "typeahead" %]selected[% END %]>Auto-complete textbox</option>
-                    <option value="noshow" [% IF column.value_selector == "noshow" %]selected[% END %]>Do not show selector</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="show_add">New values:</label>
-                <div class="checkbox">
-                    <label>
-                        <input id="show_add" type="checkbox" name="show_add" [% IF column.show_add %]checked[% END %]>Allow new values to be added when editing
-                    </label>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="delete_not_used">Old values:</label>
-                <div class="checkbox">
-                    <label>
-                        <input id="delete_not_used" type="checkbox" name="delete_not_used" [% IF column.delete_not_used %]checked[% END %]>Delete records from other table if deselected from this field
-                    </label>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="override_permissions">Permissions override:</label>
-                <div class="checkbox">
-                    <label>
-                        <input id="override_permissions" type="checkbox" name="override_permissions" [% IF column.override_permissions %]checked[% END %]>Override any user permissions when selecting records for this field
-                    </label>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="limit_rows">Limit number of displayed rows to a maximum of:</label>
-                <input type="text" class="form-control" name="limit_rows" id="limit_rows"
-                    value="[% column.limit_rows %]" placeholder="Enter a number of leave blank for no limit">
-            </div>
-            <div class="form-group">
-                <label for="refers_to_instance_id">Use this table:</label>
-                <select class="form-control" id="refers_to_instance_id" name="refers_to_instance_id">
-                    [% IF NOT rti %]
-                        <option></option>
-                    [% END %]
-                    [% FOREACH instance_layout IN instance_layouts %]
-                        <option value="[% instance_layout.instance_id %]" [% IF rti == instance_layout.instance_id %]selected[% END %]>[% instance_layout.name | html_entity %]</option>
-                    [% END %]
-                </select>
-            </div>
-            [% FOREACH instance_layout IN instance_layouts %]
-                <div id="instance_fields_[% instance_layout.instance_id %]" class="instance_fields"
-                    [% IF (rti AND instance_layout.instance_id != rti) OR NOT rti %]
-                        style="display:none"
-                    [% END %]
-                    >
-                    <div class="form-group">
-                        <label for="curval_instance">Show these fields:</label>
-                        [% FOREACH c IN instance_layout.all %]
-                            [% NEXT IF c.type == "curval" %]
-                            [% checked = "" %]
-                            [% IF instance_layout.instance_id == rti AND column.has_curval_field(c.id) %]
-                                [% checked = "checked" %]
-                            [% END %]
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" name="curval_field_ids" value="[% c.id %]" [% checked %]>[% c.name | html %]
-                                </label>
-                            </div>
-                        [% END %]
-                    </div>
-                    <div class="form-group">
-                            <label for="builder[% instance_layout.instance_id %]">Apply the following filters to records in the selected table:</label>
-                            <div id="builder[% instance_layout.instance_id %]"
-                                [% IF column.filter.as_json AND NOT column.filter.as_json.match('^[{}\s]*$') AND column.refers_to_instance_id == instance_layout.instance_id %]
-                                data-filter-base="[% column.filter.base64 %]"
-                                [% END %]
-                            ></div>
-                    </div>
-                </div>
-            [% END %]
-            <input id="filter" type="hidden" name="filter" value="[% column.filter.as_json | html_entity %]">
-        [% ELSE %]
-            <div class="alert alert-info">
-                No other instances are available to select data from
-            </div>
-        [% END %]
-    </div>
-    <div class="field-options file">
-        <h4>Document field options</h4>
-        <div class="form-group">
-            <label for="filesize">Set maximum file size (KB): (Leave blank for no limit)</label>
-            <input type="text" class="form-control" name="filesize" id="filesize"
-                value="[% column.filesize %]" placeholder="Leave blank for no limit">
-        </div>
-    </div>
-    <div class="field-options string">
-        <h4>Text field options</h4>
-        <div class="form-group">
-            <div class="checkbox">
-                <label>
-                    <input id="textbox" type="checkbox" name="textbox" [% IF column.textbox %]checked[% END %]>Make this a multi-line text box
-                </label>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="force_regex">Require the field value to be in a particular format: [% whats_this('modalhelp_force_regex') %]</label>
-            <input id="force_regex" class="form-control" type="text" name="force_regex" value="[% column.force_regex | html_entity %]">
-        </div>
-    </div>
-    <div class="field-options intgr">
-        <div class="form-group">
-            <label for="show_calculator">Show pop-up calculator:</label>
-            <div class="checkbox">
-                <label>
-                    <input id="show_calculator" type="checkbox" name="show_calculator" [% IF column.show_calculator %]checked[% END %]>Show pop-up calculator
-                </label>
-            </div>
-        </div>
-    </div>
-    <div class="field-options date daterange">
-        <div class="form-group">
-            <label for="show_datepicker">Show date picker:</label>
-            <div class="checkbox">
-                <label>
-                    <input id="show_datepicker" type="checkbox" name="show_datepicker" [% IF NOT column.show_datepicker.defined OR column.show_datepicker %]checked[% END %]>Show date picker pop-up
-                </label>
-            </div>
-        </div>
-    </div>
-    <div class="field-options date">
-        <div class="form-group">
-            <label for="default_today">Default value:</label>
-            <div class="checkbox">
-                <label>
-                    <input id="default_today" type="checkbox" name="default_today" [% IF column.default_today %]checked[% END %]>Default new values to today's date
-                </label>
-            </div>
-        </div>
-    </div>
-    <div class="field-options person">
-        <div class="form-group">
-            <div class="checkbox">
-                <label>
-                    <input id="default_to_login" type="checkbox" name="default_to_login" [% IF column.default_to_login %]checked[% END %]>Default new values to current logged-in user
-                </label>
-            </div>
-        </div>
-        <div class="form-group">
-            <div class="checkbox">
-                <label>
-                    <input id="notify_on_selection" type="checkbox" name="notify_on_selection" [% IF column.notify_on_selection %]checked[% END %]>Send a message to the user when they are selected in this field
-                </label>
-            </div>
-        </div>
-        <div id="notify-options">
-            <div class="form-group">
-                <label for="notify_on_selection_subject">Subject line of email alert</label>
-                <input id="notify_on_selection_subject" class="form-control" type="text" name="notify_on_selection_subject"
-                    value="[% column.notify_on_selection_subject OR 'You have been assigned a record' | html %]">
-            </div>
-            <div class="form-group">
-                <label for="notify_on_selection_message">Message to send to user: [% whats_this('helpnotify') %]</label>
-                <textarea class="form-control" id="notify_on_selection_message" name="notify_on_selection_message" rows="10">[% column.notify_on_selection_message OR 'You have been selected in the record $_link' | html %]</textarea>
-            </div>
-        </div>
-    </div>
-    <div class="field-options calc">
-        <h4>Calculated value field options</h4>
-        <p>
-            A calculated value field automatically generates values based on the values
-            of other fields. You define your calculation using the Lua programming language.
-        </p>
-        <div class="form-group">
-            <label for="return_type">Return value as field type:</label>
-            <select class="form-control" name="return_type">
-                <option value="string" [% IF column.return_type == "string" %]selected[% END %]>String</option>
-                <option value="date" [% IF column.return_type == "date" %]selected[% END %]>Date</option>
-                <option value="daterange" [% IF column.return_type == "daterange" %]selected[% END %]>Date range</option>
-                <option value="integer" [% IF column.return_type == "integer" %]selected[% END %]>Integer</option>
-                <option value="numeric" [% IF column.return_type == "numeric" %]selected[% END %]>Decimal</option>
-                <option value="globe" [% IF column.return_type == "globe" %]selected[% END %]>Globe location</option>
-                <option value="error" [% IF column.return_type == "error" %]selected[% END %]>Prevent record form submit if not empty</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="code_calc">Calculation: [% whats_this('helpcalc') %]</label>
-            <textarea class="form-control monospace" id="code_calc" name="code_calc" rows="10">[% column.code | html_entity %]</textarea>
-        </div>
-        <div class="form-group">
-            <label for="show_in_edit">Field visibility:</label>
-            <div class="checkbox">
-                <label>
-                    <input id="show_in_edit" type="checkbox" name="show_in_edit" [% IF column.show_in_edit %]checked[% END %]>Show this field when editing records
-                </label>
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="no_alerts_calc">Alerts:</label>
-            <div class="checkbox">
-                <label>
-                    <input id="no_alerts_calc" type="checkbox" name="no_alerts_calc" checked>Do not send alerts when making this update
-                        (alerts will still be sent when records are subsequently edited individually)
-                </label>
-            </div>
-        </div>
-        <div class="form-group">
-            <label>Value updates:</label>
-            <div class="radio">
-                <label>
-                    <input type="radio" name="no_cache_update_calc" value="1" checked>Do not immediately update all existing values
-                        (values will be updated overnight instead)
-                </label>
-            </div>
-            <div class="radio">
-                <label>
-                    <input type="radio" name="no_cache_update_calc" value="0">Force update all values immediately
-                        (may take a long time for a lot of records)
-                </label>
-            </div>
-        </div>
-    </div>
-    <div class="field-options rag">
-        <h4>RAG field options</h4>
-        <p>
-            Use a RAG field to automatically generate red, amber or green indicators based on
-            the values of other fields. You set the conditions for the RAG status using the
-            Lua programming language.
-        </p>
-        <div class="form-group">
-            <label for="code_rag">Conditions for this RAG status field: [% whats_this('helpcalc') %]</label>
-            <textarea class="form-control monospace" id="code_rag" name="code_rag" rows="10">[% column.code | html_entity %]</textarea>
-        </div>
-        <div class="form-group">
-            <label for="no_alerts_calc">Alerts:</label>
-            <div class="checkbox">
-                <label>
-                    <input id="no_alerts_calc" type="checkbox" name="no_alerts_calc" checked>Do not send alerts when making this update
-                        (alerts will still be sent when records are subsequently edited individually)
-                </label>
-            </div>
-        </div>
-        <div class="form-group">
-            <label>Value updates:</label>
-            <div class="radio">
-                <label>
-                    <input type="radio" name="no_cache_update_rag" value="1" checked>Do not immediately update all existing values
-                        (values will be updated overnight instead)
-                </label>
-            </div>
-            <div class="radio">
-                <label>
-                    <input type="radio" name="no_cache_update_rag" value="0">Force update all values immediately
-                        (may take a long time for a lot of records)
-                </label>
-            </div>
-        </div>
-    </div>
-    <div class="field-options autocur">
-        <h4>Auto-value field options</h4>
-        [% IF layout.referred_by.size %]
-            <div class="form-group">
-                <label for="related_field_id">Fields referring to this field:</label>
-                <select class="form-control" id="related_field_id" name="related_field_id">
-                    [% IF NOT column.related_field_id %]
-                        <option></option>
-                    [% END %]
-                    [% FOREACH referring IN layout.referred_by %]
-                        <option data-instance_id=[% referring.instance_id %] value="[% referring.id %]" [% IF column.related_field_id == referring.id %]selected[% END %]>[% referring.name | html_entity %]</option>
-                    [% END %]
-                </select>
-            </div>
-            [% FOREACH instance IN layout.referred_by %]
-                [% instance = instances_object.layout(instance.instance_id) %]
-                <div id="autocur_instance_[% instance.instance_id %]" class="autocur_instance"
-                    [% IF !column.refers_to_instance_id OR column.refers_to_instance_id != instance.instance_id %]
-                        style="display:none"
-                    [% END %]
-                    >
-                    <div class="form-group">
-                        <label for="curval_instance">Columns to show:</label>
-                        [% FOREACH c IN instance.all %]
-                            [% NEXT IF c.type == "curval" %]
-                            [% checked = "" %]
-                            [% IF instance.instance_id == column.refers_to_instance_id AND column.has_curval_field(c.id) %]
-                                [% checked = "checked" %]
-                            [% END %]
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" name="autocur_field_ids" value="[% c.id %]" [% checked %]>[% c.name | html %]
-                                </label>
-                            </div>
-                        [% END %]
-                    </div>
-                </div>
-            [% END %]
-        [% ELSE %]
-            <div class="alert alert-info">
-                No other sheets refer to this sheet
-            </div>
-        [% END %]
-    </div>
-    <div class="field-options filval">
-        <h4>Field options</h4>
-        <div class="form-group">
-            <label for="filval_related_field_id">Field to record filtered values of:</label>
-            <select class="form-control" id="filval_related_field_id" name="filval_related_field_id">
-                [% IF NOT column.related_field_id %]
-                    <option></option>
-                [% END %]
-                [% FOREACH filtered_curval IN layout.filtered_curvals %]
-                    <option value="[% filtered_curval.id %]" [% IF column.related_field_id == filtered_curval.id %]selected[% END %]>
-                        [% filtered_curval.name | html %]
-                    </option>
-                [% END %]
-            </select>
-        </div>
-        [% FOREACH filtered_curval IN layout.filtered_curvals %]
-            [% instance = instances_object.layout(filtered_curval.refers_to_instance_id) %]
-            <div id="filval_curval_[% filtered_curval.id %]" class="filval_curval"
-                [% IF !column.related_field_id OR column.related_field_id != filtered_curval.id %]
-                    style="display:none"
-                [% END %]
-                >
-                <div class="form-group">
-                    <label>Columns to show:</label>
-                    [% FOREACH c IN instance.all %]
-                        [% NEXT IF c.type == "curval" %]
-                        [% checked = "" %]
-                        [% IF column.has_curval_field(c.id) %]
-                            [% checked = "checked" %]
-                        [% END %]
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" name="filval_field_ids" value="[% c.id %]" [% checked %]>[% c.name | html %]
-                            </label>
-                        </div>
-                    [% END %]
-                </div>
-            </div>
-        [% END %]
-    </div>
-[% END %]
-
-[% BLOCK edit_field %]
-    <h2 class="edit-field">[% IF column.id %]Edit field[% ELSE %]Add a field to [% instance_name | html %][% END %]</h2>
-
-    <div class="tab-interface">
-        <ul role="tablist">
-            <li role="presentation">
-                <a role="tab" aria-controls="#basic-panel" href="#basic-panel" id="basic-tab" aria-selected="true">Basic settings</a>
-            </li>
-            <li role="presentation">
-                <a role="tab" aria-controls="#fieldtype-panel" href="#fieldtype-panel" id="fieldtype-tab" aria-selected="false">Field type settings</a>
-            </li>
-            <li role="presentation">
-                <a role="tab" aria-controls="#advanced-panel" href="#advanced-panel" id="advanced-tab" aria-selected="false">Advanced settings</a>
-            </li>
-            <li role="presentation">
-                <a role="tab" aria-controls="#display-panel" href="#display-panel" id="display-tab" aria-selected="false">Display conditions</a>
-            </li>
-            <li role="presentation">
-                <a role="tab" aria-controls="#permissions-panel" href="#permissions-panel" id="permissions-tab" aria-selected="false">Permissions</a>
-            </li>
-        </ul>
-
-        <section role="tabpanel" id="basic-panel" aria-labelledby="basic-tab" class="active">
-            [% PROCESS field_properties %]
-        </section>
-
-        <section role="tabpanel" id="fieldtype-panel" aria-labelledby="fieldtype-tab">
-            [% PROCESS field_type_settings %]
-        </section>
-
-        <section role="tabpanel" id="advanced-panel" aria-labelledby="advanced-tab">
-            [% PROCESS advanced_field_settings %]
-        </section>
-
-        <section role="tabpanel" id="display-panel" aria-labelledby="display-tab">
-            [% PROCESS field_display_conditions %]
-        </section>
-
-        <section role="tabpanel" id="permissions-panel" aria-labelledby="permissions-tab">
-            [% PROCESS layout_permissions %]
-        </section>
-    </div>
-
-[% END %]
-
-[% BLOCK list_fields %]
-    <h2 class="list-fields">Manage fields in [% instance_name | html %]</h2>
-
-    <p class="lead">
-        Each field is a column in your table. You can control which groups of users can see, edit and delete each field.
-    </p>
-    <p>
-        <strong>Ordering your fields:</strong> Drag and drop the fields below to reorder them at any time.
-        Click the <strong>Save order</strong> button once you are finished.
-    </p>
-
-    The layout defines the fields that form the overall dataset. Use this page to add, delete
-    and edit fields. Each field's permissions can be individually defined; full details of the
-    available permissions are detailed in the <a href="[% url.page %]/user/">Users menu</a>.</p>
-    <p>Note: drag and drop rows (and click Save order) to reorder the columns.</p>
-    <p>
-        <a href="/[% layout.identifier %]/layout/0" class="btn btn-default">Add a field</a>
-    </p>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th></th>
-                <th>Name</th>
-                <th>Type</th>
-                [% IF layout.has_topics %]
-                    <th>Topic</th>
-                [% END %]
-                <th>Short name</th>
-                <th>Display conditions</th>
-            </tr>
-        </thead>
-        <tbody class="sortable">
-            [% FOREACH col IN layout.all %]
-            <tr>
-                <input type="hidden" name="position" value="[% col.id %]">
+[% INCLUDE layouts/page_header_edit_table.tt; %]
+<form method="post" class="">
+  [%
+    INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
+  
+    IF column.id;
+      INCLUDE fields/hidden.tt name="id" value=column.id;
+    END;
+  %]
+  <div class="content-block__main">
+    <fieldset class="fieldset">
+      <div class="fieldset__legend fieldset__legend--hidden">
+        <legend >
+          Edit Table
+        </legend>
+      </div>
+    
+      <div class="content-block__main-content">
+        
+        <div class="card card--secundary">
+          <h4 class="card__title">
+            <span> [% column.id ? 'Edit field: ' _ column.name : 'New field' %] </span>
+          </h4>
+        
+          <div class="card__body row">
+            <div class="card__content">
+              <div class="row">
+                <div class="[% topics.size ? 'col-md-6' : 'col-md-12' %]">
                 [%
-                  # Do not allow dragging from edit button, otherwise clicking
-                  #  edit sometimes moves the field instead of opening it for
-                  #  editing
+                  INCLUDE fields/input.tt
+                    id          = "name"
+                    name        = "name"
+                    label       = "Name of field"
+                    placeholder = "Name of field"
+                    value       = column.name
+                    type        = "text"
+                    filter      = "html"
+                    is_required = 1
+                    autofocus   = 1
+                    sub_field   = "fields/sub/checkbox.tt"
+                    sub_params  = {
+                      id => "optional"
+                      name => "optional"
+                      label => "This field is optional"
+                      checked => column.optional ? 1 : 0
+                      is_required => 0
+                      autofocus => 0
+                      input_class => ""
+                    };
                 %]
-                <td [% IF col.internal %]class="drag"[% END %]>
-                    [% IF col.internal %]
-                        Read-only
-                    [% ELSE %]
-                        <a href="/[% layout.identifier %]/layout/[% col.id %]">Edit</a>
-                    [% END %]
-                </td>
-                <td class="drag">[% col.name | html_entity %]
-                <td class="drag">
-                    [% IF col.type == "string" %]Text[% END %]
-                    [% IF col.type == "intgr" %]Integer[% END %]
-                    [% IF col.type == "date" %]Date[% END %]
-                    [% IF col.type == "daterange" %]Date range[% END %]
-                    [% IF col.type == "enum" %]Select[% END %]
-                    [% IF col.type == "tree" %]Tree[% END %]
-                    [% IF col.type == "file" %]File[% END %]
-                    [% IF col.type == "person" %]Person[% END %]
-                    [% IF col.type == "rag" %]RedAmberGreen (RAG) status[% END %]
-                    [% IF col.type == "calc" %]Calculated value[% END %]
-                    [% IF col.type == "curval" %]Record from other data sheet[% END %]
-                    [% IF col.type == "autocur" %]Automatic value of other sheet's references to this one[% END %]
-                    [% IF col.type == "filval" %]Automatic filtered values of other field[% END %]
-                </td>
-                [% IF layout.has_topics %]
-                    <td class="drag">[% col.topic.name | html %]</td>
+                </div>
+                [% IF topics.size %]
+                <div class="col-md-6">
+                  [%
+                    topic_items = [{id="" name="No topic"}];
+                    
+                    INCLUDE fields/select.tt
+                      id          = "topic_id"
+                      name        = "topic_id"
+                      label       = "Topic"
+                      placeholder = "Select a topic"
+                      items       = topic_items.merge(topics)
+                      value       = column.topic_id
+                      filter      = "html";
+                  %]
+                </div>
                 [% END %]
-                <td class="drag">
-                    [% col.name_short | html_entity %]
-                </td>
-                <td class="drag">
-                    [% col.display_fields_as_text.join(': ') | html_entity %]
-                </td>
-            </tr>
+              </div>
+              <div class="row"[% IF column.id %] style="display:none"[% END %]>
+                <div class="col">
+                  [%
+                    field_types = [
+                      {id = "string", name = "Text"},
+                      {id = "intgr", name = "Integer"},
+                      {id = "date", name = "Date"},
+                      {id = "daterange", name = "Date range"},
+                      {id = "enum", name = "Dropdown list"},
+                      {id = "tree", name = "Tree"},
+                      {id = "file", name = "Document"},
+                      {id = "person", name = "Person"},
+                      {id = "rag", name = "RedAmberGreen status (RAG)"},
+                      {id = "calc", name = "Calculated value"},
+                      {id = "curval", name = "Field(s) for records from another table"},
+                      {id = "autocur", name = "Automatic value of other sheet's references to this one"}
+                    ];
+                  
+                    IF layout_obj.filtered_curvals.size ;
+                      field_types.push({id = "filval", name = "Automatic filtered values of other field"});
+                    END;
+                  
+                    INCLUDE fields/select.tt
+                      id           = "field_type"
+                      name         = "type"
+                      label        = "Field type"
+                      placeholder  = "Select a field type"
+                      value        = column.type || 'string'
+                      items        = field_types
+                      select_class = "select--reveal"
+                      filter       = "html";
+                  %]
+                </div>
+              </div>
+              <div class="row">
+                <div class="col">
+                  [%
+                    INCLUDE fields/textarea.tt
+                      id          = "description"
+                      name        = "description"
+                      label       = "Description"
+                      placeholder = "Description"
+                      value       = column.description
+                      filter      = "html"
+                      rows        = 2;
+                  %]
+                </div>
+              </div>
+              <div class="row">
+                <div class="col">
+                  [%
+                    INCLUDE fields/textarea.tt
+                      id          = "helptext"
+                      name        = "helptext"
+                      label       = "Help text for the user"
+                      placeholder = "Helptext"
+                      value       = column.helptext
+                      filter      = "html"
+                      rows        = 5;
+                  %]
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+  
+        <div class="select-reveal select-reveal--field_type">
+          [%
+            IF ! column.id OR column.type == 'string';
+              IF ! column.id;
+          %]
+          <div class="select-reveal__instance" id="field_type_string">
             [% END %]
-        </tbody>
-    </table>
-[% END %]
-
-[% FOREACH instance_layout IN instance_layouts %]
-    [% PROCESS builder.tt builder_id = instance_layout.instance_id builder_layout = instance_layout filter_normal = column.filter filter_base64 = column.filter.base64 show_all_columns = 1 %]
-[% END %]
-
-<form method="post">
-<input type="hidden" name="csrf_token" value="[% csrf_token %]">
-[% IF column.id %]
-    <input type="hidden" name="id" value="[% column.id %]">
-[% END %]
-
-    <section id="manage-fields" data-column-type="[% column.id ? column.type : 'string' %]" class="row column-type-[% column.id ? column.type : 'string' %]">
-        [%
-            IF column.defined;
-                PROCESS edit_field;
-            ELSE;
-                PROCESS list_fields;
+            <div class="row mt-3 mb-3">
+              <div class="col">
+                <div class="card card--expandable">
+                  <div class="card__header">
+                    <div class="card__header-left">
+                      <h4 class="card__title">
+                        Field settings for text
+                      </h4>
+                    </div>
+                    <div class="card__header-right">
+                      <button class="card__toggle" type="button" data-toggle="collapse" data-target="#textFieldSettings" aria-expanded="false" aria-controls="textFieldSettings">
+                        <span>Toggle collapsible</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="collapse" id="textFieldSettings">
+                    <div class="card__content">
+                      <div class="row">
+                        <div class="col">
+                          [%
+                            INCLUDE fields/input.tt
+                              id            = "force_regex"
+                              name          = "force_regex"
+                              label         = "Require the field value to be in a particular format"
+                              placeholder   = ""
+                              value         = column.force_regex
+                              type          = "text"
+                              filter        = "html"
+                              popover_title = "Force input format"
+                              popover_body  = global.helptext.force_regex
+                              sub_field     = "fields/sub/checkbox.tt"
+                              sub_params    = {
+                                id          => "textbox"
+                                name        => "textbox"
+                                label       => "Make this a multi-line text box"
+                                checked     => column.textbox ? 1 : 0
+                                input_class => "mb-0"
+                              };
+                          %]
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            [% IF ! column.id; %]
+          </div>
+          [%
+              END;
             END;
-
-        %]
-    </section>
-
-<div class="row controls">
-    <div class="col-md-12">
-        [% IF column.defined %]
-            <button type="submit" id="submit_save" name="submit" value="submit" class="btn btn-primary">[% IF column.id %]Save[% ELSE %]Save[% END %]</button>
-            [% IF column.id %]
-                <a href="/[% layout.identifier %]/layout/" class="btn btn-default">Cancel</a>
-                <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
+            IF ! column.id OR column.type == 'intgr';
+              IF ! column.id;
+          %]
+          <div class="select-reveal__instance" id="field_type_intgr">
             [% END %]
-        [% ELSE %]
-            <button type="submit" id="submit_saceorder" name="saveposition" value="submit" class="btn btn-primary">Save order</button>
-        [% END %]
-    </div>
-</div>
-</form>
+            <div class="row mt-3 mb-3">
+              <div class="col">
+                <div class="card card--expandable">
+                  <div class="card__header">
+                    <div class="card__header-left">
+                      <h4 class="card__title">
+                        Field settings for integer
+                      </h4>
+                    </div>
+                    <div class="card__header-right">
+                      <button class="card__toggle" type="button" data-toggle="collapse" data-target="#integerFieldSettings" aria-expanded="false" aria-controls="integerFieldSettings">
+                        <span>Toggle collapsible</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="collapse" id="integerFieldSettings">
+                    <div class="card__content">
+                      <div class="row">
+                        <div class="col">
+                          <fieldset class="fieldset">
+                            <div class="fieldset__legend">
+                              <legend >
+                                Show pop-up calculator:
+                              </legend>
+                            </div>
+  
+                            <div class="form-group">
+                              [%
+                                INCLUDE fields/sub/checkbox.tt
+                                  id          = "show_calculator"
+                                  name        = "show_calculator"
+                                  label       = "Show pop-up calculator"
+                                  checked     = column.show_calculator ? 1 : 0
+                                  input_class = "mb-0";
+                              %]
+                            </div>
+                          </fieldset>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            [% IF ! column.id; %]
+          </div>
+          [%
+              END;
+            END;
+            IF ! column.id OR column.type == 'date';
+              IF ! column.id;
+          %]
+          <div class="select-reveal__instance" id="field_type_date">
+            [% END %]
+            <div class="row mt-3 mb-3">
+              <div class="col">
+                <div class="card card--expandable">
+                  <div class="card__header">
+                    <div class="card__header-left">
+                      <h4 class="card__title">
+                        Field settings for date
+                      </h4>
+                    </div>
+                    <div class="card__header-right">
+                      <button class="card__toggle" type="button" data-toggle="collapse" data-target="#dateFieldSettings" aria-expanded="false" aria-controls="dateFieldSettings">
+                        <span>Toggle collapsible</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="collapse" id="dateFieldSettings">
+                    <div class="card__content">
+                      <div class="row">
+                        <div class="col">
+                           <fieldset class="fieldset">
+                            <div class="fieldset__legend">
+                              <legend >
+                                Show date picker:
+                              </legend>
+                            </div>
+  
+                            <div class="form-group mb-2">
+                              [%
+                                INCLUDE fields/sub/checkbox.tt
+                                  id      = "show_datepicker_date"
+                                  name    = "show_datepicker"
+                                  label   = "Show date picker pop-up"
+                                  checked = NOT column.show_datepicker.defined OR column.show_datepicker ? 1 : 0;
+                              %]
+                            </div>
+                          </fieldset>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col">
+                           <fieldset class="fieldset">
+                            <div class="fieldset__legend">
+                              <legend >
+                                Default value:
+                              </legend>
+                            </div>
+  
+                            <div class="form-group">
+                              [%
+                                INCLUDE fields/sub/checkbox.tt
+                                  id          = "default_today"
+                                  name        = "default_today"
+                                  label       = "Default new values to today's date"
+                                  checked     = column.default_today ? 1 : 0
+                                  input_class = "mb-0";
+                              %]
+                            </div>
+                          </fieldset>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            [% IF ! column.id; %]
+          </div>
+          [%
+              END;
+            END;
+            IF ! column.id OR column.type == 'daterang';
+              IF ! column.id;
+          %]
+          <div class="select-reveal__instance" id="field_type_daterange">
+            [% END %]
+            <div class="row mt-3 mb-3">
+              <div class="col">
+                <div class="card card--expandable">
+                  <div class="card__header">
+                    <div class="card__header-left">
+                      <h4 class="card__title">
+                        Field settings for date range
+                      </h4>
+                    </div>
+                    <div class="card__header-right">
+                      <button class="card__toggle" type="button" data-toggle="collapse" data-target="#dateRangeFieldSettings" aria-expanded="false" aria-controls="dateRangeFieldSettings">
+                        <span>Toggle collapsible</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="collapse" id="dateRangeFieldSettings">
+                    <div class="card__content">
+                      <div class="row">
+                        <div class="col">
+                          <fieldset class="fieldset">
+                            <div class="fieldset__legend">
+                              <legend >
+                                Show date picker:
+                              </legend>
+                            </div>
+  
+                            <div class="form-group">
+                              [%
+                                INCLUDE fields/sub/checkbox.tt
+                                  id      = "show_datepicker_date-range"
+                                  name    = "show_datepicker"
+                                  label   = "Show date picker pop-up"
+                                  checked = NOT column.show_datepicker.defined OR column.show_datepicker ? 1 : 0;
+                              %]
+                            </div>
+                          </fieldset>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            [% IF ! column.id; %]
+          </div>
+          [%
+              END;
+            END;
+            IF ! column.id OR column.type == 'enum';
+              IF ! column.id;
+          %]
+          <div class="select-reveal__instance" id="field_type_enum">
+            [% END %]
+            <div class="row mt-3 mb-3">
+              <div class="col">
+                <div class="card card--expandable">
+                  <div class="card__header">
+                    <div class="card__header-left">
+                      <h4 class="card__title">
+                        Field settings for dropdown list
+                      </h4>
+                    </div>
+                    <div class="card__header-right">
+                      <button class="card__toggle" type="button" data-toggle="collapse" data-target="#dropdownListFieldSettings" aria-expanded="false" aria-controls="dropdownListFieldSettings">
+                        <span>Toggle collapsible</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="collapse" id="dropdownListFieldSettings">
+                    <div class="card__content">
+                      
+                      <div class="orderable-sortable">
+                        [%
+                          INCLUDE fields/select.tt
+                            id          = "ordering"
+                            name        = "ordering"
+                            label       = "Order dropdown values:"
+                            placeholder = "Select an option"
+                            value       = NOT column.ordering ? '' : column.ordering
+                            items       = [
+                              {id = "", name = "As shown (drag to reorder)"},
+                              {id = "asc", name = "Ascending"},
+                              {id = "desc", name = "Descending"}
+                            ];
+                        %]
+  
+                        <div class="sortable">
+                          <div class="sortable__label">
+                            <label>
+                              Add dropdown values
+                            </label>
+                          </div>
+                          <div class="sortable__list">
+                            [%
+                              enumvalIsEmpty = 1;
+  
+                              FOREACH enumval IN column.enumvals;
+                                UNLESS enumval.deleted;
+                                  enumvalIsEmpty = 0;
+                                  last;
+                                END;
+                              END;
+                            
+                              # load empty field if no fields have been saved
+                              rows       = enumvalIsEmpty ? [{}] : column.enumvals;
+                              rowCounter = 0;
+                            
+                              FOREACH enumval IN rows;
+                                UNLESS enumval.deleted;
+                                  rowCounter = rowCounter + 1;
+                            %]
+                            <div class="sortable__row">
+                              [% INCLUDE fields/hidden.tt name="enumval_id" value=enumval.id; %]
+                              <button
+                                type="button"
+                                class="btn btn-drag-drop"
+                              >
+                                <span class="btn__title">Drag and drop</span>
+                              </button>
+        
+                              [%
+                                INCLUDE fields/input.tt
+                                  id          = "enumval_" _ rowCounter
+                                  name        = "enumval"
+                                  label       = "Search"
+                                  label_class = "hidden"
+                                  placeholder = "Enter a value"
+                                  value       = enumval.value
+                                  filter      = "html"
+                                  type        = "text"
+                                  hide_group  = 1;
+                              %]
+                              
+                              <button
+                                type="button"
+                                class="btn btn-icon-close"
+                              >
+                                <span class="btn__title">Delete</span>
+                              </button>
+                            </div>
+                            [%
+                                END;
+                              END;
+                            %]
+                          </div>
+    
+                          <button
+                            type="button"
+                            class="btn btn-default"
+                          >
+                            <span class="btn__title">Add a value</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            [% IF ! column.id; %]
+          </div>
+          [%
+              END;
+            END;
+            IF ! column.id OR column.type == 'tree';
+              IF ! column.id;
+          %]
+          <div class="select-reveal__instance" id="field_type_tree">
+            [% END %]
+            <div class="row mt-3 mb-3">
+              <div class="col">
+                <div class="card card--expandable">
+                  <div class="card__header">
+                    <div class="card__header-left">
+                      <h4 class="card__title">
+                        Field settings for tree
+                      </h4>
+                    </div>
+                    <div class="card__header-right">
+                      <button class="card__toggle" type="button" data-toggle="collapse" data-target="#treeFieldSettings" aria-expanded="false" aria-controls="treeFieldSettings">
+                        <span>Toggle collapsible</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="collapse" id="treeFieldSettings">
+                    <div class="card__content">
+                      <div class="row">
+                        <div class="col">
+                          [% IF column.id %]
+                          <p>Each value in the tree is referred to as a node.</p>
+  
+                          <div class="form-group">
+                            [%
+                              INCLUDE fields/sub/checkbox.tt
+                                id      = "end_node_only"
+                                name    = "end_node_only"
+                                label   = "Only let users select an end-node"
+                                checked = column.end_node_only ? 1 : 0;
+                            %]
+                          </div>
+  
+                          [%
+                              INCLUDE fields/tree.tt
+                                id                = "jstree_demo_div"
+                                layout_id         = column.id
+                                layout_identifier = layout_obj.identifier;
+                          
+                            ELSE;
+                          %]
+                          <p>Use a tree to structure the values that users can select into categories and sub-categories.</p>
+                          <p>To create your tree, please save this field first, then edit it.</p>
+                          [% END %]
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            [% IF ! column.id; %]
+          </div>
+          [%
+              END;
+            END;
+            IF ! column.id OR column.type == 'file';
+              IF ! column.id;
+          %]
+          <div class="select-reveal__instance" id="field_type_file">
+            [% END %]
+            <div class="row mt-3 mb-3">
+              <div class="col">
+                <div class="card card--expandable">
+                  <div class="card__header">
+                    <div class="card__header-left">
+                      <h4 class="card__title">
+                        Field settings for document
+                      </h4>
+                    </div>
+                    <div class="card__header-right">
+                      <button class="card__toggle" type="button" data-toggle="collapse" data-target="#documentFieldSettings" aria-expanded="false" aria-controls="documentFieldSettings">
+                        <span>Toggle collapsible</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="collapse" id="documentFieldSettings">
+                    <div class="card__content">
+                      <div class="row">
+                        <div class="col">
+                          [%
+                            INCLUDE fields/input.tt
+                              id          = "filesize"
+                              name        = "filesize"
+                              label       = "Set maximum file size (KB): (Leave blank for no limit)"
+                              placeholder = "Leave blank for no limit"
+                              value       = column.filesize
+                              type        = "text";
+                          %]
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            [% IF ! column.id; %]
+          </div>
+          [%
+              END;
+            END;
+            IF ! column.id OR column.type == 'person';
+              IF ! column.id;
+          %]
+          <div class="select-reveal__instance" id="field_type_person">
+            [% END %]
+            <div class="row mt-3 mb-3">
+              <div class="col">
+                <div class="card card--expandable">
+                  <div class="card__header">
+                    <div class="card__header-left">
+                      <h4 class="card__title">
+                        Field settings for person
+                      </h4>
+                    </div>
+                    <div class="card__header-right">
+                      <button class="card__toggle" type="button" data-toggle="collapse" data-target="#personFieldSettings" aria-expanded="false" aria-controls="personFieldSettings">
+                        <span>Toggle collapsible</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="collapse" id="personFieldSettings">
+                    <div class="card__content">
+                      
+                      <div class="row">
+                        <div class="col">
+                          <div class="form-group">
+                            [%
+                              INCLUDE fields/sub/checkbox.tt
+                                id      = "default_to_login"
+                                name    = "default_to_login"
+                                label   = "Default new values to current logged-in user"
+                                checked = column.default_to_login ? 1 : 0;
+                            
+                              INCLUDE fields/sub/checkbox.tt
+                                id          = "notify_on_selection"
+                                name        = "notify_on_selection"
+                                label       = "Send a message to the user when they are selected in this field"
+                                checked     = column.notify_on_selection ? 1 : 0
+                                input_class = "checkbox--reveal";
+                            %]
+                          </div>
+                        </div>
+                      </div>
+  
+                      <div class="checkbox-reveal" id="notify_on_selection-reveal">
+                        <div class="row">
+                          <div class="col">
+                            [%
+                              INCLUDE fields/input.tt
+                                id          = "notify_on_selection_subject"
+                                name        = "notify_on_selection_subject"
+                                label       = "Subject line of email alert"
+                                value       = column.notify_on_selection_subject OR 'You have been assigned a record'
+                                filter      = "html"
+                                type        = "text";
+                            %]
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col">
+                            [%
+                              INCLUDE fields/textarea.tt
+                                id            = "notify_on_selection_message"
+                                name          = "notify_on_selection_message"
+                                label         = "Message to send to user"
+                                value         = column.notify_on_selection_message OR 'You have been selected in the record $_link'
+                                filter        = "html"
+                                popover_class = "popover-container--large"
+                                popover_title = "Notify user alert email"
+                                popover_body  = global.helptext.helpnotify
+                                rows          = 5;
+                            %]
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            [% IF ! column.id; %]
+          </div>
+          [%
+              END;
+            END;
+            IF ! column.id OR column.type == 'rag';
+              IF ! column.id;
+          %]
+          <div class="select-reveal__instance" id="field_type_rag">
+            [% END %]
+            <div class="row mt-3 mb-3">
+              <div class="col">
+                <div class="card card--expandable">
+                  <div class="card__header">
+                    <div class="card__header-left">
+                      <h4 class="card__title">
+                        Field settings for RAG
+                      </h4>
+                    </div>
+                    <div class="card__header-right">
+                      <button class="card__toggle" type="button" data-toggle="collapse" data-target="#ragFieldSettings" aria-expanded="false" aria-controls="ragFieldSettings">
+                        <span>Toggle collapsible</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="collapse" id="ragFieldSettings">
+                    <div class="card__content">
+                      <p class="mb-3">Use a RAG field to automatically generate red, amber or green indicators based on the values of other fields. You set the conditions for the RAG status using the Lua programming language.</p>
+                      <div class="row">
+                        <div class="col">
+                          [%
+                            INCLUDE fields/textarea.tt
+                              id            = "code_rag"
+                              name          = "code_rag"
+                              label         = "Conditions for this RAG status field:"
+                              value         = column.code
+                              filter        = "html"
+                              input_class   = "textarea--monospace"
+                              popover_class = "popover-container--large"
+                              popover_title = "Calculated and RAG values"
+                              popover_body  = global.helptext.layout_calc
+                              rows          = 10;
+                          %]
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col">
+                          <fieldset class="fieldset" >
+                            <div class="fieldset__legend ">
+                              <legend >
+                                Alerts:
+                              </legend>
+                            </div>
+    
+                            <div class="form-group">
+                            [%
+                              INCLUDE fields/sub/checkbox.tt
+                                id      = "no_alerts_calc_rag"
+                                name    = "no_alerts_calc"
+                                label   = "Do not send alerts when making this update (alerts will still be sent when records are subsequently edited individually)"
+                                checked = 1;
+                            %]
+                            </div>
+                          </fieldset>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col">
+                        [%
+                          INCLUDE fields/radio.tt
+                            id    = "no_cache_update_rag"
+                            name  = "no_cache_update_rag"
+                            label = "Value updates:"
+                            value = 1
+                            items = [
+                              {id = "1", name = "Do not immediately update all existing values (values will be updated overnight instead)"},
+                              {id = "0", name = "Force update all values immediately (may take a long time for a lot of records)"}
+                            ];
+                        %]
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            [% IF ! column.id; %]
+          </div>
+          [%
+              END;
+            END;
+            IF ! column.id OR column.type == 'calc';
+              IF ! column.id;
+          %]
+          <div class="select-reveal__instance" id="field_type_calc">
+            [% END %]
+            <div class="row mt-3 mb-3">
+              <div class="col">
+                <div class="card card--expandable">
+                  <div class="card__header">
+                    <div class="card__header-left">
+                      <h4 class="card__title">
+                        Field settings for calculated value
+                      </h4>
+                    </div>
+                    <div class="card__header-right">
+                      <button class="card__toggle" type="button" data-toggle="collapse" data-target="#calcValueFieldSettings" aria-expanded="false" aria-controls="calcValueFieldSettings">
+                        <span>Toggle collapsible</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="collapse" id="calcValueFieldSettings">
+                    <div class="card__content">
+                      <p class="mb-3">A calculated value field automatically generates values based on the values of other fields. You define your calculation using the Lua programming language.</p>
+                      <div class="row">
+                        <div class="col">
+                          [%
+                            INCLUDE fields/select.tt
+                              id          = "return_type"
+                              name        = "return_type"
+                              label       = "Return value as field type:"
+                              placeholder = "Select an option"
+                              value       = column.return_type || 'string'
+                              items       = [
+                                {id = "string", name = "String"},
+                                {id = "date", name = "Date"},
+                                {id = "daterange", name = "range"},
+                                {id = "integer", name = "Integer"},
+                                {id = "numeric", name = "Decimal"},
+                                {id = "globe", name = "Globe location"},
+                                {id = "error", name = "Prevent record form submit if not empty"}
+                              ];
+                          %]
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col">
+                          [%
+                            INCLUDE fields/textarea.tt
+                              id            = "code_calc"
+                              name          = "code_calc"
+                              label         = "Calculation:"
+                              value         = column.code
+                              filter        = "html"
+                              input_class   = "textarea--monospace"
+                              popover_class = "popover-container--large"
+                              popover_title = "Calculated and RAG values"
+                              popover_body  = global.helptext.layout_calc
+                              rows          = 10;
+                          %]
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col">
+                          [%
+                            INCLUDE fields/sub/checkbox.tt
+                              id      = "show_in_edit"
+                              name    = "show_in_edit"
+                              label   = "Show this field when editing records"
+                              checked = column.show_in_edit ? 1 : 0;
+                          %]
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col">
+                          <fieldset class="fieldset" >
+                            <div class="fieldset__legend ">
+                              <legend >
+                                Alerts:
+                              </legend>
+                            </div>
+    
+                            <div class="form-group">
+                            [%
+                              INCLUDE fields/sub/checkbox.tt
+                                id      = "no_alerts_calc"
+                                name    = "no_alerts_calc"
+                                label   = "Do not send alerts when making this update (alerts will still be sent when records are subsequently edited individually)"
+                                checked = 1;
+                            %]
+                            </div>
+                          </fieldset>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col">
+                        [%
+                          INCLUDE fields/radio.tt
+                            id    = "no_cache_update_calc"
+                            name  = "no_cache_update_calc"
+                            label = "Value updates:"
+                            value = 1
+                            items = [
+                              {id = "1", name = "Do not immediately update all existing values (values will be updated overnight instead)"},
+                              {id = "0", name = "Force update all values immediately (may take a long time for a lot of records)"}
+                            ];
+                        %]
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            [% IF ! column.id; %]
+          </div>
+          [%
+              END;
+            END;
+            IF ! column.id OR column.type == 'curval';
+              IF ! column.id;
+          %]
+          <div class="select-reveal__instance" id="field_type_curval">
+            [% END %]
+            <div class="row mt-3 mb-3">
+              <div class="col">
+                <div class="card card--expandable">
+                  <div class="card__header">
+                    <div class="card__header-left">
+                      <h4 class="card__title">
+                        Field settings for fields from another table
+                      </h4>
+                    </div>
+                    <div class="card__header-right">
+                      <button class="card__toggle" type="button" data-toggle="collapse" data-target="#fieldsFromAnotherTableFieldSettings" aria-expanded="false" aria-controls="fieldsFromAnotherTableFieldSettings">
+                        <span>Toggle collapsible</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="collapse" id="fieldsFromAnotherTableFieldSettings">
+                    <div class="card__content">
+                      [% IF NOT instance_layouts.size; %]
+                      <div class="row">
+                        <div class="col">
+                          <div class="alert alert-info">
+                            No other instances are available to select data from
+                          </div>
+                        </div>
+                      </div>
+                      [%
+                        ELSE;
+                          rti = column.refers_to_instance_id;
+                      %]
+                      <div class="row">
+                        <div class="col">
+                          [%
+                            INCLUDE fields/select.tt
+                              id          = "value_selector"
+                              name        = "value_selector"
+                              label       = "Type of value selector:"
+                              placeholder = "Select an option"
+                              value       = column.value_selector || 'dropdown'
+                              items       = [
+                                {id = "dropdown", name = "Drop-down box"},
+                                {id = "typeahead", name = "Auto-complete textbox"},
+                                {id = "noshow", name = "Do not show selector"}
+                              ];
+                          %]
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col">
+                          <fieldset class="fieldset" >
+                            <div class="fieldset__legend ">
+                              <legend >
+                                New values:
+                              </legend>
+  
+                            </div>
+  
+                            <div class="form-group ">
+                              [%
+                                INCLUDE fields/sub/checkbox.tt
+                                  id      = "show_add"
+                                  name    = "show_add"
+                                  label   = "Allow new values to be added when editing"
+                                  checked = column.show_add ? 1 : 0;
+                              %]
+                            </div>
+                          </fieldset>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col">
+                          <fieldset class="fieldset" >
+                            <div class="fieldset__legend ">
+                              <legend >
+                                Old values:
+                              </legend>
+                            </div>
+      
+                            <div class="form-group ">
+                              [%
+                                INCLUDE fields/sub/checkbox.tt
+                                  id      = "delete_not_used"
+                                  name    = "delete_not_used"
+                                  label   = "Delete records from other table if deselected from this field"
+                                  checked = column.delete_not_used ? 1 : 0;
+                              %]
+                            </div>
+                          </fieldset>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col">
+                          <fieldset class="fieldset" >
+                            <div class="fieldset__legend ">
+                              <legend >
+                                Permissions override:
+                              </legend>
+                            </div>
+      
+                            <div class="form-group ">
+                              [%
+                                INCLUDE fields/sub/checkbox.tt
+                                  id      = "override_permissions"
+                                  name    = "override_permissions"
+                                  label   = "Override any user permissions when selecting records for this field"
+                                  checked = column.override_permissions ? 1 : 0;
+                              %]
+                            </div>
+                          </fieldset>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col">
+                          [%
+                            INCLUDE fields/input.tt
+                              id          = "limit_rows"
+                              name        = "limit_rows"
+                              label       = "Limit number of displayed rows to a maximum of:"
+                              value       = column.limit_rows
+                              placeholder = "Enter a number or leave blank for no limit"
+                              type        = "number";
+                          %]
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col">
+                          [%
+                            refers_items = NOT rti ? [{id = "", name = ""}] : [];
 
-[% PROCESS layout_modals; %]
+                            FOREACH instance_layout IN instance_layouts;
+                              refers_items.push({id = instance_layout.instance_id, name = instance_layout.name});
+                            END;
+                          
+                            INCLUDE fields/select.tt
+                              id           = "refers_to_instance_id"
+                              name         = "refers_to_instance_id"
+                              label        = "Use this table"
+                              placeholder  = "Select an option"
+                              value        = rti
+                              items        = refers_items
+                              select_class = "select--reveal"
+                              filter       = "html";
+                          %]
+                        </div>
+                      </div>
+
+                      <div class="select-reveal select-reveal--refers_to_instance_id">
+                        [% FOREACH instance_layout IN instance_layouts %]
+                        <div class="select-reveal__instance" id="refers_to_instance_id_[% instance_layout.instance_id %]"[%- IF (rti AND instance_layout.instance_id != rti) OR NOT rti -%] style="display:none"[%- END -%]>
+                          <div class="row">
+                            <div class="col">
+                              [%
+                                curval_field_ids_items = [];
+                              
+                                FOREACH c IN instance_layout.all;
+                                  NEXT IF c.type == "curval";
+                                  c.is_checked = instance_layout.instance_id == rti AND column.has_curval_field(c.id) ? 1 : 0;
+                                  curval_field_ids_items.push(c);
+                                END;
+                              
+                                INCLUDE fields/checkbox_list.tt
+                                  list_class = "list--vertical list--checkboxes"
+                                  name = "curval_field_ids"
+                                  label = "Show these fields:"
+                                  items = curval_field_ids_items
+                                  filter = "html";
+                              %]
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="col">
+                              <fieldset class="fieldset" >
+                                <div class="fieldset__legend">
+                                  <legend >
+                                    Apply the following filters to records in the selected table:
+                                  </legend>
+                                </div>
+  
+                                <div class="form-group">
+                                  [%
+                                    PROCESS builder.tt
+                                      builder_id = instance_layout.instance_id
+                                      builder_layout = instance_layout
+                                      filter_normal = column.filter
+                                      filter_base64 = column.filter.base64
+                                      show_all_columns = 1;
+                                  
+                                    extra_filter = '';
+                                    IF column.filter.as_json AND NOT column.filter.as_json.match('^[{}\s]*$') AND column.refers_to_instance_id == instance_layout.instance_id;
+                                      extra_filter = 'data-filter-base="' _ column.filter.base64 _ '"';
+                                    END;
+                                  %]
+                                  <div class="filter" id="builder_[% instance_layout.instance_id %]"[% extra_filter %]></div>
+                                </div>
+                              </fieldset>
+                            </div>
+                          </div>
+                        </div>
+                        [% END %]
+                      </div>
+                      <input id="filter" type="hidden" name="filter" value="[% column.filter.as_json | html_entity %]">
+                      [% END %]
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            [% IF ! column.id; %]
+          </div>
+          [%
+              END;
+            END;
+            IF ! column.id OR column.type == 'autocur';
+              IF ! column.id;
+          %]
+          <div class="select-reveal__instance" id="field_type_autocur">
+            [% END %]
+            <div class="row mt-3 mb-3">
+              <div class="col">
+                <div class="card card--expandable">
+                  <div class="card__header">
+                    <div class="card__header-left">
+                      <h4 class="card__title">
+                        Field settings for automatic value of other sheet's references to this one
+                      </h4>
+                    </div>
+                    <div class="card__header-right">
+                      <button class="card__toggle" type="button" data-toggle="collapse" data-target="#otherSheetsReferences" aria-expanded="false" aria-controls="otherSheetsReferences">
+                        <span>Toggle collapsible</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="collapse" id="otherSheetsReferences">
+                    <div class="card__content">
+                      [% IF NOT layout_obj.referred_by.size %]
+                      <div class="row">
+                        <div class="col">
+                          <div class="alert alert-info">
+                            No other sheets refer to this sheet
+                          </div>
+                        </div>
+                      </div>
+                      [% ELSE %]
+                      <div class="row">
+                        <div class="col">
+                          [%
+                            related_field_id_items     = NOT column.related_field_id ? [{id="" name=""}] : [];
+                            related_field_id_reveal_id = '';
+                        
+                            FOREACH referring IN layout_obj.referred_by;
+                              IF column.related_field_id == referring.id;
+                                related_field_id_reveal_id = referring.instance_id;
+                              END;
+                        
+                              related_field_id_items.push({
+                                id        = referring.id,
+                                name      = referring.name,
+                                reveal_id = referring.instance_id
+                              });
+                            END;
+                            
+                            INCLUDE fields/select.tt
+                              id           = "related_field_id"
+                              name         = "related_field_id"
+                              label        = "Fields referring to this field"
+                              items        = related_field_id_items
+                              select_class = "select--reveal"
+                              value        = column.related_field_id
+                              reveal_id    = related_field_id_reveal_id
+                              filter       = "html";
+                          %]
+                        </div>
+                      </div>
+
+                      <div class="select-reveal select-reveal--related_field_id">
+                        [%
+                          FOREACH instance IN layout_obj.referred_by;
+                            instance     = instances_object.layout(instance.instance_id);
+                            display_none = !column.refers_to_instance_id OR column.refers_to_instance_id != instance.instance_id ? ' style="display:none"' : '';
+                        %]
+                        <div class="select-reveal__instance" id="related_field_id_[% instance.instance_id %]"[% display_none %]>
+                          <div class="row">
+                            <div class="col">
+                              [%
+                                related_field_id_items = [];
+                              
+                                FOREACH c IN instance.all;
+                                  NEXT IF c.type == "curval";
+                                  c.is_checked = instance.instance_id == column.refers_to_instance_id AND column.has_curval_field(c.id) ? 1 : 0;
+                                  related_field_id_items.push(c);
+                                END;
+                              
+                                INCLUDE fields/checkbox_list.tt
+                                  list_class = "list--vertical list--checkboxes"
+                                  name = "autocur_field_ids"
+                                  label = "Columns to show:"
+                                  items = related_field_id_items
+                                  filter = "html";
+                              %]
+                            </div>
+                          </div>
+                        </div>
+                        [% END %]
+                      </div>
+                      [% END %]
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            [% IF ! column.id; %]
+          </div>
+          [%
+              END;
+            END;
+            IF ! column.id OR column.type == 'filval';
+              IF ! column.id;
+          %]
+          <div class="select-reveal__instance" id="field_type_filval">
+            [% END %]
+            <div class="row mt-3 mb-3">
+              <div class="col">
+                <div class="card card--expandable">
+                  <div class="card__header">
+                    <div class="card__header-left">
+                      <h4 class="card__title">
+                        Field settings for automatic filtered values of other field
+                      </h4>
+                    </div>
+                    <div class="card__header-right">
+                      <button class="card__toggle" type="button" data-toggle="collapse" data-target="#automaticFilteredValues" aria-expanded="false" aria-controls="automaticFilteredValues">
+                        <span>Toggle collapsible</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="collapse" id="automaticFilteredValues">
+                    <div class="card__content">
+                      <div class="row">
+                        <div class="col">
+                          [%
+                            filval_related_field_id_items = NOT column.related_field_id ? [{id="" name=""}] : [];
+
+                            FOREACH filtered_curval IN layout_obj.filtered_curvals;
+                              filval_related_field_id_items.push({
+                                  id   = referring.id,
+                                  name = referring.name
+                                });
+                              END;
+                            
+                            INCLUDE fields/select.tt
+                              id           = "filval_related_field_id"
+                              name         = "filval_related_field_id"
+                              label        = "Field to record filtered values of"
+                              items        = filval_related_field_id_items
+                              select_class = "select--reveal"
+                              value        = column.related_field_id
+                              filter       = "html";
+                            %]
+                        </div>
+                      </div>
+          
+                      <div class="select-reveal select-reveal--filval_related_field_id">
+                        [%
+                          FOREACH filtered_curval IN layout_obj.filtered_curvals;
+                            instance     = instance = instances_object.layout(filtered_curval.refers_to_instance_id);
+                            display_none = !column.related_field_id OR column.related_field_id != filtered_curval.id ? ' style="display:none"' : '';
+                        %]
+                        <div class="select-reveal__instance" id="filval_related_field_id_[% filtered_curval.id %]"[% display_none %]>
+                          <div class="row">
+                            <div class="col">
+                              [%
+                                filval_related_field_id_items = [];
+                              
+                                FOREACH c IN instance.all;
+                                  NEXT IF c.type == "curval";
+                                  c.is_checked = column.has_curval_field(c.id) ? 1 : 0;
+                                  filval_related_field_id_items.push(c);
+                                END;
+                              
+                                INCLUDE fields/checkbox_list.tt
+                                  list_class = "list--vertical list--checkboxes"
+                                  name = "filval_field_ids"
+                                  label = "Columns to show:"
+                                  items = filval_related_field_id_items
+                                  filter = "html";
+                              %]
+                            </div>
+                          </div>
+                        </div>
+                        [% END %]
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            [% IF ! column.id; %]
+          </div>
+          [%
+              END;
+            END;
+          %]
+        </div>
+
+        <div class="row mb-3">
+          <div class="col">
+            <div class="card card--expandable">
+              <div class="card__header">
+                <div class="card__header-left">
+                  <h4 class="card__title">
+                    Permissions
+                  </h4>
+                </div>
+                <div class="card__header-right">
+                  <button class="card__toggle" type="button" data-toggle="collapse" data-target="#permissions" aria-expanded="false" aria-controls="permissions">
+                    <span>Toggle collapsible</span>
+                  </button>
+                </div>
+              </div>
+              <div class="collapse" id="permissions">
+                <div class="card__content">
+                  [% IF ! groups.all.size %]
+                    <p>
+                      No groups have been created yet. <a href='"[% url.page %]"/group_overview/'>Create a group</a>
+                    </p>
+                  [%
+                    ELSE;
+                      # prepare table config
+                      table_id           = 'default_field_permissions_table';
+                      table_class        = 'table-lines table-no-margin';
+                      table_dom          = '<\"row row--header\"<\"col\"f><\"col-lg-auto dataTables_length_wrapper\"l>><\"row row--main\"<\"col-sm-12\"tr>><\"row row--footer\"<\"col-sm-12 col-lg-6\"p><\"col-sm-12 col-lg-6 dataTables_info_wrapper\"i>>';
+                      table_order        = '[0,"asc"]';
+                      table_language     = '{"emptyTable": "There is no groups available","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next","previous":"Previous"},"search":"","searchPlaceholder":"Search group"}';
+                      table_page_length  = 5;
+                      table_length_menu  = 'detail';
+                      table_unresponsive = 1;
+                    
+                      table_columns = [{
+                        name      = "Group"
+                        orderable = 1
+                        width     = "20%"
+                      },{
+                        name      = "Create"
+                        orderable = 0
+                      },{
+                        name      = "Read"
+                        orderable = 0
+                      },{
+                        name      = "Update"
+                        orderable = 0
+                      },{
+                        name      = "Approve"
+                        orderable = 0
+                      },{
+                        name      = "Write without approval"
+                        orderable = 0
+                      }];
+  
+                      existing_perms = column.permissions.keys;
+                      rows           = [];
+
+                      FOREACH group IN groups.all;
+                        row = {
+                          data_attr_name    = 'group-id'
+                          data_attr_value   = group.id
+                          fields = [{
+                            type  = "text"
+                            label = group.name
+                          }, {
+                            type        = "text"
+                            label       = ""
+                            sub_field   = "fields/sub/checkbox.tt"
+                            sub_params  = {
+                              id => "permission_write_new_" _ group.id
+                              name => "permission_write_new_" _ group.id
+                              label => permission_inputs.write_new
+                              checked => column.group_has(group.id, 'write_new') ? 1 : 0
+                              filter => "html"
+                              is_required => 0
+                              autofocus => 0
+                              input_class => "checkbox--hide-label"
+                              label_in_span => 1
+                            }
+                          }, {
+                            type        = "text"
+                            label       = ""
+                            sub_field   = "fields/sub/checkbox.tt"
+                            sub_params  = {
+                              id => "permission_read_" _ group.id
+                              name => "permission_read_" _ group.id
+                              label => permission_inputs.read
+                              checked => column.group_has(group.id, 'read') ? 1 : 0
+                              filter => "html"
+                              is_required => 0
+                              autofocus => 0
+                              input_class => "checkbox--hide-label"
+                              label_in_span => 1
+                            }
+                          }, {
+                            type        = "text"
+                            label       = ""
+                            sub_field   = "fields/sub/checkbox.tt"
+                            sub_params  = {
+                              id => "permission_write_existing_" _ group.id
+                              name => "permission_write_existing_" _ group.id
+                              label => permission_inputs.write_existing
+                              checked => column.group_has(group.id, 'write_existing') ? 1 : 0
+                              filter => "html"
+                              is_required => 0
+                              autofocus => 0
+                              input_class => "checkbox--hide-label"
+                              label_in_span => 1
+                            }
+                          }, {
+                            type        = "text"
+                            label       = ""
+                            sub_field   = "fields/sub/checkbox.tt"
+                            sub_params  = {
+                              id => "permission_approve_new_" _ group.id
+                              name => "permission_approve_new_" _ group.id
+                              label => permission_inputs.approve_new
+                              checked => column.group_has(group.id, 'approve_new') ? 1 : 0
+                              filter => "html"
+                              is_required => 0
+                              autofocus => 0
+                              input_class => "checkbox--hide-label"
+                              label_in_span => 1
+                            }
+                          }, {
+                            type        = "text"
+                            label       = ""
+                            sub_field   = "fields/sub/checkbox.tt"
+                            sub_params  = {
+                              id => "permission_write_new_no_approval_" _ group.id
+                              name => "permission_write_new_no_approval_" _ group.id
+                              label => permission_inputs.write_new_no_approval
+                              checked => column.group_has(group.id, 'write_new_no_approval') ? 1 : 0
+                              filter => "html"
+                              is_required => 0
+                              autofocus => 0
+                              input_class => "checkbox--hide-label"
+                              label_in_span => 1
+                            }
+                          }]
+                        };
+                  
+                        rows.push(row);
+                      END;
+
+                      INCLUDE tables/basic_table.tt;
+                    END;
+                  %]
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col">
+            <div class="card card--expandable">
+              <div class="card__header">
+                <div class="card__header-left">
+                  <h4 class="card__title">
+                    Advanced settings
+                  </h4>
+                </div>
+                <div class="card__header-right">
+                  <button class="card__toggle" type="button" data-toggle="collapse" data-target="#advancedSettings" aria-expanded="false" aria-controls="advancedSettings">
+                    <span>Toggle collapsible</span>
+                  </button>
+                </div>
+              </div>
+              <div class="collapse" id="advancedSettings">
+                <div class="card__content">
+                  <fieldset class="fieldset">
+                    <div class="fieldset__legend fieldset__legend--hidden">
+                      <legend>
+                        Advanced settings
+                      </legend>
+                    </div>
+                    <div class="form-group">
+                      <div class="list list--vertical list--checkboxes">
+                        <ul class="list__items">
+                          <li class="list__item">
+                            [%
+                              INCLUDE fields/sub/checkbox.tt
+                                id = "remember"
+                                name = "remember"
+                                label = "Remember last value for new entry"
+                                checked = column.remember ? 1 : 0;
+                            %]
+                          </li>
+                          <li class="list__item">
+                            [%
+                              INCLUDE fields/sub/checkbox.tt
+                                id = "set_can_child"
+                                name = "set_can_child"
+                                label = "This field forms a value in child records"
+                                checked = column.can_child ? 1 : 0;
+                            %]
+                          </li>
+                          <li class="list__item">
+                            [%
+                              INCLUDE fields/sub/checkbox.tt
+                                id = "isunique"
+                                name = "isunique"
+                                label = "The values for this field must be unique"
+                                checked = column.isunique ? 1 : 0;
+                            %]
+                          </li>
+                          <li class="list__item">
+                            [%
+                              INCLUDE fields/sub/checkbox.tt
+                                id = "multivalue"
+                                name = "multivalue"
+                                label = "Allow multiple values"
+                                checked = column.multivalue ? 1 : 0;
+                            %]
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </fieldset>
+                  
+                  [%
+                    INCLUDE fields/input.tt
+                      id            = "name_short"
+                      name          = "name_short"
+                      label         = "Short name"
+                      value         = column.name_short
+                      filter        = "html"
+                      popover_class = "popover-container--large"
+                      popover_title = "Field short names"
+                      popover_body  = global.helptext.name_short
+                      type          = "text";
+
+                    IF instance_layouts.size;
+                      link_parent_id_items = [{id = "", name = "Not linked"}];
+
+                      FOREACH instance_layout IN instance_layouts;
+                        NEXT IF instance_layout.instance_id == layout_obj.instance_id;
+                        FOREACH c IN instance_layout.all;
+                          link_parent_id_items.push({
+                            id = c.id,
+                            name = instance_layout.name _ ' - ' _ c.name
+                          });
+                        END;
+                      END;
+                    
+                      INCLUDE fields/select.tt
+                        id           = "link_parent_id"
+                        name         = "link_parent_id"
+                        label        = "Link to a field in another table"
+                        placeholder  = "Select an option"
+                        value        = column.link_parent.id
+                        items        = link_parent_id_items
+                        filter       = "html";
+                    ELSE;
+                      INCLUDE fields/select.tt
+                        id           = "link_parent_id"
+                        name         = "link_parent_id"
+                        label        = "Link to a field in another table"
+                        placeholder  = "Select an option"
+                        value        = ""
+                        items        = [{id = "", name = "No other datasheets exist"}]
+                        is_readonly  = 1
+                        is_disabled  = 1;
+                    END;
+%][%
+                    IF column.numeric;
+                      aggregate_items = [
+                        {id = "", name = "no aggregate"},
+                        {id = "sum", name = "Sum all record values in column"}
+                      ];
+
+                      IF column.type == "calc";
+                        aggregate_items.push({id = "recalc", name = "Recalculate from other aggregate values"});
+                      END;
+                  
+                      INCLUDE fields/select.tt
+                        id           = "aggregate"
+                        name         = "aggregate"
+                        label        = "Aggregate for field in table view:"
+                        placeholder  = "Select an option"
+                        value        = column.aggregate
+                        items        = aggregate_items;
+                    ELSE;
+                      INCLUDE fields/select.tt
+                        id           = "group_display"
+                        name         = "group_display"
+                        label        = "Display in grouped view:"
+                        placeholder  = "Select an option"
+                        value        = column.group_display
+                        items        = [
+                          {id = "", name = "Do not display in grouped views"},
+                          {id = "unique", name = "Display count of unique values in grouped views"}
+                        ];
+                    END;
+                  
+                    INCLUDE fields/select.tt
+                      id           = "width"
+                      name         = "width"
+                      label        = "Width of form field:"
+                      placeholder  = "Select an option"
+                      value        = ! column.width || column.width == "50" ? "50" : "100"
+                      items        = [
+                        {id = "50", name = "Half-width"},
+                        {id = "100", name = "Full-width"}
+                      ];
+                  %]
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col">
+            <div class="card card--expandable">
+              <div class="card__header">
+                <div class="card__header-left">
+                  <h4 class="card__title">
+                    Display conditions
+                  </h4>
+                </div>
+                <div class="card__header-right">
+                  <button class="card__toggle" type="button" data-toggle="collapse" data-target="#displayConditionsCollapse" aria-expanded="false" aria-controls="displayConditionsCollapse">
+                    <span>Toggle collapsible</span>
+                  </button>
+                </div>
+              </div>
+              <div class="collapse" id="displayConditionsCollapse">
+                <div class="card__content">
+                  <p>Use this section to define under what conditions this field is displayed when editing a record. If no conditions are defined, then the field will always displayed.</p>
+
+                  <div class="form-group">
+                    [%
+                      data_filters_base = '';
+                      IF column.display_fields.as_json AND NOT column.display_fields.as_json.match('^[{}\s]*$');
+                        data_filters_base = 'data-filter-base="' _ column.display_fields.base64 _ '"';
+                      END;
+                    %]
+                    <div
+                      id="displayConditionsBuilder"
+                      class="display-conditions"
+                      [% data_filters_base %]
+                      data-filters="[% layout.columns_for_display_condition %]">
+                    </div>
+                    <input type="hidden" id="displayConditions" name="display_fields">
+                  </div>
+                  <div class="d-flex position-relative">
+                    <p class="mb-0">Tip: You can use patterns in your display conditions</p>
+                    [%
+                      INCLUDE fields/sub/popover.tt
+                        popover_id = "displayConditionsPopover"
+                        popover_class = "popover-container--large"
+                        popover_title = "Matching field values"
+                        popover_body = global.helptext.layout_match;
+                    %]
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      
+      <footer class="content-block__footer">
+          <div class="content-block__footer-container">
+            [%
+              right_buttons = [];
+            
+              IF column.id;
+                right_buttons.push({
+                  type      = "modal_button",
+                  modalId   = "deleteModal",
+                  dataTitle = column.name,
+                  dataId    = column.id,
+                  class     = "btn btn-danger btn-js-delete",
+                  label     = "Delete field"
+                });
+              END;
+            
+              right_buttons.push({
+                type  = "button",
+                class = "btn btn-default"
+                id    = "submit_save"
+                name  = "submit"
+                value = "submit"
+                label = "Save"
+              });
+            
+              INCLUDE navigation/button_bar.tt
+                row_class = "row"
+                columns   = [{
+                  class   = "col-md-4 mb-3 mb-md-0",
+                  buttons = [{
+                    type   = "link",
+                    target = url.page _ "/" _ layout_obj.identifier _ "/layout",
+                    class  = "btn btn-cancel",
+                    label  = "Back"
+                  }]
+                }, {
+                  class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
+                  buttons = right_buttons
+                }];
+            %]
+          </div>
+        </footer>
+    </fieldset>
+  </div>
+</form>

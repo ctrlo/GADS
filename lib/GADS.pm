@@ -3524,6 +3524,9 @@ prefix '/:layout_name' => sub {
             $params->{column} = 0; # New
         }
 
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         $params->{groups}                       = GADS::Groups->new(schema => schema);
         $params->{permissions}                  = [GADS::Type::Permissions->all];
         $params->{permission_mapping}           = GADS::Type::Permissions->permission_mapping;
@@ -3531,6 +3534,7 @@ prefix '/:layout_name' => sub {
         $params->{topics}                       = [schema->resultset('Topic')->search({ instance_id => $layout->instance_id })->all];
         $params->{content_block_custom_classes} = 'content-block--footer';
         $params->{detail_header}                = 1;
+        $params->{header_back_url}              = "${base_url}${tableIdentifier}/layout";
         $params->{layout_obj}                   = $layout;
 
         if (param 'saveposition')
