@@ -17,10 +17,10 @@
   #   sub_field = ""
   #   sub_params = {};
 
-  input_class  = is_required AND ! input_class.match('select--required') ? input_class _ ' select--required' : input_class;
-  select_class = select_class ? select_class : 'select--select';
+  input_class         = is_required AND ! input_class.match('select--required') ? input_class _ ' select--required' : input_class;
+  select_class        = select_class ? select_class : 'select--select';
   display_placeholder = placeholder;
-  display_value = "";
+  display_value       = "";
 
   FOREACH item IN items;
     IF value == item.id;
@@ -35,9 +35,7 @@
 [% END %]
   <div class="select dropdown [% select_class %]">
     <div class="select__label">
-      <label for="[% id %]" id="[% id %]-label">
-        [% INCLUDE fields/sub/filter.tt value=label; %]
-      </label>
+      <label for="btn-[% id %]" id="lbl-[% id %]">[% INCLUDE fields/sub/filter.tt value=label; %]</label>
       [% IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body; END; %]
     </div>
     [% IF help_text %]
@@ -46,10 +44,11 @@
     </p>
     [% END %]
     <button
-      id="[% id %]"
+      id="btn-[% id %]"
       type="button"
       class="select__toggle dropdown-toggle form-control"
       [% IF is_disabled %]disabled[% END %]
+      [% IF is_readonly %]readonly[% END %]
       data-toggle="dropdown"
       aria-haspopup="listbox"
       aria-expanded="false"
@@ -59,20 +58,23 @@
     </button>
     <input
       type="hidden"
+      id="[% id %]"
       name="[% name %]"
       value="[% display_value %]"[%- IF is_disabled -%]
-      disabled[%- END -%]
+      disabled[%- END -%][%- IF is_readonly -%]
+      readonly[%- END -%]
       placeholder="[% INCLUDE fields/sub/filter.tt value=display_placeholder; %]"
+      [% IF reveal_id %]data-reveal_id="[% reveal_id %]"[% END %]
     >
     
     <ul
       class="select__menu dropdown-menu"
-      aria-labelledby="[% id %]-label"
+      aria-labelledby="lbl-[% id %]"
       [% IF help_text %]aria-describedby="[% id %]-help"[% END %]
       role="listbox"
     >
       [% FOREACH item IN items %]
-      <li class="select__menu-item" role="option" data-value="[% item.id %]" aria-selected="[% IF value == item.id %]true[% ELSE %]false[% END %]">
+      <li class="select__menu-item" role="option" [% IF item.reveal_id %]data-reveal_id="[% item.reveal_id %]"[% END %] data-value="[% item.id %]" aria-selected="[% IF value == item.id %]true[% ELSE %]false[% END %]">
         [% item.name | html_entity %]
       </li>
       [% END %]

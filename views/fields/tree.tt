@@ -34,7 +34,7 @@
     <div
       class="tree-widget-container"
       id="[% id %]"
-      data-layout-identifier="[% layout_obj.identifier %]"
+      data-layout-identifier="[% layout_identifier %]"
       data-column-id="[% layout_id %]"
       data-csrf-token="[% csrf_token %]"
     >

@@ -1,8 +1,8 @@
 [% IF ! hide_group %]
-<div class="form-item">
+<div class="form-group">
 [% END %]
-  <fieldset class="fieldset" data-name="[% fieldset_name %]">
-    <div class="fieldset__legend ">
+  <fieldset class="fieldset"[% IF fieldset_name %] data-name="[% fieldset_name %]"[% END %]>
+    <div class="fieldset__legend">
       <legend>[% INCLUDE fields/sub/filter.tt value=label; %]</legend>
       [% IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body; END; %]
     </div>
