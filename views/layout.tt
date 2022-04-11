@@ -47,6 +47,7 @@
                       is_required => 0
                       autofocus => 0
                       input_class => ""
+                      value => "1"
                     };
                 %]
                 </div>
@@ -172,11 +173,13 @@
                               popover_body  = global.helptext.force_regex
                               sub_field     = "fields/sub/checkbox.tt"
                               sub_params    = {
-                                id          => "textbox"
-                                name        => "textbox"
-                                label       => "Make this a multi-line text box"
-                                checked     => column.textbox ? 1 : 0
-                                input_class => "mb-0"
+                                id           => "textbox"
+                                name         => "textbox"
+                                label        => "Make this a multi-line text box"
+                                checked      => column.textbox ? 1 : 0
+                                input_class  => "mb-0"
+                                popover_body => ""
+                                value        => "1"
                               };
                           %]
                         </div>
@@ -229,7 +232,8 @@
                                   name        = "show_calculator"
                                   label       = "Show pop-up calculator"
                                   checked     = column.show_calculator ? 1 : 0
-                                  input_class = "mb-0";
+                                  input_class = "mb-0"
+                                  value       = "1";
                               %]
                             </div>
                           </fieldset>
@@ -282,6 +286,7 @@
                                   id      = "show_datepicker_date"
                                   name    = "show_datepicker"
                                   label   = "Show date picker pop-up"
+                                  value   = 1
                                   checked = NOT column.show_datepicker.defined OR column.show_datepicker ? 1 : 0;
                               %]
                             </div>
@@ -303,6 +308,7 @@
                                   id          = "default_today"
                                   name        = "default_today"
                                   label       = "Default new values to today's date"
+                                  value       = 1
                                   checked     = column.default_today ? 1 : 0
                                   input_class = "mb-0";
                               %]
@@ -357,6 +363,7 @@
                                   id      = "show_datepicker_date-range"
                                   name    = "show_datepicker"
                                   label   = "Show date picker pop-up"
+                                  value   = 1
                                   checked = NOT column.show_datepicker.defined OR column.show_datepicker ? 1 : 0;
                               %]
                             </div>
@@ -522,6 +529,7 @@
                                 id      = "end_node_only"
                                 name    = "end_node_only"
                                 label   = "Only let users select an end-node"
+                                value   = 1
                                 checked = column.end_node_only ? 1 : 0;
                             %]
                           </div>
@@ -625,12 +633,14 @@
                                 id      = "default_to_login"
                                 name    = "default_to_login"
                                 label   = "Default new values to current logged-in user"
+                                value   = 1
                                 checked = column.default_to_login ? 1 : 0;
                             
                               INCLUDE fields/sub/checkbox.tt
                                 id          = "notify_on_selection"
                                 name        = "notify_on_selection"
                                 label       = "Send a message to the user when they are selected in this field"
+                                value       = 1
                                 checked     = column.notify_on_selection ? 1 : 0
                                 input_class = "checkbox--reveal";
                             %]
@@ -734,6 +744,7 @@
                                 id      = "no_alerts_calc_rag"
                                 name    = "no_alerts_calc"
                                 label   = "Do not send alerts when making this update (alerts will still be sent when records are subsequently edited individually)"
+                                value   = 1
                                 checked = 1;
                             %]
                             </div>
@@ -832,6 +843,7 @@
                             INCLUDE fields/sub/checkbox.tt
                               id      = "show_in_edit"
                               name    = "show_in_edit"
+                              value   = 1
                               label   = "Show this field when editing records"
                               checked = column.show_in_edit ? 1 : 0;
                           %]
@@ -851,6 +863,7 @@
                               INCLUDE fields/sub/checkbox.tt
                                 id      = "no_alerts_calc"
                                 name    = "no_alerts_calc"
+                                value   = 1
                                 label   = "Do not send alerts when making this update (alerts will still be sent when records are subsequently edited individually)"
                                 checked = 1;
                             %]
@@ -949,6 +962,7 @@
                                 INCLUDE fields/sub/checkbox.tt
                                   id      = "show_add"
                                   name    = "show_add"
+                                  value   = 1
                                   label   = "Allow new values to be added when editing"
                                   checked = column.show_add ? 1 : 0;
                               %]
@@ -971,6 +985,7 @@
                                   id      = "delete_not_used"
                                   name    = "delete_not_used"
                                   label   = "Delete records from other table if deselected from this field"
+                                  value   = 1
                                   checked = column.delete_not_used ? 1 : 0;
                               %]
                             </div>
@@ -992,6 +1007,7 @@
                                   id      = "override_permissions"
                                   name    = "override_permissions"
                                   label   = "Override any user permissions when selecting records for this field"
+                                  value   = 1
                                   checked = column.override_permissions ? 1 : 0;
                               %]
                             </div>
@@ -1044,6 +1060,7 @@
                                 FOREACH c IN instance_layout.all;
                                   NEXT IF c.type == "curval";
                                   c.is_checked = instance_layout.instance_id == rti AND column.has_curval_field(c.id) ? 1 : 0;
+                                  c.field_id = "curval_field_ids_" _ instance_layout.instance_id _ "-" _ c.id;
                                   curval_field_ids_items.push(c);
                                 END;
                               
@@ -1087,7 +1104,7 @@
                         </div>
                         [% END %]
                       </div>
-                      <input id="filter" type="hidden" name="filter" value="[% column.filter.as_json | html_entity %]">
+                      <input id="filter" type="hidden" name="filter" value="[% column.filter.as_json | html %]">
                       [% END %]
                     </div>
                   </div>
@@ -1176,6 +1193,7 @@
                                 FOREACH c IN instance.all;
                                   NEXT IF c.type == "curval";
                                   c.is_checked = instance.instance_id == column.refers_to_instance_id AND column.has_curval_field(c.id) ? 1 : 0;
+                                  c.field_id = "autocur_field_ids_" _ instance.instance_id _ "-" _ c.id;
                                   related_field_id_items.push(c);
                                 END;
                               
@@ -1251,7 +1269,7 @@
                       <div class="select-reveal select-reveal--filval_related_field_id">
                         [%
                           FOREACH filtered_curval IN layout_obj.filtered_curvals;
-                            instance     = instance = instances_object.layout(filtered_curval.refers_to_instance_id);
+                            instance     = instances_object.layout(filtered_curval.refers_to_instance_id);
                             display_none = !column.related_field_id OR column.related_field_id != filtered_curval.id ? ' style="display:none"' : '';
                         %]
                         <div class="select-reveal__instance" id="filval_related_field_id_[% filtered_curval.id %]"[% display_none %]>
@@ -1263,6 +1281,7 @@
                                 FOREACH c IN instance.all;
                                   NEXT IF c.type == "curval";
                                   c.is_checked = column.has_curval_field(c.id) ? 1 : 0;
+                                  c.field_id = "filval_field_ids_" _ filtered_curval.refers_to_instance_id _ "-" _ c.id;
                                   filval_related_field_id_items.push(c);
                                 END;
                               
@@ -1369,6 +1388,7 @@
                               autofocus => 0
                               input_class => "checkbox--hide-label"
                               label_in_span => 1
+                              value => 1
                             }
                           }, {
                             type        = "text"
@@ -1384,6 +1404,7 @@
                               autofocus => 0
                               input_class => "checkbox--hide-label"
                               label_in_span => 1
+                              value => 1
                             }
                           }, {
                             type        = "text"
@@ -1399,6 +1420,7 @@
                               autofocus => 0
                               input_class => "checkbox--hide-label"
                               label_in_span => 1
+                              value => 1
                             }
                           }, {
                             type        = "text"
@@ -1414,6 +1436,7 @@
                               autofocus => 0
                               input_class => "checkbox--hide-label"
                               label_in_span => 1
+                              value => 1
                             }
                           }, {
                             type        = "text"
@@ -1429,6 +1452,7 @@
                               autofocus => 0
                               input_class => "checkbox--hide-label"
                               label_in_span => 1
+                              value => 1
                             }
                           }]
                         };
@@ -1477,6 +1501,7 @@
                                 id = "remember"
                                 name = "remember"
                                 label = "Remember last value for new entry"
+                                value = 1
                                 checked = column.remember ? 1 : 0;
                             %]
                           </li>
@@ -1486,6 +1511,7 @@
                                 id = "set_can_child"
                                 name = "set_can_child"
                                 label = "This field forms a value in child records"
+                                value = 1
                                 checked = column.can_child ? 1 : 0;
                             %]
                           </li>
@@ -1495,6 +1521,7 @@
                                 id = "isunique"
                                 name = "isunique"
                                 label = "The values for this field must be unique"
+                                value = 1
                                 checked = column.isunique ? 1 : 0;
                             %]
                           </li>
@@ -1504,6 +1531,7 @@
                                 id = "multivalue"
                                 name = "multivalue"
                                 label = "Allow multiple values"
+                                value = 1
                                 checked = column.multivalue ? 1 : 0;
                             %]
                           </li>
@@ -1624,20 +1652,15 @@
                   <p>Use this section to define under what conditions this field is displayed when editing a record. If no conditions are defined, then the field will always displayed.</p>
 
                   <div class="form-group">
-                    [%
-                      data_filters_base = '';
-                      IF column.display_fields.as_json AND NOT column.display_fields.as_json.match('^[{}\s]*$');
-                        data_filters_base = 'data-filter-base="' _ column.display_fields.base64 _ '"';
-                      END;
-                    %]
-                    <div
-                      id="displayConditionsBuilder"
-                      class="display-conditions"
-                      [% data_filters_base %]
-                      data-filters="[% layout.columns_for_display_condition %]">
-                    </div>
-                    <input type="hidden" id="displayConditions" name="display_fields">
-                  </div>
+                    <div id="displayConditionsBuilder"
+                         class="display-conditions"
+                         [% IF column.display_fields.as_json AND NOT column.display_fields.as_json.match('^[{}\s]*$') %]
+                    data-filter-base="[% column.display_fields.base64 %]"
+                    [% END %]
+                    data-filters="[% layout.columns_for_display_condition %]"
+                    ></div>
+                  <input type="hidden" id="displayConditions" name="display_fields">
+
                   <div class="d-flex position-relative">
                     <p class="mb-0">Tip: You can use patterns in your display conditions</p>
                     [%
@@ -1657,47 +1680,47 @@
       </div>
       
       <footer class="content-block__footer">
-          <div class="content-block__footer-container">
-            [%
-              right_buttons = [];
-            
-              IF column.id;
-                right_buttons.push({
-                  type      = "modal_button",
-                  modalId   = "deleteModal",
-                  dataTitle = column.name,
-                  dataId    = column.id,
-                  class     = "btn btn-danger btn-js-delete",
-                  label     = "Delete field"
-                });
-              END;
-            
+        <div class="content-block__footer-container">
+          [%
+            right_buttons = [];
+          
+            IF column.id;
               right_buttons.push({
-                type  = "button",
-                class = "btn btn-default"
-                id    = "submit_save"
-                name  = "submit"
-                value = "submit"
-                label = "Save"
+                type      = "modal_button",
+                modalId   = "deleteModal",
+                dataTitle = column.name,
+                dataId    = column.id,
+                class     = "btn btn-danger btn-js-delete",
+                label     = "Delete field"
               });
-            
-              INCLUDE navigation/button_bar.tt
-                row_class = "row"
-                columns   = [{
-                  class   = "col-md-4 mb-3 mb-md-0",
-                  buttons = [{
-                    type   = "link",
-                    target = url.page _ "/" _ layout_obj.identifier _ "/layout",
-                    class  = "btn btn-cancel",
-                    label  = "Back"
-                  }]
-                }, {
-                  class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
-                  buttons = right_buttons
-                }];
-            %]
-          </div>
-        </footer>
+            END;
+          
+            right_buttons.push({
+              type  = "button",
+              class = "btn btn-default"
+              id    = "submit_save"
+              name  = "submit"
+              value = "submit"
+              label = "Save"
+            });
+          
+            INCLUDE navigation/button_bar.tt
+              row_class = "row"
+              columns   = [{
+                class   = "col-md-4 mb-3 mb-md-0",
+                buttons = [{
+                  type   = "link",
+                  target = url.page _ "/" _ layout_obj.identifier _ "/layout",
+                  class  = "btn btn-cancel",
+                  label  = "Back"
+                }]
+              }, {
+                class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
+                buttons = right_buttons
+              }];
+          %]
+        </div>
+      </footer>
     </fieldset>
   </div>
 </form>
