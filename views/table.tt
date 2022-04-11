@@ -14,7 +14,7 @@
       </div>
       
       <div class="content-block__main-content">
-        <div class="card card--secundary">
+        <div class="card card--secundary mb-3">
           <h4 class="card__title">
             <span> Edit your table: [% layout_obj.name %] </span>
           </h4>
@@ -99,41 +99,85 @@
                   %]
                 </div>
               </div>
-              
-              <div class="row">
-                <div class="col-lg-12">
-                  [%
-                    view_limit_items = [{id="", name="All data"}];
-                  
-                    INCLUDE fields/select.tt
-                      id = "view_limit_id"
-                      name = "view_limit_id"
-                      label = "By default restrict all users to records in this view"
-                      placeholder = "All data"
-                      filter = "html"
-                      value = layout_obj.view_limit_id || ''
-                      items = view_limit_items.merge(layout_obj.global_view_summary);
-                  %]
+            </div>
+          </div>
+        </div>
+  
+        <div class="row mb-3">
+          <div class="col">
+            <div class="card card--expandable">
+              <div class="card__header">
+                <div class="card__header-left">
+                  <h4 class="card__title">
+                    Email alerts
+                  </h4>
+                </div>
+                <div class="card__header-right">
+                  <button class="card__toggle" type="button" data-toggle="collapse" data-target="#emailAlerts" aria-expanded="false" aria-controls="emailAlerts">
+                    <span>Toggle collapsible</span>
+                  </button>
                 </div>
               </div>
-              
-              <div class="row">
-                <div class="col-lg-12">
-                  [%
-                    FOR column IN layout_obj.all;
-                      column.field_id   = "field_" _ column.id
-                      column.is_checked = layout_obj.has_alert_column(column.id) ? 1 : 0;
-                    END;
-                  
-                    INCLUDE fields/checkbox_list.tt
-                      fieldset_name = "alert_columns"
-                      list_class = list_class
-                      name = "alert_column"
-                      label = "Include the following fields for record descriptions in email alerts"
-                      items = layout_obj.all
-                      filter = "html"
-                      help_text = "Warning: as these fields will be sent via emails external to Linkspace, only include fields that do not contain sensitive data.";
-                %]
+              <div class="collapse" id="emailAlerts">
+                <div class="card__content">
+                  <div class="row">
+                    <div class="col-lg-12">
+                      [%
+                        FOR column IN layout_obj.all;
+                          column.field_id   = "field_" _ column.id
+                          column.is_checked = layout_obj.has_alert_column(column.id) ? 1 : 0;
+                        END;
+                      
+                        INCLUDE fields/checkbox_list.tt
+                          fieldset_name = "alert_columns"
+                          list_class = list_class
+                          name = "alert_column"
+                          label = "Include the following fields for record descriptions in email alerts"
+                          items = layout_obj.all
+                          filter = "html"
+                          help_text = "Warning: as these fields will be sent via emails external to Linkspace, only include fields that do not contain sensitive data.";
+                    %]
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row mb-3">
+          <div class="col">
+            <div class="card card--expandable">
+              <div class="card__header">
+                <div class="card__header-left">
+                  <h4 class="card__title">
+                    Limit access to records
+                  </h4>
+                </div>
+                <div class="card__header-right">
+                  <button class="card__toggle" type="button" data-toggle="collapse" data-target="#limitRecordAccess" aria-expanded="false" aria-controls="limitRecordAccess">
+                    <span>Toggle collapsible</span>
+                  </button>
+                </div>
+              </div>
+              <div class="collapse" id="limitRecordAccess">
+                <div class="card__content">
+                  <div class="row">
+                    <div class="col-lg-12">
+                      [%
+                        view_limit_items = [{id="", name="All data"}];
+        
+                        INCLUDE fields/select.tt
+                          id = "view_limit_id"
+                          name = "view_limit_id"
+                          label = "By default restrict all users to records in this view"
+                          placeholder = "All data"
+                          filter = "html"
+                          value = layout_obj.view_limit_id || ''
+                          items = view_limit_items.merge(layout_obj.global_view_summary);
+                      %]
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
