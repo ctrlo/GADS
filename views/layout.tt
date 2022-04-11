@@ -1096,7 +1096,7 @@
                                       extra_filter = 'data-filter-base="' _ column.filter.base64 _ '"';
                                     END;
                                   %]
-                                  <div class="filter" id="builder_[% instance_layout.instance_id %]"[% extra_filter %]></div>
+                                  <div class="filter" data-builder-id="[% instance_layout.instance_id %]" id="builder[% instance_layout.instance_id %]"[% extra_filter %]></div>
                                 </div>
                               </fieldset>
                             </div>
