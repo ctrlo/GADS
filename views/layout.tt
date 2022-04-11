@@ -1724,3 +1724,11 @@
     </fieldset>
   </div>
 </form>
+[%
+  IF column.id;
+    INCLUDE wizard/delete.tt
+      modalId     = "deleteModal"
+      label       = "Delete - " _ column.name
+      description = "Are you sure you want to delete this field? You cannot undo this step.";
+  END;
+%]

@@ -3409,7 +3409,7 @@ prefix '/:layout_name' => sub {
                 );
             }
 
-            if (param 'delete')
+            if (my $delete_id = param 'delete')
             {
                 # Provide plenty of logging in case of repercussions of deletion
                 my $colname = $column->name;
