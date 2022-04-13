@@ -1330,8 +1330,35 @@ get '/table/?' => require_login sub {
     template 'tables' => {
         page        => 'table',
         instances   => [rset('Instance')->all],
-        breadcrumbs => [Crumb( '/table' => 'tables' )],
+
     };
+};
+
+any ['get', 'post'] => '/table/:id/permissions' => require_role superadmin => sub {
+
+    my $id     = param 'id';
+    my $layout = $id && var('instances')->layout($id);
+
+    $id && !$layout
+        and error __x "Instance ID {id} not found", id => $id;
+
+    if (param 'submit')
+    {
+        $layout->set_groups([body_parameters->get_all('permissions')]);
+
+        if (process(sub {$layout->write}))
+        {
+            return forwardHome(
+                { success => 'The table permissions have been updated successfully' }, 'table' );
+        }
+    }
+
+    template 'table_permissions' => {
+        page                         => 'table_permissions',
+        detail_header                => 1,
+        layout_obj                   => $layout,
+        groups                       => GADS::Groups->new(schema => schema)->all,
+    }
 };
 
 any ['get', 'post'] => '/table/:id/edit' => require_role superadmin => sub {
@@ -1359,7 +1386,6 @@ any ['get', 'post'] => '/table/:id/edit' => require_role superadmin => sub {
         $layout->sort_layout_id(param('sort_layout_id') || undef);
         $layout->sort_type(param('sort_type') || undef);
         $layout->view_limit_id(param('view_limit_id') || undef);
-        $layout->set_groups([body_parameters->get_all('permissions')]);
         $layout->set_alert_columns([body_parameters->get_all('alert_column')]);
 
         if (process(sub {$layout->write}))
