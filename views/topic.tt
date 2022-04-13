@@ -1,4 +1,4 @@
-[% INCLUDE layouts/page_header_edit_table.tt; %]
+[% INCLUDE layouts/page_header_table.tt; %]
 <div class="content-block__main">
   <form role="form" method="post">
     [%

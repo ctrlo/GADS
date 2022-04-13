@@ -1,0 +1,45 @@
+<div class="content-block__head row">
+  <div class="content-block__info col-lg-6">
+    <h2 class="content-block__title">
+      [% title || 'Edit table' %]
+    </h2>
+    [% IF description %]
+    <div class="content-block__intro">
+      [% description %]
+    </div>
+    [% END %]
+  </div>
+  
+  <div class="content-block__aside col-lg-6">
+  [%
+    table_active_pages  = ["table_edit"];
+    topics_active_pages = ["topics", "topic_add", "topic_edit"];
+    fields_active_pages = ["layouts", "layout"];
+  
+    IF table_active_pages.grep(page).size OR topics_active_pages.grep(page).size OR fields_active_pages.grep(page).size;
+      INCLUDE snippets/button_list.tt
+        list_class = "list--horizontal list--no-borders list--buttons"
+        buttons    = [{
+          type   = "link",
+          target = url.page _ "/table/" _ layout_obj.instance_id _ "/edit",
+          class  = "link link--plain" _ (table_active_pages.grep(page).size ? " link--active" : ""),
+          label  = "Table"
+        }, {
+          type   = "link",
+          target = url.page _ "/" _ layout_obj.identifier _ "/topics/",
+          class  = "link link--plain" _ (topics_active_pages.grep(page).size ? " link--active" : ""),
+          label  = "Topics"
+        }, {
+          type   = "link",
+          target = url.page _ "/" _ layout_obj.identifier _ "/layout/",
+          class  = "link link--plain" _ (fields_active_pages.grep(page).size ? " link--active" : ""),
+          label  = "Fields"
+        }];
+    ELSIF aside_buttons;
+      INCLUDE snippets/button_list.tt
+        list_class = "list--horizontal list--no-borders list--buttons"
+        buttons    = aside_buttons;
+    END;
+  %]
+  </div>
+</div>
