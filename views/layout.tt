@@ -1,5 +1,5 @@
 [% PROCESS help.tt %]
-[% INCLUDE layouts/page_header_edit_table.tt; %]
+[% INCLUDE layouts/page_header_table.tt; %]
 <form method="post" class="">
   [%
     INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
@@ -1697,7 +1697,7 @@
           
             right_buttons.push({
               type  = "button",
-              class = "btn btn-default"
+              class = "btn btn-default btn-js-submit-field"
               id    = "submit_save"
               name  = "submit"
               value = "submit"
