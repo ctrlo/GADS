@@ -8,7 +8,6 @@
       class  = "btn btn-default"
       label  = "Create group"
     }];
-
 %]
 <div class="content-block__main">
   <div class="content-block__main-content">
@@ -134,6 +133,11 @@
                           name = "Manage fields",
                           field_id = group.id _ "_layout",
                           is_checked = layout_obj.group_has(group.id, 'layout') ? 1 : 0
+                        }, {
+                          id = group.id _ "_message" ,
+                          name = "Send messages",
+                          field_id = group.id _ "_message",
+                          is_checked = layout_obj.group_has(group.id, 'message') ? 1 : 0
                         }]
                         hide_group = 1;
                     %]
