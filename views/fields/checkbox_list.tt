@@ -20,14 +20,14 @@
         <li class="list__item">
             [%
               INCLUDE fields/sub/checkbox.tt
-                id = item.field_id
-                name = name
-                label = item.name
-                value = item.id
+                id             = item.field_id
+                name           = item.field_name || name
+                label          = item.name
+                value          = item.id
                 custom_classes = custom_classes
-                checked = item.is_checked
-                is_disabled = item.is_disabled
-                popover_body = "";
+                checked        = item.is_checked
+                is_disabled    = item.is_disabled
+                popover_body   = "";
             %]
         </li>
         [%
