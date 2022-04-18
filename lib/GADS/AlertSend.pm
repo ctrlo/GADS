@@ -160,12 +160,6 @@ sub _process_instance
     my @to_add; # Items to add to the cache later
     if (my @views = map { $views->view($_) } @view_ids)
     {
-        my $records = GADS::Records->new(
-            columns => [], # Otherwise all columns retrieved during search construct
-            schema  => $self->schema,
-            layout  => $layout,
-            user    => undef, # Alerts should not be affected by current user
-        );
         # See which of those views the new/changed records are in.
         #
         # All the views the record is *now* in
@@ -173,6 +167,12 @@ sub _process_instance
         my @foundin;
         foreach my $view (@views)
         {
+            my $records = GADS::Records->new(
+                columns => [], # Otherwise all columns retrieved during search construct
+                schema  => $self->schema,
+                layout  => $layout,
+                user    => undef, # Alerts should not be affected by current user
+            );
             push @foundin, $records->search_view($current_ids, $view);
         }
         foreach my $now_in (@foundin)
