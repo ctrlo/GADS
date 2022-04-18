@@ -25,6 +25,7 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
     my $sheet   = Test::GADS::DataSheet->new(
         schema           => $schema,
         curval           => 2,
+        column_count     => { curval => 2 },
         curval_offset    => 6,
         curval_field_ids => [ $curval_sheet->columns->{string1}->id ],
         calc_return_type => 'string',
@@ -100,6 +101,13 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
     $curval->show_add(1);
     $curval->value_selector($value_selector);
     $curval->write(no_alerts => 1, force => 1);
+
+    # Second curval to check same fields in different curvals work correctly
+    my $curval2 = $columns->{curval2};
+    $curval2->delete_not_used($delete_not_used);
+    $curval2->show_add(1);
+    $curval2->value_selector($value_selector);
+    $curval2->write(no_alerts => 1, force => 1);
 
     # Set up a unique field for later testing
     my $daterange1 = $columns->{daterange1};
@@ -322,6 +330,8 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
     my $filval_count = @{$record->layout->column($curval->id)->filtered_values};
     $curval_datum = $record->fields->{$curval->id};
     $curval_datum->set_value([$curval_string->field."=foo10", $curval_string->field."=foo20"]);
+    my $curval2_datum = $record->fields->{$curval2->id};
+    $curval2_datum->set_value([$curval_string->field."=foo145"]);
     $record->fields->{$columns->{integer1}->id}->set_value(10); # Prevent calc warnings
     $record->write(draft => 1);
     $record->clear;
@@ -331,13 +341,17 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
         # For a dropdown selector, the new values for the curval should be
         # available in the curval dropdown in the draft record
         my @values = @{$record->layout->column($curval->id)->filtered_values};
-        is(@values, $filval_count + 2, "Correct number of new curval values");
+        is(@values, $filval_count + 3, "Correct number of new curval values");
         my @draft = grep $_->{selector_id} =~ /query/, @values;
         my @draft_ids = map $_->{record}->current_id, @draft;
         my $expected = [{
             value_id    => 'field8=foo10&field9=&field10=&field15=',
             selector_id => 'query_'.shift @draft_ids,
             value       => 'foo10',
+        },{
+            value_id    => 'field8=foo145&field9=&field10=&field15=',
+            selector_id => 'query_'.shift @draft_ids,
+            value       => 'foo145',
         },{
             value_id    => 'field8=foo20&field9=&field10=&field15=',
             selector_id => 'query_'.shift @draft_ids,
@@ -393,12 +407,19 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
     }
     @form_values = map { $_->{as_query} =~ s/foo20/foo30/; $_->{as_query} } @form_values;
     $curval_datum->set_value([@form_values]);
+
+    # Write back exactly same value. Test is whether value is retreieved correctly.
+    $curval2_datum = $record->fields->{$curval2->id};
+    $curval2_datum->set_value([map $_->{as_query}, @{$curval2_datum->html_form}]);
+
     $record->write(no_alerts => 1);
     my $current_id = $record->current_id;
     $record->clear;
     $record->find_current_id($current_id);
     $curval_datum = $record->fields->{$curval->id};
     is($curval_datum->as_string, 'foo10; foo30', "Curval value contains new record");
+    $curval2_datum = $record->fields->{$curval2->id};
+    is($curval2_datum->as_string, 'foo145', "Second curval value contains correct value");
 
     # Check that autocur calc field is correct before main record write
     $record->clear;
