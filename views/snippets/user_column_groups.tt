@@ -3,7 +3,7 @@
   [%
     FOREACH group IN groups;
       key = group.id;
-      group.field_id = "groups_" _ item.id
+      group.field_id = "groups_" _ group.id;
       group.is_checked = edituser.has_group.$key ? 1 : 0;
       group.is_disabled = ! user.permission.superadmin AND ! user.has_group.$key ? 1 : 0;
     END;

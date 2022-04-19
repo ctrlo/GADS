@@ -16,4 +16,5 @@
       [% INCLUDE fields/sub/filter.tt value=label; %]
     </span>
   </button>
+  [% INCLUDE snippets/subfield.tt; %]
 </td>

@@ -1,7 +1,8 @@
 [%
   row_class = row.class ? 'class="' _ row.class _ '"' : '';
+  data_attr = row.data_attr_name AND row.data_attr_value ? 'data-' _ row.data_attr_name _ '="' _ row.data_attr_value _ '"' : '';
 %]
-<tr [% row_class %]>
+<tr [% row_class; data_attr; %]>
   [%
     FOREACH field in row.fields;
       SWITCH field.type;
@@ -12,20 +13,29 @@
             label=field.label
             link=field.link
             filter=field.filter
-            field_name=field.name;
+            sub_field=field.sub_field
+            sub_params=field.sub_params
+            field_name=field.name
+            field_value=field.value;
         CASE 'button';
           INCLUDE tables/basic_cell_button.tt
             class=field.class
             label=field.label
             link=field.link
             filter=field.filter
-            field_name=field.name;
+            sub_field=field.sub_field
+            sub_params=field.sub_params
+            field_name=field.name
+            field_value=field.value;
         CASE 'modal_button';
           INCLUDE tables/basic_cell_modal_button.tt
             class=field.class
             label=field.label
             filter=field.filter
+            sub_field=field.sub_field
+            sub_params=field.sub_params
             field_name=field.name
+            field_value=field.value
             modalId=field.modalId
             dataTitle=field.dataTitle
             dataID=field.dataID;
@@ -34,13 +44,19 @@
             class=field.class
             label=field.label
             filter=field.filter
-            field_name=field.name;
+            sub_field=field.sub_field
+            sub_params=field.sub_params
+            field_name=field.name
+            field_value=field.value;
         CASE DEFAULT;
           INCLUDE tables/basic_cell_text.tt
             class=field.class
             label=field.label
             filter=field.filter
-            field_name=field.name;
+            sub_field=field.sub_field
+            sub_params=field.sub_params
+            field_name=field.name
+            field_value=field.value;
       END;
     END;
   %]

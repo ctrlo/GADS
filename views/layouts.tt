@@ -1,0 +1,169 @@
+[%
+  # prepare table config
+  table_class            = 'table-striped table-hover';
+  table_dom              = 't';
+  table_order            = '[0,"asc"]';
+  table_language         = '{"emptyTable": "No fields have been created yet."}';
+  table_show_all_records = 1;
+  table_reorder_rows     = 1;
+  table_page_length      = 10;
+  table_length_menu      = 'basic';
+  
+  table_buttons = [];
+
+  table_columns = [{
+    name      = "Name",
+    orderable = 0
+  },{
+    name      = "Type",
+    orderable = 0
+  }];
+
+  IF layout.has_topics;
+    table_columns.push({
+      name      = "Topic",
+      orderable = 0,
+      class     = "min-tablet-l"
+    });
+  END;
+
+  table_columns.push({
+    name      = "Short name",
+    orderable = 0,
+    class     = "min-tablet-l"
+  },{
+    name      = "Display conditions",
+    orderable = 0,
+    class     = "min-tablet-l"
+  });
+
+  rows = [];
+
+  FOREACH col IN layout.all;
+    typeLabel = 'Text';
+
+    IF col.type == "intgr";
+      typeLabel = 'Integer';
+    ELSIF col.type == "date";
+      typeLabel = 'Date';
+    ELSIF col.type == "daterange";
+      typeLabel = 'Date range';
+    ELSIF col.type == "enum";
+      typeLabel = 'Select';
+    ELSIF col.type == "tree";
+      typeLabel = 'Tree';
+    ELSIF col.type == "file";
+      typeLabel = 'File';
+    ELSIF col.type == "person";
+      typeLabel = 'Person';
+    ELSIF col.type == "rag";
+      typeLabel = 'RedAmberGreen (RAG) status';
+    ELSIF col.type == "calc";
+      typeLabel = 'Calculated value';
+    ELSIF col.type == "curval";
+      typeLabel = 'Record from other data sheet';
+    ELSIF col.type == "autocur";
+      typeLabel = "Automatic value of other sheet's references to this one";
+    ELSIF col.type == "filval";
+      typeLabel = 'Automatic filtered values of other field';
+    END;
+
+    row = {
+      link_placeholders = {
+        layout_id = col.id
+      }
+      fields = [{
+        type       = col.internal ? "text" : "link",
+        label      = col.name,
+        filter     = "html",
+        link       = url.page _ "/" _ layout_obj.identifier _ "/layout/{layout_id}",
+        link_class = "link link--plain"
+      },{
+        type       = col.internal ? "text" : "link",
+        label      = typeLabel,
+        link       = url.page _ "/" _ layout_obj.identifier _ "/layout/{layout_id}",
+        link_class = "link link--plain"
+      }]
+    };
+
+    IF layout.has_topics;
+      row.fields.push({
+        type       = col.internal ? "text" : "link",
+        label      = col.topic.name,
+        filter     = "html",
+        link       = url.page _ "/" _ layout_obj.identifier _ "/layout/{layout_id}",
+        link_class = "link link--plain"
+      });
+    END;
+    
+    row.fields.push({
+      type       = col.internal ? "text" : "link",
+      label      = col.name_short,
+      filter     = "html",
+      link       = url.page _ "/" _ layout_obj.identifier _ "/layout/{layout_id}",
+      link_class = "link link--plain"
+    },{
+      type       = col.internal ? "text" : "link",
+      label      = col.display_fields_as_text.join(': '),
+      filter     = "html",
+      link       = url.page _ "/" _ layout_obj.identifier _ "/layout/{layout_id}",
+      link_class = "link link--plain"
+    });
+
+    rows.push(row);
+  END;
+
+  INCLUDE layouts/page_header_table.tt;
+%]
+
+<form method="post" class="">
+  [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+  <div class="content-block__main">
+    <div class="content-block__main-content">
+      <div class="card card--secundary">
+        <h4 class="card__title">
+          <span> Edit your fields </span>
+        </h4>
+        
+        <div class="card__body row">
+          <div class="card__content">
+            [% INCLUDE tables/basic_table.tt; %]
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <footer class="content-block__footer">
+      <div class="content-block__footer-container">
+        [%
+          INCLUDE navigation/button_bar.tt
+            row_class = "row"
+            columns   = [{
+              class   = "col-md-4 mb-3 mb-md-0",
+              buttons = [{
+                type   = "link",
+                target = url.page _ "/table/",
+                class  = "btn btn-cancel",
+                label  = "Back"
+              }]
+            }, {
+              class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
+              buttons = [{
+                type   = "link",
+                target = url.page _ "/" _ layout_obj.identifier _ "/layout/0",
+                class  = "btn btn-inverted btn-add",
+                label  = "Add a field"
+              }, {
+                type  = "button",
+                id    = "submit_saceorder",
+                name  = "saveposition",
+                value = "submit",
+                class = "btn btn-default",
+                label = "Save order"
+              }]
+            }];
+        %]
+      </div>
+    </footer>
+  </div>
+</form>

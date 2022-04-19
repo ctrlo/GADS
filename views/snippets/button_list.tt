@@ -1,36 +1,46 @@
 <div class="list [% list_class %]">
   <ul class="list__items">
     [% FOREACH button IN buttons %]
-    <li class="list__item">
+    <li class="list__item"[% IF button.list_item_style %] style="[% button.list_item_style %]"[% END %]>
       [%
         IF button.type == "form";
           button.method = button.method ? button.method : "post";
-          button.class = button.class ? button.class : "btn-default";
       %]
       <form method="[% button.method %]" action="[% button.target %]">
         [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
         <button
           type="submit"
-          class="btn [% button.class %]"
+          class="[% button.class %]"
           name="[% button.name %]"
-          value="[% button.value || button.name %]"
+          value="[% button.value || button.name %]"[% IF button.style %]
+          style="[% button.style %]"[% END %]
         >
           <span class="btn__title">[% button.label || button.name %]</span>
         </button>
       </form>
       [% ELSIF button.type == "link" %]
-      <a href="[% button.target %]" class="[% button.class %]">
+      <a href="[% button.target %]" class="[% button.class %]"[% IF button.style %] style="[% button.style %]"[% END %]>
         [%- button.label || button.name -%]
       </a>
-      [%
-        ELSIF button.type == "modal_button";
-          button.class = button.class ? button.class : "btn-default";
-      %]
+      [% ELSIF button.type == "button" %]
+      <button
+        type="[% button.button_type ? button.button_type : 'submit' %]"
+        name="[% button.name %]"
+        value="[% button.value || button.name %]"
+        class="[% button.class %]"[% IF button.style %]
+        style="[% button.style %]"[% END %]
+      >
+        <span class="btn__title">[% button.label || button.name %]</span>
+      </button>
+      [% ELSIF button.type == "modal_button" %]
       <button
         type="button"
-        class="btn [% button.class %]"
+        class="[% button.class %]"[% IF button.style %]
+        style="[% button.style %]"[% END %]
         data-toggle="modal"
-        data-target="#[% button.modalId %]"
+        data-target="#[% button.modalId %]"[% IF button.dataTitle %]
+        data-title="[% button.dataTitle %]"[% END %][% IF button.dataId %]
+        data-id="[% button.dataId %]"[% END %]
       >
         <span class="btn__title">[%- button.label || button.name -%]</span>
       </button>

@@ -1,5 +1,5 @@
 [%-
-  input_class    = is_required AND ! input_class.match('input--required') ? input_class _ ' input--required' : input_class;
+  input_class = is_required AND ! input_class.match('input--required') ? input_class _ ' input--required' : input_class;
 -%]
 <div class="checkbox [% input_class %]">
   <input
@@ -14,7 +14,7 @@
     aria-labelledby="[% id %]-label"
   >
   <label for="[%- id -%]" id="[% id %]-label">
-    [% INCLUDE fields/sub/filter.tt value=label; %]
+    [% IF label_in_span %]<span>[% END %][% INCLUDE fields/sub/filter.tt value=label; %][% IF label_in_span %]</span>[% END %]
   </label>
   [% IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body; END; %]
 </div>

@@ -1,203 +1,231 @@
-<h2>[% IF layout_edit.instance_id %]Manage this table[% ELSE %]Add a table[% END %]</h2>
-<form role="form" method="post">
-    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-    <div class="row">
-        <div class="col-md-12">
-
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Table properties</h3>
+[% INCLUDE layouts/page_header_table.tt; %]
+<div class="content-block__main">
+  <form role="form" method="post">
+    [%
+      INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
+      INCLUDE fields/hidden.tt name="id" value=layout_obj.instance_id;
+    %]
+    
+    <fieldset class="fieldset">
+      <div class="fieldset__legend fieldset__legend--hidden">
+        <legend>
+          Edit Table
+        </legend>
+      </div>
+      
+      <div class="content-block__main-content">
+        <div class="card card--secundary mb-3">
+          <h4 class="card__title">
+            <span> Edit your table: [% layout_obj.name %] </span>
+          </h4>
+          
+          <div class="card__body row">
+            <div class="card__content">
+              <div class="row">
+                <div class="col-lg-6">
+                  [%
+                    INCLUDE fields/input.tt
+                      id = "name"
+                      name = "name"
+                      label = "Name of table"
+                      value = layout_obj.name
+                      placeholder = "Name of table"
+                      filter = "html"
+                      is_required = 1
+                      type = "text";
+                  %]
                 </div>
-                <div class="panel-body">
-                    [% IF layout_edit.id %]
-                        <input type="hidden" name="id" value="[% layout_edit.instance_id %]">
-                    [% END %]
-                    <div class="form-group">
-                        <label for="name">Name of table:</label>
-                        <input type="text" name="name" class="form-control" value="[% layout_edit.name | html_entity %]">
-                    </div>
-                    <div class="form-group">
-                        <label for="name_short">Short name of table (optional):</label>
-                        <input type="text" name="name_short" class="form-control" value="[% layout_edit.name_short | html_entity %]">
-                    </div>
-                    <div class="form-group">
-                        <label for="hide_in_selector">Display in table selector menu:</label>
-                        <select class="form-control" id="hide_in_selector" name="hide_in_selector">
-                            <option value="0" [% IF layout_edit.hide_in_selector == 0 %]selected[% END %]>Show table in selector menu for all users with access to table</option>
-                            <option value="1" [% IF layout_edit.hide_in_selector == 1 %]selected[% END %]>Only show table in selector menu for users with Manage Fields permission for table</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="sort_layout_id">Default sort:</label>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <select class="form-control" id="sort_layout_id" name="sort_layout_id">
-                                    <option></option>
-                                    [% FOREACH column IN layout_edit.all %]
-                                        <option value="[% column.id %]" [% IF layout_edit.sort_layout_id == column.id %]selected[% END %]>[% column.name | html %]</option>
-                                    [% END %]
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <select class="form-control" id="sort_type" name="sort_type">
-                                    <option></option>
-                                    <option value="asc" [% IF layout_edit.sort_type == "asc" %]selected[% END %]>Ascending</option>
-                                    <option value="desc" [% IF layout_edit.sort_type == "desc" %]selected[% END %]>Descending</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+                <div class="col-lg-6">
+                  [%
+                    INCLUDE fields/input.tt
+                      id = "name_short"
+                      name = "name_short"
+                      label = "Short name of table"
+                      value = layout_obj.name_short
+                      placeholder = "Short name of table"
+                      filter = "html"
+                      is_required = 0
+                      type = "text";
+                  %]
                 </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-lg-6">
+                  [%
+                    sort_layout_items = [{id="" name="Select default sort"}];
+                  
+                    INCLUDE fields/select.tt
+                      id = "sort_layout_id"
+                      name = "sort_layout_id"
+                      label = "Default sort"
+                      placeholder = "Select default sort"
+                      filter = "html"
+                      value = layout_obj.sort_layout_id
+                      items = sort_layout_items.merge(layout_obj.all);
+                  %]
+                </div>
+                <div class="col-lg-6 align-self-end">
+                  [%
+                    INCLUDE fields/select.tt
+                      id = "sort_type"
+                      name = "sort_type"
+                      label = ""
+                      placeholder = "Select default sort direction"
+                      value = layout_obj.sort_type
+                      items = [
+                        {id="" name="Select default sort direction"},
+                        {id="asc" name="Ascending"},
+                        {id="desc" name="Descending"}
+                      ];
+                  %]
+                </div>
+              </div>
+              
+              <div class="row">
+                <div class="col-lg-12">
+                  [%
+                    INCLUDE fields/select.tt
+                      id = "hide_in_selector"
+                      name = "hide_in_selector"
+                      label = "Display table in menu"
+                      placeholder = "Select display table in menu"
+                      filter = "html"
+                      value = layout_obj.hide_in_selector || 0
+                      items = [
+                        {id="0" name="Show table in selector menu for all users with access to table"},
+                        {id="1" name="Only show table in selector menu for users with Manage Fields permission for table"}
+                      ];
+                  %]
+                </div>
+              </div>
             </div>
-
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 role="button" data-toggle="collapse" data-target="#alert_columns" aria-expanded="false"
-                        aria-controls="alert_columns" class="panel-title">Email alerts</h3>
-                </div>
-                <div class="panel-body collapse" id="alert_columns">
-                    <div role="alert" class="alert alert-warning">
-                        Warning: as these fields will be sent via emails external to Linkspace, only include fields that do not contain sensitive data.
-                    </div>
-                    <label>
-                        Include the following fields for record descriptions in email alerts:
-                    </label>
-                    [% FOR column IN layout_edit.all %]
-                        <div class="checkbox">
-                            <label>
-                                <input type="checkbox" name="alert_column" value="[% column.id %]"
-                                   [% IF layout_edit.has_alert_column(column.id) %]checked[% END %]>[% column.name | html %]
-                            </label>
-                        </div>
-                    [% END %]
-                </div>
-            </div>
-
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 role="button" data-toggle="collapse" data-target="#limit_view" aria-expanded="false"
-                        aria-controls="alert_columns" class="panel-title">Limit access to records</h3>
-                </div>
-                <div class="panel-body collapse" id="limit_view">
-                    <div class="form-group">
-                        <label for="view_limit_id">By default restrict all users to records in this view (these are replaced
-                            by any limits applied to a specific user):</label>
-                        <select class="form-control" id="view_limit_id" name="view_limit_id">
-                            <option></option>
-                            [% FOREACH v IN layout_edit.global_view_summary %]
-                                <option value="[% v.id %]"
-                                    [% IF layout_edit.view_limit_id == v.id %]selected[% END %]>[% v.name | html %]
-                                </option>
-                            [% END %]
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">General table permissions</h3>
-                </div>
-                <div class="panel-body">
-                    <div class="form-group">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Group name</th>
-                                    <th>Delete records</th>
-                                    <th>Purge deleted records</th>
-                                    <th>Download records</th>
-                                    <th>Manage fields</th>
-                                    <th>Send messages</th>
-                                    <th>Create and edit views</th>
-                                    <th>Create and edit group views and graphs</th>
-                                    <th>Create and edit child records</th>
-                                    <th>Bulk update records</th>
-                                    <th>Bulk delete records</th>
-                                    <th>Create and manage linked records</th>
-                                    <th>Select extra view limits</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                [% FOREACH group IN groups %]
-                                    <tr>
-                                        <td>
-                                            [% group.name | html %]
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" name="permissions" value="[% group.id %]_delete" aria-label="Delete records" [% IF layout_edit.group_has(group.id, 'delete') %]checked[% END %]>
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" name="permissions" value="[% group.id %]_purge" aria-label="Purge deleted records" [% IF layout_edit.group_has(group.id, 'purge') %]checked[% END %]>
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" name="permissions" value="[% group.id %]_download" aria-label="Download records" [% IF layout_edit.group_has(group.id, 'download') %]checked[% END %]>
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" name="permissions" value="[% group.id %]_layout" aria-label="Manage fields" [% IF layout_edit.group_has(group.id, 'layout') %]checked[% END %]>
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" name="permissions" value="[% group.id %]_message" aria-label="Send messages" [% IF layout_edit.group_has(group.id, 'message') %]checked[% END %]>
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" name="permissions" value="[% group.id %]_view_create" aria-label="Create and edit views" [% IF layout_edit.group_has(group.id, 'view_create') %]checked[% END %]>
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" name="permissions" value="[% group.id %]_view_group" aria-label="Create and edit group views" [% IF layout_edit.group_has(group.id, 'view_group') %]checked[% END %]>
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" name="permissions" value="[% group.id %]_create_child" aria-label="Create and edit child records" [% IF layout_edit.group_has(group.id, 'create_child') %]checked[% END %]>
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" name="permissions" value="[% group.id %]_bulk_update" aria-label="Bulk update records" [% IF layout_edit.group_has(group.id, 'bulk_update') %]checked[% END %]>
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" name="permissions" value="[% group.id %]_bulk_delete" aria-label="Bulk delete records" [% IF layout_edit.group_has(group.id, 'bulk_delete') %]checked[% END %]>
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" name="permissions" value="[% group.id %]_link" aria-label="Create and manage linked records" [% IF layout_edit.group_has(group.id, 'link') %]checked[% END %]>
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" name="permissions" value="[% group.id %]_view_limit_extra" aria-label="Select extra view limits" [% IF layout_edit.group_has(group.id, 'view_limit_extra') %]checked[% END %]>
-                                        </td>
-                                    </tr>
-                                [% END %]
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+          </div>
         </div>
-    </div>
-    [% IF layout_edit.instance_id %]
-        <p>To delete a table you need to first delete all the fields in it. To delete the fields go to <a href="/[% layout_edit.identifier %]/layout/">Manage fields</a>.</p>
-    [% END %]
-    <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">Save</button>
-    [% IF layout_edit.instance_id %]
-        <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
-    [% END %]
-</form>
-<p></p>
+  
+        <div class="row mb-3">
+          <div class="col">
+            <div class="card card--expandable">
+              <div class="card__header">
+                <div class="card__header-left">
+                  <h4 class="card__title">
+                    Email alerts
+                  </h4>
+                </div>
+                <div class="card__header-right">
+                  <button class="card__toggle" type="button" data-toggle="collapse" data-target="#emailAlerts" aria-expanded="false" aria-controls="emailAlerts">
+                    <span>Toggle collapsible</span>
+                  </button>
+                </div>
+              </div>
+              <div class="collapse" id="emailAlerts">
+                <div class="card__content">
+                  <div class="row">
+                    <div class="col-lg-12">
+                      [%
+                        FOR column IN layout_obj.all;
+                          column.field_id   = "field_" _ column.id
+                          column.is_checked = layout_obj.has_alert_column(column.id) ? 1 : 0;
+                        END;
+                      
+                        INCLUDE fields/checkbox_list.tt
+                          fieldset_name = "alert_columns"
+                          list_class = list_class
+                          name = "alert_column"
+                          label = "Include the following fields for record descriptions in email alerts"
+                          items = layout_obj.all
+                          filter = "html"
+                          help_text = "Warning: as these fields will be sent via emails external to Linkspace, only include fields that do not contain sensitive data.";
+                    %]
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row mb-3">
+          <div class="col">
+            <div class="card card--expandable">
+              <div class="card__header">
+                <div class="card__header-left">
+                  <h4 class="card__title">
+                    Limit access to records
+                  </h4>
+                </div>
+                <div class="card__header-right">
+                  <button class="card__toggle" type="button" data-toggle="collapse" data-target="#limitRecordAccess" aria-expanded="false" aria-controls="limitRecordAccess">
+                    <span>Toggle collapsible</span>
+                  </button>
+                </div>
+              </div>
+              <div class="collapse" id="limitRecordAccess">
+                <div class="card__content">
+                  <div class="row">
+                    <div class="col-lg-12">
+                      [%
+                        view_limit_items = [{id="", name="All data"}];
+        
+                        INCLUDE fields/select.tt
+                          id = "view_limit_id"
+                          name = "view_limit_id"
+                          label = "By default restrict all users to records in this view"
+                          placeholder = "All data"
+                          filter = "html"
+                          value = layout_obj.view_limit_id || ''
+                          items = view_limit_items.merge(layout_obj.global_view_summary);
+                      %]
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <footer class="content-block__footer">
+        <div class="content-block__footer-container">
+          [%
+            INCLUDE navigation/button_bar.tt
+              row_class = "row"
+              columns   = [{
+                class   = "col-md-4 mb-3 mb-md-0",
+                buttons = [{
+                  type   = "link",
+                  target = url.page _ "/table/",
+                  class  = "btn btn-cancel",
+                  label  = "Back"
+                }]
+              }, {
+                class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
+                buttons = [{
+                  type      = "modal_button",
+                  modalId   = "deleteModal",
+                  dataTitle = layout_obj.name,
+                  dataId    = layout_obj.instance_id,
+                  class     = "btn btn-danger btn-js-delete",
+                  label     = "Delete table"
+                }, {
+                  type  = "button",
+                  class = "btn btn-default"
+                  id    = "submit"
+                  name  = "submit"
+                  value = "submit"
+                  label = "Save"
+                }]
+              }];
+          %]
+        </div>
+      </footer>
+    </fieldset>
+  </form>
+</div>
 
-<!-- Modal -->
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form role="form" method="post">
-            <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="myModalLabel">Are you sure?</h4>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete this table? Tables must have no fields or records before they can be deleted.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                <button type="submit" name="delete" value="delete" class="btn btn-primary">Confirm deletion</button>
-            </div>
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-
+[%
+  INCLUDE wizard/delete.tt
+    modalId     = "deleteModal"
+    label       = "Delete " _ layout_obj.name
+    description = "Are you sure you want to delete this table? You cannot undo this step.";
+%]

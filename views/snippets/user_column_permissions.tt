@@ -59,7 +59,7 @@
           field_id = "super_administrator",
           is_checked = edituser.permission.superadmin ? 1 : 0
         }, {
-          id = "superadmin",
+          id = "useradmin",
           name = "User can manage other user accounts",
           field_id = "user_can_manage_other_accounts",
           is_checked = edituser.permission.useradmin ? 1 : 0

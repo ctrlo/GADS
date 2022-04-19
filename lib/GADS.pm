@@ -1326,71 +1326,93 @@ any ['get', 'post'] => '/settings/audit/?' => require_role audit => sub {
 };
 
 get '/table/?' => require_login sub {
-
     template 'tables' => {
-        page        => 'table',
-        instances   => [rset('Instance')->all],
-        breadcrumbs => [Crumb( '/table' => 'tables' )],
+        page              => 'table',
+        instances         => [ rset('Instance')->all ],
+        instance_layouts  => var('instances')->all,
+        instances_object  => var('instances'),
+        groups            => GADS::Groups->new(schema => schema)->all,
+        permission_inputs => GADS::Type::Permissions->permission_inputs,
     };
 };
 
-any ['get', 'post'] => '/table/:id' => require_role superadmin => sub {
+any ['get', 'post'] => '/table/:id/permissions' => require_role superadmin => sub {
 
-    my $id          = param 'id';
-    my $user        = logged_in_user;
-    my $layout_edit = $id && var('instances')->layout($id);
+    my $id     = param 'id';
+    my $layout = $id && var('instances')->layout($id);
 
-    $id && !$layout_edit
-        and error __x"Instance ID {id} not found", id => $id;
+    $id && !$layout
+        and error __x "Instance ID {id} not found", id => $id;
 
-    if (param('submit') || param('delete'))
+    if (param 'submit')
     {
-        if (param 'submit')
-        {
-            if (!$layout_edit)
-            {
-                $layout_edit = GADS::Layout->new(
-                    user   => $user,
-                    schema => schema,
-                    config => config,
-                );
-            }
-            $layout_edit->name(param 'name');
-            $layout_edit->name_short(param 'name_short');
-            $layout_edit->hide_in_selector(param 'hide_in_selector');
-            $layout_edit->sort_layout_id(param('sort_layout_id') || undef);
-            $layout_edit->sort_type(param('sort_type') || undef);
-            $layout_edit->view_limit_id(param('view_limit_id') || undef);
-            $layout_edit->set_groups([body_parameters->get_all('permissions')]);
-            $layout_edit->set_alert_columns([body_parameters->get_all('alert_column')]);
+        $layout->set_groups([body_parameters->get_all('permissions')]);
 
-            if (process(sub {$layout_edit->write}))
-            {
-                # Switch user to new table
-                my $msg = param('id') ? 'The table has been updated successfully' : 'Your new table has been created successfully';
-                return forwardHome(
-                    { success => $msg }, 'table' );
-            }
-        }
-
-        if (param 'delete')
+        if (process(sub {$layout->write}))
         {
-            if (process(sub {$layout_edit->delete}))
-            {
-                return forwardHome(
-                    { success => "The table has been deleted successfully" }, 'table' );
-            }
+            return forwardHome(
+                { success => 'The table permissions have been updated successfully' }, 'table' );
         }
     }
 
-    my $table_name = $id ? $layout_edit->name : 'new table';
-    my $table_id   = $id ? $layout_edit->instance_id : 0;
+    template 'table_permissions' => {
+        page                         => 'table_permissions',
+        detail_header                => 1,
+        layout_obj                   => $layout,
+        groups                       => GADS::Groups->new(schema => schema)->all,
+    }
+};
+
+any ['get', 'post'] => '/table/:id/edit' => require_role superadmin => sub {
+
+    my $id     = param 'id';
+    my $user   = logged_in_user;
+    my $layout = $id && var('instances')->layout($id);
+
+    $id && !$layout
+        and error __x"Instance ID {id} not found", id => $id;
+
+    if (param 'submit')
+    {
+        if (!$layout)
+        {
+            $layout = GADS::Layout->new(
+                user   => $user,
+                schema => schema,
+                config => config,
+            );
+        }
+        $layout->name(param 'name');
+        $layout->name_short(param 'name_short');
+        $layout->hide_in_selector(param 'hide_in_selector');
+        $layout->sort_layout_id(param('sort_layout_id') || undef);
+        $layout->sort_type(param('sort_type') || undef);
+        $layout->view_limit_id(param('view_limit_id') || undef);
+        $layout->set_alert_columns([body_parameters->get_all('alert_column')]);
+
+        if (process(sub {$layout->write}))
+        {
+            # Switch user to new table
+            my $msg = param('id') ? 'The table has been updated successfully' : 'Your new table has been created successfully';
+            return forwardHome(
+                { success => $msg }, 'table' );
+        }
+    }
+
+    if (param 'delete')
+    {
+        if (process(sub {$layout->delete}))
+        {
+            return forwardHome(
+                { success => "The table has been deleted successfully" }, 'table' );
+        }
+    }
 
     template 'table' => {
-        page        => $id ? 'this_table' : 'table/0',
-        layout_edit => $layout_edit,
-        groups      => GADS::Groups->new(schema => schema)->all,
-        breadcrumbs => [Crumb( '/table' => 'tables' ) => Crumb( "/table/$table_id" => $table_name )],
+        page                         => 'table_edit',
+        content_block_custom_classes => 'content-block--footer',
+        detail_header                => 1,
+        layout_obj                   => $layout
     }
 };
 
@@ -3208,11 +3230,7 @@ prefix '/:layout_name' => sub {
     };
 
     any ['get', 'post'] => '/topic/:id' => require_login sub {
-
-        my $layout = var('layout') or pass;
-
-        my $user        = logged_in_user;
-
+        my $layout      = var('layout') or pass;
         my $instance_id = $layout->instance_id;
 
         forwardHome({ danger => "You do not have permission to manage topics"}, '')
@@ -3234,7 +3252,7 @@ prefix '/:layout_name' => sub {
             $topic->name(param 'name');
             $topic->description(param 'description');
             $topic->click_to_edit(param 'click_to_edit');
-            $topic->initial_state(param 'initial_state');
+            $topic->initial_state(param('initial_state') || 'collapsed');
             $topic->prevent_edit_topic_id(param('prevent_edit_topic_id') || undef);
 
             if (process(sub {$topic->update_or_insert}))
@@ -3245,7 +3263,7 @@ prefix '/:layout_name' => sub {
             }
         }
 
-        if (param 'delete_topic')
+        if (param 'delete')
         {
             if (process(sub {$topic->delete}))
             {
@@ -3254,32 +3272,33 @@ prefix '/:layout_name' => sub {
             }
         }
 
-        my $topic_name = $id ? $topic->name : 'new topic';
-        my $topic_id   = $id ? $topic->id : 0;
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         template 'topic' => {
-            topic       => $topic,
-            topics      => [schema->resultset('Topic')->search({ instance_id => $instance_id })->all],
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, '/topics' => 'topics' ) => Crumb( $layout, "/topic/$topic_id" => $topic_name )],
-            page        => !$id ? 'topic/0' : 'topics',
-        }
+            page                         => !$id ? 'topic_add' : 'topic_edit',
+            content_block_custom_classes => 'content-block--footer',
+            detail_header                => 1,
+            header_back_url              => "${base_url}${tableIdentifier}/topics",
+            layout_obj                   => $layout,
+            topic                        => $topic,
+            topics                       => [schema->resultset('Topic')->search({ instance_id => $instance_id })->all],
+        };
     };
 
     get '/topics/?' => require_login sub {
-
         my $layout = var('layout') or pass;
-
-        my $user        = logged_in_user;
-
         my $instance_id = $layout->instance_id;
 
         forwardHome({ danger => "You do not have permission to manage topics"}, '')
             unless $layout->user_can("layout");
 
         template 'topics' => {
-            layout      => $layout,
-            topics      => [schema->resultset('Topic')->search({ instance_id => $instance_id })->all],
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, '/topics' => 'topics' )],
-            page        => 'topics',
+            page                         => 'topics',
+            content_block_custom_classes => 'content-block--footer',
+            detail_header                => 1,
+            layout_obj                   => $layout,
+            topics                       => [schema->resultset('Topic')->search({ instance_id => $instance_id })->all],
         };
     };
 
@@ -3380,14 +3399,13 @@ prefix '/:layout_name' => sub {
     any ['get', 'post'] => '/layout/?:id?' => require_login sub {
 
         my $layout = var('layout') or pass;
-
-        my $user        = logged_in_user;
+        my $user   = logged_in_user;
 
         forwardHome({ danger => "You do not have permission to manage fields"}, '')
             unless $layout->user_can("layout");
 
         my $params = {
-            page => defined param('id') && !param('id') ? 'layout/0' : 'layout',
+            page => defined param('id') && !param('id') ? 'layout' : 'layouts',
         };
 
         if (defined param('id'))
@@ -3397,7 +3415,6 @@ prefix '/:layout_name' => sub {
             $params->{instances_object} = var('instances'); # For autocur. Don't conflict with other instances var
         }
 
-        my $breadcrumbs = [Crumb($layout) => Crumb( $layout, '/layout' => 'fields' )];
         if (param('id') || param('submit') || param('update_perms'))
         {
 
@@ -3419,7 +3436,7 @@ prefix '/:layout_name' => sub {
                 );
             }
 
-            if (param 'delete')
+            if (my $delete_id = param 'delete')
             {
                 # Provide plenty of logging in case of repercussions of deletion
                 my $colname = $column->name;
@@ -3528,18 +3545,24 @@ prefix '/:layout_name' => sub {
                 }
             }
             $params->{column} = $column;
-            push @$breadcrumbs, Crumb( $layout, "/layout/".$column->id => 'edit field "'.$column->name.'"' );
         }
         elsif (defined param('id'))
         {
             $params->{column} = 0; # New
-            push @$breadcrumbs, Crumb( $layout, "/layout/0" => 'new field' );
         }
-        $params->{groups}             = GADS::Groups->new(schema => schema);
-        $params->{permissions}        = [GADS::Type::Permissions->all];
-        $params->{permission_mapping} = GADS::Type::Permissions->permission_mapping;
-        $params->{permission_inputs}  = GADS::Type::Permissions->permission_inputs;
-        $params->{topics}             = [schema->resultset('Topic')->search({ instance_id => $layout->instance_id })->all];
+
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
+        $params->{groups}                       = GADS::Groups->new(schema => schema);
+        $params->{permissions}                  = [GADS::Type::Permissions->all];
+        $params->{permission_mapping}           = GADS::Type::Permissions->permission_mapping;
+        $params->{permission_inputs}            = GADS::Type::Permissions->permission_inputs;
+        $params->{topics}                       = [schema->resultset('Topic')->search({ instance_id => $layout->instance_id })->all];
+        $params->{content_block_custom_classes} = 'content-block--footer';
+        $params->{detail_header}                = 1;
+        $params->{header_back_url}              = "${base_url}${tableIdentifier}/layout";
+        $params->{layout_obj}                   = $layout;
 
         if (param 'saveposition')
         {
@@ -3551,8 +3574,9 @@ prefix '/:layout_name' => sub {
             }
         }
 
-        $params->{breadcrumbs} = $breadcrumbs;
-        template 'layout' => $params;
+        my $page = defined param('id') ? 'layout' : 'layouts';
+
+        template $page => $params;
     };
 
     any ['get', 'post'] => '/approval/?:id?' => require_login sub {
