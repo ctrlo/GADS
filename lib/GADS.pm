@@ -1326,11 +1326,13 @@ any ['get', 'post'] => '/settings/audit/?' => require_role audit => sub {
 };
 
 get '/table/?' => require_login sub {
-
     template 'tables' => {
-        page        => 'table',
-        instances   => [rset('Instance')->all],
-
+        page              => 'table',
+        instances         => [ rset('Instance')->all ],
+        instance_layouts  => var('instances')->all,
+        instances_object  => var('instances'),
+        groups            => GADS::Groups->new(schema => schema)->all,
+        permission_inputs => GADS::Type::Permissions->permission_inputs,
     };
 };
 
@@ -1410,8 +1412,7 @@ any ['get', 'post'] => '/table/:id/edit' => require_role superadmin => sub {
         page                         => 'table_edit',
         content_block_custom_classes => 'content-block--footer',
         detail_header                => 1,
-        layout_obj                   => $layout,
-        groups                       => GADS::Groups->new(schema => schema)->all,
+        layout_obj                   => $layout
     }
 };
 

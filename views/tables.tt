@@ -57,7 +57,7 @@
     description   = "A table in LinkSpace is comparable to a worksheet in a spreadsheet. Here you can enter, create, edit, and delete your tables."
     aside_buttons = ! user.permission.superadmin ? [] : [{
       type    = "modal_button"
-      modalId = "tableModal"
+      modalId = "newTableModal"
       class   = "btn btn-add"
       label   = "New table"
     }];
@@ -66,3 +66,5 @@
 <div class="content-block__main">
   [% INCLUDE tables/basic_table.tt; %]
 </div>
+
+[% INCLUDE wizard/table_add.tt endpoint="/api/user_account" %]
