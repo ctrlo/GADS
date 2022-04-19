@@ -1249,10 +1249,10 @@
 
                             FOREACH filtered_curval IN layout_obj.filtered_curvals;
                               filval_related_field_id_items.push({
-                                  id   = referring.id,
-                                  name = referring.name
-                                });
-                              END;
+                                id   = referring.id,
+                                name = referring.name
+                              });
+                            END;
                             
                             INCLUDE fields/select.tt
                               id           = "filval_related_field_id"

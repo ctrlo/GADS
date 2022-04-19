@@ -32,7 +32,7 @@
             <div class="card__content">
               <div class="row">
                 <div class='col'>
-                  [%-
+                  [%
                     INCLUDE fields/input.tt
                       id          = "name"
                       name        = "name"
@@ -42,7 +42,7 @@
                       type        = "text"
                       filter      = "html"
                       autofocus   = 1;
-                  -%]
+                  %]
                 </div>
               </div>
               <div class="row">
@@ -60,7 +60,7 @@
               </div>
               <div class="row">
                 <div class='col'>
-                  [%-
+                  [%
                     INCLUDE fields/switch_single.tt
                       id            = "initial_state"
                       name          = "initial_state"
@@ -70,7 +70,7 @@
                       value         = "open"
                       checked       = topic.initial_state == "open" ? 1 : 0
                       filter        = "html";
-                  -%]
+                  %]
                 </div>
               </div>
             </div>
