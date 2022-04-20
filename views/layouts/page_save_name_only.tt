@@ -47,7 +47,28 @@
         [%- END -%]
       </div>
     </div>
-    [%- INCLUDE navigation/button_bar.tt back_url=item.back_url submit_name="submit" submit_label="Save"; -%]
+    [%
+      INCLUDE navigation/button_bar.tt
+        row_class = "row"
+        columns = [{
+          class = "col-sm-auto mb-3 mb-sm-0",
+          buttons = [{
+            type = "link",
+            class = "btn btn-cancel",
+            target = item.back_url,
+            label = "Back"
+          }]
+        }, {
+          class = "col-sm-auto",
+          buttons = [{
+            type  = "button",
+            name  = "submit",
+            value = "submit",
+            class = "btn btn-default",
+            label = "Save"
+          }]
+        }];
+      %]
   </form>
 </div>
 [%-

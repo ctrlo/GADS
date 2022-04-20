@@ -39,11 +39,11 @@ values to be approved.</p>
 <p>Use this option to force a value to be in a particular format.
 Enter a regular expression here to define the format.
 <p>To force input of data to contain the word "foo":</p>
-<tt><pre>.*foo.*</pre></tt>
+<tt><div class="code mb-3"><pre>.*foo.*</pre></div></tt>
 <p>To force input of data to be anything beginning with "bar":</p>
-<tt><pre>bar.*</pre></tt>
+<tt><div class="code mb-3"><pre>bar.*</pre></div></tt>
 <p>To force input of data to be a single letter followed by any number:</p>
-<tt><pre>[A-Za-z][0-9]+</pre></tt>
+<tt><div class="code mb-3"><pre>[A-Za-z][0-9]+</pre></div></tt>
 [% END %]
 
 [% global.helptext.layout_perms = BLOCK %]
@@ -91,17 +91,17 @@ selected with ‘.+’</p>
 <p>Values of tree nodes are rendered as their full path, concatenated with a
 hash (for example "Level 1#Level 2#Node value").</p>
 <p>To match any non-blank value:</p>
-<tt><pre>[\s\S]+</pre></tt>
+<tt><div class="code mb-3"><pre>[\s\S]+</pre></div></tt>
 <p>To match any of three values "val1", "val2" or "val3 (comment)":</p>
-<tt><pre>(val1|val2|val3 \(comment\))</pre></tt>
+<tt><div class="code mb-3"><pre>(val1|val2|val3 \(comment\))</pre></div></tt>
 <p>To match a value containing the word "foo":</p>
-<tt><pre>.*foo.*</pre></tt>
+<tt><div class="code mb-3"><pre>.*foo.*</pre></div></tt>
 <p>To match anything beginning with "bar":</p>
-<tt><pre>bar.*</pre></tt>
+<tt><div class="code mb-3"><pre>bar.*</pre></div></tt>
 <p>To match any number:</p>
-<tt><pre>[0-9]+</pre></tt>
+<tt><div class="code mb-3"><pre>[0-9]+</pre></div></tt>
 <p>To match only the node value of a tree, not including its path:</p>
-<tt><pre>(.*#)?Node name</pre></tt>
+<tt><div class="code mb-3"><pre>(.*#)?Node name</pre></div></tt>
 
 [% END %]
 
@@ -177,7 +177,7 @@ full date by Linkspace.</p>
 functions show example code:</p>
 
 <h5>Calculated values based on text comparisons</h5>
-<tt><pre>[% FILTER html %]
+<tt><div class="code mb-3"><pre>[% FILTER html %]
 function evaluate (country, region)
     if country == "Greece" and region == "A" then
         return "Europe"
@@ -185,10 +185,10 @@ function evaluate (country, region)
         return "Asia"
     end
 end
-[% END %]</pre></tt>
+[% END %]</pre></div></tt>
 
 <h5>RedAmberGreen value based on date comparisons</h5>
-<tt><pre>[% FILTER html %]
+<tt><div class="code mb-3"><pre>[% FILTER html %]
 function evaluate (mydaterange)
     if mydaterange == nil then
         return
@@ -201,10 +201,10 @@ function evaluate (mydaterange)
     end
     return "red"
 end
-[% END %]</pre></tt>
+[% END %]</pre></div></tt>
 
 <h5>Calculated values based on date comparisons</h5>
-<tt><pre>[% FILTER html %]
+<tt><div class="code mb-3"><pre>[% FILTER html %]
 function evaluate (mydaterange)
     if mydaterange == nil then
         return "Date range is blank"
@@ -217,20 +217,20 @@ function evaluate (mydaterange)
     end
     return "Not yet started"
 end
-[% END %]</pre></tt>
+[% END %]</pre></div></tt>
 
 <h5>Calculated values based on tree nodes</h5>
-<tt><pre>[% FILTER html %]
+<tt><div class="code mb-3"><pre>[% FILTER html %]
 function evaluate (mytree)
     if mytree.parents.parent2 == nil then
         return "No second level"
     end
     return "Second level is: " .. mytree.parents.parent2
 end
-[% END %]</pre></tt>
+[% END %]</pre></div></tt>
 
 <h5>Calculated values based on number comparisons</h5>
-<tt><pre>[% FILTER html %]
+<tt><div class="code mb-3"><pre>[% FILTER html %]
 function evaluate (cost)
     if cost == nil then
         return "No cost set"
@@ -241,10 +241,10 @@ function evaluate (cost)
         return "Bargain"
     end
 end
-[% END %]</pre></tt>
+[% END %]</pre></div></tt>
 
 <h5>Working out the average of several numerical values</h5>
-<tt><pre>[% FILTER html %]
+<tt><div class="code mb-3"><pre>[% FILTER html %]
 function evaluate (score1, score2, score3)
     total = 0
     count = 0
@@ -265,6 +265,6 @@ function evaluate (score1, score2, score3)
     end
     return (total / count)
 end
-[% END %]</pre></tt>
+[% END %]</pre></div></tt>
 
 [% END %]

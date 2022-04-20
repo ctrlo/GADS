@@ -1,0 +1,1430 @@
+<div class="modal modal--wizzard modal--new-table"
+     data-config='{"url":"[% endpoint %]"}'
+     id="newTableModal"
+     tabindex="-1"
+     role="dialog"
+     aria-labelledby="newTableModalLabel"
+     aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-header__content">
+          <h3 class="modal-title" id="newTableModalLabel">
+            Table setup
+          </h3>
+          
+          <ol class="modal__steps">
+            <li class="modal__step modal__step--active" data-step="1">
+              <span>
+                Table configuration
+              </span>
+            </li>
+            <li class="modal__step" data-step="2">
+              <span>
+                Topics definition
+              </span>
+            </li>
+            <li class="modal__step" data-step="3">
+              <span>
+                Field creation
+              </span>
+            </li>
+          </ol>
+        </div>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true" class="hidden">Close</span>
+        </button>
+      </div>
+      
+      <div class="modal-frame" data-config='{"step":1,"frame":1,"item":"table","count":null}'>
+        <div class="modal-body">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col">
+                <div class="alert alert-danger" role="alert">
+                </div>
+              </div>
+            </div>
+            
+            <div class="row mb-4">
+              <div class="col">
+                <h4>New table</h4>
+                <p>In this window you will be creating a new table with topics and fields. In the first step you will
+                  define the general properties of your table.</p>
+              </div>
+            </div>
+            
+            
+            <div class="form-group ">
+              
+              <div class="row">
+                <div class="col-lg-7">
+                  
+                  [%
+                    INCLUDE fields/input.tt
+                      id = "name"
+                      name = "name"
+                      label = "Name of table"
+                      placeholder = "e.g. Departmental Project"
+                      is_required = 1
+                      type = "text";
+                  %]
+                </div>
+                <div class="col-lg-5">
+                  [%
+                    INCLUDE fields/input.tt
+                      id = "shortName"
+                      name = "shortName"
+                      label = "Short name of table"
+                      placeholder = "e.g. projects"
+                      is_required = 0
+                      type = "text";
+                  %]
+                </div>
+              </div>
+              <div class="row">
+                <div class="col">
+                  [%
+                    INCLUDE fields/select.tt
+                      id = "hide_in_selector"
+                      name = "hide_in_selector"
+                      label = "Display table in menu:"
+                      placeholder = "Select display table in menu"
+                      items = [
+                        {id="0" name="Show table in selector menu for all users with access to table"},
+                        {id="1" name="Only show table in selector menu for users with Manage Fields permission for table"}
+                      ];
+                  %]
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        [%
+          INCLUDE wizard/sub/modal_footer.tt
+            left_buttons = [{
+              class   = "btn-cancel"
+              label   = "Cancel"
+            }]
+            right_buttons = [{
+              class   = "btn-js-next btn-disabled"
+              label   = "Next"
+            }];
+        %]
+      </div>
+      
+      <div class="modal-frame" data-config='{"step":1,"frame":2,"item":"table permissions","count":null}'>
+        <div class="modal-body">
+          
+          <div class="container-fluid">
+            <div class="row mb-4">
+              <div class="col">
+                <h4>Table permissions</h4>
+                <p>Here you can set the table actions available to each user group.</p>
+              </div>
+            </div>
+            
+            [% FOREACH group IN groups %]
+            <div class="row mb-3">
+              <div class="col">
+                <div class="card card--expandable">
+                  <div class="card__header">
+                    <div class="card__header-left">
+                      <h4 class="card__title">
+                        Group
+                        <span class="card__subtitle">
+                          [% group.name | html %]
+                        </span>
+                      </h4>
+                    </div>
+                    <div class="card__header-right">
+                      <button class="card__toggle" type="button" data-toggle="collapse" data-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
+                        <span>Toggle collapsible</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="collapse" id="group_permissions_[% group.id %]">
+                    <div class="card__content">
+                      <div class="row mb-3">
+                        <div class="col">
+                          [%
+                            INCLUDE fields/checkbox_list.tt
+                              fieldset_name = "records"
+                              list_class    = "list--horizontal list--no-borders list--checkboxes"
+                              name          = "permissions"
+                              label         = "Record permissions"
+                              items         = [{
+                                id = group.id _ "_delete" ,
+                                name = "Delete records ",
+                                field_id = group.id _ "_delete_records",
+                                field_name = "delete_records"
+                              }, {
+                                id = group.id _ "_purge" ,
+                                name = "Purge deleted records",
+                                field_id = group.id _ "_purge_deleted_records",
+                                field_name = "purge_deleted_records"
+                              }, {
+                                id = group.id _ "_download" ,
+                                name = "Download records",
+                                field_id = group.id _ "_download_records",
+                                field_name = "download_records"
+                              }, {
+                                id = group.id _ "_bulk_import" ,
+                                name = "Bulk import records",
+                                field_id = group.id _ "_bulk_import",
+                                field_name = "bulk_import_records"
+                              }, {
+                                id = group.id _ "_bulk_update" ,
+                                name = "Bulk update records",
+                                field_id = group.id _ "_bulk_update",
+                                field_name = "bulk_update_records"
+                              }, {
+                                id = group.id _ "_bulk_delete" ,
+                                name = "Bulk delete records",
+                                field_id = group.id _ "_bulk_delete",
+                                field_name = "bulk_delete_records"
+                              },{
+                                id = group.id _ "_link" ,
+                                name = "Manage linked records",
+                                field_id = group.id _ "_manage_linked_records",
+                                field_name = "manage_linked_records"
+                              }, {
+                                id = group.id _ "_create_child",
+                                name = "Manage child records",
+                                field_id = group.id _ "_create_child",
+                                field_name = "manage_child_records"
+                              }]
+                              hide_group = 1;
+                          %]
+                        </div>
+                      </div>
+                      
+                      <div class="row mb-3">
+                        <div class="col">
+                          [%
+                            INCLUDE fields/checkbox_list.tt
+                              fieldset_name = "views"
+                              list_class    = "list--horizontal list--no-borders list--checkboxes"
+                              name          = "permissions"
+                              label         = "View permissions"
+                              items         = [{
+                                id = group.id _ "_view_create" ,
+                                name = "Manage views",
+                                field_id = group.id _ "_view_create",
+                                field_name = "manage_views"
+                              }, {
+                                id = group.id _ "_view_group" ,
+                                name = "Manage group views",
+                                field_id = group.id _ "_view_group",
+                                field_name = "manage_group_views"
+                              }, {
+                                id = group.id _ "_view_limit_extra" ,
+                                name = "Select extra view limits",
+                                field_id = group.id _ "_view_limit_extra",
+                                field_name = "select_extra_view_limits"
+                              }]
+                              hide_group = 1;
+                          %]
+                        </div>
+                      </div>
+                      
+                      <div class="row mb-3">
+                        <div class="col">
+                          [%
+                            INCLUDE fields/checkbox_list.tt
+                              fieldset_name = "fields"
+                              list_class    = "list--horizontal list--no-borders list--checkboxes"
+                              name          = "permissions"
+                              label         = "Field permissions"
+                              items         = [{
+                                id = group.id _ "_layout" ,
+                                name = "Manage fields",
+                                field_id = group.id _ "_layout",
+                                field_name = "manage_fields"
+                              }, {
+                                id = group.id _ "_message" ,
+                                name = "Send messages",
+                                field_id = group.id _ "_message",
+                                field_name = "send_messages"
+                              }]
+                              hide_group = 1;
+                          %]
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            [% END %]
+          </div>
+        </div>
+        
+        [%
+          INCLUDE wizard/sub/modal_footer.tt
+            left_buttons = [{
+              class   = "btn-cancel btn-js-back"
+              label   = "Back"
+            }]
+            right_buttons = [{
+              class   = "btn-inverted btn-js-save"
+              label   = "Save table"
+            }, {
+              class   = "btn-js-next btn-default"
+              label   = "Next"
+            }];
+        %]
+      </div>
+      
+      <div class="modal-frame" data-config='{"step":2,"frame":3,"item":null,"count":null,"skip":6}'>
+        <div class="modal-body">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col">
+                <h4>Topics</h4>
+                <p>Topics are used to group fields together that can help shape the data collection forms. During data
+                  entry a topic box forms around the fields that can either be expanded and display all fields or
+                  collapsed and hide them from view.</p>
+                <p>You can create topics in this window or skip this step and create them later. Topics are applied to
+                  fields in the edit field screens.</p>
+                <button
+                  type="button"
+                  class="btn btn-primary btn-js-create-topic"
+                >
+                  <span class="btn__title">Create a topic</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        [%
+          INCLUDE wizard/sub/modal_footer.tt
+            left_buttons = [{
+              class   = "btn-cancel btn-js-back"
+              label   = "Back"
+            }]
+            right_buttons = [{
+              class   = "btn-inverted btn-js-skip"
+              label   = "Skip creating topics"
+            }, {
+              class   = "btn-js-next btn-default"
+              label   = "Next"
+            }];
+        %]
+      </div>
+      
+      <div class="modal-frame" data-config='{"step":2,"frame":4,"item":"topic","count":null}'>
+        <div class="modal-body">
+          
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col">
+                <div class="alert alert-danger" role="alert"></div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <h4>New topic</h4>
+              </div>
+            </div>
+            <div class="row">
+              <div class='col'>
+              [%
+                  INCLUDE fields/input.tt
+                    id          = "topic_name"
+                    name        = "name"
+                    label       = "Name of topic"
+                    placeholder = "Name of topic"
+                    type        = "text"
+                    is_required = 1;
+                %]
+              </div>
+            </div>
+            <div class="row">
+              <div class='col'>
+                [%
+                  INCLUDE fields/textarea.tt
+                    id = "topic_description"
+                    name = "description"
+                    label = "Description"
+                    rows = 5;
+                %]
+              </div>
+            </div>
+            <div class="row">
+              <div class='col'>
+                [%
+                  INCLUDE fields/switch_single.tt
+                    id            = "initial_state"
+                    name          = "expanded"
+                    label         = "Initial state of  topic's fields when editing"
+                    placeholder   = "Expanded"
+                    fieldset_name = "switch-expanded"
+                    value         = "open";
+                %]
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        [%
+          INCLUDE wizard/sub/modal_footer.tt
+            left_buttons = [{
+              class   = "btn-cancel btn-js-back"
+              label   = "Back"
+            }]
+            right_buttons = [{
+              class   = "btn-invisible btn-js-add-next"
+              label   = "Add another and next"
+            }, {
+              class   = "btn-js-next btn-disabled"
+              label   = "Next"
+            }];
+        %]
+      </div>
+      
+      <div class="modal-frame" data-config='{"step":2,"frame":5,"item":"topic overview","count":null}'>
+        <div class="modal-body">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col mb-4">
+                <h4>Topics</h4>
+                <p>Topics are used to group fields together that can help shape the data collection forms. During data
+                  entry a topic box forms around the fields that can either be expanded and display all fields or
+                  collapsed and hide them from view.</p>
+                <p>You can create topics in this window or skip this step and create them later. Topics are applied to
+                  fields in the edit field screens.</p>
+                
+                <table class="data-table table "
+                       data-config='{"data":null,"dom":"t","order":[],"language":{},"responsive":false,"scrollX":false,"rowReorder":false,"pageLength":10,"lengthMenu":[10,25,50,100],"autoWidth":false,"columns":[{"name":"Topic","orderable":false}]}'
+                       width="100%" id=topics>
+                  <thead>
+                    <tr>
+                      <th>
+                        <span>Topic</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+                <button
+                  type="button"
+                  class="btn btn-primary btn-js-create-topic"
+                >
+                  <span class="btn__title">Create a topic</span>
+                </button>
+                <br/><br/>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        [%
+          INCLUDE wizard/sub/modal_footer.tt
+            left_buttons = [{
+              class   = "btn-cancel btn-js-back"
+              label   = "Back"
+            }]
+            right_buttons = [{
+              class   = "btn-js-next btn-default"
+              label   = "Next"
+            }];
+        %]
+      </div>
+      
+      <div class="modal-frame" data-config='{"step":3,"frame":6,"item":null,"count":null,"skip":10}'>
+        <div class="modal-body">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col">
+                <h4>Fields</h4>
+                <p>The fields are the data fields or columns in your table. Here you can add fields to your new table
+                  and define in terms of data-type (text, date, drop-down list, etc), functionality and permissions.</p>
+                <p>Fields created here can be edited or removed from the Edit Table menu, where new fields can be added
+                  and the fields re-ordered if needed.</p>
+                <button
+                  type="button"
+                  class="btn btn-primary btn-js-create-field"
+                >
+                  <span class="btn__title">Create a field</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        [%
+          INCLUDE wizard/sub/modal_footer.tt
+            left_buttons = [{
+              class   = "btn-cancel btn-js-back"
+              label   = "Back"
+            }]
+            right_buttons = [{
+              class   = "btn-inverted btn-js-skip"
+              label   = "Skip creating fields"
+            }, {
+              class   = "btn-js-next btn-default"
+              label   = "Next"
+            }];
+        %]
+      </div>
+      
+      <div class="modal-frame" data-config='{"step":3,"frame":7,"item":"field","count":null,"skip":10}'>
+        <div class="modal-body">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col">
+                <div class="alert alert-danger" role="alert"></div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                <h4>New field</h4>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6">
+                [%
+                  INCLUDE fields/input.tt
+                    id          = "field_name"
+                    name        = "name"
+                    label       = "Name of field"
+                    placeholder = "Name of field"
+                    type        = "text"
+                    is_required = 1
+                    sub_field   = "fields/sub/checkbox.tt"
+                    sub_params  = {
+                      id => "optional"
+                      name => "optional"
+                      label => "This field is optional"
+                      is_required => 0
+                      input_class => ""
+                      value => "1"
+                    };
+                %]
+              </div>
+              <div class="col-md-6">
+                [%
+                  INCLUDE fields/select.tt
+                    select_class = "select--js-topic"
+                    id           = "field_topic_tempid"
+                    name         = "topic_tempid"
+                    label        = "Select a topic"
+                    placeholder  = "Select option"
+                    items        = [];
+                %]
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                [%
+                  field_types = [
+                    {id = "string", name = "Text"},
+                    {id = "intgr", name = "Integer"},
+                    {id = "date", name = "Date"},
+                    {id = "daterange", name = "Date range"},
+                    {id = "enum", name = "Dropdown list"},
+                    {id = "tree", name = "Tree"},
+                    {id = "file", name = "Document"},
+                    {id = "person", name = "Person"},
+                    {id = "rag", name = "RedAmberGreen status (RAG)"},
+                    {id = "calc", name = "Calculated value"},
+                    {id = "curval", name = "Field(s) for records from another table"}
+                  ];
+                
+                  INCLUDE fields/select.tt
+                    id           = "field_type"
+                    name         = "field_type"
+                    label        = "Field type"
+                    placeholder  = "Select a field type"
+                    value        = 'string'
+                    items        = field_types
+                    is_required  = 1
+                    select_class = "select--reveal select--required";
+                %]
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        [%
+          INCLUDE wizard/sub/modal_footer.tt
+            left_buttons = [{
+              class   = "btn-cancel btn-js-back"
+              label   = "Back"
+            }]
+            right_buttons = [{
+              class   = "btn-inverted btn-js-skip"
+              label   = "Skip creating fields"
+            }, {
+              class   = "btn-js-next btn-disabled"
+              label   = "Next"
+            }];
+        %]
+      </div>
+      
+      
+      <div class="modal-frame" data-config='{"step":3,"frame":8,"item":"field type settings","count":null}'>
+        <div class="modal-body">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col mb-4">
+                <h4>Field type settings</h4>
+                <p>Depending on your field type, here you can create settings for your field type.</p>
+              </div>
+            </div>
+            
+            <div class="select-reveal select-reveal--field_type">
+              
+              <div class="select-reveal__instance" id="field_type_string">
+                <div class="row">
+                  <div class="col">
+                    [%
+                      INCLUDE fields/input.tt
+                        id            = "force_regex"
+                        name          = "force_regex"
+                        label         = "Require the field value to be in a particular format"
+                        placeholder   = ""
+                        type          = "text"
+                        popover_title = "Force input format"
+                        popover_body  = global.helptext.force_regex
+                        sub_field     = "fields/sub/checkbox.tt"
+                        sub_params    = {
+                          id           => "textbox"
+                          name         => "textbox"
+                          label        => "Make this a multi-line text box"
+                          input_class  => "mb-0"
+                          popover_body => ""
+                          value        => "1"
+                        };
+                    %]
+                  </div>
+                </div>
+              </div>
+              
+              <div class="select-reveal__instance" id="field_type_intgr">
+                <div class="row">
+                  <div class="col">
+                    <fieldset class="fieldset">
+                      <div class="fieldset__legend">
+                        <legend >
+                          Show pop-up calculator:
+                        </legend>
+                      </div>
+  
+                      <div class="form-group">
+                        [%
+                          INCLUDE fields/sub/checkbox.tt
+                            id          = "show_calculator"
+                            name        = "show_calculator"
+                            label       = "Show pop-up calculator"
+                            input_class = "mb-0"
+                            value       = "1";
+                        %]
+                      </div>
+                    </fieldset>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="select-reveal__instance" id="field_type_date">
+                <div class="row">
+                  <div class="col">
+                     <fieldset class="fieldset">
+                      <div class="fieldset__legend">
+                        <legend >
+                          Show date picker:
+                        </legend>
+                      </div>
+
+                      <div class="form-group mb-2">
+                        [%
+                          INCLUDE fields/sub/checkbox.tt
+                            id      = "show_datepicker_date"
+                            name    = "show_datepicker"
+                            label   = "Show date picker pop-up"
+                            value   = 1;
+                        %]
+                      </div>
+                    </fieldset>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                     <fieldset class="fieldset">
+                      <div class="fieldset__legend">
+                        <legend >
+                          Default value:
+                        </legend>
+                      </div>
+
+                      <div class="form-group">
+                        [%
+                          INCLUDE fields/sub/checkbox.tt
+                            id          = "default_today"
+                            name        = "default_today"
+                            label       = "Default new values to today's date"
+                            value       = 1
+                            input_class = "mb-0";
+                        %]
+                      </div>
+                    </fieldset>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="select-reveal__instance" id="field_type_daterange">
+                <div class="row">
+                  <div class="col">
+                    <fieldset class="fieldset">
+                      <div class="fieldset__legend">
+                        <legend >
+                          Show date picker:
+                        </legend>
+                      </div>
+
+                      <div class="form-group">
+                        [%
+                          INCLUDE fields/sub/checkbox.tt
+                            id      = "show_datepicker_date-range"
+                            name    = "show_datepicker"
+                            label   = "Show date picker pop-up"
+                            value   = 1;
+                        %]
+                      </div>
+                    </fieldset>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="select-reveal__instance" id="field_type_enum">
+                <div class="orderable-sortable">
+                  [%
+                    INCLUDE fields/select.tt
+                      id          = "ordering"
+                      name        = "ordering"
+                      label       = "Order dropdown values:"
+                      placeholder = "Select an option"
+                      value       = ''
+                      items       = [
+                        {id = "", name = "As shown (drag to reorder)"},
+                        {id = "asc", name = "Ascending"},
+                        {id = "desc", name = "Descending"}
+                      ];
+                  %]
+
+                  <div class="sortable">
+                    <div class="sortable__label">
+                      <label>
+                        Add dropdown values
+                      </label>
+                    </div>
+                    <div class="sortable__list">
+                      <div class="sortable__row">
+                        <button
+                          type="button"
+                          class="btn btn-drag-drop"
+                        >
+                          <span class="btn__title">Drag and drop</span>
+                        </button>
+  
+                        [%
+                          INCLUDE fields/input.tt
+                            id          = "enumval_1"
+                            name        = "enumval"
+                            label       = "Search"
+                            label_class = "hidden"
+                            placeholder = "Enter a value"
+                            type        = "text"
+                            hide_group  = 1;
+                        %]
+                        
+                        <button
+                          type="button"
+                          class="btn btn-icon-close"
+                        >
+                          <span class="btn__title">Delete</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      class="btn btn-default"
+                    >
+                      <span class="btn__title">Add a value</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="select-reveal__instance" id="field_type_tree">
+                <div class="row">
+                  <div class="col">
+                    <p>Each value in the tree is referred to as a node.</p>
+
+                    <div class="form-group">
+                      [%
+                        INCLUDE fields/sub/checkbox.tt
+                          id      = "end_node_only"
+                          name    = "end_node_only"
+                          label   = "Only let users select an end-node"
+                          value   = 1;
+                      %]
+                    </div>
+
+                    [%
+                        INCLUDE fields/tree.tt
+                          id                = "jstree_demo_div"
+                          layout_id         = ''
+                          layout_identifier = '';
+                    %]
+                  </div>
+                </div>
+              </div>
+              
+              <div class="select-reveal__instance" id="field_type_file">
+                <div class="row">
+                  <div class="col">
+                    [%
+                      INCLUDE fields/input.tt
+                        id          = "filesize"
+                        name        = "filesize"
+                        label       = "Set maximum file size (KB): (Leave blank for no limit)"
+                        placeholder = "Leave blank for no limit"
+                        type        = "text";
+                    %]
+                  </div>
+                </div>
+              </div>
+              
+              <div class="select-reveal__instance" id="field_type_person">
+                <div class="row">
+                  <div class="col">
+                    <div class="form-group">
+                      [%
+                        INCLUDE fields/sub/checkbox.tt
+                          id      = "default_to_login"
+                          name    = "default_to_login"
+                          label   = "Default new values to current logged-in user"
+                          value   = 1;
+                      
+                        INCLUDE fields/sub/checkbox.tt
+                          id          = "notify_on_selection"
+                          name        = "notify_on_selection"
+                          label       = "Send a message to the user when they are selected in this field"
+                          value       = 1
+                          input_class = "checkbox--reveal";
+                      %]
+                    </div>
+                  </div>
+                </div>
+                <div class="checkbox-reveal" id="notify_on_selection-reveal">
+                  <div class="row">
+                    <div class="col">
+                      [%
+                        INCLUDE fields/input.tt
+                          id          = "notify_on_selection_subject"
+                          name        = "notify_on_selection_subject"
+                          label       = "Subject line of email alert"
+                          value       = 'You have been assigned a record'
+                          type        = "text";
+                      %]
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col">
+                      [%
+                        INCLUDE fields/textarea.tt
+                          id            = "notify_on_selection_message"
+                          name          = "notify_on_selection_message"
+                          label         = "Message to send to user"
+                          value         = 'You have been selected in the record $_link'
+                          popover_class = "popover-container--large"
+                          popover_title = "Notify user alert email"
+                          popover_body  = global.helptext.helpnotify
+                          rows          = 5;
+                      %]
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="select-reveal__instance" id="field_type_rag">
+                <p class="mb-3">Use a RAG field to automatically generate red, amber or green indicators based on the values of other fields. You set the conditions for the RAG status using the Lua programming language.</p>
+                <div class="row">
+                  <div class="col">
+                    [%
+                      INCLUDE fields/textarea.tt
+                        id            = "code_rag"
+                        name          = "code_rag"
+                        label         = "Conditions for this RAG status field:"
+                        input_class   = "textarea--monospace"
+                        popover_class = "popover-container--large"
+                        popover_title = "Calculated and RAG values"
+                        popover_body  = global.helptext.layout_calc
+                        rows          = 10;
+                    %]
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    <fieldset class="fieldset">
+                      <div class="fieldset__legend">
+                        <legend>
+                          Alerts:
+                        </legend>
+                      </div>
+
+                      <div class="form-group">
+                      [%
+                        INCLUDE fields/sub/checkbox.tt
+                          id      = "no_alerts_calc_rag"
+                          name    = "no_alerts_calc"
+                          label   = "Do not send alerts when making this update (alerts will still be sent when records are subsequently edited individually)"
+                          value   = 1
+                          checked = 1;
+                      %]
+                      </div>
+                    </fieldset>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                  [%
+                    INCLUDE fields/radio.tt
+                      id    = "no_cache_update_rag"
+                      name  = "no_cache_update_rag"
+                      label = "Value updates:"
+                      value = 1
+                      items = [
+                        {id = "1", name = "Do not immediately update all existing values (values will be updated overnight instead)"},
+                        {id = "0", name = "Force update all values immediately (may take a long time for a lot of records)"}
+                      ];
+                  %]
+                  </div>
+                </div>
+              </div>
+              
+              <div class="select-reveal__instance" id="field_type_calc">
+                <p class="mb-3">A calculated value field automatically generates values based on the values of other fields. You define your calculation using the Lua programming language.</p>
+                <div class="row">
+                  <div class="col">
+                    [%
+                      INCLUDE fields/select.tt
+                        id          = "return_type"
+                        name        = "return_type"
+                        label       = "Return value as field type:"
+                        placeholder = "Select an option"
+                        value       = 'string'
+                        items       = [
+                          {id = "string", name = "String"},
+                          {id = "date", name = "Date"},
+                          {id = "daterange", name = "range"},
+                          {id = "integer", name = "Integer"},
+                          {id = "numeric", name = "Decimal"},
+                          {id = "globe", name = "Globe location"},
+                          {id = "error", name = "Prevent record form submit if not empty"}
+                        ];
+                    %]
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    [%
+                      INCLUDE fields/textarea.tt
+                        id            = "code_calc"
+                        name          = "code_calc"
+                        label         = "Calculation:"
+                        value         = ""
+                        input_class   = "textarea--monospace"
+                        popover_class = "popover-container--large"
+                        popover_title = "Calculated and RAG values"
+                        popover_body  = global.helptext.layout_calc
+                        rows          = 10;
+                    %]
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    [%
+                      INCLUDE fields/sub/checkbox.tt
+                        id      = "show_in_edit"
+                        name    = "show_in_edit"
+                        value   = 1
+                        label   = "Show this field when editing records";
+                    %]
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    <fieldset class="fieldset" >
+                      <div class="fieldset__legend ">
+                        <legend >
+                          Alerts:
+                        </legend>
+                      </div>
+
+                      <div class="form-group">
+                      [%
+                        INCLUDE fields/sub/checkbox.tt
+                          id      = "no_alerts_calc"
+                          name    = "no_alerts_calc"
+                          value   = 1
+                          label   = "Do not send alerts when making this update (alerts will still be sent when records are subsequently edited individually)"
+                          checked = 1;
+                      %]
+                      </div>
+                    </fieldset>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                  [%
+                    INCLUDE fields/radio.tt
+                      id    = "no_cache_update_calc"
+                      name  = "no_cache_update_calc"
+                      label = "Value updates:"
+                      value = 1
+                      items = [
+                        {id = "1", name = "Do not immediately update all existing values (values will be updated overnight instead)"},
+                        {id = "0", name = "Force update all values immediately (may take a long time for a lot of records)"}
+                      ];
+                  %]
+                  </div>
+                </div>
+              </div>
+              
+              <div class="select-reveal__instance" id="field_type_curval">
+                [% IF NOT instance_layouts.size; %]
+                <div class="row">
+                  <div class="col">
+                    <div class="alert alert-info">
+                      No other instances are available to select data from
+                    </div>
+                  </div>
+                </div>
+                [% ELSE %]
+                <div class="row">
+                  <div class="col">
+                    [%
+                      INCLUDE fields/select.tt
+                        id          = "value_selector"
+                        name        = "value_selector"
+                        label       = "Type of value selector:"
+                        placeholder = "Select an option"
+                        value       = 'dropdown'
+                        items       = [
+                          {id = "dropdown", name = "Drop-down box"},
+                          {id = "typeahead", name = "Auto-complete textbox"},
+                          {id = "noshow", name = "Do not show selector"}
+                        ];
+                    %]
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    <fieldset class="fieldset" >
+                      <div class="fieldset__legend ">
+                        <legend >
+                          New values:
+                        </legend>
+
+                      </div>
+
+                      <div class="form-group ">
+                        [%
+                          INCLUDE fields/sub/checkbox.tt
+                            id      = "show_add"
+                            name    = "show_add"
+                            value   = 1
+                            label   = "Allow new values to be added when editing"
+                            checked = 0;
+                        %]
+                      </div>
+                    </fieldset>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    <fieldset class="fieldset" >
+                      <div class="fieldset__legend ">
+                        <legend >
+                          Old values:
+                        </legend>
+                      </div>
+
+                      <div class="form-group ">
+                        [%
+                          INCLUDE fields/sub/checkbox.tt
+                            id      = "delete_not_used"
+                            name    = "delete_not_used"
+                            label   = "Delete records from other table if deselected from this field"
+                            value   = 1
+                            checked = 0;
+                        %]
+                      </div>
+                    </fieldset>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    <fieldset class="fieldset" >
+                      <div class="fieldset__legend ">
+                        <legend >
+                          Permissions override:
+                        </legend>
+                      </div>
+
+                      <div class="form-group ">
+                        [%
+                          INCLUDE fields/sub/checkbox.tt
+                            id      = "override_permissions"
+                            name    = "override_permissions"
+                            label   = "Override any user permissions when selecting records for this field"
+                            value   = 1
+                            checked = 0;
+                        %]
+                      </div>
+                    </fieldset>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    [%
+                      INCLUDE fields/input.tt
+                        id          = "limit_rows"
+                        name        = "limit_rows"
+                        label       = "Limit number of displayed rows to a maximum of:"
+                        value       = ""
+                        placeholder = "Enter a number or leave blank for no limit"
+                        type        = "number";
+                    %]
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col">
+                    [%
+                      refers_items = [{id = "", name = ""}];
+
+                      FOREACH instance_layout IN instance_layouts;
+                        refers_items.push({id = instance_layout.instance_id, name = instance_layout.name});
+                      END;
+                    
+                      INCLUDE fields/select.tt
+                        id           = "refers_to_instance_id"
+                        name         = "refers_to_instance_id"
+                        label        = "Use this table"
+                        placeholder  = "Select an option"
+                        value        = ""
+                        items        = refers_items
+                        select_class = "select--reveal"
+                        filter       = "html";
+                    %]
+                  </div>
+                </div>
+
+                <div class="select-reveal select-reveal--refers_to_instance_id">
+                  [% FOREACH instance_layout IN instance_layouts %]
+                  <div class="select-reveal__instance" id="refers_to_instance_id_[% instance_layout.instance_id %]" style="display:none">
+                    <div class="row">
+                      <div class="col">
+                        [%
+                          curval_field_ids_items = [];
+                        
+                          FOREACH c IN instance_layout.all;
+                            NEXT IF c.type == "curval";
+                            c.is_checked = 0;
+                            c.field_id = "curval_field_ids_" _ instance_layout.instance_id _ "-" _ c.id;
+                            curval_field_ids_items.push(c);
+                          END;
+                        
+                          INCLUDE fields/checkbox_list.tt
+                            list_class = "list--vertical list--checkboxes"
+                            name = "curval_field_ids"
+                            label = "Show these fields:"
+                            items = curval_field_ids_items
+                            filter = "html";
+                        %]
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col">
+                        <fieldset class="fieldset" >
+                          <div class="fieldset__legend">
+                            <legend >
+                              Apply the following filters to records in the selected table:
+                            </legend>
+                          </div>
+
+                          <div class="form-group">
+                            [%
+                              PROCESS builder.tt
+                                builder_id = instance_layout.instance_id
+                                builder_layout = instance_layout
+                                filter_normal = ""
+                                filter_base64 = ""
+                                show_all_columns = 1;
+                            %]
+                            <div class="filter" data-builder-id="[% instance_layout.instance_id %]" id="builder[% instance_layout.instance_id %]"></div>
+                          </div>
+                        </fieldset>
+                      </div>
+                    </div>
+                  </div>
+                  [% END %]
+                </div>
+                <input id="filter" type="hidden" name="filter" value="">
+                [% END %]
+              </div>
+              
+            </div>
+          </div>
+        </div>
+        
+        [%
+          INCLUDE wizard/sub/modal_footer.tt
+            left_buttons = [{
+              class   = "btn-cancel btn-js-back"
+              label   = "Back"
+            }]
+            right_buttons = [{
+              class   = "btn-js-next btn-default"
+              label   = "Next"
+            }];
+        %]
+      </div>
+      
+      
+      <div class="modal-frame" data-config='{"step":3,"frame":9,"item":"custom field permissions","count":null}'>
+        <div class="modal-body">
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col mb-4">
+                <h4>Custom field permissions</h4>
+                <p>In this window you can customise the permissions for this field.</p>
+              </div>
+            </div>
+            
+            [% IF ! groups.size %]
+              <p>
+                No groups have been created yet. <a href='"[% url.page %]"/group_overview/'>Create a group</a>
+              </p>
+            [%
+              ELSE;
+                # prepare table config
+                table_id           = 'default_field_permissions_table';
+                table_class        = 'table-lines table-no-margin';
+                table_dom          = '<\"row row--header\"<\"col\"f><\"col-lg-auto dataTables_length_wrapper\"l>><\"row row--main\"<\"col-sm-12\"tr>><\"row row--footer\"<\"col-sm-12 col-lg-6\"p><\"col-sm-12 col-lg-6 dataTables_info_wrapper\"i>>';
+                table_order        = '[0,"asc"]';
+                table_language     = '{"emptyTable": "There is no groups available","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next","previous":"Previous"},"search":"","searchPlaceholder":"Search group"}';
+                table_page_length  = 5;
+                table_length_menu  = 'detail';
+                table_unresponsive = 1;
+              
+                table_columns = [{
+                  name      = "Group"
+                  orderable = 1
+                  width     = "20%"
+                },{
+                  name      = "Create"
+                  orderable = 0
+                },{
+                  name      = "Read"
+                  orderable = 0
+                },{
+                  name      = "Update"
+                  orderable = 0
+                },{
+                  name      = "Approve"
+                  orderable = 0
+                },{
+                  name      = "Write without approval"
+                  orderable = 0
+                }];
+                
+                table_buttons = [];
+                rows = [];
+
+                FOREACH group IN groups;
+                  row = {
+                    data_attr_name    = 'group-id'
+                    data_attr_value   = group.id
+                    fields = [{
+                      type  = "text"
+                      label = group.name
+                    }, {
+                      type        = "text"
+                      label       = ""
+                      sub_field   = "fields/sub/checkbox.tt"
+                      sub_params  = {
+                        id => "permission_write_new_" _ group.id
+                        name => "permission_write_new_" _ group.id
+                        label => permission_inputs.write_new
+                        checked => 0
+                        filter => "html"
+                        is_required => 0
+                        autofocus => 0
+                        input_class => "checkbox--hide-label"
+                        label_in_span => 1
+                        value => 1
+                      }
+                    }, {
+                      type        = "text"
+                      label       = ""
+                      sub_field   = "fields/sub/checkbox.tt"
+                      sub_params  = {
+                        id => "permission_read_" _ group.id
+                        name => "permission_read_" _ group.id
+                        label => permission_inputs.read
+                        checked => 0
+                        filter => "html"
+                        is_required => 0
+                        autofocus => 0
+                        input_class => "checkbox--hide-label"
+                        label_in_span => 1
+                        value => 1
+                      }
+                    }, {
+                      type        = "text"
+                      label       = ""
+                      sub_field   = "fields/sub/checkbox.tt"
+                      sub_params  = {
+                        id => "permission_write_existing_" _ group.id
+                        name => "permission_write_existing_" _ group.id
+                        label => permission_inputs.write_existing
+                        checked => 0
+                        filter => "html"
+                        is_required => 0
+                        autofocus => 0
+                        input_class => "checkbox--hide-label"
+                        label_in_span => 1
+                        value => 1
+                      }
+                    }, {
+                      type        = "text"
+                      label       = ""
+                      sub_field   = "fields/sub/checkbox.tt"
+                      sub_params  = {
+                        id => "permission_approve_new_" _ group.id
+                        name => "permission_approve_new_" _ group.id
+                        label => permission_inputs.approve_new
+                        checked => 0
+                        filter => "html"
+                        is_required => 0
+                        autofocus => 0
+                        input_class => "checkbox--hide-label"
+                        label_in_span => 1
+                        value => 1
+                      }
+                    }, {
+                      type        = "text"
+                      label       = ""
+                      sub_field   = "fields/sub/checkbox.tt"
+                      sub_params  = {
+                        id => "permission_write_new_no_approval_" _ group.id
+                        name => "permission_write_new_no_approval_" _ group.id
+                        label => permission_inputs.write_new_no_approval
+                        checked => 0
+                        filter => "html"
+                        is_required => 0
+                        autofocus => 0
+                        input_class => "checkbox--hide-label"
+                        label_in_span => 1
+                        value => 1
+                      }
+                    }]
+                  };
+            
+                  rows.push(row);
+                END;
+
+                INCLUDE tables/basic_table.tt;
+              END;
+            %]
+          
+          </div>
+        </div>
+        
+        [%
+          INCLUDE wizard/sub/modal_footer.tt
+            left_buttons = [{
+              class   = "btn-cancel btn-js-back"
+              label   = "Back"
+            }]
+            right_buttons = [{
+              class   = "btn-js-next btn-default"
+              label   = "Next"
+            }];
+        %]
+      </div>
+      
+      
+      <div class="modal-frame" data-config='{"step":3,"frame":10,"item":null,"count":null}'>
+        <div class="modal-body">
+          
+          <div class="container-fluid">
+            <div class="row">
+              <div class="col mb-4">
+                <h4>Fields</h4>
+                <p>The fields are the data fields or columns in your table. Here you can add fields to your new table
+                  and define in terms of data-type (text, date, drop-down list, etc), functionality and permissions.</p>
+                <p>Fields created here can be edited or removed from the Edit Table menu, where new fields can be added
+                  and the fields re-ordered if needed.</p>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                [%
+                  table_id           = '';
+                  table_class        = 'table-lines';
+                  table_dom          = '<\"row row--header\"<\"col\"f><\"col-lg-auto dataTables_length_wrapper\"l>><\"row row--main\"<\"col-sm-12\"tr>><\"row row--footer\"<\"col-sm-12 col-lg-6\"p><\"col-sm-12 col-lg-6 dataTables_info_wrapper\"i>>';
+                  table_order        = '[0,"asc"]';
+                  table_language     = '{"lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next","previous":"Previous"},"search":"","searchPlaceholder":"Search field"}';
+                  table_page_length  = 5;
+                  table_length_menu  = 'detail';
+                  table_unresponsive = 0;
+                
+                  table_columns = [{
+                    name      = "Fields"
+                    orderable = 1
+                  }];
+                
+                  table_buttons = [];
+                  rows = [];
+                
+                  INCLUDE tables/basic_table.tt;
+                %]
+                
+                <button
+                  type="button"
+                  class="btn btn-primary btn-js-create-field"
+                >
+                  <span class="btn__title">Create a field</span>
+                </button>
+                <br/>
+                <br/>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        [%
+          INCLUDE wizard/sub/modal_footer.tt
+            left_buttons = [{
+              class   = "btn-cancel btn-js-back"
+              label   = "Back"
+            }]
+            right_buttons = [{
+              class   = "btn-js-save btn-default"
+              label   = "Save"
+            }];
+        %]
+      </div>
+    
+    </div>
+  </div>
+</div>

@@ -2,12 +2,36 @@
   tmplColumnConfig = '{_NAME_ORDERABLE_CLASSNAME_WIDTH},';
   tmplColumnButtonConfig = '{"name":"","orderable":false,"className":"min-tablet-l data-table__header--invisible"},';
 
-  columnConfig = '';
-  buttonConfig = '';
+  reorderConfig    = '';
+  pageLengthConfig = '';
+  lengthMenuConfig = '';
+  columnConfig     = '';
+  buttonConfig     = '';
   
   header_row = {
     fields = []
   };
+
+  IF table_reorder_rows;
+    reorderConfig = "\n" _ '    "rowReorder":{"snapX":true},';
+    columnConfig  = '{"name":"Position","orderable":true,"width":"30px","className":"reorder data-table__header--invisible"},';
+    
+    header_row.fields.push({
+      type   = "header"
+      label  = "Position"
+      filter = ""
+    });
+  END;
+
+  IF table_page_length;
+    pageLengthConfig = '"pageLength":' _  page_length _ ',';
+  END;
+
+  IF table_length_menu == 'basic';
+    pageLengthConfig = '"lengthMenu":[10,25,50,100,200],';
+  ELSIF table_length_menu == 'detail';
+    pageLengthConfig = '"lengthMenu":[[5,10,25,50,-1],[5,10,25,50,"All"]],';
+  END;
 
   # create table columns and column config for each requested column.
   FOREACH column in table_columns;
@@ -58,26 +82,47 @@
     label = "Toggle child row"
   });
 
+  rowCounter = 1;
+
   FOREACH row in rows;
-    # replace link placeholders
+    fieldCounter = 1;
+
     FOREACH field in row.fields;
-      NEXT IF !field.link OR !row.link_placeholders OR row.link_placeholders.empty;
-      FOREACH key in row.link_placeholders.keys;
-        field.link = field.link.replace('{' _ key _ '}', row.link_placeholders.$key);
+      # add hidden fields for row reordering
+      IF table_reorder_rows AND fieldCounter == 1;
+        row.fields.unshift({
+          type = "text",
+          label = "<span>" _ rowCounter _ "</span>"
+        });
+
+        field.sub_field  = "fields/hidden.tt";
+        field.sub_params = {
+          name  = "position",
+          value = rowCounter
+        };
       END;
+
+      # replace link placeholders
+      IF field.link AND row.link_placeholders AND !row.link_placeholders.empty;
+        FOREACH key in row.link_placeholders.keys;
+          field.link = field.link.replace('{' _ key _ '}', row.link_placeholders.$key);
+        END;
+      END;
+      
+      fieldCounter = fieldCounter + 1;
     END;
     
     # add empty field for screen overflow expand/collapse column
     row.fields.push({type = "text"});
+    rowCounter   = rowCounter + 1;
   END;
   
   table_config = '{
     "dom": "' _ ( table_dom || '' ) _ '",
     "order":[' _ ( table_order || '[0,"asc"]' ) _ '],
     "language": ' _ ( table_language || '{"emptyTable": "There is no data available in this table"}' ) _ ',
-    "responsive":{
-      "details":{"type":"column","target":-1}
-    },
+    "responsive": ' _ ( table_unresponsive ? 'false' : '{"details":{"type":"column","target":-1}}' ) _ ',
+    "scrollX":false,_ROW_REORDER_PAGE_LENGTH_LENGTH_MENU
     "autoWidth":false,_SHOW_ALL_RECORDS
     "columns":[
       _COLUMNS
@@ -87,10 +132,13 @@
   }';
 
   table_config = table_config.replace('_SHOW_ALL_RECORDS', table_show_all_records ? "\n" _ '    "iDisplayLength":-1,' : '');
+  table_config = table_config.replace('_ROW_REORDER', reorderConfig);
+  table_config = table_config.replace('_PAGE_LENGTH', pageLengthConfig);
+  table_config = table_config.replace('_LENGTH_MENU', lengthMenuConfig);
   table_config = table_config.replace('_COLUMNS', columnConfig);
   table_config = table_config.replace('_BUTTONS', buttonConfig);
 %]
-<table class="data-table table [% table_class %]" width="100%" data-config='[% table_config %]'>
+<table class="data-table table [% table_class %]"[% IF table_id %] id="[% table_id %]"[% END %] width="100%" data-config='[% table_config %]'>
   <thead>
     [% INCLUDE tables/basic_row.tt row=header_row %]
   </thead>

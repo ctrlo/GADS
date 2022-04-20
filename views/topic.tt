@@ -1,54 +1,133 @@
-<h2>[% IF topic.id %]Edit topic[% ELSE %]Add a topic[% END %]</h2>
-<form role="form" method="post">
-    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-    <div class="row">
-        <div class="col-md-6">
-            [% IF topic.id %]
-                <input type="hidden" name="id" value="[% topic.id %]">
-            [% END %]
-            <div class="form-group">
-                <label for="name">Topic name:</label>
-                <input type="text" name="name" class="form-control" value="[% topic.name | html_entity %]">
+[% INCLUDE layouts/page_header_table.tt; %]
+<div class="content-block__main">
+  <form role="form" method="post">
+    [%
+      INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
+      INCLUDE fields/hidden.tt name="click_to_edit" value=0;
+    
+      IF topic.id;
+        INCLUDE fields/hidden.tt name="id" value=topic.id;
+      END;
+    %]
+    <fieldset class="fieldset">
+      <div class="fieldset__legend fieldset__legend--hidden">
+        <legend>
+          Edit Table
+        </legend>
+      </div>
+      
+      <div class="content-block__main-content">
+        <div class="card card--secundary">
+          <h4 class="card__title">
+            <span>
+              [%- IF topic.id -%]
+                Edit topic: [% topic.name | html %]
+              [%- ELSE -%]
+                New topic
+              [%- END -%]
+            </span>
+          </h4>
+          
+          <div class="card__body row">
+            <div class="card__content">
+              <div class="row">
+                <div class='col'>
+                  [%
+                    INCLUDE fields/input.tt
+                      id          = "name"
+                      name        = "name"
+                      label       = "Name of topic"
+                      placeholder = "Name of topic"
+                      value       = topic.name
+                      type        = "text"
+                      filter      = "html"
+                      autofocus   = 1;
+                  %]
+                </div>
+              </div>
+              <div class="row">
+                <div class='col'>
+                  [%
+                    INCLUDE fields/textarea.tt
+                      id = "description"
+                      name = "description"
+                      label = "Description"
+                      value = topic.description
+                      filter = "html"
+                      rows = 5;
+                  %]
+                </div>
+              </div>
+              <div class="row">
+                <div class='col'>
+                  [%
+                    INCLUDE fields/switch_single.tt
+                      id            = "initial_state"
+                      name          = "initial_state"
+                      label         = "Initial state of  topic's fields when editing"
+                      placeholder   = "Expanded"
+                      fieldset_name = "switch-expanded"
+                      value         = "open"
+                      checked       = topic.initial_state == "open" ? 1 : 0
+                      filter        = "html";
+                  %]
+                </div>
+              </div>
             </div>
-            <div class="form-group">
-                <label for="description">Description:</label>
-                <textarea class="form-control" rows="5" id="description" name="description">[% topic.description | html %]</textarea>
-            </div>
-            <div class="form-group">
-                <label for="initial_state">Initial state of topic's fields when editing</label>
-                <select class="form-control" id="initial_state" name="initial_state">
-                    <option value="open" [% IF topic.initial_state == "expanded" %]selected[% END %]>Expanded</option>
-                    <option value="collapsed" [% IF topic.initial_state == "collapsed" %]selected[% END %]>Collapsed</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="click_to_edit">Are fields editable directly when editing a record?</label>
-                <select class="form-control" id="click_to_edit" name="click_to_edit">
-                    <option value="0" [% IF topic.click_to_edit == 0 %]selected[% END %]>Directly editable</option>
-                    <option value="1" [% IF topic.click_to_edit == 1 %]selected[% END %]>Initially read-only, click to edit</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="prevent_edit_topic_id">Blank mandatory fields allowed, but they prevent editing of topic</label>
-                <select class="form-control" id="prevent_edit_topic_id" name="prevent_edit_topic_id">
-                    <option></option>
-                    [% FOREACH top IN topics %]
-                        [% NEXT IF topic.id == top.id %]
-                        <option value="[% top.id %]" [% IF topic.prevent_edit_topic_id == top.id %]selected[% END %]>[% top.name | html %]</option>
-                    [% END %]
-                </select>
-            </div>
+          </div>
         </div>
-    </div>
-    <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">Save</button>
-    [% IF topic %]
-        <a href="" class="btn btn-default" data-toggle="modal" data-target="#delete_topic">Delete</a>
-    [% END %]
-</form>
-
-[% WRAPPER modal_dialog.tt
-    modal_id="delete_topic" modal_action_text="Delete" modal_heading="Delete Topic"
-    modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post"
+      </div>
+      
+      <footer class="content-block__footer">
+        <div class="content-block__footer-container">
+          [%
+            right_buttons = [];
+          
+            IF topic.id;
+              right_buttons.push({
+                type      = "modal_button",
+                modalId   = "deleteModal",
+                dataTitle = topic.name,
+                dataId    = topic.id,
+                class     = "btn btn-danger btn-js-delete",
+                label     = "Delete topic"
+              });
+            END;
+          
+            right_buttons.push({
+              type  = "button",
+              class = "btn btn-default"
+              id    = "submit"
+              name  = "submit"
+              value = "submit"
+              label = "Save"
+            });
+          
+            INCLUDE navigation/button_bar.tt
+              row_class = "row"
+              columns   = [{
+                class   = "col-md-4 mb-3 mb-md-0",
+                buttons = [{
+                  type   = "link",
+                  target = url.page _ "/" _ layout_obj.identifier _ "/topics",
+                  class  = "btn btn-cancel",
+                  label  = "Back"
+                }]
+              }, {
+                class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
+                buttons = right_buttons
+              }];
+          %]
+        </div>
+      </footer>
+    </fieldset>
+  </form>
+</div>
+[%
+  IF topic.id;
+    INCLUDE wizard/delete.tt
+      modalId     = "deleteModal"
+      label       = "Delete - " _ topic.name
+      description = "Are you sure you want to delete this topic? You cannot undo this step.";
+  END;
 %]
-    <p>Are you sure you want to delete this topic?</p>
-[% END %]

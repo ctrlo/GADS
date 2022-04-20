@@ -25,10 +25,8 @@
 <div class="form-group">
 [% END %]
   <div class="textarea [% input_class %]">
-    <div class="input__label">
-      <label for="[% id %]">
-        [% INCLUDE fields/sub/filter.tt value=label; %]
-      </label>
+    <div class="textarea__label">
+      <label for="[% id %]">[% INCLUDE fields/sub/filter.tt value=label; %]</label>
       [% IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body; END; %]
     </div>
     [% IF help_text %]

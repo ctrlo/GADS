@@ -87,16 +87,19 @@
         type  = "link"
         label = user_row.id
         name  = "id"
+        value  = user_row.id
       }, {
         type   = "link"
         label  = user_row.surname
         filter = "html_entity"
         name   = "surname"
+        value  = user_row.surname
       }, {
         type   = "link"
         label  = user_row.firstname
         filter = "html_entity"
         name   = "firstname"
+        value  = user_row.firstname
       }]
     };
 
@@ -106,6 +109,7 @@
         label  = user_row.title.name
         filter = "html_entity"
         name   = "title"
+        value  = user_row.title.id
       });
     END;
     
@@ -114,6 +118,7 @@
       label  = user_row.email
       filter = "html_entity"
       name   = "email"
+      value  = user_row.email
     });
     
     IF site.register_show_organisation;
@@ -122,6 +127,7 @@
         label  = user_row.organisation.name
         filter = "html_entity"
         name   = "organisation"
+        value  = user_row.organisation.id
       });
     END;
     
@@ -130,7 +136,8 @@
         type   = "link"
         label  = user_row.department.name
         filter = "html_entity"
-        name   = "department"
+        name   = "department_id"
+        value  = user_row.department.id
       });
     END;
     
@@ -139,7 +146,8 @@
         type   = "link"
         label  = user_row.team.name
         filter = "html_entity"
-        name   = "team"
+        name   = "team_id"
+        value  = user_row.team.id
       });
     END;
     
@@ -148,7 +156,8 @@
         type   = "link"
         label  = user_row.freetext1
         filter = "html_entity"
-        name   = "custom_property_1"
+        name   = "freetext1"
+        value  = user_row.freetext1
       });
     END;
     
@@ -157,7 +166,8 @@
         type   = "link"
         label  = user_row.freetext2
         filter = "html_entity"
-        name   = "custom_property_2"
+        name   = "freetext2"
+        value  = user_row.freetext2
       });
     END;
     
@@ -181,7 +191,7 @@
     aside_buttons = ! user.permission.useradmin ? [] : [{
       type    = "modal_button"
       modalId = "userModal"
-      class   = "btn-add"
+      class   = "btn btn-add"
       label   = "Add a user"
     }];
 %]

@@ -692,7 +692,7 @@ sub _post_add_user_account
     my $update_user;
     if ($id)
     {
-        $update_user = schema->resultset('User')->active->find($id)
+        $update_user = schema->resultset('User')->find($id)
             or error __x"User id {id} not found", id => $id;
     }
 

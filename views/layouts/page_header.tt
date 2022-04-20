@@ -10,19 +10,19 @@
   #     type   = "form"
   #     method = "post"
   #     target = url.page _ "/user_overview/"
-  #     class  = "btn-default"
+  #     class  = "btn btn-default"
   #     label  = "Start export"
   #     name   = "submit"
   #     value  = "submit"
   #   }, {
   #     type   = "link"
   #     target = url.page _ "/user_overview/"
-  #     class  = "btn-export"
+  #     class  = "btn btn-export"
   #     label  = "Export"
   #   }, {
   #     type    = "modal_button"
   #     modalId = "userAddModal"
-  #     class   = "btn-default"
+  #     class   = "btn btn-default"
   #     label   = "Add user"
   #   }];
 -%]
@@ -40,47 +40,13 @@
       [% description || '' %]
     </div>
   </div>
-  [% IF aside_buttons; %]
   <div class="content-block__aside col-lg-6">
-    <div class="list list--horizontal list--no-borders list--buttons">
-      <ul class="list__items">
-        [% FOREACH button IN aside_buttons %]
-        <li class="list__item">
-          [%
-            IF button.type == "form";
-              button.method = button.method ? button.method : "post";
-              button.class = button.class ? button.class : "btn-default";
-          %]
-          <form method="[% button.method %]" action="[% button.target %]">
-            [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
-            <button
-              type="submit"
-              class="btn [% button.class %]"
-              name="[% button.name %]"
-              value="[% button.value || button.name %]"
-            >
-              <span class="btn__title">[% button.label || button.name %]</span>
-            </button>
-          </form>
-          [% ELSIF button.type == "link" %]
-          <a href="[% button.target %]" class="btn [% button.class %]">[%- button.label || button.name -%]</a>
-          [%
-            ELSIF button.type == "modal_button";
-              button.class = button.class ? button.class : "btn-default";
-          %]
-          <button
-            type="button"
-            class="btn [% button.class %]"
-            data-toggle="modal"
-            data-target="#[% button.modalId %]"
-          >
-            <span class="btn__title">[%- button.label || button.name -%]</span>
-          </button>
-          [% END %]
-        </li>
-        [% END %]
-      </ul>
-    </div>
+  [%
+    IF aside_buttons;
+      INCLUDE snippets/button_list.tt
+        list_class = "list--horizontal list--no-borders list--buttons"
+        buttons    = aside_buttons;
+    END;
+  %]
   </div>
-  [% END %]
 </div>

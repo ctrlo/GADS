@@ -867,6 +867,10 @@ sub update_user
         account_request_notes => $params{account_request_notes},
     };
 
+    if(defined $params{account_request}) {
+        $values->{account_request} = $params{account_request};
+    }
+
     foreach my $field ($site->user_fields)
     {
         next if !exists $params{$field->{name}};
@@ -1052,4 +1056,3 @@ sub export_hash
 }
 
 1;
-

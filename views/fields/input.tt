@@ -31,7 +31,7 @@
 [% END %]
   <div class="input [% input_class %]">
     <div class="input__label">
-      <label for="[% id %]">
+      <label for="[% id %]"[% IF label_class %] class="[% label_class %]"[% END %]>
         [% INCLUDE fields/sub/filter.tt value=label; %]
       </label>
       [% IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body; END; %]

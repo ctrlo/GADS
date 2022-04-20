@@ -1,25 +1,18 @@
-[%-
-  row_class = row_class ? row_class : 'row mt-5';
--%]
+[% row_class = row_class ? row_class : 'row mt-5'; %]
 <div class="[%- row_class -%]">
-  [% IF back_url %]
-  <div class="col-sm-auto mb-3 mb-sm-0">
-    <a href="[% back_url %]" class="btn btn-cancel">
-      <span class="btn__title">Back</span>
-    </a>
-  </div>
-  [% END %]
-  
-  [% IF submit_name %]
-  <div class="col-sm-auto">
-    <button
-      type="submit"
-      name="[% submit_name %]"
-      value="[% submit_value || 'submit' %]"
-      class="btn btn-default"
-    >
-      <span class="btn__title">[% submit_label || "Save" %]</span>
-    </button>
-  </div>
+  [%
+    FOREACH col IN columns;
+      FOREACH button in col.buttons;
+        button.style           = "margin-bottom: 0!important;";
+        button.list_item_style = "margin-bottom: 0!important;";
+      END;
+  %]
+    <div class="[% col.class %]">
+      [%
+        INCLUDE snippets/button_list.tt
+          list_class = "list--horizontal list--no-borders list--buttons"
+          buttons = col.buttons
+      %]
+    </div>
   [% END %]
 </div>

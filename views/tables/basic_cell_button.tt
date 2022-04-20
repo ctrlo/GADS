@@ -6,4 +6,5 @@
   <a href='[% url.page %][% link %]' class='link text-nowrap'>
     [% INCLUDE fields/sub/filter.tt value=label; %]
   </a>
+  [% INCLUDE snippets/subfield.tt; %]
 </td>

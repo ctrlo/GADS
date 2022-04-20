@@ -50,7 +50,7 @@
     aside_buttons = [{
       type    = "modal_button"
       modalId = "uploadFile"
-      class   = "btn-default"
+      class   = "btn btn-default"
       label   = "Upload a file"
     }];
 %]

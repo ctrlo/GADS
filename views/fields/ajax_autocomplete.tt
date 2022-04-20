@@ -25,9 +25,7 @@
 [% END %]
   <div class="input  input--autocomplete typeahead__container [% input_class %]">
     <div class="input__label">
-      <label for="[% id %]">
-        [% INCLUDE fields/sub/filter.tt value=label; %]
-      </label>
+      <label for="[% id %]">[% INCLUDE fields/sub/filter.tt value=label; %]</label>
       [% IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body; END; %]
     </div>
     [% IF help_text %]

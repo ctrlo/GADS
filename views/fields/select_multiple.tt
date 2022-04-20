@@ -3,9 +3,7 @@
 [% END %]
   <div class="select-widget multi">
     <div class="select__label">
-      <label id="[% id %]-label" class="control-label">
-        [% INCLUDE fields/sub/filter.tt value=label; %]
-      </label>
+      <label id="[% id %]-label" class="control-label">[% INCLUDE fields/sub/filter.tt value=label; %]</label>
       [% IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body; END; %]
     </div>
     [% IF help_text %]

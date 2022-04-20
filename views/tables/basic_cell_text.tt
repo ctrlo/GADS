@@ -5,4 +5,5 @@
 %]
 <td [% cell_class %][% data_attr %]>
   [% INCLUDE fields/sub/filter.tt value=label; %]
+  [% INCLUDE snippets/subfield.tt; %]
 </td>

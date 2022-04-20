@@ -62,15 +62,28 @@
             %]
           </div>
         </div>
-        [%-
-          back_url = url.page _ "/user_overview/";
+        [%
           INCLUDE navigation/button_bar.tt
-            row_class="row"
-            back_url=back_url
-            submit_name="update"
-            submit_value="update"
-            submit_label="Save";
-        -%]
+            row_class = "row"
+            columns = [{
+              class = "col-sm-auto mb-3 mb-sm-0",
+              buttons = [{
+                type = "link",
+                class = "btn btn-cancel",
+                target = url.page _ "/user_overview/",
+                label = "Back"
+              }]
+            }, {
+              class = "col-sm-auto",
+              buttons = [{
+                type  = "button",
+                name  = "update",
+                value = "update",
+                class = "btn btn-default",
+                label = "Save"
+              }]
+            }];
+        %]
       </fieldset>
     </form>
   </div>
