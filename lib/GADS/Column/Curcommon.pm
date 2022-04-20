@@ -225,8 +225,8 @@ sub curval_fields_retrieve
     return $self->curval_fields if !$options{all_fields};
     my $ret = $self->curval_fields_all;
     # Prevent recursive loops of fields that refer to each other
-    $ret = [grep { !$options{already_seen}->{$_->id} } @$ret];
-    $options{already_seen}->{$_->id} = 1 foreach @$ret;
+    $ret = [grep { !$options{already_seen}->{$self->id."_".$_->id} } @$ret];
+    $options{already_seen}->{$self->id."_".$_->id} = 1 foreach @$ret;
     $ret;
 };
 
