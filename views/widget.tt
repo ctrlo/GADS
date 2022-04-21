@@ -18,12 +18,14 @@
                 [% PROCESS form_globe %]
             [% END %]
             [% IF widget.dashboard.is_shared %]
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="static" value="static"
-                            [% IF widget.static %]checked[% END %]>Fix in place for all dashboards
-                    </label>
-                </div>
+              [%
+                INCLUDE fields/sub/checkbox.tt
+                  id = "static"
+                  name = "static"
+                  label = "Fix in place for all dashboards"
+                  value = "static"
+                  checked = widget.static ? 1 : 0;
+              %]
             [% END %]
         </form>
     </div>
