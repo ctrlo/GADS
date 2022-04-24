@@ -92,7 +92,10 @@ sub convert_value
 
     if ($in->{error}) # Will have already been reported
     {
-        @values = ('<evaluation error>');
+        # Report useful error in case used as return type "error"
+        my $m = __x"Unable to evaluate field \"{name}\": {error}",
+            name => $self->column->name, error => $in->{error};
+        @values = ($m->toString);
     }
 
     my @return;
