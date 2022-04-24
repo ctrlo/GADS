@@ -291,6 +291,9 @@ sub _build_fields
             my $f = $f_rs->next;
             my $column = $self->layout->column($f->id);
 
+            error __x"Field '{name}' is not a user-input field", name => $field
+                if !$column->userinput;
+
             push @fields, $column;
 
             # Prefill select values
