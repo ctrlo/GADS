@@ -235,7 +235,7 @@ sub _build_value
             warning __x"Failed to eval code for field \"{field}\": {error} (code: {code}, params: {params})",
                 field => $column->name,
                 error => $error, code => $return->{code} || $column->code, params => Dumper($self->vars);
-            $return->{error} = 1;
+            $return->{error} = $error;
         }
 
         @values = $self->convert_value($return); # Convert value as required by calc/rag
