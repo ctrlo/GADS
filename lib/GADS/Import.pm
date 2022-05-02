@@ -292,7 +292,7 @@ sub _build_fields
             my $column = $self->layout->column($f->id);
 
             error __x"Field '{name}' is not a user-input field", name => $field
-                if !$column->userinput;
+                if !$column->userinput && (!$self->update_unique || $column->id != $self->update_unique);
 
             push @fields, $column;
 
