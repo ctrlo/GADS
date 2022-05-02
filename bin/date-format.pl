@@ -6,7 +6,6 @@ use lib "$FindBin::Bin/../lib";
 use Dancer2;
 use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::LogReport 'linkspace';
-use Path::Tiny;
 use GADS::DB;
 use GADS::Layout;
 use GADS::Column::Calc;
@@ -31,7 +30,6 @@ use Getopt::Long;
 use JSON qw();
 use Log::Report syntax => 'LONG';
 use String::CamelCase qw(camelize);
-use Path::Tiny;
 
 my ($new_format);
 

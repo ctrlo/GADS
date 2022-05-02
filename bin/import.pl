@@ -48,7 +48,6 @@ use Getopt::Long;
 use JSON qw();
 use Log::Report syntax => 'LONG';
 use String::CamelCase qw(camelize);
-use Path::Tiny;
 
 my ($site_id, $purge, $add, $report_only, $merge, $update_cached, $force, $create_users, @ignore_fields);
 
