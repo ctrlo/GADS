@@ -774,8 +774,8 @@ sub _post_request_account {
     }
 }
 
-my $create_table = sub {
-    my $params = shift;
+sub _create_table
+{   my $params = shift;
 
     my $user = logged_in_user;
     my $table = GADS::Layout->new(
@@ -1021,7 +1021,7 @@ sub _post_table_request {
     logged_in_user->permission->{superadmin}
         or error __"You must be a super-administrator to create tables";
 
-    if (process $create_table->($body))
+    if (process sub { _create_table($body) } )
     {
         return _success("Table created successfully");
     }
