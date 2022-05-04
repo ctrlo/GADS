@@ -1,166 +1,28 @@
-<div class="content-block__head row">
-  <div class="content-block__info col-lg-8">
-    <div class="content-block__intro">
-      <div class="list list--horizontal">
-        <ul class="list__items">
-          <li class="list__item">
-            <a href='' class='link link--plain'><span>Personal dashboard</span></a>
-          </li>
-          
-          <li class="list__item">
-            <a href='' class='link link--plain link--active'><span>System dashboard</span></a>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="content-block__main">
-  <div class="dashboard">
-    <div class="dashboard__widgets row">
-      <div class="dashboard__widget col-lg-8">
-        <div class="card">
-          <div class="card__body row">
-            <div class="card__image">
-              <img src="https://via.placeholder.com/300" alt="" title="">
-            </div>
-            
-            <div class="card__content">
-              <p>Linkspace issues a live central database that captures key information for case management.</p>
-              <p>Linkspace is hosted on the internet with full security accreditation to operate up to official
-                sensitive.</p>
-              <p><strong>This site is only accessible to authorised users.</strong></p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="dashboard__widget col-lg-4">
-        
-        
-        <div class="card">
-          
-          <h4 class="card__title">
-            Ctrl O - Helpdesk
-          </h4>
-          
-          <div class="card__body row">
-            
-            <div class="card__content">
-              
-              <p>For any technical issues please contact the Ctrl O helpdesk.</p>
-              <p><a href="tel:020-3746294">020-3746294</a></p>
-              <p><a href="mailto:support@ctrlo.com">support@ctrlo.com</a></p>
-            
-            </div>
-          
-          </div>
-        </div>
-      
-      </div>
-    </div>
-    <div class="dashboard__widgets row">
-      <div class="dashboard__widget col-lg-8">
-        
-        
-        <div class="card">
-          
-          <h4 class="card__title">
-            Ctrl O - Helpdesk
-          </h4>
-          
-          <div class="card__body row">
-            
-            <div class="card__content">
-              
-              <p>For any technical issues please contact the Ctrl O helpdesk.</p>
-              <p><a href="tel:020-3746294">020-3746294</a></p>
-              <p><a href="mailto:support@ctrlo.com">support@ctrlo.com</a></p>
-            
-            </div>
-          
-          </div>
-        </div>
-      
-      </div>
-      <div class="dashboard__widget col-lg-4">
-        
-        
-        <div class="card">
-          
-          <div class="card__body row">
-            
-            <div class="card__image">
-              <img src="https://via.placeholder.com/300" alt="" title="">
-            </div>
-            <div class="card__content">
-              
-              <p>Linkspace issues a live central database that captures key information for case management.</p>
-              <p>Linkspace is hosted on the internet with full security accreditation to operate up to official
-                sensitive.</p>
-              <p><strong>This site is only accessible to authorised users.</strong></p>
-            
-            </div>
-          
-          </div>
-        </div>
-      
-      </div>
-    </div>
-    <div class="dashboard__widgets row">
-      <div class="dashboard__widget col-lg-8">
-        
-        
-        <div class="card">
-          
-          <div class="card__body row">
-            
-            <div class="card__image">
-              <img src="https://via.placeholder.com/300" alt="" title="">
-            </div>
-            <div class="card__content">
-              
-              <p>Linkspace issues a live central database that captures key information for case management.</p>
-              <p>Linkspace is hosted on the internet with full security accreditation to operate up to official
-                sensitive.</p>
-              <p><strong>This site is only accessible to authorised users.</strong></p>
-            
-            </div>
-          
-          </div>
-        </div>
-      
-      </div>
-    </div>
-  </div>
-  <div class="dashboard__options">
-    
-    
-    <button
-      type="button"
-      class="btn btn-round btn-edit"
-    
-    
-    >
-      
-      <span class="btn__title">Edit</span>
-    
-    </button>
-    
-    
-    <button
-      type="button"
-      class="btn btn-round btn-add"
-    
-    
-    >
-      
-      <span class="btn__title">Add</span>
-    
-    </button>
   
+  [% # TODO: reactivate widget types: "table", "timeline", "globe" %]
+  <div class="content-block__main-content">
+    <div id="ld-app"
+         class="dashboard"
+         data-dashboard-id="[% dashboard.id %]"
+         data-current-dashboard="[% dashboard.as_json | html %]"
+         data-dashboard-endpoint="[% IF layout %]/[% layout.identifier %][% END %]/api/dashboard/[% dashboard.id %]"
+         [% IF dashboard.instance_id %]
+         data-widget-types='["notice", "graph"]'
+         [% ELSE %]
+         data-widget-types='["notice"]'
+         [% END %]
+         data-dashboard-read-only="[% IF readonly %]true[% ELSE %]false[% END %]"
+         data-dashboard-hide-menu="[% IF page_as_mech %]true[% ELSE %]false[% END %]"
+         data-dashboard-no-download="[% IF layout.no_download_pdf %]true[% ELSE %]false[% END %]"
+         data-dashboards="[% dashboards_json | html %]"
+    >
+      [% FOREACH widget IN dashboard.display_widgets %]
+      <div class="ld-widget-container" data-grid='[% widget.grid | html %]'>
+        [% widget.html %]
+      </div>
+      [% END %]
+    </div>
   </div>
-</div>
-
-
+  
 </div>
