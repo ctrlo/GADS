@@ -67,4 +67,4 @@
   [% INCLUDE tables/basic_table.tt; %]
 </div>
 
-[% INCLUDE wizard/table_add.tt endpoint="/api/user_account" %]
+[% INCLUDE wizard/table_add.tt endpoint="/api/table_request" %]
