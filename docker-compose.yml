@@ -67,7 +67,7 @@ services:
     environment:
       - DBIC_MIGRATION_USERNAME=postgres
       - DBIC_MIGRATION_PASSWORD=postgres
-    user: 1000:1000
+    user: root
     depends_on:
       - db
   db:
