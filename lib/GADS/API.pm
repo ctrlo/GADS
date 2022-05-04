@@ -538,7 +538,7 @@ post '/api/user_account_request/:id' => require_login sub {
     _post_request_account();
 };
 
-post '/api/table_request/:id' => require_login sub {
+post '/api/table_request' => require_login sub {
     _post_table_request();
 };
 

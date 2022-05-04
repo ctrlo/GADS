@@ -1368,6 +1368,12 @@
           
           <div class="container-fluid">
             <div class="row">
+              <div class="col">
+                <div class="alert alert-danger" role="alert">
+                </div>
+              </div>
+            </div>
+            <div class="row">
               <div class="col mb-4">
                 <h4>Fields</h4>
                 <p>The fields are the data fields or columns in your table. Here you can add fields to your new table
