@@ -3560,7 +3560,7 @@ prefix '/:layout_name' => sub {
         $params->{topics}                       = [schema->resultset('Topic')->search({ instance_id => $layout->instance_id })->all];
         $params->{content_block_custom_classes} = 'content-block--footer';
         $params->{detail_header}                = 1;
-        $params->{header_back_url}              = "${base_url}${tableIdentifier}/layout";
+        $params->{header_back_url}              = "${base_url}${tableIdentifier}";
         $params->{layout_obj}                   = $layout;
 
         if (param 'saveposition')
