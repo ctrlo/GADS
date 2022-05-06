@@ -254,18 +254,18 @@ const setupSelectWidgets = (() => {
       // spinner if another one has since started running
       var hideSpinner = true;
       $.getJSON(url, function(data) {
-        if (typeahead) {
-          // Need to keep currently selected item
-          $currentItems.filter(':hidden').remove();
-        } else {
-          $currentItems.remove();
-        }
-
         if (data.error === 0) {
           if (myLoad != loadCounter) { // A new one has started running
             hideSpinner = false; // Don't remove the spinner on completion
             return;
           }
+          if (typeahead) {
+            // Need to keep currently selected item
+            $currentItems.filter(':hidden').remove();
+          } else {
+            $currentItems.remove();
+          }
+
           var checked = currentValues.includes(NaN);
           if (multi) {
             $search
