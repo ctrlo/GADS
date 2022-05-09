@@ -1,4 +1,6 @@
 [%-
+  PROCESS help.tt;
+
   # prepare table config
   table_dom = "t";
   table_order = '[0,"asc"]';
