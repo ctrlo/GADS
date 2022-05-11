@@ -1,3 +1,7 @@
+[%
+  records_active_pages    = ["data_table", "data_graph", "data_timeline", "data_globe","data_calender"];
+  edit_table_active_pages = ["table_edit", "topics", "topic_add", "topic_edit","layouts", "layout"];
+%]
 <header class="table-header row no-gutters ">
   <div class="table-header-container">
     <div class="table-header-top row justify-content-between no-gutters">
@@ -9,13 +13,14 @@
         <div class="list list--horizontal">
           <ul class="list__items">
             <li class="list__item">
-              <a href='[% url.page %]/[% layout_obj.identifier %]/data' class='link link--plain [% IF page == "table_records" %]link--active[% END %]'>
+              [% %]
+              <a href='[% url.page %]/[% layout_obj.identifier %]/data' class='link link--plain [% IF records_active_pages.grep(page).size %]link--active[% END %]'>
                 <span>Records</span>
               </a>
             </li>
             
             <li class="list__item">
-              <a href='[% url.page %]/[% layout_obj.identifier %]/' class='link link--plain [% IF page == "table_dashboard" %]link--active[% END %]'>
+              <a href='[% url.page %]/[% layout_obj.identifier %]/' class='link link--plain [% IF page == "index" %]link--active[% END %]'>
                 <span>Dashboard</span>
               </a>
             </li>
@@ -26,14 +31,13 @@
                 <span>Permissions</span>
               </a>
             </li>
-            [% END %]
-            
             [%
+              END;
+              
               IF user.permission.superadmin OR layout_obj.user_can("layout");
-                active_pages = ["table_edit", "topics", "topic_add", "topic_edit","layouts", "layout"];
             %]
             <li class="list__item">
-              <a href='[% url.page %]/table/[% layout_obj.instance_id %]/edit' class="link link--plain [% IF active_pages.grep(page).size %]link--active[% END %]">
+              <a href='[% url.page %]/table/[% layout_obj.instance_id %]/edit' class="link link--plain [% IF edit_table_active_pages.grep(page).size %]link--active[% END %]">
                 <span>Edit table</span>
               </a>
             </li>
@@ -53,6 +57,10 @@
         <a href="[% header_back_url ? header_back_url : url.page _ '/table/' %]" class="btn btn-title-back">
           <span class="btn__title">Back</span>
         </a>
+      </div>
+  
+      <div class="table-header__options-right">
+      
       </div>
     </nav>
   
