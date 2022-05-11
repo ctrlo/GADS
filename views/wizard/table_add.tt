@@ -780,7 +780,8 @@
                         INCLUDE fields/tree.tt
                           id                = "jstree_demo_div"
                           layout_id         = ''
-                          layout_identifier = '';
+                          layout_identifier = ''
+                          no_initial_data   = 1;
                     %]
                   </div>
                 </div>
@@ -1385,7 +1386,7 @@
             <div class="row">
               <div class="col">
                 [%
-                  table_id           = '';
+                  table_id           = 'fields';
                   table_class        = 'table-lines';
                   table_dom          = '<\"row row--header\"<\"col\"f><\"col-lg-auto dataTables_length_wrapper\"l>><\"row row--main\"<\"col-sm-12\"tr>><\"row row--footer\"<\"col-sm-12 col-lg-6\"p><\"col-sm-12 col-lg-6 dataTables_info_wrapper\"i>>';
                   table_order        = '[0,"asc"]';
