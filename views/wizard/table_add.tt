@@ -127,7 +127,7 @@
             </div>
             
             [% FOREACH group IN groups %]
-            <div class="row mb-3">
+            <div class="row mb-3 permission-group" data-group-id="[% group.id %]">
               <div class="col">
                 <div class="card card--expandable">
                   <div class="card__header">
