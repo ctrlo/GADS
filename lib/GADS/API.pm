@@ -941,7 +941,7 @@ sub _create_table
             $field->textbox($f->{field_type_settings}->{textbox});
             $field->force_regex($f->{field_type_settings}->{force_regex});
         }
-        elsif ($field->type eq 'integer')
+        elsif ($field->type eq 'intgr')
         {
             $field->show_calculator($f->{field_type_settings}->{show_calculator});
         }
