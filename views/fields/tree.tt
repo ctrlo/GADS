@@ -1,5 +1,5 @@
 <div class="form-group">
-  <div class="tree tree--config" id="tree-config">
+  <div class="tree tree--config" id="tree-config" data-no-initial-data="[% no_initial_data ? 'true' : 'false' %]">
     [%
       INCLUDE snippets/button_list.tt
         list_class = "list--horizontal list--buttons"
