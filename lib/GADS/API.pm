@@ -894,8 +894,12 @@ sub _create_table
             ? GADS::Column::Filval->new(%args)
             : error(__x"Invalid field type: {type}", type => $f->{field_type});
         $field->name($f->{name});
+        $field->type($f->{field_type});
         $field->optional($f->{optional});
-        $field->topic_id($topics{$f->{topic_tempid}}->id);
+
+        if ($f->{topic_tempid}) {
+            $field->topic_id($topics{$f->{topic_tempid}}->id);
+        }
 
         # Permissions
         my %permissions;
