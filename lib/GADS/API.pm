@@ -866,13 +866,13 @@ sub _create_table
             user   => $user,
             layout => $table,
         );
-        my $field = $f->{field_type} eq 'text'
+        my $field = $f->{field_type} eq 'string'
             ? GADS::Column::String->new(%args)
-            : $f->{field_type} eq 'integer'
+            : $f->{field_type} eq 'intgr'
             ? GADS::Column::Intgr->new(%args)
             : $f->{field_type} eq 'date'
             ? GADS::Column::Date->new(%args)
-            : $f->{field_type} eq 'date-range'
+            : $f->{field_type} eq 'daterange'
             ? GADS::Column::Daterange->new(%args)
             : $f->{field_type} eq 'enum'
             ? GADS::Column::Enum->new(%args)
@@ -884,7 +884,7 @@ sub _create_table
             ? GADS::Column::Person->new(%args)
             : $f->{field_type} eq 'rag'
             ? GADS::Column::Rag->new(%args)
-            : $f->{field_type} eq 'calculated-value'
+            : $f->{field_type} eq 'calc'
             ? GADS::Column::Calc->new(%args)
             : $f->{field_type} eq 'curval'
             ? GADS::Column::Curval->new(%args)
