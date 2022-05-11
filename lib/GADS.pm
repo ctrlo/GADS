@@ -2248,12 +2248,17 @@ prefix '/:layout_name' => sub {
                 || schema->resultset('Dashboard')->shared_dashboard(%params);
         }
 
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         my $params = {
             readonly        => $dashboard->is_shared && !$layout->user_can('layout'),
             dashboard       => $dashboard,
             dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
             page            => 'index',
-            breadcrumbs     => [Crumb($layout)],
+            detail_header   => 1,
+            header_back_url => "${base_url}table",
+            layout_obj      => $layout,
         };
 
         if (my $download = param('download'))
@@ -2961,12 +2966,17 @@ prefix '/:layout_name' => sub {
             app->execute_hook( 'plugin.linkspace.data_before_template', %arg );
         }
 
-        $params->{user_views}               = $views->user_views;
-        $params->{views_limit_extra}        = $views->views_limit_extra;
-        $params->{current_view_limit_extra} = current_view_limit_extra($user, $layout) || $layout->default_view_limit_extra;
-        $params->{alerts}                   = $alert->all;
-        $params->{views_other_user}         = session('views_other_user_id') && rset('User')->find(session('views_other_user_id')),
-        $params->{breadcrumbs}              = [Crumb($layout) => Crumb( $layout, '/data' => 'records' )];
+        my $base_url = request->base;
+
+        $params->{user_views}                   = $views->user_views;
+        $params->{views_limit_extra}            = $views->views_limit_extra;
+        $params->{current_view_limit_extra}     = current_view_limit_extra($user, $layout) || $layout->default_view_limit_extra;
+        $params->{alerts}                       = $alert->all;
+        $params->{views_other_user}             = session('views_other_user_id') && rset('User')->find(session('views_other_user_id')),
+        $params->{content_block_custom_classes} = 'content-block--lg-aside';
+        $params->{detail_header}                = 1;
+        $params->{header_back_url}              = "${base_url}table";
+        $params->{layout_obj}                   = $layout;
 
         template 'data' => $params;
     };
