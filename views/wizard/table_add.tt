@@ -377,7 +377,7 @@
               label   = "Back"
             }]
             right_buttons = [{
-              class   = "btn-invisible btn-js-add-next"
+              class   = "btn-invisible btn-inverted btn-js-add-next"
               label   = "Add another and next"
             }, {
               class   = "btn-js-next btn-disabled"
