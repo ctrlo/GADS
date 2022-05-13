@@ -857,6 +857,7 @@ sub _create_table
     foreach my $f (@{$params->{fields}})
     {
         my %args = (
+            type   => $f->{field_type},
             schema => schema,
             user   => $user,
             layout => $table,
@@ -900,24 +901,24 @@ sub _create_table
             $permissions{$group_id} ||= [];
             foreach my $p (qw/create read update approve write_without_approval/)
             {
-                if ($f->{custom_field_permissions}->{create})
+                if ($perm->{permissions}->{create})
                 {
                     push @{$permissions{$group_id}}, 'write_new';
                 }
-                if ($f->{custom_field_permissions}->{read})
+                if ($perm->{permissions}->{read})
                 {
                     push @{$permissions{$group_id}}, 'read';
                 }
-                if ($f->{custom_field_permissions}->{update})
+                if ($perm->{permissions}->{update})
                 {
                     push @{$permissions{$group_id}}, 'write_existing';
                 }
-                if ($f->{custom_field_permissions}->{approve})
+                if ($perm->{permissions}->{approve})
                 {
                     push @{$permissions{$group_id}}, 'approve_new';
                     push @{$permissions{$group_id}}, 'approve_existing';
                 }
-                if ($f->{custom_field_permissions}->{write_without_approval})
+                if ($perm->{permissions}->{write_without_approval})
                 {
                     push @{$permissions{$group_id}}, 'write_new_no_approval';
                     push @{$permissions{$group_id}}, 'write_existing_no_approval';
@@ -949,6 +950,7 @@ sub _create_table
         {
             $field->enumvals({
                 enumvals    => $f->{field_type_settings}->{dropdown_values},
+                enumval_ids => [],
             });
             $field->ordering($f->{field_type_settings}->{ordering} || undef);
         }
