@@ -1,0 +1,56 @@
+<div class="dropdown [% custom_classes %]">
+  <button
+    class="dropdown-toggle dropdown__toggle"
+    type="button"
+    id="[% id %]"
+    data-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-expanded="false"
+    aria-labelledby="=[% id %]"
+  >
+    <span>[% INCLUDE fields/sub/filter.tt value=label; %]</span>
+  </button>
+  
+  <div class="dropdown-menu dropdown__menu">
+    [% FOREACH group IN groups %]
+    <div class="dropdown__group">
+      [% IF group.label %]
+      <div class="dropdown__group-title">
+        [% INCLUDE fields/sub/filter.tt value=group.label; %]
+      </div>
+      [% END %]
+      <ul class="dropdown__list" role="listbox" aria-labelledby="dropdown">
+        [% FOREACH item IN group.items %]
+        <li class="dropdown__item" role="option">
+          [% IF item.type == "modal" %]
+          <a role="menuitem"
+             id="[% item.id %]"
+             class="link link--plain [% item.class %]"
+             tabindex="-1"
+             data-toggle="modal"
+             data-target="#[% item.target %]"
+          >
+            [% INCLUDE fields/sub/filter.tt value=item.label; %]
+          </a>
+          [% ELSE %]
+            <a role="menuitem"
+               [% IF item.id %]id="[% item.id %]" [% END %]
+               class='link link--plain [% item.class %]'
+               href='[% item.target %]'
+            >
+              [%
+                INCLUDE fields/sub/filter.tt value=item.label;
+                
+                IF item.alert;
+              %]
+              <img src="/images/bell.png">
+              [% END; %]
+            </a>
+          [% END %]
+        </li>
+        [% END %]
+      </ul>
+    </div>
+    [% END %]
+  </div>
+</div>

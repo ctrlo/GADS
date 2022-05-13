@@ -1,0 +1,47 @@
+<div class="content-block__head row">
+  <div class="content-block__info col-xl-3">
+    <div class="content-block__intro">
+      [%
+        table_view_buttons = [{
+          type        = "button",
+          button_type = "button",
+          target      = "?viewtype=table",
+          class       = "btn btn-table" _ (viewtype == "table" ? " btn-active" : ""),
+          label       = "Table"
+        },{
+          type        = "button",
+          button_type = "button",
+          target      = "?viewtype=graph",
+          class       = "btn btn-graph" _ (viewtype == "graph" ? " btn-active" : ""),
+          label       = "Graph"
+        },{
+          type        = "button",
+          button_type = "button",
+          target      = "?viewtype=timeline",
+          class       = "btn btn-timeline" _ (viewtype == "timeline" ? " btn-active" : ""),
+          label       = "Timeline"
+        }];
+      
+        # IF layout.has_globe;
+        #   table_view_buttons.push({
+        #     type        = "button",
+        #     button_type = "button",
+        #     target      = "?viewtype=globe",
+        #     class       = "btn btn-globe" _ (viewtype == "globe" ? " btn-active" : ""),
+        #     label       = "Globe"
+        #   });
+        # END;
+      
+        INCLUDE snippets/button_list.tt
+          list_class = "list--horizontal list--no-borders"
+          buttons    = table_view_buttons;
+      %]
+    </div>
+  </div>
+  
+  <div class="content-block__aside col-xl-9">
+    <a href="" class="btn btn-add">
+      Add a record
+    </a>
+  </div>
+</div>
