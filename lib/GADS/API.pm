@@ -949,7 +949,7 @@ sub _create_table
         elsif ($field->type eq 'enum')
         {
             $field->enumvals({
-                enumvals    => $f->{field_type_settings}->{dropdown_values},
+                enumvals    => [map $_->{enumval}, @{$f->{field_type_settings}->{dropdown_values}}],
                 enumval_ids => [],
             });
             $field->ordering($f->{field_type_settings}->{ordering} || undef);
