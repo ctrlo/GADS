@@ -22,6 +22,7 @@ use Crypt::SaltedHash;
 use MIME::Base64 qw/decode_base64/;
 use Net::OAuth2::AuthorizationServer::PasswordGrant;
 use Session::Token;
+use JSON qw(decode_json encode_json);
 
 use Dancer2 appname => 'GADS';
 use Dancer2::Plugin::Auth::Extensible;
@@ -1013,9 +1014,13 @@ sub _create_table
         }
 
         $field->write(no_alerts => 1, no_cache_update => 1);
+
         # ID needs to be set before writing tree
-        $field->update($settings->{data})
-            if $field->type eq 'tree';
+        if ($field->type eq 'tree')
+        {
+            $field->update($settings->{dataJson});
+        }
+
         $fields{$f->{tempId}} = $field;
     }
 };
