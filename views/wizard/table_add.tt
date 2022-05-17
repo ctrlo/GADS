@@ -530,8 +530,8 @@
                     {id = "tree", name = "Tree"},
                     {id = "file", name = "Document"},
                     {id = "person", name = "Person"},
-                    {id = "rag", name = "RedAmberGreen status (RAG)"},
-                    {id = "calc", name = "Calculated value"},
+                    # {id = "rag", name = "RedAmberGreen status (RAG)"},
+                    # {id = "calc", name = "Calculated value"},
                     {id = "curval", name = "Field(s) for records from another table"}
                   ];
                 
