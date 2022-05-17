@@ -71,7 +71,7 @@
         
               view_items.push({
                 label  = ve.name,
-                target = url.page _ "/" _ layout.identifier _ "/data?view=" _ ve.id,
+                target = url.page _ "/" _ layout_obj.identifier _ "/data?view=" _ ve.id,
                 alert  = alerts.$veid ? 1 : 0
               });
             END;
@@ -90,7 +90,7 @@
         
               view_items.push({
                 label  = ve.name,
-                target = url.page _ "/" _ layout.identifier _ "/data?view=" _ ve.id,
+                target = url.page _ "/" _ layout_obj.identifier _ "/data?view=" _ ve.id,
                 alert  = alerts.$veid ? 1 : 0
               });
             END;
@@ -109,7 +109,7 @@
         
               view_items.push({
                 label  = ve.name,
-                target = url.page _ "/" _ layout.identifier _ "/data?view=" _ ve.id,
+                target = url.page _ "/" _ layout_obj.identifier _ "/data?view=" _ ve.id,
                 alert  = alerts.$veid ? 1 : 0
               });
             END;
@@ -119,7 +119,6 @@
               items = view_items
             });
           END;
-          
         
           INCLUDE snippets/dropdown.tt
             id             = "views"
@@ -133,9 +132,9 @@
             view_limit_groups = [{ items = [] }];
   
             FOR view_limit IN views_limit_extra;
-              view_limit_groups.items.push({
+              view_limit_groups.0.items.push({
                 label  = view_limit.name,
-                target = url.page _ "/" _ layout.identifier _ "/data?extra=" _ view_limit.id,
+                target = url.page _ "/" _ layout_obj.identifier _ "/data?extra=" _ view_limit.id,
                 alert  = 0
               });
             END;
@@ -148,11 +147,7 @@
               groups         = view_limit_groups;
           END;
         
-        
-        
-        
-        
-          IF layout.user_can("bulk_update") OR layout.user_can("delete") OR layout.user_can("download") OR layout.user_can("bulk_delete");
+          IF layout_obj.user_can("bulk_update") OR layout_obj.user_can("delete") OR layout_obj.user_can("download") OR layout_obj.user_can("bulk_delete");
             bulk_action_groups = [{ items = [] }];
             
             IF search;
@@ -163,45 +158,47 @@
               sel_type = "records in this view";
             END;
         
-            IF layout.user_can("delete") AND layout.user_can("bulk_delete");
-              bulk_action_groups.items.push({
+            IF layout_obj.user_can("delete") AND layout_obj.user_can("bulk_delete");
+              bulk_action_groups.0.items.push({
                 type   = "modal",
                 id     = "delete_href",
                 class  = "bulk_href",
                 target = "modal_delete",
-                label  = "Delete all " _ sel_type _ "...",
+                label  = "Delete all " _ sel_type _ "..."
               });
             END;
         
-            IF layout.user_can("bulk_update");
-              bulk_action_groups.items.push({
+            IF layout_obj.user_can("bulk_update");
+              bulk_action_groups.0.items.push({
                 id     = "update_href",
                 class  = "bulk_href",
-                target = url.page _ "/" _ layout.identifier _ "/bulk/update/",
-                label  = "Update all " _ sel_type _ "...",
+                target = url.page _ "/" _ layout_obj.identifier _ "/bulk/update/",
+                label  = "Update all " _ sel_type _ "..."
               },{
                 id     = "clone_href",
                 class  = "bulk_href",
-                target = url.page _ "/" _ layout.identifier _ "/bulk/clone/",
-                label  = "Clone all " _ sel_type _ "...",
+                target = url.page _ "/" _ layout_obj.identifier _ "/bulk/clone/",
+                label  = "Clone all " _ sel_type _ "..."
               });
             END;
         
-            # IF viewtype == "table" AND records.size AND layout.user_can("download");
-            #   bulk_action_groups.items.push({
+            # IF viewtype == "table" AND records.size AND layout_obj.user_can("download");
+            #   bulk_action_groups.0.items.push({
             #     id     = "",
             #     class  = "",
-            #     target = url.page _ "/" _ layout.identifier _ "/data?download" _ (filter_url ? "&" _ filter_url ),
-            #     label  = "Download records",
+            #     target = url.page _ "/" _ layout_obj.identifier _ "/data?download" _ (filter_url ? "&" _ filter_url )
+            #     label  = "Download records"
             #   });
             # END;
         
-            INCLUDE snippets/dropdown.tt
-              id             = "bulk_actions"
-              custom_classes = "dropdown--small"
-              label          = "Bulk actions"
-              filter         = "html"
-              groups         = bulk_action_groups;
+            IF bulk_action_groups.0.items.size;
+              INCLUDE snippets/dropdown.tt
+                id             = "bulk_actions"
+                custom_classes = "dropdown--small"
+                label          = "Bulk actions"
+                filter         = "html"
+                groups         = bulk_action_groups;
+            END;
           END;
         %]
       </div>
