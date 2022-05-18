@@ -3,20 +3,17 @@
     <div class="content-block__intro">
       [%
         table_view_buttons = [{
-          type        = "button",
-          button_type = "button",
+          type        = "link",
           target      = "?viewtype=table",
           class       = "btn btn-table" _ (viewtype == "table" ? " btn-active" : ""),
           label       = "Table"
         },{
-          type        = "button",
-          button_type = "button",
+          type        = "link",
           target      = "?viewtype=graph",
           class       = "btn btn-graph" _ (viewtype == "graph" ? " btn-active" : ""),
           label       = "Graph"
         },{
-          type        = "button",
-          button_type = "button",
+          type        = "link",
           target      = "?viewtype=timeline",
           class       = "btn btn-timeline" _ (viewtype == "timeline" ? " btn-active" : ""),
           label       = "Timeline"
