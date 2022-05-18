@@ -235,7 +235,7 @@
                 id     = "clone_href",
                 class  = "bulk_href",
                 target = url.page _ "/" _ layout_obj.identifier _ "/bulk/clone/",
-                label  = "Clone all " _ sel_type _
+                label  = "Clone all " _ sel_type
               });
             END;
         
@@ -243,7 +243,7 @@
               bulk_action_groups.0.items.push({
                 id     = "",
                 class  = "",
-                target = url.page _ "/" _ layout_obj.identifier _ "/data?download" _ (filter_url ? "&" _ filter_url )
+                target = url.page _ "/" _ layout_obj.identifier _ "/data?download" _ (filter_url ? "&" _ filter_url : "" ),
                 label  = "Download records"
               });
             END;
