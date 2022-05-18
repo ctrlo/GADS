@@ -40,7 +40,7 @@
   </div>
   
   <div class="content-block__aside col-xl-9">
-    <a href="" class="btn btn-add">
+    <a href="[% url.page %]/[% layout.identifier %]/record/" class="btn btn-add">
       Add a record
     </a>
   </div>

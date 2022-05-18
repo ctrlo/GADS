@@ -103,7 +103,7 @@
         
           IF user_views.shared.size;
             view_items = [];
-        
+  
             FOREACH ve IN user_views.shared;
               veid = ve.id;
         
@@ -119,7 +119,7 @@
               items = view_items
             });
           END;
-        
+  
           INCLUDE snippets/dropdown.tt
             id             = "views"
             custom_classes = "dropdown--small"
@@ -127,6 +127,63 @@
             filter         = "html"
             groups         = view_groups;
         
+          manage_view_groups = [{ items = [] }];
+  
+          IF layout.user_can("view_create");
+            manage_view_groups.0.items.push({
+                class  = "link--add",
+                target = url.page _ "/" _ layout.identifier _ "/view/0",
+                label  = "Add a view"
+              });
+          END;
+  
+          IF v;
+            IF layout.user_can("view_create");
+              IF v.writable;
+                manage_view_groups.0.items.push({
+                  class  = "",
+                  target = url.page _ "/" _ layout.identifier _ "/view/" _ v.id,
+                  label  = "Edit current view"
+                });
+              END;
+        
+              manage_view_groups.0.items.push({
+                class  = "",
+                target = url.page _ "/" _ layout.identifier _ "/view/0?clone=" _ v.id,
+                label  = "Clone current view"
+              });
+            END;
+        
+            manage_view_groups.0.items.push({
+              type   = "modal"
+              class  = "",
+              target = "alertModal",
+              label  = "Alert me"
+            });
+          END;
+        
+          IF layout.user_can("layout");
+            manage_view_groups.0.items.push({
+              type   = "modal"
+              class  = "",
+              target = "viewsOfAnotherUserModal",
+              label  = "Manage views of another user"
+            });
+          END;
+        
+          manage_view_groups.0.items.push({
+            type   = "modal"
+            class  = "",
+            target = "historicViewModal",
+            label  = "Historic view"
+          });
+  
+          INCLUDE snippets/dropdown.tt
+            id             = "manage_views"
+            custom_classes = "dropdown--small"
+            label          = "Manage views"
+            filter         = "html"
+            groups         = manage_view_groups;
         
           IF views_limit_extra.size;
             view_limit_groups = [{ items = [] }];
@@ -164,7 +221,7 @@
                 id     = "delete_href",
                 class  = "bulk_href",
                 target = "modal_delete",
-                label  = "Delete all " _ sel_type _ "..."
+                label  = "Delete all " _ sel_type
               });
             END;
         
@@ -173,23 +230,23 @@
                 id     = "update_href",
                 class  = "bulk_href",
                 target = url.page _ "/" _ layout_obj.identifier _ "/bulk/update/",
-                label  = "Update all " _ sel_type _ "..."
+                label  = "Update all " _ sel_type
               },{
                 id     = "clone_href",
                 class  = "bulk_href",
                 target = url.page _ "/" _ layout_obj.identifier _ "/bulk/clone/",
-                label  = "Clone all " _ sel_type _ "..."
+                label  = "Clone all " _ sel_type _
               });
             END;
         
-            # IF viewtype == "table" AND records.size AND layout_obj.user_can("download");
-            #   bulk_action_groups.0.items.push({
-            #     id     = "",
-            #     class  = "",
-            #     target = url.page _ "/" _ layout_obj.identifier _ "/data?download" _ (filter_url ? "&" _ filter_url )
-            #     label  = "Download records"
-            #   });
-            # END;
+            IF viewtype == "table" AND records.size AND layout_obj.user_can("download");
+              bulk_action_groups.0.items.push({
+                id     = "",
+                class  = "",
+                target = url.page _ "/" _ layout_obj.identifier _ "/data?download" _ (filter_url ? "&" _ filter_url )
+                label  = "Download records"
+              });
+            END;
         
             IF bulk_action_groups.0.items.size;
               INCLUDE snippets/dropdown.tt
