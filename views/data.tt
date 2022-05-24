@@ -3,8 +3,8 @@
 
   IF viewtype == "graph";
     INCLUDE 'data_graph.tt';
-  ELSIF viewtype == "calendar";
-      INCLUDE 'data_calendar.tt';
+  # ELSIF viewtype == "calendar";
+  #     INCLUDE 'data_calendar.tt';
   ELSIF viewtype == "timeline";
       INCLUDE 'data_timeline.tt';
   ELSIF viewtype == "globe";
