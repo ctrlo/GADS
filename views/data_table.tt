@@ -1,53 +1,39 @@
 [% FILTER collapse %]
-
-[% PROCESS snippets/rag_legend.tt IF has_rag_column %]
-
-<div class="hscroll row">
-    [% PROCESS snippets/data_table_inner.tt %]
+<div class="content-block__main">
+  <div class="content-block__main-content">
+    [% IF has_rag_column %]
+    <div class="row mb-md-3">
+      [% INCLUDE snippets/rag_legend.tt %]
+    </div>
+    [% END %]
+    [%
+      # prepare table config
+      table_class        = 'table-striped table-hover';
+      table_dom          = '<\"row row--header\"<\"col\"f><\"col-lg-auto dataTables_length_wrapper\"l>><\"row row--main\"<\"col-sm-12\"tr>><\"row row--footer\"<\"col-sm-12 col-lg-6\"p><\"col-sm-12 col-lg-6 dataTables_info_wrapper\"i>>';
+      # todo: change to endpoint URL
+      table_ajax         = url.page _  "/test-response.json"; # url.page _ "/" _ layout.identifier _ "/api/browse";
+      table_order        = '[0,"asc"]';
+      table_language     = '{"emptyTable": "There is no records available","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"","searchPlaceholder":"Search in this table"}';
+      table_page_length  = 50;
+      table_length_menu  = 'basic';
+      table_unresponsive = 0;
+      table_columns      = [];
+      rows               = [];
+    
+      IF is_group;
+        table_columns.push({});
+      END;
+  
+      FOREACH col IN columns;
+        table_columns.push({
+          name = col.name,
+          orderable = 1,
+          filter = "html"
+        });
+      END;
+    
+      INCLUDE tables/basic_table.tt;
+    %]
+  </div>
 </div>
-[% END %]
-
-<ul class="pagination">
-    [% IF subset.page == 1 %]
-        <li class="disabled"><span>&laquo;</span></li>
-    [% ELSE %]
-        <li><a href="?page=[% subset.page - 1 %][% IF filter_url %]&[% filter_url %][% END %]">&laquo;</a></li>
-    [% END %]
-    [% i = 0 %]
-    [% FOREACH i IN subset.pnumbers %]
-        [% IF i == '...' %]
-            <li class="disabled"><span>[% i %]</span></li>
-        [% ELSE %]
-            <li [% IF i == subset.page %]class="active"[% END %]><a href="?page=[% i %][% IF filter_url %]&[% filter_url %][% END %]">[% i %]</a></li>
-        [% END %]
-    [% END %]
-    [% IF subset.page == subset.pages %]
-        <li class="next disabled"><span>&raquo;</span></li>
-    [% ELSE %]
-        <li class="next"><a href="?page=[% subset.page + 1 %][% IF filter_url %]&[% filter_url %][% END %]">&raquo;</a></li>
-    [% END %]
-</ul>
-
-<p><small>Total records: [% count %]</small></p>
-
-[% WRAPPER modal_dialog.tt
-    modal_id="modal_helptext" modal_heading = "Column help text" modal_with_cancel_button = 1
-%]
-[% END %]
-
-<!--		<h4 class="modal-title" id="myModalLabel">[% column.name | html_entity %]</h4> -->
-
-[% WRAPPER modal_dialog.tt
-    modal_id="modal_sendemail" modal_action_text="Send email" modal_heading = "Send an email"
-    modal_with_cancel_button = 1 modal_with_form = 1 modal_form_method = "post"
-%]
-    <input type="hidden" id="modal_sendemail_peopcol_id" name="peopcol">
-    <div class="form-group">
-        <label for="subject" class="control-label">Subject</label>
-        <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject">
-    </div>
-    <div class="form-group">
-        <label for="text" class="control-label">Message</label>
-        <textarea class="form-control" id="text" name="text" rows="10"></textarea>
-    </div>
 [% END %]

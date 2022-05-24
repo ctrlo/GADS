@@ -118,7 +118,7 @@
   END;
   
   table_config = '{
-    "dom": "' _ ( table_dom || '' ) _ '",
+    "dom": "' _ ( table_dom || '' ) _ '",_AJAX
     "order":[' _ ( table_order || '[0,"asc"]' ) _ '],
     "language": ' _ ( table_language || '{"emptyTable": "There is no data available in this table"}' ) _ ',
     "responsive": ' _ ( table_unresponsive ? 'false' : '{"details":{"type":"column","target":-1}}' ) _ ',
@@ -131,6 +131,7 @@
     ]
   }';
 
+  table_config = table_config.replace('_AJAX', table_ajax ? "\n" _ '    "ajax":"' _ table_ajax _ '",' _ "\n" _ '    "serverSide":true,' _ "\n" _ '    "processing":true,' : '');
   table_config = table_config.replace('_SHOW_ALL_RECORDS', table_show_all_records ? "\n" _ '    "iDisplayLength":-1,' : '');
   table_config = table_config.replace('_ROW_REORDER', reorderConfig);
   table_config = table_config.replace('_PAGE_LENGTH', pageLengthConfig);
