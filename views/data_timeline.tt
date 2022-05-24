@@ -1,66 +1,16 @@
-<p></p>
-[% FOREACH color IN colors %]
-    <div class="timeline-color">
-        <div class="timeline-color-key" style="background-color:[% color.color %]"></div>
-        <div class="timeline-color-text">[% color.key | html_entity %]</div>
-    </div>
-[% END %]
-
-[% PROCESS snippets/data_timeline_inner.tt %]
-
-<p></p>
-
-<form role="form" method="post" enctype="multipart/form-data" style="display: none" action="/[% layout.identifier %]/edits">
-    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-    <input type="hidden" name="q" id="changed_data">
-
-    <div class="row">
-        <div class="col-md-8">
-            <div style="height:55px;"></div>
-            <nav class="navbar navbar-default navbar-fixed-bottom" style="min-height:55px">
-                <div class="container">
-                    <button type="submit" id="submit_button" name="submit" value="submit" class="btn btn-primary">Save</button>
-                    <a href="/[% layout.identifier %]/data" id="cancel_button" class="btn btn-default">Cancel</a>
-                    <span style="padding-left: 35px">You have <a data-toggle="modal" data-target="#modal_changed_items" href="">unsaved changes</a>.</span>
-                </div>
-            </nav>
+<div class="content-block__main">
+  <div class="content-block__main-content">
+    <div class="timeline">
+      <div class="timeline__legend">
+        [% FOREACH color IN colors %]
+        <div class="timeline__color">
+          <div class="timeline__color-key" style="background-color:[% color.color %]"></div>
+          <div class="timeline__color-text">[% color.key | html_entity %]</div>
         </div>
+        [% END %]
+      </div>
+      
+      [% PROCESS snippets/data_timeline_inner.tt %]
     </div>
-
-</form>
-
-<div class="modal fade" role="dialog" id="modal_changed_items" tabindex="-1" aria-labelledby="changed_items_title">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="changed_items_title">Unsaved Changes</h4>
-            </div>
-            <div class="modal-body">
-                <ul class="modal-body" id="visualization_changes">
-                </ul>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
+  </div>
 </div>
-
-[% WRAPPER modal_dialog.tt
-    modal_id = "modal_pdf"
-    modal_action_text = "View"
-    modal_heading = "View timeline as PDF"
-    modal_with_form = 1
-    modal_form_method = "post"
-    modal_form_target = "_blank"
-    modal_form_action = url.page _ "/print"
-%]
-    <div class="form-group">
-        <label for="pdf_zoom">Zoom level of PDF document (%):</label>
-        <input type="text" class="form-control" id="pdf_zoom" name="pdf_zoom" value="[% tl_options.pdf_zoom OR '100' %]">
-        <input type="checkbox" id="fit_to_page_width" name="fit_to_page_width" style="cursor: pointer;">
-        <label for="fit_to_page_width" style="margin-left: 5px; cursor: pointer;">Fit timeline to page width</label>
-        <input type="hidden" id="html" name="html" value="" data-url-js="[% url.js %]" data-url-css="[% url.css %]">
-    </div>
-[% END %]
