@@ -1,12 +1,16 @@
 [% PROCESS snippets/rag_symbols.tt %]
-<aside id="rag_legend" role="complementary">
-    <span>RAG symbol legend:</span>
-    <dl>
+<aside role="complementary" class="rag-legend rag-legend--horizontal">
+  <span class="rag-legend__title">RAG symbol legend:</span>
+  <dl class="rag-legend__list">
     [% FOREACH rag_grade IN rag_grades %]
-        <dt class="rag">
-            <span class="[% rag_grade %]">[% rag_symbols.$rag_grade %]</span>
-        </dt>
-        <dd id="rag_[% rag_grade %]_meaning">[% rag_grade %]</dd>
+    <dt class="rag-legend__item">
+      <span class="rag rag--[% rag_grade %]" title="[% rag_grade %]" aria-labelledby="rag_[% rag_grade %]_meaning">
+        <span>[% rag_symbols.$rag_grade %]</span>
+      </span>
+    </dt>
+    <dd class="rag-legend__meaning" id="rag_[% rag_grade %]_meaning">
+      [% rag_grade %]
+    </dd>
     [% END %]
-    </dl>
+  </dl>
 </aside>
