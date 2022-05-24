@@ -61,6 +61,24 @@
   
       <div class="table-header__options-right">
         [%
+          IF viewtype == "graph" AND layout.user_can("layout");
+            INCLUDE snippets/dropdown.tt
+              id             = "manage_graphs"
+              custom_classes = "dropdown--small"
+              label          = "Manage graphs"
+              filter         = "html"
+              groups         = [{
+                items = [{
+                  label  = "Manage graphs",
+                  target = url.page _ "/" _ layout.identifier _ "/graphs/"
+                }, {
+                  label  = "Metrics",
+                  target = url.page _ "/" _ layout.identifier _ "/metrics/"
+                }]
+              }];
+          END;
+        
+        
           view_groups = [];
         
           IF user_views.personal.size;
@@ -97,6 +115,7 @@
         
             view_groups.push({
               label = "Administration views",
+              items = view_items
               items = view_items
             });
           END;
