@@ -380,6 +380,11 @@ around 'clone' => sub {
     );
 };
 
+sub for_table
+{   my $self = shift;
+    $self->presentation;
+}
+
 sub as_string
 {   my $self = shift;
     $self->text // "";

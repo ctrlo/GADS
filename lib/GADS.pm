@@ -2909,7 +2909,6 @@ prefix '/:layout_name' => sub {
             $params->{user_can_edit}        = $layout->user_can('write_existing');
             $params->{sort}                 = $records->sort_first;
             $params->{subset}               = $subset;
-            $params->{records}              = $records->presentation;
             $params->{aggregate}            = $records->aggregate_presentation;
             $params->{count}                = $records->count;
             $params->{columns}              = [ map $_->presentation(

@@ -450,6 +450,11 @@ around 'clone' => sub {
     $orig->($self, %params, %extra);
 };
 
+sub for_table
+{   my $self = shift;
+    $self->presentation;
+}
+
 sub as_string
 {   my $self = shift;
     $self->text // "";

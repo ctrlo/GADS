@@ -542,6 +542,10 @@ post '/api/table_request/:id' => require_login sub {
     _post_table_request();
 };
 
+get '/api/:sheet/records' => require_login sub {
+    _get_records();
+};
+
 sub _post_dashboard_widget {
     my $layout = shift;
     my $user   = logged_in_user;
@@ -1028,6 +1032,75 @@ sub _post_table_request {
         return _success("Table created successfully");
     }
 }
+
+# XXX Copied from GADS.pm
+sub current_view {
+    my ($user, $layout, $view_id) = @_;
+
+    $layout or return undef;
+
+    my $views      = GADS::Views->new(
+        user        => $user,
+        schema      => schema,
+        layout      => $layout,
+        instance_id => $layout->instance_id,
+    );
+    my $view;
+    # If an invalid view is stuck in the session, then this can result in the
+    # user in a continuous loop unable to open any other views
+    $view_id ||= session('persistent')->{view}->{$layout->instance_id};
+    try { $view = $views->view($view_id) };
+    $@->reportAll(is_fatal => 0); # XXX results in double reporting
+    return $view || $views->default || undef; # Can still be undef
+};
+
+sub _get_records {
+
+    my $sheetname = param 'sheet';
+    my $user      = logged_in_user;
+    my $layout    = var('instances')->layout_by_shortname($sheetname); # borks on not found
+    my $view      = current_view($user, $layout);
+
+    # Need to build records first, so that we can access rendered column
+    # information (not necessarily same as view columns)
+    my $records = GADS::Records->new(
+        user   => $user,
+        schema => schema,
+        view   => $view,
+        rows   => query_parameters->get('length'),
+        page   => query_parameters->get('start') / query_parameters->get('length'),
+        layout => $layout,
+    );
+
+    # Configure table sort
+    my $order_index = query_parameters->get('order[0][column]');
+    my $col_order   = $records->columns_render->[$order_index];
+    # Check user has access
+    error __"Invalid column ID for sort"
+        unless $col_order && $col_order->user_can('read');
+    my $sort = { type => query_parameters->get('order[0][dir]'), id => $col_order->id };
+
+    $records->clear_sorts;
+    $records->sort($sort);
+
+    my $return = {
+        draw            => query_parameters->get('draw'),
+        recordsTotal    => $records->count,
+        recordsFiltered => $records->count, # XXX update
+        data            => [],
+    };
+
+    foreach my $rec (@{$records->results})
+    {
+        my $data;
+        $data->{$_->name} = $rec->fields->{$_->id}->for_table
+            foreach @{$records->columns_render};
+        push @{$return->{data}}, $data;
+    }
+
+    content_type 'application/json; charset=UTF-8';
+    return encode_json $return;
+};
 
 sub _get_widget_write
 {   my ($widget_id, $dashboard_id, $layout, $user) = @_;

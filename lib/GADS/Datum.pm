@@ -137,6 +137,11 @@ sub text_all
     [$self->as_string];
 }
 
+sub for_table
+{   my $self = shift;
+    $self->as_string;
+}
+
 sub html
 {   my $self = shift;
     encode_entities $self->as_string;
