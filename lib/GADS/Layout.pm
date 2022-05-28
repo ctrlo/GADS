@@ -601,6 +601,9 @@ sub delete
         })->next;
     my $guard = $self->schema->txn_scope_guard;
     $self->delete_internal_columns;
+    $self->schema->resultset('Topic')->search({
+        instance_id => $self->instance_id,
+    })->delete;
     $self->schema->resultset('InstanceGroup')->search({
         instance_id => $self->instance_id,
     })->delete;
