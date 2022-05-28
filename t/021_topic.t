@@ -92,4 +92,20 @@ $record->fields->{$enum1->id}->set_value('');
 try { $record->write(no_alerts => 1) };
 ok(!$@, "Written record after setting dependent value to blank");
 
+# Test deletion of table containing only topics
+my $count = $schema->resultset('Instance')->count;
+my $blank = GADS::Layout->new(
+    name   => 'Temp',
+    user   => $sheet->user,
+    schema => $schema,
+);
+$blank->write;
+is($schema->resultset('Instance')->count, $count + 1, "Table created");
+my $topic = $schema->resultset('Topic')->create({
+    name        => 'Temp',
+    instance_id => $blank->instance_id,
+});
+$blank->delete;
+is($schema->resultset('Instance')->count, $count, "Table deleted");
+
 done_testing();

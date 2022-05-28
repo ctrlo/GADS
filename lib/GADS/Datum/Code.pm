@@ -232,6 +232,7 @@ sub _build_value
         if ($@ || $return->{error})
         {
             my $error = $@ ? $@->wasFatal->message->toString : $return->{error};
+            local $Data::Dumper::Indent = 0;
             warning __x"Failed to eval code for field \"{field}\": {error} (code: {code}, params: {params})",
                 field => $column->name,
                 error => $error, code => $return->{code} || $column->code, params => Dumper($self->vars);

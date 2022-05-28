@@ -22,12 +22,21 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 
 use GADS::DB;
+use GADS::Filter;
 use GADS::Instances;
 use GADS::Layout;
+use GADS::View;
 use Dancer2;
 use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::LogReport mode => 'VERBOSE';
+use Getopt::Long;
 use Tie::Cache;
+
+my ($from_record_id);
+
+GetOptions (
+    'from-record-id=s' => \$from_record_id,
+) or exit;
 
 # Close dancer2 special dispatcher, which tries to write to the session
 dispatcher close => 'error_handler';
@@ -60,11 +69,41 @@ foreach my $site (schema->resultset('Site')->all)
         my $cols = $layout->col_ids_for_cache_update;
         next if !@$cols;
 
+        my $view;
+        # Allow the update to be performed starting from a particular
+        # current_id
+        if ($from_record_id)
+        {
+            my $filter = GADS::Filter->new(
+                as_hash => {
+                    rules => [
+                        {
+                            id       => $layout->column_id->id,
+                            type     => 'integer',
+                            value    => $from_record_id,
+                            operator => 'greater',
+                        },
+                    ],
+                },
+            );
+
+            $view = GADS::View->new(
+                name        => 'Test view',
+                filter      => $filter,
+                columns     => $cols,
+                instance_id => 1,
+                layout      => $layout,
+                schema      => schema,
+                user        => undef,
+            );
+        }
+
         my $records = GADS::Records->new(
             user                 => undef,
+            view                 => $from_record_id && $view,
             layout               => $layout,
             schema               => schema,
-            columns              => $cols,
+            columns              => !$from_record_id && $cols,
             curcommon_all_fields => 1, # Code might contain curcommon fields not in normal display
             include_children     => 1, # Update all child records regardless
         );

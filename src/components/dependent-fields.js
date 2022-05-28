@@ -42,6 +42,10 @@ const setupDependentFields = (() => {
         var values = getFieldValues($depends, rule.filtered);
         var this_not_shown = is_negative ? false : true;
         $.each(values, function(index, value) {
+          // Blank values are returned as undefined for consistency with
+          // backend calc code. Convert to empty string, otherwise they will
+          // be rendered as the string "undefined" in a regex
+          if (value === undefined) value = '';
           if (is_negative) {
             if (regexp.test(value)) this_not_shown = 1;
           } else {
