@@ -452,7 +452,15 @@ around 'clone' => sub {
 
 sub for_table
 {   my $self = shift;
-    $self->presentation;
+    my @return;
+    foreach my $val (@{$self->values})
+    {
+        my $ret;
+        $ret->{$_->name} = $val->{record}->fields->{$_->id}->for_table
+            foreach @{$self->column->curval_fields};
+        push @return, $ret;
+    }
+    \@return;
 }
 
 sub as_string
