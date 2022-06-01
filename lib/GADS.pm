@@ -4088,10 +4088,15 @@ prefix '/:layout_name' => sub {
         );
         my $all_graphs = $graphs->all;
 
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         template 'graphs' => {
-            graphs      => $all_graphs,
-            page        => 'graphs',
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, '/data' => 'records' ) => Crumb( $layout, '/graph' => 'graphs' )],
+            graphs           => $all_graphs,
+            page             => 'graphs',
+            detail_header    => 1,
+            header_back_url  => "${base_url}${tableIdentifier}/data",
+            layout_obj       => $layout
         };
     };
 
