@@ -223,9 +223,7 @@ around 'clone' => sub {
 
 sub for_table
 {   my $self = shift;
-    my $id = $self->id;
-    my $name = $self->name;
-    qq(<a href="/file/$id">$name</a>);
+    $self->files;
 }
 
 sub as_string
