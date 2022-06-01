@@ -1063,12 +1063,14 @@ sub _get_records {
 
     # Need to build records first, so that we can access rendered column
     # information (not necessarily same as view columns)
+    my $start  = query_parameters->get('start') || 0;
+    my $length = query_parameters->get('length') || 25;
     my $records = GADS::Records->new(
         user   => $user,
         schema => schema,
         view   => $view,
-        rows   => query_parameters->get('length'),
-        page   => query_parameters->get('start') / query_parameters->get('length'),
+        rows   => $length,
+        page   => $start / $length,
         layout => $layout,
     );
 
