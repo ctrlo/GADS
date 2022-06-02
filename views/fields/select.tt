@@ -74,8 +74,8 @@
       role="listbox"
     >
       [% FOREACH item IN items %]
-      <li class="select__menu-item" role="option" [% IF item.reveal_id %]data-reveal_id="[% item.reveal_id %]"[% END %] data-value="[% item.id %]" aria-selected="[% IF value == item.id %]true[% ELSE %]false[% END %]">
-        [% item.name | html_entity %]
+      <li class="select__menu-item" role="option" [% IF item.reveal_id %]data-reveal_id="[% item.reveal_id %]"[% END %] data-value="[% item.id %]"[% IF item.is_date.defined %] data-is-date="[% item.is_date %]"[% END %] aria-selected="[% IF value == item.id %]true[% ELSE %]false[% END %]">
+        [% item.name | html %]
       </li>
       [% END %]
     </ul>

@@ -3112,18 +3112,18 @@ prefix '/:layout_name' => sub {
             }
         }
 
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         $params->{graph}         = $graph;
         $params->{metric_groups} = GADS::MetricGroups->new(
             schema      => schema,
             instance_id => session('persistent')->{instance_id},
         )->all;
-
-        my $graph_name = $id ? $graph->title : "add a graph";
-        my $graph_id   = $id ? $graph->id : 0;
-        $params->{breadcrumbs}   = [
-            Crumb($layout) => Crumb( $layout, '/data' => 'records' )
-                => Crumb( $layout, '/graphs' => 'graphs' ) => Crumb( $layout, "/graph/$graph_id" => $graph_name )
-        ],
+        $params->{detail_header}                = 1;
+        $params->{content_block_custom_classes} = 'content-block--footer';
+        $params->{header_back_url}              = "${base_url}${tableIdentifier}/graphs";
+        $params->{layout_obj}                   = $layout;
 
         template 'graph' => $params;
     };
