@@ -455,7 +455,10 @@ sub for_table
     my @return;
     foreach my $val (@{$self->values})
     {
-        my $ret;
+        my $ret = {
+            record_id  => $val->{id},
+            version_id => $val->{version_id},
+        };
         $ret->{$_->name} = $val->{record}->fields->{$_->id}->for_table
             foreach @{$self->column->curval_fields};
         push @return, $ret;
