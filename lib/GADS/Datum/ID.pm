@@ -38,6 +38,14 @@ sub _build_blank {
     ! $self->value;
 }
 
+sub for_table
+{   my $self = shift;
+    {
+        type   => $self->column->type,
+        values => [$self->as_string],
+    }
+}
+
 sub as_string
 {   my $self = shift;
     $self->value;

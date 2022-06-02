@@ -55,4 +55,12 @@ sub _build_for_code
     $self->string;
 }
 
+sub for_table
+{   my $self = shift;
+    {
+        type   => $self->column->type,
+        values => [$self->as_string],
+    }
+}
+
 1;

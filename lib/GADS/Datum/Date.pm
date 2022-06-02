@@ -64,6 +64,13 @@ after set_value => sub {
     $self->oldvalue($clone);
 };
 
+sub for_table
+{   my $self = shift;
+    {
+        type   => $self->column->type,
+        values => $self->text_all,
+    }
+}
 
 has values => (
     is      => 'rwp',

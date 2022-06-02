@@ -120,6 +120,14 @@ around 'clone' => sub {
     $orig->($self, values => $self->values, text_all => $self->text_all, @_);
 };
 
+sub for_table
+{   my $self = shift;
+    {
+        type   => $self->column->type,
+        values => $self->text_all,
+    }
+}
+
 sub as_string
 {   my $self = shift;
     join ', ', @{$self->text_all};

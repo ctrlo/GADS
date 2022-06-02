@@ -144,6 +144,14 @@ sub _as_string
     $self->daterange_as_string($range, $format);
 }
 
+sub for_table
+{   my $self = shift;
+    {
+        type   => $self->column->type,
+        values => $self->text_all,
+    }
+}
+
 has html_form => (
     is      => 'lazy',
     clearer => 1,

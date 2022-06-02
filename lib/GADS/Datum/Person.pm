@@ -382,7 +382,44 @@ around 'clone' => sub {
 
 sub for_table
 {   my $self = shift;
-    $self->presentation;
+
+    my @vals;
+
+    if (!$self->blank)
+    {
+        my $val = {
+            text => $self->text,
+        };
+        my $site = $self->column->layout->site;
+        my @details;
+        if (my $email = $self->email)
+        {
+            push @details, {
+                value => $self->email,
+                type  => 'email'
+            };
+        }
+
+        for (
+            [$self->freetext1, $site->register_freetext1_name],
+            [$self->freetext2, $site->register_freetext2_name]
+        ) {
+            next unless $_->[0];
+
+            push @details, {
+                definition => $_->[1],
+                value      => $_->[0],
+                type       => 'text'
+            };
+        }
+        $val->{details} = \@details;
+        @vals = ($val);
+    }
+
+    {
+        type   => $self->column->type,
+        values => \@vals,
+    }
 }
 
 sub as_string

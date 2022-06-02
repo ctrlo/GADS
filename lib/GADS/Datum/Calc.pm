@@ -30,7 +30,7 @@ extends 'GADS::Datum::Code';
 with 'GADS::DateTime';
 with 'GADS::Role::Presentation::Datum::String';
 
-sub as_string
+sub as_strings
 {   my $self = shift;
     my (@return, $df, $dc);
 
@@ -52,7 +52,12 @@ sub as_string
           : $value;
     }
 
-    join ', ', @return;
+    @return;
+}
+
+sub as_string
+{   my $self = shift;
+    join ', ', $self->as_strings;
 }
 
 sub _parse_date
@@ -216,6 +221,14 @@ sub equal
     }
     # Assume same
     return 1;
+}
+
+sub for_table
+{   my $self = shift;
+    {
+        type   => $self->column->type,
+        values => [$self->as_strings],
+    }
 }
 
 sub _build_for_code

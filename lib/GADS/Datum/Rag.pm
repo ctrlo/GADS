@@ -118,6 +118,14 @@ sub as_integer
         : -2;
 }
 
+sub for_table
+{   my $self = shift;
+    {
+        type   => $self->column->type,
+        values => $self->value,
+    }
+}
+
 sub as_string
 {   my $self = shift;
     $self->_value_single // "";

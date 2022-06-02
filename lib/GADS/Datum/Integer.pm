@@ -75,6 +75,15 @@ around 'clone' => sub {
     $orig->($self, value => $self->value, @_);
 };
 
+sub for_table
+{   my $self = shift;
+    my @vals = defined $self->value ? ($self->value) : ();
+    {
+        type   => $self->column->type,
+        values => \@vals,
+    }
+}
+
 sub as_string
 {   my $self = shift;
     $self->value // "";

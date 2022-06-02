@@ -223,7 +223,10 @@ around 'clone' => sub {
 
 sub for_table
 {   my $self = shift;
-    $self->files;
+    {
+        type   => $self->column->type,
+        values => $self->files,
+    }
 }
 
 sub as_string

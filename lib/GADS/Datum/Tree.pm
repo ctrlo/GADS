@@ -186,6 +186,14 @@ has text_all => (
     }
 );
 
+sub for_table
+{   my $self = shift;
+    {
+        type   => $self->column->type,
+        values => [$self->text_all],
+    }
+}
+
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
