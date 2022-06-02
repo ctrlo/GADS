@@ -1,21 +1,16 @@
 <form method="post" class="">
-  <div class="content-block__head row">
-    <div class="content-block__info col-lg-6">
-      <h2 class="content-block__title">
-        Manage graphs
-      </h2>
-      
-      <div class="content-block__intro">
-        Use this page to configure what graphs are displayed on your home page. New graphs can only be added by an administrator.
-      </div>
-    </div>
-    
-    <div class="content-block__aside col-lg-6">
-      <a href="[% url.page %]/[% layout.identifier %]/graph/0" class="btn btn-add">
-        <span class="btn__title">Add a graph</span>
-      </a>
-    </div>
-  </div>
+  [%
+    # add standardized page header
+    INCLUDE layouts/page_header.tt
+      title         = "Manage graphs"
+      description   = "Use this page to configure what graphs are displayed on your home page. New graphs can only be added by an administrator."
+      aside_buttons = [{
+       type   = "link"
+       target = url.page _ "/" _ layout.identifier _ "/graph/0"
+       class  = "btn btn-add"
+       label  = "Add a graph"
+     }];
+  %]
 
   <div class="content-block__main">
     <div class="content-block__main-content">
