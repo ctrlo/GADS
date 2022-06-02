@@ -3069,10 +3069,8 @@ prefix '/:layout_name' => sub {
     };
 
     any ['get', 'post'] => '/graph/:id' => require_login sub {
-
         my $layout = var('layout') or pass;
-
-        my $user        = logged_in_user;
+        my $user   = logged_in_user;
 
         my $params = {
             layout => $layout,
@@ -3142,11 +3140,17 @@ prefix '/:layout_name' => sub {
             instance_id => $layout->instance_id,
         )->all;
 
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         my $params = {
-            layout      => $layout,
-            page        => 'metric',
-            metrics     => $metrics,
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, '/data' => 'records' )
+            layout          => $layout,
+            page            => 'metric',
+            metrics         => $metrics,
+            detail_header   => 1,
+            header_back_url => "${base_url}${tableIdentifier}/data",
+            layout_obj      => $layout,
+            breadcrumbs     => [Crumb($layout) => Crumb( $layout, '/data' => 'records' )
                 => Crumb( $layout, '/graphs' => 'graphs' )
                 => Crumb( $layout, '/metrics' => 'metrics' )
             ],
@@ -3234,6 +3238,13 @@ prefix '/:layout_name' => sub {
                 => Crumb( $layout, '/graphs' => 'graphs' )
                 => Crumb( $layout, '/metrics' => 'metrics' ) => Crumb( $layout, "/metric/$metric_id" => $metric_name )
         ],
+
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
+        $params->{detail_header}   = 1;
+        $params->{header_back_url} = "${base_url}${tableIdentifier}/metrics";
+        $params->{layout_obj}      = $layout;
 
         template 'metric' => $params;
     };
@@ -4092,11 +4103,12 @@ prefix '/:layout_name' => sub {
         my $tableIdentifier = $layout->identifier;
 
         template 'graphs' => {
-            graphs           => $all_graphs,
-            page             => 'graphs',
-            detail_header    => 1,
-            header_back_url  => "${base_url}${tableIdentifier}/data",
-            layout_obj       => $layout
+            graphs                       => $all_graphs,
+            page                         => 'graphs',
+            detail_header                => 1,
+            content_block_custom_classes => 'content-block--footer',
+            header_back_url              => "${base_url}${tableIdentifier}/data",
+            layout_obj                   => $layout
         };
     };
 
