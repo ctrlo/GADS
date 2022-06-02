@@ -1,4 +1,4 @@
-<div class="content-block ">
+<form method="post" class="">
   <div class="content-block__head row">
     <div class="content-block__info col-lg-6">
       <h2 class="content-block__title">
@@ -16,113 +16,120 @@
       </a>
     </div>
   </div>
-  
+
   <div class="content-block__main">
     <div class="content-block__main-content">
-      <form method="post" class="">
-        [%
-          INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
-        
-          # prepare table config
-          table_class        = 'table-striped table-selectable';
-          table_dom          = '<\"row row--header\"<\"col\"f><\"col-lg-auto dataTables_length_wrapper\"l>><\"row row--main\"<\"col-sm-12\"tr>><\"row row--footer\"<\"col-sm-12 col-lg-6\"p><\"col-sm-12 col-lg-6 dataTables_info_wrapper\"i>>';
-          table_order        = '[0,"asc"]';
-          table_language     = '{"emptyTable": "No graphs have been created. Please use the `Add a graph` button above to add one.","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"","searchPlaceholder":"Search in this table"}';
-          table_page_length  = 50;
-          table_length_menu  = 'basic';
-          table_unresponsive = 0;
-          rows               = [];
-          table_columns      = [{
-            name      = "Select",
-            orderable = 0,
-            data      = "check",
-            class     = "check",
-            width     = "10%"
-          }, {
-            name      = "Title",
-            orderable = 1
-          }, {
-            name      = "Type",
-            orderable = 1
-          }, {
-            name      = "X-axis",
-            orderable = 1
-          }, {
-            name      = "Y-axis",
-            orderable = 1
-          }, {
-            name      = "Group by",
-            orderable = 1
-          }];
-        
-          FOREACH graph IN graphs;
-            rows.push({
-              link_placeholders = {
-                graph_id = graph.id
-                table_short_name = layout_obj.identifier
+      [%
+        INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
+      
+        # prepare table config
+        table_class        = 'table-striped table-selectable';
+        table_dom          = '<\"row row--header\"<\"col\"f><\"col-lg-auto dataTables_length_wrapper\"l>><\"row row--main\"<\"col-sm-12\"tr>><\"row row--footer\"<\"col-sm-12 col-lg-6\"p><\"col-sm-12 col-lg-6 dataTables_info_wrapper\"i>>';
+        table_order        = '[0,"asc"]';
+        table_language     = '{"emptyTable": "No graphs have been created. Please use the `Add a graph` button above to add one.","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"","searchPlaceholder":"Search in this table"}';
+        table_page_length  = 50;
+        table_length_menu  = 'basic';
+        table_unresponsive = 0;
+        rows               = [];
+        table_columns      = [{
+          name      = "Select",
+          orderable = 0,
+          data      = "check",
+          class     = "check",
+          width     = "100px"
+        }, {
+          name      = "Title",
+          orderable = 1
+        }, {
+          name      = "Type",
+          orderable = 1
+        }, {
+          name      = "X-axis",
+          orderable = 1
+        }, {
+          name      = "Y-axis",
+          orderable = 1
+        }, {
+          name      = "Group by",
+          orderable = 1
+        }];
+      
+        FOREACH graph IN graphs;
+          rows.push({
+            link_placeholders = {
+              graph_id = graph.id
+              table_short_name = layout_obj.identifier
+            }
+            fields = [{
+              type        = "text"
+              label       = ""
+              sub_field   = "fields/sub/checkbox.tt"
+              sub_params  = {
+                id => "graphs_" _ graph.id
+                name => "graphs"
+                label => graph.id
+                checked => graph.selected ? 1 : 0
+                filter => "html"
+                is_required => 0
+                autofocus => 0
+                input_class => "checkbox--hide-label"
+                label_in_span => 1
+                value => graph.id
               }
-              fields = [{
-                type        = "text"
-                label       = ""
-                sub_field   = "fields/sub/checkbox.tt"
-                sub_params  = {
-                  id => "graphs_" _ graph.id
-                  name => "graphs"
-                  label => graph.id
-                  checked => graph.selected ? 1 : 0
-                  filter => "html"
-                  is_required => 0
-                  autofocus => 0
-                  input_class => "checkbox--hide-label"
-                  label_in_span => 1
-                  value => graph.id
-                }
-              }, {
-                type  = graph.writable ? "link" : "text"
-                label = graph.title
-                link  = url.page _ "/{table_short_name}/graph/{graph_id}"
-                filter = "html"
-              },{
-                type  = graph.writable ? "link" : "text"
-                label = graph.type.ucfirst
-                link  = url.page _ "/{table_short_name}/graph/{graph_id}"
-                filter = ""
-              },{
-                type  = graph.writable ? "link" : "text"
-                label = layout.column(graph.x_axis).name
-                link  = url.page _ "/{table_short_name}/graph/{graph_id}"
-                filter = "html"
-              },{
-                type  = graph.writable ? "link" : "text"
-                label = layout.column(graph.y_axis).name
-                link  = url.page _ "/{table_short_name}/graph/{graph_id}"
-                filter = "html"
-              },{
-                type   = graph.writable ? "link" : "text"
-                label  = layout.column(graph.group_by).name
-                link   = url.page _ "/{table_short_name}/graph/{graph_id}"
-                filter = "html"
-              },]
-            });
-          END;
-        
-          INCLUDE tables/basic_table.tt;
-        %]
-        
-        <div class="row mt-5">
-          <div class="col-sm-auto">
-            <button
-              id="submit"
-              type="submit"
-              class="btn btn-default"
-              name="graphsubmit"
-              value="submit"
-            >
-              <span class="btn__title">Save</span>
-            </button>
-          </div>
-        </div>
-      </form>
+            }, {
+              type  = graph.writable ? "link" : "text"
+              label = graph.title
+              link  = url.page _ "/{table_short_name}/graph/{graph_id}"
+              filter = "html"
+            },{
+              type  = graph.writable ? "link" : "text"
+              label = graph.type.ucfirst
+              link  = url.page _ "/{table_short_name}/graph/{graph_id}"
+              filter = ""
+            },{
+              type  = graph.writable ? "link" : "text"
+              label = layout.column(graph.x_axis).name
+              link  = url.page _ "/{table_short_name}/graph/{graph_id}"
+              filter = "html"
+            },{
+              type  = graph.writable ? "link" : "text"
+              label = layout.column(graph.y_axis).name
+              link  = url.page _ "/{table_short_name}/graph/{graph_id}"
+              filter = "html"
+            },{
+              type   = graph.writable ? "link" : "text"
+              label  = layout.column(graph.group_by).name
+              link   = url.page _ "/{table_short_name}/graph/{graph_id}"
+              filter = "html"
+            },]
+          });
+        END;
+      
+        INCLUDE tables/basic_table.tt;
+      %]
     </div>
   </div>
-</div>
+  
+  <footer class="content-block__footer">
+    <div class="content-block__footer-container">
+      [%
+        INCLUDE navigation/button_bar.tt
+          row_class = "row"
+          columns   = [{
+            class   = "col-md-4 mb-3 mb-md-0",
+            buttons = []
+          }, {
+            class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
+            buttons = [{
+              type  = "button",
+              class = "btn btn-default",
+              name  = "graphsubmit",
+              value = "submit",
+              class = "btn btn-default",
+              label = "Save"
+            }]
+          }];
+      %]
+    </div>
+  </footer>
+</form>
