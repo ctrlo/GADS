@@ -1,5 +1,5 @@
 [%
-  records_active_pages    = ["data_table", "data_graph", "data_timeline", "data_globe","data_calender", "graphs", "graph"];
+  records_active_pages    = ["data_table", "data_graph", "data_timeline", "data_globe","data_calender", "graphs", "graph", "metric"];
   edit_table_active_pages = ["table_edit", "topics", "topic_add", "topic_edit","layouts", "layout"];
 %]
 <header class="table-header row no-gutters ">
@@ -61,24 +61,6 @@
       <div class="table-header__options-right">
         [%
           IF page.substr(0, 5) == "data_";
-            IF viewtype == "graph" AND layout.user_can("layout");
-              INCLUDE snippets/dropdown.tt
-                id             = "manage_graphs"
-                custom_classes = "dropdown--small"
-                label          = "Manage graphs"
-                filter         = "html"
-                groups         = [{
-                  items = [{
-                    label  = "Manage graphs",
-                    target = url.page _ "/" _ layout.identifier _ "/graphs/"
-                  }, {
-                    label  = "Metrics",
-                    target = url.page _ "/" _ layout.identifier _ "/metrics/"
-                  }]
-                }];
-            END;
-          
-          
             view_groups = [];
           
             IF user_views.personal.size;
@@ -221,6 +203,23 @@
                 label          = current_view_limit_extra.name
                 filter         = "html"
                 groups         = view_limit_groups;
+            END;
+        
+            IF viewtype == "graph" AND layout.user_can("layout");
+              INCLUDE snippets/dropdown.tt
+                id             = "manage_graphs"
+                custom_classes = "dropdown--small"
+                label          = "Manage graphs"
+                filter         = "html"
+                groups         = [{
+                  items = [{
+                    label  = "Manage graphs",
+                    target = url.page _ "/" _ layout.identifier _ "/graphs/"
+                  }, {
+                    label  = "Metrics",
+                    target = url.page _ "/" _ layout.identifier _ "/metrics/"
+                  }]
+                }];
             END;
           
             IF layout_obj.user_can("bulk_update") OR layout_obj.user_can("delete") OR layout_obj.user_can("download") OR layout_obj.user_can("bulk_delete");
