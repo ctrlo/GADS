@@ -249,6 +249,11 @@ const setupSelectWidgets = (() => {
         })
         .get();
 
+      // Remove existing items if needed, now that we have found out which ones
+      // are selected
+      if (!typeahead)
+          $available.find(".answer").remove();
+
       var field = $selectWidget.data("field");
       // If we cancel this particular loop, then we don't want to remove the
       // spinner if another one has since started running
@@ -385,8 +390,6 @@ const setupSelectWidgets = (() => {
         return;
       }
       lastFetchParams = null;
-
-      $available.find(".answer").remove();
 
       updateJson(filterEndpoint + "?" + fetchParams);
       lastFetchParams = fetchParams;
