@@ -1112,6 +1112,7 @@ sub position
     my $count;
     foreach my $id (@position)
     {
+        $id or error __"No ID supplied for position update";
         $count++;
         my $col = $self->schema->resultset('Layout')->find($id)
             or error __x"Column ID {id} not found", id => $id;
