@@ -416,10 +416,9 @@ sub for_table
         @vals = ($val);
     }
 
-    {
-        type   => $self->column->type,
-        values => \@vals,
-    }
+    my $return = $self->for_table_template;
+    $return->{values} = \@vals;
+    $return;
 }
 
 sub as_string

@@ -77,11 +77,10 @@ around 'clone' => sub {
 
 sub for_table
 {   my $self = shift;
+    my $return = $self->for_table_template;
     my @vals = defined $self->value ? ($self->value) : ();
-    {
-        type   => $self->column->type,
-        values => \@vals,
-    }
+    $return->{values} => \@vals;
+    $return;
 }
 
 sub as_string

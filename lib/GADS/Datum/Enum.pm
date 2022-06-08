@@ -78,10 +78,9 @@ has text_all => (
 
 sub for_table
 {   my $self = shift;
-    {
-        type   => $self->column->type,
-        values => $self->text_all,
-    }
+    my $return = $self->for_table_template;
+    $return->{values} = $self->text_all;
+    $return;
 }
 
 has id => (

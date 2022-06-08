@@ -120,10 +120,9 @@ sub as_integer
 
 sub for_table
 {   my $self = shift;
-    {
-        type   => $self->column->type,
-        values => $self->value,
-    }
+    my $return = $self->for_table_template;
+    $return->{values} = $self->value;
+    $return;
 }
 
 sub as_string

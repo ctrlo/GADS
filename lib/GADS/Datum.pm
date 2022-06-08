@@ -132,6 +132,14 @@ has is_awaiting_approval => (
     default => 0,
 );
 
+sub for_table_template
+{   my $self = shift;
+    +{
+        type      => $self->column->type,
+        column_id => $self->column->id,
+    };
+}
+
 sub text_all
 {   my $self = shift;
     [$self->as_string];

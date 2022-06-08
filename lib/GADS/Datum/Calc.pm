@@ -225,10 +225,9 @@ sub equal
 
 sub for_table
 {   my $self = shift;
-    {
-        type   => $self->column->type,
-        values => [$self->as_strings],
-    }
+    my $return = $self->for_table_template;
+    $return->{values} = [$self->as_strings];
+    $return;
 }
 
 sub _build_for_code

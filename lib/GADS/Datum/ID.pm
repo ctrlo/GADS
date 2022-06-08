@@ -40,10 +40,9 @@ sub _build_blank {
 
 sub for_table
 {   my $self = shift;
-    {
-        type   => $self->column->type,
-        values => [$self->as_string],
-    }
+    my $return = $self->for_table_template;
+    $return->{values} = [$self->as_string];
+    $return;
 }
 
 sub as_string
