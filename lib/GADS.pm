@@ -3323,9 +3323,7 @@ prefix '/:layout_name' => sub {
     };
 
     any ['get', 'post'] => '/view/:id' => require_login sub {
-
         my $layout = var('layout') or pass;
-
         my $user   = logged_in_user;
 
         return forwardHome(
@@ -3400,18 +3398,19 @@ prefix '/:layout_name' => sub {
             : defined param('id') && !param('id')
             ? 'view/0' : 'view';
 
-        my $breadcrumbs = [Crumb($layout) => Crumb( $layout, '/data' => 'records' )];
-        push @$breadcrumbs, Crumb( $layout, "/view/0?clone=$view_id" => 'clone view "'.$view->name.'"' ) if param('clone');
-        push @$breadcrumbs, Crumb( $layout, "/view/$view_id" => 'edit view "'.$view->name.'"' ) if $view_id && !param('clone');
-        push @$breadcrumbs, Crumb( $layout, "/view/0" => 'new view' ) if !$view_id && defined $view_id;
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
 
         my $output = template 'view' => {
-            layout      => $layout,
-            sort_types  => $view->sort_types,
-            view_edit   => $view, # TT does not like variable "view"
-            clone       => param('clone'),
-            page        => $page,
-            breadcrumbs => $breadcrumbs,
+            layout                       => $layout,
+            sort_types                   => $view->sort_types,
+            view_edit                    => $view, # TT does not like variable "view"
+            clone                        => param('clone'),
+            page                         => $page,
+            detail_header                => 1,
+            content_block_custom_classes => 'content-block--footer',
+            header_back_url              => "${base_url}${tableIdentifier}/graphs",
+            layout_obj                   => $layout,
         };
         $output;
     };

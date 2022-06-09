@@ -1,5 +1,17 @@
 [%
-  records_active_pages    = ["data_table", "data_graph", "data_timeline", "data_globe","data_calender", "graphs", "graph", "metric"];
+  records_active_pages    = [
+    "data_table",
+    "data_graph",
+    "data_timeline",
+    "data_globe",
+    "data_calender",
+    "graphs",
+    "graph",
+    "metric",
+    "view",
+    "view/0",
+    "view/clone",
+  ];
   edit_table_active_pages = ["table_edit", "topics", "topic_add", "topic_edit","layouts", "layout"];
 %]
 <header class="table-header row no-gutters ">
@@ -60,7 +72,9 @@
   
       <div class="table-header__options-right">
         [%
-          IF page.substr(0, 5) == "data_";
+          IF page == "view" OR page.substr(0, 5) == "view/";
+        
+          ELSIF page.substr(0, 5) == "data_";
             view_groups = [];
           
             IF user_views.personal.size;

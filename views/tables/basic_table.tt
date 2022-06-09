@@ -94,14 +94,26 @@
       IF table_reorder_rows AND fieldCounter == 1;
         row.fields.unshift({
           type = "text",
-          label = "<span>" _ rowCounter _ "</span>"
+          label = "<span>" _ (row.sort_id.defined ? row.sort_id : rowCounter) _ "</span>"
         });
 
-        field.sub_field  = "fields/hidden.tt";
-        field.sub_params = {
-          name  = "position",
-          value = rowCounter
-        };
+        IF field.sub_field;
+          tmpFields = ["fields/hidden.tt"];
+          tmpParams = [{name = "position", value = row.sort_id || rowCounter}];
+
+          tmpFields.push(field.sub_field);
+          tmpParams.push(field.sub_params);
+
+          field.sub_field_type = "array";
+          field.sub_field      = tmpFields;
+          field.sub_params     = tmpParams;
+        ELSE;
+          field.sub_field  = "fields/hidden.tt";
+          field.sub_params = {
+            name  = "position",
+            value = row.sort_id || rowCounter
+          };
+        END;
       END;
 
       # replace link placeholders
