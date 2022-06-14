@@ -3409,7 +3409,7 @@ prefix '/:layout_name' => sub {
             page                         => $page,
             detail_header                => 1,
             content_block_custom_classes => 'content-block--footer',
-            header_back_url              => "${base_url}${tableIdentifier}/graphs",
+            header_back_url              => "${base_url}${tableIdentifier}/data",
             layout_obj                   => $layout,
         };
         $output;

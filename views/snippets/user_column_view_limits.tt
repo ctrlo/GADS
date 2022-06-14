@@ -35,7 +35,7 @@
             FOREACH view_limit IN edituser.view_limits_with_blank;
               view_row_id = view_counter > 1 ? ' id="row-' _ view_counter _ '"' : '';
         -%]
-        <div class="multiple-select__row[% view_row_id %]">
+        <div class="multiple-select__row"[% view_row_id %]>
           [%-
             INCLUDE fields/select.tt
               id = "view_limits"
