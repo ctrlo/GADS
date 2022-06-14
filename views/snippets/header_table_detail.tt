@@ -172,7 +172,7 @@
               manage_view_groups.0.items.push({
                 type   = "modal"
                 class  = "",
-                target = "alertModal",
+                target = "alertMeModal",
                 label  = "Alert me"
               });
             END;

@@ -52,6 +52,6 @@
   </div>
   
   [% INCLUDE snippets/subfield.tt %]
-  [% IF ! hide_group %]
+[% IF ! hide_group %]
 </div>
 [% END %]
