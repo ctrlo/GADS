@@ -113,6 +113,7 @@ sub presentation {
             {
                 $return->{sort} = {
                     symbol  => '&udarr;',
+                    type    => $sort->{type},
                     text    => 'descending', # Text to change the sort
                     current => '&darr;',
                     link    => $self->id.'desc',
@@ -122,6 +123,7 @@ sub presentation {
             else {
                 $return->{sort} = {
                     symbol  => '&udarr;',
+                    type    => $sort->{type},
                     text    => 'ascending',
                     current => '&uarr;',
                     link    => $self->id.'asc',
@@ -132,6 +134,7 @@ sub presentation {
         else {
             $return->{sort} = {
                 symbol => '&darr;',
+                type   => 'none',
                 text   => 'ascending',
                 link   => $self->id.'asc',
             };
