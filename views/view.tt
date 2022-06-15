@@ -109,16 +109,15 @@
                     <div class="col">
                       [%
                         # prepare table config
-                        table_class        = 'table-striped table-selectable';
-                        table_dom          = 't';
-                        table_order        = '[0,"asc"]';
-                        table_reorder_rows = 1;
-                        table_language     = '{"emptyTable": "No graphs have been created. Please use the `Add a graph` button above to add one.","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"","searchPlaceholder":"Search in this table"}';
-                        table_page_length  = 50;
-                        table_length_menu  = 'basic';
-                        table_unresponsive = 0;
-                        rows               = [];
-                        table_columns      = [{
+                        table_class            = 'table-striped table-selectable';
+                        table_dom              = 't';
+                        table_order            = '[0,"asc"]';
+                        table_reorder_rows     = 1;
+                        table_language         = '{"emptyTable": "No graphs have been created. Please use the `Add a graph` button above to add one.","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"","searchPlaceholder":"Search in this table"}';
+                        table_show_all_records = 1;
+                        table_unresponsive     = 0;
+                        rows                   = [];
+                        table_columns          = [{
                           name      = "Select",
                           orderable = 0,
                           data      = "check",
