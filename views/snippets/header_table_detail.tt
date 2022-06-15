@@ -144,27 +144,27 @@
           
             manage_view_groups = [{ items = [] }];
     
-            IF layout.user_can("view_create");
+            IF layout_obj.user_can("view_create");
               manage_view_groups.0.items.push({
                   class  = "link--add",
-                  target = url.page _ "/" _ layout.identifier _ "/view/0",
+                  target = url.page _ "/" _ layout_obj.identifier _ "/view/0",
                   label  = "Add a view"
                 });
             END;
     
             IF v;
-              IF layout.user_can("view_create");
+              IF layout_obj.user_can("view_create");
                 IF v.writable;
                   manage_view_groups.0.items.push({
                     class  = "",
-                    target = url.page _ "/" _ layout.identifier _ "/view/" _ v.id,
+                    target = url.page _ "/" _ layout_obj.identifier _ "/view/" _ v.id,
                     label  = "Edit current view"
                   });
                 END;
           
                 manage_view_groups.0.items.push({
                   class  = "",
-                  target = url.page _ "/" _ layout.identifier _ "/view/0?clone=" _ v.id,
+                  target = url.page _ "/" _ layout_obj.identifier _ "/view/0?clone=" _ v.id,
                   label  = "Clone current view"
                 });
               END;
@@ -177,7 +177,7 @@
               });
             END;
           
-            IF layout.user_can("layout");
+            IF layout_obj.user_can("layout");
               manage_view_groups.0.items.push({
                 type   = "modal"
                 class  = "",
@@ -219,7 +219,7 @@
                 groups         = view_limit_groups;
             END;
         
-            IF viewtype == "graph" AND layout.user_can("layout");
+            IF viewtype == "graph" AND layout_obj.user_can("layout");
               INCLUDE snippets/dropdown.tt
                 id             = "manage_graphs"
                 custom_classes = "dropdown--small"
@@ -228,17 +228,35 @@
                 groups         = [{
                   items = [{
                     label  = "Manage graphs",
-                    target = url.page _ "/" _ layout.identifier _ "/graphs/"
+                    target = url.page _ "/" _ layout_obj.identifier _ "/graphs/"
                   }, {
                     label  = "Metrics",
-                    target = url.page _ "/" _ layout.identifier _ "/metrics/"
+                    target = url.page _ "/" _ layout_obj.identifier _ "/metrics/"
                   }]
                 }];
             END;
           
-            IF layout_obj.user_can("bulk_update") OR layout_obj.user_can("delete") OR layout_obj.user_can("download") OR layout_obj.user_can("bulk_delete");
+            IF (layout_obj.user_can("link") AND show_link) OR layout_obj.user_can("bulk_update") OR layout_obj.user_can("delete") OR layout_obj.user_can("download") OR layout_obj.user_can("bulk_delete");
               bulk_action_groups = [{ items = [] }];
               
+              IF layout_obj.user_can("link") AND show_link;
+                bulk_action_groups.0.items.push({
+                  id     = "",
+                  class  = "",
+                  target = url.page _ "/" _ layout_obj.identifier _ "/link/",
+                  label  = "Add a linked record"
+                });
+              END;
+        
+              IF layout_obj.user_can("layout");
+                bulk_action_groups.0.items.push({
+                  id     = "",
+                  class  = "",
+                  target = url.page _ "/" _ layout_obj.identifier _ "/import/",
+                  label  = "Import records"
+                });
+              END;
+        
               IF search;
                 sel_type = "records in this search";
               ELSIF viewtype == "timeline";
@@ -284,7 +302,7 @@
                 INCLUDE snippets/dropdown.tt
                   id             = "bulk_actions"
                   custom_classes = "dropdown--small"
-                  label          = "Bulk actions"
+                  label          = "Actions"
                   filter         = "html"
                   groups         = bulk_action_groups;
               END;
