@@ -1,4 +1,4 @@
-[% IF page == "data" OR page == "index" OR page == "record" %]
+[% IF page == "data" OR page == "index" OR page == "table_index" OR page == "record" %]
     [% UNLESS session.rewind %]
     <div class="btn-group search_container">
         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="search_form" aria-haspopup="true">
