@@ -154,7 +154,13 @@
   table_config = table_config.replace('_COLUMNS', columnConfig);
   table_config = table_config.replace('_BUTTONS', buttonConfig);
 %]
-<table class="data-table table [% table_class %]"[% IF table_id %] id="[% table_id %]"[% END %] width="100%" data-config='[% table_config %]'>
+<table
+  class="data-table table [% table_class %]"[% IF table_id %]
+  id="[% table_id %]"[% END %][% IF table_ajax AND table_ajax_target %]
+  data-href="[% table_ajax_target %]"[% END %]
+  width="100%"
+  data-config='[% table_config %]'
+>
   <thead>
     [% INCLUDE tables/basic_row.tt row=header_row %]
   </thead>
