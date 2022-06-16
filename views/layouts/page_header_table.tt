@@ -17,7 +17,10 @@
   
   <div class="content-block__aside col-lg-6">
   [%
-    IF manage_table_active_pages.grep(page).size OR manage_topics_active_pages.grep(page).size OR manage_fields_active_pages.grep(page).size;
+    IF
+    page_is_active_bool(manage_table_active_pages) OR
+    page_is_active_bool(manage_topics_active_pages) OR
+    page_is_active_bool(manage_fields_active_pages);
       INCLUDE snippets/button_list.tt
         list_class = "list--horizontal list--no-borders list--buttons"
         buttons    = [{

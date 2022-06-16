@@ -47,8 +47,12 @@
     "audit",
   ];
 
+  MACRO page_is_active_bool(page_list) BLOCK;
+    page_list.grep("^$page\$").size ? 1 : 0;
+  END;
+
   MACRO page_is_active(page_list, active_class) BLOCK;
-    IF page_list.grep("^$page\$").size;
+    IF page_is_active_bool(page_list);
       " " _ active_class;
     END;
   END;
