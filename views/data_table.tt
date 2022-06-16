@@ -3,7 +3,7 @@
   <div class="content-block__main-content">
     [% IF has_rag_column %]
     <div class="row mb-md-3">
-      [% INCLUDE snippets/rag_legend.tt %]
+      [% INCLUDE snippets/rag_legend.tt legend_class = 'rag-legend--horizontal'; %]
     </div>
     [%
       END;
