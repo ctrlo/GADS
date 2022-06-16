@@ -23,6 +23,7 @@ use MIME::Base64 qw/decode_base64/;
 use Net::OAuth2::AuthorizationServer::PasswordGrant;
 use Session::Token;
 use JSON qw(decode_json encode_json);
+use POSIX qw(ceil);
 
 use Dancer2 appname => 'GADS';
 use Dancer2::Plugin::Auth::Extensible;
@@ -1076,7 +1077,7 @@ sub _get_records {
         schema => schema,
         view   => $view,
         rows   => $length,
-        page   => $start / $length,
+        page   => 1 + ceil($start / $length),
         layout => $layout,
     );
 
