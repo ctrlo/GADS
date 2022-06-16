@@ -28,11 +28,7 @@
                 <span>Permissions</span>
               </a>
             </li>
-            [%
-              END;
-              
-              IF user.permission.superadmin OR layout_obj.user_can("layout");
-            %]
+            
             <li class="list__item">
               <a href='[% url.page %]/table/[% layout_obj.instance_id %]/edit' class='link link--plain[% page_is_active(edit_table_active_pages, "link--active"); %]'>
                 <span>Edit table</span>
@@ -58,6 +54,7 @@
   
       <div class="table-header__options-right">
         [%
+          # records browse dropdown menus
           IF page.substr(0, 5) == "data_";
             view_groups = [];
           
@@ -296,6 +293,9 @@
                   groups         = bulk_action_groups;
               END;
             END;
+          # records add/edit/clone menu items
+          ELSIF page == 'edit' AND NOT record.new_entry;
+        
           END;
         %]
       </div>
