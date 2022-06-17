@@ -1,10 +1,10 @@
-[%-
+[%
   # add standardized page header
   INCLUDE layouts/page_header.tt
     title       = (item.id ? "Edit " : "Create ") _ item.type
     description = item.description
     back_button = { url = item.back_url };
--%]
+%]
 
 <div class="content-block__main">
   <form method="post">

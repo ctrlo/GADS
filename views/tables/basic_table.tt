@@ -115,15 +115,17 @@
           };
         END;
       END;
-
-      # replace link placeholders
+      
+      fieldCounter = fieldCounter + 1;
+    END;
+    
+    # replace link placeholders
+    FOREACH field IN row.fields;
       IF field.link AND row.link_placeholders AND !row.link_placeholders.empty;
         FOREACH key in row.link_placeholders.keys;
           field.link = field.link.replace('{' _ key _ '}', row.link_placeholders.$key);
         END;
       END;
-      
-      fieldCounter = fieldCounter + 1;
     END;
     
     # add empty field for screen overflow expand/collapse column

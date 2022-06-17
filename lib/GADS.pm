@@ -3737,18 +3737,16 @@ prefix '/:layout_name' => sub {
             }
         }
 
-        my $breadcrumbs = [Crumb($layout)];
-        if ($id)
-        {
-            push @$breadcrumbs, Crumb( $layout, "/link/$id" => "edit linked record $id" );
-        }
-        else {
-            push @$breadcrumbs, Crumb( $layout, '/link/' => 'add linked record' );
-        }
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         template 'link' => {
-            breadcrumbs => $breadcrumbs,
-            record      => $record,
-            page        => 'link',
+            record                       => $record,
+            page                         => 'link',
+            detail_header                => 1,
+            content_block_custom_classes => 'content-block--footer',
+            header_back_url              => "${base_url}${tableIdentifier}/data",
+            layout_obj                   => $layout
         };
     };
 
@@ -4550,16 +4548,30 @@ sub _process_edit
         push @$breadcrumbs, Crumb( $layout, "/record/" => "new record" );
     }
 
+    my $base_url        = request->base;
+    my $tableIdentifier = $layout->identifier;
+
     my $params = {
-        edit_modal          => $modal,
-        page                => 'edit',
-        child               => $child_rec,
-        layout_edit         => $layout,
-        clone               => $clone_from,
-        submission_token    => !$modal && $record->submission_token,
-        breadcrumbs         => $breadcrumbs,
-        record              => $record->presentation(edit => 1, new => !$id, child => $child, modal => $modal),
+        edit_modal                   => $modal,
+        page                         => 'edit',
+        child                        => $child_rec,
+        layout_edit                  => $layout,
+        clone                        => $clone_from,
+        submission_token             => !$modal && $record->submission_token,
+        detail_header                => 1,
+        header_back_url              => "${base_url}${tableIdentifier}/data",
+        layout_obj                   => $layout,
+        record                       => $record->presentation(edit => 1, new => !$id, child => $child, modal => $modal),
     };
+
+    if ($id)
+    {
+        $params->{content_block_custom_classes} = 'content-block--record content-block--footer';
+    }
+    else
+    {
+        $params->{content_block_custom_classes} = 'content-block--footer';
+    }
 
     $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids
         if $modal;

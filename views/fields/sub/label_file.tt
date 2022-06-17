@@ -1,0 +1,38 @@
+<div class="input__label">
+  [%
+    IF label_checkbox_name;
+      INCLUDE fields/sub/checkbox.tt
+        id           = label_checkbox_name
+        name         = label_checkbox_name
+        input_class  = "mb-3"
+        label        = ""
+        value        = 1
+        checked      = 0
+        help_text    = ""
+        popover_body = ""
+        filter       = "html";
+    END;
+  %]
+  <label for="[% id %]"[% IF label_class %] class="[% label_class %]"[% END %]>
+    <span class="input__file-label" role="button" aria-controls="[% id %]" tabindex="0">
+      [% INCLUDE fields/sub/filter.tt value=label; %]
+    </span>
+  </label>
+  
+  [%- IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body; END; -%]
+  
+  <div class="file">
+    <label class="file__name" for="[% id %]">
+      [% INCLUDE fields/sub/filter.tt value=placeholder; %]
+    </label>
+    <button type="button" class="file__delete close" aria-label="Delete">
+      <span aria-hidden="true" class="hidden">Delete file</span>
+    </button>
+  </div>
+</div>
+
+[% IF help_text %]
+<p id="[% id %]-help" class="form-text">
+  [% help_text | html %]
+</p>
+[% END %]

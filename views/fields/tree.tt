@@ -1,24 +1,32 @@
+[% IF ! hide_group %]
 <div class="form-group">
+[% END %]
   <div class="tree tree--config" id="tree-config" data-no-initial-data="[% no_initial_data ? 'true' : 'false' %]">
     [%
       INCLUDE snippets/button_list.tt
         list_class = "list--horizontal list--buttons"
-        buttons    = [{
-          type        = "button",
-          button_type = "button",
-          class       = "btn btn-small btn-default btn-js-tree-add",
-          label       = "Add a node"
-        }, {
-          type        = "button",
-          button_type = "button",
-          class       = "btn btn-small btn-inverted btn-js-tree-rename",
-          label       = "Rename"
-        }, {
-          type        = "button",
-          button_type = "button",
-          class       = "btn btn-small btn-danger btn-js-tree-delete",
-          label       = "Delete"
-        }, {
+        buttons    = [];
+        
+        IF edit_tree;
+          buttons.push({
+            type        = "button",
+            button_type = "button",
+            class       = "btn btn-small btn-default btn-js-tree-add",
+            label       = "Add a node"
+          }, {
+            type        = "button",
+            button_type = "button",
+            class       = "btn btn-small btn-inverted btn-js-tree-rename",
+            label       = "Rename"
+          }, {
+            type        = "button",
+            button_type = "button",
+            class       = "btn btn-small btn-danger btn-js-tree-delete",
+            label       = "Delete"
+          });
+        END;
+  
+        buttons.push({
           type        = "button",
           button_type = "button",
           class       = "btn btn-small btn-link btn-js-tree-expand",
@@ -28,16 +36,30 @@
           button_type = "button",
           class       = "btn btn-small btn-link btn-js-tree-collapse",
           label       = "Collapse all"
-        }, ];
+        });
+    
+        IF ! edit_tree;
+          buttons.push({
+            type        = "button",
+            button_type = "button",
+            class       = "btn btn-small btn-link btn-js-tree-reload",
+            label       = "Reload"
+          });
+        END;
     %]
     
     <div
-      class="tree-widget-container"
-      id="[% id %]"
-      data-layout-identifier="[% layout_identifier %]"
-      data-column-id="[% layout_id %]"
-      data-csrf-token="[% csrf_token %]"
+      class="tree-widget-container"[% IF id %]
+      id="[% id %]"[% END %][% IF tree_field %]
+      data-field="[% tree_field %]"[% END %][% IF layout_identifier %]
+      data-layout-identifier="[% layout_identifier %]"[% END %][% IF layout_id %]
+      data-column-id="[% layout_id %]"[% END %][% IF csrf_token %]
+      data-csrf-token="[% csrf_token %]"[% END %][% IF end_node_only %]
+      data-end-node-only="true"[% END %][% IF ids_as_params %]
+      data-ids-as-params="[% ids_as_params %]"[% END %]
     >
     </div>
   </div>
+[% IF ! hide_group %]
 </div>
+[% END %]
