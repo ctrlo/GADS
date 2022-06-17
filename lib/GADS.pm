@@ -4004,10 +4004,16 @@ prefix '/:layout_name' => sub {
             })->delete;
         }
 
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         template 'import' => {
-            imports     => [$imp->all],
-            page        => 'import',
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, "/data" => 'records' ) => Crumb( $layout, "/import" => 'imports' )],
+            imports                      => [$imp->all],
+            page                         => 'import',
+            detail_header                => 1,
+            content_block_custom_classes => 'content-block--footer',
+            header_back_url              => "${base_url}${tableIdentifier}/data",
+            layout_obj                   => $layout,
         };
     };
 
@@ -4028,12 +4034,17 @@ prefix '/:layout_name' => sub {
             }
         });
 
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         template 'import/rows' => {
-            import_id   => param('import_id'),
-            rows        => $rows,
-            page        => 'import',
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, "/data" => 'records' )
-                => Crumb( $layout, "/import" => 'imports' ), Crumb( $layout, "/import/rows/$import_id" => "import ID $import_id" ) ],
+            import_id                    => param('import_id'),
+            rows                         => $rows,
+            page                         => 'import',
+            detail_header                => 1,
+            content_block_custom_classes => 'content-block--footer',
+            header_back_url              => "${base_url}${tableIdentifier}/import",
+            layout_obj                   => $layout,
         };
     };
 
@@ -4073,11 +4084,16 @@ prefix '/:layout_name' => sub {
             }
         }
 
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         template 'import/data' => {
-            layout      => var('layout'),
-            page        => 'import',
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, "/data" => 'records' )
-                => Crumb( $layout, "/import" => 'imports' ), Crumb( $layout, "/import/data" => 'new import' ) ],
+            layout                       => var('layout'),
+            page                         => 'import',
+            detail_header                => 1,
+            content_block_custom_classes => 'content-block--footer',
+            header_back_url              => "${base_url}${tableIdentifier}/import",
+            layout_obj                   => $layout,
         };
     };
 
