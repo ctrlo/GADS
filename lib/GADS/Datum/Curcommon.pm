@@ -453,9 +453,12 @@ around 'clone' => sub {
 sub for_table
 {   my $self = shift;
     my $return = $self->for_table_template;
+
     $return->{values}                   = [];
     $return->{parent_layout_identifier} = $self->column->layout_parent->identifier;
     $return->{curval_record_id}         = $self->record->record_id;
+    $return->{limit_rows}               = $self->column->limit_rows;
+
     foreach my $val (@{$self->values})
     {
         my $ret = {

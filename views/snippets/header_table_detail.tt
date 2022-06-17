@@ -1,19 +1,5 @@
-[%
-  records_active_pages    = [
-    "data_table",
-    "data_graph",
-    "data_timeline",
-    "data_globe",
-    "data_calender",
-    "graphs",
-    "graph",
-    "metric",
-    "view",
-    "view/0",
-    "view/clone",
-  ];
-  edit_table_active_pages = ["table_edit", "topics", "topic_add", "topic_edit","layouts", "layout"];
-%]
+[% PROCESS navigation/active_pages.tt; %]
+
 <header class="table-header row no-gutters ">
   <div class="table-header-container">
     <div class="table-header-top row justify-content-between no-gutters">
@@ -25,30 +11,26 @@
         <div class="list list--horizontal">
           <ul class="list__items">
             <li class="list__item">
-              <a href='[% url.page %]/[% layout_obj.identifier %]/data' class='link link--plain [% IF records_active_pages.grep(page).size %]link--active[% END %]'>
+              <a href='[% url.page %]/[% layout_obj.identifier %]/data' class='link link--plain[% page_is_active(records_active_pages, "link--active"); %]'>
                 <span>Records</span>
               </a>
             </li>
             
             <li class="list__item">
-              <a href='[% url.page %]/[% layout_obj.identifier %]/' class='link link--plain [% IF page == "index" %]link--active[% END %]'>
+              <a href='[% url.page %]/[% layout_obj.identifier %]/' class='link link--plain[% page_is_active(table_dashboard_active_pages, "link--active"); %]'>
                 <span>Dashboard</span>
               </a>
             </li>
             
             [% IF user.permission.superadmin %]
             <li class="list__item">
-              <a href='[% url.page %]/table/[% layout_obj.instance_id %]/permissions' class='link link--plain [% IF page == "table_permissions" %]link--active[% END %]'>
+              <a href='[% url.page %]/table/[% layout_obj.instance_id %]/permissions' class='link link--plain[% page_is_active(table_permissions_active_pages, "link--active"); %]'>
                 <span>Permissions</span>
               </a>
             </li>
-            [%
-              END;
-              
-              IF user.permission.superadmin OR layout_obj.user_can("layout");
-            %]
+            
             <li class="list__item">
-              <a href='[% url.page %]/table/[% layout_obj.instance_id %]/edit' class="link link--plain [% IF edit_table_active_pages.grep(page).size %]link--active[% END %]">
+              <a href='[% url.page %]/table/[% layout_obj.instance_id %]/edit' class='link link--plain[% page_is_active(edit_table_active_pages, "link--active"); %]'>
                 <span>Edit table</span>
               </a>
             </li>
@@ -72,9 +54,8 @@
   
       <div class="table-header__options-right">
         [%
-          IF page == "view" OR page.substr(0, 5) == "view/";
-        
-          ELSIF page.substr(0, 5) == "data_";
+          # records browse dropdown menus
+          IF page.substr(0, 5) == "data_";
             view_groups = [];
           
             IF user_views.personal.size;
@@ -138,33 +119,34 @@
             INCLUDE snippets/dropdown.tt
               id             = "views"
               custom_classes = "dropdown--small"
+              menu_right     = 1
               label          = "Current view: " _  (v ? v.name : "All data")
               filter         = "html"
               groups         = view_groups;
           
             manage_view_groups = [{ items = [] }];
     
-            IF layout.user_can("view_create");
+            IF layout_obj.user_can("view_create");
               manage_view_groups.0.items.push({
                   class  = "link--add",
-                  target = url.page _ "/" _ layout.identifier _ "/view/0",
+                  target = url.page _ "/" _ layout_obj.identifier _ "/view/0",
                   label  = "Add a view"
                 });
             END;
     
             IF v;
-              IF layout.user_can("view_create");
+              IF layout_obj.user_can("view_create");
                 IF v.writable;
                   manage_view_groups.0.items.push({
                     class  = "",
-                    target = url.page _ "/" _ layout.identifier _ "/view/" _ v.id,
+                    target = url.page _ "/" _ layout_obj.identifier _ "/view/" _ v.id,
                     label  = "Edit current view"
                   });
                 END;
           
                 manage_view_groups.0.items.push({
                   class  = "",
-                  target = url.page _ "/" _ layout.identifier _ "/view/0?clone=" _ v.id,
+                  target = url.page _ "/" _ layout_obj.identifier _ "/view/0?clone=" _ v.id,
                   label  = "Clone current view"
                 });
               END;
@@ -172,12 +154,12 @@
               manage_view_groups.0.items.push({
                 type   = "modal"
                 class  = "",
-                target = "alertModal",
+                target = "alertMeModal",
                 label  = "Alert me"
               });
             END;
           
-            IF layout.user_can("layout");
+            IF layout_obj.user_can("layout");
               manage_view_groups.0.items.push({
                 type   = "modal"
                 class  = "",
@@ -196,6 +178,7 @@
             INCLUDE snippets/dropdown.tt
               id             = "manage_views"
               custom_classes = "dropdown--small"
+              menu_right     = 1
               label          = "Manage views"
               filter         = "html"
               groups         = manage_view_groups;
@@ -214,31 +197,51 @@
               INCLUDE snippets/dropdown.tt
                 id             = "view_limits"
                 custom_classes = "dropdown--small"
+                menu_right     = 1
                 label          = current_view_limit_extra.name
                 filter         = "html"
                 groups         = view_limit_groups;
             END;
         
-            IF viewtype == "graph" AND layout.user_can("layout");
+            IF viewtype == "graph" AND layout_obj.user_can("layout");
               INCLUDE snippets/dropdown.tt
                 id             = "manage_graphs"
                 custom_classes = "dropdown--small"
+                menu_right     = 1
                 label          = "Manage graphs"
                 filter         = "html"
                 groups         = [{
                   items = [{
                     label  = "Manage graphs",
-                    target = url.page _ "/" _ layout.identifier _ "/graphs/"
+                    target = url.page _ "/" _ layout_obj.identifier _ "/graphs/"
                   }, {
                     label  = "Metrics",
-                    target = url.page _ "/" _ layout.identifier _ "/metrics/"
+                    target = url.page _ "/" _ layout_obj.identifier _ "/metrics/"
                   }]
                 }];
             END;
           
-            IF layout_obj.user_can("bulk_update") OR layout_obj.user_can("delete") OR layout_obj.user_can("download") OR layout_obj.user_can("bulk_delete");
+            IF (layout_obj.user_can("link") AND show_link) OR layout_obj.user_can("layout") OR layout_obj.user_can("bulk_update") OR layout_obj.user_can("delete") OR layout_obj.user_can("download") OR layout_obj.user_can("bulk_delete");
               bulk_action_groups = [{ items = [] }];
               
+              IF layout_obj.user_can("link") AND show_link;
+                bulk_action_groups.0.items.push({
+                  id     = "",
+                  class  = "",
+                  target = url.page _ "/" _ layout_obj.identifier _ "/link/",
+                  label  = "Add a linked record"
+                });
+              END;
+        
+              IF layout_obj.user_can("layout");
+                bulk_action_groups.0.items.push({
+                  id     = "",
+                  class  = "",
+                  target = url.page _ "/" _ layout_obj.identifier _ "/import/",
+                  label  = "Import records"
+                });
+              END;
+        
               IF search;
                 sel_type = "records in this search";
               ELSIF viewtype == "timeline";
@@ -284,11 +287,78 @@
                 INCLUDE snippets/dropdown.tt
                   id             = "bulk_actions"
                   custom_classes = "dropdown--small"
-                  label          = "Bulk actions"
+                  menu_right     = 1
+                  label          = "Actions"
                   filter         = "html"
                   groups         = bulk_action_groups;
               END;
             END;
+          # records add/edit/clone menu items
+          ELSIF page == 'edit' AND NOT record.new_entry;
+            record_edit_buttons = [];
+
+            UNLESS layout.no_hide_blank;
+              record_edit_buttons.push({
+                type        = "button",
+                button_type = "button",
+                target      = "",
+                class       = "btn btn-link btn-plain btn-js-show-blank",
+                label       = "Show blank values"
+              });
+            END;
+        
+            UNLESS layout.no_copy_record;
+              record_edit_buttons.push({
+                type          = "link",
+                target        = url.page _ "/" _ layout.identifier _ "/record/?from=" _ record.current_id,
+                class         = "link link--plain",
+                label         = "Duplicate record",
+                label_in_span = 1
+              });
+            END;
+        
+            UNLESS layout.no_download_pdf;
+              record_edit_buttons.push({
+                type          = "link",
+                target        = url.page _ "/" _ layout.identifier _ "/record/" _ record.current_id _ "?pdf",
+                class         = "link link--plain",
+                label         = "Download as PDF",
+                label_in_span = 1
+              });
+            END;
+        
+            IF layout.user_can("create_child") AND NOT record.parent_id AND layout.has_children;
+              record_edit_buttons.push({
+                type          = "link",
+                target        = url.page _ "/" _ layout.identifier _ "/record/?child=" _ record.current_id,
+                class         = "link link--plain",
+                label         = "Create child record",
+                label_in_span = 1
+              });
+            END;
+  
+            IF user.permission.link;
+              record_edit_buttons.push({
+                type          = "link",
+                target        = url.page _ "/" _ layout.identifier _ "/link/" _ record.current_id,
+                class         = "link link--plain",
+                label         = "Link record",
+                label_in_span = 1
+              });
+            END;
+        
+            IF record.user_can_delete;
+              record_edit_buttons.push({
+                type    = "modal_button"
+                class   = "btn btn-delete"
+                modalId = "deleteModal"
+                label   = "Delete record"
+              });
+            END;
+          
+            INCLUDE snippets/button_list.tt
+              list_class = "list--horizontal list--no-borders"
+              buttons    = record_edit_buttons;
           END;
         %]
       </div>

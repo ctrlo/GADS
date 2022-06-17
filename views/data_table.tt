@@ -3,7 +3,7 @@
   <div class="content-block__main-content">
     [% IF has_rag_column %]
     <div class="row mb-md-3">
-      [% INCLUDE snippets/rag_legend.tt %]
+      [% INCLUDE snippets/rag_legend.tt legend_class = 'rag-legend--horizontal'; %]
     </div>
     [%
       END;
@@ -12,10 +12,12 @@
       table_class        = 'table-striped table-hover';
       table_dom          = '<\"row row--header\"<\"col\"f><\"col-lg-auto dataTables_length_wrapper\"l>><\"row row--main\"<\"col-sm-12\"tr>><\"row row--footer\"<\"col-sm-12 col-lg-6\"p><\"col-sm-12 col-lg-6 dataTables_info_wrapper\"i>>';
       table_ajax         = url.page _ "/api/" _ layout.identifier _ "/records";
-      table_order        = '[0,"asc"]';
+      table_ajax_target  = url.page _ "/" _ layout.identifier; # will be suffixed with "/record/{id}" by JS
+      table_order        = '';
       table_language     = '{"emptyTable": "There is no records available","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"","searchPlaceholder":"Search in this table"}';
       table_page_length  = 50;
       table_length_menu  = 'basic';
+      table_save_state   = 1;
       table_unresponsive = 0;
       table_columns      = [];
       rows               = [];
@@ -25,8 +27,15 @@
       #   table_columns.push({});
       # END;
   
+      col_counter = 0;
+    
       FOREACH col IN columns;
         NEXT IF processed_columns.grep(col.id).size;
+        
+        IF col.sort.type == 'asc' OR col.sort.type == 'desc';
+          table_order = table_order _ (table_order == '' ? '' : ', ') _ '[' _ col_counter _ ', "' _ col.sort.type _ '"]';
+        END;
+    
         table_columns.push({
           name = col.name,
           type = col.type,
@@ -35,6 +44,8 @@
         });
     
         processed_columns.push(col.id);
+    
+        col_counter = col_counter + 1;
       END;
     
       INCLUDE tables/basic_table.tt;

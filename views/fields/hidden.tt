@@ -3,8 +3,10 @@
   # Implementation Example:
   #
   # INCLUDE fields/hidden.tt
+  #   id = "field_" _ user.id
   #   name = "username"
+  #   input_class = "selected-tree-value"
   #   value = user.name
   #   filter = "html" | "html_entity" | "";
 -%]
-<input type="hidden" name="[% name %]" value="[% INCLUDE fields/sub/filter.tt; %]">
+<input type="hidden"[% IF id %] id="[% id %]"[% END %][% IF input_class %] class="[% input_class %]"[% END %] name="[% name %]" value="[% INCLUDE fields/sub/filter.tt; %]">

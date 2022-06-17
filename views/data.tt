@@ -12,4 +12,14 @@
   ELSE;
       INCLUDE 'data_table.tt';
   END;
+
+  IF v;
+    INCLUDE wizard/record_alert_me.tt modalId = "alertMeModal";
+  END;
+
+  IF layout.user_can("layout");
+    INCLUDE wizard/record_view_of_another_user.tt modalId = "viewsOfAnotherUserModal";
+  END;
+
+  INCLUDE wizard/record_rewind.tt modalId = "historicViewModal";
 %]

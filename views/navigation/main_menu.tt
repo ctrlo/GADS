@@ -1,3 +1,4 @@
+[% PROCESS navigation/active_pages.tt; %]
 <nav class="col-lg-2 sticky-top sidebar sidebar--collapsible" aria-label="Main">
   <div class="sidebar__container">
     <div class="sidebar__header">
@@ -12,26 +13,32 @@
       <div class="sidebar__nav">
         <ul class="nav flex-column">
           <li class="nav__item">
-            <a class="nav__link nav__link--dashboard" href="[% url.page %]/">
+            <a class="nav__link nav__link--dashboard[% page_is_active(dashboard_active_pages, 'nav__link--active') %]" href="[% url.page %]/">
               <span>Dashboard</span>
             </a>
           </li>
           <li class="nav__item">
-            <a class="nav__link nav__link--tables" href="[% url.page %]/table/">
+            <a class="nav__link nav__link--tables[% page_is_active(table_active_pages, 'nav__link--active') %]" href="[% url.page %]/table/">
               <span>Tables</span>
             </a>
           </li>
           [% IF user.permission.useradmin OR user.permission.superadmin %]
           <li class="nav__item">
-            <a class="nav__link nav__link--users" href="[% url.page %]/user_overview/"><span>Users</span></a>
+            <a class="nav__link nav__link--users[% page_is_active(users_active_pages, 'nav__link--active') %]" href="[% url.page %]/user_overview/">
+              <span>Users</span>
+            </a>
           </li>
           <li class="nav__item">
-            <a class="nav__link nav__link--groups" href="[% url.page %]/group_overview/"><span>Groups</span></a>
+            <a class="nav__link nav__link--groups[% page_is_active(groups_active_pages, 'nav__link--active') %]" href="[% url.page %]/group_overview/">
+              <span>Groups</span>
+            </a>
           </li>
           [% END %]
           [% IF user.permission.superadmin %]
           <li class="nav__item">
-            <a class="nav__link nav__link--files" href="[% url.page %]/file/"><span>Files</span></a>
+            <a class="nav__link nav__link--files[% page_is_active(files_active_pages, 'nav__link--active') %]" href="[% url.page %]/file/">
+              <span>Files</span>
+            </a>
           </li>
           [% END %]
           <!---
@@ -41,7 +48,9 @@
           -->
           [% IF user.permission.useradmin OR user.permission.superadmin %]
           <li class="nav__item">
-            <a class="nav__link nav__link--settings" href="[% url.page %]/settings/"><span>Admin Settings</span></a>
+            <a class="nav__link nav__link--admin-settings[% page_is_active(admin_settings_active_pages, 'nav__link--active') %]" href="[% url.page %]/settings/">
+              <span>Admin Settings</span>
+            </a>
           </li>
           [% END %]
         </ul>

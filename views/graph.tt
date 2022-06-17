@@ -217,18 +217,20 @@
                                 <div class="col">
                                   [%
                                     INCLUDE fields/daterange.tt
-                                      label = "Dates of custom range"
+                                      label       = "Dates of custom range"
                                       input_class = "flex-nowrap"
-                                      hide_group = 1
+                                      hide_group  = 1
                                       from = {
-                                        id = "from",
-                                        name = "from",
+                                        id    = "from",
+                                        name  = "from",
+                                        class = "input--datepicker",
                                         label = "From",
                                         value = graph.from_formatted
                                       }
                                       to = {
-                                        id = "to",
-                                        name = "to",
+                                        id    = "to",
+                                        name  = "to",
+                                        class = "input--datepicker",
                                         label = "To",
                                         value = graph.to_formatted
                                       };

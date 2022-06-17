@@ -115,15 +115,17 @@
           };
         END;
       END;
-
-      # replace link placeholders
+      
+      fieldCounter = fieldCounter + 1;
+    END;
+    
+    # replace link placeholders
+    FOREACH field IN row.fields;
       IF field.link AND row.link_placeholders AND !row.link_placeholders.empty;
         FOREACH key in row.link_placeholders.keys;
           field.link = field.link.replace('{' _ key _ '}', row.link_placeholders.$key);
         END;
       END;
-      
-      fieldCounter = fieldCounter + 1;
     END;
     
     # add empty field for screen overflow expand/collapse column
@@ -132,7 +134,7 @@
   END;
   
   table_config = '{
-    "dom": "' _ ( table_dom || '' ) _ '",_AJAX
+    "dom": "' _ ( table_dom || '' ) _ '",_AJAX_STATE_SAVE
     "order":[' _ ( table_order || '[0,"asc"]' ) _ '],
     "language": ' _ ( table_language || '{"emptyTable": "There is no data available in this table"}' ) _ ',
     "responsive": ' _ ( table_unresponsive ? 'false' : '{"details":{"type":"column","target":-1}}' ) _ ',
@@ -146,6 +148,7 @@
   }';
 
   table_config = table_config.replace('_AJAX', table_ajax ? "\n" _ '    "ajax":"' _ table_ajax _ '",' _ "\n" _ '    "serverSide":true,' _ "\n" _ '    "processing":true,' : '');
+  table_config = table_config.replace('_STATE_SAVE', table_save_state ? "\n" _ '    "stateSave": true,' : '');
   table_config = table_config.replace('_SHOW_ALL_RECORDS', table_show_all_records ? "\n" _ '    "iDisplayLength":-1,' : '');
   table_config = table_config.replace('_ROW_REORDER', reorderConfig);
   table_config = table_config.replace('_PAGE_LENGTH', pageLengthConfig);
@@ -153,7 +156,13 @@
   table_config = table_config.replace('_COLUMNS', columnConfig);
   table_config = table_config.replace('_BUTTONS', buttonConfig);
 %]
-<table class="data-table table [% table_class %]"[% IF table_id %] id="[% table_id %]"[% END %] width="100%" data-config='[% table_config %]'>
+<table
+  class="data-table table [% table_class %]"[% IF table_id %]
+  id="[% table_id %]"[% END %][% IF table_ajax AND table_ajax_target %]
+  data-href="[% table_ajax_target %]"[% END %]
+  width="100%"
+  data-config='[% table_config %]'
+>
   <thead>
     [% INCLUDE tables/basic_row.tt row=header_row %]
   </thead>

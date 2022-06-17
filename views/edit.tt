@@ -1,648 +1,910 @@
-[% PROCESS snippets/datum.tt %]
+[%
+  PROCESS snippets/datum.tt;
 
-[% UNLESS edit_modal %]
-    <h2>
-        [% IF page == "bulk" %]
-            [% IF bulk_type == "update" %]
-                Bulk update
-            [% ELSIF bulk_type == "clone" %]
-                Clone records
-            [% END %]
-        [% ELSIF NOT record.new_entry %]
-            Record ID [% record.current_id %] [% IF record.deleted %](deleted)[% END %]
-            [% IF record.parent_id %]
-                <small>(child of record [% record.parent_id %])</small>
-            [% END %]
-            [% IF view_modal %]
-                <a class="btn btn-default pull-right" href="/record/[% record.current_id %]">Open full record</a>
-            [% END %]
-        [% ELSIF child %]
-            Create child record of [% child %]
-        [% ELSIF clone %]
-            New record copied from record ID [% clone | html %]
-        [% ELSE %]
-            New record
-        [% END %]
-    </h2>
-[% END %]
+  UNLESS edit_modal;
+    page_title = "New record";
+  
+    IF page == "bulk";
+      IF bulk_type == "update";
+        page_title = "Bulk update";
+      ELSIF bulk_type == "clone";
+        page_title = "Clone records";
+      ELSE;
+        page_title = "";
+      END;
+    ELSIF NOT record.new_entry;
+      page_title = "Record ID: " _ record.current_id;
+      
+      IF record.deleted;
+        page_title = page_title _ " (deleted)";
+      END;
+      
+      IF record.parent_id;
+        page_title = page_title _ "<small>(child of record " _ record.parent_id _ ")</small>";
+      END;
+      
+      IF view_modal;
+        page_title = page_title _ '<a class="btn btn-default pull-right" href="/record/' _ record.current_id _ '">Open full record</a>';
+      END;
+    ELSIF child;
+      page_title = "Create child record of " _ child;
+    ELSIF clone;
+      page_title = "New record copied from record ID " _ clone;
+    END;
+    
+    INCLUDE layouts/page_header_table.tt
+      title = page_title
+      filter = "html";
+  END;
 
-[% IF NOT record.new_entry %]
-    [% cur_id = record.current_id %]
-[% END %]
+  IF NOT record.new_entry;
+    cur_id = record.current_id;
+  END;
+%]
 
-<div class="row">
-    <div class="col-md-[% IF record.new_entry OR edit_modal %]12[% ELSE %]9[% END %]">
-        [% PROCESS form %]
-    </div>
-    [% IF NOT record.new_entry AND NOT edit_modal %]
-        <div class="col-md-3 edit-form__sidebar">
+<div class="content-block__main">
+  <form
+    class="[% IF edit_modal %]curval-edit-form[% ELSE %]edit-form[% END %]"
+    method="post"
+    enctype="multipart/form-data"
+    [%
+      IF edit_modal;
+        action = cur_id
+          ? url.page _ "/record/" _ cur_id
+          : url.page _ "/" _ layout.identifier _ "/record/";
+    %]
+        action="[% action %]" [%# This form also used for bulk actions %]
+        data-curval-id="[% edit_modal %]"
+        data-current-id="[% cur_id %]"
+        data-modal-field-ids="[% modal_field_ids %]"
+        data-instance-name="[% layout.identifier %]"
+    [% END; %]
+    >
+    [%
+      INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
+      
+      IF submission_token;
+        INCLUDE fields/hidden.tt name="submission_token" value=submission_token;
+      END;
+  
+      IF cur_id;
+        INCLUDE fields/hidden.tt name="current_id" value=record.current_id;
+      END;
+  
+      IF child;
+        INCLUDE fields/hidden.tt name="child" value=child;
+      END;
+    %]
+    <fieldset class="fieldset">
+      <div class="fieldset__legend fieldset__legend--hidden">
+        <legend>
+          [% page_title %]
+        </legend>
+      </div>
+    
+      <div class="content-block__main-content">
+        <div class="row">
+          [% IF NOT record.new_entry AND NOT edit_modal %]
+          <div class="content-block__left col-lg-4 mb-3 mb-lg-0">
             [% IF record.child_record_ids.size %]
-                <div class="panel panel-default">
-                    <div class="panel-heading">Child records</div>
-                    <div class="panel-body">
-                        <ul>
-                            [% FOREACH rec IN record.child_record_ids %]
-                                <li><a href="/record/[% rec %]">[% rec %]</a></li>
-                            [% END %]
-                        </ul>
-                    </div>
+            <div class="card card--header">
+              <h3 class="card__header">
+                <span>Child records</span>
+              </h3>
+    
+              <div class="card__body row">
+                <div class="card__content">
+                  <div class="list list--vertical list--key-value list--no-borders">
+                    <ul class="list__items">
+                      [% FOREACH rec IN record.child_record_ids %]
+                      <li class="list__item ">
+                        <a class='link link--plain' href='[% url.page %]/record/[% rec %]'>
+                          [% rec %]
+                        </a>
+                      </li>
+                      [% END %]
+                    </ul>
+                  </div>
                 </div>
-            [% END %]
-
-            <div class="panel panel-default">
-                <div class="panel-heading">Meta data</div>
-                <div class="panel-body">
-                    <dl>
-                        <dt>Last edited by</dt>
-                        <dd>[% render_datum(record.version_user, 'full') %]</dd>
-                        <dt>Last edited time</dt>
-                        <dd>[% render_datum(record.version_datetime, 'full') %]</dd>
-                        <dt>Created by</dt>
-                        <dd>[% render_datum(record.created_user, 'full') %]</dd>
-                        <dt>Created time</dt>
-                        <dd>[% render_datum(record.created_datetime, 'full') %]</dd>
-                    </dl>
-                </div>
+              </div>
             </div>
-
+            [% END %]
+            
+            <div class="card card--header">
+              <h3 class="card__header">
+                <span>Meta data</span>
+              </h3>
+              
+              <div class="card__body row">
+                <div class="card__content">
+                  <div class="list list--vertical list--key-value list--no-borders">
+                    <ul class="list__items">
+                      <li class="list__item ">
+                        <span class="list__key">Last edited by</span>
+                        <span class="list__value">[% record.version_user.data.text | html %]</span>
+                      </li>
+            
+                      <li class="list__item ">
+                        <span class="list__key">Last edited time</span>
+                        <span class="list__value">[% record.version_datetime.data.value | html %]</span>
+                      </li>
+                    </ul>
+                  </div>
+        
+                  <div class="list list--vertical list--key-value list--no-borders">
+                    <ul class="list__items">
+                      <li class="list__item ">
+                        <span class="list__key">Created by</span>
+                        <span class="list__value">[% record.created_user.data.text | html %]</span>
+                      </li>
+            
+                      <li class="list__item ">
+                        <span class="list__key">Created time</span>
+                        <span class="list__value">[% record.created_datetime.data.value | html %]</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+  
             [% UNLESS view_modal %]
-                <div class="panel panel-default">
-                    <div class="panel-heading">Actions</div>
-                    <div class="panel-body">
-                        [% IF NOT record.new_entry %]
-                            [% PROCESS snippets/record_edit.tt %]
-                        [% END %]
+            <div class="card card--header">
+              <h3 class="card__header">
+                <span>Version history</span>
+              </h3>
+    
+              <div class="card__body row">
+                <div class="card__content">
+                  <div class="row mb-2">
+                    <div class="col">
+                      <a class="btn btn-link" href="[% url.page %]/chronology/[% record.current_id %]">View chronology</a>
                     </div>
-                </div>
-
-                <div class="panel panel-default">
-                    <div class="panel-heading">Version history</div>
-                    <div class="panel-body">
-                        <div class="btn-group-vertical" role="group">
-                            [% dropdown_title = "Select version..." %]
-                            [% FOREACH version IN record.versions %]
-                                [% IF version.id == record.record_id %]
-                                    [% dropdown_title = version.created %]
+                  </div>
+                  <div class="row">
+                    <div class="col">
+                      <div class="collapsible-dropdown">
+                        [%
+                          dropdown_title = "Select version...";
+                        
+                          FOREACH version IN record.versions;
+                            IF version.id == record.record_id;
+                              dropdown_title = version.created;
+                            END;
+                          END;
+                        %]
+                        <button class="collapsible__toggle" type="button" data-toggle="collapse" data-target="#dropdown" aria-expanded="false" aria-controls="collapseExample">
+                          <span> [% dropdown_title %] </span>
+                        </button>
+                        <div class="collapse" id="dropdown">
+                          <div class="collapsible-dropdown__content">
+                            <div class="dropdown__group">
+                              <ul class="dropdown__list" role="listbox" aria-labelledby="dropdown">
+                                [%
+                                  history_link = record.deleted ? "purgehistory" : "history";
+                                
+                                  FOREACH version IN record.versions;
+                                %]
+                                <li class="dropdown__item" role="option">
+                                  <a
+                                    class='link link--plain[% IF version.id == record.record_id %] link--active[% END %]'
+                                    href='/[% history_link %]/[% version.id %]'
+                                  >
+                                    [%
+                                      version.created;
+                                      IF version.createdby;
+                                    %]
+                                      ([% version.createdby.value | html %])
+                                    [% END %]
+                                  </a>
+                                </li>
                                 [% END %]
-                            [% END %]
-
-                            <a class="btn btn-default remove-unload-handler" href="/chronology/[% record.current_id %]">View chronology</a>
-                            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#">Historical versions <b class="caret"></b></button>
-                            <ul id="menu1" class="dropdown-menu scrollable-menu" role="menu" aria-labelledby="drop4">
-                                [% IF record.deleted %]
-                                    [% history_link = "purgehistory" %]
-                                [% ELSE %]
-                                    [% history_link = "history" %]
-                                [% END %]
-                                [% FOREACH version IN record.versions %]
-                                    <li [% IF version.id == record.record_id %]class="active"[% END %] role="presentation">
-                                        <a role="menuitem" tabindex="-1" href="/[% history_link %]/[% version.id %]">[% version.created %]
-                                            [% IF version.createdby %]
-                                                ([% version.createdby.value | html %])
-                                            [% END %]
-                                        </a>
-                                    </li>
-                                [% END %]
-                            </ul>
+                              </ul>
+                            </div>
+                
+                
+                          </div>
                         </div>
+                      </div>
+          
                     </div>
+                  </div>
+      
                 </div>
+    
+              </div>
+            </div>
             [% END %]
-
+  
             [% IF record.has_rag_column %]
-                <div class="panel panel-default">
-                    <div class="panel-heading">Legend</div>
-                    <div class="panel-body">
-                        [% PROCESS snippets/rag_legend.tt %]
-                    </div>
+            <div class="card card--header">
+              <h3 class="card__header">
+                <span>Legend</span>
+              </h3>
+    
+              <div class="card__body row">
+                <div class="card__content">
+                  [% INCLUDE snippets/rag_legend.tt %]
                 </div>
+              </div>
+            </div>
             [% END %]
-        [% END %]
-    </div>
+          </div>
+          [% END %]
+          
+          <div class="content-block__right col-lg-[% IF record.new_entry OR edit_modal %]12[% ELSE %]8[% END %]">
+            [% PROCESS form %]
+          </div>
+        </div>
+      </div>
+      
+      <footer class="content-block__footer">
+        <div class="content-block__footer-container">
+          [%
+            right_buttons = [];
+          
+            right_buttons.push({
+              type  = "button",
+              class = "btn btn-inverted btn-js-remove-unload",
+              id    = "submit-and-remain",
+              name  = "submit",
+              value = "submit-and-remain",
+              label = "Save and continue"
+            }, {
+              type  = "button",
+              class = "btn btn-default btn-js-remove-unload",
+              id    = "submit",
+              name  = "submit",
+              value = "submit",
+              label = "Save and exit"
+            });
+          
+            # IF record.new_entry AND page != "bulk";
+            #   right_buttons.push({
+            #     type  = "button",
+            #     class = "btn btn-inverted btn-js-remove-unload",
+            #     id    = "draft",
+            #     name  = "draft",
+            #     value = "submit",
+            #     label = "Save and continue"
+            #   });
+            #
+            #   IF record.is_draft;
+            #     right_buttons.push({
+            #       type  = "button",
+            #       class = "btn btn-delete",
+            #       id    = "delete_draft",
+            #       name  = "delete_draft",
+            #       value = "submit",
+            #       label = "Delete draft"
+            #     });
+            #   END;
+            # END;
+          
+            INCLUDE navigation/button_bar.tt
+              row_class = "row"
+              columns   = [{
+                class   = "col-md-4 mb-3 mb-md-0",
+                buttons = [{
+                  type   = "link",
+                  target = url.page _ "/" _ layout_obj.identifier _ "/data",
+                  class  = "btn btn-cancel btn-js-cancel",
+                  label  = "Cancel"
+                }]
+              }, {
+                class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
+                buttons = right_buttons
+              }];
+          %]
+        </div>
+      </footer>
+    </fieldset>
+  </form>
 </div>
 
-[% BLOCK panel_start %]
-    [% block_topic = topic.topic %]
-    [% IF !block_topic OR block_topic.initial_state == 'open' %]
-        [% open = 1 %]
-    [% ELSE %]
-        [% open = 0 %]
-    [% END %]
-    <div class="panel-group" id="accordion[% col_panel.id %]" role="tablist" aria-multiselectable="true">
-        <div class="panel panel-default">
-            <a class="panel-heading" role="tab" id="headingOne" role="button"
-                data-toggle="collapse" data-parent="#accordion[% col_panel.id %]"
-                href="#topic[% col_panel.id %]" aria-expanded="[% IF open %]true[% ELSE %]false[% END %]"
-                aria-controls="topic[% col_panel.id %]">
-                <h4 class="panel-title">
-                    [% block_topic.name OR 'Other' | html %]
-                </h4>
-            </a>
-            <div id="topic[% col_panel.id %]" class="panel-collapse collapse[% IF open %] in[% END %]" role="tabpanel" aria-labelledby="headingOne">
-                <div class="panel-body">
-                    [% IF topic.need_completed_topics_count %]
-                        <div role="alert" class="alert alert-warning">
-                            Fields in this section cannot be completed until mandatory fields
-                            in the [% block_topic.need_completed_topics_as_string | html %]
-                            section[% IF block_topic.need_completed_topics_count > 1 %]s[% END %]
-                            have been completed.
-                        </div>
-                    [% END %]
-[% END %]
-[% BLOCK panel_end %]
-                </div>
-            </div>
+[%
+  IF record.user_can_delete;
+    modal_description =
+      "Are you sure you want to delete this record? The version history of the record will
+      also be deleted. You cannot undo this step.";
+      
+    IF record.child_record_ids.size;
+      modal_description = modal_description _ "<br><br>The following child records will also be deleted:<ul>";
+      
+      FOREACH rec IN record.child_record_ids;
+        modal_description = modal_description _ "<li>" _ rec _ "</li>";
+      END;
+  
+      modal_description = modal_description _ "</ul>";
+    END;
+    
+    INCLUDE wizard/delete.tt
+      modalId     = "deleteModal"
+      label       = "Delete - record"
+      description = modal_description;
+  END;
+
+%]
+
+[%
+  BLOCK panel_start;
+    block_topic = topic.topic;
+    open        = !block_topic OR block_topic.initial_state == 'open' ? 'true' : 'false';
+%]
+  <div class="[% panel_class %]">
+    <div class="card card--expandable">
+      <div class="card__header">
+        <div class="card__header-left">
+          <h4 class="card__title">
+            [% block_topic.name OR 'Other' | html %]
+          </h4>
+          [% IF block_topic.description %]
+          <h6 class="card-subtitle mt-2 text-muted">
+            [% block_topic.description | html %]
+          </h6>
+          [% END %]
         </div>
+        <div class="card__header-right">
+          [% IF editable AND NOT record.new_entry AND NOT edit_modal AND topic.has_editable %]
+          <button
+            type="button"
+            class="btn btn-edit btn-js-edit"
+          >
+            <span class="btn__title">Edit</span>
+          </button>
+          [% END %]
+          
+          <button
+            type="button"
+            class="btn btn-view btn-js-view"
+          >
+            <span class="btn__title">View</span>
+          </button>
+        
+          <button
+            class="card__toggle"
+            type="button"
+            data-toggle="collapse"
+            data-target="#topic[% col_panel.id %]"
+            aria-expanded="[% open %]"
+            aria-controls="topic[% col_panel.id %]"
+          >
+            <span>Toggle collapsible</span>
+          </button>
+        </div>
+      </div>
+      <div class="collapse[% IF open == 'true' %] show[% END %]" id="topic[% col_panel.id %]">
+        <div class="card__content">
+          [% IF topic.need_completed_topics_count %]
+          <div role="alert" class="alert alert-warning">
+            Fields in this section cannot be completed until mandatory fields
+            in the [% block_topic.need_completed_topics_as_string | html %]
+            section[% IF block_topic.need_completed_topics_count > 1 %]s[% END %]
+            have been completed.
+          </div>
+          [% END %]
+[% END %]
+
+[% BLOCK panel_end %]
+        </div>
+      </div>
     </div>
+  </div>
 [% END %]
 
 [% BLOCK form %]
-    <form class="[% IF edit_modal %]curval-edit-form[% ELSE %]edit-form[% END %]" method="post" enctype="multipart/form-data"
-        [% IF edit_modal %]
-            [% IF cur_id %]
-                [% action = "/record/" _ cur_id %]
-            [% ELSE %]
-                [% action = "/" _ layout.identifier _ "/record/" %]
-            [% END %]
-            action="[% action %]" [%# This form also used for bulk actions %]
-            data-curval-id="[% edit_modal %]"
-            data-current-id="[% cur_id %]"
-            data-modal-field-ids="[% modal_field_ids %]"
-            data-instance-name="[% layout.identifier %]"
-        [% END %]
-    >
-        <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-        [% IF submission_token %]
-            <input type="hidden" name="submission_token" value="[% submission_token %]">
-        [% END %]
-        [% IF edit_modal %]
-            <p role="alert" class="alert alert-danger" hidden></p>
-        [% END %]
-        <div class="row">
-            <div class="col-md-12">
-                [% IF cur_id %]
-                    <input type="hidden" name="current_id" value="[% record.current_id %]">
-                [% END %]
-                [% IF child %]
-                    <input type="hidden" name="child" value="[% child %]">
-                [% END %]
+  <style type="text/css" rel="stylesheet">
+    img.autosize {
+      max-height:200px;
+      max-width:200px;
+      height:auto;
+      width:auto;
+    }
+  </style>
+  [%
+    editable = record.user_can_edit AND NOT record.deleted AND NOT is_history AND NOT view_modal ? 1 : 0;
+    is_first_topic = 1;
+    
+    FOREACH topic IN record.topics;
+      click_to_edits = [];
+  
+      IF existing;
+        oldvalue = existing.fields.$colid.html; # All value already entity-encoded
+      END;
+      
+      IF layout_edit.has_topics;
+        panel_class = is_first_topic ? 'mb-3' : 'mt-3';
+        PROCESS panel_start;
+      END;
+%]
+  [% IF NOT record.new_entry AND NOT edit_modal; %]
+  <div class="card__view-content">
+    <div class="list list--vertical list--key-value list--no-borders">
+      <ul class="list__items">
+        [%
+          FOREACH col_panel IN topic.columns;
+            NEXT IF !is_history AND col_panel.data.dependent_not_shown;
+            NEXT IF view_modal AND col.type == "autocur";
+        
+            IF editable AND col_panel.display_for_edit;
+        %]
+        <li class="list__item[% IF col_panel.data.blank AND NOT layout.no_hide_blank %] list__item--blank[% END %]">
+          <span class="list__key">[% col_panel.name | html_entity %]</span>
+          <span class="list__value">[% render_datum(col_panel, 'full') %]</span>
+        </li>
+        [%
+              click_to_edits.push(col_panel);
+            END;
+          END;
+        %]
+      </ul>
+    </div>
+  </div>
+  
+  <div class="card__edit-content">
+  [%
+    END; # end IF NOT record.new_entry AND NOT edit_modal; as the edit view can be opened directly
+    
+    FOREACH col IN topic.columns;
+      NEXT IF NOT editable OR NOT col.display_for_edit;
+    
+      editvalue = col.data;
+      field     = 'field' _ col.id;
+      colid     = col.id;
+      readonly  = col.readonly AND page != "approval" ? 1 : 0;
+      indents   = record.indent.${col.id};
+    
+      field_label = "";
+    
+      IF col.show_in_edit;
+        field_label = col.name;
+        
+        IF page != "bulk" AND oldvalue;
+          field_label = field_label _ ' (current value "' _ oldvalue _ '")';
+        END;
+      END;
+    
+      IF col.multivalue;
+        IF col.has_multivalue_plus;
+          IF editvalue.html_form.size;
+            WHILE editvalue.html_form.size;
+              PROCESS print_field;
+            END;
+          ELSE;
+            PROCESS print_field;
+          END;
+        ELSE;
+          INCLUDE fields/hidden.tt id="" name=field value="" filter = "";
+          PROCESS print_field;
+        END;
+      ELSE;
+        PROCESS print_field;
+      END;
+    
+    END; # foreach end
+%]
+  [% IF NOT record.new_entry AND NOT edit_modal; %]
+  </div>
+  [% END; %]
+[%
+      IF layout_edit.has_topics;
+        PROCESS panel_end;
+      END;
+  
+      is_first_topic = 0;
+    END;
+  END;
+%]
 
-                [% IF record.user_can_edit AND NOT record.deleted AND NOT is_history AND NOT view_modal %]
-                    [% editable = 1 %]
-                [% END %]
-                [% FOREACH topic IN record.topics %]
-                    [% click_to_edits = [] %]
-                    [% IF layout_edit.has_topics %]
-                        [% PROCESS panel_start %]
-                    [% END %]
-                    [% IF editable AND NOT record.new_entry AND NOT edit_modal AND topic.has_editable %]
-                        <div class="form-group">
-                            <button class="btn btn-default pull-right click-to-edit" type="button" data-edit-el="#topic_forms[% block_topic.id %]" data-view-el="#topic_show[% block_topic.id %]">Edit</button>
-                            [% IF block_topic.description %]
-                                <p>[% block_topic.description | html %]</p>
-                            [% END %]
-                        </div>
-                    [% ELSE %]
-                        [% IF block_topic.description %]
-                            <p>[% block_topic.description | html %]</p>
-                        [% END %]
-                    [% END %]
-                    <div id="topic_forms[% block_topic.id %]" class="[% IF NOT record.new_entry AND NOT edit_modal %]expandable[% END %]">
-                        [% FOREACH col_panel IN topic.columns %]
-                            [% IF editable AND col_panel.display_for_edit %]
-                                [% PROCESS showcol col = col_panel %]
-                            [% END %]
-                            [% click_to_edits.push(col_panel) %]
-                        [% END %]
-                    </div>
-                    [% IF NOT record.new_entry AND NOT edit_modal %]
-                        <div id="topic_show[% block_topic.id %]" class="expandable expanded">
-                            <table class="table table--zebra">
-                                [% FOREACH col_click IN click_to_edits %]
-                                    [% NEXT IF !is_history AND col_click.data.dependent_not_shown %]
-                                    [% NEXT IF view_modal AND col.type == "autocur" %]
-
-                                    <tr [% IF col_click.data.blank AND NOT layout.no_hide_blank %]class="click-to-view-blank-field expandable"[% END %]>
-                                        <th>[% col_click.name | html_entity %]</th>
-                                        <td class="[% col_click.type %]">
-                                            [% render_datum(col_click, 'full') %]
-                                        </td>
-                                    </tr>
-                                [% END %]
-                            </table>
-                        </div>
-                    [% END %]
-                    [% IF layout_edit.has_topics %]
-                        [% PROCESS panel_end %]
-                    [% END %]
-                [% END %]
-            </div>
-        </div>
-        [% IF edit_modal %]
-            <div class="top-buffer">
-                <p class="spinner" hidden>
-                    Validating... <i class="fa fa-spinner fa-spin" style="font-size:24px"></i>
-                </p>
-                <button type="submit" class="btn btn-primary" id="curval-add">[% IF record.new_entry %]Add[% ELSE %]Update[% END %]</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-            </div>
-        [% ELSIF NOT view_modal %]
-            <div class="navbar navbar-default navbar-fixed-bottom edit-controls">
-                <div class="container">
-                    <div class="btn-group dropup">
-                        <button type="submit" name="submit" value="submit" class="btn btn-primary submit_button">
-                            Submit
-                        </button>
-                        <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown">
-                            <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <button type="submit" name="submit" value="submit-and-remain" class="btn btn-link">
-                                    Save and keep editing
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-                    [% IF record.new_entry AND page != "bulk" %]
-                        <button type="submit" name="draft" value="submit" class="btn btn-primary submit_button">
-                            Save draft
-                        </button>
-                        [% IF record.is_draft %]
-                            <button type="submit" name="delete_draft" value="submit" class="btn btn-primary submit_button">
-                                Delete draft
-                            </button>
-                        [% END %]
-                    [% END %]
-                    <a href="/[% layout.identifier %]/data" class="btn btn-default" role="button">Cancel</a>
-                </div>
-            </div>
-        [% END %]
-    </form>
-[% END %]
-
-[% PROCESS snippets/record_readmore.tt %]
-
-[% UNLESS edit_modal OR view_modal %]
-<div class="modal fade" id="curval_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-dateformat-datepicker="[% config.dateformat_datepicker %]">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-body">
-            </div>
-            <div class="modal-footer">
-            </div>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-
-    <div class="modal fade" id="helptext_modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-body">
-                </div>
-                <div class="modal-footer">
-                    <button id="helptext_modal_close" type="button" class="btn btn-default">Close</button>
-                </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
-[% END %]
-
-[% BLOCK showcol %]
-
-    [% editvalue = col.data %]
-    [% dispcol = col %]
-    [% field = 'field' _ dispcol.id %]
-    [% colid = dispcol.id %]
-    [% readonly = dispcol.readonly %]
-
-    [% IF existing %]
-        [% oldvalue = existing.fields.$colid.html %] [%# All value already entity-encoded %]
-    [% END %]
-
-    [% IF readonly  AND page != "approval" %]
-        [% readonly = "readonly" %]
-    [% ELSE %]
-        [% readonly = "" %]
-    [% END %]
-
-    [% indents = record.indent.${dispcol.id} %]
-
-    <div class="[% IF dispcol.show_in_edit %]form-group[% END %] linkspace-field" data-column-id="[% dispcol.id %]" data-column-type="[% dispcol.type %]" data-value-selector="[% dispcol.value_selector %]" data-name-short="[% dispcol.name_short %]"
-        [% dispcol.has_display_field && 'data-has-dependency="' _ dispcol.has_display_field _ '"' %]
-        [% dispcol.has_display_field && 'data-dependency="' _ dispcol.display_fields_b64 _ '"' %]
-        [% dispcol.depends_on_b64 && 'data-calc-depends-on="' _ dispcol.depends_on_b64 _ '"' %]
-        [% dispcol.code_b64 && 'data-code="' _ dispcol.code_b64 _ '"' %]
-        [% dispcol.params_b64 && 'data-code-params="' _ dispcol.params_b64 _ '"' %]
-        [% dispcol.multivalue && 'data-is-multivalue="true"' %]
-        [% dispcol.readonly && 'data-is-readonly="true"' %]
+[% BLOCK print_field; %]
+  <div
+      class="[% IF col.show_in_edit %]form-group[% END %]
+      linkspace-field"
+      data-column-id="[% col.id %]"
+      data-column-type="[% col.type %]"
+      data-value-selector="[% col.value_selector %]"
+      data-name-short="[% col.name_short %]"
+        [% col.has_display_field && 'data-has-dependency="' _ col.has_display_field _ '"' %]
+        [% col.has_display_field && 'data-dependency="' _ col.display_fields_b64 _ '"' %]
+        [% col.depends_on_b64 && 'data-calc-depends-on="' _ col.depends_on_b64 _ '"' %]
+        [% col.code_b64 && 'data-code="' _ col.code_b64 _ '"' %]
+        [% col.params_b64 && 'data-code-params="' _ col.params_b64 _ '"' %]
+        [% col.multivalue && 'data-is-multivalue="true"' %]
+        [% col.readonly && 'data-is-readonly="true"' %]
         data-dependent-not-shown="[% editvalue.dependent_not_shown %]"
         style="margin-left:[% 50 * indents %]px"
     >
-        [% label = dispcol.name | html_entity %]
-        [% IF dispcol.optional OR page == "bulk" OR NOT dispcol.userinput %]
-            [% label_style = 'style="font-weight:normal !important"' %]
-        [% ELSE %]
-            [% label_style = 'style="font-weight:bold !important"' %]
-            [% label = label _ '*' %]
-        [% END %]
-        [% IF dispcol.description %]
-            [% desc = dispcol.description | html_entity %]
-            [% label = label _ ' <span style="font-weight:normal !important">(' _ desc _ ")</span>" %]
-        [% END %]
-        [% IF dispcol.helptext %]
-            [% label = label _ " <a class='helptext__questionmark' data-toggle='modal' data-load-url='/helptext/"
-                             _ dispcol.id  _ "' data-target='#helptext_modal'>?</a>" %]
-        [% END %]
-        [% IF page == "bulk" AND dispcol.addable AND (dispcol.return_type == "date" OR dispcol.return_type == "daterange") %]
-            [% label_add = BLOCK %]
-                (<span style="font-weight:normal !important"><a style="cursor: pointer" data-toggle="popover" title="Add or subtract for cloned value"
-                data-content="You can add or subtract a time period for the updated or cloned values by entering an amount, such as &quot;+ 4 weeks&quot;.
-                [% IF dispcol.show_datepicker %]
-                    First you will need to <a class='remove_datepicker' style='cursor: pointer' data-field='[% dispcol.id %]'>
-                    disable the date selector
-                [% END %]
-                </a>." data-html="true">add/subtract</a></span>)
-            [% END %]
-            [% label = label _ label_add %]
-        [% ELSIF page == "bulk" AND dispcol.addable %]
-            [% label_add = BLOCK %]
-                (<span style="font-weight:normal !important"><a style="cursor: pointer" data-toggle="popover" title="Add or subtract for cloned value"
-                data-content="You can add or subtract a value for the new or cloned values by entering an amount in brackets, such as &lsquo;(+25)&rsquo;.
-                Available operators are: &lsquo;+&rsquo;, &lsquo;-&rsquo;, &lsquo;*&rsquo;; and &lsquo;/&rsquo;." data-html="true">add/subtract</a></span>)
-            [% END %]
-            [% label = label _ label_add %]
-        [% END %]
-        [% IF dispcol.show_in_edit %]
-            [% IF page == "bulk" %]
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="bulk_inc_[% dispcol.id %]" value="1"
-                        > <span [% label_style %]>[% label %]</span>
-                    </label>
-                </div>
-            [% ELSE %]
-                <label id="[% field %]_label" for="[% dispcol.id %]" [% label_style %]>
-                    [% label %][% IF oldvalue %] (current value &quot;[% oldvalue %]&quot;)[% END %]
-                </label>
-            [% END %]
-        [% END %]
-        [% IF dispcol.multivalue %]
-            [% IF dispcol.has_multivalue_plus %]
-                [% IF editvalue.html_form.size %]
-                    [% WHILE editvalue.html_form.size %]
-                        [% PROCESS print_field %]
-                    [% END %]
-                [% ELSE %]
-                    [% PROCESS print_field %]
-                [% END %]
-            [% ELSE %]
-                [%# Ensure a value gets sent back to show this field was shown if nothing selected %]
-                <input type="hidden" name="[% field %]">
-                [% PROCESS print_field %]
-            [% END %]
-        [% ELSE %]
-            [% PROCESS print_field %]
-        [% END %]
-    </div>
-
-    [% last_column = dispcol %]
-
-[% END %]
-
-[% BLOCK print_field %]
-    <div class="input_holder" data-dateformat-datepicker="[% config.dateformat_datepicker %]">
-        <div class="row">
-            <div class="col-md-[% IF edit_modal %]12[% ELSE %][% dispcol.widthcols %][% END %]">
-                [% IF dispcol.type == "enum" %]
-                    [% PROCESS enum_column column = dispcol %]
-                [% ELSIF dispcol.type == "curval" %]
-                    [% PROCESS curval_column column = dispcol %]
-                [% ELSIF dispcol.type == "tree" %]
-                    [% IF readonly %]
-                        <div class="form-group">
-                            [% render_datum(col) %]
-                        </div>
-                        [%# Send values back, otherwise controller will think blank values submitted %]
-                        [% FOREACH val IN editvalue.ids %]
-                            <input type="hidden" name="[% field %]" value="[% val %]">
-                        [% END %]
-                    [% ELSE %]
-                        <div class="form-group">
-                            [% # TODO: These anchors need to become buttons %]
-                            <a class="jstree-expand-all" style="cursor:pointer">Expand all</a> |
-                            <a class="jstree-collapse-all" style="cursor:pointer">Collapse all</a> |
-                            <a class="jstree-reload" style="cursor:pointer">Reload</a>
-                            <div class="tree-widget-container"
-                                data-field="[% field %]"
-                                [% dispcol.end_node_only && 'data-end-node-only="true"' %]
-                                data-ids-as-params="[% editvalue.ids_as_params %]"
-                                id="jstree[% dispcol.id %]"
-                            ></div>
-                            [% IF NOT editvalue.ids.size %]
-                                <input type="hidden" name="[% field %]" class="selected-tree-value" value="">
-                            [% END %]
-                            [% FOREACH val IN editvalue.ids %]
-                                <input type="hidden" name="[% field %]" class="selected-tree-value" value="[% val %]">
-                            [% END %]
-                        </div>
-                    [% END %]
-                [% ELSIF dispcol.type == "person" %]
-                    <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
-                        [% IF dispcol.optional OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
-                            <option></option>
-                        [% END %]
-                        [% selected = "" %]
-                        [% IF editvalue.id %]
-                            [% selected = editvalue.id %]
-                        [% ELSIF dispcol.default_to_login AND NOT record.current_id %] [%# default to current user for new records only %]
-                            [% selected = user.id %]
-                        [% END %]
-                        [% is_selected = 0 %]
-                        [% FOREACH person IN dispcol.people %]
-                            [% UNLESS person.deleted %]
-                                <option value="[% person.id %]" [% IF selected == person.id %][% is_selected = 1 %]selected[% END %]>[% person.value | html_entity %]</option>
-                            [% END %]
-                        [% END %]
-                        [% IF editvalue.id AND NOT is_selected %]
-                            <option value="[% editvalue.id %]" selected>[% editvalue.html %]</option>
-                        [% END %]
-                    </select>
-                [% ELSIF dispcol.type == "file" %]
-                    [% IF readonly %]
-                        [% IF editvalue.files.size %]
-                            <ul>
-                                [% FOREACH file IN editvalue.files %]
-                                    <li>
-                                        <input type="hidden" name="[% field %]" value="[% file.id %]">
-                                        [% file.name | html %]
-                                    </li>
-                                [% END %]
-                            </ul>
-                        [% ELSE %]
-                            <p class="help-block">No current file (read-only field, cannot be updated).</p>
-                        [% END %]
-                    [% ELSE %]
-                        <div class="fileupload" data-field="[% field %]" data-fileupload-url="/file?ajax=1" data-multivalue="[% dispcol.multivalue %]">
-                            [%# Ensure something gets sent back to show it's been displayed %]
-                            <input type="hidden" name="[% field %]">
-                            <div class="progress-bar__container">
-                                <div class="progress-bar__progress">
-                                    <p class="progress-bar__percentage">0%</p>
-                                </div>
-                            </div>
-                            <ul class="fileupload__files">
-                                [% FOREACH file IN editvalue.files %]
-                                    <li class="help-block">
-                                        <input type="checkbox" name="[% field %]" value="[% file.id %]" checked>Include file.
-                                        Current file name: <a href="/file/[% file.id %]">[% file.name | html %]</a>.
-                                    </li>
-                                [% END %]
-                            </ul>
-                            [% IF dispcol.multivalue == multivalue %]
-                                <input type="file" name="file" multiple>
-                            [% ELSE %]
-                                <input type="file" name="file">
-                            [% END %]
-                        </div>
-                    [% END %]
-                [% ELSIF dispcol.type == "daterange" %]
-                    [% IF dispcol.show_datepicker and !readonly %][% datepicker = "datepicker" %][% ELSE %][% datepicker = "" %][% END %]
-                    <div class="input-group input-daterange">
-                            <input type="text" name="[% field %]" class="form-control [% datepicker %] from datepicker[% dispcol.id %]" value="[% editvalue.html_form.shift | html_entity %]"
-                                [% IF NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %] [% readonly %]>
-                            <span class="input-group-addon">to</span>
-                            <input type="text" name="[% field %]" class="form-control [% datepicker %] to datepicker[% dispcol.id %]" value="[% editvalue.html_form.shift | html_entity %]"
-                                [% IF NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %] [% readonly %]>
-                    </div>
-                [% ELSIF dispcol.type == "rag" # XXX To implement %]
-                [% ELSIF dispcol.type == "calc" %]
-                    [% FOREACH val IN editvalue.html_form %]
-                        [% IF dispcol.show_in_edit %]
-                            <input type="text" class="form-control" id="[% dispcol.id %]" readonly
-                                name="[% field %]" value="[% val | html %]">
-                        [% ELSE %]
-                            <input type="hidden" class="form-control" id="[% dispcol.id %]"
-                                name="[% field %]" value="[% val | html %]">
-                        [% END %]
-                    [% END %]
-                [% ELSE %]
-                    [% IF dispcol.type == "date" AND dispcol.show_datepicker AND !readonly %]
-                        [% class = "form-control datepicker datepicker" _ dispcol.id %]
-                    [% ELSIF dispcol.type == "intgr" AND editvalue.value.defined AND dispcol.show_calculator %]
-                        [% class = "form-control intcalculator" %]
-                    [% ELSE %]
-                        [% class = "form-control" %]
-                    [% END %]
-                    [% IF dispcol.textbox %]
-                        <textarea [%readonly %] class="form-control" id="[% dispcol.id %]" name="[% field %]" rows="10">[% editvalue.html_form.shift | html %]</textarea>
-                    [% ELSE %]
-                        <input type="text" class="[% class %]" id="[% dispcol.id %]"
-                            name="[% field %]" value="[% editvalue.html_form.shift | html %]" [% readonly %]
-                            [% IF dispcol.type == "date" AND NOT dispcol.show_datepicker %]placeholder="[% config.dateformat_datepicker %]"[% END %]>
-                    [% END %]
-                [% END %]
-            </div>
-            [% IF dispcol.multivalue AND dispcol.has_multivalue_plus %]
-                <div class="col-md-2" style="padding-left:0">
-                    <a class="btn btn-primary btn-sm cloneme"><i class="fa fa-lg fa-plus" style="cursor: pointer"></i></a>
-                    <a class="btn btn-primary btn-sm removeme"><i class="fa fa-lg fa-minus" style="cursor: pointer"></i></a>
-                </div>
-            [% END %]
-        </div>
-    </div>
-    [% UNLESS dispcol.multivalue AND dispcol.has_multivalue_plus %]
-        [% editvalue = 0 %]
-    [% END %]
-[% END %]
-
-[% BLOCK curval_typeahead_column %]
-    <input type="hidden" name="[% field %]" id="typeahead_[% dispcol.id %]_value" value="[% editvalue.autocomplete_value | html %]">
-    <input type="text" class="form-control" id="typeahead_[% dispcol.id %]" autocomplete="off"
-        data-layout-id="[% layout.identifier %]" data-typeahead-id="[% dispcol.id %]"
-        name="[% field %]_typeahead" value="[% IF record %][% editvalue.value | html %][% END %]" [% readonly %] >
-[% END %]
-
-[% BLOCK singlevalue_column %]
-    <div class="select-widget [% IF readonly %]select-widget--read-only[% END %] single"
-        data-value-selector="[% column.value_selector %]"
-        data-layout-id="[% layout.identifier %]" data-typeahead-id="[% dispcol.id %]"
-        data-field="[% field %]"
-        [% IF column.has_subvals %]
-            data-filter-endpoint="/[% layout.identifier _ "/api/field/values/" _ column.id %]"
-            data-submission-token="[% submission_token %]"
-            data-filter-fields='[% column.data_filter_fields %]'
-        [% END %]
-        >
-        <div class="select-widget-dropdown">
-            <div class="form-group form-control" [% readonly %] >
-                <ul id="[% field %]_value" class="current">
-                    [% checked = editvalue.blank %]
-                    [% value_field_id = field _ '__blank' %]
-                    <li [% !checked && 'hidden' %] data-list-item="[% value_field_id %]" class="current__blank">blank</li>
-                [% FOREACH value IN values %]
-                    [% NEXT IF value.deleted %]
-                    [% selector_id = value.selector_id %]
-                    [% checked = editvalue.id_hash.${selector_id} %]
-                    [% value_field_id = field _ '_' _ value.id %]
-                    <li [% !checked && 'hidden' %] data-list-item="[% value_field_id %]" data-list-id="[% value.id %]"
-                        data-list-text="[% value.value | html %]">[% value.value | html_entity %]</li>
-                [% END %]
-                    [% IF !readonly %]
-                        <li class="search">
-                            <input type="search" class="form-control-search" style="width:70px" placeholder="Search..." aria-controls="[% field %]_available_values" aria-haspopup="listbox" aria-expanded="false" aria-describedby="[% field %]_label [% field %]_value">
-                        </li>
-                    [% END %]
-                </ul>
-            </div>
-            <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values" role="listbox" aria-labelledby="[% field %]_label">
-                <li class="spinner" hidden>
-                    <i class="fa fa-spinner fa-spin" style="font-size:24px"></i>
-                </li>
-                <li class="has-noresults" hidden>No results</li>
-                [% IF NOT required %]
-                    <li class="answer answer--blank">
-                        <span class="control">
-                            [% checked = editvalue.blank %]
-                            [% value_field_id = field _ '__blank' %]
-                            <label id="blank_label" for="[% value_field_id %]">
-                                <input id="[% value_field_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="" class="visually-hidden">
-                                <span role="option">blank</span>
-                            </label>
-                        </span>
-                    </li>
-                [% END %]
-            [% FOREACH value IN values %]
-                [% NEXT IF value.deleted %]
-                [% checked = editvalue.id_hash.${value.selector_id} %]
-                [% value_field_id = field _ '_' _ value.id %]
-                <li class="answer">
-                    <span class="control">
-                        <label id="[% value_field_id %]_label" for="[% value_field_id %]">
-                            <input id="[% value_field_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="[% value.value_id | html %]" class="visually-hidden" aria-labelledby="[% value_field_id %]_label">
-                            <span role="option">[% value.value | html_entity %]</span>
-                        </label>
-                    </span>
-                    [% IF details %]
-                    <span class="details">
-                        <button type="button" class="more-info" data-record-id="[% value.id %]" aria-label="View full details" aria-describedby="[% value_field_id %]_label">Details</button>
-                    </span>
-                    [% END %]
-                </li>
-            [% END %]
-            </ul>
-        </div>
-    </div>
-[% END %]
-
-[% BLOCK curval_add_button %]
-    <p><button class="btn btn-primary curval-modal" type="button"
-        data-instance-name="[% dispcol.layout_parent.identifier %]" data-layout-id="[% dispcol.id %]">Add...
-    </button></p>
+  [%
+    field_is_required = col.optional OR page == "bulk" OR NOT col.userinput ? 0 : 1;
+  
+    IF col.type == "enum";
+      required      = !(col.optional OR page == "bulk");
+      details       = 0;
+      values        = col.enumvals;
+      select_items  = [];
+      select_values = [];
+      select_value  = "";
+  
+      # Add any values that have since been deleted, in case the user is not editing
+      # this field (otherwise they will be blanked unexpectedly on submission
+      FOREACH v IN editvalue.deleted_values;
+        values.unshift(v);
+      END;
+  
+      FOREACH value IN values;
+        NEXT IF value.deleted;
+  
+        IF editvalue.id_hash.${value.selector_id};
+          IF col.multivalue;
+            select_values.push(value.value_id);
+          ELSE;
+            select_value = value.value_id;
+          END;
+        END;
+  
+        select_items.push({id=value.value_id, name=value.value});
+      END;
+  
+      IF col.multivalue;
+        INCLUDE fields/select_multiple.tt
+          id           = col.id
+          name         = field
+          label        = field_label
+          label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          placeholder  = "Select option(s)"
+          help_text    = col.description
+          popover_body = col.helptext
+          is_readonly  = readonly
+          is_required  = required
+          hide_group   = 1
+          items        = select_items
+          values       = select_values
+          filter       = "html";
+      ELSE;
+        # Ensure a blank value is sent if nothing is selected
+        INCLUDE fields/hidden.tt id="" name=field value="" filter="";
+        INCLUDE fields/select_single.tt
+          id             = col.id
+          name           = field
+          label          = field_label
+          label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          fieldset_class = "input"
+          placeholder    = "Select option"
+          help_text      = col.description
+          popover_body   = col.helptext
+          is_readonly    = readonly
+          is_required    = required
+          hide_group     = 1
+          items          = select_items
+          value          = select_value
+          filter         = "html";
+      END;
+    ELSIF col.type == "curval";
+      required      = !(col.optional OR page == "bulk");
+      details       = 1;
+      select_items  = [];
+      select_values = [];
+      select_value  = "";
+  
+      IF page == "bulk";
+          values = col.all_values;
+      ELSIF col.has_subvals;
+          values = editvalue.selected_values;
+      ELSIF col.value_selector == "typeahead";
+          values = editvalue.selected_values;
+      ELSE;
+          values = col.filtered_values;
+      END;
+  
+      FOREACH value IN values;
+        NEXT IF value.deleted;
+        IF editvalue.id_hash.${value.selector_id};
+          IF col.multivalue;
+            select_values.push(value.value_id);
+          ELSE;
+            select_value = value.value_id;
+          END;
+        END;
+  
+        select_items.push({id=value.value_id, name=value.value});
+      END;
+      
+      IF col.value_selector == "noshow";
+        PROCESS curval_noshow;
+        INCLUDE fields/hidden.tt id="" name=field value="" filter="";
+      ELSIF col.multivalue;
+        INCLUDE fields/select_multiple.tt
+          id           = col.id
+          name         = field
+          label        = field_label
+          label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          placeholder  = "Select option(s)"
+          help_text    = col.description
+          popover_body = col.helptext
+          is_readonly  = readonly
+          is_required  = required
+          hide_group   = 1
+          items        = select_items
+          values       = select_values
+          filter       = "html";
+      ELSE;
+        # Ensure a blank value is sent if nothing is selected
+        INCLUDE fields/hidden.tt id="" name=field value="" filter="";
+        INCLUDE fields/select_single.tt
+          id             = col.id
+          name           = field
+          label          = field_label
+          label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          fieldset_class = "input"
+          placeholder    = "Select option"
+          help_text      = col.description
+          popover_body   = col.helptext
+          is_readonly    = readonly
+          is_required    = required
+          hide_group     = 1
+          items          = select_items
+          value          = select_value
+          filter         = "html";
+      END;
+    ELSIF col.type == "tree";
+      '<fieldset class="fieldset input">';
+        INCLUDE fields/sub/label_fieldset.tt
+          id           = col.id
+          label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          label        = field_label
+          help_text    = col.description
+          popover_body = col.helptext;
+      IF readonly;
+        '<div class="form-group">';
+            render_datum(col);
+        '</div>';
+        # Send values back, otherwise controller will think blank values submitted
+        FOREACH val IN editvalue.ids;
+          INCLUDE fields/hidden.tt id="" name=field value=val filter="";
+        END;
+      ELSE;
+        INCLUDE fields/tree.tt
+          id                = "jstree" _ col.id
+          hide_group        = 1
+          tree_field        = field
+          layout_id         = col.id
+          layout_identifier = layout_obj.identifier
+          end_node_only     = col.end_node_only ? 1 : 0
+          ids_as_params     = editvalue.ids_as_params
+          edit_tree         = 0;
+  
+        IF NOT editvalue.ids.size;
+          INCLUDE fields/hidden.tt id="" input_class="selected-tree-value" name=field value="" filter="";
+        END;
+  
+        FOREACH val IN editvalue.ids;
+          INCLUDE fields/hidden.tt id="" input_class="selected-tree-value" name=field value=val filter="";
+        END;
+      '</fieldset>';
+      END;
+    ELSIF col.type == "person";
+      selected       = "";
+      is_selected    = 0;
+      person_options = [];
+  
+      IF col.optional OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id;
+        person_options.push({id="", name=""});
+      END;
+  
+      IF editvalue.id;
+        selected = editvalue.id;
+      ELSIF col.default_to_login AND NOT record.current_id; # default to current user for new records only
+        selected = user.id;
+      END;
+    
+      FOREACH person IN col.people;
+        NEXT IF person.deleted;
+        is_selected = selected == person.id ? 1 : is_selected;
+        person_options.push({id=person.id, name=person.value});
+      END;
+  
+      IF editvalue.id AND NOT is_selected;
+        person_options.push({id=editvalue.id, name=editvalue.html});
+      END;
+      
+      INCLUDE fields/select.tt
+        id           = col.id
+        name         = field
+        label        = field_label
+        label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
+        placeholder  = "Select an option"
+        help_text    = col.description
+        popover_body = col.helptext
+        is_readonly  = readonly
+        is_required  = field_is_required
+        hide_group   = 1
+        value        = selected
+        items        = person_options;
+    ELSIF col.type == "file";
+      '<fieldset class="fieldset input">';
+        INCLUDE fields/sub/label_fieldset.tt
+          id           = col.id
+          label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          label        = field_label
+          help_text    = col.description
+          popover_body = col.helptext;
+  
+      IF readonly;
+        IF editvalue.files.size;
+          '<div class="list list--vertical list--no-borders">';
+            '<ul class="list__items">';
+              FOREACH file IN editvalue.files;
+                '<li class="list__item">';
+                  INCLUDE fields/hidden.tt id=col.id name=field value=file.id filter="";
+                  INCLUDE fields/sub/filter.tt value=file.name filter="html";
+                '</li>';
+              END;
+            '</ul>';
+          '</div>';
+        ELSE;
+          '<p class="help-block">No current file (read-only field, cannot be updated).</p>';
+        END;
+      ELSE;
+        # Ensure something gets sent back to show it's been displayed
+        INCLUDE fields/hidden.tt id="" name=field value="" filter="";
+        
+        '<div class="list list--vertical list--key-value list--no-borders">';
+          '<ul class="list__items">';
+            FOREACH file IN editvalue.files;
+            '<li class="list__item">';
+              '<span class="list__key">';
+                INCLUDE fields/sub/checkbox.tt
+                  id      = "file_checkbox_" _ col.id
+                  name    = field
+                  label   = "Include file."
+                  value   = file.id
+                  checked = 1
+                  filter  = "html";
+          
+              '</span>';
+              '<span class="list__value">';
+                'Current file name:' ;
+                '<a class="link link--plain" href="' _ url.page _ '/file/' _ file.id _'">';
+                  file.name | html;
+                '</a>.';
+              '</span>';
+            '</li>';
+            END;
+          '</ul>';
+       '</div>';
+        INCLUDE fields/file.tt
+          id             = col.id
+          name           = "file"
+          label          = "Choose file"
+          placeholder    = "No file chosen"
+          custom_classes = ""
+          input_class    = ""
+          popover_body   = ""
+          help_text      = ""
+          popover_body   = ""
+          is_required    = field_is_required
+          is_readonly    = readonly
+          is_multiple    = col.multivalue == multivalue ? 1 : 0
+          filter         = "";
+      END;
+      '</fieldset>';
+    ELSIF col.type == "daterange";
+      INCLUDE fields/daterange.tt
+        label        = field_label
+        label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
+        input_class  = "flex-nowrap"
+        help_text    = col.description
+        popover_body = col.helptext
+        hide_group   = 1
+        from = {
+          id           = col.id _ "_from",
+          name         = field,
+          class        = col.show_datepicker and !readonly ? "input--datepicker" : "",
+          label        = "From",
+          help_text    = "",
+          popover_body = "",
+          placeholder  = config.dateformat_datepicker,
+          value        = editvalue.html_form.shift,
+          is_required  = field_is_required,
+          is_readonly  = readonly
+        }
+        to = {
+          id           = col.id _ "_to",
+          name         = field,
+          class        = col.show_datepicker and !readonly ? "input--datepicker" : "",
+          label        = "To",
+          help_text    = "",
+          popover_body = "",
+          placeholder  = config.dateformat_datepicker,
+          value        = editvalue.html_form.shift
+          is_required  = field_is_required,
+          is_readonly  = readonly
+        };
+    ELSIF col.type == "rag";
+      # XXX To implement
+    ELSIF col.type == "calc";
+      FOREACH val IN editvalue.html_form;
+        IF col.show_in_edit;
+          INCLUDE fields/input.tt
+            id           = col.id
+            name         = field
+            label        = field_label
+            label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
+            value        = val
+            input_class  = ""
+            placeholder  = ""
+            help_text    = col.description
+            popover_body = col.helptext
+            filter       = "html"
+            is_readonly  = 1
+            hide_group   = 1
+            type         = "text";
+        ELSE;
+          INCLUDE fields/hidden.tt
+            id     = col.id
+            name   = field
+            value  = val
+            filter = "html";
+        END;
+      END;
+    ELSIF col.textbox;
+      INCLUDE fields/textarea.tt
+        id           = col.id
+        name         = field
+        label        = field_label
+        label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
+        value        = editvalue.html_form.shift
+        help_text    = col.description
+        popover_body = col.helptext
+        filter       = "html"
+        is_required  = field_is_required
+        is_readonly  = readonly
+        hide_group   = 1
+        rows         = 10;
+    ELSE;
+      field_input_type  = "text";
+      field_input_class = "";
+      field_placeholder = "";
+  
+      IF col.type == "date";
+        field_input_class = "input--date";
+        field_placeholder = config.dateformat_datepicker;
+  
+        IF col.show_datepicker AND !readonly;
+          field_input_class = field_input_class _ " input--datepicker";
+        END;
+      END;
+  
+      IF col.type == "intgr";
+        field_input_type = "number";
+  
+        IF editvalue.value.defined AND col.show_calculator;
+          field_input_class = "calculator";
+        END;
+      END;
+  
+      INCLUDE fields/input.tt
+        id           = col.id
+        name         = field
+        label        = field_label
+        label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
+        value        = editvalue.html_form.shift
+        input_class  = field_input_class
+        placeholder  = field_placeholder
+        help_text    = col.description
+        popover_body = col.helptext
+        filter       = "html"
+        is_required  = field_is_required
+        is_readonly  = readonly
+        hide_group   = 1
+        type         = field_input_type;
+    END;
+  %]
+  </div>
 [% END %]
 
 [% BLOCK curval_noshow %]
-    <table class="data-table table table-striped curval_group" id="curval_list_[% dispcol.id %]">
+    <table class="data-table table table-striped curval_group" id="curval_list_[% col.id %]">
         <tbody>
             [% FOREACH val IN editvalue.html_form %]
                 <tr class="curval_item">
@@ -653,9 +915,9 @@
                         <input type="hidden" id="curval-current-id-[% val.id %]" name="[% field %]" value="[% val.as_query OR val.id %]">
                         <a class="curval-modal"
                             data-current-id="[% val.id %]"
-                            data-instance-name="[% dispcol.layout_parent.identifier %]" data-layout-id="[% dispcol.id %]" style='cursor:pointer'
+                            data-instance-name="[% col.layout_parent.identifier %]" data-layout-id="[% col.id %]" style='cursor:pointer'
                             >edit</a>
-                        [% UNLESS column.limit_rows %]
+                        [% UNLESS col.limit_rows %]
                             |
                             <a class="curval_remove" style='cursor:pointer'>remove</a>
                         [% END %]
@@ -665,118 +927,3 @@
         </tbody>
     </table>
 [% END %]
-
-[%
-    BLOCK curval_column;
-        required = !(column.optional OR page == "bulk");
-        details = 1;
-
-        IF page == "bulk";
-            values = column.all_values;
-        ELSIF column.has_subvals;
-            values = editvalue.selected_values;
-        ELSIF column.value_selector == "typeahead";
-            values = editvalue.selected_values;
-        ELSE;
-            values = column.filtered_values;
-        END;
-
-        IF column.show_add;
-            PROCESS curval_add_button;
-        END;
-
-        IF dispcol.value_selector == "noshow";
-            PROCESS curval_noshow;
-            %] <input type="hidden" name="[% field %]"> [%
-        ELSIF column.multivalue;
-            PROCESS multivalue_column;
-        ELSE;
-            # Ensure a blank value is sent if nothing is selected
-            %] <input type="hidden" name="[% field %]"> [%
-            PROCESS singlevalue_column;
-        END;
-
-    END;
-%]
-
-[% BLOCK multivalue_column %]
-    <div class="select-widget [% IF readonly %]select-widget--read-only[% END %] multi"
-        data-value-selector="[% column.value_selector %]"
-        data-layout-id="[% layout.identifier %]" data-typeahead-id="[% dispcol.id %]"
-        data-field="[% field %]"
-        [% IF column.has_subvals %]
-            data-filter-endpoint="/[% layout.identifier _ "/api/field/values/" _ column.id %]"
-            data-submission-token="[% submission_token %]"
-            data-filter-fields='[% column.data_filter_fields %]'
-        [% END %]
-        >
-        <div class="select-widget-dropdown">
-            <div class="form-group form-control" [% readonly %]>
-                <ul id="[% field %]_value" class="current">
-                    <li class="none-selected">blank</li>
-                [% FOREACH value IN values %]
-                    [% NEXT IF value.deleted %]
-                    [% checked = editvalue.id_hash.${value.selector_id} %]
-                    [% value_field_id = field _ '_' _ value.id %]
-                    <li [% !checked && 'hidden' %] data-list-item="[% value_field_id %]" data-list-id="[% value.id %]"
-                        data-list-text="[% value.value | html %]">
-                        <span class="widget-value__value">[% value.value | html_entity %]</span>
-                        <button type="button" class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
-                    </li>
-                [% END %]
-                    [% IF !readonly %]
-                        <li class="search">
-                            <input type="search" class="form-control-search" style="width:70px"  placeholder="Search..." aria-controls="[% field %]_available_values" aria-expanded="false" aria-describedby="[% field %]_label">
-                        </li>
-                    [% END %]
-                </ul>
-            </div>
-            <ul hidden class="available [% details && 'with-details' %]" id="[% field %]_available_values" aria-labelledby="[% field %]_label">
-                <li class="spinner" hidden>
-                    <i class="fa fa-spinner fa-spin" style="font-size:24px"></i>
-                </li>
-                <li class="has-noresults" hidden>No results</li>
-            [% FOREACH value IN values %]
-                [% NEXT IF value.deleted %]
-                [% checked = editvalue.id_hash.${value.selector_id} %]
-                [% value_field_id = field _ '_' _ value.id %]
-                <li class="answer">
-                    <span class="control">
-                        <label id="[% value_field_id %]_label" for="[% value_field_id %]">
-                            <input id="[% value_field_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %] value="[% value.value_id | html %]" aria-labelledby="[% value_field_id %]_label">
-                            <span role="option">[% value.value | html_entity %]</span>
-                        </label>
-                    </span>
-                    [% IF details %]
-                    <span class="details">
-                        <button type="button" class="more-info" data-record-id="[% value.id %]" aria-label="View full details" aria-describedby="[% value_field_id %]_label">Details</button>
-                    </span>
-                    [% END %]
-                </li>
-            [% END %]
-            </ul>
-        </div>
-    </div>
-[% END %]
-
-[% BLOCK enum_column;
-
-    required = !(dispcol.optional OR page == "bulk");
-    details = 0;
-
-    values = dispcol.enumvals;
-
-    # Add any values that have since been deleted, in case the user is not editing
-    # this field (otherwise they will be blanked unexpectedly on submission
-    FOREACH v IN editvalue.deleted_values;
-        values.unshift(v);
-    END;
-
-    IF dispcol.multivalue;
-        PROCESS multivalue_column;
-    ELSE;
-        # Ensure a blank value is sent if nothing is selected
-        %] <input type="hidden" name="[% field %]"> [%
-        PROCESS singlevalue_column;
-    END;
-END %]

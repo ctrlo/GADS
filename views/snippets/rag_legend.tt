@@ -1,5 +1,5 @@
 [% PROCESS snippets/rag_symbols.tt %]
-<aside role="complementary" class="rag-legend rag-legend--horizontal">
+<aside role="complementary" class="rag-legend [% legend_class %]">
   <span class="rag-legend__title">RAG symbol legend:</span>
   <dl class="rag-legend__list">
     [% FOREACH rag_grade IN rag_grades %]

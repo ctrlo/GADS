@@ -1,0 +1,68 @@
+<div class="modal modal--form" id="[% modalId %]" tabindex="-1" role="dialog" aria-labelledby="[% modalId %]Label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered " role="document">
+    <div class="modal-content">
+      [% INCLUDE wizard/sub/modal_header.tt label=" View data as it was at a previous date"; %]
+      
+      <form method="post" class="">
+        [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+        
+        <div class="modal-frame">
+          <div class="modal-body">
+            
+            [%
+              INCLUDE fields/input.tt
+                id = "rewind_date"
+                name = "rewind_date"
+                label = "Date (" _  config.dateformat _ ")"
+                value = session.rewind.format_cldr(config.dateformat)
+                input_class = "input--datepicker"
+                placeholder = "yyyy-mm-dd"
+                filter = ""
+                type = "text";
+            
+              INCLUDE fields/input.tt
+                id = "rewind_time"
+                name = "rewind_time"
+                label = "Time (HH:MM:SS)"
+                value = session.rewind.hms
+                input_class = ""
+                placeholder = "23:59:59"
+                filter = ""
+                type = "text";
+            %]
+          </div>
+          
+          [%
+            footer_right_buttons = session.rewind ? [{
+                type  = "submit"
+                class = "btn-default"
+                name  = "modal_rewind_reset"
+                value = "submit"
+                label = "Reset to normal"
+              }, {
+                type  = "submit"
+                class = "btn-default"
+                name  = "modal_rewind"
+                value = "submit"
+                label = "Update"
+              }] : [{
+                type  = "submit"
+                class = "btn-default"
+                name  = "modal_rewind"
+                value = "submit"
+                label = "Submit"
+              }];
+          
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel"
+                dismiss = "modal"
+                label   = "Cancel"
+              }]
+              right_buttons = footer_right_buttons;
+          %]
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

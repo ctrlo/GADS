@@ -1,0 +1,54 @@
+<div class="modal modal--form" id="[% modalId %]" tabindex="-1" role="dialog" aria-labelledby="[% modalId %]Label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      [% INCLUDE wizard/sub/modal_header.tt label="Manage views of other user"; %]
+      
+      <form method="post" class="">
+        [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+        
+        <div class="modal-frame">
+          <div class="modal-body">
+            [%
+              INCLUDE fields/ajax_autocomplete.tt
+                id = "views_other_user"
+                name = "views_other_user"
+                value = views_other_user.value
+                display_value = filter_user.value
+                label = "Name"
+                placeholder = "Start typing..."
+                filter = "html";
+            %]
+          </div>
+          
+          [%
+            footer_right_buttons = [{
+              type  = "submit"
+              class = "btn-default"
+              name  = "modal_views_other_user"
+              value = "submit"
+              label = "Submit"
+            }];
+  
+            IF views_other_user;
+              footer_right_buttons.unshift({
+                type  = "submit"
+                class = "btn-default"
+                name  = "views_other_user_clear"
+                value = "submit"
+                label = "Reset to my views"
+              });
+            END;
+          
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel"
+                dismiss = "modal"
+                label   = "Cancel"
+              }]
+              right_buttons = footer_right_buttons;
+          %]
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

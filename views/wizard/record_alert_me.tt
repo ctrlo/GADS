@@ -1,0 +1,53 @@
+<div class="modal modal--form" id="[% modalId %]" tabindex="-1" role="dialog" aria-labelledby="[% modalId %]Label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered " role="document">
+    <div class="modal-content">
+      [% INCLUDE wizard/sub/modal_header.tt label="Configure alert for " _  v.name; %]
+      
+      <form method="post" class="">
+        [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+        <div class="modal-frame">
+          <div class="modal-body">
+            [% IF v.is_group %]
+            <div role="alert" class="alert alert-danger">
+                It is not possible to configure alerts on views containing groups. Please use a view without a group.
+            </div>
+            [%
+              ELSE;
+                INCLUDE fields/hidden.tt name="view_id" value=v.id;
+            
+                INCLUDE fields/select.tt
+                  id          = "frequency"
+                  name        = "frequency"
+                  label       = "Alert me"
+                  placeholder = "Select option"
+                  value       = NOT v.alert ? "" : v.alert.frequency
+                  filter      = "html"
+                  items       = [
+                    {id="", name="Never"},
+                    {id="0", name="Instantly"},
+                    {id="24", name="Every 24 hours"}
+                  ];
+              END;
+            %]
+          </div>
+          
+          [%
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel"
+                dismiss = "modal"
+                label   = "Cancel"
+              }]
+              right_buttons = v.is_group ? [] : [{
+                type  = "submit"
+                class = "btn-default"
+                name  = "modal_alert"
+                value = "submit"
+                label = "Create alert"
+              }];
+          %]
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
