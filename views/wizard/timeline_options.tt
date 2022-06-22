@@ -1,0 +1,109 @@
+[%
+  label_as_field_items = [{id="" name="All fields"}];
+  label_as_field_items = label_as_field_items.merge(columns_read)
+%]
+<div class="modal modal--form" id="[% modalId %]" tabindex="-1" role="dialog" aria-labelledby="[% modalId %]Label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered " role="document">
+    <div class="modal-content">
+      [% INCLUDE wizard/sub/modal_header.tt label="Timeline view options"; %]
+      
+      <form method="post" class="">
+        [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+        <div class="modal-frame">
+          <div class="modal-body">
+            <div class="row">
+              <div class="col">
+               [%
+                  INCLUDE fields/select.tt
+                    id          = "tl_label"
+                    name        = "tl_label"
+                    label       = "Show label as field"
+                    placeholder = "All fields"
+                    items       = label_as_field_items
+                    value       = tl_options.label
+                    filter      = "html";
+                %]
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                [%
+                  INCLUDE fields/select.tt
+                    id          = "tl_group"
+                    name        = "tl_group"
+                    label       = "Group by field"
+                    placeholder = "All fields"
+                    items       = label_as_field_items
+                    value       = tl_options.group
+                    filter      = "html";
+                %]
+                
+                <div class="mb-4">
+                  [%
+                    INCLUDE fields/sub/checkbox.tt
+                      id = "tl_all_group_values"
+                      name = "tl_all_group_values"
+                      label = "Show all group values even if empty"
+                      value = 1
+                      checked = tl_options.all_group_values ? 1 : 0
+                      filter = "html";
+                    %]
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                [%
+                  INCLUDE fields/select.tt
+                    id          = "tl_color"
+                    name        = "tl_color"
+                    label       = "Colour by field"
+                    placeholder = "All fields"
+                    items       = label_as_field_items
+                    value       = tl_options.color
+                    filter      = "html";
+                %]
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                [%
+                  overlay_items = [{id="", name=""}];
+  
+                  FOREACH overlay_ins IN instances;
+                    NEXT IF overlay_ins.instance_id == layout.instance_id;
+                    overlay_items.push({id=overlay_ins.instance_id, name=overlay_ins.name});
+                  END;
+                
+                  INCLUDE fields/select.tt
+                    id          = "tl_overlay"
+                    name        = "tl_overlay"
+                    label       = "Overlay items from other table"
+                    placeholder = ""
+                    items       = overlay_items
+                    value       = tl_options.overlay
+                    filter      = "html";
+                %]
+              </div>
+            </div>
+            [%
+              INCLUDE wizard/sub/modal_footer.tt
+                left_buttons = [{
+                  class   = "btn-cancel"
+                  dismiss = "modal"
+                  label   = "Cancel"
+                }]
+                right_buttons = [{
+                  type  = "submit"
+                  class = "btn-default"
+                  name  = "modal_timeline"
+                  value = "submit"
+                  label = "Update options"
+                }];
+              %]
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

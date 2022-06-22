@@ -1,0 +1,7 @@
+[%
+  IF data_attributes AND data_attributes.size;
+    FOREACH attr IN data_attributes;
+      " data-" _ attr.name.replace('_', '-').replace(' ', '-') _ '="' _ attr.value _ '"';
+    END;
+  END;
+%]

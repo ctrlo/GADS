@@ -9,4 +9,10 @@
   #   value = user.name
   #   filter = "html" | "html_entity" | "";
 -%]
-<input type="hidden"[% IF id %] id="[% id %]"[% END %][% IF input_class %] class="[% input_class %]"[% END %] name="[% name %]" value="[% INCLUDE fields/sub/filter.tt; %]">
+<input type="hidden"
+       name="[% name %]"
+       value="[% INCLUDE fields/sub/filter.tt; %]"[% IF id %]
+       id="[% id %]"[% END %][% IF input_class %]
+       class="[% input_class %]"[% END %][% IF data_attributes %]
+       [% INCLUDE fields/sub/data_attributes.tt %]
+[% END %]>

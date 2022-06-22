@@ -224,6 +224,16 @@
             IF (layout_obj.user_can("link") AND show_link) OR layout_obj.user_can("layout") OR layout_obj.user_can("bulk_update") OR layout_obj.user_can("delete") OR layout_obj.user_can("download") OR layout_obj.user_can("bulk_delete");
               bulk_action_groups = [{ items = [] }];
               
+              IF page == "data_timeline";
+                bulk_action_groups.0.items.push({
+                  type   = "modal",
+                  id     = "timeline_options",
+                  class  = "",
+                  target = "timelineOptionsModal",
+                  label  = "Timeline options"
+                });
+              END;
+        
               IF layout_obj.user_can("link") AND show_link;
                 bulk_action_groups.0.items.push({
                   id     = "",
@@ -292,6 +302,27 @@
                   filter         = "html"
                   groups         = bulk_action_groups;
               END;
+            END;
+        
+            IF page == "data_timeline" AND ! layout.no_download_pdf;
+              INCLUDE snippets/dropdown.tt
+                id             = "download_timeline"
+                custom_classes = "dropdown--small"
+                menu_right     = 1
+                label          = "Download"
+                filter         = "html"
+                groups         = [{
+                 items = [{
+                   label  = "Download as PNG image",
+                   target = url.page _ "/" _ layout_obj.identifier _ "/data?png=1"
+                 }, {
+                    type   = "modal",
+                    id     = "download_as_pdf",
+                    class  = "",
+                    target = "modal_pdf",
+                    label  = "Download as PDF document"
+                  }]
+                }];
             END;
           # records add/edit/clone menu items
           ELSIF page == 'edit' AND NOT record.new_entry;

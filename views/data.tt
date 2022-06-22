@@ -22,4 +22,14 @@
   END;
 
   INCLUDE wizard/record_rewind.tt modalId = "historicViewModal";
+
+  INCLUDE wizard/read_more.tt modalId = "readMore";
+
+  IF page == "data_timeline";
+    INCLUDE wizard/timeline_options.tt modalId = "timelineOptionsModal";
+
+    IF ! layout.no_download_pdf;
+      INCLUDE wizard/print_timeline.tt modalId = "modal_pdf" default_fit_to_page_width = 1;
+    END;
+  END;
 %]

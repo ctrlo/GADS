@@ -1,81 +1,116 @@
-<h2>Import records</h2>
-<p>
-    You can upload records as a CSV file. The first row of your CSV file must
-    contain the identical field names to those in your table.
-</p>
+[%
+  INCLUDE layouts/page_header.tt
+    title         = "Import records"
+    description   = "You can upload records as a CSV file. The first row of your CSV file must contain the identical field names to those in your table.";
+%]
 
-<div class="row">
-    <div class="col-md-6">
-        <form  role="form" method="post" enctype="multipart/form-data">
-            <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-            <div class="form-group">
-                <label for="file">CSV file:</label>
-                <input type="file" id="file" name="file">
-            </div>
-            <div class="form-group">
-                <label>Options:</label>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="import_options" value="dry_run" checked>Dry run
-                    </label>
-                </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="import_options" value="force_mandatory">Allow blank mandatory values
-                    </label>
-                </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="import_options" value="split_multiple">Allow multiple values separated by comma
-                    </label>
-                </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="import_options" value="blank_invalid_enum">Blank any invalid multiple select and tree values
-                    </label>
-                </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="import_options" value="no_change_unless_blank">If updating a record, only insert new values, do not overwrite existing values
-                    </label>
-                </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="import_options" value="take_first_enum">Take first value of duplicated matching tree nodes or multiple select values
-                    </label>
-                </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="import_options" value="ignore_string_zeros">Ignore values of &quot;0&quot; in text field values
-                    </label>
-                </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" name="import_options" value="round_integers">Round decimal values being imported into integer fields
-                    </label>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Update existing records where this unique value already exists:</label>
-                <select class="form-control" name="update_unique">
-                    <option selected></option>
-                    [% FOR column IN layout.all("only_unique", 1, "include_internal", 1) %]
-                        <option value="[% column.id %]">[% column.name | html_entity %]</option>
-                    [% END %]
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Skip lines where this unique value already exists in a record:</label>
-                <select class="form-control" name="skip_existing_unique">
-                    <option selected></option>
-                    [% FOR column IN layout.all("only_unique", 1, "include_internal", 1) %]
-                        <option value="[% column.id %]">[% column.name | html_entity %]</option>
-                    [% END %]
-                </select>
-            </div>
-            <input type="submit" name="submit" value="Submit" class="btn btn-primary">
-            <a href="/[% layout.identifier %]/import/" class="btn btn-default">Cancel</a>
-        </form>
+<div class="content-block__main">
+  <form role="form" method="post" enctype="multipart/form-data">
+    <div class="content-block__main-content">
+      [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+      <div class="row">
+        <div class="col col-lg-6">
+          [%
+            INCLUDE fields/file.tt
+              id = "file"
+              name = "file"
+              label = "CSV file"
+              placeholder = "No CSV file chosen"
+              tabindex = 1;
+          %]
+        </div>
+      </div>
+      <div class="row">
+        <div class="col col-lg-6">
+          [%
+            INCLUDE fields/checkbox_list.tt
+              fieldset_name = "import_options"
+              list_class = "list--vertical list--checkboxes"
+              name = "import_options"
+              label = "Options"
+              items = [
+                {id = "dry_run", name="Dry run" is_checked = 1},
+                {id = "force_mandatory", name="Allow blank mandatory values" is_checked = 0},
+                {id = "split_multiple", name="Allow multiple values separated by comma" is_checked = 0},
+                {id = "blank_invalid_enum", name="Blank any invalid multiple select and tree values" is_checked = 0},
+                {id = "no_change_unless_blank", name="If updating a record, only insert new values, do not overwrite existing values" is_checked = 0},
+                {id = "take_first_enum", name="Take first value of duplicated matching tree nodes or multiple select values" is_checked = 0},
+                {id = "ignore_string_zeros", name="Ignore values of '0' in text field values" is_checked = 0},
+                {id = "round_integers", name="Round decimal values being imported into integer fields" is_checked = 0}
+              ]
+              filter = "html"
+              message_empty = ""
+              hide_group = 0;
+          %]
+        </div>
+      </div>
+      <div class="row">
+        <div class="col col-lg-6">
+          [%
+            update_unique_items = [{id="", name=""}];
+          
+            FOR column IN layout.all("only_unique", 1, "include_internal", 1);
+              update_unique_items.push({id=column.id, name=column.name});
+            END;
+          
+            INCLUDE fields/select.tt
+              id          = "update_unique"
+              name        = "update_unique"
+              label       = "Update existing records where this unique value already exists"
+              placeholder = ""
+              value       = ""
+              filter      = "html"
+              items       = update_unique_items;
+          %]
+        </div>
+      </div>
+      <div class="row">
+        <div class="col col-lg-6">
+          [%
+            skip_existing_unique_items = [{id="", name=""}];
+          
+            FOR column IN layout.all("only_unique", 1, "include_internal", 1);
+              skip_existing_unique_items.push({id=column.id, name=column.name});
+            END;
+          
+            INCLUDE fields/select.tt
+              id          = "skip_existing_unique"
+              name        = "skip_existing_unique"
+              label       = "Skip lines where this unique value already exists in a record"
+              placeholder = ""
+              value       = ""
+              filter      = "html"
+              items       = skip_existing_unique_items;
+          %]
+        </div>
+      </div>
     </div>
+    
+    <footer class="content-block__footer">
+      <div class="content-block__footer-container">
+        [%
+          INCLUDE navigation/button_bar.tt
+            row_class = "row"
+            columns   = [{
+              class   = "col-md-4 mb-3 mb-md-0",
+              buttons = [{
+                type   = "link",
+                target = url.page _ "/" _ layout.identifier _ "/import/",
+                class  = "btn btn-cancel",
+                label  = "Cancel"
+              }]
+            }, {
+              class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
+              buttons = [{
+                type  = "button",
+                class = "btn btn-default",
+                name  = "submit",
+                value = "submit",
+                label = "Submit"
+              }]
+            }];
+        %]
+      </div>
+    </footer>
+  </form>
 </div>
-<p></p>

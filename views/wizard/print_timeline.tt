@@ -1,0 +1,64 @@
+<div class="modal modal--form" id="[% modalId %]" tabindex="-1" role="dialog" aria-labelledby="[% modalId %]Label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered " role="document">
+    <div class="modal-content">
+      [% INCLUDE wizard/sub/modal_header.tt label="View timeline as PDF"; %]
+      
+      <form method="post" class="" action="[% url.page %]/print" target="_blank">
+        [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+        <div class="modal-frame">
+          <div class="modal-body">
+             <div class="row">
+              <div class="col">
+                [%
+                  INCLUDE fields/input.tt
+                    id = "pdf_zoom"
+                    name = "pdf_zoom"
+                    label = "Zoom level of PDF document (%)"
+                    value = tl_options.pdf_zoom OR '100'
+                    filter = "html"
+                    is_disabled = default_fit_to_page_width ? 1 : 0
+                    type = "number";
+                  
+                INCLUDE fields/sub/checkbox.tt
+                    id          = "fit_to_page_width"
+                    name        = "fit_to_page_width"
+                    label       = "Fit timeline to page width"
+                    value       = 1
+                    checked     = default_fit_to_page_width ? 1 : 0
+                    input_class = "";
+                %]
+              </div>
+            </div>
+            
+          [%
+            INCLUDE fields/hidden.tt
+              id="html"
+              name="html"
+              value=""
+              data_attributes=[
+                {name = "url-js", value = url.js},
+                {name = "url-css", value = url.css},
+              ];
+          %]
+          </div>
+          
+          [%
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel"
+                dismiss = "modal"
+                label   = "Cancel"
+              }]
+              right_buttons = [{
+                type  = "submit"
+                class = "btn-default"
+                name  = "modal_pdf"
+                value = "submit"
+                label = "View"
+              }];
+          %]
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

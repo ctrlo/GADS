@@ -1,22 +1,52 @@
-<h3>Import rows for import [% import_id %]</h3>
+[%
+  # prepare files table config
+  table_dom = "t";
+  table_class = "table-striped";
+  table_order = '[0,"asc"]';
+  table_language = '{"emptyTable": "No rows to show for this import"}';
+  table_show_all_records = 1;
 
-[% IF rows.size %]
-    <table class="table table-striped">
-        <tr>
-            <th>Status</th>
-            <th>Errors</th>
-            <th>Changes</th>
-            <th>Content</th>
-        </tr>
-        [% FOREACH row IN rows.all %]
-            <tr>
-                <td>[% row.status | html_entity %]</td>
-                <td>[% row.errors | html_entity %]</td>
-                <td>[% row.changes | html_entity %]</td>
-                <td>[% row.content | html_entity %]</td>
-            </tr>
-        [% END %]
-    </table>
-[% ELSE %]
-    <p>No rows to show for this import</p>
-[% END %]
+  table_buttons = [];
+
+  table_columns = [
+    {name="Status", orderable = 1},
+    {name="Errors", orderable = 1},
+    {name="Changes", orderable = 1},
+    {name="Content", orderable = 1}
+  ];
+
+  table_rows = [];
+
+  FOREACH row IN rows.all;
+    table_rows.push({
+      fields = [{
+        type   = "text"
+        label  = row.status
+        filter = "html"
+      },{
+        type   = "text"
+        label  = row.errors
+        filter = "html"
+      },{
+        type   = "text"
+        label  = row.changes
+        filter = "html"
+      },{
+        type   = "text"
+        label  = row.content
+        filter = "html"
+      }]
+    });
+  END;
+
+  INCLUDE layouts/page_header.tt
+    title="Import rows for import " _ import_id
+    description="";
+%]
+
+<div class="content-block__main">
+  [%
+    rows = table_rows;
+    INCLUDE tables/basic_table.tt;
+  %]
+</div>
