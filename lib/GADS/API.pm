@@ -810,7 +810,10 @@ sub _create_table
                     name => 'download',
                     type => 'records',
                 },
-                # bulk_import_records    => ,
+                bulk_import_records      => {
+                    name => 'bulk_import',
+                    type => 'records',
+                },
                 manage_linked_records    => {
                     name => 'link',
                     type => 'records',
