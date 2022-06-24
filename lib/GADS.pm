@@ -3989,7 +3989,7 @@ prefix '/:layout_name' => sub {
         my $layout = var('layout') or pass;
 
         forwardHome({ danger => "You do not have permission to import data"}, '')
-            unless $layout->user_can("layout");
+            unless $layout->user_can("bulk_import");
 
         my $imp = rset('Import')->search({
             instance_id => $layout->instance_id,

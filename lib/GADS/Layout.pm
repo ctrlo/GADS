@@ -551,6 +551,7 @@ sub write
             create_child     => 1,
             bulk_update      => 1,
             bulk_delete      => 1,
+            bulk_import      => 1,
             link             => 1,
             view_limit_extra => 1,
         );
