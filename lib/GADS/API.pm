@@ -798,7 +798,6 @@ sub _create_table
     my @group_perms;
     foreach my $perm (@{$params->{table_permissions}})
     {
-        # Missing: message, bulk_update, bulk_delete
         my %pmap = (
                 delete_records           => {
                     name => 'delete',
@@ -814,6 +813,14 @@ sub _create_table
                 },
                 bulk_import_records      => {
                     name => 'bulk_import',
+                    type => 'records',
+                },
+                bulk_update_records      => {
+                    name => 'bulk_update',
+                    type => 'records',
+                },
+                bulk_delete_records      => {
+                    name => 'bulk_delete',
                     type => 'records',
                 },
                 manage_linked_records    => {
