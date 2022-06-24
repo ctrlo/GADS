@@ -20,7 +20,9 @@
       </form>
       [% ELSIF button.type == "link" %]
       <a href="[% button.target %]" class="[% button.class %]"[% IF button.style %] style="[% button.style %]"[% END %]>
+        [% IF button.label_in_span; %]<span>[% END %]
         [%- button.label || button.name -%]
+        [% IF button.label_in_span; %]</span>[% END %]
       </a>
       [% ELSIF button.type == "button" %]
       <button

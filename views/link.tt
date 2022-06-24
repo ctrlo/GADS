@@ -1,25 +1,62 @@
-<h2>
-    [% IF record.current_id %]
-        Record ID [% record.current_id %]
-    [% ELSE %]
-        Add a linked record
-    [% END %]
-</h2>
-<p></p>
-<form role="form" method="post">
-    <div class="row">
-        <div class="col-md-6">
-            <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-            [% IF record.current_id %]
-                <input type="hidden" name="current_id" value="[% record.current_id %]">
-            [% END %]
-            <div class="form-group">
-                <label for="linked_id">Enter the ID of the parent record:</label>
-                <input type="text" class="form-control" id="linked_id" name="linked_id" value="[% record.linked_id %]">
+[% title = record.current_id ? "Record ID " _ record.current_id : "Add a linked record"; %]
+<div class="content-block__main">
+  <form role="form" method="post">
+    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
+    [%
+      INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
+    
+      IF record.current_id;
+        INCLUDE fields/hidden.tt name="current_id" value=record.current_id;
+      END;
+    %]
+    <fieldset class="fieldset">
+      <div class="fieldset__legend fieldset__legend--hidden">
+        <legend>
+          Legend
+        </legend>
+      </div>
+      
+      <div class="content-block__main-content">
+        <div class="card card--secundary">
+          <h4 class="card__title">
+            <span>[% title %]</span>
+          </h4>
+          
+          <div class="card__body row">
+            <div class="card__content">
+              <div class="row">
+                <div class='col'>
+                  [%
+                    INCLUDE fields/input.tt
+                      id     = "linked_id"
+                      name   = "linked_id"
+                      label  = "Enter the ID of the parent record"
+                      value  = record.linked_id
+                      filter = "html"
+                      type   = "text";
+                  %]
+                </div>
+              </div>
+              <div class="row">
+                <div class="col">
+                  <a href="/[% layout.identifier %]/data" class="btn btn-cancel">
+                    Cancel
+                  </a>
+                  <button
+                    id="submit_button"
+                    type="submit"
+                    class="btn btn-default"
+                    name=submit
+                    value=submit
+                  >
+                    <span class="btn__title">Save</span>
+                  </button>
+                </div>
+              </div>
             </div>
-            <button type="submit" id="submit_button" name="submit" value="submit" class="btn btn-primary">Save</button>
-            <a href="/[% layout.identifier %]/data" class="btn btn-default">Cancel</a>
+          </div>
         </div>
-    </div>
-</form>
-
+      </div>
+    </fieldset>
+  </form>
+</div>

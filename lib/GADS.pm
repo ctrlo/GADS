@@ -899,7 +899,7 @@ any ['get', 'post'] => '/settings/default_welcome_email/' => require_any_role [q
 
     template 'admin/default_welcome_email' => {
         instance => $site,
-        page     => 'system',
+        page     => 'manage_default_welcome_email',
     };
 };
 
@@ -920,7 +920,7 @@ any ['get', 'post'] => '/settings/user_editable_personal_details/' => require_an
 
     template 'admin/user_editable_personal_details' => {
         instance => $site,
-        page     => 'system',
+        page     => 'manage_user_editable_personal_details',
     };
 };
 
@@ -939,7 +939,7 @@ any ['get', 'post'] => '/settings/title_overview/' => require_any_role [qw/usera
     }
 
     template 'layouts/page_overview_name_only' => {
-        page               => 'title',
+        page               => 'manage_titles',
         page_title         => "Manage ${title_name}s",
         page_description   => "In this window you can list the ${title_name}s that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
         table_column_label => "Name",
@@ -973,7 +973,7 @@ any ['get', 'post'] => '/settings/title_add/' => require_any_role [qw/useradmin 
     $title->{field_label} = ucfirst($title_name);
 
     template 'layouts/page_save_name_only' => {
-        page => 'title',
+        page => 'manage_titles',
         item => $title
     };
 };
@@ -1010,7 +1010,7 @@ any ['get', 'post'] => '/settings/title_edit/:id' => require_any_role [qw/userad
     $title->{field_label} = ucfirst($title_name);
 
     template 'layouts/page_save_name_only' => {
-        page => 'title',
+        page => 'manage_titles',
         item => $title
     };
 };
@@ -1030,7 +1030,7 @@ any ['get', 'post'] => '/settings/organisation_overview/' => require_any_role [q
     }
 
     template 'layouts/page_overview_name_only' => {
-        page               => 'organisation',
+        page               => 'manage_organisations',
         page_title         => "Manage ${organisation_name}s",
         page_description   => "In this window you can list the parts of the ${organisation_name} that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
         table_column_label => "Name",
@@ -1064,7 +1064,7 @@ any ['get', 'post'] => '/settings/organisation_add/' => require_any_role [qw/use
     $organisation->{field_label} = ucfirst($organisation_name);
 
     template 'layouts/page_save_name_only' => {
-        page => 'organisation',
+        page => 'manage_organisations',
         item => $organisation
     };
 };
@@ -1091,7 +1091,7 @@ any ['get', 'post'] => '/settings/organisation_edit/:id' => require_any_role [qw
     $organisation->{field_label} = ucfirst($organisation_name);
 
     template 'layouts/page_save_name_only' => {
-        page => 'organisation',
+        page => 'manage_organisations',
         item => $organisation
     };
 };
@@ -1111,7 +1111,7 @@ any ['get', 'post'] => '/settings/department_overview/' => require_any_role [qw/
     }
 
     template 'layouts/page_overview_name_only' => {
-        page               => 'department',
+        page               => 'manage_departments',
         page_title         => "Manage ${department_name}s",
         page_description   => "In this window you can list the ${department_name} that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
         table_column_label => "Name",
@@ -1145,7 +1145,7 @@ any ['get', 'post'] => '/settings/department_add/' => require_any_role [qw/usera
     $department->{field_label} = ucfirst($department_name);
 
     template 'layouts/page_save_name_only' => {
-        page            => 'department',
+        page            => 'manage_departments',
         item            => $department
     };
 };
@@ -1182,7 +1182,7 @@ any ['get', 'post'] => '/settings/department_edit/:id' => require_any_role [qw/u
     $department->{field_label} = ucfirst($department_name);
 
     template 'layouts/page_save_name_only' => {
-        page            => 'department',
+        page            => 'manage_departments',
         item            => $department
     };
 };
@@ -1202,7 +1202,7 @@ any ['get', 'post'] => '/settings/team_overview/' => require_any_role [qw/userad
     }
 
     template 'layouts/page_overview_name_only' => {
-        page               => 'team',
+        page               => 'manage_teams',
         page_title         => "Manage ${team_name}s",
         page_description   => "In this window you can list the ${team_name} that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
         table_column_label => "Name",
@@ -1236,7 +1236,7 @@ any ['get', 'post'] => '/settings/team_add/' => require_any_role [qw/useradmin s
     $team->{field_label} = ucfirst($team_name);
 
     template 'layouts/page_save_name_only' => {
-        page            => 'team',
+        page            => 'manage_teams',
         item            => $team
     };
 };
@@ -1273,7 +1273,7 @@ any ['get', 'post'] => '/settings/team_edit/:id' => require_any_role [qw/useradm
     $team->{field_label} = ucfirst($team_name);
 
     template 'layouts/page_save_name_only' => {
-        page            => 'team',
+        page            => 'manage_teams',
         item            => $team
     };
 };
@@ -1849,7 +1849,8 @@ get '/file/?' => require_login sub {
     my @files = rset('Fileval')->independent->all;
 
     template 'files' => {
-        files => [@files]
+        files => [@files],
+        page => 'files',
     };
 };
 
@@ -2248,12 +2249,16 @@ prefix '/:layout_name' => sub {
                 || schema->resultset('Dashboard')->shared_dashboard(%params);
         }
 
+        my $base_url = request->base;
+
         my $params = {
             readonly        => $dashboard->is_shared && !$layout->user_can('layout'),
             dashboard       => $dashboard,
             dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
-            page            => 'index',
-            breadcrumbs     => [Crumb($layout)],
+            page            => 'table_index',
+            detail_header   => 1,
+            header_back_url => "${base_url}table",
+            layout_obj      => $layout,
         };
 
         if (my $download = param('download'))
@@ -2961,12 +2966,17 @@ prefix '/:layout_name' => sub {
             app->execute_hook( 'plugin.linkspace.data_before_template', %arg );
         }
 
-        $params->{user_views}               = $views->user_views;
-        $params->{views_limit_extra}        = $views->views_limit_extra;
-        $params->{current_view_limit_extra} = current_view_limit_extra($user, $layout) || $layout->default_view_limit_extra;
-        $params->{alerts}                   = $alert->all;
-        $params->{views_other_user}         = session('views_other_user_id') && rset('User')->find(session('views_other_user_id')),
-        $params->{breadcrumbs}              = [Crumb($layout) => Crumb( $layout, '/data' => 'records' )];
+        my $base_url = request->base;
+
+        $params->{user_views}                   = $views->user_views;
+        $params->{views_limit_extra}            = $views->views_limit_extra;
+        $params->{current_view_limit_extra}     = current_view_limit_extra($user, $layout) || $layout->default_view_limit_extra;
+        $params->{alerts}                       = $alert->all;
+        $params->{views_other_user}             = session('views_other_user_id') && rset('User')->find(session('views_other_user_id')),
+        $params->{content_block_custom_classes} = 'content-block--lg-aside';
+        $params->{detail_header}                = 1;
+        $params->{header_back_url}              = "${base_url}table";
+        $params->{layout_obj}                   = $layout;
 
         template 'data' => $params;
     };
@@ -3059,10 +3069,8 @@ prefix '/:layout_name' => sub {
     };
 
     any ['get', 'post'] => '/graph/:id' => require_login sub {
-
         my $layout = var('layout') or pass;
-
-        my $user        = logged_in_user;
+        my $user   = logged_in_user;
 
         my $params = {
             layout => $layout,
@@ -3102,18 +3110,18 @@ prefix '/:layout_name' => sub {
             }
         }
 
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         $params->{graph}         = $graph;
         $params->{metric_groups} = GADS::MetricGroups->new(
             schema      => schema,
             instance_id => session('persistent')->{instance_id},
         )->all;
-
-        my $graph_name = $id ? $graph->title : "add a graph";
-        my $graph_id   = $id ? $graph->id : 0;
-        $params->{breadcrumbs}   = [
-            Crumb($layout) => Crumb( $layout, '/data' => 'records' )
-                => Crumb( $layout, '/graphs' => 'graphs' ) => Crumb( $layout, "/graph/$graph_id" => $graph_name )
-        ],
+        $params->{detail_header}                = 1;
+        $params->{content_block_custom_classes} = 'content-block--footer';
+        $params->{header_back_url}              = "${base_url}${tableIdentifier}/graphs";
+        $params->{layout_obj}                   = $layout;
 
         template 'graph' => $params;
     };
@@ -3132,11 +3140,17 @@ prefix '/:layout_name' => sub {
             instance_id => $layout->instance_id,
         )->all;
 
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         my $params = {
-            layout      => $layout,
-            page        => 'metric',
-            metrics     => $metrics,
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, '/data' => 'records' )
+            layout          => $layout,
+            page            => 'metric',
+            metrics         => $metrics,
+            detail_header   => 1,
+            header_back_url => "${base_url}${tableIdentifier}/data",
+            layout_obj      => $layout,
+            breadcrumbs     => [Crumb($layout) => Crumb( $layout, '/data' => 'records' )
                 => Crumb( $layout, '/graphs' => 'graphs' )
                 => Crumb( $layout, '/metrics' => 'metrics' )
             ],
@@ -3225,6 +3239,13 @@ prefix '/:layout_name' => sub {
                 => Crumb( $layout, '/metrics' => 'metrics' ) => Crumb( $layout, "/metric/$metric_id" => $metric_name )
         ],
 
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
+        $params->{detail_header}   = 1;
+        $params->{header_back_url} = "${base_url}${tableIdentifier}/metrics";
+        $params->{layout_obj}      = $layout;
+
         template 'metric' => $params;
     };
 
@@ -3302,9 +3323,7 @@ prefix '/:layout_name' => sub {
     };
 
     any ['get', 'post'] => '/view/:id' => require_login sub {
-
         my $layout = var('layout') or pass;
-
         my $user   = logged_in_user;
 
         return forwardHome(
@@ -3379,18 +3398,19 @@ prefix '/:layout_name' => sub {
             : defined param('id') && !param('id')
             ? 'view/0' : 'view';
 
-        my $breadcrumbs = [Crumb($layout) => Crumb( $layout, '/data' => 'records' )];
-        push @$breadcrumbs, Crumb( $layout, "/view/0?clone=$view_id" => 'clone view "'.$view->name.'"' ) if param('clone');
-        push @$breadcrumbs, Crumb( $layout, "/view/$view_id" => 'edit view "'.$view->name.'"' ) if $view_id && !param('clone');
-        push @$breadcrumbs, Crumb( $layout, "/view/0" => 'new view' ) if !$view_id && defined $view_id;
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
 
         my $output = template 'view' => {
-            layout      => $layout,
-            sort_types  => $view->sort_types,
-            view_edit   => $view, # TT does not like variable "view"
-            clone       => param('clone'),
-            page        => $page,
-            breadcrumbs => $breadcrumbs,
+            layout                       => $layout,
+            sort_types                   => $view->sort_types,
+            view_edit                    => $view, # TT does not like variable "view"
+            clone                        => param('clone'),
+            page                         => $page,
+            detail_header                => 1,
+            content_block_custom_classes => 'content-block--footer',
+            header_back_url              => "${base_url}${tableIdentifier}/data",
+            layout_obj                   => $layout,
         };
         $output;
     };
@@ -3560,7 +3580,7 @@ prefix '/:layout_name' => sub {
         $params->{topics}                       = [schema->resultset('Topic')->search({ instance_id => $layout->instance_id })->all];
         $params->{content_block_custom_classes} = 'content-block--footer';
         $params->{detail_header}                = 1;
-        $params->{header_back_url}              = "${base_url}${tableIdentifier}/layout";
+        $params->{header_back_url}              = "${base_url}${tableIdentifier}";
         $params->{layout_obj}                   = $layout;
 
         if (param 'saveposition')
@@ -3717,18 +3737,16 @@ prefix '/:layout_name' => sub {
             }
         }
 
-        my $breadcrumbs = [Crumb($layout)];
-        if ($id)
-        {
-            push @$breadcrumbs, Crumb( $layout, "/link/$id" => "edit linked record $id" );
-        }
-        else {
-            push @$breadcrumbs, Crumb( $layout, '/link/' => 'add linked record' );
-        }
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         template 'link' => {
-            breadcrumbs => $breadcrumbs,
-            record      => $record,
-            page        => 'link',
+            record                       => $record,
+            page                         => 'link',
+            detail_header                => 1,
+            content_block_custom_classes => 'content-block--footer',
+            header_back_url              => "${base_url}${tableIdentifier}/data",
+            layout_obj                   => $layout
         };
     };
 
@@ -3942,12 +3960,18 @@ prefix '/:layout_name' => sub {
             notice $msg;
         }
 
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         template 'edit' => {
-            view        => $view,
-            record      => $record->presentation(edit => 1, new => 1, bulk => $type),
-            bulk_type   => $type,
-            page        => 'bulk',
-            breadcrumbs => [Crumb($layout), Crumb( $layout, "/data" => 'records' ), Crumb( $layout, "/bulk/$type" => "bulk $type records" )],
+            view                         => $view,
+            record                       => $record->presentation(edit => 1, new => 1, bulk => $type),
+            bulk_type                    => $type,
+            page                         => 'bulk',
+            detail_header                => 1,
+            content_block_custom_classes => 'content-block--footer',
+            header_back_url              => "${base_url}${tableIdentifier}/data",
+            layout_obj                   => $layout,
         };
     };
 
@@ -3956,6 +3980,7 @@ prefix '/:layout_name' => sub {
         my $layout = var('layout') or pass;
         my ($return, $options, $is_raw) = _process_edit();
         return $return if $is_raw;
+
         template 'edit' => $return, $options;
     };
 
@@ -3979,10 +4004,16 @@ prefix '/:layout_name' => sub {
             })->delete;
         }
 
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         template 'import' => {
-            imports     => [$imp->all],
-            page        => 'import',
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, "/data" => 'records' ) => Crumb( $layout, "/import" => 'imports' )],
+            imports                      => [$imp->all],
+            page                         => 'import',
+            detail_header                => 1,
+            content_block_custom_classes => 'content-block--footer',
+            header_back_url              => "${base_url}${tableIdentifier}/data",
+            layout_obj                   => $layout,
         };
     };
 
@@ -4003,12 +4034,17 @@ prefix '/:layout_name' => sub {
             }
         });
 
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         template 'import/rows' => {
-            import_id   => param('import_id'),
-            rows        => $rows,
-            page        => 'import',
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, "/data" => 'records' )
-                => Crumb( $layout, "/import" => 'imports' ), Crumb( $layout, "/import/rows/$import_id" => "import ID $import_id" ) ],
+            import_id                    => param('import_id'),
+            rows                         => $rows,
+            page                         => 'import',
+            detail_header                => 1,
+            content_block_custom_classes => 'content-block--footer',
+            header_back_url              => "${base_url}${tableIdentifier}/import",
+            layout_obj                   => $layout,
         };
     };
 
@@ -4048,11 +4084,16 @@ prefix '/:layout_name' => sub {
             }
         }
 
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         template 'import/data' => {
-            layout      => var('layout'),
-            page        => 'import',
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, "/data" => 'records' )
-                => Crumb( $layout, "/import" => 'imports' ), Crumb( $layout, "/import/data" => 'new import' ) ],
+            layout                       => var('layout'),
+            page                         => 'import',
+            detail_header                => 1,
+            content_block_custom_classes => 'content-block--footer',
+            header_back_url              => "${base_url}${tableIdentifier}/import",
+            layout_obj                   => $layout,
         };
     };
 
@@ -4078,10 +4119,16 @@ prefix '/:layout_name' => sub {
         );
         my $all_graphs = $graphs->all;
 
+        my $base_url        = request->base;
+        my $tableIdentifier = $layout->identifier;
+
         template 'graphs' => {
-            graphs      => $all_graphs,
-            page        => 'graphs',
-            breadcrumbs => [Crumb($layout) => Crumb( $layout, '/data' => 'records' ) => Crumb( $layout, '/graph' => 'graphs' )],
+            graphs                       => $all_graphs,
+            page                         => 'graphs',
+            detail_header                => 1,
+            content_block_custom_classes => 'content-block--footer',
+            header_back_url              => "${base_url}${tableIdentifier}/data",
+            layout_obj                   => $layout
         };
     };
 
@@ -4517,16 +4564,30 @@ sub _process_edit
         push @$breadcrumbs, Crumb( $layout, "/record/" => "new record" );
     }
 
+    my $base_url        = request->base;
+    my $tableIdentifier = $layout->identifier;
+
     my $params = {
-        edit_modal          => $modal,
-        page                => 'edit',
-        child               => $child_rec,
-        layout_edit         => $layout,
-        clone               => $clone_from,
-        submission_token    => !$modal && $record->submission_token,
-        breadcrumbs         => $breadcrumbs,
-        record              => $record->presentation(edit => 1, new => !$id, child => $child, modal => $modal),
+        edit_modal                   => $modal,
+        page                         => 'edit',
+        child                        => $child_rec,
+        layout_edit                  => $layout,
+        clone                        => $clone_from,
+        submission_token             => !$modal && $record->submission_token,
+        detail_header                => 1,
+        header_back_url              => "${base_url}${tableIdentifier}/data",
+        layout_obj                   => $layout,
+        record                       => $record->presentation(edit => 1, new => !$id, child => $child, modal => $modal),
     };
+
+    if ($id)
+    {
+        $params->{content_block_custom_classes} = 'content-block--record content-block--footer';
+    }
+    else
+    {
+        $params->{content_block_custom_classes} = 'content-block--footer';
+    }
 
     $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids
         if $modal;

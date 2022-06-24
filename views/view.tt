@@ -1,223 +1,490 @@
-<h2>
-    [% IF view_edit.id %]
-        Edit current view
-    [% ELSIF clone %]
-        Edit the copy of this view
-    [% ELSE %]
-        Add a customised view
-    [% END %]
-</h2>
-<form role="form" method="post">
-    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-    <div class="row">
-        <div class="col-md-6">
-            <div class="form-group">
-                <label for="name">View name:</label>
-                <input type="text" class="form-control" id="name" name="name" value="[% view_edit.name | html_entity %]">
-            </div>
-            [% IF layout.user_can("layout") OR layout.user_can("view_group") %]
-                <div class="checkbox">
-                    <label>
-                        <input id="global" type="checkbox" name="global" [% IF view_edit.global %]checked[% END %]>Shared view
-                    </label>
-                </div>
-                <div id="group_id_div">
-                    <label for="group_id">Share with:</label>
-                    <select class="form-control" id="group_id" name="group_id">
-                        [% IF layout.user_can("layout") %]
-                            <option value="" [% IF NOT view_edit.group_id %]selected[% END %]>&lt;All users&gt;</option>
-                        [% END %]
-                        [% IF layout.user_can("view_group") %]
-                            [% FOREACH group IN user.groups %]
-                                <option value="[% group.id %]"
-                                    [% IF view_edit.group_id == group.id %]selected[% END %]>[% group.name | html_entity %]
-                                </option>
-                            [% END %]
-                        [% END %]
-                    </select>
-                </div>
-                [% IF layout.user_can("layout") %]
-                    <div class="checkbox">
-                        <label>
-                            <input type="checkbox" name="is_admin" [% IF view_edit.is_admin %]checked[% END %]>Administration view (only visible to table administrators)
-                        </label>
+<div class="content-block__main">
+  <form method="post" class="">
+    [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+    <fieldset class="fieldset">
+      <div class="fieldset__legend fieldset__legend--hidden">
+        <legend>Legend</legend>
+      </div>
+      
+      <div class="content-block__main-content">
+        <div class="row">
+          <div class='col-md-6 col-lg-8 mb-4 mb-lg-0'>
+            <div class="card card--secundary">
+              <h4 class="card__title">
+                <span>
+                  [% IF view_edit.id %]
+                    Edit current view
+                  [% ELSIF clone %]
+                    Edit the copy of this view
+                  [% ELSE %]
+                    Add a customised view
+                  [% END %]
+                </span>
+              </h4>
+              
+              <div class="card__body row">
+                <div class="card__content">
+                  
+                  <div class="row">
+                    <div class='col'>
+                      [%
+                        INCLUDE fields/input.tt
+                          id = "name"
+                          name = "name"
+                          label = "Name of the view"
+                          value = view_edit.name
+                          placeholder = ""
+                          filter = "html"
+                          type = "text";
+                      %]
                     </div>
-                [% END %]
-            [% END %]
-            <label for="name">Select the fields you want to include in your view:</label>
-            <table class="table table-striped">
-                <tr>
-                    <th>
-                        <div class="checkbox" style="margin-top:0; margin-bottom:0"> [%# XXX Hack to be fixed %]
-                            <label>
-                                <input type="checkbox" id="selectall" title="Select/deselect all">(select all)
-                            </label>
+                  </div>
+                  
+                  [% IF layout.user_can("layout") OR layout.user_can("view_group") %]
+                  <div class="row">
+                    <div class="col">
+                      <div class="form-group">
+                        <div class="row">
+                          <div class="col-lg-3">
+                            [%
+                              INCLUDE fields/sub/checkbox.tt
+                                id          = "global"
+                                name        = "global"
+                                label       = "Shared view"
+                                value       = 1
+                                checked     = view_edit.global ? 1 : 0
+                                input_class = "mb-lg-0 checkbox--reveal";
+                            %]
+                          </div>
+                          
+                          <div class="col-lg-9">
+                            [%
+                              INCLUDE fields/sub/checkbox.tt
+                                id          = "is_admin"
+                                name        = "is_admin"
+                                label       = "Administration view (only visible to table administrators)"
+                                value       = 1
+                                checked     = view_edit.is_admin ? 1 : 0
+                                input_class = "mb-lg-0";
+                            %]
+                          </div>
                         </div>
-                    </th>
-                </tr>
-                [% FOR column IN layout.all_user_read %]
-                    <tr>
-                        <td>
-                            <div class="checkbox" style="margin-top:0; margin-bottom:0"> [%# XXX Hack to be fixed %]
-                                <label>
-                                    <input class="col_check" type="checkbox" name="column" value="[% column.id %]"
-                                        [% id = column.id %]
-                                        [% IF view_edit.columns.grep("^$id\$").size %]checked[% END %]
-                                    >[% column.name | html_entity %]
-                                </label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col">
+                      
+                      <div class="checkbox-reveal" id="global-reveal">
+                        [%
+                          group_id_items = layout.user_can("layout") ? [{id="", name="<All users>"}] : [];
+                        
+                          IF layout.user_can("view_group");
+                            FOREACH group IN user.groups;
+                              group_id_items.push({id=group.id, name=group.name});
+                            END;
+                          END;
+                        
+                          INCLUDE fields/select.tt
+                            id           = "group_id"
+                            name         = "group_id"
+                            label        = "Share with"
+                            placeholder  = "Select option"
+                            value        = ! view_edit.group_id ? "" : view_edit.group_id
+                            select_class = "select--select"
+                            filter       = "html"
+                            hide_group   = 0
+                            items        = group_id_items;
+                        %]
+                      </div>
+                    
+                    </div>
+                  </div>
+                  [% END %]
+                  
+                  
+                  
+                  <div class="row">
+                    <div class="col">
+                      [%
+                        # prepare table config
+                        table_class            = 'table-striped table-selectable';
+                        table_dom              = 't';
+                        table_order            = '[0,"asc"]';
+                        table_reorder_rows     = 1;
+                        table_language         = '{"emptyTable": "No graphs have been created. Please use the `Add a graph` button above to add one.","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"","searchPlaceholder":"Search in this table"}';
+                        table_show_all_records = 1;
+                        table_unresponsive     = 0;
+                        rows                   = [];
+                        table_columns          = [{
+                          name      = "Select",
+                          orderable = 0,
+                          data      = "check",
+                          class     = "check"
+                        }];
+
+                        FOR column IN layout.all_user_read;
+                          id = column.id;
+                      
+                          rows.push({
+                            fields = [{
+                              type        = "text"
+                              label       = ""
+                              sub_field   = "fields/sub/checkbox.tt"
+                              sub_params  = {
+                                id => "dt_checkbox_" _ column.id
+                                name => "column"
+                                label => column.name
+                                checked => view_edit.columns.grep("^$id\$").size ? 1 : 0
+                                filter => "html"
+                                is_required => 0
+                                autofocus => 0
+                                input_class => ""
+                                label_in_span => 1
+                                value => column.id
+                              }
+                            }]
+                          });
+                        END;
+                      %]
+                      <fieldset class="fieldset" >
+                        <div class="fieldset__legend">
+                          <legend >
+                            Select the fields you want to include in your view. Drag and drop the fields to determine the display order
+                          </legend>
+                        
+                        </div>
+  
+                        <div class="form-group">
+                          [% INCLUDE tables/basic_table.tt; %]
+                        </div>
+                      </fieldset>
+                    
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col">
+                      <fieldset class="fieldset">
+                        <div class="fieldset__legend">
+                          <legend >
+                            Field to sort the records in your view by
+                          </legend>
+                        </div>
+                        <div class="form-group">
+                          <div class="multiple-select">
+                            <div class="multiple-select__list">
+                              [%-
+                                view_counter = 1;
+                                clear_sorts  = 0;
+                              
+                                # add a virtual object to display empty sorting and direction fields
+                                IF ! view_edit.sorts.size;
+                                  view_edit.sorts.push({});
+                                  clear_sorts = 1;
+                                END;
+                              
+                                FOREACH sort IN view_edit.sorts;
+                                  view_row_id = view_counter > 1 ? ' id="sort-row-' _ view_counter _ '"' : '';
+                                  order_rows  = [];
+                                  type_rows   = [];
+      
+                                  FOR column IN layout.columns_for_filter;
+                                    order_rows.push(id=column.filter_id, name=column.filter_name);
+                                  END;
+      
+                                  FOREACH st IN sort_types;
+                                    type_rows.push(id=st.name, name=st.description);
+                                  END;
+                              -%]
+                              <div class="multiple-select__row"[% view_row_id %]>
+                                <fieldset class="fieldset">
+                                  <div class="fieldset__legend fieldset__legend--hidden">
+                                    <legend>
+                                      Field to sort the records in your view by
+                                    </legend>
+                                  </div>
+                                  <div class="form-group ">
+                                    <div class="row">
+                                      <div class="col">
+                                        [%-
+                                          INCLUDE fields/select.tt
+                                            id = "sortfield"
+                                            name = "sortfield"
+                                            value = sort.filter_id
+                                            label = "Field"
+                                            placeholder = "Select field"
+                                            help_text = ""
+                                            items = order_rows
+                                            input_class = ""
+                                            popover_body=""
+                                            is_required = 0
+                                            hide_group = 1
+                                            filter = ""
+                                            sub_field = ""
+                                            sub_params = {};
+                                        -%]
+                                      </div>
+                                      <div class="col">
+                                        [%-
+                                          INCLUDE fields/select.tt
+                                            id = "sorttype"
+                                            name = "sorttype"
+                                            value = sort.type
+                                            label = "Order"
+                                            placeholder = "Select order"
+                                            help_text = ""
+                                            items = type_rows
+                                            input_class = ""
+                                            popover_body=""
+                                            is_required = 0
+                                            hide_group = 1
+                                            filter = "html"
+                                            sub_field = ""
+                                            sub_params = {};
+                                        -%]
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    class="btn btn-delete"
+                                  >
+                                    <span class="btn__title">Delete</span>
+                                  </button>
+                                </fieldset>
+                              </div>
+                              [%-
+                                    view_counter = view_counter + 1;
+                                  END;
+                              
+                                  IF clear_sorts;
+                                    temp = view_edit.sorts.shift();
+                                  END;
+                              -%]
                             </div>
-                        </td>
-                    </tr>
-                [% END %]
-            </table>
-        </div>
-        <div class="col-md-6">
-            <h4>View help</h4>
-            <dl>
-                <dt>General</dt>
-                <dd>
-                    Use views to create reports by filtering the fields and records you see on screen.
-                    <ul></ul>
-                </dd>
-                [% IF layout.user_can("layout") %]
-                    <dt>Shared view</dt>
-                    <dd>If the view is defined as a global view, then it will be visible as an 
-                        available view for all users.
+                            
+                            <button
+                              type="button"
+                              class="btn btn-add-link"
+                            >
+                              <span class="btn__title">Add new sort</span>
+                            </button>
+                          </div>
+                        </div>
+                      </fieldset>
+                    </div>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col">
+                      <fieldset class="fieldset">
+                        <div class="fieldset__legend">
+                          <legend >
+                            Group the records in your view by
+                          </legend>
+                        </div>
+                        
+                        <div class="form-group">
+                          <div class="multiple-select">
+                            <div class="multiple-select__list">
+                              [%
+                                group_counter = 1;
+                                clear_groups  = 0;
+                              
+                                # add a virtual object to display empty grouping field
+                                IF ! view_edit.groups.size;
+                                  view_edit.groups.push({});
+                                  clear_groups = 1;
+                                END;
+                              
+                                FOREACH group IN view_edit.groups;
+                                  view_row_id = group_counter > 1 ? ' id="group-row-' _ group_counter _ '"' : '';
+                                  group_rows  = [];
+      
+                                  FOR column IN layout.columns_for_filter;
+                                    group_rows.push(id=column.filter_id, name=column.filter_name);
+                                  END;
+                              %]
+                              <div class="multiple-select__row">
+                                <fieldset class="fieldset" >
+                                  <div class="fieldset__legend fieldset__legend--hidden">
+                                    <legend >
+                                      Field to order the records in your view by
+                                    </legend>
+                                  </div>
+                                  
+                                  [%-
+                                    INCLUDE fields/select.tt
+                                      id = "groupfield"
+                                      name = "groupfield"
+                                      value = group.filter_id
+                                      label = "Field"
+                                      placeholder = "Select field"
+                                      help_text = ""
+                                      items = group_rows
+                                      input_class = ""
+                                      popover_body=""
+                                      is_required = 0
+                                      hide_group = 0
+                                      filter = "html"
+                                      sub_field = ""
+                                      sub_params = {};
+                                  -%]
+                                  
+                                  <button
+                                    type="button"
+                                    class="btn btn-delete"
+                                  >
+                                    <span class="btn__title">Delete</span>
+                                  </button>
+                                </fieldset>
+                              </div>
+                              [%
+                                  group_counter = group_counter + 1;
+                                END;
+                              
+                                IF clear_groups;
+                                  temp = view_edit.groups.shift();
+                                END;
+                              %]
+                            </div>
+                            
+                            <button
+                              type="button"
+                              class="btn btn-add-link"
+                            >
+                              <span class="btn__title">Add new grouping</span>
+                            </button>
+                          </div>
+                        </div>
+                      </fieldset>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col">
+                      <fieldset class="fieldset" >
+                        <div class="fieldset__legend ">
+                          <legend >
+                            Filter
+                          </legend>
+                        </div>
+                        
+                        
+                        
+                        <div class="form-group ">
+                          [%
+                            INCLUDE builder.tt
+                              builder_id = 10
+                              builder_layout = layout
+                              filter_normal = view_edit.filter
+                              filter_base64 = view_edit.filter.base64
+                              include_previous = 1;
+                          %]
+                          
+                          <div
+                            class="filter"
+                            id="builder10"
+                            data-builder-id="10"
+                            data-filter-base='[% view_edit.filter.base64 %]'
+                            data-use-json='[% view_edit.filter.as_json AND NOT view_edit.filter.as_json.match('^[{}\s]*$') %]'
+                          >
+                          </div>
+                          <input id="filter" type="hidden" name="filter" value="[% view_edit.filter.as_json | html_entity %]">
+                        </div>
+                      </fieldset>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          
+          </div>
+          <div class='col-md-6 col-lg-4'>
+            <div class="card card--secundary card--help">
+              <h4 class="card__title">
+                <span> View help </span>
+              </h4>
+              
+              <div class="card__body row">
+                <div class="card__content">
+                  <dl>
+                    <dt>General</dt>
+                    <dd>
+                      Use views to create reports by filtering the fields and records you see on screen.
                     </dd>
-                    <ul></ul>
-                [% END %]
-                <dt>Filters</dt>
-                <dd>
-                    Use filters to select the records you want to include in
-                    the view. Dates in your filters must be in the format [% config.dateformat %]
-                    or 'CURDATE' for current date. The current user using the view can also be substituted:
-                    [CURUSER] can be used to specify the user; [CURUSER.ORG] can be used to specify
-                    the user's organisation; [CURUSER.DEPT] can be used to specify the user's department;
-                    [CURUSER.TEAM] can be used to specify the user's team; [CURUSER.ID] can be used
-                    to specify a user's ID.
-                </dd>
-            </dl>
-
-            <label>Filters:</label>
-            <div id="builder"
-                data-base-filter='[% view_edit.filter.base64 %]'
-                data-use-json='[% view_edit.filter.as_json AND NOT view_edit.filter.as_json.match('^[{}\s]*$') %]'>
-            </div>
-            <input id="filter" type="hidden" name="filter" value="[% view_edit.filter.as_json | html_entity %]">
-
-            <label for="sorts">Sort the records in your view by:</label>
-            <div id="sorts" data-sortrow='[% PROCESS sortrow %]'>
-                [% FOREACH sort IN view_edit.sorts %]
-                    [% PROCESS sortrow %]
-                [% END %]
-                <div class="sort-add">
-                        <div class="col-md-11">
-                            <button type="button" class="btn btn-default add">
-                                Add new sort
-                            </button>
-                        </div>
+                    <dt>Shared view</dt>
+                    <dd>
+                      If the view is defined as a global view, then it will be visible as an available view for all users.
+                    </dd>
+                    <dt>Filters</dt>
+                    <dd>
+                      Use filters to select the records you want to include in
+                      the view. Dates in your filters must be in the format yyyy-MM-dd
+                      or 'CURDATE' for current date. The current user using the view can also be substituted:
+                      [CURUSER] can be used to specify the user; [CURUSER.ORG] can be used to specify
+                      the user's organisation; [CURUSER.DEPT] can be used to specify the user's department;
+                      [CURUSER.TEAM] can be used to specify the user's team; [CURUSER.ID] can be used
+                      to specify a user's ID.
+                    </dd>
+                  </dl>
                 </div>
+              </div>
             </div>
-
-            <label for="groups">Group the records in your view by:</label>
-            <div id="groups" data-grouprow='[% PROCESS grouprow %]'>
-                [% FOREACH group IN view_edit.groups %]
-                    [% PROCESS grouprow %]
-                [% END %]
-                <div class="group-add">
-                        <div class="col-md-11">
-                            <button type="button" class="btn btn-default add">
-                                Add new grouping
-                            </button>
-                        </div>
-                </div>
-            </div>
+          </div>
         </div>
-    </div>
-    <div style="height:55px;"></div>
-    <nav class="navbar navbar-default navbar-fixed-bottom" style="min-height:55px">
-        <div class="container">
-            <p></p>
-            <button id="saveview" type="submit" name="update" value="update" class="btn btn-primary" >
-                Save
-            </button>
-            <a href="/[% layout.identifier %]/data" class="btn btn-default">Cancel</a>
-            [% IF view_edit.id AND NOT clone %]
-                <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
-            [% END %]
+      </div>
+      
+      <footer class="content-block__footer">
+        <div class="content-block__footer-container">
+          [%
+            right_buttons = [];
+  
+            IF view_edit.id AND NOT clone;
+              right_buttons.push({
+                type      = "modal_button",
+                modalId   = "deleteModal",
+                dataTitle = view_edit.name,
+                dataId    = view_edit.id,
+                class     = "btn btn-danger btn-js-delete",
+                label     = "Delete view"
+              });
+            END;
+          
+            right_buttons.push({
+              type  = "button",
+              class = "btn btn-default btn-js-submit-field"
+              id    = "saveview"
+              name  = "update"
+              value = "update"
+              label = "Save"
+            });
+          
+            INCLUDE navigation/button_bar.tt
+              row_class = "row"
+              columns   = [{
+                class   = "col-md-4 mb-3 mb-md-0",
+                buttons = [{
+                  type   = "link",
+                  target = url.page _ "/" _ layout_obj.identifier _ "/data",
+                  class  = "btn btn-cancel",
+                  label  = "Back"
+                }]
+              }, {
+                class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
+                buttons = right_buttons
+              }];
+          %]
         </div>
-    </nav>
-</form>
-       <!-- Modal -->
-        <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form role="form" method="post" enctype="multipart/form-data">
-                    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="myModalLabel">Are you sure?</h4>
-                    </div>
-                    <div class="modal-body">
-                        <p>Are you sure you want to delete this view?</p>
-                        [% IF view_edit.alert %]
-                            <p>Please note that you will no longer receive the alerts that
-                            are configured for this view.</p>
-                        [% END %]
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                        <button type="submit" name="delete" value="delete" class="btn btn-primary">Confirm deletion</button>
-                    </div>
-                    </form>
-                </div><!-- /.modal-content -->
-            </div><!-- /.modal-dialog -->
-        </div><!-- /.modal -->
-<p></p>
-
-[% INCLUDE builder.tt builder_layout = layout filter_normal = view_edit.filter filter_base64 = view_edit.filter.base64 include_previous = 1 %]
-
-[% BLOCK sortrow %]
-    <div class="row">
-        <div class="request-row">
-            <div class="col-md-4">
-                <p>
-                    <select class="form-control" name="sortfield">
-                        [% FOR column IN layout.columns_for_filter %]
-                            <option value="[% column.filter_id %]" [% IF sort.filter_id == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]</option>
-                        [% END %]
-                    </select>
-                </p>
-            </div>
-            <div class="col-md-4">
-                <p>
-                    <select class="form-control" name="sorttype">
-                        [% FOREACH st IN sort_types %]
-                            <option value="[% st.name %]" [% IF sort.type == st.name %]selected[% END %]>[% st.description %]</option>
-                        [% END %]
-                    </select>
-                </p>
-            </div>
-            <button type="button" class="close closeme pull-left">&times;</button>
-        </div>
-    </div>
-[% END %]
-
-[% BLOCK grouprow %]
-    <div class="row">
-        <div class="request-row">
-            <div class="col-md-8">
-                <p>
-                    <select class="form-control" name="groupfield">
-                        <option></option>
-                        [% FOR column IN layout.columns_for_filter %]
-                            <option value="[% column.filter_id %]" [% IF group.filter_id == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]</option>
-                        [% END %]
-                    </select>
-                </p>
-            </div>
-            <button type="button" class="close closeme pull-left">&times;</button>
-        </div>
-    </div>
-[% END %]
-
+      </footer>
+    </fieldset>
+  </form>
+</div>
+[%
+  IF view_edit.id AND NOT clone;
+    INCLUDE wizard/delete.tt
+      modalId     = "deleteModal"
+      label       = "Delete - " _ view_edit.name
+      description = "Are you sure you want to delete this view? You cannot undo this step.";
+  END;
+%]

@@ -22,6 +22,8 @@ use Crypt::SaltedHash;
 use MIME::Base64 qw/decode_base64/;
 use Net::OAuth2::AuthorizationServer::PasswordGrant;
 use Session::Token;
+use JSON qw(decode_json encode_json);
+use POSIX qw(ceil);
 
 use Dancer2 appname => 'GADS';
 use Dancer2::Plugin::Auth::Extensible;
@@ -538,7 +540,7 @@ post '/api/user_account_request/:id' => require_login sub {
     _post_request_account();
 };
 
-post '/api/table_request/:id' => require_login sub {
+post '/api/table_request' => require_login sub {
     _post_table_request();
 };
 
@@ -866,13 +868,13 @@ sub _create_table
             user   => $user,
             layout => $table,
         );
-        my $field = $f->{field_type} eq 'text'
+        my $field = $f->{field_type} eq 'string'
             ? GADS::Column::String->new(%args)
-            : $f->{field_type} eq 'integer'
+            : $f->{field_type} eq 'intgr'
             ? GADS::Column::Intgr->new(%args)
             : $f->{field_type} eq 'date'
             ? GADS::Column::Date->new(%args)
-            : $f->{field_type} eq 'date-range'
+            : $f->{field_type} eq 'daterange'
             ? GADS::Column::Daterange->new(%args)
             : $f->{field_type} eq 'enum'
             ? GADS::Column::Enum->new(%args)
@@ -884,7 +886,7 @@ sub _create_table
             ? GADS::Column::Person->new(%args)
             : $f->{field_type} eq 'rag'
             ? GADS::Column::Rag->new(%args)
-            : $f->{field_type} eq 'calculated-value'
+            : $f->{field_type} eq 'calc'
             ? GADS::Column::Calc->new(%args)
             : $f->{field_type} eq 'curval'
             ? GADS::Column::Curval->new(%args)
@@ -894,8 +896,12 @@ sub _create_table
             ? GADS::Column::Filval->new(%args)
             : error(__x"Invalid field type: {type}", type => $f->{field_type});
         $field->name($f->{name});
+        $field->type($f->{field_type});
         $field->optional($f->{optional});
-        $field->topic_id($topics{$f->{topic_tempid}}->id);
+
+        if ($f->{topic_tempid}) {
+            $field->topic_id($topics{$f->{topic_tempid}}->id);
+        }
 
         # Permissions
         my %permissions;
@@ -937,7 +943,7 @@ sub _create_table
             $field->textbox($f->{field_type_settings}->{textbox});
             $field->force_regex($f->{field_type_settings}->{force_regex});
         }
-        elsif ($field->type eq 'integer')
+        elsif ($field->type eq 'intgr')
         {
             $field->show_calculator($f->{field_type_settings}->{show_calculator});
         }
@@ -1009,9 +1015,13 @@ sub _create_table
         }
 
         $field->write(no_alerts => 1, no_cache_update => 1);
+
         # ID needs to be set before writing tree
-        $field->update($settings->{data})
-            if $field->type eq 'tree';
+        if ($field->type eq 'tree')
+        {
+            $field->update($settings->{dataJson});
+        }
+
         $fields{$f->{tempId}} = $field;
     }
 };
@@ -1023,9 +1033,6 @@ sub _post_table_request {
 
     my $body = try { decode_json(request->body) }
         or error __"No body content received";
-
-    logged_in_user->permission->{superadmin}
-        or error __"You must be a super-administrator to create tables";
 
     if (process sub { _create_table($body) } )
     {
@@ -1070,7 +1077,7 @@ sub _get_records {
         schema => schema,
         view   => $view,
         rows   => $length,
-        page   => $start / $length,
+        page   => 1 + ceil($start / $length),
         layout => $layout,
     );
 
@@ -1199,11 +1206,10 @@ sub _error
 
 sub _success
 {   my $msg = shift;
-    content_type 'application/json;charset=UTF-8';
-    return encode_json {
+    send_as JSON => {
         is_error => 0,
         message  => $msg,
-    };
+    }, { content_type => 'application/json; charset=UTF-8' };
 }
 
 sub _decode_json_body

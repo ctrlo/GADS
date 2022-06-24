@@ -69,9 +69,10 @@
     END;
 
     row = {
+      sort_id = col.id,
       link_placeholders = {
         layout_id = col.id
-      }
+      },
       fields = [{
         type       = col.internal ? "text" : "link",
         label      = col.name,

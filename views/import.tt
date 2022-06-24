@@ -1,49 +1,84 @@
-<a href="/[% layout.identifier %]/import/data/" class="btn btn-default">Import data...</a>
-<a href="" data-toggle="modal" data-target="#modal_clear" class="btn btn-default">Clear completed reports...</a>
-<h3>Import Status</h3>
-[% IF imports.size %]
-    <table class="table table-striped">
-        <tr>
-            <th>Type</th>
-            <th>Status</th>
-            <th>Rows processed</th>
-            <th>Result</th>
-            <th></th>
-        </tr>
-        [% FOREACH import IN imports %]
-            <tr>
-                <td>[% import.type | html_entity %]</td>
-                <td>[% IF import.completed %]Completed [% import.completed %][% ELSE %]In progress[% END %]</td>
-                <td>[% import.row_count %]</td>
-                <td>[% import.result %]</td>
-                <td><a href="/[% layout.identifier %]/import/rows/[% import.id %]">View all rows</a></td>
-            </tr>
-        [% END %]
-    </table>
-[% ELSE %]
-    <p>No imports to show</p>
-[% END %]
-<p></p>
+[%
+  # prepare files table config
+  table_dom = "t";
+  table_class = "table-striped";
+  table_order = '[0,"asc"]';
+  table_language = '{"emptyTable": "No imports to show"}';
+  table_show_all_records = 1;
 
-<!-- Modal -->
-<div class="modal fade" id="modal_clear" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                <h4 class="modal-title" id="myModalLabel">Clear completed reports</h4>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to delete reports of all completed imports?</p>
-            </div>
-            <form  role="form" method="post">
-                <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                    <button type="submit" name="clear" value="clear" class="btn btn-primary">Confirm</button>
-                </div>
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+  table_buttons = [];
 
+  table_columns = [
+    {name="ID", orderable = 1},
+    {name="Type", orderable = 1},
+    {name="Status", orderable = 1},
+    {name="Rows processed", orderable = 1},
+    {name="Result", orderable = 1}
+  ];
+
+  rows = [];
+
+  FOREACH import IN imports;
+    rows.push({
+      link_placeholders = {
+        import_id =  import.id
+      }
+      fields = [{
+        type   = "link"
+        label  = import.id
+        filter = "html"
+        link   = url.page _ "/" _ layout.identifier _ "/import/rows/{import_id}"
+      },{
+        type   = "link"
+        label  = import.type
+        filter = "html"
+        link   = url.page _ "/" _ layout.identifier _ "/import/rows/{import_id}"
+      },{
+        type   = "link"
+        label  = import.completed ? "Completed " _ import.completed : "In progress"
+        filter = "html"
+        link   = url.page _ "/" _ layout.identifier _ "/import/rows/{import_id}"
+      },{
+        type   = "link"
+        label  = import.row_count
+        filter = "html"
+        link   = url.page _ "/" _ layout.identifier _ "/import/rows/{import_id}"
+      },{
+        type   = "link"
+        label  = import.result
+        filter = "html"
+        link   = url.page _ "/" _ layout.identifier _ "/import/rows/{import_id}"
+      }]
+    });
+  END;
+
+
+  INCLUDE layouts/page_header_table.tt
+    title       = "Import records"
+    description = "Here you can import new records into " _ layout_obj.name _ "."
+    aside_buttons = [{
+      type    = "modal_button"
+      modalId = "deleteModal"
+      class   = "btn btn-default"
+      label   = "Clear completed reports"
+    },{
+      type   = "link"
+      target = url.page _ "/" _ layout.identifier _ "/import/data/"
+      class  = "btn btn-default"
+      label  = "Import data"
+    }];
+%]
+
+<div class="content-block__main">
+  [% INCLUDE tables/basic_table.tt; %]
+</div>
+
+[%
+  INCLUDE wizard/delete.tt
+    modalId             = "deleteModal"
+    label               = "Delete completed reports"
+    description         = "Are you sure you want to delete reports of all completed imports?"
+    submit_button_name  = "clear"
+    value               = "clear"
+    submit_button_label = "Confirm";
+%]

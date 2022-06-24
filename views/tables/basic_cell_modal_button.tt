@@ -16,5 +16,16 @@
       [% INCLUDE fields/sub/filter.tt value=label; %]
     </span>
   </button>
-  [% INCLUDE snippets/subfield.tt; %]
+  [%
+    IF sub_field_type == "array";
+      sub_field_key = 0;
+      FOREACH current_sub_field IN sub_field;
+        current_sub_params = sub_params.$sub_field_key;
+        INCLUDE snippets/subfield.tt sub_field=current_sub_field sub_params=current_sub_params;
+        sub_field_key = sub_field_key + 1;
+      END;
+    ELSE;
+      INCLUDE snippets/subfield.tt;
+    END;
+  %]
 </td>

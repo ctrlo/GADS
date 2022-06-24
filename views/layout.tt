@@ -538,7 +538,8 @@
                               INCLUDE fields/tree.tt
                                 id                = "jstree_demo_div"
                                 layout_id         = column.id
-                                layout_identifier = layout_obj.identifier;
+                                layout_identifier = layout_obj.identifier
+                                edit_tree         = 1;
                           
                             ELSE;
                           %]

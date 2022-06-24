@@ -54,9 +54,9 @@
 <div class="content-block__main">
   [% INCLUDE tables/basic_table.tt; %]
 </div>
-[%-
+[%
   INCLUDE wizard/delete.tt
     modalId     = "deleteModal"
     label       = "Delete " _ item_type
     description = "Are you sure you want to delete this " _ item_type _ "? You cannot undo this step.";
--%]
+%]

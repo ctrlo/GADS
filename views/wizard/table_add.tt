@@ -127,7 +127,7 @@
             </div>
             
             [% FOREACH group IN groups %]
-            <div class="row mb-3">
+            <div class="row mb-3 permission-group" data-group-id="[% group.id %]">
               <div class="col">
                 <div class="card card--expandable">
                   <div class="card__header">
@@ -377,7 +377,7 @@
               label   = "Back"
             }]
             right_buttons = [{
-              class   = "btn-invisible btn-js-add-next"
+              class   = "btn-invisible btn-inverted btn-js-add-next"
               label   = "Add another and next"
             }, {
               class   = "btn-js-next btn-disabled"
@@ -530,8 +530,8 @@
                     {id = "tree", name = "Tree"},
                     {id = "file", name = "Document"},
                     {id = "person", name = "Person"},
-                    {id = "rag", name = "RedAmberGreen status (RAG)"},
-                    {id = "calc", name = "Calculated value"},
+                    # {id = "rag", name = "RedAmberGreen status (RAG)"},
+                    # {id = "calc", name = "Calculated value"},
                     {id = "curval", name = "Field(s) for records from another table"}
                   ];
                 
@@ -780,7 +780,9 @@
                         INCLUDE fields/tree.tt
                           id                = "jstree_demo_div"
                           layout_id         = ''
-                          layout_identifier = '';
+                          layout_identifier = ''
+                          no_initial_data   = 1
+                          edit_tree         = 1;
                     %]
                   </div>
                 </div>
@@ -1368,6 +1370,12 @@
           
           <div class="container-fluid">
             <div class="row">
+              <div class="col">
+                <div class="alert alert-danger" role="alert">
+                </div>
+              </div>
+            </div>
+            <div class="row">
               <div class="col mb-4">
                 <h4>Fields</h4>
                 <p>The fields are the data fields or columns in your table. Here you can add fields to your new table
@@ -1379,7 +1387,7 @@
             <div class="row">
               <div class="col">
                 [%
-                  table_id           = '';
+                  table_id           = 'fields';
                   table_class        = 'table-lines';
                   table_dom          = '<\"row row--header\"<\"col\"f><\"col-lg-auto dataTables_length_wrapper\"l>><\"row row--main\"<\"col-sm-12\"tr>><\"row row--footer\"<\"col-sm-12 col-lg-6\"p><\"col-sm-12 col-lg-6 dataTables_info_wrapper\"i>>';
                   table_order        = '[0,"asc"]';

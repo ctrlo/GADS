@@ -26,30 +26,7 @@
   input_class = is_required AND ! input_class.match('input--required') ? input_class _ ' input--required' : input_class;
 -%]
 <div class="input input--file [% input_class %]">
-  <div class="input__label">
-    <label for="[% id %]">
-      <span class="input__file-label" role="button" aria-controls="[% id %]" tabindex="0">
-        Choose file
-      </span>
-    </label>
-    
-    [%- IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body; END; -%]
-    
-    <div class="file">
-      <label class="file__name" for="[% id %]">
-        [% INCLUDE fields/sub/filter.tt value=placeholder; %]
-      </label>
-      <button type="button" class="file__delete close" aria-label="Delete">
-        <span aria-hidden="true" class="hidden">Delete file</span>
-      </button>
-    </div>
-  </div>
-  
-  [% IF help_text %]
-  <p id="[% id %]-help" class="form-text">
-    [% help_text | html %]
-  </p>
-  [% END %]
+  [% INCLUDE fields/sub/label_file.tt; %]
   
   <div class="input__field">
     <input
@@ -59,7 +36,9 @@
       class="form-control-file [% custom_classes %]"[% IF tabindex %]
       tabindex="[% tabindex %]"[% END %][% IF help_text %]
       aria-describedby="[% id %]-help"[% END %][% IF is_disabled %]
-      disabled[% END %][% IF is_required %]
+      disabled[% END %][% IF is_readonly %]
+      readonly[% END %][% IF is_multiple %]
+      multiple[% END %][% IF is_required %]
       required
       aria-required="true"[% END %]
     >

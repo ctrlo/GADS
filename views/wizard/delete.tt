@@ -2,7 +2,7 @@
   <div class="modal-dialog modal-dialog-centered " role="document">
     <div class="modal-content">
       [% INCLUDE wizard/sub/modal_header.tt; %]
-      <form method="post">
+      <form role="form" method="post">
         [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
         <div class="modal-frame" >
           <div class="modal-body">
@@ -19,9 +19,9 @@
               right_buttons = [{
                 type  = "submit"
                 class = "btn-danger"
-                name  = "delete"
+                name  = submit_button_name || "delete"
                 value = value || "delete"
-                label = "Delete"
+                label = submit_button_label || "Delete"
               }];
           -%]
         </div>
