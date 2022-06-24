@@ -783,6 +783,8 @@ sub _post_request_account {
 sub _create_table
 {   my $params = shift;
 
+    my $guard = schema->txn_scope_guard;
+
     my $user = logged_in_user;
     my $table = GADS::Layout->new(
         user   => $user,
@@ -1027,6 +1029,8 @@ sub _create_table
 
         $fields{$f->{tempId}} = $field;
     }
+
+    $guard->commit;
 };
 
 sub _post_table_request {
