@@ -523,6 +523,14 @@ sub write
         $rset = $self->_rset;
     }
 
+    # Check short name does not already exist
+    my $exists = $self->schema->resultset('Instance')->search({
+        name_short  => $self->name_short,
+        id          => { '!=' => $rset->id },
+    })->next;
+    error __x"The short name {short} already exists for the table {name}",
+        short => $self->name_short, name => $exists->name
+            if $exists;
     $rset->update({
         name             => $self->name,
         name_short       => $self->name_short,
