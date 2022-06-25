@@ -1000,6 +1000,20 @@ sub _user_value
     $value;
 }
 
+sub for_data_table
+{   my $self = shift;
+    {
+        id           => $self->id,
+        surname      => $self->surname,
+        firstname    => $self->firstname,
+        title        => $self->title && $self->title->name,
+        email        => $self->email,
+        organisation => $self->organisation && $self->organisation->name,
+        created      => $self->created ? $self->created->ymd : 'Unknown',
+        lastlogin    => $self->lastlogin ? $self->lastlogin->ymd : 'Never logged in',
+    };
+}
+
 sub export_hash
 {   my $self = shift;
     # XXX Department, organisation etc not currently exported

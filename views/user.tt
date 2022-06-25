@@ -124,7 +124,7 @@
 [% IF register_requests.size %]
     <h4>Active accounts</h4>
 [% END %]
-<table class="table table-striped dtable" id="user-table-active">
+<table class="table table-striped dtable" id="user-table-active" data-type="users">
     <thead>
         <tr>
             <th>ID</th>
@@ -151,31 +151,6 @@
         </tr>
     </thead>
     <tbody>
-        [% FOREACH edituser IN users %]
-            <tr>
-                <td><a href="/user/[% edituser.id %]">[% edituser.id %]</a></td>
-                <td>[% edituser.surname | html_entity %]</td>
-                <td>[% edituser.firstname | html_entity %]</td>
-                [% IF site.register_show_title %]
-                    <td>[% edituser.title.name | html_entity %]</td>
-                [% END %]
-                <td>[% edituser.email | html_entity %]</td>
-                [% IF site.register_show_organisation %]
-                    <td>[% edituser.organisation.name | html_entity %]</td>
-                [% END %]
-                [% IF site.register_show_department %]
-                    <td>[% edituser.department.name | html_entity %]</td>
-                [% END %]
-                [% IF site.register_show_team %]
-                    <td>[% edituser.team.name | html_entity %]</td>
-                [% END %]
-                [% IF site.register_freetext1_name %]
-                    <td>[% edituser.freetext1 | html_entity %]</td>
-                [% END %]
-                <td>[% edituser.created OR "Unknown" %]</td>
-                <td>[% edituser.lastlogin OR "Never logged in" %]</td>
-            </tr>
-        [% END %]
     </tbody>
 </table>
 [% IF register_requests.size %]

@@ -754,6 +754,44 @@ sub _update_dashboard
     return _success("Dashboard updated successfully");
 }
 
+get '/api/users' => require_any_role [qw/useradmin superadmin/] => sub {
+
+    my $start  = query_parameters->get('start') || 0;
+    my $length = query_parameters->get('length') || 10;
+
+    my $users     = GADS::Users->new(schema => schema)->user_summary_rs;
+    my $total     = $users->count;
+    my $col_order = query_parameters->get('order[0][column]');
+    my $sort_by   = query_parameters->get("columns[$col_order][name]");
+    my $dir       = query_parameters->get('order[0][dir]');
+    my $search    = query_parameters->get('search[value]');
+
+    $sort_by =~ /^(surname|firstname|email|id|lastlogin|created|title|organisation)$/
+        or error "Invalid sort";
+    $sort_by = $sort_by eq 'title'
+        ? 'title.name'
+        : $sort_by eq 'organisation'
+        ? 'organisation.name'
+        : "me.$sort_by";
+    my $sr = $search ? [
+        'me.surname' => { -like => "%$search%" },
+        'me.firstname' => { -like => "%$search%" },
+    ] : {};
+    $users = $users->search($sr,{
+        order_by => $sort_by,
+    });
+
+    my $return = {
+        draw            => query_parameters->get('draw'),
+        recordsTotal    => $total,
+        recordsFiltered => $users->count,
+        data            => [map $_->for_data_table, $users->all],
+    };
+
+    content_type 'application/json; charset=UTF-8';
+    return encode_json $return;
+};
+
 sub _success
 {   my $msg = shift;
     content_type 'application/json;charset=UTF-8';
