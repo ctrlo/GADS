@@ -774,8 +774,12 @@ get '/api/users' => require_any_role [qw/useradmin superadmin/] => sub {
         ? 'organisation.name'
         : "me.$sort_by";
     my $sr = $search ? [
-        'me.surname' => { -like => "%$search%" },
-        'me.firstname' => { -like => "%$search%" },
+        'me.id'             => $search =~ /^[0-9]+$/ ? $search : undef,
+        # surname and firstname are case sensitive in database
+        'me.value'          => { -like => "%$search%" },
+        'me.email'          => { -like => "%$search%" },
+        'title.name'        => { -like => "%$search%" },
+        'organisation.name' => { -like => "%$search%" },
     ] : {};
     $users = $users->search($sr,{
         order_by => $sort_by,
