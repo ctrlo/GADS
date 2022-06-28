@@ -1009,6 +1009,9 @@ sub for_data_table
         title        => $self->title && $self->title->name,
         email        => $self->email,
         organisation => $self->organisation && $self->organisation->name,
+        department   => $self->department && $self->department->name,
+        team         => $self->team && $self->team->name,
+        freetext1    => $self->freetext1,
         created      => $self->created ? $self->created->ymd : 'Unknown',
         lastlogin    => $self->lastlogin ? $self->lastlogin->ymd : 'Never logged in',
     };

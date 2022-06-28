@@ -756,6 +756,23 @@ sub _update_dashboard
 
 get '/api/users' => require_any_role [qw/useradmin superadmin/] => sub {
 
+    if (query_parameters->get('cols'))
+    {
+        # Get columns to be shown in the users table summary
+        my $site = var 'site';
+        my @cols = qw/surname firstname/;
+        push @cols, 'title' if $site->register_show_title;
+        push @cols, 'email';
+        push @cols, 'organisation' if $site->register_show_organisation;
+        push @cols, 'department' if $site->register_show_department;
+        push @cols, 'team' if $site->register_show_team;
+        push @cols, 'freetext1' if $site->register_freetext1_name;
+        push @cols, qw/created lastlogin/;
+        my @return = map { { name => $_, data => $_ } } @cols;
+        content_type 'application/json; charset=UTF-8';
+        return encode_json \@return;
+    }
+
     my $start  = query_parameters->get('start') || 0;
     my $length = query_parameters->get('length') || 10;
 

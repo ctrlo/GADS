@@ -21,8 +21,11 @@ const setupDataTables = (() => {
         params.ajax = '/api/users';
         params.serverSide = true;
         params.processing = true;
-        params.columns = [
-            {
+        var $table = $(this);
+        $.ajax('/api/users?cols=1', {
+          success: function (data) {
+            data = data.map(function(x) { x.render = $render; return x });
+            data.unshift({
                 name: 'id',
                 data: 'id',
                 render: function (data, type, row, meta) {
@@ -32,45 +35,14 @@ const setupDataTables = (() => {
                         return data;
                     }
                 }
-            },
-            {
-                name: 'surname',
-                data: 'surname',
-                render: $render
-            },
-            {
-                name: 'firstname',
-                data: 'firstname',
-                render: $render
-            },
-            {
-                name: 'title',
-                data: 'title',
-                render: $render
-            },
-            {
-                name: 'email',
-                data: 'email',
-                render: $render
-            },
-            {
-                name: 'organisation',
-                data: 'organisation',
-                render: $render
-            },
-            {
-                name: 'created',
-                data: 'created',
-                render: $render
-            },
-            {
-                name: 'lastlogin',
-                data: 'lastlogin',
-                render: $render
-            },
-        ];
+            });
+            params.columns = data;
+            $table.dataTable(params);
+          },
+        });
+      } else {
+          $(this).dataTable(params);
       }
-      $(this).dataTable(params);
     });
   };
 
