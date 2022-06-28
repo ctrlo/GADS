@@ -783,12 +783,16 @@ get '/api/users' => require_any_role [qw/useradmin superadmin/] => sub {
     my $dir       = query_parameters->get('order[0][dir]');
     my $search    = query_parameters->get('search[value]');
 
-    $sort_by =~ /^(surname|firstname|email|id|lastlogin|created|title|organisation)$/
+    $sort_by =~ /^(surname|firstname|email|id|lastlogin|created|title|organisation|department|team)$/
         or error "Invalid sort";
     $sort_by = $sort_by eq 'title'
         ? 'title.name'
         : $sort_by eq 'organisation'
         ? 'organisation.name'
+        : $sort_by eq 'department'
+        ? 'department.name'
+        : $sort_by eq 'team'
+        ? 'team.name'
         : "me.$sort_by";
     my $sr = $search ? [
         'me.id'             => $search =~ /^[0-9]+$/ ? $search : undef,
@@ -799,7 +803,7 @@ get '/api/users' => require_any_role [qw/useradmin superadmin/] => sub {
         'organisation.name' => { -like => "%$search%" },
     ] : {};
     $users = $users->search($sr,{
-        order_by => $sort_by,
+        order_by => { $dir eq 'asc' ? -asc : -desc => $sort_by },
     });
 
     my $return = {
