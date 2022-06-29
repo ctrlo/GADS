@@ -802,14 +802,17 @@ get '/api/users' => require_any_role [qw/useradmin superadmin/] => sub {
         'title.name'        => { -like => "%$search%" },
         'organisation.name' => { -like => "%$search%" },
     ] : {};
+    my $filtered_count = $users->count;
     $users = $users->search($sr,{
+        offset   => $start,
+        rows     => $length,
         order_by => { $dir eq 'asc' ? -asc : -desc => $sort_by },
     });
 
     my $return = {
         draw            => query_parameters->get('draw'),
         recordsTotal    => $total,
-        recordsFiltered => $users->count,
+        recordsFiltered => $filtered_count,
         data            => [map $_->for_data_table, $users->all],
     };
 

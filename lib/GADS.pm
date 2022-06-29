@@ -1283,7 +1283,6 @@ any ['get', 'post'] => '/user/?:id?' => require_any_role [qw/useradmin superadmi
         $users = [ $u ] if !$users;
     }
     elsif (!defined $route_id) {
-        $users             = $userso->all;
         $register_requests = $userso->register_requests;
     }
     else {
