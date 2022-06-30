@@ -2274,7 +2274,7 @@ sub _search_construct
 
             $_ =~ s/\_/\\\_/g if $operator eq '-like';
 
-            if ($_ && $_ =~ /\[CURUSER(\.(ORG|DEPT|TEAM|ID))?\]/)
+            if ($_ && $_ =~ /\[CURUSER(\.(ORG|DEPT|TEAM|ID|TITLE))?\]/)
             {
                 my $curuser = $options{user} || $self->user
                     or warning "FIXME: user not set for filter";
@@ -2294,6 +2294,8 @@ sub _search_construct
                     $_ =~ s/\[CURUSER\.DEPT\]/$curuser_dept/g;
                     my $curuser_team = $curuser->team ? $curuser->team->name : '';
                     $_ =~ s/\[CURUSER\.TEAM\]/$curuser_team/g;
+                    my $curuser_title = $curuser->title ? $curuser->title->name : '';
+                    $_ =~ s/\[CURUSER\.TITLE\]/$curuser_title/g;
                     $_ =~ s/\[CURUSER\.ID\]/$curuser_id/g;
                 }
                 elsif ($column->return_type eq "integer")
