@@ -229,7 +229,7 @@ CREATE INDEX "daterange_idx_value" on "daterange" ("value");
 --
 CREATE TABLE "department" (
   "id" serial NOT NULL,
-  "name" character varying(128),
+  "name" citext,
   "site_id" integer,
   "deleted" smallint DEFAULT 0 NOT NULL,
   PRIMARY KEY ("id")
@@ -680,7 +680,7 @@ CREATE INDEX "oauthtoken_idx_user_id" on "oauthtoken" ("user_id");
 --
 CREATE TABLE "organisation" (
   "id" serial NOT NULL,
-  "name" character varying(128),
+  "name" citext,
   "site_id" integer,
   "deleted" smallint DEFAULT 0 NOT NULL,
   PRIMARY KEY ("id")
@@ -863,7 +863,7 @@ CREATE TABLE "submission" (
 --
 CREATE TABLE "team" (
   "id" serial NOT NULL,
-  "name" character varying(128),
+  "name" citext,
   "site_id" integer,
   "deleted" smallint DEFAULT 0 NOT NULL,
   PRIMARY KEY ("id")
