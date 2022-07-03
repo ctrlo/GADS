@@ -801,6 +801,10 @@ get '/api/users' => require_any_role [qw/useradmin superadmin/] => sub {
         'me.email'          => { -like => "%$search%" },
         'title.name'        => { -like => "%$search%" },
         'organisation.name' => { -like => "%$search%" },
+        'team.name'         => { -like => "%$search%" },
+        'department.name'   => { -like => "%$search%" },
+        'me.freetext1'      => { -like => "%$search%" },
+        'me.freetext2'      => { -like => "%$search%" },
     ] : {};
     my $filtered_count = $users->count;
     $users = $users->search($sr,{
