@@ -168,7 +168,7 @@
             name  = "submit",
             value = "submit",
             class = "btn btn-default",
-            label = "Save permisions"
+            label = "Save permissions"
           }]
         }];
       %]
