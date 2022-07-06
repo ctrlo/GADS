@@ -82,10 +82,13 @@ jobs:
           chmod 600 ~/.pgpass
       - name: 'Start the application'
         env:
+          DANCER_CONFDIR: 'webdriver'
           PGDATABASE: 'postgres'
           PGHOST: 'localhost'
           PGUSER: 'postgres'
-        run: ./bin/setup_for_webdriver
+        run: |
+          ./bin/setup_database
+          perl bin/app.pl &
       - name: 'Run the Webdriver implementation'
         run: '${{ matrix.browser.command }}'
       - name: 'Run the Webdriver tests'
