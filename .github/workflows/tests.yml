@@ -16,8 +16,7 @@ jobs:
           # Avoid "Install CPAN dependencies" needing to compile so much
           sudo apt-get install libdancer2-perl libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl
       - name: 'Build cpanfile'
-        run: |
-          perl -wE 'our %prereq_pm; require "./Makefile.PL"; foreach my $k (sort keys %prereq_pm) { say qq(requires "$k";) }' > cpanfile
+        run: perl bin/output_cpanfile > cpanfile
       - name: 'Install CPAN dependencies'
         uses: 'perl-actions/install-with-cpanm@v1'
         with:
@@ -63,8 +62,7 @@ jobs:
           # Avoid "Install CPAN dependencies" needing to compile so much
           sudo apt-get install libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl
       - name: 'Build cpanfile'
-        run: |
-          perl -wE 'our %prereq_pm; require "./Makefile.PL"; foreach my $k (sort keys %prereq_pm) { say qq(requires "$k";) }' > cpanfile
+        run: perl bin/output_cpanfile > cpanfile
       - name: 'Install CPAN dependencies'
         uses: 'perl-actions/install-with-cpanm@v1'
         with:
@@ -82,10 +80,13 @@ jobs:
           chmod 600 ~/.pgpass
       - name: 'Start the application'
         env:
+          DANCER_CONFDIR: 'webdriver'
           PGDATABASE: 'postgres'
           PGHOST: 'localhost'
           PGUSER: 'postgres'
-        run: ./bin/setup_for_webdriver
+        run: |
+          ./bin/setup_database
+          perl bin/app.pl &
       - name: 'Run the Webdriver implementation'
         run: '${{ matrix.browser.command }}'
       - name: 'Run the Webdriver tests'
