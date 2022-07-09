@@ -794,20 +794,30 @@ get '/api/users' => require_any_role [qw/useradmin superadmin/] => sub {
         : $sort_by eq 'team'
         ? 'team.name'
         : "me.$sort_by";
-    my $sr = $search ? [
-        'me.id'             => $search =~ /^[0-9]+$/ ? $search : undef,
-        # surname and firstname are case sensitive in database
-        'me.value'          => { -like => "%$search%" },
-        'me.email'          => { -like => "%$search%" },
-        'title.name'        => { -like => "%$search%" },
-        'organisation.name' => { -like => "%$search%" },
-        'team.name'         => { -like => "%$search%" },
-        'department.name'   => { -like => "%$search%" },
-        'me.freetext1'      => { -like => "%$search%" },
-        'me.freetext2'      => { -like => "%$search%" },
-    ] : {};
+
+    my @sr;
+    foreach my $s (split /\s+/, $search)
+    {
+        $s or next;
+        $s =~ s/\_/\\\_/g; # Escape special like char
+        push @sr, [
+            'me.id'             => $s =~ /^[0-9]+$/ ? $s : undef,
+            # surname and firstname are case sensitive in database
+            'me.value'          => { -like => "%$s%" },
+            'me.email'          => { -like => "%$s%" },
+            'title.name'        => { -like => "%$s%" },
+            'organisation.name' => { -like => "%$s%" },
+            'team.name'         => { -like => "%$s%" },
+            'department.name'   => { -like => "%$s%" },
+            'me.freetext1'      => { -like => "%$s%" },
+            'me.freetext2'      => { -like => "%$s%" },
+        ];
+    }
+
     my $filtered_count = $users->count;
-    $users = $users->search($sr,{
+    $users = $users->search({
+        -and => \@sr,
+    },{
         offset   => $start,
         rows     => $length,
         order_by => { $dir eq 'asc' ? -asc : -desc => $sort_by },
