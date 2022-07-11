@@ -124,6 +124,7 @@ GADS::SchemaInstance->instance(
 
 config->{plugins}->{'Auth::Extensible'}->{realms}->{dbic}->{user_as_object}
     or panic "Auth::Extensible DBIC provider needs to be configured with user_as_object";
+config->{plugins}->{'Auth::Extensible'}->{denied_page} = '403';
 
 # Make sure that internal columns have been populated in tables (new feature at
 # time of writing)
@@ -536,10 +537,6 @@ any ['get', 'post'] => '/user_status' => require_login sub {
         message   => config->{gads}->{user_status_message},
         page      => 'user_status',
     };
-};
-
-get '/login/denied' => sub {
-    forwardHome({ danger => "You do not have permission to access this page" });
 };
 
 any ['get', 'post'] => '/login' => sub {
