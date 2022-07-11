@@ -44,6 +44,7 @@ use GADS::Config;
 use GADS::DB;
 use GADS::DBICProfiler;
 use GADS::Email;
+use GADS::Filecheck;
 use GADS::Globe;
 use GADS::Graph;
 use GADS::Graph::Data;
@@ -121,6 +122,9 @@ GADS::Config->instance(
 GADS::SchemaInstance->instance(
     schema => schema,
 );
+
+# Ensure efficient use of Magic library
+my $filecheck = GADS::Filecheck->instance;
 
 config->{plugins}->{'Auth::Extensible'}->{realms}->{dbic}->{user_as_object}
     or panic "Auth::Extensible DBIC provider needs to be configured with user_as_object";
@@ -1372,17 +1376,19 @@ get '/file/:id' => require_login sub {
     send_file( \($file->content), content_type => $fileval->mimetype, filename => $fileval->name );
 };
 
-post '/file/?' => require_login sub {
+# Use api route to ensure errors are returned as JSON
+post '/api/file/?' => require_login sub {
 
     my $ajax           = defined param('ajax');
     my $is_independent = defined param('is_independent') ? 1 : 0;
 
     if (my $upload = upload('file'))
     {
+        my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
         my $file;
         if (process( sub { $file = rset('Fileval')->create({
             name           => $upload->filename,
-            mimetype       => $upload->type,
+            mimetype       => $mimetype,
             content        => $upload->content,
             is_independent => $is_independent,
             edit_user_id   => $is_independent ? undef : logged_in_user->id,

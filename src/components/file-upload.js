@@ -19,6 +19,7 @@ const setupFileUpload = (() => {
           $progressBarContainer.css("display", "block");
           $progressBarPercentage.html("0%");
           $progressBarProgress.css("width", "0%");
+          $progressBarProgress.removeClass('progress-bar__fail');
         },
         progress: function(e, data) {
           if (!$el.data("multivalue")) {
@@ -57,6 +58,16 @@ const setupFileUpload = (() => {
               "</a>.</li>"
           );
           $ul.append($li);
+        },
+        fail: function(e, data) {
+            var ret = data.jqXHR.responseJSON;
+            $progressBarProgress.css("width", "100%");
+            $progressBarProgress.addClass('progress-bar__fail');
+            if (ret.message) {
+                $progressBarPercentage.html("Error: " + ret.message);
+            } else {
+                $progressBarPercentage.html("An unexpected error occurred");
+            }
         }
       });
     });

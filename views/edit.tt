@@ -483,7 +483,7 @@
                             <p class="help-block">No current file (read-only field, cannot be updated).</p>
                         [% END %]
                     [% ELSE %]
-                        <div class="fileupload" data-field="[% field %]" data-fileupload-url="/file?ajax=1" data-multivalue="[% dispcol.multivalue %]">
+                        <div class="fileupload" data-field="[% field %]" data-fileupload-url="/api/file?ajax=1" data-multivalue="[% dispcol.multivalue %]">
                             [%# Ensure something gets sent back to show it's been displayed %]
                             <input type="hidden" name="[% field %]">
                             <div class="progress-bar__container">
