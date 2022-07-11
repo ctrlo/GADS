@@ -1376,11 +1376,28 @@ get '/file/:id' => require_login sub {
     send_file( \($file->content), content_type => $fileval->mimetype, filename => $fileval->name );
 };
 
+# File upload through the "manage files" interface
+post '/file/?' => require_login sub {
+
+    my $upload = upload('file')
+        or error __"No file submitted";
+    my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
+    my $file;
+    if (process( sub { $file = rset('Fileval')->create({
+        name           => $upload->filename,
+        mimetype       => $mimetype,
+        content        => $upload->content,
+        is_independent => 1,
+        edit_user_id   => undef,
+    }) } ))
+    {
+        my $msg = __x"File has been uploaded as ID {id}", id => $file->id;
+        return forwardHome( { success => "$msg" }, 'file' );
+    }
+};
+
 # Use api route to ensure errors are returned as JSON
 post '/api/file/?' => require_login sub {
-
-    my $ajax           = defined param('ajax');
-    my $is_independent = defined param('is_independent') ? 1 : 0;
 
     if (my $upload = upload('file'))
     {
@@ -1390,41 +1407,28 @@ post '/api/file/?' => require_login sub {
             name           => $upload->filename,
             mimetype       => $mimetype,
             content        => $upload->content,
-            is_independent => $is_independent,
-            edit_user_id   => $is_independent ? undef : logged_in_user->id,
+            is_independent => 0,
+            edit_user_id   => logged_in_user->id,
         }) } ))
         {
-            if ($ajax)
-            {
-                return encode_json({
-                    id       => $file->id,
-                    filename => $upload->filename,
-                    url      => "/file/".$file->id,
-                    is_ok    => 1,
-                });
-            }
-            else {
-                my $msg = __x"File has been uploaded as ID {id}", id => $file->id;
-                return forwardHome( { success => "$msg" }, 'file' );
-            }
-        }
-        elsif ($ajax) {
             return encode_json({
-                is_ok => 0,
-                error => $@,
+                id       => $file->id,
+                filename => $upload->filename,
+                url      => "/file/".$file->id,
+                is_ok    => 1,
             });
         }
+        return encode_json({
+            is_ok => 0,
+            error => $@,
+        });
     }
-    elsif ($ajax) {
+    else {
         return encode_json({
             is_ok => 0,
             error => "No file was submitted",
         });
     }
-    else {
-        error __"No file submitted";
-    }
-
 };
 
 get '/record_body/:id' => require_login sub {
