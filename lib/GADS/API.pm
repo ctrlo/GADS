@@ -1095,6 +1095,13 @@ sub _get_records {
         layout => $layout,
     );
 
+    if (my $search = query_parameters->get('search[value]'))
+    {
+        $search =~ s/\h+$//;
+        $search =~ s/^\h+//;
+        $records->search("*$search*");
+    }
+
     # Configure table sort
     my $order_index = query_parameters->get('order[0][column]');
     my $col_order   = $records->columns_render->[$order_index];
