@@ -66,6 +66,10 @@ has as_hash => (
     isa     => HashRef,
     lazy    => 1,
     clearer => 1,
+    coerce  => sub {
+        # Ensure consistent format
+        shift || {};
+    },
     builder => sub {
         my $self = shift;
         $self->_set_has_value(1);
