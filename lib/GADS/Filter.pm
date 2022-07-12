@@ -67,7 +67,7 @@ has as_hash => (
     lazy    => 1,
     clearer => 1,
     coerce  => sub {
-        # Ensure consistent format
+        # Allow undef hash to initiate filter
         shift || {};
     },
     builder => sub {
