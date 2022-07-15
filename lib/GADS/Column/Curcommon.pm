@@ -186,7 +186,10 @@ has curval_fields_multivalue => (
 
 sub _build_curval_fields_multivalue
 {   my $self = shift;
-    [grep { $_->multivalue } @{$self->curval_fields_all}];
+    # Assume that as this is already a curval, that if we're rendering it as a
+    # record then we don't need curvals within curvals, which saves on the data
+    # being retrieved from the database
+    [grep { !$_->is_curcommon && $_->multivalue } @{$self->curval_fields_all}];
 }
 
 has curval_field_ids_all => (
