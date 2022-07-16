@@ -140,6 +140,15 @@ sub _build__view_limits
     $self->user or return [];
     return [] if $GADS::Schema::IGNORE_PERMISSIONS;
 
+    # If this is loading subrecords for a draft record, then do not apply any
+    # view limits. Otherwise, the subrecords that a user has created in a draft
+    # may not display, because they might rely on calculated fields or other
+    # conditions that are not completed or computed when the draft is saved
+    # (draft records do not evaluate calculated fields). This has the effect of
+    # a user not being able to see their own subrecords in a draft they have
+    # saved
+    return [] if $self->is_draft;
+
     # If there are user view limits these take precedence
     my @view_limit_ids = $self->schema->resultset('ViewLimit')->search({
         'me.user_id'       => $self->user->id,
