@@ -52,7 +52,8 @@
       type="hidden"
       id="[% id %]"
       name="[% name %]"
-      value="[% display_value %]"[%- IF is_disabled -%]
+      value="[% display_value %]"
+      data-restore-value="[% display_value %]"[%- IF is_disabled -%]
       disabled[%- END -%][%- IF is_readonly -%]
       readonly[%- END -%]
       placeholder="[% INCLUDE fields/sub/filter.tt value=display_placeholder; %]"
