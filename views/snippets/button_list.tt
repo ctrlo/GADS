@@ -9,7 +9,8 @@
       <form method="[% button.method %]" action="[% button.target %]">
         [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
         <button
-          type="submit"
+          type="submit"[% IF button.id %]
+          id="[% button.id %]"[% END %]
           class="[% button.class %]"
           name="[% button.name %]"
           value="[% button.value || button.name %]"[% IF button.style %]
@@ -19,14 +20,15 @@
         </button>
       </form>
       [% ELSIF button.type == "link" %]
-      <a href="[% button.target %]" class="[% button.class %]"[% IF button.style %] style="[% button.style %]"[% END %]>
+      <a href="[% button.target %]"[% IF button.id %] id="[% button.id %]"[% END %] class="[% button.class %]"[% IF button.style %] style="[% button.style %]"[% END %]>
         [% IF button.label_in_span; %]<span>[% END %]
         [%- button.label || button.name -%]
         [% IF button.label_in_span; %]</span>[% END %]
       </a>
       [% ELSIF button.type == "button" %]
       <button
-        type="[% button.button_type ? button.button_type : 'submit' %]"
+        type="[% button.button_type ? button.button_type : 'submit' %]"[% IF button.id %]
+        id="[% button.id %]"[% END %]
         name="[% button.name %]"
         value="[% button.value || button.name %]"
         class="[% button.class %]"[% IF button.style %]
@@ -36,7 +38,8 @@
       </button>
       [% ELSIF button.type == "modal_button" %]
       <button
-        type="button"
+        type="button"[% IF button.id %]
+        id="[% button.id %]"[% END %]
         class="[% button.class %]"[% IF button.style %]
         style="[% button.style %]"[% END %]
         data-toggle="modal"
