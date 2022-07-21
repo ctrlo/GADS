@@ -44,7 +44,7 @@
 
 <div class="content-block__main">
   <form
-    class="[% IF edit_modal %]curval-edit-form[% ELSE %]edit-form[% END %]"
+    class="[% IF edit_modal %]curval-edit-form[% ELSE %]form-edit[% END %]"
     method="post"
     enctype="multipart/form-data"
     [%
