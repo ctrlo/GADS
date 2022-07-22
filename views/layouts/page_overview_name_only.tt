@@ -47,7 +47,7 @@
       type   = "link"
       target = url.page _ "/" _ add_path _ "/"
       class  = "btn btn-default"
-      label  = "Create " _ item_type
+      label  = "Add " _ item_type
     }];
 -%]
 
