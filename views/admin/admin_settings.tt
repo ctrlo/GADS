@@ -77,23 +77,6 @@
     </div>
     [% END %]
     
-    [% IF user.permission.audit %]
-    <div class="col-md-4 col-sm-6 mb-3">
-      <a href="[% url.page %]/settings/audit/" class="card card--settings">
-        <h4 class="card__title">
-          <div class="card__title-icon card__title-icon--table"></div>
-          <span> User audit logs </span>
-        </h4>
-        
-        <div class="card__body row">
-          <div class="card__content">
-            <p>View your system audit log.</p>
-          </div>
-        </div>
-      </a>
-    </div>
-    [% END %]
-    
   </div>
   [% END %]
   
@@ -133,6 +116,27 @@
       </a>
     </div>
     
+  </div>
+  [% END %]
+  
+  [% IF user.permission.audit %]
+  <h3>Audit</h3>
+  
+  <div class="row">
+    <div class="col-md-4 col-sm-6 mb-3">
+      <a href="[% url.page %]/settings/audit/" class="card card--settings">
+        <h4 class="card__title">
+          <div class="card__title-icon card__title-icon--table"></div>
+          <span> User audit logs </span>
+        </h4>
+      
+        <div class="card__body row">
+          <div class="card__content">
+            <p>View your system audit log.</p>
+          </div>
+        </div>
+      </a>
+    </div>
   </div>
   [% END %]
 
