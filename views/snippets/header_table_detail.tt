@@ -283,8 +283,8 @@
                   label  = "Clone all " _ sel_type
                 });
               END;
-          
-              IF viewtype == "table" AND records.size AND layout_obj.user_can("download");
+        
+              IF viewtype == "table" AND count AND layout_obj.user_can("download");
                 bulk_action_groups.0.items.push({
                   id     = "",
                   class  = "",
