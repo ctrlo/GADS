@@ -3,49 +3,50 @@
 [% END %]
   <div class="tree tree--config" id="tree-config" data-no-initial-data="[% no_initial_data ? 'true' : 'false' %]">
     [%
-      INCLUDE snippets/button_list.tt
-        list_class = "list--horizontal list--buttons"
-        buttons    = [];
-        
-        IF edit_tree;
-          buttons.push({
-            type        = "button",
-            button_type = "button",
-            class       = "btn btn-small btn-default btn-js-tree-add",
-            label       = "Add a node"
-          }, {
-            type        = "button",
-            button_type = "button",
-            class       = "btn btn-small btn-inverted btn-js-tree-rename",
-            label       = "Rename"
-          }, {
-            type        = "button",
-            button_type = "button",
-            class       = "btn btn-small btn-danger btn-js-tree-delete",
-            label       = "Delete"
-          });
-        END;
-  
-        buttons.push({
+      tree_buttons = [];
+      
+      IF edit_tree;
+        tree_buttons.push({
           type        = "button",
           button_type = "button",
-          class       = "btn btn-small btn-link btn-js-tree-expand",
-          label       = "Expand all"
+          class       = "btn btn-small btn-default btn-js-tree-add",
+          label       = "Add a node"
         }, {
           type        = "button",
           button_type = "button",
-          class       = "btn btn-small btn-link btn-js-tree-collapse",
-          label       = "Collapse all"
+          class       = "btn btn-small btn-inverted btn-js-tree-rename",
+          label       = "Rename"
+        }, {
+          type        = "button",
+          button_type = "button",
+          class       = "btn btn-small btn-danger btn-js-tree-delete",
+          label       = "Delete"
         });
-    
-        IF ! edit_tree;
-          buttons.push({
-            type        = "button",
-            button_type = "button",
-            class       = "btn btn-small btn-link btn-js-tree-reload",
-            label       = "Reload"
-          });
-        END;
+      END;
+  
+      tree_buttons.push({
+        type        = "button",
+        button_type = "button",
+        class       = "btn btn-small btn-link btn-js-tree-expand",
+        label       = "Expand all"
+      }, {
+        type        = "button",
+        button_type = "button",
+        class       = "btn btn-small btn-link btn-js-tree-collapse",
+        label       = "Collapse all"
+      });
+  
+      IF ! edit_tree;
+        tree_buttons.push({
+          type        = "button",
+          button_type = "button",
+          class       = "btn btn-small btn-link btn-js-tree-reload",
+          label       = "Reload"
+        });
+      END;
+    INCLUDE snippets/button_list.tt
+        list_class = "list--horizontal list--buttons"
+        buttons    = tree_buttons;
     %]
     
     <div
