@@ -66,6 +66,10 @@ has as_hash => (
     isa     => HashRef,
     lazy    => 1,
     clearer => 1,
+    coerce  => sub {
+        # Allow undef hash to initiate filter
+        shift || {};
+    },
     builder => sub {
         my $self = shift;
         $self->_set_has_value(1);

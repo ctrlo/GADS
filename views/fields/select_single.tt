@@ -9,7 +9,12 @@
             FOREACH item IN items;
               value_hidden = item.id == value ? '' : " hidden";
           %]
-          <li data-list-item="[% id %]_[% item.id %]"[% value_hidden %]>
+          <li
+            data-list-id="[% item.id %]"
+            data-list-item="[% id %]_[% item.id %]"
+            data-list-text="[% item.name | html_entity %]"
+            [% value_hidden %]
+          >
             <span class="widget-value__value">[% item.name | html_entity %]</span>
             <button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
           </li>

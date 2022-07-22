@@ -783,6 +783,8 @@ sub _post_request_account {
 sub _create_table
 {   my $params = shift;
 
+    my $guard = schema->txn_scope_guard;
+
     my $user = logged_in_user;
     my $table = GADS::Layout->new(
         user   => $user,
@@ -796,7 +798,6 @@ sub _create_table
     my @group_perms;
     foreach my $perm (@{$params->{table_permissions}})
     {
-        # Missing: message, bulk_update, bulk_delete
         my %pmap = (
                 delete_records           => {
                     name => 'delete',
@@ -810,7 +811,18 @@ sub _create_table
                     name => 'download',
                     type => 'records',
                 },
-                # bulk_import_records    => ,
+                bulk_import_records      => {
+                    name => 'bulk_import',
+                    type => 'records',
+                },
+                bulk_update_records      => {
+                    name => 'bulk_update',
+                    type => 'records',
+                },
+                bulk_delete_records      => {
+                    name => 'bulk_delete',
+                    type => 'records',
+                },
                 manage_linked_records    => {
                     name => 'link',
                     type => 'records',
@@ -1024,6 +1036,8 @@ sub _create_table
 
         $fields{$f->{tempId}} = $field;
     }
+
+    $guard->commit;
 };
 
 sub _post_table_request {
@@ -1033,6 +1047,9 @@ sub _post_table_request {
 
     my $body = try { decode_json(request->body) }
         or error __"No body content received";
+
+    logged_in_user->permission->{superadmin}
+        or error __"You must be a super-administrator to create tables";
 
     if (process sub { _create_table($body) } )
     {
@@ -1080,6 +1097,13 @@ sub _get_records {
         page   => 1 + ceil($start / $length),
         layout => $layout,
     );
+
+    if (my $search = query_parameters->get('search[value]'))
+    {
+        $search =~ s/\h+$//;
+        $search =~ s/^\h+//;
+        $records->search("*$search*");
+    }
 
     # Configure table sort
     my $order_index = query_parameters->get('order[0][column]');

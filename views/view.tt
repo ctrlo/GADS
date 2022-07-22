@@ -374,6 +374,8 @@
                         
                         <div class="form-group ">
                           [%
+                            INCLUDE fields/hidden.tt id="refers_to_instance_id" value="10";
+                          
                             INCLUDE builder.tt
                               builder_id = 10
                               builder_layout = layout
@@ -453,7 +455,7 @@
           
             right_buttons.push({
               type  = "button",
-              class = "btn btn-default btn-js-submit-field"
+              class = "btn btn-default btn-js-save-view"
               id    = "saveview"
               name  = "update"
               value = "update"

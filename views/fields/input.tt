@@ -40,7 +40,8 @@
         id="[% id %]"
         name="[% name %]"
         placeholder="[% INCLUDE fields/sub/filter.tt value=placeholder; %]"
-        value="[% INCLUDE fields/sub/filter.tt; %]"[% IF tabindex %]
+        value="[% INCLUDE fields/sub/filter.tt; %]"
+        data-restore-value="[% INCLUDE fields/sub/filter.tt; %]"[% IF tabindex %]
         tabindex="[% tabindex %]"[% END %][% IF help_text %]
         aria-describedby="[% id %]-help"[% END %][% IF autofocus %]
         autofocus[% END %][% IF is_disabled %]

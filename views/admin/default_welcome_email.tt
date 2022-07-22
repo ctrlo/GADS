@@ -70,7 +70,7 @@
               buttons = [{
                 type = "link",
                 class = "btn btn-cancel",
-                target = url.page _ "/user_overview/",
+                target = url.page _ "/settings/",
                 label = "Back"
               }]
             }, {

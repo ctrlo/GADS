@@ -124,6 +124,7 @@ GADS::SchemaInstance->instance(
 
 config->{plugins}->{'Auth::Extensible'}->{realms}->{dbic}->{user_as_object}
     or panic "Auth::Extensible DBIC provider needs to be configured with user_as_object";
+config->{plugins}->{'Auth::Extensible'}->{denied_page} = '403';
 
 # Make sure that internal columns have been populated in tables (new feature at
 # time of writing)
@@ -536,10 +537,6 @@ any ['get', 'post'] => '/user_status' => require_login sub {
         message   => config->{gads}->{user_status_message},
         page      => 'user_status',
     };
-};
-
-get '/login/denied' => sub {
-    forwardHome({ danger => "You do not have permission to access this page" });
 };
 
 any ['get', 'post'] => '/login' => sub {
@@ -2487,32 +2484,6 @@ prefix '/:layout_name' => sub {
             }
         }
 
-        # Search submission or clearing a search?
-        if (defined(param('search_text')) || defined(param('clear_search')))
-        {
-            error __"Not possible to conduct a search when viewing data on a previous date"
-                if session('rewind');
-            my $search  = param('clear_search') ? '' : param('search_text');
-            $search =~ s/\h+$//;
-            $search =~ s/^\h+//;
-            session 'search' => $search;
-            if ($search)
-            {
-                my $records = GADS::Records->new(
-                    search              => $search,
-                    schema              => schema,
-                    user                => $user,
-                    layout              => $layout,
-                    view_limit_extra_id => current_view_limit_extra_id($user, $layout),
-                );
-                my $results = $records->current_ids;
-
-                # Redirect to record if only one result
-                redirect "/record/$results->[0]"
-                    if @$results == 1;
-            }
-        }
-
         # Setting a new view limit extra
         if (my $extra = $layout->user_can('view_limit_extra') && param('extra'))
         {
@@ -3989,7 +3960,7 @@ prefix '/:layout_name' => sub {
         my $layout = var('layout') or pass;
 
         forwardHome({ danger => "You do not have permission to import data"}, '')
-            unless $layout->user_can("layout");
+            unless $layout->user_can("bulk_import");
 
         my $imp = rset('Import')->search({
             instance_id => $layout->instance_id,
@@ -4385,6 +4356,7 @@ sub _process_edit
 
     if (my $delete_id = param 'delete')
     {
+        # say STDERR 'delete';
         if (process( sub { $record->delete_current }))
         {
             return forwardHome(
@@ -4394,10 +4366,12 @@ sub _process_edit
 
     if ($id && $record)
     {
+        # say STDERR 'id and record';
         $layout = $record->layout;
     }
     elsif ($id)
     {
+        # say STDERR 'just id';
         $record = GADS::Record->new(%params);
         my $include_draft = defined(param 'include_draft') ? $user->id : undef;
         $record->find_current_id($id, include_draft => $include_draft);
@@ -4405,6 +4379,7 @@ sub _process_edit
         var 'layout' => $layout;
     }
     else {
+        # say STDERR 'default';
         # New record
         # var 'layout' will be set for new record due to URL
         $layout = $params{layout} = var('layout');

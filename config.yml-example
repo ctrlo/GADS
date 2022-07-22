@@ -75,7 +75,6 @@ plugins:
     mail_from: '"Linkspace Database" <user@example.com>'
     password_reset_text: GADS::reset_text
     welcome_text: GADS::welcome_text
-    permission_denied_page_handler: GADS::permission_denied
     realms:
       dbic:
         provider: DBIC
