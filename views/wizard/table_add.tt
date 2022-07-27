@@ -779,6 +779,7 @@
                     [%
                         INCLUDE fields/tree.tt
                           id                = "jstree_demo_div"
+                          tree_class        = "tree--config"
                           layout_id         = ''
                           layout_identifier = ''
                           no_initial_data   = 1

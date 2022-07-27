@@ -1,7 +1,7 @@
 [% IF ! hide_group %]
 <div class="form-group">
 [% END %]
-  <div class="tree tree--config" id="tree-config" data-no-initial-data="[% no_initial_data ? 'true' : 'false' %]">
+  <div class="tree [% tree_class %]" id="tree-config" data-no-initial-data="[% no_initial_data ? 'true' : 'false' %]">
     [%
       tree_buttons = [];
       
