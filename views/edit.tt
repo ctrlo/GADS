@@ -337,12 +337,12 @@
         <button class="card__header-left" type="button" data-toggle="collapse" data-target="#topic[% col_panel.id %]" aria-expanded="false" aria-controls="topic[% col_panel.id %]">
           <span class="card__title">
             [% block_topic.name OR 'Other' | html %]
+            [% IF block_topic.description %]
+            <span class="card__subtitle text-muted">
+              [% block_topic.description | html %]
+            </span>
+            [% END %]
           </span>
-          [% IF block_topic.description %]
-          <h6 class="card-subtitle mt-2 text-muted">
-            [% block_topic.description | html %]
-          </h6>
-          [% END %]
         </button>
         <div class="card__header-right">
           [% IF editable AND NOT record.new_entry AND NOT edit_modal AND topic.has_editable %]
