@@ -131,14 +131,14 @@
               <div class="col">
                 <div class="card card--expandable">
                   <div class="card__header">
-                    <div class="card__header-left">
-                      <h4 class="card__title">
+                    <button class="card__header-left" type="button" data-toggle="collapse" data-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
+                      <span class="card__title">
                         Group
                         <span class="card__subtitle">
                           [% group.name | html %]
                         </span>
-                      </h4>
-                    </div>
+                      </span>
+                    </button>
                     <div class="card__header-right">
                       <button class="card__toggle" type="button" data-toggle="collapse" data-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
                         <span>Toggle collapsible</span>
@@ -1230,23 +1230,36 @@
                 table_columns = [{
                   name      = "Group"
                   orderable = 1
-                  width     = "20%"
-                },{
-                  name      = "Create"
-                  orderable = 0
+                  width     = "25%"
                 },{
                   name      = "Read"
                   orderable = 0
+                  width     = "15%"
+                },{
+                  name      = "Create"
+                  orderable = 0
+                  width     = "15%"
+                },{
+                  name      = "Create without approval"
+                  orderable = 0
+                  width     = "15%"
                 },{
                   name      = "Update"
                   orderable = 0
+                  width     = "15%"
                 },{
-                  name      = "Approve"
+                  name      = "Update without approval"
                   orderable = 0
-                },{
-                  name      = "Write without approval"
-                  orderable = 0
-                }];
+                  width     = "15%"
+                }
+                # ,{
+                #   name      = "Create can be approved"
+                #   orderable = 0
+                # },{
+                #   name      = "Update can be approved"
+                #   orderable = 0
+                # }
+                ];
                 
                 table_buttons = [];
                 rows = [];
@@ -1258,6 +1271,22 @@
                     fields = [{
                       type  = "text"
                       label = group.name
+                    }, {
+                      type        = "text"
+                      label       = ""
+                      sub_field   = "fields/sub/checkbox.tt"
+                      sub_params  = {
+                        id => "permission_read_" _ group.id
+                        name => "permission_read_" _ group.id
+                        label => permission_inputs.read
+                        checked => 0
+                        filter => "html"
+                        is_required => 0
+                        autofocus => 0
+                        input_class => "checkbox--hide-label"
+                        label_in_span => 1
+                        value => 1
+                      }
                     }, {
                       type        = "text"
                       label       = ""
@@ -1279,9 +1308,9 @@
                       label       = ""
                       sub_field   = "fields/sub/checkbox.tt"
                       sub_params  = {
-                        id => "permission_read_" _ group.id
-                        name => "permission_read_" _ group.id
-                        label => permission_inputs.read
+                        id => "permission_write_new_no_approval_" _ group.id
+                        name => "permission_write_new_no_approval_" _ group.id
+                        label => permission_inputs.write_new_no_approval
                         checked => 0
                         filter => "html"
                         is_required => 0
@@ -1311,9 +1340,9 @@
                       label       = ""
                       sub_field   = "fields/sub/checkbox.tt"
                       sub_params  = {
-                        id => "permission_approve_new_" _ group.id
-                        name => "permission_approve_new_" _ group.id
-                        label => permission_inputs.approve_new
+                        id => "permission_write_existing_no_approval_" _ group.id
+                        name => "permission_write_existing_no_approval_" _ group.id
+                        label => permission_inputs.write_existing_no_approval
                         checked => 0
                         filter => "html"
                         is_required => 0
@@ -1322,23 +1351,41 @@
                         label_in_span => 1
                         value => 1
                       }
-                    }, {
-                      type        = "text"
-                      label       = ""
-                      sub_field   = "fields/sub/checkbox.tt"
-                      sub_params  = {
-                        id => "permission_write_new_no_approval_" _ group.id
-                        name => "permission_write_new_no_approval_" _ group.id
-                        label => permission_inputs.write_new_no_approval
-                        checked => 0
-                        filter => "html"
-                        is_required => 0
-                        autofocus => 0
-                        input_class => "checkbox--hide-label"
-                        label_in_span => 1
-                        value => 1
-                      }
-                    }]
+                    }
+                    # , {
+                    #   type        = "text"
+                    #   label       = ""
+                    #   sub_field   = "fields/sub/checkbox.tt"
+                    #   sub_params  = {
+                    #     id => "permission_approve_new_" _ group.id
+                    #     name => "permission_approve_new_" _ group.id
+                    #     label => permission_inputs.approve_new
+                    #     checked => 0
+                    #     filter => "html"
+                    #     is_required => 0
+                    #     autofocus => 0
+                    #     input_class => "checkbox--hide-label"
+                    #     label_in_span => 1
+                    #     value => 1
+                    #   }
+                    # }, {
+                    #   type        = "text"
+                    #   label       = ""
+                    #   sub_field   = "fields/sub/checkbox.tt"
+                    #   sub_params  = {
+                    #     id => "permission_approve_existing_" _ group.id
+                    #     name => "permission_approve_existing_" _ group.id
+                    #     label => permission_inputs.approve_existing
+                    #     checked => 0
+                    #     filter => "html"
+                    #     is_required => 0
+                    #     autofocus => 0
+                    #     input_class => "checkbox--hide-label"
+                    #     label_in_span => 1
+                    #     value => 1
+                    #   }
+                    # }
+                    ]
                   };
             
                   rows.push(row);

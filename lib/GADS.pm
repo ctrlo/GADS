@@ -4356,7 +4356,6 @@ sub _process_edit
 
     if (my $delete_id = param 'delete')
     {
-        # say STDERR 'delete';
         if (process( sub { $record->delete_current }))
         {
             return forwardHome(
@@ -4366,12 +4365,10 @@ sub _process_edit
 
     if ($id && $record)
     {
-        # say STDERR 'id and record';
         $layout = $record->layout;
     }
     elsif ($id)
     {
-        # say STDERR 'just id';
         $record = GADS::Record->new(%params);
         my $include_draft = defined(param 'include_draft') ? $user->id : undef;
         $record->find_current_id($id, include_draft => $include_draft);
@@ -4379,7 +4376,6 @@ sub _process_edit
         var 'layout' => $layout;
     }
     else {
-        # say STDERR 'default';
         # New record
         # var 'layout' will be set for new record due to URL
         $layout = $params{layout} = var('layout');
