@@ -16,14 +16,14 @@
         <div class="col">
           <div class="card card--expandable">
             <div class="card__header">
-              <div class="card__header-left">
-                <h4 class="card__title">
+              <button class="card__header-left" type="button" data-toggle="collapse" data-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
+                <span class="card__title">
                   Group
                   <span class="card__subtitle">
                     [% group.name | html %]
                   </span>
-                </h4>
-              </div>
+                </span>
+              </button>
               <div class="card__header-right">
                 <button class="card__toggle" type="button" data-toggle="collapse" data-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
                   <span>Toggle collapsible</span>
