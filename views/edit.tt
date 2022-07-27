@@ -670,15 +670,8 @@
           layout_identifier = layout_obj.identifier
           end_node_only     = col.end_node_only ? 1 : 0
           ids_as_params     = editvalue.ids_as_params
+          tree_values       = editvalue.ids
           edit_tree         = 0;
-  
-        IF NOT editvalue.ids.size;
-          INCLUDE fields/hidden.tt id="" input_class="selected-tree-value" name=field value="" filter="";
-        END;
-  
-        FOREACH val IN editvalue.ids;
-          INCLUDE fields/hidden.tt id="" input_class="selected-tree-value" name=field value=val filter="";
-        END;
       '</fieldset>';
       END;
     ELSIF col.type == "person";

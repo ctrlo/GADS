@@ -60,6 +60,18 @@
       data-ids-as-params="[% ids_as_params %]"[% END %]
     >
     </div>
+    
+    [%
+      IF tree_values.defined;
+        IF NOT tree_values.size;
+          INCLUDE fields/hidden.tt id="" input_class="selected-tree-value" name=tree_field value="" filter="";
+        ELSE;
+          FOREACH val IN tree_values;
+            INCLUDE fields/hidden.tt id="" input_class="selected-tree-value" name=tree_field value=val filter="";
+          END;
+        END;
+      END;
+    %]
   </div>
 [% IF ! hide_group %]
 </div>
