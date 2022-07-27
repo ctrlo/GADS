@@ -424,7 +424,7 @@
                               Add dropdown values
                             </label>
                           </div>
-                          <div class="sortable__list">
+                          <ul class="sortable__list">
                             [%
                               enumvalIsEmpty = 1;
   
@@ -443,16 +443,13 @@
                                 UNLESS enumval.deleted;
                                   rowCounter = rowCounter + 1;
                             %]
-                            <div class="sortable__row">
-                              [% INCLUDE fields/hidden.tt name="enumval_id" value=enumval.id; %]
-                              <button
-                                type="button"
-                                class="btn btn-drag-drop"
-                              >
-                                <span class="btn__title">Drag and drop</span>
-                              </button>
-        
+                            <li class="sortable__row">
+                              <span class="sortable__handle">
+                                <span>Drag handle</span>
+                              </span>
                               [%
+                                INCLUDE fields/hidden.tt name="enumval_id" value=enumval.id;
+                              
                                 INCLUDE fields/input.tt
                                   id          = "enumval_" _ rowCounter
                                   name        = "enumval"
@@ -471,12 +468,12 @@
                               >
                                 <span class="btn__title">Delete</span>
                               </button>
-                            </div>
+                            </li>
                             [%
                                 END;
                               END;
                             %]
-                          </div>
+                          </ul>
     
                           <button
                             type="button"
