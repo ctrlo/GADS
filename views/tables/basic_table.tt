@@ -94,7 +94,7 @@
       IF table_reorder_rows AND fieldCounter == 1;
         row.fields.unshift({
           type = "text",
-          label = "<span>" _ (row.sort_id.defined ? row.sort_id : rowCounter) _ "</span>"
+          label = "<span>" _ rowCounter _ "</span>"
         });
 
         IF field.sub_field;
