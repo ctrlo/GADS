@@ -534,6 +534,7 @@
                           [%
                               INCLUDE fields/tree.tt
                                 id                = "jstree_demo_div"
+                                tree_class        = "tree--config"
                                 layout_id         = column.id
                                 layout_identifier = layout_obj.identifier
                                 edit_tree         = 1;
