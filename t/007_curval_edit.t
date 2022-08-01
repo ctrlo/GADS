@@ -17,6 +17,7 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
     $curval_sheet->create_records;
     my $schema  = $curval_sheet->schema;
 
+
     # Officially we do not set multivalue, which means that all fields should
     # be single value. However, opting for a value_selector of no_show for a
     # curval will automatically make it multivalue. Also, when a curval field
@@ -48,6 +49,21 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
     my $layout  = $sheet->layout;
     my $columns = $sheet->columns;
     $sheet->create_records;
+
+    # A second "parent" sheet which has a curval field that refers to the same
+    # table as the curval field of the first parent sheet. This is to test for
+    # a curval table having autocurs back to 2 tables.
+    my $mainsheet2 = Test::GADS::DataSheet->new(
+        instance_id      => 3,
+        site_id          => 1,
+        schema           => $schema,
+        curval_offset    => 12,
+        curval           => 2,
+        curval_field_ids => [ $curval_sheet->columns->{string1}->id ],
+        data             => [],
+    );
+    $mainsheet2->create_records;
+
     $layout->user($sheet->user_normal1);
 
     # Add a curval field in the curval layout that refers back to the main
@@ -90,6 +106,14 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
         end
     ");
     $calc->write;
+
+    # See comments about about second autocur to second main table
+    my $autocur2 = $curval_sheet->add_autocur(
+        refers_to_instance_id => 3,
+        related_field_id      => $mainsheet2->columns->{curval1}->id,
+        curval_field_ids      => [$mainsheet2->columns->{string1}->id],
+    );
+
     $layout->clear;
 
     # Calc from main sheet
@@ -486,14 +510,14 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
 # Test to check curval value within curval subfield
 {
     # The outer curval
-    my $curval_sheet2 = Test::GADS::DataSheet->new(instance_id => 3);
+    my $curval_sheet2 = Test::GADS::DataSheet->new(instance_id => 4);
     $curval_sheet2->create_records;
     my $schema  = $curval_sheet2->schema;
 
     # The standard curval which will include the above outer curval
     my $curval_sheet1 = Test::GADS::DataSheet->new(
         data             => [],
-        curval           => 3,
+        curval           => 4,
         curval_field_ids => [ $curval_sheet2->columns->{string1}->id ],
         instance_id      => 2,
         schema           => $schema,

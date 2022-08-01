@@ -410,6 +410,7 @@ sub _build_values_as_query_records
         foreach my $col ($self->column->layout_parent->all)
         {
             next unless $col->type eq 'autocur';
+            next unless $col->refers_to_instance_id == $self->record->layout->instance_id;
             my $datum = $record->fields->{$col->id};
             my @records = grep { $_->current_id != $self->record->current_id } map { $_->{record} } @{$datum->values};
             push @records, $self->record;
