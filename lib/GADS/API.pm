@@ -1048,6 +1048,9 @@ sub _post_table_request {
     my $body = try { decode_json(request->body) }
         or error __"No body content received";
 
+    logged_in_user->permission->{superadmin}
+        or error __"You must be a super-administrator to create tables";
+
     if (process sub { _create_table($body) } )
     {
         return _success("Table created successfully");

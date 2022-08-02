@@ -145,11 +145,11 @@
               <div class="col">
                 <div class="card card--expandable">
                   <div class="card__header">
-                    <div class="card__header-left">
-                      <h4 class="card__title">
+                    <button class="card__header-left" type="button" data-toggle="collapse" data-target="#textFieldSettings" aria-expanded="false" aria-controls="textFieldSettings">
+                      <span class="card__title">
                         Field settings for text
-                      </h4>
-                    </div>
+                      </span>
+                    </button>
                     <div class="card__header-right">
                       <button class="card__toggle" type="button" data-toggle="collapse" data-target="#textFieldSettings" aria-expanded="false" aria-controls="textFieldSettings">
                         <span>Toggle collapsible</span>
@@ -203,11 +203,11 @@
               <div class="col">
                 <div class="card card--expandable">
                   <div class="card__header">
-                    <div class="card__header-left">
-                      <h4 class="card__title">
+                    <button class="card__header-left" type="button" data-toggle="collapse" data-target="#integerFieldSettings" aria-expanded="false" aria-controls="integerFieldSettings">
+                      <span class="card__title">
                         Field settings for integer
-                      </h4>
-                    </div>
+                      </span>
+                    </button>
                     <div class="card__header-right">
                       <button class="card__toggle" type="button" data-toggle="collapse" data-target="#integerFieldSettings" aria-expanded="false" aria-controls="integerFieldSettings">
                         <span>Toggle collapsible</span>
@@ -258,11 +258,11 @@
               <div class="col">
                 <div class="card card--expandable">
                   <div class="card__header">
-                    <div class="card__header-left">
-                      <h4 class="card__title">
+                    <button class="card__header-left" type="button" data-toggle="collapse" data-target="#dateFieldSettings" aria-expanded="false" aria-controls="dateFieldSettings">
+                      <span class="card__title">
                         Field settings for date
-                      </h4>
-                    </div>
+                      </span>
+                    </button>
                     <div class="card__header-right">
                       <button class="card__toggle" type="button" data-toggle="collapse" data-target="#dateFieldSettings" aria-expanded="false" aria-controls="dateFieldSettings">
                         <span>Toggle collapsible</span>
@@ -335,11 +335,11 @@
               <div class="col">
                 <div class="card card--expandable">
                   <div class="card__header">
-                    <div class="card__header-left">
-                      <h4 class="card__title">
+                    <button class="card__header-left" type="button" data-toggle="collapse" data-target="#dateRangeFieldSettings" aria-expanded="false" aria-controls="dateRangeFieldSettings">
+                      <span class="card__title">
                         Field settings for date range
-                      </h4>
-                    </div>
+                      </span>
+                    </button>
                     <div class="card__header-right">
                       <button class="card__toggle" type="button" data-toggle="collapse" data-target="#dateRangeFieldSettings" aria-expanded="false" aria-controls="dateRangeFieldSettings">
                         <span>Toggle collapsible</span>
@@ -389,11 +389,11 @@
               <div class="col">
                 <div class="card card--expandable">
                   <div class="card__header">
-                    <div class="card__header-left">
-                      <h4 class="card__title">
+                    <button class="card__header-left" type="button" data-toggle="collapse" data-target="#dropdownListFieldSettings" aria-expanded="false" aria-controls="dropdownListFieldSettings">
+                      <span class="card__title">
                         Field settings for dropdown list
-                      </h4>
-                    </div>
+                      </span>
+                    </button>
                     <div class="card__header-right">
                       <button class="card__toggle" type="button" data-toggle="collapse" data-target="#dropdownListFieldSettings" aria-expanded="false" aria-controls="dropdownListFieldSettings">
                         <span>Toggle collapsible</span>
@@ -424,7 +424,7 @@
                               Add dropdown values
                             </label>
                           </div>
-                          <div class="sortable__list">
+                          <ul class="sortable__list">
                             [%
                               enumvalIsEmpty = 1;
   
@@ -443,16 +443,13 @@
                                 UNLESS enumval.deleted;
                                   rowCounter = rowCounter + 1;
                             %]
-                            <div class="sortable__row">
-                              [% INCLUDE fields/hidden.tt name="enumval_id" value=enumval.id; %]
-                              <button
-                                type="button"
-                                class="btn btn-drag-drop"
-                              >
-                                <span class="btn__title">Drag and drop</span>
-                              </button>
-        
+                            <li class="sortable__row">
+                              <span class="sortable__handle">
+                                <span>Drag handle</span>
+                              </span>
                               [%
+                                INCLUDE fields/hidden.tt name="enumval_id" value=enumval.id;
+                              
                                 INCLUDE fields/input.tt
                                   id          = "enumval_" _ rowCounter
                                   name        = "enumval"
@@ -471,12 +468,12 @@
                               >
                                 <span class="btn__title">Delete</span>
                               </button>
-                            </div>
+                            </li>
                             [%
                                 END;
                               END;
                             %]
-                          </div>
+                          </ul>
     
                           <button
                             type="button"
@@ -505,11 +502,11 @@
               <div class="col">
                 <div class="card card--expandable">
                   <div class="card__header">
-                    <div class="card__header-left">
-                      <h4 class="card__title">
+                    <button class="card__header-left" type="button" data-toggle="collapse" data-target="#treeFieldSettings" aria-expanded="false" aria-controls="treeFieldSettings">
+                      <span class="card__title">
                         Field settings for tree
-                      </h4>
-                    </div>
+                      </span>
+                    </button>
                     <div class="card__header-right">
                       <button class="card__toggle" type="button" data-toggle="collapse" data-target="#treeFieldSettings" aria-expanded="false" aria-controls="treeFieldSettings">
                         <span>Toggle collapsible</span>
@@ -537,6 +534,7 @@
                           [%
                               INCLUDE fields/tree.tt
                                 id                = "jstree_demo_div"
+                                tree_class        = "tree--config"
                                 layout_id         = column.id
                                 layout_identifier = layout_obj.identifier
                                 edit_tree         = 1;
@@ -567,11 +565,11 @@
               <div class="col">
                 <div class="card card--expandable">
                   <div class="card__header">
-                    <div class="card__header-left">
-                      <h4 class="card__title">
+                    <button class="card__header-left" type="button" data-toggle="collapse" data-target="#documentFieldSettings" aria-expanded="false" aria-controls="documentFieldSettings">
+                      <span class="card__title">
                         Field settings for document
-                      </h4>
-                    </div>
+                      </span>
+                    </button>
                     <div class="card__header-right">
                       <button class="card__toggle" type="button" data-toggle="collapse" data-target="#documentFieldSettings" aria-expanded="false" aria-controls="documentFieldSettings">
                         <span>Toggle collapsible</span>
@@ -612,11 +610,11 @@
               <div class="col">
                 <div class="card card--expandable">
                   <div class="card__header">
-                    <div class="card__header-left">
-                      <h4 class="card__title">
+                    <button class="card__header-left" type="button" data-toggle="collapse" data-target="#personFieldSettings" aria-expanded="false" aria-controls="personFieldSettings">
+                      <span class="card__title">
                         Field settings for person
-                      </h4>
-                    </div>
+                      </span>
+                    </button>
                     <div class="card__header-right">
                       <button class="card__toggle" type="button" data-toggle="collapse" data-target="#personFieldSettings" aria-expanded="false" aria-controls="personFieldSettings">
                         <span>Toggle collapsible</span>
@@ -699,11 +697,11 @@
               <div class="col">
                 <div class="card card--expandable">
                   <div class="card__header">
-                    <div class="card__header-left">
-                      <h4 class="card__title">
+                    <button class="card__header-left" type="button" data-toggle="collapse" data-target="#ragFieldSettings" aria-expanded="false" aria-controls="ragFieldSettings">
+                      <span class="card__title">
                         Field settings for RAG
-                      </h4>
-                    </div>
+                      </span>
+                    </button>
                     <div class="card__header-right">
                       <button class="card__toggle" type="button" data-toggle="collapse" data-target="#ragFieldSettings" aria-expanded="false" aria-controls="ragFieldSettings">
                         <span>Toggle collapsible</span>
@@ -786,11 +784,11 @@
               <div class="col">
                 <div class="card card--expandable">
                   <div class="card__header">
-                    <div class="card__header-left">
-                      <h4 class="card__title">
+                    <button class="card__header-left" type="button" data-toggle="collapse" data-target="#calcValueFieldSettings" aria-expanded="false" aria-controls="calcValueFieldSettings">
+                      <span class="card__title">
                         Field settings for calculated value
-                      </h4>
-                    </div>
+                      </span>
+                    </button>
                     <div class="card__header-right">
                       <button class="card__toggle" type="button" data-toggle="collapse" data-target="#calcValueFieldSettings" aria-expanded="false" aria-controls="calcValueFieldSettings">
                         <span>Toggle collapsible</span>
@@ -906,11 +904,11 @@
               <div class="col">
                 <div class="card card--expandable">
                   <div class="card__header">
-                    <div class="card__header-left">
-                      <h4 class="card__title">
+                    <button class="card__header-left" type="button" data-toggle="collapse" data-target="#fieldsFromAnotherTableFieldSettings" aria-expanded="false" aria-controls="fieldsFromAnotherTableFieldSettings">
+                      <span class="card__title">
                         Field settings for fields from another table
-                      </h4>
-                    </div>
+                      </span>
+                    </button>
                     <div class="card__header-right">
                       <button class="card__toggle" type="button" data-toggle="collapse" data-target="#fieldsFromAnotherTableFieldSettings" aria-expanded="false" aria-controls="fieldsFromAnotherTableFieldSettings">
                         <span>Toggle collapsible</span>
@@ -1126,11 +1124,11 @@
               <div class="col">
                 <div class="card card--expandable">
                   <div class="card__header">
-                    <div class="card__header-left">
-                      <h4 class="card__title">
+                    <button class="card__header-left" type="button" data-toggle="collapse" data-target="#otherSheetsReferences" aria-expanded="false" aria-controls="otherSheetsReferences">
+                      <span class="card__title">
                         Field settings for automatic value of other sheet's references to this one
-                      </h4>
-                    </div>
+                      </span>
+                    </button>
                     <div class="card__header-right">
                       <button class="card__toggle" type="button" data-toggle="collapse" data-target="#otherSheetsReferences" aria-expanded="false" aria-controls="otherSheetsReferences">
                         <span>Toggle collapsible</span>
@@ -1230,11 +1228,11 @@
               <div class="col">
                 <div class="card card--expandable">
                   <div class="card__header">
-                    <div class="card__header-left">
-                      <h4 class="card__title">
+                    <button class="card__header-left" type="button" data-toggle="collapse" data-target="#automaticFilteredValues" aria-expanded="false" aria-controls="automaticFilteredValues">
+                      <span class="card__title">
                         Field settings for automatic filtered values of other field
-                      </h4>
-                    </div>
+                      </span>
+                    </button>
                     <div class="card__header-right">
                       <button class="card__toggle" type="button" data-toggle="collapse" data-target="#automaticFilteredValues" aria-expanded="false" aria-controls="automaticFilteredValues">
                         <span>Toggle collapsible</span>
@@ -1315,11 +1313,11 @@
           <div class="col">
             <div class="card card--expandable">
               <div class="card__header">
-                <div class="card__header-left">
-                  <h4 class="card__title">
+                <button class="card__header-left" type="button" data-toggle="collapse" data-target="#permissions" aria-expanded="false" aria-controls="permissions">
+                  <span class="card__title">
                     Permissions
-                  </h4>
-                </div>
+                  </span>
+                </button>
                 <div class="card__header-right">
                   <button class="card__toggle" type="button" data-toggle="collapse" data-target="#permissions" aria-expanded="false" aria-controls="permissions">
                     <span>Toggle collapsible</span>
@@ -1347,23 +1345,36 @@
                       table_columns = [{
                         name      = "Group"
                         orderable = 1
-                        width     = "20%"
-                      },{
-                        name      = "Create"
-                        orderable = 0
+                        width     = "25%"
                       },{
                         name      = "Read"
                         orderable = 0
+                        width     = "15%"
+                      },{
+                        name      = "Create"
+                        orderable = 0
+                        width     = "15%"
+                      },{
+                        name      = "Create without approval"
+                        orderable = 0
+                        width     = "15%"
                       },{
                         name      = "Update"
                         orderable = 0
+                        width     = "15%"
                       },{
-                        name      = "Approve"
+                        name      = "Update without approval"
                         orderable = 0
-                      },{
-                        name      = "Write without approval"
-                        orderable = 0
-                      }];
+                        width     = "15%"
+                      }
+                      # ,{
+                      #   name      = "Create can be approved"
+                      #   orderable = 0
+                      # },{
+                      #   name      = "Update can be approved"
+                      #   orderable = 0
+                      # }
+                      ];
   
                       existing_perms = column.permissions.keys;
                       rows           = [];
@@ -1375,6 +1386,22 @@
                           fields = [{
                             type  = "text"
                             label = group.name
+                          }, {
+                            type        = "text"
+                            label       = ""
+                            sub_field   = "fields/sub/checkbox.tt"
+                            sub_params  = {
+                              id => "permission_read_" _ group.id
+                              name => "permission_read_" _ group.id
+                              label => permission_inputs.read
+                              checked => column.group_has(group.id, 'read') ? 1 : 0
+                              filter => "html"
+                              is_required => 0
+                              autofocus => 0
+                              input_class => "checkbox--hide-label"
+                              label_in_span => 1
+                              value => 1
+                            }
                           }, {
                             type        = "text"
                             label       = ""
@@ -1396,10 +1423,10 @@
                             label       = ""
                             sub_field   = "fields/sub/checkbox.tt"
                             sub_params  = {
-                              id => "permission_read_" _ group.id
-                              name => "permission_read_" _ group.id
-                              label => permission_inputs.read
-                              checked => column.group_has(group.id, 'read') ? 1 : 0
+                              id => "permission_write_new_no_approval_" _ group.id
+                              name => "permission_write_new_no_approval_" _ group.id
+                              label => permission_inputs.write_new_no_approval
+                              checked => column.group_has(group.id, 'write_new_no_approval') ? 1 : 0
                               filter => "html"
                               is_required => 0
                               autofocus => 0
@@ -1428,10 +1455,10 @@
                             label       = ""
                             sub_field   = "fields/sub/checkbox.tt"
                             sub_params  = {
-                              id => "permission_approve_new_" _ group.id
-                              name => "permission_approve_new_" _ group.id
-                              label => permission_inputs.approve_new
-                              checked => column.group_has(group.id, 'approve_new') ? 1 : 0
+                              id => "permission_write_existing_no_approval_" _ group.id
+                              name => "permission_write_existing_no_approval_" _ group.id
+                              label => permission_inputs.write_existing_no_approval
+                              checked => column.group_has(group.id, 'write_existing_no_approval') ? 1 : 0
                               filter => "html"
                               is_required => 0
                               autofocus => 0
@@ -1439,23 +1466,41 @@
                               label_in_span => 1
                               value => 1
                             }
-                          }, {
-                            type        = "text"
-                            label       = ""
-                            sub_field   = "fields/sub/checkbox.tt"
-                            sub_params  = {
-                              id => "permission_write_new_no_approval_" _ group.id
-                              name => "permission_write_new_no_approval_" _ group.id
-                              label => permission_inputs.write_new_no_approval
-                              checked => column.group_has(group.id, 'write_new_no_approval') ? 1 : 0
-                              filter => "html"
-                              is_required => 0
-                              autofocus => 0
-                              input_class => "checkbox--hide-label"
-                              label_in_span => 1
-                              value => 1
-                            }
-                          }]
+                          }
+                          # , {
+                          #   type        = "text"
+                          #   label       = ""
+                          #   sub_field   = "fields/sub/checkbox.tt"
+                          #   sub_params  = {
+                          #     id => "permission_approve_new_" _ group.id
+                          #     name => "permission_approve_new_" _ group.id
+                          #     label => permission_inputs.approve_new
+                          #     checked => column.group_has(group.id, 'approve_new') ? 1 : 0
+                          #     filter => "html"
+                          #     is_required => 0
+                          #     autofocus => 0
+                          #     input_class => "checkbox--hide-label"
+                          #     label_in_span => 1
+                          #     value => 1
+                          #   }
+                          # }, {
+                          #   type        = "text"
+                          #   label       = ""
+                          #   sub_field   = "fields/sub/checkbox.tt"
+                          #   sub_params  = {
+                          #     id => "permission_approve_existing_" _ group.id
+                          #     name => "permission_approve_existing_" _ group.id
+                          #     label => permission_inputs.approve_existing
+                          #     checked => column.group_has(group.id, 'approve_existing') ? 1 : 0
+                          #     filter => "html"
+                          #     is_required => 0
+                          #     autofocus => 0
+                          #     input_class => "checkbox--hide-label"
+                          #     label_in_span => 1
+                          #     value => 1
+                          #   }
+                          # }
+                          ]
                         };
                   
                         rows.push(row);
@@ -1474,11 +1519,11 @@
           <div class="col">
             <div class="card card--expandable">
               <div class="card__header">
-                <div class="card__header-left">
-                  <h4 class="card__title">
+                <button class="card__header-left" type="button" data-toggle="collapse" data-target="#advancedSettings" aria-expanded="false" aria-controls="advancedSettings">
+                  <span class="card__title">
                     Advanced settings
-                  </h4>
-                </div>
+                  </span>
+                </button>
                 <div class="card__header-right">
                   <button class="card__toggle" type="button" data-toggle="collapse" data-target="#advancedSettings" aria-expanded="false" aria-controls="advancedSettings">
                     <span>Toggle collapsible</span>
@@ -1637,11 +1682,11 @@
           <div class="col">
             <div class="card card--expandable">
               <div class="card__header">
-                <div class="card__header-left">
-                  <h4 class="card__title">
+                <button class="card__header-left" type="button" data-toggle="collapse" data-target="#displayConditionsCollapse" aria-expanded="false" aria-controls="displayConditionsCollapse">
+                  <span class="card__title">
                     Display conditions
-                  </h4>
-                </div>
+                  </span>
+                </button>
                 <div class="card__header-right">
                   <button class="card__toggle" type="button" data-toggle="collapse" data-target="#displayConditionsCollapse" aria-expanded="false" aria-controls="displayConditionsCollapse">
                     <span>Toggle collapsible</span>

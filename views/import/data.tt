@@ -29,14 +29,14 @@
               name = "import_options"
               label = "Options"
               items = [
-                {id = "dry_run", name="Dry run" is_checked = 1},
-                {id = "force_mandatory", name="Allow blank mandatory values" is_checked = 0},
-                {id = "split_multiple", name="Allow multiple values separated by comma" is_checked = 0},
-                {id = "blank_invalid_enum", name="Blank any invalid multiple select and tree values" is_checked = 0},
-                {id = "no_change_unless_blank", name="If updating a record, only insert new values, do not overwrite existing values" is_checked = 0},
-                {id = "take_first_enum", name="Take first value of duplicated matching tree nodes or multiple select values" is_checked = 0},
-                {id = "ignore_string_zeros", name="Ignore values of '0' in text field values" is_checked = 0},
-                {id = "round_integers", name="Round decimal values being imported into integer fields" is_checked = 0}
+                {field_id="dry_run", id = "dry_run", name="Dry run" is_checked = 1},
+                {field_id="force_mandatory", id = "force_mandatory", name="Allow blank mandatory values" is_checked = 0},
+                {field_id="split_multiple", id = "split_multiple", name="Allow multiple values separated by comma" is_checked = 0},
+                {field_id="blank_invalid_enum", id = "blank_invalid_enum", name="Blank any invalid multiple select and tree values" is_checked = 0},
+                {field_id="no_change_unless_blank", id = "no_change_unless_blank", name="If updating a record, only insert new values, do not overwrite existing values" is_checked = 0},
+                {field_id="take_first_enum", id = "take_first_enum", name="Take first value of duplicated matching tree nodes or multiple select values" is_checked = 0},
+                {field_id="ignore_string_zeros", id = "ignore_string_zeros", name="Ignore values of '0' in text field values" is_checked = 0},
+                {field_id="round_integers", id = "round_integers", name="Round decimal values being imported into integer fields" is_checked = 0}
               ]
               filter = "html"
               message_empty = ""

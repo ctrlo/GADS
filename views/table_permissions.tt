@@ -2,12 +2,7 @@
   INCLUDE layouts/page_header_table.tt
     title       = "Permissions"
     description = "Here you can set the table actions available to each user group."
-    aside_buttons = [{
-      type   = "link"
-      target = url.page _ "/group_overview/"
-      class  = "btn btn-default"
-      label  = "Create group"
-    }];
+    aside_buttons = [];
 %]
 <div class="content-block__main">
   <div class="content-block__main-content">
@@ -21,14 +16,14 @@
         <div class="col">
           <div class="card card--expandable">
             <div class="card__header">
-              <div class="card__header-left">
-                <h4 class="card__title">
+              <button class="card__header-left" type="button" data-toggle="collapse" data-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
+                <span class="card__title">
                   Group
                   <span class="card__subtitle">
                     [% group.name | html %]
                   </span>
-                </h4>
-              </div>
+                </span>
+              </button>
               <div class="card__header-right">
                 <button class="card__toggle" type="button" data-toggle="collapse" data-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
                   <span>Toggle collapsible</span>
@@ -168,7 +163,7 @@
             name  = "submit",
             value = "submit",
             class = "btn btn-default",
-            label = "Save permisions"
+            label = "Save permissions"
           }]
         }];
       %]

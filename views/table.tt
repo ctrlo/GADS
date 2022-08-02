@@ -107,11 +107,11 @@
           <div class="col">
             <div class="card card--expandable">
               <div class="card__header">
-                <div class="card__header-left">
-                  <h4 class="card__title">
+                <button class="card__header-left" type="button" data-toggle="collapse" data-target="#emailAlerts" aria-expanded="false" aria-controls="emailAlerts">
+                  <span class="card__title">
                     Email alerts
-                  </h4>
-                </div>
+                  </span>
+                </button>
                 <div class="card__header-right">
                   <button class="card__toggle" type="button" data-toggle="collapse" data-target="#emailAlerts" aria-expanded="false" aria-controls="emailAlerts">
                     <span>Toggle collapsible</span>
@@ -149,11 +149,11 @@
           <div class="col">
             <div class="card card--expandable">
               <div class="card__header">
-                <div class="card__header-left">
-                  <h4 class="card__title">
+                <button class="card__header-left" type="button" data-toggle="collapse" data-target="#limitRecordAccess" aria-expanded="false" aria-controls="limitRecordAccess">
+                  <span class="card__title">
                     Limit access to records
-                  </h4>
-                </div>
+                  </span>
+                </button>
                 <div class="card__header-right">
                   <button class="card__toggle" type="button" data-toggle="collapse" data-target="#limitRecordAccess" aria-expanded="false" aria-controls="limitRecordAccess">
                     <span>Toggle collapsible</span>

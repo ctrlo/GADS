@@ -3,6 +3,7 @@
 
   # prepare table config
   table_dom = "t";
+  table_class = "table-striped";
   table_order = '[0,"asc"]';
   table_width = 85;
   table_show_all_records = 1;

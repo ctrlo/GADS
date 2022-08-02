@@ -44,7 +44,7 @@
 
 <div class="content-block__main">
   <form
-    class="[% IF edit_modal %]curval-edit-form[% ELSE %]edit-form[% END %]"
+    class="[% IF edit_modal %]curval-edit-form[% ELSE %]form-edit[% END %]"
     method="post"
     enctype="multipart/form-data"
     [%
@@ -334,16 +334,16 @@
   <div class="[% panel_class %]">
     <div class="card card--expandable">
       <div class="card__header">
-        <div class="card__header-left">
-          <h4 class="card__title">
+        <button class="card__header-left" type="button" data-toggle="collapse" data-target="#topic[% col_panel.id %]" aria-expanded="false" aria-controls="topic[% col_panel.id %]">
+          <span class="card__title">
             [% block_topic.name OR 'Other' | html %]
-          </h4>
-          [% IF block_topic.description %]
-          <h6 class="card-subtitle mt-2 text-muted">
-            [% block_topic.description | html %]
-          </h6>
-          [% END %]
-        </div>
+            [% IF block_topic.description %]
+            <span class="card__subtitle text-muted">
+              [% block_topic.description | html %]
+            </span>
+            [% END %]
+          </span>
+        </button>
         <div class="card__header-right">
           [% IF editable AND NOT record.new_entry AND NOT edit_modal AND topic.has_editable %]
           <button
@@ -412,10 +412,10 @@
         oldvalue = existing.fields.$colid.html; # All value already entity-encoded
       END;
       
-      IF layout_edit.has_topics;
-        panel_class = is_first_topic ? 'mb-3' : 'mt-3';
-        PROCESS panel_start;
-      END;
+
+      panel_class = is_first_topic ? 'mb-3' : 'mt-3';
+      PROCESS panel_start;
+
 %]
   [% IF NOT record.new_entry AND NOT edit_modal; %]
   <div class="card__view-content">
@@ -487,9 +487,8 @@
   </div>
   [% END; %]
 [%
-      IF layout_edit.has_topics;
-        PROCESS panel_end;
-      END;
+
+      PROCESS panel_end;
   
       is_first_topic = 0;
     END;
@@ -671,15 +670,8 @@
           layout_identifier = layout_obj.identifier
           end_node_only     = col.end_node_only ? 1 : 0
           ids_as_params     = editvalue.ids_as_params
+          tree_values       = editvalue.ids
           edit_tree         = 0;
-  
-        IF NOT editvalue.ids.size;
-          INCLUDE fields/hidden.tt id="" input_class="selected-tree-value" name=field value="" filter="";
-        END;
-  
-        FOREACH val IN editvalue.ids;
-          INCLUDE fields/hidden.tt id="" input_class="selected-tree-value" name=field value=val filter="";
-        END;
       '</fieldset>';
       END;
     ELSIF col.type == "person";

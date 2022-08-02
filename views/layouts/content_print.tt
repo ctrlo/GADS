@@ -1,0 +1,9 @@
+<div class="row flex-nowrap">
+  <main class="main col-lg-10 main--expanded">
+    <div class="main__container">
+      <div class="content-block [% content_block_custom_classes %]">
+        [% content %]
+      </div>
+    </div>
+  </main>
+</div>

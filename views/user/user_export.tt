@@ -62,6 +62,7 @@
     back_button   = { url = url.page _ "/user_overview/" }
     aside_buttons = [{
       type  = "form"
+      class = "btn btn-default"
       name  = "submit"
       value = "submit"
       label = "Start export"

@@ -38,18 +38,7 @@ sub _all_user
     my $guard = $schema->txn_scope_guard;
 
     my @dashboards;
-
-    # Site shared, only show if populated or superadmin
-    my $dash = $self->shared_dashboard(%params, layout => undef);
-    push @dashboards, $dash if !$dash->is_empty || $user->permission->{superadmin};
-
-    # Site personal
-    $dash = $self->search({
-        'me.instance_id' => undef,
-        'me.user_id'     => $user->id,
-    })->next;
-    $dash ||= $self->create_dashboard(%params, layout => undef, type => 'personal');
-    push @dashboards, $dash;
+    my $dash;
 
     # Table shared
     if ($layout)
@@ -63,6 +52,20 @@ sub _all_user
         })->next;
         $dash ||= $self->create_dashboard(%params, type => 'personal');
 
+        push @dashboards, $dash;
+    }
+    else
+    {
+        # Site shared, only show if populated or superadmin
+        $dash = $self->shared_dashboard(%params, layout => undef);
+        push @dashboards, $dash if !$dash->is_empty || $user->permission->{superadmin};
+
+        # Site personal
+        $dash = $self->search({
+            'me.instance_id' => undef,
+            'me.user_id'     => $user->id,
+        })->next;
+        $dash ||= $self->create_dashboard(%params, layout => undef, type => 'personal');
         push @dashboards, $dash;
     }
 
@@ -187,7 +190,7 @@ sub create_dashboard
 
     $guard->commit;
 
-    return $dashboard; 
+    return $dashboard;
 }
 
 1;
