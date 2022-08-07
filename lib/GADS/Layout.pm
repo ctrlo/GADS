@@ -763,6 +763,7 @@ sub clear
     $self->clear_sort_layout_id;
     $self->clear_view_limit_id;
     $self->clear_permissions;
+    $self->_clear_mycols;
 }
 
 has _layout => (
@@ -985,7 +986,8 @@ has cached_records => (
 );
 
 has _mycols => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build__mycols
