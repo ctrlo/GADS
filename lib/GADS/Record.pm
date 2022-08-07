@@ -2150,26 +2150,44 @@ sub write_values
             $child->write(%options, update_only => 1, submission_token => undef);
         }
 
-        # Update any records with an autocur field that are referred to by this
+        # Update any records with an autocur field that are referred to by this.
+        # Get list of current IDs we need to update:
+        my @update;
         foreach my $cid (keys %update_autocurs)
         {
             # Check whether this record is one that we're going to write
             # anyway. If so, skip.
             next if grep { $_->current_id == $cid } @{$self->_records_to_write_after};
-
+            push @update, $cid;
+        }
+        # Group by tables so we can process together
+        my %update;
+        foreach my $c ($self->schema->resultset('Current')->search({ id => \@update }))
+        {
+            $update{$c->instance_id} ||= [];
+            push @{$update{$c->instance_id}}, $c->id;
+        }
+        foreach my $instance_id (keys %update)
+        {
             # User may not have access by this point due to limited views on
             # the curval field, which would result in record not being found to
             # update. Given that we are simply recalculating calc fields user
             # is not required anyway, so use undef.
-            my $record = GADS::Record->new(
-                user   => undef,
-                layout => $self->layout,
-                schema => $self->schema,
+            my $layout = $self->layout->clone(instance_id => $instance_id);
+            my $records = GADS::Records->new(
+                schema            => $self->schema,
+                user              => undef,
+                layout            => $layout,
+                limit_current_ids => $update{$instance_id},
             );
-            $record->find_current_id($cid);
-            $record->fields->{$_}->changed(1)
-                foreach @{$update_autocurs{$cid}};
-            $record->write(%options, update_only => 1, re_evaluate => 1, submission_token => undef);
+            # For each record, flag the autocur as changed (this parent record)
+            # and re-evalute calcs
+            while (my $record = $records->single)
+            {
+                $record->fields->{$_}->changed(1)
+                    foreach @{$update_autocurs{$record->current_id}};
+                $record->write(%options, update_only => 1, re_evaluate => 1, submission_token => undef);
+            }
         }
     }
 
