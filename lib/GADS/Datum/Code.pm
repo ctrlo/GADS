@@ -228,14 +228,15 @@ sub _build_value
             if $ENV{GADS_PANIC_ON_ENTERING_CODE};
 
         my $return;
-        try { $return = $column->eval($column->code, $self->vars) };
+        my $vars = $self->vars;
+        try { $return = $column->eval($column->code, $vars) };
         if ($@ || $return->{error})
         {
             my $error = $@ ? $@->wasFatal->message->toString : $return->{error};
             local $Data::Dumper::Indent = 0;
             warning __x"Failed to eval code for field \"{field}\": {error} (code: {code}, params: {params})",
                 field => $column->name,
-                error => $error, code => $return->{code} || $column->code, params => Dumper($self->vars);
+                error => $error, code => $return->{code} || $column->code, params => Dumper($vars);
             $return->{error} = $error;
         }
 
