@@ -613,7 +613,25 @@ sub _get_rows
         $return = [ map { $self->values_index->{$_} } @$ids ];
     }
     else {
-        $return = $self->_records_from_db(ids => $ids, include_deleted => 1, %options)->results;
+        foreach my $id (@$ids)
+        {
+            # Check the cache in the layout first. There may have been another
+            # curval fields that has already retrieved the full values of these
+            # same records. If everything is available then use it, otherwise
+            # if only some are missing retrieve from scratch to ensure any
+            # ordering is correct (the chances are that either all or none will
+            # be needed)
+            if (my $rec = $self->layout->cached_records->{$id})
+            {
+                push @$return, $rec;
+            }
+            else {
+                $return = $self->_records_from_db(ids => $ids, include_deleted => 1, %options)->results;
+                $self->layout->cached_records->{$_->current_id} = $_
+                    foreach @$return;
+                last;
+            }
+        }
     }
     # Remove any values that are for deleted records. These could be in the ids
     # passed into this function, and it's not possible to know without fetching

@@ -976,6 +976,14 @@ sub all_user_read
     $self->all(user_can_read => 1);
 }
 
+# A bit hacky, used as a stash for full records that have been retrieved by
+# columns in this layout. As the layout is (currently) rebuilt each request, we
+# can afford to do this
+has cached_records => (
+    is      => 'ro',
+    default => sub { {} },
+);
+
 has _mycols => (
     is => 'lazy',
 );
