@@ -764,6 +764,7 @@ sub clear
     $self->clear_view_limit_id;
     $self->clear_permissions;
     $self->_clear_mycols;
+    $self->clear_cached_records;
 }
 
 has _layout => (
@@ -981,8 +982,9 @@ sub all_user_read
 # columns in this layout. As the layout is (currently) rebuilt each request, we
 # can afford to do this
 has cached_records => (
-    is      => 'ro',
-    default => sub { {} },
+    is      => 'lazy',
+    builder => sub { +{} },
+    clearer => 1,
 );
 
 has _mycols => (

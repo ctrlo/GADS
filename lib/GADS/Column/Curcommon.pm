@@ -525,6 +525,9 @@ sub field_values
     # will be available).  The rows would normally only need to be retrieved
     # when a single record is being written.
 
+    $params{rows} || $params{ids}
+        or panic "Neither rows not ids passed to all_field_values";
+
     # Array for the rows to be returned
     my @rows;
 
@@ -565,9 +568,6 @@ sub field_values
     elsif ($params{rows}) {
         # Just use existing rows
         @rows = @{$params{rows}};
-    }
-    else {
-        panic "Neither rows not ids passed to all_field_values";
     }
 
     my %return;
@@ -627,8 +627,11 @@ sub _get_rows
             }
             else {
                 $return = $self->_records_from_db(ids => $ids, include_deleted => 1, %options)->results;
-                $self->layout->cached_records->{$_->current_id} = $_
-                    foreach @$return;
+                if ($options{all_fields})
+                {
+                    $self->layout->cached_records->{$_->current_id} = $_
+                        foreach @$return;
+                }
                 last;
             }
         }
