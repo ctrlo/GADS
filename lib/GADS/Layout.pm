@@ -976,12 +976,21 @@ sub all_user_read
     $self->all(user_can_read => 1);
 }
 
+has _mycols => (
+    is => 'lazy',
+);
+
+sub _build__mycols
+{   my $self = shift;
+    [grep { $_->instance_id == $self->instance_id } @{$self->use_layout->columns}];
+}
+
 sub all
 {   my ($self, %options) = @_;
 
     my $type = $options{type};
 
-    my @columns = grep { $_->instance_id == $self->instance_id } @{$self->use_layout->columns};
+    my @columns = @{$self->_mycols};
     @columns = grep { !$_->hidden } @columns unless $options{include_hidden};
     @columns = grep { $options{topic_id} ? $_->topic_id == $options{topic_id} : !$_->topic_id } @columns
         if exists $options{topic_id};
