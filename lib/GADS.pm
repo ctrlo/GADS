@@ -90,8 +90,9 @@ use Dancer2::Plugin::LogReport 'linkspace';
 
 use GADS::API; # API routes
 
-schema->storage->debugobj(new GADS::DBICProfiler);
-schema->storage->debug(1);
+# Uncomment for DBIC traces
+#schema->storage->debugobj(new GADS::DBICProfiler);
+#schema->storage->debug(1);
 
 # There should never be exceptions from DBIC, so we want to panic them to
 # ensure they get notified at the correct level. Unfortunately, DBIC's internal
