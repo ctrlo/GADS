@@ -2173,6 +2173,7 @@ sub write_values
             # the curval field, which would result in record not being found to
             # update. Given that we are simply recalculating calc fields user
             # is not required anyway, so use undef.
+            local $GADS::Schema::IGNORE_PERMISSIONS = 1;
             my $layout = $self->layout->clone(instance_id => $instance_id);
             my $records = GADS::Records->new(
                 schema            => $self->schema,
