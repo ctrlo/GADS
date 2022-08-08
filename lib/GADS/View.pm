@@ -73,41 +73,53 @@ has layout => (
     required => 1,
 );
 
+sub current_user_has_access
+{   my $self = shift;
+    return 1 if $self->user_permission_override;
+    my $view = $self->_view_rs;
+    my $user_id = $self->layout->user && $self->layout->user->id;
+    my $no_access = $self->has_id && $self->layout->user && !$view->global && !$view->is_admin && !$view->is_limit_extra
+        && !$self->layout->user_can("layout") && $view->user_id != $user_id;
+    $no_access ||= $view->global && $view->group_id
+        && !$self->schema->resultset('User')->find($user_id)->has_group->{$view->group_id};
+    $no_access = 0
+        if $self->layout->user && $self->layout->user->permission->{superadmin};
+    return !$no_access;
+}
+
 # Internal DBIC object of view
+has _view_rs => (
+    is => 'lazy',
+);
+
+sub _build__view_rs
+{   my $self = shift;
+    $self->schema->resultset('View')->find({
+        'me.id'          => $self->id,
+        # instance_id isn't strictly needed as id is the primary key
+        'me.instance_id' => $self->instance_id,
+    },{
+        prefetch => ['sorts', 'alerts', 'view_groups'],
+        order_by => 'sorts.order', # Ensure sorts are retrieve in correct order to apply
+    });
+}
+
 has _view => (
     is      => 'rw',
     lazy    => 1,
     clearer => 1,
     builder => sub {
         my $self = shift;
-        my $view = $self->schema->resultset('View')->find({
-            'me.id'          => $self->id,
-            # instance_id isn't strictly needed as id is the primary key
-            'me.instance_id' => $self->instance_id,
-        },{
-            prefetch => ['sorts', 'alerts', 'view_groups'],
-            order_by => 'sorts.order', # Ensure sorts are retrieve in correct order to apply
-        });
+        my $view = $self->_view_rs;
         if (!$view)
         {
             $self->clear_id;
             return;
         }
         # Check whether user has read access to view
-        return $view if $self->user_permission_override;
-        my $user_id = $self->layout->user && $self->layout->user->id;
-        my $no_access = $self->has_id && $self->layout->user && !$view->global && !$view->is_admin && !$view->is_limit_extra
-            && !$self->layout->user_can("layout") && $view->user_id != $user_id;
-        $no_access ||= $view->global && $view->group_id
-            && !$self->schema->resultset('User')->find($user_id)->has_group->{$view->group_id};
-        $no_access = 0
-            if $self->layout->user && $self->layout->user->permission->{superadmin};
-        if ($no_access)
-        {
-            error __x"User {user} does not have access to view {view}",
-                user => $self->layout->user->id, view => $self->id;
-        }
-        $view;
+        return $view if $self->current_user_has_access;
+        error __x"User {user} does not have access to view {view}",
+            user => $self->layout->user->id, view => $self->id;
     },
 );
 
