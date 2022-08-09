@@ -1098,6 +1098,25 @@ sub _get_records {
         layout => $layout,
     );
 
+    # Look for column filters
+    my @additional_filters;
+    foreach my $key (query_parameters->keys)
+    {
+        # E.g. 'columns[1][search][value]' => 'my_search'
+        next unless $key =~ /^columns\[([0-9]+)\Q][search][value]\E$/;
+        my $index = $1;
+        my $search = query_parameters->get($key)
+            or next;
+        my $col = $records->columns_render->[$index]
+            or next;
+        my @values = query_parameters->get_all($key);
+        push @additional_filters, {
+            id    => $col->id,
+            value => [$search],
+        };
+    }
+    $records->additional_filters(\@additional_filters);
+
     if (my $search = query_parameters->get('search[value]'))
     {
         $search =~ s/\h+$//;
