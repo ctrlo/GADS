@@ -765,19 +765,22 @@ sub values_beginning_with
             push @results, $self->_format_row($row, value_key => 'name');
         }
     }
-    map { +{ id => $_->{id}, label => $_->{name} } } @results;
+    map { +{ id => $_->{id}, label => $_->{name}, html => $_->{html} } } @results;
 }
 
 sub _format_row
 {   my ($self, $row, %options) = @_;
     my $value_key = $options{value_key} || 'value';
     my @values;
+    my @html;
     foreach my $fid (@{$self->curval_field_ids})
     {
         next if !$self->override_permissions && !$self->layout_parent->column($fid, permission => 'read');
-        push @values, $row->fields->{$fid};
+        push @html, $row->fields->{$fid}->html;
+        push @values, $row->fields->{$fid}->as_string;
     }
     my $text     = $self->format_value(@values);
+    my $html     = join ', ', grep $_, @html;
     my $as_query = ($row->is_draft || !$row->current_id) && $row->as_query;
     +{
         id          => $row->current_id,
@@ -786,6 +789,7 @@ sub _format_row
         record      => $row,
         $value_key  => $text,
         values      => \@values,
+        html        => $html,
     };
 }
 

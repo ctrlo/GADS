@@ -467,7 +467,7 @@ prefix '/:layout_name' => sub {
         return encode_json {
             "error"  => 0,
             "records"=> [
-                map { +{ id => $_->{id}, label => $_->{value} } } @{$curval->filtered_values($submission_token)}
+                map { +{ id => $_->{id}, label => $_->{value}, html => $_->{html} } } @{$curval->filtered_values($submission_token)}
             ]
         };
     };

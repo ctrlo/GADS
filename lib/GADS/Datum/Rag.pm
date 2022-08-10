@@ -91,6 +91,20 @@ sub _value_single
     pop @values;
 }
 
+sub html
+{   my $self = shift;
+    my $config = GADS::Config->instance;
+    my $template = Template->new(INCLUDE_PATH => $config->template_location);
+    my $output;
+    my $t = $template->process('rag.tt', { rag => $self }, \$output)
+        or panic $template->error;
+    $output;
+}
+
+# Temporary function to match presentation layer, used to render datum snippet
+# directly
+sub grade { shift->as_grade }
+
 sub as_grade
 {
     my $self = shift;

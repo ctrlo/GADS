@@ -148,7 +148,7 @@ const setupSelectWidgets = (() => {
       }
     };
 
-    var currentLi = function(multi, field, value, label, checked) {
+    var currentLi = function(multi, field, value, label, checked, html) {
       if (multi && !value) {
         return $('<li class="none-selected">blank</li>');
       }
@@ -171,11 +171,11 @@ const setupSelectWidgets = (() => {
           "</li>"
       );
       $li.data('list-text', label);
-      $li.find('span').text(label);
+      $li.find('span').html(html);
       return $li;
     };
 
-    var availableLi = function(multi, field, value, label, checked) {
+    var availableLi = function(multi, field, value, label, checked, html) {
       if (multi && !value) {
         return null;
       }
@@ -198,7 +198,7 @@ const setupSelectWidgets = (() => {
       var $span = $('<span role="option"></span>');
       $span.data('list-text', label);
       $span.data('list-id', value);
-      $span.text(label);
+      $span.html(html);
       var $li = $(
         '<li class="' +
           classNames +
@@ -289,10 +289,10 @@ const setupSelectWidgets = (() => {
               $search
                 .parent()
                 .before(
-                  currentLi(multi, field, record.id, record.label, checked)
+                  currentLi(multi, field, record.id, record.label, checked, record.html)
                 ).before(' '); // Ensure space between elements
               $available.append(
-                availableLi(multi, field, record.id, record.label, checked)
+                availableLi(multi, field, record.id, record.label, checked, record.html)
               );
             }
           });
