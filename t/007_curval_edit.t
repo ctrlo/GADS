@@ -177,16 +177,19 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
                 value_id    => 2,
                 selector_id => 2,
                 value       => 'Bar',
+                html        => 'Bar',
             },
             {
                 value_id    => 1,
                 selector_id => 1,
                 value       => 'Foo',
+                html        => 'Foo',
             },
             {
                 value_id    => 6,
                 selector_id => 6,
                 value       => 'foo55',
+                html        => 'foo55',
             },
         ];
         _check_values($curval->filtered_values, $expected, "Curval dropdown values initially correct");
@@ -372,14 +375,17 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
             value_id    => 'field8=foo10&field9=&field10=&field15=',
             selector_id => 'query_'.shift @draft_ids,
             value       => 'foo10',
+            html        => 'foo10',
         },{
             value_id    => 'field8=foo145&field9=&field10=&field15=',
             selector_id => 'query_'.shift @draft_ids,
             value       => 'foo145',
+            html        => 'foo145',
         },{
             value_id    => 'field8=foo20&field9=&field10=&field15=',
             selector_id => 'query_'.shift @draft_ids,
             value       => 'foo20',
+            html        => 'foo20',
         }];
         _check_values(\@draft, $expected, "Curval contains draft values");
 
@@ -495,6 +501,7 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
                     value_id    => 'field8=foo99&field9=&field10=&field15=',
                     selector_id => $selector_id,
                     value       => 'foo99',
+                    html        => 'foo99',
                 }];
                 _check_values(\@draft, $expected, "Curval contains draft values");
             }
