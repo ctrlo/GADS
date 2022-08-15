@@ -1153,7 +1153,7 @@ sub versions
         if $self->rewind;
     my @records = $self->schema->resultset('Record')->search($search,{
         prefetch => 'createdby',
-        order_by => { -desc => 'me.created' }
+        order_by => { -desc => ['me.created', 'me.id'] } # id needed for tests that write at the same time
     })->all;
     @records;
 }
