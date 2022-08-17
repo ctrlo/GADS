@@ -23,6 +23,7 @@
     "edit", # internal designation for record view, edit
     "link",
     "import",
+    "chronology",
   ];
   edit_table_active_pages = manage_table_active_pages.merge(manage_topics_active_pages, manage_fields_active_pages);
   table_dashboard_active_pages = ["table_index"];

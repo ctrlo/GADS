@@ -1,32 +1,44 @@
-[% PROCESS snippets/datum.tt %]
-[% PROCESS snippets/record_readmore.tt %]
+[%
+  PROCESS snippets/datum.tt;
+  PROCESS snippets/record_readmore.tt;
 
-<h2>Chronology of edits for record [% record.current_id %]</h2>
+  # add standardized page header
+  INCLUDE layouts/page_header.tt title = "Chronology of edits for record " _ record.current_id;
+%]
 
-[% FOREACH version IN record.chronology %]
-    [% IF loop.first %][% initial = 1 %][% ELSE %][% initial = 0 %][% END %]
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <h3 class="panel-title">
-                [% version.datetime.format_cldr(config.dateformat) %] [% version.datetime.hms %]
-                <small>
-                    record [% IF initial %]created[% ELSE %]updated[% END %][% IF version.editor.id %] by [% version.editor.as_string | html %][% END %]
-                </small>
-            </h3>
+<div class="content-block__main">
+  <div class="content-block__main-content">
+    [%
+      FOREACH version IN record.chronology;
+        initial         = loop.first ? 1 : 0;
+        action_datetime = version.datetime.format_cldr(config.dateformat) _ " " _ version.datetime.hms;
+        action_type     = initial ? 'created' : 'updated';
+        action_by       = version.editor.id ? " by " _ version.editor.as_string : '';
+    
+    %]
+    <div class="card card--header">
+      <h3 class="card__header">
+        <span> [%  action_datetime _ " - " _ " record " _ action_type _ action_by | html %] </span>
+      </h3>
+    
+      <div class="card__body row">
+        <div class="card__content">
+          <div class="list list--vertical list--key-value list--no-borders">
+            <ul class="list__items">
+              [%
+                FOREACH field IN version.changed;
+                  label_changed_to = field.type == "curval" OR initial ? '' : 'changed to ';
+              %]
+              <li class="list__item ">
+                <span class="list__key"> [% field.name | html %] </span>
+                <span class="list__value"> [% label_changed_to; render_datum(field); %]  </span>
+              </li>
+              [% END %]
+            </ul>
+          </div>
         </div>
-        <div class="panel-body">
-            [% FOREACH field IN version.changed %]
-                <dl class="dl-horizontal chronology">
-                    <dt title="[% field.name | html %]">[% field.name | html %]</dt>
-                    <dd>
-                    [% IF field.type == "curval" OR initial %]
-                    <span class="[% field.type %]">[% render_datum(field) %]</span>
-                    [% ELSE %]
-                    changed to <span class="[% field.type %]">[% render_datum(field) %]</span>
-                    [% END %]
-                    </dd>
-                </dl>
-            [% END %]
-        </div>
+      </div>
     </div>
-[% END %]
+    [% END %]
+  </div>
+</div>
