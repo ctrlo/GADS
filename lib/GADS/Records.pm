@@ -2963,7 +2963,7 @@ sub _build_group_results
             $col->{parent} = $parent;
         }
         # If it's a curval, then add all its subfields
-        if ($column->type eq 'curval' && !$is_table_group)
+        if ($column->is_curcommon && !$is_table_group)
         {
             foreach (@{$column->curval_fields})
             {

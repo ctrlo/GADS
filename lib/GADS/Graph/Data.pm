@@ -710,7 +710,7 @@ sub _records_to_results
             $x_value ||= $line->get_column("${col}_link")
                 if !$x_daterange && $x->link_parent;
 
-            if (!$x_daterange && $x->type eq 'curval' && $x_value)
+            if (!$x_daterange && $x->is_curcommon && $x_value)
             {
                 $x_value = $self->_format_curcommon($x, $line);
             }
