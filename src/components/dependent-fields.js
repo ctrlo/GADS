@@ -108,9 +108,14 @@ const setupDependentFields = (() => {
         processChange();
       }
 
-      // Standard change of visible form field
-      $depends.on("change", function() {
-        processChange();
+      // Standard change of visible form field. Wrap in document.ready() to
+      // ensure that initial rendering of drop-down widgets do not trigger
+      // the change event on page load. This is needed as otherwise the
+      // "dependent-not-shown" flag (see above) will be overridden.
+      $(document).ready(function(){
+        $depends.on("change", function() {
+          processChange();
+        });
       });
     });
   };
