@@ -38,6 +38,12 @@ has as_json => (
     coerce  => sub {
         # Ensure consistent format
         my $json = shift || '{}';
+        $json = '' . $json;
+        $json =~ s/^\s+|\s+$//g;
+
+        my $jsonFirstChar = substr( $json, 0, 1);
+        $json = $jsonFirstChar eq '{' || $jsonFirstChar eq  '[' ? $json : '{}';
+
         my $hash = decode_json_utf8($json);
         decode("utf8", encode_json($hash));
     },
