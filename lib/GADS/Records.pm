@@ -1666,7 +1666,7 @@ sub clear
 }
 
 has additional_filters => (
-    is      => 'ro',
+    is      => 'rw',
     isa     => ArrayRef,
     # A default non-lazy value does not seem to work here
     lazy    => 1,
@@ -1747,7 +1747,7 @@ sub _query_params
             my $col = $layout->column($additional->{id});
             my $f = {
                 id          => $col->id,
-                operator    => $col->string_storage ? 'begins_with' : 'equal',
+                operator    => $col->string_storage ? 'contains' : 'equal',
                 value       => $additional->{value},
                 value_field => $col->value_field_as_index($additional->{value}),
             };

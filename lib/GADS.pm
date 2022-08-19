@@ -1999,16 +1999,20 @@ get '/chronology/:id?' => require_login sub {
     );
     $record->find_chronology_id($id);
 
-    my $breadcrumbs = [
-        Crumb( $record->layout ),
-        Crumb( $record->layout, "/data" => 'records' ),
-        Crumb( "/chronology/".$record->current_id => 'record id ' . $record->current_id ),
-    ];
+    my $layout      = $record->layout;
+    my $base_url    = request->base;
+    my $table_short = $layout->identifier;
+    my $record_id   = $record->current_id;
+
 
     template 'chronology' => {
-        record      => $record,
-        breadcrumbs => $breadcrumbs,
-        page        => 'chronology',
+        record                       => $record,
+        page                         => 'chronology',
+        content_block_custom_classes => 'content-block--record',
+        detail_header                => 1,
+        header_back_url              => "${base_url}${table_short}/record/${record_id}",
+        layout                       => $layout,
+        layout_obj                   => $layout,
     };
 };
 
@@ -3543,6 +3547,7 @@ prefix '/:layout_name' => sub {
 
         my $base_url        = request->base;
         my $tableIdentifier = $layout->identifier;
+        my $back_url        = param('id') ? "${base_url}${tableIdentifier}/layout" : "${base_url}table";
 
         $params->{groups}                       = GADS::Groups->new(schema => schema);
         $params->{permissions}                  = [GADS::Type::Permissions->all];
@@ -3551,7 +3556,7 @@ prefix '/:layout_name' => sub {
         $params->{topics}                       = [schema->resultset('Topic')->search({ instance_id => $layout->instance_id })->all];
         $params->{content_block_custom_classes} = 'content-block--footer';
         $params->{detail_header}                = 1;
-        $params->{header_back_url}              = "${base_url}${tableIdentifier}";
+        $params->{header_back_url}              = $back_url;
         $params->{layout_obj}                   = $layout;
 
         if (param 'saveposition')
