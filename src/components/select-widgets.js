@@ -36,11 +36,12 @@ const setupSelectWidgets = (() => {
       }, 50);
     };
 
-    var updateState = function() {
+    var updateState = function(no_trigger_change) {
       var $visible = $current.children("[data-list-item]:not([hidden])");
 
       $current.toggleClass("empty", $visible.length === 0);
-      $widget.trigger("change");
+      if (!no_trigger_change)
+        $widget.trigger("change");
     };
 
     var possibleCloseWidget = function(e) {
@@ -427,7 +428,7 @@ const setupSelectWidgets = (() => {
       }
     };
 
-    updateState();
+    updateState(true);
 
     connect();
 
