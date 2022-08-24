@@ -71,7 +71,7 @@
                             [% END %]
                             [% FOREACH column IN layout.columns_for_filter %]
                                 <option value="[% column.filter_id %]"
-                                    data-is-date="[% IF coumns.return_type == "date" OR column.return_type == "daterange" %]1[% ELSE %]0[% END %]"
+                                    data-is-date="[% IF column.return_type == "date" OR column.return_type == "daterange" %]1[% ELSE %]0[% END %]"
                                     [% IF graph.x_axis_full == column.filter_id %]selected[% END %]>[% column.filter_name | html_entity %]
                                 </option>
                             [% END %]
