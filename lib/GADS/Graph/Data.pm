@@ -681,7 +681,7 @@ sub _records_to_results
     # to pre-populate the range of x values. This is not needed with a
     # daterange, as when results are retrieved for a daterange it includes each
     # x-axis value in each row retrieved (dates only include the single value)
-    if ($self->x_axis_range && $self->x_axis_col->type eq 'date')
+    if (!$self->trend && $self->x_axis_range && $self->x_axis_col->type eq 'date')
     {
         foreach my $x (@$x)
         {
