@@ -146,12 +146,18 @@ sub fetch_multivalues
     my $m_rs = $self->multivalue_rs($record_ids);
     $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my @values = $m_rs->all;
+
+    # Keep a track of sheet joins in a tree. Add this column to the tree.
+    my $tree = $options{already_seen};
+    my $child = Tree::DAG_Node->new({name => $self->id});
+    $tree->add_daughter($child);
+
     my $records = GADS::Records->new(
-        already_seen            => $options{already_seen},
+        already_seen            => $child,
         user                    => $self->layout->user,
         layout                  => $self->layout_parent,
         schema                  => $self->schema,
-        columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns, %options),
+        columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns, %options, already_seen => $child),
         limit_current_ids       => [map { $_->{record}->{current_id} } @values],
         include_children        => 1, # Ensure all autocur records are shown even if they have the same text content
         ignore_view_limit_extra => 1,

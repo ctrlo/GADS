@@ -85,9 +85,6 @@ sub _add_children
             column     => $c,
             parent     => $column,
         };
-        $self->_add_children($child, $c, %options)
-            if $c->is_curcommon;
-        $options{already_seen}->{$c->id} = 1;
         push @{$join->{children}}, $child
             if !$existing{$c->id};
     }
@@ -96,26 +93,20 @@ sub _add_children
 sub _add_jp
 {   my ($self, $column, %options) = @_;
 
-    return if !$column->tjoin;
-
     # Catch a bug whereby fields could be made to be linked to fields within
     # the same table. This results in data not being retrieved properly.
     panic __x"Link parent of field ID {id} is from same table as field itself", id => $column->id
         if $column->link_parent && $column->link_parent->instance_id == $column->instance_id;
 
     my $key;
-    my $toadd = $column->tjoin(all_fields => $options{all_fields});
+    my $toadd = $column->tjoin(all_fields => $options{all_fields})
+        or return;
     ($key) = keys %$toadd if ref $toadd eq 'HASH';
 
     trace __x"Checking or adding {field} to the store", field => $column->field
         if $debug;
 
     my $prefetch = ($column->fetch_with_record || ($options{include_multivalue} && $options{include_multivalue} == $column->id)) && $options{prefetch};
-
-    # A hash to ensure that we don't recurse into the same fields over and
-    # over. For example, if we are viewing a curval which has an autocur that
-    # refers back to it, only join these on once.
-    my $already_seen = {};
 
     # Check whether join is already in store, if so update
     trace __x"Check to see if it's already in the store"
@@ -139,8 +130,13 @@ sub _add_jp
                 $j->{sort}     ||= $options{sort};
                 $j->{group}    ||= $options{group};
                 $j->{drcol}    ||= $options{drcol};
-                $self->_add_children($j, $column, %options, already_seen => $already_seen)
-                    if ($column->is_curcommon && $prefetch);
+                if ($column->is_curcommon && $prefetch)
+                {
+                    my $tree = $self->already_seen;
+                    my ($daughter) = grep { $_->name == $column->id} $tree->daughters
+                        or panic "missing";
+                    $self->_add_children($j, $column, %options, already_seen => $daughter);
+                }
                 trace __x"Found existing, returning"
                     if $debug;
                 return;
@@ -168,8 +164,13 @@ sub _add_jp
 
     # If it's a curval field then we need to account for any joins that are
     # part of the curval
-    $self->_add_children($join_add, $column, %options, already_seen => $already_seen)
-        if ($column->is_curcommon && $prefetch);
+    if ($column->is_curcommon && $prefetch)
+    {
+        my $tree = $self->already_seen;
+        my $daughter = Tree::DAG_Node->new({name => $column->id});
+        $tree->add_daughter($daughter);
+        $self->_add_children($join_add, $column, %options, already_seen => $daughter);
+    }
 
     # Otherwise add it
     if (my $parent = $options{parent})

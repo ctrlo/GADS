@@ -77,7 +77,6 @@ sub clear
     $self->clear_curval_field_ids_all;
     $self->clear_curval_field_ids;
     $self->clear_curval_field_ids_index;
-    $self->clear_curval_fields_multivalue;
 }
 
 sub values_for_timeline
@@ -120,7 +119,7 @@ has '+use_id_in_filter' => (
 
 sub tjoin
 {   my ($self, %options) = @_;
-    $self->make_join(map { $_->tjoin } grep { !$_->internal } @{$self->curval_fields_retrieve(%options)});
+    $self->make_join(map { $_->tjoin(already_seen => $options{already_seen}) } grep { !$_->internal } @{$self->curval_fields_retrieve(%options)});
 }
 
 sub _build_fetch_with_record
@@ -178,18 +177,12 @@ sub _build_curval_field_ids_index
 }
 
 # All the curval fields that are multivalue
-has curval_fields_multivalue => (
-    is      => 'lazy',
-    isa     => ArrayRef,
-    clearer => 1,
-);
-
-sub _build_curval_fields_multivalue
-{   my $self = shift;
+sub curval_fields_multivalue
+{   my ($self, %options) = @_;
     # Assume that as this is already a curval, that if we're rendering it as a
     # record then we don't need curvals within curvals, which saves on the data
     # being retrieved from the database
-    [grep { !$_->is_curcommon && $_->multivalue } @{$self->curval_fields_all}];
+    [grep { !$_->is_curcommon && $_->multivalue } @{$self->curval_fields_retrieve(%options, all_fields => 1)}];
 }
 
 has curval_field_ids_all => (
@@ -225,12 +218,14 @@ sub curval_field_ids_retrieve
 # improved, so as only retrieving the code fields that are needed.
 sub curval_fields_retrieve
 {   my ($self, %options) = @_;
-    return $self->curval_fields if !$options{all_fields};
-    my $ret = $self->curval_fields_all;
+    my $all = $options{all_fields} ? $self->curval_fields_all : $self->curval_fields;
     # Prevent recursive loops of fields that refer to each other
-    $ret = [grep { !$options{already_seen}->{$self->id."_".$_->id} } @$ret];
-    $options{already_seen}->{$self->id."_".$_->id} = 1 foreach @$ret;
-    $ret;
+    if (my $tree = $options{already_seen})
+    {
+        my %exists = map { $_->name => 1 } $tree->ancestors;
+        $all = [grep !$exists{$_->id}, @$all];
+    }
+    $all;
 };
 
 sub curval_fields_all
