@@ -2631,7 +2631,7 @@ sub pdf
                 my @l = ($first ? $col->name : '');
                 foreach my $v (@{$line->{values}})
                 {
-                    push @l, $v->as_string;
+                    push @l, $v;
                     $field_count++;
                 }
                 push @$data, \@l;
