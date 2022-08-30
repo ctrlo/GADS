@@ -134,7 +134,7 @@ sub _add_jp
                 {
                     my $tree = $self->already_seen;
                     my ($daughter) = grep { $_->name == $column->id} $tree->daughters
-                        or panic "missing";
+                        or panic "Could not find column ".$column->id.", tree is ".join("\n", @{$tree->tree2string});
                     $self->_add_children($j, $column, %options, already_seen => $daughter);
                 }
                 trace __x"Found existing, returning"
