@@ -164,12 +164,13 @@ sub _add_jp
 
     # If it's a curval field then we need to account for any joins that are
     # part of the curval
-    if ($column->is_curcommon && $prefetch)
+    if ($column->is_curcommon)
     {
         my $tree = $self->already_seen;
         my $daughter = Tree::DAG_Node->new({name => $column->id});
         $tree->add_daughter($daughter);
-        $self->_add_children($join_add, $column, %options, already_seen => $daughter);
+        $self->_add_children($join_add, $column, %options, already_seen => $daughter)
+            if $prefetch;
     }
 
     # Otherwise add it

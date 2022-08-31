@@ -464,6 +464,24 @@ foreach my $multivalue (0..1)
             ],
         },
         {
+            name         => 'Enum field from curval on x-axis, with filter on whole curval',
+            type         => 'bar',
+            x_axis       => $curval_sheet->columns->{enum1}->id,
+            x_axis_link  => $columns->{curval1}->id,
+            y_axis       => $columns->{tree1}->id,
+            y_axis_stack => 'count',
+            data         => [[ 2 ]],
+            xlabels      => ['foo1'],
+            rules => [
+                {
+                    id       => $columns->{curval1}->id,
+                    type     => 'string',
+                    value    => '1',
+                    operator => 'equal',
+                }
+            ],
+        },
+        {
             name         => 'Curval on x-axis grouped by enum',
             type         => 'bar',
             x_axis       => $columns->{curval1}->id,
