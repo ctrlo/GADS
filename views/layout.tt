@@ -260,7 +260,8 @@
                 <label for="override_permissions">Permissions override:</label>
                 <div class="checkbox">
                     <label>
-                        <input id="override_permissions" type="checkbox" name="override_permissions" [% IF column.override_permissions %]checked[% END %]>Override any user permissions when selecting records for this field
+                        <input id="override_permissions" type="checkbox" name="override_permissions" value="1"
+                            [% IF column.type == "curval" AND column.override_permissions %]checked[% END %]>Override any user permissions when selecting records for this field
                     </label>
                 </div>
             </div>
@@ -490,6 +491,15 @@
     </div>
     <div class="field-options autocur">
         <h4>Auto-value field options</h4>
+        <div class="form-group">
+            <label for="override_permissions">Permissions override:</label>
+            <div class="checkbox">
+                <label>
+                    <input id="override_permissions" type="checkbox" name="override_permissions" value="1"
+                        [% IF column.type == "autocur" AND column.override_permissions %]checked[% END %]>Override any user permissions when selecting records for this field
+                </label>
+            </div>
+        </div>
         [% IF layout.referred_by.size %]
             <div class="form-group">
                 <label for="related_field_id">Fields referring to this field:</label>
