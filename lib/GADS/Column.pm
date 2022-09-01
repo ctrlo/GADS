@@ -1325,6 +1325,12 @@ sub _write_permissions
     {
         my @new_permissions = @{$permissions{$group_id}};
 
+        # Approval functionality temporarily removed, fill in necessary
+        # approval permissions to ensure full functionality for selected
+        # permissions
+        push @new_permissions, 'write_existing_no_approval' if grep $_ eq 'write_existing', @new_permissions;
+        push @new_permissions, 'write_new_no_approval' if grep $_ eq 'write_new', @new_permissions;
+
         my @existing_permissions = $self->schema->resultset('LayoutGroup')->search({
             layout_id  => $id,
             group_id   => $group_id,
