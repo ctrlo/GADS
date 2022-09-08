@@ -921,7 +921,8 @@ sub _create_table
         {
             my $group_id = $perm->{group_id};
             $permissions{$group_id} ||= [];
-            foreach my $p (qw/create read update approve write_without_approval/)
+            # Approval permissions to be added later
+            foreach my $p (qw/create read update/)
             {
                 if ($perm->{permissions}->{create})
                 {
@@ -934,16 +935,6 @@ sub _create_table
                 if ($perm->{permissions}->{update})
                 {
                     push @{$permissions{$group_id}}, 'write_existing';
-                }
-                if ($perm->{permissions}->{approve})
-                {
-                    push @{$permissions{$group_id}}, 'approve_new';
-                    push @{$permissions{$group_id}}, 'approve_existing';
-                }
-                if ($perm->{permissions}->{write_without_approval})
-                {
-                    push @{$permissions{$group_id}}, 'write_new_no_approval';
-                    push @{$permissions{$group_id}}, 'write_existing_no_approval';
                 }
             }
         }
