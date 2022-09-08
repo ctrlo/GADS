@@ -1278,7 +1278,7 @@
                       sub_field   = "fields/sub/checkbox.tt"
                       sub_params  = {
                         id => "permission_read_" _ group.id
-                        name => "permission_read_" _ group.id
+                        name => "read"
                         label => permission_inputs.read
                         checked => 0
                         filter => "html"
@@ -1294,7 +1294,7 @@
                       sub_field   = "fields/sub/checkbox.tt"
                       sub_params  = {
                         id => "permission_write_new_" _ group.id
-                        name => "permission_write_new_" _ group.id
+                        name => "create"
                         label => permission_inputs.write_new
                         checked => 0
                         filter => "html"
@@ -1310,7 +1310,7 @@
                       sub_field   = "fields/sub/checkbox.tt"
                       sub_params  = {
                         id => "permission_write_existing_" _ group.id
-                        name => "permission_write_existing_" _ group.id
+                        name => "update"
                         label => permission_inputs.write_existing
                         checked => 0
                         filter => "html"
