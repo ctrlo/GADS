@@ -3,9 +3,15 @@
   data_attr  = field_name ? ' data-' _ field_name _ '="' _ field_value _ '"' : '';
 %]
 <td [% cell_class %][% data_attr %]>
-  <a href='[% url.page %][% link %]' class='link text-nowrap'>
+  [% IF button_type == "button" %]
+  <button type="button" class="[% button_class || 'btn btn-default' %]">
+    <span class="btn__title">[% INCLUDE fields/sub/filter.tt value=label; %]</span>
+  </button>
+  [% ELSE %]
+  <a href='[% url.page %][% link %]' class='[% button_class || "link text-nowrap" %]'>
     [% INCLUDE fields/sub/filter.tt value=label; %]
   </a>
+  [% END %]
   [%
     IF sub_field_type == "array";
       sub_field_key = 0;
