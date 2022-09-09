@@ -241,56 +241,76 @@
       <footer class="content-block__footer">
         <div class="content-block__footer-container">
           [%
+            left_buttons = [];
             right_buttons = [];
           
-            right_buttons.push({
-              type  = "button",
-              class = "btn btn-inverted btn-js-remove-unload",
-              id    = "submit-and-remain",
-              name  = "submit",
-              value = "submit-and-remain",
-              label = "Save and continue"
-            }, {
-              type  = "button",
-              class = "btn btn-default btn-js-remove-unload",
-              id    = "submit",
-              name  = "submit",
-              value = "submit",
-              label = "Save and exit"
-            });
+            IF edit_modal;
+              left_buttons.push({
+                type    = "modal_dismiss_button"
+                class   = "btn btn-cancel"
+                label   = "Cancel"
+              });
           
-            # IF record.new_entry AND page != "bulk";
-            #   right_buttons.push({
-            #     type  = "button",
-            #     class = "btn btn-inverted btn-js-remove-unload",
-            #     id    = "draft",
-            #     name  = "draft",
-            #     value = "submit",
-            #     label = "Save and continue"
-            #   });
-            #
-            #   IF record.is_draft;
-            #     right_buttons.push({
-            #       type  = "button",
-            #       class = "btn btn-delete",
-            #       id    = "delete_draft",
-            #       name  = "delete_draft",
-            #       value = "submit",
-            #       label = "Delete draft"
-            #     });
-            #   END;
-            # END;
+              right_buttons.push({
+                type  = "button",
+                class = "btn btn-default",
+                id    = "",
+                name  = "submit",
+                value = "1",
+                label = record.new_entry ? "Add" : "Update"
+              });
+            ELSIF NOT view_modal;
+              left_buttons.push({
+                type   = "link",
+                target = url.page _ "/" _ layout_obj.identifier _ "/data",
+                class  = "btn btn-cancel btn-js-cancel",
+                label  = "Cancel"
+              });
+          
+              right_buttons.push({
+                type  = "button",
+                class = "btn btn-inverted btn-js-remove-unload",
+                id    = "submit-and-remain",
+                name  = "submit",
+                value = "submit-and-remain",
+                label = "Save and continue"
+              }, {
+                type  = "button",
+                class = "btn btn-default btn-js-remove-unload",
+                id    = "submit",
+                name  = "submit",
+                value = "submit",
+                label = "Save and exit"
+              });
+          
+              # IF record.new_entry AND page != "bulk";
+              #   right_buttons.push({
+              #     type  = "button",
+              #     class = "btn btn-inverted btn-js-remove-unload",
+              #     id    = "draft",
+              #     name  = "draft",
+              #     value = "submit",
+              #     label = "Save and continue"
+              #   });
+              #
+              #   IF record.is_draft;
+              #     right_buttons.push({
+              #       type  = "button",
+              #       class = "btn btn-delete",
+              #       id    = "delete_draft",
+              #       name  = "delete_draft",
+              #       value = "submit",
+              #       label = "Delete draft"
+              #     });
+              #   END;
+              # END;
+            END;
           
             INCLUDE navigation/button_bar.tt
               row_class = "row"
               columns   = [{
                 class   = "col-md-4 mb-3 mb-md-0",
-                buttons = [{
-                  type   = "link",
-                  target = url.page _ "/" _ layout_obj.identifier _ "/data",
-                  class  = "btn btn-cancel btn-js-cancel",
-                  label  = "Cancel"
-                }]
+                buttons = left_buttons
               }, {
                 class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
                 buttons = right_buttons
@@ -301,6 +321,8 @@
     </fieldset>
   </form>
 </div>
+
+[% INCLUDE wizard/curval.tt modalId="curvalModal"; %]
 
 [%
   IF record.user_can_delete;
@@ -609,8 +631,28 @@
       END;
       
       IF col.value_selector == "noshow";
+        '<fieldset class="fieldset input test">';
+        INCLUDE fields/sub/label_fieldset.tt
+          id           = col.id
+          label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          label        = field_label
+          help_text    = col.description
+          popover_body = col.helptext;
+        
+        add_my_btn = col.show_add;
+  
+        IF add_my_btn;
+          PROCESS curval_add_button;
+        END;
+  
         PROCESS curval_noshow;
         INCLUDE fields/hidden.tt id="" name=field value="" filter="";
+  
+        IF add_my_btn and editvalue.html_form.size > 10;
+          PROCESS curval_add_button;
+        END;
+  
+        '</fieldset>';
       ELSIF col.multivalue;
         INCLUDE fields/select_multiple.tt
           id           = col.id
@@ -895,27 +937,93 @@
   </div>
 [% END %]
 
-[% BLOCK curval_noshow %]
-    <table class="data-table table table-striped curval_group" id="curval_list_[% col.id %]">
-        <tbody>
-            [% FOREACH val IN editvalue.html_form %]
-                <tr class="curval_item">
-                    [% FOREACH col IN val.presentation.columns %]
-                        <td class="curval-inner-text [% col.type %]">[% render_datum(col) %]</td>
-                    [% END %]
-                    <td>
-                        <input type="hidden" id="curval-current-id-[% val.id %]" name="[% field %]" value="[% val.as_query OR val.id %]">
-                        <a class="curval-modal"
-                            data-current-id="[% val.id %]"
-                            data-instance-name="[% col.layout_parent.identifier %]" data-layout-id="[% col.id %]" style='cursor:pointer'
-                            >edit</a>
-                        [% UNLESS col.limit_rows %]
-                            |
-                            <a class="curval_remove" style='cursor:pointer'>remove</a>
-                        [% END %]
-                    </td>
-                </tr>
-            [% END %]
-        </tbody>
-    </table>
+[% BLOCK curval_add_button %]
+  <button
+    type="button"
+    class="btn btn-js-curval-modal btn-add-link"
+    data-toggle="modal"
+    data-target=#curvalModal
+    data-layout-id="[% col.id %]"
+    data-instance-name="[% col.layout_parent.identifier %]"
+  >
+    <span class="btn__title">Add</span>
+  </button>
+[% END %]
+
+[%
+  BLOCK curval_noshow;
+    # prepare table config
+    table_id               = 'curval_list_' _ col.id;
+    table_class            = 'table-curval-group table-thead-hidden table-striped';
+    table_dom              = 't';
+    table_order            = '[0,"asc"]';
+    table_language         = '{"emptyTable": "No data available."}';
+    table_show_all_records = 1
+    table_columns          = [];
+
+    table_buttons = [{
+      type         = "modal_button"
+      button_class = "btn btn-small btn-link btn-js-curval-modal"
+      modalId      = "curvalModal"
+      label        = "Edit"
+      filter       = ""
+      sub_field    = "fields/hidden.tt"
+      sub_params   = ""
+    }];
+
+    UNLESS column.limit_rows;
+      table_buttons.push({
+        type             = "button"
+        button_type      = "button"
+        button_class     = "btn btn-small btn-delete btn-js-curval-remove"
+        label            = "Remove"
+      });
+    END;
+
+    rows = [];
+
+    first_loop = 1;
+
+    FOREACH val IN editvalue.html_form;
+      row = {
+        button = {
+          sub_params = {
+            id    = "curval-current-id-" _ val.id
+            name  = field
+            value = val.as_query OR val.id
+          }
+        }
+        modal = {
+          dataCurrentId = val.id
+          dataLayoutId = col.id
+          dataInstanceName = col.layout_parent.identifier
+        }
+        class = "table-curval-item"
+        fields = []
+      };
+
+      FOREACH subcol IN val.presentation.columns;
+        IF first_loop;
+          table_columns.push({
+            name      = "",
+            class     = "curval-inner-text data-table__header--invisible",
+            orderable = 0
+          });
+        END;
+
+        row.fields.push({
+          type       = "text",
+          label      = render_datum(subcol),
+          field_name = "column",
+          cell_class = "curval-inner-text " _ subcol.type
+        });
+      END;
+
+      rows.push(row);
+      first_loop = 0;
+    END;
+
+    INCLUDE tables/basic_table.tt;
+%]
+
 [% END %]

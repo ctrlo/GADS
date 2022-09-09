@@ -2,11 +2,11 @@
   <button
     class="popover__btn [%- popover_button_class %]"
     type="button"
-    title="[% popover_title || 'Information popover' %]"
+    title="[% (popover_button_title || 'Information popover') | html %]"
     aria-describedby="[% popover_id %]-popover"
   >
     <div class="arrow"></div>
-    [% popover_button_text %]
+    [% popover_button_text | html %]
   </button>
   <div class="popover [%- popover_no_bottom ? '' : 'bs-popover-bottom' %]" role="tooltip" id="[% popover_id %]-popover">
     <div class="popover-body">

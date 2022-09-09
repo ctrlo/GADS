@@ -66,13 +66,21 @@
     FOREACH row in rows;
       FOREACH button in table_buttons;
         row.fields.push({
-          type      = button.type || "button"
-          label     = button.label
-          link      = button.link || ''
-          filter    = button.filter || ''
-          modalId   = button.modalId || ''
-          dataTitle = row.modal.dataTitle || ''
-          dataID    = row.modal.dataID || ''
+          type             = button.type || "button"
+          button_type      = button.button_type || "link"
+          class            = button.class || ''
+          button_class     = button.button_class || ''
+          label            = button.label
+          link             = button.link || ''
+          filter           = button.filter || ''
+          modalId          = button.modalId || ''
+          sub_field        = button.sub_field || ''
+          sub_params       = button.sub_params || row.button.sub_params || ''
+          dataCurrentId    = row.modal.dataCurrentId || ''
+          dataLayoutId     = row.modal.dataLayoutId || ''
+          dataInstanceName = row.modal.dataInstanceName || ''
+          dataTitle        = row.modal.dataTitle || ''
+          dataID           = row.modal.dataID || ''
         });
       END;
     END;
