@@ -8,7 +8,7 @@
          data-current-dashboard="[% dashboard.as_json | html %]"
          data-dashboard-endpoint="[% IF layout %]/[% layout.identifier %][% END %]/api/dashboard/[% dashboard.id %]"
          [% IF dashboard.instance_id %]
-         data-widget-types='["notice", "graph"]'
+         data-widget-types='["notice", "graph", "table", "timeline"]'
          [% ELSE %]
          data-widget-types='["notice"]'
          [% END %]

@@ -2236,20 +2236,6 @@ prefix '/:layout_name' => sub {
         my $dashboard = schema->resultset('Dashboard')->dashboard(%params)
             || schema->resultset('Dashboard')->shared_dashboard(%params);
 
-        # If the shared dashboard is blank for this table then show the site
-        # dashboard by default. That is, unless the shared dashboard has been
-        # specifically requested, in which case we allow access in order to be
-        # able to update it
-        if (!$dashboard || (!query_parameters->get('did') && $dashboard->is_shared && $dashboard->is_empty))
-        {
-            my %params = (
-                user   => $user,
-                site   => var('site'),
-            );
-            $dashboard = schema->resultset('Dashboard')->dashboard(%params)
-                || schema->resultset('Dashboard')->shared_dashboard(%params);
-        }
-
         my $base_url = request->base;
 
         my $params = {

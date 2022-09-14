@@ -1,6 +1,12 @@
-[% PROCESS snippets/datum.tt %]
+[%
+  # 2022-09-14
+  # data_table_inner.tt is now only used in widgets.
+  # Regular record browse purely uses data_table.tt.
 
-<table class="data-table table table-striped table-hover col-md-12" id="data-table">
+  PROCESS snippets/datum.tt;
+%]
+
+<table class="table table-hover col-md-12" id="data-table">
     <thead>
         <tr>
             [% IF is_group %]
@@ -8,57 +14,14 @@
             [% END %]
             [% FOREACH col IN columns %]
                 <th scope="col" aria-sort="[% col.sort.aria %]" data-thlabel="[% col.name | html %]">
-                    [% IF widget %]
-                        [% col.name | html %]
-                    [% ELSE %]
-                        <button type="button" class="trigger" aria-expanded="false"
-                            aria-controls="col-[% col.id %]-options" data-expand-on-hover="true">
-                            [% IF col.has_filter %]⧩[% END %][% col.sort.current %][% col.name | html_entity %]
-                            &rsaquo;
-                        </button>
-                        <div class="expandable popover" id="col-[% col.id %]-options">
-                            <div class="column-name">[% col.name | html_entity %]</div>
-                            <a href="?sort=[% col.sort.link %]" class="sort-link">
-                                [% col.sort.symbol %] sort [% col.sort.text %]
-                            </a>
-                            [% IF col.type == "person" AND layout.user_can("message") AND records.size %]
-                                <button aria-haspopup="true" type="button" class="btn btn-sm btn-primary"
-                                    data-toggle="modal" data-target="#modal_sendemail" data-peopcol_id="[% col.id %]">
-                                    <span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>
-                                    Email each person in this column
-                                </button>
-                            [% END %]
-                            <div class="column-filter" data-col-id="[% col.id %]" data-autocomplete-endpoint="/[% layout.identifier %]/match/layout/[% col.id %]?q=" data-values='[% col.filter_values %]' data-autocomplete-has-id="[% col.fixedvals %]">
-                                [% IF col.has_filter %]
-                                    <a class="column-filter__clear" href="?[% col.url_filter_remove %]">Clear filter</a>
-                                [% END %]
-                                [% IF col.has_filter_search %]
-                                    <div class="column-filter__search">
-                                        <input class="column-filter__search-input" type="text" name="q" placeholder="Search..." autocomplete="off" aria-controls="column-filter__values_[% col.id %]" value="[% col.filter_text | html %]" />
-                                        <a href="#" class="column-filter__clear-search-input fa fa-times" title="Clear search input" hidden></a>
-                                    </div>
-                                    <p class="column-filter__spinner" hidden>
-                                        Searching... <i class="fa fa-spinner fa-spin" style="font-size:24px"></i>
-                                    </p>
-                                    <p class="column-filter__error alert alert-danger" hidden></p>
-                                [% END %]
-                                <ul class="column-filter__values" id="column-filter__values_[% col.id %]" aria-label="Filters"></ul>
-                                <div class="column-filter__buttons">
-                                    <button class="column-filter__button column-filter__submit btn btn-xs btn-default" type="submit">Go</button>
-                                </div>
-                            </div>
-                            [% IF col.helptext %]
-                            <p class="helptext">[% col.helptext | html_entity %]</p>
-                            [% END %]
-                        </div>
-                    [% END %]
+                    [% col.name | html %]
                 </th>
             [% END %]
         </tr>
     </thead>
     <tbody>
         [% FOREACH record IN records %]
-            <tr data-href="/record/[% record.current_id %]">
+            <tr data-href="[% url.page %]/record/[% record.current_id %]">
                 [% IF is_group %]
                     <td>[% record.id_count %]&nbsp;record[% IF record.id_count != 1 %]s[% END %]</td>
                 [% END %]
@@ -68,10 +31,17 @@
                             [% IF record.parent_id %]<span title="Child record with parent record [% record.parent_id %]">[% record.parent_id %] &#8594;</span>[% END %]
                             <a href="/record/[% record.current_id %]">[% record.current_id %]</a>
                         </td>
-                    [% ELSIF column.is_group %]
-                        <td>[% render_datum(column, 'group') %]</td>
                     [% ELSE %]
-                        <td class="[% column.type %]">[% render_datum(column) %]</td>
+                        <td class="[% column.type %]">
+                          [% has_anchor = anchor_datum(column, (column.is_group ? 'group' : '')); %]
+                          [% IF has_anchor %]
+                          <a class="link link--plain" href="[% url.page %]/record/[% record.current_id %]">
+                          [% END %]
+                          [% render_datum(column, (column.is_group ? 'group' : '')) %]
+                          [% IF has_anchor %]
+                          </a>
+                          [% END %]
+                        </td>
                     [% END %]
                 [% END %]
             </tr>
@@ -82,7 +52,16 @@
                     <td></td>
                 [% END %]
                 [% FOREACH column IN aggregate.columns %]
-                    <td class="[% column.type %]">[% render_datum(column) %]</td>
+                    [% has_anchor = anchor_datum(column); %]
+                    <td class="[% column.type %]">
+                      [% IF has_anchor %]
+                      <a class="link link--plain" href="[% url.page %]/record/[% record.current_id %]">
+                      [% END %]
+                      [% render_datum(column) %]
+                      [% IF has_anchor %]
+                      </a>
+                      [% END %]
+                    </td>
                 [% END %]
             </tr>
         [% END %]
