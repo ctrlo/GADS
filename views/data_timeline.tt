@@ -1,16 +1,5 @@
 <div class="content-block__main">
   <div class="content-block__main-content">
-    <div class="timeline">
-      <div class="timeline__legend">
-        [% FOREACH color IN colors %]
-        <div class="timeline__color">
-          <div class="timeline__color-key" style="background-color:[% color.color %]"></div>
-          <div class="timeline__color-text">[% color.key | html_entity %]</div>
-        </div>
-        [% END %]
-      </div>
-      
-      [% PROCESS snippets/data_timeline_inner.tt %]
-    </div>
+    [% PROCESS snippets/data_timeline_inner.tt %]
   </div>
 </div>
