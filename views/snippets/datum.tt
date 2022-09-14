@@ -124,36 +124,57 @@
     <a href="?[% col.filter_url %]">[% col.data.value OR '<blank>' | html %]</a>
 [% END %]
 
-[% MACRO render_datum(col, render_options) BLOCK;
-
+[%
+  MACRO render_datum(col, render_options) BLOCK;
     IF render_options == 'group';
-        render_group(col);
+      render_group(col);
     ELSE;
+      full_content = 1 IF render_options == 'full';
 
-        full_content = 1 IF render_options == 'full';
-
-        SWITCH col.data.type;
-            CASE ['curval', 'autocur', 'filval'];
-                render_curcommon_datum(col.multivalue, col.data, col.name, full_content);
-            CASE 'file';
-                IF render_options == 'semi';
-                    full_content = 1;
-                END;
-                render_file_datum(col.data, full_content);
-            CASE ['person', 'createdby'];
-                render_person_datum(col.data);
-            CASE 'string';
-                render_string_datum(col.data, col.name, full_content);
-            CASE 'enum';
-                render_enum_datum(col.data, col.name, full_content);
-            CASE 'tree';
-                render_enum_datum(col.data, col.name, full_content);
-            CASE 'rag';
-                render_rag_datum(col.data);
-            CASE 'calc';
-                render_string_datum(col.data, col.name, full_content);
-            CASE;
-                col.data.value | html;
-        END;
+      SWITCH col.data.type;
+        CASE ['curval', 'autocur', 'filval'];
+          render_curcommon_datum(col.multivalue, col.data, col.name, full_content);
+        CASE 'file';
+          IF render_options == 'semi';
+              full_content = 1;
+          END;
+          render_file_datum(col.data, full_content);
+        CASE ['person', 'createdby'];
+          render_person_datum(col.data);
+        CASE 'string';
+          render_string_datum(col.data, col.name, full_content);
+        CASE 'enum';
+          render_enum_datum(col.data, col.name, full_content);
+        CASE 'tree';
+          render_enum_datum(col.data, col.name, full_content);
+        CASE 'rag';
+          render_rag_datum(col.data);
+        CASE 'calc';
+          render_string_datum(col.data, col.name, full_content);
+        CASE;
+          col.data.value | html;
+      END;
     END;
-END %]
+  END;
+%]
+
+[%
+  MACRO anchor_datum(col, render_options) BLOCK;
+    IF render_options == 'group';
+        0;
+    ELSE;
+      full_content = 1 IF render_options == 'full';
+
+      SWITCH col.data.type;
+        CASE ['curval', 'autocur', 'filval', 'file', 'person', 'createdby'];
+          0;
+        CASE ['enum', 'tree'];
+          !full_content && col.data.value.length > MORE_LESS_TRESHOLD ? 0 : 1;
+        CASE ['string', 'calc'];
+          !full_content && col.data.html.defined && col.data.html.length > MORE_LESS_TRESHOLD ? 0 : 1;
+        CASE;
+          1;
+      END;
+    END;
+  END;
+%]
