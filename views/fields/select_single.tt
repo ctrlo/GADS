@@ -1,63 +1,87 @@
-<fieldset class="fieldset [% fieldset_class %]">
-  [% INCLUDE fields/sub/label_fieldset.tt; %]
-  <div class="select-widget">
-    <div class="select-widget-dropdown">
-      <div class="form-control">
-        <ul class="current">
-          <li class="none-selected">[% INCLUDE fields/sub/filter.tt value=placeholder; %]</li>
-          [%
-            FOREACH item IN items;
-              value_hidden = item.id == value ? '' : " hidden";
-          %]
-          <li
-            data-list-id="[% item.id %]"
-            data-list-item="[% id %]_[% item.id %]"
-            data-list-text="[% item.name | html_entity %]"
-            [% value_hidden %]
-          >
-            <span class="widget-value__value">[% item.name | html_entity %]</span>
-            <button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
-          </li>
+[% IF ! hide_group %]
+<div class="form-group [% formgroup_class %]">
+[% END %]
+  <fieldset class="fieldset [% fieldset_class %]">
+    [% INCLUDE fields/sub/label_fieldset.tt; %]
+    <div class="select-widget">
+      <div class="select-widget-dropdown">
+        <div class="form-control">
+          <ul class="current">
+            <li class="none-selected">[% INCLUDE fields/sub/filter.tt value=placeholder; %]</li>
+            [%
+              FOREACH item IN items;
+                value_hidden = item.id == value ? '' : " hidden";
+            %]
+            <li
+              data-list-id="[% item.id %]"
+              data-list-item="[% id %]_[% item.id %]"
+              data-list-text="[% item.name | html_entity %]"
+              [% value_hidden %]
+            >
+              <span class="widget-value__value">[% item.name | html_entity %]</span>
+              <button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
+            </li>
+            [% END %]
+            <li class="search">
+              <input
+                type="search"
+                class="form-control-search"
+                style="width:100px"
+                placeholder="Search..."
+                aria-controls="[% id %]-values-single"
+                aria-expanded="false"
+                aria-describedby="[% id %]-label"
+              >
+            </li>
+          </ul>
+        </div>
+        
+        <ul hidden class="available [% with_details ? 'with-details' : ''; %]"
+            id="[% id %]-values-single"
+            aria-labelledby="[% id %]-label"
+            [% IF help_text %]aria-describedby="[% id %]-help"[% END %]
+            role="listbox"
+        >
+          <li class="has-noresults" hidden>No results</li>
+          [% FOREACH item IN items %]
+          <li class="answer" role="option">
+            [% IF with_details %]
+            <div class="control">
+            [% END %]
+              <div class="radio-group__option">
+                <input
+                  type="radio"
+                  id="[% id %]_[% item.id %]"
+                  class="radio-group__input"
+                  name="[% name %]"
+                  value=[% item.id %][% IF item.id == value %]
+                checked[% END %]
+              >
+              <label class="radio-group__label" for="[% id %]_[% item.id %]">
+                [% item.name %]
+              </label>
+            </div>
+          [% IF with_details %]
+            </div>
+            <div class="details">
+              <button
+                type="button"
+                class="btn btn-small btn-default btn-js-more-info"
+                data-toggle="modal"
+                data-target=#detailsModal
+                data-record-id="[% item.id %]"
+                aria-described-by="lbl-single-details-0"
+              >
+                <span class="btn__title">Details</span>
+              </button>
+            </div>
           [% END %]
-          <li class="search">
-            <input
-              type="search"
-              class="form-control-search"
-              style="width:100px"
-              placeholder="Search..."
-              aria-controls="[% id %]-values-single"
-              aria-expanded="false"
-              aria-describedby="[% id %]-label"
-            >
-          </li>
-        </ul>
-      </div>
-      
-      <ul hidden class="available "
-          id="[% id %]-values-single"
-          aria-labelledby="[% id %]-label"
-          [% IF help_text %]aria-describedby="[% id %]-help"[% END %]
-          role="listbox"
-      >
-        <li class="has-noresults" hidden>No results</li>
-        [% FOREACH item IN items %]
-        <li class="answer" role="option">
-          <div class="radio-group__option">
-            <input
-              type="radio"
-              id="[% id %]_[% item.id %]"
-              class="radio-group__input"
-              name="[% name %]"
-              value=[% item.id %][% IF item.id == value %]
-              checked[% END %]
-            >
-            <label class="radio-group__label" for="[% id %]_[% item.id %]">
-              [% item.name %]
-            </label>
-          </div>
         </li>
         [% END; %]
       </ul>
     </div>
   </div>
 </fieldset>
+[% IF ! hide_group %]
+</div>
+[% END %]
