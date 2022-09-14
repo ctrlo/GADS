@@ -1,6 +1,4 @@
 <div class="content-block__main">
-  
-  [% # TODO: reactivate widget types: "table", "timeline", "globe" %]
   <div class="content-block__main-content">
     <div id="ld-app"
          class="dashboard"
@@ -8,7 +6,7 @@
          data-current-dashboard="[% dashboard.as_json | html %]"
          data-dashboard-endpoint="[% IF layout %]/[% layout.identifier %][% END %]/api/dashboard/[% dashboard.id %]"
          [% IF dashboard.instance_id %]
-         data-widget-types='["notice", "graph", "table", "timeline"]'
+         data-widget-types='["notice", "graph", "table", "timeline", "globe"]'
          [% ELSE %]
          data-widget-types='["notice"]'
          [% END %]
