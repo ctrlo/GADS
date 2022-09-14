@@ -22,19 +22,17 @@
       IF record.parent_id;
         page_title = page_title _ "<small>(child of record " _ record.parent_id _ ")</small>";
       END;
-      
-      IF view_modal;
-        page_title = page_title _ '<a class="btn btn-default pull-right" href="/record/' _ record.current_id _ '">Open full record</a>';
-      END;
     ELSIF child;
       page_title = "Create child record of " _ child;
     ELSIF clone;
       page_title = "New record copied from record ID " _ clone;
     END;
     
-    INCLUDE layouts/page_header_table.tt
-      title = page_title
-      filter = "html";
+    IF ! view_modal;
+      INCLUDE layouts/page_header_table.tt
+        title = page_title
+        filter = "html";
+    END;
   END;
 
   IF NOT record.new_entry;
@@ -322,7 +320,17 @@
   </form>
 </div>
 
+[% IF view_modal %]
+<div class="modal-footer mt-1 pb-0 pr-0 pl-0">
+  <div class="modal-footer__left"></div>
+  <div class="modal-footer__right">
+    <a class="btn btn-default" href="[% url.page %]/record/' _ record.current_id _ '">Open full record</a>
+  </div>
+</div>
+[% END %]
+
 [% INCLUDE wizard/curval.tt modalId="curvalModal"; %]
+[% INCLUDE wizard/record_details.tt modalId="detailsModal"; %]
 
 [%
   IF record.user_can_delete;
@@ -350,13 +358,14 @@
 
 [%
   BLOCK panel_start;
-    block_topic = topic.topic;
-    open        = !block_topic OR block_topic.initial_state == 'open' ? 'true' : 'false';
+    block_topic        = topic.topic;
+    open               = !block_topic OR block_topic.initial_state == 'open' ? 'true' : 'false';
+    widget_id_modifier = view_modal ? '-modal' : '';
 %]
   <div class="[% panel_class %]">
     <div class="card card--expandable">
       <div class="card__header">
-        <button class="card__header-left" type="button" data-toggle="collapse" data-target="#topic[% col_panel.id %]" aria-expanded="false" aria-controls="topic[% col_panel.id %]">
+        <button class="card__header-left" type="button" data-toggle="collapse" data-target="#topic[% col_panel.id; widget_id_modifier; %]" aria-expanded="false" aria-controls="topic[% col_panel.id; widget_id_modifier; %]">
           <span class="card__title">
             [% block_topic.name OR 'Other' | html %]
             [% IF block_topic.description %]
@@ -387,15 +396,15 @@
             class="card__toggle"
             type="button"
             data-toggle="collapse"
-            data-target="#topic[% col_panel.id %]"
+            data-target="#topic[% col_panel.id; widget_id_modifier; %]"
             aria-expanded="[% open %]"
-            aria-controls="topic[% col_panel.id %]"
+            aria-controls="topic[% col_panel.id; widget_id_modifier; %]"
           >
             <span>Toggle collapsible</span>
           </button>
         </div>
       </div>
-      <div class="collapse[% IF open == 'true' %] show[% END %]" id="topic[% col_panel.id %]">
+      <div class="collapse[% IF open == 'true' %] show[% END %]" id="topic[% col_panel.id; widget_id_modifier; %]">
         <div class="card__content">
           [% IF topic.need_completed_topics_count %]
           <div role="alert" class="alert alert-warning">
@@ -428,12 +437,9 @@
     is_first_topic = 1;
     
     FOREACH topic IN record.topics;
-      click_to_edits = [];
-  
       IF existing;
         oldvalue = existing.fields.$colid.html; # All value already entity-encoded
       END;
-      
 
       panel_class = is_first_topic ? 'mb-3' : 'mt-3';
       PROCESS panel_start;
@@ -447,18 +453,12 @@
           FOREACH col_panel IN topic.columns;
             NEXT IF !is_history AND col_panel.data.dependent_not_shown;
             NEXT IF view_modal AND col.type == "autocur";
-        
-            IF editable AND col_panel.display_for_edit;
         %]
         <li class="list__item[% IF col_panel.data.blank AND NOT layout.no_hide_blank %] list__item--blank[% END %]">
           <span class="list__key">[% col_panel.name | html_entity %]</span>
           <span class="list__value">[% render_datum(col_panel, 'full') %]</span>
         </li>
-        [%
-              click_to_edits.push(col_panel);
-            END;
-          END;
-        %]
+        [% END %]
       </ul>
     </div>
   </div>
@@ -580,6 +580,7 @@
           hide_group   = 1
           items        = select_items
           values       = select_values
+          with_details = 0
           filter       = "html";
       ELSE;
         # Ensure a blank value is sent if nothing is selected
@@ -598,6 +599,7 @@
           hide_group     = 1
           items          = select_items
           value          = select_value
+          with_details   = 0
           filter         = "html";
       END;
     ELSIF col.type == "curval";
@@ -629,63 +631,71 @@
   
         select_items.push({id=value.value_id, name=value.value});
       END;
+
+      show_add_btn = col.show_add;
       
       IF col.value_selector == "noshow";
-        '<fieldset class="fieldset input test">';
+        '<fieldset class="fieldset input">';
         INCLUDE fields/sub/label_fieldset.tt
           id           = col.id
           label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
           label        = field_label
           help_text    = col.description
           popover_body = col.helptext;
-        
-        add_my_btn = col.show_add;
   
-        IF add_my_btn;
+        IF show_add_btn;
           PROCESS curval_add_button;
         END;
   
         PROCESS curval_noshow;
         INCLUDE fields/hidden.tt id="" name=field value="" filter="";
   
-        IF add_my_btn and editvalue.html_form.size > 10;
-          PROCESS curval_add_button;
-        END;
-  
         '</fieldset>';
       ELSIF col.multivalue;
         INCLUDE fields/select_multiple.tt
-          id           = col.id
-          name         = field
-          label        = field_label
+          id                  = col.id
+          name                = field
+          label               = field_label
           label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
-          placeholder  = "Select option(s)"
-          help_text    = col.description
-          popover_body = col.helptext
-          is_readonly  = readonly
-          is_required  = required
-          hide_group   = 1
-          items        = select_items
-          values       = select_values
-          filter       = "html";
+          formgroup_class     = "linkspace-field"
+          placeholder         = "Select option(s)"
+          help_text           = col.description
+          popover_body        = col.helptext
+          is_readonly         = readonly
+          is_required         = required
+          hide_group          = 1
+          items               = select_items
+          values              = select_values
+          with_details        = 1
+          filter              = "html";
+
+          IF show_add_btn;
+            PROCESS curval_add_button;
+          END;
       ELSE;
         # Ensure a blank value is sent if nothing is selected
         INCLUDE fields/hidden.tt id="" name=field value="" filter="";
         INCLUDE fields/select_single.tt
-          id             = col.id
-          name           = field
-          label          = field_label
+          id                  = col.id
+          name                = field
+          label               = field_label
           label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
-          fieldset_class = "input"
-          placeholder    = "Select option"
-          help_text      = col.description
-          popover_body   = col.helptext
-          is_readonly    = readonly
-          is_required    = required
-          hide_group     = 1
-          items          = select_items
-          value          = select_value
-          filter         = "html";
+          formgroup_class     = "linkspace-field"
+          fieldset_class      = "input"
+          placeholder         = "Select option"
+          help_text           = col.description
+          popover_body        = col.helptext
+          is_readonly         = readonly
+          is_required         = required
+          hide_group          = 1
+          items               = select_items
+          value               = select_value
+          with_details        = 1
+          filter              = "html";
+
+          IF show_add_btn;
+            PROCESS curval_add_button;
+          END;
       END;
     ELSIF col.type == "tree";
       '<fieldset class="fieldset input">';

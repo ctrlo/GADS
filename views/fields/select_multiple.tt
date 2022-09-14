@@ -1,5 +1,5 @@
 [% IF ! hide_group %]
-<div class="form-group">
+<div class="form-group [% formgroup_class %]">
 [% END %]
   <fieldset class="fieldset [% fieldset_class %]">
     [% INCLUDE fields/sub/label_fieldset.tt; %]
@@ -41,7 +41,7 @@
           </ul>
         </div>
         
-        <ul hidden class="available "
+        <ul hidden class="available [% with_details ? 'with-details' : ''; %]"
             id="[% id %]-values-multi"
             aria-labelledby="[% id %]-label"
             [% IF help_text %]aria-describedby="[% id %]-help"[% END %]
@@ -50,27 +50,45 @@
           <li class="has-noresults" hidden>No results</li>
           [% FOREACH item IN items %]
           <li class="answer" role="option">
-            [%
-              checkbox_checked = 0;
-            
-              IF values AND values.size;
-                FOREACH value IN values;
-                  IF item.id == value;
-                    checkbox_checked = 1;
+            [% IF with_details %]
+            <div class="control">
+            [% END %]
+              [%
+                checkbox_checked = 0;
+              
+                IF values AND values.size;
+                  FOREACH value IN values;
+                    IF item.id == value;
+                      checkbox_checked = 1;
+                    END;
                   END;
+                ELSE;
+                  checkbox_checked = item.id == value ? 1 : 0;
                 END;
-              ELSE;
-                checkbox_checked = item.id == value ? 1 : 0;
-              END;
-            
-              INCLUDE fields/sub/checkbox.tt
-                id          = id _ '_' _ item.id
-                name        = name
-                value       = item.id
-                label       = item.name
-                is_required = 0
-                checked     = checkbox_checked;
-            %]
+              
+                INCLUDE fields/sub/checkbox.tt
+                  id          = id _ '_' _ item.id
+                  name        = name
+                  value       = item.id
+                  label       = item.name
+                  is_required = 0
+                  checked     = checkbox_checked;
+              %]
+          [% IF with_details %]
+            </div>
+            <div class="details">
+              <button
+                type="button"
+                class="btn btn-small btn-default btn-js-more-info"
+                data-toggle="modal"
+                data-target=#detailsModal
+                data-record-id="[% item.id %]"
+                aria-described-by="lbl-single-details-0"
+              >
+                <span class="btn__title">Details</span>
+              </button>
+            </div>
+          [% END %]
           </li>
           [% END; %]
         </ul>
