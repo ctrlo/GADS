@@ -873,7 +873,7 @@ schema:
           type: NORMAL
         - fields:
             - name: value_text
-              size: 64
+              prefix_length: 64
           name: calcval_idx_value_text
           options: []
           type: NORMAL
@@ -2097,7 +2097,7 @@ schema:
           type: NORMAL
         - fields:
             - name: value
-              size: 64
+              prefix_length: 64
           name: enumval_idx_value
           options: []
           type: NORMAL
@@ -2549,7 +2549,7 @@ schema:
           type: NORMAL
         - fields:
             - name: name
-              size: 64
+              prefix_length: 64
           name: fileval_idx_name
           options: []
           type: NORMAL
@@ -7216,19 +7216,19 @@ schema:
           type: NORMAL
         - fields:
             - name: value
-              size: 64
+              prefix_length: 64
           name: user_idx_value
           options: []
           type: NORMAL
         - fields:
             - name: email
-              size: 64
+              prefix_length: 64
           name: user_idx_email
           options: []
           type: NORMAL
         - fields:
             - name: username
-              size: 64
+              prefix_length: 64
           name: user_idx_username
           options: []
           type: NORMAL

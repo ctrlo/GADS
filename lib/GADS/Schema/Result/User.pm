@@ -721,9 +721,9 @@ __PACKAGE__->has_many(
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
-    $sqlt_table->add_index(name => 'user_idx_value', fields => [ { name => 'value', size => 64 } ]);
-    $sqlt_table->add_index(name => 'user_idx_email', fields => [ { name => 'email', size => 64 } ]);
-    $sqlt_table->add_index(name => 'user_idx_username', fields => [ { name => 'username', size => 64 } ]);
+    $sqlt_table->add_index(name => 'user_idx_value', fields => [ { name => 'value', prefix_length => 64 } ]);
+    $sqlt_table->add_index(name => 'user_idx_email', fields => [ { name => 'email', prefix_length => 64 } ]);
+    $sqlt_table->add_index(name => 'user_idx_username', fields => [ { name => 'username', prefix_length => 64 } ]);
 }
 
 # Used to ensure an empty selector is available in the user edit page
