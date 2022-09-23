@@ -36,6 +36,15 @@
       >
         <span class="btn__title">[% button.label || button.name %]</span>
       </button>
+      [% ELSIF button.type == "modal_dismiss_button" %]
+      <button
+        type="button"[% IF button.id %]
+        id="[% button.id %]"[% END %]
+        class="[% button.class ? button.class : 'btn btn-cancel' %]"
+        data-dismiss="modal"
+      >
+        <span class="btn__title">[%- button.label || button.name -%]</span>
+      </button>
       [% ELSIF button.type == "modal_button" %]
       <button
         type="button"[% IF button.id %]

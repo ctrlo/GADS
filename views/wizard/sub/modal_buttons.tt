@@ -31,11 +31,20 @@
 [%-
       INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
     END;
+    
+    IF button.type == "link";
+  -%]
+  <a href="[% button.target %]" class="btn [% button.class %]">
+    <span class="btn__title">[% button.label %]</span>
+  </a>
+  [%-
+    ELSE;
 -%]
   <button type="[% button.type %]" class="btn [% button.class %]"[% button_name; button_value; button_dismiss; %]>
     <span class="btn__title">[% button.label %]</span>
   </button>
 [%-
+    END;
     IF button.is_form;
 -%]
 </form>

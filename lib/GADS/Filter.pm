@@ -40,7 +40,7 @@ has as_json => (
         my $json = shift || '{}';
         # Wrap in try block in case of invalid JSON, otherwise function will
         # bork uncleanly
-        my $hash = try { decode_json_utf8 $json } || {};
+        my $hash = try { decode_json_utf8($json) } || {};
         decode("utf8", encode_json($hash));
     },
     builder => sub {

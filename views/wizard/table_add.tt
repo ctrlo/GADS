@@ -1219,7 +1219,7 @@
             [%
               ELSE;
                 # prepare table config
-                table_id           = 'default_field_permissions_table';
+                table_id           = 'custom_field_permissions_table';
                 table_class        = 'table-lines table-no-margin';
                 table_dom          = '<\"row row--header\"<\"col\"f><\"col-lg-auto dataTables_length_wrapper\"l>><\"row row--main\"<\"col-sm-12\"tr>><\"row row--footer\"<\"col-sm-12 col-lg-6\"p><\"col-sm-12 col-lg-6 dataTables_info_wrapper\"i>>';
                 table_order        = '[0,"asc"]';
@@ -1241,19 +1241,19 @@
                   orderable = 0
                   width     = "15%"
                 },{
-                  name      = "Create without approval"
-                  orderable = 0
-                  width     = "15%"
-                },{
                   name      = "Update"
-                  orderable = 0
-                  width     = "15%"
-                },{
-                  name      = "Update without approval"
                   orderable = 0
                   width     = "15%"
                 }
                 # ,{
+                #   name      = "Create without approval"
+                #   orderable = 0
+                #   width     = "15%"
+                # },{
+                #   name      = "Update without approval"
+                #   orderable = 0
+                #   width     = "15%"
+                # },{
                 #   name      = "Create can be approved"
                 #   orderable = 0
                 # },{
@@ -1278,7 +1278,7 @@
                       sub_field   = "fields/sub/checkbox.tt"
                       sub_params  = {
                         id => "permission_read_" _ group.id
-                        name => "permission_read_" _ group.id
+                        name => "read"
                         label => permission_inputs.read
                         checked => 0
                         filter => "html"
@@ -1294,7 +1294,7 @@
                       sub_field   = "fields/sub/checkbox.tt"
                       sub_params  = {
                         id => "permission_write_new_" _ group.id
-                        name => "permission_write_new_" _ group.id
+                        name => "create"
                         label => permission_inputs.write_new
                         checked => 0
                         filter => "html"
@@ -1309,41 +1309,9 @@
                       label       = ""
                       sub_field   = "fields/sub/checkbox.tt"
                       sub_params  = {
-                        id => "permission_write_new_no_approval_" _ group.id
-                        name => "permission_write_new_no_approval_" _ group.id
-                        label => permission_inputs.write_new_no_approval
-                        checked => 0
-                        filter => "html"
-                        is_required => 0
-                        autofocus => 0
-                        input_class => "checkbox--hide-label"
-                        label_in_span => 1
-                        value => 1
-                      }
-                    }, {
-                      type        = "text"
-                      label       = ""
-                      sub_field   = "fields/sub/checkbox.tt"
-                      sub_params  = {
                         id => "permission_write_existing_" _ group.id
-                        name => "permission_write_existing_" _ group.id
+                        name => "update"
                         label => permission_inputs.write_existing
-                        checked => 0
-                        filter => "html"
-                        is_required => 0
-                        autofocus => 0
-                        input_class => "checkbox--hide-label"
-                        label_in_span => 1
-                        value => 1
-                      }
-                    }, {
-                      type        = "text"
-                      label       = ""
-                      sub_field   = "fields/sub/checkbox.tt"
-                      sub_params  = {
-                        id => "permission_write_existing_no_approval_" _ group.id
-                        name => "permission_write_existing_no_approval_" _ group.id
-                        label => permission_inputs.write_existing_no_approval
                         checked => 0
                         filter => "html"
                         is_required => 0
@@ -1354,6 +1322,38 @@
                       }
                     }
                     # , {
+                    #   type        = "text"
+                    #   label       = ""
+                    #   sub_field   = "fields/sub/checkbox.tt"
+                    #   sub_params  = {
+                    #     id => "permission_write_new_no_approval_" _ group.id
+                    #     name => "permission_write_new_no_approval_" _ group.id
+                    #     label => permission_inputs.write_new_no_approval
+                    #     checked => 0
+                    #     filter => "html"
+                    #     is_required => 0
+                    #     autofocus => 0
+                    #     input_class => "checkbox--hide-label"
+                    #     label_in_span => 1
+                    #     value => 1
+                    #   }
+                    # }, {
+                    #   type        = "text"
+                    #   label       = ""
+                    #   sub_field   = "fields/sub/checkbox.tt"
+                    #   sub_params  = {
+                    #     id => "permission_write_existing_no_approval_" _ group.id
+                    #     name => "permission_write_existing_no_approval_" _ group.id
+                    #     label => permission_inputs.write_existing_no_approval
+                    #     checked => 0
+                    #     filter => "html"
+                    #     is_required => 0
+                    #     autofocus => 0
+                    #     input_class => "checkbox--hide-label"
+                    #     label_in_span => 1
+                    #     value => 1
+                    #   }
+                    # }, {
                     #   type        = "text"
                     #   label       = ""
                     #   sub_field   = "fields/sub/checkbox.tt"

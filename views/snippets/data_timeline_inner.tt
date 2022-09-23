@@ -1,20 +1,31 @@
-<div class="timeline__container">
-  <div class="timeline__overlay">
-    <div class="timeline__loader"></div>
+<div class="timeline">
+  <div class="timeline__legend">
+    [% FOREACH color IN colors %]
+    <div class="timeline__color">
+      <div class="timeline__color-key" style="background-color:[% color.color %]"></div>
+      <div class="timeline__color-text">[% color.key | html_entity %]</div>
+    </div>
+    [% END %]
   </div>
-  
-  <div
-    class="timeline__visualization"
-    data-records="[% records %]"
-    data-groups="[% groups %]"
-    data-rewind="[% session.rewind %]"
-    data-width="[% tl_options.canvas_width %]"
-    data-height="[% tl_options.canvas_height %]"
-    data-min="[% timeline.min %]"
-    data-max="[% timeline.max %]"
-    data-dashboard="[% dashboard %]"
-    data-view="[% view_id %]"
-    style="width:100%"
-  >
+
+  <div class="timeline__container">
+    <div class="timeline__overlay">
+      <div class="timeline__loader"></div>
+    </div>
+    
+    <div
+      class="timeline__visualization"
+      data-records="[% records %]"
+      data-groups="[% groups %]"
+      data-rewind="[% session.rewind %]"
+      data-width="[% tl_options.canvas_width %]"
+      data-height="[% tl_options.canvas_height %]"
+      data-min="[% timeline.min %]"
+      data-max="[% timeline.max %]"
+      data-dashboard="[% dashboard %]"
+      data-view="[% view_id %]"
+      style="width:100%"
+    >
+    </div>
   </div>
 </div>

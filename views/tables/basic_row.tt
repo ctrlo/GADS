@@ -21,6 +21,8 @@
         CASE 'button';
           INCLUDE tables/basic_cell_button.tt
             class=field.class
+            button_class=field.button_class
+            button_type=field.button_type
             label=field.label
             link=field.link
             filter=field.filter
@@ -32,6 +34,7 @@
         CASE 'modal_button';
           INCLUDE tables/basic_cell_modal_button.tt
             class=field.class
+            button_class=field.button_class
             label=field.label
             filter=field.filter
             sub_field_type=field.sub_field_type
@@ -40,6 +43,9 @@
             field_name=field.name
             field_value=field.value
             modalId=field.modalId
+            dataInstanceName=field.dataInstanceName
+            dataLayoutId=field.dataLayoutId
+            dataCurrentId=field.dataCurrentId
             dataTitle=field.dataTitle
             dataID=field.dataID;
         CASE 'header';

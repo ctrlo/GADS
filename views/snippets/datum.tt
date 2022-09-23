@@ -1,4 +1,7 @@
-[% MORE_LESS_TRESHOLD = 50 %]
+[%
+  MORE_LESS_TRESHOLD = 50;
+  POPOVER_COUNTER = 0;
+%]
 
 [% BLOCK more_less_block %]
     <div class="more-less" data-column="[% header | html %]">
@@ -7,9 +10,10 @@
 [% END %]
 
 [% BLOCK curcommon_table %]
-    <table class="table-curcommon">
+  [% curcommon_row_counter = 0 %]
+    <table class="table table-curcommon table-striped">
         [% FOR link IN curval.links %]
-                <tr role="button" tabindex="0" class="record-popup" data-record-id="[% link.id %]"
+                <tr role="button" tabindex="0" class="record-popup [% curcommon_row_counter % 2 == 0 ? 'even' : 'odd' %]" data-record-id="[% link.id %]"
                     [% IF link.version_id %]data-version-id="[% link.version_id %]"[% END %]>
                     [% IF link.status %]
                         <td><em>[% link.status %]:</em></td>
@@ -20,6 +24,7 @@
                         </td>
                     [% END %]
                 </tr>
+          [% curcommon_row_counter = curcommon_row_counter + 1%]
         [% END %]
     </table>
     [% IF col.limit_rows AND curval.links.size >= col.limit_rows %]
@@ -51,26 +56,38 @@
     [% END %]
 [% END %]
 
-[% MACRO render_person_datum(person) BLOCK %]
-    [% IF person %]
-        <button class="btn btn-xs btn-primary trigger" aria-expanded="false" type="button">
-            [% person.text | html %]
-            <span aria-hidden="true" class="glyphicon glyphicon-info-sign"></span>
-            <span class="visually-hidden">contact details</span>
-        </button>
-        <div class="person contact-details expandable popover">
-        [% FOR detail IN person.details %]
-            <div>
-                [% IF detail.type == 'email' %]
-                    E-mail: <a href="mailto:[% detail.value | html %]">[% detail.value | html %]</a>
-                [% ELSE %]
-                    [% detail.definition | html %]: [% detail.value | html %]
-                [% END %]
-            </div>
-        [% END %]
-        </div>
-    [% END %]
-[% END %]
+[%
+  MACRO render_person_datum(person) BLOCK;
+    IF person;
+      POPOVER_COUNTER = POPOVER_COUNTER + 1;
+      popover_body_str = '';
+
+      FOR detail IN person.details;
+        IF popover_body_str != '';
+          popover_body_str = popover_body_str _ "<br>\n";
+        END;
+
+        insert_value = detail.value | html;
+
+        IF detail.type == 'email';
+          popover_body_str = popover_body_str _ 'E-mail: <a href="mailto:' _ insert_value _ '">' _ insert_value _ '</a>';
+        ELSE;
+          insert_label = detail.definition | html;
+          popover_body_str = popover_body_str _ insert_label _ ': ' _ insert_value;
+        END;
+      END;
+
+      INCLUDE fields/sub/popover.tt
+        popover_id = 'popover_' _ POPOVER_COUNTER
+        popover_class = 'popover-container--text'
+        popover_button_class = 'btn btn-small btn-inverted btn-info'
+        popover_button_text = person.text
+        popover_button_title = person.text
+        popover_no_bottom = 1
+        popover_body = popover_body_str;
+    END;
+  END;
+%]
 
 [% MACRO render_string_datum(string, header, full_content) BLOCK %]
     [% IF !full_content && string.html.defined && string.html.length > MORE_LESS_TRESHOLD %]
@@ -107,36 +124,57 @@
     <a href="?[% col.filter_url %]">[% col.data.value OR '<blank>' | html %]</a>
 [% END %]
 
-[% MACRO render_datum(col, render_options) BLOCK;
-
+[%
+  MACRO render_datum(col, render_options) BLOCK;
     IF render_options == 'group';
-        render_group(col);
+      render_group(col);
     ELSE;
+      full_content = 1 IF render_options == 'full';
 
-        full_content = 1 IF render_options == 'full';
-
-        SWITCH col.data.type;
-            CASE ['curval', 'autocur', 'filval'];
-                render_curcommon_datum(col.multivalue, col.data, col.name, full_content);
-            CASE 'file';
-                IF render_options == 'semi';
-                    full_content = 1;
-                END;
-                render_file_datum(col.data, full_content);
-            CASE ['person', 'createdby'];
-                render_person_datum(col.data);
-            CASE 'string';
-                render_string_datum(col.data, col.name, full_content);
-            CASE 'enum';
-                render_enum_datum(col.data, col.name, full_content);
-            CASE 'tree';
-                render_enum_datum(col.data, col.name, full_content);
-            CASE 'rag';
-                render_rag_datum(col.data);
-            CASE 'calc';
-                render_string_datum(col.data, col.name, full_content);
-            CASE;
-                col.data.value | html;
-        END;
+      SWITCH col.data.type;
+        CASE ['curval', 'autocur', 'filval'];
+          render_curcommon_datum(col.multivalue, col.data, col.name, full_content);
+        CASE 'file';
+          IF render_options == 'semi';
+              full_content = 1;
+          END;
+          render_file_datum(col.data, full_content);
+        CASE ['person', 'createdby'];
+          render_person_datum(col.data);
+        CASE 'string';
+          render_string_datum(col.data, col.name, full_content);
+        CASE 'enum';
+          render_enum_datum(col.data, col.name, full_content);
+        CASE 'tree';
+          render_enum_datum(col.data, col.name, full_content);
+        CASE 'rag';
+          render_rag_datum(col.data);
+        CASE 'calc';
+          render_string_datum(col.data, col.name, full_content);
+        CASE;
+          col.data.value | html;
+      END;
     END;
-END %]
+  END;
+%]
+
+[%
+  MACRO anchor_datum(col, render_options) BLOCK;
+    IF render_options == 'group';
+        0;
+    ELSE;
+      full_content = 1 IF render_options == 'full';
+
+      SWITCH col.data.type;
+        CASE ['curval', 'autocur', 'filval', 'file', 'person', 'createdby'];
+          0;
+        CASE ['enum', 'tree'];
+          !full_content && col.data.value.length > MORE_LESS_TRESHOLD ? 0 : 1;
+        CASE ['string', 'calc'];
+          !full_content && col.data.html.defined && col.data.html.length > MORE_LESS_TRESHOLD ? 0 : 1;
+        CASE;
+          1;
+      END;
+    END;
+  END;
+%]
