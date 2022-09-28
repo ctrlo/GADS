@@ -66,7 +66,7 @@
                       id = "name"
                       name = "name"
                       label = "Name of table"
-                      placeholder = "e.g. Departmental Project"
+                      placeholder = "Name of table"
                       is_required = 1
                       type = "text";
                   %]
@@ -77,7 +77,7 @@
                       id = "shortName"
                       name = "shortName"
                       label = "Short name of table"
-                      placeholder = "e.g. projects"
+                      placeholder = "Short name of table"
                       is_required = 0
                       type = "text";
                   %]
