@@ -1,43 +1,11 @@
-<div class="content-block__main">
-  <div class="content-block__main-content">
-  [%
-    hasGraphs = 0;
-    FOREACH graph IN graphs;
-      NEXT UNLESS graph.selected;
-      hasGraphs = 1;
-  %]
-    <div class="graph">
-      <div class="row">
-        <div class="col">
-          <h2>[% graph.title | html_entity %]</h2>
-          [% IF graph.description %]<p>[% graph.description | html_entity %]</p>[% END %]
-        </div>
-        <div class="col d-flex justify-content-end mb-2">
-          <div class="dropdown ">
-            <button class="dropdown-toggle dropdown__toggle" type="button" id="download" data-toggle="dropdown" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="download">
-              <span>Download</span>
-            </button>
-            <div class="dropdown-menu dropdown__menu ">
-              <div class="dropdown__group">
-                <ul class="dropdown__list" role="listbox" aria-labelledby="dropdown">
-                  <li class="dropdown__item" role="option" >
-                    <a class='link link--plain' href='?png=[% graph.id %]'>PNG</a>
-                  </li>
-                  <li class="dropdown__item" role="option" >
-                    <a class='link link--plain' href='?csv=[% graph.id %]'>CSV</a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-  
+[% IF page_as_mech %]
+  <div class="content-block__main">
+    <div class="content-block__main-content">
       <div class="row">
         <div class="col">
           <div
             class="graph__container"
-            id="chartdiv[% graph.id %]"
+            id="chartdiv[% graph_id %]"
             data-graph-type="[% graph.type %]"
             data-x-axis-name="[% graph.x_axis_name | replace('"', '\\\"') %]"
             data-y-axis-label="[% graph.y_axis_label | replace('"', '\\\"') %]"
@@ -45,16 +13,71 @@
             data-showlegend="[% IF graph.showlegend %]true[% ELSE %]false[% END %]"
             data-graph-id="[% graph.id %]"
             data-layout-id="[% layout.identifier %]"
+            data-page-as-mech="false"
           ></div>
         </div>
       </div>
     </div>
-  [%
-    END;
-    UNLESS hasGraphs;
-  %]
-  <p>No graphs are selected for display. Please use the
-  <a href="[% url.page %]/[% layout.identifier %]/graphs/">Select graphs</a> button above to add graphs for display.</p>
-  [% END %]
   </div>
-</div>
+[% ELSE %]
+  <div class="content-block__main">
+    <div class="content-block__main-content">
+    [%
+      hasGraphs = 0;
+      FOREACH graph IN graphs;
+        NEXT UNLESS graph.selected;
+        hasGraphs = 1;
+    %]
+      <div class="graph">
+        <div class="row">
+          <div class="col">
+            <h2>[% graph.title | html_entity %]</h2>
+            [% IF graph.description %]<p>[% graph.description | html_entity %]</p>[% END %]
+          </div>
+          <div class="col d-flex justify-content-end mb-2">
+            <div class="dropdown ">
+              <button class="dropdown-toggle dropdown__toggle" type="button" id="download" data-toggle="dropdown" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="download">
+                <span>Download</span>
+              </button>
+              <div class="dropdown-menu dropdown__menu ">
+                <div class="dropdown__group">
+                  <ul class="dropdown__list" role="listbox" aria-labelledby="dropdown">
+                    <li class="dropdown__item" role="option" >
+                      <a class='link link--plain' href='?png=[% graph.id %]'>PNG</a>
+                    </li>
+                    <li class="dropdown__item" role="option" >
+                      <a class='link link--plain' href='?csv=[% graph.id %]'>CSV</a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    
+        <div class="row">
+          <div class="col">
+            <div
+              class="graph__container"
+              id="chartdiv[% graph.id %]"
+              data-graph-type="[% graph.type %]"
+              data-x-axis-name="[% graph.x_axis_name | replace('"', '\\\"') %]"
+              data-y-axis-label="[% graph.y_axis_label | replace('"', '\\\"') %]"
+              data-stackseries="[% graph.stackseries %]"
+              data-showlegend="[% IF graph.showlegend %]true[% ELSE %]false[% END %]"
+              data-graph-id="[% graph.id %]"
+              data-layout-id="[% layout.identifier %]"
+            ></div>
+          </div>
+        </div>
+      </div>
+    [%
+      END;
+      UNLESS hasGraphs;
+    %]
+    <p>No graphs are selected for display. Please use the
+    <a href="[% url.page %]/[% layout.identifier %]/graphs/">Select graphs</a> button above to add graphs for display.</p>
+    [% END %]
+    </div>
+  </div>
+[% END %]

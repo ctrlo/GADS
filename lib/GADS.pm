@@ -1640,194 +1640,6 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
     $output;
 };
 
-# any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/] => sub {
-#
-#     my $id = body_parameters->get('id');
-#
-#     my $user            = logged_in_user;
-#     my $userso          = GADS::Users->new(schema => schema);
-#     my %all_permissions = map { $_->id => $_->name } @{$userso->permissions};
-#     my $audit           = GADS::Audit->new(schema => schema, user => $user);
-#     my $users;
-#
-#     # The submit button will still be triggered on a new org/title creation,
-#     # if the user has pressed enter, in which case ignore it
-#     if (param('submit') && !param('neworganisation') && !param('newdepartment') && !param('newtitle') && !param('newteam'))
-#     {
-#         my %values = (
-#             firstname             => param('firstname'),
-#             surname               => param('surname'),
-#             email                 => param('email'),
-#             username              => param('email'),
-#             freetext1             => param('freetext1'),
-#             freetext2             => param('freetext2'),
-#             title                 => param('title') || undef,
-#             organisation          => param('organisation') || undef,
-#             department_id         => param('department_id') || undef,
-#             team_id               => param('team_id') || undef,
-#             account_request       => param('account_request'),
-#             account_request_notes => param('account_request_notes'),
-#             view_limits           => [body_parameters->get_all('view_limits')],
-#             groups                => [body_parameters->get_all('groups')],
-#         );
-#         $values{permissions} = [body_parameters->get_all('permission')]
-#             if logged_in_user->permission->{superadmin};
-#
-#         if (!param('account_request') && $id) # Original username to update (hidden field)
-#         {
-#             if (process sub {
-#                 my $user = rset('User')->active->search({ id => $id })->next
-#                     or error __x"User ID {id} not found", id => $id;
-#                 # Don't use DBIC update directly, so that permissions etc are updated properly
-#                 $user->update_user(current_user => logged_in_user, %values);
-#             })
-#             {
-#                 return forwardHome(
-#                     { success => "User has been updated successfully" }, 'user' );
-#             }
-#         }
-#         else {
-#             # This sends a welcome email etc
-#             if (process(sub { rset('User')->create_user(current_user => $user, request_base => request->base, %values) }))
-#             {
-#                 return forwardHome(
-#                     { success => "User has been created successfully" }, 'user' );
-#             }
-#         }
-#
-#         # In case of failure, pass back to form
-#         my $view_limits_with_blank = [ map {
-#             +{
-#                 view_id => $_
-#             }
-#         } body_parameters->get_all('view_limits') ];
-#         $values{view_limits_with_blank} = $view_limits_with_blank;
-#         $users = [\%values];
-#     }
-#
-#     my $register_requests;
-#     if (param('neworganisation') || param('newtitle') || param('newdepartment') || param('newteam'))
-#     {
-#         if (my $org = param 'neworganisation')
-#         {
-#             if (process( sub { $userso->organisation_new({ name => $org })}))
-#             {
-#                 $audit->login_change("Organisation $org created");
-#                 success __"The organisation has been created successfully";
-#             }
-#         }
-#
-#         if (my $dep = param 'newdepartment')
-#         {
-#             if (process( sub { $userso->department_new({ name => $dep })}))
-#             {
-#                 $audit->login_change("Department $dep created");
-#                 my $depname = lc var('site')->register_department_name || 'department';
-#                 success __x"The {dep} has been created successfully", dep => $depname;
-#             }
-#         }
-#
-#         if (my $team = param 'newteam')
-#         {
-#             if (process( sub { $userso->team_new({ name => $team })}))
-#             {
-#                 $audit->login_change("Team $team created");
-#                 my $teamname = lc var('site')->register_team_name || 'team';
-#                 success __x"The {team} has been created successfully", team => $teamname;
-#             }
-#         }
-#
-#         if (my $title = param 'newtitle')
-#         {
-#             if (process( sub { $userso->title_new({ name => $title }) }))
-#             {
-#                 $audit->login_change("Title $title created");
-#                 success __"The title has been created successfully";
-#             }
-#         }
-#
-#         # Remember values of user creation in progress.
-#         # XXX This is a mess (repeated code from above). Need to get
-#         # DPAE to use a user object
-#         my @groups      = ref param('groups') ? @{param('groups')} : (param('groups') || ());
-#         my %groups      = map { $_ => 1 } @groups;
-#         my $view_limits_with_blank = [ map {
-#             +{
-#                 view_id => $_
-#             }
-#         } body_parameters->get_all('view_limits') ];
-#
-#         $users = [{
-#             firstname              => param('firstname'),
-#             surname                => param('surname'),
-#             email                  => param('email'),
-#             freetext1              => param('freetext1'),
-#             freetext2              => param('freetext2'),
-#             title                  => { id => param('title') },
-#             organisation           => { id => param('organisation') },
-#             department_id          => { id => param('department_id') },
-#             team_id                => { id => param('team_id') },
-#             view_limits_with_blank => $view_limits_with_blank,
-#             groups                 => \%groups,
-#         }];
-#     }
-#     elsif (my $delete_id = param('delete'))
-#     {
-#         return forwardHome(
-#             { danger => "Cannot delete current logged-in User" } )
-#             if logged_in_user->id eq $delete_id;
-#         my $usero = rset('User')->find($delete_id);
-#         if (process( sub { $usero->retire(send_reject_email => 1) }))
-#         {
-#             $audit->login_change("User ID $delete_id deleted");
-#             return forwardHome(
-#                 { success => "User has been deleted successfully" }, 'user' );
-#         }
-#     }
-#
-#     my $route_id = route_parameters->get('id');
-#
-#     if ($route_id)
-#     {
-#         my $u = rset('User')->active_and_requests->search({ id => $route_id})->next
-#             or error __x"User id {id} not found", id => $route_id;
-#         $users = [ $u ] if !$users;
-#     }
-#     elsif (!defined $route_id) {
-#         $users             = $userso->all;
-#         $register_requests = $userso->register_requests;
-#     }
-#     else {
-#         # Horrible hack to get a limit view drop-down to display
-#         $users = [
-#             +{
-#                 view_limits_with_blank => [ undef ],
-#             }
-#         ] if !$users; # Only if not already submitted
-#     }
-#
-#     my $breadcrumbs = [Crumb( '/user' => 'users' )];
-#     push @$breadcrumbs, Crumb( "/user/$route_id" => "edit user $route_id" ) if $route_id;
-#     push @$breadcrumbs, Crumb( "/user/$route_id" => "new user" ) if defined $route_id && !$route_id;
-#     my $output = template 'user' => {
-#         edit              => $route_id,
-#         users             => $users,
-#         groups            => GADS::Groups->new(schema => schema)->all,
-#         register_requests => $register_requests,
-#         values            => {
-#             title            => $userso->titles,
-#             organisation     => $userso->organisations,
-#             department_id    => $userso->departments,
-#             team_id          => $userso->teams,
-#         },
-#         permissions       => $userso->permissions,
-#         page              => defined $route_id && !$route_id ? 'user/0' : 'user',
-#         breadcrumbs       => $breadcrumbs,
-#     };
-#     $output;
-# };
-
-
 get '/helptext/:id?' => require_login sub {
     my $id     = param 'id';
     my $user   = logged_in_user;
@@ -2748,6 +2560,7 @@ prefix '/:layout_name' => sub {
                 additional_filters  => \@additional_filters,
                 view_limit_extra_id => current_view_limit_extra_id($user, $layout),
             );
+
             # If this is a filter from a group view, then disable the group for
             # this rendering
             my $disable_group = defined query_parameters->get('group_filter') && @additional_filters;
@@ -2887,6 +2700,9 @@ prefix '/:layout_name' => sub {
             $params->{viewtype}             = 'table';
             $params->{page}                 = 'data_table';
             $params->{search_limit_reached} = $records->search_limit_reached;
+
+            $params->{table_clear_state}    = 1 if param 'table_clear_state';
+
             if (@additional_filters)
             {
                 # Should be moved into presentation layer
@@ -3340,7 +3156,7 @@ prefix '/:layout_name' => sub {
                 # And remove any custom sorting, so that sort of view takes effect
                 session 'sort' => undef;
                 return forwardHome(
-                    { success => "The view has been updated successfully" }, $layout->identifier.'/data' );
+                    { success => "The view has been updated successfully" }, $layout->identifier.'/data?table_clear_state=1' );
             }
         }
 
@@ -3350,7 +3166,7 @@ prefix '/:layout_name' => sub {
             if (process( sub { $view->delete }))
             {
                 return forwardHome(
-                    { success => "The view has been deleted successfully" }, $layout->identifier.'/data' );
+                    { success => "The view has been deleted successfully" }, $layout->identifier.'/data?table_clear_state=1' );
             }
         }
 
