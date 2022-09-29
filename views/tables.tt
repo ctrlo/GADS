@@ -10,7 +10,7 @@
 
   table_buttons = [{
     label = "View records"
-    link  = "/{table_short_name}/data"
+    link  = "/{table_short_name}/data?table_clear_state=1"
   }, {
     label = "Dashboard"
     link  = "/{table_short_name}/"
@@ -49,7 +49,7 @@
       fields = [{
         type  = "link"
         label = instance.name
-        link  = "/{table_short_name}/data"
+        link  = "/{table_short_name}/data?table_clear_state=1"
       }]
     });
   END;

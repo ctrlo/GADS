@@ -46,7 +46,7 @@
       aria-expanded="false"
       [% IF is_disabled %]aria-disabled="true"[% END %]
     >
-      <span>[% INCLUDE fields/sub/filter.tt value=display_placeholder; %]</span>
+      <span class="select__placeholder">[% INCLUDE fields/sub/filter.tt value=display_placeholder; %]</span>
     </button>
     <input
       type="hidden"
