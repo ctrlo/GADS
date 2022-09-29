@@ -11,7 +11,7 @@
         <div class="list list--horizontal">
           <ul class="list__items">
             <li class="list__item">
-              <a href='[% url.page %]/[% layout_obj.identifier %]/data' class='link link--plain[% page_is_active(records_active_pages, "link--active"); %]'>
+              <a href='[% url.page %]/[% layout_obj.identifier %]/data?table_clear_state=1' class='link link--plain[% page_is_active(records_active_pages, "link--active"); %]'>
                 <span>Records</span>
               </a>
             </li>
@@ -66,7 +66,7 @@
           
                 view_items.push({
                   label  = ve.name,
-                  target = url.page _ "/" _ layout_obj.identifier _ "/data?view=" _ ve.id,
+                  target = url.page _ "/" _ layout_obj.identifier _ "/data?view=" _ ve.id _ "&table_clear_state=1",
                   alert  = alerts.$veid ? 1 : 0
                 });
               END;
@@ -85,14 +85,13 @@
           
                 view_items.push({
                   label  = ve.name,
-                  target = url.page _ "/" _ layout_obj.identifier _ "/data?view=" _ ve.id,
+                  target = url.page _ "/" _ layout_obj.identifier _ "/data?view=" _ ve.id _ "&table_clear_state=1",
                   alert  = alerts.$veid ? 1 : 0
                 });
               END;
           
               view_groups.push({
                 label = "Administration views",
-                items = view_items
                 items = view_items
               });
             END;
@@ -105,7 +104,7 @@
           
                 view_items.push({
                   label  = ve.name,
-                  target = url.page _ "/" _ layout_obj.identifier _ "/data?view=" _ ve.id,
+                  target = url.page _ "/" _ layout_obj.identifier _ "/data?view=" _ ve.id _ "&table_clear_state=1",
                   alert  = alerts.$veid ? 1 : 0
                 });
               END;
