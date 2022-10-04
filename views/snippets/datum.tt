@@ -52,7 +52,7 @@
 [% END %]
 
 [% MACRO render_person_datum(person) BLOCK %]
-    [% IF person %]
+    [% IF person.id %]
         <button class="btn btn-xs btn-primary trigger" aria-expanded="false" type="button">
             [% person.text | html %]
             <span aria-hidden="true" class="glyphicon glyphicon-info-sign"></span>
