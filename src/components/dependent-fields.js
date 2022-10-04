@@ -152,6 +152,18 @@ const setupDependentFields = (() => {
     });
 
     fields.each(setupDependentField);
+
+    // Now that fields are shown/hidden on page load, for each topic check
+    // whether it has zero displayed fields, in which case hide the whole
+    // topic (this also happens on field value change dynamically when a user
+    // edits the page)
+    $(".panel-group").each(function(){
+      var $panel = $(this);
+      if (!$panel.find('.linkspace-field:visible').length) {
+        $panel.hide();
+      }
+    });
+
   };
 
   return context => {
