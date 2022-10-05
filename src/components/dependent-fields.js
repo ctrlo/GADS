@@ -159,7 +159,11 @@ const setupDependentFields = (() => {
     // edits the page)
     $(".panel-group").each(function(){
       var $panel = $(this);
-      if (!$panel.find('.linkspace-field:visible').length) {
+      if (!$panel.find('.linkspace-field').filter(function() {
+          // Use display:none parameter rather than visibility, as fields will
+          // not be visible if view-mode is used
+          return $(this).css("display") != "none"
+      }).length) {
         $panel.hide();
       }
     });
