@@ -722,14 +722,11 @@
                         Add dropdown values
                       </label>
                     </div>
-                    <div class="sortable__list">
-                      <div class="sortable__row">
-                        <button
-                          type="button"
-                          class="btn btn-drag-drop"
-                        >
-                          <span class="btn__title">Drag and drop</span>
-                        </button>
+                    <ul class="sortable__list">
+                      <li class="sortable__row">
+                        <span class="sortable__handle">
+                          <span>Drag handle</span>
+                        </span>
   
                         [%
                           INCLUDE fields/input.tt
@@ -748,8 +745,8 @@
                         >
                           <span class="btn__title">Delete</span>
                         </button>
-                      </div>
-                    </div>
+                      </li>
+                    </ul>
 
                     <button
                       type="button"

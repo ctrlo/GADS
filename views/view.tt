@@ -186,7 +186,7 @@
                               
                                 FOREACH sort IN view_edit.sorts;
                                   view_row_id = view_counter > 1 ? ' id="sort-row-' _ view_counter _ '"' : '';
-                                  order_rows  = [];
+                                  order_rows  = [{id="", name="Select a field"}];
                                   type_rows   = [];
       
                                   FOR column IN layout.columns_for_filter;
@@ -207,30 +207,30 @@
                                   <div class="form-group ">
                                     <div class="row">
                                       <div class="col">
-                                        [%-
+                                        [%
                                           INCLUDE fields/select.tt
                                             id = "sortfield"
                                             name = "sortfield"
                                             value = sort.filter_id
                                             label = "Field"
-                                            placeholder = "Select field"
+                                            placeholder = "Select a field"
                                             help_text = ""
                                             items = order_rows
                                             input_class = ""
                                             popover_body=""
                                             is_required = 0
                                             hide_group = 1
-                                            filter = ""
+                                            filter = "html"
                                             sub_field = ""
                                             sub_params = {};
-                                        -%]
+                                        %]
                                       </div>
                                       <div class="col">
-                                        [%-
+                                        [%
                                           INCLUDE fields/select.tt
                                             id = "sorttype"
                                             name = "sorttype"
-                                            value = sort.type
+                                            value = sort.type || "asc"
                                             label = "Order"
                                             placeholder = "Select order"
                                             help_text = ""
@@ -242,7 +242,7 @@
                                             filter = "html"
                                             sub_field = ""
                                             sub_params = {};
-                                        -%]
+                                        %]
                                       </div>
                                     </div>
                                   </div>
@@ -254,14 +254,14 @@
                                   </button>
                                 </fieldset>
                               </div>
-                              [%-
+                              [%
                                     view_counter = view_counter + 1;
                                   END;
                               
                                   IF clear_sorts;
                                     temp = view_edit.sorts.shift();
                                   END;
-                              -%]
+                              %]
                             </div>
                             
                             <button
@@ -300,7 +300,7 @@
                               
                                 FOREACH group IN view_edit.groups;
                                   view_row_id = group_counter > 1 ? ' id="group-row-' _ group_counter _ '"' : '';
-                                  group_rows  = [];
+                                  group_rows  = [{id="", name="Select a field"}];
       
                                   FOR column IN layout.columns_for_filter;
                                     group_rows.push(id=column.filter_id, name=column.filter_name);
@@ -320,7 +320,7 @@
                                       name = "groupfield"
                                       value = group.filter_id
                                       label = "Field"
-                                      placeholder = "Select field"
+                                      placeholder = "Select a field"
                                       help_text = ""
                                       items = group_rows
                                       input_class = ""
