@@ -1116,6 +1116,9 @@ sub load_remembered_values
     # available due to its weakref
     $self->fields->{$_->id} = $previous->fields->{$_->id}->clone(record => $self, column => $self->layout->column($_->id))
         foreach @{$previous->columns_retrieved_do};
+    # The layout's record will have been updated to $previous, so set it back
+    # to the correct record
+    $self->layout->record($self);
 
     if ($previous->approval_flag)
     {

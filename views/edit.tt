@@ -365,7 +365,7 @@
   <div class="[% panel_class %]">
     <div class="card card--expandable">
       <div class="card__header">
-        <button class="card__header-left" type="button" data-toggle="collapse" data-target="#topic[% col_panel.id; widget_id_modifier; %]" aria-expanded="false" aria-controls="topic[% col_panel.id; widget_id_modifier; %]">
+        <button class="card__header-left" type="button" data-toggle="collapse" data-target="#topic[% block_topic.id; widget_id_modifier; %]" aria-expanded="false" aria-controls="topic[% block_topic.id; widget_id_modifier; %]">
           <span class="card__title">
             [% block_topic.name OR 'Other' | html %]
             [% IF block_topic.description %]
@@ -396,15 +396,15 @@
             class="card__toggle"
             type="button"
             data-toggle="collapse"
-            data-target="#topic[% col_panel.id; widget_id_modifier; %]"
+            data-target="#topic[% block_topic.id; widget_id_modifier; %]"
             aria-expanded="[% open %]"
-            aria-controls="topic[% col_panel.id; widget_id_modifier; %]"
+            aria-controls="topic[% block_topic.id; widget_id_modifier; %]"
           >
             <span>Toggle collapsible</span>
           </button>
         </div>
       </div>
-      <div class="collapse[% IF open == 'true' %] show[% END %]" id="topic[% col_panel.id; widget_id_modifier; %]">
+      <div class="collapse[% IF open == 'true' %] show[% END %]" id="topic[% block_topic.id; widget_id_modifier; %]">
         <div class="card__content">
           [% IF topic.need_completed_topics_count %]
           <div role="alert" class="alert alert-warning">

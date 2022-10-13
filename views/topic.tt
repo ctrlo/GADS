@@ -68,7 +68,7 @@
                       placeholder   = "Expanded"
                       fieldset_name = "switch-expanded"
                       value         = "open"
-                      checked       = topic.initial_state == "open" ? 1 : 0
+                      checked       = topic.initial_state == "collapsed" ? 0 : 1
                       filter        = "html";
                   %]
                 </div>

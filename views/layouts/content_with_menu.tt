@@ -9,7 +9,7 @@
           INCLUDE snippets/header.tt;
         END;
       %]
-      <div class="content-block [% content_block_custom_classes %]">
+      <div class="content-block [% content_block_custom_classes %]" id="content-block">
         [% INCLUDE snippets/message_center.tt %]
         [% content %]
       </div>

@@ -665,14 +665,6 @@ sub _build__search_all_fields
 
     my %results;
 
-    my $search_index = lc(substr($search, 0, 128));
-    if ($search =~ s/\*/%/g )
-    {
-        $search = { like => $search };
-        $search_index =~ s/\*/%/g;
-        $search_index = { like => $search_index };
-    }
-
     # XXX These really need to be pulled from the various Column classes
     my @fields = (
         { type => 'string', plural => 'strings', index_field => 'strings.value_index' },
@@ -712,6 +704,23 @@ sub _build__search_all_fields
     foreach my $field (@fields)
     {
         my $search_local = $search;
+        my $search_index = lc(substr($search, 0, 128));
+
+        if ($field->{type} eq 'number' || $field->{type} eq 'int' || $field->{type} eq 'current_id' || $field->{type} eq 'date')
+        {
+            # Wildcards not valid in non-text fields so just remove it
+            # (asterisk always passed in from table draw API)
+            $search_local =~ s/\*//g;
+        }
+        else {
+            if ($search_local =~ s/\*/%/g )
+            {
+                $search_local = { like => $search_local };
+                $search_index =~ s/\*/%/g;
+                $search_index = { like => $search_index };
+            }
+        }
+
         next if ($field->{type} eq 'number')
             && !looks_like_number $search_local;
         next if ($field->{type} eq 'int' || $field->{type} eq 'current_id')
