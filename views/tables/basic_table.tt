@@ -36,7 +36,7 @@
   # create table columns and column config for each requested column.
   FOREACH column in table_columns;
     rowField = tmplColumnConfig
-      .replace('_NAME', column.name ? '"name":"' _ column.name _ '"' : '"name":""')
+      .replace('_NAME', column.name ? '"name":"' _ column.name.replace("'", "&#39;") _ '"' : '"name":""')
       .replace('_ORDERABLE', column.orderable ? ',"orderable":true' : ',"orderable":false')
       .replace('_TYPE', column.type ? ',"type": "' _ column.type _ '"' : '')
       .replace('_DATA', column.data ? ',"data": "' _ column.data _ '"' : '')
