@@ -153,16 +153,22 @@ const setupDependentFields = (() => {
 
     fields.each(setupDependentField);
 
+
     // Now that fields are shown/hidden on page load, for each topic check
     // whether it has zero displayed fields, in which case hide the whole
     // topic (this also happens on field value change dynamically when a user
-    // edits the page)
+    // edits the page).
+    // This applies to all of: historical view, main record view page, and main
+    // record edit page. Use display:none parameter rather than visibility,
+    // as fields will not be visible if view-mode is used in a normal record,
+    // and also check .table-fields as historical view will not include any
+    // of the linkspace-field fields
     $(".panel-group").each(function(){
       var $panel = $(this);
-      if (!$panel.find('.linkspace-field').filter(function() {
-          // Use display:none parameter rather than visibility, as fields will
-          // not be visible if view-mode is used
-          return $(this).css("display") != "none"
+      if (!$panel.find('.table-fields').find('tr').filter(function () {
+        return $(this).css("display") != "none";
+      }).length && !$panel.find('.linkspace-field').filter(function () {
+        return $(this).css("display") != "none";
       }).length) {
         $panel.hide();
       }
