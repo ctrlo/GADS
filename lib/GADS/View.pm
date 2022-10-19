@@ -423,7 +423,7 @@ sub write
     }
     else {
         $vu->{created}   = DateTime->now;
-        $vu->{createdby} = $self->layout->user->id;
+        $vu->{createdby} = $self->layout->user && $self->layout->user->id;
         my $rset = $self->schema->resultset('View')->create($vu);
         $self->_view($rset);
         $self->id($rset->id);
@@ -712,22 +712,25 @@ sub import_hash
     notice __x"Updating group from {old} to {new} for view {name}",
         old => $self->group_id, new => $values->{group_id}, name => $self->name
             if $options{report_only} && $self->group_id ne $values->{group_id};
-    $self->is_admin($values->{group_id});
+    $self->group_id($values->{group_id});
     notice __x"Updating name from {old} to {new} for view {name}",
         old => $self->name, new => $values->{name}, name => $self->name
             if $options{report_only} && $self->name ne $values->{name};
     $self->name($values->{name});
-    $self->filter($values->{filter}->as_hash);
+    $self->filter($values->{filter}->as_hash)
+        if $values->{filter};
     notice __x"Updating filter for view {name}",
         name => $self->name
             if $options{report_only} && $self->filter->changed;
     # Lazy, no reporting of sorts and groups
+    $self->columns($values->{columns});
     unless ($options{report_only})
     {
         $self->write;
         # Sorts
         $_->delete foreach @{$self->sorts};
         $self->schema->resultset('Sort')->create({
+            view_id   => $self->id,
             layout_id => $_->{layout_id},
             parent_id => $_->{parent_id},
             order     => $_->{order},
@@ -736,6 +739,7 @@ sub import_hash
         # Groups
         $_->delete foreach @{$self->groups};
         $self->schema->resultset('ViewGroup')->create({
+            view_id   => $self->id,
             layout_id => $_->{layout_id},
             parent_id => $_->{parent_id},
             order     => $_->{order},

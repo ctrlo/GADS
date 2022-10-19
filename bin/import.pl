@@ -435,7 +435,7 @@ foreach my $ins (readdir $root)
     # XXX Then do record_id entries in records
 }
 
-my %view_mapping;
+my $view_mapping;
 foreach my $l (@all_layouts)
 {
     my $layout = $l->{layout};
@@ -503,26 +503,43 @@ foreach my $l (@all_layouts)
     {
         # Convert to new column IDs
         $v->{columns} = [map $column_mapping->{$_}, @{$v->{columns}}];
-        $v->{sorts}  = [map {
+        $v->{sorts}  = [map +{
             layout_id => $column_mapping->{$_->{layout_id}},
-            parent_id => $column_mapping->{$_->{parent_id}},
+            parent_id => $_->{parent_id} && $column_mapping->{$_->{parent_id}},
             type      => $_->{type},
             order     => $_->{order},
-        } @{$v->{sorts}}];
-        $v->{groups}  = [map {
+        }, @{$v->{sorts}}];
+        $v->{groups}  = [map +{
             layout_id => $column_mapping->{$_->{layout_id}},
-            parent_id => $column_mapping->{$_->{parent_id}},
+            parent_id => $_->{parent_id} && $column_mapping->{$_->{parent_id}},
             order     => $_->{order},
-        } @{$v->{groups}}];
-        $v->{group_id} = $group_mapping->{$v->{group_id}};
+        }, @{$v->{groups}}];
+        $v->{group_id} = $group_mapping->{$v->{group_id}}
+            if $v->{group_id};
         # Filter
         my $filter = GADS::Filter->new(as_hash => $v->{filter});
+        my $skip;
         foreach my $cond (@{$filter->filters})
         {
-            $cond->{id} = $column_mapping->{$conf->{id}},
-            $cond->{field} = $column_mapping->{$conf->{field}},
+            my $id;
+            if ($cond->{id} =~ /^([0-9]+)_([0-9]+)$/)
+            {
+                my $parent = $column_mapping->{$1}
+                    or report WARNING => "Field ID $1 does not seem to exist in source view filter";
+                my $child  = $column_mapping->{$2}
+                    or report WARNING => "Field ID $2 does not seem to exist in source view filter";
+                $id = $parent.'_'.$child
+                    if $parent && $child;
+            }
+            else {
+                $id = $column_mapping->{$cond->{id}};
+            }
+            $skip = 1 if !$id;
+            $cond->{id} = $id,
+            $cond->{field} = $id,
         }
-        $v->{filter} = $filter;
+        $v->{filter} = $skip ? undef : $filter;
+        $filter->clear_as_json;
         my $view;
         if ($merge || $report_only)
         {
@@ -554,12 +571,12 @@ foreach my $l (@all_layouts)
         delete $existing_views{$view->id};
         $view_mapping->{$v->{id}} = $view->id;
     }
-    if ($view_limit_id = $l->{values}->{view_limit_id})
+    if (my $view_limit_id = $l->{values}->{view_limit_id})
     {
         $layout->view_limit_id($view_mapping->{$view_limit_id});
         $layout->write;
     }
-    if ($default_view_limit_extra_id = $l->{values}->{default_view_limit_extra_id})
+    if (my $default_view_limit_extra_id = $l->{values}->{default_view_limit_extra_id})
     {
         $layout->default_view_limit_extra_id($view_mapping->{$default_view_limit_extra_id});
         $layout->write;
