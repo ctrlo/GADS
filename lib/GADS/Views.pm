@@ -76,6 +76,11 @@ has global => (
     isa => ArrayRef,
 );
 
+has admin => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
 has all => (
     is  => 'lazy',
     isa => ArrayRef,
@@ -157,6 +162,16 @@ sub _build_global
     })->all;
     my @global = map { $self->view($_->id) } @views;
     \@global;
+}
+
+sub _build_admin
+{   my $self = shift;
+    my @views = $self->schema->resultset('View')->search({
+        is_admin    => 1,
+        instance_id => $self->instance_id,
+    })->all;
+    my @admin = map { $self->view($_->id) } @views;
+    \@admin;
 }
 
 sub _build_all

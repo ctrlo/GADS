@@ -59,4 +59,13 @@ sub filter_id
     $self->parent_id ? $self->parent_id.'_'.$self->layout_id : $self->layout_id;
 }
 
+sub as_hash
+{   my $self = shift;
+    +{
+        layout_id => $self->layout_id,
+        parent_id => $self->parent_id,
+        order     => $self->order,
+    };
+}
+
 1;

@@ -160,6 +160,13 @@ foreach my $layout (@instances)
         if !$include_data; # Users not included without include_data flag
     dump_all("$ins_dir/graphs/", @graphs);
 
+    mkdir "$ins_dir/views"
+        or report FAULT => "Unable to create views directory";
+    my $views = GADS::Views->new(schema => schema, layout => $layout, instance_id => $layout->instance_id, user_permission_override => 1);
+    my @views = @{$views->global};
+    push @views, @{$views->admin};
+    dump_all("$ins_dir/views/", @views);
+
     if ($include_data)
     {
         mkdir "$ins_dir/records"

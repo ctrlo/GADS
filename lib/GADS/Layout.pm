@@ -1294,19 +1294,17 @@ sub _build_global_view_summary
 
 sub export
 {   my $self = shift;
-    warning __x"Not going to export configured table view limit for {name}", name => $self->name
-        if $self->view_limit_id;
-    warning __x"Not going to export configured table default extra view limit for {name}", name => $self->name
-        if $self->default_view_limit_extra_id;
     +{
-        name             => $self->name,
-        name_short       => $self->name_short,
-        hide_in_selector => $self->hide_in_selector,
-        homepage_text    => $self->homepage_text,
-        homepage_text2   => $self->homepage_text2,
-        sort_layout_id   => $self->sort_layout_id,
-        sort_type        => $self->sort_type,
-        permissions      => [ map {
+        name                        => $self->name,
+        name_short                  => $self->name_short,
+        hide_in_selector            => $self->hide_in_selector,
+        homepage_text               => $self->homepage_text,
+        homepage_text2              => $self->homepage_text2,
+        sort_layout_id              => $self->sort_layout_id,
+        sort_type                   => $self->sort_type,
+        view_limit_id               => $self->view_limit_id,
+        default_view_limit_extra_id => $self->default_view_limit_extra_id,
+        permissions                 => [ map {
             {
                 group_id   => $_->group_id,
                 permission => $_->permission,

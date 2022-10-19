@@ -683,5 +683,64 @@ sub parse_date_filter
     $now;
 }
 
-1;
+sub export_hash
+{   my $self = shift;
+    +{
+        id       => $self->id,
+        global   => $self->global,
+        is_admin => $self->is_admin,
+        group_id => $self->group_id,
+        name     => $self->name,
+        filter   => $self->filter->as_hash,
+        sorts    => [map $_->as_hash, @{$self->sorts}],
+        groups   => [map $_->as_hash, @{$self->groups}],
+        columns  => $self->columns,
+    };
+}
 
+sub import_hash
+{   my ($self, $values, %options) = @_;
+    no warnings "uninitialized";
+    notice __x"Updating global from {old} to {new} for view {name}",
+        old => $self->global, new => $values->{global}, name => $self->name
+            if $options{report_only} && $self->global ne $values->{global};
+    $self->global($values->{global});
+    notice __x"Updating is_admin from {old} to {new} for view {name}",
+        old => $self->is_admin, new => $values->{is_admin}, name => $self->name
+            if $options{report_only} && $self->is_admin ne $values->{is_admin};
+    $self->is_admin($values->{is_admin});
+    notice __x"Updating group from {old} to {new} for view {name}",
+        old => $self->group_id, new => $values->{group_id}, name => $self->name
+            if $options{report_only} && $self->group_id ne $values->{group_id};
+    $self->is_admin($values->{group_id});
+    notice __x"Updating name from {old} to {new} for view {name}",
+        old => $self->name, new => $values->{name}, name => $self->name
+            if $options{report_only} && $self->name ne $values->{name};
+    $self->name($values->{name});
+    $self->filter($values->{filter}->as_hash);
+    notice __x"Updating filter for view {name}",
+        name => $self->name
+            if $options{report_only} && $self->filter->changed;
+    # Lazy, no reporting of sorts and groups
+    unless ($options{report_only})
+    {
+        $self->write;
+        # Sorts
+        $_->delete foreach @{$self->sorts};
+        $self->schema->resultset('Sort')->create({
+            layout_id => $_->{layout_id},
+            parent_id => $_->{parent_id},
+            order     => $_->{order},
+            type      => $_->{type},
+        }) foreach @{$values->{sorts}};
+        # Groups
+        $_->delete foreach @{$self->groups};
+        $self->schema->resultset('ViewGroup')->create({
+            layout_id => $_->{layout_id},
+            parent_id => $_->{parent_id},
+            order     => $_->{order},
+        }) foreach @{$values->{groups}};
+    }
+}
+
+1;

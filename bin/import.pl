@@ -39,6 +39,7 @@ use GADS::Column::String;
 use GADS::Column::Tree;
 use GADS::Config;
 use GADS::Instances;
+use GADS::Filter;
 use GADS::Graph;
 use GADS::Graphs;
 use GADS::Groups;
@@ -411,9 +412,10 @@ foreach my $ins (readdir $root)
     push @all_layouts, {
         values => $instance_info,
         layout => $layout,
-        # Can't do graphs now as they may refer to other tables that haven't
-        # been imported yet
+        # Can't do graphs and views now as they may refer to other tables that
+        # haven't been imported yet
         graphs => "_export/$ins/graphs",
+        views  => "_export/$ins/views",
     };
 
     my $records_dir = "_export/$ins/records";
@@ -433,6 +435,7 @@ foreach my $ins (readdir $root)
     # XXX Then do record_id entries in records
 }
 
+my %view_mapping;
 foreach my $l (@all_layouts)
 {
     my $layout = $l->{layout};
@@ -444,6 +447,7 @@ foreach my $l (@all_layouts)
     $search->{user_id}  = undef if !$user_mapping;
     $search->{group_id} = undef if !$group_mapping;
     my %existing_graphs = map { $_->id => $_ } schema->resultset('Graph')->search($search)->all;
+    my %existing_views  = map { $_->id => $_ } schema->resultset('View')->search([global => 1, is_admin => 1])->all;
 
     foreach my $g (dir($l->{graphs}))
     {
@@ -492,6 +496,73 @@ foreach my $l (@all_layouts)
         $graph->import_hash($g, report_only => $report_only);
         $graph->write unless $report_only;
         delete $existing_graphs{$graph->id};
+    }
+
+    # Import views, do not do earlier as can reference across layouts
+    foreach my $v (dir($l->{views}))
+    {
+        # Convert to new column IDs
+        $v->{columns} = [map $column_mapping->{$_}, @{$v->{columns}}];
+        $v->{sorts}  = [map {
+            layout_id => $column_mapping->{$_->{layout_id}},
+            parent_id => $column_mapping->{$_->{parent_id}},
+            type      => $_->{type},
+            order     => $_->{order},
+        } @{$v->{sorts}}];
+        $v->{groups}  = [map {
+            layout_id => $column_mapping->{$_->{layout_id}},
+            parent_id => $column_mapping->{$_->{parent_id}},
+            order     => $_->{order},
+        } @{$v->{groups}}];
+        $v->{group_id} = $group_mapping->{$v->{group_id}};
+        # Filter
+        my $filter = GADS::Filter->new(as_hash => $v->{filter});
+        foreach my $cond (@{$filter->filters})
+        {
+            $cond->{id} = $column_mapping->{$conf->{id}},
+            $cond->{field} = $column_mapping->{$conf->{field}},
+        }
+        $v->{filter} = $filter;
+        my $view;
+        if ($merge || $report_only)
+        {
+            my $view_rs = rset('View')->search({
+                instance_id => $layout->instance_id,
+                name        => $v->{name},
+            });
+            report ERROR => "More than one existing view called {name}", name => $v->{name}
+                if $view_rs->count > 1;
+            if ($view_rs->count)
+            {
+                $view = GADS::View->new(
+                    id          => $view_rs->next->id,
+                    layout      => $layout,
+                    schema      => schema,
+                    instance_id => $layout->instance_id,
+                );
+            }
+            else {
+                report NOTICE => __x"View to be created: {name}", name => $v->{name};
+            }
+        }
+        $view ||= GADS::View->new(
+            layout      => $layout,
+            schema      => schema,
+            instance_id => $layout->instance_id,
+        );
+        $view->import_hash($v, report_only => $report_only); # write happens on import
+        delete $existing_views{$view->id};
+        $view_mapping->{$v->{id}} = $view->id;
+    }
+    if ($view_limit_id = $l->{values}->{view_limit_id})
+    {
+        $layout->view_limit_id($view_mapping->{$view_limit_id});
+        $layout->write;
+    }
+    if ($default_view_limit_extra_id = $l->{values}->{default_view_limit_extra_id})
+    {
+        $layout->default_view_limit_extra_id($view_mapping->{$default_view_limit_extra_id});
+        $layout->write;
     }
 
     # Delete any that no longer exist
