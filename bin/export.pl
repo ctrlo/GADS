@@ -74,6 +74,7 @@ my @groups = schema->resultset('Group')->search([
         },
         'instance_groups',
     ],
+    collapse => 1,
 })->all;
 
 foreach my $group (@groups)
