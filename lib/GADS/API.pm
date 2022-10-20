@@ -1102,8 +1102,9 @@ sub _get_records {
             or next;
         my @values = query_parameters->get_all($key);
         push @additional_filters, {
-            id    => $col->id,
-            value => [$search],
+            id      => $col->id,
+            value   => [$search],
+            is_text => 1,
         };
     }
     $records->additional_filters(\@additional_filters);

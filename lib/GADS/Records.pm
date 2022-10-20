@@ -1754,11 +1754,14 @@ sub _query_params
         foreach my $additional (@{$self->additional_filters})
         {
             my $col = $layout->column($additional->{id});
+            # If is_text flag is set then the provided value is always text
+            # regardless of field type. Otherwise it will be an ID for fields
+            # that have an equivalent ID (e.g. enums)
             my $f = {
                 id          => $col->id,
-                operator    => $col->string_storage ? 'contains' : 'equal',
+                operator    => $col->string_storage || $additional->{is_text} ? 'contains' : 'equal',
                 value       => $additional->{value},
-                value_field => $col->value_field_as_index($additional->{value}),
+                value_field => !$additional->{is_text} && $col->value_field_as_index($additional->{value}),
             };
             push @limit, $self->_search_construct($f, $layout, %options);
         }
