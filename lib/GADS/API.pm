@@ -1076,10 +1076,14 @@ sub _get_records {
     my $layout    = var('instances')->layout_by_shortname($sheetname); # borks on not found
     my $view      = current_view($user, $layout);
 
+    # Allow parameters to be passed by URL query or in the body. Flatten into
+    # one parameters object
+    my $params = Hash::MultiValue->new(query_parameters->flatten, body_parameters->flatten);
+
     # Need to build records first, so that we can access rendered column
     # information (not necessarily same as view columns)
-    my $start  = query_parameters->get('start') || 0;
-    my $length = query_parameters->get('length') || 25;
+    my $start  = $params->get('start') || 0;
+    my $length = $params->get('length') || 25;
     my $records = GADS::Records->new(
         user   => $user,
         schema => schema,
@@ -1091,16 +1095,16 @@ sub _get_records {
 
     # Look for column filters
     my @additional_filters;
-    foreach my $key (query_parameters->keys)
+    foreach my $key ($params->keys)
     {
         # E.g. 'columns[1][search][value]' => 'my_search'
         next unless $key =~ /^columns\[([0-9]+)\Q][search][value]\E$/;
         my $index = $1;
-        my $search = query_parameters->get($key)
+        my $search = $params->get($key)
             or next;
         my $col = $records->columns_render->[$index]
             or next;
-        my @values = query_parameters->get_all($key);
+        my @values = $params->get_all($key);
         push @additional_filters, {
             id      => $col->id,
             value   => [$search],
@@ -1109,7 +1113,7 @@ sub _get_records {
     }
     $records->additional_filters(\@additional_filters);
 
-    if (my $search = query_parameters->get('search[value]'))
+    if (my $search = $params->get('search[value]'))
     {
         $search =~ s/\h+$//;
         $search =~ s/^\h+//;
@@ -1117,18 +1121,18 @@ sub _get_records {
     }
 
     # Configure table sort
-    my $order_index = query_parameters->get('order[0][column]');
+    my $order_index = $params->get('order[0][column]');
     my $col_order   = $records->columns_render->[$order_index];
     # Check user has access
     error __"Invalid column ID for sort"
         unless $col_order && $col_order->user_can('read');
-    my $sort = { type => query_parameters->get('order[0][dir]'), id => $col_order->id };
+    my $sort = { type => $params->get('order[0][dir]'), id => $col_order->id };
 
     $records->clear_sorts;
     $records->sort($sort);
 
     my $return = {
-        draw            => query_parameters->get('draw'),
+        draw            => $params->get('draw'),
         recordsTotal    => $records->count,
         recordsFiltered => $records->count, # XXX update
         data            => [],
