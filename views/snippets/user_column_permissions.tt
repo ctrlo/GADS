@@ -52,7 +52,7 @@
         fieldset_name = "permissions"
         list_class = list_class
         name = "permission"
-        label = "User' system wide permissions"
+        label = "User's system-wide permissions"
         items = [{
           id = "superadmin",
           name = "Super-administrator",
