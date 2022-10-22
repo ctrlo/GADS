@@ -2126,6 +2126,16 @@ small.search_term {
   background-color: rgba(137, 30, 136, 0.3);
 }
 
+.rag .attention {
+  border-bottom-color: #b94a48;
+  background-color: rgba(185, 74, 72, 0.3);
+}
+
+.rag .complete {
+  border-bottom-color: #004085;
+  background-color: rgba(0, 64, 133, 0.3);
+}
+
 /* manage-fields */
 .tab-interface [role=tablist] {
   list-style-type: none;

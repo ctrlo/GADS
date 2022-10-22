@@ -163,15 +163,17 @@ will be returned with the keys id and name.
 
 <h5>Return values</h5>
 <p>Return values for RedAmberGreen fields should be the string &quot;red&quot;,
-&quot;amber&quot; or &quot;green&quot;. It is also permissable to return
-nothing, which will be interpreted as a grey value. Any other values, or code
-causing errors, will display purple.</p>
-<p>In order for a calculated value to behave as expected (such as sorting and
-searching correctly), it's important that Linkspace knows what value it is
-returning. The type of value can specified using the &quot;Return value
-conversion&quot; option. In the case of a date, the value returned from the
-calculated function should be epoch time, which will then be converted to a
-full date by Linkspace.</p>
+&quot;attention&quot;, &quot;amber&quot;, &quot;yellow&quot;, &quot;grey&quot;,
+&quot;blue&quot; or &quot;green&quot;. It is also permissable to return
+nothing, which will show as a blank value. Any other values, or code causing
+errors, will display purple. Definitions and selections for the key can be
+edited by changing a table's settings.</p>
+<p>In order for a calculated value to behave
+as expected (such as sorting and searching correctly), it's important that
+Linkspace knows what value it is returning. The type of value can specified
+using the &quot;Return value conversion&quot; option. In the case of a date,
+the value returned from the calculated function should be epoch time, which
+will then be converted to a full date by Linkspace.</p>
 
 <p>The following selection of
 functions show example code:</p>

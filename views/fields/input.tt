@@ -32,7 +32,11 @@
 <div class="form-group">
 [% END %]
   <div class="input [% input_class %]">
-    [% INCLUDE fields/sub/label_input.tt; %]
+    [%
+      IF label;
+        INCLUDE fields/sub/label_input.tt;
+      END;
+    %]
     <div class="input__field">
       <input
         type="[% type %]"

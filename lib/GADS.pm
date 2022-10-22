@@ -89,8 +89,9 @@ use Dancer2::Plugin::LogReport 'linkspace';
 
 use GADS::API; # API routes
 
-schema->storage->debugobj(new GADS::DBICProfiler);
-schema->storage->debug(1);
+# Uncomment for DBIC traces
+#schema->storage->debugobj(new GADS::DBICProfiler);
+#schema->storage->debug(1);
 
 # There should never be exceptions from DBIC, so we want to panic them to
 # ensure they get notified at the correct level. Unfortunately, DBIC's internal
@@ -185,8 +186,7 @@ hook before => sub {
         ? var('api_user')
         : logged_in_user;
 
-    # TODO: remove api_test exclusion from regex
-    if (request->is_post && request->path !~ m!^(/api/token|/print|/api_test/.*)$!)
+    if (request->is_post && request->path !~ m!^(/api/token|/print)$!)
     {
         # Protect against CSRF attacks. NB: csrf_token can be in query params
         # or body params (different keys) and also as JSON.
@@ -430,82 +430,6 @@ get '/ping' => sub {
     'alive';
 };
 
-# TODO: remove testing endpoint after application is completed
-any ['get', 'post'] => '/api_test/tree' => sub {
-    content_type 'application/json';
-    '[
-        {
-            "id":18
-            "text":"Test 1",
-            "children":[
-                {
-                    "id":19,
-                    "text":"Test 1.1"
-                },
-                {
-                    "id":20,
-                    "text":"Test 1.2"
-                },
-                {
-                    "text":"Test 1.3",
-                    "id":21
-                }
-            ],
-        },
-        {
-            "id":22
-            "text":"Test 2",
-            "children":[
-                {
-                    "id":23,
-                    "text":"Test 2.1"
-                }
-            ],
-        },
-        {
-            "id":24,
-            "text":"Test 3",
-            "children":[
-                {
-                    "id":25,
-                    "text":"Test 3.1"
-                }
-            ]
-        }
-    ]';
-};
-
-# TODO: remove testing endpoint after wizard is completed
-any ['get', 'post'] => '/api_test/success' => sub {
-    content_type 'application/json';
-    '{"status": "success"}';
-};
-
-# TODO: remove testing endpoint after wizard is completed
-any ['get', 'post'] => '/api_test/internal_server_error' => sub {
-    status 500;
-    content_type 'application/json';
-    '{
-        "status": "error",
-        "messages": [
-            {"message": "error 1 is the first error"},
-            {"message": "error 2 is the second error"}
-        ]
-    }';
-};
-
-# TODO: remove testing endpoint after wizard is completed
-any ['get', 'post'] =>  '/api_test/unauthorized' => sub {
-    status 401;
-    content_type 'application/json';
-    '{
-        "status": "error",
-        "messages": [
-            {"message": "you must be logged in to access this page"}
-        ]
-    }';
-};
-
 any ['get', 'post'] => '/aup' => require_login sub {
 
     if (param 'accepted')
@@ -537,6 +461,10 @@ any ['get', 'post'] => '/user_status' => require_login sub {
         message   => config->{gads}->{user_status_message},
         page      => 'user_status',
     };
+};
+
+get '/login/denied' => sub {
+    forwardHome({ danger => "You do not have permission to access this page" });
 };
 
 any ['get', 'post'] => '/login' => sub {
@@ -1386,6 +1314,7 @@ any ['get', 'post'] => '/table/:id/edit' => require_role superadmin => sub {
         $layout->sort_type(param('sort_type') || undef);
         $layout->view_limit_id(param('view_limit_id') || undef);
         $layout->set_alert_columns([body_parameters->get_all('alert_column')]);
+        $layout->set_rags(body_parameters);
 
         if (process(sub {$layout->write}))
         {

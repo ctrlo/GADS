@@ -2,14 +2,15 @@
 <aside role="complementary" class="rag-legend [% legend_class %]">
   <span class="rag-legend__title">RAG symbol legend:</span>
   <dl class="rag-legend__list">
-    [% FOREACH rag_grade IN rag_grades %]
+    [% FOREACH rag IN layout.enabled_rags %]
+      [% rag_grade = rag.rag %]
     <dt class="rag-legend__item">
       <span class="rag rag--[% rag_grade %]" title="[% rag_grade %]" aria-labelledby="rag_[% rag_grade %]_meaning">
         <span>[% rag_symbols.$rag_grade %]</span>
       </span>
     </dt>
     <dd class="rag-legend__meaning" id="rag_[% rag_grade %]_meaning">
-      [% rag_grade %]
+      [% rag.description | html %]
     </dd>
     [% END %]
   </dl>

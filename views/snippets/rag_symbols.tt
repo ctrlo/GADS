@@ -1,13 +1,34 @@
 [%
+    rag_keys_ordered = [
+      'danger',
+      'attention',
+      'warning',
+      'advisory',
+      'success',
+      'complete',
+      'undefined',
+      'unexpected'
+    ];
+
     rag_symbols = {
-        undefined  => '&#x3f;',
         danger     => '&#x2717;',
+        attention  => '&#x26a0;',
         warning    => '&#x26a0;',
         advisory   => '&#x26a0;',
         success    => '&#x2713;',
+        complete   => '&#x2713;',
+        undefined  => '&#x3f;',
         unexpected => '&#x21;'
     };
 
-    rag_grades = ['danger', 'warning', 'advisory', 'success', 'undefined', 'unexpected'];
+    rag_descriptions = {
+        danger     => 'Red',
+        attention  => 'Red (attention)',
+        warning    => 'Amber',
+        advisory   => 'Yellow',
+        success    => 'Green',
+        complete   => 'Blue',
+        undefined  => 'Grey',
+        unexpected => 'Purple'
+    };
  %]
-
