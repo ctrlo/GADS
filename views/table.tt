@@ -96,6 +96,163 @@
 
             <div class="panel panel-default">
                 <div class="panel-heading">
+                    <h3 role="button" data-toggle="collapse" data-target="#rag_definitions" aria-expanded="false"
+                        aria-controls="alert_columns" class="panel-title">RAG field definitions and selections</h3>
+                </div>
+                <div class="panel-body collapse" id="rag_definitions">
+                    <label>
+                        Use the following table to select and define RAG values for the RAG key
+                    </label>
+                    [% PROCESS snippets/rag_symbols.tt %]
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="danger_selected" value="1"
+                                        [% IF layout_edit.rag("danger").enabled %]checked[% END %]>
+                                    <span class="rag">
+                                        <span class="danger">[% rag_symbols.danger %]</span>
+                                    </span>
+                                    Red
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control is-valid" name="danger_description"
+                                value="[% layout_edit.rag("danger").description | html %]" placeholder="Optional description">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="attention_selected" value="1"
+                                        [% IF layout_edit.rag("attention").enabled %]checked[% END %]>
+                                    <span class="rag">
+                                        <span class="attention">[% rag_symbols.attention %]</span>
+                                    </span>
+                                    Red (attention)
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control is-valid" name="attention_description"
+                                value="[% layout_edit.rag("attention").description | html %]" placeholder="Optional description">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="warning_selected" value="1"
+                                        [% IF layout_edit.rag("warning").enabled %]checked[% END %]>
+                                    <span class="rag">
+                                        <span class="warning">[% rag_symbols.warning %]</span>
+                                    </span>
+                                    Amber
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control is-valid" name="warning_description"
+                                value="[% layout_edit.rag("warning").description | html %]" placeholder="Optional description">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="advisory_selected" value="1"
+                                        [% IF layout_edit.rag("advisory").enabled %]checked[% END %]>
+                                    <span class="rag">
+                                        <span class="advisory">[% rag_symbols.advisory %]</span>
+                                    </span>
+                                    Yellow
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control is-valid" name="advisory_description"
+                                value="[% layout_edit.rag("advisory").description | html %]" placeholder="Optional description">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="success_selected" value="1"
+                                        [% IF layout_edit.rag("success").enabled %]checked[% END %]>
+                                    <span class="rag">
+                                        <span class="success">[% rag_symbols.success %]</span>
+                                    </span>
+                                    Green
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control is-valid" name="success_description"
+                                value="[% layout_edit.rag("success").description | html %]" placeholder="Optional description">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="complete_selected" value="1"
+                                        [% IF layout_edit.rag("complete").enabled %]checked[% END %]>
+                                    <span class="rag">
+                                        <span class="complete">[% rag_symbols.complete %]</span>
+                                    </span>
+                                    Blue
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control is-valid" name="complete_description"
+                                value="[% layout_edit.rag("complete").description | html %]" placeholder="Optional description">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="undefined_selected" value="1"
+                                        [% IF layout_edit.rag("undefined").enabled %]checked[% END %]>
+                                    <span class="rag">
+                                        <span class="undefined">[% rag_symbols.undefined %]</span>
+                                    </span>
+                                    Grey
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control is-valid" name="undefined_description"
+                                value="[% layout_edit.rag("undefined").description | html %]" placeholder="Optional description">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="unexpected_selected" value="1"
+                                        [% IF layout_edit.rag("unexpected").enabled %]checked[% END %]>
+                                    <span class="rag">
+                                        <span class="unexpected">[% rag_symbols.unexpected %]</span>
+                                    </span>
+                                    Purple
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control is-valid" name="unexpected_description"
+                                value="[% layout_edit.rag("unexpected").description | html %]" placeholder="Optional description">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
                     <h3 class="panel-title">General table permissions</h3>
                 </div>
                 <div class="panel-body">

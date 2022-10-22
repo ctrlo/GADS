@@ -2,12 +2,12 @@
     rag_symbols = {
         undefined  => '&#x3f;',
         danger     => '&#x2717;',
+        attention  => '&#x26a0;',
         warning    => '&#x26a0;',
         advisory   => '&#x26a0;',
         success    => '&#x2713;',
+        complete   => '&#x2713;',
         unexpected => '&#x21;'
     };
-
-    rag_grades = ['danger', 'warning', 'advisory', 'success', 'undefined', 'unexpected'];
  %]
 

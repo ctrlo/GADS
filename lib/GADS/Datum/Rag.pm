@@ -27,12 +27,14 @@ extends 'GADS::Datum::Code';
 with 'GADS::Role::Presentation::Datum::Rag';
 
 my %mapping = (
-    a_grey   => 'undefined',
-    b_red    => 'danger',
-    c_amber  => 'warning',
-    c_yellow => 'advisory',
-    d_green  => 'success',
-    e_purple => 'unexpected'
+    a_grey      => 'undefined',
+    b_red       => 'danger',
+    b_attention => 'attention',
+    c_amber     => 'warning',
+    c_yellow    => 'advisory',
+    d_green     => 'success',
+    d_blue      => 'complete',
+    e_purple    => 'unexpected'
 );
 
 
@@ -50,11 +52,19 @@ sub convert_value
     }
     elsif (!$value)
     {
+        $return = '';
+    }
+    elsif (lc $value eq 'grey')
+    {
         $return = 'a_grey';
     }
     elsif (lc $value eq 'red')
     {
         $return = 'b_red';
+    }
+    elsif (lc $value eq 'attention')
+    {
+        $return = 'b_attention';
     }
     elsif (lc $value eq 'amber')
     {
@@ -67,6 +77,10 @@ sub convert_value
     elsif (lc $value eq 'green')
     {
         $return = 'd_green';
+    }
+    elsif (lc $value eq 'blue')
+    {
+        $return = 'd_blue';
     }
     else {
         # Not expected

@@ -993,6 +993,7 @@ any ['get', 'post'] => '/table/:id' => require_role superadmin => sub {
             $layout_edit->view_limit_id(param('view_limit_id') || undef);
             $layout_edit->set_groups([body_parameters->get_all('permissions')]);
             $layout_edit->set_alert_columns([body_parameters->get_all('alert_column')]);
+            $layout_edit->set_rags(body_parameters);
 
             if (process(sub {$layout_edit->write}))
             {

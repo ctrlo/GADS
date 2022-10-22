@@ -224,3 +224,13 @@
     background-color: $rag-unexpected-bg;
 }
 
+.rag .attention {
+    border-bottom-color: $rag-attention;
+    background-color: $rag-attention-bg;
+}
+
+.rag .complete {
+    border-bottom-color: $rag-complete;
+    background-color: $rag-complete-bg;
+}
+
