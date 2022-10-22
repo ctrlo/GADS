@@ -49,6 +49,8 @@ has '+value_field' => (
     default => 'id',
 );
 
+sub show_add { 0 } # For compatibility with curval when used as is_curcommon
+
 sub _build_sprefix { 'current' };
 
 sub _build_refers_to_instance_id
