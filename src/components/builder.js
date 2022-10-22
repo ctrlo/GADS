@@ -1,6 +1,6 @@
 const setupBuilder = (() => {
   const buildFilterOperators = type => {
-    if (!["date", "daterange"].includes(type)) return undefined;
+    if (!["date", "daterange", "createddate", "createdby", "intgr"].includes(type)) return undefined;
     const operators = [
       "equal",
       "not_equal",
@@ -8,10 +8,14 @@ const setupBuilder = (() => {
       "less_or_equal",
       "greater",
       "greater_or_equal",
-      "is_empty",
-      "is_not_empty"
     ];
+    if (type === "createddate") return operators;
     type === "daterange" && operators.push("contains");
+    if (type === "createdby") {
+        operators.push("contains", "not_contains", "begins_with", "not_begins_with");
+    } else {
+        operators.push("is_empty", "is_not_empty", "changed_after");
+    }
     return operators;
   };
 
