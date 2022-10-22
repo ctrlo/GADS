@@ -11,7 +11,7 @@ const setupBuilder = (() => {
       "is_empty",
       "is_not_empty"
     ];
-    type === "daterange" && operators.push("contain");
+    type === "daterange" && operators.push("contains");
     return operators;
   };
 
