@@ -464,9 +464,15 @@ sub for_table
         my $ret = {
             record_id  => $val->{id},
             version_id => $val->{version_id},
+            fields     => [],
         };
-        $ret->{$_->name} = $val->{record}->fields->{$_->id}->for_table
-            foreach @{$self->column->curval_fields};
+        foreach my $f (@{$self->column->curval_fields})
+        {
+            push @{$ret->{fields}}, {
+                name  => $f->name,
+                value => $val->{record}->fields->{$f->id}->for_table,
+            };
+        }
         push @{$return->{values}}, $ret;
     }
     $return;
