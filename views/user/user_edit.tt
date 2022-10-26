@@ -68,6 +68,10 @@
       
     </fieldset>
   
+    <div class="row mb-4">
+      [% INCLUDE snippets/user_column_view_limits.tt user=edituser column_class="col-lg-6"; %]
+    </div>
+    
     <div class="row">
       [%-
         INCLUDE snippets/user_column_permissions.tt column_class="col-lg-5 mb-4 mb-lg-0" list_class="list--vertical list--checkboxes";
