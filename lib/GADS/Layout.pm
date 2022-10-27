@@ -409,6 +409,72 @@ sub user_can_column
     return $user_cache->{$column_id}->{$permission};
 }
 
+my @all_rags = qw/danger attention warning advisory success undefined unexpected complete/;
+
+has rags => (
+    is => 'lazy',
+);
+
+sub _build_rags
+{   my $self = shift;
+    # Check that all rags created in database for this instance
+    my %all = map { $_ => 1 } @all_rags;
+    delete $all{$_->rag}
+        foreach $self->_rset->instance_rags;
+    # Create any missing
+    foreach my $rag (keys %all)
+    {
+        $self->schema->resultset('InstanceRag')->create({
+            instance_id => $self->instance_id,
+            rag         => $rag,
+            enabled     => $rag eq 'attention' || $rag eq 'complete' ? 0 : 1,
+            description => $rag,
+        })
+    }
+    [$self->_rset->instance_rags->all];
+}
+
+has _rag_index => (
+    is => 'lazy',
+);
+
+sub _build__rag_index
+{   my $self = shift;
+    # Ensure rags created in database
+    $self->rags;
+    my %enabled = map { $_->rag => $_ } $self->_rset->instance_rags;
+    \%enabled;
+}
+
+sub rag
+{   my ($self, $rag) = @_;
+    $self->_rag_index->{$rag};
+}
+
+sub enabled_rags
+{   my $self = shift;
+    # Ensure fixed order
+    [
+        grep {
+            $_->enabled
+        } map {
+            $self->_rag_index->{$_}
+        } @all_rags
+    ];
+}
+
+sub set_rags
+{   my ($self, $params) = @_;
+    foreach my $rag (@all_rags)
+    {
+        my $row = $self->_rag_index->{$rag};
+        $row->update({
+            enabled     => $params->get("${rag}_selected") ? 1 : 0,
+            description => $params->get("${rag}_description"),
+        });
+    }
+}
+
 sub filtered_curvals
 {   my $self = shift;
     grep $_->has_subvals, grep $_->type eq 'curval', $self->all;

@@ -5,7 +5,7 @@
         <div class="col">
           <div
             class="graph__container"
-            id="chartdiv[% graph_id %]"
+            data-chart-id="[% graph_id %]"
             data-graph-type="[% graph.type %]"
             data-x-axis-name="[% graph.x_axis_name | replace('"', '\\\"') %]"
             data-y-axis-label="[% graph.y_axis_label | replace('"', '\\\"') %]"
@@ -59,7 +59,7 @@
           <div class="col">
             <div
               class="graph__container"
-              id="chartdiv[% graph.id %]"
+              data-chart-id="[% graph.id %]"
               data-graph-type="[% graph.type %]"
               data-x-axis-name="[% graph.x_axis_name | replace('"', '\\\"') %]"
               data-y-axis-label="[% graph.y_axis_label | replace('"', '\\\"') %]"

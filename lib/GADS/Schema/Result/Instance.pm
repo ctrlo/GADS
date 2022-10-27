@@ -369,6 +369,13 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+__PACKAGE__->has_many(
+  "instance_rags",
+  "GADS::Schema::Result::InstanceRag",
+  { "foreign.instance_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 # The following code is now removed: it is too difficult to scrub whilst still
 # retaining the required functionality and formatting (and being completely
 # safe). Given that only an administrator has access to update HTML code, this

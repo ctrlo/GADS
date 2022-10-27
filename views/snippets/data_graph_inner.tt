@@ -1,1 +1,1 @@
-<div class="dashboard-graph" id="chartdiv[% graph_id %]" data-plot-data="[% plot_data %]" data-plot-options="[% plot_options %]"></div>
+<div class="dashboard-graph" data-chart-id="[% graph_id %]" data-plot-data="[% plot_data %]" data-plot-options="[% plot_options %]"></div>

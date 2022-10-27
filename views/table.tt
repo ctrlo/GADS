@@ -183,6 +183,73 @@
             </div>
           </div>
         </div>
+        
+        <div class="row mb-3">
+          <div class="col">
+            <div class="card card--expandable">
+              <div class="card__header">
+                <button class="card__header-left" type="button" data-toggle="collapse" data-target="#ragFieldDefinitions" aria-expanded="false" aria-controls="ragFieldDefinitions">
+                  <span class="card__title">
+                    RAG field definitions and selections
+                  </span>
+                </button>
+                <div class="card__header-right">
+                  <button class="card__toggle" type="button" data-toggle="collapse" data-target="#ragFieldDefinitions" aria-expanded="false" aria-controls="ragFieldDefinitions">
+                    <span>Toggle collapsible</span>
+                  </button>
+                </div>
+              </div>
+              <div class="collapse" id="ragFieldDefinitions">
+                <div class="card__content">
+                  <div class="row">
+                    <fieldset class="fieldset" data-name="ragFieldDefinitionOptions">
+                      <div class="fieldset__legend mb-3">
+                        <legend id="ragFieldDefinitionOptions-label">
+                          Use the following table to select and define RAG values for the RAG key
+                        </legend>
+                      </div>
+                  
+                      [% PROCESS snippets/rag_symbols.tt %]
+                      [% FOREACH rag_grade IN rag_keys_ordered %]
+                      <div class="row">
+                        <div class="col-md-2">
+                          [%
+                            INCLUDE fields/sub/checkbox.tt
+                              id            = rag_grade _ '_selected'
+                              name          = rag_grade _ '_selected'
+                              value         = 1
+                              label         = rag_descriptions.$rag_grade
+                              is_required   = 0
+                              checked       = layout_obj.rag(rag_grade).enabled ? 1 : 0;
+                          %]
+                        </div>
+                        <div class="col-md-1">
+                          <span class="rag rag--[% rag_grade %]" title="[% rag_grade %]" aria-labelledby="rag_[% rag_grade %]_meaning">
+                            <span>[% rag_symbols.$rag_grade %]</span>
+                          </span>
+                        </div>
+                        <div class="col-md-4">
+                          [%
+                            INCLUDE fields/input.tt
+                              id            = rag_grade _ '_description'
+                              name          = rag_grade _ '_description'
+                              label         = ""
+                              value         = layout_obj.rag(rag_grade).description
+                              placeholder   = "Optional description"
+                              custom_classes = "mt-0"
+                              filter        = "html"
+                              type          = "text";
+                          %]
+                        </div>
+                      </div>
+                      [% END %]
+                    </fieldset>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       
       <footer class="content-block__footer">

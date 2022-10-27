@@ -544,7 +544,8 @@ post '/api/table_request' => require_login sub {
     _post_table_request();
 };
 
-get '/api/:sheet/records' => require_login sub {
+# AJAX record browse
+any ['get', 'post'] => '/api/:sheet/records' => require_login sub {
     _get_records();
 };
 
