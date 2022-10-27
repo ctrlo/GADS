@@ -137,6 +137,7 @@ sub for_table_template
     +{
         type      => $self->column->type,
         column_id => $self->column->id,
+        name      => $self->column->name,
     };
 }
 

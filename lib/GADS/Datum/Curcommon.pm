@@ -466,13 +466,8 @@ sub for_table
             version_id => $val->{version_id},
             fields     => [],
         };
-        foreach my $f (@{$self->column->curval_fields})
-        {
-            push @{$ret->{fields}}, {
-                name   => $f->name,
-                values => $val->{record}->fields->{$f->id}->for_table,
-            };
-        }
+        push @{$ret->{fields}}, $val->{record}->fields->{$_->id}->for_table
+            foreach @{$self->column->curval_fields};
         push @{$return->{values}}, $ret;
     }
     $return;
