@@ -469,8 +469,8 @@ sub for_table
         foreach my $f (@{$self->column->curval_fields})
         {
             push @{$ret->{fields}}, {
-                name  => $f->name,
-                value => $val->{record}->fields->{$f->id}->for_table,
+                name   => $f->name,
+                values => $val->{record}->fields->{$f->id}->for_table,
             };
         }
         push @{$return->{values}}, $ret;
