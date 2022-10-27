@@ -155,7 +155,7 @@
     ]
   }';
 
-  table_config = table_config.replace('_AJAX', table_ajax ? "\n" _ '    "ajax":"' _ table_ajax _ '",' _ "\n" _ '    "serverSide":true,' _ "\n" _ '    "processing":true,' : '');
+  table_config = table_config.replace('_AJAX', table_ajax ? "\n" _ '    "ajax": {"url": "' _ table_ajax _ '", "type": "POST"},' _ "\n" _ '    "serverSide":true,' _ "\n" _ '    "processing":true,' : '');
   table_config = table_config.replace('_STATE_SAVE', table_save_state ? "\n" _ '    "stateSave": true,' : '');
   table_config = table_config.replace('_SHOW_ALL_RECORDS', table_show_all_records ? "\n" _ '    "iDisplayLength":-1,' : '');
   table_config = table_config.replace('_ROW_REORDER', reorderConfig);
