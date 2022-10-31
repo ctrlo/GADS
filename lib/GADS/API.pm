@@ -180,7 +180,7 @@ post '/api/:sheet/record' => require_api_user sub {
     _update_record($record, $request);
 
     status 'Created';
-    header 'Location' => request->base.'record/'.$record->current_id;
+    response_header 'Location' => request->base.'record/'.$record->current_id;
 
     return;
 };
@@ -225,7 +225,7 @@ put '/api/:sheet/record/:id' => require_api_user sub {
     status 'No Content';
     # Use supplied ID for return - will either have been created as that or
     # will have borked early with error and not got here
-    header 'Location' => request->base."record/$id";
+    response_header 'Location' => request->base."record/$id";
 
     return;
 };
@@ -408,8 +408,8 @@ post '/api/token' => sub {
         };
     }
 
-    header "Cache-Control" => 'no-store';
-    header "Pragma"        => 'no-cache';
+    response_header "Cache-Control" => 'no-store';
+    response_header "Pragma"        => 'no-cache';
     content_type 'application/json;charset=UTF-8';
 
     return encode_json $json_response;
