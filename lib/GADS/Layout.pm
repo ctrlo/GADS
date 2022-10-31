@@ -417,6 +417,7 @@ has rags => (
 
 sub _build_rags
 {   my $self = shift;
+    return [] if !$self->_rset; # Not yet created
     # Check that all rags created in database for this instance
     my %all = map { $_ => 1 } @all_rags;
     delete $all{$_->rag}
