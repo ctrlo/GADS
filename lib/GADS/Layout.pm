@@ -662,7 +662,7 @@ sub write
         $self->schema->resultset('InstanceGroup')->search([@delete])->delete
             if @delete;
     }
-    $self->write_rags;
+    $self->write_rags if $self->set_rags;
     $self->clear; # Rebuild all permissions etc
     $self; # Return self for chaining
 }
