@@ -253,12 +253,12 @@ hook before => sub {
                     unless request->uri eq '/myaccount' || request->uri eq '/logout';
         }
 
-        header "X-Frame-Options" => "DENY" # Prevent clickjacking
+        response_header "X-Frame-Options" => "DENY" # Prevent clickjacking
             unless request->uri eq '/aup_text' # Except AUP, which will be in an iframe
                 || request->path eq '/file'; # Or iframe posts for file uploads (hidden iframe used for IE8)
 
         # CSP
-        header "Content-Security-Policy" => "script-src 'self';";
+        response_header "Content-Security-Policy" => "script-src 'self';";
 
         # Make sure we have suitable persistent hash to update. All these options are
         # used as hashrefs themselves, so prevent trying to access non-existent hash.
@@ -1797,7 +1797,7 @@ prefix '/:layout_name' => sub {
             view_limit_extra_id => current_view_limit_extra_id($user, $layout),
         );
 
-        header "Cache-Control" => "max-age=0, must-revalidate, private";
+        response_header "Cache-Control" => "max-age=0, must-revalidate, private";
         content_type 'application/json';
         my $data = $records->data_calendar;
         encode_json({
@@ -1836,7 +1836,7 @@ prefix '/:layout_name' => sub {
             view_limit_extra_id => current_view_limit_extra_id($user, $layout),
         );
 
-        header "Cache-Control" => "max-age=0, must-revalidate, private";
+        response_header "Cache-Control" => "max-age=0, must-revalidate, private";
         content_type 'application/json';
 
         my $tl_options = (!$is_dashboard && session('persistent')->{tl_options}->{$layout->instance_id}) || {};
@@ -1867,7 +1867,7 @@ prefix '/:layout_name' => sub {
         my $id      = param 'id';
         my $gdata = _data_graph($id);
 
-        header "Cache-Control" => "max-age=0, must-revalidate, private";
+        response_header "Cache-Control" => "max-age=0, must-revalidate, private";
         content_type 'application/json';
         encode_json({
             points  => $gdata->points,
@@ -2314,7 +2314,7 @@ prefix '/:layout_name' => sub {
                         my $now = DateTime->now;
                         my $header = config->{gads}->{header} || '';
                         $header = "-$header" if $header;
-                        header 'Content-Disposition' => "attachment; filename=\"$now$header.csv\"";
+                        response_header 'Content-Disposition' => "attachment; filename=\"$now$header.csv\"";
                         content_type 'text/csv; charset="utf-8"';
 
                         flush; # Required to start the async send
@@ -2460,7 +2460,7 @@ prefix '/:layout_name' => sub {
         my $json = $tree->type eq 'tree' ? $tree->json(@ids) : [];
 
         # If record is specified, select the record's value in the returned JSON
-        header "Cache-Control" => "max-age=0, must-revalidate, private";
+        response_header "Cache-Control" => "max-age=0, must-revalidate, private";
         content_type 'application/json';
         encode_json($json);
 
