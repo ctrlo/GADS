@@ -463,8 +463,15 @@ sub enabled_rags
     ];
 }
 
-sub set_rags
-{   my ($self, $params) = @_;
+# A bit messy, this takes the whole parameters object, and then it's used later
+# in write_rags()
+has set_rags => (
+    is => 'rw',
+);
+
+sub write_rags
+{   my $self = shift;
+    my $params = $self->set_rags;
     foreach my $rag (@all_rags)
     {
         my $row = $self->_rag_index->{$rag};
@@ -667,6 +674,7 @@ sub write
         $self->schema->resultset('InstanceGroup')->search([@delete])->delete
             if @delete;
     }
+    $self->write_rags;
     $self->clear; # Rebuild all permissions etc
     $self; # Return self for chaining
 }
