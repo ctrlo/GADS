@@ -701,6 +701,9 @@ sub delete
     $self->schema->resultset('Dashboard')->search({
         instance_id => $self->instance_id,
     })->delete;
+    $self->schema->resultset('InstanceRag')->search({
+        instance_id => $self->instance_id,
+    })->delete;
     # Remove reference to instance rather than deleting, so that audit
     # information is retained
     $self->schema->resultset('Audit')->search({
