@@ -1474,7 +1474,7 @@ any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin super
     {
         return forwardHome(
             { danger => "Cannot delete current logged-in User" } )
-            if logged_in_user->id eq $delete_id;
+                if logged_in_user->id == $delete_id;
 
         my $usero = rset('User')->find($delete_id);
 
