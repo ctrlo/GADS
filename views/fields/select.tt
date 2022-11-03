@@ -10,15 +10,15 @@
   #   placeholder = "Select title"
   #   help_text = site.register_organisation_help
   #   items = organisations
-  #   input_class = "input--required"
+  #   select_class = "input--required"
   #   popover_body="this is a popover, that is displayed when the info icon is pressed"
   #   is_required = 0
   #   filter = "html" | "html_entity" | ""
   #   sub_field = ""
   #   sub_params = {};
 
-  input_class         = is_required AND ! input_class.match('select--required') ? input_class _ ' select--required' : input_class;
   select_class        = select_class ? select_class : 'select--select';
+  select_class        = is_required AND ! select_class.match('select--required') ? select_class _ ' select--required' : select_class;
   display_placeholder = placeholder;
   display_value       = "";
 

@@ -216,7 +216,7 @@
                                             placeholder = "Select a field"
                                             help_text = ""
                                             items = order_rows
-                                            input_class = ""
+                                            select_class = ""
                                             popover_body=""
                                             is_required = 0
                                             hide_group = 1
@@ -235,7 +235,7 @@
                                             placeholder = "Select order"
                                             help_text = ""
                                             items = type_rows
-                                            input_class = ""
+                                            select_class = ""
                                             popover_body=""
                                             is_required = 0
                                             hide_group = 1
@@ -323,7 +323,7 @@
                                       placeholder = "Select a field"
                                       help_text = ""
                                       items = group_rows
-                                      input_class = ""
+                                      select_class = ""
                                       popover_body=""
                                       is_required = 0
                                       hide_group = 0

@@ -1,8 +1,11 @@
+[%
+  fieldset_class = is_required AND ! fieldset_class.match('fieldset--required') ? fieldset_class _ ' fieldset--required' : fieldset_class;
+%]
 [% IF ! hide_group %]
-<div class="form-group ">
+<div class="form-group">
 [% END %]
-  <fieldset class="fieldset" data-name="[% fieldset_name %]">
-    <div class="fieldset__legend ">
+  <fieldset class="fieldset [% fieldset_class %]" data-name="[% fieldset_name %]">
+    <div class="fieldset__legend">
       <legend>[% INCLUDE fields/sub/filter.tt value=label; %]</legend>
       [% IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body; END; %]
     </div>

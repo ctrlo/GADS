@@ -1,3 +1,6 @@
+[%
+  fieldset_class = is_required AND ! fieldset_class.match('fieldset--required') ? fieldset_class _ ' fieldset--required' : fieldset_class;
+%]
 [% IF ! hide_group %]
 <div class="form-group [% formgroup_class %]">
 [% END %]
