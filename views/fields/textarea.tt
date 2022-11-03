@@ -20,7 +20,7 @@
   #   sub_field = ""
   #   sub_params = {};
 
-  input_class = is_required AND ! input_class.match('input--required') ? input_class _ ' input--required' : input_class;
+  input_class = is_required AND ! input_class.match('textarea--required') ? input_class _ ' textarea--required' : input_class;
 %]
 
 [% IF ! hide_group %]

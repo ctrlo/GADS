@@ -45,7 +45,7 @@
               placeholder = "Select view"
               help_text = ""
               items = view_options
-              input_class = ""
+              select_class = ""
               popover_body=""
               is_required = 0
               filter = ""
@@ -74,7 +74,7 @@
               placeholder = "Select view"
               help_text = ""
               items = view_options
-              input_class = ""
+              select_class = ""
               popover_body=""
               is_required = 0
               filter = ""
