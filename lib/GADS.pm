@@ -1501,8 +1501,10 @@ any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin super
 };
 
 any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $user   = logged_in_user;
     my $userso = GADS::Users->new(schema => schema);
     my $id     = route_parameters->get('id');
+    my $audit  = GADS::Audit->new(schema => schema, user => $user);
 
     if (!$id) {
         error __x"User id not available";
@@ -1552,6 +1554,19 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
 
         $values{view_limits_with_blank} = $view_limits_with_blank;
         $editUser = \%values;
+    }
+    elsif (my $delete_id = param('delete'))
+    {
+        return forwardHome(
+            { danger => "Cannot delete current logged-in User" } )
+            if logged_in_user->id eq $delete_id;
+        my $usero = rset('User')->find($delete_id);
+        if (process( sub { $usero->retire(send_reject_email => 1) }))
+        {
+            $audit->login_change("User ID $delete_id deleted");
+            return forwardHome(
+                { success => "User has been deleted successfully" }, 'user_overview/' );
+        }
     }
 
     my $output = template 'user/user_edit' => {
