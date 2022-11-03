@@ -443,6 +443,12 @@ sub _build__rag_index
     # Ensure rags created in database
     $self->rags;
     my %enabled = map { $_->rag => $_ } $self->_rset->instance_rags;
+    foreach my $key (keys %enabled)
+    {
+        my $rag = $enabled{$key};
+        $rag->description($rag->rag)
+            if !$rag->description;
+    }
     \%enabled;
 }
 
