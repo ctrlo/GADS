@@ -92,6 +92,13 @@
         }, {
           class = "col-sm-auto",
           buttons = [{
+            type      = "modal_button",
+            modalId   = "deleteModal",
+            dataTitle = edituser.firstname _ " " _ edituser.surname,
+            dataId    = edituser.id,
+            class     = "btn btn-danger btn-js-delete",
+            label     = "Delete user"
+          }, {
             type  = "button",
             name  = "submit",
             value = "submit",
@@ -102,3 +109,10 @@
     %]
   </form>
 </div>
+
+[%
+  INCLUDE wizard/delete.tt
+    modalId     = "deleteModal"
+    label       = "Delete " _ edituser.firstname _ " " _ edituser.surname
+    description = "Are you sure you want to delete this user? You cannot undo this step.";
+%]
