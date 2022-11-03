@@ -860,13 +860,13 @@ sub _create_table
     }
     $table->set_groups(\@group_perms);
     # Set default rag keys
-    my $params = Hash::MultiValue->new(
+    my $ragParams = Hash::MultiValue->new(
         danger_selected   => 1,
         warning_selected  => 1,
         advisory_selected => 1,
         success_selected  => 1,
     );
-    $table->set_rags($params);
+    $table->set_rags($ragParams);
     $table->write;
 
     my %topics;
