@@ -1150,7 +1150,7 @@ sub _get_records {
     foreach my $rec (@{$records->results})
     {
         my $data;
-        $data->{$_->name} = $rec->fields->{$_->id}->for_table
+        $data->{$_->id} = $rec->fields->{$_->id}->for_table
             foreach @{$records->columns_render};
         push @{$return->{data}}, $data;
     }
