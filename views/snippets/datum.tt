@@ -112,12 +112,13 @@
 [% PROCESS snippets/rag_symbols.tt %]
 
 [% MACRO render_rag_datum(rag) BLOCK %]
-    [% grade = rag.grade %]
-    [% IF grade %]
-      <span class="rag rag--[% grade %]" title="[% grade %]" aria-labelledby="rag_[% grade %]_meaning">
-        <span>[% rag_symbols.$grade %]</span>
-      </span>
-    [% END %]
+    [%
+      grade = rag.grade ? rag.grade : 'blank';
+      grade = rag_keys_ordered.grep("^$grade\$").size ? grade : 'blank';
+    %]
+    <span class="rag rag--[% grade %]" title="[% grade %]" aria-labelledby="rag_[% grade %]_meaning">
+      <span>[% rag_symbols.$grade %]</span>
+    </span>
 [% END %]
 
 [% MACRO render_group BLOCK %]

@@ -1,5 +1,5 @@
 [%
-  tmplColumnConfig = '{_NAME_ORDERABLE_TYPE_DATA_CLASSNAME_WIDTH},';
+  tmplColumnConfig = '{_NAME_TITLE_ORDERABLE_TYPE_DATA_CLASSNAME_WIDTH},';
   tmplColumnButtonConfig = '{"name":"","orderable":false,"className":"min-tablet-l data-table__header--invisible"},';
 
   reorderConfig    = '';
@@ -35,8 +35,12 @@
 
   # create table columns and column config for each requested column.
   FOREACH column in table_columns;
+    columnName  = column.name || column.title || '';
+    columnTitle = column.title || column.name || '';
+
     rowField = tmplColumnConfig
-      .replace('_NAME', column.name ? '"name":"' _ column.name.replace("'", "&#39;") _ '"' : '"name":""')
+      .replace('_NAME', columnName ? '"name":"' _ columnName.replace("'", "&#39;") _ '"' : '"name":""')
+      .replace('_TITLE', columnTitle ? ',"title":"' _ columnTitle.replace("'", "&#39;") _ '"' : ',"title":""')
       .replace('_ORDERABLE', column.orderable ? ',"orderable":true' : ',"orderable":false')
       .replace('_TYPE', column.type ? ',"type": "' _ column.type _ '"' : '')
       .replace('_DATA', column.data ? ',"data": "' _ column.data _ '"' : '')

@@ -565,7 +565,7 @@
   
         select_items.push({id=value.value_id, name=value.value});
       END;
-  
+
       IF col.multivalue;
         INCLUDE fields/select_multiple.tt
           id           = col.id
@@ -652,6 +652,22 @@
   
         '</fieldset>';
       ELSIF col.multivalue;
+        tmp_data_attributes = [
+          {name = "value-selector", value = col.value_selector},
+          {name = "layout-id", value = layout.identifier},
+          {name = "typeahead-id", value = col.id},
+          {name = "field", value = field},
+          {name = "details-modal", value = "#detailsModal"}
+        ];
+
+        IF col.has_subvals;
+          tmp_data_attributes = tmp_data_attributes.merge([
+            {name = "filter-endpoint", value = layout_obj.identifier _ "/api/field/values/" _ col.id},
+            {name = "submission-token", value = submission_token},
+            {name = "filter-fields", value = col.data_filter_fields}
+          ]);
+        END;
+
         INCLUDE fields/select_multiple.tt
           id                  = col.id
           name                = field
@@ -661,6 +677,7 @@
           placeholder         = "Select option(s)"
           help_text           = col.description
           popover_body        = col.helptext
+          data_attributes     = tmp_data_attributes
           is_readonly         = readonly
           is_required         = required
           hide_group          = 1
@@ -669,10 +686,28 @@
           with_details        = 1
           filter              = "html";
 
+          data_attributes = [];
+
           IF show_add_btn;
             PROCESS curval_add_button;
           END;
       ELSE;
+        tmp_data_attributes = [
+          {name = "value-selector", value = col.value_selector},
+          {name = "layout-id", value = layout.identifier},
+          {name = "typeahead-id", value = col.id},
+          {name = "field", value = field},
+          {name = "details-modal", value = "#detailsModal"}
+        ];
+
+        IF col.has_subvals;
+          tmp_data_attributes = tmp_data_attributes.merge([
+            {name = "filter-endpoint", value = url.page _ layout.identifier _ "/api/field/values/" _ col.id},
+            {name = "submission-token", value = submission_token},
+            {name = "filter-fields", value = col.data_filter_fields}
+          ]);
+        END;
+
         # Ensure a blank value is sent if nothing is selected
         INCLUDE fields/hidden.tt id="" name=field value="" filter="";
         INCLUDE fields/select_single.tt
@@ -685,6 +720,7 @@
           placeholder         = "Select option"
           help_text           = col.description
           popover_body        = col.helptext
+          data_attributes     = tmp_data_attributes
           is_readonly         = readonly
           is_required         = required
           hide_group          = 1
@@ -692,7 +728,9 @@
           value               = select_value
           with_details        = 1
           filter              = "html";
-
+          
+          data_attributes = [];
+          
           IF show_add_btn;
             PROCESS curval_add_button;
           END;
@@ -827,8 +865,8 @@
           data_attributes = [
             {name = "field", value = field},
             {name = "fileupload-url", value = url.page _ "/file?ajax=1"},
-            {name = "multivalue", value = col.multivalue},
-          ];
+            {name = "multivalue", value = col.multivalue}
+          ]
           popover_body   = ""
           help_text      = ""
           popover_body   = ""
