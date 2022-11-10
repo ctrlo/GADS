@@ -37,7 +37,8 @@
         END;
     
         table_columns.push({
-          name = col.name,
+          name = col.id,
+          title = col.name,
           type = col.type,
           orderable = 1,
           filter = "html"
