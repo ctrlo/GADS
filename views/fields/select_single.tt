@@ -6,7 +6,7 @@
 [% END %]
   <fieldset class="fieldset [% fieldset_class %]">
     [% INCLUDE fields/sub/label_fieldset.tt; %]
-    <div class="select-widget">
+    <div class="select-widget" [% IF data_attributes; INCLUDE fields/sub/data_attributes.tt; END; %]>
       <div class="select-widget-dropdown">
         <div class="form-control">
           <ul class="current">
