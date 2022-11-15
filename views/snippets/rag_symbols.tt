@@ -1,4 +1,6 @@
 [%
+    # specificly, blank is not in this list to hide it as an option when selecting active rags for the table,
+    # as it is a virtual option.
     rag_keys_ordered = [
       'danger',
       'attention',
@@ -18,7 +20,8 @@
         success    => '&#x2713;',
         complete   => '&#x2713;',
         undefined  => '&#x3f;',
-        unexpected => '&#x21;'
+        unexpected => '&#x21;',
+        blank      => '&#x5f;',
     };
 
     rag_descriptions = {
@@ -29,6 +32,7 @@
         success    => 'Green',
         complete   => 'Blue',
         undefined  => 'Grey',
-        unexpected => 'Purple'
+        unexpected => 'Purple',
+        blank      => ''
     };
  %]
