@@ -1007,7 +1007,7 @@
                                   name    = "override_permissions"
                                   label   = "Override any user permissions when selecting records for this field"
                                   value   = 1
-                                  checked = column.override_permissions ? 1 : 0;
+                                  checked = column.type == "curval" AND column.override_permissions ? 1 : 0;
                               %]
                             </div>
                           </fieldset>
@@ -1137,6 +1137,28 @@
                   </div>
                   <div class="collapse" id="otherSheetsReferences">
                     <div class="card__content">
+                      <div class="row">
+                        <div class="col">
+                          <fieldset class="fieldset" >
+                            <div class="fieldset__legend ">
+                              <legend >
+                                Permissions override:
+                              </legend>
+                            </div>
+      
+                            <div class="form-group ">
+                              [%
+                                INCLUDE fields/sub/checkbox.tt
+                                  id      = "override_permissions"
+                                  name    = "override_permissions"
+                                  label   = "Override any user permissions when selecting records for this field"
+                                  value   = 1
+                                  checked = column.type == "autocur" AND column.override_permissions ? 1 : 0;
+                              %]
+                            </div>
+                          </fieldset>
+                        </div>
+                      </div>
                       [% IF NOT layout_obj.referred_by.size %]
                       <div class="row">
                         <div class="col">
