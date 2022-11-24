@@ -1033,19 +1033,66 @@ sub _user_value
 
 sub for_data_table
 {   my $self = shift;
-    {
-        id           => $self->id,
-        surname      => $self->surname,
-        firstname    => $self->firstname,
-        title        => $self->title && $self->title->name,
-        email        => $self->email,
-        organisation => $self->organisation && $self->organisation->name,
-        department   => $self->department && $self->department->name,
-        team         => $self->team && $self->team->name,
-        freetext1    => $self->freetext1,
-        created      => $self->created ? $self->created->ymd : 'Unknown',
-        lastlogin    => $self->lastlogin ? $self->lastlogin->ymd : 'Never logged in',
+    my $site = $self->site;
+    my $return = {
+        id => {
+            type   => 'id',
+            name   => 'ID',
+            values => [$self->id]
+        },
+        surname => {
+            type   => 'string',
+            name   => 'Surname',
+            values => [$self->surname],
+        },
+        firstname => {
+            type   => 'string',
+            name   => 'Forename',
+            values => [$self->firstname],
+        },
+        email => {
+            type   => 'string',
+            name   => 'Email',
+            values => [$self->email],
+        },
+        created => {
+            type   => 'string',
+            name   => 'Created',
+            values => [$self->created ? $self->created->ymd : 'Unknown'],
+        },
+        lastlogin => {
+            type   => 'string',
+            name   => 'Last login (GMT)',
+            values => [$self->lastlogin ? $self->lastlogin->ymd : 'Never logged in'],
+        },
     };
+    $return->{title} = {
+        type   => 'string',
+        name   => 'Title',
+        values => [$self->title && $self->title->name],
+    } if $site->register_show_title;
+    $return->{organisation} = {
+        type   => 'string',
+        name   => $site->organisation_name,
+        values => [$self->organisation && $self->organisation->name],
+    } if $site->register_show_organisation;
+    $return->{department} = {
+        type   => 'string',
+        name   => $site->department_name,
+        values => [$self->department && $self->department->name],
+    } if $site->register_show_department;
+    $return->{team} = {
+        type   => 'string',
+        name   => $site->team_name,
+        values => [$self->team && $self->team->name],
+    } if $site->register_show_team;
+    $return->{freetext1} = {
+        type   => 'string',
+        name   => $site->register_freetext1_name,
+        values => [$self->freetext1],
+    } if $site->register_freetext1_name;
+
+    $return;
 }
 
 sub export_hash
