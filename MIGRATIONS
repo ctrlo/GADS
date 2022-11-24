@@ -21,6 +21,9 @@ string.value citext
 user.email citext
 user.username citext
 user.value citext
+team.name citext
+organisation.name citext
+department.name citext
 
 * Copy permissions fixtures to new schema version
 

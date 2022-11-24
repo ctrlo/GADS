@@ -1,0 +1,4 @@
+[% PROCESS "snippets/datum.tt" %]
+<span class="rag">
+    [% render_rag_datum(rag) %]
+</span>

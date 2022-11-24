@@ -158,7 +158,7 @@ has selects_reverse => (
 
 sub _build_selects_reverse
 {   my $self = shift;
-    my $reverse;
+    my $reverse = {};
     foreach my $col_id (keys %{$self->selects})
     {
         $reverse->{$col_id} = { reverse %{$self->selects->{$col_id}} };

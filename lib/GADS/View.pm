@@ -73,41 +73,53 @@ has layout => (
     required => 1,
 );
 
+sub current_user_has_access
+{   my $self = shift;
+    return 1 if $self->user_permission_override;
+    my $view = $self->_view_rs;
+    my $user_id = $self->layout->user && $self->layout->user->id;
+    my $no_access = $self->has_id && $self->layout->user && !$view->global && !$view->is_admin && !$view->is_limit_extra
+        && !$self->layout->user_can("layout") && $view->user_id != $user_id;
+    $no_access ||= $view->global && $view->group_id
+        && !$self->schema->resultset('User')->find($user_id)->has_group->{$view->group_id};
+    $no_access = 0
+        if $self->layout->user && $self->layout->user->permission->{superadmin};
+    return !$no_access;
+}
+
 # Internal DBIC object of view
+has _view_rs => (
+    is => 'lazy',
+);
+
+sub _build__view_rs
+{   my $self = shift;
+    $self->schema->resultset('View')->find({
+        'me.id'          => $self->id,
+        # instance_id isn't strictly needed as id is the primary key
+        'me.instance_id' => $self->instance_id,
+    },{
+        prefetch => ['sorts', 'alerts', 'view_groups'],
+        order_by => 'sorts.order', # Ensure sorts are retrieve in correct order to apply
+    });
+}
+
 has _view => (
     is      => 'rw',
     lazy    => 1,
     clearer => 1,
     builder => sub {
         my $self = shift;
-        my $view = $self->schema->resultset('View')->find({
-            'me.id'          => $self->id,
-            # instance_id isn't strictly needed as id is the primary key
-            'me.instance_id' => $self->instance_id,
-        },{
-            prefetch => ['sorts', 'alerts', 'view_groups'],
-            order_by => 'sorts.order', # Ensure sorts are retrieve in correct order to apply
-        });
+        my $view = $self->_view_rs;
         if (!$view)
         {
             $self->clear_id;
             return;
         }
         # Check whether user has read access to view
-        return $view if $self->user_permission_override;
-        my $user_id = $self->layout->user && $self->layout->user->id;
-        my $no_access = $self->has_id && $self->layout->user && !$view->global && !$view->is_admin && !$view->is_limit_extra
-            && !$self->layout->user_can("layout") && $view->user_id != $user_id;
-        $no_access ||= $view->global && $view->group_id
-            && !$self->schema->resultset('User')->find($user_id)->has_group->{$view->group_id};
-        $no_access = 0
-            if $self->layout->user && $self->layout->user->permission->{superadmin};
-        if ($no_access)
-        {
-            error __x"User {user} does not have access to view {view}",
-                user => $self->layout->user->id, view => $self->id;
-        }
-        $view;
+        return $view if $self->current_user_has_access;
+        error __x"User {user} does not have access to view {view}",
+            user => $self->layout->user->id, view => $self->id;
     },
 );
 
@@ -411,7 +423,7 @@ sub write
     }
     else {
         $vu->{created}   = DateTime->now;
-        $vu->{createdby} = $self->layout->user->id;
+        $vu->{createdby} = $self->layout->user && $self->layout->user->id;
         my $rset = $self->schema->resultset('View')->create($vu);
         $self->_view($rset);
         $self->id($rset->id);
@@ -671,5 +683,68 @@ sub parse_date_filter
     $now;
 }
 
-1;
+sub export_hash
+{   my $self = shift;
+    +{
+        id       => $self->id,
+        global   => $self->global,
+        is_admin => $self->is_admin,
+        group_id => $self->group_id,
+        name     => $self->name,
+        filter   => $self->filter->as_hash,
+        sorts    => [map $_->as_hash, @{$self->sorts}],
+        groups   => [map $_->as_hash, @{$self->groups}],
+        columns  => $self->columns,
+    };
+}
 
+sub import_hash
+{   my ($self, $values, %options) = @_;
+    no warnings "uninitialized";
+    notice __x"Updating global from {old} to {new} for view {name}",
+        old => $self->global, new => $values->{global}, name => $self->name
+            if $options{report_only} && $self->global ne $values->{global};
+    $self->global($values->{global});
+    notice __x"Updating is_admin from {old} to {new} for view {name}",
+        old => $self->is_admin, new => $values->{is_admin}, name => $self->name
+            if $options{report_only} && $self->is_admin ne $values->{is_admin};
+    $self->is_admin($values->{is_admin});
+    notice __x"Updating group from {old} to {new} for view {name}",
+        old => $self->group_id, new => $values->{group_id}, name => $self->name
+            if $options{report_only} && $self->group_id ne $values->{group_id};
+    $self->group_id($values->{group_id});
+    notice __x"Updating name from {old} to {new} for view {name}",
+        old => $self->name, new => $values->{name}, name => $self->name
+            if $options{report_only} && $self->name ne $values->{name};
+    $self->name($values->{name});
+    $self->filter($values->{filter}->as_hash)
+        if $values->{filter};
+    notice __x"Updating filter for view {name}",
+        name => $self->name
+            if $options{report_only} && $self->filter->changed;
+    # Lazy, no reporting of sorts and groups
+    $self->columns($values->{columns});
+    unless ($options{report_only})
+    {
+        $self->write;
+        # Sorts
+        $_->delete foreach @{$self->sorts};
+        $self->schema->resultset('Sort')->create({
+            view_id   => $self->id,
+            layout_id => $_->{layout_id},
+            parent_id => $_->{parent_id},
+            order     => $_->{order},
+            type      => $_->{type},
+        }) foreach @{$values->{sorts}};
+        # Groups
+        $_->delete foreach @{$self->groups};
+        $self->schema->resultset('ViewGroup')->create({
+            view_id   => $self->id,
+            layout_id => $_->{layout_id},
+            parent_id => $_->{parent_id},
+            order     => $_->{order},
+        }) foreach @{$values->{groups}};
+    }
+}
+
+1;

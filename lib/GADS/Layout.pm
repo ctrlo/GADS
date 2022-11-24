@@ -858,6 +858,8 @@ sub clear
     $self->clear_sort_layout_id;
     $self->clear_view_limit_id;
     $self->clear_permissions;
+    $self->_clear_mycols;
+    $self->clear_cached_records;
 }
 
 has _layout => (
@@ -1071,12 +1073,31 @@ sub all_user_read
     $self->all(user_can_read => 1);
 }
 
+# A bit hacky, used as a stash for full records that have been retrieved by
+# columns in this layout. As the layout is (currently) rebuilt each request, we
+# can afford to do this
+has cached_records => (
+    is      => 'lazy',
+    builder => sub { +{} },
+    clearer => 1,
+);
+
+has _mycols => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build__mycols
+{   my $self = shift;
+    [grep { $_->instance_id == $self->instance_id } @{$self->use_layout->columns}];
+}
+
 sub all
 {   my ($self, %options) = @_;
 
     my $type = $options{type};
 
-    my @columns = grep { $_->instance_id == $self->instance_id } @{$self->use_layout->columns};
+    my @columns = @{$self->_mycols};
     @columns = grep { !$_->hidden } @columns unless $options{include_hidden};
     @columns = grep { $options{topic_id} ? $_->topic_id == $options{topic_id} : !$_->topic_id } @columns
         if exists $options{topic_id};
@@ -1368,19 +1389,17 @@ sub _build_global_view_summary
 
 sub export
 {   my $self = shift;
-    warning __x"Not going to export configured table view limit for {name}", name => $self->name
-        if $self->view_limit_id;
-    warning __x"Not going to export configured table default extra view limit for {name}", name => $self->name
-        if $self->default_view_limit_extra_id;
     +{
-        name             => $self->name,
-        name_short       => $self->name_short,
-        hide_in_selector => $self->hide_in_selector,
-        homepage_text    => $self->homepage_text,
-        homepage_text2   => $self->homepage_text2,
-        sort_layout_id   => $self->sort_layout_id,
-        sort_type        => $self->sort_type,
-        permissions      => [ map {
+        name                        => $self->name,
+        name_short                  => $self->name_short,
+        hide_in_selector            => $self->hide_in_selector,
+        homepage_text               => $self->homepage_text,
+        homepage_text2              => $self->homepage_text2,
+        sort_layout_id              => $self->sort_layout_id,
+        sort_type                   => $self->sort_type,
+        view_limit_id               => $self->view_limit_id,
+        default_view_limit_extra_id => $self->default_view_limit_extra_id,
+        permissions                 => [ map {
             {
                 group_id   => $_->group_id,
                 permission => $_->permission,

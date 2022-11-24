@@ -148,7 +148,7 @@ __PACKAGE__->belongs_to(
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
-    $sqlt_table->add_index(name => 'calcval_idx_value_text', fields => [ { name => 'value_text', size => 64 } ]);
+    $sqlt_table->add_index(name => 'calcval_idx_value_text', fields => [ { name => 'value_text', prefix_length => 64 } ]);
     $sqlt_table->add_index(name => 'calcval_idx_value_numeric', fields => [ 'value_numeric' ]);
     $sqlt_table->add_index(name => 'calcval_idx_value_int', fields => [ 'value_int' ]);
     $sqlt_table->add_index(name => 'calcval_idx_value_date', fields => [ 'value_date' ]);

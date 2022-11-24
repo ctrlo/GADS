@@ -34,6 +34,7 @@ use Log::Report 'linkspace';
 use POSIX qw(ceil);
 use Scalar::Util qw(looks_like_number);
 use Text::CSV::Encoded;
+use Tree::DAG_Node;
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
@@ -139,6 +140,15 @@ sub _build__view_limits
 {   my $self = shift;
     $self->user or return [];
     return [] if $GADS::Schema::IGNORE_PERMISSIONS;
+
+    # If this is loading subrecords for a draft record, then do not apply any
+    # view limits. Otherwise, the subrecords that a user has created in a draft
+    # may not display, because they might rely on calculated fields or other
+    # conditions that are not completed or computed when the draft is saved
+    # (draft records do not evaluate calculated fields). This has the effect of
+    # a user not being able to see their own subrecords in a draft they have
+    # saved
+    return [] if $self->is_draft;
 
     # If there are user view limits these take precedence
     my @view_limit_ids = $self->schema->resultset('ViewLimit')->search({
@@ -1016,7 +1026,10 @@ sub _cid_search_query
 
 has already_seen => (
     is      => 'ro',
-    default => sub { {} },
+    lazy    => 1,
+    builder => sub {
+        Tree::DAG_Node->new({name => 'root'});
+    },
 );
 
 sub _build_results
@@ -1231,9 +1244,9 @@ sub fetch_multivalues
         if ($column->type eq 'curval')
         {
             $parent_field = $column->field;
-            push @cols, @{$column->curval_fields_multivalue};
+            push @cols, @{$column->curval_fields_multivalue(already_seen => $self->already_seen)};
             # Flag any curval multivalue fields as also requiring fetching
-            foreach (@{$column->curval_fields_multivalue})
+            foreach (@{$column->curval_fields_multivalue(already_seen => $self->already_seen)})
             {
                 $curval_fields->{$column->field}->{$_->field} ||= [];
                 push @{$curval_fields->{$column->field}->{$_->field}}, $column->field;
@@ -1315,12 +1328,13 @@ sub fetch_multivalues
                     # record has the flag saying they need to be
                     $col->retrieve_all_columns(1)
                         if $col->is_curcommon && $self->curcommon_all_fields;
+
                     foreach my $val ($col->fetch_multivalues(
                             \@retrieve_ids,
                             is_draft             => $params{is_draft},
                             curcommon_all_fields => $self->curcommon_all_fields,
                             rewind               => $self->rewind, # Would be better in a context object
-                            already_seen         => $already_seen,
+                            already_seen         => $self->already_seen,
                     ))
                     {
                         my $field = "field$val->{layout_id}";
@@ -2966,7 +2980,7 @@ sub _build_group_results
             $col->{parent} = $parent;
         }
         # If it's a curval, then add all its subfields
-        if ($column->type eq 'curval' && !$is_table_group)
+        if ($column->is_curcommon && !$is_table_group)
         {
             foreach (@{$column->curval_fields})
             {

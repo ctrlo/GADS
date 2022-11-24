@@ -1596,7 +1596,13 @@ small.search_term {
         text-align: center;
         line-height: 30px;
         margin: 0;
+        color: white;
     }
+
+    .progress-bar__fail {
+        background-color: #d9534f;
+    }
+
 }
 
 .helptext__questionmark {

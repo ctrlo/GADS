@@ -24,6 +24,8 @@ use Log::Report 'linkspace';
 use Moo::Role;
 use MooX::Types::MooseLike::Base qw(:all);
 
+my $debug = 0;
+
 has _jp_store => (
     is      => 'rwp',
     isa     => ArrayRef,
@@ -83,9 +85,6 @@ sub _add_children
             column     => $c,
             parent     => $column,
         };
-        $self->_add_children($child, $c, %options)
-            if $c->is_curcommon;
-        $options{already_seen}->{$c->id} = 1;
         push @{$join->{children}}, $child
             if !$existing{$c->id};
     }
@@ -94,37 +93,35 @@ sub _add_children
 sub _add_jp
 {   my ($self, $column, %options) = @_;
 
-    return if !$column->tjoin;
-
     # Catch a bug whereby fields could be made to be linked to fields within
     # the same table. This results in data not being retrieved properly.
     panic __x"Link parent of field ID {id} is from same table as field itself", id => $column->id
         if $column->link_parent && $column->link_parent->instance_id == $column->instance_id;
 
     my $key;
-    my $toadd = $column->tjoin(all_fields => $options{all_fields});
+    my $toadd = $column->tjoin(all_fields => $options{all_fields})
+        or return;
     ($key) = keys %$toadd if ref $toadd eq 'HASH';
 
-    trace __x"Checking or adding {field} to the store", field => $column->field;
+    trace __x"Checking or adding {field} to the store", field => $column->field
+        if $debug;
 
     my $prefetch = ($column->fetch_with_record || ($options{include_multivalue} && $options{include_multivalue} == $column->id)) && $options{prefetch};
 
-    # A hash to ensure that we don't recurse into the same fields over and
-    # over. For example, if we are viewing a curval which has an autocur that
-    # refers back to it, only join these on once.
-    my $already_seen = {};
-
     # Check whether join is already in store, if so update
-    trace __x"Check to see if it's already in the store";
+    trace __x"Check to see if it's already in the store"
+        if $debug;
     foreach my $j ($self->_all_joins_recurse(@{$self->_jp_store}))
     {
-        trace __x"Checking join {field}", field => $j->{column}->field;
+        trace __x"Checking join {field}", field => $j->{column}->field
+            if $debug;
         if (
             ($key && ref $j->{join} eq 'HASH' && Compare($toadd, $j->{join}))
             || $toadd eq $j->{join}
         )
         {
-            trace __x"Possibly found, checking to see if parents match";
+            trace __x"Possibly found, checking to see if parents match"
+                if $debug;
             if ( _compare_parents($options{parent}, $j->{parent}) )
             {
                 $j->{prefetch} ||= $prefetch;
@@ -133,16 +130,24 @@ sub _add_jp
                 $j->{sort}     ||= $options{sort};
                 $j->{group}    ||= $options{group};
                 $j->{drcol}    ||= $options{drcol};
-                $self->_add_children($j, $column, %options, already_seen => $already_seen)
-                    if ($column->is_curcommon && $prefetch);
-                trace __x"Found existing, returning";
+                if ($column->is_curcommon && $prefetch)
+                {
+                    my $tree = $self->already_seen;
+                    my ($daughter) = grep { $_->name == $column->id} $tree->daughters
+                        or panic "Could not find column ".$column->id.", tree is ".join("\n", @{$tree->tree2string});
+                    $self->_add_children($j, $column, %options, already_seen => $daughter);
+                }
+                trace __x"Found existing, returning"
+                    if $debug;
                 return;
             }
-            trace __x"Parents didn't match";
+            trace __x"Parents didn't match"
+                if $debug;
         }
     }
 
-    trace __x"Not found, going on to add";
+    trace __x"Not found, going on to add"
+        if $debug;
 
     my $join_add = {
         join       => $toadd,
@@ -159,8 +164,14 @@ sub _add_jp
 
     # If it's a curval field then we need to account for any joins that are
     # part of the curval
-    $self->_add_children($join_add, $column, %options, already_seen => $already_seen)
-        if ($column->is_curcommon && $prefetch);
+    if ($column->is_curcommon)
+    {
+        my $tree = $self->already_seen;
+        my $daughter = Tree::DAG_Node->new({name => $column->id});
+        $tree->add_daughter($daughter);
+        $self->_add_children($join_add, $column, %options, already_seen => $daughter)
+            if $prefetch;
+    }
 
     # Otherwise add it
     if (my $parent = $options{parent})
@@ -559,43 +570,53 @@ sub _join_number
 
     if ($options{find_value})
     {
-        trace "Looking in the store for all joins for find_value";
+        trace "Looking in the store for all joins for find_value"
+            if $debug;
     }
     else {
-        trace __x"Looking in the store for join number for column {id}", id => $column->id;
+        trace __x"Looking in the store for join number for column {id}", id => $column->id
+            if $debug;
     }
 
     foreach my $j (@store)
     {
-        trace "Checking join ".$j->{column}->id;
+        trace "Checking join ".$j->{column}->id
+            if $debug;
         my $n;
         if ($j->{all_joins})
         {
-            trace "This join has other joins, checking...";
+            trace "This join has other joins, checking..."
+                if $debug;
             foreach my $j2 (@{$j->{all_joins}})
             {
                 if ($j2->{all_joins})
                 {
-                    trace "This join has other joins, checking...";
+                    trace "This join has other joins, checking..."
+                        if $debug;
                     foreach my $j3 (@{$j2->{all_joins}}) # Replace with recursive function?
                     {
-                        trace "Looking at join ".$j3->{column}->id;
+                        trace "Looking at join ".$j3->{column}->id
+                            if $debug;
                         $n = _find($column, $j3, $stash, %options);
-                        trace __x"return from find request is: {n}", n => $n;
+                        trace __x"return from find request is: {n}", n => $n
+                            if $debug;
                         return $n if $n;
                     }
                 }
                 else {
-                    trace "Looking at join ".$j2->{column}->id;
+                    trace "Looking at join ".$j2->{column}->id
+                        if $debug;
                     $n = _find($column, $j2, $stash, %options);
-                    trace __x"return from find request is: {n}", n => $n;
+                    trace __x"return from find request is: {n}", n => $n
+                        if $debug;
                     return $n if $n;
                 }
             }
         }
         else {
             $n = _find($column, $j, $stash, %options);
-            trace __x"return from find request is: {n}", n => $n;
+            trace __x"return from find request is: {n}", n => $n
+                if $debug;
         }
         return $n if $n;
     }
@@ -616,18 +637,22 @@ sub _join_number
 sub _find
 {   my ($needle, $jp, $stash, %options) = @_;
 
-    trace "Checking against join ".$jp->{column}->id;
+    trace "Checking against join ".$jp->{column}->id
+        if $debug;
 
     if (ref $jp->{join} eq 'HASH')
     {
         my ($key, $value) = %{$jp->{join}};
-        trace __x"This join is a hash with key:{key} and value: {value}", key => $key, value => Dumper($value);
-        trace __x"We are looking for value being equal to {needle}", needle => $needle->sprefix if $needle;
+        trace __x"This join is a hash with key:{key} and value: {value}", key => $key, value => Dumper($value)
+            if $debug;
+        trace __x"We are looking for value being equal to {needle}", needle => $needle->sprefix
+            if $needle && $debug;
         if (
             ($options{find_value} && $value eq 'value')
             || $needle->sprefix eq $value)
         {
-            trace "Incrementing key and value counters";
+            trace "Incrementing key and value counters"
+                if $debug;
             $stash->{$key}++;
             $stash->{$value}++;
             if ($jp->{parent} && !$stash->{parents_included}->{$jp->{parent}->id})
@@ -636,7 +661,8 @@ sub _find
                 {
                     # A curval join has an extra "value" join whereas an
                     # autocur does not
-                    trace "Incrementing value count to account for parent";
+                    trace "Incrementing value count to account for parent"
+                        if $debug;
                     $stash->{value}++;
                 }
                 $stash->{parents_included}->{$jp->{parent}->id} = 1;
@@ -644,23 +670,27 @@ sub _find
             if (!$options{find_value}
                 && $needle->field eq $key && _compare_parents($options{parent}, $jp->{parent}))
             {
-                trace "We have a match, returning";
+                trace "We have a match, returning"
+                    if $debug;
                 return $stash->{$value};
             }
         }
     }
     elsif (ref $jp->{join} eq 'ARRAY')
     {
-        trace "This join is an array";
+        trace "This join is an array"
+            if $debug;
         foreach (@{$jp->{join}})
         {
             my $n = _find($needle, $_, $stash);
-            trace "Return from find is $n";
+            trace "Return from find is $n"
+                if $debug;
             return $n if $n;
         }
     }
     else {
-        trace "This join is a standard join";
+        trace "This join is a standard join"
+            if $debug;
         $stash->{$jp->{join}}++;
         if ($jp->{parent} && !$stash->{parents_included}->{$jp->{parent}->id})
         {
@@ -675,12 +705,14 @@ sub _find
                 # it's the one we need
                 && ($needle->sprefix ne 'current' || $needle->id == $jp->{column}->id))
             {
-                trace "We have a match";
+                trace "We have a match"
+                    if $debug;
                 return $stash->{$needle->sprefix};
             }
         }
     }
-    trace "No match";
+    trace "No match"
+        if $debug;
     return undef;
 }
 
@@ -734,7 +766,7 @@ child is ".$child->{column}->id." (".$child->{column}->name.") => {
 
 sub _dump_jp_store
 {   my $self = shift;
-    return;
+    $debug or return;
     my $dumped = "Going to dump the jp store:\n";
     my $dd = Data::Dumper->new([]);
     $dd->Indent(0);

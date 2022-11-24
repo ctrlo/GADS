@@ -175,19 +175,33 @@ sub html
 
         if ($self->type eq 'table')
         {
-            return 'Configuration required' if !$self->view_id || !$self->rows;
-            my $records = GADS::Records->new(
-                user   => $user,
-                layout => $layout,
-                schema => $schema,
-                page   => 1,
-                view   => $view,
-                rows   => $self->rows,
-                #rewind => session('rewind'), # Maybe add in the future
-            );
-            my @columns = @{$records->columns_render};
-            $params->{records} = $records->presentation;
-            $params->{columns} = [ map $_->presentation(sort => $records->sort_first), @columns ];
+            if (!$self->view_id || !$self->rows)
+            {
+                $params->{type} = 'notice';
+                $params->{content} = 'Configuration required';
+            }
+            elsif ($view->current_user_has_access)
+            {
+                my $records = GADS::Records->new(
+                    user   => $user,
+                    layout => $layout,
+                    schema => $schema,
+                    page   => 1,
+                    view   => $view,
+                    rows   => $self->rows,
+                    #rewind => session('rewind'), # Maybe add in the future
+                );
+                my @columns = @{$records->columns_render};
+                $params->{records} = $records->presentation;
+                $params->{columns} = [ map $_->presentation(sort => $records->sort_first), @columns ];
+            }
+            else {
+                # Fail cleanly with useful message. If attempting previous step
+                # using a view with no access, then a Log::Report error will be
+                # thrown instead.
+                $params->{type} = 'notice';
+                $params->{content} = 'You do not have access to the configured view for this widget';
+            }
         }
         elsif ($self->type eq 'graph')
         {

@@ -116,7 +116,8 @@ Vagrant.configure("2") do |config|
     apt-get install -y  libinline-perl liblua5.1-0-dev liblua50-dev liblualib50-dev libdbd-pg-perl
 
     curl -L http://cpanmin.us | perl - --sudo App::cpanminus
-    cpanm $(perl -wE 'our %prereq_pm; require "/vagrant/Makefile.PL"; print join " ", sort keys %prereq_pm')
+    (cd /vagrant && perl bin/output_cpanfile > cpanfile)
+    cpanm --installdeps /vagrant
 
     apt -y install postgresql postgresql-contrib phppgadmin
     sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'test123';"

@@ -139,7 +139,7 @@ sub _build__init_value_hash
     }
     elsif ($self->column->type eq 'autocur' && !$self->values_as_records) # Would be nice to abstract to autocur class
     {
-        my $already_seen = {};
+        my $already_seen = Tree::DAG_Node->new({name => 'root'});
         my @values = $self->column->fetch_multivalues([$self->record->record_id], already_seen => $already_seen);
         @values = map { $_->{value} } @values;
         +{
@@ -410,6 +410,7 @@ sub _build_values_as_query_records
         foreach my $col ($self->column->layout_parent->all)
         {
             next unless $col->type eq 'autocur';
+            next unless $col->refers_to_instance_id == $self->record->layout->instance_id;
             my $datum = $record->fields->{$col->id};
             my @records = grep { $_->current_id != $self->record->current_id } map { $_->{record} } @{$datum->values};
             push @records, $self->record;

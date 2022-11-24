@@ -32,7 +32,7 @@ with 'GADS::Role::Presentation::Column::Tree';
 
 sub DESTROY
 {   my $self = shift;
-    $self->_root->delete_tree if $self->_has_tree;
+    $self->_root->delete_tree if $self->_has_tree && $self->_root;
 }
 
 sub value_field_as_index

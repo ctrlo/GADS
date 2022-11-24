@@ -24,6 +24,11 @@ sub fetch_multivalues
     $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my @values = $m_rs->all;
 
+    # Keep a track of sheet joins in a tree. Add this column to the tree.
+    my $tree = $options{already_seen};
+    my $child = Tree::DAG_Node->new({name => $self->id});
+    $tree->add_daughter($child);
+
     # Now retrive the records
     my $records = GADS::Records->new(
         user                    => $self->layout->user,
@@ -31,10 +36,10 @@ sub fetch_multivalues
         layout                  => $self->layout_parent,
         schema                  => $self->schema,
         columns                 => $self->curval_field_ids,
-        already_seen            => $options{already_seen},
+        already_seen            => $child,
         include_deleted         => 1,
         is_draft                => $options{is_draft},
-        columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns, %options),
+        columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns, %options, already_seen => $child),
         max_results             => $self->limit_rows,
         ignore_view_limit_extra => 1,
     );

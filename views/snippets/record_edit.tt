@@ -2,7 +2,7 @@
     [% UNLESS layout.no_hide_blank %]
         <button type="button" class="btn btn-default click-to-view-blank">Show blank values</button>
     [% END %]
-    [% UNLESS layout.no_copy_record %]
+    [% IF record.user_can_edit AND NOT layout.no_copy_record %]
         <a class="btn btn-default" href="/[% layout.identifier %]/record/?from=[% record.current_id %]">Copy record</a>
     [% END %]
     [% UNLESS layout.no_download_pdf %]

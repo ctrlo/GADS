@@ -46,7 +46,8 @@ GADS::DB->setup(schema);
 # Setup singleton classes with required parameters for if/when
 # they are called in classes later.
 GADS::Config->instance(
-    config => config,
+    config       => config,
+    app_location => app->location,
 );
 
 tie %{schema->storage->dbh->{CachedKids}}, 'Tie::Cache', 100;

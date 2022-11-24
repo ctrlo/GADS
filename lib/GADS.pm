@@ -44,6 +44,7 @@ use GADS::Config;
 use GADS::DB;
 use GADS::DBICProfiler;
 use GADS::Email;
+use GADS::Filecheck;
 use GADS::Globe;
 use GADS::Graph;
 use GADS::Graph::Data;
@@ -122,6 +123,9 @@ GADS::Config->instance(
 GADS::SchemaInstance->instance(
     schema => schema,
 );
+
+# Ensure efficient use of Magic library
+my $filecheck = GADS::Filecheck->instance;
 
 config->{plugins}->{'Auth::Extensible'}->{realms}->{dbic}->{user_as_object}
     or panic "Auth::Extensible DBIC provider needs to be configured with user_as_object";
@@ -255,12 +259,12 @@ hook before => sub {
                     unless request->uri eq '/myaccount' || request->uri eq '/logout';
         }
 
-        header "X-Frame-Options" => "DENY" # Prevent clickjacking
+        response_header "X-Frame-Options" => "DENY" # Prevent clickjacking
             unless request->uri eq '/aup_text' # Except AUP, which will be in an iframe
                 || request->path eq '/file'; # Or iframe posts for file uploads (hidden iframe used for IE8)
 
         # CSP
-        header "Content-Security-Policy" => "script-src 'self';";
+        response_header "Content-Security-Policy" => "script-src 'self';";
 
         # Make sure we have suitable persistent hash to update. All these options are
         # used as hashrefs themselves, so prevent trying to access non-existent hash.
@@ -1425,7 +1429,6 @@ any ['get', 'post'] => '/user_export/?' => require_any_role [qw/useradmin supera
 
 any ['get', 'post'] => '/user_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
     my $userso          = GADS::Users->new(schema => schema);
-    my $users           = $userso->all;
 
     if (param 'sendemail')
     {
@@ -1452,7 +1455,6 @@ any ['get', 'post'] => '/user_overview/' => require_any_role [qw/useradmin super
     }
 
     template 'user/user_overview' => {
-        users           => $users,
         groups          => GADS::Groups->new(schema => schema)->all,
         values          => {
             title         => $userso->titles,
@@ -1648,10 +1650,28 @@ any ['get', 'post'] => '/file/:id' => require_login sub {
     send_file( \($file->content), content_type => $fileval->mimetype, filename => $fileval->name );
 };
 
+# File upload through the "manage files" interface
 post '/file/?' => require_login sub {
 
-    my $ajax           = defined param('ajax');
-    my $is_independent = defined param('is_independent') ? 1 : 0;
+    my $upload = upload('file')
+        or error __"No file submitted";
+    my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
+    my $file;
+    if (process( sub { $file = rset('Fileval')->create({
+        name           => $upload->filename,
+        mimetype       => $mimetype,
+        content        => $upload->content,
+        is_independent => 1,
+        edit_user_id   => undef,
+    }) } ))
+    {
+        my $msg = __x"File has been uploaded as ID {id}", id => $file->id;
+        return forwardHome( { success => "$msg" }, 'file' );
+    }
+};
+
+# Use api route to ensure errors are returned as JSON
+post '/api/file/?' => require_login sub {
 
     if (my $delete_id = param('delete'))
     {
@@ -1668,46 +1688,34 @@ post '/file/?' => require_login sub {
 
     if (my $upload = upload('file'))
     {
+        my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
         my $file;
         if (process( sub { $file = rset('Fileval')->create({
             name           => $upload->filename,
-            mimetype       => $upload->type,
+            mimetype       => $mimetype,
             content        => $upload->content,
-            is_independent => $is_independent,
-            edit_user_id   => $is_independent ? undef : logged_in_user->id,
+            is_independent => 0,
+            edit_user_id   => logged_in_user->id,
         }) } ))
         {
-            if ($ajax)
-            {
-                return encode_json({
-                    id       => $file->id,
-                    filename => $upload->filename,
-                    url      => "/file/".$file->id,
-                    is_ok    => 1,
-                });
-            }
-            else {
-                my $msg = __x"File has been uploaded as ID {id}", id => $file->id;
-                return forwardHome( { success => "$msg" }, 'file' );
-            }
-        }
-        elsif ($ajax) {
             return encode_json({
-                is_ok => 0,
-                error => $@,
+                id       => $file->id,
+                filename => $upload->filename,
+                url      => "/file/".$file->id,
+                is_ok    => 1,
             });
         }
+        return encode_json({
+            is_ok => 0,
+            error => $@,
+        });
     }
-    elsif ($ajax) {
+    else {
         return encode_json({
             is_ok => 0,
             error => "No file was submitted",
         });
     }
-    else {
-        error __"No file submitted";
-    }
-
 };
 
 get '/record_body/:id' => require_login sub {
@@ -2082,7 +2090,7 @@ prefix '/:layout_name' => sub {
             view_limit_extra_id => current_view_limit_extra_id($user, $layout),
         );
 
-        header "Cache-Control" => "max-age=0, must-revalidate, private";
+        response_header "Cache-Control" => "max-age=0, must-revalidate, private";
         content_type 'application/json';
         my $data = $records->data_calendar;
         encode_json({
@@ -2121,7 +2129,7 @@ prefix '/:layout_name' => sub {
             view_limit_extra_id => current_view_limit_extra_id($user, $layout),
         );
 
-        header "Cache-Control" => "max-age=0, must-revalidate, private";
+        response_header "Cache-Control" => "max-age=0, must-revalidate, private";
         content_type 'application/json';
 
         my $tl_options = (!$is_dashboard && session('persistent')->{tl_options}->{$layout->instance_id}) || {};
@@ -2152,7 +2160,7 @@ prefix '/:layout_name' => sub {
         my $id      = param 'id';
         my $gdata = _data_graph($id);
 
-        header "Cache-Control" => "max-age=0, must-revalidate, private";
+        response_header "Cache-Control" => "max-age=0, must-revalidate, private";
         content_type 'application/json';
         encode_json({
             points  => $gdata->points,
@@ -2574,7 +2582,7 @@ prefix '/:layout_name' => sub {
                         my $now = DateTime->now;
                         my $header = config->{gads}->{header} || '';
                         $header = "-$header" if $header;
-                        header 'Content-Disposition' => "attachment; filename=\"$now$header.csv\"";
+                        response_header 'Content-Disposition' => "attachment; filename=\"$now$header.csv\"";
                         content_type 'text/csv; charset="utf-8"';
 
                         flush; # Required to start the async send
@@ -2727,7 +2735,7 @@ prefix '/:layout_name' => sub {
         my $json = $tree->type eq 'tree' ? $tree->json(@ids) : [];
 
         # If record is specified, select the record's value in the returned JSON
-        header "Cache-Control" => "max-age=0, must-revalidate, private";
+        response_header "Cache-Control" => "max-age=0, must-revalidate, private";
         content_type 'application/json';
         encode_json($json);
 

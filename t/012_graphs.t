@@ -86,6 +86,12 @@ foreach my $multivalue (0..1)
     my $columns = $sheet->columns;
     $sheet->create_records;
 
+    my $autocur = $curval_sheet->add_autocur(
+        refers_to_instance_id => 1,
+        related_field_id      => $sheet->columns->{curval1}->id,
+        curval_field_ids      => [$sheet->columns->{string1}->id],
+    );
+
     my $calc2 = GADS::Column::Calc->new(
         schema         => $schema,
         user           => $sheet->user,
@@ -458,6 +464,24 @@ foreach my $multivalue (0..1)
             ],
         },
         {
+            name         => 'Enum field from curval on x-axis, with filter on whole curval',
+            type         => 'bar',
+            x_axis       => $curval_sheet->columns->{enum1}->id,
+            x_axis_link  => $columns->{curval1}->id,
+            y_axis       => $columns->{tree1}->id,
+            y_axis_stack => 'count',
+            data         => [[ 2 ]],
+            xlabels      => ['foo1'],
+            rules => [
+                {
+                    id       => $columns->{curval1}->id,
+                    type     => 'string',
+                    value    => '1',
+                    operator => 'equal',
+                }
+            ],
+        },
+        {
             name         => 'Curval on x-axis grouped by enum',
             type         => 'bar',
             x_axis       => $columns->{curval1}->id,
@@ -557,6 +581,27 @@ foreach my $multivalue (0..1)
                 }
             ],
         },
+        {
+            name            => 'String on x-axis, group by autocur',
+            type            => 'bar',
+            x_axis          => $curval_sheet->columns->{string1}->id,
+            y_axis_stack    => 'count',
+            group_by        => $autocur->id,
+            data            => $multivalue ? [[ 2, 0 ], [ 0, 1 ], [ 1, 1 ]] : [[ 1, 0 ], [ 0, 1 ], [ 1, 1 ]],
+            layout          => $curval_sheet->layout,
+            labels          => ['FooBar', 'Foo', 'Bar'],
+            xlabels         => ['Bar', 'Foo'],
+        },
+        {
+            name            => 'Autocur on x-axis',
+            type            => 'bar',
+            x_axis          => $autocur->id,
+            y_axis_stack    => 'count',
+            data            => $multivalue ? [[ 2, 1, 2 ]] : [[ 2, 1, 1 ]],
+            layout          => $curval_sheet->layout,
+            #labels          => ['FooBar', 'Foo', 'Bar'],
+            xlabels         => ['Bar', 'Foo', 'FooBar'],
+        },
     ];
 
     foreach my $g (@$graphs)
@@ -594,7 +639,7 @@ foreach my $multivalue (0..1)
         }
 
         my $graph = GADS::Graph->new(
-            layout       => $layout,
+            layout       => $g->{layout} || $layout,
             schema       => $schema,
             current_user => $sheet->user,
         );
@@ -628,7 +673,7 @@ foreach my $multivalue (0..1)
                 name        => 'Test view',
                 filter      => $rules,
                 instance_id => 1,
-                layout      => $layout,
+                layout      => $g->{layout} || $layout,
                 schema      => $schema,
                 user        => $sheet->user,
                 columns     => $g->{view_columns} || [],
@@ -638,7 +683,7 @@ foreach my $multivalue (0..1)
 
         my $records = GADS::RecordsGraph->new(
             user              => $sheet->user,
-            layout            => $layout,
+            layout            => $g->{layout} || $layout,
             schema            => $schema,
         );
         my $graph_data = GADS::Graph::Data->new(

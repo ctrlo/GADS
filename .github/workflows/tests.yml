@@ -4,20 +4,19 @@ on: [ 'push', 'pull_request' ]
 jobs:
   unit_tests:
     name: 'Unit Tests'
-    runs-on: 'ubuntu-20.04'
+    runs-on: 'ubuntu-22.04'
     timeout-minutes: 30
 
     steps:
       - name: 'Check out the GADS repository'
-        uses: 'actions/checkout@v2'
+        uses: 'actions/checkout@v3'
       - name: 'Install Non-CPAN dependencies'
         run: |
           sudo apt-get install cpanminus liblua5.3-dev
           # Avoid "Install CPAN dependencies" needing to compile so much
           sudo apt-get install libdancer2-perl libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl
       - name: 'Build cpanfile'
-        run: |
-          perl -wE 'our %prereq_pm; require "./Makefile.PL"; foreach my $k (sort keys %prereq_pm) { say qq(requires "$k";) }' > cpanfile
+        run: perl bin/output_cpanfile > cpanfile
       - name: 'Install CPAN dependencies'
         uses: 'perl-actions/install-with-cpanm@v1'
         with:
@@ -28,7 +27,7 @@ jobs:
 
   webdriver_tests:
     name: 'Webdriver Tests for ${{ matrix.browser.name }}'
-    runs-on: 'ubuntu-20.04'
+    runs-on: '${{ matrix.browser.os }}'
     timeout-minutes: 30
 
     strategy:
@@ -37,8 +36,10 @@ jobs:
         browser:
           - name: 'Chromium'
             command: 'chromedriver --port=4444 &'
+            os: 'ubuntu-22.04'
           - name: 'Firefox'
             command: 'MOZ_HEADLESS=1 geckodriver --log warn &'
+            os: 'ubuntu-20.04'
 
     services:
       postgres:
@@ -56,15 +57,14 @@ jobs:
 
     steps:
       - name: 'Check out the GADS code'
-        uses: 'actions/checkout@v2'
+        uses: 'actions/checkout@v3'
       - name: 'Install Non-CPAN dependencies'
         run: |
           sudo apt-get install cpanminus liblua5.3-dev
           # Avoid "Install CPAN dependencies" needing to compile so much
           sudo apt-get install libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl
       - name: 'Build cpanfile'
-        run: |
-          perl -wE 'our %prereq_pm; require "./Makefile.PL"; foreach my $k (sort keys %prereq_pm) { say qq(requires "$k";) }' > cpanfile
+        run: perl bin/output_cpanfile > cpanfile
       - name: 'Install CPAN dependencies'
         uses: 'perl-actions/install-with-cpanm@v1'
         with:
@@ -82,10 +82,13 @@ jobs:
           chmod 600 ~/.pgpass
       - name: 'Start the application'
         env:
+          DANCER_CONFDIR: 'webdriver'
           PGDATABASE: 'postgres'
           PGHOST: 'localhost'
           PGUSER: 'postgres'
-        run: ./bin/setup_for_webdriver
+        run: |
+          ./bin/setup_database
+          perl bin/app.pl &
       - name: 'Run the Webdriver implementation'
         run: '${{ matrix.browser.command }}'
       - name: 'Run the Webdriver tests'

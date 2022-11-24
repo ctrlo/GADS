@@ -46,7 +46,7 @@ has template_location => (
 
 sub _build_template_location
 {   my $self = shift;
-    dir($self->app_location, "views");
+    dir($self->app_location || '.', "views");
 }
 
 has gads => (

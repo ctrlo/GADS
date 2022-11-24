@@ -176,7 +176,7 @@ __PACKAGE__->belongs_to(
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
-    $sqlt_table->add_index(name => 'enumval_idx_value', fields => [ { name => 'value', size => 64 } ]);
+    $sqlt_table->add_index(name => 'enumval_idx_value', fields => [ { name => 'value', prefix_length => 64 } ]);
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

@@ -50,6 +50,7 @@ has enumvals => (
         my @enumvals = map {
             +{
                 value       => $_->{value},
+                html        => $_->{value}, # Needed for edit form render
                 deleted     => $_->{deleted},
                 id          => $_->{id},
                 selector_id => $_->{id},

@@ -12,6 +12,9 @@ use GADS::Records;
 use lib 't/lib';
 use Test::GADS::DataSheet;
 
+# Hide "mistake" messages emitted during tests
+dispatcher PERL => 'default', accept => 'ERROR-';
+
 set_fixed_time('01/01/2008 01:00:00', '%m/%d/%Y %H:%M:%S');
 
 my $data = [

@@ -113,7 +113,7 @@ __PACKAGE__->belongs_to(
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
-    $sqlt_table->add_index(name => 'fileval_idx_name', fields => [ { name => 'name', size => 64 } ]);
+    $sqlt_table->add_index(name => 'fileval_idx_name', fields => [ { name => 'name', prefix_length => 64 } ]);
 }
 
 1;

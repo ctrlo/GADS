@@ -421,7 +421,7 @@ sub _build_rag_code
             else
                 dr1 = L${instance_id}daterange1
             end
-            if dr1 == nil then return end
+            if dr1 == nil then return 'grey' end
             if dr1.from.year < 2012 then return 'red' end
             if dr1.from.year == 2012 then return 'amber' end
             if dr1.from.year > 2012 then return 'green' end

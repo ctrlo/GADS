@@ -182,7 +182,7 @@ post '/api/:sheet/record' => require_api_user sub {
     _update_record($record, $request);
 
     status 'Created';
-    header 'Location' => request->base.'record/'.$record->current_id;
+    response_header 'Location' => request->base.'record/'.$record->current_id;
 
     return;
 };
@@ -227,7 +227,7 @@ put '/api/:sheet/record/:id' => require_api_user sub {
     status 'No Content';
     # Use supplied ID for return - will either have been created as that or
     # will have borked early with error and not got here
-    header 'Location' => request->base."record/$id";
+    response_header 'Location' => request->base."record/$id";
 
     return;
 };
@@ -410,8 +410,8 @@ post '/api/token' => sub {
         };
     }
 
-    header "Cache-Control" => 'no-store';
-    header "Pragma"        => 'no-cache';
+    response_header "Cache-Control" => 'no-store';
+    response_header "Pragma"        => 'no-cache';
     content_type 'application/json;charset=UTF-8';
 
     return encode_json $json_response;
@@ -469,7 +469,7 @@ prefix '/:layout_name' => sub {
         return encode_json {
             "error"  => 0,
             "records"=> [
-                map { +{ id => $_->{id}, label => $_->{value} } } @{$curval->filtered_values($submission_token)}
+                map { +{ id => $_->{id}, label => $_->{value}, html => $_->{html} } } @{$curval->filtered_values($submission_token)}
             ]
         };
     };
@@ -1251,6 +1251,86 @@ sub _error
     status $code;
     error __x $msg;
 }
+
+get '/api/users' => require_any_role [qw/useradmin superadmin/] => sub {
+
+    if (query_parameters->get('cols'))
+    {
+        # Get columns to be shown in the users table summary
+        my $site = var 'site';
+        my @cols = qw/surname firstname/;
+        push @cols, 'title' if $site->register_show_title;
+        push @cols, 'email';
+        push @cols, 'organisation' if $site->register_show_organisation;
+        push @cols, 'department' if $site->register_show_department;
+        push @cols, 'team' if $site->register_show_team;
+        push @cols, 'freetext1' if $site->register_freetext1_name;
+        push @cols, qw/created lastlogin/;
+        my @return = map { { name => $_, data => $_ } } @cols;
+        content_type 'application/json; charset=UTF-8';
+        return encode_json \@return;
+    }
+
+    my $start  = query_parameters->get('start') || 0;
+    my $length = query_parameters->get('length') || 10;
+
+    my $users     = GADS::Users->new(schema => schema)->user_summary_rs;
+    my $total     = $users->count;
+    my $col_order = query_parameters->get('order[0][column]');
+    my $sort_by   = query_parameters->get("columns[$col_order][name]");
+    my $dir       = query_parameters->get('order[0][dir]');
+    my $search    = query_parameters->get('search[value]');
+
+    $sort_by =~ /^(surname|firstname|email|id|lastlogin|created|title|organisation|department|team)$/
+        or error "Invalid sort";
+    $sort_by = $sort_by eq 'title'
+        ? 'title.name'
+        : $sort_by eq 'organisation'
+        ? 'organisation.name'
+        : $sort_by eq 'department'
+        ? 'department.name'
+        : $sort_by eq 'team'
+        ? 'team.name'
+        : "me.$sort_by";
+
+    my @sr;
+    foreach my $s (split /\s+/, $search)
+    {
+        $s or next;
+        $s =~ s/\_/\\\_/g; # Escape special like char
+        push @sr, [
+            'me.id'             => $s =~ /^[0-9]+$/ ? $s : undef,
+            # surname and firstname are case sensitive in database
+            'me.value'          => { -like => "%$s%" },
+            'me.email'          => { -like => "%$s%" },
+            'title.name'        => { -like => "%$s%" },
+            'organisation.name' => { -like => "%$s%" },
+            'team.name'         => { -like => "%$s%" },
+            'department.name'   => { -like => "%$s%" },
+            'me.freetext1'      => { -like => "%$s%" },
+            'me.freetext2'      => { -like => "%$s%" },
+        ];
+    }
+
+    my $filtered_count = $users->count;
+    $users = $users->search({
+        -and => \@sr,
+    },{
+        offset   => $start,
+        rows     => $length,
+        order_by => { $dir eq 'asc' ? -asc : -desc => $sort_by },
+    });
+
+    my $return = {
+        draw            => query_parameters->get('draw'),
+        recordsTotal    => $total,
+        recordsFiltered => $filtered_count,
+        data            => [map $_->for_data_table, $users->all],
+    };
+
+    content_type 'application/json; charset=UTF-8';
+    return encode_json $return;
+};
 
 sub _success
 {   my $msg = shift;

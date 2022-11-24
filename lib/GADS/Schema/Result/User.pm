@@ -721,9 +721,9 @@ __PACKAGE__->has_many(
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
-    $sqlt_table->add_index(name => 'user_idx_value', fields => [ { name => 'value', size => 64 } ]);
-    $sqlt_table->add_index(name => 'user_idx_email', fields => [ { name => 'email', size => 64 } ]);
-    $sqlt_table->add_index(name => 'user_idx_username', fields => [ { name => 'username', size => 64 } ]);
+    $sqlt_table->add_index(name => 'user_idx_value', fields => [ { name => 'value', prefix_length => 64 } ]);
+    $sqlt_table->add_index(name => 'user_idx_email', fields => [ { name => 'email', prefix_length => 64 } ]);
+    $sqlt_table->add_index(name => 'user_idx_username', fields => [ { name => 'username', prefix_length => 64 } ]);
 }
 
 # Used to ensure an empty selector is available in the user edit page
@@ -1029,6 +1029,23 @@ sub _user_value
     my $surname   = $user->{surname}   || '';
     my $value     = "$surname, $firstname";
     $value;
+}
+
+sub for_data_table
+{   my $self = shift;
+    {
+        id           => $self->id,
+        surname      => $self->surname,
+        firstname    => $self->firstname,
+        title        => $self->title && $self->title->name,
+        email        => $self->email,
+        organisation => $self->organisation && $self->organisation->name,
+        department   => $self->department && $self->department->name,
+        team         => $self->team && $self->team->name,
+        freetext1    => $self->freetext1,
+        created      => $self->created ? $self->created->ymd : 'Unknown',
+        lastlogin    => $self->lastlogin ? $self->lastlogin->ymd : 'Never logged in',
+    };
 }
 
 sub export_hash

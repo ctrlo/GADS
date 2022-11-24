@@ -77,7 +77,6 @@ sub clear
     $self->clear_curval_field_ids_all;
     $self->clear_curval_field_ids;
     $self->clear_curval_field_ids_index;
-    $self->clear_curval_fields_multivalue;
 }
 
 sub values_for_timeline
@@ -120,7 +119,7 @@ has '+use_id_in_filter' => (
 
 sub tjoin
 {   my ($self, %options) = @_;
-    $self->make_join(map { $_->tjoin } grep { !$_->internal } @{$self->curval_fields_retrieve(%options)});
+    $self->make_join(map { $_->tjoin(already_seen => $options{already_seen}) } grep { !$_->internal } @{$self->curval_fields_retrieve(%options)});
 }
 
 sub _build_fetch_with_record
@@ -178,15 +177,12 @@ sub _build_curval_field_ids_index
 }
 
 # All the curval fields that are multivalue
-has curval_fields_multivalue => (
-    is      => 'lazy',
-    isa     => ArrayRef,
-    clearer => 1,
-);
-
-sub _build_curval_fields_multivalue
-{   my $self = shift;
-    [grep { $_->multivalue } @{$self->curval_fields_all}];
+sub curval_fields_multivalue
+{   my ($self, %options) = @_;
+    # Assume that as this is already a curval, that if we're rendering it as a
+    # record then we don't need curvals within curvals, which saves on the data
+    # being retrieved from the database
+    [grep { !$_->is_curcommon && $_->multivalue } @{$self->curval_fields_retrieve(%options, all_fields => 1)}];
 }
 
 has curval_field_ids_all => (
@@ -222,12 +218,14 @@ sub curval_field_ids_retrieve
 # improved, so as only retrieving the code fields that are needed.
 sub curval_fields_retrieve
 {   my ($self, %options) = @_;
-    return $self->curval_fields if !$options{all_fields};
-    my $ret = $self->curval_fields_all;
+    my $all = $options{all_fields} ? $self->curval_fields_all : $self->curval_fields;
     # Prevent recursive loops of fields that refer to each other
-    $ret = [grep { !$options{already_seen}->{$self->id."_".$_->id} } @$ret];
-    $options{already_seen}->{$self->id."_".$_->id} = 1 foreach @$ret;
-    $ret;
+    if (my $tree = $options{already_seen})
+    {
+        my %exists = map { $_->name => 1 } $tree->ancestors;
+        $all = [grep !$exists{$_->id}, @$all];
+    }
+    $all;
 };
 
 sub curval_fields_all
@@ -522,6 +520,9 @@ sub field_values
     # will be available).  The rows would normally only need to be retrieved
     # when a single record is being written.
 
+    $params{rows} || $params{ids}
+        or panic "Neither rows not ids passed to all_field_values";
+
     # Array for the rows to be returned
     my @rows;
 
@@ -562,9 +563,6 @@ sub field_values
     elsif ($params{rows}) {
         # Just use existing rows
         @rows = @{$params{rows}};
-    }
-    else {
-        panic "Neither rows not ids passed to all_field_values";
     }
 
     my %return;
@@ -610,7 +608,28 @@ sub _get_rows
         $return = [ map { $self->values_index->{$_} } @$ids ];
     }
     else {
-        $return = $self->_records_from_db(ids => $ids, include_deleted => 1, %options)->results;
+        foreach my $id (@$ids)
+        {
+            # Check the cache in the layout first. There may have been another
+            # curval fields that has already retrieved the full values of these
+            # same records. If everything is available then use it, otherwise
+            # if only some are missing retrieve from scratch to ensure any
+            # ordering is correct (the chances are that either all or none will
+            # be needed)
+            if (my $rec = $self->layout->cached_records->{$id})
+            {
+                push @$return, $rec;
+            }
+            else {
+                $return = $self->_records_from_db(ids => $ids, include_deleted => 1, %options)->results;
+                if ($options{all_fields})
+                {
+                    $self->layout->cached_records->{$_->current_id} = $_
+                        foreach @$return;
+                }
+                last;
+            }
+        }
     }
     # Remove any values that are for deleted records. These could be in the ids
     # passed into this function, and it's not possible to know without fetching
@@ -741,19 +760,22 @@ sub values_beginning_with
             push @results, $self->_format_row($row, value_key => 'name');
         }
     }
-    map { +{ id => $_->{id}, label => $_->{name} } } @results;
+    map { +{ id => $_->{id}, label => $_->{name}, html => $_->{html} } } @results;
 }
 
 sub _format_row
 {   my ($self, $row, %options) = @_;
     my $value_key = $options{value_key} || 'value';
     my @values;
+    my @html;
     foreach my $fid (@{$self->curval_field_ids})
     {
         next if !$self->override_permissions && !$self->layout_parent->column($fid, permission => 'read');
-        push @values, $row->fields->{$fid};
+        push @html, $row->fields->{$fid}->html;
+        push @values, $row->fields->{$fid}->as_string;
     }
     my $text     = $self->format_value(@values);
+    my $html     = join ', ', grep $_, @html;
     my $as_query = ($row->is_draft || !$row->current_id) && $row->as_query;
     +{
         id          => $row->current_id,
@@ -762,6 +784,7 @@ sub _format_row
         record      => $row,
         $value_key  => $text,
         values      => \@values,
+        html        => $html,
     };
 }
 
