@@ -159,7 +159,7 @@ sub fetch_multivalues
         user                    => $self->layout->user,
         layout                  => $self->layout_parent,
         schema                  => $self->schema,
-        columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns, %options, already_seen => $child),
+        columns                 => $self->curval_field_ids_retrieve(%options, already_seen => $child),
         limit_current_ids       => [map { $_->{record}->{current_id} } @values],
         include_children        => 1, # Ensure all autocur records are shown even if they have the same text content
         ignore_view_limit_extra => 1,

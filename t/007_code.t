@@ -85,7 +85,7 @@ my @tests = (
     {
         name       => 'calc field using curval (full value)',
         type       => 'Calc',
-        code       => "function evaluate (L1curval1) \n return L1curval1.value \nend",
+        code       => qq[function evaluate (L1curval1) \n return L1curval1.field_values.L2string1 .. ", " .. L1curval1.field_values.L2date1.ymd  \nend],
         before     => 'Foo, 2014-10-10',
         after      => 'Bar, 2009-01-02',
         multivalue => 1,
@@ -831,11 +831,12 @@ foreach my $multi (0..1)
                 function evaluate (L1curval1)
                     ret = ""
                     for _,val in ipairs(L1curval1) do
-                        ret = ret .. val.value
+                        v = val.field_values.L2string1 .. ", " .. val.field_values.L2date1.ymd
+                        ret = ret .. v
                     end
                     return ret
                 end',
-            value => 'Foo, 2014-10-10Bar, 2009-01-02',
+            value => 'Bar, 2009-01-02Foo, 2014-10-10',
         },
         {
             col   => 'tree1',

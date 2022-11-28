@@ -848,6 +848,7 @@ sub clear
     $self->clear_permissions;
     $self->_clear_mycols;
     $self->clear_cached_records;
+    $self->clear_all_short_names;
 }
 
 has _layout => (
@@ -1257,6 +1258,17 @@ sub _build__columns_namehash
 sub column_by_name
 {   my ($self, $name) = @_;
     $self->use_layout->_columns_namehash->{$name};
+}
+
+# All short names used across all instances
+has all_short_names => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_all_short_names
+{   my $self = shift;
+    [keys %{$self->_columns_name_shorthash}];
 }
 
 sub _build__columns_name_shorthash

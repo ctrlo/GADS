@@ -51,7 +51,7 @@ sub _transform_value
             record               => $r->{current}->{record_single},
             linked_id            => $r->{current}->{linked_id},
             parent_id            => $r->{current}->{parent_id},
-            columns_retrieved_do => $self->column->curval_fields_retrieve(all_fields => $self->column->retrieve_all_columns),
+            columns_retrieved_do => $self->column->curval_fields_retrieve,
         );
         $id = $r->{current_id};
     }

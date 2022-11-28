@@ -123,7 +123,7 @@ my $curval_record = GADS::Record->new(
 );
 $curval_record->find_current_id(1);
 is($curval_record->fields->{$autocur1->id}->as_string, "10; 10", "Autocur value correct");
-is($curval_record->fields->{$calc_curval->id}->as_string, "10Foobar10Bar", "Autocur calc value correct");
+is($curval_record->fields->{$calc_curval->id}->as_string, "10Bar10Foobar", "Autocur calc value correct");
 
 # Test updating value using a query - ID should be used to pass to child
 # record, so that new curval records are not duplicated

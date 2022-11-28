@@ -148,12 +148,6 @@ has set_record_created_user => (
     clearer => 1,
 );
 
-has curcommon_all_fields => (
-    is      => 'ro',
-    isa     => Bool,
-    default => 0,
-);
-
 # Should be set true if we are processing an approval
 has doing_approval => (
     is      => 'ro',
@@ -734,7 +728,6 @@ sub _find
         if $find{deleted} && !$self->layout->user_can("purge") && !$GADS::Schema::IGNORE_PERMISSIONS;
 
     my %params = (
-        curcommon_all_fields => $self->curcommon_all_fields,
         user                    => $self->user,
         layout                  => $self->layout,
         schema                  => $self->schema,
@@ -747,8 +740,6 @@ sub _find
         include_children        => 1,
         ignore_view_limit_extra => 1,
     );
-    $params{columns_selected} = [$self->layout->all]
-        if !$self->columns;
     my $records = GADS::Records->new(%params);
 
     $self->columns_retrieved_do($records->columns_retrieved_do);
@@ -949,12 +940,11 @@ sub _find
 
         # Fetch and merge and multi-values
         $records->fetch_multivalues(
-            record_ids           => \@record_ids,
-            retrieved            => [map $record->{$_}, @record_ids],
-            records              => \@record_objects,
-            is_draft             => $find{draftuser_id},
-            already_seen         => $records->already_seen,
-            curcommon_all_fields => $self->curcommon_all_fields,
+            record_ids    => \@record_ids,
+            retrieved     => [map $record->{$_}, @record_ids],
+            records       => \@record_objects,
+            is_draft      => $find{draftuser_id},
+            already_seen  => $records->already_seen,
         );
     }
 
@@ -965,12 +955,11 @@ sub _find
         {
             $records->rewind($record->created);
             $records->fetch_multivalues(
-                record_ids           => [$record->record_id],
-                retrieved            => [$record->{$record->record_id}],
-                records              => [$record],
-                is_draft             => $find{draftuser_id},
-                already_seen         => $records->already_seen,
-                curcommon_all_fields => $self->curcommon_all_fields,
+                record_ids   => [$record->record_id],
+                retrieved    => [$record->{$record->record_id}],
+                records      => [$record],
+                is_draft     => $find{draftuser_id},
+                already_seen => $records->already_seen,
             );
             my @changed;
             foreach my $column (@{$record->columns_retrieved_no})
@@ -1166,6 +1155,36 @@ sub _set_record_id
     $record->{id};
 }
 
+sub _create_datum
+{   my ($self, $column, $value) = @_;
+
+    my $child_unique = ref $value eq 'ARRAY' && @$value > 0
+        ? $value->[0]->{child_unique} # Assume same for all parts of value
+        : ref $value eq 'HASH' && exists $value->{child_unique}
+        ? $value->{child_unique}
+        : undef;
+    my %params = (
+        record           => $self,
+        record_id        => $self->record_id,
+        current_id       => $self->current_id,
+        child_unique     => $child_unique,
+        column           => $column,
+        init_no_value    => $self->init_no_value,
+        schema           => $self->schema,
+        layout           => $self->layout,
+    );
+    # Do not add initial value for calculated fields that are aggregate and
+    # defined as recalc. This means that the value will automatically
+    # calculate from the other aggregate field values instead
+    $params{init_value} = ref $value eq 'ARRAY' ? $value : defined $value ? [$value] : []
+        unless ($self->is_group && $column->aggregate && $column->aggregate eq 'recalc')
+            || ($self->is_draft && !$column->userinput); # Calc fields are not saved for a draft
+    my $class = $self->is_group && !$column->numeric && !$self->group_cols->{$column->id}
+        ? 'GADS::Datum::Count'
+        : $column->class;
+    $class->new(%params);
+}
+
 sub _transform_values
 {   my $self = shift;
 
@@ -1202,37 +1221,7 @@ sub _transform_values
             }
         }
         my $value = $self->linked_id && $column->link_parent ? $original->{$key} : $original->{$key};
-
-        my $child_unique = ref $value eq 'ARRAY' && @$value > 0
-            ? $value->[0]->{child_unique} # Assume same for all parts of value
-            : ref $value eq 'HASH' && exists $value->{child_unique}
-            ? $value->{child_unique}
-            : undef;
-        my %params = (
-            record           => $self,
-            record_id        => $self->record_id,
-            current_id       => $self->current_id,
-            child_unique     => $child_unique,
-            column           => $column,
-            init_no_value    => $self->init_no_value,
-            schema           => $self->schema,
-            layout           => $self->layout,
-        );
-        # Do not add initial value for calculated fields that are aggregate and
-        # defined as recalc. This means that the value will automatically
-        # calculate from the other aggregate field values instead
-        $params{init_value} = ref $value eq 'ARRAY' ? $value : defined $value ? [$value] : []
-            unless ($self->is_group && $column->aggregate && $column->aggregate eq 'recalc')
-                || ($self->is_draft && !$column->userinput); # Calc fields are not saved for a draft
-        # For curcommon fields, flag that this field has had all its columns if
-        # that is what has happened. Then we know during any later process of
-        # this column that there is no need to retrieve any other columns
-        $column->retrieve_all_columns(1)
-            if $self->curcommon_all_fields && $column->is_curcommon;
-        my $class = $self->is_group && !$column->numeric && !$self->group_cols->{$column->id}
-            ? 'GADS::Datum::Count'
-            : $column->class;
-        $fields->{$column->id} = $class->new(%params);
+        $fields->{$column->id} = $self->_create_datum($column, $value);
     }
 
     $self->_set_id_count($original->{id_count});
@@ -1310,20 +1299,15 @@ sub values_by_shortname
             my $col = $self->layout->column_by_name_short($_)
                 or error __x"Short name {name} does not exist", name => $_;
             my $linked = $self->linked_id && $col->link_parent;
-            my $datum = $self->fields->{$col->id}
+            my $datum = $self->get_field_value($col)
                 or panic __x"Value for column {name} missing. Possibly missing entry in layout_depend?", name => $col->name;
             my $d = $self->fields->{$col->id}->is_awaiting_approval # waiting approval, use old value
                 ? $self->fields->{$col->id}->oldvalue
                 : $linked && $self->fields->{$col->id}->oldvalue # linked, and linked value has been overwritten
                 ? $self->fields->{$col->id}->oldvalue
                 : $self->fields->{$col->id};
-            # Retain and provide recurse-prevention information. See further
-            # comments in GADS::Column::Curcommon
-            my $already_seen_code = $params{already_seen_code};
-            $already_seen_code->{$col->id} = $params{level};
-            $d->already_seen_code($already_seen_code);
-            $d->already_seen_level($params{level} + ($col->is_curcommon ? 1 : 0));
-            $_ => $d->for_code;
+            # Retain and provide recurse-prevention information.
+            $_ => $d->for_code(fields => $params{all_possible_names}, already_seen_code => $params{already_seen_code});
         } @names
     };
 }
@@ -1339,8 +1323,6 @@ sub initialise
     my $fields = {};
     foreach my $column ($self->layout->all(include_internal => 1))
     {
-        $column->retrieve_all_columns(1)
-            if $self->curcommon_all_fields && $column->is_curcommon;
         $self->initialise_field($fields, $column->id);
     }
 
@@ -1979,7 +1961,7 @@ sub write_values
         # Prevent warnings when writing incomplete calc values on draft
         next if $options{draft} && !$column->userinput;
 
-        my $datum = $self->fields->{$column->id};
+        my $datum = $self->get_field_value($column); #$self->fields->{$column->id};
         next if $self->linked_id && $column->link_parent; # Don't write all values if this is a linked record
 
         if ($self->_need_rec || $options{update_only}) # For new records, $need_rec is only set if user has create permissions without approval
@@ -2589,12 +2571,50 @@ sub as_query
     foreach my $col ($self->layout->all(userinput => 1, user_can_read => 1))
     {
         next if $options{exclude_curcommon} && $col->is_curcommon;
+        my $datum = $self->get_field_value($col);
         panic __x"Field {id} is missing from record", id => $col->id
-            if !$self->fields->{$col->id};
+            if !$datum;
         push @queries, $col->field."=".uri_escape_utf8($_)
-            foreach @{$self->fields->{$col->id}->html_form};
+            foreach @{$datum->html_form};
     }
     return join '&', @queries;
+}
+
+sub get_field_value
+{   my ($self, $column) = @_;
+    return $self->fields->{$column->id}
+        if $self->fields->{$column->id};
+
+    my $record_id = $self->record_id_old || $self->record_id;
+
+    my $raw;
+    if ($column->type eq 'autocur')
+    {
+        my $already_seen = Tree::DAG_Node->new({name => 'root'});
+        $raw = [$column->fetch_multivalues([$record_id], already_seen => $already_seen)];
+    }
+    else {
+        my $result = $self->schema->resultset($column->table)->search({
+            record_id => $record_id,
+            layout_id => $column->id,
+        });
+        $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
+        $raw = [$result->all];
+    }
+    my $datum = $self->_create_datum($column, $raw);
+    # Cache in record
+    $self->fields->{$column->id} = $datum;
+}
+
+sub for_code
+{   my ($self, %params) = @_;
+    my $return;
+    foreach my $col (@{$params{columns}})
+    {
+        my $datum = $self->get_field_value($col);
+        $return->{$col->name_short} = $datum->for_code(fields => $params{fields}, already_seen_code => $params{already_seen_code});
+    }
+    $return;
 }
 
 sub pdf

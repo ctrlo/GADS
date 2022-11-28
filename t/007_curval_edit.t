@@ -149,6 +149,7 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
             schema => $schema,
         );
         $record->initialise;
+        $record->fields->{$columns->{integer1}->id}->set_value(10); # Prevent calc warnings
         my $curval_datum = $record->fields->{$curval->id};
         $curval_datum->set_value([$curval_string->field."=foo55"]);
         $record->write(no_alerts => 1);
@@ -240,8 +241,9 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
     $record->find_current_id(3);
     $curval_datum = $record->fields->{$curval->id};
     $curval_count = $schema->resultset('Current')->search({ instance_id => 2 })->count;
+    my $fields = { L2string1 => 1 };
     my ($d) = map { $_->{id} } grep { $_->{field_values}->{L2string1} eq 'foo2' }
-        @{$curval_datum->for_code};
+        @{$curval_datum->for_code(fields => $fields)};
     $curval_datum->set_value([$curval_string->field."=foo5&current_id=$d", $curval_record_id]);
     $record->write(no_alerts => 1);
     $curval_count2 = $schema->resultset('Current')->search({ instance_id => 2 })->count;
@@ -255,9 +257,9 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
     # Edit existing - one edited via query but no changes, other changed as normal
     $curval_count = $schema->resultset('Current')->search({ instance_id => 2 })->count;
     my ($d1) = map { $_->{id} } grep { $_->{field_values}->{L2string1} eq 'foo1' }
-        @{$curval_datum->for_code};
+        @{$curval_datum->for_code(fields => $fields)};
     my ($d2) = map { $_->{id} } grep { $_->{field_values}->{L2string1} eq 'foo5' }
-        @{$curval_datum->for_code};
+        @{$curval_datum->for_code(fields => $fields)};
     $curval_datum->set_value([$curval_string->field."=foo1&current_id=$d1", $curval_string->field."=foo6&current_id=$d2"]);
     $record->write(no_alerts => 1);
     $curval_count2 = $schema->resultset('Current')->search({ instance_id => 2 })->count;
@@ -458,8 +460,6 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
     $curval_datum->set_value([$curval_string->field."=foo10"]);
     $curval_record = $curval_datum->values->[0]->{record};
     is($curval_record->fields->{$curval_string->id}->as_string, 'foo10', "Curval value contains correct string value");
-    is($curval_record->fields->{$calc->id}->as_string, '50', "Curval value contains correct autocur before write");
-    is($curval_record->fields->{$autocur->id}->as_string, 'Foo', "Autocur value is correct");
 
     # Try writing a record that will fail, and check values of fields returned to form.
     # Do this firstly for a brand new record, and then for a record that was

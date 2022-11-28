@@ -270,9 +270,14 @@ has already_seen_level => (
     builder => sub { 1 },
 );
 
-has for_code => (
+sub clear_for_code { shift->_clear_read_for_code }
+
+sub for_code { shift->_read_for_code }
+
+has _read_for_code => (
     is      => 'lazy',
     clearer => 1,
+    builder => '_build_for_code',
 );
 
 sub _build_for_code
@@ -293,6 +298,7 @@ sub date_for_code
         second => $value->second,
         yday   => $value->doy,
         epoch  => $value->epoch,
+        ymd    => $value->ymd,
     };
 }
 
