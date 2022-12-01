@@ -43,6 +43,17 @@ after set_value => sub {
     my @queries = grep { $_ !~ /^[0-9]+$/ } @values; # New curval records or changes to existing ones
     my @old_ids = sort @{$self->all_ids};
 
+    # If the field is only showing limited records, then add on any existing
+    # ones that won't have been shown
+    if ($self->column->limit_rows && $self->column->multivalue)
+    {
+        my %submitted = map { $_ => 1 } @ids;
+        push @ids, grep { !$submitted{$_} } @old_ids;
+        # Need to sort again, to ensure checked for value-changed works
+        # correctly
+        @ids = sort @ids;
+    }
+
     panic "Records cannot be mixed with other set values"
         if @records && (@ids || @queries);
 
@@ -68,14 +79,6 @@ after set_value => sub {
         # what has changed
         my %updated = map { $_->current_id => 1 } grep { !$_->new_entry } @{$self->values_as_query_records};
         @old_ids = grep { !$updated{$_} } @old_ids;
-    }
-
-    # If the field is only showing limited records, then add on any existing
-    # ones that won't have been shown
-    if ($self->column->limit_rows && $self->column->multivalue)
-    {
-        my %submitted = map { $_ => 1 } @ids;
-        push @ids, grep { !$submitted{$_} } @old_ids;
     }
 
     $changed ||= "@ids" ne "@old_ids"; #  Also see if IDs have changed
