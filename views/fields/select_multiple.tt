@@ -1,12 +1,13 @@
 [%
   fieldset_class = is_required AND ! fieldset_class.match('fieldset--required') ? fieldset_class _ ' fieldset--required' : fieldset_class;
+  select_widget_class = is_required ? ' select-widget--required' : '';
 %]
 [% IF ! hide_group %]
 <div class="form-group [% formgroup_class %]">
 [% END %]
   <fieldset class="fieldset [% fieldset_class %]">
     [% INCLUDE fields/sub/label_fieldset.tt; %]
-    <div class="select-widget multi" [% IF data_attributes; INCLUDE fields/sub/data_attributes.tt; END; %]>
+    <div class="select-widget[% select_widget_class %] multi" [% IF data_attributes; INCLUDE fields/sub/data_attributes.tt; END; %]>
       <div class="select-widget-dropdown">
         <div class="form-control">
           <ul class="current">
@@ -17,16 +18,21 @@
           
                 IF values AND values.size;
                   FOREACH value IN values;
-                    IF item.id == value;
+                    IF item.value == value;
                       value_hidden = "";
                     END;
                   END;
-                ELSIF item.id == value;
+                ELSIF item.value == value;
                   value_hidden = "";
                 END;
             %]
-            <li data-list-id="[% item.id %]" data-list-item="[% id %]_[% item.id %]"[% value_hidden %]>
-              <span class="widget-value__value">[% item.name | html_entity %]</span>
+            <li
+              data-list-id="[% item.value %]"
+              data-list-item="[% id %]_[% item.value %]"
+              data-list-text="[% item.label_plain | html %]"
+              [% value_hidden %]
+            >
+              <span class="widget-value__value">[% item.label_html %]</span>
               <button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
             </li>
             [% END %]
@@ -61,21 +67,22 @@
               
                 IF values AND values.size;
                   FOREACH value IN values;
-                    IF item.id == value;
+                    IF item.value == value;
                       checkbox_checked = 1;
                     END;
                   END;
                 ELSE;
-                  checkbox_checked = item.id == value ? 1 : 0;
+                  checkbox_checked = item.value == value ? 1 : 0;
                 END;
               
                 INCLUDE fields/sub/checkbox.tt
-                  id          = id _ '_' _ item.id
-                  name        = name
-                  value       = item.id
-                  label       = item.name
-                  is_required = 0
-                  checked     = checkbox_checked;
+                  id              = id _ '_' _ item.value
+                  name            = name
+                  value           = item.value
+                  label           = item.label_plain
+                  is_required     = 0
+                  filter          = "html"
+                  checked         = checkbox_checked;
               %]
           [% IF with_details %]
             </div>
@@ -85,7 +92,7 @@
                 class="btn btn-small btn-default btn-js-more-info"
                 data-toggle="modal"
                 data-target=#detailsModal
-                data-record-id="[% item.id %]"
+                data-record-id="[% item.value %]"
                 aria-described-by="lbl-single-details-0"
               >
                 <span class="btn__title">Details</span>
