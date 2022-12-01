@@ -1,12 +1,13 @@
 [%
   fieldset_class = is_required AND ! fieldset_class.match('fieldset--required') ? fieldset_class _ ' fieldset--required' : fieldset_class;
+  select_widget_class = is_required ? ' select-widget--required' : '';
 %]
 [% IF ! hide_group %]
 <div class="form-group [% formgroup_class %]">
 [% END %]
   <fieldset class="fieldset [% fieldset_class %]">
     [% INCLUDE fields/sub/label_fieldset.tt; %]
-    <div class="select-widget" [% IF data_attributes; INCLUDE fields/sub/data_attributes.tt; END; %]>
+    <div class="select-widget[% select_widget_class %]" [% IF data_attributes; INCLUDE fields/sub/data_attributes.tt; END; %]>
       <div class="select-widget-dropdown">
         <div class="form-control">
           <ul class="current">
@@ -58,7 +59,9 @@
                   class="radio-group__input"
                   name="[% name %]"
                   value=[% item.value %][% IF item.value == value %]
-                  checked[% END %]
+                  checked[% END %][% IF is_required %]
+                  required
+                  aria-required="true"[% END %]
               >
               <label class="radio-group__label" for="[% id %]_[% item.value %]">
                 [% item.label_plain | html %]

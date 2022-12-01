@@ -267,14 +267,14 @@
           
               right_buttons.push({
                 type  = "button",
-                class = "btn btn-inverted btn-js-remove-unload",
+                class = "btn btn-inverted btn-js-remove-unload btn-js-submit-record",
                 id    = "submit-and-remain",
                 name  = "submit",
                 value = "submit-and-remain",
                 label = "Save and continue"
               }, {
                 type  = "button",
-                class = "btn btn-default btn-js-remove-unload",
+                class = "btn btn-default btn-js-remove-unload btn-js-submit-record",
                 id    = "submit",
                 name  = "submit",
                 value = "submit",
@@ -284,7 +284,7 @@
               # IF record.new_entry AND page != "bulk";
               #   right_buttons.push({
               #     type  = "button",
-              #     class = "btn btn-inverted btn-js-remove-unload",
+              #     class = "btn btn-inverted btn-js-remove-unload btn-js-submit-record",
               #     id    = "draft",
               #     name  = "draft",
               #     value = "submit",
