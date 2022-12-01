@@ -363,7 +363,7 @@
     widget_id_modifier = view_modal ? '-modal' : '';
 %]
   <div class="[% panel_class %]">
-    <div class="card card--expandable">
+    <div class="card card--expandable card--topic">
       <div class="card__header">
         <button class="card__header-left" type="button" data-toggle="collapse" data-target="#topic[% block_topic.id; widget_id_modifier; %]" aria-expanded="false" aria-controls="topic[% block_topic.id; widget_id_modifier; %]">
           <span class="card__title">
@@ -447,7 +447,7 @@
 %]
   [% IF NOT record.new_entry AND NOT edit_modal; %]
   <div class="card__view-content">
-    <div class="list list--vertical list--key-value list--no-borders">
+    <div class="list list--vertical list--key-value list--no-borders list--fields">
       <ul class="list__items">
         [%
           FOREACH col_panel IN topic.columns;
