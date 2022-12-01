@@ -563,44 +563,44 @@
           END;
         END;
   
-        select_items.push({id=value.value_id, name=value.value});
+        select_items.push({label_plain=value.value, label_html=value.html, value=value.value_id});
       END;
 
       IF col.multivalue;
         INCLUDE fields/select_multiple.tt
-          id           = col.id
-          name         = field
-          label        = field_label
-          label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
-          placeholder  = "Select option(s)"
-          help_text    = col.description
-          popover_body = col.helptext
-          is_readonly  = readonly
-          is_required  = required
-          hide_group   = 1
-          items        = select_items
-          values       = select_values
-          with_details = 0
-          filter       = "html";
+          id                   = col.id
+          name                 = field
+          label                = field_label
+          label_checkbox_name  = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          placeholder          = "Select option(s)"
+          help_text            = col.description
+          popover_body         = col.helptext
+          is_readonly          = readonly
+          is_required          = required
+          hide_group           = 1
+          items                = select_items
+          values               = select_values
+          with_details         = 0
+          filter               = "html";
       ELSE;
         # Ensure a blank value is sent if nothing is selected
         INCLUDE fields/hidden.tt id="" name=field value="" filter="";
         INCLUDE fields/select_single.tt
-          id             = col.id
-          name           = field
-          label          = field_label
-          label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
-          fieldset_class = "input"
-          placeholder    = "Select option"
-          help_text      = col.description
-          popover_body   = col.helptext
-          is_readonly    = readonly
-          is_required    = required
-          hide_group     = 1
-          items          = select_items
-          value          = select_value
-          with_details   = 0
-          filter         = "html";
+          id                   = col.id
+          name                 = field
+          label                = field_label
+          label_checkbox_name  = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          fieldset_class       = "input"
+          placeholder          = "Select option"
+          help_text            = col.description
+          popover_body         = col.helptext
+          is_readonly          = readonly
+          is_required          = required
+          hide_group           = 1
+          items                = select_items
+          value                = select_value
+          with_details         = 0
+          filter               = "html";
       END;
     ELSIF col.type == "curval";
       required      = !(col.optional OR page == "bulk");
@@ -629,7 +629,7 @@
           END;
         END;
   
-        select_items.push({id=value.value_id, name=value.value});
+        select_items.push({label_plain=value.value, label_html=value.html, value=value.value_id});
       END;
 
       show_add_btn = col.show_add;
@@ -669,22 +669,22 @@
         END;
 
         INCLUDE fields/select_multiple.tt
-          id                  = col.id
-          name                = field
-          label               = field_label
-          label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
-          formgroup_class     = "linkspace-field"
-          placeholder         = "Select option(s)"
-          help_text           = col.description
-          popover_body        = col.helptext
-          data_attributes     = tmp_data_attributes
-          is_readonly         = readonly
-          is_required         = required
-          hide_group          = 1
-          items               = select_items
-          values              = select_values
-          with_details        = 1
-          filter              = "html";
+          id                   = col.id
+          name                 = field
+          label                = field_label
+          label_checkbox_name  = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          formgroup_class      = "linkspace-field"
+          placeholder          = "Select option(s)"
+          help_text            = col.description
+          popover_body         = col.helptext
+          data_attributes      = tmp_data_attributes
+          is_readonly          = readonly
+          is_required          = required
+          hide_group           = 1
+          items                = select_items
+          values               = select_values
+          with_details         = 1
+          filter               = "html";
 
           data_attributes = [];
 
@@ -711,23 +711,23 @@
         # Ensure a blank value is sent if nothing is selected
         INCLUDE fields/hidden.tt id="" name=field value="" filter="";
         INCLUDE fields/select_single.tt
-          id                  = col.id
-          name                = field
-          label               = field_label
-          label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
-          formgroup_class     = "linkspace-field"
-          fieldset_class      = "input"
-          placeholder         = "Select option"
-          help_text           = col.description
-          popover_body        = col.helptext
-          data_attributes     = tmp_data_attributes
-          is_readonly         = readonly
-          is_required         = required
-          hide_group          = 1
-          items               = select_items
-          value               = select_value
-          with_details        = 1
-          filter              = "html";
+          id                   = col.id
+          name                 = field
+          label                = field_label
+          label_checkbox_name  = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          formgroup_class      = "linkspace-field"
+          fieldset_class       = "input"
+          placeholder          = "Select option"
+          help_text            = col.description
+          popover_body         = col.helptext
+          data_attributes      = tmp_data_attributes
+          is_readonly          = readonly
+          is_required          = required
+          hide_group           = 1
+          items                = select_items
+          value                = select_value
+          with_details         = 1
+          filter               = "html";
           
           data_attributes = [];
           
