@@ -315,7 +315,7 @@ has ids_affected => (
 
 sub _build_ids_affected
 {   my $self = shift;
-    my %ids = map { $_ => 1 } $self->oldvalue ?  @{$self->oldvalue->ids} : ();
+    my %ids = map { $_ => 1 } $self->oldvalue ?  @{$self->oldvalue->all_ids} : ();
     $ids{$_} = 1 foreach @{$self->ids};
     [ keys %ids ];
 }
@@ -327,7 +327,7 @@ has ids_changed => (
 
 sub _build_ids_changed
 {   my $self = shift;
-    my %old_ids = map { $_ => 1 } $self->oldvalue ?  @{$self->oldvalue->ids} : ();
+    my %old_ids = map { $_ => 1 } $self->oldvalue ?  @{$self->oldvalue->all_ids} : ();
     my %new_ids = map { $_ => 1 } @{$self->ids};
     my %changed = map { $_ => 1 } @{$self->ids_affected};
     foreach (keys %changed)
