@@ -1971,16 +1971,22 @@ sub write_values
     my $guard = $self->schema->txn_scope_guard;
 
     # Write all the values
-    my %columns_changed = ($self->current_id => []);
+    my @columns_changed;
     my @columns_cached;
     my %update_autocurs;
-    foreach my $column ($self->layout->all(order_dependencies => 1, exclude_internal => 1))
+    foreach my $column ($self->layout->all(order_dependencies => 1))
     {
         # Prevent warnings when writing incomplete calc values on draft
         next if $options{draft} && !$column->userinput;
 
         my $datum = $self->fields->{$column->id};
         next if $self->linked_id && $column->link_parent; # Don't write all values if this is a linked record
+
+        if ($column->internal)
+        {
+            push @columns_changed, $column if $datum->changed;
+            next; # No need to go on and write
+        }
 
         if ($self->_need_rec || $options{update_only}) # For new records, $need_rec is only set if user has create permissions without approval
         {
@@ -2010,8 +2016,7 @@ sub write_values
                 {
                     # Write new value
                     $self->_field_write($column, $datum, %options);
-
-                    push @{$columns_changed{$self->current_id}}, $column->id if $datum->changed;
+                    push @columns_changed, $column if $datum->changed;
                 }
                 elsif ($self->new_entry) {
                     # Write value. It's a new entry and the user doesn't have
@@ -2033,55 +2038,6 @@ sub write_values
                     $self->_field_write($column, $datum, %options);
                 }
             }
-            # Note any records that will need updating that have an autocur field that refers to this
-            # No need to do this for child records which have a "copied"
-            # values, as they will otherwise be done twice
-            if ($column->type eq 'curval' && (!$self->parent_id || $column->can_child))
-            {
-                foreach my $autocur (@{$column->autocurs})
-                {
-                    # Do nothing with deleted records
-                    my %deleted = map { $_ => 1 } @{$datum->ids_deleted};
-
-                    # Work out which ones have changed. We only want to
-                    # re-evaluate records that have actually changed, for both
-                    # performance reasons and to send the correct alerts
-                    #
-                    # First, establish which current IDs might be affected
-                    my %affected = map { $_ => 1 } grep { !$deleted{$_} } @{$datum->ids_affected};
-
-                    # Then see if any fields depend on this autocur (e.g. code fields)
-                    foreach my $layout_depend ($autocur->layouts_depend_depends_on->all)
-                    {
-                        # To reduce unnecessary updates, only count ones which may have an effect...
-                        my $depends_on = $layout_depend->depend_on;
-                        # ... don't include ones from a completely different table
-                        next unless $depends_on->related_field->instance_id == $self->layout->instance_id;
-                        # ... don't include unless they have a short name;
-                        # without a short name they cannot be used in
-                        # calculated fields so no updates will be needed
-                        next unless grep $self->fields->{$_->id}->changed,
-                            grep $_->name_short, $self->layout->all(exclude_internal => 1);
-
-                        # If they do, we will need to re-evaluate them all
-                        $update_autocurs{$_} ||= []
-                            foreach keys %affected;
-                    }
-
-                    # If the value hasn't changed at all, skip on
-                    next unless $datum->changed;
-
-                    # If it has changed, work out which one have been added or
-                    # removed. Annotate these with the autocur ID, so we can
-                    # mark that as changed with this value
-                    foreach my $cid (@{$datum->ids_changed})
-                    {
-                        next if $deleted{$cid};
-                        $update_autocurs{$cid} ||= [];
-                        push @{$update_autocurs{$cid}}, $autocur->id;
-                    }
-                }
-            }
         }
         if ($self->_need_app)
         {
@@ -2094,12 +2050,57 @@ sub write_values
 
     }
 
-    # Test all internal columns for changes - these will not have been tested
-    # during the write above
-    foreach my $column ($self->layout->all(only_internal => 1))
+    # Note any records that will need updating that have an autocur field that refers to this
+    # No need to do this for child records which have a "copied"
+    # values, as they will otherwise be done twice
+    foreach my $column (grep $_->type eq 'curval', $self->layout->all)
     {
-        push @{$columns_changed{$self->current_id}}, $column->id
-            if $self->fields->{$column->id}->changed;
+        if (!$self->parent_id || $column->can_child)
+        {
+            foreach my $autocur (@{$column->autocurs})
+            {
+                # Do nothing with deleted records
+                my $datum = $self->fields->{$column->id};
+                my %deleted = map { $_ => 1 } @{$datum->ids_deleted};
+
+                # Work out which ones have changed. We only want to
+                # re-evaluate records that have actually changed, for both
+                # performance reasons and to send the correct alerts
+                #
+                # First, establish which current IDs might be affected
+                my %affected = map { $_ => 1 } grep { !$deleted{$_} } @{$datum->ids_affected};
+
+                # Then see if any fields depend on this autocur (e.g. code fields)
+                foreach my $layout_depend ($autocur->layouts_depend_depends_on->all)
+                {
+                    # To reduce unnecessary updates, only count ones which may have an effect...
+                    my $depends_on = $layout_depend->depend_on;
+                    my $code = $self->layout->column($layout_depend->layout_id)->code;
+                    # ... don't include ones from a completely different table
+                    next unless $depends_on->related_field->instance_id == $self->layout->instance_id;
+                    # ... don't include unless they have a short name that is in the calculated field
+                    next unless grep $code =~ /\Q$_\E(?![_a-z0-9])/i, map $_->name_short,
+                        grep $_->name_short, @columns_changed;
+
+                    # If they do, we will need to re-evaluate them all
+                    $update_autocurs{$_} ||= []
+                        foreach keys %affected;
+                }
+
+                # If the value hasn't changed at all, skip on
+                next unless $datum->changed;
+
+                # If it has changed, work out which one have been added or
+                # removed. Annotate these with the autocur ID, so we can
+                # mark that as changed with this value
+                foreach my $cid (@{$datum->ids_changed})
+                {
+                    next if $deleted{$cid};
+                    $update_autocurs{$cid} ||= [];
+                    push @{$update_autocurs{$cid}}, $autocur->id;
+                }
+            }
+        }
     }
 
     # If this is an approval, see if there is anything left to approve
@@ -2209,52 +2210,49 @@ sub write_values
     {
         # Possibly not the best way to do alerts, but certainly the
         # simplest. Spin up a new alert sender for each changed record
-        foreach my $cid (keys %columns_changed)
-        {
-            my $alert_send = GADS::AlertSend->new(
-                layout      => $self->layout,
-                schema      => $self->schema,
-                user        => $self->user,
-                current_ids => [$cid],
-                columns     => $columns_changed{$cid},
-                current_new => $self->new_entry,
-            );
+        my $alert_send = GADS::AlertSend->new(
+            layout      => $self->layout,
+            schema      => $self->schema,
+            user        => $self->user,
+            current_ids => [$self->current_id],
+            columns     => [map $_->id, @columns_changed],
+            current_new => $self->new_entry,
+        );
 
-            if ($ENV{GADS_NO_FORK})
-            {
-                $alert_send->process;
-                return;
-            }
-            if (my $kid = fork)
-            {
-                # will fire off a worker and then abandon it, thus making reaping
-                # the long running process (the grndkid) init's (pid1) problem
-                waitpid($kid, 0); # wait for child to start grandchild and clean up
+        if ($ENV{GADS_NO_FORK})
+        {
+            $alert_send->process;
+            return;
+        }
+        if (my $kid = fork)
+        {
+            # will fire off a worker and then abandon it, thus making reaping
+            # the long running process (the grndkid) init's (pid1) problem
+            waitpid($kid, 0); # wait for child to start grandchild and clean up
+        }
+        else {
+            if (my $grandkid = fork) {
+                POSIX::_exit(0); # the child dies here
             }
             else {
-                if (my $grandkid = fork) {
-                    POSIX::_exit(0); # the child dies here
-                }
-                else {
-                    # We should already be in a try() block, probably with
-                    # hidden messages. These messages will never be written, as
-                    # we exit the process.  Therefore, stop the hiding of
-                    # messages for this part of the code.
-                    my $parent_try = dispatcher 'active-try'; # Boolean false
-                    $parent_try->hide('NONE');
+                # We should already be in a try() block, probably with
+                # hidden messages. These messages will never be written, as
+                # we exit the process.  Therefore, stop the hiding of
+                # messages for this part of the code.
+                my $parent_try = dispatcher 'active-try'; # Boolean false
+                $parent_try->hide('NONE');
 
-                    # We must catch exceptions here, otherwise we will never
-                    # reap the process. Set up a guard to be doubly-sure this
-                    # happens.
-                    my $guard = guard { POSIX::_exit(0) };
-                    # Despite the guard, we still operate in a try block, so as to catch
-                    # the messages from any exceptions and report them accordingly.
-                    # Only collect messages at warning or higher, otherwise
-                    # thousands of trace messages are stored which use lots of
-                    # memory.
-                    try { $alert_send->process } hide => 'ALL', accept => 'WARNING-'; # This takes a long time
-                    $@->reportAll(is_fatal => 0);
-                }
+                # We must catch exceptions here, otherwise we will never
+                # reap the process. Set up a guard to be doubly-sure this
+                # happens.
+                my $guard = guard { POSIX::_exit(0) };
+                # Despite the guard, we still operate in a try block, so as to catch
+                # the messages from any exceptions and report them accordingly.
+                # Only collect messages at warning or higher, otherwise
+                # thousands of trace messages are stored which use lots of
+                # memory.
+                try { $alert_send->process } hide => 'ALL', accept => 'WARNING-'; # This takes a long time
+                $@->reportAll(is_fatal => 0);
             }
         }
     }
