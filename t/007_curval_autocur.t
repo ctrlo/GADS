@@ -119,9 +119,10 @@ $record->clear;
 # records on the main table
 $record->find_current_id(2);
 
-# Values will be the default ordering which is the selected field in the
-# curval. That's string1 for autocur1 and date1 for autocur2
-is($record->fields->{$calc->id}->as_string, "foo1foo2", "Calc value from first autocur correct");
+# Without any caching, values would be the default ordering which is the selected field in the
+# curval. That's string1 for autocur1 and date1 for autocur2. But with caching,
+# the same ordering is returned for each autocur.
+is($record->fields->{$calc->id}->as_string, "foo2foo1", "Calc value from first autocur correct");
 is($record->fields->{$calc2->id}->as_string, "foo2foo1", "Calc value from second autocur correct");
 
 done_testing();

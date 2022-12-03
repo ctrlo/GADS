@@ -616,11 +616,8 @@ sub _get_rows
             }
             else {
                 $return = $self->_records_from_db(ids => $ids, include_deleted => 1, %options)->results;
-                if ($options{all_fields})
-                {
-                    $self->layout->cached_records->{$_->current_id} = $_
-                        foreach @$return;
-                }
+                $self->layout->cached_records->{$_->current_id} = $_
+                    foreach @$return;
                 last;
             }
         }
@@ -765,8 +762,9 @@ sub _format_row
     foreach my $fid (@{$self->curval_field_ids})
     {
         next if !$self->override_permissions && !$self->layout_parent->column($fid, permission => 'read');
-        push @html, $row->fields->{$fid}->html;
-        push @values, $row->fields->{$fid}->as_string;
+        my $col = $self->layout_parent->column($fid);
+        push @html, $row->get_field_value($col)->html;
+        push @values, $row->get_field_value($col)->as_string;
     }
     my $text     = $self->format_value(@values);
     my $html     = join ', ', grep $_, @html;
