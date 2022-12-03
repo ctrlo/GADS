@@ -99,15 +99,6 @@ has record_earlier => (
     default => 0,
 );
 
-# Whether to build all fields for any curvals. This is needed when producing a
-# record for editing that contains draft curvals (in which case all the fields
-# are rendered as a query), and when needing to retrieve the curcommon values
-# for code evaluations
-has curcommon_all_fields => (
-    is      => 'ro',
-    default => 0,
-);
-
 # Whether to exclude children from the results
 has include_children => (
     is  => 'lazy',
@@ -1182,7 +1173,6 @@ sub _build_standard_results
             set_deletedby           => $rec->{deletedby},
             set_record_created      => $rec->{record_created_date},
             set_record_created_user => $rec->{record_created_user},
-            curcommon_all_fields    => $self->curcommon_all_fields,
         );
         push @created_ids, $rec->{record_created_user};
         push @record_ids, $rec->{id};
@@ -1315,17 +1305,12 @@ sub fetch_multivalues
                     # duplicating some values. We therefore have to flag to make sure
                     # we don't do this.
                     my %colsd;
-                    # Force all columns to be retrieved if it's a curcommon field and this
-                    # record has the flag saying they need to be
-                    $col->retrieve_all_columns(1)
-                        if $col->is_curcommon && $self->curcommon_all_fields;
 
                     foreach my $val ($col->fetch_multivalues(
                             \@retrieve_ids,
-                            is_draft             => $params{is_draft},
-                            curcommon_all_fields => $self->curcommon_all_fields,
-                            rewind               => $self->rewind, # Would be better in a context object
-                            already_seen         => $self->already_seen,
+                            is_draft     => $params{is_draft},
+                            rewind       => $self->rewind, # Would be better in a context object
+                            already_seen => $self->already_seen,
                     ))
                     {
                         my $field = "field$val->{layout_id}";
@@ -1535,7 +1520,7 @@ sub _build_columns_retrieved_do
     foreach my $c (@columns)
     {
         # We're viewing this, so prefetch all the values
-        $self->add_prefetch($c, all_fields => $self->curcommon_all_fields, include_multivalue => $self->separate_records_for_multicol);
+        $self->add_prefetch($c, include_multivalue => $self->separate_records_for_multicol);
         $self->add_linked_prefetch($c->link_parent) if $c->link_parent;
     }
 
@@ -1620,7 +1605,6 @@ sub _build_columns_selected
     else {
         @cols = $self->layout->all;
     }
-
 
     \@cols;
 }
@@ -2501,9 +2485,9 @@ sub _resolve
         my $sq = {$condition->{operator} => $value};
         $sq = [ $sq, undef ] if $condition->{type} eq 'not_equal'
             || $condition->{type} eq 'not_begins_with' || $condition->{type} eq 'not_contains';
-        $self->add_join($options{parent}, search => 1, linked => $is_linked, all_fields => $self->curcommon_all_fields)
+        $self->add_join($options{parent}, search => 1, linked => $is_linked)
             if $options{parent};
-        $self->add_join($column, search => 1, linked => $is_linked, parent => $options{parent}, all_fields => $self->curcommon_all_fields);
+        $self->add_join($column, search => 1, linked => $is_linked, parent => $options{parent});
         my $s_table = $self->table_name($column, %options, search => 1);
         +( "$s_table.$condition->{s_field}" => $sq );
     }
@@ -3407,7 +3391,6 @@ sub _build_group_results
             columns_selected        => $self->columns_selected,
             columns_render          => $self->columns_render,
             columns_recalc_extra    => $self->columns_recalc_extra,
-            curcommon_all_fields    => $self->curcommon_all_fields,
         );
     }
 

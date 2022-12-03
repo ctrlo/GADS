@@ -135,12 +135,6 @@ sub _build_fetch_with_record
     return 1;
 }
 
-has retrieve_all_columns => (
-    is      => 'rw',
-    isa     => Bool,
-    default => 0,
-);
-
 has curval_field_ids => (
     is      => 'rw',
     isa     => ArrayRef,
@@ -182,7 +176,7 @@ sub curval_fields_multivalue
     # Assume that as this is already a curval, that if we're rendering it as a
     # record then we don't need curvals within curvals, which saves on the data
     # being retrieved from the database
-    [grep { !$_->is_curcommon && $_->multivalue } @{$self->curval_fields_retrieve(%options, all_fields => 1)}];
+    [grep { !$_->is_curcommon && $_->multivalue } @{$self->curval_fields_retrieve(%options)}];
 }
 
 has curval_field_ids_all => (
@@ -220,7 +214,7 @@ sub curval_fields_retrieve
 {   my ($self, %options) = @_;
     my $all = $options{all_fields} ? $self->curval_fields_all : $self->curval_fields;
     # Prevent recursive loops of fields that refer to each other
-    if (my $tree = $options{already_seen})
+    if (my $tree = $options{already_seen_code})
     {
         my %exists = map { $_->name => 1 } $tree->ancestors;
         $all = [grep !$exists{$_->id}, @$all];
@@ -301,10 +295,12 @@ sub _records_from_db
         rewind                  => $options{rewind},
         layout                  => $layout,
         schema                  => $self->schema,
-        columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns, %options),
+        columns                 => $self->curval_field_ids_retrieve(%options),
         limit_current_ids       => $ids,
         ignore_view_limit_extra => 1,
         include_deleted         => $options{include_deleted},
+        # Needed for producing records for autocur code values
+        include_children        => 1,
         # XXX This should only be set when the calling parent record is a
         # draft, otherwise the draft records could potentially be used in other
         # records when they shouldn't be visible (and could be removed after
@@ -535,14 +531,15 @@ sub field_values
         # We have full database rows, so now let's see if any of them were not
         # build with the all columns flag.
         # Those that need to be retrieved
+        my $curval_field_ids = $self->curval_field_ids_retrieve(all_fields => $params{all_fields}, %params);
         @need_ids = map {
             $_->current_id
         } grep {
-            !$_->has_fields($self->curval_field_ids_retrieve(all_fields => $params{all_fields}, %params))
+            !$_->has_fields($curval_field_ids)
         } @{$params{rows}};
         # Those that don't can be added straight to the return array
         @rows = grep {
-            $_->has_fields($self->curval_field_ids_retrieve(all_fields => $params{all_fields}, %params))
+            $_->has_fields($curval_field_ids)
         } @{$params{rows}};
         my %has_rows = map { $_->current_id => 1 } grep $_->current_id, @{$params{rows}};
         push @need_ids, grep !$has_rows{$_}, @{$params{all_ids}};
@@ -555,9 +552,6 @@ sub field_values
     }
     if (@need_ids)
     {
-        # If all columns needed, flag that in the column properties. This
-        # allows it to be checked later
-        $self->retrieve_all_columns(1) if $params{all_fields};
         push @rows, @{$self->_get_rows(\@need_ids, %params)};
     }
     elsif ($params{rows}) {
@@ -622,11 +616,8 @@ sub _get_rows
             }
             else {
                 $return = $self->_records_from_db(ids => $ids, include_deleted => 1, %options)->results;
-                if ($options{all_fields})
-                {
-                    $self->layout->cached_records->{$_->current_id} = $_
-                        foreach @$return;
-                }
+                $self->layout->cached_records->{$_->current_id} = $_
+                    foreach @$return;
                 last;
             }
         }
@@ -771,8 +762,9 @@ sub _format_row
     foreach my $fid (@{$self->curval_field_ids})
     {
         next if !$self->override_permissions && !$self->layout_parent->column($fid, permission => 'read');
-        push @html, $row->fields->{$fid}->html;
-        push @values, $row->fields->{$fid}->as_string;
+        my $col = $self->layout_parent->column($fid);
+        push @html, $row->get_field_value($col)->html;
+        push @values, $row->get_field_value($col)->as_string;
     }
     my $text     = $self->format_value(@values);
     my $html     = join ', ', grep $_, @html;

@@ -212,7 +212,6 @@ sub update_cached
         schema                  => $self->schema,
         columns                 => [@{$self->depends_on},$self->id],
         ignore_view_limit_extra => 1,
-        curcommon_all_fields    => 1, # Code might contain curcommon fields not in normal display
         include_children        => 1, # Update all child records regardless
     );
 

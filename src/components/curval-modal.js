@@ -8,6 +8,7 @@ const setupCurvalModal = (() => {
     var modal_field_ids = form.data("modal-field-ids");
     var col_id = form.data("curval-id");
     var instance_name = form.data("instance-name");
+    //var parent_current_id = form.data("parent-current-id");
     var guid = form.data("guid");
     var hidden_input = $("<input>", context).attr({
       type: "hidden",
@@ -32,7 +33,7 @@ const setupCurvalModal = (() => {
       });
       var links = $(
         `<td>
-        <a class="curval-modal" style="cursor:pointer" data-layout-id="${col_id}" data-instance-name=${instance_name}>edit</a> | <a class="curval_remove" style="cursor:pointer">remove</a>
+        <a class="curval-modal" style="cursor:pointer" data-layout-id="${col_id}" data-instance-name="${instance_name}">edit</a> | <a class="curval_remove" style="cursor:pointer">remove</a>
       </td>`,
         context
       );
@@ -116,6 +117,7 @@ const setupCurvalModal = (() => {
     $(document, context).on("mousedown", ".curval-modal", function(e) {
       var layout_id = $(e.target).data("layout-id");
       var instance_name = $(e.target).data("instance-name");
+      //var parent_current_id = $(e.target).data("parent-current-id");
       var current_id = $(e.target).data("current-id");
       var hidden = $(e.target)
         .closest(".curval_item")
@@ -166,7 +168,7 @@ const setupCurvalModal = (() => {
       form.find(".alert").attr("hidden", "");
 
       $.post(
-        form.attr("action") + "?validate&include_draft",
+        form.attr("action") + "?validate&include_draft&source=" + form.data("curval-id"),
         form_data,
         function(data) {
           if (data.error === 0) {
