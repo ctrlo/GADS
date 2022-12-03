@@ -349,6 +349,8 @@ foreach my $test (@tests)
 {
     # Create a calc field that has something invalid in the nested code
     my $layout_code = $test->{layout} || $layout;
+    $layout_code->clear;
+
     my $code_col = "GADS::Column::$test->{type}"->new(
         schema         => $schema,
         user           => undef,
@@ -361,8 +363,6 @@ foreach my $test (@tests)
     );
     $code_col->set_permissions({$sheet->group->id => $sheet->default_permissions});
     $code_col->write;
-
-    $layout_code->clear;
 
     my @results;
     
