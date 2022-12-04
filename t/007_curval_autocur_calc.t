@@ -150,7 +150,7 @@ $record = GADS::Record->new(
     schema => $schema,
     layout => $curval_layout,
 );
-$record->find_current_id(1);
+$record->find_current_id(2);
 is($record->fields->{$calc_curval2->id}->as_string, $time, "Calc has not been re-evaluated");
 
 done_testing();
