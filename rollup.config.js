@@ -31,5 +31,6 @@ export default {
         ],
       ],
     }),
+    uglify({ie8:true}),
   ]
 };
