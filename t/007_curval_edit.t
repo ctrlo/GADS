@@ -272,10 +272,9 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
 
     # Edit existing - no actual change
     $record = GADS::Record->new(
-        user                 => $sheet->user_normal1,
-        layout               => $layout,
-        schema               => $schema,
-        curcommon_all_fields => 1,
+        user   => $sheet->user_normal1,
+        layout => $layout,
+        schema => $schema,
     );
     $record->find_current_id(3);
     $curval_datum = $record->fields->{$curval->id};
@@ -338,7 +337,6 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
             user   => $sheet->user_normal1,
             layout => $layout,
             schema => $schema,
-            curcommon_all_fields => 1,
         );
         $record->initialise;
         $record->fields->{$columns->{daterange1}->id}->set_value(['2020-10-10','2021-10-10']);
@@ -353,7 +351,6 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
         user   => $sheet->user_normal1,
         layout => $layout,
         schema => $schema,
-        curcommon_all_fields => 1,
     );
     $record->initialise(instance_id => $layout->instance_id);
     my $filval_count = @{$record->layout->column($curval->id)->filtered_values};
@@ -402,7 +399,6 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
             user   => $sheet->user_normal1,
             layout => $curval_layout,
             schema => $schema,
-            curcommon_all_fields => 1,
         );
         $modal_record->initialise(instance_id => $layout->instance_id);
         my $filval_count2 = $schema->resultset('Current')->search({
@@ -473,7 +469,6 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
             user   => $sheet->user_normal1,
             layout => $layout,
             schema => $schema,
-            curcommon_all_fields => 1,
         );
         $record->initialise(instance_id => $layout->instance_id);
         $filval_count = @{$record->layout->column($curval->id)->filtered_values};
@@ -556,7 +551,6 @@ foreach my $test (qw/delete_not_used typeahead dropdown noshow/)
         user   => $sheet->user_normal1,
         layout => $layout,
         schema => $schema,
-        curcommon_all_fields => 1,
     );
     $record->initialise(instance_id => $layout->instance_id);
     my $curval_datum = $record->fields->{$curval->id};

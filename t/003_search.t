@@ -1452,10 +1452,9 @@ foreach my $multivalue (0..1)
     is (@{$records->results}, 1, 'Correct number of quick search results when limiting to a view with enumval');
     # Check that record can be retrieved for edit
     my $record = GADS::Record->new(
-        user                 => $user,
-        layout               => $layout,
-        schema               => $schema,
-        curcommon_all_fields => 1, # Used for edits
+        user   => $user,
+        layout => $layout,
+        schema => $schema,
     );
     $record->find_current_id($records->single->current_id);
 
@@ -1482,10 +1481,9 @@ foreach my $multivalue (0..1)
 
     # Check that record can be retrieved for edit
     $record = GADS::Record->new(
-        user                 => $user,
-        layout               => $layout,
-        schema               => $schema,
-        curcommon_all_fields => 1, # Used for edits
+        user   => $user,
+        layout => $layout,
+        schema => $schema,
     );
     $record->find_current_id($records->single->current_id);
 

@@ -191,8 +191,6 @@ sub re_evaluate
         $self->clear_init_value;
         $self->clear_value;
         $self->clear_vars;
-        $self->clear_already_seen_level;
-        $self->clear_already_seen_code;
     }
     my $new = $self->value; # Force new value to be calculated
     $self->changed(1) if !$self->equal($old, $new);

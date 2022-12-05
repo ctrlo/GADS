@@ -41,7 +41,6 @@ my $record = GADS::Record->new(
     user   => $user,
     layout => $layout,
     schema => $schema,
-    curcommon_all_fields => 1,
 );
 $record->initialise(instance_id => $layout->instance_id);
 

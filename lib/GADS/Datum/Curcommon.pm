@@ -98,8 +98,6 @@ after set_value => sub {
         $self->_clear_init_value_hash;
         $self->_clear_records;
         $self->clear_blank;
-        $self->clear_already_seen_code;
-        $self->clear_already_seen_level;
         $self->clear_all_ids;
     }
 
@@ -165,7 +163,7 @@ has values => (
     predicate => 1,
 );
 
-sub _all_records
+sub all_records
 {   my $self = shift;
     my @return = $self->column->ids_to_values($self->all_ids, fatal => 1, rewind => $self->record->rewind);
 
@@ -207,7 +205,7 @@ sub _build_values
         }
     }
     elsif (@{$self->ids} || @{$self->values_as_query}) {
-        @return = $self->_all_records;
+        @return = $self->all_records;
     }
     return \@return;
 }
@@ -481,26 +479,6 @@ sub html_withlinks
     join '; ', @return;
 }
 
-sub field_values
-{   my $self = shift;
-    my $values = $self->_records
-        ? $self->column->field_values(rows => $self->_records, all_ids => $self->all_ids)
-        : $self->column->field_values(ids => $self->ids, all_ids => $self->all_ids);
-    # Translate into something useful
-    my @recs;
-    push @recs, $values->{$_}
-        foreach keys %$values;
-    delete $_->{record} foreach @recs;
-    \@recs;
-}
-
-sub field_values_for_code
-{   my ($self, %options) = @_;
-    $self->_records
-        ? $self->column->field_values_for_code(rows => $self->_records, all_ids => $self->all_ids, %options)
-        : $self->column->field_values_for_code(ids => $self->ids, all_ids => $self->all_ids, %options);
-}
-
 sub set_values
 {   my $self = shift;
     # Used for child records - need to always use ID for the child
@@ -566,7 +544,7 @@ sub for_code
             id           => int $_->current_id, # Ensure passed to Lua as number not string
             field_values => $vals,
         }
-    } map $_->{record}, $self->_all_records;
+    } map $_->{record}, $self->all_records;
 
     $self->column->multivalue || @values > 1 ? \@values : $values[0];
 }
