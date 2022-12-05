@@ -372,7 +372,8 @@ sub write
         or error __x"{xas} is an invalid value for X-axis grouping", xas => $self->x_axis_grouping;
 
     error __"Dates and grouping must be entered for a custom range"
-        if $newgraph->{x_axis_range} && $newgraph->{x_axis_range} eq 'custom'
+        if $self->layout->column($self->x_axis)->return_type =~ /date/
+            && $newgraph->{x_axis_range} && $newgraph->{x_axis_range} eq 'custom'
             && (!$newgraph->{from} || !$newgraph->{to} || !$newgraph->{x_axis_grouping});
 
     error __"A single field must be selected for the x-axis when using the historic trend option"
