@@ -17,6 +17,29 @@ dispatcher PERL => 'default', accept => 'ERROR-';
 
 set_fixed_time('01/01/2008 01:00:00', '%m/%d/%Y %H:%M:%S');
 
+my $cdata = [
+    {
+        string1    => 'Foo',
+        integer1   => 50,
+        date1      => '2014-10-10',
+        daterange1 => ['2012-02-10', '2013-06-15'],
+    },
+    {
+        string1    => 'Bar',
+        integer1   => 99,
+        date1      => '2009-01-02',
+        daterange1 => ['2008-05-04', '2008-07-14'],
+    },
+    {
+        string1    => 'FooBar',
+        integer1   => 120,
+        date1      => '2012-01-02',
+        daterange1 => ['2012-05-04', '2013-07-14'],
+    },
+];
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, data => $cdata);
+$curval_sheet->create_records;
+
 my $data = [
     {
         string1    => 'Foo',
@@ -31,14 +54,12 @@ my $data = [
         daterange1 => ['2010-01-04', '2011-06-03'],
         integer1   => 15,
         enum1      => 'foo1',
-        curval1    => 2,
+        curval1    => [2,3],
     },
 ];
 
-my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
-$curval_sheet->create_records;
 my $schema = $curval_sheet->schema;
-my $sheet = Test::GADS::DataSheet->new(data => $data, curval => 2, schema => $schema);
+my $sheet = Test::GADS::DataSheet->new(data => $data, curval => 2, schema => $schema, multivalue => 1);
 
 my $layout = $sheet->layout;
 my $columns = $sheet->columns;
@@ -54,10 +75,10 @@ my $records = GADS::Records->new(
     schema  => $schema,
 );
 
-# 4 for all main sheet1 values, plus 4 for referenced curval fields
-is( @{$records->data_calendar}, 8, "Retrieving all data returns correct number of points to plot for calendar" );
+# 4 for all main sheet1 values, plus 6 for referenced curval fields
+is( @{$records->data_calendar}, 10, "Retrieving all data returns correct number of points to plot for calendar" );
 $records->clear;
-is( @{$records->data_timeline->{items}}, 8, "Retrieving all data returns correct number of points to plot for timeline" );
+is( @{$records->data_timeline->{items}}, 10, "Retrieving all data returns correct number of points to plot for timeline" );
 
 # Test from a later date. The records from that date should be retrieved, and
 # then the ones before as the total number is less than the threshold
@@ -68,7 +89,7 @@ $records = GADS::Records->new(
     layout  => $layout,
     schema  => $schema,
 );
-is( @{$records->data_timeline->{items}}, 8, "Retrieving all data returns correct number of points to plot for timeline" );
+is( @{$records->data_timeline->{items}}, 10, "Retrieving all data returns correct number of points to plot for timeline" );
 
 # Add a filter and only retrieve one column. Test both normal date column and
 # special created date column (the latter test added as Pg does not support
