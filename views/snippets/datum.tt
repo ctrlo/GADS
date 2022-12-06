@@ -58,7 +58,7 @@
 
 [%
   MACRO render_person_datum(person) BLOCK;
-    IF person;
+    IF person.id;
       POPOVER_COUNTER = POPOVER_COUNTER + 1;
       popover_body_str = '';
 
