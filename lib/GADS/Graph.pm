@@ -371,8 +371,9 @@ sub write
     !defined $self->x_axis_grouping || grep { $self->x_axis_grouping eq $_ } qw/day month year/
         or error __x"{xas} is an invalid value for X-axis grouping", xas => $self->x_axis_grouping;
 
+    my $x_axis_col = $self->layout->column($self->x_axis);
     error __"Dates and grouping must be entered for a custom range"
-        if $self->layout->column($self->x_axis)->return_type =~ /date/
+        if $x_axis_col && $x_axis_col->return_type =~ /date/
             && $newgraph->{x_axis_range} && $newgraph->{x_axis_range} eq 'custom'
             && (!$newgraph->{from} || !$newgraph->{to} || !$newgraph->{x_axis_grouping});
 
