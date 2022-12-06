@@ -64,7 +64,7 @@
                   aria-required="true"[% END %]
               >
               <label class="radio-group__label" for="[% id %]_[% item.value %]">
-                [% item.label_plain | html %]
+                [% item.label_html %]
               </label>
             </div>
           [% IF with_details %]

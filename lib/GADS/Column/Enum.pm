@@ -20,6 +20,7 @@ package GADS::Column::Enum;
 
 use Log::Report 'linkspace';
 
+use HTML::Entities qw/encode_entities/;
 use Moo;
 use MooX::Types::MooseLike::Base qw/ArrayRef HashRef/;
 
@@ -50,7 +51,7 @@ has enumvals => (
         my @enumvals = map {
             +{
                 value       => $_->{value},
-                html        => $_->{value}, # Needed for edit form render
+                html        => encode_entities($_->{value}), # Needed for edit form render
                 deleted     => $_->{deleted},
                 id          => $_->{id},
                 selector_id => $_->{id},
