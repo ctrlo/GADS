@@ -43,6 +43,17 @@ after set_value => sub {
     my @queries = grep { $_ !~ /^[0-9]+$/ } @values; # New curval records or changes to existing ones
     my @old_ids = sort @{$self->all_ids};
 
+    # If the field is only showing limited records, then add on any existing
+    # ones that won't have been shown
+    if ($self->column->limit_rows && $self->column->multivalue)
+    {
+        my %submitted = map { $_ => 1 } @ids;
+        push @ids, grep { !$submitted{$_} } @old_ids;
+        # Need to sort again, to ensure checked for value-changed works
+        # correctly
+        @ids = sort @ids;
+    }
+
     panic "Records cannot be mixed with other set values"
         if @records && (@ids || @queries);
 
@@ -68,14 +79,9 @@ after set_value => sub {
         # what has changed
         my %updated = map { $_->current_id => 1 } grep { !$_->new_entry } @{$self->values_as_query_records};
         @old_ids = grep { !$updated{$_} } @old_ids;
-    }
-
-    # If the field is only showing limited records, then add on any existing
-    # ones that won't have been shown
-    if ($self->column->limit_rows && $self->column->multivalue)
-    {
-        my %submitted = map { $_ => 1 } @ids;
-        push @ids, grep { !$submitted{$_} } @old_ids;
+        # Force all_ids to be rebuilt (for calc values) otherwise it will
+        # include these queries that will be written separately
+        $self->clear_all_ids;
     }
 
     $changed ||= "@ids" ne "@old_ids"; #  Also see if IDs have changed
@@ -92,8 +98,6 @@ after set_value => sub {
         $self->_clear_init_value_hash;
         $self->_clear_records;
         $self->clear_blank;
-        $self->clear_already_seen_code;
-        $self->clear_already_seen_level;
         $self->clear_all_ids;
     }
 
@@ -159,6 +163,26 @@ has values => (
     predicate => 1,
 );
 
+sub all_records
+{   my $self = shift;
+    my @return = $self->column->ids_to_values($self->all_ids, fatal => 1, rewind => $self->record->rewind);
+
+    my @records = @{$self->values_as_query_records};
+    foreach my $query (@{$self->values_as_query})
+    {
+        my $record = shift @records;
+        my $values = $self->column->_format_row($record)->{values};
+        push @return, +{
+            id       => $record->current_id,
+            as_query => $query,
+            values   => $values,
+            value    => $self->column->format_value(@$values),
+            record   => $record,
+        };
+    }
+    @return;
+}
+
 sub _build_values
 {   my $self = shift;
     my @return;
@@ -181,21 +205,7 @@ sub _build_values
         }
     }
     elsif (@{$self->ids} || @{$self->values_as_query}) {
-        @return = $self->column->ids_to_values($self->ids, fatal => 1, rewind => $self->record->rewind);
-
-        my @records = @{$self->values_as_query_records};
-        foreach my $query (@{$self->values_as_query})
-        {
-            my $record = shift @records;
-            my $values = $self->column->_format_row($record)->{values};
-            push @return, +{
-                id       => $record->current_id,
-                as_query => $query,
-                values   => $values,
-                value    => $self->column->format_value(@$values),
-                record   => $record,
-            };
-        }
+        @return = $self->all_records;
     }
     return \@return;
 }
@@ -274,6 +284,10 @@ sub _build_all_ids
 {   my $self = shift;
     return $self->ids if !$self->column->limit_rows;
     return [] if !$self->record || $self->record->new_entry;
+    # If the datum has been updated with new values, then we need to use the
+    # current value which will have already have included all ids as part of
+    # the set_value function.
+    return $self->ids if $self->changed;
     [$self->column->schema->resultset('Curval')->search({
         value     => { '!=' => undef },
         record_id => $self->record->record_id_old || $self->record->record_id,
@@ -312,7 +326,7 @@ has ids_affected => (
 
 sub _build_ids_affected
 {   my $self = shift;
-    my %ids = map { $_ => 1 } $self->oldvalue ?  @{$self->oldvalue->ids} : ();
+    my %ids = map { $_ => 1 } $self->oldvalue ?  @{$self->oldvalue->all_ids} : ();
     $ids{$_} = 1 foreach @{$self->ids};
     [ keys %ids ];
 }
@@ -324,7 +338,7 @@ has ids_changed => (
 
 sub _build_ids_changed
 {   my $self = shift;
-    my %old_ids = map { $_ => 1 } $self->oldvalue ?  @{$self->oldvalue->ids} : ();
+    my %old_ids = map { $_ => 1 } $self->oldvalue ?  @{$self->oldvalue->all_ids} : ();
     my %new_ids = map { $_ => 1 } @{$self->ids};
     my %changed = map { $_ => 1 } @{$self->ids_affected};
     foreach (keys %changed)
@@ -382,10 +396,12 @@ sub _build_values_as_query_records
         grep { $_ !~ /^(?:csrf_token|current_id|field[0-9]+)$/ } keys %$params
             # Unlikely to be a user error
             and panic __x"Invalid query string: {query}", query => $query;
+        my @columns = $self->column->layout_parent->all(user_can_write_new => 1, userinput => 1);
         my $record = GADS::Record->new(
-            user   => $self->column->layout->user,
-            layout => $self->column->layout_parent,
-            schema => $self->column->schema,
+            user    => $self->column->layout->user,
+            layout  => $self->column->layout_parent,
+            schema  => $self->column->schema,
+            columns => [map $_->id, @columns],
         );
         if (my $current_id = $params->{current_id})
         {
@@ -404,17 +420,6 @@ sub _build_values_as_query_records
             $_ && utf8::decode($_) foreach @newv;
             $record->fields->{$col->id}->set_value(\@newv)
                 if defined $params->{$col->field} && $col->userinput && defined $newv;
-        }
-        # Update any autocur fields with this record, so that the value can be
-        # used immediately, without having to first write this record
-        foreach my $col ($self->column->layout_parent->all)
-        {
-            next unless $col->type eq 'autocur';
-            next unless $col->refers_to_instance_id == $self->record->layout->instance_id;
-            my $datum = $record->fields->{$col->id};
-            my @records = grep { $_->current_id != $self->record->current_id } map { $_->{record} } @{$datum->values};
-            push @records, $self->record;
-            $datum->set_value(\@records, allow_set_autocur => 1);
         }
         push @records, $record;
     }
@@ -497,26 +502,6 @@ sub html_withlinks
     join '; ', @return;
 }
 
-sub field_values
-{   my $self = shift;
-    my $values = $self->_records
-        ? $self->column->field_values(rows => $self->_records, all_ids => $self->all_ids)
-        : $self->column->field_values(ids => $self->ids, all_ids => $self->all_ids);
-    # Translate into something useful
-    my @recs;
-    push @recs, $values->{$_}
-        foreach keys %$values;
-    delete $_->{record} foreach @recs;
-    \@recs;
-}
-
-sub field_values_for_code
-{   my ($self, %options) = @_;
-    $self->_records
-        ? $self->column->field_values_for_code(rows => $self->_records, all_ids => $self->all_ids, %options)
-        : $self->column->field_values_for_code(ids => $self->ids, all_ids => $self->all_ids, %options);
-}
-
 sub set_values
 {   my $self = shift;
     # Used for child records - need to always use ID for the child
@@ -549,33 +534,40 @@ sub html_form
     return \@return;
 }
 
-sub _build_for_code
-{   my ($self, %options) = @_;
+# Cache of code values already built. Only match if path matches
+has _for_code_cache => (
+    is      => 'ro',
+    builder => sub { +{} },
+);
 
-    # We need to clear values now, as it may have previously been built with
-    # unwritten records (which do not have IDs and are therefore grepped out in
-    # the code below). By the time we need this, the IDs should be available
-    $self->clear_values;
+sub for_code
+{   my ($self, %params) = @_;
+
+    my $fields = $params{fields};
+    my $tree   = $params{already_seen_code};
+
+    panic "Missing fields" if !$fields;
 
     # Need to ensure that for code values we retrieve all the
     # values regardless, not restrained by the current user's permissions
     local $GADS::Schema::IGNORE_PERMISSIONS = 1;
 
-    my $already_seen_code = $self->already_seen_code;
-    # Get all field data in one chunk
-    my $field_values = $self->field_values_for_code(
-        already_seen_code => $already_seen_code,
-        level             => $self->already_seen_level,
-    );
+    # Used to prevent recursion. Add onto tree each time we pass through here
+    my $child = Tree::DAG_Node->new({name => $self->column->id});
+    $tree->add_daughter($child) if $tree;
+
+    # $fields should contain a flat list of any possible short name that might
+    # be needed. First see which fields directly on this curval are needed:
+    my @cols_need = grep $_->name_short && $fields->{$_->name_short},
+        @{$self->column->curval_fields_retrieve(all_fields => 1, already_seen_code => $child)};
 
     my @values = map {
-        my $rec = delete $field_values->{$_}->{record};
+        my $vals = $_->for_code(columns => \@cols_need, fields => $fields, already_seen_code => $child);
         +{
-            id           => int $_, # Ensure passed to Lua as number not string
-            value        => $rec,
-            field_values => $field_values->{$_},
+            id           => int $_->current_id, # Ensure passed to Lua as number not string
+            field_values => $vals,
         }
-    } $self->changed ? (map $_->{id}, grep $_->{id}, @{$self->values}) : @{$self->all_ids};
+    } map $_->{record}, $self->all_records;
 
     $self->column->multivalue || @values > 1 ? \@values : $values[0];
 }

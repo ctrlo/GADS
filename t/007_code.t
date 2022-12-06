@@ -85,7 +85,7 @@ my @tests = (
     {
         name       => 'calc field using curval (full value)',
         type       => 'Calc',
-        code       => "function evaluate (L1curval1) \n return L1curval1.value \nend",
+        code       => qq[function evaluate (L1curval1) \n return L1curval1.field_values.L2string1 .. ", " .. L1curval1.field_values.L2date1.ymd  \nend],
         before     => 'Foo, 2014-10-10',
         after      => 'Bar, 2009-01-02',
         multivalue => 1,
@@ -349,6 +349,7 @@ foreach my $test (@tests)
 {
     # Create a calc field that has something invalid in the nested code
     my $layout_code = $test->{layout} || $layout;
+
     my $code_col = "GADS::Column::$test->{type}"->new(
         schema         => $schema,
         user           => undef,
@@ -361,8 +362,6 @@ foreach my $test (@tests)
     );
     $code_col->set_permissions({$sheet->group->id => $sheet->default_permissions});
     $code_col->write;
-
-    $layout_code->clear;
 
     my @results;
     
@@ -397,6 +396,10 @@ foreach my $test (@tests)
     $record_new->fields->{$columns->{tree1}->id}->set_value(10);
     $record_new->fields->{$columns->{integer1}->id}->set_value(10);
     try { $record_new->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
+
+    # Need to regularly clear layout to ensure records in cached_records are
+    # clear
+    $record_new->layout->clear;
     $@->reportFatal unless $test->{is_error}; # In case any fatal errors
     if (defined $test->{is_error})
     {
@@ -451,6 +454,7 @@ foreach my $test (@tests)
         $record->fields->{$columns->{tree1}->id}->set_value(exists $test->{tree_value} ? $test->{tree_value} : 12);
         $record->user($schema->resultset('User')->find(2));
         try { $record->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
+        $record->layout->clear;
         $@->reportFatal; # In case any fatal errors
         my $after = $test->{after};
         $after =~ s/__ID/$cid/ unless ref $after eq 'Regexp';
@@ -474,6 +478,7 @@ foreach my $test (@tests)
             $record->find_current_id($current_id);
             $record->fields->{$columns->{string1}->id}->set_value('Foobar'); # Ensure change has happened
             try { $record->write } hide => 'WARNING';
+            $record->layout->clear;
             $@->reportFatal; # In case any fatal errors
             $record->clear;
             $record->find_current_id($current_id);
@@ -482,7 +487,6 @@ foreach my $test (@tests)
 
         # Reset values for next test
         $schema->resultset('Enumval')->find(12)->update({ deleted => 0 });
-        $layout->clear;
         $year++;
         set_fixed_time("10/22/$year 01:00:00", '%m/%d/%Y %H:%M:%S');
         $record->fields->{$columns->{daterange1}->id}->set_value($data->[0]->{daterange1});
@@ -491,6 +495,7 @@ foreach my $test (@tests)
         $record->fields->{$columns->{tree1}->id}->set_value(10);
         $record->user($schema->resultset('User')->find(1));
         try { $record->write } hide => 'WARNING'; # Hide warnings from invalid calc fields
+        $record->layout->clear;
         $@->reportFatal; # In case any fatal errors
     }
 
@@ -831,11 +836,12 @@ foreach my $multi (0..1)
                 function evaluate (L1curval1)
                     ret = ""
                     for _,val in ipairs(L1curval1) do
-                        ret = ret .. val.value
+                        v = val.field_values.L2string1 .. ", " .. val.field_values.L2date1.ymd
+                        ret = ret .. v
                     end
                     return ret
                 end',
-            value => 'Foo, 2014-10-10Bar, 2009-01-02',
+            value => 'Bar, 2009-01-02Foo, 2014-10-10',
         },
         {
             col   => 'tree1',

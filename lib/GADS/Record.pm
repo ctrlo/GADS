@@ -148,12 +148,6 @@ has set_record_created_user => (
     clearer => 1,
 );
 
-has curcommon_all_fields => (
-    is      => 'ro',
-    isa     => Bool,
-    default => 0,
-);
-
 # Should be set true if we are processing an approval
 has doing_approval => (
     is      => 'ro',
@@ -734,7 +728,6 @@ sub _find
         if $find{deleted} && !$self->layout->user_can("purge") && !$GADS::Schema::IGNORE_PERMISSIONS;
 
     my %params = (
-        curcommon_all_fields => $self->curcommon_all_fields,
         user                    => $self->user,
         layout                  => $self->layout,
         schema                  => $self->schema,
@@ -747,8 +740,6 @@ sub _find
         include_children        => 1,
         ignore_view_limit_extra => 1,
     );
-    $params{columns_selected} = [$self->layout->all]
-        if !$self->columns;
     my $records = GADS::Records->new(%params);
 
     $self->columns_retrieved_do($records->columns_retrieved_do);
@@ -949,12 +940,11 @@ sub _find
 
         # Fetch and merge and multi-values
         $records->fetch_multivalues(
-            record_ids           => \@record_ids,
-            retrieved            => [map $record->{$_}, @record_ids],
-            records              => \@record_objects,
-            is_draft             => $find{draftuser_id},
-            already_seen         => $records->already_seen,
-            curcommon_all_fields => $self->curcommon_all_fields,
+            record_ids    => \@record_ids,
+            retrieved     => [map $record->{$_}, @record_ids],
+            records       => \@record_objects,
+            is_draft      => $find{draftuser_id},
+            already_seen  => $records->already_seen,
         );
     }
 
@@ -965,12 +955,11 @@ sub _find
         {
             $records->rewind($record->created);
             $records->fetch_multivalues(
-                record_ids           => [$record->record_id],
-                retrieved            => [$record->{$record->record_id}],
-                records              => [$record],
-                is_draft             => $find{draftuser_id},
-                already_seen         => $records->already_seen,
-                curcommon_all_fields => $self->curcommon_all_fields,
+                record_ids   => [$record->record_id],
+                retrieved    => [$record->{$record->record_id}],
+                records      => [$record],
+                is_draft     => $find{draftuser_id},
+                already_seen => $records->already_seen,
             );
             my @changed;
             foreach my $column (@{$record->columns_retrieved_no})
@@ -1166,6 +1155,36 @@ sub _set_record_id
     $record->{id};
 }
 
+sub _create_datum
+{   my ($self, $column, $value) = @_;
+
+    my $child_unique = ref $value eq 'ARRAY' && @$value > 0
+        ? $value->[0]->{child_unique} # Assume same for all parts of value
+        : ref $value eq 'HASH' && exists $value->{child_unique}
+        ? $value->{child_unique}
+        : undef;
+    my %params = (
+        record           => $self,
+        record_id        => $self->record_id,
+        current_id       => $self->current_id,
+        child_unique     => $child_unique,
+        column           => $column,
+        init_no_value    => $self->init_no_value,
+        schema           => $self->schema,
+        layout           => $self->layout,
+    );
+    # Do not add initial value for calculated fields that are aggregate and
+    # defined as recalc. This means that the value will automatically
+    # calculate from the other aggregate field values instead
+    $params{init_value} = ref $value eq 'ARRAY' ? $value : defined $value ? [$value] : []
+        unless ($self->is_group && $column->aggregate && $column->aggregate eq 'recalc')
+            || ($self->is_draft && !$column->userinput); # Calc fields are not saved for a draft
+    my $class = $self->is_group && !$column->numeric && !$self->group_cols->{$column->id}
+        ? 'GADS::Datum::Count'
+        : $column->class;
+    $class->new(%params);
+}
+
 sub _transform_values
 {   my $self = shift;
 
@@ -1202,37 +1221,7 @@ sub _transform_values
             }
         }
         my $value = $self->linked_id && $column->link_parent ? $original->{$key} : $original->{$key};
-
-        my $child_unique = ref $value eq 'ARRAY' && @$value > 0
-            ? $value->[0]->{child_unique} # Assume same for all parts of value
-            : ref $value eq 'HASH' && exists $value->{child_unique}
-            ? $value->{child_unique}
-            : undef;
-        my %params = (
-            record           => $self,
-            record_id        => $self->record_id,
-            current_id       => $self->current_id,
-            child_unique     => $child_unique,
-            column           => $column,
-            init_no_value    => $self->init_no_value,
-            schema           => $self->schema,
-            layout           => $self->layout,
-        );
-        # Do not add initial value for calculated fields that are aggregate and
-        # defined as recalc. This means that the value will automatically
-        # calculate from the other aggregate field values instead
-        $params{init_value} = ref $value eq 'ARRAY' ? $value : defined $value ? [$value] : []
-            unless ($self->is_group && $column->aggregate && $column->aggregate eq 'recalc')
-                || ($self->is_draft && !$column->userinput); # Calc fields are not saved for a draft
-        # For curcommon fields, flag that this field has had all its columns if
-        # that is what has happened. Then we know during any later process of
-        # this column that there is no need to retrieve any other columns
-        $column->retrieve_all_columns(1)
-            if $self->curcommon_all_fields && $column->is_curcommon;
-        my $class = $self->is_group && !$column->numeric && !$self->group_cols->{$column->id}
-            ? 'GADS::Datum::Count'
-            : $column->class;
-        $fields->{$column->id} = $class->new(%params);
+        $fields->{$column->id} = $self->_create_datum($column, $value);
     }
 
     $self->_set_id_count($original->{id_count});
@@ -1310,20 +1299,15 @@ sub values_by_shortname
             my $col = $self->layout->column_by_name_short($_)
                 or error __x"Short name {name} does not exist", name => $_;
             my $linked = $self->linked_id && $col->link_parent;
-            my $datum = $self->fields->{$col->id}
+            my $datum = $self->get_field_value($col)
                 or panic __x"Value for column {name} missing. Possibly missing entry in layout_depend?", name => $col->name;
             my $d = $self->fields->{$col->id}->is_awaiting_approval # waiting approval, use old value
                 ? $self->fields->{$col->id}->oldvalue
                 : $linked && $self->fields->{$col->id}->oldvalue # linked, and linked value has been overwritten
                 ? $self->fields->{$col->id}->oldvalue
                 : $self->fields->{$col->id};
-            # Retain and provide recurse-prevention information. See further
-            # comments in GADS::Column::Curcommon
-            my $already_seen_code = $params{already_seen_code};
-            $already_seen_code->{$col->id} = $params{level};
-            $d->already_seen_code($already_seen_code);
-            $d->already_seen_level($params{level} + ($col->is_curcommon ? 1 : 0));
-            $_ => $d->for_code;
+            # Retain and provide recurse-prevention information.
+            $_ => $d->for_code(fields => $params{all_possible_names}, already_seen_code => $params{already_seen_code});
         } @names
     };
 }
@@ -1339,8 +1323,6 @@ sub initialise
     my $fields = {};
     foreach my $column ($self->layout->all(include_internal => 1))
     {
-        $column->retrieve_all_columns(1)
-            if $self->curcommon_all_fields && $column->is_curcommon;
         $self->initialise_field($fields, $column->id);
     }
 
@@ -1971,16 +1953,22 @@ sub write_values
     my $guard = $self->schema->txn_scope_guard;
 
     # Write all the values
-    my %columns_changed = ($self->current_id => []);
+    my @columns_changed;
     my @columns_cached;
     my %update_autocurs;
-    foreach my $column ($self->layout->all(order_dependencies => 1, exclude_internal => 1))
+    foreach my $column ($self->layout->all(order_dependencies => 1))
     {
         # Prevent warnings when writing incomplete calc values on draft
         next if $options{draft} && !$column->userinput;
 
-        my $datum = $self->fields->{$column->id};
+        my $datum = $self->get_field_value($column); #$self->fields->{$column->id};
         next if $self->linked_id && $column->link_parent; # Don't write all values if this is a linked record
+
+        if ($column->internal)
+        {
+            push @columns_changed, $column if $datum->changed;
+            next; # No need to go on and write
+        }
 
         if ($self->_need_rec || $options{update_only}) # For new records, $need_rec is only set if user has create permissions without approval
         {
@@ -2010,8 +1998,7 @@ sub write_values
                 {
                     # Write new value
                     $self->_field_write($column, $datum, %options);
-
-                    push @{$columns_changed{$self->current_id}}, $column->id if $datum->changed;
+                    push @columns_changed, $column if $datum->changed;
                 }
                 elsif ($self->new_entry) {
                     # Write value. It's a new entry and the user doesn't have
@@ -2033,55 +2020,6 @@ sub write_values
                     $self->_field_write($column, $datum, %options);
                 }
             }
-            # Note any records that will need updating that have an autocur field that refers to this
-            # No need to do this for child records which have a "copied"
-            # values, as they will otherwise be done twice
-            if ($column->type eq 'curval' && (!$self->parent_id || $column->can_child))
-            {
-                foreach my $autocur (@{$column->autocurs})
-                {
-                    # Do nothing with deleted records
-                    my %deleted = map { $_ => 1 } @{$datum->ids_deleted};
-
-                    # Work out which ones have changed. We only want to
-                    # re-evaluate records that have actually changed, for both
-                    # performance reasons and to send the correct alerts
-                    #
-                    # First, establish which current IDs might be affected
-                    my %affected = map { $_ => 1 } grep { !$deleted{$_} } @{$datum->ids_affected};
-
-                    # Then see if any fields depend on this autocur (e.g. code fields)
-                    foreach my $layout_depend ($autocur->layouts_depend_depends_on->all)
-                    {
-                        # To reduce unnecessary updates, only count ones which may have an effect...
-                        my $depends_on = $layout_depend->depend_on;
-                        # ... don't include ones from a completely different table
-                        next unless $depends_on->related_field->instance_id == $self->layout->instance_id;
-                        # ... don't include unless they have a short name;
-                        # without a short name they cannot be used in
-                        # calculated fields so no updates will be needed
-                        next unless grep $self->fields->{$_->id}->changed,
-                            grep $_->name_short, $self->layout->all(exclude_internal => 1);
-
-                        # If they do, we will need to re-evaluate them all
-                        $update_autocurs{$_} ||= []
-                            foreach keys %affected;
-                    }
-
-                    # If the value hasn't changed at all, skip on
-                    next unless $datum->changed;
-
-                    # If it has changed, work out which one have been added or
-                    # removed. Annotate these with the autocur ID, so we can
-                    # mark that as changed with this value
-                    foreach my $cid (@{$datum->ids_changed})
-                    {
-                        next if $deleted{$cid};
-                        $update_autocurs{$cid} ||= [];
-                        push @{$update_autocurs{$cid}}, $autocur->id;
-                    }
-                }
-            }
         }
         if ($self->_need_app)
         {
@@ -2094,12 +2032,57 @@ sub write_values
 
     }
 
-    # Test all internal columns for changes - these will not have been tested
-    # during the write above
-    foreach my $column ($self->layout->all(only_internal => 1))
+    # Note any records that will need updating that have an autocur field that refers to this
+    # No need to do this for child records which have a "copied"
+    # values, as they will otherwise be done twice
+    foreach my $column (grep $_->type eq 'curval', $self->layout->all)
     {
-        push @{$columns_changed{$self->current_id}}, $column->id
-            if $self->fields->{$column->id}->changed;
+        if (!$self->parent_id || $column->can_child)
+        {
+            foreach my $autocur (@{$column->autocurs})
+            {
+                # Do nothing with deleted records
+                my $datum = $self->fields->{$column->id};
+                my %deleted = map { $_ => 1 } @{$datum->ids_deleted};
+
+                # Work out which ones have changed. We only want to
+                # re-evaluate records that have actually changed, for both
+                # performance reasons and to send the correct alerts
+                #
+                # First, establish which current IDs might be affected
+                my %affected = map { $_ => 1 } grep { !$deleted{$_} } @{$datum->ids_affected};
+
+                # Then see if any fields depend on this autocur (e.g. code fields)
+                foreach my $layout_depend ($autocur->layouts_depend_depends_on->all)
+                {
+                    # To reduce unnecessary updates, only count ones which may have an effect...
+                    my $depends_on = $layout_depend->depend_on;
+                    my $code = $self->layout->column($layout_depend->layout_id)->code;
+                    # ... don't include ones from a completely different table
+                    next unless $depends_on->related_field->instance_id == $self->layout->instance_id;
+                    # ... don't include unless they have a short name that is in the calculated field
+                    next unless grep $code =~ /\Q$_\E(?![_a-z0-9])/i, map $_->name_short,
+                        grep $_->name_short, @columns_changed;
+
+                    # If they do, we will need to re-evaluate them all
+                    $update_autocurs{$_} ||= []
+                        foreach keys %affected;
+                }
+
+                # If the value hasn't changed at all, skip on
+                next unless $datum->changed;
+
+                # If it has changed, work out which one have been added or
+                # removed. Annotate these with the autocur ID, so we can
+                # mark that as changed with this value
+                foreach my $cid (@{$datum->ids_changed})
+                {
+                    next if $deleted{$cid};
+                    $update_autocurs{$cid} ||= [];
+                    push @{$update_autocurs{$cid}}, $autocur->id;
+                }
+            }
+        }
     }
 
     # If this is an approval, see if there is anything left to approve
@@ -2209,52 +2192,49 @@ sub write_values
     {
         # Possibly not the best way to do alerts, but certainly the
         # simplest. Spin up a new alert sender for each changed record
-        foreach my $cid (keys %columns_changed)
-        {
-            my $alert_send = GADS::AlertSend->new(
-                layout      => $self->layout,
-                schema      => $self->schema,
-                user        => $self->user,
-                current_ids => [$cid],
-                columns     => $columns_changed{$cid},
-                current_new => $self->new_entry,
-            );
+        my $alert_send = GADS::AlertSend->new(
+            layout      => $self->layout,
+            schema      => $self->schema,
+            user        => $self->user,
+            current_ids => [$self->current_id],
+            columns     => [map $_->id, @columns_changed],
+            current_new => $self->new_entry,
+        );
 
-            if ($ENV{GADS_NO_FORK})
-            {
-                $alert_send->process;
-                return;
-            }
-            if (my $kid = fork)
-            {
-                # will fire off a worker and then abandon it, thus making reaping
-                # the long running process (the grndkid) init's (pid1) problem
-                waitpid($kid, 0); # wait for child to start grandchild and clean up
+        if ($ENV{GADS_NO_FORK})
+        {
+            $alert_send->process;
+            return;
+        }
+        if (my $kid = fork)
+        {
+            # will fire off a worker and then abandon it, thus making reaping
+            # the long running process (the grndkid) init's (pid1) problem
+            waitpid($kid, 0); # wait for child to start grandchild and clean up
+        }
+        else {
+            if (my $grandkid = fork) {
+                POSIX::_exit(0); # the child dies here
             }
             else {
-                if (my $grandkid = fork) {
-                    POSIX::_exit(0); # the child dies here
-                }
-                else {
-                    # We should already be in a try() block, probably with
-                    # hidden messages. These messages will never be written, as
-                    # we exit the process.  Therefore, stop the hiding of
-                    # messages for this part of the code.
-                    my $parent_try = dispatcher 'active-try'; # Boolean false
-                    $parent_try->hide('NONE');
+                # We should already be in a try() block, probably with
+                # hidden messages. These messages will never be written, as
+                # we exit the process.  Therefore, stop the hiding of
+                # messages for this part of the code.
+                my $parent_try = dispatcher 'active-try'; # Boolean false
+                $parent_try->hide('NONE');
 
-                    # We must catch exceptions here, otherwise we will never
-                    # reap the process. Set up a guard to be doubly-sure this
-                    # happens.
-                    my $guard = guard { POSIX::_exit(0) };
-                    # Despite the guard, we still operate in a try block, so as to catch
-                    # the messages from any exceptions and report them accordingly.
-                    # Only collect messages at warning or higher, otherwise
-                    # thousands of trace messages are stored which use lots of
-                    # memory.
-                    try { $alert_send->process } hide => 'ALL', accept => 'WARNING-'; # This takes a long time
-                    $@->reportAll(is_fatal => 0);
-                }
+                # We must catch exceptions here, otherwise we will never
+                # reap the process. Set up a guard to be doubly-sure this
+                # happens.
+                my $guard = guard { POSIX::_exit(0) };
+                # Despite the guard, we still operate in a try block, so as to catch
+                # the messages from any exceptions and report them accordingly.
+                # Only collect messages at warning or higher, otherwise
+                # thousands of trace messages are stored which use lots of
+                # memory.
+                try { $alert_send->process } hide => 'ALL', accept => 'WARNING-'; # This takes a long time
+                $@->reportAll(is_fatal => 0);
             }
         }
     }
@@ -2589,12 +2569,50 @@ sub as_query
     foreach my $col ($self->layout->all(userinput => 1, user_can_read => 1))
     {
         next if $options{exclude_curcommon} && $col->is_curcommon;
+        my $datum = $self->get_field_value($col);
         panic __x"Field {id} is missing from record", id => $col->id
-            if !$self->fields->{$col->id};
+            if !$datum;
         push @queries, $col->field."=".uri_escape_utf8($_)
-            foreach @{$self->fields->{$col->id}->html_form};
+            foreach @{$datum->html_form};
     }
     return join '&', @queries;
+}
+
+sub get_field_value
+{   my ($self, $column) = @_;
+    return $self->fields->{$column->id}
+        if $self->fields->{$column->id};
+
+    my $record_id = $self->record_id_old || $self->record_id;
+
+    my $raw;
+    if ($column->type eq 'autocur')
+    {
+        my $already_seen = Tree::DAG_Node->new({name => 'root'});
+        $raw = [$column->fetch_multivalues([$record_id], already_seen => $already_seen)];
+    }
+    else {
+        my $result = $self->schema->resultset($column->table)->search({
+            record_id => $record_id,
+            layout_id => $column->id,
+        });
+        $result->result_class('DBIx::Class::ResultClass::HashRefInflator');
+        $raw = [$result->all];
+    }
+    my $datum = $self->_create_datum($column, $raw);
+    # Cache in record
+    $self->fields->{$column->id} = $datum;
+}
+
+sub for_code
+{   my ($self, %params) = @_;
+    my $return;
+    foreach my $col (@{$params{columns}})
+    {
+        my $datum = $self->get_field_value($col);
+        $return->{$col->name_short} = $datum->for_code(fields => $params{fields}, already_seen_code => $params{already_seen_code});
+    }
+    $return;
 }
 
 sub pdf

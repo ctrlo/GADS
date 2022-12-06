@@ -140,6 +140,6 @@ $record->find_current_id(1);
 is($record->fields->{$curval_sheet->columns->{calc1}->id}->as_string, 'tree1', "Initial calc correct for first subrecord");
 $record->clear;
 $record->find_current_id(2);
-is($record->fields->{$calc->id}->as_string, 'tree2tree1', "Initial calc correct for second subrecord");
+is($record->fields->{$calc->id}->as_string, 'tree1tree2', "Initial calc correct for second subrecord");
 
 done_testing();

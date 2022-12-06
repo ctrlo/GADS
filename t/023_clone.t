@@ -44,10 +44,9 @@ my $curval = $columns->{curval1};
 my $string = $columns->{string1};
 
 my $record = GADS::Record->new(
-    user                 => $sheet->user_normal1,
-    layout               => $layout,
-    schema               => $schema,
-    curcommon_all_fields => 1,
+    user   => $sheet->user_normal1,
+    layout => $layout,
+    schema => $schema,
 );
 $record->find_current_id(3);
 is($record->fields->{$string->id}->as_string, "Foobar", "String correct to begin with");
@@ -58,10 +57,9 @@ my $ids = join '', @{$record->fields->{$curval->id}->ids};
 for my $reload (0..1)
 {
     my $record = GADS::Record->new(
-        user                 => $sheet->user_normal1,
-        layout               => $layout,
-        schema               => $schema,
-        curcommon_all_fields => 1,
+        user   => $sheet->user_normal1,
+        layout => $layout,
+        schema => $schema,
     );
     $record->find_current_id(3);
     my $cloned = $record->clone;
@@ -137,10 +135,9 @@ isnt($ids, $ids_new, "ID of newly written field different");
 for my $reload (0..1)
 {
     my $record = GADS::Record->new(
-        user                 => $sheet->user_normal1,
-        layout               => $layout,
-        schema               => $schema,
-        curcommon_all_fields => 1,
+        user   => $sheet->user_normal1,
+        layout => $layout,
+        schema => $schema,
     );
     $record->find_current_id(3);
     $cloned = $record->clone;
@@ -174,10 +171,9 @@ for my $reload (0..1)
 foreach my $reload (0..1)
 {
     my $record = GADS::Record->new(
-        user                 => $sheet->user_normal1,
-        layout               => $layout,
-        schema               => $schema,
-        curcommon_all_fields => 1,
+        user   => $sheet->user_normal1,
+        layout => $layout,
+        schema => $schema,
     );
     $record->find_current_id(3);
     $cloned = $record->clone;
