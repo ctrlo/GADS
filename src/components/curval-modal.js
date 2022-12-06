@@ -8,7 +8,6 @@ const setupCurvalModal = (() => {
     var modal_field_ids = form.data("modal-field-ids");
     var col_id = form.data("curval-id");
     var instance_name = form.data("instance-name");
-    //var parent_current_id = form.data("parent-current-id");
     var guid = form.data("guid");
     var hidden_input = $("<input>", context).attr({
       type: "hidden",
@@ -117,7 +116,6 @@ const setupCurvalModal = (() => {
     $(document, context).on("mousedown", ".curval-modal", function(e) {
       var layout_id = $(e.target).data("layout-id");
       var instance_name = $(e.target).data("instance-name");
-      //var parent_current_id = $(e.target).data("parent-current-id");
       var current_id = $(e.target).data("current-id");
       var hidden = $(e.target)
         .closest(".curval_item")
