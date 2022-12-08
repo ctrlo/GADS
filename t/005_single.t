@@ -46,6 +46,7 @@ my $sheet   = Test::GADS::DataSheet->new(
     schema           => $schema,
     curval           => 2,
     curval_field_ids => [$curval_sheet->columns->{string1}->id],
+    multivalue       => 1,
 );
 my $layout  = $sheet->layout;
 my $columns = $sheet->columns;
@@ -65,23 +66,19 @@ foreach my $field (keys %as_string)
 }
 
 # Tests to ensure correct curval values in record
-foreach my $initial_fetch (0..1)
-{
-    $record = GADS::Record->new(
-        user   => $sheet->user,
-        schema => $schema,
-        layout => $layout,
-        curcommon_all_fields => $initial_fetch,
-    );
-    $record->find_current_id(3);
-    my $datum = $record->fields->{$columns->{curval1}->id};
-    is(@{$datum->field_values}, 1, "Correct number of initial curval fields");
-    my $for_code = $datum->field_values_for_code(level => 1)->{1};
-    delete $for_code->{record};
-    is(keys %$for_code, 7, "Correct number of initial curval fields");
-    my ($value) = values %{$datum->field_values->[0]};
-    is($value->as_string, "Foo", "Correct value of curval field");
-}
+$record = GADS::Record->new(
+    user   => $sheet->user,
+    schema => $schema,
+    layout => $layout,
+);
+$record->find_current_id(3);
+my $datum = $record->fields->{$columns->{curval1}->id};
+my $fields = {map { $_->name_short => 1 } grep $_->name_short, $curval_sheet->layout->all};
+my $for_code = $datum->for_code(fields => $fields);
+is(@$for_code, 1, "Correct number of initial curval fields");
+my $field_values = $for_code->[0]->{field_values};
+is(keys %$field_values, 7, "Correct number of initial curval fields");
+is($datum->as_string, "Foo", "Correct value of curval field");
 
 # Check that a curval without fields selected shows as blank. Simulate this by
 # removing all permissions from the curval's field

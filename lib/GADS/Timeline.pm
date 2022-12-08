@@ -229,14 +229,14 @@ sub _build_items
                 if ($column->is_curcommon)
                 {   # We need the main value (for the pop-up) and also any dates
                     # within it to add to the timeline separately.
-                    foreach my $row (@{$fields->{$column->id}->field_values})
+                    # First all date columns in this curcommon:
+                    my @date_cols = grep $_->return_type eq 'date' || $_->return_type eq 'daterange',
+                        @{$column->curval_fields};
+                    # Now get those values from all records within
+                    foreach my $rec (map $_->{record}, $fields->{$column->id}->all_records)
                     {
-                        delete $row->{record};
-                        foreach my $cur_col (values %$row)
-                        {   my $rt = $cur_col->column->return_type;
-                            push @d, $cur_col
-                                if $rt eq 'date' || $rt eq 'daterange';
-                        }
+                        push @d, $rec->fields->{$_->id}
+                            foreach @date_cols;
                     }
                 }
 

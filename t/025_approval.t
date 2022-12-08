@@ -44,7 +44,9 @@ is($records->count, 4, "Correct number of records to begin");
 # Make date1 a field that needs approval
 my $date1 = $columns->{date1};
 $date1->set_permissions({$sheet->group->id, [qw/read write_new write_existing/]});
-$date1->write;
+# Approval permissions are currently removed. Temporarily re-enable to test
+# functionality
+$date1->write(include_approval_perms => 1);
 $layout->clear;
 my $string1 = $columns->{string1};
 

@@ -21,6 +21,7 @@ package GADS::Datum::Code;
 use Data::Dumper;
 use GADS::Safe;
 use String::CamelCase qw(camelize); 
+use Tree::DAG_Node;
 use Log::Report 'linkspace';
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
@@ -74,12 +75,20 @@ has vars => (
 
 sub _build_vars
 {   my $self = shift;
+    # All possible values that might be needed. Lazy way of working this out:
+    # take each possible short name in the whole system, and grep the code to
+    # see if it's referred to. This could overmatch, but that is not an issue
+    # as more values will be returned than needed
+    my %needed = map { $_ => 1 } grep $self->column->code =~ /\Q$_/,
+        @{$self->layout->all_short_names};
+
     # Ensure recurse-prevention information is passed onto curval/autocurs
     # within code values
+    my $already_seen = Tree::DAG_Node->new({name => 'root'});
     $self->record->values_by_shortname(
-        already_seen_code => $self->already_seen_code,
-        level             => $self->already_seen_level,
-        names             => [$self->column->params],
+        all_possible_names => \%needed,
+        already_seen_code  => $already_seen,
+        names              => [$self->column->params],
     );
 }
 
@@ -182,8 +191,6 @@ sub re_evaluate
         $self->clear_init_value;
         $self->clear_value;
         $self->clear_vars;
-        $self->clear_already_seen_level;
-        $self->clear_already_seen_code;
     }
     my $new = $self->value; # Force new value to be calculated
     $self->changed(1) if !$self->equal($old, $new);

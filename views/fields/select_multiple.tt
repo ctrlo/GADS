@@ -79,9 +79,9 @@
                   id              = id _ '_' _ item.value
                   name            = name
                   value           = item.value
-                  label           = item.label_plain
+                  label           = item.label_html
                   is_required     = 0
-                  filter          = "html"
+                  filter          = ""
                   checked         = checkbox_checked;
               %]
           [% IF with_details %]

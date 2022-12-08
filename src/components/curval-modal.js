@@ -32,7 +32,7 @@ const setupCurvalModal = (() => {
       });
       var links = $(
         `<td>
-        <a class="curval-modal" style="cursor:pointer" data-layout-id="${col_id}" data-instance-name=${instance_name}>edit</a> | <a class="curval_remove" style="cursor:pointer">remove</a>
+        <a class="curval-modal" style="cursor:pointer" data-layout-id="${col_id}" data-instance-name="${instance_name}">edit</a> | <a class="curval_remove" style="cursor:pointer">remove</a>
       </td>`,
         context
       );
@@ -166,7 +166,7 @@ const setupCurvalModal = (() => {
       form.find(".alert").attr("hidden", "");
 
       $.post(
-        form.attr("action") + "?validate&include_draft",
+        form.attr("action") + "?validate&include_draft&source=" + form.data("curval-id"),
         form_data,
         function(data) {
           if (data.error === 0) {

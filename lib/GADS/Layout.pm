@@ -205,7 +205,7 @@ has default_view_limit_extra => (
 );
 
 has default_view_limit_extra_id => (
-    is      => 'ro',
+    is      => 'rw',
     isa     => Maybe[Int],
     lazy    => 1,
     clearer => 1,
@@ -614,14 +614,15 @@ sub write
                 if $exists;
     }
     $rset->update({
-        name             => $self->name,
-        name_short       => $self->name_short,
-        hide_in_selector => $self->hide_in_selector,
-        homepage_text    => $self->homepage_text,
-        homepage_text2   => $self->homepage_text2,
-        sort_type        => $self->sort_type,
-        sort_layout_id   => $self->sort_layout_id,
-        view_limit_id    => $self->view_limit_id,
+        name                        => $self->name,
+        name_short                  => $self->name_short,
+        hide_in_selector            => $self->hide_in_selector,
+        homepage_text               => $self->homepage_text,
+        homepage_text2              => $self->homepage_text2,
+        sort_type                   => $self->sort_type,
+        sort_layout_id              => $self->sort_layout_id,
+        view_limit_id               => $self->view_limit_id,
+        default_view_limit_extra_id => $self->default_view_limit_extra_id,
     });
 
     # Now set any groups if needed
@@ -860,6 +861,7 @@ sub clear
     $self->clear_permissions;
     $self->_clear_mycols;
     $self->clear_cached_records;
+    $self->clear_all_short_names;
 }
 
 has _layout => (
@@ -1269,6 +1271,17 @@ sub _build__columns_namehash
 sub column_by_name
 {   my ($self, $name) = @_;
     $self->use_layout->_columns_namehash->{$name};
+}
+
+# All short names used across all instances
+has all_short_names => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_all_short_names
+{   my $self = shift;
+    [keys %{$self->_columns_name_shorthash}];
 }
 
 sub _build__columns_name_shorthash

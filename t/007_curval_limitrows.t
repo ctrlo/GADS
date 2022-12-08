@@ -130,6 +130,12 @@ foreach my $multivalue (0..1)
     $record->fields->{$curval->id}->set_value([8]);
     $record->write(no_alerts => 1);
 
+    # Remove permission to write to curval field, which should not affect the
+    # subsequent write
+    $curval->set_permissions({$sheet->group->id => []});
+    $curval->write;
+    $sheet->layout->clear;
+
     # Reload and check value
     $record = GADS::Record->new(
         user   => $sheet->user,
@@ -139,6 +145,10 @@ foreach my $multivalue (0..1)
     $record->find_current_id(9);
     $cvalue1 = $multivalue ? "String8; String7; String6; String5" : 'String8';
     is($record->fields->{$curval->id}->as_string, $cvalue1, "Correct curval value");
+    # Make a no-op edit to the curval, which should have no effect, especially
+    # as the user does not have permission
+    my $ids = $record->fields->{$curval->id}->ids;
+    $record->fields->{$curval->id}->set_value($ids);
     is($record->fields->{$calc->id}->as_string, $multivalue ? 80 : 10, "Correct calc value");
 
     # Make an edit to the record not including the curval field

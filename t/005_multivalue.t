@@ -150,7 +150,7 @@ my @tests = (
             curval2 => 'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
             tree1   => 'tree1',
             tree2   => 'tree1',
-            calc1   => 'foo1foo2FooBartree1', # 2x enum values then 2x string values from curval, just 1 tree
+            calc1   => 'foo1foo2BarFootree1', # 2x enum values then 2x string values from curval, just 1 tree
         },
         search    => [
             {
@@ -177,7 +177,7 @@ my @tests = (
             curval2 => 'Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , , b_red, 2008',
             tree1   => 'tree1, tree2',
             tree2   => 'tree1, tree2',
-            calc1   => 'foo1foo2FooBartree1tree2', # 2x enum values then 2x string values from curval then 2x tree
+            calc1   => 'foo1foo2BarFootree1tree2', # 2x enum values then 2x string values from curval then 2x tree
         },
         search    => [
             {

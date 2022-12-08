@@ -4103,11 +4103,8 @@ sub _process_edit
 
     my $user   = logged_in_user;
     my %params = (
-        user                 => $user,
-        schema               => schema,
-        # Need to get all fields of curvals in case any are drafts for editing
-        # (otherwise all field values will not be passed to form)
-        curcommon_all_fields => 1,
+        user   => $user,
+        schema => schema,
     );
     $params{layout} = var('layout') if var('layout'); # Used when creating a new record
 
@@ -4195,7 +4192,9 @@ sub _process_edit
 
         if (defined(param 'validate'))
         {
-            try { $record->write(dry_run => 1) };
+            # The "source" parameter is user input, make sure still valid
+            my $source_curval = $layout->column(param('source'), permission => 'read');
+            try { $record->write(dry_run => 1, parent_curval => $source_curval) };
             if (my $e = $@->wasFatal)
             {
                 push @validation_errors, $e->reason eq 'PANIC' ? 'An unexpected error occurred' : $e->message;
@@ -4205,7 +4204,9 @@ sub _process_edit
             my $return = encode_json ({
                 error   => $message ? 1 : 0,
                 message => $message,
-                values  => +{ map { $_->field => $record->fields->{$_->id}->as_string } $layout->all },
+                # Send values back to browser to display on main record. Only
+                # include ones that user has access to
+                values  => +{ map { $_->field => $record->fields->{$_->id}->as_string } @{$source_curval->curval_fields} },
             });
             return ($return, undef, 1);
         }
@@ -4247,10 +4248,9 @@ sub _process_edit
     elsif ($clone_from)
     {
         my $toclone = GADS::Record->new(
-            user                 => $user,
-            layout               => $layout,
-            schema               => schema,
-            curcommon_all_fields => 1,
+            user   => $user,
+            layout => $layout,
+            schema => schema,
         );
         $toclone->find_current_id($clone_from);
         $record = $toclone->clone;

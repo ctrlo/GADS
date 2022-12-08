@@ -39,7 +39,7 @@ sub fetch_multivalues
         already_seen            => $child,
         include_deleted         => 1,
         is_draft                => $options{is_draft},
-        columns                 => $self->curval_field_ids_retrieve(all_fields => $self->retrieve_all_columns, %options, already_seen => $child),
+        columns                 => $self->curval_field_ids_retrieve(%options, already_seen => $child),
         max_results             => $self->limit_rows,
         ignore_view_limit_extra => 1,
     );

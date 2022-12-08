@@ -255,33 +255,14 @@ sub clone
     );
 }
 
-# A record to keep track of what values we have seen when recursing into a
-# datum's sub-values. We start by assuming this datum is the top level and we
-# have already seen the value at level 1
-has already_seen_code => (
-    is      => 'rw',
-    lazy    => 1,
-    clearer => 1,
-    builder => sub {
-        my $self = shift;
-        +{
-            $self->column->id => 1,
-        }
-    },
-);
+sub clear_for_code { shift->_clear_read_for_code }
 
-# Associated with already_seen_code, this is the current level we are at whilst
-# moving through the sub-values
-has already_seen_level => (
-    is      => 'rw',
-    lazy    => 1,
-    clearer => 1,
-    builder => sub { 1 },
-);
+sub for_code { shift->_read_for_code }
 
-has for_code => (
+has _read_for_code => (
     is      => 'lazy',
     clearer => 1,
+    builder => '_build_for_code',
 );
 
 sub _build_for_code
@@ -302,6 +283,7 @@ sub date_for_code
         second => $value->second,
         yday   => $value->doy,
         epoch  => $value->epoch,
+        ymd    => $value->ymd,
     };
 }
 
