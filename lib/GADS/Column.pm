@@ -1052,6 +1052,7 @@ sub delete
     }
 
     $self->schema->resultset('ViewLayout')->search({ layout_id => $self->id })->delete;
+    $self->schema->resultset('ViewGroup')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('Filter')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('AlertCache')->search({ layout_id => $self->id })->delete;
     $self->schema->resultset('AlertSend')->search({ layout_id => $self->id })->delete;
