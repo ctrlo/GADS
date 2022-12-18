@@ -59,6 +59,7 @@ use GADS::MetricGroups;
 use GADS::Record;
 use GADS::Records;
 use GADS::RecordsGraph;
+use GADS::SAML;
 use GADS::Type::Permissions;
 use GADS::Users;
 use GADS::Util;
@@ -190,7 +191,7 @@ hook before => sub {
         ? var('api_user')
         : logged_in_user;
 
-    if (request->is_post && request->path !~ m!^(/api/token|/print)$!)
+    if (request->is_post && request->path !~ m!^(/api/token|/print|/saml)$!)
     {
         # Protect against CSRF attacks. NB: csrf_token can be in query params
         # or body params (different keys).
@@ -462,9 +463,84 @@ any ['get', 'post'] => '/user_status' => require_login sub {
     };
 };
 
+post '/saml' => sub {
+
+    my $schema = var 'schema';
+
+    my $saml = GADS::SAML->new(
+        request_id => session('request_id'),
+        base_url   => request->base,
+    );
+    my $callback = $saml->callback(
+        saml_response => body_parameters->get('SAMLResponse'),
+    );
+
+    my $username = $callback->{nameid};
+    my $user = $schema->resultset('User')->active->search({ username => $username })->next;
+
+    return forwardHome({ danger => "Username $username not found"} )
+        unless $user;
+
+    $user->update_attributes($callback->{attributes});
+
+    session 'is_sso' => 1;
+
+    return _successful_login($username,'dbic');
+};
+
 get '/login/denied' => sub {
     forwardHome({ danger => "You do not have permission to access this page" });
 };
+
+sub _successful_login
+{   my ($self, $username, $realm) = @_;
+
+    # change session ID if we have a new enough D2 version with support
+    app->change_session_id
+        if app->can('change_session_id');
+
+    session logged_in_user => $username;
+    session logged_in_user_realm => $realm;
+
+    if (param 'remember_me')
+    {
+        my $secure = request->scheme eq 'https' ? 1 : 0;
+        cookie 'remember_me' => $username, expires => '60d',
+            secure => $secure, http_only => 1 if param('remember_me');
+    }
+    else {
+        cookie remember_me => '', expires => '-1d' if cookie 'remember_me';
+    }
+
+    my $audit = GADS::Audit->new(schema => schema);
+    my $user = logged_in_user;
+
+    $audit->user($user);
+    $audit->login_success;
+    $user->update({
+        failcount => 0,
+        lastfail  => undef,
+    });
+
+    # Load previous settings
+    my $session_settings;
+    try { $session_settings = decode_json $user->session_settings };
+    session 'persistent' => ($session_settings || {});
+    if (my $url = query_parameters->get('return_url'))
+    {
+        $url = uri_unescape($url);
+        return _forward_last_table() if $url eq '/';
+        my $uri = URI->new($url);
+        # Construct a URL using uri_for, which ensures that the correct base domain
+        # is used (preventing open URL redirection attacks). The query needs to be
+        # parsed and passed as an option, otherwise it is not encoded properly
+        return redirect request->uri_for($uri->path, $uri->query_form_hash);
+    }
+    else {
+        # forward to previous table if applicable
+        return _forward_last_table();
+    }
+}
 
 any ['get', 'post'] => '/login' => sub {
 
@@ -474,6 +550,24 @@ any ['get', 'post'] => '/login' => sub {
     # Don't allow login page to be displayed when logged-in, to prevent
     # user thinking they are logged out when they are not
     return forwardHome() if $user;
+
+    # Get authentication provider
+    my $enabled = schema->resultset('Authentication')->enabled;
+
+    if ($enabled->count == 1)
+    {
+        my $auth = $enabled->next;
+        if ($auth->type eq 'saml2')
+        {
+            my $saml = GADS::SAML->new(
+                authentication => $auth,
+                base_url       => request->base,
+            );
+            $saml->initiate;
+            session request_id => $saml->request_id;
+            redirect $saml->redirect;
+        }
+    }
 
     my ($error, $error_modal);
 
@@ -569,46 +663,7 @@ any ['get', 'post'] => '/login' => sub {
             $username, params->{password}
         );
         if ($success) {
-            # change session ID if we have a new enough D2 version with support
-            app->change_session_id
-                if app->can('change_session_id');
-            session logged_in_user => $username;
-            session logged_in_user_realm => $realm;
-            if (param 'remember_me')
-            {
-                my $secure = request->scheme eq 'https' ? 1 : 0;
-                cookie 'remember_me' => param('username'), expires => '60d',
-                    secure => $secure, http_only => 1 if param('remember_me');
-            }
-            else {
-                cookie remember_me => '', expires => '-1d' if cookie 'remember_me';
-            }
-            $user = logged_in_user;
-            $audit->user($user);
-            $audit->login_success;
-            $user->update({
-                failcount => 0,
-                lastfail  => undef,
-            });
-
-            # Load previous settings
-            my $session_settings;
-            try { $session_settings = decode_json $user->session_settings };
-            session 'persistent' => ($session_settings || {});
-            if (my $url = query_parameters->get('return_url'))
-            {
-                $url = uri_unescape($url);
-                return _forward_last_table() if $url eq '/';
-                my $uri = URI->new($url);
-                # Construct a URL using uri_for, which ensures that the correct base domain
-                # is used (preventing open URL redirection attacks). The query needs to be
-                # parsed and passed as an option, otherwise it is not encoded properly
-                return redirect request->uri_for($uri->path, $uri->query_form_hash);
-            }
-            else {
-                # forward to previous table if applicable
-                return _forward_last_table();
-            }
+            return _successful_login($username, $realm);
         }
         else {
             $audit->login_failure($username);
