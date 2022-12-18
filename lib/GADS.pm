@@ -556,7 +556,7 @@ any ['get', 'post'] => '/login' => sub {
     # Get authentication provider
     my $enabled = schema->resultset('Authentication')->enabled;
 
-    if ($enabled->count == 1)
+    if ($enabled->count == 1 && !query_parameters->get('password'))
     {
         my $auth = $enabled->next;
         if ($auth->type eq 'saml2')
