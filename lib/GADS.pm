@@ -246,7 +246,7 @@ hook before => sub {
             # Redirect to user status page if required and not seen this session
             redirect '/user_status' unless request->uri =~ m!^/(user_status|aup)!;
         }
-        elsif (logged_in_user_password_expired)
+        elsif (logged_in_user_password_expired && !session('is_sso'))
         {
             # Redirect to user details page if password expired
             forwardHome({ danger => "Your password has expired. Please use the Change password button
@@ -463,9 +463,11 @@ any ['get', 'post'] => '/user_status' => require_login sub {
     };
 };
 
-post '/saml' => sub {
+get '/saml' => sub {
+    redirect '/';
+};
 
-    my $schema = var 'schema';
+post '/saml' => sub {
 
     my $saml = GADS::SAML->new(
         request_id => session('request_id'),
@@ -476,7 +478,7 @@ post '/saml' => sub {
     );
 
     my $username = $callback->{nameid};
-    my $user = $schema->resultset('User')->active->search({ username => $username })->next;
+    my $user = schema->resultset('User')->active->search({ username => $username })->next;
 
     return forwardHome({ danger => "Username $username not found"} )
         unless $user;
@@ -485,7 +487,7 @@ post '/saml' => sub {
 
     session 'is_sso' => 1;
 
-    return _successful_login($username,'dbic');
+    return _successful_login($username, 'dbic');
 };
 
 get '/login/denied' => sub {
@@ -493,7 +495,7 @@ get '/login/denied' => sub {
 };
 
 sub _successful_login
-{   my ($self, $username, $realm) = @_;
+{   my ($username, $realm) = @_;
 
     # change session ID if we have a new enough D2 version with support
     app->change_session_id

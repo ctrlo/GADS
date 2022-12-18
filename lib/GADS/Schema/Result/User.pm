@@ -1002,6 +1002,8 @@ sub update_attributes
     {
         $self->update({ surname => $attributes->{$at}->[0] });
     }
+    my $value = _user_value({firstname => $self->firstname, surname => $self->surname});
+    $self->update({ value => $value });
 }
 
 sub _user_value
