@@ -480,7 +480,7 @@ post '/saml' => sub {
     my $username = $callback->{nameid};
     my $user = schema->resultset('User')->active->search({ username => $username })->next;
 
-    return forwardHome({ danger => "Username $username not found"} )
+    return forwardHome({ danger => "Username $username not found"}, 'login?password=1' )
         unless $user;
 
     $user->update_attributes($callback->{attributes});
