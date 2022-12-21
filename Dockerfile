@@ -1,14 +1,13 @@
 FROM perl:5.30.0-stretch
 
-RUN mkdir -p /gads/bin
+RUN mkdir -p /gads
 WORKDIR /gads
 EXPOSE 8080
 
 RUN apt update && apt install -y liblua5.3-dev ssmtp mailutils wait-for-it chromium nano
 
 COPY Makefile.PL /gads
-COPY bin/output_cpanfile /gads/bin
-RUN cd /gads && perl bin/output_cpanfile > cpanfile && cpanm --notest /gads
+RUN cpanm --notest $(perl -wE 'our %prereq_pm; require "/gads/Makefile.PL"; print join " ", sort keys %prereq_pm')
 
 RUN sed -i 's/mailhub=mail/mailhub=mailhog:1025/' /etc/ssmtp/ssmtp.conf
 

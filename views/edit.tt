@@ -251,7 +251,7 @@
           
               right_buttons.push({
                 type  = "button",
-                class = "btn btn-default",
+                class = "btn btn-default btn-js-submit-record",
                 id    = "",
                 name  = "submit",
                 value = "1",

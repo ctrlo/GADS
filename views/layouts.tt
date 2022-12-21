@@ -1,6 +1,6 @@
 [%
   # prepare table config
-  table_class            = 'table-striped table-hover';
+  table_class            = 'table-striped table-hover table-lines';
   table_dom              = 't';
   table_order            = '[0,"asc"]';
   table_language         = '{"emptyTable": "No fields have been created yet."}';
