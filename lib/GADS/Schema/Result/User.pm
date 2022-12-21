@@ -1022,6 +1022,21 @@ sub has_draft
     })->next;
 }
 
+sub update_attributes
+{   my ($self, $attributes) = @_;
+    my $authentication = $self->result_source->schema->resultset('Authentication')->saml2_provider;
+    if (my $at = $authentication->saml2_firstname)
+    {
+        $self->update({ firstname => $attributes->{$at}->[0] });
+    }
+    if (my $at = $authentication->saml2_surname)
+    {
+        $self->update({ surname => $attributes->{$at}->[0] });
+    }
+    my $value = _user_value({firstname => $self->firstname, surname => $self->surname});
+    $self->update({ value => $value });
+}
+
 sub _user_value
 {   my $user = shift;
     return unless $user;

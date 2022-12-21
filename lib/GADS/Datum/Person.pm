@@ -123,6 +123,11 @@ has value_hash => (
             # XXX - messy to account for different initial values. Can be tidied once
             # we are no longer pre-fetching multiple records
             $value = $value->{value} if exists $value->{record_id};
+            # If only the value has been retrieved for the database query
+            # (rather than the joined user as well) then retrieve the full
+            # value
+            ref $value eq 'HASH'
+                or return $self->column->id_to_hash($value);
             my $id = $value->{id};
             $self->has_id(1) if defined $id || $self->init_no_value;
             return +{
