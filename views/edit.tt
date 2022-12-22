@@ -864,7 +864,7 @@
           show_progress  = 1
           data_attributes = [
             {name = "field", value = field},
-            {name = "fileupload-url", value = url.page _ "/file?ajax=1"},
+            {name = "fileupload-url", value = url.page _ "/api/file/"},
             {name = "multivalue", value = col.multivalue}
           ]
           popover_body   = ""
