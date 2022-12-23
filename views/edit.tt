@@ -803,7 +803,8 @@
         value        = selected
         items        = person_options;
     ELSIF col.type == "file";
-      '<fieldset class="fieldset input">';
+      fieldset_required = field_is_required ? 'fieldset--required' : '';
+      '<fieldset class="fieldset input ' _ fieldset_required _ '">';
         INCLUDE fields/sub/label_fieldset.tt
           id           = col.id
           label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
@@ -831,7 +832,7 @@
         INCLUDE fields/hidden.tt id="" name=field value="" filter="";
         
         '<div class="list list--vertical list--key-value list--no-borders">';
-          '<ul class="list__items">';
+          '<ul class="list__items fileupload__files">';
             FOREACH file IN editvalue.files;
             '<li class="list__item">';
               '<span class="list__key">';
@@ -855,25 +856,26 @@
           '</ul>';
        '</div>';
         INCLUDE fields/file.tt
-          id             = col.id
-          name           = "file"
-          label          = "Choose file"
-          placeholder    = "No file chosen"
-          custom_classes = ""
-          input_class    = "input--document"
-          show_progress  = 1
-          data_attributes = [
+          id               = col.id
+          name             = "file"
+          label            = "Choose file"
+          placeholder      = "No file chosen"
+          custom_classes   = ""
+          input_class      = "input--document"
+          show_progress    = 1
+          data_attributes  = [
             {name = "field", value = field},
             {name = "fileupload-url", value = url.page _ "/api/file/"},
             {name = "multivalue", value = col.multivalue}
           ]
-          popover_body   = ""
-          help_text      = ""
-          popover_body   = ""
-          is_required    = field_is_required
-          is_readonly    = readonly
-          is_multiple    = col.multivalue == multivalue ? 1 : 0
-          filter         = "";
+          popover_body     = ""
+          help_text        = ""
+          popover_body     = ""
+          is_required      = field_is_required
+          is_required_html = editvalue.files.size ? 0 : field_is_required
+          is_readonly      = readonly
+          is_multiple      = col.multivalue == multivalue ? 1 : 0
+          filter           = "";
   
           show_progress = 0;
           data_attributes = "";

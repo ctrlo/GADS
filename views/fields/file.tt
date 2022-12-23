@@ -32,7 +32,6 @@
       <p class="progress-bar__percentage">0%</p>
     </div>
   </div>
-  <ul class="fileupload__files"></ul>
   [% END %]
 
   [% INCLUDE fields/sub/label_file.tt; %]
@@ -47,7 +46,7 @@
       aria-describedby="[% id %]-help"[% END %][% IF is_disabled %]
       disabled[% END %][% IF is_readonly %]
       readonly[% END %][% IF is_multiple %]
-      multiple[% END %][% IF is_required %]
+      multiple[% END %][% IF is_required_html %]
       required
       aria-required="true"[% END %]
     >
