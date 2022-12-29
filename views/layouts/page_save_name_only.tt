@@ -56,7 +56,7 @@
             type = "link",
             class = "btn btn-cancel",
             target = item.back_url,
-            label = "Back"
+            label = "Cancel"
           }]
         }, {
           class = "col-sm-auto",

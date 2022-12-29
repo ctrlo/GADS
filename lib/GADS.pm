@@ -406,10 +406,12 @@ get '/' => require_login sub {
         || schema->resultset('Dashboard')->shared_dashboard(%params);
 
     my $params = {
-        readonly        => $dashboard->is_shared && !$user->permission->{superadmin},
-        dashboard       => $dashboard,
-        dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
-        page            => 'index',
+        readonly                            => $dashboard->is_shared && !$user->permission->{superadmin},
+        dashboard                           => $dashboard,
+        dashboards_json                     => schema->resultset('Dashboard')->dashboards_json(%params),
+        page                                => 'index',
+        'content_block_main_custom_classes' => 'pt-0',
+        'content_block_custom_classes'      => 'pl-0'
     };
 
     if (my $download = param('download'))
@@ -1365,15 +1367,24 @@ any ['get', 'post'] => '/table/:id/permissions' => require_role superadmin => su
         if (process(sub {$layout->write}))
         {
             return forwardHome(
-                { success => 'The table permissions have been updated successfully' }, 'table' );
+                { success => 'The table permissions have been updated successfully' }, 'table/' . $id . '/permissions' );
         }
     }
 
+    my $base_url = request->base;
+
     template 'table_permissions' => {
         page                         => 'table_permissions',
-        detail_header                => 1,
+        header_type                  => "table_tabs",
+        content_block_custom_classes => 'content-block--footer',
+        layout                       => $layout,
         layout_obj                   => $layout,
         groups                       => GADS::Groups->new(schema => schema)->all,
+        breadcrumbs                  => [
+            Crumb($base_url."table/", "Tables"),
+            Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+            Crumb("", 'Permissions')
+        ],
     }
 };
 
@@ -1410,7 +1421,7 @@ any ['get', 'post'] => '/table/:id/edit' => require_role superadmin => sub {
             # Switch user to new table
             my $msg = param('id') ? 'The table has been updated successfully' : 'Your new table has been created successfully';
             return forwardHome(
-                { success => $msg }, 'table' );
+                { success => $msg }, 'table/' . $id . '/edit' );
         }
     }
 
@@ -1423,10 +1434,18 @@ any ['get', 'post'] => '/table/:id/edit' => require_role superadmin => sub {
         }
     }
 
+    my $base_url = request->base;
+
     template 'table' => {
         page                         => 'table_edit',
         content_block_custom_classes => 'content-block--footer',
-        detail_header                => 1,
+        breadcrumbs                  => [
+            Crumb($base_url."table/", "Tables"),
+            Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+            Crumb("", "General settings")
+        ],
+        header_type                  => "table_tabs",
+        layout                       => $layout,
         layout_obj                   => $layout
     }
 };
@@ -1740,7 +1759,7 @@ post '/file/?' => require_login sub {
 
     my $upload = upload('file')
         or error __"No file submitted";
-    my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
+    my $mimetype = ''; #$filecheck->check_file($upload); # Borks on invalid file type
     my $file;
     if (process( sub { $file = rset('Fileval')->create({
         name           => $upload->filename,
@@ -1773,7 +1792,7 @@ post '/api/file/?' => require_login sub {
 
     if (my $upload = upload('file'))
     {
-        my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
+        my $mimetype = ''; #$filecheck->check_file($upload); # Borks on invalid file type
         my $file;
         if (process( sub { $file = rset('Fileval')->create({
             name           => $upload->filename,
@@ -1858,7 +1877,7 @@ get '/chronology/:id?' => require_login sub {
         record                       => $record,
         page                         => 'chronology',
         content_block_custom_classes => 'content-block--record',
-        detail_header                => 1,
+        header_type                  => "table_tabs",
         header_back_url              => "${base_url}${table_short}/record/${record_id}",
         layout                       => $layout,
         layout_obj                   => $layout,
@@ -1911,12 +1930,9 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
         app->execute_hook( 'plugin.linkspace.record_before_template', record => $record );
     }
 
-    my @first_crumb = $action eq 'purge' ? ( $layout, "/purge" => 'deleted records' ) : ( $layout, "/data" => 'records' );
-
     my ($return, $options, $is_raw) = _process_edit($id, $record);
     return $return if $is_raw;
     $return->{is_history} = $action eq 'history';
-    $return->{breadcrumbs} = [Crumb($layout) => Crumb(@first_crumb) => Crumb( "/record/".$record->current_id => 'record id ' . $record->current_id )];
     template 'edit' => $return, $options;
 };
 
@@ -2092,9 +2108,16 @@ prefix '/:layout_name' => sub {
             dashboard       => $dashboard,
             dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
             page            => 'table_index',
-            detail_header   => 1,
+            header_type     => "table_tabs",
+            content_block_custom_classes => "pl-0",
+            content_block_main_custom_classes => "pt-0",
             header_back_url => "${base_url}table",
             layout_obj      => $layout,
+            breadcrumbs     => [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("", "Dashboard")
+            ],
         };
 
         if (my $download = param('download'))
@@ -2788,9 +2811,13 @@ prefix '/:layout_name' => sub {
         $params->{alerts}                       = $alert->all;
         $params->{views_other_user}             = session('views_other_user_id') && rset('User')->find(session('views_other_user_id')),
         $params->{content_block_custom_classes} = 'content-block--lg-aside';
-        $params->{detail_header}                = 1;
+        $params->{header_type}                  = 'table_tabs';
         $params->{header_back_url}              = "${base_url}table";
         $params->{layout_obj}                   = $layout;
+        $params->{breadcrumbs}                  = [
+            Crumb($base_url."table/", "Tables"),
+            Crumb("", "Table: " . $layout->name)
+        ];
 
         template 'data' => $params;
     };
@@ -2878,7 +2905,6 @@ prefix '/:layout_name' => sub {
             records => $records->presentation(purge => 1),
         };
 
-        $params->{breadcrumbs} = [Crumb($layout) => Crumb( $layout, '/data' => 'records' ) => Crumb( $layout, '/purge' => 'purge records' )];
         template 'purge' => $params;
     };
 
@@ -2932,10 +2958,16 @@ prefix '/:layout_name' => sub {
             schema      => schema,
             instance_id => session('persistent')->{instance_id},
         )->all;
-        $params->{detail_header}                = 1;
+        $params->{header_type}                  = 'table_title';
         $params->{content_block_custom_classes} = 'content-block--footer';
         $params->{header_back_url}              = "${base_url}${tableIdentifier}/graphs";
         $params->{layout_obj}                   = $layout;
+        $params->{breadcrumbs}                  = [
+            Crumb($base_url."table/", "Tables"),
+            Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+            Crumb("$base_url" . $layout->identifier . '/graphs', "Manage graphs"),
+            Crumb("", $id ? "Edit graph" : "Add graph")
+        ],
 
         template 'graph' => $params;
     };
@@ -2959,15 +2991,16 @@ prefix '/:layout_name' => sub {
 
         my $params = {
             layout          => $layout,
-            page            => 'metric',
+            page            => 'metrics',
             metrics         => $metrics,
-            detail_header   => 1,
+            header_type     => "table_title",
             header_back_url => "${base_url}${tableIdentifier}/data",
             layout_obj      => $layout,
-            breadcrumbs     => [Crumb($layout) => Crumb( $layout, '/data' => 'records' )
-                => Crumb( $layout, '/graphs' => 'graphs' )
-                => Crumb( $layout, '/metrics' => 'metrics' )
-            ],
+            breadcrumbs     => [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("", "Metrics")
+            ]
         };
 
         template 'metrics' => $params;
@@ -3046,19 +3079,18 @@ prefix '/:layout_name' => sub {
 
         $params->{metricgroup} = $metricgroup;
 
-        my $metric_name = $id ? $metricgroup->name : "add a metric";
-        my $metric_id   = $id ? $metricgroup->id : 0;
-        $params->{breadcrumbs} = [Crumb($layout) => Crumb( $layout, '/data' => 'records' )
-                => Crumb( $layout, '/graphs' => 'graphs' )
-                => Crumb( $layout, '/metrics' => 'metrics' ) => Crumb( $layout, "/metric/$metric_id" => $metric_name )
-        ],
-
         my $base_url        = request->base;
         my $tableIdentifier = $layout->identifier;
 
-        $params->{detail_header}   = 1;
+        $params->{header_type}     = 'table_title';
         $params->{header_back_url} = "${base_url}${tableIdentifier}/metrics";
         $params->{layout_obj}      = $layout;
+        $params->{breadcrumbs}     = [
+            Crumb($base_url."table/", "Tables"),
+            Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+            Crumb("$base_url" . $layout->identifier . '/metrics', "Metrics"),
+            Crumb("", $id ? "Edit metric" : "Add metric")
+        ];
 
         template 'metric' => $params;
     };
@@ -3112,17 +3144,24 @@ prefix '/:layout_name' => sub {
         template 'topic' => {
             page                         => !$id ? 'topic_add' : 'topic_edit',
             content_block_custom_classes => 'content-block--footer',
-            detail_header                => 1,
+            header_type                  => "table_title",
             header_back_url              => "${base_url}${tableIdentifier}/topics",
             layout_obj                   => $layout,
             topic                        => $topic,
             topics                       => [schema->resultset('Topic')->search({ instance_id => $instance_id })->all],
+            breadcrumbs                  => [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("${base_url}${tableIdentifier}/topics", "Topics"),
+                Crumb("", !$id ? 'Add a topic' : 'Edit topic: '  . $topic->name)
+            ],
         };
     };
 
     get '/topics/?' => require_login sub {
         my $layout = var('layout') or pass;
         my $instance_id = $layout->instance_id;
+        my $base_url = request->base;
 
         forwardHome({ danger => "You do not have permission to manage topics"}, '')
             unless $layout->user_can("layout");
@@ -3130,9 +3169,15 @@ prefix '/:layout_name' => sub {
         template 'topics' => {
             page                         => 'topics',
             content_block_custom_classes => 'content-block--footer',
-            detail_header                => 1,
+            header_type                  => "table_tabs",
+            layout                       => $layout,
             layout_obj                   => $layout,
             topics                       => [schema->resultset('Topic')->search({ instance_id => $instance_id })->all],
+            breadcrumbs                  => [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("", "Topics")
+            ],
         };
     };
 
@@ -3221,10 +3266,15 @@ prefix '/:layout_name' => sub {
             view_edit                    => $view, # TT does not like variable "view"
             clone                        => param('clone'),
             page                         => $page,
-            detail_header                => 1,
+            header_type                  => "table_title",
             content_block_custom_classes => 'content-block--footer',
             header_back_url              => "${base_url}${tableIdentifier}/data",
             layout_obj                   => $layout,
+            breadcrumbs                  => [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("", param('clone') ? "Clone view" : $view_id ? "Edit view: " . $view->name : "Add view")
+            ],
         };
         $output;
     };
@@ -3233,12 +3283,13 @@ prefix '/:layout_name' => sub {
 
         my $layout = var('layout') or pass;
         my $user   = logged_in_user;
+        my $column;
 
         forwardHome({ danger => "You do not have permission to manage fields"}, '')
             unless $layout->user_can("layout");
 
         my $params = {
-            page => defined param('id') && !param('id') ? 'layout' : 'layouts',
+            page => defined param('id') ? 'layout' : 'layouts',
         };
 
         if (defined param('id'))
@@ -3250,8 +3301,6 @@ prefix '/:layout_name' => sub {
 
         if (param('id') || param('submit') || param('update_perms'))
         {
-
-            my $column;
             if (my $id = param('id'))
             {
                 $column = $layout->column($id)
@@ -3386,7 +3435,28 @@ prefix '/:layout_name' => sub {
 
         my $base_url        = request->base;
         my $tableIdentifier = $layout->identifier;
-        my $back_url        = param('id') ? "${base_url}${tableIdentifier}/layout" : "${base_url}table";
+        my $back_url        = defined param('id') ? "${base_url}${tableIdentifier}/layout" : "${base_url}table";
+        my $breadCrumbs     = [];
+        my $header_type     = '';
+
+        if(defined param('id')) {
+            $breadCrumbs = [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("${base_url}${tableIdentifier}/layout", "Fields"),
+                Crumb("", param('id') && $column ? 'Edit field: '  . $column->name : 'Add a field')
+            ];
+            $header_type = 'table_title';
+        }
+        else {
+            $breadCrumbs = [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("", "Fields"),
+            ];
+            $header_type = 'table_tabs';
+        }
+
 
         $params->{groups}                       = GADS::Groups->new(schema => schema);
         $params->{permissions}                  = [GADS::Type::Permissions->all];
@@ -3394,9 +3464,10 @@ prefix '/:layout_name' => sub {
         $params->{permission_inputs}            = GADS::Type::Permissions->permission_inputs;
         $params->{topics}                       = [schema->resultset('Topic')->search({ instance_id => $layout->instance_id })->all];
         $params->{content_block_custom_classes} = 'content-block--footer';
-        $params->{detail_header}                = 1;
+        $params->{header_type}                  = $header_type;
         $params->{header_back_url}              = $back_url;
         $params->{layout_obj}                   = $layout;
+        $params->{breadcrumbs}                  = $breadCrumbs;
 
         if (param 'saveposition')
         {
@@ -3498,8 +3569,6 @@ prefix '/:layout_name' => sub {
                 $params->{existing} = $existing;
             }
             $page  = 'edit';
-            $params->{breadcrumbs} = [Crumb($layout) =>
-                Crumb( $layout, '/approval' => 'approve records' ), Crumb( $layout, "/approval/$id" => "approve record $id" ) ];
         }
         else {
             $page  = 'approval';
@@ -3509,8 +3578,6 @@ prefix '/:layout_name' => sub {
                 layout => $layout
             );
             $params->{records} = $approval->records;
-            $params->{breadcrumbs} = [Crumb($layout) =>
-                Crumb( $layout, '/approval' => 'approve records' ) ];
         }
 
         template $page => $params;
@@ -3558,10 +3625,15 @@ prefix '/:layout_name' => sub {
         template 'link' => {
             record                       => $record,
             page                         => 'link',
-            detail_header                => 1,
+            header_type                  => "table_title",
             content_block_custom_classes => 'content-block--footer',
             header_back_url              => "${base_url}${tableIdentifier}/data",
-            layout_obj                   => $layout
+            layout_obj                   => $layout,
+            breadcrumbs                  => [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("", "Add a linked record")
+            ],
         };
     };
 
@@ -3783,10 +3855,15 @@ prefix '/:layout_name' => sub {
             record                       => $record->presentation(edit => 1, new => 1, bulk => $type),
             bulk_type                    => $type,
             page                         => 'bulk',
-            detail_header                => 1,
+            header_type                  => "table_title",
             content_block_custom_classes => 'content-block--footer',
             header_back_url              => "${base_url}${tableIdentifier}/data",
             layout_obj                   => $layout,
+            breadcrumbs                  => [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("", "Bulk " . $type . " records")
+            ]
         };
     };
 
@@ -3824,11 +3901,16 @@ prefix '/:layout_name' => sub {
 
         template 'import' => {
             imports                      => [$imp->all],
-            page                         => 'import',
-            detail_header                => 1,
+            page                         => 'imports',
+            header_type                  => "table_title",
             content_block_custom_classes => 'content-block--footer',
             header_back_url              => "${base_url}${tableIdentifier}/data",
             layout_obj                   => $layout,
+            breadcrumbs                  => [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("", "Import records")
+            ],
         };
     };
 
@@ -3855,11 +3937,17 @@ prefix '/:layout_name' => sub {
         template 'import/rows' => {
             import_id                    => param('import_id'),
             rows                         => $rows,
-            page                         => 'import',
-            detail_header                => 1,
+            page                         => 'import/row',
+            header_type                  => "table_title",
             content_block_custom_classes => 'content-block--footer',
             header_back_url              => "${base_url}${tableIdentifier}/import",
             layout_obj                   => $layout,
+            breadcrumbs                  => [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("$base_url" . $layout->identifier . '/import', "Import records"),
+                Crumb("", "Import " . $import_id)
+            ],
         };
     };
 
@@ -3905,10 +3993,16 @@ prefix '/:layout_name' => sub {
         template 'import/data' => {
             layout                       => var('layout'),
             page                         => 'import',
-            detail_header                => 1,
+            header_type                  => "table_title",
             content_block_custom_classes => 'content-block--footer',
             header_back_url              => "${base_url}${tableIdentifier}/import",
             layout_obj                   => $layout,
+            breadcrumbs                  => [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("$base_url" . $layout->identifier . '/import', "Import records"),
+                Crumb("", "Upload")
+            ],
         };
     };
 
@@ -3940,10 +4034,15 @@ prefix '/:layout_name' => sub {
         template 'graphs' => {
             graphs                       => $all_graphs,
             page                         => 'graphs',
-            detail_header                => 1,
+            header_type                  => "table_title",
             content_block_custom_classes => 'content-block--footer',
             header_back_url              => "${base_url}${tableIdentifier}/data",
-            layout_obj                   => $layout
+            layout_obj                   => $layout,
+            breadcrumbs                  => [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("", "Manage graphs")
+            ],
         };
     };
 
@@ -4370,17 +4469,10 @@ sub _process_edit
             ."record. All other values will be inherited from the parent."
             if $child_rec;
 
-    my $breadcrumbs = [Crumb($layout), Crumb( $layout, "/data" => 'records' )];
-    if ($id)
-    {
-        push @$breadcrumbs, Crumb( "/record/$id" => "record $id" );
-    }
-    else {
-        push @$breadcrumbs, Crumb( $layout, "/record/" => "new record" );
-    }
-
     my $base_url        = request->base;
     my $tableIdentifier = $layout->identifier;
+
+    my $recordPresentation = $record->presentation(edit => 1, new => !$id, child => $child, modal => $modal);
 
     my $params = {
         edit_modal                   => $modal,
@@ -4389,10 +4481,15 @@ sub _process_edit
         layout_edit                  => $layout,
         clone                        => $clone_from,
         submission_token             => !$modal && $record->submission_token,
-        detail_header                => 1,
+        header_type                  => "table_title",
         header_back_url              => "${base_url}${tableIdentifier}/data",
         layout_obj                   => $layout,
-        record                       => $record->presentation(edit => 1, new => !$id, child => $child, modal => $modal),
+        record                       => $recordPresentation,
+        breadcrumbs                  => [
+            Crumb($base_url."table/", "Tables"),
+            Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+            Crumb("", $id ? "Record ID: " . $recordPresentation->{current_id} : "New record")
+        ],
     };
 
     if ($id)

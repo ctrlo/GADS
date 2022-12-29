@@ -53,13 +53,13 @@
   END;
 
 
-  INCLUDE layouts/page_header_table.tt
-    title       = "Import records"
+  INCLUDE layouts/page_header.tt
+    title       = ""
     description = "Here you can import new records into " _ layout_obj.name _ "."
     aside_buttons = [{
       type    = "modal_button"
       modalId = "deleteModal"
-      class   = "btn btn-default"
+      class   = "btn btn-danger"
       label   = "Clear completed reports"
     },{
       type   = "link"

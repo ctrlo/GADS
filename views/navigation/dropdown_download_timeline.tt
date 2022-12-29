@@ -1,0 +1,20 @@
+[%
+  INCLUDE snippets/dropdown.tt
+    id             = "download_timeline"
+    custom_classes = ""
+    menu_right     = 1
+    label          = "Download"
+    filter         = "html"
+    groups         = [{
+     items = [{
+       label  = "Download as PNG image",
+       target = url.page _ "/" _ layout_obj.identifier _ "/data?png=1"
+     }, {
+        type   = "modal",
+        id     = "download_as_pdf",
+        class  = "",
+        target = "modal_pdf",
+        label  = "Download as PDF document"
+      }]
+    }];
+%]

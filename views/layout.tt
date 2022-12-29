@@ -1,5 +1,4 @@
 [% PROCESS help.tt %]
-[% INCLUDE layouts/page_header_table.tt; %]
 <form method="post" class="">
   [%
     INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
@@ -11,18 +10,14 @@
   <div class="content-block__main">
     <fieldset class="fieldset">
       <div class="fieldset__legend fieldset__legend--hidden">
-        <legend >
+        <legend>
           Edit Table
         </legend>
       </div>
     
       <div class="content-block__main-content">
         
-        <div class="card card--secundary">
-          <h4 class="card__title">
-            <span> [% column.id ? 'Edit field: ' _ column.name : 'New field' %] </span>
-          </h4>
-        
+        <div class="card card--primary mb-3">
           <div class="card__body row">
             <div class="card__content">
               <div class="row">
@@ -1734,7 +1729,7 @@
                     [%
                       INCLUDE fields/sub/popover.tt
                         popover_id = "displayConditionsPopover"
-                        popover_class = "popover-container--large"
+                        popover_class = "popover-container--large popover-container--top"
                         popover_title = "Matching field values"
                         popover_body = global.helptext.layout_match;
                     %]
@@ -1746,51 +1741,51 @@
           </div>
         </div>
       </div>
-      
-      <footer class="content-block__footer">
-        <div class="content-block__footer-container">
-          [%
-            right_buttons = [];
-          
-            IF column.id;
-              right_buttons.push({
-                type      = "modal_button",
-                modalId   = "deleteModal",
-                dataTitle = column.name,
-                dataId    = column.id,
-                class     = "btn btn-danger btn-js-delete",
-                label     = "Delete field"
-              });
-            END;
-          
-            right_buttons.push({
-              type  = "button",
-              class = "btn btn-default btn-js-submit-field"
-              id    = "submit_save"
-              name  = "submit"
-              value = "submit"
-              label = "Save"
-            });
-          
-            INCLUDE navigation/button_bar.tt
-              row_class = "row"
-              columns   = [{
-                class   = "col-md-4 mb-3 mb-md-0",
-                buttons = [{
-                  type   = "link",
-                  target = url.page _ "/" _ layout_obj.identifier _ "/layout",
-                  class  = "btn btn-cancel",
-                  label  = "Back"
-                }]
-              }, {
-                class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
-                buttons = right_buttons
-              }];
-          %]
-        </div>
-      </footer>
     </fieldset>
   </div>
+  
+  <footer class="content-block__footer">
+    <div class="content-block__footer-container">
+      [%
+      right_buttons = [];
+      
+      IF column.id;
+      right_buttons.push({
+        type      = "modal_button",
+        modalId   = "deleteModal",
+        dataTitle = column.name,
+        dataId    = column.id,
+        class     = "btn btn-danger btn-js-delete",
+        label     = "Delete field"
+      });
+      END;
+      
+      right_buttons.push({
+        type  = "button",
+        class = "btn btn-default btn-js-submit-field"
+        id    = "submit_save"
+        name  = "submit"
+        value = "submit"
+        label = "Save"
+      });
+      
+      INCLUDE navigation/button_bar.tt
+        row_class = "row"
+        columns   = [{
+        class     = "col-md-4 mb-3 mb-md-0",
+        buttons   = [{
+          type   = "link",
+          target = url.page _ "/" _ layout_obj.identifier _ "/layout",
+          class  = "btn btn-cancel",
+          label  = "Cancel"
+        }]
+      }, {
+      class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
+      buttons = right_buttons
+      }];
+      %]
+    </div>
+  </footer>
 </form>
 [%
   IF column.id;

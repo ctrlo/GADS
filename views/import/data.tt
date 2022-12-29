@@ -1,6 +1,6 @@
 [%
   INCLUDE layouts/page_header.tt
-    title         = "Import records"
+    title         = ""
     description   = "You can upload records as a CSV file. The first row of your CSV file must contain the identical field names to those in your table.";
 %]
 

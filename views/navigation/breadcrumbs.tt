@@ -1,0 +1,18 @@
+[% IF breadcrumbs.size %]
+<div class="table-header__breadcrumbs">
+  <div class="breadcrumbs">
+    [%
+      FOREACH crumb in breadcrumbs;
+        IF crumb.is_link;
+    %]
+    <a href="[% crumb.href %]" class="breadcrumbs__item link">[% crumb.text | html %]</a>
+    <span class="breadcrumbs__divider"></span>
+        [% ELSE %]
+    <span class="breadcrumbs__item breadcrumbs__item--active">[% crumb.text | html %]</span>
+    [%
+        END;
+      END;
+    %]
+  </div>
+</div>
+[% END %]

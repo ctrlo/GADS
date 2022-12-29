@@ -1,11 +1,3 @@
-[%
-  # add standardized page header
-  INCLUDE layouts/page_header.tt
-    title         = graph.id ? "Edit graph" : "Add a graph"
-    description   = ""
-    aside_buttons = [];
-%]
-
 <div class="content-block__main">
   <form role="form" method="post" class="">
     [%

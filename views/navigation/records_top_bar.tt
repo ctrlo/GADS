@@ -1,0 +1,67 @@
+<div class="content-block__navigation">
+  <div class="content-block__navigation-left">
+    <div class="list list--horizontal">
+      <ul class="list__items">
+        <li class="list__item ">
+          [% INCLUDE navigation/dropdown_select_view.tt %]
+        </li>
+        
+        <li class="list__item ">
+          [%
+            table_view_buttons = [{
+              type        = "link",
+              target      = "?viewtype=table",
+              class       = "link link--primary link--table" _ (viewtype == "table" ? " link--active" : ""),
+              label       = "Table"
+            },{
+              type        = "link",
+              target      = "?viewtype=graph",
+              class       = "link link--primary link--graph" _ (viewtype == "graph" ? " link--active" : ""),
+              label       = "Graph"
+            },{
+              type        = "link",
+              target      = "?viewtype=timeline",
+              class       = "link link--primary link--timeline" _ (viewtype == "timeline" ? " link--active" : ""),
+              label       = "Timeline"
+            }];
+          
+            # IF layout.has_globe;
+            #   table_view_buttons.push({
+            #     type        = "link",
+            #     target      = "?viewtype=globe",
+            #     class       = "link link--primary link--globe" _ (viewtype == "globe" ? " link--active" : ""),
+            #     label       = "Globe"
+            #   });
+            # END;
+          
+            INCLUDE snippets/button_list.tt
+              list_class = "list--horizontal list--no-borders"
+              buttons    = table_view_buttons;
+          %]
+        </li>
+      </ul>
+    </div>
+  </div>
+  
+  <div class="content-block__navigation-right">
+    [%
+      INCLUDE navigation/dropdown_manage_views.tt;
+    
+      IF views_limit_extra.size;
+        INCLUDE navigation/dropdown_view_limits.tt;
+      END;
+    
+      IF viewtype == "graph" AND layout_obj.user_can("layout");
+        INCLUDE navigation/dropdown_manage_graphs.tt;
+      END;
+    
+      IF (layout_obj.user_can("link") AND show_link) OR layout_obj.user_can("layout") OR layout_obj.user_can("bulk_update") OR layout_obj.user_can("delete") OR layout_obj.user_can("download") OR layout_obj.user_can("bulk_delete");
+        INCLUDE navigation/dropdown_actions.tt;
+      END;
+    
+      IF page == "data_timeline" AND ! layout.no_download_pdf;
+        INCLUDE navigation/dropdown_download_timeline.tt;
+      END;
+    %]
+  </div>
+</div>

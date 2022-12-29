@@ -34,12 +34,13 @@
     rows.push(row);
   END;
 
-  INCLUDE layouts/page_header_table.tt;
+  INCLUDE navigation/edit_table_top_bar.tt;
+  INCLUDE snippets/message_center.tt;
 %]
 
 <div class="content-block__main">
   <div class="content-block__main-content">
-    <div class="card card--secundary">
+    <div class="card card--primary mb-3">
       <h4 class="card__title">
         <span> Edit your topics </span>
       </h4>
@@ -59,12 +60,7 @@
           row_class = "row"
           columns   = [{
             class   = "col-md-4 mb-3 mb-md-0",
-            buttons = [{
-              type   = "link",
-              target = url.page _ "/table/",
-              class  = "btn btn-cancel",
-              label  = "Back"
-            }]
+            buttons = []
           }, {
             class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
             buttons = [{

@@ -1,0 +1,16 @@
+[% PROCESS navigation/active_pages.tt; %]
+<header class="table-header row no-gutters">
+  <div class="table-header-container">
+    <div class="table-header-top row justify-content-between no-gutters">
+      <div class="table-header__meta">
+        [% INCLUDE navigation/breadcrumbs.tt %]
+        <h1 class="table-header__title">[% layout_obj.name %]</h1>
+      </div>
+      [% INCLUDE navigation/user_menu.tt user_menu_class="table-header__navigation" %]
+    </div>
+    
+    <div class="table-header-bottom">
+      [% INCLUDE navigation/table_header_tab_menu.tt %]
+    </div>
+  </div>
+</header>

@@ -1,0 +1,19 @@
+[%
+  view_limit_groups = [{ items = [] }];
+  
+  FOR view_limit IN views_limit_extra;
+    view_limit_groups.0.items.push({
+      label  = view_limit.name,
+      target = url.page _ "/" _ layout_obj.identifier _ "/data?extra=" _ view_limit.id,
+      alert  = 0
+    });
+  END;
+  
+  INCLUDE snippets/dropdown.tt
+    id             = "view_limits"
+    custom_classes = ""
+    menu_right     = 1
+    label          = current_view_limit_extra.name
+    filter         = "html"
+    groups         = view_limit_groups;
+%]

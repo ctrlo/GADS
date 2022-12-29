@@ -1,72 +1,122 @@
-<h2>[% IF metricgroup.id %]Edit metric[% ELSE %]Add new metric[% END %]</h2>
-<form role="form" method="post">
-    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-    <div class="row">
-        <div class="col-md-6">
-            [% IF metricgroup.id %]
-                <input type="hidden" name="id" value="[% metricgroup.id %]">
-            [% END %]
-            <div class="input-group">
-                <input type="text" name="name" class="form-control" name="name" placeholder="Enter name" value="[% metricgroup.name | html_entity %]">
-                <span class="input-group-btn">
-                    <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">
-                        [% IF metricgroup.id %]Save name[% ELSE %]Create[% END %]
-                    </button>
-                </span>
+<div class="content-block__main">
+  <form role="form" method="post">
+    [%
+      INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
+      
+      IF metricgroup.id;
+        INCLUDE fields/hidden.tt name="id" value=metricgroup.id;
+      END;
+    %]
+    <fieldset class="fieldset" >
+      <div class="fieldset__legend fieldset__legend--hidden">
+        <legend >
+          [% IF metricgroup.id %]Edit metric[% ELSE %]Add new metric[% END %]
+        </legend>
+      </div>
+  
+      <div class="content-block__main-content">
+        <div class="row">
+          <div class='col-md-6 col-lg-8 mb-4 mb-lg-0'>
+            <div class="row mb-3">
+              <div class="col">
+                <div class="card card--secundary">
+                  <h4 class="card__title">
+                    <span> Metric name </span>
+                  </h4>
+                  
+                  <div class="card__body row">
+                    <div class="card__content">
+                      <div class="row">
+                        <div class='col-lg-9'>
+                          [%
+                            INCLUDE fields/input.tt
+                              id = "name"
+                              name = "name"
+                              label = "Name"
+                              value = metricgroup.name
+                              placeholder = "Enter name"
+                              filter = "html"
+                              type = "text";
+                          %]
+                        </div>
+                        <div class="col-lg-3 pt-4">
+                          <span class="input-group-btn">
+                            <button type="submit" id="submit" name="submit" value="submit" class="btn btn-default">
+                                [% IF metricgroup.id %]Save name[% ELSE %]Create[% END %]
+                            </button>
+                          </span>
+                        </div>
+                      </div>
+  
+                      [% IF metricgroup.id %]
+                      <div class="row">
+                        <div class="col">
+                          <p>
+                            <a class="btn btn-add" href="" data-toggle="modal"
+                               data-target="#modal_metric"
+                               data-metric_id=""
+                               data-x_axis_field=""
+                               data-y_axis_value=""
+                               data-target_value=""
+                            >Add item
+                            </a>
+                            <a href="" class="btn btn-danger" data-toggle="modal" data-target="#modal_delete">Delete group</a>
+                          </p>
+                          <table class="table table-striped">
+                            <tr>
+                              <th></th>
+                              <th>X-axis value</th>
+                              <th>Y-axis grouping value</th>
+                              <th>Target</th>
+                            </tr>
+                            [% FOREACH metric IN metricgroup.metrics %]
+                            <tr>
+                              <td><a href="" data-toggle="modal"
+                                     data-target="#modal_metric"
+                                     data-metric_id="[% metric.id %]"
+                                     data-x_axis_value="[% metric.x_axis_value %]"
+                                     data-y_axis_grouping_value="[% metric.y_axis_grouping_value %]"
+                                     data-target_value="[% metric.target %]"
+                              >Edit</a>
+                              </td>
+                              <td>[% metric.x_axis_value | html_entity %]</td>
+                              <td>[% metric.y_axis_grouping_value | html_entity %]</td>
+                              <td>[% metric.target | html_entity %]</td>
+                            </tr>
+                            [% END %]
+                          </table>
+                        </div>
+                      </div>
+                      [% END %]
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-            <p>
-            </p>
-            [% IF metricgroup.id %]
-                <p>
-                    <a class="btn btn-default" href="" data-toggle="modal"
-                                data-target="#modal_metric"
-                                data-metric_id=""
-                                data-x_axis_field=""
-                                data-y_axis_value=""
-                                data-target_value=""
-                                >Add item
-                    </a>
-                    <a href="" class="btn btn-default" data-toggle="modal" data-target="#modal_delete">Delete group</a>
-                </p>
-                <table class="table table-striped">
-                    <tr>
-                        <th></th>
-                        <th>X-axis value</th>
-                        <th>Y-axis grouping value</th>
-                        <th>Target</th>
-                    </tr>
-                    [% FOREACH metric IN metricgroup.metrics %]
-                        <tr>
-                            <td><a href="" data-toggle="modal"
-                                        data-target="#modal_metric"
-                                        data-metric_id="[% metric.id %]"
-                                        data-x_axis_value="[% metric.x_axis_value %]"
-                                        data-y_axis_grouping_value="[% metric.y_axis_grouping_value %]"
-                                        data-target_value="[% metric.target %]"
-                                        >Edit</a>
-                            </td>
-                            <td>[% metric.x_axis_value | html_entity %]</td>
-                            <td>[% metric.y_axis_grouping_value | html_entity %]</td>
-                            <td>[% metric.target | html_entity %]</td>
-                        </tr>
-                    [% END %]
-                </table>
-            [% END %]
-        </div>
-            <div class="col-md-6">
-                <h4>Metrics help</h4>
-                <p>
+          </div>
+  
+  
+  
+          <div class='col-md-6 col-lg-4'>
+            <div class="card card--secundary card--help">
+              <h4 class="card__title">
+                <span> Metrics help </span>
+              </h4>
+      
+              <div class="card__body row">
+                <div class="card__content">
+                  <p>
                     Use this page to define a set of metrics to plot graphs against.
                     Each metric must have an x-axis value and a target y-axis value
                     for that point. Once a set of metrics is applied to a graph, each
                     point in that graph will be converted to a percentage as compared
                     to the relevant metric.
-                </p>
-                <p>
+                  </p>
+                  <p>
                     For graphs that use a y-axis grouping, it is also necessary to define
                     which y-axis grouping is to be used for each x-axis data point.
-                </p>
-                <dl>
+                  </p>
+                  <dl>
                     <dt>X-axis value</dt>
                     <dd>This is the value of the x-axis to apply this metric to. Note that if using a
                         date for the x-axis, then this value must be entered as unixtime, having grouped
@@ -81,12 +131,20 @@
                         y-axis value will be compared to this value, and the result displayed
                         on the graph as a releative percentage.
                     </dd>
-                </dl>
+                  </dl>
+                </div>
+              </div>
             </div>
+          </div>
+          
+        </div>
+      </div>
+    </fieldset>
+  </form>
+</div>
 
-    </div>
-</form>
-<p></p>
+
+
 
 <!-- Modal -->
 <div class="modal fade" id="modal_delete" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
