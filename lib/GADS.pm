@@ -1759,7 +1759,7 @@ post '/file/?' => require_login sub {
 
     my $upload = upload('file')
         or error __"No file submitted";
-    my $mimetype = ''; #$filecheck->check_file($upload); # Borks on invalid file type
+    my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
     my $file;
     if (process( sub { $file = rset('Fileval')->create({
         name           => $upload->filename,
@@ -1792,7 +1792,7 @@ post '/api/file/?' => require_login sub {
 
     if (my $upload = upload('file'))
     {
-        my $mimetype = ''; #$filecheck->check_file($upload); # Borks on invalid file type
+        my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
         my $file;
         if (process( sub { $file = rset('Fileval')->create({
             name           => $upload->filename,
