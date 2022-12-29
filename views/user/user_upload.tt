@@ -51,7 +51,7 @@
             type = "link",
             class = "btn btn-cancel",
             target = url.page _ "/user_overview/",
-            label = "Back"
+            label = "Cancel"
           }]
         }, {
           class = "col-sm-auto",

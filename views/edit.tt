@@ -1,40 +1,6 @@
 [%
   PROCESS snippets/datum.tt;
 
-  UNLESS edit_modal;
-    page_title = "New record";
-  
-    IF page == "bulk";
-      IF bulk_type == "update";
-        page_title = "Bulk update";
-      ELSIF bulk_type == "clone";
-        page_title = "Clone records";
-      ELSE;
-        page_title = "";
-      END;
-    ELSIF NOT record.new_entry;
-      page_title = "Record ID: " _ record.current_id;
-      
-      IF record.deleted;
-        page_title = page_title _ " (deleted)";
-      END;
-      
-      IF record.parent_id;
-        page_title = page_title _ "<small>(child of record " _ record.parent_id _ ")</small>";
-      END;
-    ELSIF child;
-      page_title = "Create child record of " _ child;
-    ELSIF clone;
-      page_title = "New record copied from record ID " _ clone;
-    END;
-    
-    IF ! view_modal;
-      INCLUDE layouts/page_header_table.tt
-        title = page_title
-        filter = "html";
-    END;
-  END;
-
   IF NOT record.new_entry;
     cur_id = record.current_id;
   END;
@@ -360,7 +326,7 @@
   BLOCK panel_start;
     block_topic        = topic.topic;
     open               = !block_topic OR block_topic.initial_state == 'open' ? 'true' : 'false';
-    widget_id_modifier = view_modal ? '-modal' : '';
+    widget_id_modifier = view_modal OR edit_modal ? '-modal' : '';
 %]
   <div class="[% panel_class %]">
     <div class="card card--expandable card--topic">

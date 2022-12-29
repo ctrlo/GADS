@@ -1,16 +1,23 @@
+[% PROCESS navigation/active_pages.tt; %]
 <div class="row flex-nowrap">
   [% INCLUDE navigation/main_menu.tt %]
   <main class="[% main_class || 'main col-lg-10' %]">
     <div class="main__container">
       [%
-        IF detail_header;
-          INCLUDE snippets/header_table_detail.tt;
+        IF header_type AND header_type == 'table_tabs';
+          INCLUDE snippets/header_table.tt;
+        ELSIF header_type AND header_type == 'table_title';
+          INCLUDE snippets/header_table_form.tt;
         ELSE;
           INCLUDE snippets/header.tt;
         END;
       %]
       <div class="content-block [% content_block_custom_classes %]" id="content-block">
-        [% INCLUDE snippets/message_center.tt %]
+        [%
+          IF page AND page.substr(0, 5) != "data_" AND NOT page_is_active_bool(edit_table_active_pages);
+            INCLUDE snippets/message_center.tt;
+          END;
+        %]
         [% content %]
       </div>
     </div>

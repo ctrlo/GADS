@@ -1,21 +1,32 @@
-<h2>Manage metrics</h2>
-<p>Use this page to create, delete and edit metrics. Metrics are used to measure
+[%
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title         = ""
+    description   = "Use this page to create, delete and edit metrics. Metrics are used to measure
 values on graphs against defined values. When a graph is configured to use a metric,
 the standard absolute values on the graphs will be replaced by percentage values,
-calculated by comparing the absolute value with the relevant metric.
-</p>
-<p>
-    <a href="/[% layout.identifier %]/metric/0" class="btn btn-default" role="button">Create new metrics set</a>
-</p>
-<table class="table table-striped">
-    <tr>
-        <th></th>
-        <th>Metric set name</th>
-    </tr>
-    [% FOREACH metric IN metrics %]
+calculated by comparing the absolute value with the relevant metric."
+    aside_buttons = [{
+     type   = "link"
+     target = url.page _ "/" _ layout.identifier _ "/metric/0"
+     class  = "btn btn-add"
+     label  = "Add a metrics set"
+   }];
+%]
+
+<div class="content-block__main">
+  <div class="content-block__main-content">
+    <table class="table table-striped">
         <tr>
-            <td><a href="/[% layout.identifier %]/metric/[% metric.id %]">Edit</a></td>
-            <td>[% metric.name | html_entity %]
+            <th></th>
+            <th>Metric set name</th>
         </tr>
-    [% END %]
-</table>
+        [% FOREACH metric IN metrics %]
+            <tr>
+                <td><a href="/[% layout.identifier %]/metric/[% metric.id %]">Edit</a></td>
+                <td>[% metric.name | html_entity %]
+            </tr>
+        [% END %]
+    </table>
+  </div>
+</div>

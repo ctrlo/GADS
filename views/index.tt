@@ -1,4 +1,4 @@
-<div class="content-block__main">
+<div class="content-block__main [% content_block_main_custom_classes %]">
   <div class="content-block__main-content">
     <div id="ld-app"
          class="dashboard"

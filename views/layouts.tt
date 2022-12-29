@@ -114,21 +114,31 @@
     rows.push(row);
   END;
 
-  INCLUDE layouts/page_header_table.tt;
+  INCLUDE navigation/edit_table_top_bar.tt;
+  INCLUDE snippets/message_center.tt;
 %]
 
 <form method="post" class="">
   [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
   <div class="content-block__main">
     <div class="content-block__main-content">
-      <div class="card card--secundary">
+      <div class="card card--primary mb-3">
         <h4 class="card__title">
           <span> Edit your fields </span>
         </h4>
         
         <div class="card__body row">
           <div class="card__content">
-            [% INCLUDE tables/basic_table.tt; %]
+            <div class="row mb-4">
+              <div class="col">
+                Here is the list of fields in your table. From here you can add new fields and edit or remove existing fields. Fields can be reordered by dragging and dropping to preferred order and clicking on ‘Save order’.
+              </div>
+            </div>
+            <div class="row">
+              <div class="col">
+                [% INCLUDE tables/basic_table.tt; %]
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -141,12 +151,7 @@
             row_class = "row"
             columns   = [{
               class   = "col-md-4 mb-3 mb-md-0",
-              buttons = [{
-                type   = "link",
-                target = url.page _ "/table/",
-                class  = "btn btn-cancel",
-                label  = "Back"
-              }]
+              buttons = []
             }, {
               class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
               buttons = [{

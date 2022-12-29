@@ -1,4 +1,3 @@
-[% INCLUDE layouts/page_header_table.tt; %]
 <div class="content-block__main">
   <form role="form" method="post">
     [%
@@ -17,17 +16,7 @@
       </div>
       
       <div class="content-block__main-content">
-        <div class="card card--secundary">
-          <h4 class="card__title">
-            <span>
-              [%- IF topic.id -%]
-                Edit topic: [% topic.name | html %]
-              [%- ELSE -%]
-                New topic
-              [%- END -%]
-            </span>
-          </h4>
-          
+        <div class="card card--primary mb-3">
           <div class="card__body row">
             <div class="card__content">
               <div class="row">
@@ -41,6 +30,7 @@
                       value       = topic.name
                       type        = "text"
                       filter      = "html"
+                      is_required = 1
                       autofocus   = 1;
                   %]
                 </div>
@@ -111,7 +101,7 @@
                   type   = "link",
                   target = url.page _ "/" _ layout_obj.identifier _ "/topics",
                   class  = "btn btn-cancel",
-                  label  = "Back"
+                  label  = "Cancel"
                 }]
               }, {
                 class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",

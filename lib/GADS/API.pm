@@ -1265,9 +1265,12 @@ sub _error
     error __x $msg;
 }
 
-get '/api/users' => require_any_role [qw/useradmin superadmin/] => sub {
+any ['get', 'post'] => '/api/users' => require_any_role [qw/useradmin superadmin/] => sub {
+    # Allow parameters to be passed by URL query or in the body. Flatten into
+    # one parameters object
+    my $params = Hash::MultiValue->new(query_parameters->flatten, body_parameters->flatten);
 
-    if (query_parameters->get('cols'))
+    if ($params->get('cols'))
     {
         # Get columns to be shown in the users table summary
         my $site = var 'site';
@@ -1284,27 +1287,39 @@ get '/api/users' => require_any_role [qw/useradmin superadmin/] => sub {
         return encode_json \@return;
     }
 
-    my $start  = query_parameters->get('start') || 0;
-    my $length = query_parameters->get('length') || 10;
+    my $start  = $params->get('start') || 0;
+    my $length = $params->get('length') || 10;
 
     my $users     = GADS::Users->new(schema => schema)->user_summary_rs;
     my $total     = $users->count;
-    my $col_order = query_parameters->get('order[0][column]');
-    my $sort_by   = query_parameters->get("columns[$col_order][name]");
-    my $dir       = query_parameters->get('order[0][dir]');
-    my $search    = query_parameters->get('search[value]');
+    my $col_order = $params->get('order[0][column]');
+    my $sort_by   = $params->get("columns[${col_order}][name]");
+    my $dir       = $params->get('order[0][dir]');
+    my $search    = $params->get('search[value]');
 
-    $sort_by =~ /^(surname|firstname|email|id|lastlogin|created|title|organisation|department|team)$/
+    $sort_by =~ /^(ID|Surname|Forename|Title|Email|Organisation|Department|Team|Created|Last login)$/
         or error "Invalid sort";
-    $sort_by = $sort_by eq 'title'
+    $sort_by = $sort_by eq 'ID'
+        ? 'me.id'
+        : $sort_by eq 'Surname'
+        ? 'me.surname'
+        : $sort_by eq 'Forename'
+        ? 'me.firstname'
+        : $sort_by eq 'Title'
         ? 'title.name'
-        : $sort_by eq 'organisation'
+        : $sort_by eq 'Email'
+        ? 'me.email'
+        : $sort_by eq 'Organisation'
         ? 'organisation.name'
-        : $sort_by eq 'department'
+        : $sort_by eq 'Department'
         ? 'department.name'
-        : $sort_by eq 'team'
+        : $sort_by eq 'Team'
         ? 'team.name'
-        : "me.$sort_by";
+        : $sort_by eq 'Created'
+        ? 'me.created'
+        : $sort_by eq 'Last login'
+        ? 'me.lastlogin'
+        : "me.id";
 
     my @sr;
     foreach my $s (split /\s+/, $search)
@@ -1335,7 +1350,7 @@ get '/api/users' => require_any_role [qw/useradmin superadmin/] => sub {
     });
 
     my $return = {
-        draw            => query_parameters->get('draw'),
+        draw            => $params->get('draw'),
         recordsTotal    => $total,
         recordsFiltered => $filtered_count,
         data            => [map $_->for_data_table, $users->all],

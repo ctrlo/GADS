@@ -1,0 +1,60 @@
+[%
+  manage_view_groups = [{ items = [] }];
+  
+  IF layout_obj.user_can("view_create");
+    manage_view_groups.0.items.push({
+        class  = "link--add",
+        target = url.page _ "/" _ layout_obj.identifier _ "/view/0",
+        label  = "Add a view"
+      });
+  END;
+  
+  IF v;
+    IF layout_obj.user_can("view_create");
+      IF v.writable;
+        manage_view_groups.0.items.push({
+          class  = "",
+          target = url.page _ "/" _ layout_obj.identifier _ "/view/" _ v.id,
+          label  = "Edit current view"
+        });
+      END;
+  
+      manage_view_groups.0.items.push({
+        class  = "",
+        target = url.page _ "/" _ layout_obj.identifier _ "/view/0?clone=" _ v.id,
+        label  = "Clone current view"
+      });
+    END;
+  
+    manage_view_groups.0.items.push({
+      type   = "modal"
+      class  = "",
+      target = "alertMeModal",
+      label  = "Alert me"
+    });
+  END;
+  
+  IF layout_obj.user_can("layout");
+    manage_view_groups.0.items.push({
+      type   = "modal"
+      class  = "",
+      target = "viewsOfAnotherUserModal",
+      label  = "Manage views of another user"
+    });
+  END;
+  
+  manage_view_groups.0.items.push({
+    type   = "modal"
+    class  = "",
+    target = "historicViewModal",
+    label  = "Historic view"
+  });
+  
+  INCLUDE snippets/dropdown.tt
+    id             = "manage_views"
+    custom_classes = ""
+    menu_right     = 1
+    label          = "Manage views"
+    filter         = "html"
+    groups         = manage_view_groups;
+%]

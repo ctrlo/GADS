@@ -1,21 +1,14 @@
-<div class="user dropdown">
-  <button
-    class="user__toggle btn btn-default dropdown-toggle"
-    type="button"
-    id="usermenu"
-    data-toggle="dropdown"
-    aria-haspopup="listbox"
-    aria-expanded="false"
-    aria-labelledby="usermenu"
-  >
-    <span>User menu</span>
-  </button>
-  <ul class="user__menu dropdown-menu dropdown-menu-right" aria-labelledby="usermenu" role="listbox">
-    <li class="user__menu-item" role="option">
-      <a class="user__link" href="[% url.page %]/myaccount">My details</a>
+<nav class="[% user_menu_class %]" aria-label="Top">
+  <ul class="user">
+    <li class="user__item">
+      <a class="user__link user__link--details" href="[% url.page %]/myaccount">
+        <span>My details</span>
+      </a>
     </li>
-    <li class="user__menu-item" role="option">
-      <a class="user__link user__link--logout" href="[% url.page %]/logout">Logout</a>
+    <li class="user__item">
+      <a class="user__link user__link--logout" href="[% url.page %]/logout">
+        <span>Logout</span>
+      </a>
     </li>
   </ul>
-</div>
+</nav>

@@ -20,6 +20,16 @@
     </div>
   </div>
 [% ELSE %]
+  <div class="content-block__head row">
+    <div class="content-block__info col-lg-6"></div>
+    
+    <div class="content-block__aside col-lg-6">
+      <a href="[% url.page %]/[% layout.identifier %]/graph/0" class="btn btn-add">
+        Add a graph
+      </a>
+    </div>
+  </div>
+
   <div class="content-block__main">
     <div class="content-block__main-content">
     [%
@@ -76,7 +86,7 @@
       UNLESS hasGraphs;
     %]
     <p>No graphs are selected for display. Please use the
-    <a href="[% url.page %]/[% layout.identifier %]/graphs/">Select graphs</a> button above to add graphs for display.</p>
+    <a href="[% url.page %]/[% layout.identifier %]/graphs/">Manage graphs</a> dropdown above to change which graphs to display.</p>
     [% END %]
     </div>
   </div>

@@ -1,0 +1,68 @@
+[%
+  view_groups = [];
+  
+  IF user_views AND user_views.personal.size;
+    view_items = [];
+  
+    FOREACH ve IN user_views.personal;
+      veid = ve.id;
+  
+      view_items.push({
+        label  = ve.name,
+        target = url.page _ "/" _ layout_obj.identifier _ "/data?view=" _ ve.id _ "&table_clear_state=1",
+        alert  = alerts.$veid ? 1 : 0
+      });
+    END;
+  
+    view_groups.push({
+      label = views_other_user ? "Views of " _ views_other_user.value : "Personal views",
+      items = view_items
+    });
+  END;
+  
+  IF user_views AND user_views.admin.size;
+    view_items = [];
+  
+    FOREACH ve IN user_views.admin;
+      veid = ve.id;
+  
+      view_items.push({
+        label  = ve.name,
+        target = url.page _ "/" _ layout_obj.identifier _ "/data?view=" _ ve.id _ "&table_clear_state=1",
+        alert  = alerts.$veid ? 1 : 0
+      });
+    END;
+  
+    view_groups.push({
+      label = "Administration views",
+      items = view_items
+    });
+  END;
+  
+  IF user_views AND user_views.shared.size;
+    view_items = [];
+  
+    FOREACH ve IN user_views.shared;
+      veid = ve.id;
+  
+      view_items.push({
+        label  = ve.name,
+        target = url.page _ "/" _ layout_obj.identifier _ "/data?view=" _ ve.id _ "&table_clear_state=1",
+        alert  = alerts.$veid ? 1 : 0
+      });
+    END;
+  
+    view_groups.push({
+      label = "Shared views",
+      items = view_items
+    });
+  END;
+  
+  INCLUDE snippets/dropdown.tt
+    id             = "views"
+    custom_classes = "dropdown--large"
+    menu_right     = 0
+    label          = "Current view: " _  (v ? v.name : "All data")
+    filter         = "html"
+    groups         = view_groups;
+%]
