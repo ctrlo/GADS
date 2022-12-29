@@ -5,7 +5,6 @@
   "scripts": {
     "sass": "sass --update --no-source-map sass:public/css/",
     "jshint": "jshint public/js/*.js",
-    "ts": "yarn run webpack --watch",
     "lint": "eslint src",
     "start": "npm-watch"
   },
@@ -52,10 +51,6 @@
     "sass": {
       "patterns": "sass",
       "extensions": "scss"
-    },
-    "ts": {
-      "patterns": "src/dashboard",
-      "extensions": "ts,tsx"
     }
   }
 }
