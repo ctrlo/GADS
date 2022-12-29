@@ -3,7 +3,6 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "rollup": "rollup --config rollup.config.js",
     "sass": "sass --update --no-source-map sass:public/css/",
     "jshint": "jshint public/js/*.js",
     "ts": "yarn run webpack --watch",
@@ -50,10 +49,6 @@
     "rollup-plugin-uglify": "^6.0.4"
   },
   "watch": {
-    "rollup": {
-      "patterns": "src",
-      "extensions": "js"
-    },
     "sass": {
       "patterns": "sass",
       "extensions": "scss"
