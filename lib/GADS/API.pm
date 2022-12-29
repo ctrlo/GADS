@@ -1270,10 +1270,10 @@ any ['get', 'post'] => '/api/users' => require_any_role [qw/useradmin superadmin
     # one parameters object
     my $params = Hash::MultiValue->new(query_parameters->flatten, body_parameters->flatten);
 
+    my $site = var 'site';
     if ($params->get('cols'))
     {
         # Get columns to be shown in the users table summary
-        my $site = var 'site';
         my @cols = qw/surname firstname/;
         push @cols, 'title' if $site->register_show_title;
         push @cols, 'email';
@@ -1353,7 +1353,7 @@ any ['get', 'post'] => '/api/users' => require_any_role [qw/useradmin superadmin
         draw            => $params->get('draw'),
         recordsTotal    => $total,
         recordsFiltered => $filtered_count,
-        data            => [map $_->for_data_table, $users->all],
+        data            => [map $_->for_data_table(site => $site), $users->all],
     };
 
     content_type 'application/json; charset=UTF-8';

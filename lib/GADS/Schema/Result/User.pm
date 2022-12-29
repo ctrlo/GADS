@@ -1047,61 +1047,61 @@ sub _user_value
 }
 
 sub for_data_table
-{   my $self = shift;
-    my $site = $self->site;
+{   my ($self, %params) = @_;
+    my $site = $params{site};
     my $return = {
-        id => {
+        ID => {
             type   => 'id',
             name   => 'ID',
             values => [$self->id]
         },
-        surname => {
+        Surname => {
             type   => 'string',
             name   => 'Surname',
             values => [$self->surname],
         },
-        firstname => {
+        Forename => {
             type   => 'string',
             name   => 'Forename',
             values => [$self->firstname],
         },
-        email => {
+        Email => {
             type   => 'string',
             name   => 'Email',
             values => [$self->email],
         },
-        created => {
+        Created => {
             type   => 'string',
             name   => 'Created',
             values => [$self->created ? $self->created->ymd : 'Unknown'],
         },
-        lastlogin => {
+        'Last login' => {
             type   => 'string',
             name   => 'Last login (GMT)',
             values => [$self->lastlogin ? $self->lastlogin->ymd : 'Never logged in'],
         },
     };
-    $return->{title} = {
+    $return->{Title} = {
         type   => 'string',
         name   => 'Title',
         values => [$self->title && $self->title->name],
     } if $site->register_show_title;
-    $return->{organisation} = {
+    $return->{$site->organisation_name} = {
         type   => 'string',
         name   => $site->organisation_name,
         values => [$self->organisation && $self->organisation->name],
     } if $site->register_show_organisation;
-    $return->{department} = {
+    $return->{$site->department_name} = {
         type   => 'string',
         name   => $site->department_name,
         values => [$self->department && $self->department->name],
     } if $site->register_show_department;
-    $return->{team} = {
+    $return->{$site->team_name} = {
         type   => 'string',
         name   => $site->team_name,
         values => [$self->team && $self->team->name],
     } if $site->register_show_team;
-    $return->{freetext1} = {
+    $return->{$site->register_freetext1_name} = {
         type   => 'string',
         name   => $site->register_freetext1_name,
         values => [$self->freetext1],
