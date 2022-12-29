@@ -1152,7 +1152,20 @@ sub _get_records {
         my $data;
         $data->{$_->id} = $rec->fields->{$_->id}->for_table
             foreach @{$records->columns_render};
+        $data->{_count} = $rec->id_count
+            if $records->is_group;
         push @{$return->{data}}, $data;
+    }
+
+    if ($records->is_group)
+    {
+        # If this is a grouped view, return the actual number of rendered rows
+        # in the normal records parameter, and return the total number of
+        # individual records in a new parameter
+        my $count = @{$return->{data}};
+        $return->{recordsTotalUngrouped} = $records->count;
+        $return->{recordsTotal}          = $count;
+        $return->{recordsFiltered}       = $count;
     }
 
     content_type 'application/json; charset=UTF-8';
