@@ -1,172 +1,185 @@
 [%
-  INCLUDE layouts/page_header_table.tt
-    title       = "Permissions"
-    description = "Here you can set the table actions available to each user group."
-    aside_buttons = [];
+  INCLUDE navigation/edit_table_top_bar.tt;
+  INCLUDE snippets/message_center.tt;
 %]
 <div class="content-block__main">
-  <div class="content-block__main-content">
-    <form method="post" class="">
-      [%
-        INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
-      
-        FOREACH group IN groups;
-      %]
-      <div class="row mb-3">
-        <div class="col">
-          <div class="card card--expandable">
-            <div class="card__header">
-              <button class="card__header-left" type="button" data-toggle="collapse" data-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
-                <span class="card__title">
-                  Group
-                  <span class="card__subtitle">
-                    [% group.name | html %]
-                  </span>
-                </span>
-              </button>
-              <div class="card__header-right">
-                <button class="card__toggle" type="button" data-toggle="collapse" data-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
-                  <span>Toggle collapsible</span>
-                </button>
+  <form method="post" class="">
+    [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+    <fieldset class="fieldset">
+      <div class="fieldset__legend fieldset__legend--hidden">
+        <legend>
+          Table permissions
+        </legend>
+      </div>
+      <div class="content-block__main-content">
+        <div class="card card--primary mb-3">
+          <h4 class="card__title">
+            <span> Table permissions </span>
+          </h4>
+          <div class="card__body row">
+            <div class="card__content">
+              <p>Here you can set the table actions available to each user group.</p>
+              [% FOREACH group IN groups; %]
+              <div class="row mb-3 permission-group" data-group-id="[% group.id %]">
+                <div class="col">
+                  <div class="card card--expandable">
+                    <div class="card__header">
+                      <button class="card__header-left" type="button" data-toggle="collapse" data-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
+                        <span class="card__title">
+                          Group
+                          <span class="card__subtitle">
+                            [% group.name | html %]
+                          </span>
+                        </span>
+                      </button>
+                      <div class="card__header-right">
+                        <button class="card__toggle" type="button" data-toggle="collapse" data-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
+                          <span>Toggle collapsible</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="collapse" id="group_permissions_[% group.id %]">
+                      <div class="card__content">
+                        <div class="row mb-3">
+                          <div class="col">
+                            [%
+                              INCLUDE fields/checkbox_list.tt
+                                fieldset_name = "records"
+                                list_class    = "list--horizontal list--no-borders list--checkboxes"
+                                name          = "permissions"
+                                label         = "Record permissions"
+                                items         = [{
+                                  id = group.id _ "_delete" ,
+                                  name = "Delete records ",
+                                  field_id = group.id _ "_delete_records",
+                                  is_checked = layout_obj.group_has(group.id, 'delete') ? 1 : 0
+                                }, {
+                                  id = group.id _ "_purge" ,
+                                  name = "Purge deleted records",
+                                  field_id = group.id _ "_purge_deleted_records",
+                                  is_checked = layout_obj.group_has(group.id, 'purge') ? 1 : 0
+                                }, {
+                                  id = group.id _ "_download" ,
+                                  name = "Download records",
+                                  field_id = group.id _ "_download_records",
+                                  is_checked = layout_obj.group_has(group.id, 'download') ? 1 : 0
+                                }, {
+                                  id = group.id _ "_bulk_import" ,
+                                  name = "Bulk import records",
+                                  field_id = group.id _ "_bulk_import",
+                                  is_checked = layout_obj.group_has(group.id, 'bulk_import') ? 1 : 0
+                                }, {
+                                  id = group.id _ "_bulk_update" ,
+                                  name = "Bulk update records",
+                                  field_id = group.id _ "_bulk_update",
+                                  is_checked = layout_obj.group_has(group.id, 'bulk_update') ? 1 : 0
+                                }, {
+                                  id = group.id _ "_bulk_delete" ,
+                                  name = "Bulk delete records",
+                                  field_id = group.id _ "_bulk_delete",
+                                  is_checked = layout_obj.group_has(group.id, 'bulk_delete') ? 1 : 0
+                                },{
+                                  id = group.id _ "_link" ,
+                                  name = "Manage linked records",
+                                  field_id = group.id _ "_manage_linked_records",
+                                  is_checked = layout_obj.group_has(group.id, 'link') ? 1 : 0
+                                }, {
+                                  id = group.id _ "_create_child",
+                                  name = "Manage child records",
+                                  field_id = group.id _ "_create_child",
+                                  is_checked = layout_obj.group_has(group.id, 'create_child') ? 1 : 0
+                                }]
+                                hide_group = 1;
+                            %]
+                          </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                          <div class="col">
+                            [%
+                              INCLUDE fields/checkbox_list.tt
+                                fieldset_name = "views"
+                                list_class    = "list--horizontal list--no-borders list--checkboxes"
+                                name          = "permissions"
+                                label         = "View permissions"
+                                items         = [{
+                                  id = group.id _ "_view_create" ,
+                                  name = "Manage views",
+                                  field_id = group.id _ "_view_create",
+                                  is_checked = layout_obj.group_has(group.id, 'view_create') ? 1 : 0
+                                }, {
+                                  id = group.id _ "_view_group" ,
+                                  name = "Manage group views",
+                                  field_id = group.id _ "_view_group",
+                                  is_checked = layout_obj.group_has(group.id, 'view_group') ? 1 : 0
+                                }, {
+                                  id = group.id _ "_view_limit_extra" ,
+                                  name = "Select extra view limits",
+                                  field_id = group.id _ "_view_limit_extra",
+                                  is_checked = layout_obj.group_has(group.id, 'view_limit_extra') ? 1 : 0
+                                }]
+                                hide_group = 1;
+                            %]
+                          </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                          <div class="col">
+                            [%
+                              INCLUDE fields/checkbox_list.tt
+                                fieldset_name = "fields"
+                                list_class    = "list--horizontal list--no-borders list--checkboxes"
+                                name          = "permissions"
+                                label         = "Field permissions"
+                                items         = [{
+                                  id = group.id _ "_layout" ,
+                                  name = "Manage fields",
+                                  field_id = group.id _ "_layout",
+                                  is_checked = layout_obj.group_has(group.id, 'layout') ? 1 : 0
+                                }, {
+                                  id = group.id _ "_message" ,
+                                  name = "Send messages",
+                                  field_id = group.id _ "_message",
+                                  is_checked = layout_obj.group_has(group.id, 'message') ? 1 : 0
+                                }]
+                                hide_group = 1;
+                            %]
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div class="collapse" id="group_permissions_[% group.id %]">
-              <div class="card__content">
-                <div class="row mb-3">
-                  <div class="col">
-                    [%
-                      INCLUDE fields/checkbox_list.tt
-                        fieldset_name = "records"
-                        list_class    = "list--horizontal list--no-borders list--checkboxes"
-                        name          = "permissions"
-                        label         = "Record permissions"
-                        items         = [{
-                          id = group.id _ "_delete" ,
-                          name = "Delete records ",
-                          field_id = group.id _ "_delete_records",
-                          is_checked = layout_obj.group_has(group.id, 'delete') ? 1 : 0
-                        }, {
-                          id = group.id _ "_purge" ,
-                          name = "Purge deleted records",
-                          field_id = group.id _ "_purge_deleted_records",
-                          is_checked = layout_obj.group_has(group.id, 'purge') ? 1 : 0
-                        }, {
-                          id = group.id _ "_download" ,
-                          name = "Download records",
-                          field_id = group.id _ "_download_records",
-                          is_checked = layout_obj.group_has(group.id, 'download') ? 1 : 0
-                        }, {
-                          id = group.id _ "_bulk_import" ,
-                          name = "Bulk import records",
-                          field_id = group.id _ "_bulk_import",
-                          is_checked = layout_obj.group_has(group.id, 'bulk_import') ? 1 : 0
-                        }, {
-                          id = group.id _ "_bulk_update" ,
-                          name = "Bulk update records",
-                          field_id = group.id _ "_bulk_update",
-                          is_checked = layout_obj.group_has(group.id, 'bulk_update') ? 1 : 0
-                        }, {
-                          id = group.id _ "_bulk_delete" ,
-                          name = "Bulk delete records",
-                          field_id = group.id _ "_bulk_delete",
-                          is_checked = layout_obj.group_has(group.id, 'bulk_delete') ? 1 : 0
-                        },{
-                          id = group.id _ "_link" ,
-                          name = "Manage linked records",
-                          field_id = group.id _ "_manage_linked_records",
-                          is_checked = layout_obj.group_has(group.id, 'link') ? 1 : 0
-                        }, {
-                          id = group.id _ "_create_child",
-                          name = "Manage child records",
-                          field_id = group.id _ "_create_child",
-                          is_checked = layout_obj.group_has(group.id, 'create_child') ? 1 : 0
-                        }]
-                        hide_group = 1;
-                    %]
-                  </div>
-                </div>
-                
-                <div class="row mb-3">
-                  <div class="col">
-                    [%
-                      INCLUDE fields/checkbox_list.tt
-                        fieldset_name = "views"
-                        list_class    = "list--horizontal list--no-borders list--checkboxes"
-                        name          = "permissions"
-                        label         = "View permissions"
-                        items         = [{
-                          id = group.id _ "_view_create" ,
-                          name = "Manage views",
-                          field_id = group.id _ "_view_create",
-                          is_checked = layout_obj.group_has(group.id, 'view_create') ? 1 : 0
-                        }, {
-                          id = group.id _ "_view_group" ,
-                          name = "Manage group views",
-                          field_id = group.id _ "_view_group",
-                          is_checked = layout_obj.group_has(group.id, 'view_group') ? 1 : 0
-                        }, {
-                          id = group.id _ "_view_limit_extra" ,
-                          name = "Select extra view limits",
-                          field_id = group.id _ "_view_limit_extra",
-                          is_checked = layout_obj.group_has(group.id, 'view_limit_extra') ? 1 : 0
-                        }]
-                        hide_group = 1;
-                    %]
-                  </div>
-                </div>
-                
-                <div class="row mb-3">
-                  <div class="col">
-                    [%
-                      INCLUDE fields/checkbox_list.tt
-                        fieldset_name = "fields"
-                        list_class    = "list--horizontal list--no-borders list--checkboxes"
-                        name          = "permissions"
-                        label         = "Field permissions"
-                        items         = [{
-                          id = group.id _ "_layout" ,
-                          name = "Manage fields",
-                          field_id = group.id _ "_layout",
-                          is_checked = layout_obj.group_has(group.id, 'layout') ? 1 : 0
-                        }, {
-                          id = group.id _ "_message" ,
-                          name = "Send messages",
-                          field_id = group.id _ "_message",
-                          is_checked = layout_obj.group_has(group.id, 'message') ? 1 : 0
-                        }]
-                        hide_group = 1;
-                    %]
-                  </div>
-                </div>
-              </div>
+              [% END; %]
+
             </div>
           </div>
         </div>
       </div>
-    [%
-      END;
       
-      INCLUDE navigation/button_bar.tt
-        row_class = "row mt-5"
-        columns = [{
-          class = "col-sm-auto mb-3 mb-sm-0",
-          buttons = [{
-            type = "link",
-            class = "btn btn-cancel",
-            target = url.page _ "/table",
-            label = "Back"
-          }]
-        }, {
-          class = "col-sm-auto",
-          buttons = [{
-            type  = "button",
-            name  = "submit",
-            value = "submit",
-            class = "btn btn-default",
-            label = "Save permissions"
-          }]
-        }];
-      %]
-    </form>
-  </div>
+      <footer class="content-block__footer">
+        <div class="content-block__footer-container">
+          [%
+            INCLUDE navigation/button_bar.tt
+              row_class = "row"
+              columns   = [{
+                class   = "col-md-4 mb-3 mb-md-0",
+                buttons = []
+              }, {
+                class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
+                buttons = [{
+                  type  = "button",
+                  class = "btn btn-default"
+                  id    = "submit"
+                  name  = "submit"
+                  value = "submit"
+                  label = "Save"
+                }]
+              }];
+          %]
+        </div>
+      </footer>
+    </fieldset>
+  </form>
 </div>

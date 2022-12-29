@@ -38,10 +38,6 @@
       }]
     });
   END;
-
-  INCLUDE layouts/page_header.tt
-    title="Import rows for import " _ import_id
-    description="";
 %]
 
 <div class="content-block__main">

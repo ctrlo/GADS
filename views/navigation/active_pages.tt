@@ -1,9 +1,10 @@
 [%
   # edit table menu
   # ---------------
-  manage_table_active_pages  = ["table_edit"];
-  manage_topics_active_pages = ["topics", "topic_add", "topic_edit"];
-  manage_fields_active_pages = ["layouts", "layout"];
+  manage_table_active_pages       = ["table_edit"];
+  manage_topics_active_pages      = ["topics"];
+  manage_fields_active_pages      = ["layouts"];
+  manage_permissions_active_pages = ["table_permissions"];
 
   # table top bar menu
   # ------------------
@@ -15,6 +16,7 @@
     "data_calender",
     "graphs",
     "graph",
+    "metrics",
     "metric",
     "view",
     "view/0",
@@ -22,18 +24,19 @@
     "bulk",
     "edit", # internal designation for record view, edit
     "link",
+    "imports",
     "import",
+    "import/row",
     "chronology",
   ];
-  edit_table_active_pages = manage_table_active_pages.merge(manage_topics_active_pages, manage_fields_active_pages);
+  edit_table_active_pages = manage_table_active_pages.merge(manage_topics_active_pages, manage_fields_active_pages, manage_permissions_active_pages);
   table_dashboard_active_pages = ["table_index"];
-  table_permissions_active_pages = ["table_permissions"];
 
   # main menu
   # ---------
   dashboard_active_pages = ["index"];
   table_active_pages = ["table"];
-  table_active_pages = table_active_pages.merge(records_active_pages, edit_table_active_pages, table_dashboard_active_pages, table_permissions_active_pages);
+  table_active_pages = table_active_pages.merge(records_active_pages, edit_table_active_pages, table_dashboard_active_pages);
   # user is used on multiple pages (user overview, user account requests, user edit, user import, user export)
   users_active_pages = ["user"];
   # group is used on multiple pages (group overview, group edit, group add)

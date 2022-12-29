@@ -1,4 +1,3 @@
-[% title = record.current_id ? "Record ID " _ record.current_id : "Add a linked record"; %]
 <div class="content-block__main">
   <form role="form" method="post">
     <input type="hidden" name="csrf_token" value="[% csrf_token %]">
@@ -18,10 +17,6 @@
       
       <div class="content-block__main-content">
         <div class="card card--secundary">
-          <h4 class="card__title">
-            <span>[% title %]</span>
-          </h4>
-          
           <div class="card__body row">
             <div class="card__content">
               <div class="row">

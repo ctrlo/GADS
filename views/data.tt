@@ -1,5 +1,8 @@
 [%
-  INCLUDE layouts/page_header_records.tt;
+  IF ! page_as_mech;
+    INCLUDE navigation/records_top_bar.tt;
+    INCLUDE snippets/message_center.tt;
+  END;
 
   IF viewtype == "graph";
     INCLUDE 'data_graph.tt';

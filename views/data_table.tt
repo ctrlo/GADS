@@ -1,4 +1,15 @@
 [% FILTER collapse %]
+
+<div class="content-block__head row">
+  <div class="content-block__info col-lg-6"></div>
+  
+  <div class="content-block__aside col-lg-6">
+    <a href="[% url.page %]/[% layout.identifier %]/record/" class="btn btn-add">
+      Add a record
+    </a>
+  </div>
+</div>
+
 <div class="content-block__main">
   <div class="content-block__main-content">
     [% IF has_rag_column %]
@@ -12,7 +23,7 @@
       table_class        = (table_clear_state ? 'table-clear-state ' : '') _ 'table-striped table-hover table-search';
       table_dom          = '<\"row row--header\"<\"col\"' _ (session.rewind ? '' : 'f') _ '><\"col-lg-auto dataTables_length_wrapper\"l>><\"row row--main\"<\"col-sm-12\"tr>><\"row row--footer\"<\"col-sm-12 col-lg-6\"p><\"col-sm-12 col-lg-6 dataTables_info_wrapper\"i>>';
       table_ajax         = url.page _ "/api/" _ layout.identifier _ "/records?csrf-token=" _ csrf_token;
-      table_ajax_target  = url.page _ "/" _ layout.identifier; # will be suffixed with "/record/{id}" by JS
+      table_ajax_target  = url.page _ "/" _ layout.identifier _ "/record"; # will be appended with /{id} by JS
       table_order        = '';
       table_language     = '{"emptyTable": "There is no records available","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"","searchPlaceholder":"Search in this table"}';
       table_page_length  = 50;

@@ -1,0 +1,40 @@
+[% PROCESS navigation/active_pages.tt; %]
+<div class="content-block__navigation">
+  <div class="content-block__navigation-left">
+    <div class="list list--horizontal list--no-borders">
+        [%
+          edit_table_buttons = [{
+            type        = "link",
+            target      = url.page _ "/table/" _ layout_obj.instance_id _ "/edit",
+            class       = "link link--primary" _ page_is_active(manage_table_active_pages, "link--active"),
+            label       = "General settings"
+          },{
+            type        = "link",
+            target      = url.page _ "/" _ layout_obj.identifier _ "/topics",
+            class       = "link link--primary" _ page_is_active(manage_topics_active_pages, "link--active"),
+            label       = "Topics"
+          }];
+      
+          IF user.permission.superadmin;
+            edit_table_buttons.push({
+              type        = "link",
+              target      = url.page _ "/table/" _ layout_obj.instance_id _ "/permissions",
+              class       = "link link--primary" _ page_is_active(manage_permissions_active_pages, "link--active"),
+              label       = "Permissions"
+            });
+          END;
+      
+          edit_table_buttons.push({
+            type        = "link",
+            target      = url.page _ "/" _ layout_obj.identifier _ "/layout",
+            class       = "link link--primary" _ page_is_active(manage_fields_active_pages, "link--active"),
+            label       = "Fields"
+          });
+        
+          INCLUDE snippets/button_list.tt
+            list_class = "list--horizontal list--no-borders"
+            buttons    = edit_table_buttons;
+        %]
+    </div>
+  </div>
+</div>

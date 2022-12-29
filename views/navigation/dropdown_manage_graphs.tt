@@ -1,0 +1,17 @@
+[%
+  INCLUDE snippets/dropdown.tt
+    id             = "manage_graphs"
+    custom_classes = ""
+    menu_right     = 1
+    label          = "Manage graphs"
+    filter         = "html"
+    groups         = [{
+      items = [{
+        label  = "Manage graphs",
+        target = url.page _ "/" _ layout_obj.identifier _ "/graphs/"
+      }, {
+        label  = "Metrics",
+        target = url.page _ "/" _ layout_obj.identifier _ "/metrics/"
+      }]
+    }];
+%]

@@ -1,0 +1,78 @@
+[%
+  # record
+  IF page == 'edit';
+    IF NOT record.new_entry;
+      page_title = "Record ID: " _ record.current_id;
+      
+      IF record.deleted;
+        page_title = page_title _ " (deleted)";
+      END;
+      
+      IF record.parent_id;
+        page_title _ "<small>(child of record " _ record.parent_id _ ")</small>";
+      END;
+
+      page_title;
+    ELSIF child;
+      "Create child record of " _ child;
+    ELSIF clone;
+      "New record copied from record ID " _ clone;
+    ELSE;
+      "New record";
+    END;
+
+
+  # bulk record actions
+  ELSIF page == 'bulk';
+    bulk_type ? "Bulk " _ bulk_type _ " records" : "";
+
+
+  # view
+  ELSIF page == 'view';
+    "Edit view: " _ view_edit.name;
+  ELSIF page == 'view/clone';
+    "Clone view";
+  ELSIF page == 'view/0';
+    "Add view";
+  
+
+  # graph
+  ELSIF page == 'graphs';
+    "Manage graphs";
+  ELSIF page == 'graph';
+    graph.id ? "Edit graph" : "Add graph";
+
+
+  # metrics
+  ELSIF page == 'metrics';
+    "Metrics";
+  ELSIF page == 'metric';
+    metricgroup.id ? "Edit metric" : "Add metric";
+
+
+  # link a record
+  ELSIF page == 'link';
+    record.current_id ? "Record ID " _ record.current_id : "Add a linked record";
+
+
+  # import records
+  ELSIF page == 'imports';
+    "Import records";
+  ELSIF page == 'import';
+    "Upload";
+  ELSIF page == 'import/row';
+    "Imported rows for import " _ import_id;
+
+  # Edit table: topics
+  ELSIF page == 'topic_edit';
+    "Edit topic: " _ topic.name;
+  ELSIF page == 'topic_add';
+    "New topic";
+
+
+  # Edit table: fields
+  ELSIF page == 'layout';
+    column.id ? 'Edit field: ' _ column.name : 'Add a field';
+
+  END;
+%]

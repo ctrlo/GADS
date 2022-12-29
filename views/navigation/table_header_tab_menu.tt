@@ -1,0 +1,15 @@
+<div class="list list--tabs">
+  <ul class="list__items">
+    <li class="list__item[% page_is_active(records_active_pages, ' list__item--active'); %]">
+      <a href='[% url.page %]/[% layout_obj.identifier %]/data?table_clear_state=1' class='link link--plain'><span>Records</span></a>
+    </li>
+    
+    <li class="list__item[% page_is_active(table_dashboard_active_pages, ' list__item--active'); %]">
+      <a href='[% url.page %]/[% layout_obj.identifier %]/' class='link link--plain'><span>Dashboard</span></a>
+    </li>
+    
+    <li class="list__item[% page_is_active(edit_table_active_pages, ' list__item--active'); %]">
+      <a href='[% url.page %]/table/[% layout_obj.instance_id %]/edit' class='link link--plain'><span>Edit table</span></a>
+    </li>
+  </ul>
+</div>

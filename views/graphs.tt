@@ -2,7 +2,7 @@
   [%
     # add standardized page header
     INCLUDE layouts/page_header.tt
-      title         = "Manage graphs"
+      title         = ""
       description   = "Use this page to configure what graphs are displayed on your home page. New graphs can only be added by an administrator."
       aside_buttons = [{
        type   = "link"
@@ -112,7 +112,12 @@
           row_class = "row"
           columns   = [{
             class   = "col-md-4 mb-3 mb-md-0",
-            buttons = []
+            buttons = [{
+              type = "link",
+              class = "btn btn-cancel",
+              target = url.page _ "/" _ layout_obj.identifier _ "/data",
+              label = "Cancel"
+            }]
           }, {
             class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
             buttons = [{

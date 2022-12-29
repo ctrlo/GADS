@@ -16,14 +16,6 @@
     link  = "/{table_short_name}/"
   }];
 
-  IF user.permission.superadmin;
-    table_width = table_width - 7.5;
-    table_buttons.push({
-      label = "Permissions"
-      link  = "/table/{table_id}/permissions"
-    });
-  END;
-
   IF user.permission.superadmin OR layout.user_can("layout");
     table_width = table_width - 7.5;
     table_buttons.push({

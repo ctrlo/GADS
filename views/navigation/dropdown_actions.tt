@@ -1,0 +1,82 @@
+[%
+  bulk_action_groups = [{ items = [] }];
+  
+  IF page == "data_timeline";
+    bulk_action_groups.0.items.push({
+      type   = "modal",
+      id     = "timeline_options",
+      class  = "",
+      target = "timelineOptionsModal",
+      label  = "Timeline options"
+    });
+  END;
+
+  IF layout_obj.user_can("link") AND show_link;
+    bulk_action_groups.0.items.push({
+      id     = "",
+      class  = "",
+      target = url.page _ "/" _ layout_obj.identifier _ "/link/",
+      label  = "Add a linked record"
+    });
+  END;
+
+  IF layout_obj.user_can("bulk_import");
+    bulk_action_groups.0.items.push({
+      id     = "",
+      class  = "",
+      target = url.page _ "/" _ layout_obj.identifier _ "/import/",
+      label  = "Import records"
+    });
+  END;
+
+  IF search;
+    sel_type = "records in this search";
+  ELSIF viewtype == "timeline";
+    sel_type = "selected records";
+  ELSE;
+    sel_type = "records in this view";
+  END;
+
+  IF layout_obj.user_can("delete") AND layout_obj.user_can("bulk_delete");
+    bulk_action_groups.0.items.push({
+      type   = "modal",
+      id     = "delete_href",
+      class  = "bulk_href",
+      target = "modal_delete",
+      label  = "Delete all " _ sel_type
+    });
+  END;
+
+  IF layout_obj.user_can("bulk_update");
+    bulk_action_groups.0.items.push({
+      id     = "update_href",
+      class  = "bulk_href",
+      target = url.page _ "/" _ layout_obj.identifier _ "/bulk/update/",
+      label  = "Update all " _ sel_type
+    },{
+      id     = "clone_href",
+      class  = "bulk_href",
+      target = url.page _ "/" _ layout_obj.identifier _ "/bulk/clone/",
+      label  = "Clone all " _ sel_type
+    });
+  END;
+
+  IF viewtype == "table" AND count AND layout_obj.user_can("download");
+    bulk_action_groups.0.items.push({
+      id     = "",
+      class  = "",
+      target = url.page _ "/" _ layout_obj.identifier _ "/data?download" _ (filter_url ? "&" _ filter_url : "" ),
+      label  = "Download records"
+    });
+  END;
+
+  IF bulk_action_groups.0.items.size;
+    INCLUDE snippets/dropdown.tt
+      id             = "bulk_actions"
+      custom_classes = ""
+      menu_right     = 1
+      label          = "Actions"
+      filter         = "html"
+      groups         = bulk_action_groups;
+  END;
+%]
