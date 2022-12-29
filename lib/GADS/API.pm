@@ -1152,8 +1152,11 @@ sub _get_records {
         my $data;
         $data->{$_->id} = $rec->fields->{$_->id}->for_table
             foreach @{$records->columns_render};
-        $data->{_count} = $rec->id_count
-            if $records->is_group;
+        $data->{_count} = {
+            column_id => '_count',
+            values    => [$rec->id_count." records"],
+            type      => 'string'
+        } if $records->is_group;
         push @{$return->{data}}, $data;
     }
 

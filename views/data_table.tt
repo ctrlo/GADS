@@ -34,9 +34,15 @@
       rows               = [];
       processed_columns  = [];
     
-      # IF is_group;
-      #   table_columns.push({});
-      # END;
+      IF is_group;
+        table_columns.push({
+          name = '_count',
+          title = 'Record count',
+          type = 'integer',
+          orderable = 0,
+          filter = "html"
+        });
+      END;
   
       col_counter = 0;
     
