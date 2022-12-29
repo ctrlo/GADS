@@ -3,7 +3,6 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "sass": "sass --update --no-source-map sass:public/css/",
     "jshint": "jshint public/js/*.js",
     "lint": "eslint src",
     "start": "npm-watch"
@@ -47,10 +46,5 @@
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-uglify": "^6.0.4"
   },
-  "watch": {
-    "sass": {
-      "patterns": "sass",
-      "extensions": "scss"
-    }
-  }
+  "watch": { }
 }
