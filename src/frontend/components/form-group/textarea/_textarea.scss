@@ -1,0 +1,36 @@
+.textarea {
+  position: relative;
+
+  .form-control {
+    @include form-control;
+
+    margin-top: 0.5rem;
+  }
+
+  .textarea__label {
+    display: flex;
+    padding-right: 0.5rem;
+  }
+
+  label {
+    @include form-label;
+  }
+
+  .form-control[disabled] {
+    @include form-control-disabled;
+  }
+
+  &.invalid label {
+    color: $brand-danger;
+  }
+}
+
+.textarea--monospace {
+  .form-control {
+    font-family: monospace;
+  }
+}
+
+.textarea--required label::after {
+  content: "*";
+}

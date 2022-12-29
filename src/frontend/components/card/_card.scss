@@ -1,0 +1,193 @@
+.card {
+  @include card;
+}
+
+.card__body {
+  margin: -$padding-large-vertical (-$padding-base-horizontal) 0;
+
+  & > * {
+    padding: 0 $padding-base-horizontal;
+  }
+}
+
+.card__title {
+  @include font-style-h3;
+
+  display: flex;
+  margin: 0 0 $padding-base-vertical;
+  color: $gray-extra-dark;
+
+  &:not(:first-child) {
+    margin-top: $padding-large-vertical;
+  }
+}
+
+.card__image,
+.card__content {
+  margin-top: $padding-large-vertical;
+}
+
+.card__image {
+  flex: 1 1 186px;
+
+  img {
+    width: 100%;
+    height: auto;
+  }
+}
+
+.card__content {
+  flex: 100%;
+}
+
+.card--primary,
+.card--secundary,
+.card--record {
+  border: 0;
+  border-radius: 0;
+}
+
+// card primary
+.card--primary > .card__title {
+  color: $brand-primary;
+}
+
+// card secundary
+.card--secundary {
+  .card__title {
+    color: $brand-secundary;
+  }
+}
+
+// card help
+.card--help {
+  line-height: 1.5;
+}
+
+// card record
+.card--record {
+  padding: $padding-base-vertical;
+
+  h3 {
+    margin-bottom: $padding-large-vertical;
+    color: $brand-secundary;
+  }
+
+  .list__item {
+    &:nth-child(2) {
+      margin-bottom: 1rem;
+    }
+
+    &:nth-child(4) {
+      margin-bottom: 1.5rem;
+    }
+  }
+}
+
+// card header
+.card--header {
+  border-radius: 0;
+
+  &:not(:last-of-type) {
+    margin-bottom: $padding-base-vertical;
+  }
+
+  .card__header {
+    margin: (-$padding-base-vertical) (-$padding-base-horizontal) $padding-base-vertical;
+    padding: $padding-base-vertical $padding-base-horizontal;
+    background-color: $brand-primary;
+    color: $white;
+  }
+
+  .card__title {
+    margin-top: 0;
+    color: $brand-secundary;
+  }
+
+  .list--key-value:not(:last-of-type) {
+    margin-bottom: 1.5rem;
+  }
+}
+
+// card inside dashboard widget
+.dashboard__widget .card {
+  height: 100%;
+}
+
+@include media-breakpoint-up(md) {
+  .card__image {
+    flex: 2 0 186px;
+  }
+
+  .card__content {
+    flex: 10 1 200px;
+  }
+
+  .card--primary > .card__title {
+    font-size: $font-size-lg;
+  }
+}
+
+// card settings
+.card--settings {
+  height: 100%;
+  border: 0;
+
+  .card__title {
+    color: $brand-secundary;
+  }
+
+  .card__title span {
+    transition: border-bottom 0.3s ease-in-out;
+    border-bottom: solid 1px transparent;
+  }
+
+  .card__content {
+    color: $gray-extra-dark;
+  }
+
+  .card__title-icon {
+    &::before {
+      @extend %icon-font;
+
+      content: "";
+      margin-right: 0.5rem;
+      color: $brand-secundary;
+      font-size: 1.25rem;
+    }
+  }
+
+  &:hover {
+    .card__title span {
+      border-bottom: solid 1px $brand-secundary;
+    }
+  }
+
+  .card__title-icon--user::before {
+    content: "\E81a";
+  }
+
+  .card__title-icon--organisation::before {
+    content: "\E827";
+  }
+
+  .card__title-icon--department::before {
+    content: "\E820";
+  }
+
+  .card__title-icon--groups::before {
+    content: "\E80e";
+  }
+
+  .card__title-icon--table::before {
+    content: "\E817";
+  }
+
+  .card__title-icon--email::before {
+    content: "\E81c";
+  }
+
+  .card__title-icon--settings::before {
+    content: "\E814";
+  }
+}

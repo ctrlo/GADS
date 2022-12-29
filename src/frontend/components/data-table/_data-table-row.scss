@@ -1,0 +1,140 @@
+.data-table .data-table-row--child {
+  position: relative;
+  padding-left: 2rem;
+
+  &::after {
+    @extend %icon-font;
+
+    content: "\E806";
+    position: absolute;
+    top: 50%;
+    left: $padding-base-horizontal;
+    margin-right: 0.5rem;
+    transform: translateY(-50%);
+    font-size: 0.9em;
+  }
+}
+
+/* stylelint-disable selector-no-qualifying-type */
+
+/* Necessary to overrule default styling */
+table.dataTable {
+  // Replace the collapse control with an arrow
+  &.dtr-column > tbody > tr > td.dtr-control::before,
+  &.dtr-column > tbody > tr > th.dtr-control::before {
+    @extend %icon-font;
+
+    content: "\E805";
+    position: absolute;
+    top: 1.3rem;
+    right: $padding-small-horizontal;
+    left: auto;
+    margin: 0 0.5rem 0 0;
+    transform: rotate(90deg);
+    border: 0;
+    background-color: $transparent;
+    box-shadow: none;
+    color: $gray-extra-dark;
+    font-size: 0.9em;
+  }
+
+  &.dtr-column > tbody > tr.parent > td.dtr-control::before,
+  &.dtr-column > tbody > tr.parent > th.dtr-control::before {
+    content: "\E805";
+    transform: rotate(-90deg);
+    background-color: $transparent;
+  }
+
+  & > tbody > tr.child ul.dtr-details > li {
+    border-bottom: none;
+  }
+
+  & > tbody > tr.child span.dtr-title {
+    min-width: auto;
+  }
+
+  &.dtr-column > tbody > tr > td.dtr-control.data-table-row--child,
+  &.dtr-column > tbody > tr > th.dtr-control.data-table-row--child {
+    padding-left: 4rem;
+
+    &::after {
+      left: 2rem;
+    }
+  }
+
+  td.reorder {
+    text-align: right;
+    cursor: move;
+
+    span {
+      @include visually-hidden;
+    }
+
+    &::before {
+      @extend %icon-font;
+
+      content: "\E829";
+    }
+  }
+}
+
+.table-striped {
+  border-bottom: 1px solid $gray;
+
+  tbody tr:nth-of-type(odd) {
+    background-color: $transparent;
+  }
+
+  tbody tr.odd,
+  tbody tr.odd + tr.child {
+    background-color: $gray-light;
+  }
+
+  /* stylelint-disable declaration-no-important */
+
+  /* Necessary to overrule default styling */
+  tbody tr.odd + tr.child:hover {
+    background-color: $gray-light !important;
+  }
+
+  &.table-lines {
+    border-bottom: none;
+  }
+}
+
+.table-hover {
+  tbody tr.odd:hover {
+    background-color: rgba($brand-secundary, 0.2);
+    cursor: pointer;
+  }
+
+  tbody td .link {
+    display: block;
+    margin: -$padding-base-vertical;
+    padding: $padding-base-vertical $padding-base-horizontal;
+    transition: none;
+    border-bottom: none;
+    color: $gray-extra-dark;
+
+    &:hover,
+    &:active,
+    &:focus {
+      border-bottom: none;
+      color: $gray-extra-dark;
+    }
+  }
+
+  tbody td.child .dtr-data .link {
+    margin: 0;
+    padding: 0;
+  }
+
+  tbody tr:hover {
+    cursor: pointer;
+  }
+
+  tbody tr.tr--focus,
+  tbody tr.odd.tr--focus {
+    background-color: rgba($brand-secundary, 0.2);
+  }
+}

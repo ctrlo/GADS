@@ -1,0 +1,141 @@
+.card--expandable {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+
+  .card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card__title {
+    flex-wrap: wrap;
+    margin-bottom: 0;
+    transition: 0.2s all ease;
+    border-bottom: 1px solid $transparent;
+    color: $brand-secundary;
+  }
+
+  .card__subtitle {
+    display: block;
+    flex: 0 0 100%;
+    transition: 0.2s all ease;
+    color: $text-color;
+    font-weight: normal;
+    text-align: left;
+  }
+
+  .card__header-left {
+    display: flex;
+    flex: 1;
+    padding: $padding-base-vertical;
+    border: 0;
+    background-color: $transparent;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .card__header-right {
+    display: flex;
+    padding-right: $padding-base-vertical;
+  }
+
+  .card__toggle {
+    padding: 0;
+    border: 0;
+    background-color: $white;
+    line-height: $headings-line-height;
+
+    span {
+      @include visually-hidden;
+    }
+
+    &::after {
+      @extend %icon-font;
+
+      content: "\E805";
+      margin-left: $padding-base-horizontal;
+      transform: rotate(90deg);
+      color: $gray-extra-dark;
+    }
+  }
+
+  .card__toggle[aria-expanded="false"] {
+    &::after {
+      transform: rotate(0deg);
+    }
+  }
+
+  .card__link {
+    margin-bottom: 0;
+    color: $brand-secundary;
+
+    span {
+      @include visually-hidden;
+
+      transition: 0.2s all ease;
+      border-bottom: solid 1px $transparent;
+    }
+
+    &::before {
+      @extend %icon-font;
+
+      content: "\E80B";
+      margin-right: 0.5rem;
+      color: $brand-secundary;
+    }
+
+    &:hover {
+      span {
+        border-bottom: solid 1px $brand-secundary;
+      }
+    }
+  }
+
+  .card__content {
+    margin-top: 0;
+    padding: $padding-base-vertical;
+  }
+
+  .card__edit-content,
+  .btn-view {
+    display: none;
+  }
+
+  .btn-edit,
+  .btn-view {
+    margin-right: 0;
+    margin-bottom: 0;
+  }
+
+  @include media-breakpoint-up(sm) {
+    .card__subtitle {
+      display: inline-block;
+      flex: 1 1 auto;
+      margin-left: 1.25rem;
+    }
+  }
+
+  @include media-breakpoint-up(md) {
+    .card__link span {
+      @include visually-hidden-off;
+    }
+
+    .card__toggle::after {
+      margin-left: $padding-large-horizontal;
+    }
+  }
+}
+
+.card--edit {
+  .card__edit-content,
+  .btn-view {
+    display: block;
+  }
+
+  .card__view-content,
+  .btn-edit {
+    display: none;
+  }
+}

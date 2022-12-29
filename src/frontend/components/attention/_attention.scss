@@ -1,0 +1,12 @@
+.attention::before {
+  @extend %icon-font;
+
+  content: "\E810";
+  margin-right: 0.5rem;
+  transform: rotate(180deg);
+}
+
+// attention inside login
+.login .attention {
+  text-align: center;
+}

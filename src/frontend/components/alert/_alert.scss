@@ -1,0 +1,48 @@
+.alert {
+  display: flex;
+  align-items: center;
+  margin-bottom: $padding-large-vertical;
+  padding: $padding-base-horizontal;
+
+  &::before {
+    @extend %icon-font;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: $padding-large-horizontal;
+  }
+
+  p {
+    margin-bottom: 0;
+  }
+}
+
+@include media-breakpoint-up(xl) {
+  .alert {
+    padding: $padding-large-horizontal;
+
+    &::before {
+      display: block;
+      flex: 0 0 1.25rem;
+      margin-right: $padding-base-horizontal;
+      border-radius: 50%;
+      font-size: 1.125rem;
+    }
+  }
+
+  .alert-success::before {
+    content: "\E804";
+    color: $brand-success;
+  }
+
+  .alert-info::before {
+    content: "\E810";
+    color: $brand-secundary;
+  }
+
+  .alert-danger::before {
+    content: "\E822";
+    color: $brand-danger;
+  }
+}

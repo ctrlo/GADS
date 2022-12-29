@@ -1,0 +1,94 @@
+$fonts-path: "../../fonts" !default;
+
+/* from: https://google-webfonts-helper.herokuapp.com/fonts/open-sans */
+
+/* open-sans-regular - latin */
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 400;
+  src:
+    url('#{$fonts-path}/open-sans/open-sans-v22-latin-regular.woff2') format('woff2'),
+    url('#{$fonts-path}/open-sans/open-sans-v22-latin-regular.woff') format('woff');
+}
+
+/* open-sans-italic - latin */
+@font-face {
+  font-family: 'Open Sans';
+  font-style: italic;
+  font-weight: 400;
+  src:
+    url('#{$fonts-path}/open-sans/open-sans-v22-latin-italic.woff2') format('woff2'),
+    url('#{$fonts-path}/open-sans/open-sans-v22-latin-italic.woff') format('woff');
+}
+
+/* open-sans-600 - latin */
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 600;
+  src:
+    url('#{$fonts-path}/open-sans/open-sans-v22-latin-600.woff2') format('woff2'),
+    url('#{$fonts-path}/open-sans/open-sans-v22-latin-600.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'linkspace-font';
+  font-style: normal;
+  font-weight: $font-weight-normal;
+  src: url('#{$fonts-path}/linkspace-font/linkspace-font.eot?9780675');
+  src:
+    url('#{$fonts-path}/linkspace-font/linkspace-font.eot?9780675#iefix') format('embedded-opentype'),
+    //url('#{$fonts-path}/linkspace-font/linkspace-font.woff2?9780675') format('woff2'),
+    url('#{$fonts-path}/linkspace-font/linkspace-font.woff?9780675') format('woff'),
+    url('#{$fonts-path}/linkspace-font/linkspace-font.ttf?9780675') format('truetype'),
+    url('#{$fonts-path}/linkspace-font/linkspace-font.svg?9780675#linkspace-font') format('svg');
+}
+
+%icon-font {
+  // From https://github.com/FortAwesome/Font-Awesome/blob/master/scss/_core.scss
+  display: inline-block;
+  /* stylelint-disable-next-line font-family-no-missing-generic-family-keyword */
+  font: normal normal normal 14px/1 'linkspace-font'; // shortening font declaration
+  font-size: inherit; // can't have font-size inherit on line above, so need to override
+  text-rendering: auto; // optimizelegibility throws things off #1094
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@mixin font-style-menu {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  line-height: 1.33;
+}
+
+@mixin font-style-user {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  line-height: 1.38;
+}
+
+@mixin font-style-h1 {
+  font-size: $h1-font-size;
+  font-weight: $font-weight-semibold;
+  line-height: $headings-line-height;
+}
+
+@mixin font-style-h2 {
+  font-size: $h2-font-size;
+  font-weight: $font-weight-semibold;
+  line-height: $headings-line-height;
+}
+
+@mixin font-style-h3 {
+  font-size: $h3-font-size;
+  font-weight: $font-weight-semibold;
+  line-height: $headings-line-height;
+}
+
+@mixin font-style-footer {
+  font-size: $font-size-base;
+  font-style: italic;
+  font-weight: $font-weight-normal;
+  line-height: 1.38;
+}

@@ -1,0 +1,283 @@
+.list__title {
+  @include font-style-h3;
+
+  color: $gray-extra-dark;
+}
+
+.list__items {
+  margin: 0;
+  padding-left: $padding-small-horizontal;
+  list-style-type: none;
+}
+
+.list__item {
+  padding-bottom: $padding-small-vertical;
+}
+
+.list--horizontal {
+  .list__items {
+    display: flex;
+    gap: $padding-base-horizontal;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 0;
+  }
+
+  .list__item {
+    padding-right: $padding-base-horizontal;
+    padding-bottom: 0;
+    border-right: 1px solid $gray;
+
+    &:last-child {
+      padding-right: 0;
+      border-right: none;
+    }
+
+    .link--active {
+      border-bottom: none;
+    }
+  }
+
+  /* stylelint-disable no-descending-specificity */
+
+  &.list--no-borders {
+    gap: $padding-base-horizontal;
+
+    .list__item {
+      padding-right: 0;
+      border-right: none;
+
+      &:last-child {
+        padding-right: 0;
+      }
+    }
+  }
+}
+
+.list--checkboxes {
+  .list__items {
+    flex-direction: column;
+    padding: 0;
+  }
+
+  @include media-breakpoint-up(md) {
+    &.list--horizontal {
+      .list__items {
+        flex-direction: row;
+      }
+
+      .list__item {
+        flex-basis: calc(33.33% - 1rem);
+        flex-grow: 0;
+        flex-shrink: 0;
+        max-width: 13rem;
+      }
+    }
+  }
+
+  @include media-breakpoint-up(xl) {
+    &.list--horizontal {
+      .list__item {
+        flex-basis: calc(25% - 1rem);
+      }
+    }
+  }
+}
+
+.list--key-value {
+  .list__items {
+    width: 100%;
+    padding: 0;
+
+    &:not(:last-child) {
+      margin-bottom: 1rem;
+    }
+  }
+
+  .list__item {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+
+    &:last-child {
+      padding-bottom: 0;
+    }
+  }
+
+  .list__item--blank {
+    display: none;
+  }
+
+  .list__key {
+    flex: 0 0 100%;
+    padding-right: 1rem;
+    font-weight: $font-weight-semibold;
+  }
+
+  @include media-breakpoint-up(md) {
+    .list__key {
+      flex: 0 0 9.375rem;
+      width: auto;
+      padding-right: 2rem;
+    }
+
+    .list__value {
+      flex: 1;
+    }
+  }
+}
+
+.list--buttons {
+  .list__items {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .list__item {
+    border-right: 0;
+
+    .btn {
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+    }
+
+    .btn-small {
+      padding-top: 7px;
+      padding-bottom: 7px;
+    }
+  }
+
+  @include media-breakpoint-up(sm) {
+    .list__items {
+      flex-direction: row;
+      align-items: center;
+      width: auto;
+    }
+
+    .list__item {
+      border-right: 1px solid $gray;
+    }
+  }
+}
+
+.list--tabs {
+  .list__items {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+    border-bottom: 2px solid $brand-primary;
+  }
+
+  .list__item {
+    padding: $padding-small-vertical $padding-small-horizontal;
+    border-top: 2px solid $gray;
+    border-left: 2px solid $gray;
+
+    &:first-of-type {
+      border-top-left-radius: $input-border-radius;
+    }
+
+    &:last-of-type {
+      border-right: 2px solid $gray;
+      border-top-right-radius: $input-border-radius;
+    }
+
+    .link {
+      display: block;
+      border-bottom: 2px solid $transparent;
+
+      &:hover,
+      &:active,
+      &:focus {
+        border-bottom-color: $brand-primary;
+      }
+    }
+  }
+
+  .list__item--active {
+    position: relative;
+    border-right: 2px solid $brand-primary;
+    border-top-left-radius: $input-border-radius;
+    border-top-right-radius: $input-border-radius;
+    border-color: $brand-primary;
+    background-color: $gray-light;
+
+    &:last-of-type {
+      border-right-color: $brand-primary;
+    }
+
+    & + .list__item {
+      border-left: 0;
+    }
+
+    &::before {
+      content: '';
+      display: block;
+      position: absolute;
+      z-index: -1;
+      top: -2px;
+      right: -3px;
+      left: -3px;
+      height: 2px;
+      background-color: $gray;
+    }
+
+    &:first-of-type::before {
+      left: 0;
+    }
+
+    &:last-of-type::before {
+      right: 0;
+    }
+
+    &::after {
+      content: '';
+      display: block;
+      position: absolute;
+      right: 0;
+      bottom: -2px;
+      left: 0;
+      height: 2px;
+      background-color: $gray-light;
+    }
+  }
+
+  .link {
+    border-bottom: none;
+    color: $brand-primary;
+    font-size: $font-size-sm;
+  }
+
+  h2 {
+    margin-bottom: 0;
+    color: $text-color;
+    font-size: $font-size-sm;
+    font-weight: normal;
+  }
+
+  @include media-breakpoint-up(md) {
+    .list__item {
+      padding: $padding-small-vertical $padding-base-horizontal;
+    }
+
+    .link,
+    h2 {
+      font-size: $font-size-lg;
+      font-weight: $font-weight-semibold;
+    }
+  }
+}
+
+// List of checkboxes inside modal
+@include media-breakpoint-up(md) {
+  .modal .list--checkboxes .list__item {
+    flex: 0 0 50%;
+  }
+}
+
+@include media-breakpoint-up(xl) {
+  .modal .list--checkboxes .list__item {
+    flex-basis: calc(33.33% - 1rem);
+  }
+}

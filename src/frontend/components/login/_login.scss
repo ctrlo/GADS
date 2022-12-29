@@ -1,0 +1,110 @@
+.login {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: $padding-large-vertical $padding-large-horizontal;
+  background: $gradient-v;
+}
+
+.login__main {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+}
+
+.login__logo {
+  margin-bottom: $padding-large-vertical;
+  text-align: center;
+
+  img {
+    width: 130px;
+    height: auto;
+  }
+}
+
+.login__form {
+  padding: $padding-large-vertical $padding-large-horizontal;
+  background-color: $white;
+  box-shadow: $box-shadow-light;
+}
+
+.login__head {
+  margin-bottom: $padding-large-vertical;
+}
+
+.login__title {
+  @include font-style-h2;
+
+  margin-top: 0;
+  margin-bottom: $padding-large-vertical;
+  color: $brand-primary;
+  text-align: center;
+}
+
+.login__intro {
+  text-align: center;
+}
+
+.login__subtext {
+  margin-top: $padding-base-vertical;
+  color: $white;
+  text-align: center;
+
+  a {
+    @include font-style-h2;
+
+    color: $white;
+    text-decoration: underline;
+
+    &:hover {
+      color: $white;
+      text-decoration: none;
+    }
+  }
+}
+
+.login__footer-container {
+  @include font-style-footer;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  color: $white;
+}
+
+.login__footer-logo {
+  width: 83px;
+  height: auto;
+  margin-left: $padding-base-horizontal;
+}
+
+@include media-breakpoint-up(sm) {
+  .login__btns {
+    display: flex;
+    justify-content: space-between;
+
+    .btn:only-child {
+      flex: 1 1 100%;
+    }
+  }
+
+  .login__fields + .login__btns {
+    margin-top: $padding-large-vertical;
+  }
+
+  .login__fields .btn:only-child {
+    width: 100%;
+  }
+}
+
+@include media-breakpoint-up(lg) {
+  .login__logo {
+    margin-bottom: 2 * $padding-large-vertical;
+  }
+
+  .login__fields + .login__btns {
+    margin-top: $padding-large-vertical + $padding-base-vertical;
+  }
+}

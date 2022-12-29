@@ -1,0 +1,212 @@
+.sidebar {
+  min-height: $min-height-container;
+  padding: 50px 0 80px;
+  color: $gray-light;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: $gradient-v;
+  }
+
+  @supports (position:sticky) {
+    /* Overrides to the above styles for modern "sticky" browsers go here */
+    height: 100vh;
+  }
+}
+
+.sidebar:not(.sidebar--collapsed) {
+  flex: 1 1 auto;
+}
+
+.sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 50px;
+  padding-right: $padding-large-horizontal;
+}
+
+.sidebar__logo,
+.sidebar__menu {
+  position: relative;
+}
+
+.sidebar__logo {
+  flex: 0 1 150px;
+  padding-left: 15px;
+
+  img {
+    width: 100%;
+    height: auto;
+  }
+}
+
+.sidebar__toggle {
+  @include reset-bs-style;
+
+  position: relative;
+  padding: 9px 15px;
+
+  &::before {
+    @extend %icon-font;
+
+    content: '\e805';
+    transform: rotate(180deg);
+    transition: transform 0.2s ease;
+    color: $gray-light;
+    font-size: 1.25rem;
+  }
+
+  &:hover,
+  &:active,
+  &:focus,
+  &:active:focus {
+    &::before {
+      transform: rotate(180deg) scale(1.25);
+    }
+  }
+
+  span {
+    @include visually-hidden;
+  }
+}
+
+.sidebar__menu {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sidebar__nav {
+  font-size: $font-size-base;
+
+  .nav__item {
+    padding: 10px 0;
+  }
+}
+
+.nav__link {
+  &::before {
+    @extend %icon-font;
+
+    width: 32px;
+    text-align: center;
+  }
+
+  span {
+    padding-left: 0.5 * $padding-base-horizontal;
+  }
+}
+
+.nav__link--dashboard::before {
+  content: "\E809";
+  font-size: 25px;
+}
+
+.nav__link--tables::before {
+  content: "\E817";
+  font-size: 27px;
+}
+
+.nav__link--users::before {
+  content: "\E81a";
+  font-size: 30px;
+}
+
+.nav__link--groups::before {
+  content: "\E80e";
+  font-size: 30px;
+}
+
+.nav__link--files::before {
+  content: "\E81b";
+  font-size: 28px;
+}
+
+.nav__link--admin-settings::before {
+  content: "\E814";
+  font-size: 28px;
+}
+
+.nav__link--shortcut::before {
+  content: "\E815";
+  font-size: 21px;
+}
+
+.sidebar__nav .nav__link,
+.sidebar__shortcuts .nav__link {
+  display: flex;
+  align-items: center;
+  padding: 10px 15px;
+  transition: 0.2s all ease;
+  color: $gray-light;
+
+  &:hover,
+  &:active,
+  &:focus,
+  &:active:focus,
+  &.nav__link--active {
+    outline: 0;
+    background-color: rgba($gray-light, 0.4);
+    text-decoration: none;
+  }
+}
+
+.sidebar__bottom {
+  display: flex;
+  position: absolute;
+  bottom: 2rem;
+  justify-content: center;
+  width: 100%;
+
+  .sidebar__logo {
+    display: none;
+    flex: 0 0 32px;
+    padding-left: 0;
+  }
+}
+
+.sidebar__shortcuts h1 {
+  @include font-style-menu;
+
+  padding-left: $padding-base-horizontal;
+}
+
+.sidebar--collapsible.sidebar--collapsed {
+  @include sidebar-collapsed;
+}
+
+.sidebar--collapsible + .main--expanded {
+  flex: 1;
+  min-width: 0;
+}
+
+@include media-breakpoint-up(lg) {
+  .sidebar::before {
+    left: (-1 * $grid-offset) + (-0.5 * $grid-gutter-width);
+  }
+
+  .sidebar .sidebar__toggle {
+    display: block;
+  }
+
+  .sidebar--collapsible + .main--expanded {
+    max-width: none;
+  }
+}
+
+@include media-breakpoint-up(xl) {
+  .sidebar__nav {
+    @include font-style-menu;
+  }
+
+  .nav__link span {
+    padding-left: $padding-base-horizontal;
+  }
+}

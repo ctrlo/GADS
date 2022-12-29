@@ -1,0 +1,61 @@
+.note-frame.card {
+  padding: 0;
+}
+
+.note-btn-group .note-btn {
+  margin-right: 0;
+  margin-bottom: 0;
+}
+
+.note-modal {
+  .modal-header {
+    .modal-title {
+      color: $gray-extra-dark;
+    }
+
+    .close::before {
+      content: normal;
+    }
+  }
+
+  .modal-body {
+    .form-check {
+      margin-bottom: $padding-base-vertical;
+      padding-left: 1.5rem;
+    }
+
+    .form-check-input {
+      @include custom-checkbox;
+
+      margin-left: -1.5rem;
+
+      &::before {
+        top: 50%;
+        left: -1px;
+        transform: translateY(-50%);
+      }
+
+      &:focus {
+        @include custom-option-focus;
+
+        outline: 0;
+      }
+
+      &:checked {
+        @include custom-checkbox-checked;
+
+        &::after {
+          top: 0.4rem;
+        }
+      }
+    }
+  }
+}
+
+.note-btn-primary {
+  @include btn-default;
+
+  &:disabled {
+    @include btn-disabled;
+  }
+}

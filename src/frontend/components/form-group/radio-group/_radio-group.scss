@@ -1,0 +1,36 @@
+.radio-group__option {
+  @include custom-input($type: "radio");
+}
+
+.form-inline .radio-group {
+  display: flex;
+}
+
+.radio-group--buttons .radio-group__option {
+  @include btn-inverted;
+
+  border-right: 0;
+
+  &:last-child {
+    border-right: solid 1px $brand-secundary;
+  }
+
+  .radio-group__label {
+    margin-bottom: 0;
+    padding: $padding-small-vertical $padding-base-horizontal;
+
+    &::before,
+    &::after {
+      content: normal;
+    }
+  }
+
+  input[type=radio]:checked + label {
+    background-color: $brand-secundary;
+    color: $white;
+
+    &::after {
+      content: normal;
+    }
+  }
+}

@@ -1,0 +1,33 @@
+.checkbox {
+  @include custom-input($type: "checkbox");
+
+  margin-bottom: $padding-small-vertical;
+}
+
+.checkbox label {
+  justify-content: flex-start;
+  margin-bottom: 0;
+}
+
+.checkbox--hide-label {
+  input[type=checkbox]:checked + label::after {
+    left: 5px;
+  }
+
+  label > span {
+    @include visually-hidden;
+  }
+}
+
+.data-table .checkbox {
+  label {
+    &::before {
+      width: 0.9rem;
+      height: 0.9rem;
+    }
+
+    span {
+      padding-top: 0.05rem;
+    }
+  }
+}

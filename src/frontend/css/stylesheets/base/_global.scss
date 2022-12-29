@@ -1,0 +1,87 @@
+html {
+  box-sizing: border-box;
+  font-size: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+.bg-no {
+  background-color: $white;
+}
+
+.mb-4 {
+  /* stylelint-disable-next-line declaration-no-important */
+  margin-bottom: $padding-large-vertical !important; //Necessary to overrule bootstrap styling
+}
+
+p:last-child {
+  margin-bottom: 0;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+strong {
+  font-weight: $font-weight-semibold;
+}
+
+h3 {
+  margin-bottom: $padding-base-vertical;
+  font-weight: $font-weight-semibold;
+}
+
+.main {
+  min-height: 100vh;
+  padding-right: $grid-offset-mobile;
+  padding-left: 0;
+
+  &:not(.main--expanded) {
+    display: none;
+  }
+}
+
+.hidden {
+  display: none;
+}
+
+// Visually hide element
+.invisible {
+  @include visually-hidden;
+}
+
+.main__container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: $min-height-container;
+}
+
+.code {
+  padding: $padding-base-vertical $padding-base-horizontal;
+  background-color: $gray-light;
+  color: $gray-extra-dark;
+  font-family: monospace;
+
+  pre {
+    margin-bottom: 0;
+  }
+}
+
+@include media-breakpoint-up(lg) {
+  body {
+    padding: 0 $grid-offset;
+  }
+
+  .main {
+    padding-right: 0;
+  }
+
+  .main:not(.main--expanded) {
+    display: block;
+  }
+}

@@ -1,0 +1,45 @@
+.modal-footer {
+  display: block;
+
+  & > * {
+    margin: 0;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+.modal-footer__left {
+  margin-bottom: $padding-base-vertical;
+}
+
+.modal-footer__right {
+  .btn:not(:last-child) {
+    margin-bottom: $padding-base-vertical;
+  }
+}
+
+@include media-breakpoint-up(lg) {
+  .modal-footer {
+    display: flex;
+    justify-content: space-between;
+
+    .btn {
+      width: auto;
+    }
+  }
+
+  .modal-footer__left,
+  .modal-footer__right .btn:not(:last-child) {
+    margin-bottom: 0;
+  }
+
+  .modal-footer__left {
+    margin-bottom: 0;
+  }
+
+  .modal-footer__right .btn:first-child:not(:only-child) {
+    margin-right: $padding-base-horizontal;
+  }
+}

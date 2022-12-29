@@ -1,0 +1,69 @@
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $padding-small-horizontal;
+  font-size: $font-size-sm;
+
+  .link {
+    display: flex;
+    align-items: center;
+    color: $brand-primary;
+
+    &:hover {
+      border-bottom-color: $transparent;
+    }
+  }
+}
+
+.breadcrumbs__item.link:not(:last-of-type) {
+  @include visually-hidden;
+}
+
+.breadcrumbs__item.link:last-of-type {
+  &::before {
+    @extend %icon-font;
+
+    content: "\E805";
+    margin-right: 4px;
+    transform: rotate(180deg);
+    font-size: $font-size-xsm;
+  }
+}
+
+.breadcrumbs__item--active,
+.breadcrumbs__divider {
+  @include visually-hidden;
+}
+
+.breadcrumbs__divider::after {
+  @extend %icon-font;
+}
+
+@include media-breakpoint-up(md) {
+  .breadcrumbs__item.link,
+  .breadcrumbs__item.link:not(:last-of-type) {
+    border-bottom: 1px solid $brand-primary;
+
+    &:last-of-type::before {
+      content: normal;
+    }
+  }
+
+  .breadcrumbs__item.link:not(:last-of-type),
+  .breadcrumbs__item--active,
+  .breadcrumbs__divider {
+    @include visually-hidden-off;
+  }
+
+  .breadcrumbs__item--active {
+    border-bottom: 1px solid $transparent;
+    color: $text-color;
+  }
+
+  .breadcrumbs__divider::after {
+    content: "\E805";
+    display: block;
+    font-size: 8px;
+  }
+}

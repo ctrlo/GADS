@@ -1,0 +1,113 @@
+// Colours
+$brand-primary: #4F427C;
+$brand-secundary: #1BADB8;
+$brand-tertiary: #F99D27;
+
+$brand-danger: #E34646;
+$brand-warning: #FED931;
+$brand-success: #64AE34;
+
+$brand-secundary-hover: #15828A;
+
+$white: #FFF;
+$black: #000;
+$blue: #3B3AF2;
+$green: $brand-success;
+$cyan: $brand-secundary;
+$red: $brand-danger;
+$transparent: transparent;
+
+$gray-extra-extra-dark: #212020;
+$gray-extra-dark: #585858;
+$gray-dark: #555;
+$gray-medium-dark: #808080;
+$gray: #C6C6C6;
+$gray-light: #F9F9F9;
+
+$link-color: $brand-secundary;
+$link-hover-color: $brand-secundary;
+$text-color: $gray-dark;
+$btn-default-hover-color: $brand-secundary-hover;
+$btn-cancel-hover-color: $gray-extra-extra-dark;
+
+$nav-link-hover-bg: rgba($gray-light, 0.4);
+
+// Shadows
+$box-shadow-dark: 0 0 7px rgba(0, 0, 0, 0.2);
+$box-shadow-light: 0 0 7px rgba(0, 0, 0, 0.05);
+
+// Gradients
+$gradient-v: linear-gradient(0deg, $gray-light 0%, $brand-secundary 0%, $brand-primary 100%);
+$gradient-h: linear-gradient(90deg, $gray-light 0%, $brand-primary 0%, $brand-secundary 100%);
+
+// Fonts
+$font-family-base: "Open Sans", Helvetica, Arial, sans-serif !default;
+$font-size-base: 1rem;
+$font-size-sm: 0.875rem;
+$font-size-xsm: 0.75rem;
+$font-size-xxsm: 0.625rem;
+$font-size-lg: 1.125rem;
+
+$font-weight-semibold: 600;
+
+$line-height-base: 1.35;
+$headings-font-weight: $font-weight-semibold;
+$headings-color: $brand-primary;
+$headings-line-height: 1.35;
+
+$h1-font-size: 1.563rem;
+$h2-font-size: $font-size-lg;
+$h3-font-size: $font-size-base;
+$h4-font-size: $font-size-sm;
+$h5-font-size: $font-size-xsm;
+$h6-font-size: $font-size-xxsm;
+
+$icon-font-path: "../../fonts/bootstrap/";
+
+// Grid
+$grid-gutter-width: 1rem;
+$grid-offset: 2rem;
+$grid-offset-mobile: 1.25rem;
+
+// Spacing
+$padding-small-horizontal: 0.5rem;
+$padding-base-horizontal: 1rem;
+$padding-large-horizontal: 2rem;
+$padding-small-vertical: 0.5rem;
+$padding-base-vertical: 1rem;
+$padding-large-vertical: 2rem;
+
+// Measurements
+$width-sidebar-collapsed: 3.875rem;
+$min-height-container: 35rem;
+
+// Body
+$body-color: $gray-extra-dark;
+$body-bg: $gray-light;
+
+// Form elements
+$input-border: $gray;
+$input-border-focus: $brand-secundary;
+$input-border-radius: 5px;
+$input-color-placeholder: $gray-medium-dark;
+$box-shadow-input: inset 0 1px 1px rgba($black, 0.08), 0 0 8px rgb($input-border-focus, 0.6);
+$form-group-margin-bottom: $padding-large-vertical;
+
+// Tables
+$table-bg: $white;
+$table-accent-bg: $gray-light;
+$table-hover-bg: rgba($brand-secundary, 0.2);
+$table-border-color: $gray-light;
+$table-cell-padding: $padding-base-horizontal;
+
+// Alerts
+$alert-border-width: 0;
+$alert-border-radius: 0;
+$alert-color-level: 0;
+
+// Modals
+$modal-inner-padding: $padding-large-horizontal;
+$modal-header-padding-x: $padding-large-horizontal;
+$modal-header-padding-y: $padding-large-vertical;
+$modal-footer-border-color: $transparent;
+$modal-backdrop-bg: rgba(#707070, 0.38);

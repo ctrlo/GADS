@@ -1,0 +1,35 @@
+.multiple-select {
+  fieldset {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+  }
+
+  .form-group {
+    flex-basis: 0;
+    flex-grow: 1;
+    max-width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  label {
+    @include visually-hidden;
+  }
+
+  .btn-delete {
+    flex: 0 0 auto;
+    height: max-content;
+    margin: 0.5rem 0 0.5rem 1rem;
+  }
+
+  .btn-delete--hidden {
+    display: none;
+  }
+}
+
+.multiple-select__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}

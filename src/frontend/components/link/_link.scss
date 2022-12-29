@@ -1,0 +1,106 @@
+.link {
+  @include link;
+}
+
+.link--bold {
+  font-weight: $font-weight-semibold;
+}
+
+.link--plain {
+  color: $gray-extra-dark;
+}
+
+.link--primary {
+  display: inline-block;
+  padding: $padding-small-vertical 0.75rem;
+  color: $brand-primary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+
+  span {
+    border-bottom: 2px solid $transparent;
+  }
+
+  &:hover,
+  &:focus,
+  &:active {
+    border-bottom-color: $transparent;
+    color: $brand-primary;
+
+    span {
+      border-bottom: 2px solid $brand-primary;
+    }
+  }
+
+  &.link--active {
+    border-bottom: 0;
+    border-radius: $input-border-radius;
+    background-color: $brand-primary;
+    color: $white;
+
+    span {
+      border-bottom: 0;
+    }
+  }
+}
+
+.link--next,
+.link--add,
+.link--table,
+.link--graph,
+.link--calendar,
+.link--timeline {
+  @include link-icon;
+
+  &::before {
+    content: '\e805';
+    font-size: $font-size-base;
+  }
+}
+
+.link--table,
+.link--graph,
+.link--calendar,
+.link--timeline {
+  &::before {
+    font-size: 1.5rem;
+  }
+}
+
+.link--table::before {
+  content: "\E817";
+}
+
+.link--graph::before {
+  content: "\E80d";
+}
+
+.link--timeline::before {
+  content: "\E818";
+}
+
+.link--calendar::before {
+  content: "\E802";
+}
+
+.link--add {
+  color: $brand-secundary;
+
+  &::before {
+    content: '\e800';
+  }
+}
+
+.link--phone {
+  @include link-tel;
+}
+
+.link--email {
+  @include link-email;
+}
+
+@include media-breakpoint-up(md) {
+  .link--primary {
+    font-size: $font-size-base;
+  }
+}

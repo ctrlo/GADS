@@ -1,33 +1,13 @@
 {
   "compilerOptions": {
-    "baseUrl": "src",
-    "outDir": "dist/build",
-    "module": "CommonJS",
-    "target": "es3",
-    "lib": ["dom", "es5", "es6", "es2017.object"],
-    "sourceMap": true,
-    "allowJs": true,
-    "jsx": "react",
-    "esModuleInterop": true,
-    "moduleResolution": "node",
-    "rootDir": "src",
-    "forceConsistentCasingInFileNames": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
+    "outDir": "./dist/",
     "noImplicitAny": false,
-    "importHelpers": true,
-    "strictNullChecks": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "noUnusedLocals": true
-  },
-  "exclude": [
-    "./build",
-    "./dist",
-    "./docs",
-    "./node_modules",
-    "./public",
-    "./rollup.config.js",
-    "./src/*.js",
-    "./webpack.config.js",
-  ]
+    "module": "es2015",
+    "target": "ES5",
+    "jsx": "react",
+    "allowJs": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true
+  }
 }

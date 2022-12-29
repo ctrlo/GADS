@@ -1,0 +1,452 @@
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  border: 0;
+}
+
+@mixin visually-hidden-off {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: auto;
+  clip: auto;
+}
+
+@mixin widget {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 8rem;
+  padding: 0;
+  transition: 0.2s all ease;
+  border: 1px solid $gray-extra-dark;
+  border-radius: 10px;
+  background-color: $gray-light;
+
+  &:hover {
+    border-color: $brand-secundary;
+  }
+}
+
+@mixin sidebar-collapsed {
+  flex: 0 0 $width-sidebar-collapsed;
+  padding: 50px 0 2rem;
+
+  .sidebar__header {
+    justify-content: center;
+    padding-right: 0;
+
+    .sidebar__logo {
+      @include visually-hidden;
+    }
+  }
+
+  .sidebar__shortcuts,
+  .nav__link span {
+    @include visually-hidden;
+  }
+
+  .sidebar__toggle {
+    &::before {
+      transform: rotate(0);
+    }
+
+    &:hover,
+    &:active,
+    &:focus,
+    &:active:focus {
+      &::before {
+        transform: rotate(0) scale(1.3);
+      }
+    }
+  }
+
+  .sidebar__bottom {
+    .sidebar__logo {
+      display: block;
+    }
+  }
+
+  @include media-breakpoint-up(lg) {
+    margin-left: -$grid-offset;
+  }
+}
+
+@mixin reset-bs-style {
+  border: none;
+  background-color: $transparent;
+  box-shadow: none;
+
+  &:hover,
+  &:focus,
+  &:active,
+  &:active:focus,
+  &:active:hover {
+    border: none;
+    outline: 0;
+    background-color: $transparent;
+    box-shadow: none;
+  }
+}
+
+@mixin placeholder {
+  color: $input-color-placeholder;
+  font-style: italic;
+}
+
+@mixin form-control {
+  width: 100%;
+  height: auto;
+  padding: $padding-small-vertical $padding-base-horizontal;
+  transition: 0.2s all ease;
+  color: $black;
+  text-align: left;
+
+  &::placeholder {
+    @include placeholder;
+  }
+
+  &:hover,
+  &:focus,
+  &:active,
+  &:active:focus,
+  &:active:hover {
+    border: 1px solid $brand-secundary;
+    box-shadow: none;
+  }
+}
+
+@mixin form-control-select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+  white-space: normal;
+
+  &::after {
+    @extend %icon-font;
+
+    content: "\E805";
+    transform: rotate(90deg);
+    border: 0;
+    color: $gray-extra-dark;
+    font-size: 10px;
+  }
+}
+
+@mixin form-label {
+  margin-bottom: 0;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+}
+
+@mixin custom-checkbox {
+  @include custom-option-base;
+
+  &::before {
+    top: 0.125rem;
+    border-radius: $input-border-radius;
+  }
+}
+
+@mixin custom-radio {
+  @include custom-option-base;
+
+  &::before {
+    top: 0.2rem;
+    border-radius: 50%;
+  }
+}
+
+@mixin custom-checkbox-checked {
+  &::before {
+    border-color: $brand-secundary;
+    background-color: $brand-secundary;
+  }
+
+  &::after {
+    @extend %icon-font;
+
+    content: "\E804";
+    position: absolute;
+    top: 0.625rem;
+    left: 4px;
+    transform: translateY(-50%);
+    color: $white;
+    font-size: 7px;
+  }
+}
+
+@mixin custom-option-base {
+  &::before {
+    content: '';
+    display: inline-block;
+    position: absolute;
+    left: 0;
+    flex: 0 0 1rem;
+    width: $font-size-base;
+    height: $font-size-base;
+    margin-right: $padding-small-horizontal;
+    transition: 0.2s all ease;
+    border: 1px solid $input-border;
+    background-color: $input-bg;
+  }
+
+  &:hover::before {
+    border-color: $brand-secundary;
+  }
+}
+
+@mixin custom-option-focus {
+  &::before {
+    border-color: $input-border-focus;
+    box-shadow: $box-shadow-input;
+  }
+}
+
+@mixin custom-input($type: "checkbox") {
+  input[type=#{$type}] {
+    @include visually-hidden;
+  }
+
+  label {
+    @if $type == "checkbox" {
+      @include custom-checkbox;
+    }
+
+    @else {
+      @include custom-radio;
+    }
+
+    display: flex;
+    position: relative;
+    padding-left: 1.5rem;
+  }
+
+  input[type=#{$type}]:focus + label {
+    @include custom-option-focus;
+  }
+
+  input[type=#{$type}]:checked + label {
+    @if $type == "checkbox" {
+      @include custom-checkbox-checked;
+    }
+
+    @else {
+      &::after {
+        content: '';
+        display: inline-block;
+        position: absolute;
+        top: 0.45rem;
+        left: 0.25rem;
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+        background-color: $brand-secundary;
+      }
+    }
+  }
+
+  input[disabled] + label {
+    color: $gray;
+
+    &:hover::before {
+      border-color: $gray;
+    }
+  }
+
+  input[type=#{$type}]:checked:disabled + label {
+    @if $type == "checkbox" {
+      &::before {
+        border-color: $gray;
+        background-color: $gray;
+      }
+    }
+
+    @else {
+      &::after {
+        background-color: $gray;
+      }
+    }
+  }
+}
+
+@mixin form-text {
+  margin-bottom: 0.5rem;
+  font-size: $font-size-sm;
+}
+
+@mixin link {
+  transition: 0.2s all ease;
+  border-bottom: 1px solid $transparent;
+  cursor: pointer;
+
+  &:hover,
+  &:focus,
+  &:active,
+  &.link--active {
+    border-bottom: 1px solid $brand-secundary;
+    color: $brand-secundary;
+    text-decoration: none;
+  }
+}
+
+@mixin link-icon {
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+  margin-left: 1.75rem;
+
+  &::before {
+    @extend %icon-font;
+
+    position: absolute;
+    top: 50%;
+    left: -1.75rem;
+    padding-right: $padding-base-horizontal;
+    transform: translateY(-50%);
+    font-size: $font-size-base;
+  }
+}
+
+@mixin link-tel {
+  @include link-icon;
+
+  &::before {
+    content: '\e803';
+  }
+}
+
+@mixin link-email {
+  @include link-icon;
+
+  &::before {
+    content: '\e81c';
+  }
+}
+
+@mixin btn-default {
+  border: 1px solid $transparent;
+  background-color: $brand-secundary;
+  color: $white;
+
+  &:hover,
+  &:active,
+  &:focus,
+  &:active:focus {
+    border: 1px solid $transparent;
+    background-color: $btn-default-hover-color;
+    color: $white;
+  }
+}
+
+@mixin btn-disabled {
+  border-color: $transparent;
+  background-color: $gray;
+  color: $white;
+}
+
+@mixin btn-inverted {
+  border: solid 1px $brand-secundary;
+  background-color: $white;
+  color: $brand-secundary;
+
+  &:hover,
+  &:active,
+  &:focus,
+  &:active:focus {
+    border-color: $btn-default-hover-color;
+    color: $btn-default-hover-color;
+  }
+}
+
+@mixin dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  background-color: $transparent;
+
+  &::after {
+    @extend %icon-font;
+
+    content: "\E805";
+    margin-left: 0.5rem;
+    transform: rotate(90deg);
+    transition: 0.2s transform ease;
+    border: 0;
+    color: $gray-extra-dark;
+    font-size: 10px;
+  }
+
+  &:hover,
+  &:focus,
+  &:active,
+  &:active:focus,
+  &:active:hover {
+    border: none;
+    background-color: $transparent;
+
+    &::after {
+      transform: rotate(-90deg);
+    }
+  }
+
+  &.open {
+    .dropdown__toggle {
+      &::after {
+        transform: rotate(-90deg) translateX(-150%);
+      }
+    }
+  }
+}
+
+@mixin input-search {
+  position: relative;
+
+  .form-control {
+    padding-left: 2.75rem;
+  }
+
+  &::after {
+    @extend %icon-font;
+
+    content: "\E813";
+    position: absolute;
+    top: 50%;
+    left: $padding-base-horizontal;
+    transform: translateY(-50%);
+    font-size: $font-size-base;
+  }
+}
+
+@mixin form-control-disabled {
+  border: solid 1px $gray;
+  background-color: $gray-light;
+  resize: none;
+
+  &::placeholder {
+    color: $gray;
+  }
+
+  &:hover,
+  &:focus,
+  &:active,
+  &:active:focus,
+  &:active:hover {
+    border-color: $gray;
+  }
+}
+
+@mixin card {
+  padding: $padding-base-vertical $padding-base-horizontal;
+  border-radius: 10px;
+  background-color: $white;
+  box-shadow: $box-shadow-light;
+}

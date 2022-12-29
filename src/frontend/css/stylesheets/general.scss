@@ -1,0 +1,78 @@
+// Variables
+@import 'definitions/variables';
+
+//Bootstrap v4.6
+@import '~bootstrap/scss/bootstrap';
+
+// Datatables styling for bootstrap 4
+@import '~datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css';
+@import '~datatables.net-rowreorder-bs4/css/rowReorder.bootstrap4.min.css';
+
+// Typeahead
+@import '~jquery-typeahead/dist/jquery.typeahead.min.css';
+
+// React-grid-layout
+@import 'external/react-grid-layout/styles.min.css';
+@import '~react-resizable/css/styles.css';
+
+// Definitions
+@import 'definitions/fonts';
+@import 'definitions/mixins';
+
+// Base settings
+@import 'base/global';
+
+// Components
+@import 'alert/alert';
+@import 'attention/attention';
+@import 'button/button';
+@import 'calculator/calculator';
+@import 'card/card';
+@import 'card/card-expandable';
+@import 'collapsible/collapsible-dropdown';
+@import 'content-block/content-block';
+@import 'content-block/content-block-footer/content-block-footer';
+@import 'dashboard/dashboard';
+@import 'dashboard/lib/react/app';
+@import 'dashboard/lib/react/footer';
+@import 'dashboard/lib/react/header';
+@import 'dashboard/lib/react/index';
+@import 'data-table/data-table';
+@import 'data-table/data-table-row';
+@import 'dropdown/dropdown';
+@import 'dropdown/dropdown-group';
+@import 'form-group/checkbox/checkbox';
+@import 'form-group/checkbox/checkbox-reveal';
+@import 'form-group/date-range/date-range';
+@import 'form-group/query-builder/query-builder';
+@import 'form-group/fieldset';
+@import 'form-group/form-group';
+@import 'form-group/input/input';
+@import 'form-group/input/datepicker';
+@import 'form-group/multiple-select/multiple-select';
+@import 'form-group/radio-group/radio-group';
+@import 'form-group/select/select';
+@import 'form-group/select/select-reveal';
+@import 'form-group/tree/tree';
+@import 'form-group/select-widget/select-widget';
+@import 'form-group/switch/switch';
+@import 'form-group/textarea/textarea';
+@import 'graph/graph';
+@import 'link/link';
+@import 'list/list';
+@import 'login/login';
+@import 'modal/modal';
+@import 'modal/modal-frame';
+@import 'more-less/more-less';
+@import 'page-header/page-header';
+@import 'popover/popover';
+@import 'rag-legend/rag/rag';
+@import 'rag-legend/rag-legend';
+@import 'readonly/readonly';
+@import 'sidebar/sidebar';
+@import 'skip-links/skip-links';
+@import 'sortable/sortable';
+@import 'summernote/summernote';
+@import 'table-header/table-header';
+@import 'timeline/timeline';
+@import 'user/user';

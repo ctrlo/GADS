@@ -1,0 +1,116 @@
+.ld-draggable-handle,
+.ld-edit-button {
+  position: absolute;
+  bottom: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+
+  &::before {
+    @extend %icon-font;
+
+    transition: 0.2s all ease;
+  }
+
+  span {
+    @include visually-hidden;
+  }
+}
+
+.ld-draggable-handle {
+  right: 1rem;
+  cursor: move;
+
+  &::before {
+    content: "\E829";
+  }
+}
+
+.ld-edit-button {
+  right: 3rem;
+  cursor: pointer;
+
+  &::before {
+    content: "\E80b";
+  }
+}
+
+.ld-body-container {
+  margin-bottom: 4rem;
+}
+
+.ld-widget-container {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+
+  .ld-draggable-handle,
+  .ld-edit-button,
+  .react-resizable-handle {
+    z-index: 20;
+    transition: opacity 0.2s;
+    opacity: 0.2;
+    color: $gray-dark;
+  }
+
+  &:hover {
+    .ld-draggable-handle,
+    .ld-edit-button,
+    .react-resizable-handle {
+      opacity: 1;
+    }
+  }
+}
+
+.ld-widget-container--editable {
+  &:hover {
+    border-color: $gray;
+  }
+}
+
+.ld-modal__header {
+  position: relative;
+  min-width: 400px;
+  padding: 14px 12px;
+  border-bottom: 1px solid grey;
+}
+
+.ld-modal__footer {
+  position: relative;
+  padding: 8px 12px;
+  border-top: 1px solid grey;
+}
+
+.ld-modal__right-container {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+
+  > * {
+    margin-right: 12px;
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+}
+
+.ld-modal__content-container {
+  position: relative;
+  min-height: 100px;
+  max-height: 80vh;
+  max-height: calc(100vh - 120px); // 120px = height of header and footer combined with some margin
+  padding: 15px;
+  overflow-y: scroll;
+}
+
+.ld-modal__loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-right: -50%;
+  transform: translate(-50%, -50%);
+}
+
+.ReactModal__Body--open {
+  overflow-y: hidden;
+}
