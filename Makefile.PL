@@ -49,6 +49,7 @@ our %prereq_pm = (
     'MooX::Types::MooseLike::DateTime'          => 0,
     'namespace::clean'                          => 0,
     'Net::OAuth2::AuthorizationServer::PasswordGrant' => 0,
+    'Net::SAML2'                                => 0,
     'Plack'                                     => 1.0047,
     # Not depended on directly, but needed for features used via CtrlO::PDF
     'PDF::Table'                                => 0.11.0,
@@ -61,6 +62,7 @@ our %prereq_pm = (
     'Text::CSV::Encoded'                        => 0,
     'Tie::Cache'                                => 0,
     'Tree::DAG_Node'                            => 0,
+    'URL::Encode'                               => 0,
     'WWW::Form::UrlEncoded::XS'                 => 0,
     'WWW::Mechanize::Chrome'                    => 0,
     'YAML'                                      => 0,
