@@ -631,7 +631,7 @@
 
         IF col.has_subvals;
           tmp_data_attributes = tmp_data_attributes.merge([
-            {name = "filter-endpoint", value = layout_obj.identifier _ "/api/field/values/" _ col.id},
+            {name = "filter-endpoint", value = url.page _ "/" _ layout_obj.identifier _ "/api/field/values/" _ col.id},
             {name = "submission-token", value = submission_token},
             {name = "filter-fields", value = col.data_filter_fields}
           ]);
@@ -671,7 +671,7 @@
 
         IF col.has_subvals;
           tmp_data_attributes = tmp_data_attributes.merge([
-            {name = "filter-endpoint", value = url.page _ layout.identifier _ "/api/field/values/" _ col.id},
+            {name = "filter-endpoint", value = url.page _ "/" _ layout.identifier _ "/api/field/values/" _ col.id},
             {name = "submission-token", value = submission_token},
             {name = "filter-fields", value = col.data_filter_fields}
           ]);

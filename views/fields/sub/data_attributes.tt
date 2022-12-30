@@ -1,7 +1,7 @@
 [%
   IF data_attributes AND data_attributes.size;
-    FOREACH attr IN data_attributes;
-      " data-" _ attr.name.replace('_', '-').replace(' ', '-') _ '="' _ attr.value _ '"';
-    END;
+    FOREACH attr IN data_attributes; %]
+      data-[% attr.name.replace('_', '-').replace(' ', '-') %]="[% attr.value | html %]"
+    [% END;
   END;
 %]
