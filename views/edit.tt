@@ -653,6 +653,7 @@
           items                = select_items
           values               = select_values
           with_details         = 1
+          has_subvals          = col.has_subvals
           filter               = "html";
 
           data_attributes = [];
@@ -696,6 +697,7 @@
           items                = select_items
           value                = select_value
           with_details         = 1
+          has_subvals          = col.has_subvals
           filter               = "html";
           
           data_attributes = [];
