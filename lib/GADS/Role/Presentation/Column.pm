@@ -92,18 +92,6 @@ sub presentation {
         return_type         => $self->return_type,
         show_in_edit        => $self->show_in_edit,
     };
-    if ($options{group})
-    {
-        $return->{is_group}   = grep $_, @{$options{group_col_ids}};
-        my @filter_urls;
-        foreach my $group_col_id (@{$options{group_col_ids}})
-        {
-            my $filter_value = $group_col_id == $self->id ? $data->{filter_value} : $options{data}->{$group_col_id}->{filter_value};
-            push @filter_urls, "field$group_col_id=".uri_escape_utf8($filter_value);
-            last if $group_col_id == $self->id;
-        }
-        $return->{filter_url} = "group_filter&".join('&', @filter_urls);
-    }
 
     if (my $sort = $options{sort})
     {

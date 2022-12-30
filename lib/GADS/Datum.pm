@@ -158,7 +158,7 @@ sub html_form
 
 sub filter_value
 {   my $self = shift;
-    $self->html_form->[0];
+    $self->as_string;
 }
 
 # The values needed to pass to the set_values function of a datum. Normally the

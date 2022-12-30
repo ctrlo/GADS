@@ -2623,7 +2623,7 @@ prefix '/:layout_name' => sub {
 
             # If this is a filter from a group view, then disable the group for
             # this rendering
-            my $disable_group = defined query_parameters->get('group_filter') && @additional_filters;
+            my $disable_group = query_parameters->get('group_filter');
             $params{is_group} = 0 if $disable_group;
 
             $params{for_curval} = {
@@ -2760,6 +2760,7 @@ prefix '/:layout_name' => sub {
             $params->{is_group}             = $records->is_group,
             $params->{has_rag_column}       = grep { $_->type eq 'rag' } @columns;
             $params->{viewtype}             = 'table';
+            $params->{group_filter}         = query_parameters->get('group_filter');
             $params->{page}                 = 'data_table';
             $params->{search_limit_reached} = $records->search_limit_reached;
 

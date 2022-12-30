@@ -24,6 +24,7 @@ use Net::OAuth2::AuthorizationServer::PasswordGrant;
 use Session::Token;
 use JSON qw(decode_json encode_json);
 use POSIX qw(ceil);
+use URI::Escape qw/uri_escape_utf8/;
 
 use Dancer2 appname => 'GADS';
 use Dancer2::Plugin::Auth::Extensible;
@@ -1093,7 +1094,7 @@ sub _get_records {
     # information (not necessarily same as view columns)
     my $start  = $params->get('start') || 0;
     my $length = $params->get('length') || 25;
-    my $records = GADS::Records->new(
+    my %params = (
         user   => $user,
         schema => schema,
         view   => $view,
@@ -1101,6 +1102,9 @@ sub _get_records {
         page   => 1 + ceil($start / $length),
         layout => $layout,
     );
+    $params{is_group} = 0
+        if query_parameters->get('group_filter');
+    my $records = GADS::Records->new(%params);
 
     # Look for column filters
     my @additional_filters;
@@ -1109,6 +1113,9 @@ sub _get_records {
         # E.g. 'columns[1][search][value]' => 'my_search'
         next unless $key =~ /^columns\[([0-9]+)\Q][search][value]\E$/;
         my $index = $1;
+        # For a grouped view, the record count column is not in the rendered
+        # columns index
+        $index-- if $records->is_group;
         my $search = $params->get($key)
             or next;
         my $col = $records->columns_render->[$index]
@@ -1131,6 +1138,9 @@ sub _get_records {
 
     # Configure table sort
     my $order_index = $params->get('order[0][column]');
+    # For a grouped view, the record count column is not in the rendered
+    # columns index
+    $order_index-- if $records->is_group;
     my $col_order   = $records->columns_render->[$order_index];
     # Check user has access
     error __"Invalid column ID for sort"
@@ -1150,13 +1160,29 @@ sub _get_records {
     foreach my $rec (@{$records->results})
     {
         my $data;
+        if ($records->is_group)
+        {
+            # Construct filter URL which will show all of this group of records
+            my @filters;
+            foreach my $group_col_id (@{$records->group_col_ids})
+            {
+                my $filter_value = $rec->fields->{$group_col_id}->filter_value || '';
+                push @filters, "$group_col_id=".uri_escape_utf8($filter_value);
+            }
+            my $desc = $rec->id_count == 1 ? 'record' : 'records';
+            $data->{_count} = {
+                column_id => '_count',
+                values    => [$rec->id_count." $desc"],
+                type      => 'string',
+                url       => "group_filter=1&".join('&', @filters),
+            };
+        }
+        else {
+            $data->{_id} = $rec->current_id;
+        };
         $data->{$_->id} = $rec->fields->{$_->id}->for_table
             foreach @{$records->columns_render};
-        $data->{_count} = {
-            column_id => '_count',
-            values    => [$rec->id_count." records"],
-            type      => 'string'
-        } if $records->is_group;
+
         push @{$return->{data}}, $data;
     }
 
