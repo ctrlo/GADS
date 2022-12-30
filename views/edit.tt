@@ -39,6 +39,9 @@
         INCLUDE fields/hidden.tt name="child" value=child;
       END;
     %]
+    [% IF edit_modal %]
+        <div role="alert" class="alert alert-danger" hidden></div>
+    [% END %]
     <fieldset class="fieldset">
       <div class="fieldset__legend fieldset__legend--hidden">
         <legend>
