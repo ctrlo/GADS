@@ -28,6 +28,8 @@
 
   INCLUDE wizard/read_more.tt modalId = "readMore";
 
+  INCLUDE wizard/record_bulk_delete_confirmation.tt modalId = "bulkDelete";
+
   IF page == "data_timeline";
     INCLUDE wizard/timeline_options.tt modalId = "timelineOptionsModal";
 
