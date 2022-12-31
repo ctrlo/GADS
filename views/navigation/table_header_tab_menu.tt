@@ -8,8 +8,10 @@
       <a href='[% url.page %]/[% layout_obj.identifier %]/' class='link link--plain'><span>Dashboard</span></a>
     </li>
     
+    [% IF user.permission.superadmin OR layout.user_can("layout"); %]
     <li class="list__item[% page_is_active(edit_table_active_pages, ' list__item--active'); %]">
       <a href='[% url.page %]/table/[% layout_obj.instance_id %]/edit' class='link link--plain'><span>Edit table</span></a>
     </li>
+    [% END; %]
   </ul>
 </div>
