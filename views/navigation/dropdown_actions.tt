@@ -42,7 +42,7 @@
       type   = "modal",
       id     = "delete_href",
       class  = "bulk_href",
-      target = "modal_delete",
+      target = "bulkDelete",
       label  = "Delete all " _ sel_type
     });
   END;
