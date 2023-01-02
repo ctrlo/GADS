@@ -1,0 +1,37 @@
+<div class="modal modal--form" id="[% modalId %]" tabindex="-1" role="dialog" aria-labelledby="[% modalId %]Label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      [% INCLUDE wizard/sub/modal_header.tt label="Delete records"; %]
+      
+      <form method="post" class="">
+        [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+        <div class="modal-frame">
+          <div class="modal-body pb-0">
+            <div role="alert" class="alert alert-danger mt-0 mb-3 p-3">
+              Are you sure you want to delete records?
+            </div>
+            <p>
+              Are you sure you want to delete all the records that are in the current view?
+            </p>
+          </div>
+          
+          [%
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel"
+                dismiss = "modal"
+                label   = "Cancel"
+              }]
+              right_buttons = [{
+                type  = "submit"
+                class = "btn-danger"
+                name  = "modal_delete"
+                value = "submit"
+                label = "Delete"
+              }];
+          %]
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
