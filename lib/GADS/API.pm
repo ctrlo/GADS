@@ -1101,6 +1101,7 @@ sub _get_records {
         rows   => $length,
         page   => 1 + ceil($start / $length),
         layout => $layout,
+        rewind => session('rewind'),
     );
     $params{is_group} = 0
         if query_parameters->get('group_filter');
