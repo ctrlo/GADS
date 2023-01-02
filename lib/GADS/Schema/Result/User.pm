@@ -1050,6 +1050,7 @@ sub for_data_table
 {   my ($self, %params) = @_;
     my $site = $params{site};
     my $return = {
+        _id => $self->id,
         ID => {
             type   => 'id',
             name   => 'ID',
