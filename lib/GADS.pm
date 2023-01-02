@@ -1352,104 +1352,6 @@ get '/table/?' => require_login sub {
     };
 };
 
-any ['get', 'post'] => '/table/:id/permissions' => require_role superadmin => sub {
-
-    my $id     = param 'id';
-    my $layout = $id && var('instances')->layout($id);
-
-    $id && !$layout
-        and error __x "Instance ID {id} not found", id => $id;
-
-    if (param 'submit')
-    {
-        $layout->set_groups([body_parameters->get_all('permissions')]);
-
-        if (process(sub {$layout->write}))
-        {
-            return forwardHome(
-                { success => 'The table permissions have been updated successfully' }, 'table/' . $id . '/permissions' );
-        }
-    }
-
-    my $base_url = request->base;
-
-    template 'table_permissions' => {
-        page                         => 'table_permissions',
-        header_type                  => "table_tabs",
-        content_block_custom_classes => 'content-block--footer',
-        layout                       => $layout,
-        layout_obj                   => $layout,
-        groups                       => GADS::Groups->new(schema => schema)->all,
-        breadcrumbs                  => [
-            Crumb($base_url."table/", "Tables"),
-            Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
-            Crumb("", 'Permissions')
-        ],
-    }
-};
-
-any ['get', 'post'] => '/table/:id/edit' => require_role superadmin => sub {
-
-    my $id     = param 'id';
-    my $user   = logged_in_user;
-    my $layout = $id && var('instances')->layout($id);
-
-    $id && !$layout
-        and error __x"Instance ID {id} not found", id => $id;
-
-    if (param 'submit')
-    {
-        if (!$layout)
-        {
-            $layout = GADS::Layout->new(
-                user   => $user,
-                schema => schema,
-                config => config,
-            );
-        }
-        $layout->name(param 'name');
-        $layout->name_short(param 'name_short');
-        $layout->hide_in_selector(param 'hide_in_selector');
-        $layout->sort_layout_id(param('sort_layout_id') || undef);
-        $layout->sort_type(param('sort_type') || undef);
-        $layout->view_limit_id(param('view_limit_id') || undef);
-        $layout->set_alert_columns([body_parameters->get_all('alert_column')]);
-        $layout->set_rags(body_parameters);
-
-        if (process(sub {$layout->write}))
-        {
-            # Switch user to new table
-            my $msg = param('id') ? 'The table has been updated successfully' : 'Your new table has been created successfully';
-            return forwardHome(
-                { success => $msg }, 'table/' . $id . '/edit' );
-        }
-    }
-
-    if (param 'delete')
-    {
-        if (process(sub {$layout->delete}))
-        {
-            return forwardHome(
-                { success => "The table has been deleted successfully" }, 'table' );
-        }
-    }
-
-    my $base_url = request->base;
-
-    template 'table' => {
-        page                         => 'table_edit',
-        content_block_custom_classes => 'content-block--footer',
-        breadcrumbs                  => [
-            Crumb($base_url."table/", "Tables"),
-            Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
-            Crumb("", "General settings")
-        ],
-        header_type                  => "table_tabs",
-        layout                       => $layout,
-        layout_obj                   => $layout
-    }
-};
-
 any ['get', 'post'] => '/user_upload/' => require_any_role [qw/useradmin superadmin/] => sub {
 
     my $userso = GADS::Users->new(schema => schema);
@@ -3280,6 +3182,103 @@ prefix '/:layout_name' => sub {
             ],
         };
         $output;
+    };
+
+    any ['get', 'post'] => '/edit' => require_login sub {
+
+        my $user   = logged_in_user;
+        my $layout = var('layout') or pass;
+
+        forwardHome({ danger => "You do not have permission to manage fields"}, '')
+            unless $layout->user_can("layout");
+
+        if (param 'submit')
+        {
+            if (!$layout)
+            {
+                $layout = GADS::Layout->new(
+                    user   => $user,
+                    schema => schema,
+                    config => config,
+                );
+            }
+            $layout->name(param 'name');
+            $layout->name_short(param 'name_short');
+            $layout->hide_in_selector(param 'hide_in_selector');
+            $layout->sort_layout_id(param('sort_layout_id') || undef);
+            $layout->sort_type(param('sort_type') || undef);
+            $layout->view_limit_id(param('view_limit_id') || undef);
+            $layout->set_alert_columns([body_parameters->get_all('alert_column')]);
+            $layout->set_rags(body_parameters);
+
+            if (process(sub {$layout->write}))
+            {
+                # Switch user to new table
+                my $msg = param('id') ? 'The table has been updated successfully' : 'Your new table has been created successfully';
+                return forwardHome(
+                    { success => $msg }, $layout->identifier.'/edit' );
+            }
+        }
+
+        if (param 'delete')
+        {
+            if (process(sub {$layout->delete}))
+            {
+                return forwardHome(
+                    { success => "The table has been deleted successfully" }, 'table' );
+            }
+        }
+
+        my $base_url = request->base;
+
+        template 'table' => {
+            page                         => 'table_edit',
+            content_block_custom_classes => 'content-block--footer',
+            breadcrumbs                  => [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("", "General settings")
+            ],
+            header_type                  => "table_tabs",
+            layout                       => $layout,
+            layout_obj                   => $layout
+        }
+    };
+
+    any ['get', 'post'] => '/permissions' => require_login sub {
+
+        my $user   = logged_in_user;
+        my $layout = var('layout') or pass;
+
+        forwardHome({ danger => "You do not have permission to manage fields"}, '')
+            unless $layout->user_can("layout");
+
+        if (param 'submit')
+        {
+            $layout->set_groups([body_parameters->get_all('permissions')]);
+
+            if (process(sub {$layout->write}))
+            {
+                return forwardHome(
+                    { success => 'The table permissions have been updated successfully' }, $layout->identifier.'/permissions' );
+            }
+        }
+
+        my $base_url = request->base;
+
+        template 'table_permissions' => {
+            page                         => 'table_permissions',
+            header_type                  => "table_tabs",
+            content_block_custom_classes => 'content-block--footer',
+            layout                       => $layout,
+            layout_obj                   => $layout,
+            groups                       => GADS::Groups->new(schema => schema)->all,
+            breadcrumbs                  => [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("", 'Permissions')
+            ],
+        }
     };
 
     any ['get', 'post'] => '/layout/?:id?' => require_login sub {

@@ -20,7 +20,7 @@
     table_width = table_width - 7.5;
     table_buttons.push({
       label = "Edit table"
-      link  = "/table/{table_id}/edit"
+      link  = "/{table_short_name}/edit"
     });
   END;
 
