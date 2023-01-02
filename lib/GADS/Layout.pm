@@ -605,6 +605,10 @@ sub write
     # Check short name does not already exist
     if ($self->name_short)
     {
+        error __x"Invalid short name for table \"{name}\": short names can only contain alphanumeric characters and the underscore",
+            name => $self->name_short
+                unless $self->name_short =~ /^[_a-z0-9]+$/i;
+
         my $exists = $self->schema->resultset('Instance')->search({
             name_short  => $self->name_short,
             id          => { '!=' => $rset->id },
