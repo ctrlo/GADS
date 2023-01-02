@@ -60,5 +60,11 @@ has '+value_field' => (
 
 sub tjoin {}
 
+sub validate_search
+{   my ($self, $value) = @_;
+    $value =~ /^[0-9]+$/
+        or error __x"Invalid serial value: {val}", val => $value;
+}
+
 1;
 
