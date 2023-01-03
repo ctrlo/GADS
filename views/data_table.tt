@@ -5,7 +5,11 @@
   
   <div class="content-block__aside col-lg-6">
     <a href="[% url.page %]/[% layout.identifier %]/record/" class="btn btn-add">
-      Add a record
+      [% IF user.has_draft(layout.instance_id) %]
+        Continue draft record
+      [% ELSE %]
+        Add a record
+      [% END %]
     </a>
   </div>
 </div>
