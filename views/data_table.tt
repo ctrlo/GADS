@@ -51,8 +51,6 @@
       col_counter = 0;
     
       FOREACH col IN columns;
-        NEXT IF processed_columns.grep(col.id).size;
-        
         IF col.sort.type == 'asc' OR col.sort.type == 'desc';
           table_order = table_order _ (table_order == '' ? '' : ', ') _ '[' _ col_counter _ ', "' _ col.sort.type _ '"]';
         END;
