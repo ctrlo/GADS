@@ -34,6 +34,6 @@
         END;
       %]
     </div>
-    <script type="text/javascript" src="[% url.js %]/site.js?v=2"></script>
+    <script type="text/javascript" src="[% url.js %]/site.js?v=3"></script>
   </body>
 </html>
