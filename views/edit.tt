@@ -237,9 +237,9 @@
               right_buttons.push({
                 type  = "button",
                 class = "btn btn-inverted btn-js-remove-unload btn-js-submit-draft-record",
-                id    = "submit-and-remain",
+                id    = "save-draft",
                 name  = "draft",
-                value = "submit-and-remain",
+                value = "save-draft",
                 label = "Save as draft"
               }, {
                 type  = "button",
