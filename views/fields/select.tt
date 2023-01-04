@@ -56,7 +56,7 @@
       data-restore-value="[% display_value %]"[%- IF is_disabled -%]
       disabled[%- END -%][%- IF is_readonly -%]
       readonly[%- END -%]
-      placeholder="[% INCLUDE fields/sub/filter.tt value=display_placeholder; %]"
+      placeholder="[% INCLUDE fields/sub/filter.tt value=placeholder; %]"
       [% IF reveal_id %]data-reveal_id="[% reveal_id %]"[% END %]
     >
     
