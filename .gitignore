@@ -23,3 +23,7 @@ node_modules/
 /public/**/*.map
 .idea/
 /dump
+
+/public/css/external.js
+/public/css/general.js
+/public/manifest.json

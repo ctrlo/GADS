@@ -98,8 +98,6 @@ services:
       - .:/home/node/app
     working_dir: /home/node/app
     user: node
-    environment:
-      NODE_ENV: production
     command: ["npm", "run", "roger"]
 
 volumes:

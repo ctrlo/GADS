@@ -1,7 +1,6 @@
 const path = require('path')
 const webpack = require('webpack')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const ManifestPlugin = require('webpack-manifest-plugin')
 const StyleLintPlugin = require('stylelint-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 
@@ -13,7 +12,6 @@ const plugins = [
   new MiniCssExtractPlugin({
     filename: '[name].css',
   }),
-  new ManifestPlugin(),
   new StyleLintPlugin({
     fix: false,
     syntax: 'scss',
