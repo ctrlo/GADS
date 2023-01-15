@@ -133,8 +133,15 @@ sub _add_jp
                 if ($column->is_curcommon && $prefetch)
                 {
                     my $tree = $self->already_seen;
-                    my ($daughter) = grep { $_->name == $column->id} $tree->daughters
-                        or panic "Could not find column ".$column->id.", tree is ".join("\n", @{$tree->tree2string});
+                    my ($daughter) = grep { $_->name == $column->id} $tree->daughters;
+                    # If add_join / add_prefetch is called early, such as
+                    # during initial building of columns, then the column won't
+                    # exist in the tree. Therefore add it now.
+                    if (!$daughter)
+                    {
+                        $daughter = Tree::DAG_Node->new({name => $column->id});
+                        $tree->add_daughter($daughter);
+                    }
                     $self->_add_children($j, $column, %options, already_seen => $daughter);
                 }
                 trace __x"Found existing, returning"
