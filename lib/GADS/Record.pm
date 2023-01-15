@@ -2590,6 +2590,8 @@ sub get_field_value
     {
         my $already_seen = Tree::DAG_Node->new({name => 'root'});
         $raw = [$column->fetch_multivalues([$record_id], already_seen => $already_seen)];
+        # Ensure no memory leaks - tree needs to be destroyed
+        $already_seen->delete_tree;
     }
     else {
         my $result = $self->schema->resultset($column->table)->search({

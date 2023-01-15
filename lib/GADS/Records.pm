@@ -1012,6 +1012,7 @@ has already_seen => (
     builder => sub {
         Tree::DAG_Node->new({name => 'root'});
     },
+    clearer => 1,
 );
 
 sub _build_results
@@ -1225,9 +1226,9 @@ sub fetch_multivalues
         if ($column->type eq 'curval')
         {
             $parent_field = $column->field;
-            push @cols, @{$column->curval_fields_multivalue(already_seen => $self->already_seen)};
+            push @cols, @{$column->curval_fields_multivalue(already_seen => $already_seen)};
             # Flag any curval multivalue fields as also requiring fetching
-            foreach (@{$column->curval_fields_multivalue(already_seen => $self->already_seen)})
+            foreach (@{$column->curval_fields_multivalue(already_seen => $already_seen)})
             {
                 $curval_fields->{$column->field}->{$_->field} ||= [];
                 push @{$curval_fields->{$column->field}->{$_->field}}, $column->field;
@@ -1310,7 +1311,7 @@ sub fetch_multivalues
                             \@retrieve_ids,
                             is_draft     => $params{is_draft},
                             rewind       => $self->rewind, # Would be better in a context object
-                            already_seen => $self->already_seen,
+                            already_seen => $already_seen,
                     ))
                     {
                         my $field = "field$val->{layout_id}";
@@ -1429,6 +1430,7 @@ sub single
             $self->_set_current_ids($cid_fetch);
             $self->clear_current_ids;
             $self->clear_results;
+            $self->delete_already_seen;
             $self->_clear_cid_search_query_cache;
 
             $next_id = 0;
@@ -1629,11 +1631,23 @@ sub _build_columns_render
     return \@cols;
 }
 
+sub delete_already_seen
+{   my $self = shift;
+    # Ensure no memory leaks - tree needs to be destroyed. However, only do so
+    # if we are at the root node. This function could be called from single()
+    # which could be called from a deeper retrieval of records than the
+    # original records object that created the node.
+    $self->already_seen->delete_tree
+        if $self->already_seen->name eq 'root';
+    $self->clear_already_seen;
+}
+
 sub clear_records
 {   my ($self, %options) = @_;
     $self->clear_count;
     $self->clear_current_ids;
     $self->clear_results;
+    $self->delete_already_seen;
     $self->clear_aggregate_results;
     $self->_set__next_single_id(0);
     $self->_single_page(0);

@@ -85,11 +85,14 @@ sub _build_vars
     # Ensure recurse-prevention information is passed onto curval/autocurs
     # within code values
     my $already_seen = Tree::DAG_Node->new({name => 'root'});
-    $self->record->values_by_shortname(
+    my $vars = $self->record->values_by_shortname(
         all_possible_names => \%needed,
         already_seen_code  => $already_seen,
         names              => [$self->column->params],
     );
+    # Ensure no memory leaks - tree needs to be destroyed
+    $already_seen->delete_tree;
+    $vars;
 }
 
 around 'clone' => sub {
