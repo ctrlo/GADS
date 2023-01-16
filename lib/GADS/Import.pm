@@ -522,8 +522,13 @@ sub _import_rows
             my @changes;
             if ($self->update_unique)
             {
-                my @values = @{$input->{$self->update_unique}};
-                if (@values > 1)
+                my @values = $input->{$self->update_unique} && @{$input->{$self->update_unique}};
+                if (!$input->{$self->update_unique})
+                {
+                    push @bad, qq(Specified unique field to update not found in import);
+                    $skip = 1;
+                }
+                elsif (@values > 1)
                 {
                     push @bad, qq(Multiple values specified for unique field to update);
                     $skip = 1;
@@ -657,7 +662,7 @@ sub _import_rows
         });
     }
 
-    my $result = "Rows in: $count->{in}, rows written: $count->{written}, errors: $count->{errors}";
+    my $result = "Rows in: $count->{in}, rows written: $count->{written}, errors: $count->{errors}, skipped: $count->{skipped}";
     $import->update({
         completed     => DateTime->now,
         result        => $result,
