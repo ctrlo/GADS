@@ -95,7 +95,16 @@ $ bin/app.pl
 # - Add data!
 ```
 
-## Other useful dbic-migration commands
+## Managing the deployed database
+
+### Upgrade the deployed database to the latest version
+
+Run this after updating the code:
+
+`perl bin/migrate-db.pl`
+
+### Other useful dbic-migration commands
+
 ```
 # Dump all data to fixtures
 ... dump_all_sets --fixture_sets all_tables
