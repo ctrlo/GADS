@@ -145,6 +145,8 @@ sub _build__init_value_hash
     {
         my $already_seen = Tree::DAG_Node->new({name => 'root'});
         my @values = $self->column->fetch_multivalues([$self->record->record_id], already_seen => $already_seen);
+        # Ensure no memory leaks - tree needs to be destroyed
+        $already_seen->delete_tree;
         @values = map { $_->{value} } @values;
         +{
             ids     => [ map { $_->current_id } @values ],

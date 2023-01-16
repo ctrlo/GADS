@@ -68,6 +68,11 @@ has split_multiple => (
     isa => Bool,
 );
 
+has short_names => (
+    is  => 'ro',
+    isa => Bool,
+);
+
 # Column IDs of values that should be appended on being updated, not overwritten
 has append => (
     is      => 'ro',
@@ -269,21 +274,30 @@ sub _build_fields
                 ($self->update_unique && $self->update_unique == $column_id->id) ||
                 ($self->skip_existing_unique && $self->skip_existing_unique == $column_id->id)
             ) &&
-            $field eq 'ID'
+            $field eq ($self->short_names ? '_id' : 'ID')
         )
         {
             push @fields, $self->layout->column($column_id->id); # Special case
         }
+        # Short name internal fields
+        elsif ($self->short_names && $field =~ /^(_version_datetime|_version_user)$/)
+        {
+            my $id = $self->layout->column_by_name_short($field)->id;
+            push @fields, $self->layout->column($id);
+        }
+        # Full name internal fields
         elsif ($field =~ /^(Last edited time|Last edited by)$/)
         {
             my $id = $self->layout->column_by_name($field)->id;
             push @fields, $self->layout->column($id);
         }
         else {
-            my $f_rs = $self->schema->resultset('Layout')->search({
-                name        => $field,
-                instance_id => $self->layout->instance_id
-            });
+            my $search = {
+                instance_id => $self->layout->instance_id,
+            };
+            $search->{name} = $field if !$self->short_names;
+            $search->{name_short} = $field if $self->short_names;
+            my $f_rs = $self->schema->resultset('Layout')->search($search);
             error __x"Layout has more than one field named {name}", name => $field
                 if $f_rs->count > 1;
             error __x"Field '{name}' in import headings not found in table", name => $field
@@ -425,12 +439,12 @@ sub _import_rows
                 # Trim value
                 $value = _trim($value);
 
-                if ($col->name eq 'Last edited time')
+                if ($col->name eq ($self->short_names ? '_version_datetime' : 'Last edited time'))
                 {
                     $options{version_datetime} = $parser_yymd->parse_datetime($value)
                         or push @bad, qq(Invalid version_datetime "$value");
                 }
-                elsif ($col->name eq 'Last edited by')
+                elsif ($col->name eq ($self->short_names ? '_version_user' : 'Last edited by'))
                 {
                     $options{version_userid} = $value;
                 }
@@ -522,8 +536,13 @@ sub _import_rows
             my @changes;
             if ($self->update_unique)
             {
-                my @values = @{$input->{$self->update_unique}};
-                if (@values > 1)
+                my @values = $input->{$self->update_unique} && @{$input->{$self->update_unique}};
+                if (!$input->{$self->update_unique})
+                {
+                    push @bad, qq(Specified unique field to update not found in import);
+                    $skip = 1;
+                }
+                elsif (@values > 1)
                 {
                     push @bad, qq(Multiple values specified for unique field to update);
                     $skip = 1;
@@ -657,7 +676,7 @@ sub _import_rows
         });
     }
 
-    my $result = "Rows in: $count->{in}, rows written: $count->{written}, errors: $count->{errors}";
+    my $result = "Rows in: $count->{in}, rows written: $count->{written}, errors: $count->{errors}, skipped: $count->{skipped}";
     $import->update({
         completed     => DateTime->now,
         result        => $result,
