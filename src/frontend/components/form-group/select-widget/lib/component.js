@@ -352,16 +352,14 @@ class SelectWidgetComponent extends Component {
     }
   }
 
-  currentLi(multi, field, value, label, checked) {
-    if (multi && !value) {
+  currentLi(multi, field, value_id, value_text, value_html, checked) {
+    if (multi && !value_id) {
       return $('<li class="none-selected">blank</li>')
     }
 
-    const valueId = value ? field + "_" + value : field + "__blank"
-    const className = value ? "" : "current__blank"
-    const deleteButton = multi
-      ? '<button type="button" class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times</button>'
-      : ""
+    const valueId = value_id ? field + "_" + value_id : field + "__blank"
+    const className = value_id ? "" : "current__blank"
+    const deleteButton = '<button type="button" class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times</button>'
     const $li = $(
       "<li " +
         (checked ? "" : "hidden") +
@@ -374,8 +372,8 @@ class SelectWidgetComponent extends Component {
         deleteButton +
         "</li>"
     )
-    $li.data('list-text', label)
-    $li.find('span').text(label)
+    $li.data('list-text', value_text)
+    $li.find('span').html(value_html)
     return $li
   }
 
@@ -403,7 +401,9 @@ class SelectWidgetComponent extends Component {
         classNames +
         '">' +
         '<div class="control">' +
-        '<div class="checkbox">' +
+        '<div class="' +
+        (multi ? "checkbox" : "radio-group__option") +
+        '">' +
         '<input id="' +
         valueId +
         '" type="' +
@@ -411,7 +411,8 @@ class SelectWidgetComponent extends Component {
         '" name="' +
         field +
         '" ' +
-        (checked ? "checked" : "") +
+        (checked ? " checked" : "") +
+        (this.required ? ' required aria-required="true"' : "") +
         ' value="' +
         (value || "") +
         '" class="' +
@@ -476,7 +477,7 @@ class SelectWidgetComponent extends Component {
             .remove() // Prevent duplicate blank entries
             self.$search
             .parent()
-            .before(self.currentLi(self.multi, field, null, "blank", checked))
+            .before(self.currentLi(self.multi, field, null, "", "blank", checked))
             self.$available.append(self.availableLi(self.multi, field, null, "blank", checked))
         }
 
@@ -486,10 +487,10 @@ class SelectWidgetComponent extends Component {
             self.$search
               .parent()
               .before(
-                self.currentLi(self.multi, field, record.id, record.label, checked)
+                self.currentLi(self.multi, field, record.id, record.label, record.html, checked)
               ).before(' ') // Ensure space between elements
               self.$available.append(
-                self.availableLi(self.multi, field, record.id, record.label, checked)
+                self.availableLi(self.multi, field, record.id, record.html, checked)
             )
           }
         })
@@ -515,11 +516,11 @@ class SelectWidgetComponent extends Component {
         const errorMessage =
           data.error === 1 ? data.message : "Oops! Something went wrong."
         const errorLi = $(
-          '<li class="answer answer--blank alert alert-danger"><span class="control"><label>' +
+          '<li class="answer answer--blank alert alert-danger d-flex flex-row justify-content-start"><span class="control"><label>' +
             errorMessage +
             "</label></span></li>"
         )
-        self.available.append(errorLi)
+        self.$available.append(errorLi)
       }
     })
       .fail(function(jqXHR, textStatus, textError) {

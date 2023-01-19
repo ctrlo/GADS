@@ -113,6 +113,12 @@
       }
     }
 
+    /* error messages in filtered-value curvals */
+    .alert {
+      margin-top: 0;
+      padding-bottom: 0.5rem;
+    }
+
     .answer {
       display: flex;
       align-items: center;

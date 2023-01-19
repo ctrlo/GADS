@@ -66,6 +66,9 @@ class CurvalModalComponent extends ModalComponent {
 
       row_cells.append(editButton.append(hidden_input)).append(removeButton)
 
+      /* Activate remove button in new row */
+      initializeRegisteredComponents(row_cells[0])
+
       if (guid) {
         const hidden = $('input[data-guid="' + guid + '"]', self.context).val(form_data)
         hidden.closest(".table-curval-item").replaceWith(row_cells)

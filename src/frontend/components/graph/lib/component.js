@@ -1,13 +1,13 @@
 import { Component } from 'component'
-import 'jqplot/jquery.jqplot.min'
-import 'jqplot/jqplot.barRenderer'
-import 'jqplot/jqplot.pieRenderer'
-import 'jqplot/jqplot.donutRenderer'
-import 'jqplot/jqplot.canvasTextRenderer'
-import 'jqplot/jqplot.categoryAxisRenderer'
-import 'jqplot/jqplot.canvasAxisLabelRenderer'
-import 'jqplot/jqplot.canvasAxisTickRenderer'
-import 'jqplot/jqplot.highlighter'
+import '../../../themes/default/js/lib/jqplot/jquery.jqplot.min'
+import '../../../themes/default/js/lib/jqplot/jqplot.barRenderer'
+import '../../../themes/default/js/lib/jqplot/jqplot.pieRenderer'
+import '../../../themes/default/js/lib/jqplot/jqplot.donutRenderer'
+import '../../../themes/default/js/lib/jqplot/jqplot.canvasTextRenderer'
+import '../../../themes/default/js/lib/jqplot/jqplot.categoryAxisRenderer'
+import '../../../themes/default/js/lib/jqplot/jqplot.canvasAxisLabelRenderer'
+import '../../../themes/default/js/lib/jqplot/jqplot.canvasAxisTickRenderer'
+import '../../../themes/default/js/lib/jqplot/jqplot.highlighter'
 
 class GraphComponent extends Component {
   constructor(element) {
@@ -22,7 +22,7 @@ class GraphComponent extends Component {
   initGraph() {
     $.jqplot.config.enablePlugins = true
     const data = this.graphContainer.data()
-    const jsonurl = this.getURL(data)
+    const jsonurl = this.getURL(data)    
     const plotData = this.ajaxDataRenderer(jsonurl)
     const options_in = {
       type: data.graphType,
@@ -168,7 +168,7 @@ class GraphComponent extends Component {
       }
     }
   })
-
+  
 }
 
 export default GraphComponent

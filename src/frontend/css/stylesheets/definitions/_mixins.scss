@@ -302,17 +302,25 @@
   display: inline-flex;
   position: relative;
   align-items: center;
-  margin-left: 1.75rem;
+  padding-left: 1.75rem;
 
   &::before {
     @extend %icon-font;
 
     position: absolute;
     top: 50%;
-    left: -1.75rem;
+    left: 0;
     padding-right: $padding-base-horizontal;
     transform: translateY(-50%);
     font-size: $font-size-base;
+  }
+
+  &.link--primary {
+    padding-left: 3rem;
+
+    &::before {
+      left: 0.75rem;
+    }
   }
 }
 

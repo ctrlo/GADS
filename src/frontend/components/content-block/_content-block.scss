@@ -39,9 +39,21 @@
   padding-top: $padding-large-vertical;
 }
 
+/* Reset above top padding if within a modal dialogue */
+.modal-dialog .content-block__head,
+.modal-dialog .content-block__main {
+  padding-top: 0;
+}
+
 .content-block .alert {
   margin-top: $padding-large-vertical;
   margin-bottom: 0;
+}
+
+/* Reset above margin if within a modal dialogue */
+.content-block .modal-dialog .alert {
+  margin-top: 0;
+  margin-bottom: 2rem;
 }
 
 .content-block__title {

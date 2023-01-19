@@ -23,6 +23,9 @@ class ButtonComponent extends Component {
       case this.el.hasClass('btn-js-submit-field'):
         this.initSubmitField()
         break
+      case this.el.hasClass('btn-js-submit-draft-record'):
+        this.initSubmitDraftRecord()
+        break
       case this.el.hasClass('btn-js-submit-record'):
         this.initSubmitRecord()
         break
@@ -85,6 +88,10 @@ class ButtonComponent extends Component {
 
   initSubmitField() {
     this.el.on('click', (ev) => { this.submitField(ev) }) 
+  }
+
+  initSubmitDraftRecord() {
+    this.el.on('click', (ev) => { this.submitDraftRecord(ev) })
   }
 
   initSubmitRecord() {
@@ -157,10 +164,18 @@ class ButtonComponent extends Component {
     }
   }
 
+  submitDraftRecord(ev) {
+    const $button = $(ev.target).closest('button')
+    const $form = $button.closest("form")
+
+    // Remove the required attribute from hidden required dependent fields
+    $form.find(".form-group *[aria-required]").removeAttr('required')
+  }
+
   submitRecord(ev) {
     const $button = $(ev.target).closest('button')
     const $form = $button.closest("form")
-    const $requiredHiddenRecordDependentFields = $form.find(".form-group[data-has-dependency='1'][style*='display: none'] input[aria-required]")
+    const $requiredHiddenRecordDependentFields = $form.find(".form-group[data-has-dependency='1'][style*='display: none'] *[aria-required]")
 
     if (!this.requiredHiddenRecordDependentFieldsCleared) {
       ev.preventDefault()
