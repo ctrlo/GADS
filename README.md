@@ -110,26 +110,29 @@ bin/onboard.pl --take-first-enum new.csv # Import random data
 ```
 
 ## Front-end workflow
+This section describes the front-end flow: CSS and JS.
 To get started install all required dependencies by running `yarn install`.
+### Docker
+When you're using `docker` to spin up this application, the CSS and JS
+will automatically be compiled and saved in the `public` folder.
+The container `frontend` defined in `docker-compose.yml` has the command
+to run `webpack` and watch the files.
+
+### Manual
+To build the frontend yourself, run the command `yarn run roger`.
+This will run the command defined in the `package.json`:
+```
+    "roger": "NODE_ENV=production node node_modules/.bin/webpack --watch --progress --output-path public/",
+```
 
 ### CSS
 CSS is written in SCSS, and compiled.
-
-The main SCSS files live in `scss/`. To compile run `yarn run sass`.
+The main SCSS files live in `src/frontend/css/stylesheets`.
+There are two main-entries: `general.scss` and `external.scss`.
+Both will compile to their own CSS file. The components that
+are included in those files are defined in `src/frontend/components/**/_*.scss`.
 
 ### Javascript
-There are two javascript builds present, one to build `dashboard.js` and one to build
-`linkspace.js`. The former uses Webpack and is IE9+ compatible. The latter is a simpler
-process with Rollup to compile IE8+ compatible code.
-
-Those source files live in `src`. To compile `dashboard.js` run `yarn run ts` and to compile
-`linkspace.js` run `yarn run rollup`.
-
-### Combine
-To compile all files at the same time run `yarn run start`. This will also monitor for changed
-files and will run either `rollup`, `sass` or `ts` when needed. This is the primary command
-you want to run when developing.
-
-At this time all compiled files are added to git to support an easier deployment. This should be
-migrated to a deployment procedure which builds those files on the fly, allowing the build files
-to be removed from git.
+There is one javascript build present. The main-entry file is `src/frontend/js/site.js`.
+The components that are included in this file is defined in `src/frontend/components/**/index.js`
+and `src/frontend/components/**/lib/*.js`.
