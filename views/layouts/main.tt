@@ -2,26 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-
     <title>[% page %] | Linkspace</title>
-
     <meta name="author" content="Digitpaint">
-
     <meta name="description" content="">
     <meta name="author" content="">
     <meta name="generator" content="Roger" />
     <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
-
-    <!-- location dependent stylesheets for CDN om prod. check if still needed-->
-    [% IF hostlocal %]
-
-    [% ELSE %]
-
-    [% END %]
     <link rel="stylesheet" href="[% url.css %]/general.css">
     <link rel="stylesheet" href="[% url.css %]/external.css">
   </head>
-
   <body class="[% body_class || 'page' %]"[% IF csrf_token %] data-csrf="[%- csrf_token -%]"[% END; IF layout OR layout_obj; %] data-layout-identifier="[% layout.identifier || layout_obj.identifier %]"[% END %]>
     <div class="[% container_class || 'container-fluid' %]">
       [%
