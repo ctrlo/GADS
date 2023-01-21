@@ -1,0 +1,62 @@
+.timeline__legend {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: $padding-base-vertical;
+}
+
+.timeline__color {
+  display: flex;
+  align-items: center;
+  margin-right: $padding-base-horizontal;
+  padding: 0.25rem 0;
+}
+
+.timeline__color-key {
+  width: 1rem;
+  height: 1rem;
+}
+
+.timeline__color-text {
+  margin-left: $padding-small-horizontal;
+}
+
+.timeline__container {
+  position: relative;
+}
+
+.timeline__overlay {
+  display: none;
+  position: absolute;
+  z-index: 1050;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: $black;
+  text-align: center;
+}
+
+.timeline__loader {
+  position: absolute;
+  right: 0;
+  bottom: 50%;
+  left: 0;
+  width: 50px;
+  height: 50px;
+  margin: auto;
+  animation: spin 2s linear infinite;
+  border: 5px solid $gray;
+  border-top: 5px solid #555;
+  border-radius: 50%;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,84 @@
+/* stylelint-disable selector-no-qualifying-type */
+span.rag {
+  span {
+    @include visually-hidden;
+  }
+
+  &::before {
+    @extend %icon-font;
+
+    margin-right: $padding-small-horizontal;
+    padding: 0.313rem;
+    border-radius: 0.125rem;
+    color: $white;
+    font-size: 1.25rem;
+  }
+}
+/* stylelint-enable selector-no-qualifying-type */
+
+.rag--danger {
+  &::before {
+    content: "\e807";
+    background-color: $brand-danger;
+  }
+}
+
+.rag--warning {
+  &::before {
+    content: "\e822";
+    background-color: $brand-tertiary;
+  }
+}
+
+.rag--advisory {
+  &::before {
+    content: "\e813";
+    background-color: $brand-warning;
+  }
+}
+
+.rag--success {
+  &::before {
+    content: "\e804";
+    background-color: $brand-success;
+  }
+}
+
+.rag--undefined {
+  &::before {
+    content: "\e816";
+    background-color: $gray;
+  }
+}
+
+.rag--unexpected {
+  &::before {
+    content: "\e810";
+    background-color: $brand-primary;
+  }
+}
+
+.rag--complete {
+  &::before {
+    content: "\e807";
+    background-color: $blue;
+  }
+}
+
+.rag--attention {
+  &::before {
+    content: "\e822";
+    background-color: $brand-danger;
+  }
+}
+
+.rag--blank {
+  &::before {
+    content: "_";
+    padding: 0 0.4375rem;
+    background-color: $transparent;
+    color: $text-color;
+    font-size: 2rem;
+    line-height: 0.95;
+  }
+}

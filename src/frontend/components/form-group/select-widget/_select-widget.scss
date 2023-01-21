@@ -1,0 +1,152 @@
+.select-widget {
+  .form-text {
+    @include form-text;
+
+    margin-top: 0;
+  }
+
+  .form-text--error {
+    margin-top: 0.5rem;
+  }
+
+  .form-control {
+    @include form-control;
+
+    display: flex;
+    position: relative;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.25rem;
+    padding-bottom: 0;
+    white-space: normal;
+
+    &::after {
+      @extend %icon-font;
+
+      content: "\E805";
+      position: absolute;
+      top: 50%;
+      right: $padding-base-horizontal;
+      transform: translateY(-50%) rotate(90deg);
+      border: 0;
+      color: $gray-extra-dark;
+      font-size: 10px;
+    }
+  }
+
+  .current {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+
+    li {
+      margin-right: $padding-small-horizontal;
+      margin-bottom: $padding-small-vertical;
+    }
+
+    li[data-list-item] {
+      display: flex;
+      align-items: center;
+      padding: 0 $padding-small-horizontal;
+      border-radius: 7px;
+      background-color: $gray;
+    }
+
+    .widget-value__value {
+      padding-right: 0.2rem;
+    }
+
+    .none-selected {
+      display: none;
+    }
+
+    &.empty .none-selected {
+      display: inline-block;
+    }
+  }
+
+  .form-control-search {
+    padding: 0 $padding-small-horizontal;
+    border: 0;
+    border-left: 1px solid $gray;
+    outline: 0;
+
+    /* clears the 'X' from Internet Explorer */
+    &::-ms-clear {
+      display: none;
+      width: 0;
+      height: 0;
+    }
+
+    &::-ms-reveal {
+      display: none;
+      width: 0;
+      height: 0;
+    }
+
+    /* clears the 'X' from Chrome */
+    &::-webkit-search-decoration,
+    &::-webkit-search-cancel-button,
+    &::-webkit-search-results-button,
+    &::-webkit-search-results-decoration {
+      display: none;
+    }
+
+    &::placeholder {
+      @include placeholder;
+    }
+  }
+
+  .available {
+    padding: $padding-small-vertical 0;
+    border: 1px solid rgba($black, 0.15);
+    border-radius: 0.25rem;
+    background-color: $white;
+
+    .answer,
+    .has-noresults,
+    .spinner {
+      padding: $padding-small-vertical $padding-base-vertical 0;
+
+      label {
+        margin: 0;
+      }
+    }
+
+    /* error messages in filtered-value curvals */
+    .alert {
+      margin-top: 0;
+      padding-bottom: 0.5rem;
+    }
+
+    .answer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  & + .btn {
+    margin-top: 0.5rem;
+  }
+}
+
+.select-widget.invalid .form-control {
+  border-color: $brand-danger;
+}
+
+.select-widget--open .form-control::after {
+  transform: translateY(-50%) rotate(-90deg);
+}
+
+.select-widget-value__delete {
+  font-size: $font-size-base;
+}
+
+.select-widget-dropdown {
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+  }
+}

@@ -1,0 +1,638 @@
+import { Component } from 'component'
+import { logging } from 'logging'
+import { initValidationOnField } from 'validation'
+import { MoreInfoButton } from '../../../button/lib/more-info-button'
+
+  /*
+   * A SelectWidget is a custom disclosure widget
+   * with multi or single options selectable.
+   * SelectWidgets can depend on each other;
+   * for instance if Value "1" is selected in Widget "A",
+   * Widget "B" might not be displayed.
+   */
+class SelectWidgetComponent extends Component {
+  constructor(element)  {
+    super(element)
+    this.el = $(this.element)
+    this.$selectWidget = this.el;
+    this.$widget = this.el.find(".form-control");
+    this.$trigger = this.$widget.find("[aria-expanded]");
+    this.$current = this.el.find(".current");
+    this.$available = this.el.find(".available");
+    this.$availableItems = this.el.find(".available .answer input");
+    this.$moreInfoButtons = this.el.find(".available .answer .btn-js-more-info");
+    this.$target = this.el.find("#" + this.$trigger.attr("aria-controls"));
+    this.$currentItems = this.$current.find("[data-list-item]");
+    this.$answers = this.el.find(".answer");
+    this.$fakeInput = null;
+    this.$search = this.el.find(".form-control-search");
+    this.lastFetchParams = null;
+    this.multi = this.el.hasClass("multi")
+    this.timeout
+    this.required = this.el.hasClass("select-widget--required")
+    // Give each AJAX load its own ID. If a higher ID has started by the time
+    // we get the results, then cancel the current process to prevent
+    // duplicate items being added to the dropdown
+    this.loadCounter = 0
+
+    this.initSelectWidget()
+
+    if (this.required) {
+      initValidationOnField(this.el)
+    }
+  } 
+
+  initSelectWidget() {
+    this.updateState()
+    this.connect()
+  
+    this.$widget.unbind("click")
+    this.$widget.on("click", () => { this.handleWidgetClick() })
+  
+    this.$search.unbind("blur")
+    this.$search.on("blur", (e) => { this.possibleCloseWidget(e) })
+
+    this.$availableItems.unbind("blur")
+    this.$availableItems.on("blur", (e) => { this.possibleCloseWidget(e) })
+
+    this.$moreInfoButtons.unbind("blur")
+    this.$moreInfoButtons.on("blur", (e) => { this.possibleCloseWidget(e) })
+
+    $(document).on("click", (e) => { this.handleDocumentClick(e) })
+
+    $(document).keyup(function(e) {
+      if (e.keyCode == 27) {
+        this.collapse(this.$widget, this.$trigger, this.$target)
+      }
+    })
+
+    this.$widget.delegate(".select-widget-value__delete", "click", function(e) {
+      e.preventDefault()
+      e.stopPropagation()
+
+      // Uncheck checkbox
+      const checkboxId = e.target.parentElement.getAttribute("data-list-item")
+      const checkbox = document.getElementById(checkboxId)
+      checkbox.checked = false
+      $(checkbox).trigger("change")
+    })
+
+    this.$search.unbind("focus", this.expandWidgetHandler)
+    this.$search.on("focus", (e) => { this.expandWidgetHandler(e) })
+
+    this.$search.unbind("keydown")
+    this.$search.on("keydown", (e) => { this.handleKeyDown(e) })
+
+    this.$search.unbind("keyup")
+    this.$search.on("keyup", (e) => { this.handleKeyUp(e) })
+
+    this.$search.unbind("click")
+    this.$search.on("click", (e) => {
+      // Prevent bubbling the click event to the $widget (which expands/collapses the widget on click).
+      e.stopPropagation()
+    })
+  }
+
+  handleWidgetClick() {
+    if (this.$trigger.attr("aria-expanded") === "true") {
+      this.collapse(this.$widget, this.$trigger, this.$target)
+    } else {
+      this.expand(this.$widget, this.$trigger, this.$target)
+    }
+  }
+
+  handleDocumentClick(e) {
+    const clickedOutside =
+      !this.el.is(e.target) && this.el.has(e.target).length === 0
+    const clickedInDialog = $(e.target).closest(".modal").length !== 0
+    if (clickedOutside && !clickedInDialog) {
+      this.collapse(this.$widget, this.$trigger, this.$target)
+    }
+  }
+
+  handleKeyUp(e) {
+    const searchValue = $(e.target)
+    .val()
+    .toLowerCase()
+
+    this.$fakeInput =
+      this.$fakeInput ||
+      $("<span>")
+        .addClass("form-control-search")
+        .css("white-space", "nowrap")
+    this.$fakeInput.text(searchValue)
+    this.$search.css("width", this.$fakeInput.insertAfter(this.$search).width() + 100)
+    this.$fakeInput.detach()
+
+    if (this.$selectWidget.data("value-selector") == "typeahead") {
+      const self = this
+      const url = `/${this.$selectWidget.data(
+        "layout-id"
+      )}/match/layout/${this.$selectWidget.data("typeahead-id")}`
+      // Debounce the user input, only execute after 200ms if another one
+      // hasn't started
+      clearTimeout(this.timeout)
+      this.$available.find(".spinner").removeAttr("hidden")
+      this.timeout = setTimeout(function() {
+        self.$available.find(".answer").not('.answer--blank').each(function() {
+          const $answer = $(this)
+          if (!$answer.find('input:checked').length) {
+            $answer.remove()
+          }
+        })
+        self.updateJson(url + '?noempty=1&q=' + searchValue, true)
+      }, 200)
+    } else {
+      // hide the answers that do not contain the searchvalue
+      let anyHits = false
+      $.each(this.$answers, function() {
+        const labelValue = $(this)
+          .find("label")[0]
+          .innerHTML.toLowerCase()
+        if (labelValue.indexOf(searchValue) === -1) {
+          $(this).attr("hidden", "")
+        } else {
+          anyHits = true
+          $(this).removeAttr("hidden", "")
+        }
+      })
+
+      if (anyHits) {
+        this.$available.find(".has-noresults").attr("hidden", "")
+      } else {
+        this.$available.find(".has-noresults").removeAttr("hidden", "")
+      }
+    }
+  }
+
+  handleKeyDown(e) {
+    const key = e.which || e.keyCode
+
+    switch (key) {
+      case 38: // UP
+      case 40: // DOWN
+        const items = this.$available.find(".answer:not([hidden]) input")
+        let nextItem
+
+        e.preventDefault()
+
+        if (key === 38) {
+          nextItem = items[items.length - 1]
+        } else {
+          nextItem = items[0]
+        }
+
+        if (nextItem) {
+          $(nextItem).focus()
+        }
+
+        break
+      case 13: // ENTER
+        e.preventDefault()
+
+        // Select the first (visible) item
+        const firstItem = $available.find(".answer:not([hidden]) input").get(0)
+        if (firstItem) {
+          $(firstItem)
+            .parent()
+            .trigger("click")
+        }
+
+        break
+    }
+  }
+
+  expandWidgetHandler(e) {
+    e.stopPropagation()
+    this.expand(this.$widget, this.$trigger, this.$target)
+  }
+
+  collapse($widget, $trigger, $target) {
+    this.$selectWidget.removeClass("select-widget--open")
+    $trigger.attr("aria-expanded", false)
+
+    // Add a small delay when hiding the select widget, to allow IE to also
+    // fire the default actions when selecting a radio button by clicking on
+    // its label. When the input is hidden on the click event of the label
+    // the input isn't actually being selected.
+    setTimeout(() => {
+      this.$search.val("")
+      this.$target.attr("hidden", "")
+      this.$answers.removeAttr("hidden")
+    }, 50)
+  }
+
+  updateState() {
+    const $visible = this.$current.children("[data-list-item]:not([hidden])")
+
+    this.$current.toggleClass("empty", $visible.length === 0)
+    this.$widget.trigger("change")
+  }
+
+  possibleCloseWidget(e) {
+    const newlyFocussedElement = e.relatedTarget || document.activeElement
+
+    if (
+      !this.$selectWidget.find(newlyFocussedElement).length &&
+      newlyFocussedElement &&
+      !$(newlyFocussedElement).is(".modal, .page") &&
+      this.$selectWidget.get(0).parentNode !== newlyFocussedElement
+    ) {
+      this.collapse(this.$widget, this.$trigger, this.$target)
+    }
+  }
+
+  connectMulti() {
+    const self = this
+    return function() {
+      const $item = $(this)
+      const itemId = $item.data("list-item")
+      const $associated = $("#" + itemId)
+
+      $associated.unbind("change")
+      $associated.on("change", (e) => {
+        e.stopPropagation()
+        if ($(e.target).prop("checked")) {
+          $item.removeAttr("hidden")
+        } else {
+          $item.attr("hidden", "")
+        }
+        self.updateState()
+      })
+
+      $associated.unbind("keydown")
+      $associated.on("keydown", function(e) {
+        const key = e.which || e.keyCode
+
+        switch (key) {
+          case 38: // UP
+          case 40: // DOWN
+            const answers = this.$available.find(".answer:not([hidden])")
+            const currentIndex = this.$answers.index($associated.closest(".answer"))
+            let nextItem
+
+            e.preventDefault()
+
+            if (key === 38) {
+              nextItem = this.$answers[currentIndex - 1]
+            } else {
+              nextItem = this.$answers[currentIndex + 1]
+            }
+
+            if (nextItem) {
+              $(nextItem)
+                .find("input")
+                .focus()
+            }
+
+            break
+          case 13:
+            e.preventDefault()
+            $(this).trigger("click")
+            break
+        }
+      })
+    }
+  }
+
+  connectSingle() {
+    const self = this
+
+    this.$currentItems.each((_, item) => {
+      const $item = $(item)
+      const itemId = $item.data("list-item")
+      const $associated = $("#" + itemId)
+
+      $associated.unbind("change")
+      $associated.on("change", (e) => {
+        e.stopPropagation()
+        if ($(e.target).prop("checked")) {
+          $item.removeAttr("hidden")
+          self.$availableItems.each((_, availableItem) => {
+            if ($(availableItem).attr('id') !== itemId) {
+              $(availableItem).prop('checked', false)
+            }
+          })
+        } else {
+          $item.attr("hidden", "")
+        }
+        self.updateState()
+      })
+
+      $associated.parent().unbind("keypress")
+      $associated.parent().on("keypress", (e) => {
+        // KeyCode Enter or Spacebar
+        if (e.keyCode === 13 || e.keyCode === 32) {
+          e.preventDefault()
+          $(e.target).parent().trigger("click")
+        }
+      })
+
+      $associated.parent().unbind("click")
+      $associated.parent().on("click", (e) => {
+        e.stopPropagation()
+        self.$currentItems.each((_, currentItem) => {
+          $(currentItem).attr("hidden", "")
+        })
+
+        self.$current.toggleClass("empty", false)
+        $item.removeAttr("hidden")
+
+        self.collapse(self.$widget, self.$trigger, self.$target)
+      })
+    })
+  }
+
+  connect() {
+    if (this.multi) {
+      const self = this
+      this.$currentItems.each(self.connectMulti())
+    } else {
+      this.connectSingle()
+    }
+  }
+
+  currentLi(multi, field, value_id, value_text, value_html, checked) {
+    if (multi && !value_id) {
+      return $('<li class="none-selected">blank</li>')
+    }
+
+    const valueId = value_id ? field + "_" + value_id : field + "__blank"
+    const className = value_id ? "" : "current__blank"
+    const deleteButton = '<button type="button" class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times</button>'
+    const $li = $(
+      "<li " +
+        (checked ? "" : "hidden") +
+        ' data-list-item="' +
+        valueId +
+        '" class="' +
+        className +
+        '"><span class="widget-value__value">' +
+        "</span>" +
+        deleteButton +
+        "</li>"
+    )
+    $li.data('list-text', value_text)
+    $li.find('span').html(value_html)
+    return $li
+  }
+
+  availableLi(multi, field, value, label, checked) {
+    if (this.multi && !value) {
+      return null
+    }
+
+    const valueId = value ? field + "_" + value : field + "__blank"
+    const classNames = value ? "answer" : "answer answer--blank"
+
+    // Add space at beginning to keep format consistent with that in template
+    const detailsButton =
+      ' <div class="details">' +
+      '<button type="button" class="btn btn-small btn-default btn-js-more-info" data-record-id="' + value +
+      '" aria-describedby="lbl-' + valueId +
+      '" data-target="' + this.el.data('details-modal') + // TODO: get id of modal
+      '" data-toggle="modal">' +
+      "Details" +
+      "</button>" +
+      "</div>"
+
+    const $li = $(
+      '<li class="' +
+        classNames +
+        '">' +
+        '<div class="control">' +
+        '<div class="' +
+        (multi ? "checkbox" : "radio-group__option") +
+        '">' +
+        '<input id="' +
+        valueId +
+        '" type="' +
+        (multi ? "checkbox" : "radio") +
+        '" name="' +
+        field +
+        '" ' +
+        (checked ? " checked" : "") +
+        (this.required ? ' required aria-required="true"' : "") +
+        ' value="' +
+        (value || "") +
+        '" class="' +
+        (multi ? "" : "visually-hidden") +
+        '" aria-labelledby="lbl-' +
+        valueId +
+        '"> ' + // Add space to keep spacing consistent with templates
+        '<label id="lbl-' +
+        valueId +
+        '" for="' +
+        valueId +
+        '">' + label +
+        "</label>" +
+        "</div>" +
+        "</div>" +
+        (value ? detailsButton : "") +
+        "</li>"
+    )
+    return $li
+  }
+
+  updateJson(url, typeahead) {
+    const self = this
+    self.loadCounter++
+    const myLoad = self.loadCounter // ID of this process
+    self.$available.find(".spinner").removeAttr("hidden")
+    const currentValues = this.$available
+      .find("input:checked")
+      .map(function() {
+        return parseInt($(self.el).val())
+      })
+      .get()
+
+    // Remove existing items if needed, now that we have found out which ones are selected
+    if (!typeahead) {
+      self.$available.find(".answer").remove()
+    }
+
+    const field = self.$selectWidget.data("field")
+    // If we cancel this particular loop, then we don't want to remove the
+    // spinner if another one has since started running
+    let hideSpinner = true
+    $.getJSON(url, function(data) {
+      if (data.error === 0) {
+        if (myLoad != self.loadCounter) { // A new one has started running
+          hideSpinner = false // Don't remove the spinner on completion
+          return
+        }
+
+        if (typeahead) {
+          // Need to keep currently selected item
+          self.$currentItems.filter(':hidden').remove()
+        } else {
+          self.$currentItems.remove()
+        }
+        
+        const checked = currentValues.includes(NaN)
+        if (self.multi) {
+          self.$search
+            .parent()
+            .prevAll(".none-selected")
+            .remove() // Prevent duplicate blank entries
+            self.$search
+            .parent()
+            .before(self.currentLi(self.multi, field, null, "", "blank", checked))
+            self.$available.append(self.availableLi(self.multi, field, null, "blank", checked))
+        }
+
+        $.each(data.records, (recordIndex, record) => {
+          const checked = currentValues.includes(record.id)
+          if (!typeahead || (typeahead && !checked)) {
+            self.$search
+              .parent()
+              .before(
+                self.currentLi(self.multi, field, record.id, record.label, record.html, checked)
+              ).before(' ') // Ensure space between elements
+              self.$available.append(
+                self.availableLi(self.multi, field, record.id, record.html, checked)
+            )
+          }
+        })
+
+        self.$currentItems = self.$current.find("[data-list-item]")
+        self.$available = self.$selectWidget.find(".available")
+        self.$availableItems = self.$selectWidget.find(".available .answer input")
+        self.$moreInfoButtons = self.$selectWidget.find(
+          ".available .answer .btn-js-more-info"
+        )
+        self.$answers = self.$selectWidget.find(".answer")
+
+        self.updateState()
+        self.connect()
+
+        self.$availableItems.on("blur", (e) => { self.possibleCloseWidget(e) })
+        self.$moreInfoButtons.on("blur", (e) => { self.possibleCloseWidget(e) })
+        self.$moreInfoButtons.each((_, button) => {
+          const moreInfoButton = new MoreInfoButton(button)
+        })
+
+      } else {
+        const errorMessage =
+          data.error === 1 ? data.message : "Oops! Something went wrong."
+        const errorLi = $(
+          '<li class="answer answer--blank alert alert-danger d-flex flex-row justify-content-start"><span class="control"><label>' +
+            errorMessage +
+            "</label></span></li>"
+        )
+        self.$available.append(errorLi)
+      }
+    })
+      .fail(function(jqXHR, textStatus, textError) {
+        const errorMessage = "Oops! Something went wrong."
+        logging.error(
+          "Failed to make request to " +
+            url +
+            ": " +
+            textStatus +
+            ": " +
+            textError
+        )
+        const errorLi = $(
+          '<li class="answer answer--blank alert alert-danger"><span class="control"><label>' +
+            errorMessage +
+            "</label></span></li>"
+        )
+        self.$available.append(errorLi)
+      })
+      .always(function() {
+        if (hideSpinner) {
+          self.$available.find(".spinner").attr("hidden", "")
+        }
+      })
+  }
+
+  fetchOptions() {
+    const field = this.$selectWidget.data("field")
+    const multi = this.$selectWidget.hasClass("multi")
+    const filterEndpoint = this.$selectWidget.data("filter-endpoint")
+    const filterFields = this.$selectWidget.data("filter-fields")
+    const submissionToken = this.$selectWidget.data("submission-token")
+
+    if (!$.isArray(filterFields)) {
+      throw 'Invalid data-filter-fields found. It should be a proper JSON array of fields.'
+    }
+
+    // Collect values of linked fields
+    const values = ["submission-token=" + submissionToken]
+    $.each(filterFields, function(_, field) {
+
+      $("input[name=" + field + "]").each(function(_, input) {
+        const $input = $(input)
+
+        switch ($input.attr("type")) {
+          case "text":
+            values.push(field + "=" + $input.val())
+            break
+          case "radio":
+            if (input.checked) {
+              values.push(field + "=" + $input.val())
+            }
+            break
+          case "checkbox":
+            if (input.checked) {
+              values.push(field + "=" + $input.val())
+            }
+            break
+          case "hidden": // Tree values stored as hidden field
+            values.push(field + "=" + $input.val())
+            break
+        }
+      })
+    })
+
+    // Bail out if the options haven't changed
+    const fetchParams = values.join("&")
+
+    if (this.lastFetchParams === fetchParams) {
+      return
+    }
+    this.lastFetchParams = null
+
+    this.$available.find(".answer").remove()
+
+    this.updateJson(filterEndpoint + "?" + fetchParams)
+    this.lastFetchParams = fetchParams
+  }
+
+  expand($widget, $trigger, $target) {
+    if ($trigger.attr("aria-expanded") === "true") {
+      return
+    }
+    this.$selectWidget.addClass("select-widget--open")
+    $trigger.attr("aria-expanded", true)
+
+    if (
+      this.$selectWidget.data("filter-endpoint") &&
+      this.$selectWidget.data("filter-endpoint").length
+    ) {
+      try {
+        this.fetchOptions()
+      } catch (e) {
+        logging.error(e)
+      }
+    }
+
+    const widgetTop = $widget.offset().top
+    const widgetBottom = widgetTop + $widget.outerHeight()
+    const viewportTop = $(window).scrollTop()
+    const viewportBottom = viewportTop + $(window).height() - 60
+    const minimumRequiredSpace = 200
+    const fitsBelow = widgetBottom + minimumRequiredSpace < viewportBottom
+    const fitsAbove = widgetTop - minimumRequiredSpace > viewportTop
+    const expandAtTop = fitsAbove && !fitsBelow
+    $target.toggleClass("available--top", expandAtTop)
+    $target.removeAttr("hidden")
+
+    if (this.$search.get(0) !== document.activeElement) {
+      this.$search.focus()
+    }
+  }
+}
+
+export default SelectWidgetComponent

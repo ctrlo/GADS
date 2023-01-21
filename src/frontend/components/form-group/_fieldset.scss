@@ -1,0 +1,30 @@
+.fieldset {
+  position: relative;
+}
+
+.fieldset__legend {
+  display: flex;
+
+  legend {
+    @include form-label;
+
+    width: auto;
+    margin-bottom: 0.25rem;
+  }
+}
+
+.fieldset--invalid legend {
+  color: $brand-danger;
+}
+
+.fieldset__legend--hidden {
+  @include visually-hidden;
+}
+
+.fieldset__legend + .form-group {
+  margin-top: 0.25rem;
+}
+
+.fieldset--required legend::after {
+  content: "*";
+}

@@ -1,0 +1,47 @@
+<%
+require 'json'
+
+nodes = [
+    {
+        "id": 3,
+        "name": "Rothuizen, Didier (didier.rothuizen@digitpaint.nl)"
+    },
+    {
+        "name": "Hoeksma, Ronald (ronald.hoeksma@digitpaint.nl)",
+        "id": 4
+    },
+    {
+        "id": 15,
+        "name": "Diks, Lisa (lisa.diks@digitpaint.nl)"
+    },
+    {
+        "name": "Stolman, Erik (erik.stolman@digitpaint.nl)",
+        "id": 8
+    },
+    {
+        "id": 1,
+        "name": "Beverley, Andy (a.beverley@ctrlo.com)"
+    },
+    {
+        "name": "Cobussen2, Danny (danny@digitpaint.nl)",
+        "id": 2
+    },
+    {
+        "name": "Kosters , Mijke (mijke@digitpaint.nl)",
+        "id": 11
+    },
+    {
+        "name": "Disbergen, Emma (emma.disbergen@digitpaint.nl)",
+        "id": 6
+    },
+    {
+        "id": 19,
+        "name": "Stolman, Erik (erik.tst@digitpaint.nl)"
+    },
+    {
+        "id": 10,
+        "name": "Hayden, John (j.hayden@ctrlo.com)"
+    }
+]
+%>
+<%= JSON.generate(nodes)%>

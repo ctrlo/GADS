@@ -1,0 +1,14 @@
+.readonly {
+  margin-bottom: 2rem;
+}
+
+.readonly--center {
+  text-align: center;
+}
+
+.readonly__value {
+  display: block;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: $gray-light;
+}

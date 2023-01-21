@@ -1,0 +1,57 @@
+.sortable .btn-default {
+  margin-top: 0.5rem;
+}
+
+.sortable .btn-icon-close {
+  margin-left: 0.75rem;
+
+  .btn__title {
+    @include visually-hidden;
+  }
+}
+
+.sortable__list {
+  margin: 0;
+  padding: 0;
+}
+
+.sortable__handle {
+  width: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+
+  &::before {
+    @extend %icon-font;
+
+    content: '\e829';
+    margin-right: 0.75rem;
+    cursor: grab;
+  }
+
+  span {
+    @include visually-hidden;
+  }
+}
+
+.sortable .btn-icon-close--hidden,
+.sortable__handle--hidden {
+  @include visually-hidden;
+}
+
+.sortable label {
+  @include form-label;
+}
+
+.sortable__row {
+  display: flex;
+  align-items: center;
+}
+
+.sortable__row .input {
+  width: 100%;
+}
+
+.sortable__row--hidden {
+  @include visually-hidden;
+}

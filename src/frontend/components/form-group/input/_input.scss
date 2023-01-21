@@ -1,0 +1,247 @@
+.input {
+  position: relative;
+  margin-bottom: $padding-small-vertical;
+
+  .input__label {
+    display: flex;
+    position: relative;
+    align-items: center;
+    padding-right: 0.5rem;
+
+    .btn {
+      margin-left: $padding-small-horizontal;
+    }
+  }
+
+  label {
+    @include form-label;
+  }
+
+  .form-control[readonly] {
+    border-color: $transparent;
+    background-color: $gray-light;
+  }
+
+  .form-control[disabled] {
+    @include form-control-disabled;
+  }
+
+  .form-control {
+    @include form-control;
+
+    margin-top: 0.5rem;
+  }
+}
+
+.input__field {
+  position: relative;
+}
+
+.input--search {
+  @include input-search;
+}
+
+.input--required label:not(.checkbox-label)::after {
+  content: "*";
+}
+
+.input--required.input--file .input__label > label::after {
+  content: normal;
+}
+
+.input.invalid {
+  label {
+    color: $brand-danger;
+  }
+
+  .form-control {
+    border-color: $brand-danger;
+
+    &:hover,
+    &:focus,
+    &:active,
+    &:active:focus,
+    &:active:hover {
+      border-color: $brand-danger;
+    }
+  }
+}
+
+.input--password {
+  .input__reveal-password {
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    padding: 0;
+    transform: translateY(-50%);
+    border: none;
+    background-color: $transparent;
+
+    &::after {
+      @extend %icon-font;
+
+      content: "\E80f";
+      color: $gray;
+      cursor: pointer;
+    }
+
+    &:hover::after {
+      color: $gray-dark;
+    }
+
+    span {
+      @include visually-hidden;
+    }
+  }
+
+  .input__reveal-password.show {
+    &::after {
+      color: $black;
+    }
+  }
+}
+
+.input--file {
+  display: block;
+  margin-bottom: $padding-base-vertical;
+
+  .input__label {
+    display: flex;
+    z-index: 2;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .input__label label {
+    width: 100%;
+  }
+
+  .input__file-label {
+    display: block;
+    margin-bottom: $padding-small-vertical;
+    padding: 10px 30px;
+    transition: 0.2s opacity ease;
+    border-radius: 1.5rem;
+    background-color: $brand-primary;
+    color: $white;
+    text-align: center;
+    cursor: pointer;
+
+    &:hover,
+    &:active,
+    &:focus {
+      opacity: 0.8;
+    }
+  }
+
+  .file {
+    display: flex;
+    align-items: center;
+  }
+
+  .file__name {
+    max-width: 12.5rem;
+    margin-bottom: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .file__delete {
+    margin-left: 0.5rem;
+    font-size: unset;
+    cursor: pointer;
+
+    &::before {
+      @extend %icon-font;
+
+      content: "\E807";
+      font-size: $font-size-xsm;
+    }
+  }
+
+  .form-text {
+    font-size: $font-size-sm;
+    font-style: italic;
+  }
+
+  .form-control-file {
+    @include visually-hidden;
+  }
+
+  @include media-breakpoint-up(sm) {
+    .input__label {
+      flex-direction: row;
+    }
+
+    .input__label label {
+      width: auto;
+    }
+
+    .input__file-label {
+      margin-right: $padding-base-horizontal;
+      margin-bottom: 0;
+      text-align: left;
+    }
+  }
+}
+
+/* stylelint-disable no-descending-specificity */
+.input--autocomplete {
+  font-family: $font-family-base;
+
+  .form-control {
+    padding-right: $padding-large-horizontal;
+  }
+
+  .typeahead__list {
+    border-radius: $input-border-radius;
+
+    & > li {
+      border-top: 0;
+    }
+  }
+
+  .typeahead__cancel-button {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .typeahead__label .typeahead__cancel-button:hover,
+  .typeahead__container.cancel:not(.loading) .typeahead__cancel-button:hover {
+    color: $brand-danger;
+  }
+}
+
+.input--document {
+  .progress-bar__container {
+    display: none;
+    margin-bottom: $padding-small-vertical;
+    padding: $padding-small-horizontal;
+    border-radius: $input-border-radius;
+    background-color: rgba($brand-success, 0.2);
+    color: $brand-success;
+  }
+
+  .progress-bar__container--fail {
+    background-color: rgba($brand-danger, 0.2);
+    color: $brand-danger;
+  }
+
+  .fileupload__files {
+    margin: 0 0 $padding-small-vertical 0;
+    padding: 0;
+    list-style-type: none;
+  }
+
+  &.invalid {
+    .fileupload__files label {
+      color: $brand-secundary;
+
+      &::after {
+        content: normal;
+      }
+    }
+  }
+}

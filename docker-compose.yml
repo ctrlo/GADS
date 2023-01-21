@@ -71,7 +71,7 @@ services:
     depends_on:
       - db
   db:
-    image: postgres
+    image: postgres:13.1
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -93,12 +93,12 @@ services:
       - 1025:1025
       - 8025:8025
   frontend:
-    image: node:10-alpine
+    image: node:14-alpine
     volumes:
       - .:/home/node/app
     working_dir: /home/node/app
     user: node
-    command: ["npm", "run", "start"]
+    command: ["npm", "run", "roger"]
 
 volumes:
   db-data:

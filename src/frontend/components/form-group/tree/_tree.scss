@@ -1,0 +1,19 @@
+.tree {
+  font-size: $font-size-sm;
+
+  .jstree-default {
+    .jstree-icon {
+      background-image: url("../../images/sprite-tree.png");
+    }
+
+    .jstree-clicked {
+      background-color: $brand-secundary;
+      color: $white;
+      text-decoration: none;
+    }
+  }
+
+  .list--buttons .list__item .btn {
+    margin-bottom: 0;
+  }
+}

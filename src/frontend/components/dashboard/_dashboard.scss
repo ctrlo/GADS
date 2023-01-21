@@ -1,0 +1,78 @@
+.dashboard {
+  background: $gray-light;
+}
+
+.layoutJSON {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid $black;
+  background: $gray;
+}
+
+.columns {
+  columns: 120px;
+}
+
+.react-grid-item {
+  box-sizing: border-box;
+}
+
+.react-grid-item.react-grid-placeholder {
+  background-color: rgba($brand-secundary, 0.5);
+}
+
+.react-grid-item:not(.react-grid-placeholder) {
+  @include card;
+}
+
+.react-grid-item.resizing {
+  opacity: 0.9;
+}
+
+.react-grid-item.static {
+  background: $gray-light;
+}
+
+.react-grid-item .text {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 24px;
+  margin: auto;
+  font-size: 24px;
+  text-align: center;
+}
+
+.react-grid-item .minMax {
+  font-size: 12px;
+}
+
+.react-grid-item .add {
+  cursor: pointer;
+}
+
+.react-grid-dragHandleExample {
+  cursor: move; /* fallback if grab cursor is unsupported */
+  cursor: grab;
+}
+
+.ld-widget-handlers {
+  position: absolute;
+  right: 20px;
+  bottom: $padding-small-vertical;
+}
+
+.react-resizable-handle,
+.ld-widget-handlers {
+  transition: 0.2s all ease;
+  opacity: 0.2;
+}
+
+.react-grid-item:hover {
+  .react-resizable-handle,
+  .ld-widget-handlers {
+    opacity: 1;
+  }
+}

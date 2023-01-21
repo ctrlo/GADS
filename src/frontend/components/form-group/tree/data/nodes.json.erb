@@ -1,0 +1,16 @@
+<%
+require 'json'
+
+nodes = [
+  {
+    "children":[{"text":"Node 1.1","id":19},{"id":20,"text":"Node 1.2"},{"text":"Node 1.3","id":21}],"id":18,"text":"Node 1"
+  },
+  {
+    "children":[{"text":"Node 2.1","id":25}],"id":24,"text":"Node 2"
+  },
+  {
+    "id":22,"text":"Node 3"
+  }
+]
+%>
+<%= JSON.generate(nodes)%>

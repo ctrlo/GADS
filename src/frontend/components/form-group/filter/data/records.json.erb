@@ -1,0 +1,18 @@
+<%
+require 'json'
+
+nodes = {
+    "records": [
+        {
+            "id": 39,
+            "label": "test 1"
+        },
+        {
+            "label": "test 2",
+            "id": 40
+        }
+    ],
+    "error": 0
+}
+%>
+<%= JSON.generate(nodes)%>

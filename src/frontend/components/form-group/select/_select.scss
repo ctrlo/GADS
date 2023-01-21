@@ -1,0 +1,90 @@
+.select {
+  position: relative;
+
+  .select__label {
+    display: flex;
+    padding-right: 0.5rem;
+  }
+
+  label {
+    @include form-label;
+  }
+
+  .select__menu-item {
+    padding: $padding-small-vertical $padding-base-horizontal;
+    transition: 0.2s all ease;
+
+    &:focus,
+    &:active,
+    &.select__menu-item--active {
+      color: $brand-secundary;
+    }
+
+    &:hover,
+    &.select__menu-item--hover {
+      font-weight: $font-weight-semibold;
+      cursor: pointer;
+    }
+  }
+
+  .form-text {
+    @include form-text;
+  }
+}
+
+.select__toggle {
+  @include form-control;
+  @include form-control-select;
+
+  span {
+    padding-right: $padding-base-horizontal;
+    color: $black;
+  }
+
+  .select__placeholder {
+    @include placeholder;
+  }
+}
+
+.select.invalid {
+  label {
+    color: $brand-danger;
+  }
+
+  .select__toggle {
+    border-color: $brand-danger;
+  }
+}
+
+.select.show .select__toggle::after {
+  transform: rotate(-90deg);
+}
+
+.select__value {
+  display: flex;
+}
+
+.select__prefix {
+  margin-right: 1.25rem;
+  margin-bottom: 0;
+  color: $brand-secundary;
+  text-transform: uppercase;
+}
+
+.select__menu {
+  width: 100%;
+}
+
+.select--required label::after {
+  content: "*";
+}
+
+.select__toggle[disabled] {
+  @include form-control-disabled;
+
+  /* stylelint-disable no-descending-specificity */
+  span,
+  &::after {
+    color: $gray;
+  }
+}

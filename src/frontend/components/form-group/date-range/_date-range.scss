@@ -1,0 +1,33 @@
+.input-daterange {
+  .input .form-control {
+    margin-top: 0;
+  }
+
+  .input-group-addon {
+    flex: 1 1 auto;
+  }
+
+  .input-group-text {
+    justify-content: center;
+    padding: $padding-small-vertical $padding-base-horizontal;
+    border-radius: 0;
+  }
+
+  .input--from {
+    flex: 1 1 auto;
+
+    .form-control {
+      border-right: 1px solid $transparent;
+      border-radius: $input-border-radius 0 0 $input-border-radius;
+    }
+  }
+
+  .input--to {
+    flex: 1 1 auto;
+
+    .form-control {
+      border-left: 1px solid $transparent;
+      border-radius: 0 $input-border-radius $input-border-radius 0;
+    }
+  }
+}

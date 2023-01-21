@@ -1,0 +1,41 @@
+// DisclosureWidget
+.trigger {
+  white-space: nowrap;
+}
+
+.expandable {
+  display: none;
+}
+
+.expandable.expanded {
+  display: block;
+
+  &.card {
+    box-shadow: $box-shadow-dark;
+  }
+
+  &.popover {
+    max-width: none;
+  }
+}
+
+.more-less {
+  .table-curcommon .link {
+    display: table-row;
+  }
+
+  .table-curcommon tr {
+    td {
+      padding: $padding-small-horizontal;
+      border-top: 1px solid $gray;
+    }
+
+    &:first-of-type td {
+      border-top: none;
+    }
+
+    &:hover {
+      background-color: $transparent;
+    }
+  }
+}

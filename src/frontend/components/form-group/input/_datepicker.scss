@@ -1,0 +1,12 @@
+.datepicker.datepicker-dropdown {
+  padding: $padding-small-horizontal;
+  font-size: $font-size-sm;
+}
+
+/* stylelint-disable selector-no-qualifying-type */
+
+/* Necessary to overrule default styling */
+.datepicker.datepicker table tr td.active.active {
+  background-color: $brand-secundary;
+  background-image: none;
+}

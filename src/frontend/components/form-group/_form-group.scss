@@ -1,0 +1,25 @@
+.form-inline .form-group {
+  margin-right: $padding-base-horizontal;
+}
+
+.card__content > .row:last-of-type .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group[data-has-dependency] {
+  margin-left: $padding-large-horizontal;
+}
+
+.form-control[aria-invalid],
+.radio-group__input[aria-invalid] + .radio-group__label::before {
+  border-color: $brand-danger;
+}
+
+.form-text {
+  @include form-text;
+}
+
+.form-text--error {
+  margin-top: 0.5rem;
+  color: $brand-danger;
+}
