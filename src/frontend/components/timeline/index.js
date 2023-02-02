@@ -1,4 +1,14 @@
-import { initializeComponent } from 'component'
-import setupTimeline from './lib/component'
+import { initializeComponent, getComponentElements } from 'component'
 
-export default (scope) => initializeComponent(scope, '.timeline', setupTimeline)
+export default (scope) => {
+  if (!getComponentElements(scope, '.timeline').length) {
+    return;
+  }
+
+  import(
+    /* webpackChunkName: "timeline" */
+    './lib/component'
+  ).then(({ default: Component }) => {
+    initializeComponent(scope, '.timeline', Component)
+  });
+}

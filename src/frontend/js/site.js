@@ -10,7 +10,6 @@ import CheckboxComponent from 'components/form-group/checkbox'
 import CollapsibleComponent from 'components/collapsible'
 import CurvalModalComponent from 'components/modal/modals/curval'
 import DashboardComponent from 'components/dashboard'
-import DashboardGraphComponent from 'components/dashboard/dashboard-graph'
 import DataTableComponent from 'components/data-table'
 import DependentFieldsComponent from 'components/form-group/dependent-fields'
 import DisplayConditionsComponent from 'components/form-group/display-conditions'
@@ -44,7 +43,6 @@ registerComponent(CheckboxComponent)
 registerComponent(CollapsibleComponent)
 registerComponent(CurvalModalComponent)
 registerComponent(DashboardComponent)
-registerComponent(DashboardGraphComponent)
 registerComponent(DataTableComponent)
 registerComponent(DependentFieldsComponent)
 registerComponent(DisplayConditionsComponent)

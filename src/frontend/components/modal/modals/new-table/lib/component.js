@@ -1,7 +1,7 @@
-import ModalComponent from '../../../lib/component'
-import DataTableComponent from '../../../../data-table/lib/component'
-import { modal } from '../../../lib/modal'
-import SelectComponent from '../../../../form-group/select/lib/component'
+import ModalComponent from 'components/modal/lib/component'
+import * as DataTableHelper from 'components/data-table/lib/helper'
+import { modal } from 'components/modal/lib/modal'
+import SelectComponent from 'components/form-group/select/lib/component'
 
 class AddTableModalComponent extends ModalComponent {
   constructor(element)  {
@@ -74,20 +74,20 @@ class AddTableModalComponent extends ModalComponent {
       this.currentTopicObject = topicObject
 
       // Add topic to json
-      this.json.topics.push(topicObject) 
+      this.json.topics.push(topicObject)
 
       // Add topic as option to topic dropdown
       this.selectTopicComponent.addOption(topicObject['name'], topicObject['tempId'])
 
       // Update topics table
-      const row = [ 
-        `<button class="btn btn-link btn-js-edit-topic" type="button" data-tempid="${topicObject['tempId']}">${topicObject['name']}</button>`, 
-        topicObject['description'] || "", 
+      const row = [
+        `<button class="btn btn-link btn-js-edit-topic" type="button" data-tempid="${topicObject['tempId']}">${topicObject['name']}</button>`,
+        topicObject['description'] || "",
         topicObject['expanded'],
         ""
       ]
 
-      DataTableComponent.addRow(row, this.topicsTable)
+      DataTableHelper.addRow(row, this.topicsTable)
 
       this.addHandlerToEditItemButton('topic')
     } else {
@@ -101,18 +101,18 @@ class AddTableModalComponent extends ModalComponent {
       })
 
       // Update row in topics table
-      const rowData = [ 
-        `<button class="btn btn-link btn-js-edit-topic" type="button" data-tempid="${this.currentTopicObject['tempId']}">${this.currentTopicObject['name']}</button>`, 
-        this.currentTopicObject['description'] || "", 
+      const rowData = [
+        `<button class="btn btn-link btn-js-edit-topic" type="button" data-tempid="${this.currentTopicObject['tempId']}">${this.currentTopicObject['name']}</button>`,
+        this.currentTopicObject['description'] || "",
         this.currentTopicObject['expanded'],
         ""
       ]
 
-      DataTableComponent.updateRow(rowData, this.topicsTable, this.currentTopicObject['tempId'])
+      DataTableHelper.updateRow(rowData, this.topicsTable, this.currentTopicObject['tempId'])
 
       // Update topic dropdown
       this.selectTopicComponent.updateOption(this.currentTopicObject['name'], this.currentTopicObject['tempId'])
-      
+
       this.addHandlerToEditItemButton('topic')
     }
   }
@@ -164,7 +164,7 @@ class AddTableModalComponent extends ModalComponent {
     fieldPermissions.forEach((group) => {
       const groupId = group.group_id
       const $groupRow = $(fieldPermissionsFrame).find(`tr[data-group-id=${groupId}]`)
-      
+
       this.fillFields($groupRow, group.permissions)
     })
   }
@@ -177,7 +177,7 @@ class AddTableModalComponent extends ModalComponent {
 
   addHandlerToEditItemButton(strType) {
     const $btnEditItem = this.el.find(`.modal-body .btn-js-edit-${strType}`)
-    
+
     $btnEditItem.off('click')
 
     const frameNumber = strType === 'topic' ? 4 : 7
@@ -213,15 +213,15 @@ class AddTableModalComponent extends ModalComponent {
       this.json.fields.push(fieldObject)
 
       // Update fields table
-      const row = [ 
-        `<button class="btn btn-link btn-js-edit-field" type="button" data-tempid="${fieldObject['tempId']}">${fieldObject['name']}</button>`, 
-        fieldObject['name'], 
-        fieldObject['topic'] || "", 
+      const row = [
+        `<button class="btn btn-link btn-js-edit-field" type="button" data-tempid="${fieldObject['tempId']}">${fieldObject['name']}</button>`,
+        fieldObject['name'],
+        fieldObject['topic'] || "",
         fieldObject['field-type'],
         ""
       ]
 
-      DataTableComponent.addRow(row, this.fieldsTable)
+      DataTableHelper.addRow(row, this.fieldsTable)
 
       this.addHandlerToEditItemButton('field')
 
@@ -236,15 +236,15 @@ class AddTableModalComponent extends ModalComponent {
       })
 
       // Update row in fields table
-      const rowData = [ 
-        `<button class="btn btn-link btn-js-edit-field" type="button" data-tempid="${this.currentFieldObject['tempId']}">${this.currentFieldObject['name']}</button>`, 
-        this.currentFieldObject['name'], 
-        this.currentFieldObject['topic'] || "", 
+      const rowData = [
+        `<button class="btn btn-link btn-js-edit-field" type="button" data-tempid="${this.currentFieldObject['tempId']}">${this.currentFieldObject['name']}</button>`,
+        this.currentFieldObject['name'],
+        this.currentFieldObject['topic'] || "",
         this.currentFieldObject['field-type'],
         ""
       ]
 
-      DataTableComponent.updateRow(rowData, this.fieldsTable, this.currentFieldObject['tempId'])
+      DataTableHelper.updateRow(rowData, this.fieldsTable, this.currentFieldObject['tempId'])
 
       this.addHandlerToEditItemButton('field')
     }
@@ -255,8 +255,8 @@ class AddTableModalComponent extends ModalComponent {
     const $fields = $fieldTypeContainer.find('input, textarea')
     const currentField = this.json.fields.find(x => x.tempId === this.currentFieldObject.tempId)
 
-    switch ($fieldTypeContainer.attr('id')) { 
-      case 'field_type_enum': 
+    switch ($fieldTypeContainer.attr('id')) {
+      case 'field_type_enum':
         const $orderField = $fieldTypeContainer.find('input[name="ordering"]')
         const $sortableFields = $fieldTypeContainer.find('.sortable input')
 
@@ -274,9 +274,9 @@ class AddTableModalComponent extends ModalComponent {
         currentField.field_type_settings = enumSettingsObject
 
         break
-      case 'field_type_tree': 
+      case 'field_type_tree':
         const $jstreeEl = $fieldTypeContainer.find('.tree-widget-container')
-        
+
         let treeSettingsObject = {
           data: {},
           dataJson: {}
@@ -295,14 +295,14 @@ class AddTableModalComponent extends ModalComponent {
         currentField.field_type_settings = treeSettingsObject
 
         break
-      case 'field_type_curval': 
+      case 'field_type_curval':
         const $curvalFieldIds = $fieldTypeContainer.find('input[name="curval_field_ids"]:visible')
         const $otherFields = $fieldTypeContainer.find('input:not([name="curval_field_ids"]), textarea')
-        
+
         let curvalSettingsObject = {
           curval_field_ids: []
         }
-        
+
         $curvalFieldIds.each((i, field) => {
           if ($(field).val()) {
             curvalSettingsObject.curval_field_ids.push($(field).val())
@@ -398,7 +398,7 @@ class AddTableModalComponent extends ModalComponent {
       })
 
       // Add groupObject to table_permissions in json
-      self.json.table_permissions.push(groupObject) 
+      self.json.table_permissions.push(groupObject)
     })
   }
 
@@ -406,27 +406,27 @@ class AddTableModalComponent extends ModalComponent {
   handleNext(frame) {
     super.handleNext()
 
-    switch (frame.data('config').item) { 
-      case 'topic': 
+    switch (frame.data('config').item) {
+      case 'topic':
         this.addTopic(frame)
         break
-      case 'field': 
+      case 'field':
         this.addField(frame)
         break
-      case 'field type settings': 
+      case 'field type settings':
         this.addFieldTypeSettings(frame)
         this.recalculateDatatableColumnWidths($('#custom_field_permissions_table'))
         break
-      case 'custom field permissions': 
+      case 'custom field permissions':
         this.addCustomFieldPermissions(frame)
         break
-      case 'table': 
+      case 'table':
         this.addTable(frame)
         break
-      case 'table permissions': 
+      case 'table permissions':
         this.addTablePermissions(frame)
         break
-      default: 
+      default:
         const $fields = frame.find('input, textarea')
         this.addFieldsToObject($fields, this.json)
     }
@@ -434,7 +434,7 @@ class AddTableModalComponent extends ModalComponent {
 
   // Adjust column widths of datatables when they become visible
   recalculateDatatableColumnWidths(table) {
-    table.DataTable().columns.adjust()  
+    table.DataTable().columns.adjust()
   }
 
   // Handle back
@@ -454,12 +454,12 @@ class AddTableModalComponent extends ModalComponent {
     } else if (frame.data('config').item === "field") {
       this.addField(frame)
       this.currentFieldObject = {}
-    } 
+    }
   }
 
   handleActivate(frameNumber, clearFields, id) {
     super.handleActivate(frameNumber, clearFields)
-    
+
     if ((frameNumber === 7) && id) { // Edit field
       const frame = super.getFrameByNumber(frameNumber)
       const field = this.json.fields.find(e => e.tempId === id)
@@ -491,8 +491,8 @@ class AddTableModalComponent extends ModalComponent {
     this.el.find('.collapse').collapse('hide')
 
     // Clear all datatables
-    this.topicsTable && DataTableComponent.clearTable(this.topicsTable)
-    this.fieldsTable && DataTableComponent.clearTable(this.fieldsTable)
+    this.topicsTable && DataTableHelper.clearTable(this.topicsTable)
+    this.fieldsTable && DataTableHelper.clearTable(this.fieldsTable)
 
     // Remove the topics from the topic dropdown
     this.selectTopicComponent.options.each((i, option) => {

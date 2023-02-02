@@ -147,7 +147,7 @@ class TimelineComponent extends Component {
         }
 
         // Get date range with latest end
-        val = items.max('end')
+        val = items.max('end') 
 
         // Get earliest single date item
         val = items.min('single')

@@ -1,9 +1,9 @@
 import { Component } from 'component'
 import 'datatables.net'
-import dt from 'datatables.net-bs4'
+import 'datatables.net-bs4'
 import 'datatables.net-responsive'
-import dtr from 'datatables.net-responsive-bs4'
-import dtrr from 'datatables.net-rowreorder-bs4'
+import 'datatables.net-responsive-bs4'
+import 'datatables.net-rowreorder-bs4'
 import { setupDisclosureWidgets, onDisclosureClick } from '../../more-less/lib/disclosure-widgets'
 import { initializeRegisteredComponents, registerComponent } from 'component'
 import RecordPopupComponent from '../../record-popup/lib/component'
@@ -12,16 +12,11 @@ const MORE_LESS_TRESHOLD = 50
 
 class DataTableComponent extends Component {
   constructor(element)  {
-    dt(window, $)
-    dtr(window, $)
-    dtrr(window, $)
-
     super(element)
     this.el = $(this.element)
     this.hasCheckboxes = this.el.hasClass('table-selectable')
     this.hasClearState = this.el.hasClass('table-clear-state')
     this.searchParams = new URLSearchParams(window.location.search)
-    this.json
     this.initTable()
   }
 
@@ -33,7 +28,7 @@ class DataTableComponent extends Component {
       url.searchParams.delete('table_clear_state')
       let targetUrl = url.toString()
       window.location.replace(targetUrl.endsWith('?') ? targetUrl.slice(0, -1) : targetUrl)
-      
+
       return
     }
 
@@ -88,24 +83,6 @@ class DataTableComponent extends Component {
     links.on('blur', (ev) => { this.toggleFocus(ev, false) })
   }
 
-  static addRow(rowData, table) {
-    const data = table.data('config').data
-    table.DataTable().row.add(rowData).draw()
-  }
-
-  static updateRow(rowData, table, id) {
-    const rows = table.find('tbody > tr')
-    rows.each((i, row) => {
-      if ($(row).has(`button[data-tempid=${id}]`).length) {
-        table.DataTable().row(i).data(rowData).draw()
-      }
-    })
-  }
-
-  static clearTable(table) {
-    table.DataTable().clear().draw()
-  }
-
   toggleFocus(ev, hasFocus) {
     const row = $(ev.target).closest('tr')
     if (hasFocus) {
@@ -132,7 +109,7 @@ class DataTableComponent extends Component {
     if (btnReject && id && (!isNaN(id))) {
       btnReject.val(id)
     }
-  
+
     fields.each((i, field) => {
       const fieldName = $(field).attr('name')
       const fieldValue = $(row).find(`td[data-${fieldName}]`).data(fieldName)
@@ -168,7 +145,7 @@ class DataTableComponent extends Component {
     $checkBoxes.on('click', (ev) => {
       this.checkSelectAll($checkBoxes, $selectAllElm.find('input'))
     })
-  
+
     // Check if the 'select all' checkbox is checked and all checkboxes need to be checked
     $selectAllElm.find('input').on( 'click', (ev) => {
       const checkbox = $(ev.target)
@@ -243,15 +220,15 @@ class DataTableComponent extends Component {
 
     const $searchElement = $(
       `<div class='data-table__search'>
-        <button 
-          class='btn btn-search dropdown-toggle' 
-          id='search-toggle-${index}' 
-          type='button' 
-          data-toggle='dropdown' 
+        <button
+          class='btn btn-search dropdown-toggle'
+          id='search-toggle-${index}'
+          type='button'
+          data-toggle='dropdown'
           aria-expanded='false'
           data-boundary='viewport'
           data-reference='parent'
-          data-target="[data-ddl='ddl_${index}']" 
+          data-target="[data-ddl='ddl_${index}']"
           data-focus="[data-ddl='ddl_${index}']"
         >
           <span>Search in ${title}</span>
@@ -284,10 +261,10 @@ class DataTableComponent extends Component {
       self.toggleFilter(column)
 
       // Update or add the filter to the searchParams
-      self.searchParams.has(id) ? 
+      self.searchParams.has(id) ?
         self.searchParams.set(id, this.value) :
         self.searchParams.append(id, this.value)
-      
+
       // Update and reload the url
       window.location.href = `${window.location.href.split('?')[0]}?${self.searchParams.toString()}`
     })
@@ -316,7 +293,7 @@ class DataTableComponent extends Component {
   encodeHTMLEntities(text) {
     return $("<textarea/>").text(text).html();
   }
-  
+
   decodeHTMLEntities(text) {
     return $("<textarea/>").html(text).text();
   }
@@ -345,7 +322,7 @@ class DataTableComponent extends Component {
         strHTML += this.encodeHTMLEntities(value)
         strHTML += (data.values.length > (i + 1)) ? `, ` : ``
     })
-    
+
     return this.renderMoreLess(strHTML, strColumnName)
   }
 
@@ -372,10 +349,10 @@ class DataTableComponent extends Component {
     }
 
     return (
-      `<button class="btn btn-small btn-inverted btn-info trigger" aria-expanded="false" type="button"> 
-        ${this.encodeHTMLEntities(value.text)} 
-        <span class="invisible">contact details</span> 
-      </button> 
+      `<button class="btn btn-small btn-inverted btn-info trigger" aria-expanded="false" type="button">
+        ${this.encodeHTMLEntities(value.text)}
+        <span class="invisible">contact details</span>
+      </button>
       <div class="person contact-details expandable popover card card--secundary">
         ${strHTML}
       </div>`
@@ -464,7 +441,7 @@ class DataTableComponent extends Component {
     strHTML += `</table>`
 
     if (data.limit_rows && data.values.length >= data.limit_rows) {
-      strHTML += 
+      strHTML +=
         `<p><em>(showing maximum ${data.limit_rows} rows.
           <a href="/${data.parent_layout_identifier}/data?curval_record_id=${data.curval_record_id}&curval_layout_id=${data.column_id }">view all</a>)</em>
         </p>`
@@ -523,7 +500,7 @@ class DataTableComponent extends Component {
         column.render = (data, type, row, meta) => this.renderData(type, row, meta)
       })
     }
-    
+
     conf['initComplete'] = (settings, json) => {
       const tableElement = this.el
       const dataTable = tableElement.DataTable()
@@ -560,7 +537,7 @@ class DataTableComponent extends Component {
     conf['drawCallback'] = (settings) => {
       this.bindClickHandlersAfterDraw(conf)
     }
-    
+
     return conf
   }
 

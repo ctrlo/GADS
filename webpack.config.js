@@ -39,7 +39,7 @@ module.exports = {
   },
 
   entry: {
-    'js/site': './src/frontend/js/site.js',
+    site: './src/frontend/js/site.js',
     'css/general': './src/frontend/css/stylesheets/general.scss',
     'css/external': './src/frontend/css/stylesheets/external.scss',
   },
@@ -134,24 +134,14 @@ module.exports = {
         use: ['babel-loader', 'ts-loader'],
         exclude: /node_modules/
       },
-
-      {
-        test: /datatables\.net.*/,
-        use: [
-          {
-            loader: "imports-loader",
-            options: {
-              additionalCode: "var define = false;",
-            },
-          },
-        ],
-      }
     ],
   },
 
   output: {
     filename: '[name].js',
     chunkFilename: '[id].[name].js',
+    path: path.resolve(__dirname, 'public', 'js'),
+    publicPath: '/js/'
   },
 
   plugins,
@@ -170,4 +160,6 @@ module.exports = {
   },
 
   target: 'web',
+
+  stats: 'normal',
 }

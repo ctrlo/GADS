@@ -1,4 +1,14 @@
-import { initializeComponent } from 'component'
-import DataTableComponent from './lib/component'
+import { initializeComponent, getComponentElements } from 'component'
 
-export default (scope) => initializeComponent(scope, '.data-table', DataTableComponent)
+export default (scope) => {
+  if (!getComponentElements(scope, '.data-table').length) {
+    return;
+  }
+
+  import(
+    /* webpackChunkName: "datatable" */
+    './lib/component' 
+  ).then(({ default: Component }) => {
+    initializeComponent(scope, '.data-table', Component)
+  });
+}

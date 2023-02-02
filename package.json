@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "roger": "NODE_ENV=production node node_modules/.bin/webpack --watch --progress --output-path public/",
+    "roger": "NODE_ENV=production node node_modules/.bin/webpack --watch --progress",
     "jshint": "jshint public/js/*.js",
     "lint": "eslint src",
     "start": "npm-watch"
