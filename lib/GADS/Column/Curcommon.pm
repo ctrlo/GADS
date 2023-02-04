@@ -649,6 +649,10 @@ sub _format_row
     }
     my $text     = $self->format_value(@values);
     my $html     = join ', ', grep $_, @html;
+    # Shouldn't normally be blank, but show something otherwise it looks like
+    # the values are not being returned (e.g. if the user has no access to the
+    # fields in the curval)
+    $html ||= "&lt;blank&gt;";
     my $as_query = ($row->is_draft || !$row->current_id) && $row->as_query;
     +{
         id          => $row->current_id,
