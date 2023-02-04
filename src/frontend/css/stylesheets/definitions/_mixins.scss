@@ -437,6 +437,7 @@
 @mixin form-control-disabled {
   border: solid 1px $gray;
   background-color: $gray-light;
+  color: $gray;
   resize: none;
 
   &::placeholder {

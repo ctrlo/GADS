@@ -549,6 +549,7 @@
           name                 = field
           label                = field_label
           label_checkbox_name  = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          fieldset_class       = "input"
           placeholder          = "Select option(s)"
           help_text            = col.description
           popover_body         = col.helptext
@@ -651,6 +652,7 @@
           label                = field_label
           label_checkbox_name  = page == "bulk" ? "bulk_inc_" _ col.id : ''
           formgroup_class      = "linkspace-field"
+          fieldset_class       = "input"
           placeholder          = "Select option(s)"
           help_text            = col.description
           popover_body         = col.helptext

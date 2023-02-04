@@ -9,7 +9,7 @@
     [% INCLUDE fields/sub/label_fieldset.tt; %]
     <div class="select-widget[% select_widget_class %]" [% IF data_attributes; INCLUDE fields/sub/data_attributes.tt; END; %]>
       <div class="select-widget-dropdown">
-        <div class="form-control">
+        <div class="form-control" [% IF is_readonly %]readonly disabled[% END %]>
           <ul class="current">
             <li class="none-selected">[% INCLUDE fields/sub/filter.tt value=placeholder; %]</li>
             [%
@@ -23,20 +23,24 @@
               [% value_hidden %]
             >
               <span class="widget-value__value">[% item.label_html %]</span>
-              <button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
+              [% UNLESS is_readonly %]
+                <button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
+              [% END %]
             </li>
             [% END %]
-            <li class="search">
-              <input
-                type="search"
-                class="form-control-search"
-                style="width:100px"
-                placeholder="Search..."
-                aria-controls="[% id %]-values-single"
-                aria-expanded="false"
-                aria-describedby="[% id %]-label"
-              >
-            </li>
+            [% UNLESS is_readonly %]
+              <li class="search">
+                <input
+                  type="search"
+                  class="form-control-search"
+                  style="width:100px"
+                  placeholder="Search..."
+                  aria-controls="[% id %]-values-single"
+                  aria-expanded="false"
+                  aria-describedby="[% id %]-label"
+                >
+              </li>
+            [% END %]
           </ul>
         </div>
         

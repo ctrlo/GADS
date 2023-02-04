@@ -44,6 +44,7 @@ class SelectWidgetComponent extends Component {
 
   initSelectWidget() {
     this.updateState()
+    if (this.$widget.is('[readonly]')) return
     this.connect()
   
     this.$widget.unbind("click")
