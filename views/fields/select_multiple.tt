@@ -93,6 +93,7 @@
                   label           = item.label_html
                   is_required     = 0
                   filter          = ""
+                  popover_body    = ""
                   checked         = checkbox_checked;
               %]
           [% IF with_details %]
