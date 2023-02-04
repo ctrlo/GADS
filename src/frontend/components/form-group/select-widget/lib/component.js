@@ -570,6 +570,9 @@ class SelectWidgetComponent extends Component {
         const $input = $(input)
 
         switch ($input.attr("type")) {
+          case "number":
+            values.push(field + "=" + $input.val())
+            break
           case "text":
             values.push(field + "=" + $input.val())
             break
