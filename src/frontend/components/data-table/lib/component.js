@@ -419,6 +419,10 @@ class DataTableComponent extends Component {
     if (data.values.length === 0) {
       return strHTML
     }
+    if (data.values[0].fields.length === 0) {
+      // No columns visible to user
+      return strHTML
+    }
 
     strHTML += `<table class="table-curcommon">`
 
