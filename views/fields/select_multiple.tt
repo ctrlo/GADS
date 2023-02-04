@@ -54,7 +54,7 @@
           </ul>
         </div>
         
-        <ul hidden class="available [% with_details ? 'with-details' : ''; %]"
+        <ul hidden class="available select__menu dropdown-menu show [% with_details ? 'with-details' : ''; %]"
             id="[% id %]-values-multi"
             aria-labelledby="[% id %]-label"
             [% IF help_text %]aria-describedby="[% id %]-help"[% END %]

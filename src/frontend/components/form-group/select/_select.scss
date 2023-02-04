@@ -73,6 +73,9 @@
 
 .select__menu {
   width: 100%;
+  max-height: 19em;
+  overflow-x: hidden;
+  overflow-y: scroll;
 }
 
 .select--required label::after {
