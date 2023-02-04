@@ -234,6 +234,16 @@
                 label  = "Cancel"
               });
           
+              IF record.is_draft;
+                right_buttons.push({
+                  type  = "button",
+                  class = "btn btn-danger btn-js-submit-draft-record",
+                  id    = "delete_draft",
+                  name  = "delete_draft",
+                  value = "submit",
+                  label = "Delete draft"
+                });
+              END;
               IF record.new_entry AND page != "bulk";
                 right_buttons.push({
                   type  = "button",
@@ -244,6 +254,15 @@
                   label = "Save as draft"
                 });
               END;
+              IF record.user_can_delete AND !record.new_entry AND page != "bulk";
+                right_buttons.push({
+                  type    = "modal_button"
+                  class   = "btn btn-danger btn-js-remove-unload"
+                  modalId = "deleteModal"
+                  label   = "Delete record"
+                });
+              END;
+
               right_buttons.push({
                 type  = "button",
                 class = "btn btn-inverted btn-js-remove-unload btn-js-submit-record",
@@ -260,27 +279,6 @@
                 label = "Save and exit"
               });
           
-              # IF record.new_entry AND page != "bulk";
-              #   right_buttons.push({
-              #     type  = "button",
-              #     class = "btn btn-inverted btn-js-remove-unload btn-js-submit-record",
-              #     id    = "draft",
-              #     name  = "draft",
-              #     value = "submit",
-              #     label = "Save and continue"
-              #   });
-              #
-              #   IF record.is_draft;
-              #     right_buttons.push({
-              #       type  = "button",
-              #       class = "btn btn-delete",
-              #       id    = "delete_draft",
-              #       name  = "delete_draft",
-              #       value = "submit",
-              #       label = "Delete draft"
-              #     });
-              #   END;
-              # END;
             END;
           
             INCLUDE navigation/button_bar.tt
