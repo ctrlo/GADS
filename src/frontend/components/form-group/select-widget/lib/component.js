@@ -195,7 +195,7 @@ class SelectWidgetComponent extends Component {
         e.preventDefault()
 
         // Select the first (visible) item
-        const firstItem = $available.find(".answer:not([hidden]) input").get(0)
+        const firstItem = this.$available.find(".answer:not([hidden]) input").get(0)
         if (firstItem) {
           $(firstItem)
             .parent()
