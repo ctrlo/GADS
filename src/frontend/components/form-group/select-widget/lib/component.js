@@ -168,6 +168,10 @@ class SelectWidgetComponent extends Component {
   handleKeyDown(e) {
     const key = e.which || e.keyCode
 
+    // If still in search text after previous search and select, ensure that
+    // widget expands again to show results
+    this.expand(this.$widget, this.$trigger, this.$target)
+
     switch (key) {
       case 38: // UP
       case 40: // DOWN
