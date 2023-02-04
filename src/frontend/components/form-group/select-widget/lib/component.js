@@ -307,21 +307,10 @@ class SelectWidgetComponent extends Component {
       const itemId = $item.data("list-item")
       const $associated = $("#" + itemId)
 
-      $associated.unbind("change")
-      $associated.on("change", (e) => {
-        e.stopPropagation()
-        if ($(e.target).prop("checked")) {
-          $item.removeAttr("hidden")
-          self.$availableItems.each((_, availableItem) => {
-            if ($(availableItem).attr('id') !== itemId) {
-              $(availableItem).prop('checked', false)
-            }
-          })
-        } else {
-          $item.attr("hidden", "")
-        }
-        self.updateState()
-      })
+      $associated.unbind("click");
+      $associated.on("click", function(e) {
+        e.stopPropagation();
+      });
 
       $associated.parent().unbind("keypress")
       $associated.parent().on("keypress", (e) => {
