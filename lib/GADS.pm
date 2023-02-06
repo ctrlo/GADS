@@ -484,11 +484,17 @@ post '/saml' => sub {
         saml_response => body_parameters->get('SAMLResponse'),
     );
 
+    my $authentication = schema->resultset('Authentication')->find(session 'authentication_id')
+        or error "Error finding authentication provider";
+
     my $username = $callback->{nameid};
     my $user = schema->resultset('User')->active->search({ username => $username })->next;
 
-    return forwardHome({ danger => "Username $username not found"}, 'login?password=1' )
-        unless $user;
+    if (!$user)
+    {
+        my $msg = $authentication->user_not_found_error;
+        return forwardHome({ danger => __x($msg, username => $username) }, 'login?password=1' );
+    }
 
     $user->update_attributes($callback->{attributes});
 
@@ -574,6 +580,7 @@ any ['get', 'post'] => '/login' => sub {
             );
             $saml->initiate;
             session request_id => $saml->request_id;
+            session authentication_id => $auth->id;
             redirect $saml->redirect;
         }
     }

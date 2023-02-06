@@ -6,6 +6,9 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
+use JSON qw(decode_json);
+use Log::Report 'linkspace';
+
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
 __PACKAGE__->table("authentication");
@@ -27,6 +30,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "enabled",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "error_messages",
+  { data_type => "text", is_nullable => 1 },
 );
 
 __PACKAGE__->set_primary_key("id");
@@ -42,5 +47,18 @@ __PACKAGE__->belongs_to(
     on_update     => "NO ACTION",
   },
 );
+
+sub error_messages_decoded
+{   my $self = shift;
+    my $json = $self->error_messages
+        or return {};
+    decode_json $json;
+}
+
+sub user_not_found_error
+{   my $self = shift;
+    $self->error_messages_decoded->{user_not_found}
+        || "Username {username} not found";
+}
 
 1;
