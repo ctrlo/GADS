@@ -516,7 +516,7 @@
     field_is_required = col.optional OR page == "bulk" OR NOT col.userinput ? 0 : 1;
   
     IF col.type == "enum";
-      required      = !(col.optional OR page == "bulk");
+      required      = field_is_required;
       details       = 0;
       values        = col.enumvals;
       select_items  = [];
@@ -581,7 +581,7 @@
           filter               = "html";
       END;
     ELSIF col.type == "curval";
-      required      = !(col.optional OR page == "bulk");
+      required      = field_is_required;
       details       = 1;
       select_items  = [];
       select_values = [];
