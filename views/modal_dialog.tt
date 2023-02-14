@@ -23,13 +23,17 @@
         [% END %]
             <div class="modal-header">
                 [% IF modal_heading %]
-                    <h1 class="modal-title" id="[% modal_id %]_heading">[% modal_heading | html %]</h1>
+                    <div class="modal-header__content">
+                        <h3 class="modal-title" id="[% modal_id %]_heading">
+                            [% modal_heading | html %]
+                        </h3>
+                    </div>
                 [% END %]
-                <button type="button" class="close" data-dismiss="modal">
-                    <span class="close-mark" aria-hidden="true">&times;</span>
-                    close
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true" class="hidden">Close</span>
                 </button>
             </div>
+
             <div class="modal-body">
                [% content %]
             </div>
