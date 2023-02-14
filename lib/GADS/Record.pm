@@ -1616,9 +1616,12 @@ sub write
                     push @{$no_write_topics{$topic->id}->{columns}}, $column;
                 }
                 else {
-                    # Only warn if it was previously blank, otherwise it might
-                    # be a read-only field for this user
-                    if (!$self->new_entry && !$datum->changed)
+                    # Only warn if it was previously blank and already shown,
+                    # otherwise it might be a read-only field for this user. No
+                    # need for submission_token (for stored filtered values) as
+                    # these will have already been stored for the
+                    # previously-written record.
+                    if (!$self->new_entry && !$datum->changed && !$datum->oldvalue->dependent_not_shown_previous)
                     {
                         mistake __x"'{col}' is no longer optional, but was previously blank for this record.", col => $column->{name};
                     }

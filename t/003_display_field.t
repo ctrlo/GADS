@@ -325,6 +325,11 @@ $layout->clear;
     $record->fields->{$integer1->id}->set_value('');
     try { $record->write(no_alerts => 1) };
     ok(!$@, "Record successfully written with hidden mandatory blank");
+
+    # Reset
+    $integer1->optional(1);
+    $integer1->write;
+    $layout->clear;
 }
 
 # Test each field type
@@ -658,6 +663,62 @@ foreach my $field (@fields)
         # Will always be shown as the column it depends on is not in the view
         ok(!$rec->fields->{$integer1->id}->dependent_not_shown, "Integer not shown in view");
     }
+
+    # Reset
+    $integer1->display_fields(undef);
+    $integer1->write;
+    $layout->clear;
+}
+
+# Tests to ensure that a value that was previously blank does not need to
+# be completed, but only if it was displayed when the record is opened for
+# edit
+{
+    my $record = GADS::Record->new(
+        user   => $sheet->user,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->initialise;
+
+    # Set only the string to have a value. Integer not mandatory
+    $record->fields->{$string1->id}->set_value('Foo1');
+    $record->write(no_alerts => 1);
+    my $current_id = $record->current_id;
+
+    # Set integer to be mandatory
+    $integer1->optional(0);
+    $integer1->write;
+    $layout->clear;
+
+    # Edit should be written as integer was displayed and blank already
+    $record->clear;
+    $record->find_current_id($current_id);
+    $record->fields->{$string1->id}->set_value('Foo2');
+    $record->fields->{$integer1->id}->set_value('');
+    try { $record->write(no_alerts => 1) };
+    my ($warning) = grep $_->reason eq 'MISTAKE', $@->exceptions;
+    like($warning, qr/no longer optional/, "Record written successfully with mandatory field empty, only warning");
+
+    # Set integer to be display-conditional
+    $integer1->display_fields(_filter(col_id => $string1->id, regex => 'Foobar'));
+    $integer1->write;
+    $layout->clear;
+
+    # Not shown should write as normal
+    $record->clear;
+    $record->find_current_id($current_id);
+    $record->fields->{$string1->id}->set_value('Foo3');
+    try { $record->write(no_alerts => 1) };
+    ok(!$@, "Record written successfully with mandatory field not shown");
+
+    # Now shown dependent on value, should not write empty
+    $record->clear;
+    $record->find_current_id($current_id);
+    $record->fields->{$string1->id}->set_value('Foobar');
+    $record->fields->{$integer1->id}->set_value('');
+    try { $record->write(no_alerts => 1) };
+    like($@, qr/is not optional/, "Record not written with mandatory field now shown");
 }
 
 # Tests for recursive display fields
