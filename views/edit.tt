@@ -514,7 +514,11 @@
     >
   [%
     field_is_required = col.optional OR page == "bulk" OR NOT col.userinput ? 0 : 1;
-  
+    # Override required values if the value was previously blank and shown
+    IF editvalue.blank AND NOT editvalue.dependent_not_shown AND NOT record.new_entry;
+      field_is_required = 0;
+    END;
+
     IF col.type == "enum";
       required      = field_is_required;
       details       = 0;
