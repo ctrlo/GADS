@@ -30,7 +30,6 @@
         %]
             <p>Are you sure you want to permanently delete the selected records?</p>
         [% END %]
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#purge">Purge</button>
         [% WRAPPER modal_dialog.tt
             modal_id="restore"
             modal_action_text="Confirm"
@@ -39,8 +38,34 @@
         %]
             <p>Are you sure you want to undelete the selected records?</p>
         [% END %]
-        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#restore">Undelete</button>
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+
+        [%
+          INCLUDE navigation/button_bar.tt
+            row_class = "row mt-5"
+            columns = [{
+              class = "col-sm-auto mb-3 mb-sm-0",
+              buttons = [{
+                type = "link",
+                class = "btn btn-cancel",
+                target = url.page _ "/" _ layout.identifier _ "/data",
+                label = "Cancel"
+              }]
+            }, {
+              class = "col-sm-auto",
+              buttons = [{
+                type      = "modal_button",
+                modalId   = "purge",
+                class     = "btn btn-danger btn-js-delete",
+                label     = "Purge"
+              }, {
+                type  = "modal_button",
+                modalId = "restore",
+                class = "btn btn-default",
+                label = "Undelete"
+              }]
+            }];
+        %]
+
     </form>
 [% ELSE %]
     <div role="alert" class="alert alert-info">There are no deleted records in this table</div>
