@@ -1,4 +1,15 @@
-import { initializeComponent } from 'component'
-import GlobeComponent from './lib/component'
+import { initializeComponent, getComponentElements } from 'component'
 
-export default (scope) => initializeComponent(scope, '.globe', GlobeComponent)
+export default (scope) => {
+    if (!getComponentElements(scope, '.globe').length) {
+      return;
+    }
+  
+    import(
+      /* webpackChunkName: "globe" */
+      './lib/component' 
+    ).then(({ default: Component }) => {
+      initializeComponent(scope, '.globe', Component)
+    });
+  }
+  

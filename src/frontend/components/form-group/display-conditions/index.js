@@ -1,4 +1,14 @@
-import { initializeComponent } from 'component'
-import DisplayConditionsComponent from './lib/component'
+import { initializeComponent, getComponentElements } from 'component'
 
-export default (scope) => initializeComponent(scope, '.display-conditions', DisplayConditionsComponent)
+export default (scope) => {
+    if (!getComponentElements(scope, '.display-conditions').length) {
+      return;
+    }
+  
+    import(
+      /* webpackChunkName: "display-conditions" */
+      './lib/component' 
+    ).then(({ default: Component }) => {
+      initializeComponent(scope, '.display-conditions', Component)
+    });
+  }
