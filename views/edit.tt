@@ -254,14 +254,6 @@
                   label = "Save as draft"
                 });
               END;
-              IF record.user_can_delete AND !record.new_entry AND page != "bulk";
-                right_buttons.push({
-                  type    = "modal_button"
-                  class   = "btn btn-danger btn-js-remove-unload"
-                  modalId = "deleteModal"
-                  label   = "Delete record"
-                });
-              END;
 
               right_buttons.push({
                 type  = "button",

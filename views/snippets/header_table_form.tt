@@ -9,8 +9,79 @@
       </div>
       [% INCLUDE navigation/user_menu.tt user_menu_class="table-header__navigation" %]
     </div>
-    
+
     <div class="table-header-bottom">
+      <div class="float-right">
+        [%
+          record_edit_buttons = [];
+
+          UNLESS layout.no_hide_blank;
+            record_edit_buttons.push({
+              type        = "button",
+              button_type = "button",
+              target      = "",
+              class       = "btn btn-link btn-plain btn-js-show-blank",
+              label       = "Show blank values"
+            });
+          END;
+
+          UNLESS layout.no_copy_record;
+            record_edit_buttons.push({
+              type          = "link",
+              target        = url.page _ "/" _ layout.identifier _ "/record/?from=" _ record.current_id,
+              class         = "link link--plain",
+              label         = "Duplicate record",
+              label_in_span = 1
+            });
+          END;
+
+          UNLESS layout.no_download_pdf;
+            record_edit_buttons.push({
+              type          = "link",
+              target        = url.page _ "/" _ layout.identifier _ "/record/" _ record.current_id _ "?pdf",
+              class         = "link link--plain",
+              label         = "Download as PDF",
+              label_in_span = 1
+            });
+          END;
+
+          IF layout.user_can("create_child") AND NOT record.parent_id AND layout.has_children;
+            record_edit_buttons.push({
+              type          = "link",
+              target        = url.page _ "/" _ layout.identifier _ "/record/?child=" _ record.current_id,
+              class         = "link link--plain",
+              label         = "Create child record",
+              label_in_span = 1
+            });
+          END;
+
+          INCLUDE 'extension/record_edit_extra.tt';
+
+          IF user.permission.link;
+            record_edit_buttons.push({
+              type          = "link",
+              target        = url.page _ "/" _ layout.identifier _ "/link/" _ record.current_id,
+              class         = "link link--plain",
+              label         = "Link record",
+              label_in_span = 1
+            });
+          END;
+
+          IF record.user_can_delete;
+            record_edit_buttons.push({
+              type    = "modal_button"
+              class   = "btn btn-delete"
+              modalId = "deleteModal"
+              label   = "Delete record"
+            });
+          END;
+
+          INCLUDE snippets/button_list.tt
+            list_class = "list--horizontal list--no-borders"
+            buttons    = record_edit_buttons;
+        %]
+      </div>
+
       <h2 class="table-header__page-title">
         [% INCLUDE snippets/header_table_form_title.tt %]
       </h2>
