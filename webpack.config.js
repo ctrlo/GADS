@@ -23,7 +23,7 @@ const plugins = [
   new CopyWebpackPlugin({
     patterns: [{
       from: 'node_modules/summernote/dist/font',
-      to: 'css/font'
+      to: '../css/font'
     }]
   }),
 ]
@@ -40,8 +40,8 @@ module.exports = {
 
   entry: {
     site: './src/frontend/js/site.js',
-    'css/general': './src/frontend/css/stylesheets/general.scss',
-    'css/external': './src/frontend/css/stylesheets/external.scss',
+    '../css/general': './src/frontend/css/stylesheets/general.scss',
+    '../css/external': './src/frontend/css/stylesheets/external.scss',
   },
 
   mode: isDevelopment ? 'development' : 'production',
