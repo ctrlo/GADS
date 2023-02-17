@@ -121,6 +121,12 @@
       padding-right: 2rem;
     }
 
+    @at-root .card--topic #{&} {
+      .list__key {
+        flex: 0 0 14rem;
+      }
+    }
+
     .list__value {
       flex: 1;
     }
