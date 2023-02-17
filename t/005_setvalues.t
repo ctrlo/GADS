@@ -29,11 +29,13 @@ my $values = {
         old_as_string => 'foo1',
         new           => 8,
         new_as_string => 'foo2',
+        filter_value  => 'foo2',
     },
     tree1 => {
         old_as_string => 'tree1',
         new           => 11,
         new_as_string => 'tree2',
+        filter_value  => 'tree2',
     },
     date1 => {
         old_as_string  => '2010-10-10',
@@ -72,7 +74,7 @@ my $values = {
         new_as_string => 'User2, User2',
         new_html_form => 2,
         new_html      => 'User2, User2',
-        filter_value  => 2,
+        filter_value  => 'User2, User2',
     },
     file1 => {
         old_as_string => 'file1.txt',
@@ -84,12 +86,14 @@ my $values = {
         new_html_form => 2,
         new_as_string => 'file2.txt',
         new_html      => 'file2.txt',
-        filter_value  => 2,
+        filter_value  => 'file2.txt',
     },
     calc1 => {
+        new          => '2000',
         filter_value => '2000',
     },
     rag1 => {
+        new          => 'b_red',
         filter_value => 'b_red',
     },
 };
@@ -276,7 +280,7 @@ foreach my $multivalue (0..1)
                         is( $datum->filter_value, $filter_value, "Filter value correct for $type" );
                         # Then create datum as it would be for grouped value and check again
                         my $datum_filter = $datum->column->class->new(
-                            init_value       => [$filter_value],
+                            init_value       => [$values->{$type}->{new_html_form} || $values->{$type}->{new}],
                             column           => $datum->column,
                             schema           => $datum->column->schema,
                             layout           => $datum->column->layout, # Only needed for code datums
