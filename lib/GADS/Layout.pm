@@ -1274,7 +1274,7 @@ sub _build__columns_namehash
 
 sub column_by_name
 {   my ($self, $name) = @_;
-    $self->use_layout->_columns_namehash->{$name};
+    $self->_columns_namehash->{$name};
 }
 
 # All short names used across all instances

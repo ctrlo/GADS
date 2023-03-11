@@ -412,8 +412,9 @@ sub write
 
     $newgraph->{instance_id}     = $self->layout->instance_id;
 
-    error __"A field returning a numberic value must be used for the Y-axis when calculating the sum of values "
-        if $self->y_axis_stack eq 'sum' && !$self->layout->column($self->y_axis)->numeric;
+    error __x"For graph {title}, a field returning a numeric value must be used for the Y-axis when calculating the sum of values",
+        title => $self->title
+            if $self->y_axis_stack eq 'sum' && !$self->layout->column($self->y_axis)->numeric;
 
     if (my $graph = $self->_graph)
     {
