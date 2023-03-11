@@ -3513,9 +3513,12 @@ prefix '/:layout_name' => sub {
         };
     };
 
-    get '/import/rows/:import_id' => require_any_role [qw/layout useradmin/] => sub {
+    get '/import/rows/:import_id' => require_login sub {
 
         my $layout = var('layout') or pass;
+
+        forwardHome({ danger => "You do not have permission to import data"}, '')
+            unless $layout->user_can("layout");
 
         my $import_id = param 'import_id';
         my $import = rset('Import')->search({
