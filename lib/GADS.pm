@@ -3929,7 +3929,7 @@ prefix '/:layout_name' => sub {
         my $layout = var('layout') or pass;
 
         forwardHome({ danger => "You do not have permission to import data"}, '')
-            unless $layout->user_can("layout");
+            unless $layout->user_can("bulk_import");
 
         my $import_id = param 'import_id';
         my $import = rset('Import')->search({
@@ -3971,7 +3971,7 @@ prefix '/:layout_name' => sub {
         my $user        = logged_in_user;
 
         forwardHome({ danger => "You do not have permission to import data"}, '')
-            unless $layout->user_can("layout");
+            unless $layout->user_can("bulk_import");
 
         if (param 'submit')
         {
