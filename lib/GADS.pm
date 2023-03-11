@@ -490,6 +490,7 @@ post '/saml' => sub {
     }
 
     $user->update_attributes($callback->{attributes});
+    $user->update({ lastlogin => DateTime->now });
 
     session 'is_sso' => 1;
 
