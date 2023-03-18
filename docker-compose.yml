@@ -98,7 +98,7 @@ services:
       - .:/home/node/app
     working_dir: /home/node/app
     user: node
-    command: ["npm", "run", "roger"]
+    command: ["npm", "run", "build"]
 
 volumes:
   db-data:

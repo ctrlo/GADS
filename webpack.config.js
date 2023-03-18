@@ -1,25 +1,22 @@
 const path = require('path')
 const webpack = require('webpack')
+const autoprefixer = require('autoprefixer')
+const sass = require('sass')
+const TerserPlugin = require('terser-webpack-plugin')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const StyleLintPlugin = require('stylelint-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 
-// Variables from environment
-const isDevelopment = process.env.NODE_ENV === 'dev'
-
-// Plugins to use in Webpack
 const plugins = [
+  new webpack.ProvidePlugin({
+    $: 'jquery',
+    jQuery: 'jquery',
+    Buffer: ['buffer', 'Buffer'],
+  }),
   new MiniCssExtractPlugin({
     filename: '[name].css',
   }),
-  new StyleLintPlugin({
-    fix: false,
-    syntax: 'scss',
-  }),
-  new webpack.ProvidePlugin({
-    $: 'jquery',
-    jQuery: 'jquery'
-  }),
+  new CleanWebpackPlugin(),
   new CopyWebpackPlugin({
     patterns: [{
       from: 'node_modules/summernote/dist/font',
@@ -29,130 +26,94 @@ const plugins = [
 ]
 
 module.exports = {
-  devServer: {
-    contentBase: path.resolve(__dirname, 'html'),
-    headers: {
-      // Used for loading fonts cross domains
-      // Webpack serves from an other port than Roger
-      'Access-Control-Allow-Origin': '*',
-    },
-  },
-
   entry: {
-    site: './src/frontend/js/site.js',
-    '../css/general': './src/frontend/css/stylesheets/general.scss',
-    '../css/external': './src/frontend/css/stylesheets/external.scss',
+    site: path.resolve(__dirname, './src/frontend/js/site.js'),
+    '../css/general': path.resolve(__dirname, './src/frontend/css/stylesheets/general.scss'),
+    '../css/external': path.resolve(__dirname, './src/frontend/css/stylesheets/external.scss'),
   },
-
-  mode: isDevelopment ? 'development' : 'production',
 
   module: {
     rules: [
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        use: [
-          {
-            loader: 'babel-loader',
-            options: {
-              'sourceType': 'unambiguous',
-              'presets': [
-                [
-                  '@babel/preset-env',
-                  {
-                    corejs: 3,
-                    useBuiltIns: 'usage',
-                    targets: {
-                      'edge': '17',
-                      'firefox': '60',
-                      'chrome': '67',
-                      'safari': '11.1',
-                      'ie': '11'
-                    },
-                  },
-                ],
-                '@babel/preset-react',
-              ]
-            }
-          },
-        ],
+        use: ['babel-loader']
       },
-
       {
-        test: /\.(jpg|png|svg|eot|ttf|woff|woff2?)$/,
-        use: [
-          {
-            loader: 'url-loader',
-            options: {
-              limit: 500, // Inline everything below 500 bytes,
-              outputPath: p => `/${p}`,
-              name: '[path][name].[ext]',
-              context: path.resolve(__dirname, 'html'),
-              emitFile: false,
-            },
-          },
-        ],
+        test: /\.tsx?$/,
+        exclude: /node_modules/,
+        use: ['babel-loader', 'ts-loader']
       },
-
+      {
+        test: /\.(gif|jpg|png|svg|eot|ttf|woff|woff2)$/,
+        type: 'asset',
+      },
       {
         test: /\.(scss|css)$/,
         use: [
           {
             loader: MiniCssExtractPlugin.loader,
-            options: {
-              hmr: isDevelopment,
-            },
           },
           {
             loader: 'css-loader',
             options: {
-              url: false,
+              importLoaders: 2,
+              sourceMap: false,
+              modules: false,
             },
           },
           {
             loader: 'postcss-loader',
             options: {
-              plugins: [require('autoprefixer')],
-              sourceMap: isDevelopment,
+              plugins: [autoprefixer],
             },
           },
           {
             loader: 'sass-loader',
             options: {
-              implementation: require('sass'),
+              implementation: sass,
               sassOptions: {
                 includePaths: ['src/frontend/components'],
               },
-              prependData: `$is-development: ${isDevelopment};`,
             },
           },
         ],
       },
+    ],
+  },
 
-      {
-        test: /\.tsx?$/,
-        use: ['babel-loader', 'ts-loader'],
-        exclude: /node_modules/
-      },
+  optimization: {
+    minimize: true,
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          format: {
+            comments: false,
+          },
+        },
+        extractComments: false,
+      }),
     ],
   },
 
   output: {
     filename: '[name].js',
-    chunkFilename: '[id].[name].js',
-    path: path.resolve(__dirname, 'public', 'js'),
-    publicPath: '/js/'
+    path: path.resolve(__dirname, 'public/js'),
   },
 
   plugins,
 
   resolve: {
     alias: {
-      components: path.resolve(__dirname, 'src', 'frontend', 'components'),
+      components: path.resolve(__dirname, 'src/frontend/components'),
       jQuery: path.resolve(__dirname, 'node_modules/jquery/dist/jquery.js'),
-      'jquery-ui/ui/widget': 'blueimp-file-upload/js/vendor/jquery.ui.widget.js'
+      'jquery-ui/ui/widget': 'blueimp-file-upload/js/vendor/jquery.ui.widget.js',
     },
     extensions: ['.tsx', '.ts', '.jsx', '.js'],
+    fallback: {
+      'fs': false,
+      'buffer': require.resolve('buffer'),
+    },
     modules: [
       path.resolve(__dirname, 'src/frontend/js/lib'),
       path.resolve(__dirname, 'node_modules'),
@@ -160,6 +121,4 @@ module.exports = {
   },
 
   target: 'web',
-
-  stats: 'normal',
 }
