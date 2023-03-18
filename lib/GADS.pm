@@ -1623,13 +1623,36 @@ get '/file/?' => require_login sub {
     };
 };
 
-any ['get', 'post'] => '/file/:id' => require_login sub {
-    my $id = param 'id';
+any ['get', 'post'] => '/file/:id?' => require_login sub {
+
+    # File upload through the "manage files" interface
+    if (my $upload = upload('file'))
+    {
+        my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
+        my $file;
+        if (process( sub { $file = rset('Fileval')->create({
+            name           => $upload->filename,
+            mimetype       => $mimetype,
+            content        => $upload->content,
+            is_independent => 1,
+            edit_user_id   => undef,
+        }) } ))
+        {
+            my $msg = __x"File has been uploaded as ID {id}", id => $file->id;
+            return forwardHome( { success => "$msg" }, 'file/' );
+        }
+    }
+
+    # ID will either be in the route URL or as a delete parameter
+    my $id = route_parameters->get('id') || body_parameters->get('delete')
+        or error "File ID missing";
 
     # Need to get file details first, to be able to populate
     # column details of applicable.
     my $fileval = $id =~ /^[0-9]+$/ && schema->resultset('Fileval')->find($id)
         or error __x"File ID {id} cannot be found", id => $id;
+
+    # Attached to a record value?
     my ($file_rs) = $fileval->files; # In theory can be more than one, but not in practice (yet)
     my $file = GADS::Datum::File->new(ids => $id);
     # Get appropriate column, if applicable (could be unattached document)
@@ -1649,39 +1672,23 @@ any ['get', 'post'] => '/file/:id' => require_login sub {
         $file->schema(schema);
     }
     else {
-        if (body_parameters->get('delete'))
-        {
-            error __"You do not have permission to delete files"
-                unless logged_in_user->permission->{superadmin};
-            $fileval->delete;
-            return 1;
-        }
         $file->schema(schema);
     }
+
+    if (body_parameters->get('delete'))
+    {
+        error __"You do not have permission to delete files"
+            unless logged_in_user->permission->{superadmin};
+        if (process( sub { $fileval->delete }))
+        {
+            return forwardHome( { success => "File has been deleted successsfully" }, 'file/' );
+        }
+    }
+
     # Call content from the Datum::File object, which will ensure the user has
     # access to this file. The other parameters are taken straight from the
     # database resultset
     send_file( \($file->content), content_type => $fileval->mimetype, filename => $fileval->name );
-};
-
-# File upload through the "manage files" interface
-post '/file/?' => require_login sub {
-
-    my $upload = upload('file')
-        or error __"No file submitted";
-    my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
-    my $file;
-    if (process( sub { $file = rset('Fileval')->create({
-        name           => $upload->filename,
-        mimetype       => $mimetype,
-        content        => $upload->content,
-        is_independent => 1,
-        edit_user_id   => undef,
-    }) } ))
-    {
-        my $msg = __x"File has been uploaded as ID {id}", id => $file->id;
-        return forwardHome( { success => "$msg" }, 'file' );
-    }
 };
 
 # Use api route to ensure errors are returned as JSON
