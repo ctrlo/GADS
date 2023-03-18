@@ -3795,13 +3795,16 @@ sub _page_as_mech
     $params->{page_as_mech} = 1;
     $params->{zoom}         = ($options{zoom} ? int($options{zoom}) : 100) / 100;
     my $timeline_html       = $options{html} || template $template, $params;
-    my ($fh, $filename)     = tempfile(SUFFIX => '.html');
+    my ($fh, $filename)     = tempfile(SUFFIX => '.html', UNLINK => 0);
     print $fh $timeline_html;
     close $fh;
 
     my $mech = WWW::Mechanize::Chrome->new(
-	headless   => 1,
+        headless   => 1,
         launch_exe => '/usr/bin/chromium',
+        # See https://github.com/Corion/WWW-Mechanize-Chrome/issues/70
+        # Possibly also need --password-store=basic too?
+        launch_arg => [ "--remote-allow-origins=*" ],
     );
 
     # In order to use the full page of PDFs (rendered as A3) we need to set the
