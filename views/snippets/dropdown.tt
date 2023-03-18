@@ -19,7 +19,7 @@
         [% INCLUDE fields/sub/filter.tt value=group.label; %]
       </div>
       [% END %]
-      <ul class="dropdown__list" role="listbox" aria-labelledby="dropdown">
+      <ul class="dropdown__list select__menu" role="listbox" aria-labelledby="dropdown">
         [% FOREACH item IN group.items %]
         <li class="dropdown__item" role="option">
           [% IF item.type == "modal" %]
