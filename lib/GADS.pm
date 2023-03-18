@@ -196,7 +196,7 @@ hook before => sub {
         # Protect against CSRF attacks. NB: csrf_token can be in query params
         # or body params (different keys).
         my $token = query_parameters->get('csrf-token') || body_parameters->get('csrf_token');
-        panic __x"csrf-token missing for uri {uri}, params {params}", uri => request->uri, params => Dumper({params})
+        error __x"csrf-token missing for uri {uri}", uri => request->uri
             if !$token;
         error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
             if $token ne session('csrf_token');
