@@ -10,6 +10,8 @@
   padding: 0;
   border: 1px solid $gray;
   border-radius: $input-border-radius;
+  overflow-y: auto;
+  max-height: 50vh;
 }
 
 .dropdown__item {
