@@ -2956,6 +2956,9 @@ prefix '/:layout_name' => sub {
             {
                 $column = $layout->column($id)
                     or error __x"Column ID {id} not found", id => $id;
+                $column->instance_id == $layout->instance_id
+                    or error __x"Column belongs to instance ID {id1} but currently editing instance ID {id2}",
+                        id1 => $column->instance_id, id2 => $layout->instance_id;
             }
             else {
                 my $class = param('type');
