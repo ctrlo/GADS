@@ -436,7 +436,7 @@ class SelectWidgetComponent extends Component {
     const currentValues = this.$available
       .find("input:checked")
       .map(function() {
-        return parseInt($(self.el).val())
+        return parseInt($(this).val());
       })
       .get()
 
@@ -590,8 +590,6 @@ class SelectWidgetComponent extends Component {
       return
     }
     this.lastFetchParams = null
-
-    this.$available.find(".answer").remove()
 
     this.updateJson(filterEndpoint + "?" + fetchParams)
     this.lastFetchParams = fetchParams
