@@ -203,6 +203,7 @@ class ButtonComponent extends Component {
 
   saveView(ev){
     $(".filter").each((i, el) => {
+      if (!$(el).queryBuilder('validate')) ev.preventDefault();
       const res = $(el).queryBuilder('getRules')
       $(el).next('#filter').val(JSON.stringify(res, null, 2))
     })
