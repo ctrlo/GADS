@@ -1,4 +1,5 @@
 import { Component } from 'component'
+import RecordPopupComponent from '../../record-popup/lib/component'
 
 class ExpandableCardComponent extends Component {
   constructor(element)  {
@@ -18,6 +19,7 @@ class ExpandableCardComponent extends Component {
     const $btnEdit = this.$el.find('.btn-js-edit')
     const $btnView = this.$el.find('.btn-js-view')
     const $btnCancel = this.$contentBlock.find('.btn-js-cancel')
+    const $recordPopup = this.$el.find('.record-popup')
 
     $btnEdit.on('click', () => {
       this.$contentBlock.addClass('content-block--edit')
@@ -44,6 +46,10 @@ class ExpandableCardComponent extends Component {
         $($.fn.dataTable.tables(true)).DataTable()
         .columns.adjust()  
       }
+    })
+
+    $recordPopup.each((i, el) => {
+      const recordPopupComp = new RecordPopupComponent(el)
     })
   }
 

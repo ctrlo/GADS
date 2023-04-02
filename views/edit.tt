@@ -300,6 +300,7 @@
 
 [% INCLUDE wizard/curval.tt modalId="curvalModal"; %]
 [% INCLUDE wizard/record_details.tt modalId="detailsModal"; %]
+[% INCLUDE wizard/read_more.tt modalId = "readMore"; %]
 
 [%
   IF record.user_can_delete;
