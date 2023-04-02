@@ -119,11 +119,12 @@ The container `frontend` defined in `docker-compose.yml` has the command
 to run `webpack` and watch the files.
 
 ### Manual
-To build the frontend yourself, run the command `yarn run roger`.
+To build the frontend yourself, run the command `yarn run build`.
 This will run the command defined in the `package.json`:
 ```
     "roger": "NODE_ENV=production node node_modules/.bin/webpack --watch --progress --output-path public/",
 ```
+To not build files minified, change to ```minimize: false``` in webpack.config.js
 
 ### CSS
 CSS is written in SCSS, and compiled.
