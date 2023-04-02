@@ -17,7 +17,7 @@
         <ul class="nav flex-column">
           <li class="nav__item">
             <a class="nav__link nav__link--dashboard[% page_is_active(dashboard_active_pages, 'nav__link--active') %]" href="[% url.page %]/">
-              <span>Dashboard</span>
+              <span>Home</span>
             </a>
           </li>
           <li class="nav__item">

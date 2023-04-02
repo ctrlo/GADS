@@ -120,8 +120,8 @@ sub name
         : $self->instance_id
         ? $self->instance->name." dashboard (shared)"
         : $self->user_id
-        ? 'Site dashboard (personal)'
-        : 'Site dashboard (shared)';
+        ? 'Home dashboard (personal)'
+        : 'Home dashboard (shared)';
 }
 
 sub url
