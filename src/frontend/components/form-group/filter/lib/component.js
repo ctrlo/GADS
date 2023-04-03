@@ -192,6 +192,9 @@ class FilterComponent extends Component {
         const obj = JSON.parse(data);
         if (obj.rules && obj.rules.length) { 
           $builderEl.queryBuilder('setRules', obj)
+        } else {
+          // Ensure that no blank rules by default, otherwise view cannot be submitted
+          $builderEl.queryBuilder('setRules', {rules:[]})
         }
       } catch (error) {
         logging.log('Incorrect data object passed to queryBuilder')
