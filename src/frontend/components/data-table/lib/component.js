@@ -311,7 +311,7 @@ class DataTableComponent extends Component {
     }
   }
 
-  renderDefault(data, strColumnName) {
+  renderDefault(data) {
     let strHTML = ''
 
     if (!data.values || !data.values.length) {
@@ -323,7 +323,7 @@ class DataTableComponent extends Component {
         strHTML += (data.values.length > (i + 1)) ? `, ` : ``
     })
 
-    return this.renderMoreLess(strHTML, strColumnName)
+    return this.renderMoreLess(strHTML, data.name)
   }
 
   renderPerson(data) {
@@ -437,7 +437,7 @@ class DataTableComponent extends Component {
       }
 
       row.fields.forEach((field) => {
-        strHTML += `<td class="${field.type}">${this.renderDataType(field, field.name)}</td>`
+        strHTML += `<td class="${field.type}">${this.renderDataType(field)}</td>`
       })
       strHTML += `</tr>`
     })
@@ -454,7 +454,7 @@ class DataTableComponent extends Component {
     return strHTML
   }
 
-  renderDataType(data, strColumnName) {
+  renderDataType(data) {
     switch (data.type) {
       case 'person':
       case 'createdby':
@@ -472,7 +472,7 @@ class DataTableComponent extends Component {
         return this.renderRag(data)
         break
       default:
-        return this.renderDefault(data, strColumnName)
+        return this.renderDefault(data)
         break
     }
   }
@@ -485,7 +485,7 @@ class DataTableComponent extends Component {
       return ''
     }
 
-    return this.renderDataType(data, strColumnName)
+    return this.renderDataType(data)
   }
 
   getConf() {
