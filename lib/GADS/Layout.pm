@@ -490,7 +490,7 @@ sub write_rags
 
 sub filtered_curvals
 {   my $self = shift;
-    grep $_->has_subvals, grep $_->type eq 'curval', $self->all;
+    [grep $_->has_subvals, grep $_->type eq 'curval', $self->all];
 }
 
 has _group_permissions => (

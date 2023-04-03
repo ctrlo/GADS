@@ -1265,8 +1265,8 @@
 
                             FOREACH filtered_curval IN layout_obj.filtered_curvals;
                               filval_related_field_id_items.push({
-                                id   = referring.id,
-                                name = referring.name
+                                id   = filtered_curval.id,
+                                name = filtered_curval.name
                               });
                             END;
                             
