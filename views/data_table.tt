@@ -29,7 +29,7 @@
       table_ajax         = url.page _ "/api/" _ layout.identifier _ "/records?csrf-token=" _ csrf_token _ "&group_filter=" _ group_filter;
       table_ajax_target  = url.page _ "/" _ layout.identifier _ "/record"; # will be appended with /{id} by JS
       table_order        = '';
-      table_language     = '{"emptyTable": "There is no records available","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"","searchPlaceholder":"Search in this table"}';
+      table_language     = '{"emptyTable": "There are no records available","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"","searchPlaceholder":"Search in this table"}';
       table_page_length  = 50;
       table_length_menu  = 'basic';
       table_save_state   = 1;
