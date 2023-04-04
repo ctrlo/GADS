@@ -1297,7 +1297,7 @@
                                 FOREACH c IN instance.all;
                                   NEXT IF c.type == "curval";
                                   c.is_checked = column.has_curval_field(c.id) ? 1 : 0;
-                                  c.field_id = "filval_field_ids_" _ filtered_curval.refers_to_instance_id _ "-" _ c.id;
+                                  c.field_id = "filval_field_ids_" _ filtered_curval.id _ "-" _ c.id;
                                   filval_related_field_id_items.push(c);
                                 END;
                               
