@@ -1,5 +1,6 @@
 import { Component } from 'component'
 import SelectComponent from '../../select/lib/component'
+import initDateField from 'components/datepicker/lib/helper'
 
 const SELECT_PLACEHOLDER = 'select__placeholder'
 const SELECT_MENU_ITEM_ACTIVE = 'select__menu-item--active'
@@ -50,6 +51,7 @@ class MultipleSelectComponent extends Component {
       const $lastMultipleSelectRow = this.el.find('.multiple-select__row').last()
       const $newMultipleSelectRow = $lastMultipleSelectRow.clone()
       const $selectElmsInNewRow = $newMultipleSelectRow.find('.select')
+      const $dateElmsInNewRow = $newMultipleSelectRow.find('.form-control')
 
       this.countSelect += 1
 
@@ -73,6 +75,10 @@ class MultipleSelectComponent extends Component {
         newSelectComponent.initSelect()
         newSelectComponent.resetSelect()
   
+      })
+
+      $dateElmsInNewRow.each( (i, dateEl) => {
+        initDateField($(dateEl))
       })
 
       // Bind click event to new delete button

@@ -1,6 +1,6 @@
 import { Component } from 'component'
 import { initValidationOnField, validateCheckboxGroup } from 'validation'
-import  'bootstrap-datepicker'
+import initDateField from 'components/datepicker/lib/helper'
 import 'jquery-typeahead'
 import 'blueimp-file-upload'
 
@@ -147,16 +147,7 @@ class InputComponent extends Component {
     }
 
     initInputDate() {
-      this.input.datepicker({
-        "format": "yyyy-mm-dd",
-        "autoclose": "true"
-      }).on('show.bs.modal', function(event) {
-        // prevent datepicker from firing bootstrap modal "show.bs.modal"
-        event.stopPropagation()
-      }).on('hide', (e) => {
-        // prevent datepicker from firing bootstrap modal "hide.bs.modal"
-        e.stopPropagation()
-      })
+      initDateField(this.input)
     }
 
     initInputPassword() {
