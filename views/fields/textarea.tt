@@ -21,12 +21,13 @@
   #   sub_params = {};
 
   input_class = is_required AND ! input_class.match('textarea--required') ? input_class _ ' textarea--required' : input_class;
+  textarea_style = multi_value_style ? ' style="width: calc(100% - 100px); margin-bottom: 0.5rem"' : '';
 %]
 
 [% IF ! hide_group %]
 <div class="form-group">
 [% END %]
-  <div class="textarea [% input_class %]">
+  <div class="textarea [% input_class %]"[% textarea_style %]>
     [% INCLUDE fields/sub/label_input.tt label_type="textarea"; %]
     <div class="input__field">
       <textarea

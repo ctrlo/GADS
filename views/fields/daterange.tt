@@ -1,10 +1,15 @@
+[%
+  fieldset_style  = multi_value_style ? ' style="width: calc(100% - 100px); flex: 0 1 auto;"' : '';
+  daterange_style = multi_value_style ? ' style="width: 100%;"' : '';
+%]
+
 [% IF ! hide_group %]
 <div class="form-group">
 [% END %]
-  <fieldset class="fieldset"[% IF fieldset_name %] data-name="[% fieldset_name %]"[% END %]>
+  <fieldset class="fieldset"[% IF fieldset_name %] data-name="[% fieldset_name %]"[% END %][% fieldset_style %]>
     [% INCLUDE fields/sub/label_fieldset.tt; %]
     <div class="form-group">
-      <div class="input-group input-daterange [% input_class %]">
+      <div class="input-group input-daterange [% input_class %]"[% daterange_style %]>
         [%
           INCLUDE fields/input.tt
             id           = from.id || "from"
