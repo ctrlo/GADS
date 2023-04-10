@@ -75,6 +75,7 @@ class SelectWidgetComponent extends Component {
       const checkboxId = e.target.parentElement.getAttribute("data-list-item")
       const checkbox = document.getElementById(checkboxId)
       checkbox.checked = false
+      $(checkbox).parent().trigger("click") // Needed for single-select
       $(checkbox).trigger("change")
     })
 
@@ -313,6 +314,21 @@ class SelectWidgetComponent extends Component {
         e.stopPropagation();
       });
 
+      $associated.unbind("change");
+      $associated.on("change", function(e) {
+        // First hide all items in the drop-down display
+        self.$currentItems.each((_, currentItem) => {
+          $(currentItem).attr("hidden", "")
+        })
+        // Then show the one selected
+        if ($associated.prop("checked")) {
+          $item.removeAttr("hidden")
+        }
+        // Update state so as to show "select option" default text for nothing
+        // selected
+        self.updateState()
+      });
+
       $associated.parent().unbind("keypress")
       $associated.parent().on("keypress", (e) => {
         // KeyCode Enter or Spacebar
@@ -324,14 +340,8 @@ class SelectWidgetComponent extends Component {
 
       $associated.parent().unbind("click")
       $associated.parent().on("click", (e) => {
-        e.stopPropagation()
-        self.$currentItems.each((_, currentItem) => {
-          $(currentItem).attr("hidden", "")
-        })
-
-        self.$current.toggleClass("empty", false)
-        $item.removeAttr("hidden")
-
+        // Need to collapse on click (not change) otherwise drop-down will
+        // collapse when changing using the keyboard
         self.collapse(self.$widget, self.$trigger, self.$target)
       })
     })
