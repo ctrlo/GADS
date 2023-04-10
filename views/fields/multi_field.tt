@@ -1,0 +1,135 @@
+[%
+  multi_values = [];
+
+  IF editvalue.html_form.size;
+    WHILE editvalue.html_form.size;
+      IF col.type == "daterange";
+        multi_values.push({
+          from = editvalue.html_form.shift
+          to = editvalue.html_form.shift
+        });
+      ELSE;
+        multi_values.push(editvalue.html_form.shift);
+      END;
+    END;
+  END;
+
+  IF !multi_values.size;
+    multi_values.push("");
+  END;
+
+  show_buttons = multi_values.size > 1;
+%]
+
+[%
+  IF dispcol.multivalue AND dispcol.has_multivalue_plus;
+
+  END;
+%]
+
+<div class="[% column_class %]">
+  <fieldset class="fieldset">
+    [% INCLUDE fields/sub/label_fieldset.tt; %]
+    
+    <div class="multiple-select">
+      <div class="multiple-select__list">
+        [%
+          multi_value_counter = 1;
+          FOREACH multi_value IN multi_values;
+            multi_value_row_id = multi_value_counter > 1 ? ' id="row-' _ multi_value_counter _ '"' : '';
+        %]
+        <div class="multiple-select__row"[% multi_value_row_id %]>
+        [%
+          # TODO: replace after fixing JS. hackish solution for now. JS expects hidden field with value to show buttons.
+          IF show_buttons;
+            INCLUDE fields/hidden.tt name="" value=1;
+          END;
+  
+          IF col.type == "daterange";
+            INCLUDE fields/daterange.tt
+              label        = ""
+              label_checkbox_name = ""
+              input_class  = "flex-nowrap"
+              help_text    = ""
+              popover_body = ""
+              hide_group   = 1
+              multi_value_style = 1
+              from = {
+                id           = col.id _ "_from",
+                name         = field,
+                class        = col.show_datepicker and !readonly ? "input--datepicker" : "",
+                label        = "From",
+                help_text    = "",
+                popover_body = "",
+                placeholder  = config.dateformat_datepicker,
+                value        = multi_value.from,
+                is_required  = is_required,
+                is_readonly  = is_readonly
+              }
+              to = {
+                id           = col.id _ "_to",
+                name         = field,
+                class        = col.show_datepicker and !readonly ? "input--datepicker" : "",
+                label        = "To",
+                help_text    = "",
+                popover_body = "",
+                placeholder  = config.dateformat_datepicker,
+                value        = multi_value.to
+                is_required  = is_required,
+                is_readonly  = is_readonly
+              };
+          ELSIF col.textbox;
+            INCLUDE fields/textarea.tt
+              id           = id
+              name         = name
+              label        = ""
+              label_checkbox_name = ""
+              value        = multi_value
+              help_text    = ""
+              popover_body = ""
+              filter       = "html"
+              is_required  = is_required
+              is_readonly  = is_readonly
+              hide_group   = 1
+              multi_value_style = 1
+              rows         = 10;
+          ELSE;
+            INCLUDE fields/input.tt
+              id           = id
+              name         = name
+              label        = ""
+              label_checkbox_name = ""
+              value        = multi_value
+              input_class  = input_class
+              placeholder  = placeholder
+              help_text    = ""
+              popover_body = ""
+              filter       = "html"
+              is_required  = is_required
+              is_readonly  = is_readonly
+              hide_group   = 1
+              type         = field_input_type;
+          END;
+        %]
+          <button
+            type="button"
+            class="btn btn-delete"
+          >
+            <span class="btn__title">Delete</span>
+          </button>
+        </div>
+        [%
+            multi_value_counter = multi_value_counter + 1;
+          END;
+        %]
+      </div>
+      
+      <button
+        type="button"
+        class="btn btn-add-link"
+      >
+        <span class="btn__title">Add extra value</span>
+      </button>
+    </div>
+  </fieldset>
+</div>

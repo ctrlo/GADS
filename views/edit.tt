@@ -458,13 +458,7 @@
     
       IF col.multivalue;
         IF col.has_multivalue_plus;
-          IF editvalue.html_form.size;
-            WHILE editvalue.html_form.size;
-              PROCESS print_field;
-            END;
-          ELSE;
-            PROCESS print_field;
-          END;
+          PROCESS print_field;
         ELSE;
           INCLUDE fields/hidden.tt id="" name=field value="" filter = "";
           PROCESS print_field;
@@ -860,37 +854,50 @@
       END;
       '</fieldset>';
     ELSIF col.type == "daterange";
-      INCLUDE fields/daterange.tt
-        label        = field_label
-        label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
-        input_class  = "flex-nowrap"
-        help_text    = col.description
-        popover_body = col.helptext
-        hide_group   = 1
-        from = {
-          id           = col.id _ "_from",
-          name         = field,
-          class        = col.show_datepicker and !readonly ? "input--datepicker" : "",
-          label        = "From",
-          help_text    = "",
-          popover_body = "",
-          placeholder  = config.dateformat_datepicker,
-          value        = editvalue.html_form.shift,
-          is_required  = field_is_required,
-          is_readonly  = readonly
-        }
-        to = {
-          id           = col.id _ "_to",
-          name         = field,
-          class        = col.show_datepicker and !readonly ? "input--datepicker" : "",
-          label        = "To",
-          help_text    = "",
-          popover_body = "",
-          placeholder  = config.dateformat_datepicker,
-          value        = editvalue.html_form.shift
-          is_required  = field_is_required,
-          is_readonly  = readonly
-        };
+      IF col.multivalue;
+        INCLUDE fields/multi_field.tt
+          id           = col.id
+          name         = field
+          label        = field_label
+          label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          help_text    = col.description
+          popover_body = col.helptext
+          filter       = "html"
+          is_required  = field_is_required
+          is_readonly  = readonly;
+      ELSE;
+        INCLUDE fields/daterange.tt
+          label        = field_label
+          label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          input_class  = "flex-nowrap"
+          help_text    = col.description
+          popover_body = col.helptext
+          hide_group   = 1
+          from = {
+            id           = col.id _ "_from",
+            name         = field,
+            class        = col.show_datepicker and !readonly ? "input--datepicker" : "",
+            label        = "From",
+            help_text    = "",
+            popover_body = "",
+            placeholder  = config.dateformat_datepicker,
+            value        = editvalue.html_form.shift,
+            is_required  = field_is_required,
+            is_readonly  = readonly
+          }
+          to = {
+            id           = col.id _ "_to",
+            name         = field,
+            class        = col.show_datepicker and !readonly ? "input--datepicker" : "",
+            label        = "To",
+            help_text    = "",
+            popover_body = "",
+            placeholder  = config.dateformat_datepicker,
+            value        = editvalue.html_form.shift
+            is_required  = field_is_required,
+            is_readonly  = readonly
+          };
+      END;
     ELSIF col.type == "rag";
       # XXX To implement
     ELSIF col.type == "calc";
@@ -919,19 +926,32 @@
         END;
       END;
     ELSIF col.textbox;
-      INCLUDE fields/textarea.tt
-        id           = col.id
-        name         = field
-        label        = field_label
-        label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
-        value        = editvalue.html_form.shift
-        help_text    = col.description
-        popover_body = col.helptext
-        filter       = "html"
-        is_required  = field_is_required
-        is_readonly  = readonly
-        hide_group   = 1
-        rows         = 10;
+      IF col.multivalue;
+        INCLUDE fields/multi_field.tt
+          id           = col.id
+          name         = field
+          label        = field_label
+          label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          help_text    = col.description
+          popover_body = col.helptext
+          filter       = "html"
+          is_required  = field_is_required
+          is_readonly  = readonly;
+      ELSE;
+        INCLUDE fields/textarea.tt
+          id           = col.id
+          name         = field
+          label        = field_label
+          label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          value        = editvalue.html_form.shift
+          help_text    = col.description
+          popover_body = col.helptext
+          filter       = "html"
+          is_required  = field_is_required
+          is_readonly  = readonly
+          hide_group   = 1
+          rows         = 10;
+        END;
     ELSE;
       field_input_type  = "text";
       field_input_class = "";
@@ -953,22 +973,41 @@
           field_input_class = "calculator";
         END;
       END;
+
+      IF col.multivalue;
+        INCLUDE fields/multi_field.tt
+          id           = col.id
+          name         = field
+          label        = field_label
+          label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          field_input_class = field_input_class
+          input_class  = field_input_class
+          placeholder  = field_placeholder
+          help_text    = col.description
+          popover_body = col.helptext
+          filter       = "html"
+          is_required  = field_is_required
+          is_readonly  = readonly
+          type         = field_input_type;
+      ELSE;
+        INCLUDE fields/input.tt
+          id           = col.id
+          name         = field
+          label        = field_label
+          label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          value        = editvalue.html_form.shift
+          input_class  = field_input_class
+          placeholder  = field_placeholder
+          help_text    = col.description
+          popover_body = col.helptext
+          filter       = "html"
+          is_required  = field_is_required
+          is_readonly  = readonly
+          hide_group   = 1
+          type         = field_input_type;
+      END;
   
-      INCLUDE fields/input.tt
-        id           = col.id
-        name         = field
-        label        = field_label
-        label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
-        value        = editvalue.html_form.shift
-        input_class  = field_input_class
-        placeholder  = field_placeholder
-        help_text    = col.description
-        popover_body = col.helptext
-        filter       = "html"
-        is_required  = field_is_required
-        is_readonly  = readonly
-        hide_group   = 1
-        type         = field_input_type;
+      
     END;
   %]
   </div>
