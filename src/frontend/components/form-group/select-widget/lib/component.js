@@ -273,16 +273,16 @@ class SelectWidgetComponent extends Component {
         switch (key) {
           case 38: // UP
           case 40: // DOWN
-            const answers = this.$available.find(".answer:not([hidden])")
-            const currentIndex = this.$answers.index($associated.closest(".answer"))
+            const answers = self.$available.find(".answer:not([hidden])")
+            const currentIndex = self.$answers.index($associated.closest(".answer"))
             let nextItem
 
             e.preventDefault()
 
             if (key === 38) {
-              nextItem = this.$answers[currentIndex - 1]
+              nextItem = self.$answers[currentIndex - 1]
             } else {
-              nextItem = this.$answers[currentIndex + 1]
+              nextItem = self.$answers[currentIndex + 1]
             }
 
             if (nextItem) {
