@@ -213,7 +213,8 @@ class FilterComponent extends Component {
   }
 
   makeUpdateFilter(builder) {
-    window.UpdateFilter = builder => {
+    window.UpdateFilter = (builder, ev) => {
+      if (!builder.queryBuilder('validate')) ev.preventDefault();
       const res = builder.queryBuilder('getRules')
       $('#filter').val(JSON.stringify(res, null, 2))
     }

@@ -156,7 +156,7 @@ class ButtonComponent extends Component {
     } 
     
     if (bUpdateFilter) {
-      window.UpdateFilter($filterEl)
+      window.UpdateFilter($filterEl, ev)
     }
 
     if (bUpdateDisplayConditions) {
