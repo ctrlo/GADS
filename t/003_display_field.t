@@ -670,6 +670,87 @@ foreach my $field (@fields)
     $layout->clear;
 }
 
+# Tests for dependent_not_shown within curval record, with mixed permissions
+{
+    # Curval on main table
+    my $curval1 = $columns->{curval1};
+
+    # Make this editable
+    $curval1->show_add(1);
+    $curval1->write(no_alerts => 1);
+    $curval_sheet->layout->clear;
+
+    # Add a curval to the curval field back to the main table
+    my $cc = GADS::Column::Curval->new(
+        schema => $schema,
+        user   => $sheet->user,
+        layout => $curval_sheet->layout,
+    );
+    $cc->refers_to_instance_id(1);
+    $cc->curval_field_ids([$columns->{string1}->id]);
+    $cc->type('curval');
+    $cc->name('Curval back to main table');
+    $cc->name_short('L2curval1');
+    $cc->set_permissions({$sheet->group->id => $sheet->default_permissions});
+    $cc->write;
+    $layout->clear;
+
+    my $curval_integer1 = $curval_sheet->columns->{integer1};
+    my $curval_string1 = $curval_sheet->columns->{string1};
+    # Add display condition to curval in master table curval field
+    $cc->display_fields(_filter(col_id => $curval_string1->id, regex => 'Apple', operator => 'contains'));
+    $cc->write;
+    $layout->clear;
+
+    # Create new record on master table
+    my $record = GADS::Record->new(
+        user   => $sheet->user,
+        layout => $layout,
+        schema => $schema,
+    );
+    $record->initialise;
+    $record->fields->{$string1->id}->set_value('Master');
+    $record->fields->{$curval1->id}->set_value([$curval_string1->field."=Apple&".$curval_integer1->field."=100&".$cc->field."=4"]);
+    $record->write(no_alerts => 1);
+
+    # Write master record
+    my $current_id = $record->current_id;
+    $record->clear;
+    $record->find_current_id($current_id);
+
+    # Check values in curval record
+    my $curval_current_id = $record->fields->{$curval1->id}->ids->[0];
+    $record->clear;
+    $record->find_current_id($curval_current_id);
+    is($record->fields->{$curval_string1->id}->as_string, "Apple", "String shown in view");
+    is($record->fields->{$curval_integer1->id}->as_string, "100", "Integer shown in view");
+    is($record->fields->{$cc->id}->as_string, "Bar", "Integer shown in view"); # Back to value in master table
+
+    # Now that record is written, remove write_new permissions
+    $cc->set_permissions({$sheet->group->id => [qw/read write_existing write_existing_no_approval/]});
+    $cc->write;
+    $layout->clear;
+
+    # Make update to master record, updating curval at same time
+    $record->clear;
+    $record->find_current_id($current_id);
+    $record->fields->{$string1->id}->set_value('Master2');
+    $record->fields->{$curval1->id}->set_value([$curval_string1->field."=Apples&".$curval_integer1->field."=200&".$cc->field."=3&current_id=".$curval_current_id]);
+    $record->write(no_alerts => 1);
+
+    # Check values
+    $record->clear;
+    $record->find_current_id($curval_current_id);
+    is($record->fields->{$curval_string1->id}->as_string, "Apples", "Integer shown in view");
+    # Value is back to master table, record on master table has been updated in previous test
+    is($record->fields->{$cc->id}->as_string, "Foobar", "Integer shown in view2");
+
+    # Reset
+    $curval_integer1->display_fields(undef);
+    $curval_integer1->write;
+    $layout->clear;
+}
+
 # Tests to ensure that a value that was previously blank does not need to
 # be completed, but only if it was displayed when the record is opened for
 # edit
