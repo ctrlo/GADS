@@ -1621,7 +1621,7 @@ sub write
                     # need for submission_token (for stored filtered values) as
                     # these will have already been stored for the
                     # previously-written record.
-                    if (!$self->new_entry && !$datum->changed && !$datum->oldvalue->dependent_not_shown_previous)
+                    if (!$self->new_entry && !$datum->changed && (!$datum->oldvalue || !$datum->oldvalue->dependent_not_shown_previous))
                     {
                         mistake __x"'{col}' is no longer optional, but was previously blank for this record.", col => $column->{name};
                     }

@@ -22,9 +22,11 @@ my $data = [
 ];
 my $curval_sheet = Test::GADS::DataSheet->new(
     instance_id => 2,
+    data        => $data,
 );
 $curval_sheet->create_records;
 my $curval_layout = $curval_sheet->layout;
+
 my $schema = $curval_sheet->schema;
 
 # Data for main sheet
@@ -96,6 +98,12 @@ my $record = GADS::Record->new(
     layout => $curval_layout,
 );
 
+# Make one of the fields mandatory, currently with blank values, to force what
+# would be the blank values warning
+my $cint = $curval_sheet->columns->{integer1};
+$cint->optional(0);
+$cint->write;
+
 # Test that initial calc values are correct, each sub-record being referred
 # from one other record
 $record->find_current_id(1);
@@ -109,7 +117,9 @@ $record = GADS::Record->new(
 );
 $record->find_current_id(3);
 $record->fields->{$string1->id}->set_value('foo2');
-$record->write(no_alerts => 1);
+# Hide blank field warnings, report fatal just in case of errors
+try { $record->write(no_alerts => 1) } hide => 'ALL';
+$@->reportFatal;
 
 # Load curval record and check
 # First one
