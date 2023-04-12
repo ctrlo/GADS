@@ -1621,7 +1621,7 @@ sub write
                     # need for submission_token (for stored filtered values) as
                     # these will have already been stored for the
                     # previously-written record.
-                    if (!$self->new_entry && !$datum->changed && !$datum->oldvalue->dependent_not_shown_previous)
+                    if (!$self->new_entry && !$datum->changed && (!$datum->oldvalue || !$datum->oldvalue->dependent_not_shown_previous))
                     {
                         mistake __x"'{col}' is no longer optional, but was previously blank for this record.", col => $column->{name};
                     }
@@ -2254,7 +2254,7 @@ sub set_blank_dependents
         # Don't attempt any blanking if the user is editing an existing record
         # and they do not have access to the field
         next if !$self->new_entry && !$column->user_can('write_existing');
-        my $datum = $self->fields->{$column->id};
+        my $datum = $self->get_field_value($column);
         $datum->set_value('')
             if $datum->dependent_not_shown(submission_token => $options{submission_token})
                 && ($datum->column->can_child || !$self->parent_id);

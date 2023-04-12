@@ -398,7 +398,7 @@ sub _build_values_as_query_records
         grep { $_ !~ /^(?:csrf_token|current_id|field[0-9]+)$/ } keys %$params
             # Unlikely to be a user error
             and panic __x"Invalid query string: {query}", query => $query;
-        my @columns = $self->column->layout_parent->all(user_can_write_new => 1, userinput => 1);
+        my @columns = $self->column->layout_parent->all(user_can_write => 1, userinput => 1);
         my $record = GADS::Record->new(
             user    => $self->column->layout->user,
             layout  => $self->column->layout_parent,
@@ -412,7 +412,7 @@ sub _build_values_as_query_records
         else {
             $record->initialise;
         }
-        foreach my $col ($self->column->layout_parent->all(user_can_write_new => 1, userinput => 1))
+        foreach my $col ($self->column->layout_parent->all(user_can_write => 1, userinput => 1))
         {
             my $newv = $params->{$col->field};
             # I can't find anything in official Jquery documentation, but
