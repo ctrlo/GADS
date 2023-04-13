@@ -4509,6 +4509,7 @@ sub _process_edit
         submission_token             => !$modal && $record->submission_token,
         header_type                  => "table_title",
         header_back_url              => "${base_url}${tableIdentifier}/data",
+        header_record_buttons        => 1,
         layout_obj                   => $layout,
         record                       => $recordPresentation,
         breadcrumbs                  => [
