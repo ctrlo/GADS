@@ -571,7 +571,8 @@ has helptext => (
 
 sub helptext_html
 {   my $self = shift;
-    markdown encode_entities $self->helptext;
+    my $text = $self->helptext or return '';
+    markdown encode_entities $text;
 }
 
 has link_parent => (
