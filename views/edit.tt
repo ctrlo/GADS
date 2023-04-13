@@ -543,7 +543,7 @@
           fieldset_class       = "input"
           placeholder          = "Select option(s)"
           help_text            = col.description
-          popover_body         = col.helptext
+          popover_body         = col.helptext_html
           is_readonly          = readonly
           is_required          = required
           hide_group           = 1
@@ -562,7 +562,7 @@
           fieldset_class       = "input"
           placeholder          = "Select option"
           help_text            = col.description
-          popover_body         = col.helptext
+          popover_body         = col.helptext_html
           is_readonly          = readonly
           is_required          = required
           hide_group           = 1
@@ -610,7 +610,7 @@
           label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
           label        = field_label
           help_text    = col.description
-          popover_body = col.helptext;
+          popover_body = col.helptext_html;
   
         IF show_add_btn;
           PROCESS curval_add_button;
@@ -646,7 +646,7 @@
           fieldset_class       = "input"
           placeholder          = "Select option(s)"
           help_text            = col.description
-          popover_body         = col.helptext
+          popover_body         = col.helptext_html
           data_attributes      = tmp_data_attributes
           is_readonly          = readonly
           is_required          = required
@@ -690,7 +690,7 @@
           fieldset_class       = "input"
           placeholder          = "Select option"
           help_text            = col.description
-          popover_body         = col.helptext
+          popover_body         = col.helptext_html
           data_attributes      = tmp_data_attributes
           is_readonly          = readonly
           is_required          = required
@@ -714,7 +714,7 @@
           label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
           label        = field_label
           help_text    = col.description
-          popover_body = col.helptext;
+          popover_body = col.helptext_html;
       IF readonly;
         '<div class="form-group">';
             render_datum(col);
@@ -768,7 +768,7 @@
         label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
         placeholder  = "Select an option"
         help_text    = col.description
-        popover_body = col.helptext
+        popover_body = col.helptext_html
         is_readonly  = readonly
         is_required  = field_is_required
         hide_group   = 1
@@ -782,7 +782,7 @@
           label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
           label        = field_label
           help_text    = col.description
-          popover_body = col.helptext;
+          popover_body = col.helptext_html;
   
       IF readonly;
         IF editvalue.files.size;
@@ -861,7 +861,7 @@
           label        = field_label
           label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
           help_text    = col.description
-          popover_body = col.helptext
+          popover_body = col.helptext_html
           filter       = "html"
           is_required  = field_is_required
           is_readonly  = readonly;
@@ -871,7 +871,7 @@
           label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
           input_class  = "flex-nowrap"
           help_text    = col.description
-          popover_body = col.helptext
+          popover_body = col.helptext_html
           hide_group   = 1
           from = {
             id           = col.id _ "_from",
@@ -912,7 +912,7 @@
             input_class  = ""
             placeholder  = ""
             help_text    = col.description
-            popover_body = col.helptext
+            popover_body = col.helptext_html
             filter       = "html"
             is_readonly  = 1
             hide_group   = 1
@@ -933,7 +933,7 @@
           label        = field_label
           label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
           help_text    = col.description
-          popover_body = col.helptext
+          popover_body = col.helptext_html
           filter       = "html"
           is_required  = field_is_required
           is_readonly  = readonly;
@@ -945,7 +945,7 @@
           label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
           value        = editvalue.html_form.shift
           help_text    = col.description
-          popover_body = col.helptext
+          popover_body = col.helptext_html
           filter       = "html"
           is_required  = field_is_required
           is_readonly  = readonly
@@ -984,7 +984,7 @@
           input_class  = field_input_class
           placeholder  = field_placeholder
           help_text    = col.description
-          popover_body = col.helptext
+          popover_body = col.helptext_html
           filter       = "html"
           is_required  = field_is_required
           is_readonly  = readonly
@@ -999,7 +999,7 @@
           input_class  = field_input_class
           placeholder  = field_placeholder
           help_text    = col.description
-          popover_body = col.helptext
+          popover_body = col.helptext_html
           filter       = "html"
           is_required  = field_is_required
           is_readonly  = readonly

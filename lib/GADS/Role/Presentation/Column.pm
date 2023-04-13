@@ -71,6 +71,7 @@ sub presentation {
         multivalue          => $self->multivalue,
         has_multivalue_plus => $self->has_multivalue_plus,
         helptext            => $self->helptext,
+        helptext_html       => $self->helptext_html,
         readonly            => $options{new} ? !$self->user_can('write_new') : !$self->user_can('write_existing'),
         data                => $data,
         has_filter          => $has_filter,

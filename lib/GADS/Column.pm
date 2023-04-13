@@ -27,7 +27,9 @@ use GADS::Filter;
 use GADS::Groups;
 use GADS::Type::Permission;
 use GADS::View;
+use HTML::Entities qw/encode_entities/;
 use MIME::Base64 qw/encode_base64/;
+use Text::Markdown qw/markdown/;
 
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
@@ -566,6 +568,11 @@ has helptext => (
     is  => 'rw',
     isa => Maybe[Str],
 );
+
+sub helptext_html
+{   my $self = shift;
+    markdown encode_entities $self->helptext;
+}
 
 has link_parent => (
     is     => 'rw',
