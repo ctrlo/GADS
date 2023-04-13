@@ -186,7 +186,7 @@ class DataTableComponent extends Component {
     const $header = $(column.header())
     const $button = $(`
       <button class="data-table__sort" type="button">
-        <span>${$header.html()}</span>
+        <span>${$header.text()}</span>
         <span class="btn btn-sort">
           <span>Sort</span>
         </span>
