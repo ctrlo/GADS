@@ -268,7 +268,7 @@
                 id    = "submit",
                 name  = "submit",
                 value = "submit",
-                label = "Save and exit"
+                label = "Submit and exit"
               });
           
             END;
