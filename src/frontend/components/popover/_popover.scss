@@ -78,10 +78,10 @@
 
   .popover.show {
     display: block;
+    z-index: 100;
   }
 
   .popover-body {
-    max-height: 9rem;
     padding: $padding-base-horizontal;
     overflow-y: auto;
     font-size: $font-size-base;
