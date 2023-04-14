@@ -6,6 +6,7 @@ import 'components/graph/lib/chart'
 // Components
 import AddTableModalComponent from 'components/modal/modals/new-table'
 import ButtonComponent from 'components/button'
+import CalcFieldsComponent from 'components/form-group/calc-fields'
 import CalculatorComponent from 'components/calculator'
 import CheckboxComponent from 'components/form-group/checkbox'
 import CollapsibleComponent from 'components/collapsible'
@@ -39,6 +40,7 @@ import UserModalComponent from 'components/modal/modals/user'
 // Register them
 registerComponent(AddTableModalComponent)
 registerComponent(ButtonComponent)
+registerComponent(CalcFieldsComponent)
 registerComponent(CalculatorComponent)
 registerComponent(CheckboxComponent)
 registerComponent(CollapsibleComponent)
