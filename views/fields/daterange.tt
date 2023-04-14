@@ -8,50 +8,48 @@
 [% END %]
   <fieldset class="fieldset"[% IF fieldset_name %] data-name="[% fieldset_name %]"[% END %][% fieldset_style %]>
     [% INCLUDE fields/sub/label_fieldset.tt; %]
-    <div class="form-group">
-      <div class="input-group input-daterange [% input_class %]"[% daterange_style %]>
-        [%
-          INCLUDE fields/input.tt
-            id           = from.id || "from"
-            name         = from.name || "from"
-            input_class  = "input--date input--from" _ (from.class ? " " _ from.class : "" )
-            label        = from.label || "From"
-            label_class  = "hidden"
-            label_checkbox_name = ""
-            help_text    = from.help_text
-            popover_body = from.popover_body
-            placeholder  = from.placeholder || "yyyy-mm-dd"
-            value        = from.value
-            filter       = from.filter || "html"
-            is_required  = from.is_required ? 1 : 0
-            is_readonly  = from.is_readonly ? 1 : 0
-            type         = "text"
-            hide_group   = 1;
-        %]
-        
-        <div class="input-group-addon">
-          <span class="input-group-text">to</span>
-        </div>
-        
-        [%
-          INCLUDE fields/input.tt
-            id           = to.id || "to"
-            name         = to.name || "to"
-            input_class  = "input--date input--to" _ (to.class ? " " _ to.class : "" )
-            label        = to.label || "To"
-            label_class  = "hidden"
-            label_checkbox_name = ""
-            help_text    = from.help_text
-            popover_body = from.popover_body
-            placeholder  = to.placeholder || "yyyy-mm-dd"
-            value        = to.value
-            filter       = to.filter || "html"
-            is_required  = to.is_required ? 1 : 0
-            is_readonly  = to.is_readonly ? 1 : 0
-            type         = "text"
-            hide_group   = 1;
-        %]
+    <div class="input-group input-daterange [% input_class %]"[% daterange_style %]>
+      [%
+        INCLUDE fields/input.tt
+          id           = from.id || "from"
+          name         = from.name || "from"
+          input_class  = "input--date input--from" _ (from.class ? " " _ from.class : "" )
+          label        = from.label || "From"
+          label_class  = "hidden"
+          label_checkbox_name = ""
+          help_text    = from.help_text
+          popover_body = from.popover_body
+          placeholder  = from.placeholder || "yyyy-mm-dd"
+          value        = from.value
+          filter       = from.filter || "html"
+          is_required  = from.is_required ? 1 : 0
+          is_readonly  = from.is_readonly ? 1 : 0
+          type         = "text"
+          hide_group   = 1;
+      %]
+
+      <div class="input-group-addon">
+        <span class="input-group-text">to</span>
       </div>
+
+      [%
+        INCLUDE fields/input.tt
+          id           = to.id || "to"
+          name         = to.name || "to"
+          input_class  = "input--date input--to" _ (to.class ? " " _ to.class : "" )
+          label        = to.label || "To"
+          label_class  = "hidden"
+          label_checkbox_name = ""
+          help_text    = from.help_text
+          popover_body = from.popover_body
+          placeholder  = to.placeholder || "yyyy-mm-dd"
+          value        = to.value
+          filter       = to.filter || "html"
+          is_required  = to.is_required ? 1 : 0
+          is_readonly  = to.is_readonly ? 1 : 0
+          type         = "text"
+          hide_group   = 1;
+      %]
     </div>
   </fieldset>
   [% INCLUDE snippets/subfield.tt %]
