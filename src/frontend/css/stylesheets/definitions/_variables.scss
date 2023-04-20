@@ -8,7 +8,7 @@ $brand-danger:  #C14B3F;
 $brand-warning: #C57002;
 $brand-success: #719330;
 
-$brand-secundary-hover: #15828A;
+$brand-secundary-hover: #294D94;
 
 $white: #FFF;
 $black: #000;
@@ -38,8 +38,8 @@ $box-shadow-dark: 0 0 7px rgba(0, 0, 0, 0.2);
 $box-shadow-light: 0 0 7px rgba(0, 0, 0, 0.1);
 
 // Gradients
-$gradient-v: linear-gradient(0deg, $gray-light 0%, $brand-secundary 0%, $brand-primary 100%);
-$gradient-h: linear-gradient(90deg, $gray-light 0%, $brand-primary 0%, $brand-secundary 100%);
+$gradient-v: linear-gradient(0deg, $gray-light 0%, $gradient-secundary 0%, $brand-primary 100%);
+$gradient-h: linear-gradient(90deg, $gray-light 0%, $brand-primary 0%, $gradient-secundary 100%);
 
 // Fonts
 $font-family-base: "Open Sans", Helvetica, Arial, sans-serif !default;
