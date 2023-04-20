@@ -32,4 +32,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  .input {
+    flex-grow: 1;
+  }
 }
