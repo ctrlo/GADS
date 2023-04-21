@@ -265,16 +265,20 @@ class DataTableComponent extends Component {
         self.searchParams.set(id, this.value) :
         self.searchParams.append(id, this.value)
 
-      // Update and reload the url
-      window.location.href = `${window.location.href.split('?')[0]}?${self.searchParams.toString()}`
+      // Update URL. Do not reload otherwise the data is fetched twice (already
+      // redrawn in the previous statement)
+      let url = `${window.location.href.split('?')[0]}?${self.searchParams.toString()}`
+      window.history.replaceState(null, '', url);
     })
 
     // Clear the search
     $('.data-table__clear', $header).on('click', function () {
-      $(this).closest('.input').find('input').val('')
+      $(this).closest('.dropdown-menu').find('input').val('')
       column
         .search('')
         .draw()
+
+      self.toggleFilter(column)
 
       // Delete the filter from the searchparams and update and reload the url
       if (self.searchParams.has(id)) {
@@ -285,7 +289,8 @@ class DataTableComponent extends Component {
           url += `?${self.searchParams.toString()}`
         }
 
-        window.location.href = url
+        // Update URL. See comment above about the same
+        window.history.replaceState(null, '', url);
       }
     })
   }
