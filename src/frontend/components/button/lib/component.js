@@ -123,6 +123,8 @@ class ButtonComponent extends Component {
     const $instanceIDField = $('#refers_to_instance_id')
     const $filterEl = $instanceIDField.length && $(`[data-builder-id='${$instanceIDField.val()}']`)
 
+    const $permissionTable = $('#default_field_permissions_table');
+
     let bUpdateTree = false
     let bUpdateFilter = false
     let bUpdateDisplayConditions = false
@@ -162,6 +164,17 @@ class ButtonComponent extends Component {
     if (bUpdateDisplayConditions) {
       $displayConditionsField.val(JSON.stringify(res, null, 2))
     }
+
+    /* By default, if the permissions datatable is paginated, then the
+     * permission checkboxes on other pages will not be submitted and will
+     * therefore be cleared. This code gets all the inputs in the datatable
+     * and appends them to the form manually */
+    var $inputs = $permissionTable.DataTable().$('input,select,textarea')
+    $inputs.hide() // Stop them appearing to the user in a strange format
+    let $form = $(ev.currentTarget).closest('form')
+    $permissionTable.remove()
+    $form.append($inputs)
+
   }
 
   submitDraftRecord(ev) {
