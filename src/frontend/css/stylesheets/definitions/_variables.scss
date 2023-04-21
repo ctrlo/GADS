@@ -8,6 +8,8 @@ $brand-danger:  #C14B3F;
 $brand-warning: #C57002;
 $brand-success: #719330;
 
+$warning: $brand-warning !default;
+
 $brand-secundary-hover: #294D94;
 
 $white: #FFF;
@@ -106,8 +108,8 @@ $alert-border-width: 0;
 $alert-border-radius: 0;
 $alert-color-level: 0;
 
-$alert-bg-level:                    +10 !default;
-$alert-border-level:                +10 !default;
+$alert-bg-level:                    +3 !default;
+$alert-border-level:                +4 !default;
 $alert-color-level:                 6 !default;
 
 .alert {
