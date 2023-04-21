@@ -81,6 +81,11 @@ table.dataTable {
 .table-striped {
   border-bottom: 1px solid $gray;
 
+  /* bottom border is too much for tables that are within the record view page */
+  li & {
+    border-bottom: none;
+  }
+
   tbody tr:nth-of-type(odd) {
     background-color: $transparent;
   }

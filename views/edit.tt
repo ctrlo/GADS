@@ -418,13 +418,13 @@
   [% IF NOT record.new_entry AND NOT edit_modal; %]
   <div class="card__view-content">
     <div class="list list--vertical list--key-value list--no-borders list--fields">
-      <ul class="list__items">
+      <ul class="list__items list-group list-group-flush">
         [%
           FOREACH col_panel IN topic.columns;
             NEXT IF !is_history AND col_panel.data.dependent_not_shown;
             NEXT IF view_modal AND col.type == "autocur";
         %]
-        <li class="list__item[% IF col_panel.data.blank AND NOT layout.no_hide_blank %] list__item--blank[% END %]">
+        <li class="list__item[% IF col_panel.data.blank AND NOT layout.no_hide_blank %] list__item--blank[% END %] list-group-item">
           <span class="list__key">[% col_panel.name | html_entity %]</span>
           <span class="list__value">[% render_datum(col_panel, 'full') %]</span>
         </li>
