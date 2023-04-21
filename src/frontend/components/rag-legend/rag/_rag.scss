@@ -33,7 +33,7 @@ span.rag {
 .rag--advisory {
   &::before {
     content: "\e813";
-    background-color: $brand-warning;
+    background-color: $yellow;
   }
 }
 
