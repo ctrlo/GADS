@@ -60,6 +60,7 @@ our %prereq_pm = (
     'Test::More'                                => 1.302112,
     'Text::Autoformat'                          => 0,
     'Text::CSV::Encoded'                        => 0,
+    'Text::Markdown'                            => 0,
     'Tie::Cache'                                => 0,
     'Tree::DAG_Node'                            => 0,
     'URL::Encode'                               => 0,
