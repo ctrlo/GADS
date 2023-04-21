@@ -106,6 +106,15 @@ $alert-border-width: 0;
 $alert-border-radius: 0;
 $alert-color-level: 0;
 
+$alert-bg-level:                    +10 !default;
+$alert-border-level:                +10 !default;
+$alert-color-level:                 6 !default;
+
+.alert {
+  color: #ffffff !important;
+}
+
+
 // Modals
 $modal-inner-padding: $padding-large-horizontal;
 $modal-header-padding-x: $padding-large-horizontal;
