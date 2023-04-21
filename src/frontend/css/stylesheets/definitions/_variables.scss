@@ -1,13 +1,14 @@
 // Colours
 $brand-primary: #4F427C;
-$brand-secundary: #1BADB8;
+$brand-secundary: #006699;
+$gradient-secundary: #1BADB8;
 $brand-tertiary: #F99D27;
 
-$brand-danger: #E34646;
-$brand-warning: #FED931;
-$brand-success: #64AE34;
+$brand-danger:  #C14B3F;
+$brand-warning: #C57002;
+$brand-success: #719330;
 
-$brand-secundary-hover: #15828A;
+$brand-secundary-hover: #294D94;
 
 $white: #FFF;
 $black: #000;
@@ -20,7 +21,7 @@ $transparent: transparent;
 $gray-extra-extra-dark: #212020;
 $gray-extra-dark: #585858;
 $gray-dark: #555;
-$gray-medium-dark: #808080;
+$gray-medium-dark: #707070;
 $gray: #C6C6C6;
 $gray-light: #F9F9F9;
 
@@ -37,8 +38,8 @@ $box-shadow-dark: 0 0 7px rgba(0, 0, 0, 0.2);
 $box-shadow-light: 0 0 7px rgba(0, 0, 0, 0.1);
 
 // Gradients
-$gradient-v: linear-gradient(0deg, $gray-light 0%, $brand-secundary 0%, $brand-primary 100%);
-$gradient-h: linear-gradient(90deg, $gray-light 0%, $brand-primary 0%, $brand-secundary 100%);
+$gradient-v: linear-gradient(0deg, $gray-light 0%, $gradient-secundary 0%, $brand-primary 100%);
+$gradient-h: linear-gradient(90deg, $gray-light 0%, $brand-primary 0%, $gradient-secundary 100%);
 
 // Fonts
 $font-family-base: "Open Sans", Helvetica, Arial, sans-serif !default;

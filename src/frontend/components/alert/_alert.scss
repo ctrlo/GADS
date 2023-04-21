@@ -33,16 +33,16 @@
 
   .alert-success::before {
     content: "\E804";
-    color: $brand-success;
+    color: $white;
   }
 
   .alert-info::before {
     content: "\E810";
-    color: $brand-secundary;
+    color: $white;
   }
 
   .alert-danger::before {
     content: "\E822";
-    color: $brand-danger;
+    color: $white;
   }
 }

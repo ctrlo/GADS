@@ -28,13 +28,13 @@
 -%]
 <div class="content-block__head row">
   <div class="content-block__info col-lg-6">
-    <h2 class="content-block__title">
+    <h1 class="content-block__title">
       [% IF back_button AND back_button.url %]
       <a href="[%- back_button.url -%]" class="btn btn-title-back">
         <span class="btn__title">[%- title -%]</span>
       </a>
       [% ELSE; title || ''; END; %]
-    </h2>
+    </h1>
     
     <div class="content-block__intro">
       [% description || '' %]
