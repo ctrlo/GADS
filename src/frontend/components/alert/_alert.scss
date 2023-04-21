@@ -3,6 +3,7 @@
   align-items: center;
   margin-bottom: $padding-large-vertical;
   padding: $padding-base-horizontal;
+  colour: #ffffff;
 
   &::before {
     @extend %icon-font;
