@@ -8,6 +8,8 @@ $brand-danger:  #C14B3F;
 $brand-warning: #C57002;
 $brand-success: #719330;
 
+$warning: $brand-warning;
+
 $brand-secundary-hover: #294D94;
 
 $white: #FFF;
@@ -105,6 +107,8 @@ $table-cell-padding: $padding-base-horizontal;
 $alert-border-width: 0;
 $alert-border-radius: 0;
 $alert-color-level: 0;
+$alert-bg-level: +3;
+$alert-border-level: +4;
 
 // Modals
 $modal-inner-padding: $padding-large-horizontal;

@@ -4,8 +4,8 @@
 
 .dropdown__group-title {
   padding: $padding-small-vertical $padding-base-horizontal 0;
-  color: $gray;
-  font-size: $font-size-sm;
+  color: $brand-primary;
+  @include font-style-h2;
 }
 
 .dropdown__list {
