@@ -3,7 +3,7 @@ import React from "react";
 const Header = ({ hMargin, dashboards, currentDashboard, loading }) => {
   const renderMenuItem = (dashboard) => {
     if (dashboard.name === currentDashboard.name) {
-      return <span className="link link--primary link--active">{dashboard.name}</span>
+      return <h1><span className="link link--primary link--active">{dashboard.name}</span></h1>
     } else {
       return <a className="link link--primary" href={dashboard.url}><span>{dashboard.name}</span></a>
     }
