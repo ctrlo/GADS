@@ -1221,7 +1221,7 @@
                 table_class        = 'table-lines table-no-margin';
                 table_dom          = '<\"row row--header\"<\"col\"f><\"col-lg-auto dataTables_length_wrapper\"l>><\"row row--main\"<\"col-sm-12\"tr>><\"row row--footer\"<\"col-sm-12 col-lg-6\"p><\"col-sm-12 col-lg-6 dataTables_info_wrapper\"i>>';
                 table_order        = '[0,"asc"]';
-                table_language     = '{"emptyTable": "There are no groups available","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next","previous":"Previous"},"search":"","searchPlaceholder":"Search group"}';
+                table_language     = '{"emptyTable": "There are no groups available","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next","previous":"Previous"},"search":"<span class=\"sr-only\">Search in groups:</span>","searchPlaceholder":"Search group"}';
                 table_page_length  = 5;
                 table_length_menu  = 'detail';
                 table_unresponsive = 1;
@@ -1438,7 +1438,7 @@
                   table_class        = 'table-lines';
                   table_dom          = '<\"row row--header\"<\"col\"f><\"col-lg-auto dataTables_length_wrapper\"l>><\"row row--main\"<\"col-sm-12\"tr>><\"row row--footer\"<\"col-sm-12 col-lg-6\"p><\"col-sm-12 col-lg-6 dataTables_info_wrapper\"i>>';
                   table_order        = '[0,"asc"]';
-                  table_language     = '{"lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next","previous":"Previous"},"search":"","searchPlaceholder":"Search field"}';
+                  table_language     = '{"lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next","previous":"Previous"},"search":"<span class=\"sr-only\">Search in fields:</span>","searchPlaceholder":"Search field"}';
                   table_page_length  = 5;
                   table_length_menu  = 'detail';
                   table_unresponsive = 0;

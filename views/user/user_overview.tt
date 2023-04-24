@@ -3,7 +3,7 @@
   table_class    = 'table-striped table-hover';
   table_dom      = '<\"row row--header\"<\"col\"f><\"col-lg-auto dataTables_length_wrapper\"l>><\"row row--main\"<\"col-sm-12\"tr>><\"row row--footer\"<\"col-sm-12 col-lg-6\"p><\"col-sm-12 col-lg-6 dataTables_info_wrapper\"i>>';
   table_order    = '[0,"asc"]';
-  table_language = '{"emptyTable": "There is no data available in this table","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"","searchPlaceholder":"Search through your users"}';
+  table_language = '{"emptyTable": "There is no data available in this table","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"<span class=\"sr-only\">Search in users:</span>","searchPlaceholder":"Search through your users"}';
   table_ajax         = url.page _ "/api/users?csrf-token=" _ csrf_token;
   table_ajax_target  = url.page _ "/user"; # will be appended with /{id} by JS
   table_save_state   = 1;
