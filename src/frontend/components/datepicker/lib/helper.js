@@ -2,7 +2,7 @@ import  'bootstrap-datepicker'
 
 const initDateField = (field) => {
   field.datepicker({
-    "format": "yyyy-mm-dd",
+    "format": field.data("dateformat-datepicker"),
     "autoclose": "true"
   }).on('show.bs.modal', function(event) {
     // prevent datepicker from firing bootstrap modal "show.bs.modal"

@@ -47,7 +47,8 @@
         value="[% INCLUDE fields/sub/filter.tt; %]"
         data-restore-value="[% INCLUDE fields/sub/filter.tt; %]"[% IF tabindex %]
         tabindex="[% tabindex %]"[% END %][% IF help_text %]
-        aria-describedby="[% id %]-help"[% END %][% IF autofocus %]
+        aria-describedby="[% id %]-help"[% END %][% IF dateformat %]
+        data-dateformat-datepicker="[% dateformat %]"[% END %][% IF is_disabled %]
         autofocus[% END %][% IF is_disabled %]
         disabled[% END %][% IF is_readonly %]
         readonly[% END %][% IF is_required %]

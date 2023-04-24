@@ -881,6 +881,7 @@
             help_text    = "",
             popover_body = "",
             placeholder  = config.dateformat_datepicker,
+            dateformat   = config.dateformat_datepicker,
             value        = editvalue.html_form.shift,
             is_required  = field_is_required,
             is_readonly  = readonly
@@ -893,6 +894,7 @@
             help_text    = "",
             popover_body = "",
             placeholder  = config.dateformat_datepicker,
+            dateformat   = config.dateformat_datepicker,
             value        = editvalue.html_form.shift
             is_required  = field_is_required,
             is_readonly  = readonly
@@ -960,6 +962,7 @@
       IF col.type == "date";
         field_input_class = "input--date";
         field_placeholder = config.dateformat_datepicker;
+        dateformat        = config.dateformat_datepicker;
   
         IF col.show_datepicker AND !readonly;
           field_input_class = field_input_class _ " input--datepicker";
