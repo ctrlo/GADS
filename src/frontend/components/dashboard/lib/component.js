@@ -46,6 +46,7 @@ class DashboardComponent extends Component {
         currentDashboard={JSON.parse(this.element.getAttribute("data-current-dashboard") || "{}")}
         readOnly={this.element.getAttribute("data-dashboard-read-only") === "true"}
         hideMenu={this.element.getAttribute("data-dashboard-hide-menu") === "true"}
+        includeH1={this.element.getAttribute("data-dashboard-include-h1") === "true"}
         noDownload={this.element.getAttribute("data-dashboard-no-download") === "true"}
         api={api}
         widgetTypes={JSON.parse(this.element.getAttribute("data-widget-types") || "[]")}

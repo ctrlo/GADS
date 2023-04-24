@@ -306,6 +306,7 @@ class App extends React.Component<any, any> {
           dashboards={this.props.dashboards}
           currentDashboard={this.props.currentDashboard}
           loading={this.state.loading}
+          includeH1={this.props.includeH1}
         />}
         {this.renderModal()}
         <div className="content-block__main">
