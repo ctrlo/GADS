@@ -401,6 +401,7 @@
                 <table class="data-table table "
                        data-config='{"data":null,"dom":"t","order":[],"language":{},"responsive":false,"scrollX":false,"rowReorder":false,"pageLength":10,"lengthMenu":[10,25,50,100],"autoWidth":false,"columns":[{"name":"Topic","orderable":false}]}'
                        width="100%" id=topics>
+                  <caption class="sr-only">Table for topics</caption>
                   <thead>
                     <tr>
                       <th>
@@ -1224,6 +1225,7 @@
                 table_page_length  = 5;
                 table_length_menu  = 'detail';
                 table_unresponsive = 1;
+                table_caption      = "Table to edit table permissions";
               
                 table_columns = [{
                   name      = "Group"
@@ -1440,6 +1442,7 @@
                   table_page_length  = 5;
                   table_length_menu  = 'detail';
                   table_unresponsive = 0;
+                  table_caption      = "Table to show fields";
                 
                   table_columns = [{
                     name      = "Fields"

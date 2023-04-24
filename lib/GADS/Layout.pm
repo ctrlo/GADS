@@ -46,6 +46,7 @@ use GADS::Instances;
 use GADS::Graphs;
 use GADS::MetricGroups;
 use GADS::Views;
+use Lingua::EN::Inflect qw/PL/;
 use Log::Report 'linkspace';
 use MIME::Base64 qw/encode_base64/;
 use JSON qw(decode_json encode_json);
@@ -111,6 +112,17 @@ has identifier => (
 sub _build_identifier
 {   my $self = shift;
     $self->_rset->identifier;
+}
+
+has record_name => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { 'Record' }, # $_[0]->_rset->record_name }, # Functionality to follow
+    clearer => 1,
+);
+
+sub record_name_plural
+{   PL shift->record_name;
 }
 
 has site => (

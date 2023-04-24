@@ -175,6 +175,9 @@
   width="100%"
   data-config='[% table_config %]'
 >
+  [% IF table_caption %]
+    <caption class="sr-only">[% table_caption | html %]</caption>
+  [% END %]
   <thead>
     [% INCLUDE tables/basic_row.tt row=header_row %]
   </thead>

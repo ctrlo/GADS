@@ -193,6 +193,7 @@ sub html
                 );
                 my @columns = @{$records->columns_render};
                 $params->{records} = $records->presentation;
+                $params->{layout}  = $layout,
                 $params->{columns} = [ map $_->presentation(sort => $records->sort_first), @columns ];
             }
             else {

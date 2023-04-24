@@ -1035,6 +1035,9 @@
     table_order            = '[0,"asc"]';
     table_language         = '{"emptyTable": "No data available."}';
     table_show_all_records = 1
+
+    table_caption = "Table to show values in " _ col.name;
+
     table_columns          = [];
 
     table_buttons = [{

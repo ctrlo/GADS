@@ -5,6 +5,7 @@
   table_order = '[0,"asc"]';
   table_language = '{"emptyTable": "No rows to show for this import"}';
   table_show_all_records = 1;
+  table_caption      = "Table for imported rows";
 
   table_buttons = [];
 

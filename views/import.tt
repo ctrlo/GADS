@@ -5,6 +5,7 @@
   table_order = '[0,"asc"]';
   table_language = '{"emptyTable": "No imports to show"}';
   table_show_all_records = 1;
+  table_caption = "Table to show imports";
 
   table_buttons = [];
 

@@ -12,6 +12,8 @@
     filter  = "html"
   }];
 
+  table_caption = table_title;
+
   table_columns = [{
     name = table_column_label
     orderable = 1

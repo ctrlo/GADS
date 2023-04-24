@@ -4,6 +4,7 @@
   table_dom = '<\"row row--header\"<\"col\"f><\"col-lg-auto dataTables_length_wrapper\"l>><\"row row--main\"<\"col-sm-12\"tr>><\"row row--footer\"<\"col-sm-12 col-lg-6\"p><\"col-sm-12 col-lg-6 dataTables_info_wrapper\"i>>';
   table_order = '[0,"asc"]';
   table_language = '{"emptyTable": "There are currently no account requests","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"","searchPlaceholder":"Search through your users"}';
+  table_caption = "Table to show account requests";
 
   table_columns = [{
     name      = "ID"

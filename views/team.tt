@@ -31,6 +31,7 @@
                 <a href="/team/0" class="btn btn-default" role="button">Add [% site.team_name | html %]</a>
             </p>
             <table class="table table-striped">
+                <caption class="sr-only">Table for teams</caption>
                 <tr>
                     <th></th>
                     <th>Name</th>

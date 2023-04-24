@@ -1358,6 +1358,7 @@
                       table_page_length  = 5;
                       table_length_menu  = 'detail';
                       table_unresponsive = 1;
+                      table_caption      = "Table to edit permissions in a table";
                     
                       table_columns = [{
                         name      = "Group"

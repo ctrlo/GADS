@@ -16,6 +16,7 @@ sub presentation_base {
         html_form           => $self->html_form,
         record_id           => $self->record && $self->record->record_id, # Not set when called from audit logs
         column_id           => $self->column && $self->column->id,
+        column_name         => $self->column && $self->column->name,
     };
 }
 

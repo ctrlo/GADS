@@ -25,6 +25,7 @@
         table_page_length  = 50;
         table_length_menu  = 'basic';
         table_unresponsive = 0;
+        table_caption      = "Table to select and edit graphs";
         rows               = [];
         table_columns      = [{
           name      = "Select",

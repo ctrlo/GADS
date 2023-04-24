@@ -8,6 +8,7 @@
   table_ajax_target  = url.page _ "/user"; # will be appended with /{id} by JS
   table_save_state   = 1;
   table_unresponsive = 0;
+  table_caption      = "Table to show list of users";
 
   table_columns = [{
     name      = "ID"

@@ -4,6 +4,8 @@
   table_order = '[0,"asc"]';
   table_show_all_records = 1;
 
+  table_caption = "Table to show files";
+
   table_buttons = [{
     type    = "modal_button"
     modalId = "deleteFile"

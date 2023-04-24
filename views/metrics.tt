@@ -17,6 +17,7 @@ calculated by comparing the absolute value with the relevant metric."
 <div class="content-block__main">
   <div class="content-block__main-content">
     <table class="table table-striped">
+        <caption class="sr-only">Table to show list of metrics</caption>
         <tr>
             <th></th>
             <th>Metric set name</th>

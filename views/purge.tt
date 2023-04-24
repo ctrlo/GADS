@@ -9,6 +9,7 @@
     <form role="form" method="post">
         <input type="hidden" name="csrf_token" value="[% csrf_token %]">
         <table class="table table-striped">
+            <caption class="sr-only">Table to show deleted records</caption>
             <tr>
                 <th><input type="checkbox" id="selectall" title="Select/deselect all"></th>
                 <th>ID</th>

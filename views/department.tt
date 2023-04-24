@@ -31,6 +31,7 @@
                 <a href="/department/0" class="btn btn-default" role="button">Add [% site.department_name | html %]</a>
             </p>
             <table class="table table-striped">
+                <caption class="sr-only">Table for departments</caption>
                 <tr>
                     <th></th>
                     <th>Name</th>

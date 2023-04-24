@@ -34,6 +34,7 @@
       table_length_menu  = 'basic';
       table_save_state   = 1;
       table_unresponsive = 0;
+      table_caption      = "Table for " _ layout.record_name_plural;
       table_columns      = [];
       rows               = [];
       processed_columns  = [];

@@ -4,7 +4,9 @@
   table_dom      = 't';
   table_order    = '[0,"asc"]';
   table_language = '{"emptyTable": "No topics have been created yet."}';
-  
+
+  table_caption = "Table for topics";
+
   table_buttons = [{
     label = "Edit topic",
     link  = url.page _ "/" _ layout_obj.identifier _ "/topic/{topic_id}"

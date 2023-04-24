@@ -104,6 +104,7 @@
                         table_language         = '{"emptyTable": "No graphs have been created. Please use the `Add a graph` button above to add one.","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"","searchPlaceholder":"Search in this table"}';
                         table_show_all_records = 1;
                         table_unresponsive     = 0;
+                        table_caption          = "Table to select fields in view";
                         rows                   = [];
                         table_columns          = [{
                           name      = "Select",

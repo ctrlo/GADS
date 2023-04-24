@@ -6,6 +6,8 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
+use Lingua::EN::Inflect qw/PL/;
+
 use JSON qw(decode_json encode_json);
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
@@ -185,14 +187,26 @@ sub organisation_name
     $self->register_organisation_name || 'Organisation';
 }
 
+sub organisation_name_plural
+{   PL shift->organisation_name;
+}
+
 sub department_name
 {   my $self = shift;
     $self->register_department_name || 'Department';
 }
 
+sub department_name_plural
+{   PL shift->department_name;
+}
+
 sub team_name
 {   my $self = shift;
     $self->register_team_name || 'Team';
+}
+
+sub team_name_plural
+{   PL shift->team_name;
 }
 
 sub update_user_editable_fields

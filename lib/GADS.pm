@@ -823,6 +823,7 @@ any ['get', 'post'] => '/group_overview/' => require_any_role [qw/useradmin supe
         page               => 'group',
         page_title         => "Group",
         page_description   => "Groups are the basis for LinkSpace’s fine-grained access control. Users can be allocated to any number of groups. You then set the group permissions for every field you create to control what fields users can view or edit.",
+        table_title        => 'Groups table',
         table_column_label => "Group",
         item_type          => "group",
         add_path           => "group_add",
@@ -949,6 +950,7 @@ any ['get', 'post'] => '/settings/user_editable_personal_details/' => require_an
 };
 
 any ['get', 'post'] => '/settings/title_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
+
     my $title_name = "title";
 
     if (my $delete_id = param('delete'))
@@ -966,6 +968,7 @@ any ['get', 'post'] => '/settings/title_overview/' => require_any_role [qw/usera
         page               => 'manage_titles',
         page_title         => "Manage ${title_name}s",
         page_description   => "In this window you can list the ${title_name}s that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
+        table_title        => "Manage ${title_name}s table",
         table_column_label => "Name",
         item_type          => $title_name,
         add_path           => "settings/title_add",
@@ -1040,7 +1043,9 @@ any ['get', 'post'] => '/settings/title_edit/:id' => require_any_role [qw/userad
 };
 
 any ['get', 'post'] => '/settings/organisation_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
-    my $organisation_name = lcfirst(var('site')->organisation_name);
+
+    my $organisation_name = lcfirst var('site')->organisation_name;
+    my $organisation_name_plural = lcfirst var('site')->organisation_name_plural;
 
     if (my $delete_id = param('delete'))
     {
@@ -1055,8 +1060,9 @@ any ['get', 'post'] => '/settings/organisation_overview/' => require_any_role [q
 
     template 'layouts/page_overview_name_only' => {
         page               => 'manage_organisations',
-        page_title         => "Manage ${organisation_name}s",
-        page_description   => "In this window you can list the parts of the ${organisation_name} that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
+        page_title         => "Manage $organisation_name_plural",
+        page_description   => "In this window you can list the parts of the $organisation_name that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
+        table_title        => "Manage $organisation_name_plural table",
         table_column_label => "Name",
         item_type          => $organisation_name,
         add_path           => "settings/organisation_add",
@@ -1121,7 +1127,9 @@ any ['get', 'post'] => '/settings/organisation_edit/:id' => require_any_role [qw
 };
 
 any ['get', 'post'] => '/settings/department_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
-    my $department_name = lcfirst(var('site')->department_name);
+
+    my $department_name        = lcfirst var('site')->department_name;
+    my $department_name_plural = lcfirst var('site')->department_name_plural;
 
     if (my $delete_id = param('delete'))
     {
@@ -1136,8 +1144,9 @@ any ['get', 'post'] => '/settings/department_overview/' => require_any_role [qw/
 
     template 'layouts/page_overview_name_only' => {
         page               => 'manage_departments',
-        page_title         => "Manage ${department_name}s",
-        page_description   => "In this window you can list the ${department_name} that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
+        page_title         => "Manage $department_name_plural",
+        page_description   => "In this window you can list the $department_name that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
+        table_title        => "Manage $department_name_plural table",
         table_column_label => "Name",
         item_type          => $department_name,
         add_path           => "settings/department_add",
@@ -1212,7 +1221,9 @@ any ['get', 'post'] => '/settings/department_edit/:id' => require_any_role [qw/u
 };
 
 any ['get', 'post'] => '/settings/team_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
-    my $team_name = lcfirst(var('site')->team_name);
+
+    my $team_name        = lcfirst var('site')->team_name;
+    my $team_name_plural = lcfirst var('site')->team_name_plural;
 
     if (my $delete_id = param('delete'))
     {
@@ -1227,8 +1238,9 @@ any ['get', 'post'] => '/settings/team_overview/' => require_any_role [qw/userad
 
     template 'layouts/page_overview_name_only' => {
         page               => 'manage_teams',
-        page_title         => "Manage ${team_name}s",
+        page_title         => "Manage $team_name_plural",
         page_description   => "In this window you can list the ${team_name} that you want to assign users to. You can update the existing items or add new ones. Changes in here will impact all users currently assigned if you delete or edit a value.",
+        table_title        => "Manage $team_name_plural table",
         table_column_label => "Name",
         item_type          => $team_name,
         add_path           => "settings/team_add",

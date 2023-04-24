@@ -8,6 +8,8 @@
   table_width = 85;
   table_show_all_records = 1;
 
+  table_caption = "Table to show LinkSpace tables";
+
   table_buttons = [{
     label = "View records"
     link  = "/{table_short_name}/data?table_clear_state=1"

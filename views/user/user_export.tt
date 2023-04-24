@@ -4,6 +4,8 @@
   table_language = '{"emptyTable": "No exports to show"}';
   table_show_all_records = 1;
 
+  table_caption = "Table to show user exports";
+
   table_buttons = [];
 
   table_columns = [{

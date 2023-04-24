@@ -31,6 +31,7 @@
                 <a href="/title/0" class="btn btn-default" role="button">Add Title</a>
             </p>
             <table class="table table-striped">
+                <caption class="sr-only">Table for titles</caption>
                 <tr>
                     <th></th>
                     <th>Name</th>

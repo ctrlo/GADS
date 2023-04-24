@@ -63,6 +63,7 @@
                             <a href="" class="btn btn-danger" data-toggle="modal" data-target="#modal_delete">Delete group</a>
                           </p>
                           <table class="table table-striped">
+                            <caption class="sr-only">Table for metric groups</caption>
                             <tr>
                               <th></th>
                               <th>X-axis value</th>

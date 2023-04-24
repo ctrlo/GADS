@@ -7,6 +7,8 @@
   table_order = '[0,"asc"]';
   table_show_all_records = 1;
 
+  table_caption = "Table for audit log";
+
   table_columns = [{
     name = "ID"
     orderable = 1
