@@ -2,7 +2,7 @@
   # record
   IF page == 'edit';
     IF NOT record.new_entry;
-      page_title = "Record ID: " _ record.current_id;
+      page_title = layout.record_name.ucfirst _ " ID: " _ record.current_id;
       
       IF record.deleted;
         page_title = page_title _ " (deleted)";
@@ -12,13 +12,13 @@
         page_title _ "<small>(child of record " _ record.parent_id _ ")</small>";
       END;
 
-      page_title;
+      page_title | html;
     ELSIF child;
       "Create child record of " _ child;
     ELSIF clone;
-      "New record copied from record ID " _ clone;
+      "New " _ layout.record_name _ " copied from record ID " _ clone | html;
     ELSE;
-      "New record";
+      "New " _ layout.record_name | html;
     END;
 
 
@@ -52,7 +52,7 @@
 
   # link a record
   ELSIF page == 'link';
-    record.current_id ? "Record ID " _ record.current_id : "Add a linked record";
+    record.current_id ? layout.record_name.ucfirst _ " ID " _ record.current_id : "Add a linked record";
 
 
   # import records

@@ -11,7 +11,8 @@
   table_caption = "Table to show LinkSpace tables";
 
   table_buttons = [{
-    label = "View records"
+    label = "View {table_records_name}"
+    filter = "html"
     link  = "/{table_short_name}/data?table_clear_state=1"
   }, {
     label = "Dashboard"
@@ -39,6 +40,7 @@
       link_placeholders = {
         table_id = instance.instance_id
         table_short_name = instance.identifier
+        table_records_name = instance.record_name_plural
       }
       fields = [{
         type  = "link"

@@ -8,7 +8,7 @@
       [% IF user.has_draft(layout.instance_id) %]
         Continue draft record
       [% ELSE %]
-        Add a record
+        Add a [% layout.record_name | html %]
       [% END %]
     </a>
   </div>

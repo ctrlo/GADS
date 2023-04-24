@@ -5,7 +5,7 @@
     <div class="table-header-top row justify-content-between no-gutters">
       <div class="table-header__meta">
         [% INCLUDE navigation/breadcrumbs.tt %]
-        <h1 class="table-header__title">[% layout_obj.name %]</h1>
+        <h1 class="table-header__title">[% layout_obj.name | html %]</h1>
       </div>
       [% INCLUDE navigation/user_menu.tt user_menu_class="table-header__navigation" %]
     </div>
@@ -31,7 +31,7 @@
                 type          = "link",
                 target        = url.page _ "/" _ layout.identifier _ "/record/?from=" _ record.current_id,
                 class         = "link link--plain",
-                label         = "Duplicate record",
+                label         = "Duplicate " _ layout.record_name,
                 label_in_span = 1
               });
             END;
@@ -51,7 +51,7 @@
                 type          = "link",
                 target        = url.page _ "/" _ layout.identifier _ "/record/?child=" _ record.current_id,
                 class         = "link link--plain",
-                label         = "Create child record",
+                label         = "Create child " _ layout.record_name,
                 label_in_span = 1
               });
             END;
@@ -63,7 +63,7 @@
                 type          = "link",
                 target        = url.page _ "/" _ layout.identifier _ "/link/" _ record.current_id,
                 class         = "link link--plain",
-                label         = "Link record",
+                label         = "Link " _ layout.record_name,
                 label_in_span = 1
               });
             END;
@@ -73,7 +73,7 @@
                 type    = "modal_button"
                 class   = "btn btn-delete"
                 modalId = "deleteModal"
-                label   = "Delete record"
+                label   = "Delete " _ layout.record_name
               });
             END;
 

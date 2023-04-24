@@ -1,4 +1,4 @@
-<h2>Manage deleted records</h2>
+<h2>Manage deleted [% layout.record_name_plural | html %]</h2>
 <p>
     This page contains all records that have been deleted in the table &quot;[%
     instance_name | html %]&quot;. The records listed here are still contained

@@ -4527,7 +4527,7 @@ sub _process_edit
         breadcrumbs                  => [
             Crumb($base_url."table/", "Tables"),
             Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
-            Crumb("", $id ? "Record ID: " . $recordPresentation->{current_id} : "New record")
+            Crumb("", $id ? ucfirst($layout->record_name)." ID: " . $recordPresentation->{current_id} : "New ".$layout->record_name)
         ],
     };
 

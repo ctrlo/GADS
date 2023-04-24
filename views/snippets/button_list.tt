@@ -16,13 +16,13 @@
           value="[% button.value || button.name %]"[% IF button.style %]
           style="[% button.style %]"[% END %]
         >
-          <span class="btn__title">[% button.label || button.name %]</span>
+          <span class="btn__title">[% button.label || button.name | html %]</span>
         </button>
       </form>
       [% ELSIF button.type == "link" %]
       <a href="[% button.target %]"[% IF button.id %] id="[% button.id %]"[% END %] class="[% button.class %]"[% IF button.style %] style="[% button.style %]"[% END %]>
         [% IF button.label_in_span; %]<span>[% END %]
-        [%- button.label || button.name -%]
+        [%- button.label || button.name | html -%]
         [% IF button.label_in_span; %]</span>[% END %]
       </a>
       [% ELSIF button.type == "button" %]
@@ -34,7 +34,7 @@
         class="[% button.class %]"[% IF button.style %]
         style="[% button.style %]"[% END %]
       >
-        <span class="btn__title">[% button.label || button.name %]</span>
+        <span class="btn__title">[% button.label || button.name | html %]</span>
       </button>
       [% ELSIF button.type == "modal_dismiss_button" %]
       <button
@@ -43,7 +43,7 @@
         class="[% button.class ? button.class : 'btn btn-cancel' %]"
         data-dismiss="modal"
       >
-        <span class="btn__title">[%- button.label || button.name -%]</span>
+        <span class="btn__title">[%- button.label || button.name | html -%]</span>
       </button>
       [% ELSIF button.type == "modal_button" %]
       <button
@@ -56,7 +56,7 @@
         data-title="[% button.dataTitle %]"[% END %][% IF button.dataId %]
         data-id="[% button.dataId %]"[% END %]
       >
-        <span class="btn__title">[%- button.label || button.name -%]</span>
+        <span class="btn__title">[%- button.label || button.name | html -%]</span>
       </button>
       [% END %]
     </li>

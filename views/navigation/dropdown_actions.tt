@@ -75,7 +75,7 @@
       id     = "",
       class  = "",
       target = url.page _ "/" _ layout_obj.identifier _ "/purge/",
-      label  = "Manage deleted records"
+      label  = "Manage deleted " _ layout.record_name_plural
     });
   END;
 

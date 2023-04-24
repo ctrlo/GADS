@@ -117,7 +117,7 @@ sub _build_identifier
 has record_name => (
     is      => 'rw',
     lazy    => 1,
-    builder => sub { 'Record' }, # $_[0]->_rset->record_name }, # Functionality to follow
+    builder => sub { $_[0]->_rset->record_name || 'record' },
     clearer => 1,
 );
 

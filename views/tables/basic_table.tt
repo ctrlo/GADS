@@ -138,6 +138,11 @@
           field.link = field.link.replace('{' _ key _ '}', row.link_placeholders.$key);
         END;
       END;
+      IF field.label AND row.link_placeholders AND !row.link_placeholders.empty;
+        FOREACH key in row.link_placeholders.keys;
+          field.label = field.label.replace('{' _ key _ '}', row.link_placeholders.$key);
+        END;
+      END;
     END;
     
     # add empty field for screen overflow expand/collapse column
