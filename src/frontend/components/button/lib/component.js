@@ -206,6 +206,17 @@ class ButtonComponent extends Component {
       if (isValid) {
         this.canSubmitRecordForm = true
         $button.trigger('click')
+        // Prevent double-submission
+        $button.prop("disabled", true);
+        if ($button.prop("name")) {
+          $button.after(
+            '<input type="hidden" name="' +
+              $button.prop("name") +
+              '" value="' +
+              $button.val() +
+              '" />'
+          );
+        }
       } else {
         // Re-add the required attribute to required dependent fields
         $requiredHiddenRecordDependentFields.attr('required', '')
