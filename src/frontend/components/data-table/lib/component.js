@@ -553,11 +553,12 @@ class DataTableComponent extends Component {
   bindClickHandlersAfterDraw(conf) {
     const tableElement = this.el
     const base_url = $(tableElement).data('href') ? $(tableElement).data('href') : undefined
+    let rows = tableElement.DataTable().rows( {page:'current'} ).data()
 
-    if (this.json && base_url) {
+    if (rows && base_url) {
       // Add click handler to tr to open a record by id
       $(tableElement).find('> tbody > tr').each((i, el) => {
-        const data = this.json.data[i] ? this.json.data[i] : undefined
+        const data = rows[i] ? rows[i] : undefined
         if (data) {
           // URL will be record link for standard view, or filtered URL for
           // grouped view (in which case _count parameter will be present not _id)
