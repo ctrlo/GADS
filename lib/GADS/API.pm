@@ -1370,7 +1370,6 @@ any ['get', 'post'] => '/api/users' => require_any_role [qw/useradmin superadmin
         ];
     }
 
-    my $filtered_count = $users->count;
     $users = $users->search({
         -and => \@sr,
     },{
@@ -1378,6 +1377,7 @@ any ['get', 'post'] => '/api/users' => require_any_role [qw/useradmin superadmin
         rows     => $length,
         order_by => { $dir eq 'asc' ? -asc : -desc => $sort_by },
     });
+    my $filtered_count = $users->count;
 
     my $return = {
         draw            => $params->get('draw'),
