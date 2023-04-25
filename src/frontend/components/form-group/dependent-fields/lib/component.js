@@ -125,17 +125,21 @@ class DependentFieldsComponent extends Component {
         const $expandableCard = $field.closest(".card--expandable");
 
         if ($expandableCard.length) {
+          // Check each field in the card to see if none are shown, and
+          // hide/show the card accordingly
           $expandableCard.find(".linkspace-field").each(function() {
             const $collapsibleElm = $expandableCard.find(".collapse");
-            let none_shown = true; // Assume card not expanded
+            let none_shown = true; // Assume card not shown
 
-            if (!$collapsibleElm.hasClass(".show")) {
+            if ($(this).css("display") != "none") {
               $collapsibleElm.collapse('show');
+              $collapsibleElm.closest('.card').show();
               none_shown = false;
               return false; // Shortcut checking any more fields
             }
             if (none_shown) {
               $collapsibleElm.collapse('hide');
+              $collapsibleElm.closest('.card').hide();
             } // Nothing matched
           });
         }
