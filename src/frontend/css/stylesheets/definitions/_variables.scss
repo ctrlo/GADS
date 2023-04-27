@@ -1,12 +1,12 @@
 // Colours
 $brand-primary: #4F427C;
-$brand-secundary: #006699;
+$brand-secundary: #007C88;
 $gradient-secundary: #1BADB8;
 $brand-tertiary: #F99D27;
 
-$brand-danger:  #C14B3F;
-$brand-warning: #C57002;
-$brand-success: #719330;
+$brand-danger:  #E30036;
+$brand-warning: #FFBB01;
+$brand-success: #18856B;
 
 $warning: $brand-warning;
 
@@ -107,8 +107,8 @@ $table-cell-padding: $padding-base-horizontal;
 $alert-border-width: 0;
 $alert-border-radius: 0;
 $alert-color-level: 0;
-$alert-bg-level: +3;
-$alert-border-level: +4;
+$alert-bg-level: -3;
+$alert-border-level: -2;
 
 // Modals
 $modal-inner-padding: $padding-large-horizontal;
