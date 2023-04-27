@@ -13,7 +13,7 @@
   [% curcommon_row_counter = 0 %]
     [% IF curval.links.first.presentation.columns.size %]
       <table class="table table-curcommon table-striped">
-        <caption class="sr-only">Table to show values in [% curval.column_name %]</table>
+        <caption class="sr-only">Table to show values in [% curval.column_name %]</caption>
         [% FOR link IN curval.links %]
                 <tr role="button" tabindex="0" class="record-popup [% curcommon_row_counter % 2 == 0 ? 'even' : 'odd' %]" data-record-id="[% link.id %]"
                     [% IF link.version_id %]data-version-id="[% link.version_id %]"[% END %]>
