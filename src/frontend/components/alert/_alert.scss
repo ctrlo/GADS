@@ -3,7 +3,7 @@
   align-items: center;
   margin-bottom: $padding-large-vertical;
   padding: $padding-base-horizontal;
-  color: #000000;
+  color: $black;
 
   &::before {
     @extend %icon-font;
@@ -34,16 +34,16 @@
 
   .alert-success::before {
     content: "\E804";
-    color: #000000;
+    color: $black;
   }
 
   .alert-info::before {
     content: "\E810";
-    color: #000000;
+    color: $black;
   }
 
   .alert-danger::before {
     content: "\E822";
-    color: #000000;
+    color: $black;
   }
 }
