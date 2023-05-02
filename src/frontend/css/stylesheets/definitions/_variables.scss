@@ -4,9 +4,12 @@ $brand-secundary: #007C88;
 $gradient-secundary: #3FB5C1;
 $brand-tertiary: #F99D27;
 
-$brand-danger:  #E30036;
+$brand-danger: #E30036;
+$brand-danger-light: #FF6155;
 $brand-warning: #FFBB01;
 $brand-success: #18856B;
+$brand-success-light: #26D2A9;
+$brand-info-light: #ABA9EB;
 
 $warning: $brand-warning;
 
@@ -107,7 +110,7 @@ $table-cell-padding: $padding-base-horizontal;
 $alert-border-width: 0;
 $alert-border-radius: 0;
 $alert-color-level: 0;
-$alert-bg-level: -3;
+$alert-bg-level: 0;
 $alert-border-level: -2;
 
 // Modals
