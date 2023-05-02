@@ -1,7 +1,7 @@
 .sidebar {
   min-height: $min-height-container;
   padding: 50px 0 80px;
-  color: $gray-light;
+  color: $white;
 
   &::before {
     content: '';
@@ -58,7 +58,7 @@
     content: '\e805';
     transform: rotate(180deg);
     transition: transform 0.2s ease;
-    color: $gray-light;
+    color: $white;
     font-size: 1.25rem;
   }
 
@@ -145,7 +145,7 @@
   align-items: center;
   padding: 10px 15px;
   transition: 0.2s all ease;
-  color: $gray-light;
+  color: $white;
 
   &:hover,
   &:active,
@@ -153,7 +153,8 @@
   &:active:focus,
   &.nav__link--active {
     outline: 0;
-    background-color: rgba($gray-light, 0.4);
+    // opacity will make no difference for white, retained for historical reasons from gray-light
+    background-color: rgba($white, 0.4);
     text-decoration: none;
   }
 }
