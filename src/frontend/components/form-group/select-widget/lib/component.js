@@ -416,7 +416,7 @@ class SelectWidgetComponent extends Component {
         field +
         '" ' +
         (checked ? " checked" : "") +
-        (this.required ? ' required aria-required="true"' : "") +
+        (this.required && !this.multi ? ' required aria-required="true"' : "") +
         ' value="' +
         (value || "") +
         '" class="' +
