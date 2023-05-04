@@ -508,7 +508,7 @@
                         <option></option>
                     [% END %]
                     [% FOREACH referring IN layout.referred_by %]
-                        <option data-instance_id=[% referring.instance_id %] value="[% referring.id %]" [% IF column.related_field_id == referring.id %]selected[% END %]>[% referring.name | html_entity %]</option>
+                        <option data-instance_id=[% referring.instance_id %] value="[% referring.id %]" [% IF column.related_field_id == referring.id %]selected[% END %]>[% referring.name | html_entity %] ([% referring.instance.name | html %])</option>
                     [% END %]
                 </select>
             </div>
