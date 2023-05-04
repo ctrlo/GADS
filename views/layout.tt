@@ -1176,7 +1176,7 @@
                         
                               related_field_id_items.push({
                                 id        = referring.id,
-                                name      = referring.name,
+                                name      = referring.name _ " (" _ referring.instance.name _ ")",
                                 reveal_id = referring.instance_id
                               });
                             END;
