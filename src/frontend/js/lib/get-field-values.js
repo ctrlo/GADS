@@ -40,7 +40,7 @@ const getFieldValues = function($depends, filtered, for_code) {
       // the associated filtered drop-down
       $visible = $depends.find(".select-widget .available .answer");
       $visible.each(function() {
-        const item = $(this).find('[role="option"]');
+        const item = $(this);
         values.push(item);
       });
     } else {

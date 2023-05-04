@@ -377,22 +377,23 @@ class SelectWidgetComponent extends Component {
         "</li>"
     )
     $li.data('list-text', value_text)
+    $li.data('list-id', value_id)
     $li.find('span').html(value_html)
     return $li
   }
 
-  availableLi(multi, field, value, label, checked) {
-    if (this.multi && !value) {
+  availableLi(multi, field, value_id, value_text, label, checked) {
+    if (this.multi && !value_id) {
       return null
     }
 
-    const valueId = value ? field + "_" + value : field + "__blank"
-    const classNames = value ? "answer" : "answer answer--blank"
+    const valueId = value_id ? field + "_" + value_id : field + "__blank"
+    const classNames = value_id ? "answer" : "answer answer--blank"
 
     // Add space at beginning to keep format consistent with that in template
     const detailsButton =
       ' <div class="details">' +
-      '<button type="button" class="btn btn-small btn-default btn-js-more-info" data-record-id="' + value +
+      '<button type="button" class="btn btn-small btn-default btn-js-more-info" data-record-id="' + value_id +
       '" aria-describedby="lbl-' + valueId +
       '" data-target="' + this.el.data('details-modal') + // TODO: get id of modal
       '" data-toggle="modal">' +
@@ -418,7 +419,7 @@ class SelectWidgetComponent extends Component {
         (checked ? " checked" : "") +
         (this.required && !this.multi ? ' required aria-required="true"' : "") +
         ' value="' +
-        (value || "") +
+        (value_id || "") +
         '" class="' +
         (multi ? "" : "visually-hidden") +
         '" aria-labelledby="lbl-' +
@@ -432,9 +433,11 @@ class SelectWidgetComponent extends Component {
         "</label>" +
         "</div>" +
         "</div>" +
-        (value ? detailsButton : "") +
+        (value_id ? detailsButton : "") +
         "</li>"
     )
+    $li.data('list-text', value_text)
+    $li.data('list-id', value_id)
     return $li
   }
 
@@ -482,7 +485,7 @@ class SelectWidgetComponent extends Component {
             self.$search
             .parent()
             .before(self.currentLi(self.multi, field, null, "", "blank", checked))
-            self.$available.append(self.availableLi(self.multi, field, null, "blank", checked))
+            self.$available.append(self.availableLi(self.multi, field, null, "", "blank", checked))
         }
 
         $.each(data.records, (recordIndex, record) => {
@@ -494,7 +497,7 @@ class SelectWidgetComponent extends Component {
                 self.currentLi(self.multi, field, record.id, record.label, record.html, checked)
               ).before(' ') // Ensure space between elements
               self.$available.append(
-                self.availableLi(self.multi, field, record.id, record.html, checked)
+                self.availableLi(self.multi, field, record.id, record.label, record.html, checked)
             )
           }
         })
