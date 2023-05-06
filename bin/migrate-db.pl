@@ -1,6 +1,9 @@
 #!/usr/bin/env perl
 #
-# This script migrates the database.  Call this after every upgrade.
+# Use this script to manage database migrations.
+#
+# For an upgrade, simply run bin/migrate-db.pl --upgrade
+#
 
 use warnings;
 use strict;
@@ -11,19 +14,97 @@ use lib "$FindBin::Bin/../lib";
 use Dancer2;
 my $config = config;
 
+use DBIx::Class::Migration;
+use Log::Report 'lspace';
+use Getopt::Long;
+
+my ($prepare, $install, $upgrade, $downgrade, $status, $fixtures);
+
+GetOptions (
+    'prepare'    => \$prepare,
+    'install'    => \$install,
+    'upgrade'    => \$upgrade,
+    'downgrade'  => \$downgrade,
+    'status'     => \$status,
+    'fixtures=s' => \$fixtures,
+) or exit;
+
+$prepare || $install || $upgrade || $downgrade || $status || $fixtures
+    or error "Please specify --prepare, --install, --status, --fixtures or --upgrade";
+
 my $db_settings = $config->{plugins}{DBIC}{default}
-    or die "configuration file structure changed.";
+    or panic "configuration file structure changed.";
 
-$ENV{DBIC_MIGRATION_USERNAME} = $db_settings->{user};
-$ENV{DBIC_MIGRATION_PASSWORD} = $db_settings->{password};
-my $dsn = $db_settings->{dsn};
+my @app_connect = (
+    $db_settings->{dsn},
+    $db_settings->{user},
+    $db_settings->{password},
+    {
+        quote_names => 1,
+        RaiseError  => 1,
+    },
+);
 
-my $lib       = "$FindBin::Bin/../lib";
+my $migration = DBIx::Class::Migration->new(
+    schema_class => 'GADS::Schema',
+    schema_args  => \@app_connect,
+    target_dir => 'share',
+    dbic_dh_args => {
+        force_overwrite => 1,
+        quote_identifiers => 1,
+        databases => ['MySQL', 'PostgreSQL'],
+        sql_translator_args => {
+            producer_args => {
+                mysql_version => 5.7,
+            },
+        },
+    },
+);
 
-system 'dbic-migration', "-I$lib",
-    "--schema_class='GADS::Schema'",
-    "--dsn='$dsn'",
-    "--dbic_connect_attrs",
-    "quote_names=1",
-    "upgrade"
-	and die "Migration failed";
+if ($prepare)
+{ $migration->prepare }
+elsif ($install)
+{ $migration->install }
+elsif ($upgrade)
+{ $migration->upgrade }
+elsif ($downgrade)
+{ $migration->downgrade }
+elsif ($status)
+{ $migration->status }
+elsif ($fixtures)
+{
+    my $rootdir       = "$FindBin::Bin/..";
+    my @dirs = grep { -d } glob "$rootdir/share/fixtures/*";
+    my $version = 0;
+    foreach (@dirs)
+    {
+        s!^.*/([0-9]+)$!$1!
+            or next;
+        $version = $_ if $_ > $version;
+    }
+    my $fixtures_root = "$rootdir/share/fixtures/$version";
+    my $dbfixtures    = DBIx::Class::Fixtures->new({
+        config_dir => "$fixtures_root/conf",
+    });
+    if ($fixtures eq 'export')
+    {
+        $dbfixtures->dump({
+            config    => 'permissions.json',
+            directory => "$fixtures_root/permissions",
+            schema    => $migration->schema,
+        });
+    }
+    elsif ($fixtures eq 'import')
+    {
+        $dbfixtures->populate({
+            directory          => "$fixtures_root/permissions",
+            schema             => $migration->schema,
+            no_deploy          => 1,
+            use_find_or_create => 1,
+            update_existing    => 1,
+        });
+    }
+    else {
+        error "Invalid fixtures action $fixtures";
+    }
+}
