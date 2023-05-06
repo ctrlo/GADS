@@ -101,15 +101,19 @@ $ bin/app.pl
 
 Run this after updating the code:
 
-`perl bin/migrate-db.pl`
+`perl bin/migrate-db.pl --upgrade`
 
-### Other useful dbic-migration commands
+### Other useful database migration commands
 
 ```
+# Print database version information
+perl bin/migrate-db.pl --status
+
 # Dump all data to fixtures
-... dump_all_sets --fixture_sets all_tables
+perl bin/migrate-db.pl --fixtures=export
+
 # Load all fixture data
-... populate --fixture_set all_tables
+perl bin/migrate-db.pl --fixtures=import
 ```
 
 ## Data
