@@ -614,6 +614,7 @@
           label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
           label        = field_label
           help_text    = col.description
+          filter       = "html"
           popover_body = col.helptext_html;
   
         IF show_add_btn;
@@ -718,6 +719,7 @@
           label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
           label        = field_label
           help_text    = col.description
+          filter       = "html"
           popover_body = col.helptext_html;
       IF readonly;
         '<div class="form-group">';
@@ -786,6 +788,7 @@
           label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
           label        = field_label
           help_text    = col.description
+          filter       = "html"
           popover_body = col.helptext_html;
   
       IF readonly;
