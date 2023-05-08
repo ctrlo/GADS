@@ -99,9 +99,17 @@
                         # prepare table config
                         table_class            = 'table-striped table-selectable';
                         table_dom              = 't';
-                        table_order            = '[0,"asc"]';
                         table_reorder_rows     = 1;
-                        table_language         = '{"emptyTable": "No fields have been created.","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"<span class=\"sr-only\">Search in table:</span>","searchPlaceholder":"Search in this table"}';
+                        table_language         = {
+                          emptyTable => "No fields have been created.",
+                          lengthMenu => "Rows per page _MENU_",
+                          paginate   => {
+                            next     => "Next page",
+                            previous => "Previous page"
+                          },
+                          search            => "<span class=\"sr-only\">Search in table:</span>",
+                          searchPlaceholder => "Search in this table"
+                        };
                         table_show_all_records = 1;
                         table_unresponsive     = 0;
                         table_caption          = "Table to select fields in view";

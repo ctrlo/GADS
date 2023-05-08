@@ -2,8 +2,9 @@
   # prepare table config
   table_class            = 'table-striped table-hover table-lines';
   table_dom              = 't';
-  table_order            = '[0,"asc"]';
-  table_language         = '{"emptyTable": "No fields have been created yet."}';
+  table_language         = {
+    emptyTable => "No fields have been created yet."
+  };
   table_show_all_records = 1;
   table_reorder_rows     = 1;
   table_page_length      = 10;

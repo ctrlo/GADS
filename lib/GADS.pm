@@ -70,7 +70,7 @@ use HTML::Entities;
 use HTML::FromText qw(text2html);
 use JSON qw(decode_json encode_json);
 use Math::Random::ISAAC::XS; # Make Dancer session generation cryptographically secure
-use MIME::Base64;
+use MIME::Base64 qw/encode_base64/;
 use Session::Token;
 use String::CamelCase qw(camelize);
 use Text::CSV;
@@ -338,6 +338,9 @@ hook before_template => sub {
     $tokens->{messages}      = session('messages');
     $tokens->{site}          = var 'site';
     $tokens->{config}        = GADS::Config->instance;
+
+    # Base 64 encoder for use in templates
+    $tokens->{b64_filter} = sub { encode_base64(encode_json shift, '') };
 
     # This line used to be pre-request. However, occasionally errors have been
     # experienced with pages not submitting CSRF tokens. I think these may have

@@ -104,11 +104,11 @@ class MoreLessComponent extends Component {
       html: content
     })
 
-    const toggleLabel = 'Show ' + column + ' &rarr;'
+    const toggleLabel = 'Show ' + column + ' ⇒'
 
     const $expandToggle = $('<button/>', {
       class: 'btn btn-small btn-inverted trigger',
-      html: toggleLabel,
+      text: toggleLabel,
       type: 'button',
       'aria-expanded': false,
       'data-expand-on-hover': false,

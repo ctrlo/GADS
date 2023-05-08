@@ -1,8 +1,7 @@
 [%-
   # prepare files table config
   table_dom = "t";
-  table_order = '[0,"asc"]';
-  table_language = '{"emptyTable": "No ' _ item_type _ 's available"}';
+  table_language = {emptyTable => "No " _ item_type _ "s available"};
   table_show_all_records = 1;
 
   table_buttons = [{

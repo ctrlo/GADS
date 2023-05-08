@@ -19,9 +19,17 @@
       
         # prepare table config
         table_class        = 'table-striped table-selectable';
-        table_dom          = '<\"row row--header\"<\"col\"f><\"col-lg-auto dataTables_length_wrapper\"l>><\"row row--main\"<\"col-sm-12\"tr>><\"row row--footer\"<\"col-sm-12 col-lg-6\"p><\"col-sm-12 col-lg-6 dataTables_info_wrapper\"i>>';
-        table_order        = '[0,"asc"]';
-        table_language     = '{"emptyTable": "No graphs have been created. Please use the `Add a graph` button above to add one.","lengthMenu":"Rows per page _MENU_","paginate":{"next":"Next page","previous":"Previous page"},"search":"","searchPlaceholder":"Search in this table"}';
+        table_dom          = '<"row row--header"<"col"f><"col-lg-auto dataTables_length_wrapper"l>><"row row--main"<"col-sm-12"tr>><"row row--footer"<"col-sm-12 col-lg-6"p><"col-sm-12 col-lg-6 dataTables_info_wrapper"i>>';
+        table_language     = {
+          emptyTable => "No graphs have been created. Please use the `Add a graph` button above to add one.",
+          lengthMenu => "Rows per page _MENU_",
+          paginate   => {
+            next     => "Next page",
+            previous => "Previous page"
+          },
+          search            => "",
+          searchPlaceholder => "Search in this table"
+        }
         table_page_length  = 50;
         table_length_menu  = 'basic';
         table_unresponsive = 0;

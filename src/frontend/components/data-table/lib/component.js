@@ -186,7 +186,7 @@ class DataTableComponent extends Component {
     const $header = $(column.header())
     const $button = $(`
       <button class="data-table__sort" type="button">
-        <span>${$header.text()}</span>
+        <span>${$header.html()}</span>
         <span class="btn btn-sort">
           <span>Sort</span>
         </span>
@@ -499,7 +499,7 @@ class DataTableComponent extends Component {
     const self = this
 
     if (typeof confData === 'string') {
-      conf = JSON.parse(confData)
+      conf = JSON.parse(Buffer.from(confData, 'base64'))
     } else if (typeof confData === 'object') {
       conf = confData
     }
@@ -527,7 +527,7 @@ class DataTableComponent extends Component {
 
         // Add sort button to column header
         if ($header.hasClass('sorting')) {
-          self.addSortButton(dataTable, column)
+          self.addSortButton(dataTable, column, headerContent)
         }
 
         // Add button to column headers (only serverside tables)

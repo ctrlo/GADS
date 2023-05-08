@@ -1,53 +1,43 @@
 [%
-  tmplColumnConfig = '{_NAME_TITLE_ORDERABLE_TYPE_DATA_CLASSNAME_WIDTH},';
-  tmplColumnButtonConfig = '{"name":"","orderable":false,"className":"min-tablet-l data-table__header--invisible"},';
 
-  reorderConfig    = '';
-  pageLengthConfig = '';
-  lengthMenuConfig = '';
-  columnConfig     = '';
-  buttonConfig     = '';
-  
   header_row = {
     fields = []
   };
 
+  config_columns = [];
+
   IF table_reorder_rows;
-    reorderConfig = "\n" _ '    "rowReorder":{"snapX":true},';
-    columnConfig  = '{"name":"Position","orderable":true,"width":"30px","className":"reorder data-table__header--invisible"},';
-    
+    reorderConfig = {snapX = 1};
+    config_columns.push({
+      name      = "Position",
+      orderable = 1,
+      width     = "30px",
+      className = "reorder data-table__header--invisible"
+    });
+
     header_row.fields.push({
-      type   = "header"
-      label  = "Position"
+      type   = "header",
+      label  = "Position",
       filter = ""
     });
   END;
 
-  IF table_page_length;
-    pageLengthConfig = '"pageLength":' _  page_length _ ',';
-  END;
-
-  IF table_length_menu == 'basic';
-    pageLengthConfig = '"lengthMenu":[10,25,50,100,200],';
-  ELSIF table_length_menu == 'detail';
-    pageLengthConfig = '"lengthMenu":[[5,10,25,50,-1],[5,10,25,50,"All"]],';
-  END;
-
   # create table columns and column config for each requested column.
   FOREACH column in table_columns;
-    columnName  = column.name || column.title || '';
-    columnTitle = column.title || column.name || '';
+    columnName  = column.name || column.title || '' | html;
+    columnTitle = column.title || column.name || '' | html;
 
-    rowField = tmplColumnConfig
-      .replace('_NAME', columnName ? '"name":"' _ columnName.replace("'", "&#39;") _ '"' : '"name":""')
-      .replace('_TITLE', columnTitle ? ',"title":"' _ columnTitle.replace("'", "&#39;") _ '"' : ',"title":""')
-      .replace('_ORDERABLE', column.orderable ? ',"orderable":true' : ',"orderable":false')
-      .replace('_TYPE', column.type ? ',"type": "' _ column.type _ '"' : '')
-      .replace('_DATA', column.data ? ',"data": "' _ column.data _ '"' : '')
-      .replace('_CLASSNAME', column.class ? ',"className":"' _ column.class _ '"' : '')
-      .replace('_WIDTH', column.width ? ', "width":"' _ column.width _ '"' : '');
+    mycol = {
+      name      = columnName,
+      title     = columnTitle,
+      orderable = column.orderable ? 1 : 0,
+    };
+    IF column.type; mycol.type = column.type; END;
+    IF column.data; mycol.data = column.data; END;
+    IF column.class; mycol.class = column.class; END;
+    IF column.width; mycol.width = column.width; END;
 
-    columnConfig = columnConfig _ rowField;
+    config_columns.push(mycol);
 
     header_row.fields.push({
       type   = "header"
@@ -60,12 +50,17 @@
     # create table columns and column config for each button
     FOREACH button in table_buttons;
       buttonConfig = buttonConfig _ tmplColumnButtonConfig;
+      config_columns.push({
+        name      = "",
+        orderable = 0,
+        className = "min-tablet-l data-table__header--invisible",
+      });
       header_row.fields.push({
         type  = "header"
         label = button.label
       });
     END;
-    
+
     # add buttons to each row
     FOREACH row in rows;
       FOREACH button in table_buttons;
@@ -89,10 +84,16 @@
       END;
     END;
   END;
-  
+
   # add column for screen overflow expand/collapse column
+  config_columns.push({
+    name      = "Toggle child row",
+    orderable = 0,
+    className = "dtr-control data-table__header--invisible",
+    targets   = -1,
+  });
   header_row.fields.push({
-    type = "header"
+    type  = "header"
     label = "Toggle child row"
   });
 
@@ -127,10 +128,10 @@
           };
         END;
       END;
-      
+
       fieldCounter = fieldCounter + 1;
     END;
-    
+
     # replace link placeholders
     FOREACH field IN row.fields;
       IF field.link AND row.link_placeholders AND !row.link_placeholders.empty;
@@ -144,41 +145,60 @@
         END;
       END;
     END;
-    
+
     # add empty field for screen overflow expand/collapse column
     row.fields.push({type = "text"});
     rowCounter   = rowCounter + 1;
   END;
-  
-  table_config = '{
-    "dom": "' _ ( table_dom || '' ) _ '",_AJAX_STATE_SAVE
-    "order":[' _ ( table_order || '[0,"asc"]' ) _ '],
-    "language": ' _ ( table_language || '{"emptyTable": "There is no data available in this table"}' ) _ ',
-    "responsive": ' _ ( table_unresponsive ? 'false' : '{"details":{"type":"column","target":-1}}' ) _ ',
-    "scrollX":false,_ROW_REORDER_PAGE_LENGTH_LENGTH_MENU
-    "autoWidth":false,_SHOW_ALL_RECORDS
-    "columns":[
-      _COLUMNS
-      _BUTTONS
-      {"name":"Toggle child row","orderable":false,"className":"dtr-control data-table__header--invisible","targets":-1}
-    ]
-  }';
 
-  table_config = table_config.replace('_AJAX', table_ajax ? "\n" _ '    "ajax": {"url": "' _ table_ajax _ '", "type": "POST"},' _ "\n" _ '    "serverSide":true,' _ "\n" _ '    "processing":true,' : '');
-  table_config = table_config.replace('_STATE_SAVE', table_save_state ? "\n" _ '    "stateSave": true,' : '');
-  table_config = table_config.replace('_SHOW_ALL_RECORDS', table_show_all_records ? "\n" _ '    "iDisplayLength":-1,' : '');
-  table_config = table_config.replace('_ROW_REORDER', reorderConfig);
-  table_config = table_config.replace('_PAGE_LENGTH', pageLengthConfig);
-  table_config = table_config.replace('_LENGTH_MENU', lengthMenuConfig);
-  table_config = table_config.replace('_COLUMNS', columnConfig);
-  table_config = table_config.replace('_BUTTONS', buttonConfig);
+  table_config = {
+    dom        = ( table_dom || '' ),
+    order      = ( table_order && table_order.size ? table_order : [0, "asc"] ),
+    language   = ( table_language && table_language.size ? table_language : { emptyTable => "There is no data available in this table" } ),
+    responsive = ( table_unresponsive ? 0 : { details => { type => "column", target => -1}} ),
+    autoWidth  = 0,
+    columns    = config_columns,
+  };
+
+  IF table_show_all_records;
+    table_config.iDisplayLength = -1;
+  END;
+
+  IF table_ajax;
+    table_config.ajax = {
+      url = table_ajax,
+      type = "POST",
+    };
+    table_config.serverSide = 1;
+    table_config.processing = 1;
+  END;
+
+  IF table_save_state;
+    table_config.stateSave = 1;
+  END;
+
+  IF reorderConfig;
+    table_config.rowReorder = reorderConfig;
+  END;
+
+  IF table_page_length;
+    table_config.pageLength = table_page_length;
+  END;
+
+  IF table_length_menu == 'basic';
+    table_config.lengthMenu = [10,25,50,100,200];
+  ELSIF table_length_menu == 'detail';
+    table_config.lengthMenu = [[5,10,25,50,-1],[5,10,25,50,"All"]];
+  END;
+
 %]
+
 <table
   class="data-table table [% table_class %]"[% IF table_id %]
   id="[% table_id %]"[% END %][% IF table_ajax AND table_ajax_target %]
   data-href="[% table_ajax_target %]"[% END %]
   width="100%"
-  data-config='[% table_config %]'
+  data-config='[% b64_filter(table_config) %]'
 >
   [% IF table_caption %]
     <caption class="sr-only">[% table_caption | html %]</caption>

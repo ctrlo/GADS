@@ -1042,8 +1042,7 @@
     table_id               = 'curval_list_' _ col.id;
     table_class            = 'table-curval-group table-thead-hidden table-striped';
     table_dom              = 't';
-    table_order            = '[0,"asc"]';
-    table_language         = '{"emptyTable": "No data available."}';
+    table_language         = {emptyTable => "No data available."};
     table_show_all_records = 1
 
     table_caption = "Table to show values in " _ col.name;

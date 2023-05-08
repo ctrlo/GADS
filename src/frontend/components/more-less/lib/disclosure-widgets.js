@@ -34,7 +34,7 @@ const toggleDisclosure = function(e, $trigger, state, permanent) {
   const collapsedLabel = $trigger.data('label-collapsed')
 
   if (collapsedLabel && expandedLabel) {
-    $trigger.html(state ? expandedLabel : collapsedLabel)
+    $trigger.text(state ? expandedLabel : collapsedLabel)
   }
 
   const $disclosure = $trigger.siblings('.expandable').first()
