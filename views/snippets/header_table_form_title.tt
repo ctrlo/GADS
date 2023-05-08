@@ -12,13 +12,13 @@
         page_title _ "<small>(child of record " _ record.parent_id _ ")</small>";
       END;
 
-      page_title | html;
+      page_title;
     ELSIF child;
       "Create child record of " _ child;
     ELSIF clone;
-      "New " _ layout.record_name _ " copied from record ID " _ clone | html;
+      "New " _ layout.record_name _ " copied from record ID " _ clone;
     ELSE;
-      "New " _ layout.record_name | html;
+      "New " _ layout.record_name;
     END;
 
 

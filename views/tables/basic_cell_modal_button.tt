@@ -8,12 +8,12 @@
     type="button"
     class="[% button_class || 'btn btn-delete btn-small btn-js-delete' %]"
     data-toggle="modal"
-    data-target="#[% modalId %]"[% IF dataInstanceName %]
-    data-instance-name="[% dataInstanceName %]"[% END %][% IF dataLayoutId %]
-    data-layout-id="[% dataLayoutId %]"[% END %][% IF dataCurrentId %]
-    data-current-id="[% dataCurrentId %]"[% END %][% IF dataTitle %]
-    data-title="[% dataTitle %]"[% END %][% IF dataID %]
-    data-id=[% dataID %][% END %]
+    data-target="#[% modalId | html %]"[% IF dataInstanceName %]
+    data-instance-name="[% dataInstanceName | html %]"[% END %][% IF dataLayoutId %]
+    data-layout-id="[% dataLayoutId | html %]"[% END %][% IF dataCurrentId %]
+    data-current-id="[% dataCurrentId | html %]"[% END %][% IF dataTitle %]
+    data-title="[% dataTitle | html %]"[% END %][% IF dataID %]
+    data-id=[% dataID | html %][% END %]
   >
     <span class="btn__title">
       [% INCLUDE fields/sub/filter.tt value=label; %]

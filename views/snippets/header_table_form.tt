@@ -85,7 +85,7 @@
       </div>
 
       <h2 class="table-header__page-title">
-        [% INCLUDE snippets/header_table_form_title.tt %]
+        [% INCLUDE snippets/header_table_form_title.tt | html %]
       </h2>
     </div>
   </div>
