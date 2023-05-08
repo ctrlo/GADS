@@ -160,10 +160,6 @@
     columns    = config_columns,
   };
 
-  IF table_show_all_records;
-    table_config.iDisplayLength = -1;
-  END;
-
   IF table_ajax;
     table_config.ajax = {
       url = table_ajax,
@@ -181,7 +177,9 @@
     table_config.rowReorder = reorderConfig;
   END;
 
-  IF table_page_length;
+  IF table_show_all_records;
+    table_config.iDisplayLength = -1;
+  ELSIF table_page_length;
     table_config.pageLength = table_page_length;
   END;
 

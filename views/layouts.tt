@@ -7,7 +7,6 @@
   };
   table_show_all_records = 1;
   table_reorder_rows     = 1;
-  table_page_length      = 10;
   table_length_menu      = 'basic';
   table_caption          = "Table to show fields";
   
