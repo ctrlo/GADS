@@ -247,6 +247,8 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "group_display",
   { data_type => "varchar", is_nullable => 1, size => 45 },
+  "lookup_endpoint",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
