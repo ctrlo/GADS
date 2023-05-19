@@ -51,7 +51,7 @@
     
       <div class="content-block__main-content">
         <div class="row">
-          [% IF NOT record.new_entry AND NOT edit_modal %]
+          [% IF NOT record.new_entry AND NOT edit_modal AND NOT view_modal %]
           <div class="content-block__left col-lg-4 mb-3 mb-lg-0">
             [% IF record.child_record_ids.size %]
             <div class="card card--header">
@@ -115,7 +115,6 @@
               </div>
             </div>
   
-            [% UNLESS view_modal %]
             <div class="card card--header">
               <h3 class="card__header">
                 <span>Version history</span>
@@ -181,7 +180,6 @@
     
               </div>
             </div>
-            [% END %]
   
             [% IF record.has_rag_column %]
             <div class="card card--header">
@@ -199,7 +197,7 @@
           </div>
           [% END %]
           
-          <div class="content-block__right col-lg-[% IF record.new_entry OR edit_modal %]12[% ELSE %]8[% END %]">
+          <div class="content-block__right col-lg-[% IF record.new_entry OR edit_modal OR view_modal %]12[% ELSE %]8[% END %]">
             [% PROCESS form %]
           </div>
         </div>
