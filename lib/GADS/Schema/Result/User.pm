@@ -14,6 +14,7 @@ use DateTime;
 use GADS::Audit;
 use GADS::Config;
 use GADS::Email;
+use HTML::Entities qw/encode_entities/;
 use Log::Report;
 use Moo;
 
@@ -823,6 +824,11 @@ sub _build_permission
     +{
         map { $all{$_->permission_id} => 1 } $self->user_permissions
     };
+}
+
+sub value_html
+{   my $self = shift;
+    encode_entities $self->value;
 }
 
 sub update_user

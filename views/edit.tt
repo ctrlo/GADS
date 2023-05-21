@@ -741,43 +741,40 @@
       '</fieldset>';
       END;
     ELSIF col.type == "person";
-      selected       = "";
-      is_selected    = 0;
-      person_options = [];
-  
-      IF col.optional OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id;
-        person_options.push({id="", name=""});
-      END;
-  
+
+      select_items  = [];
+      select_value  = "";
+
       IF editvalue.id;
-        selected = editvalue.id;
+        select_value = editvalue.id;
       ELSIF col.default_to_login AND NOT record.current_id; # default to current user for new records only
-        selected = user.id;
+        select_value = user.id;
       END;
-    
+
       FOREACH person IN col.people;
         NEXT IF person.deleted;
-        is_selected = selected == person.id ? 1 : is_selected;
-        person_options.push({id=person.id, name=person.value});
+        select_items.push({label_plain=person.value, label_html=person.value_html, value=person.id});
       END;
-  
-      IF editvalue.id AND NOT is_selected;
-        person_options.push({id=editvalue.id, name=editvalue.html});
-      END;
-      
-      INCLUDE fields/select.tt
-        id           = col.id
-        name         = field
-        label        = field_label
-        label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
-        placeholder  = "Select an option"
-        help_text    = col.description
-        popover_body = col.helptext_html
-        is_readonly  = readonly
-        is_required  = field_is_required
-        hide_group   = 1
-        value        = selected
-        items        = person_options;
+
+      # Ensure a blank value is sent if nothing is selected
+      INCLUDE fields/hidden.tt id="" name=field value="" filter="";
+      INCLUDE fields/select_single.tt
+        id                   = col.id
+        name                 = field
+        label                = field_label
+        label_checkbox_name  = page == "bulk" ? "bulk_inc_" _ col.id : ''
+        fieldset_class       = "input"
+        placeholder          = "Select option"
+        help_text            = col.description
+        popover_body         = col.helptext_html
+        is_readonly          = readonly
+        is_required          = field_is_required
+        hide_group           = 1
+        items                = select_items
+        value                = select_value
+        with_details         = 0
+        filter               = "html";
+
     ELSIF col.type == "file";
       fieldset_required = field_is_required ? 'fieldset--required' : '';
       '<fieldset class="fieldset input ' _ fieldset_required _ '">';

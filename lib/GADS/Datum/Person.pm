@@ -32,7 +32,7 @@ with 'GADS::Role::Presentation::Datum::Person';
 
 after set_value => sub {
     my ($self, $value, %options) = @_;
-    ($value) = @$value if ref $value eq 'ARRAY';
+    ($value) = grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
     my $new_id;
     my $clone = $self->clone;
     if (ref $value)
