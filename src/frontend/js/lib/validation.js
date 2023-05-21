@@ -149,10 +149,11 @@ const validateRequiredFields = (form) => {
 }
 
 const addErrorMessage = (field, name, id) => {
-  const errorDiv = document.createElement('div')
-  errorDiv.classList.add('error')
-  errorDiv.innerHTML = `<span id="${id}-err" class="form-text form-text--error" aria-live="off">${name} is a required field.</span>`
-  field.append(errorDiv)
+  const $errorDiv = $('<div class="error">')
+  let $span = $(`<span id="${id}-err" class="form-text form-text--error" aria-live="off"></span>`)
+  $span.text(`${name} is a required field.`)
+  $errorDiv.html($span)
+  field.append($errorDiv)
 }
 
 const removeErrorMessage = (field) => {
