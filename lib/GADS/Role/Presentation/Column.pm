@@ -83,6 +83,7 @@ sub presentation {
         widthcols           => $self->widthcols,
         optional            => $self->optional,
         userinput           => $self->userinput,
+        lookup_endpoint     => $self->lookup_endpoint,
         has_display_field   => $self->has_display_field,
         display_fields_b64  => $self->display_fields_b64,
         display_for_edit    => $display_for_edit,

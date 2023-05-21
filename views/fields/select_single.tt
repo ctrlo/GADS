@@ -73,6 +73,7 @@
                   checked[% END %][% IF is_required %]
                   required
                   aria-required="true"[% END %]
+                  data-value="[% item.label_html %]"
               >
               <label class="radio-group__label" for="[% id %]_[% item.value %]">
                 [% item.label_html %]

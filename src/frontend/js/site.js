@@ -36,6 +36,7 @@ import TimelineComponent from 'components/timeline'
 import TippyComponent from 'components/timeline/tippy'
 import TreeComponent from 'components/form-group/tree'
 import UserModalComponent from 'components/modal/modals/user'
+import ValueLookupComponent from 'components/form-group/value-lookup'
 
 // Register them
 registerComponent(AddTableModalComponent)
@@ -70,6 +71,7 @@ registerComponent(TimelineComponent)
 registerComponent(TippyComponent)
 registerComponent(TreeComponent)
 registerComponent(UserModalComponent)
+registerComponent(ValueLookupComponent)
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body)

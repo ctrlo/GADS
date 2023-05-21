@@ -538,6 +538,11 @@ has group_display => (
     },
 );
 
+has lookup_endpoint => (
+    is  => 'rw',
+    isa => Maybe[Str],
+);
+
 has has_display_field => (
     is  => 'lazy',
     isa => Bool,
@@ -861,6 +866,7 @@ sub build_values
     $self->width($original->{width});
     $self->field("field$original->{id}");
     $self->type($original->{type});
+    $self->lookup_endpoint($original->{lookup_endpoint});
     $self->display_condition($original->{display_condition});
     $self->set_display_fields($original->{display_fields});
     $self->set_group_display($original->{group_display});
@@ -1608,6 +1614,10 @@ sub import_hash
         old => $self->multivalue, new => $values->{multivalue}, name => $self->name
             if $report && $self->multivalue != $values->{multivalue};
     $self->multivalue($values->{multivalue});
+    notice __x"Update: lookup_endpoint from {old} to {new} for {name}",
+        old => $self->lookup_endpoint, new => $values->{lookup_endpoint}, name => $self->lookup_endpoint
+            if $report && ($self->lookup_endpoint || '') ne ($values->{lookup_endpoint} || '');
+    $self->lookup_endpoint($values->{lookup_endpoint});
 
     $self->filter(GADS::Filter->new(as_json => $values->{filter}));
     notice __x"Update: filter from {old} to {new} for {name}",
@@ -1646,6 +1656,7 @@ sub export_hash
         width             => $self->width,
         helptext          => $self->helptext,
         display_condition => $self->display_condition,
+        lookup_endpoint   => $self->lookup_endpoint,
         link_parent       => $self->link_parent && $self->link_parent->id,
         multivalue        => $self->multivalue,
         filter            => $self->filter->as_json,
