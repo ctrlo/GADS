@@ -65,7 +65,7 @@ class ValueLookupComponent extends Component {
       .fail(function(jqXHR, textStatus, textError) {
         // Use error in JSON from endpoint if available, otherwise HTTP status
         const err_message = (jqXHR.responseJSON && jqXHR.responseJSON.message) || jqXHR.statusText;
-        const errorMessage = `Failed to look up ${name}: ${err_message}`
+        const errorMessage = `Failed to look up ${all_names}: ${err_message}`
         addStatusMessage($field, errorMessage, false, true)
       });
     });
