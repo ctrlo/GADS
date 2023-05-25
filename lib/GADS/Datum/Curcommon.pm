@@ -395,7 +395,7 @@ sub _build_values_as_query_records
     {
         my $params = parse_query_string($query);
         delete $params->{$_} foreach grep $_ =~ /_typeahead$/, keys %$params;
-        grep { $_ !~ /^(?:csrf_token|current_id|field[0-9]+)$/ } keys %$params
+        grep { $_ !~ /^(?:csrf_token|submit|current_id|field[0-9]+)$/ } keys %$params
             # Unlikely to be a user error
             and panic __x"Invalid query string: {query}", query => $query;
         my @columns = $self->column->layout_parent->all(user_can_write => 1, userinput => 1);
