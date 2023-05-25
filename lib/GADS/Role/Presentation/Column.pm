@@ -84,6 +84,8 @@ sub presentation {
         optional            => $self->optional,
         userinput           => $self->userinput,
         lookup_endpoint     => $self->lookup_endpoint,
+        lookup_fields       => $self->lookup_fields,
+        lookup_fields_json  => encode_json($self->lookup_fields),
         has_display_field   => $self->has_display_field,
         display_fields_b64  => $self->display_fields_b64,
         display_for_edit    => $display_for_edit,

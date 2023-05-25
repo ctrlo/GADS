@@ -543,6 +543,30 @@ has lookup_endpoint => (
     isa => Maybe[Str],
 );
 
+has lookup_group => (
+    is  => 'rw',
+    isa => Maybe[Str],
+);
+
+# All the fields in this lookup group
+has lookup_fields => (
+    is => 'lazy',
+);
+
+sub _build_lookup_fields
+{   my $self = shift;
+    my @all = $self->lookup_group
+        ? $self->schema->resultset('Layout')->search({
+            instance_id  => $self->instance_id,
+            lookup_group => $self->lookup_group,
+        })->all
+        : $self;
+    my ($noname) = grep !$_->name_short, @all;
+    error __x"Lookup field {name} requires a short name", name => $noname
+        if $noname;
+    [map $_->name_short, @all];
+}
+
 has has_display_field => (
     is  => 'lazy',
     isa => Bool,
@@ -867,6 +891,7 @@ sub build_values
     $self->field("field$original->{id}");
     $self->type($original->{type});
     $self->lookup_endpoint($original->{lookup_endpoint});
+    $self->lookup_group($original->{lookup_group});
     $self->display_condition($original->{display_condition});
     $self->set_display_fields($original->{display_fields});
     $self->set_group_display($original->{group_display});
@@ -1618,6 +1643,10 @@ sub import_hash
         old => $self->lookup_endpoint, new => $values->{lookup_endpoint}, name => $self->lookup_endpoint
             if $report && ($self->lookup_endpoint || '') ne ($values->{lookup_endpoint} || '');
     $self->lookup_endpoint($values->{lookup_endpoint});
+    notice __x"Update: lookup_group from {old} to {new} for {name}",
+        old => $self->lookup_group, new => $values->{lookup_group}, name => $self->lookup_group
+            if $report && ($self->lookup_group || '') ne ($values->{lookup_group} || '');
+    $self->lookup_endpoint($values->{lookup_group});
 
     $self->filter(GADS::Filter->new(as_json => $values->{filter}));
     notice __x"Update: filter from {old} to {new} for {name}",
@@ -1657,6 +1686,7 @@ sub export_hash
         helptext          => $self->helptext,
         display_condition => $self->display_condition,
         lookup_endpoint   => $self->lookup_endpoint,
+        lookup_group      => $self->lookup_group,
         link_parent       => $self->link_parent && $self->link_parent->id,
         multivalue        => $self->multivalue,
         filter            => $self->filter->as_json,

@@ -18,9 +18,11 @@ class ValueLookupComponent extends Component {
 
   getLookupEndpoint() {
     const lookup_endpoint = $(this.element).data("lookup-endpoint");
+    const lookup_fields = $(this.element).data("lookup-fields");
     return {
       field: $(this.element),
       endpoint: lookup_endpoint,
+      fields: lookup_fields
     };
   }
 
@@ -28,13 +30,24 @@ class ValueLookupComponent extends Component {
     const endpoint = field.endpoint;
     const $field = field.field;
     $field.on("change", function() {
-      let name = $field.find('label').text().trim()
-      addStatusMessage($field, `Looking up ${name}...`, true, false)
-      const values = getFieldValues($field);
+      const all_fields = []
+      const data = {}
+      let has_values = field.fields.every(function(name_short){
+        const $f = $('.linkspace-field[data-name-short="'+name_short+'"]')
+        all_fields.push($f.find('label').text().trim())
+        const values = getFieldValues($f)
+        data[name_short] = values
+        return values.filter(function(value) { return value !== undefined }).length ? true : false
+      });
+      // If one of the values in this group is blank then do not perform lookup
+      if (!has_values) return false
+      const formatter = new Intl.ListFormat('en-GB', { style: 'long', type: 'conjunction' })
+      const all_names = formatter.format(all_fields)
+      addStatusMessage($field, `Looking up ${all_names}...`, true, false)
       $.ajax({
         type: 'GET',
         url: endpoint,
-        data: { crn: values },
+        data: data,
         traditional: true, // Don't put stupid [] after the parameter keys
         dataType: 'json',
       }).done(function(data){

@@ -488,6 +488,9 @@
       data-value-selector="[% col.value_selector %]"
       data-name-short="[% col.name_short %]"
         [% col.lookup_endpoint && 'data-lookup-endpoint="' _ col.lookup_endpoint _ '"' %]
+        [% IF col.lookup_fields.size %]
+            data-lookup-fields="[% col.lookup_fields_json | html %]"
+        [% END %]
         [% col.has_display_field && 'data-has-dependency="' _ col.has_display_field _ '"' %]
         [% col.has_display_field && 'data-dependency="' _ col.display_fields_b64 _ '"' %]
         [% col.depends_on_b64 && 'data-calc-depends-on="' _ col.depends_on_b64 _ '"' %]
