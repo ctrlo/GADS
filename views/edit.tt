@@ -493,7 +493,7 @@
         [% col.depends_on_b64 && 'data-calc-depends-on="' _ col.depends_on_b64 _ '"' %]
         [% col.code_b64 && 'data-code="' _ col.code_b64 _ '"' %]
         [% col.params_b64 && 'data-code-params="' _ col.params_b64 _ '"' %]
-        [% col.multivalue && 'data-is-multivalue="true"' %]
+        [% 'data-is-multivalue="true"' IF col.multivalue %]
         [% col.readonly && 'data-is-readonly="true"' %]
         data-dependent-not-shown="[% editvalue.dependent_not_shown %]"
         style="margin-left:[% 50 * indents %]px"
