@@ -11,7 +11,13 @@
 
 const setFieldValues = function($field, values) {
 
-  const type = $field.data("column-type");
+  const type = $field.data("column-type")
+  const name = $field.data("name")
+
+  if (!Array.isArray(values)) {
+    console.error(`Attempt to set value for ${name} without array`)
+    return
+  }
 
   if (type === "enum") {
 
@@ -56,7 +62,7 @@ const setFieldValues = function($field, values) {
 
   } else {
 
-    console.error("Unable to set value for field type: " + type)
+    console.error(`Unable to set value for field ${name}: ${type}`)
 
   }
 };

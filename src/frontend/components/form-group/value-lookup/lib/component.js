@@ -34,7 +34,7 @@ class ValueLookupComponent extends Component {
       const data = {}
       let has_values = field.fields.every(function(name_short){
         const $f = $('.linkspace-field[data-name-short="'+name_short+'"]')
-        all_fields.push($f.find('label').text().trim())
+        all_fields.push($f.data('name'))
         const values = getFieldValues($f)
         data[name_short] = values
         return values.filter(function(value) { return value !== undefined }).length ? true : false
@@ -43,17 +43,20 @@ class ValueLookupComponent extends Component {
       if (!has_values) return false
       const formatter = new Intl.ListFormat('en-GB', { style: 'long', type: 'conjunction' })
       const all_names = formatter.format(all_fields)
+      // Remove any existing status messages on the whole record
+      $('.lookup-status').addClass("d-none")
       addStatusMessage($field, `Looking up ${all_names}...`, true, false)
       $.ajax({
         type: 'GET',
         url: endpoint,
+        timeout: 10000,
         data: data,
         traditional: true, // Don't put stupid [] after the parameter keys
         dataType: 'json',
       }).done(function(data){
-        if (data.is_error) {
+        if (data.is_error || !data.result) {
           let error = data.message ? data.message : 'Unknown error'
-          addStatusMessage($field, `Error looking up ${name}: ${error}`, false, true)
+          addStatusMessage($field, error, false, true)
         } else {
           for (const [name, value] of Object.entries(data.result)) {
             var $f = $('.linkspace-field[data-name-short="'+name+'"]')
@@ -63,10 +66,16 @@ class ValueLookupComponent extends Component {
         }
       })
       .fail(function(jqXHR, textStatus, textError) {
-        // Use error in JSON from endpoint if available, otherwise HTTP status
-        const err_message = (jqXHR.responseJSON && jqXHR.responseJSON.message) || jqXHR.statusText;
-        const errorMessage = `Failed to look up ${all_names}: ${err_message}`
-        addStatusMessage($field, errorMessage, false, true)
+        // Use error in JSON from endpoint if available, otherwise try and
+        // interpret error response appropriately
+        const err_message = textStatus == "timeout"
+          ? `Failed to look up ${all_names}: request timed out`
+          : textStatus == "parsererror" // result not in JSON
+          ? `Failed to look up ${all_names}: unexpected response format from server`
+          : (jqXHR.responseJSON && jqXHR.responseJSON.message)
+          ? jqXHR.responseJSON.message
+          : `Failed to look up ${all_names}: ${jqXHR.statusText}`
+        addStatusMessage($field, err_message, false, true)
       });
     });
   }
