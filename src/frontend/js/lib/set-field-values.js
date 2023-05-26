@@ -87,14 +87,22 @@ const set_enum_single = function($element, values) {
   // Accept ID or text value, specified depending on the key of the value
   // object
   values.forEach(function(value, index){
+    let $option
+    let val
     if (value.hasOwnProperty('id')) {
-      let val = value['id']
-      $element.find(`input[value='${val}']`).trigger("click")
+      val = value['id']
+      $option = $element.find(`input[value='${val}']`)
     } else if (value.hasOwnProperty('text')) {
-      let val = value['text']
-      $element.find(`input[data-value='${val}']`).trigger("click")
+      val = value['text']
+      $option = $element.find(`input[data-value='${val}']`)
     } else {
       console.error("Unknown key for single enum")
+    }
+    if ($option.length) {
+      $option.trigger("click")
+    } else {
+      let name = $element.data("name")
+      console.log(`Unknown value ${val} for ${name}`)
     }
   })
 
@@ -107,9 +115,9 @@ const set_enum_multi = function($element, values) {
 
   values.forEach((elem) => {
     if (elem.hasOwnProperty('id')) {
-      id_hash[elem.id] = true
+      id_hash[elem.id] = false
     } else if (elem.hasOwnProperty('text')) {
-      text_hash[elem.text] = true
+      text_hash[elem.text] = false
     } else {
       console.error("Unknown key for multi enum")
     }
@@ -121,16 +129,31 @@ const set_enum_multi = function($element, values) {
     let $check = $(this).find('input')
     // Mark an option checked if either the id or text value match the
     // submitted values
-    if (id_hash[$check.val()] || text_hash[$check.data("value")]) {
+    if (id_hash.hasOwnProperty($check.val()) || text_hash.hasOwnProperty($check.data("value"))) {
       if (!$check.is(":checked")) {
         $check.trigger("click")
       }
+      if (id_hash.hasOwnProperty($check.val())) id_hash[$check.val] = true
+      if (text_hash.hasOwnProperty($check.data("value"))) text_hash[$check.data("value")] = true
     } else {
       if ($check.is(":checked")) {
         $check.trigger("click")
       }
     }
   });
+
+  // Report any values that weren't used
+  let name = $element.data("name")
+  for (const [value, used] of Object.entries(id_hash)) {
+    if (!used) {
+      console.log(`Unmatched value ${value} for ${name}`)
+    }
+  }
+  for (const [value, used] of Object.entries(text_hash)) {
+    if (!used) {
+      console.log(`Unmatched value ${value} for ${name}`)
+    }
+  }
 }
 
 const set_date = function($element, value) {
