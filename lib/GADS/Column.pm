@@ -555,6 +555,7 @@ has lookup_fields => (
 
 sub _build_lookup_fields
 {   my $self = shift;
+    return [] if !$self->lookup_endpoint;
     my @all = $self->lookup_group
         ? $self->schema->resultset('Layout')->search({
             instance_id  => $self->instance_id,
@@ -562,7 +563,7 @@ sub _build_lookup_fields
         })->all
         : $self;
     my ($noname) = grep !$_->name_short, @all;
-    error __x"Lookup field {name} requires a short name", name => $noname
+    error __x"Lookup field {name} requires a short name", name => $noname->name
         if $noname;
     [map $_->name_short, @all];
 }
