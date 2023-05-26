@@ -486,6 +486,7 @@
       data-column-id="[% col.id %]"
       data-column-type="[% col.type %]"
       data-value-selector="[% col.value_selector %]"
+      data-name="[% col.name | html %]"
       data-name-short="[% col.name_short %]"
         [% col.lookup_endpoint && 'data-lookup-endpoint="' _ col.lookup_endpoint _ '"' %]
         [% IF col.lookup_fields.size %]
