@@ -1373,17 +1373,19 @@ any ['get', 'post'] => '/api/users' => require_any_role [qw/useradmin superadmin
     $users = $users->search({
         -and => \@sr,
     },{
-        offset   => $start,
-        rows     => $length,
         order_by => { $dir eq 'asc' ? -asc : -desc => $sort_by },
     });
     my $filtered_count = $users->count;
+    my $users_render = $users->search({},{
+        offset   => $start,
+        rows     => $length,
+    });
 
     my $return = {
         draw            => $params->get('draw'),
         recordsTotal    => $total,
         recordsFiltered => $filtered_count,
-        data            => [map $_->for_data_table(site => $site), $users->all],
+        data            => [map $_->for_data_table(site => $site), $users_render->all],
     };
 
     content_type 'application/json; charset=UTF-8';
