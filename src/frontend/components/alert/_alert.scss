@@ -31,31 +31,31 @@
       font-size: 1.125rem;
     }
   }
+}
 
-  .alert-success {
-    background-color: $brand-success-light;
-  }
+.alert-success {
+  background-color: $brand-success-light;
+}
 
-  .alert-info {
-    background-color: $brand-info-light;
-  }
+.alert-info {
+  background-color: $brand-info-light;
+}
 
-  .alert-danger {
-    background-color: $brand-danger-light;
-  }
+.alert-danger {
+  background-color: $brand-danger-light;
+}
 
-  .alert-success::before {
-    content: "\E804";
-    color: $black;
-  }
+.alert-success::before {
+  content: "\E804";
+  color: $black;
+}
 
-  .alert-info::before {
-    content: "\E810";
-    color: $black;
-  }
+.alert-info::before {
+  content: "\E810";
+  color: $black;
+}
 
-  .alert-danger::before {
-    content: "\E822";
-    color: $black;
-  }
+.alert-danger::before {
+  content: "\E822";
+  color: $black;
 }
