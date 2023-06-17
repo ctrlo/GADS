@@ -53,7 +53,8 @@ after set_value => sub {
         }
         else {
             $self->column->validate($value, fatal => 1);
-            push @values2, $value;
+            push @values2, $value
+                if defined $value;
         }
     }
 
