@@ -55,6 +55,14 @@ has show_calculator => (
     trigger => sub { $_[0]->reset_options },
 );
 
+has '+can_multivalue' => (
+    default => 1,
+);
+
+has '+has_multivalue_plus' => (
+    default => 1,
+);
+
 sub validate
 {   my ($self, $value, %options) = @_;
 

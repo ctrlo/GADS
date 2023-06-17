@@ -2462,9 +2462,22 @@ sub _field_write
                 }
 
             }
+            elsif ($column->type eq 'intgr')
+            {
+                if (!@{$datum_write->values})
+                {
+                    $entry->{value} = undef,
+                    push @entries, $entry; # No values, but still need to write null value
+                }
+                foreach my $value (@{$datum_write->values})
+                {
+                    my %entry = %$entry; # Copy to stop referenced values being overwritten
+                    $entry{value} = $value;
+                    push @entries, \%entry;
+                }
+            }
             else {
-                $entry->{value} = $datum_write->value;
-                push @entries, $entry;
+                panic "Unknown column type: ".$column->type;
             }
         }
 

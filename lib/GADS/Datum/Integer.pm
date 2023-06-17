@@ -20,83 +20,109 @@ package GADS::Datum::Integer;
 
 use Log::Report 'linkspace';
 use Moo;
-use namespace::clean;
+use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Datum';
 
 after set_value => sub {
     my ($self, $value) = @_;
-    $self->oldvalue($self->clone);
-    ($value) = @$value if ref $value eq 'ARRAY';
-    $value = undef if defined $value && !$value && $value !~ /^0+$/; # Can be empty string, generating warnings
-    if ($value && $value =~ m!^\h*\(\h*([\*\+\-/])\h*([0-9]+)\h*\)\h*$!)
+
+
+    $value = [$value] if ref $value ne 'ARRAY'; # Allow legacy single values as scalar
+    $value ||= [];
+    my @values = sort grep {defined $_} @$value; # Take a copy first
+    my $clone = $self->clone;
+    my @old_ints = sort @{$self->values};
+
+    my @values2;
+    foreach my $value (@values)
     {
-        my $op = $1; my $amount = $2;
-        # Still count as valid written if currently blank
-        if (defined $self->value)
+        $value = undef if defined $value && !$value && $value !~ /^0+$/; # Can be empty string, generating warnings
+        if ($value && $value =~ m!^\h*\(\h*([\*\+\-/])\h*([0-9]+)\h*\)\h*$!)
         {
-            my $old = $self->value;
-            $value = eval "$old $op $amount";
+            # Arithmatic, assume bulk update with only one input value
+            my $op = $1; my $amount = $2;
+            # Still count as valid written if currently blank
+            foreach my $v (@{$self->values})
+            {
+                if (defined $v)
+                {
+                    push @values2, eval "$v $op $amount";
+                }
+            }
         }
         else {
-            $value = undef;
+            $self->column->validate($value, fatal => 1);
+            push @values2, $value;
         }
     }
-    else {
-        $self->column->validate($value, fatal => 1);
+
+    my $changed = "@values2" ne "@old_ints";
+    $self->changed($changed);
+
+    if ($changed)
+    {
+        $self->changed(1);
+        $self->_set_values([@values2]);
+        $self->clear_html_form;
+        $self->clear_blank;
     }
-    $self->changed(1) if (!defined($self->value) && defined $value)
-        || (!defined($value) && defined $self->value)
-        || (defined $self->value && defined $value && $self->value != $value);
-    $self->value($value);
+    $self->oldvalue($clone);
 };
 
-has value => (
-    is      => 'rw',
-    lazy    => 1,
-    trigger => sub { $_[0]->blank(defined $_[1] ? 0 : 1) },
-    builder => sub {
+has values => (
+    is        => 'rwp',
+    isa       => ArrayRef,
+    lazy      => 1,
+    builder   => sub {
         my $self = shift;
-        $self->has_init_value or return;
-        my $value = $self->init_value->[0];
-        $value = $value->{value} if ref $value eq 'HASH';
-        $self->has_value(1) if defined $value || $self->init_no_value;
-        $value;
+        $self->has_init_value or return [];
+        my @values = map { ref $_ eq 'HASH' ? $_->{value} : $_ } @{$self->init_value};
+        $self->has_value(!!@values);
+        $self->has_value(1) if @values || $self->init_no_value;
+        [@values];
     },
 );
 
+has html_form => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_html_form
+{   my $self = shift;
+    [ map { defined($_) ? $_ : '' } @{$self->values} ];
+}
+
 sub _build_blank {
-    defined $_[0]->value && $_[0]->value =~ /.+/ ? 0 : 1;
+    my $self = shift;
+    ! grep { length $_ } @{$self->values};
 }
 
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
-    $orig->($self, value => $self->value, @_);
+    $orig->($self, values => $self->values, @_);
 };
 
 sub for_table
 {   my $self = shift;
     my $return = $self->for_table_template;
-    my @vals = defined $self->value ? ($self->value) : ();
-    $return->{values} = \@vals;
+    $return->{values} = $self->values;
     $return;
 }
 
 sub as_string
 {   my $self = shift;
-    $self->value // "";
+    join ', ', @{$self->values};
 }
 
-sub as_integer
-{   my $self = shift;
-    my $int  = int ($self->value // 0);
-}
+sub as_integer { panic "No longer implemented" }
 
 sub _build_for_code
-{   my $self = shift;
-    defined $self->value or return undef;
-    int $self->value;
+{   my ($self, %options) = @_;
+    my @values = @{$self->values};
+    $self->column->multivalue || @values > 1 ? \@values : $values[0];
 }
 
 1;
