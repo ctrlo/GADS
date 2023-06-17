@@ -13,10 +13,11 @@
               INCLUDE fields/input.tt
                 id = "rewind_date"
                 name = "rewind_date"
-                label = "Date (" _  config.dateformat _ ")"
+                label = "Date (" _  config.dateformat_datepicker _ ")"
                 value = session.rewind.format_cldr(config.dateformat)
                 input_class = "input--datepicker"
-                placeholder = "yyyy-mm-dd"
+                placeholder = config.dateformat_datepicker
+                dateformat = config.dateformat_datepicker
                 filter = ""
                 type = "text";
             
