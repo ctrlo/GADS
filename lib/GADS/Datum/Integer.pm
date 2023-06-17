@@ -32,7 +32,7 @@ after set_value => sub {
     $value ||= [];
     my @values = sort grep {defined $_} @$value; # Take a copy first
     my $clone = $self->clone;
-    my @old_ints = sort @{$self->values};
+    my @old_ints = sort grep defined $_, @{$self->values};
 
     my @values2;
     foreach my $value (@values)
@@ -57,7 +57,7 @@ after set_value => sub {
         }
     }
 
-    my $changed = "@values2" ne "@old_ints";
+    my $changed = (@values2 || @old_ints) && (@values2 != @old_ints || "@values2" ne "@old_ints");
     $self->changed($changed);
 
     if ($changed)
@@ -114,14 +114,17 @@ sub for_table
 
 sub as_string
 {   my $self = shift;
-    join ', ', @{$self->values};
+    my @values = grep defined $_, @{$self->values};
+    return '' if !@values;
+    join ', ', @values;
 }
 
 sub as_integer { panic "No longer implemented" }
 
 sub _build_for_code
 {   my ($self, %options) = @_;
-    my @values = @{$self->values};
+    my @values = map int $_, grep defined $_, @{$self->values};
+    @values = (undef) if !@values;
     $self->column->multivalue || @values > 1 ? \@values : $values[0];
 }
 
