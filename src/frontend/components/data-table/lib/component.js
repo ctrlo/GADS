@@ -331,6 +331,10 @@ class DataTableComponent extends Component {
     return this.renderMoreLess(strHTML, data.name)
   }
 
+  renderId(data) {
+    return `<a href="/record/${data.values[0]}">${data.values[0]}</a>`
+  }
+
   renderPerson(data) {
     let strHTML = ''
 
@@ -461,6 +465,9 @@ class DataTableComponent extends Component {
 
   renderDataType(data) {
     switch (data.type) {
+      case 'id':
+        return this.renderId(data)
+        break
       case 'person':
       case 'createdby':
         return this.renderPerson(data)
