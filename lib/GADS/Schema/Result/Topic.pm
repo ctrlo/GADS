@@ -6,7 +6,9 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
+use HTML::Entities qw/encode_entities/;
 use Log::Report 'linkspace';
+use Text::Markdown qw/markdown/;
 
 __PACKAGE__->load_components("+GADS::DBIC");
 
@@ -86,6 +88,11 @@ __PACKAGE__->belongs_to(
     on_update     => "NO ACTION",
   },
 );
+
+sub description_html
+{   my $self = shift;
+    markdown encode_entities $self->description;
+}
 
 sub before_delete
 {   my $self = shift;

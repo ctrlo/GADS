@@ -44,6 +44,7 @@
                       label = "Description"
                       value = topic.description
                       filter = "html"
+                      help_text = "Use Markdown for formatting"
                       rows = 5;
                   %]
                 </div>

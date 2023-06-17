@@ -338,7 +338,7 @@
             [% block_topic.name OR 'Other' | html %]
             [% IF block_topic.description %]
             <span class="card__subtitle text-muted">
-              [% block_topic.description | html %]
+              [% block_topic.description_html %]
             </span>
             [% END %]
           </span>
