@@ -612,7 +612,7 @@ foreach my $multivalue (0..1)
         $child->clear;
         $child->find_current_id($child_id);
         my $datum = $child->fields->{$columns2->{integer1}->id};
-        if ($datum->value != $child_value)
+        if ($datum->values->[0] != $child_value)
         {
             $datum->set_value($child_value);
             $child->write(no_alerts => 1);
