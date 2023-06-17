@@ -1212,7 +1212,7 @@
             
             [% IF ! groups.size %]
               <p>
-                No groups have been created yet. <a href='"[% url.page %]"/group_overview/'>Create a group</a>
+                No groups have been created yet. <a href="[% url.page %]/group_add/">Create a group</a>
               </p>
             [%
               ELSE;
