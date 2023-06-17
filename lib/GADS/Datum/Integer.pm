@@ -92,7 +92,10 @@ has html_form => (
 
 sub _build_html_form
 {   my $self = shift;
-    [ map { defined($_) ? $_ : '' } @{$self->values} ];
+    my @values = @{$self->values};
+    # Ensure at least one value for the form
+    @values = (undef) if !@values;
+    [ map { defined($_) ? $_ : '' } @values ];
 }
 
 sub _build_blank {
