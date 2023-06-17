@@ -35,6 +35,7 @@
   rows = [];
 
   FOREACH instance IN instances;
+    NEXT IF instance.hide_in_selector AND !instance.user_can("layout");
     rows.push({
       link_placeholders = {
         table_id = instance.instance_id
