@@ -9,7 +9,7 @@ class TreeComponent extends Component {
     this.isConfTree = this.el.hasClass('tree--config')
 
     if (this.el.find('.tree-widget-container').length > 0) {
-      this.multiValue = this.el.data('is-multivalue')
+      this.multiValue = this.el.closest('.linkspace-field').data('is-multivalue')
       this.noInitialData = this.el.data('no-initial-data')
       this.$treeContainer = this.el.find('.tree-widget-container')
       this.id = this.$treeContainer.data('column-id')
