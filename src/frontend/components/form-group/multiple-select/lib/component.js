@@ -51,7 +51,7 @@ class MultipleSelectComponent extends Component {
       const $lastMultipleSelectRow = this.el.find('.multiple-select__row').last()
       const $newMultipleSelectRow = $lastMultipleSelectRow.clone()
       const $selectElmsInNewRow = $newMultipleSelectRow.find('.select')
-      const $dateElmsInNewRow = $newMultipleSelectRow.find('.form-control')
+      const $dateElmsInNewRow = $newMultipleSelectRow.find('.input--datepicker').find('.form-control')
 
       this.countSelect += 1
 
