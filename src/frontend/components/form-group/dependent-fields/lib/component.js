@@ -136,10 +136,8 @@ class DependentFieldsComponent extends Component {
           });
           const $collapsibleElm = $expandableCard.find(".collapse");
           if (none_shown) {
-            $collapsibleElm.collapse('hide');
             $collapsibleElm.closest('.card').hide();
           } else {
-            $collapsibleElm.collapse('show');
             $collapsibleElm.closest('.card').show();
           }
         }
