@@ -42,6 +42,7 @@ sub for_table
 {   my $self = shift;
     my $return = $self->for_table_template;
     $return->{values} = [$self->as_string];
+    $return->{parent_id} = $self->record->parent_id;
     $return;
 }
 

@@ -332,7 +332,11 @@ class DataTableComponent extends Component {
   }
 
   renderId(data) {
-    return `<a href="/record/${data.values[0]}">${data.values[0]}</a>`
+    let retval = ''
+    if (data.parent_id) {
+      retval = `<span title="Child record with parent record ${data.parent_id}">${data.parent_id} &#8594;</span> `
+    }
+    return retval + `<a href="/record/${data.values[0]}">${data.values[0]}</a>`
   }
 
   renderPerson(data) {
