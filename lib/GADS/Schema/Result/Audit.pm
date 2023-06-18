@@ -172,4 +172,9 @@ __PACKAGE__->belongs_to(
   },
 );
 
+sub sqlt_deploy_hook {
+    my ($self, $sqlt_table) = @_;
+    $sqlt_table->add_index(name => 'audit_idx_datetime', fields => ['datetime']);
+}
+
 1;
