@@ -10,6 +10,12 @@
   }
 }
 
+.modal-footer_sticky {
+  position: sticky;
+  z-index: 999;
+  bottom: 1rem;
+}
+
 .modal-footer__left {
   margin-bottom: $padding-base-vertical;
 }
