@@ -1146,7 +1146,12 @@ sub _get_records {
         push @additional_filters, {
             id      => $col->id,
             value   => [$search],
-            is_text => 1,
+            # Assume that a user-defined filter on the table will always be
+            # textual, unless it is a curval in which case search on the record
+            # ID. This is to make filtering work when clicked from grouped
+            # views, but at some point we may want to allow filtering on a
+            # curval's textual value.
+            is_text => $col->is_curcommon ? 0 : 1,
         };
     }
     $records->additional_filters(\@additional_filters);
