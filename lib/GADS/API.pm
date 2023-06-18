@@ -1089,7 +1089,7 @@ sub current_view_limit_extra
         # Check it's valid
         my $extra = schema->resultset('View')->find($extra_id);
         return $extra
-            if $extra && $extra->instance_id == $layout->instance_id;
+            if $extra && $extra->is_limit_extra && $extra->instance_id == $layout->instance_id;
     }
     return undef;
 }
