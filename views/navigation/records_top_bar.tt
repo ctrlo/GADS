@@ -45,12 +45,12 @@
   
   <div class="content-block__navigation-right">
     [%
-      INCLUDE navigation/dropdown_manage_views.tt;
-    
       IF views_limit_extra.size;
         INCLUDE navigation/dropdown_view_limits.tt;
       END;
-    
+
+      INCLUDE navigation/dropdown_manage_views.tt;
+
       IF viewtype == "graph" AND layout_obj.user_can("layout");
         INCLUDE navigation/dropdown_manage_graphs.tt;
       END;

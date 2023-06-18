@@ -1079,6 +1079,26 @@ sub current_view {
     return $view || $views->default || undef; # Can still be undef
 };
 
+# XXX Also copied from GADS.pm
+sub current_view_limit_extra
+{   my ($user, $layout) = @_;
+    my $extra_id = session('persistent')->{view_limit_extra}->{$layout->instance_id};
+    $extra_id ||= $layout->default_view_limit_extra_id;
+    if ($extra_id)
+    {
+        # Check it's valid
+        my $extra = schema->resultset('View')->find($extra_id);
+        return $extra
+            if $extra && $extra->instance_id == $layout->instance_id;
+    }
+    return undef;
+}
+sub current_view_limit_extra_id
+{   my ($user, $layout) = @_;
+    my $view = current_view_limit_extra($user, $layout);
+    $view ? $view->id : undef;
+}
+
 sub _get_records {
 
     my $sheetname = param 'sheet';
@@ -1095,13 +1115,14 @@ sub _get_records {
     my $start  = $params->get('start') || 0;
     my $length = $params->get('length') || 25;
     my %params = (
-        user   => $user,
-        schema => schema,
-        view   => $view,
-        rows   => $length,
-        page   => 1 + ceil($start / $length),
-        layout => $layout,
-        rewind => session('rewind'),
+        user                => $user,
+        schema              => schema,
+        view                => $view,
+        rows                => $length,
+        page                => 1 + ceil($start / $length),
+        layout              => $layout,
+        rewind              => session('rewind'),
+        view_limit_extra_id => current_view_limit_extra_id($user, $layout),
     );
     $params{is_group} = 0
         if query_parameters->get('group_filter');
