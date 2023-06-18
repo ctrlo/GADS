@@ -2,7 +2,7 @@
   [% PROCESS snippets/message_center.tt %]
   
   <div class="login__head">
-    <h2 class="login__title">
+    <h1 class="login__title">
       Please sign in
     </h2>
   </div>

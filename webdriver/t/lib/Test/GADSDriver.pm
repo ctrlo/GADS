@@ -121,7 +121,7 @@ sub _assert_error {
     my $test = context();
 
     my $error_el = $self->_assert_element(
-        '.messages .alert-danger',
+        '.alert-danger',
         $expect_present,
         qr/\bERROR: /,
         $name,
@@ -281,9 +281,9 @@ sub assert_navigation_present {
     my $test = context();
 
     $self->_assert_element(
-        'nav #dataset-navbar',
+        'nav .nav',
         1,
-        qr/\bData\b/,
+        qr/\bHome\b/,
         $name,
     );
 
@@ -432,9 +432,9 @@ sub assert_on_login_page {
     my $test = context();
 
     $self->_assert_element(
-        'h1',
+        '.login__title',
         1,
-        qr/\APlease Sign In\b/,
+        qr/\A(?i)Please Sign In\b/,
         $name,
     );
 
