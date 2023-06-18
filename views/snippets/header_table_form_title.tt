@@ -9,7 +9,7 @@
       END;
       
       IF record.parent_id;
-        page_title _ "<small>(child of record " _ record.parent_id _ ")</small>";
+        page_title = page_title _ " (child of record " _ record.parent_id _ ")";
       END;
 
       page_title;
