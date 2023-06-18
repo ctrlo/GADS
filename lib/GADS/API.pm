@@ -1160,7 +1160,7 @@ sub _get_records {
     {
         $search =~ s/\h+$//;
         $search =~ s/^\h+//;
-        $records->search("*$search*");
+        $records->search($search);
     }
 
     # Configure table sort

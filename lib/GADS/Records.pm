@@ -652,6 +652,14 @@ sub search_view
     @foundin;
 }
 
+sub _escape_like
+{   my ($self, $string) = @_;
+    $string =~ s!\\!\\\\!;
+    $string =~ s/%/\\%/;
+    $string =~ s/_/\\_/;
+    $string;
+}
+
 has _search_all_fields => (
     is      => 'lazy',
     isa     => HashRef,
@@ -709,17 +717,15 @@ sub _build__search_all_fields
 
         if ($field->{type} eq 'number' || $field->{type} eq 'int' || $field->{type} eq 'current_id' || $field->{type} eq 'date')
         {
-            # Wildcards not valid in non-text fields so just remove it
-            # (asterisk always passed in from table draw API)
-            $search_local =~ s/\*//g;
+            # Do not add wildcard, as will not work in database
         }
         else {
-            if ($search_local =~ s/\*/%/g )
-            {
-                $search_local = { like => $search_local };
-                $search_index =~ s/\*/%/g;
-                $search_index = { like => $search_index };
-            }
+            # Assume search is always with wildcard.
+            # Escape any searches first:
+            $search_local = $self->_escape_like($search_local);
+            $search_local = { like => "%$search_local%" };
+            $search_index = $self->_escape_like($search_index);
+            $search_index = { like => "%$search_index%" };
         }
 
         next if ($field->{type} eq 'number')
