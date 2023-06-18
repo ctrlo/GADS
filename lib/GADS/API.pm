@@ -1151,7 +1151,7 @@ sub _get_records {
             # ID. This is to make filtering work when clicked from grouped
             # views, but at some point we may want to allow filtering on a
             # curval's textual value.
-            is_text => $col->is_curcommon ? 0 : 1,
+            is_text => $col->is_curcommon || $col->type eq 'id' ? 0 : 1,
         };
     }
     $records->additional_filters(\@additional_filters);
