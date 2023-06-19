@@ -1390,9 +1390,13 @@ foreach my $multivalue (0..1)
     }
 
     # Quick searches
-    # Limited view still defined
+    # Limited view still defined, but selected view from last results ("date1") will not be used
     $records->clear;
     $records->search('Foobar');
+    is (@{$records->results}, 1, 'Correct number of quick search results when limiting to a view');
+    # And again with record that is not in limited view
+    $records->clear;
+    $records->search('-4');
     is (@{$records->results}, 0, 'Correct number of quick search results when limiting to a view');
     # And again with numerical search (also searches record IDs). Current ID in limited view
     $records->clear;
@@ -1401,7 +1405,9 @@ foreach my $multivalue (0..1)
     # This time a current ID that is not in limited view
     $records->clear;
     $records->search(5);
-    is (@{$records->results}, 0, 'Correct number of quick search results for number when limiting to a view (no match)');
+    # Finds record ID 7 (there is a "5" in the daterange of the curval), but should not find record ID 5
+    is (@{$records->results}, 1, 'Correct number of quick search results for number when limiting to a view (no match)');
+    is ($records->single->current_id, 7, 'Does not find record ID in limited view');
     # Reset and do again with non-negative view
     $records->clear;
     $user->set_view_limits([$view_limit->id]);
@@ -1554,10 +1560,7 @@ foreach my $multivalue (0..1)
     is (@{$records->results}, 4, 'Quick search for 2014-10-10');
     $records->clear;
     $records->search('Foo');
-    is (@{$records->results}, 3, 'Quick search for foo');
-    $records->clear;
-    $records->search('Foo*');
-    is (@{$records->results}, 5, 'Quick search for foo*');
+    is (@{$records->results}, 5, 'Quick search for foo');
     $records->clear;
     $records->search('99');
     is (@{$records->results}, 2, 'Quick search for 99');
