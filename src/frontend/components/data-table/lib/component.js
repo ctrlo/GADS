@@ -5,8 +5,9 @@ import 'datatables.net-responsive'
 import 'datatables.net-responsive-bs4'
 import 'datatables.net-rowreorder-bs4'
 import { setupDisclosureWidgets, onDisclosureClick } from '../../more-less/lib/disclosure-widgets'
-import { initializeRegisteredComponents, registerComponent } from 'component'
+import { initializeRegisteredComponents, initializeComponent } from 'component'
 import RecordPopupComponent from '../../record-popup/lib/component'
+import MoreLessComponent from '../../more-less/lib/component'
 
 const MORE_LESS_TRESHOLD = 50
 
@@ -517,6 +518,9 @@ class DataTableComponent extends Component {
 
       this.json = json ? json : undefined
       this.bindClickHandlersAfterDraw(conf)
+
+      //Re-initialize more-less components after initialisation is complete
+      initializeComponent(this.el[0], '.more-less', MoreLessComponent)
 
       dataTable.columns().every(function(index) {
         const column = this
