@@ -99,6 +99,14 @@
   @include link-email;
 }
 
+.link--alert {
+  @include link-icon($position: "after");
+
+  &::after {
+    content: "\E800";
+  }
+}
+
 @include media-breakpoint-up(md) {
   .link--primary {
     font-size: $font-size-base;

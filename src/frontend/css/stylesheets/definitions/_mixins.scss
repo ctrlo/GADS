@@ -298,28 +298,45 @@
   }
 }
 
-@mixin link-icon {
+@mixin link-icon($position: 'before') {
   display: inline-flex;
   position: relative;
   align-items: center;
-  padding-left: 1.75rem;
 
-  &::before {
-    @extend %icon-font;
-
-    position: absolute;
-    top: 50%;
-    left: 0;
-    padding-right: $padding-base-horizontal;
-    transform: translateY(-50%);
-    font-size: $font-size-base;
-  }
-
-  &.link--primary {
-    padding-left: 3rem;
+  @if $position == 'before' {
+    padding-left: 1.75rem;
 
     &::before {
-      left: 0.75rem;
+      @extend %icon-font;
+
+      position: absolute;
+      top: 50%;
+      left: 0;
+      padding-right: $padding-base-horizontal;
+      transform: translateY(-50%);
+      font-size: $font-size-base;
+    }
+
+    &.link--primary {
+      padding-left: 3rem;
+
+      &::before {
+        left: 0.75rem;
+      }
+    }
+  }
+
+  @else {
+    padding-right: 1.5rem;
+
+    &::after {
+      @extend %icon-font;
+
+      position: absolute;
+      top: 50%;
+      right: 0;
+      transform: translateY(-50%);
+      font-size: $font-size-base;
     }
   }
 }
