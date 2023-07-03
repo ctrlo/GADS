@@ -424,9 +424,9 @@ $date1->write(force => 1);
 
 $layout->clear;
 $curval_filter = $layout->column($curval_filter->id);
-foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid calcmulti displayfield/)
+foreach my $test (qw/string1 enum1 calc1 integer1 multi negative nomatch invalid calcmulti displayfield/)
 {
-    my $field = $test =~ /(string1|enum1|calc1)/
+    my $field = $test =~ /(string1|enum1|calc1|integer1)/
         ? $test
         : $test eq 'calcmulti'
         ? 'string1'
@@ -435,9 +435,11 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid calcmult
         : $test eq 'displayfield'
         ? 'date1'
         : 'string1';
-    my $match = $test =~ /(string1|enum1|calc1|multi|negative)/ ? 1 : 0;
+    my $match = $test =~ /(string1|enum1|calc1|integer1|multi|negative)/ ? 1 : 0;
     my $value = $test eq 'calc1'
         ? '$L1calc1'
+        : $test eq 'integer1'
+        ? '$L1integer1'
         : $test eq 'calcmulti'
         ? '$L1calc2'
         : $match
@@ -481,6 +483,15 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid calcmult
                 type     => 'string',
                 value    => $value,
                 operator => 'equal',
+            }],
+        }
+        : $test eq 'integer1'
+        ? {
+            rules => [{
+                id       => $curval_sheet->columns->{'integer1'}->id,
+                type     => 'string',
+                value    => $value,
+                operator => 'less',
             }],
         }
         : $test eq 'calcmulti'
@@ -555,6 +566,8 @@ foreach my $test (qw/string1 enum1 calc1 multi negative nomatch invalid calcmult
         ? 1
         : $match && $field eq 'enum1'
         ? 2
+        : $match && $field eq 'integer1'
+        ? 3
         : $match
         ? 1
         : 0;
