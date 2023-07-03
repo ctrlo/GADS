@@ -35,16 +35,12 @@
           [% ELSE %]
             <a role="menuitem"
                [% IF item.id %]id="[% item.id %]" [% END %]
-               class='link link--plain [% item.class %]'
+               class='link link--plain [% item.class %] [% IF item.alert %]link--alert[% END %]'
                href='[% item.target %]'
             >
               [%
                 INCLUDE fields/sub/filter.tt value=item.label;
-                
-                IF item.alert;
               %]
-              <img src="/images/bell.png">
-              [% END; %]
             </a>
           [% END %]
         </li>
