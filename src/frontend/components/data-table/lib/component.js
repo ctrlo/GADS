@@ -8,6 +8,7 @@ import { setupDisclosureWidgets, onDisclosureClick } from '../../more-less/lib/d
 import { initializeRegisteredComponents, initializeComponent } from 'component'
 import RecordPopupComponent from '../../record-popup/lib/component'
 import MoreLessComponent from '../../more-less/lib/component'
+import { moreLess } from '../../more-less/lib/more-less'
 
 const MORE_LESS_TRESHOLD = 50
 
@@ -520,7 +521,7 @@ class DataTableComponent extends Component {
       this.bindClickHandlersAfterDraw(conf)
 
       //Re-initialize more-less components after initialisation is complete
-      initializeComponent(this.el[0], '.more-less', MoreLessComponent)
+      moreLess.reinitialize()
 
       dataTable.columns().every(function(index) {
         const column = this
