@@ -228,6 +228,18 @@ has ids => (
     }
 );
 
+has id_hash => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_id_hash
+{   my $self = shift;
+    my %ret;
+    $ret{$_} = 1 foreach @{$self->ids};
+    \%ret;
+}
+
 sub html_form
 {   my $self = shift;
     my $vals = $self->ids;

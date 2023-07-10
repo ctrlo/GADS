@@ -448,26 +448,20 @@
                         </div>
                     [% END %]
                 [% ELSIF dispcol.type == "person" %]
-                    <select class="form-control" name="[% field %]" id="[% dispcol.id %]" [% readonly %] >
-                        [% IF dispcol.optional OR (record.current_id AND NOT editvalue.id) OR NOT record.current_id %]
-                            <option></option>
-                        [% END %]
-                        [% selected = "" %]
-                        [% IF editvalue.id %]
-                            [% selected = editvalue.id %]
-                        [% ELSIF dispcol.default_to_login AND NOT record.current_id %] [%# default to current user for new records only %]
-                            [% selected = user.id %]
-                        [% END %]
-                        [% is_selected = 0 %]
-                        [% FOREACH person IN dispcol.people %]
-                            [% UNLESS person.deleted %]
-                                <option value="[% person.id %]" [% IF selected == person.id %][% is_selected = 1 %]selected[% END %]>[% person.value | html_entity %]</option>
-                            [% END %]
-                        [% END %]
-                        [% IF editvalue.id AND NOT is_selected %]
-                            <option value="[% editvalue.id %]" selected>[% editvalue.html %]</option>
-                        [% END %]
-                    </select>
+                    [%
+                        required = !(dispcol.optional OR page == "bulk");
+                        details = 0;
+
+                        values = dispcol.people;
+
+                        IF dispcol.multivalue;
+                            PROCESS multivalue_column;
+                        ELSE;
+                            # Ensure a blank value is sent if nothing is selected
+                            %] <input type="hidden" name="[% field %]"> [%
+                            PROCESS singlevalue_column;
+                        END;
+                    %]
                 [% ELSIF dispcol.type == "file" %]
                     [% IF readonly %]
                         [% IF editvalue.files.size %]
@@ -582,11 +576,11 @@
                     <li [% !checked && 'hidden' %] data-list-item="[% value_field_id %]" class="current__blank">blank</li>
                 [% FOREACH value IN values %]
                     [% NEXT IF value.deleted %]
-                    [% selector_id = value.selector_id %]
+                    [% selector_id = value.selector_id || value.id %]
                     [% checked = editvalue.id_hash.${selector_id} %]
                     [% value_field_id = field _ '_' _ value.id %]
                     <li [% !checked && 'hidden' %] data-list-item="[% value_field_id %]" data-list-id="[% value.id %]"
-                        data-list-text="[% value.value | html %]">[% value.html %]</li>
+                        data-list-text="[% value.value | html %]">[% IF value.html %][% value.html %][% ELSE %][% value.value | html %][% END %]</li>
                 [% END %]
                     [% IF !readonly %]
                         <li class="search">
@@ -614,12 +608,13 @@
                 [% END %]
             [% FOREACH value IN values %]
                 [% NEXT IF value.deleted %]
-                [% checked = editvalue.id_hash.${value.selector_id} %]
+                [% selector_id = value.selector_id || value.id %]
+                [% checked = editvalue.id_hash.${selector_id} %]
                 [% value_field_id = field _ '_' _ value.id %]
                 <li class="answer">
                     <span class="control">
                         <label id="[% value_field_id %]_label" for="[% value_field_id %]">
-                            <input id="[% value_field_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="[% value.value_id | html %]" class="visually-hidden" aria-labelledby="[% value_field_id %]_label">
+                            <input id="[% value_field_id %]" type="radio" name="[% field %]" [% checked && 'checked' %] value="[% IF value.value_id %][% value.value_id | html %][% ELSE %][% value.id %][% END %]" class="visually-hidden" aria-labelledby="[% value_field_id %]_label">
                             <span role="option">[% value.value | html_entity %]</span>
                         </label>
                     </span>
@@ -716,11 +711,12 @@
                     <li class="none-selected">blank</li>
                 [% FOREACH value IN values %]
                     [% NEXT IF value.deleted %]
-                    [% checked = editvalue.id_hash.${value.selector_id} %]
+                    [% value_id = value.selector_id || value.id %]
+                    [% checked = editvalue.id_hash.${value_id} %]
                     [% value_field_id = field _ '_' _ value.id %]
                     <li [% !checked && 'hidden' %] data-list-item="[% value_field_id %]" data-list-id="[% value.id %]"
                         data-list-text="[% value.value | html %]">
-                        <span class="widget-value__value">[% value.html %]</span>
+                        <span class="widget-value__value">[% IF value.html %][% value.html %][% ELSE %][% value.value | html %][% END %]</span>
                         <button type="button" class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
                     </li>
                 [% END %]
@@ -738,12 +734,13 @@
                 <li class="has-noresults" hidden>No results</li>
             [% FOREACH value IN values %]
                 [% NEXT IF value.deleted %]
-                [% checked = editvalue.id_hash.${value.selector_id} %]
+                [% value_id = value.selector_id || value.id %]
+                [% checked = editvalue.id_hash.${value_id} %]
                 [% value_field_id = field _ '_' _ value.id %]
                 <li class="answer">
                     <span class="control">
                         <label id="[% value_field_id %]_label" for="[% value_field_id %]">
-                            <input id="[% value_field_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %] value="[% value.value_id | html %]" aria-labelledby="[% value_field_id %]_label">
+                            <input id="[% value_field_id %]" name="[% field %]" type="checkbox" [% checked && 'checked' %] value="[% IF value.value_id %][% value.value_id | html %][% ELSE %][% value.id %][% END %]" aria-labelledby="[% value_field_id %]_label">
                             <span role="option">[% value.value | html_entity %]</span>
                         </label>
                     </span>
