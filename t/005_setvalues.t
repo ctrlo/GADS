@@ -536,7 +536,7 @@ foreach my $c (keys %$values)
     my $person_id = $sheet->columns->{person1}->id;
 
     my $datum = $record->fields->{$person_id};
-    ok(!$record->fields->{$person_id}->id, "Person field initially blank" );
+    ok(!@{$record->fields->{$person_id}->ids}, "Person field initially blank" );
 
     # Standard format (surname, forename)
     $datum->set_value('User1, User1');

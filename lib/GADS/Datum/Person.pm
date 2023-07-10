@@ -68,13 +68,13 @@ after set_value => sub {
             else {
                 $id = $value;
             }
-            !$id || $options{no_validation} || (grep {$value == $_->id} @{$self->column->people}) || $self->has_id($value) # Unchanged deleted user
+            !$id || $options{no_validation} || (grep {$id == $_->id} @{$self->column->people}) || $self->has_id($id) # Unchanged deleted user
                 or error __x"'{int}' is not a valid person ID"
                     , int => $id;
-            push @values2, $id;
-            # Look up text value
         }
+        push @values2, $id;
     }
+
 
     my $changed = (@values2 || @old) && (@values2 != @old || "@values2" ne "@old");
     if ($changed)
@@ -83,6 +83,7 @@ after set_value => sub {
         $self->_set_ids(\@values2);
         $self->clear_value_hash;
         $self->clear_init_value;
+        $self->clear_blank;
     }
     $self->oldvalue($clone);
 };
@@ -93,8 +94,20 @@ has schema => (
 );
 
 sub _org_to_hash
-{   my $org = shift;
+{   my ($self, $type, $value_hash) = @_;
+
+    $type =~ /^(organisation|department|team)$/
+        or panic "Invalid type $type";
+
+    my $type_id = $type eq 'organisation' ? 'organisation' : $type.'_id';
+    my $org = $value_hash && ref $value_hash->{$type} eq 'HASH'
+        ? $value_hash->{$type}
+        : $value_hash && $value_hash->{$type_id}
+        ? $self->schema->resultset(ucfirst $type)->find($value_hash->{$type_id})
+        : undef;
+
     $org or return {};
+
     +{
         id   => $org->id,
         name => $org->name,
@@ -114,12 +127,17 @@ has value_hash => (
         if ($self->has_init_value)
         {
             my $init_value = $self->init_value;
+
             $values = ref $init_value eq 'ARRAY'
                 ? $init_value
                 : [$init_value];
         }
-        else {
+        elsif ($self->has_ids)
+        {
             $values = $self->ids;
+        }
+        else {
+            return [];
         }
         my @transformed;
         foreach my $value (@$values)
@@ -134,7 +152,8 @@ has value_hash => (
                 # value
                 ref $value eq 'HASH'
                     or $value = $self->column->id_to_hash($value);
-                my $id = $value->{id};
+                my $id = $value->{id}
+                    or next;
                 push @transformed, +{
                     id            => $id,
                     email         => $value->{email},
@@ -143,17 +162,21 @@ has value_hash => (
                     surname       => $value->{surname},
                     freetext1     => $value->{freetext1},
                     freetext2     => $value->{freetext2},
-                    organisation  => $value->{organisation},
-                    department    => $value->{department},
+                    organisation  => $self->_org_to_hash('organisation', $value),
+                    department    => $self->_org_to_hash('department', $value),
                     department_id => $value->{department_id},
-                    team          => $value->{team},
+                    team          => $self->_org_to_hash('team', $value),
                     team_id       => $value->{team_id},
                     title         => $value->{title},
                     value         => $value->{value},
                 };
             }
             elsif ($value) {
-                push @transformed, $self->column->id_to_hash($value);
+                my $v = $self->column->id_to_hash($value);
+                $v->{organisation} = $self->_org_to_hash('organisation', $v);
+                $v->{department} = $self->_org_to_hash('department', $v);
+                $v->{team} = $self->_org_to_hash('team', $v);
+                push @transformed, $v;
             }
         }
         return \@transformed;
@@ -166,7 +189,7 @@ has allow_deleted => (
 );
 
 sub search_values_unique
-{   [shift->text];
+{   shift->text_all;
 }
 
 has text_all => (
@@ -182,15 +205,25 @@ has text_all => (
     },
 );
 
+# Needed for use as created by field etc
+sub id
+{   my $self = shift;
+    panic "single id called on multivalue field"
+        if $self->column->multivalue;
+    $self->ids->[0];
+}
+
 sub has_id
 {   my ($self, $id) = @_;
+    $id or return;
     !! grep $id == $_, @{$self->ids};
 }
 
 has ids => (
-    is      => 'rwp',
-    lazy    => 1,
-    builder => sub {
+    is        => 'rwp',
+    lazy      => 1,
+    predicate => 1,
+    builder   => sub {
         my $self = shift;
         [map $_->{id}, @{$self->value_hash}];
     }
@@ -198,13 +231,15 @@ has ids => (
 
 sub html_form
 {   my $self = shift;
-    $self->ids;
+    my $vals = $self->ids;
+    $vals = [''] if !@$vals;
+    $vals;
 }
 
 sub _build_blank { @{$_[0]->ids} ? 0 : 1 }
 
 # Make up for missing predicated value property
-sub has_value { $_[0]->has_id }
+sub has_value { !shift->blank }
 
 sub send_notify
 {   my $self = shift;
@@ -321,7 +356,7 @@ sub for_table
 
 sub as_string
 {   my $self = shift;
-    join ', ', @{$self->text_all};
+    join ', ', @{$self->text_all} or '';
 }
 
 sub as_integer { panic "Not implemented" }
@@ -331,17 +366,17 @@ sub _build_for_code
 
     my @values = map {
         +{
-            id           => $self->{id},
-            surname      => $self->{surname},
-            firstname    => $self->{firstname},
-            email        => $self->{email},
-            freetext1    => $self->{freetext1},
-            freetext2    => $self->{freetext2},
-            organisation => $self->{organisation},
-            department   => $self->{department},
-            team         => $self->{team},
-            title        => $self->{title},
-            text         => $self->{value},
+            id           => $_->{id},
+            surname      => $_->{surname},
+            firstname    => $_->{firstname},
+            email        => $_->{email},
+            freetext1    => $_->{freetext1},
+            freetext2    => $_->{freetext2},
+            organisation => $_->{organisation},
+            department   => $_->{department},
+            team         => $_->{team},
+            title        => $_->{title},
+            text         => $_->{value},
         }
     } @{$self->value_hash};
 
