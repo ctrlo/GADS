@@ -46,6 +46,7 @@ sub presentation {
     $base->{value}   = $self->as_string;
     $base->{details} = [map $self->_presentation_details($_, %options), @{$self->value_hash}];
     $base->{ids}     = $self->ids;
+    $base->{id_hash} = $self->id_hash;
 
     return $base;
 }
