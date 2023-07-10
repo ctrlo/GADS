@@ -122,7 +122,9 @@
                 END;
                 render_file_datum(col.data, full_content);
             CASE ['person', 'createdby'];
-                render_person_datum(col.data);
+                FOR person IN col.data.details;
+                    render_person_datum(person);
+                END;
             CASE 'string';
                 render_string_datum(col.data, col.name, full_content);
             CASE 'enum';

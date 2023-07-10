@@ -3,24 +3,22 @@ package GADS::Role::Presentation::Datum::Person;
 use Moo::Role;
 
 sub _presentation_details {
-    my ($self, %options) = @_;
-
-    return [] unless $self->id;
+    my ($self, $person, %options) = @_;
 
     my $site = $options{site} || $self->column->layout->site;
 
     my @details;
 
-    if (my $email = $self->email) {
+    if (my $email = $person->{email}) {
         push @details, {
-            value => $self->email,
+            value => $person->{email},
             type  => 'email'
         };
     }
 
     for (
-        [$self->freetext1, $site->register_freetext1_name],
-        [$self->freetext2, $site->register_freetext2_name]
+        [$person->{freetext1}, $site->register_freetext1_name],
+        [$person->{freetext2}, $site->register_freetext2_name]
     ) {
         next unless $_->[0];
 
@@ -31,7 +29,11 @@ sub _presentation_details {
         };
     }
 
-    return \@details;
+    return {
+        id      => $person->{id},
+        text    => $person->{value},
+        details => \@details,
+    };
 }
 
 sub presentation {
@@ -40,10 +42,10 @@ sub presentation {
     my $base = $self->presentation_base(%options);
     delete $base->{value};
 
-    $base->{text}    = $self->text;
-    $base->{value}   = $self->text;
-    $base->{details} = $self->_presentation_details(%options);
-    $base->{id}      = $self->id;
+    $base->{text}    = $self->as_string;
+    $base->{value}   = $self->as_string;
+    $base->{details} = [map $self->_presentation_details($_, %options), @{$self->value_hash}];
+    $base->{ids}     = $self->ids;
 
     return $base;
 }
