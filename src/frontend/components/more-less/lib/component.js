@@ -1,5 +1,6 @@
 import { Component } from 'component'
 import { setupDisclosureWidgets } from "./disclosure-widgets";
+import { moreLess } from './more-less';
 
 const MAX_HEIGHT = 50
 
@@ -88,6 +89,11 @@ class MoreLessComponent extends Component {
     return $elem.attr('data-actual-height')
   }
 
+  reInitMoreLess() {
+    this.clearMoreLess()
+    this.initMoreLess()
+  }
+
   clearMoreLess() {
     const $ml = $(this.el)
 
@@ -104,6 +110,8 @@ class MoreLessComponent extends Component {
     const $ml = $(this.el)
     const column = $ml.data('column')
     const content = $ml.html()
+
+    moreLess.addSubscriber(this)
 
     $ml.removeClass('transparent')
     // Element may be hidden (e.g. when rendering edit fields on record page).
