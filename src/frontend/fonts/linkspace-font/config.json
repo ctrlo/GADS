@@ -7,9 +7,9 @@
   "ascent": 850,
   "glyphs": [
     {
-      "uid": "ff871249e403ca09a63e7e7a17f1c42e",
+      "uid": "ba580eaace907e7cdf9442ac8f87ce67",
       "css": "add",
-      "code": 59393,
+      "code": 59392,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -21,9 +21,9 @@
       ]
     },
     {
-      "uid": "177074f92fd5d5488ebe83d40b44c6c9",
+      "uid": "6bcf9f6f9f98ac495732c45ff2a482ff",
       "css": "arrow",
-      "code": 59394,
+      "code": 59393,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -35,9 +35,9 @@
       ]
     },
     {
-      "uid": "545dd065bfa34df8853f107517fed258",
+      "uid": "bf8dd82c501d5cb982e3fd099c8d5ba0",
       "css": "calendar",
-      "code": 59395,
+      "code": 59394,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -49,9 +49,9 @@
       ]
     },
     {
-      "uid": "83deb984148d57ed99a9bf1dcb6faaf9",
+      "uid": "266ab4d64a1cdc1ac403b4157ac0b4e5",
       "css": "call",
-      "code": 59396,
+      "code": 59395,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -63,9 +63,9 @@
       ]
     },
     {
-      "uid": "1447d3cc6b7bb57dda6700767edfc354",
+      "uid": "3e3a6e725bffb623eae4488528175d09",
       "css": "checkmark",
-      "code": 59397,
+      "code": 59396,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -77,9 +77,9 @@
       ]
     },
     {
-      "uid": "87b639fcff008bde7d7e2a0cb174a411",
+      "uid": "138272c06b1927954d5d3138f4580986",
       "css": "chevron",
-      "code": 59398,
+      "code": 59397,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -91,9 +91,9 @@
       ]
     },
     {
-      "uid": "985e3dbfd89c227eef28395df6f850fe",
+      "uid": "7a41e822a97be189da3ab5def7461687",
       "css": "child-table",
-      "code": 59399,
+      "code": 59398,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -105,9 +105,9 @@
       ]
     },
     {
-      "uid": "74e9bd87bf5bd887c40b18a2547ef89d",
+      "uid": "61cccba535ac3f797ce52eb4f74d8562",
       "css": "close",
-      "code": 59400,
+      "code": 59399,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -119,9 +119,9 @@
       ]
     },
     {
-      "uid": "e6ed599906565a80d34163bf7036501c",
+      "uid": "f158cce0fc572fdc64895a542341cd12",
       "css": "colours",
-      "code": 59401,
+      "code": 59400,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -133,9 +133,9 @@
       ]
     },
     {
-      "uid": "2c3926af0ba3f2017de10eb0e4891678",
+      "uid": "c653539aef2adebb9f21e4819da1cfef",
       "css": "dashboard",
-      "code": 59402,
+      "code": 59401,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -147,9 +147,9 @@
       ]
     },
     {
-      "uid": "efb7f8d0e790304c9bbfb0d233ec5757",
+      "uid": "b0278f51590db84b47fd41d3f75c2eaa",
       "css": "download",
-      "code": 59403,
+      "code": 59402,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -161,9 +161,9 @@
       ]
     },
     {
-      "uid": "ff499aeee5e781a5a4a94fa0b3727baa",
+      "uid": "52c1db51cc712cf2d24dcb4b915107a8",
       "css": "edit",
-      "code": 59404,
+      "code": 59403,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -175,9 +175,9 @@
       ]
     },
     {
-      "uid": "9551d7cc3314a7e73b86823851be8613",
+      "uid": "6efa050a24792c797e1d0f5a8adf6da0",
       "css": "filter",
-      "code": 59405,
+      "code": 59404,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -189,9 +189,9 @@
       ]
     },
     {
-      "uid": "dd7344739c268cf2b47e1014d5fda730",
+      "uid": "c24dfe1eb823fae4e4752fdfc0ba7f9b",
       "css": "graphs",
-      "code": 59406,
+      "code": 59405,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -203,9 +203,9 @@
       ]
     },
     {
-      "uid": "702977faf9cbbfd9ff35a96924bd6542",
+      "uid": "a71452f4f532125ca2664b4e7017e1b4",
       "css": "groups",
-      "code": 59407,
+      "code": 59406,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -217,9 +217,9 @@
       ]
     },
     {
-      "uid": "00c49a05f62b255bc30307eed5e93eec",
+      "uid": "4c5351991e251c617feafff32b967b5e",
       "css": "hide",
-      "code": 59408,
+      "code": 59407,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -231,9 +231,9 @@
       ]
     },
     {
-      "uid": "b5f8de9890cf50d8e6477f5b4a0d1fe5",
+      "uid": "66c489340033a5fa34ce6b63103ec6dc",
       "css": "info",
-      "code": 59409,
+      "code": 59408,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -245,9 +245,9 @@
       ]
     },
     {
-      "uid": "5d121c170e49cfbf203c50cf5ed9d508",
+      "uid": "3374953ef589098401ab4766ebbc1da7",
       "css": "locked",
-      "code": 59410,
+      "code": 59409,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -259,9 +259,9 @@
       ]
     },
     {
-      "uid": "e0dcd0dcfa3d5cd5d9d9470830e0ee01",
+      "uid": "392b7cfd3cd3990ef3debc3250c92f2d",
       "css": "logout",
-      "code": 59411,
+      "code": 59410,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -273,9 +273,9 @@
       ]
     },
     {
-      "uid": "f825cfd156814fb948a6f90a3a02bf1c",
+      "uid": "08b4a5d48cde29b62f29423a483feb2f",
       "css": "search",
-      "code": 59412,
+      "code": 59411,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -287,9 +287,9 @@
       ]
     },
     {
-      "uid": "fb56387c50b1ebddf0b24d131c3a4998",
+      "uid": "1a4d2ee57d63dce3d79bf6c94b59df68",
       "css": "settings",
-      "code": 59413,
+      "code": 59412,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -301,9 +301,9 @@
       ]
     },
     {
-      "uid": "18b7dab35abd9e7a54befb071465dc4d",
+      "uid": "489d72a3b4a7483e57cd2555419ad678",
       "css": "shortcuts",
-      "code": 59414,
+      "code": 59413,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -315,9 +315,9 @@
       ]
     },
     {
-      "uid": "9598611231893367b9843d4a47cd9e49",
+      "uid": "7d4138aea657010bd0c20283e4fd17c0",
       "css": "support",
-      "code": 59415,
+      "code": 59414,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -329,9 +329,9 @@
       ]
     },
     {
-      "uid": "7604c2514b8eafea5403677bacafc297",
+      "uid": "48b0b8debfadfeccdb6ab8e65dde9578",
       "css": "table",
-      "code": 59416,
+      "code": 59415,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -343,9 +343,9 @@
       ]
     },
     {
-      "uid": "12e765c36a9a1bfa66ce0a552ef67e6b",
+      "uid": "9dd61d41a21649692013456d3536422c",
       "css": "timeline",
-      "code": 59417,
+      "code": 59416,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -357,9 +357,9 @@
       ]
     },
     {
-      "uid": "5df4b7c97fcb161b0a5614e0b254ed8f",
+      "uid": "72206a49e785355baa4f10ff9519a638",
       "css": "unlocked",
-      "code": 59418,
+      "code": 59417,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -371,9 +371,9 @@
       ]
     },
     {
-      "uid": "f2c748975b83571eb0f95fee8f693c5f",
+      "uid": "d6cc3422cc1628ca5dc19d3bd9d273f1",
       "css": "user",
-      "code": 59419,
+      "code": 59418,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -385,9 +385,9 @@
       ]
     },
     {
-      "uid": "89686e0fd26c597f16e001a12ff0aa49",
+      "uid": "0402879e35caa332f0921c2b1a260854",
       "css": "files",
-      "code": 59420,
+      "code": 59419,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -399,9 +399,9 @@
       ]
     },
     {
-      "uid": "74b78f1b2093f03992bbbd76b01e4f07",
+      "uid": "ab24521b23f26fdcce5007ceb11feb8e",
       "css": "email",
-      "code": 59421,
+      "code": 59420,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -413,9 +413,9 @@
       ]
     },
     {
-      "uid": "5ddcd147ab73ac177c288d178c21e42f",
+      "uid": "95ae31a1ad5b0565adc7d8efa619e435",
       "css": "font-size",
-      "code": 59422,
+      "code": 59421,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -427,9 +427,9 @@
       ]
     },
     {
-      "uid": "eccb7dc82ba93d1d9b92ff95b4185a3c",
+      "uid": "996e7017426ec7b26c8268c25c71fe47",
       "css": "user-edit",
-      "code": 59423,
+      "code": 59422,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -441,9 +441,9 @@
       ]
     },
     {
-      "uid": "832603f0fbbd235dd966ae37b80a7292",
+      "uid": "4d11960c8d79678870f6155a66ff6194",
       "css": "import",
-      "code": 59424,
+      "code": 59423,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -455,9 +455,9 @@
       ]
     },
     {
-      "uid": "5755c6646ed6e64d6af60d34a38bec2a",
+      "uid": "8873abec2fe1f95f593884ae4deddedd",
       "css": "department",
-      "code": 59425,
+      "code": 59424,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -469,9 +469,9 @@
       ]
     },
     {
-      "uid": "6702774d42b57c8532684cea786ebcba",
+      "uid": "26bc583317e8c7136a5eacad91715947",
       "css": "pending",
-      "code": 59426,
+      "code": 59425,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -483,9 +483,9 @@
       ]
     },
     {
-      "uid": "5e4f329d84bbf0de6e1eeda9484aa88a",
+      "uid": "9ed74430108196c7f855e932f9fa21c0",
       "css": "error",
-      "code": 59427,
+      "code": 59426,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -497,9 +497,9 @@
       ]
     },
     {
-      "uid": "ec115fa4db34b861cb1f9e44a7bf4274",
+      "uid": "3a1136e8e62ef2f352b5ee1d5ec68e7c",
       "css": "user-guide",
-      "code": 59428,
+      "code": 59427,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -511,9 +511,9 @@
       ]
     },
     {
-      "uid": "6bd172530d6a591bad7eeacf51426a05",
+      "uid": "f7b66568085fae74c60601a72c64c877",
       "css": "notice",
-      "code": 59429,
+      "code": 59428,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -525,9 +525,9 @@
       ]
     },
     {
-      "uid": "b627d5ad6d3c08f58c065b57b0c75fdc",
+      "uid": "e47cd926bfdac976786c9ea7d7d7e109",
       "css": "community",
-      "code": 59430,
+      "code": 59429,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -539,9 +539,9 @@
       ]
     },
     {
-      "uid": "ffefb4e1b7f32099d3a75659e6659360",
+      "uid": "44148b99bfcf0431bac24bfd31fb4e50",
       "css": "faq",
-      "code": 59431,
+      "code": 59430,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -553,9 +553,9 @@
       ]
     },
     {
-      "uid": "2cfc79c85719a2fd46a218bf15ea5e6b",
+      "uid": "0bb79d769d486665815b4d94ff4a5925",
       "css": "organisation",
-      "code": 59432,
+      "code": 59431,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -567,9 +567,9 @@
       ]
     },
     {
-      "uid": "3848d5560a162b220882b8084547636e",
+      "uid": "b98cc5a1b3a0ab63bab4426f6df9c9c9",
       "css": "feedback",
-      "code": 59433,
+      "code": 59432,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -581,9 +581,9 @@
       ]
     },
     {
-      "uid": "12f41935265b5cc6c0c5c73cbe05c948",
+      "uid": "803580f59d1d5b7562bf18b4f06ba362",
       "css": "drag-indicator",
-      "code": 59434,
+      "code": 59433,
       "src": "custom_icons",
       "selected": true,
       "svg": {
@@ -595,10 +595,18 @@
       ]
     },
     {
-      "uid": "cd21cbfb28ad4d903cede582157f65dc",
+      "uid": "af10e7cc264a2fe57edadf4eaba38d1a",
       "css": "bell",
-      "code": 59392,
-      "src": "fontawesome"
+      "code": 59440,
+      "src": "custom_icons",
+      "selected": true,
+      "svg": {
+        "path": "M509 946Q509 938 500 938 467 938 443 914T420 857Q420 848 411 848T402 857Q402 898 431 927T500 955Q509 955 509 946ZM137 786H863Q714 618 714 321 714 293 701 263T662 205 595 160 500 143 405 160 338 205 299 263 286 321Q286 618 137 786ZM964 786Q964 815 943 836T893 857H643Q643 916 601 958T500 1000 399 958 357 857H107Q78 857 57 836T36 786Q64 762 87 737T134 670 176 581 203 466 214 321Q214 237 280 164T451 75Q446 65 446 54 446 31 462 16T500 0 538 16 554 54Q554 65 549 75 655 91 720 164T786 321Q786 399 797 466T825 581 866 670 914 737 964 786Z",
+        "width": 1000
+      },
+      "search": [
+        "bell"
+      ]
     }
   ]
 }
