@@ -8,6 +8,7 @@ class MoreLessComponent extends Component {
   constructor(element)  {
     super(element)
     this.el = $(this.element)
+    this.clearMoreLess()
     this.initMoreLess()
   }
 
@@ -87,7 +88,19 @@ class MoreLessComponent extends Component {
     return $elem.attr('data-actual-height')
   }
 
-  initMoreLess() {
+  clearMoreLess() {
+    const $ml = $(this.el)
+
+    if ($ml.hasClass('clipped')) {
+      const content = $ml.find('.expandable').html()
+
+      $ml
+        .html(content)
+        .removeClass('clipped')
+    }
+  }
+
+  initMoreLess() {    
     const $ml = $(this.el)
     const column = $ml.data('column')
     const content = $ml.html()
