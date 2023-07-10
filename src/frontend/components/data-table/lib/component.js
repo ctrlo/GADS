@@ -349,28 +349,31 @@ class DataTableComponent extends Component {
 
     const value = data.values[0] // There's always only one person
 
-    if (value.details.length) {
-      strHTML += `<div>`
-      value.details.forEach((detail) => {
-        const strDecodedValue = this.encodeHTMLEntities(detail.value)
-        if (detail.type === 'email') {
-          strHTML += `<p>E-mail: <a href="mailto:${strDecodedValue}">${strDecodedValue}</a></p>`
-        } else {
-          strHTML += `<p>${this.encodeHTMLEntities(detail.definition)}: ${strDecodedValue}</p>`
-        }
-      })
-      strHTML +=  `</div>`
-    }
+    data.values.forEach((value, i) => {
+      if (value.details.length) {
+        let thisHTML = `<div>`
+        value.details.forEach((detail) => {
+          const strDecodedValue = this.encodeHTMLEntities(detail.value)
+          if (detail.type === 'email') {
+            thisHTML += `<p>E-mail: <a href="mailto:${strDecodedValue}">${strDecodedValue}</a></p>`
+          } else {
+            thisHTML += `<p>${this.encodeHTMLEntities(detail.definition)}: ${strDecodedValue}</p>`
+          }
+        })
+        thisHTML +=  `</div>`
+        strHTML += (
+          `<button class="btn btn-small btn-inverted btn-info trigger" aria-expanded="false" type="button">
+            ${this.encodeHTMLEntities(value.text)}
+            <span class="invisible">contact details</span>
+          </button>
+          <div class="person contact-details expandable popover card card--secundary">
+            ${thisHTML}
+          </div>`
+        )
+      }
+    })
 
-    return (
-      `<button class="btn btn-small btn-inverted btn-info trigger" aria-expanded="false" type="button">
-        ${this.encodeHTMLEntities(value.text)}
-        <span class="invisible">contact details</span>
-      </button>
-      <div class="person contact-details expandable popover card card--secundary">
-        ${strHTML}
-      </div>`
-    )
+    return strHTML
   }
 
   renderFile(data) {

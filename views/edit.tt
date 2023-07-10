@@ -748,12 +748,10 @@
     ELSIF col.type == "person";
 
       select_items  = [];
-      select_value  = "";
+      select_values = editvalue.ids;
 
-      IF editvalue.id;
-        select_value = editvalue.id;
-      ELSIF col.default_to_login AND NOT record.current_id; # default to current user for new records only
-        select_value = user.id;
+      IF col.default_to_login AND NOT record.current_id; # default to current user for new records only
+        select_values = [user.id];
       END;
 
       FOREACH person IN col.people;
@@ -761,24 +759,43 @@
         select_items.push({label_plain=person.value, label_html=person.value_html, value=person.id});
       END;
 
-      # Ensure a blank value is sent if nothing is selected
-      INCLUDE fields/hidden.tt id="" name=field value="" filter="";
-      INCLUDE fields/select_single.tt
-        id                   = col.id
-        name                 = field
-        label                = field_label
-        label_checkbox_name  = page == "bulk" ? "bulk_inc_" _ col.id : ''
-        fieldset_class       = "input"
-        placeholder          = "Select option"
-        help_text            = col.description
-        popover_body         = col.helptext_html
-        is_readonly          = readonly
-        is_required          = field_is_required
-        hide_group           = 1
-        items                = select_items
-        value                = select_value
-        with_details         = 0
-        filter               = "html";
+      IF col.multivalue;
+        INCLUDE fields/select_multiple.tt
+          id                   = col.id
+          name                 = field
+          label                = field_label
+          label_checkbox_name  = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          fieldset_class       = "input"
+          placeholder          = "Select option(s)"
+          help_text            = col.description
+          popover_body         = col.helptext_html
+          is_readonly          = readonly
+          is_required          = required
+          hide_group           = 1
+          items                = select_items
+          values               = select_values
+          with_details         = 0
+          filter               = "html";
+      ELSE;
+        # Ensure a blank value is sent if nothing is selected
+        INCLUDE fields/hidden.tt id="" name=field value="" filter="";
+        INCLUDE fields/select_single.tt
+          id                   = col.id
+          name                 = field
+          label                = field_label
+          label_checkbox_name  = page == "bulk" ? "bulk_inc_" _ col.id : ''
+          fieldset_class       = "input"
+          placeholder          = "Select option"
+          help_text            = col.description
+          popover_body         = col.helptext_html
+          is_readonly          = readonly
+          is_required          = field_is_required
+          hide_group           = 1
+          items                = select_items
+          value                = select_values.first
+          with_details         = 0
+          filter               = "html";
+      END;
 
     ELSIF col.type == "file";
       fieldset_required = field_is_required ? 'fieldset--required' : '';

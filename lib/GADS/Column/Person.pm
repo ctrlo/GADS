@@ -60,6 +60,10 @@ has '+option_names' => (
     default => sub { [qw/default_to_login notify_on_selection notify_on_selection_message notify_on_selection_subject/] },
 );
 
+has '+can_multivalue' => (
+    default => 1,
+);
+
 sub _build_retrieve_fields
 {   my $self = shift;
     \@person_properties;
