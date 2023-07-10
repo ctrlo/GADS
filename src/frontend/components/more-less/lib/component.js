@@ -92,16 +92,6 @@ class MoreLessComponent extends Component {
     const column = $ml.data('column')
     const content = $ml.html()
 
-    // If the more-less has already been run, remove any existing pop-up so
-    // that we can re-evaluate and we may not need it
-    if ($ml.find('.expandable').length) {
-      const cc = $ml.find('.expandable').html()
-      $ml
-        .empty()
-        .html(cc)
-        .removeClass('clipped')
-    }
-
     $ml.removeClass('transparent')
     // Element may be hidden (e.g. when rendering edit fields on record page).
     if (this.getActualHeight($ml) < MAX_HEIGHT) {
