@@ -74,20 +74,22 @@ const getComponentElements = (scope, selector) => {
  * @param {Component} ComponentClass The Component class to initialize
  * @returns {Array[Component]} An array of initialized components
  */
-const initializeComponent = (scope, selector, ComponentClass) => {
+const initializeComponent = (scope, selector, ComponentClass, reinitialize) => {
   if (!(ComponentClass.prototype instanceof Component)) {
     throw new Error(
       'Components can only be initialized when they inherit the basecomponent',
     )
   }
 
-  const elements = typeof(selector) === 'function' ? selector(scope) : getComponentElements(scope, selector)
+  let elements = typeof(selector) === 'function' ? selector(scope) : getComponentElements(scope, selector)
   if (!elements.length) {
     return []
   }
 
+  if (!reinitialize) {
+    elements = elements.filter((el) => !el.getAttribute(componentInitializedAttr))
+  }
   return elements
-    .filter((el) => !el.getAttribute(componentInitializedAttr))
     .map((el) => new ComponentClass(el))
 }
 

@@ -534,7 +534,7 @@ class DataTableComponent extends Component {
       this.bindClickHandlersAfterDraw(conf)
 
       //Re-initialize more-less components after initialisation is complete
-      initializeComponent(this.el[0], '.more-less', MoreLessComponent)
+      initializeComponent(this.el[0], '.more-less', MoreLessComponent, true)
 
       dataTable.columns().every(function(index) {
         const column = this
