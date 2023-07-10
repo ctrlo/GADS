@@ -2574,7 +2574,7 @@ sub as_json
     {
         my $col = $self->layout->column($col_id);
         my $short = $col->name_short or next;
-        $return->{$short} = $self->fields->{$col->id}->as_string;
+        $return->{$short} = $self->get_field_value($col)->as_string;
     }
     encode_json $return;
 }
