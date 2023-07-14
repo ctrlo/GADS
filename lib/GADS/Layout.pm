@@ -125,7 +125,7 @@ sub record_name_plural
 {   PL shift->record_name;
 }
 
-sub record_name_indef_article
+sub record_name_with_article
 {   A shift->record_name;
 }
 
