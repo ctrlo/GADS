@@ -26,6 +26,11 @@
     text-align: left;
   }
 
+  .card__description {
+    display: block;
+    margin-bottom: 1.5rem;
+  }
+
   .card__header-left {
     display: flex;
     flex: 1;

@@ -336,11 +336,6 @@
         <button class="card__header-left" type="button" data-toggle="collapse" data-target="#topic[% block_topic.id; widget_id_modifier; %]" aria-expanded="false" aria-controls="topic[% block_topic.id; widget_id_modifier; %]">
           <span class="card__title">
             [% block_topic.name OR 'Other' | html %]
-            [% IF block_topic.description %]
-            <span class="card__subtitle text-muted">
-              [% block_topic.description_html %]
-            </span>
-            [% END %]
           </span>
         </button>
         <div class="card__header-right">
@@ -374,6 +369,11 @@
       </div>
       <div class="collapse[% IF open == 'true' %] show[% END %]" id="topic[% block_topic.id; widget_id_modifier; %]">
         <div class="card__content">
+          [% IF block_topic.description %]
+            <span class="card__description text-muted">
+              [% block_topic.description_html %]
+            </span>
+          [% END %]
           [% IF topic.need_completed_topics_count %]
           <div role="alert" class="alert alert-warning">
             Fields in this section cannot be completed until mandatory fields
