@@ -46,7 +46,7 @@ use GADS::Instances;
 use GADS::Graphs;
 use GADS::MetricGroups;
 use GADS::Views;
-use Lingua::EN::Inflect qw/PL/;
+use Lingua::EN::Inflect qw/PL A/;
 use Log::Report 'linkspace';
 use MIME::Base64 qw/encode_base64/;
 use JSON qw(decode_json encode_json);
@@ -123,6 +123,10 @@ has record_name => (
 
 sub record_name_plural
 {   PL shift->record_name;
+}
+
+sub record_name_indef_article
+{   A shift->record_name;
 }
 
 has site => (
