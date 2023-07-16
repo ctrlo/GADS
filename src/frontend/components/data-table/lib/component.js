@@ -560,9 +560,6 @@ class DataTableComponent extends Component {
           self.addSearchDropdown(column, id, index)
         }
       })
-    }
-
-    conf['drawCallback'] = (settings) => {
       this.bindClickHandlersAfterDraw(conf)
     }
 
