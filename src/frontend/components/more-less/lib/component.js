@@ -2,7 +2,7 @@ import { Component } from 'component'
 import { setupDisclosureWidgets } from "./disclosure-widgets";
 import { moreLess } from './more-less';
 
-const MAX_HEIGHT = 55
+const MAX_HEIGHT = 50
 
 class MoreLessComponent extends Component {
 
