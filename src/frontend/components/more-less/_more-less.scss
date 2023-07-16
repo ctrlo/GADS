@@ -35,6 +35,18 @@
       padding-top: 0;
     }
 
+    &:last-of-type td {
+      padding-bottom: 0;
+    }
+
+    & td:first-child {
+      padding-left: 0;
+    }
+
+    & td:last-child {
+      padding-right: 0;
+    }
+
     &:hover {
       background-color: $transparent;
     }
