@@ -532,10 +532,6 @@ class DataTableComponent extends Component {
       const self = this
 
       this.json = json ? json : undefined
-      this.bindClickHandlersAfterDraw(conf)
-
-      //Re-initialize more-less components after initialisation is complete
-      moreLess.reinitialize()
 
       dataTable.columns().every(function(index) {
         const column = this
@@ -560,6 +556,13 @@ class DataTableComponent extends Component {
           self.addSearchDropdown(column, id, index)
         }
       })
+    }
+
+    conf['drawCallback'] = (settings) => {
+
+      //Re-initialize more-less components after initialisation is complete
+      moreLess.reinitialize()
+
       this.bindClickHandlersAfterDraw(conf)
     }
 
