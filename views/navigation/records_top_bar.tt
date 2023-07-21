@@ -55,9 +55,7 @@
         INCLUDE navigation/dropdown_manage_graphs.tt;
       END;
     
-      IF (layout_obj.user_can("link") AND show_link) OR layout_obj.user_can("layout") OR layout_obj.user_can("bulk_update") OR layout_obj.user_can("delete") OR layout_obj.user_can("download") OR layout_obj.user_can("bulk_delete") OR layout_obj.user_can("purge");
-        INCLUDE navigation/dropdown_actions.tt;
-      END;
+      INCLUDE navigation/dropdown_actions.tt;
     
       IF page == "data_timeline" AND ! layout.no_download_pdf;
         INCLUDE navigation/dropdown_download_timeline.tt;
