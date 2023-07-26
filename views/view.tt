@@ -419,7 +419,7 @@
                     <dt>Filters</dt>
                     <dd>
                       Use filters to select the records you want to include in
-                      the view. Dates in your filters must be in the format yyyy-MM-dd
+                      the view. Dates in your filters must be in the format [% config.dateformat | html %]
                       or 'CURDATE' for current date. The current user using the view can also be substituted:
                       [CURUSER] can be used to specify the user; [CURUSER.ORG] can be used to specify
                       the user's organisation; [CURUSER.DEPT] can be used to specify the user's department;
