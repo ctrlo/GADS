@@ -1,4 +1,14 @@
 [%
+  menu_items = [{
+    label  = "Manage graphs",
+    target = url.page _ "/" _ layout_obj.identifier _ "/graphs/"
+  }];
+  IF layout_obj.user_can("layout");
+    menu_items.push({
+      label  = "Metrics",
+      target = url.page _ "/" _ layout_obj.identifier _ "/metrics/"
+    });
+  END;
   INCLUDE snippets/dropdown.tt
     id             = "manage_graphs"
     custom_classes = ""
@@ -6,12 +16,6 @@
     label          = "Manage graphs"
     filter         = "html"
     groups         = [{
-      items = [{
-        label  = "Manage graphs",
-        target = url.page _ "/" _ layout_obj.identifier _ "/graphs/"
-      }, {
-        label  = "Metrics",
-        target = url.page _ "/" _ layout_obj.identifier _ "/metrics/"
-      }]
+        items = menu_items
     }];
 %]

@@ -51,7 +51,7 @@
 
       INCLUDE navigation/dropdown_manage_views.tt;
 
-      IF viewtype == "graph" AND layout_obj.user_can("layout");
+      IF viewtype == "graph";
         INCLUDE navigation/dropdown_manage_graphs.tt;
       END;
     

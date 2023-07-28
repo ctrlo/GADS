@@ -3,7 +3,7 @@
     # add standardized page header
     INCLUDE layouts/page_header.tt
       title         = ""
-      description   = "Use this page to configure what graphs are displayed on your home page. New graphs can only be added by an administrator."
+      description   = "Use this page to create and configure graphs of this table's records."
       aside_buttons = [{
        type   = "link"
        target = url.page _ "/" _ layout.identifier _ "/graph/0"
