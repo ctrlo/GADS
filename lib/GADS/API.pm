@@ -1353,12 +1353,15 @@ any ['get', 'post'] => '/api/users' => require_any_role [qw/useradmin superadmin
 
     my $users     = GADS::Users->new(schema => schema)->user_summary_rs;
     my $total     = $users->count;
-    my $col_order = $params->get('order[0][column]');
-    my $sort_by   = $params->get("columns[${col_order}][name]");
-    my $dir       = $params->get('order[0][dir]');
+    my ($sort_by, $dir);
+    if (my $col_order = $params->get('order[0][column]'))
+    {
+        $sort_by   = $params->get("columns[${col_order}][name]");
+        $dir       = $params->get('order[0][dir]');
+    }
     my $search    = $params->get('search[value]');
 
-    $sort_by =~ /^(ID|Surname|Forename|Title|Email|Organisation|Department|Team|Created|Last login)$/
+    !$sort_by || $sort_by =~ /^(ID|Surname|Forename|Title|Email|Organisation|Department|Team|Created|Last login)$/
         or error "Invalid sort";
     $sort_by = $sort_by eq 'ID'
         ? 'me.id'
@@ -1404,7 +1407,7 @@ any ['get', 'post'] => '/api/users' => require_any_role [qw/useradmin superadmin
     $users = $users->search({
         -and => \@sr,
     },{
-        order_by => { $dir eq 'asc' ? -asc : -desc => $sort_by },
+        order_by => { $dir && $dir eq 'asc' ? -asc : -desc => $sort_by },
     });
     my $filtered_count = $users->count;
     my $users_render = $users->search({},{
