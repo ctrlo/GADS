@@ -153,7 +153,7 @@
 
   table_config = {
     dom        = ( table_dom || '' ),
-    order      = ( table_order && table_order.size ? table_order : [0, "asc"] ),
+    order      = ( table_order && table_order.size ? table_order : [] ),
     language   = ( table_language && table_language.size ? table_language : { emptyTable => "There is no data available in this table" } ),
     responsive = ( table_unresponsive ? 0 : { details => { type => "column", target => -1}} ),
     autoWidth  = 0,

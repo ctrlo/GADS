@@ -1163,19 +1163,24 @@ sub _get_records {
         $records->search($search);
     }
 
-    # Configure table sort
+    # Configure table sort, but only if ordering column submitted. If a view is
+    # sorted by a column that it doesn't contain, then we need to ensure that
+    # the normal view's ordering is not overridden from datatables
     my $order_index = $params->get('order[0][column]');
-    # For a grouped view, the record count column is not in the rendered
-    # columns index
-    $order_index-- if $records->is_group;
-    my $col_order   = $records->columns_render->[$order_index];
-    # Check user has access
-    error __"Invalid column ID for sort"
-        unless $col_order && $col_order->user_can('read');
-    my $sort = { type => $params->get('order[0][dir]'), id => $col_order->id };
+    if (defined $order_index)
+    {
+        # For a grouped view, the record count column is not in the rendered
+        # columns index
+        $order_index-- if $records->is_group;
+        my $col_order   = $records->columns_render->[$order_index];
+        # Check user has access
+        error __"Invalid column ID for sort"
+            unless $col_order && $col_order->user_can('read');
+        my $sort = { type => $params->get('order[0][dir]'), id => $col_order->id };
 
-    $records->clear_sorts;
-    $records->sort($sort);
+        $records->clear_sorts;
+        $records->sort($sort);
+    }
 
     my $return = {
         draw            => $params->get('draw'),
