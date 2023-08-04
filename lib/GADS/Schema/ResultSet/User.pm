@@ -119,7 +119,7 @@ sub upload
     # Get first row for column headings
     my $row = $csv->getline($fh);
     # Valid headings
-    my %user_fields = map { lc $_->{name} => 1 } $site->user_fields;
+    my %user_fields = map { lc $_->{description} => 1 } $site->user_fields;
     my %user_mapping;
     my @invalid;
     my $count = 0;
