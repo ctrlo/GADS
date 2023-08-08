@@ -9,6 +9,7 @@
   table_reorder_rows     = 1;
   table_length_menu      = 'basic';
   table_caption          = "Table to show fields";
+  table_order            = [0, "asc"]; # Needed for sortable rows to work (drag/drop)
   
   table_buttons = [];
 
