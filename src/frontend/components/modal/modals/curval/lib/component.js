@@ -221,7 +221,13 @@ class CurvalModalComponent extends ModalComponent {
           autoclose: true
         })
       })
+
+      $m.off('hide.bs.modal')
+        .on('hide.bs.modal', (ev) => {
+        return confirm("Closing this dialogue will cancel any work. Are you sure you want to do so?")
+      })
     })
+
   }
 
   getURL(url, layout_id, form_data, $formGroup) {
@@ -242,6 +248,10 @@ class CurvalModalComponent extends ModalComponent {
     const self = this
 
     $(this.element).on("submit", ".curval-edit-form", function(e) {
+
+      // Don't show close warning when user clicks submit button
+      self.el.off('hide.bs.modal')
+
       e.preventDefault()
       const $form = $(this)
       const form_data = $form.serialize()
