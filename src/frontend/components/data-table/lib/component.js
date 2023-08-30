@@ -19,6 +19,7 @@ class DataTableComponent extends Component {
     this.hasCheckboxes = this.el.hasClass('table-selectable')
     this.hasClearState = this.el.hasClass('table-clear-state')
     this.searchParams = new URLSearchParams(window.location.search)
+    this.base_url = this.el.data('href') ? this.el.data('href') : undefined
     this.initTable()
   }
 
@@ -338,7 +339,7 @@ class DataTableComponent extends Component {
     if (data.parent_id) {
       retval = `<span title="Child record with parent record ${data.parent_id}">${data.parent_id} &#8594;</span> `
     }
-    return retval + `<a href="/record/${data.values[0]}">${data.values[0]}</a>`
+    return retval + `<a href="${this.base_url}/${data.values[0]}">${data.values[0]}</a>`
   }
 
   renderPerson(data) {
@@ -571,17 +572,16 @@ class DataTableComponent extends Component {
 
   bindClickHandlersAfterDraw(conf) {
     const tableElement = this.el
-    const base_url = $(tableElement).data('href') ? $(tableElement).data('href') : undefined
     let rows = tableElement.DataTable().rows( {page:'current'} ).data()
 
-    if (rows && base_url) {
+    if (rows && this.base_url) {
       // Add click handler to tr to open a record by id
       $(tableElement).find('> tbody > tr').each((i, el) => {
         const data = rows[i] ? rows[i] : undefined
         if (data) {
           // URL will be record link for standard view, or filtered URL for
           // grouped view (in which case _count parameter will be present not _id)
-          const url = data['_id'] ? `${base_url}/${data['_id']}` : `?${data['_count']['url']}`
+          const url = data['_id'] ? `${this.base_url}/${data['_id']}` : `?${data['_count']['url']}`
 
           $(el).find('td:not(".dtr-control")').on('click', (ev) => {
             // Only for table cells that are not part of a record-popup table row
