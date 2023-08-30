@@ -35,7 +35,7 @@ my $namespace = $ENV{CDB_NAMESPACE};
 GetOptions (
     'initial_username=s' => \$initial_username,
     'instance_name=s'    => \$instance_name,
-    'site'               => \$host,
+    'site=s'             => \$host,
 ) or exit;
 
 my ($dbic) = values %{config->{plugins}->{DBIC}}
@@ -69,10 +69,8 @@ my $migration = DBIx::Class::Migration->new(
     }],
 );
 
-say "Installing schema...";
-$migration->install;
-say "Inserting permissions fixtures...";
-$migration->populate('permissions');
+say "Installing schema and fixtures if needed...";
+$migration->install_if_needed(default_fixture_sets => ['permissions']);
 
 # It's possible that permissions may not have been populated.  DBIC Migration
 # doesn't error if the fixtures above don't exist, and whenever a new version
