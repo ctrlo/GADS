@@ -2560,10 +2560,11 @@ prefix '/:layout_name' => sub {
             my $disable_group = query_parameters->get('group_filter');
             $params{is_group} = 0 if $disable_group;
 
-            $params{for_curval} = {
-                layout_id => query_parameters->get('curval_layout_id'),
-                record_id => query_parameters->get('curval_record_id'),
-            } if query_parameters->get('curval_record_id');
+            if (query_parameters->get('curval_record_id'))
+            {
+                $params->{curval_layout_id} = query_parameters->get('curval_layout_id');
+                $params->{curval_record_id} = query_parameters->get('curval_record_id');
+            }
 
             my $records = GADS::Records->new(%params);
 

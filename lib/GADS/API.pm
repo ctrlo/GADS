@@ -1127,6 +1127,13 @@ sub _get_records {
     );
     $params{is_group} = 0
         if query_parameters->get('group_filter');
+    # Used for the "show all records" link in a curval field when the
+    # number of rows is limited by default
+    $params{for_curval} = {
+        layout_id => query_parameters->get('curval_layout_id'),
+        record_id => query_parameters->get('curval_record_id'),
+    } if query_parameters->get('curval_record_id');
+
     my $records = GADS::Records->new(%params);
 
     # Map rendered columns to IDs
