@@ -2219,13 +2219,15 @@ prefix '/:layout_name' => sub {
         my @additional_filters;
         foreach my $key (keys %{query_parameters()})
         {
-            $key =~ /^field([0-9]+)$/
+            $key =~ /^([0-9]+)$/
                 or next;
             my $fid = $1;
-            my @values = query_parameters->get_all($key);
+            my $col = $layout->column($fid);
             push @additional_filters, {
-                id    => $fid,
-                value => [query_parameters->get_all($key)],
+                id      => $fid,
+                value   => [query_parameters->get_all($key)],
+                # See comments in GADS::Records::API::_get_records
+                is_text => $col->is_curcommon || $col->type eq 'id' ? 0 : 1,
             };
         }
 

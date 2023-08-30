@@ -1114,6 +1114,7 @@ sub _get_records {
     # information (not necessarily same as view columns)
     my $start  = $params->get('start') || 0;
     my $length = $params->get('length') || 25;
+
     my %params = (
         user                => $user,
         schema              => schema,
@@ -1128,6 +1129,17 @@ sub _get_records {
         if query_parameters->get('group_filter');
     my $records = GADS::Records->new(%params);
 
+    # Map rendered columns to IDs
+    my %column_mapping;
+    foreach my $key ($params->keys)
+    {
+        # E.g. 'columns[1][name]' => '12' # Col ID
+        next unless $key =~ /^columns\[([0-9]+)\Q][name]\E$/;
+        my $index = $1;
+        my $col_id = $params->get($key);
+        $column_mapping{$index} = $col_id;
+    }
+
     # Look for column filters
     my @additional_filters;
     foreach my $key ($params->keys)
@@ -1140,7 +1152,7 @@ sub _get_records {
         $index-- if $records->is_group;
         my $search = $params->get($key)
             or next;
-        my $col = $records->columns_render->[$index]
+        my $col = $layout->column($column_mapping{$index})
             or next;
         my @values = $params->get_all($key);
         push @additional_filters, {

@@ -43,7 +43,6 @@ sub after_presentation
     $_->{checked} = $existing{$_->{id}} && \1
         foreach @$filter_values;
 
-    $return->{has_filter_search} = 0;
     $return->{filter_values} = encode_json $filter_values;
 }
 
