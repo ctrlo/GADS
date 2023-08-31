@@ -64,6 +64,17 @@ table.dataTable thead .sorting_disabled {
   }
 }
 
+.dataTables_toggle_full_width {
+  .btn-toggle,
+  .btn-toggle-off {
+    padding-top: 7px;
+  }
+}
+
+.data-table__container--scrollable {
+  overflow-x: scroll;
+}
+
 .dataTables_info_wrapper {
   display: none;
 }

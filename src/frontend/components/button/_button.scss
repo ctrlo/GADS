@@ -231,7 +231,9 @@ $btn-border-radius: 23px;
 .btn-email,
 .btn-filter,
 .btn-search,
-.btn-sort {
+.btn-sort,
+.btn-toggle,
+.btn-toggle-off {
   display: flex;
   align-items: center;
   width: max-content;
@@ -444,6 +446,25 @@ $btn-border-radius: 23px;
   &::before {
     content: "\E805";
     transform: rotate(90deg);
+  }
+}
+
+.btn-toggle,
+.btn-toggle-off {
+  &::before {
+    font-size: 1.4rem;
+  }
+}
+
+.btn-toggle {
+  &::before {
+    content: "\F205";
+  }
+}
+
+.btn-toggle-off {
+  &::before {
+    content: "\F204";
   }
 }
 

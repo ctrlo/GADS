@@ -1,5 +1,6 @@
 import { Component } from 'component'
 import 'datatables.net'
+import 'datatables.net-buttons'
 import 'datatables.net-bs4'
 import 'datatables.net-responsive'
 import 'datatables.net-responsive-bs4'
@@ -37,6 +38,7 @@ class DataTableComponent extends Component {
 
     const conf = this.getConf()
     this.el.DataTable(conf)
+    this.inFullWidthMode = false
 
     if (this.hasCheckboxes) {
       this.addSelectAllCheckbox()
@@ -567,7 +569,39 @@ class DataTableComponent extends Component {
       this.bindClickHandlersAfterDraw(conf)
     }
 
+    conf['buttons'] = [
+      {
+        text: 'Show all fields',
+        className: 'btn btn-small btn-toggle-off',
+        action: function ( e, dt, node, config ) {
+          if (self.inFullWidthMode) {
+            self.collapseTable(conf)
+          } else {
+            self.expandTable(conf)
+          }
+        }
+      }
+    ]
+
     return conf
+  }
+
+  expandTable(conf) {
+    this.originalResponsiveObj = conf.responsive
+    this.inFullWidthMode = true
+    conf.responsive = false
+    this.el.DataTable().destroy();
+    this.el.removeClass('dtr-column collapsed');
+    this.el.DataTable(conf)
+    this.el.parent().addClass('data-table__container--scrollable')
+    this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').toggleClass(['btn-toggle', 'btn-toggle-off'])
+  }
+
+  collapseTable(conf) {
+    this.inFullWidthMode = false
+    conf.responsive = this.originalResponsiveObj
+    this.el.DataTable().destroy();
+    this.el.DataTable(conf)
   }
 
   bindClickHandlersAfterDraw(conf) {
