@@ -1,4 +1,5 @@
 import { Component } from 'component'
+import { sidebarObservable } from './sidebarObservable'
 
 const COLLAPSED_CLASS = 'sidebar--collapsed'
 const EXPANDED_CLASS = 'main--expanded'
@@ -19,6 +20,7 @@ class SidebarComponent extends Component {
 
     initSidebar() {
         const sidebarToggle = this.el.find('.sidebar__toggle')
+        sidebarObservable.addSubscriber(this)
 
         if (!sidebarToggle) {
             return
@@ -55,6 +57,7 @@ class SidebarComponent extends Component {
         } else {
             this.collapseSidebar()
         }
+        sidebarObservable.sideBarChange()
     }
 
     collapseSidebar() {

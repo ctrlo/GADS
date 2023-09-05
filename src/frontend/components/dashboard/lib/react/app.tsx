@@ -8,7 +8,8 @@ import Header from "./Header";
 import Widget from './Widget';
 import Footer from "./Footer";
 import SummerNoteComponent from "../../../summernote/lib/component";
-import GlobeComponent from '../../../globe/lib/component'
+import GlobeComponent from '../../../globe/lib/component';
+import { sidebarObservable } from '../../../sidebar/lib/sidebarObservable';
 
 declare global {
   interface Window {
@@ -47,7 +48,8 @@ class App extends React.Component<any, any> {
     Modal.setAppElement("#ld-app");
 
     const layout = props.widgets.map(widget => widget.config);
-    this.formRef = React.createRef()
+    this.formRef = React.createRef();
+    sidebarObservable.addSubscriber(this);
 
     this.state = {
       widgets: props.widgets,
@@ -296,6 +298,10 @@ class App extends React.Component<any, any> {
     submitButton.setAttribute("type", "submit");
     submitButton.setAttribute("style", "visibility: hidden");
     form.appendChild(submitButton);
+  }
+
+  handleSideBarChange = () => {
+    window.dispatchEvent(new Event('resize'));
   }
 
   render() {
