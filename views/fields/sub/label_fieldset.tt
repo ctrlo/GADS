@@ -16,7 +16,7 @@
   <legend id="[% id %]-label">
     [% INCLUDE fields/sub/filter.tt value=label; %]
   </legend>
-  [% IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body; END; %]
+  [% IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body popover_class="popover-container--top"; END; %]
 </div>
 [% IF help_text %]
 <p id="[% id %]-help" class="form-text">
