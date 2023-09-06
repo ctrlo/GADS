@@ -164,10 +164,13 @@ sub fetch_multivalues
         include_children        => 1, # Ensure all autocur records are shown even if they have the same text content
         ignore_view_limit_extra => 1,
     );
-    my %retrieved;
+    my %retrieved; my $order;
     while (my $record = $records->single)
     {
-        $retrieved{$record->current_id} = $record;
+        $retrieved{$record->current_id} = {
+            record => $record,
+            order  => ++$order, # store order
+        };
     }
 
     # It shouldn't happen under normal circumstances, but there is a chance
@@ -182,10 +185,12 @@ sub fetch_multivalues
         push @v, +{
             layout_id => $self->id,
             record_id => $rid,
-            value     => $retrieved{$cid},
+            value     => $retrieved{$cid}->{record},
+            order     => $retrieved{$cid}->{order},
         } unless $done->{$cid}->{$rid};
         $done->{$cid}->{$rid} = 1;
     }
+    @v = sort { ($a->{order}||0) <=> ($b->{order}||0) } @v;
     return @v;
 }
 
