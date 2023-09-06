@@ -43,9 +43,10 @@
         table_records_name = instance.record_name_plural
       }
       fields = [{
-        type  = "link"
-        label = instance.name
-        link  = "/{table_short_name}/data?table_clear_state=1"
+        type   = "link"
+        label  = instance.name
+        link   = "/{table_short_name}/data?table_clear_state=1"
+        filter = "html"
       }]
     });
   END;
