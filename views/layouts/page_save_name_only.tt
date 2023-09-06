@@ -41,7 +41,7 @@
             data-title="[% item.name%]"
             data-id="[% item.id %]"
           >
-            <span class="btn__title">Delete [% item.type %]</span>
+            <span class="btn__title">Delete [% item.type | html %]</span>
           </button>
         </div>
         [%- END -%]
