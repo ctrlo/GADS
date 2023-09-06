@@ -51,7 +51,7 @@ my @update1 = (
                 curval2    => 1,
             },
         ],
-        autocur_value => ', 45, , , , , , , a_grey, ; Foo, 20, foo2, tree3, 2010-10-10, , , , a_grey, ',
+        autocur_value => 'Foo, 20, foo2, tree3, 2010-10-10, , , , a_grey, ; , 45, , , , , , , a_grey, ',
         autocur_value2 => '',
     },
     {
