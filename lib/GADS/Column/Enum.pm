@@ -47,7 +47,8 @@ has enumvals => (
         });
         $enumrs->result_class('DBIx::Class::ResultClass::HashRefInflator');
         # Make enumvals match Curval value types, as both use the same
-        # front-end code
+        # front-end code.
+        # Note, any changes must be replicated in GADS::Datum::Enum::_build_deleted_values
         my @enumvals = map {
             +{
                 value       => $_->{value},

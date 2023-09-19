@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::Datum::Enum;
 
+use HTML::Entities qw/encode_entities/;
 use Log::Report 'linkspace';
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
@@ -191,8 +192,11 @@ sub _build_deleted_values
         my $text = shift @text;
         next unless shift @deleted;
         push @return, {
-            id    => $id,
-            value => $text,
+            id          => $id,
+            value       => $text,
+            html        => encode_entities($text), # Needed for edit form render
+            selector_id => $id,
+            value_id    => $id,
         };
     }
     return \@return;
