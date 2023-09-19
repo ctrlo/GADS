@@ -21,7 +21,6 @@ class RecordPopupComponent extends Component {
     });
   }
 
-
   handleClick(ev) {
     const record_id = $(this.element).data('record-id')
     const version_id = $(this.element).data('version-id')
