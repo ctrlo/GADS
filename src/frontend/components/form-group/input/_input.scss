@@ -43,6 +43,7 @@
 
 .input--required label:not(.checkbox-label)::after {
   content: "*";
+  color: $brand-danger;
 }
 
 .input--required.input--file .input__label > label::after {
