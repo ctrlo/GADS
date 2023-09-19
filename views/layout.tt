@@ -1412,6 +1412,7 @@
                           fields = [{
                             type  = "text"
                             label = group.name
+                            filter = "html"
                           }, {
                             type        = "text"
                             label       = ""
