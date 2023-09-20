@@ -559,6 +559,12 @@ class DataTableComponent extends Component {
           self.addSearchDropdown(column, id, index)
         }
       })
+      // If the table has not wrapped (become responsive) then hide the toggle button
+      if (!this.el.hasClass("collapsed")) {
+        if (this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').length) {
+          this.el.closest('.dataTables_wrapper').find('.dataTables_toggle_full_width').hide()
+        }
+      }
     }
 
     conf['drawCallback'] = (settings) => {
