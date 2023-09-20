@@ -18,10 +18,16 @@ const plugins = [
   }),
   new CleanWebpackPlugin(),
   new CopyWebpackPlugin({
-    patterns: [{
-      from: 'node_modules/summernote/dist/font',
-      to: '../css/font'
-    }]
+    patterns: [
+      {
+        from: 'node_modules/summernote/dist/font',
+        to: '../css/font'
+      },
+      {
+        from: '*.json',
+        context: path.resolve(__dirname, "src", "frontend", "js", "lib", "plotly"),
+      }
+    ]
   }),
 ]
 
