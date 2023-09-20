@@ -9,15 +9,18 @@
     "start": "npm-watch"
   },
   "dependencies": {
+    "@egjs/hammerjs": "^2.0.0",
     "@lol768/jquery-querybuilder-no-eval": "^2.6.0",
     "blueimp-file-upload": "^10.32.0",
     "bootstrap": "4.6",
     "bootstrap-datepicker": "^1.9.0",
     "bootstrap-html5sortable": "^1.0.0",
+    "component-emitter": "^1.3.0",
     "datatables.net": "^1.10.25",
     "datatables.net-buttons": "^2.4.2",
     "datatables.net-responsive-bs4": "^2.2.9",
     "datatables.net-rowreorder-bs4": "^1.2.8",
+    "eslint": "^8.49.0",
     "form-serialize": "^0.7.2",
     "handlebars": "^4.7.7",
     "imports-loader": "^1.2.0",
@@ -25,8 +28,11 @@
     "jquery-typeahead": "^2.11.1",
     "jquery-ui-sortable-npm": "^1.0.0",
     "jstree": "^3.3.12",
+    "keycharm": "^0.3.0",
+    "moment": "^2.24.0",
     "npm-run-all": "^4.1.5",
     "popper.js": "^1.16.1",
+    "propagating-hammerjs": "^1.4.0",
     "react": "^16.13.1",
     "react-app-polyfill": "^1.0.6",
     "react-dom": "^16.13.1",
@@ -35,7 +41,10 @@
     "regenerator-runtime": "^0.13.11",
     "summernote": "^0.8.20",
     "tippy.js": "^6.3.7",
-    "vis-timeline": "7.4.3"
+    "uuid": "^7.0.0",
+    "vis-data": "^6.3.0",
+    "vis-timeline": "7.4.3",
+    "vis-util": "^4.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.14.6",
@@ -53,10 +62,15 @@
     "copy-webpack-plugin": "6",
     "core-js": "^3.15.2",
     "css-loader": "^3.2.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-config-problems": "^8.0.0",
+    "eslint-plugin-jsdoc": "^46.8.1",
+    "eslint-plugin-prettier": "^5.0.0",
     "jshint": "^2.11.0",
     "mini-css-extract-plugin": "^2.7.2",
     "npm-watch": "^0.6.0",
     "postcss-loader": "^3.0.0",
+    "prettier": "^3.0.3",
     "prettier-eslint": "^9.0.1",
     "sass": "^1.23.7",
     "sass-loader": "^8.0.0",
@@ -71,7 +85,7 @@
     "webpack": "^5.75.0",
     "webpack-cli": "^5.0.1",
     "webpack-dev-server": "^4.11.1",
-    "webpack-manifest-plugin": "^2.2.0"
+    "webpack-manifest-plugin": "^5.0.0"
   },
   "watch": {
     "roger": {
