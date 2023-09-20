@@ -465,8 +465,9 @@ sub _build_data
                         if $self->group_col;
                 }
                 else {
-                    $values->{label_text}->{$item->{value_label} || '_count'} ||= 0;
-                    $values->{label_text}->{$item->{value_label} || '_count'} += $item->{id_count};
+                    my $label = _to_svg $item->{value_label};
+                    $values->{label_text}->{$label || '_count'} ||= 0;
+                    $values->{label_text}->{$label || '_count'} += $item->{id_count};
                 }
             }
 
