@@ -1277,8 +1277,9 @@
                     data_attr_name    = 'group-id'
                     data_attr_value   = group.id
                     fields = [{
-                      type  = "text"
-                      label = group.name
+                      type   = "text"
+                      label  = group.name
+                      filter = "html"
                     }, {
                       type        = "text"
                       label       = ""
