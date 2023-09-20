@@ -566,12 +566,17 @@ class DataTableComponent extends Component {
       //Re-initialize more-less components after initialisation is complete
       moreLess.reinitialize()
 
+      // (Re)enable wide-table toggle button each time. It is disabled during
+      // any drawing to prevent it being clicked multiple times during a draw
+      this.el.DataTable().button(0).enable();
+
       this.bindClickHandlersAfterDraw(conf)
     }
 
     conf['buttons'] = [
       {
         text: 'Expand table',
+        enabled: false,
         className: 'btn btn-small btn-toggle-off',
         action: function ( e, dt, node, config ) {
           if (self.inFullWidthMode) {
@@ -594,6 +599,8 @@ class DataTableComponent extends Component {
     this.el.removeClass('dtr-column collapsed');
     this.el.DataTable(conf)
     this.el.parent().addClass('data-table__container--scrollable')
+    // See comments above regarding preventing multiple clicks
+    this.el.DataTable().button(0).disable();
     this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').toggleClass(['btn-toggle', 'btn-toggle-off'])
   }
 
@@ -602,6 +609,8 @@ class DataTableComponent extends Component {
     conf.responsive = this.originalResponsiveObj
     this.el.DataTable().destroy();
     this.el.DataTable(conf)
+    // See comments above regarding preventing multiple clicks
+    this.el.DataTable().button(0).disable();
   }
 
   bindClickHandlersAfterDraw(conf) {
