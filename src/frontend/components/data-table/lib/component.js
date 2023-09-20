@@ -571,7 +571,7 @@ class DataTableComponent extends Component {
 
     conf['buttons'] = [
       {
-        text: 'Show all fields',
+        text: 'Expand table',
         className: 'btn btn-small btn-toggle-off',
         action: function ( e, dt, node, config ) {
           if (self.inFullWidthMode) {
