@@ -27,3 +27,8 @@ node_modules/
 /public/css/external.js
 /public/css/general.js
 /public/manifest.json
+
+# Unneccessary files
+webdriver/MYMETA.*
+webdriver/Makefile*
+yarn-error.log
