@@ -1,5 +1,7 @@
 import { Component } from 'component'
-import * as Plotly from 'plotly/plotly-geo-1.38.2'
+import * as Plotly from 'plotly/plotly-geo-2.26.0'
+// Use following line once patches merged upstream
+// import Plotly from 'plotly.js-geo-dist'
 
 class GlobeComponent extends Component {
   constructor(element)  {

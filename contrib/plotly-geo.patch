@@ -1,0 +1,77 @@
+diff --git a/src/plots/attributes.js b/src/plots/attributes.js
+index d297f69d5..07204fae2 100644
+--- a/src/plots/attributes.js
++++ b/src/plots/attributes.js
+@@ -138,6 +138,14 @@ module.exports = {
+             'DOM elements'
+         ].join(' ')
+     },
++    countrycolors: {
++        valType: 'data_array',
++        editType: 'calc',
++        description: [
++            'Assigns a color for countries in a geo plot.',
++            'This is used only for choropleth plot, to stipulate exact colors of countries.',
++        ].join(' ')
++    },
+     meta: {
+         valType: 'any',
+         arrayOk: true,
+diff --git a/src/plots/plots.js b/src/plots/plots.js
+index 2feb453c4..0acb33456 100644
+--- a/src/plots/plots.js
++++ b/src/plots/plots.js
+@@ -1312,6 +1312,7 @@ plots.supplyTraceDefaults = function(traceIn, traceOut, colorIndex, layout, trac
+ 
+     if(visible) {
+         coerce('customdata');
++        coerce('countrycolors');
+         coerce('ids');
+         coerce('meta');
+ 
+diff --git a/src/traces/choropleth/calc.js b/src/traces/choropleth/calc.js
+index 90c43275e..be704650c 100644
+--- a/src/traces/choropleth/calc.js
++++ b/src/traces/choropleth/calc.js
+@@ -26,9 +26,13 @@ module.exports = function calc(gd, trace) {
+     for(var i = 0; i < len; i++) {
+         var calcPt = calcTrace[i] = {};
+         var loc = trace.locations[i];
++        var color = trace.countrycolors[i];
+         var z = trace.z[i];
+ 
+-        if(isValidLoc(loc) && isNumeric(z)) {
++        if (isValidLoc(loc) && isNonBlankString(color)) {
++            calcPt.loc = loc;
++            calcPt.z = BADNUM;
++        } else if (isValidLoc(loc) && isNumeric(z)) {
+             calcPt.loc = loc;
+             calcPt.z = z;
+         } else {
+diff --git a/src/traces/choropleth/style.js b/src/traces/choropleth/style.js
+index cbf27d7a8..5dda65483 100644
+--- a/src/traces/choropleth/style.js
++++ b/src/traces/choropleth/style.js
+@@ -19,8 +19,9 @@ function styleTrace(gd, calcTrace) {
+     var sclFunc = Colorscale.makeColorScaleFuncFromTrace(trace);
+ 
+     locs.each(function(d) {
++        var color = d.countrycolor ? d.countrycolor : sclFunc(d.z);
+         d3.select(this)
+-            .attr('fill', sclFunc(d.z))
++            .attr('fill', color)
+             .call(Color.stroke, d.mlc || markerLine.color)
+             .call(Drawing.dashLine, '', d.mlw || markerLine.width || 0)
+             .style('opacity', marker.opacity);
+diff --git a/src/traces/scatter/arrays_to_calcdata.js b/src/traces/scatter/arrays_to_calcdata.js
+index 94dfbd068..c86593db5 100644
+--- a/src/traces/scatter/arrays_to_calcdata.js
++++ b/src/traces/scatter/arrays_to_calcdata.js
+@@ -12,6 +12,7 @@ module.exports = function arraysToCalcdata(cd, trace) {
+     Lib.mergeArray(trace.texttemplate, cd, 'txt');
+     Lib.mergeArray(trace.hovertext, cd, 'htx');
+     Lib.mergeArray(trace.customdata, cd, 'data');
++    Lib.mergeArray(trace.countrycolors, cd, 'countrycolor');
+     Lib.mergeArray(trace.textposition, cd, 'tp');
+     if(trace.textfont) {
+         Lib.mergeArrayCastPositive(trace.textfont.size, cd, 'ts');
