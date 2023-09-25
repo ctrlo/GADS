@@ -9,7 +9,11 @@ class RecordPopupComponent extends Component {
   }
 
   initRecordPopup() {
-    $(this.element).on('click', (ev) => { this.handleClick(ev) })
+    $(this.element).on('click keydown', (ev) => {
+      if (ev.type === 'click' || (ev.type === 'keydown' && (ev.which === 13 || ev.which === 32))) {
+        this.handleClick(ev)
+      })
+    }
   }
 
   handleClick(ev) {

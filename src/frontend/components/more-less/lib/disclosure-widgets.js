@@ -89,7 +89,12 @@ const onDisclosureMouseout = function(e) {
 }
 
 const setupDisclosureWidgets = function(context) {
-  $('.trigger[aria-expanded]', context).on('click', onDisclosureClick)
+  $('.trigger[aria-expanded]', context).on('click keydown', function(ev) {
+    if (ev.type === 'click' || (ev.type === 'keydown' && (ev.which === 13 || ev.which === 32))) {
+      ev.preventDefault();
+      onDisclosureClick.call(this, ev);
+    }
+  });
 
   // Also show/hide disclosures on hover for widgets with the data-expand-on-hover attribute set to true
   $('.trigger[aria-expanded][data-expand-on-hover=true]', context).on('mouseover', onDisclosureMouseover)
