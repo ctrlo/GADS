@@ -19,13 +19,17 @@ class PopoverComponent extends Component {
 
       this.popover.removeClass(this.strShowClassName)
       this.arrow.removeClass(this.strShowClassName)
-      button.click( (ev) => { this.handleClick(ev) })
+      button.on('click keydown', (ev) => {
+        if (ev.type === 'click' || (ev.type === 'keydown' && (ev.which === 13 || ev.which === 32))) {
+          ev.preventDefault()
+          this.handleClick(ev) }
+        })
   }
 
   handleClick(ev) {
     const target = $(ev.target)
-
     this.togglePopover()
+    ev.stopPropagation();
 
     // TODO: add listener to document when clicking outside the popover to close it
     // (disabled for now because it caused errors)
