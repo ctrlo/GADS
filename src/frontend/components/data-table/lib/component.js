@@ -366,12 +366,14 @@ class DataTableComponent extends Component {
         })
         thisHTML +=  `</div>`
         strHTML += (
-          `<button class="btn btn-small btn-inverted btn-info trigger" aria-expanded="false" type="button">
-            ${this.encodeHTMLEntities(value.text)}
-            <span class="invisible">contact details</span>
-          </button>
-          <div class="person contact-details expandable popover card card--secundary">
-            ${thisHTML}
+          `<div class="position-relative">
+            <button class="btn btn-small btn-inverted btn-info trigger" aria-expanded="false" type="button">
+              ${this.encodeHTMLEntities(value.text)}
+              <span class="invisible">contact details</span>
+            </button>
+            <div class="person contact-details expandable popover card card--secundary">
+              ${thisHTML}
+            </div>
           </div>`
         )
       }
