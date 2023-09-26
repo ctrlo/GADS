@@ -600,16 +600,39 @@ class DataTableComponent extends Component {
   }
 
   expandTable(conf) {
+    const self = this
     this.originalResponsiveObj = conf.responsive
     this.inFullWidthMode = true
     conf.responsive = false
     this.el.DataTable().destroy();
     this.el.removeClass('dtr-column collapsed');
     this.el.DataTable(conf)
-    this.el.parent().addClass('data-table__container--scrollable')
+
+    const dataTableContainer = this.el.parent();
+    dataTableContainer.addClass('data-table__container--scrollable')
     // See comments above regarding preventing multiple clicks
     this.el.DataTable().button(0).disable();
     this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').toggleClass(['btn-toggle', 'btn-toggle-off'])
+
+    //calculate height of table
+    this.setTableContainerHeight(dataTableContainer)
+      
+    $(window).on( "resize", function() {
+      self.setTableContainerHeight(dataTableContainer)
+    } );
+  }
+
+  setTableContainerHeight(dataTableContainer) {
+    const offsetTop = dataTableContainer.offset().top;
+    const viewportHeight = window.innerHeight;
+    const offsetBottom = 110; //the offset from the bottom of the viewport to the bottom of the table
+    const availableHeight = viewportHeight - offsetTop;
+    
+    dataTableContainer.height('initial')
+
+    if ((dataTableContainer.height() + offsetBottom) > availableHeight) {
+      dataTableContainer.height(availableHeight - offsetBottom);
+    }
   }
 
   collapseTable(conf) {

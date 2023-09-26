@@ -8,8 +8,13 @@
     @include visually-hidden;
   }
 
+  thead {
+    background-color: $white;
+    z-index: 1;
+  }
+
   thead th {
-    border-bottom-width: 3px;
+    border-bottom: 1px solid $gray;
     text-transform: uppercase;
     vertical-align: top;
 
@@ -72,7 +77,12 @@ table.dataTable thead .sorting_disabled {
 }
 
 .data-table__container--scrollable {
-  overflow-x: scroll;
+  overflow: auto;
+
+  thead {
+    position: sticky;
+    top: 0;
+  }
 }
 
 .dataTables_info_wrapper {
