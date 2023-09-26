@@ -1,10 +1,10 @@
-FROM perl:5.30.0-stretch
+FROM perl
 
 RUN mkdir -p /gads
 WORKDIR /gads
 EXPOSE 8080
 
-RUN apt update && apt install -y liblua5.3-dev ssmtp mailutils wait-for-it chromium nano libmagic-dev
+RUN apt-get update && apt-get install -y liblua5.3-dev ssmtp mailutils wait-for-it chromium nano libmagic-dev
 
 COPY Makefile.PL /gads
 RUN cpanm --notest $(perl -wE 'our %prereq_pm; require "/gads/Makefile.PL"; print join " ", sort keys %prereq_pm')
