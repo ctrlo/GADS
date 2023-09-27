@@ -420,6 +420,8 @@ class DataTableComponent extends Component {
       strRagType = 'blank'
     }
 
+    const text = $('#rag_' + strRagType + '_meaning').text();
+
     return `<span class="rag rag--${strRagType}" title="${strRagType}" aria-labelledby="rag_${strRagType}_meaning"><span>✗</span></span>`
   }
 
