@@ -54,8 +54,15 @@ class ButtonComponent extends Component {
       const $btn = $(ev.target)
 
       if ($btn.closest('.table-curval-group').length) {
+        //WEHERE
         if (confirm("Are you sure want to permanently remove this item?")) {
-          $btn.closest(".table-curval-item").remove()
+          const item = $btn.closest(".table-curval-item");
+          const tbody= item.closest(".table-curval-group").parent();
+          item.remove();
+          const bodyChildren = tbody.children(".odd");
+          for(let i=0;i<bodyChildren.length;i++) {
+            console.log(i + " = " + JSON.stringify(bodyChildren[i]))
+          }
         } else {
           e.preventDefault()
         }
@@ -65,7 +72,7 @@ class ButtonComponent extends Component {
 
         $current.find(`li[data-list-item=${fieldId}]`).remove()
         $btn.closest(".answer").remove()
-        
+
         const $visible = $current.children("[data-list-item]:not([hidden])")
         $current.toggleClass("empty", $visible.length === 0)
       }

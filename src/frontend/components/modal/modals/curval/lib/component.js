@@ -138,6 +138,10 @@ class CurvalModalComponent extends ModalComponent {
       const selectWidgetComponent = new SelectWidgetComponent($widget[0])
     }
 
+    if(!$('.dataTables_empty').hasClass("hidden")) {
+      $('.dataTables_empty').addClass("hidden");
+    }
+
     $(this.element).modal('hide')
   };
 
