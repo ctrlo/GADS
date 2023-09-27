@@ -125,7 +125,7 @@
           [% description = h.description; %]
         [% END %]
     [% END %]
-    <span class="rag rag--[% grade %]" title="[% description %]" aria-labelledby="rag_[% grade %]_meaning">
+    <span class="rag rag--[% grade %]" title="[% description | html %]" aria-labelledby="rag_[% grade %]_meaning">
       <span>[% rag_symbols.$grade %]</span>
     </span>
 [% END %]
