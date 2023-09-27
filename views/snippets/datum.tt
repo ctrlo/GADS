@@ -119,7 +119,13 @@
       grade = rag.grade ? rag.grade : 'blank';
       grade = rag_keys_ordered.grep("^$grade\$").size ? grade : 'blank';
     %]
-    <span class="rag rag--[% grade %]" title="[% grade %]" aria-labelledby="rag_[% grade %]_meaning">
+    [% #this feels hacky - better way possible?? %]
+    [% FOREACH h IN layout.enabled_rags %]
+        [% IF h.rag == grade %]
+          [% description = h.description; %]
+        [% END %]
+    [% END %]
+    <span class="rag rag--[% grade %]" title="[% description %]" aria-labelledby="rag_[% grade %]_meaning">
       <span>[% rag_symbols.$grade %]</span>
     </span>
 [% END %]
