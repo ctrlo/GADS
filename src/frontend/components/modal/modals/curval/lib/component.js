@@ -74,6 +74,12 @@ class CurvalModalComponent extends ModalComponent {
         hidden.closest(".table-curval-item").replaceWith(row_cells)
       } else {
         $(`#curval_list_${col_id}`).find("tbody").prepend(row_cells)
+        $(`#curval_list_${col_id}`).find("tbody").find(".dataTables_empty").each(function() {
+          let element = $(this)
+          if(!element.is(":hidden")) {
+            element.toggle();
+          }
+        });
       }
     } else {
       const $widget = $formGroup.find(".select-widget").first()
@@ -136,10 +142,6 @@ class CurvalModalComponent extends ModalComponent {
       /* Reinitialize widget */
       initializeRegisteredComponents($formGroup[0])
       const selectWidgetComponent = new SelectWidgetComponent($widget[0])
-    }
-
-    if(!$('.dataTables_empty').hasClass("hidden")) {
-      $('.dataTables_empty').addClass("hidden");
     }
 
     $(this.element).modal('hide')

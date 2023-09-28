@@ -54,17 +54,16 @@ class ButtonComponent extends Component {
       const $btn = $(ev.target)
 
       if ($btn.closest('.table-curval-group').length) {
-        //WEHERE
         if (confirm("Are you sure want to permanently remove this item?")) {
-          const item = $btn.closest(".table-curval-item");
-          const tbody= item.closest(".table-curval-group").parent();
-          item.remove();
-          const bodyChildren = tbody.children(".odd");
-          for(let i=0;i<bodyChildren.length;i++) {
-            console.log(i + " = " + JSON.stringify(bodyChildren[i]))
+          const curvalItem=$btn.closest(".table-curval-item");
+          curvalItem.remove();
+          if($(".data-table tbody tr").length==1) {
+            if($('.dataTables_empty').hasClass("hidden")) {
+              $('.dataTables_empty').removeClass("hidden");
+            }
           }
         } else {
-          e.preventDefault()
+          ev.preventDefault()
         }
       } else if ($btn.closest('.select-widget').length) {
         const fieldId = $btn.closest(".answer").find("input").prop("id")
