@@ -186,11 +186,22 @@ class ButtonComponent extends Component {
   }
 
   submitRecord(ev) {
-    const $button = $(ev.target).closest('button')
+    console.log("Submit record!");
+
+    const parent = $(ev.target).parent();
+    let $submit_button;
+    if (parent) {
+      parent.children(':submit').each(function () {
+        $submit_button = $(this);
+      });
+    }
+
+    const $button = $submit_button ? $submit_button : $(ev.target).closest('button');
     const $form = $button.closest("form")
     const $requiredHiddenRecordDependentFields = $form.find(".form-group[data-has-dependency='1'][style*='display: none'] *[aria-required]")
 
     if (!this.requiredHiddenRecordDependentFieldsCleared) {
+      console.log('!this.requiredHiddenRecordDependentFieldsCleared');
       ev.preventDefault()
       
       // Remove the required attribute from hidden required dependent fields
@@ -199,11 +210,13 @@ class ButtonComponent extends Component {
     }
 
     if (!this.canSubmitRecordForm) {
+      console.log('!this.canSubmitRecordForm');
       ev.preventDefault()
 
       const isValid = validateRequiredFields($form)
 
       if (isValid) {
+        console.log('isValid');
         this.canSubmitRecordForm = true
         $button.trigger('click')
         // Prevent double-submission
@@ -218,6 +231,7 @@ class ButtonComponent extends Component {
           );
         }
       } else {
+        console.log('!isValid')
         // Re-add the required attribute to required dependent fields
         $requiredHiddenRecordDependentFields.attr('required', '')
         this.requiredHiddenRecordDependentFieldsCleared = false
