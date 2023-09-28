@@ -56,10 +56,12 @@ class ButtonComponent extends Component {
       if ($btn.closest('.table-curval-group').length) {
         if (confirm("Are you sure want to permanently remove this item?")) {
           const curvalItem=$btn.closest(".table-curval-item");
+          const parent = curvalItem.parent();
           curvalItem.remove();
-          if($(".data-table tbody tr").length==1) {
-            if($('.dataTables_empty').hasClass("hidden")) {
-              $('.dataTables_empty').removeClass("hidden");
+          if(parent && parent.children().length==1) {
+            const child = parent.children('.odd').children('.dataTables_empty');
+            if(child.is(':hidden')) {
+              child.show();
             }
           }
         } else {
