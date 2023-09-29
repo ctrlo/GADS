@@ -1,7 +1,7 @@
 import { Component } from 'component'
-import { logging } from 'logging'
 import { MoreInfoButton } from './more-info-button'
 import { validateRequiredFields } from 'validation'
+import { logging } from '../../../js/lib/logging'
 
 class ButtonComponent extends Component {
   constructor(element)  {
@@ -13,38 +13,50 @@ class ButtonComponent extends Component {
   }
 
   initButton() {
+    const id = this.el.attr('id')? this.el.attr('id') : this.el.attr('data-id')? this.el.attr('data-id') : this.el.innerHTML? this.el.innerHTML : JSON.stringify(this.el);
+
     switch (true) {
       case this.el.hasClass('btn-js-more-info'):
+        logging.info('Initializing more info button - ' + id)
         const moreInfoButton = new MoreInfoButton(this.el)
         break
       case this.el.hasClass('btn-js-delete'):
+        logging.info('Initializing delete button' + id)
         this.initDelete()
         break
       case this.el.hasClass('btn-js-submit-field'):
+        logging.info('Initializing submit field button' + id)
         this.initSubmitField()
         break
       case this.el.hasClass('btn-js-submit-draft-record'):
+        logging.info('Initializing submit draft record button' + id)
         this.initSubmitDraftRecord()
         break
       case this.el.hasClass('btn-js-submit-record'):
+        logging.info('Initializing submit record button' + id)
         this.initSubmitRecord()
         break
       case this.el.hasClass('btn-js-save-view'):
+        logging.info('Initializing save view button'+ id)
         this.initSaveView()
         break
       case this.el.hasClass('btn-js-show-blank'):
+        logging.info('Initializing show blank button'+ id)
         this.initShowBlank()
         break
       case this.el.hasClass('btn-js-curval-remove'):
+        logging.info('Initializing curval remove button'+ id)
         this.initRemoveCurval()
         break
     }
 
     if (this.el.hasClass('btn-js-remove-unload')) {
+      logging.info('Initializing remove unload button'+ id)
       this.initRemoveUnload()
     }
 
     if (this.el.hasClass('btn-js-calculator')) {
+      logging.info('Initializing calculator button'+ id)
       this.initCalculator()
     }
   }
@@ -186,22 +198,11 @@ class ButtonComponent extends Component {
   }
 
   submitRecord(ev) {
-    console.log("Submit record!");
-
-    const parent = $(ev.target).parent();
-    let $submit_button;
-    if (parent) {
-      parent.children(':submit').each(function () {
-        $submit_button = $(this);
-      });
-    }
-
-    const $button = $submit_button ? $submit_button : $(ev.target).closest('button');
+    const $button = $(ev.target).closest('button');
     const $form = $button.closest("form")
     const $requiredHiddenRecordDependentFields = $form.find(".form-group[data-has-dependency='1'][style*='display: none'] *[aria-required]")
 
     if (!this.requiredHiddenRecordDependentFieldsCleared) {
-      console.log('!this.requiredHiddenRecordDependentFieldsCleared');
       ev.preventDefault()
       
       // Remove the required attribute from hidden required dependent fields
@@ -210,13 +211,11 @@ class ButtonComponent extends Component {
     }
 
     if (!this.canSubmitRecordForm) {
-      console.log('!this.canSubmitRecordForm');
       ev.preventDefault()
 
       const isValid = validateRequiredFields($form)
 
       if (isValid) {
-        console.log('isValid');
         this.canSubmitRecordForm = true
         $button.trigger('click')
         // Prevent double-submission
@@ -231,7 +230,6 @@ class ButtonComponent extends Component {
           );
         }
       } else {
-        console.log('!isValid')
         // Re-add the required attribute to required dependent fields
         $requiredHiddenRecordDependentFields.attr('required', '')
         this.requiredHiddenRecordDependentFieldsCleared = false
