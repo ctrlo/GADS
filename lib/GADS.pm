@@ -140,7 +140,9 @@ config->{plugins}->{'Auth::Extensible'}->{denied_page} = '403';
     $_->create_internal_columns foreach @{$instances->all};
 }
 
-my $password_generator = CtrlO::Crypt::XkcdPassword->new;
+my $password_generator = CtrlO::Crypt::XkcdPassword->new(
+    wordlist => 'CtrlO::Crypt::XkcdPassword::Wordlist::eff_large'
+);
 
 sub _update_csrf_token
 {   session csrf_token => Session::Token->new(length => 32)->get;
