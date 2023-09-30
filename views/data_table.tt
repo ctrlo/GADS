@@ -78,6 +78,10 @@
         col_counter = col_counter + 1;
       END;
     
+      IF aggregate;
+        add_blank_footer = 1;
+      END;
+
       INCLUDE tables/basic_table.tt;
     %]
   </div>

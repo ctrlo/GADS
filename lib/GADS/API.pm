@@ -1248,6 +1248,14 @@ sub _get_records {
         $return->{recordsFiltered}       = $count;
     }
 
+    if (my $agg = $records->aggregate_results)
+    {
+        my $data;
+        $data->{$_->id} = $agg->fields->{$_->id}->for_table
+            foreach @{$records->columns_render};
+        $return->{aggregate} = $data;
+    }
+
     content_type 'application/json; charset=UTF-8';
     return encode_json $return;
 };

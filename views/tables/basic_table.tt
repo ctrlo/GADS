@@ -212,4 +212,21 @@
     END;
   %]
   </tbody>
+  [%
+    IF add_blank_footer;
+      footer_row = {
+      fields = []
+      };
+      FOREACH column in config_columns;
+        footer_row.fields.push({
+          label  = ''
+        });
+      END;
+    END;
+  %]
+  [% IF footer_row %]
+    <tfoot>
+      [% INCLUDE tables/basic_row.tt row=footer_row %]
+    </tfoot>
+  [% END %]
 </table>

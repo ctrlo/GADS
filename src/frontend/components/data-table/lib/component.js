@@ -338,10 +338,12 @@ class DataTableComponent extends Component {
 
   renderId(data) {
     let retval = ''
+    let id = data.values[0]
+    if (!id) return retval
     if (data.parent_id) {
       retval = `<span title="Child record with parent record ${data.parent_id}">${data.parent_id} &#8594;</span> `
     }
-    return retval + `<a href="${this.base_url}/${data.values[0]}">${data.values[0]}</a>`
+    return retval + `<a href="${this.base_url}/${id}">${id}</a>`
   }
 
   renderPerson(data) {
@@ -568,6 +570,24 @@ class DataTableComponent extends Component {
         if (this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').length) {
           this.el.closest('.dataTables_wrapper').find('.dataTables_toggle_full_width').hide()
         }
+      }
+    }
+
+    conf['footerCallback'] = function( tfoot, data, start, end, display ) {
+      var api = this.api()
+      // Add aggregate values to table if configured
+      var agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate
+      if (agg) {
+        var cols = api.settings()[0].oAjaxData.columns
+        api.columns().every( function () {
+          let idx = this.index()
+          const name = cols[idx].name
+          if (agg[name]) {
+            $(this.footer()).html(
+              self.renderDataType(agg[name])
+            )
+          }
+        })
       }
     }
 
