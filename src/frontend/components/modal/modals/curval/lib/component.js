@@ -249,7 +249,7 @@ class CurvalModalComponent extends ModalComponent {
     const self = this
 
     if(this.element.getAttribute('listener')) {
-      console.log("listener already set up");
+      logging.info("listener already set up");
       return;
     }
 
