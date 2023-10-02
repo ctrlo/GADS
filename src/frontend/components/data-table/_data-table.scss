@@ -28,6 +28,11 @@
     }
   }
 
+  tfoot {
+    background-color: $table-hover-bg;
+    font-weight: bold;
+  }
+
   &.table-lines th,
   &.table-lines td {
     border-top: 0;

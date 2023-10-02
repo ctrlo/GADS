@@ -58,6 +58,7 @@ sub _build_for_code
 sub for_table
 {   my $self = shift;
     my $return = $self->for_table_template;
+    $return->{type} = 'count';
     $return->{values} = [$self->as_string];
     $return;
 }

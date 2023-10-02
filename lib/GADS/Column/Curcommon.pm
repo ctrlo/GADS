@@ -617,7 +617,7 @@ sub values_beginning_with
         if $self->override_permissions;
     my $records = GADS::Records->new(
         user    => $self->layout->user,
-        rows    => 10,
+        rows    => 20,
         view    => $view,
         layout  => $self->layout_parent,
         schema  => $self->schema,
