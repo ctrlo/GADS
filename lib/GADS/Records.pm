@@ -1616,7 +1616,7 @@ sub _build_columns_selected
         # If a grouped view, then remove columns that are not set to
         # specifically be shown in a grouped view
         # (for performance reasons).
-        @cols = grep { !$view->is_group || $_->group_display || $self->has_group_col_id->{$_->id} } @cols
+        @cols = grep { !$self->is_group || $_->group_display || $self->has_group_col_id->{$_->id} } @cols
             unless @{$self->additional_filters};
     }
     else {
@@ -1635,9 +1635,9 @@ sub _build_columns_render
         # If in the normal grouped view, then move the grouped columns first in
         # the order selected
         @cols = grep !$self->has_group_col_id->{$_->id}, @cols
-            if $self->view->is_group;
+            if $self->is_group;
         unshift @cols, grep $_->user_can('read'), map $self->layout->column($_), @{$self->group_col_ids}
-            if $self->view->is_group;
+            if $self->is_group;
     }
 
     unshift @cols, $self->layout->column_id
