@@ -129,6 +129,16 @@ sub record_name_with_article
 {   A shift->record_name;
 }
 
+# Whether to show the add record button on this table. It is not shown if this
+# table is referred to by another table's curval which has an add button,
+# unless the current user has manage fields permission on this table.
+sub show_add_record
+{   my $self = shift;
+    return 1 if $self->user_can('layout');
+    return 0 if grep $self->column($_->id)->show_add, @{$self->referred_by};
+    1;
+}
+
 has site => (
     is      => 'ro',
     lazy    => 1,
