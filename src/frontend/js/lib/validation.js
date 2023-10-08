@@ -104,21 +104,21 @@ const validateRequiredFields = (form) => {
 
   form.find(".input--required:not(.input--document), .textarea--required, .select--required").each((i, field) => {
     if (!validateInput($(field))) {
-      expandCard(field)
+      expandCardValidate(field)
       isValidForm = false
     }
   })
 
   form.find(".input--document.input--required").each((i, field) => {
     if (!validateCheckboxGroup($(field).closest('.fieldset').find('.list'))) {
-      expandCard(field)
+      expandCardValidate(field)
       isValidForm = false
     }
   })
 
   form.find(".radio-group--required").each((i, field) => {
     if (!validateRadioGroup($(field))) {
-      expandCard(field)
+      expandCardValidate(field)
       isValidForm = false
     }
   })
@@ -126,12 +126,12 @@ const validateRequiredFields = (form) => {
   form.find(".select-widget--required").each((i, field) => {
     if (!$(field).hasClass('multi')) {
       if (!validateRadioGroup($(field))) {
-        expandCard(field)
+        expandCardValidate(field)
         isValidForm = false
       }
     } else {
       if (!validateCheckboxGroup($(field))) {
-        expandCard(field)
+        expandCardValidate(field)
         isValidForm = false
       }
     }
@@ -279,9 +279,22 @@ const validateTree = (field) => {
   }
 }
 
-// Expand the card with a certain field
-const expandCard = (field) => {
-  $(field).closest('.card--expandable').find('.collapse').collapse('show')
+// Expand the card with a certain field and scroll it into view
+const expandCardValidate = (field) => {
+  const $collapse = $(field).closest('.card--expandable').find('.collapse')
+  // If the card is already expanded then just scroll straight to the field
+  if ($collapse.hasClass('show')) {
+      field.scrollIntoView()
+  } else {
+    // Otherwise add an event handler to scroll to the field, but only once the
+    // card has finished expanding (otherwise the scroll will happen before
+    // the card has finished expanding and it won't work)
+    $collapse.on('shown.bs.collapse.foobar', function(){
+      field.scrollIntoView()
+      $(this).off('shown.bs.collapse.foobar');
+    })
+    $collapse.collapse('show')
+  }
 }
 
 export { initValidationOnField, validateTree, validateRadioGroup, validateCheckboxGroup, validateRequiredFields };
