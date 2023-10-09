@@ -85,3 +85,18 @@ h3 {
     display: block;
   }
 }
+
+table.table-bordered {
+  border: solid 1px $gray;
+  thead>tr>th,
+  tbody>tr>td {
+    border: solid 1px $gray;
+  }
+}
+
+#preview {
+  box-shadow: $box-shadow-dark;
+  padding: 10px;
+  margin-bottom: 1.2em;
+  border: $input-border;
+}
