@@ -17,7 +17,7 @@
 
       <div class="content-block__main-content">
         <div class="row">
-          <div class="col-7">
+          <div class="col">
             <div class="card card--primary mb-3">
               <div class="card__content">
                 [%
@@ -41,7 +41,71 @@
                       value = topic.description
                       filter = "html"
                       help_text = "Use Markdown for formatting"
-                      rows = 5;
+                      rows = 5
+                      popover_body = '<table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Markdown</th>
+                <th>HTML</th>
+            </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>
+                <pre># Heading 1</pre>
+            </td>
+            <td>
+                <h1>Heading 1</h1>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <pre>## Heading 2</pre>
+            </td>
+            <td>
+                <h2>Heading 2</h2>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <pre>- bullet
+- bullet
+  - bullet
+  - bullet</pre>
+            </td>
+            <td>
+                <ul>
+                    <li>bullet</li>
+                    <li>bullet
+                        <ul>
+                            <li>bullet</li>
+                            <li>bullet</li>
+                        </ul>
+                    </li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <pre>*italic*</pre>
+            </td>
+            <td><em>italic</em></td>
+        </tr>
+        <tr>
+            <td>
+                <pre>**bold**</pre>
+            </td>
+            <td><strong>bold</strong></td>
+        </tr>
+        <tr>
+            <td>
+                <pre>[link](https://www.google.com)</pre>
+            </td>
+            <td><a href="https://www.google.com">link</a></td>
+        </tr>
+        </tbody>
+    </table>'
+                      popover_title = "Markdown Help";
                   %]
                   <div class="textarea__label">
                     <label for="preview"><strong>Preview</strong></label>
@@ -63,9 +127,6 @@
                 %]
               </div>
             </div>
-          </div>
-          <div class="col-5">
-            [% INCLUDE snippets/markdown.tt %]
           </div>
         </div>
       </div>
