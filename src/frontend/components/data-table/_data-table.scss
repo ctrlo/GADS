@@ -271,3 +271,12 @@ div.dataTables_wrapper div.dataTables_filter input.form-control {
     justify-content: flex-start;
   }
 }
+
+div.dataTables_processing {
+  top: 10rem !important;
+  left: 50%;
+  width: 200px;
+  text-align: center;
+  padding: 2px;
+  position: relative;
+}
