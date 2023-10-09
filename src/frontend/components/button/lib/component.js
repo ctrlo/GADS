@@ -221,16 +221,6 @@ class ButtonComponent extends Component {
         // Re-add the required attribute to required dependent fields
         $requiredHiddenRecordDependentFields.attr('required', '')
         this.requiredHiddenRecordDependentFieldsCleared = false
-
-        //scroll to first invalid input element
-        const invalidFields = $form.find('.invalid')
-        if (invalidFields.length) {
-          if (invalidFields[0].closest('.fieldset--invalid')) {
-            invalidFields[0].closest('.fieldset--invalid').scrollIntoView()
-          } else {
-            invalidFields[0].scrollIntoView()
-          }
-        } 
       }
     }
   }

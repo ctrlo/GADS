@@ -4,13 +4,15 @@
   <div class="content-block__info col-lg-6"></div>
   
   <div class="content-block__aside col-lg-6">
-    <a href="[% url.page %]/[% layout.identifier %]/record/" class="btn btn-add">
-      [% IF user.has_draft(layout.instance_id) %]
-        Continue draft record
-      [% ELSE %]
-        Add [% layout.record_name_with_article | html %]
-      [% END %]
-    </a>
+    [% IF layout.show_add_record %]
+      <a href="[% url.page %]/[% layout.identifier %]/record/" class="btn btn-add">
+        [% IF user.has_draft(layout.instance_id) %]
+          Continue draft record
+        [% ELSE %]
+          Add [% layout.record_name_with_article | html %]
+        [% END %]
+      </a>
+    [% END %]
   </div>
 </div>
 
