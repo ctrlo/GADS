@@ -272,11 +272,6 @@ div.dataTables_wrapper div.dataTables_filter input.form-control {
   }
 }
 
-div.dataTables_processing {
-  top: 10rem !important;
-  left: 50%;
-  width: 200px;
-  text-align: center;
-  padding: 2px;
-  position: relative;
+div.dataTables_wrapper div.dataTables_processing {
+  top: 10rem;
 }
