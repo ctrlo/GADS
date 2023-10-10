@@ -72,29 +72,9 @@
     top: 1.5rem;
     max-width: 100%;
     margin-top: 0.375rem;
-    overflow-y: scroll;
+    overflow-y: auto;
     border-color: $brand-secundary;
     max-height: 15rem;
-
-    &::-webkit-scrollbar {
-      width: 0.5rem;
-    }
-
-    &::-webkit-scrollbar-track {
-      background-color: $white;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background-color: $brand-secundary;
-    }
-
-    &::-webkit-scrollbar-corner {
-      background-color: transparent;
-    }
-
-    &::-webkit-scrollbar-button {
-      display: none;
-    }
   }
 
   .popover.show {

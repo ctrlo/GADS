@@ -12,6 +12,12 @@ class MarkdownComponent extends Component {
 
     const $textArea = $(this.element).find("#description");
     const $preview = $(this.element).find("#preview");
+    $().ready(() => {
+      if ($textArea.val() !== "") {
+        const htmlText = marked($textArea.val());
+        $preview.html(htmlText);
+      }
+    });
     $textArea.keyup(() => {
       const markdownText = $textArea.val();
       if (!markdownText || markdownText === "") {
