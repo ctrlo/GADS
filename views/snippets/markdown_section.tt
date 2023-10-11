@@ -1,0 +1,8 @@
+<div class="form-group">
+    <div class="textarea__label">
+        <label for="preview"><strong>[% IF label; label; ELSE %]Preview[% END; %]</strong></label>
+    </div>
+    <div class="js-markdown-preview form-control">
+        <p class="text-info">Nothing to preview!</p>
+    </div>
+</div>

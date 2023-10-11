@@ -10,8 +10,8 @@ class MarkdownComponent extends Component {
   initMarkdownEditor() {
     marked.use({ breaks: true });
 
-    const $textArea = $(this.element).find("#description");
-    const $preview = $(this.element).find("#preview");
+    const $textArea = $(this.element).find(".js-markdown-input");
+    const $preview = $(this.element).find(".js-markdown-preview");
     $().ready(() => {
       if ($textArea.val() !== "") {
         const htmlText = marked($textArea.val());

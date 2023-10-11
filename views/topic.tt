@@ -44,14 +44,11 @@
                       help_text = "Use Markdown for formatting"
                       rows = 5
                       popover_body = $help
-                      popover_title = "Markdown Help";
+                      popover_title = "Markdown Help"
+                      custom_classes = "js-markdown-input";
                   %]
-                  <div class="textarea__label">
-                    <label for="preview"><strong>Description Preview</strong></label>
-                  </div>
-                  <div id="preview">
-                    <p class="text-info">Nothing to preview!</p>
-                  </div>
+                  [% INCLUDE snippets/markdown_section.tt
+                        label = "Description Preview" %]
                 </div>
                 [%
                   INCLUDE fields/switch_single.tt
