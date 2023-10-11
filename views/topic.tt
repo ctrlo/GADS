@@ -22,44 +22,44 @@
               <div class="card__content">
                 [%
                   INCLUDE fields/input.tt
-                    id          = "name"
-                    name        = "name"
-                    label       = "Name of topic"
-                    placeholder = "Name of topic"
-                    value       = topic.name
-                    type        = "text"
-                    filter      = "html"
-                    is_required = 1
-                    autofocus   = 1;
+                    id               = "name"
+                    name             = "name"
+                    label            = "Name of topic"
+                    placeholder      = "Name of topic"
+                    value            = topic.name
+                    type             = "text"
+                    filter           = "html"
+                    is_required      = 1
+                    autofocus        = 1;
                 %]
                 <div class="js-markdown-section">
                   [%
                     $help = INCLUDE snippets/markdown.tt;
                     INCLUDE fields/textarea.tt
-                      id = "description"
-                      name = "description"
-                      label = "Description"
-                      value = topic.description
-                      filter = "html"
-                      help_text = "Use Markdown for formatting"
-                      rows = 5
-                      popover_body = $help
-                      popover_title = "Markdown Help"
+                      id             = "description"
+                      name           = "description"
+                      label          = "Description"
+                      value          = topic.description
+                      filter         = "html"
+                      help_text      = "Use Markdown for formatting"
+                      rows           = 5
+                      popover_body   = $help
+                      popover_title  = "Markdown Help"
                       custom_classes = "js-markdown-input";
                   %]
                   [% INCLUDE snippets/markdown_section.tt
-                        label = "Description Preview" %]
+                        label        = "Description Preview" %]
                 </div>
                 [%
                   INCLUDE fields/switch_single.tt
-                    id            = "initial_state"
-                      name          = "initial_state"
-                      label         = "Initial state of  topic's fields when editing"
-                      placeholder   = "Expanded"
-                      fieldset_name = "switch-expanded"
-                      value         = "open"
-                      checked       = topic.initial_state == "collapsed" ? 0 : 1
-                      filter        = "html";
+                    id               = "initial_state"
+                      name           = "initial_state"
+                      label          = "Initial state of  topic's fields when editing"
+                      placeholder    = "Expanded"
+                      fieldset_name  = "switch-expanded"
+                      value          = "open"
+                      checked        = topic.initial_state == "collapsed" ? 0 : 1
+                      filter         = "html";
                 %]
               </div>
             </div>
