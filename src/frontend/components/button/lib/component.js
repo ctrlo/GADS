@@ -55,9 +55,14 @@ class ButtonComponent extends Component {
 
       if ($btn.closest('.table-curval-group').length) {
         if (confirm("Are you sure want to permanently remove this item?")) {
-          $btn.closest(".table-curval-item").remove()
+          const curvalItem=$btn.closest(".table-curval-item");
+          const parent = curvalItem.parent();
+          curvalItem.remove();
+          if(parent && parent.children().length==1) {
+            parent.children('.odd').children('.dataTables_empty').show();
+          }
         } else {
-          e.preventDefault()
+          ev.preventDefault()
         }
       } else if ($btn.closest('.select-widget').length) {
         const fieldId = $btn.closest(".answer").find("input").prop("id")
@@ -65,7 +70,7 @@ class ButtonComponent extends Component {
 
         $current.find(`li[data-list-item=${fieldId}]`).remove()
         $btn.closest(".answer").remove()
-        
+
         const $visible = $current.children("[data-list-item]:not([hidden])")
         $current.toggleClass("empty", $visible.length === 0)
       }
