@@ -59,10 +59,7 @@ class ButtonComponent extends Component {
           const parent = curvalItem.parent();
           curvalItem.remove();
           if(parent && parent.children().length==1) {
-            const child = parent.children('.odd').children('.dataTables_empty');
-            if(child.is(':hidden')) {
-              child.show();
-            }
+            parent.children('.odd').children('.dataTables_empty').show();
           }
         } else {
           ev.preventDefault()

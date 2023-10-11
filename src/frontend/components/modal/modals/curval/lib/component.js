@@ -74,12 +74,7 @@ class CurvalModalComponent extends ModalComponent {
         hidden.closest(".table-curval-item").replaceWith(row_cells)
       } else {
         $(`#curval_list_${col_id}`).find("tbody").prepend(row_cells)
-        $(`#curval_list_${col_id}`).find("tbody").find(".dataTables_empty").each(function() {
-          let element = $(this)
-          if(!element.is(":hidden")) {
-            element.toggle();
-          }
-        });
+        $(`#curval_list_${col_id}`).find(".dataTables_empty").hide();
       }
     } else {
       const $widget = $formGroup.find(".select-widget").first()
