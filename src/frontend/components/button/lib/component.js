@@ -189,9 +189,8 @@ class ButtonComponent extends Component {
     const $button = $(ev.target).closest('button');
     const $form = $button.closest("form")
     const $requiredHiddenRecordDependentFields = $form.find(".form-group[data-has-dependency='1'][style*='display: none'] *[aria-required]")
-    //This is awful, but if I use a find on all parents to find the .modal-body, the "normal" submit button crashes the browser with an (almost) infinite loop
-    const $parent = $button.parent().parent().parent().parent().parent().parent().parent().parent().parent().parent().parent();
-
+    const $parent = $button.closest('.modal-body')
+    
     if (!this.requiredHiddenRecordDependentFieldsCleared) {
       ev.preventDefault()
       
