@@ -113,16 +113,24 @@
               </div>
               <div class="row">
                 <div class="col">
+                  <div class="js-markdown-section">
                   [%
+                    $popover = INCLUDE snippets/markdown.tt;
                     INCLUDE fields/textarea.tt
-                      id          = "helptext"
-                      name        = "helptext"
-                      label       = "Help text for the user"
-                      placeholder = "Helptext"
-                      value       = column.helptext
-                      filter      = "html"
-                      rows        = 5;
+                      id             = "helptext"
+                      name           = "helptext"
+                      label          = "Help text for the user"
+                      placeholder    = "Helptext"
+                      value          = column.helptext
+                      filter         = "html"
+                      custom_classes = "js-markdown-input"
+                      popover_body   = $popover
+                      popover_title  = "Markdown Help"
+                      rows           = 5;
                   %]
+                  [% INCLUDE snippets/markdown_section.tt
+                      label          = "Help text preview" %]
+                  </div>
                 </div>
               </div>
             </div>
