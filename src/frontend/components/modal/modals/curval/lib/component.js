@@ -248,11 +248,6 @@ class CurvalModalComponent extends ModalComponent {
   setupSubmit() {
     const self = this
 
-    if(this.element.getAttribute('listener')) {
-      logging.info("listener already set up");
-      return;
-    }
-
     $(this.element).on("submit", ".curval-edit-form", function(e) {
       // Don't show close warning when user clicks submit button
       self.el.off('hide.bs.modal')
