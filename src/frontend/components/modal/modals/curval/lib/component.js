@@ -4,6 +4,7 @@ import { guid as Guid } from "guid"
 import { initializeRegisteredComponents } from 'component'
 import { validateRadioGroup, validateCheckboxGroup } from 'validation'
 import SelectWidgetComponent from '../../../../form-group/select-widget/lib/component'
+import { logging } from '../../../../../js/lib/logging'
 
 class CurvalModalComponent extends ModalComponent {
   constructor(element)  {
@@ -249,7 +250,6 @@ class CurvalModalComponent extends ModalComponent {
     const self = this
 
     $(this.element).on("submit", ".curval-edit-form", function(e) {
-
       // Don't show close warning when user clicks submit button
       self.el.off('hide.bs.modal')
 

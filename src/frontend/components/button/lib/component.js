@@ -1,7 +1,7 @@
 import { Component } from 'component'
-import { logging } from 'logging'
 import { MoreInfoButton } from './more-info-button'
 import { validateRequiredFields } from 'validation'
+import { logging } from '../../../js/lib/logging'
 
 class ButtonComponent extends Component {
   constructor(element)  {
@@ -191,10 +191,11 @@ class ButtonComponent extends Component {
   }
 
   submitRecord(ev) {
-    const $button = $(ev.target).closest('button')
+    const $button = $(ev.target).closest('button');
     const $form = $button.closest("form")
     const $requiredHiddenRecordDependentFields = $form.find(".form-group[data-has-dependency='1'][style*='display: none'] *[aria-required]")
-
+    const $parent = $button.closest('.modal-body')
+    
     if (!this.requiredHiddenRecordDependentFieldsCleared) {
       ev.preventDefault()
       
@@ -210,7 +211,11 @@ class ButtonComponent extends Component {
 
       if (isValid) {
         this.canSubmitRecordForm = true
-        $button.trigger('click')
+        if($parent.hasClass('modal-body')) {
+          $form.submit()
+        }else{
+          $button.trigger('click')
+        }
         // Prevent double-submission
         $button.prop("disabled", true);
         if ($button.prop("name")) {
