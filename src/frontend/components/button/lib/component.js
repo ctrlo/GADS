@@ -1,7 +1,7 @@
 import { Component } from 'component'
+import { logging } from 'logging'
 import { MoreInfoButton } from './more-info-button'
 import { validateRequiredFields } from 'validation'
-import { logging } from '../../../js/lib/logging'
 
 class ButtonComponent extends Component {
   constructor(element)  {

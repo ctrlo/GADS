@@ -4,7 +4,6 @@ import { guid as Guid } from "guid"
 import { initializeRegisteredComponents } from 'component'
 import { validateRadioGroup, validateCheckboxGroup } from 'validation'
 import SelectWidgetComponent from '../../../../form-group/select-widget/lib/component'
-import { logging } from '../../../../../js/lib/logging'
 
 class CurvalModalComponent extends ModalComponent {
   constructor(element)  {
