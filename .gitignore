@@ -32,3 +32,5 @@ node_modules/
 webdriver/MYMETA.*
 webdriver/Makefile*
 yarn-error.log
+
+webpack.config.development.js
