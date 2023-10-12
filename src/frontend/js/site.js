@@ -5,7 +5,6 @@ import 'components/graph/lib/chart'
 
 // Components
 import AddTableModalComponent from 'components/modal/modals/new-table'
-import ButtonComponent from 'components/button'
 import CalcFieldsComponent from 'components/form-group/calc-fields'
 import CalculatorComponent from 'components/calculator'
 import CheckboxComponent from 'components/form-group/checkbox'
@@ -46,10 +45,10 @@ import SaveViewButtonComponent from "components/buttons/save-view-button"
 import ShowBlankButtonComponent from "components/buttons/show-blank-button"
 import RemoveCurvalButtonComponent from "components/buttons/remove-curval-button"
 import RemoveUnloadButtonComponent from "../components/buttons/remove-unload-button"
+import CalculatorButtonComponent from "../components/buttons/calculator-button"
 
 // Register them
 registerComponent(AddTableModalComponent)
-registerComponent(ButtonComponent)
 registerComponent(CalcFieldsComponent)
 registerComponent(CalculatorComponent)
 registerComponent(CheckboxComponent)
@@ -90,6 +89,7 @@ registerComponent(SaveViewButtonComponent)
 registerComponent(ShowBlankButtonComponent)
 registerComponent(RemoveCurvalButtonComponent)
 registerComponent(RemoveUnloadButtonComponent)
+registerComponent(CalculatorButtonComponent)
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body)
