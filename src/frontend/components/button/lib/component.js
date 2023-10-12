@@ -10,19 +10,9 @@ class ButtonComponent extends Component {
   }
 
   initButton() {
-    if (this.el.hasClass('btn-js-remove-unload')) {
-      this.initRemoveUnload()
-    }
-
     if (this.el.hasClass('btn-js-calculator')) {
       this.initCalculator()
     }
-  }
-
-  initRemoveUnload() {
-    this.el.on('click', (ev) => {
-      $(window).off('beforeunload')
-    })
   }
 }
 
