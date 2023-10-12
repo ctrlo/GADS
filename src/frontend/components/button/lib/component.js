@@ -11,9 +11,6 @@ class ButtonComponent extends Component {
 
   initButton() {
     switch (true) {
-      case this.el.hasClass('btn-js-save-view'):
-        this.initSaveView()
-        break
       case this.el.hasClass('btn-js-show-blank'):
         this.initShowBlank()
         break
@@ -73,21 +70,9 @@ class ButtonComponent extends Component {
     })
   }
 
-  initSaveView() {
-    this.el.on('click', (ev) => { this.saveView(ev) })
-  }
-
   initRemoveUnload() {
     this.el.on('click', (ev) => {
       $(window).off('beforeunload')
-    })
-  }
-
-  saveView(ev){
-    $(".filter").each((i, el) => {
-      if (!$(el).queryBuilder('validate')) ev.preventDefault();
-      const res = $(el).queryBuilder('getRules')
-      $(el).next('#filter').val(JSON.stringify(res, null, 2))
     })
   }
 

@@ -42,6 +42,7 @@ import DeleteButtonComponent from "components/buttons/delete-button"
 import SubmitFieldButtonComponent from "components/buttons/submit-field-button"
 import SubmitDraftRecordButtonComponent from "components/buttons/submit-draft-record-button"
 import SubmitRecordButtonComponent from "components/buttons/submit-record-button"
+import SaveViewButtonComponent from "components/buttons/save-view-button"
 
 // Register them
 registerComponent(AddTableModalComponent)
@@ -82,6 +83,7 @@ registerComponent(DeleteButtonComponent)
 registerComponent(SubmitFieldButtonComponent)
 registerComponent(SubmitDraftRecordButtonComponent)
 registerComponent(SubmitRecordButtonComponent)
+registerComponent(SaveViewButtonComponent)
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body)
