@@ -44,8 +44,8 @@ import SubmitRecordButtonComponent from "components/buttons/submit-record-button
 import SaveViewButtonComponent from "components/buttons/save-view-button"
 import ShowBlankButtonComponent from "components/buttons/show-blank-button"
 import RemoveCurvalButtonComponent from "components/buttons/remove-curval-button"
-import RemoveUnloadButtonComponent from "../components/buttons/remove-unload-button"
-import CalculatorButtonComponent from "../components/buttons/calculator-button"
+import RemoveUnloadButtonComponent from "components/buttons/remove-unload-button"
+import CalculatorButtonComponent from "components/buttons/calculator-button"
 
 // Register them
 registerComponent(AddTableModalComponent)

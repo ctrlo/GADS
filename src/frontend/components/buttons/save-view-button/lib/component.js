@@ -1,4 +1,4 @@
-import { Component } from "../component";
+import { Component } from "component";
 
 class SaveViewButtonComponent extends Component {
   constructor(element) {
