@@ -40,6 +40,7 @@ import ValueLookupComponent from 'components/form-group/value-lookup'
 import MoreInfoButton from "components/buttons/more-info-button"
 import DeleteButtonComponent from "components/buttons/delete-button"
 import SubmitFieldComponent from "components/buttons/submit-field-button"
+import SubmitDraftRecordComponent from "../components/buttons/submit-draft-record-button"
 
 // Register them
 registerComponent(AddTableModalComponent)
@@ -78,6 +79,7 @@ registerComponent(ValueLookupComponent)
 registerComponent(MoreInfoButton)
 registerComponent(DeleteButtonComponent)
 registerComponent(SubmitFieldComponent)
+registerComponent(SubmitDraftRecordComponent)
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body)

@@ -12,9 +12,6 @@ class ButtonComponent extends Component {
 
   initButton() {
     switch (true) {
-      case this.el.hasClass('btn-js-submit-draft-record'):
-        this.initSubmitDraftRecord()
-        break
       case this.el.hasClass('btn-js-submit-record'):
         this.initSubmitRecord()
         break
@@ -80,10 +77,6 @@ class ButtonComponent extends Component {
     })
   }
 
-  initSubmitDraftRecord() {
-    this.el.on('click', (ev) => { this.submitDraftRecord(ev) })
-  }
-
   initSubmitRecord() {
     this.el.on('click', (ev) => { this.submitRecord(ev) })
   }
@@ -96,14 +89,6 @@ class ButtonComponent extends Component {
     this.el.on('click', (ev) => {
       $(window).off('beforeunload')
     })
-  }
-
-  submitDraftRecord(ev) {
-    const $button = $(ev.target).closest('button')
-    const $form = $button.closest("form")
-
-    // Remove the required attribute from hidden required dependent fields
-    $form.find(".form-group *[aria-required]").removeAttr('required')
   }
 
   submitRecord(ev) {
