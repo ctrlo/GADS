@@ -11,9 +11,6 @@ class ButtonComponent extends Component {
 
   initButton() {
     switch (true) {
-      case this.el.hasClass('btn-js-show-blank'):
-        this.initShowBlank()
-        break
       case this.el.hasClass('btn-js-curval-remove'):
         this.initRemoveCurval()
         break
@@ -56,34 +53,10 @@ class ButtonComponent extends Component {
     })
   }
 
-  initShowBlank() {
-    this.el.on('click', (ev) => {
-      const $button = $(ev.target).closest('.btn-js-show-blank')
-      const $buttonTitle = $button.find('.btn__title')[0]
-      const showBlankFields = $buttonTitle.innerHTML === "Show blank values"
-
-      $(".list__item--blank").toggle(showBlankFields)
-
-      $buttonTitle.innerHTML = showBlankFields
-        ? "Hide blank values"
-        : "Show blank values"
-    })
-  }
-
   initRemoveUnload() {
     this.el.on('click', (ev) => {
       $(window).off('beforeunload')
     })
-  }
-
-  getURL(data) {
-    const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi
-
-    if (devEndpoint) {
-      return devEndpoint
-    } else {
-      return `/${data.layoutIdentifier}/tree/${data.columnId}`
-    }
   }
 }
 
