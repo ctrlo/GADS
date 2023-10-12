@@ -1,5 +1,6 @@
 import { Component } from "component";
 import { validateRequiredFields } from "validation";
+import RemoveUnloadButtonComponent from "../../remove-unload-button/lib/component";
 
 class SubmitRecordButtonComponent extends Component {
   constructor(element) {
@@ -11,6 +12,9 @@ class SubmitRecordButtonComponent extends Component {
   }
 
   initSubmitRecord() {
+    if (this.el.hasClass("btn-js-remove-unload")) {
+      new RemoveUnloadButtonComponent(this.element);
+    }
     this.el.on("click", (ev) => {
       this.submitRecord(ev);
     });
