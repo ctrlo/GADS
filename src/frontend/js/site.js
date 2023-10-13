@@ -46,6 +46,7 @@ import ShowBlankButtonComponent from "components/buttons/show-blank-button"
 import RemoveCurvalButtonComponent from "components/buttons/remove-curval-button"
 import RemoveUnloadButtonComponent from "components/buttons/remove-unload-button"
 import CalculatorButtonComponent from "components/buttons/calculator-button"
+import MarkdownComponent from "../components/markdown"
 
 // Register them
 registerComponent(AddTableModalComponent)
@@ -90,6 +91,7 @@ registerComponent(ShowBlankButtonComponent)
 registerComponent(RemoveCurvalButtonComponent)
 registerComponent(RemoveUnloadButtonComponent)
 registerComponent(CalculatorButtonComponent)
+registerComponent(MarkdownComponent)
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body)

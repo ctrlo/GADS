@@ -85,3 +85,11 @@ h3 {
     display: block;
   }
 }
+
+table.table-bordered {
+  border: solid 1px $gray;
+  thead>tr>th,
+  tbody>tr>td {
+    border: solid 1px $gray;
+  }
+}

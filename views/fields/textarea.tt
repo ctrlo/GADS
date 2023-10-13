@@ -31,7 +31,7 @@
     [% INCLUDE fields/sub/label_input.tt label_type="textarea"; %]
     <div class="input__field">
       <textarea
-        class="form-control"
+        class="form-control [% custom_classes %]"
         id="[% id %]"
         name="[% name %]"
         rows="[% rows %]"

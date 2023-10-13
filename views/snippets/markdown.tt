@@ -1,0 +1,65 @@
+<p>The following Markdown can be used</p>
+<table class="table table-bordered">
+<thead>
+    <tr>
+        <th>Markdown</th>
+        <th>HTML</th>
+    </tr>
+</thead>
+<tbody>
+<tr>
+    <td>
+        <pre># Heading 1</pre>
+    </td>
+    <td>
+        <h1>Heading 1</h1>
+    </td>
+</tr>
+<tr>
+    <td>
+        <pre>## Heading 2</pre>
+    </td>
+    <td>
+        <h2>Heading 2</h2>
+    </td>
+</tr>
+<tr>
+    <td>
+        <pre>- bullet
+- bullet
+  - bullet
+  - bullet</pre>
+    </td>
+    <td>
+        <ul>
+            <li>bullet</li>
+            <li>bullet
+                <ul>
+                    <li>bullet</li>
+                    <li>bullet</li>
+                </ul>
+            </li>
+        </ul>
+    </td>
+</tr>
+<tr>
+    <td>
+        <pre>*italic*</pre>
+    </td>
+    <td><em>italic</em></td>
+</tr>
+<tr>
+    <td>
+        <pre>**bold**</pre>
+    </td>
+    <td><strong>bold</strong></td>
+</tr>
+<tr>
+    <td>
+        <pre>[link](https://www.google.com)</pre>
+    </td>
+    <td><a href="https://www.google.com">link</a></td>
+</tr>
+</tbody>
+</table>
+<p>For more information on Markdown, see <a href="https://www.markdownguide.org/cheat-sheet/">this cheat sheet</a>.</p>

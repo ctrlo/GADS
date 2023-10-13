@@ -249,7 +249,6 @@ class CurvalModalComponent extends ModalComponent {
     const self = this
 
     $(this.element).on("submit", ".curval-edit-form", function(e) {
-
       // Don't show close warning when user clicks submit button
       self.el.off('hide.bs.modal')
 

@@ -14,61 +14,60 @@
           Edit Table
         </legend>
       </div>
-      
+
       <div class="content-block__main-content">
-        <div class="card card--primary mb-3">
-          <div class="card__body row">
-            <div class="card__content">
-              <div class="row">
-                <div class='col'>
+        <div class="row">
+          <div class="col">
+            <div class="card card--primary mb-3">
+              <div class="card__content">
+                [%
+                  INCLUDE fields/input.tt
+                    id               = "name"
+                    name             = "name"
+                    label            = "Name of topic"
+                    placeholder      = "Name of topic"
+                    value            = topic.name
+                    type             = "text"
+                    filter           = "html"
+                    is_required      = 1
+                    autofocus        = 1;
+                %]
+                <div class="js-markdown-section">
                   [%
-                    INCLUDE fields/input.tt
-                      id          = "name"
-                      name        = "name"
-                      label       = "Name of topic"
-                      placeholder = "Name of topic"
-                      value       = topic.name
-                      type        = "text"
-                      filter      = "html"
-                      is_required = 1
-                      autofocus   = 1;
-                  %]
-                </div>
-              </div>
-              <div class="row">
-                <div class='col'>
-                  [%
+                    $help = INCLUDE snippets/markdown.tt;
                     INCLUDE fields/textarea.tt
-                      id = "description"
-                      name = "description"
-                      label = "Description"
-                      value = topic.description
-                      filter = "html"
-                      help_text = "Use Markdown for formatting"
-                      rows = 5;
+                      id             = "description"
+                      name           = "description"
+                      label          = "Description"
+                      value          = topic.description
+                      filter         = "html"
+                      help_text      = "Use Markdown for formatting"
+                      rows           = 5
+                      popover_body   = $help
+                      popover_title  = "Markdown Help"
+                      custom_classes = "js-markdown-input";
                   %]
+                  [% INCLUDE snippets/markdown_section.tt
+                        label        = "Description Preview" %]
                 </div>
-              </div>
-              <div class="row">
-                <div class='col'>
-                  [%
-                    INCLUDE fields/switch_single.tt
-                      id            = "initial_state"
-                      name          = "initial_state"
-                      label         = "Initial state of  topic's fields when editing"
-                      placeholder   = "Expanded"
-                      fieldset_name = "switch-expanded"
-                      value         = "open"
-                      checked       = topic.initial_state == "collapsed" ? 0 : 1
-                      filter        = "html";
-                  %]
-                </div>
+                [%
+                  INCLUDE fields/switch_single.tt
+                    id               = "initial_state"
+                      name           = "initial_state"
+                      label          = "Initial state of  topic's fields when editing"
+                      placeholder    = "Expanded"
+                      fieldset_name  = "switch-expanded"
+                      value          = "open"
+                      checked        = topic.initial_state == "collapsed" ? 0 : 1
+                      filter         = "html";
+                %]
               </div>
             </div>
           </div>
         </div>
       </div>
-      
+    </div>
+
       <footer class="content-block__footer">
         <div class="content-block__footer-container">
           [%
