@@ -28,9 +28,13 @@
 %]
 
 <div class="[% column_class %]">
+  [% IF is_required %]
+  <fieldset class="fieldset fieldset--required">
+  [% ELSE %]
   <fieldset class="fieldset">
-    [% INCLUDE fields/sub/label_fieldset.tt; %]
-    
+  [% END %]
+    [% INCLUDE fields/sub/label_fieldset.tt %]
+
     <div class="multiple-select">
       <div class="multiple-select__list">
         [%
@@ -44,7 +48,7 @@
           IF show_buttons;
             INCLUDE fields/hidden.tt name="" value=1;
           END;
-  
+
           IF col.type == "daterange";
             INCLUDE fields/daterange.tt
               label        = ""
@@ -123,7 +127,7 @@
           END;
         %]
       </div>
-      
+
       <button
         type="button"
         class="btn btn-add-link"
