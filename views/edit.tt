@@ -716,7 +716,11 @@
           END;
       END;
     ELSIF col.type == "tree";
-      '<fieldset class="fieldset input">';
+      IF col.optional;
+        '<fieldset class="fieldset input">';
+      ELSE;
+        '<fieldset class="fieldset input fieldset--required">';
+      END;
         INCLUDE fields/sub/label_fieldset.tt
           id           = col.id
           label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
