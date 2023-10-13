@@ -1,7 +1,7 @@
 import { Component } from 'component'
 import { logging } from 'logging'
 import { initValidationOnField } from 'validation'
-import { MoreInfoButton } from '../../../button/lib/more-info-button'
+import { MoreInfoButton } from '../../../buttons/more-info-button/lib/more-info-button'
 
   /*
    * A SelectWidget is a custom disclosure widget
