@@ -716,10 +716,10 @@
           END;
       END;
     ELSIF col.type == "tree";
-      UNLESS col.optional;
-      '<fieldset class="fieldset input fieldset--required">';
+      IF col.optional;
+        '<fieldset class="fieldset input">';
       ELSE;
-      '<fieldset class="fieldset input">';
+        '<fieldset class="fieldset input fieldset--required">';
       END;
         INCLUDE fields/sub/label_fieldset.tt
           id           = col.id

@@ -29,9 +29,9 @@
 
 <div class="[% column_class %]">
   [% IF is_required %]
-  <fieldset class="fieldset fieldset--required">
+    <fieldset class="fieldset fieldset--required">
   [% ELSE %]
-  <fieldset class="fieldset">
+    <fieldset class="fieldset">
   [% END %]
     [% INCLUDE fields/sub/label_fieldset.tt %]
 
