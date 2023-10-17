@@ -1,0 +1,65 @@
+[% IF viewtype == 'table';
+
+table_dom="t";
+table_show_all_records="true";
+
+table_caption = "Reports";
+
+table_columns = [{
+    name = "ID",
+    orderable = 0,
+},{
+    name = "Name",
+    orderable = 0,
+}, {
+    name = "Created By",
+    orderable = 0,
+}, {
+    name = "Created on",
+    orderable = 0,
+}];
+
+FOREACH report IN reports;
+    rows.push({
+        link_placeholders = {
+            report_id = report.id,
+        },
+        fields = [{
+            type = "string",
+            value = report.name,
+        },
+        {
+            type = "string",
+            value = report.createdby,
+        },
+        {
+            type = "string",
+            value = report.created_on,
+        }]
+    });
+END; #foreach
+
+%]
+
+<div class="content-block__main">
+
+    <div class="card">
+        <div class="card--header">
+            <h3 class"card__header">Reports</h3>
+        </div>
+
+        <div class="card__body row">
+            <div class="card__content">
+                <div class="row">
+                    <div class="col">
+                        [% INCLUDE tables/basic_table.tt %]
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+[% ELSE %]
+<h1>We be doing something else</h1>
+[% END; %]

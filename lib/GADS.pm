@@ -2762,6 +2762,81 @@ prefix '/:layout_name' => sub {
         template 'data' => $params;
     };
 
+    get '/report' => require_login sub {
+        my $layout = var('layout') or pass;
+
+        my $user   = logged_in_user;
+
+        if ( app->has_hook('plugin.linkspace.data_before_request') ) {
+            app->execute_hook( 'plugin.linkspace.data_before_request', user => $user );
+        }
+
+        my %params = (
+            user                => $user,
+            search              => session('search'),
+            layout              => $layout,
+            schema              => schema,
+            rewind              => session('rewind'),
+            view_limit_extra_id => current_view_limit_extra_id($user, $layout),
+        );
+
+        my $records = GADS::Records->new(%params);
+
+        # TODO: This will all be moved out into a 'view' path
+        # TODO: this will probably need changing when we start looking at sub-tables!! ;-;
+        
+        my $alert = GADS::Alert->new(
+            user      => $user,
+            layout    => $layout,
+            schema    => schema,
+        );
+
+        my $reports = schema->resultset('Report')->search(
+            {
+                instance_id => $layout->instance_id,
+            }
+        );
+
+        my $report;
+        my @result;
+
+        while($report = $reports->next) {
+            push(@result, { 
+                name => $report->name,
+                user => $report->user,
+                group => $report->group,
+                created_by => $report->createdby,
+                created_on => $report->created,
+                instance => $report->instance
+             });
+        }
+
+        foreach my $result (@result) {
+            foreach my $key (keys(%$result)) {
+                print $key . " : " . $result->{$key} . "\n";
+            }
+        }
+
+        my $base_url = request->base;
+
+        my $params;
+
+        $params->{alerts}                       = $alert->all;
+        $params->{header_type}                  = 'table_tabs';
+        $params->{header_back_url}              = "${base_url}table";
+        $params->{layout_obj}                   = $layout;
+        $params->{breadcrumbs}                  = [
+            Crumb($base_url."table/", "Tables"),
+            Crumb("", "Table: " . $layout->name)
+        ];
+        $params->{viewtype}             = 'table';
+        $params->{layout}               = $layout;
+        $params->{reports}              = \@result;
+        # $params->{columns}                      = \@columns;
+
+        template 'report' => $params;
+    };
+
     # any ['get', 'post'] => qr{/tree[0-9]*/([0-9]*)/?} => require_login sub {
     any ['get', 'post'] => '/tree:any?/:layout_id/?' => require_login sub {
         # Random number can be used after "tree" to prevent caching
