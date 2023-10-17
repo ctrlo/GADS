@@ -51,6 +51,16 @@
                 filter = "html"
                 sub_field = ""
                 sub_params = {};
+            ELSIF field.type == "textarea";
+              INCLUDE fields/textarea.tt
+                id = field.name
+                name = field.name
+                value = edituser.${field.name}
+                label = field.description
+                placeholder = field.placeholder
+                filter = "html"
+                sub_field = ""
+                sub_params = {};
             END;
           %]
         </div>
