@@ -302,10 +302,10 @@ sub user_fields
         placeholder => $self->register_freetext2_placeholder || $self->register_freetext2_name,
     } if $self->register_freetext2_name;
     push @fields, {
-      name => 'account_request_notes',
-      description => $self->account_request_notes_name || 'Notes',
-      type => 'textarea',
-      placeholder => $self->account_request_notes_placeholder || 'Notes',
+      name          => 'account_request_notes',
+      description   => $self->account_request_notes_name || 'Notes',
+      type          => 'textarea',
+      placeholder   => $self->account_request_notes_placeholder || 'Notes',
     };
 
     my $user_editable = decode_json($self->user_editable_fields || '{}');
