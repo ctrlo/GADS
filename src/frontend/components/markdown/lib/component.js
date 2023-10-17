@@ -1,5 +1,5 @@
 import { marked } from "marked";
-import { Component } from "../../../js/lib/component";
+import { Component } from "component";
 
 class MarkdownComponent extends Component {
   constructor(element) {

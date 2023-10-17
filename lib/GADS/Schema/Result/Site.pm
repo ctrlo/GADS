@@ -91,6 +91,14 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 1, is_nullable => 0 },
   "user_editable_fields",
   { data_type => "text", is_nullable => 1 },
+  "register_freetext1_placeholder",
+  { data_type => "text", is_nullable => 1 },
+  "register_freetext2_placeholder",
+  { data_type => "text", is_nullable => 1 },
+  "account_request_notes_name",
+  { data_type => "text", is_nullable => 1 },
+  "account_request_notes_placeholder",
+  { data_type => "text", is_nullable => 1 },
 );
 
 __PACKAGE__->set_primary_key("id");
@@ -285,14 +293,20 @@ sub user_fields
         name        => 'freetext1',
         description => $self->register_freetext1_name,
         type        => 'freetext',
-        placeholder => $self->register_freetext1_name,
+        placeholder => $self->register_freetext1_placeholder || $self->register_freetext1_name,
     } if $self->register_freetext1_name;
     push @fields, {
         name        => 'freetext2',
         description => $self->register_freetext2_name,
         type        => 'freetext',
-        placeholder => $self->register_freetext2_name,
+        placeholder => $self->register_freetext2_placeholder || $self->register_freetext2_name,
     } if $self->register_freetext2_name;
+    push @fields, {
+      name          => 'account_request_notes',
+      description   => $self->account_request_notes_name || 'Notes',
+      type          => 'textarea',
+      placeholder   => $self->account_request_notes_placeholder || 'Notes',
+    };
 
     my $user_editable = decode_json($self->user_editable_fields || '{}');
 

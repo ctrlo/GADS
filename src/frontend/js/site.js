@@ -5,7 +5,6 @@ import 'components/graph/lib/chart'
 
 // Components
 import AddTableModalComponent from 'components/modal/modals/new-table'
-import ButtonComponent from 'components/button'
 import CalcFieldsComponent from 'components/form-group/calc-fields'
 import CalculatorComponent from 'components/calculator'
 import CheckboxComponent from 'components/form-group/checkbox'
@@ -37,11 +36,20 @@ import TippyComponent from 'components/timeline/tippy'
 import TreeComponent from 'components/form-group/tree'
 import UserModalComponent from 'components/modal/modals/user'
 import ValueLookupComponent from 'components/form-group/value-lookup'
+import MoreInfoButton from "components/buttons/more-info-button"
+import DeleteButtonComponent from "components/buttons/delete-button"
+import SubmitFieldButtonComponent from "components/buttons/submit-field-button"
+import SubmitDraftRecordButtonComponent from "components/buttons/submit-draft-record-button"
+import SubmitRecordButtonComponent from "components/buttons/submit-record-button"
+import SaveViewButtonComponent from "components/buttons/save-view-button"
+import ShowBlankButtonComponent from "components/buttons/show-blank-button"
+import RemoveCurvalButtonComponent from "components/buttons/remove-curval-button"
+import RemoveUnloadButtonComponent from "components/buttons/remove-unload-button"
+import CalculatorButtonComponent from "components/buttons/calculator-button"
 import MarkdownComponent from "../components/markdown"
 
 // Register them
 registerComponent(AddTableModalComponent)
-registerComponent(ButtonComponent)
 registerComponent(CalcFieldsComponent)
 registerComponent(CalculatorComponent)
 registerComponent(CheckboxComponent)
@@ -73,6 +81,16 @@ registerComponent(TippyComponent)
 registerComponent(TreeComponent)
 registerComponent(UserModalComponent)
 registerComponent(ValueLookupComponent)
+registerComponent(MoreInfoButton)
+registerComponent(DeleteButtonComponent)
+registerComponent(SubmitFieldButtonComponent)
+registerComponent(SubmitDraftRecordButtonComponent)
+registerComponent(SubmitRecordButtonComponent)
+registerComponent(SaveViewButtonComponent)
+registerComponent(ShowBlankButtonComponent)
+registerComponent(RemoveCurvalButtonComponent)
+registerComponent(RemoveUnloadButtonComponent)
+registerComponent(CalculatorButtonComponent)
 registerComponent(MarkdownComponent)
 
 // Initialize all components at some point
