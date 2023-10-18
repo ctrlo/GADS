@@ -239,9 +239,12 @@ class DataTableComponent extends Component {
         <div class='dropdown-menu p-2' aria-labelledby='search-toggle-${index}'>
           <label>
             <div class='input'>
-              <input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>
+              <input class='form-control form-control-sm field-search-${index}' type='text' placeholder='Search' value='${searchValue}'/>
             </div>
           </label>
+          <div class='data-table__live-search'>
+            <ul class='data-list list-unstyled text-center'></ul>        
+          </div>
           <button type='button' class='btn btn-link btn-small data-table__clear hidden'>
             <span>Clear filter</span>
           </button>
@@ -252,6 +255,39 @@ class DataTableComponent extends Component {
     $header.find('.data-table__header-wrapper').prepend($searchElement)
 
     this.toggleFilter(column)
+
+    const columnData = {
+      header: column.header(),
+      data: column.nodes().map((cell) => $(cell).text().toLowerCase())
+    }
+
+    if(this.checkForColumnData(columnData)) {
+      this.addColumnData(columnData);
+    }
+
+    $('input', $header).on('keyup', function () {
+      const $list=$('.data-list');
+      if (this.value.length < 1) {
+        $list.empty();
+        return;
+      }
+      const data = [];
+      column.nodes().each((cell, i) => {
+        const myData = $(cell).text().toLowerCase();
+        const addition={}
+        addition.data=myData;
+        addition.id=i;
+        if (myData.includes(this.value.toLowerCase())) data.push(addition);
+      });
+      $list.empty();
+      $list.append(data.map((item) => `<li><button class='btn-link' data-id='${item.id}' data-search='${item.data}'>${item.data}</button></li>`).join(''));
+      const $btn = $list.find('button');
+      $btn.on('click', function () {
+        $list.empty();
+        const searchString = $(this).data('search');
+        column.search(searchString).draw();
+      });
+    });
 
     // Apply the search
     $('input', $header).on('change', function () {
@@ -693,6 +729,32 @@ class DataTableComponent extends Component {
 
       initializeRegisteredComponents(this.element)
     }
+  }
+
+  /**
+   * Check for column data in allData
+   * @param {{header: string, data: string[]}} columnData data to check
+   * @returns {boolean} true if columnData is not present in allData, false otherwise
+   */
+  checkForColumnData(columnData) {
+    //Null reference checks - better to be safe!
+    this.allData = this.allData || [];
+    this.allData.forEach((data) => {
+      if(data.header === columnData.header) {
+        return false;
+      }
+    });
+    return true;
+  }
+
+  /**
+   * Add a column to the database
+   * @param {{header: string, data:string[]}} columnData data to check
+   */
+  addColumnData(columnData) {
+    //Null reference checks - better to be safe!
+    this.allData=this.allData || [];
+    this.allData.push(columnData);
   }
 }
 
