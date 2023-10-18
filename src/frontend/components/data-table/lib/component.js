@@ -1,4 +1,4 @@
-import { Component } from 'component'
+import { initializeRegisteredComponents, Component } from 'component'
 import 'datatables.net'
 import 'datatables.net-buttons'
 import 'datatables.net-bs4'
@@ -6,15 +6,14 @@ import 'datatables.net-responsive'
 import 'datatables.net-responsive-bs4'
 import 'datatables.net-rowreorder-bs4'
 import { setupDisclosureWidgets, onDisclosureClick } from '../../more-less/lib/disclosure-widgets'
-import { initializeRegisteredComponents, initializeComponent } from 'component'
 import RecordPopupComponent from '../../record-popup/lib/component'
-import MoreLessComponent from '../../more-less/lib/component'
 import { moreLess } from '../../more-less/lib/more-less'
+import { Buffer } from 'buffer'
 
 const MORE_LESS_TRESHOLD = 50
 
 class DataTableComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.hasCheckboxes = this.el.hasClass('table-selectable')
@@ -25,12 +24,12 @@ class DataTableComponent extends Component {
   }
 
   initTable() {
-    if(this.hasClearState) {
+    if (this.hasClearState) {
       this.clearTableStateForPage()
 
-      let url = new URL(window.location.href)
+      const url = new URL(window.location.href)
       url.searchParams.delete('table_clear_state')
-      let targetUrl = url.toString()
+      const targetUrl = url.toString()
       window.location.replace(targetUrl.endsWith('?') ? targetUrl.slice(0, -1) : targetUrl)
 
       return
@@ -56,26 +55,26 @@ class DataTableComponent extends Component {
       setupDisclosureWidgets($childRow)
 
       recordPopupElements.each((i, el) => {
-        const recordPopupComp = new RecordPopupComponent(el)
+        new RecordPopupComponent(el)
       })
     })
   }
 
   clearTableStateForPage() {
     for (let i = 0; i < localStorage.length; i++) {
-      let storageKey = localStorage.key( i )
+      const storageKey = localStorage.key(i)
 
       if (!storageKey.startsWith("DataTables")) {
         continue;
       }
 
-      let keySegments = storageKey.split('/')
+      const keySegments = storageKey.split('/')
 
       if (!keySegments || keySegments.length <= 1) {
         continue;
       }
 
-      if(window.location.href.indexOf('/' + keySegments.slice(1).join('/')) !== -1) {
+      if (window.location.href.indexOf(`/${keySegments.slice(1).join('/')}`) !== -1) {
         localStorage.removeItem(storageKey)
       }
     }
@@ -130,10 +129,10 @@ class DataTableComponent extends Component {
   getCheckboxElement(id, label) {
     return (
       `<div class='checkbox'>` +
-        `<input id='dt_checkbox_${id}' type='checkbox' />` +
-        `<label for='dt_checkbox_${id}'><span>${label}</span></label>` +
+      `<input id='dt_checkbox_${id}' type='checkbox' />` +
+      `<label for='dt_checkbox_${id}'><span>${label}</span></label>` +
       '</div>'
-      )
+    )
   }
 
   addSelectAllCheckbox() {
@@ -152,10 +151,10 @@ class DataTableComponent extends Component {
     })
 
     // Check if the 'select all' checkbox is checked and all checkboxes need to be checked
-    $selectAllElm.find('input').on( 'click', (ev) => {
+    $selectAllElm.find('input').on('click', (ev) => {
       const checkbox = $(ev.target)
 
-      if ($(checkbox).is( ':checked' )) {
+      if ($(checkbox).is(':checked')) {
         this.checkAllCheckboxes($checkBoxes, true)
       } else {
         this.checkAllCheckboxes($checkBoxes, false)
@@ -165,7 +164,7 @@ class DataTableComponent extends Component {
 
   checkAllCheckboxes($checkBoxes, bCheckAll) {
     if (bCheckAll) {
-      $checkBoxes.prop( 'checked', true )
+      $checkBoxes.prop('checked', true)
     } else {
       $checkBoxes.prop('checked', false)
     }
@@ -178,7 +177,6 @@ class DataTableComponent extends Component {
       if (!checkBox.checked) {
         $selectAllCheckBox.prop('checked', false)
         bSelectAll = false
-        return
       }
     })
 
@@ -202,7 +200,7 @@ class DataTableComponent extends Component {
       .off()
       .find('.data-table__header-wrapper').html($button)
 
-    dataTable.order.listener($button, column.index() )
+    dataTable.order.listener($button, column.index())
   }
 
   toggleFilter(column) {
@@ -272,7 +270,7 @@ class DataTableComponent extends Component {
 
       // Update URL. Do not reload otherwise the data is fetched twice (already
       // redrawn in the previous statement)
-      let url = `${window.location.href.split('?')[0]}?${self.searchParams.toString()}`
+      const url = `${window.location.href.split('?')[0]}?${self.searchParams.toString()}`
       window.history.replaceState(null, '', url);
     })
 
@@ -316,9 +314,9 @@ class DataTableComponent extends Component {
         </div>`
       )
     }
-    else {
-      return strHTML
-    }
+
+    return strHTML
+
   }
 
   renderDefault(data) {
@@ -329,8 +327,8 @@ class DataTableComponent extends Component {
     }
 
     data.values.forEach((value, i) => {
-        strHTML += this.encodeHTMLEntities(value)
-        strHTML += (data.values.length > (i + 1)) ? `, ` : ``
+      strHTML += this.encodeHTMLEntities(value)
+      strHTML += (data.values.length > (i + 1)) ? `, ` : ``
     })
 
     return this.renderMoreLess(strHTML, data.name)
@@ -338,12 +336,12 @@ class DataTableComponent extends Component {
 
   renderId(data) {
     let retval = ''
-    let id = data.values[0]
+    const id = data.values[0]
     if (!id) return retval
     if (data.parent_id) {
       retval = `<span title="Child record with parent record ${data.parent_id}">${data.parent_id} &#8594;</span> `
     }
-    return retval + `<a href="${this.base_url}/${id}">${id}</a>`
+    return `${retval}<a href="${this.base_url}/${id}">${id}</a>`
   }
 
   renderPerson(data) {
@@ -366,7 +364,7 @@ class DataTableComponent extends Component {
             thisHTML += `<p>${this.encodeHTMLEntities(detail.definition)}: ${strDecodedValue}</p>`
           }
         })
-        thisHTML +=  `</div>`
+        thisHTML += `</div>`
         strHTML += (
           `<div class="position-relative">
             <button class="btn btn-small btn-inverted btn-info trigger" aria-expanded="false" type="button">
@@ -424,7 +422,7 @@ class DataTableComponent extends Component {
       strRagType = 'blank'
     }
 
-    const text = $('#rag_' + strRagType + '_meaning').text();
+    const text = $(`#rag_${strRagType}_meaning`).text();
 
     return `<span class="rag rag--${strRagType}" title="${text}" aria-labelledby="rag_${strRagType}_meaning"><span>✗</span></span>`
   }
@@ -474,7 +472,7 @@ class DataTableComponent extends Component {
     if (data.limit_rows && data.values.length >= data.limit_rows) {
       strHTML +=
         `<p><em>(showing maximum ${data.limit_rows} rows.
-          <a href="/${data.parent_layout_identifier}/data?curval_record_id=${data.curval_record_id}&curval_layout_id=${data.column_id }">view all</a>)</em>
+          <a href="/${data.parent_layout_identifier}/data?curval_record_id=${data.curval_record_id}&curval_layout_id=${data.column_id}">view all</a>)</em>
         </p>`
     }
 
@@ -485,25 +483,19 @@ class DataTableComponent extends Component {
     switch (data.type) {
       case 'id':
         return this.renderId(data)
-        break
       case 'person':
       case 'createdby':
         return this.renderPerson(data)
-        break
       case 'curval':
       case 'autocur':
       case 'filval':
         return this.renderCurCommon(data)
-        break
       case 'file':
         return this.renderFile(data)
-        break
       case 'rag':
         return this.renderRag(data)
-        break
       default:
         return this.renderDefault(data)
-        break
     }
   }
 
@@ -519,7 +511,7 @@ class DataTableComponent extends Component {
   }
 
   getConf() {
-    let confData = this.el.data('config')
+    const confData = this.el.data('config')
     let conf = {}
     const self = this
 
@@ -540,9 +532,9 @@ class DataTableComponent extends Component {
       const dataTable = tableElement.DataTable()
       const self = this
 
-      this.json = json ? json : undefined
+      this.json = json || undefined
 
-      dataTable.columns().every(function(index) {
+      dataTable.columns().every(function (index) {
         const column = this
         const $header = $(column.header())
 
@@ -573,15 +565,15 @@ class DataTableComponent extends Component {
       }
     }
 
-    conf['footerCallback'] = function( tfoot, data, start, end, display ) {
-      var api = this.api()
+    conf['footerCallback'] = function (tfoot, data, start, end, display) {
+      const api = this.api()
       // Add aggregate values to table if configured
-      var agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate
+      const agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate
       if (agg) {
-        var cols = api.settings()[0].oAjaxData.columns
-        api.columns().every( function () {
-          let idx = this.index()
-          const name = cols[idx].name
+        const cols = api.settings()[0].oAjaxData.columns
+        api.columns().every(function () {
+          const idx = this.index()
+          const { name } = cols[idx]
           if (agg[name]) {
             $(this.footer()).html(
               self.renderDataType(agg[name])
@@ -608,7 +600,7 @@ class DataTableComponent extends Component {
         text: 'Expand table',
         enabled: false,
         className: 'btn btn-small btn-toggle-off',
-        action: function ( e, dt, node, config ) {
+        action(e, dt, node, config) {
           if (self.inFullWidthMode) {
             self.collapseTable(conf)
           } else {
@@ -640,10 +632,10 @@ class DataTableComponent extends Component {
 
     //calculate height of table
     this.setTableContainerHeight(dataTableContainer)
-      
-    $(window).on( "resize", function() {
+
+    $(window).on("resize", () => {
       self.setTableContainerHeight(dataTableContainer)
-    } );
+    });
   }
 
   setTableContainerHeight(dataTableContainer) {
@@ -651,7 +643,7 @@ class DataTableComponent extends Component {
     const viewportHeight = window.innerHeight;
     const offsetBottom = 110; //the offset from the bottom of the viewport to the bottom of the table
     const availableHeight = viewportHeight - offsetTop;
-    
+
     dataTableContainer.height('initial')
 
     if ((dataTableContainer.height() + offsetBottom) > availableHeight) {
@@ -670,7 +662,7 @@ class DataTableComponent extends Component {
 
   bindClickHandlersAfterDraw(conf) {
     const tableElement = this.el
-    let rows = tableElement.DataTable().rows( {page:'current'} ).data()
+    const rows = tableElement.DataTable().rows({ page: 'current' }).data()
 
     if (rows && this.base_url) {
       // Add click handler to tr to open a record by id
