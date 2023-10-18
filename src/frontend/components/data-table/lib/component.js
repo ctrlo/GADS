@@ -617,6 +617,8 @@ class DataTableComponent extends Component {
         }
       }
     ]
+    // Temporarily remove expand table button
+    conf['buttons'] = []
 
     return conf
   }
