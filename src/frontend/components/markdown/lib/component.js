@@ -14,12 +14,13 @@ class MarkdownComponent extends Component {
     const $preview = $(this.element).find(".js-markdown-preview");
     $().ready(() => {
       if ($textArea.val() !== "") {
-        const htmlText = marked($textArea.val());
+        const markdownText = this.sanitize($textArea.val())
+        const htmlText = marked(markdownText);
         $preview.html(htmlText);
       }
     });
     $textArea.keyup(() => {
-      const markdownText = $textArea.val();
+      const markdownText = this.sanitize($textArea.val());
       if (!markdownText || markdownText === "") {
         $preview.html('<p class="text-info">Nothing to preview!</p>');
       } else {
@@ -27,6 +28,17 @@ class MarkdownComponent extends Component {
         $preview.html(htmlText);
       }
     });
+  }
+
+  //This is very basic, but I feel it would be 1) easy to extend and 2) enough for our use-case
+  sanitize(text) {
+    if(!text) return text;
+    if(text==="") return text;
+    return text.replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;")
   }
 }
 
