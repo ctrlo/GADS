@@ -30,15 +30,20 @@ class MarkdownComponent extends Component {
     });
   }
 
-  //This is very basic, but I feel it would be 1) easy to extend and 2) enough for our use-case
+  //Markdown standard (RFC 7763) states that it is "up to us" according to the use-case to decide what to do with HTML tags,
+  //I feel that, under the circumstances, due to any security risks, "script" tags should be removed, and ampersands kept in
+  //although any other HTML tags be kept in, as they are not a security risk.
+  /**
+   * Sanitize any text input to prevent XSS attacks
+   * @param {string} text text to sanitize
+   * @returns {string} sanitized text
+   */
   sanitize(text) {
     if(!text) return text;
     if(text==="") return text;
     return text.replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;")
+      .replace(/<script.*>/g, "script")
+      .replace(/<\/script>/g, "/script")
   }
 }
 
