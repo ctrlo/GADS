@@ -861,7 +861,10 @@ sub update_user
     my $site = $self->result_source->schema->resultset('Site')->next;
 
     error __x"Please select a {name} for the user", name => $site->organisation_name
-        if !$params{organisation} && $site->register_organisation_mandatory;
+        if !$params{organisation} && $site->register_organisation_mandatory && $site->user_field_is_editable('organisation');
+    
+    error __x"Please select a {name} for the user", name => $site->organisation_name
+        if !$params{organisation} && $site->register_organisation_mandatory && !$params{edit_own_user};
 
     error __x"Please select a {name} for the user", name => $site->team_name
         if !$params{team_id} && $site->register_team_mandatory;
