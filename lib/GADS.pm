@@ -1577,16 +1577,6 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
             return forwardHome(
                 { success => "User has been updated successfully" }, 'user_overview/' );
         }
-
-        # In case of failure, pass back to form
-        my $view_limits_with_blank = [ map {
-            +{
-                view_id => $_
-            }
-        } body_parameters->get_all('view_limits') ];
-
-        $values{view_limits_with_blank} = $view_limits_with_blank;
-        $editUser = \%values;
     }
     elsif (my $delete_id = param('delete'))
     {
