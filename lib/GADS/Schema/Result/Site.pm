@@ -245,11 +245,7 @@ sub user_field_is_editable {
   my $self = shift;
   my $field = shift;
 
-  my $result = grep { $_->{name} eq $field && $_->{editable} } $self->user_fields();
-
-  debug $result;
-
-  return $result;
+  !!grep { $_->{name} eq $field && $_->{editable} } $self->user_fields();
 }
 
 sub user_fields
