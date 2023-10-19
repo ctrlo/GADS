@@ -30,7 +30,7 @@ extends 'DBIx::Class::Core';
 
 =cut
 
-__PACKAGE__->load_components("InflateColumn::DateTime");
+__PACKAGE__->load_components("InflateColumn::DateTime", "+GADS::DBIC");
 
 =head1 TABLE: C<user>
 
@@ -907,8 +907,6 @@ sub update_user
     $params{permissions} = []
         if exists $params{permissions} && !$params{permissions};
 
-    $params{value} = _user_value(\%params);
-    $values->{value} = _user_value($values);
     $self->update($values);
 
     $self->groups($current_user, $params{groups})
@@ -1138,6 +1136,11 @@ sub for_data_table
     } if $site->register_freetext1_name;
 
     $return;
+}
+
+sub validate
+{   my $self = shift;
+    $self->value(_user_value({firstname => $self->firstname, surname => $self->surname}));
 }
 
 sub export_hash
