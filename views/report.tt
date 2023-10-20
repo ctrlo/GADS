@@ -1,48 +1,38 @@
 [% IF viewtype == 'table';
 
-table_dom="t";
+table_dom = "t";
 table_show_all_records="true";
 
 table_caption = "Reports";
+table_width = 85;
 
 table_columns = [{
-    name = "ID",
-    orderable = 0,
-},{
     name = "Name",
     orderable = 0,
 }, {
-    name = "Created By",
-    orderable = 0,
-}, {
-    name = "Created on",
-    orderable = 0,
+    name = "Actions",
+    orderable = 0
 }];
+
+table_buttons = [];
 
 rows = [];
 
 FOREACH report IN reports;
-    rows.push({
-        link_placeholders = {
-            report_id = report.id,
-        },
+    data = {
         fields = [{
             type = "string",
-            label = report.id,
-        },
-        {
-            type = "string",
-            label = report.name,
-        },
-        {
-            type = "string",
-            label = report.createdby,
-        },
-        {
-            type = "string",
-            label = report.created_on,
+            label = report.name
         }]
-    });
+    };
+    IF user.permission.superadmin;
+        data.fields.push({
+            type = "link",
+            label = "Edit",
+            link = "report/edit" _ report.id
+        });
+    END;
+    rows.push(data);
 END; #foreach
 
 %]
@@ -65,6 +55,10 @@ END; #foreach
     </div>
 </div>
 
+[% ELSIF viewtype == 'edit' %]
+<h1>We be editing</h1>
+[% ELSIF viewtype == 'add' %]
+<h1>We be adding</h1>
 [% ELSE %]
 <h1>We be doing something else</h1>
 [% END; %]
