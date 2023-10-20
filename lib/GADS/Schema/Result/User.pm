@@ -785,7 +785,8 @@ sub graphs
 
 # Used to check if a user has a group
 has has_group => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_has_group
@@ -854,19 +855,6 @@ sub update_user
     delete $params{team_id} if !$params{team_id};
     delete $params{title} if !$params{title};
 
-    length $params{firstname} <= 128
-        or error __"Forename must be less than 128 characters";
-    length $params{surname} <= 128
-        or error __"Surname must be less than 128 characters";
-    !defined $params{organisation} || $params{organisation} =~ /^[0-9]+$/
-        or error __x"Invalid organisation {id}", id => $params{organisation};
-    !defined $params{department_id} || $params{department_id} =~ /^[0-9]+$/
-        or error __x"Invalid department {id}", id => $params{department_id};
-    !defined $params{team_id} || $params{team_id} =~ /^[0-9]+$/
-        or error __x"Invalid team {id}", id => $params{team_id};
-    GADS::Util->email_valid($params{email})
-        or error __x"The email address \"{email}\" is invalid", email => $params{email};
-
     my $site = $self->result_source->schema->resultset('Site')->next;
 
     my $values = {
@@ -905,8 +893,13 @@ sub update_user
 
     $self->update($values);
 
-    $self->groups($current_user, $params{groups})
-        if $params{groups};
+    if ($params{groups})
+    {
+        $self->groups($current_user, $params{groups});
+        $self->clear_has_group;
+        $self->has_group;
+    }
+
     if ($params{permissions} && ref $params{permissions} eq 'ARRAY')
     {
         error __"You do not have permission to set global user permissions"
@@ -937,6 +930,19 @@ sub update_user
 
     error __x"Please select a {name} for the user", name => $site->department_name
         if !$params{department_id} && $site->register_department_mandatory;
+
+    length $params{firstname} <= 128
+        or error __"Forename must be less than 128 characters";
+    length $params{surname} <= 128
+        or error __"Surname must be less than 128 characters";
+    !defined $params{organisation} || $params{organisation} =~ /^[0-9]+$/
+        or error __x"Invalid organisation {id}", id => $params{organisation};
+    !defined $params{department_id} || $params{department_id} =~ /^[0-9]+$/
+        or error __x"Invalid department {id}", id => $params{department_id};
+    !defined $params{team_id} || $params{team_id} =~ /^[0-9]+$/
+        or error __x"Invalid team {id}", id => $params{team_id};
+    GADS::Util->email_valid($params{email})
+        or error __x"The email address \"{email}\" is invalid", email => $params{email};
 
     my $msg = __x"User updated: ID {id}, username: {username}",
         id => $self->id, username => $params{username};
