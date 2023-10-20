@@ -24,11 +24,11 @@ use base 'DBIx::Class::Core';
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<report_layout>
+=head1 TABLE: C<report_instance>
 
 =cut
 
-__PACKAGE__->table("report_layout");
+__PACKAGE__->table("report_instance");
 
 =head1 ACCESSORS
 
@@ -38,15 +38,15 @@ __PACKAGE__->table("report_layout");
   is_auto_increment: 1
   is_nullable: 0
 
-=head2 view_id
-
-  data_type: 'bigint'
-  is_foreign_key: 1
-  is_nullable: 0
-
 =head2 report_id
 
   data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 0
+
+=head2 instance_id
+
+  data_type: 'bigint'
   is_foreign_key: 1
   is_nullable: 0
 
@@ -60,10 +60,10 @@ __PACKAGE__->table("report_layout");
 __PACKAGE__->add_columns(
   "id",
   { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
-  "view_id",
-  { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
   "report_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+  "layout_id",
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
   "order",
   { data_type => "integer", is_nullable => 1 },
 );
@@ -101,14 +101,14 @@ __PACKAGE__->belongs_to(
 
 Type: belongs_to
 
-Related object: L<GADS::Schema::Result::View>
+Related object: L<GADS::Schema::Result::Layout>
 
 =cut
 
 __PACKAGE__->belongs_to(
-  "view",
-  "GADS::Schema::Result::View",
-  { id => "view_id" },
+  "layout",
+  "GADS::Schema::Result::Layout",
+  { id => "layout_id" },
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 

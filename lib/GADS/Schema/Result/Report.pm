@@ -85,7 +85,7 @@ __PACKAGE__->add_columns(
     { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
     "group_id",
     { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
-    "createby",
+    "createdby",
     { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
     "created",
     { data_type => "datetime", datetime_undef_if_invalid => 1, is_nullable => 1 },
