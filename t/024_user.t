@@ -39,7 +39,7 @@ try { $schema->resultset('User')->create_user(%template, email => $existing) };
 like($@, qr/already exists/, "Unable to create user with existing username");
 
 # Same directly in resultset
-try { $schema->resultset('User')->create({email => $existing}) };
+try { $schema->resultset('User')->create({email => $existing, username => $existing}) };
 like($@, qr/already exists/, "Unable to create user with existing username");
 
 $site->update({ register_organisation_mandatory => 1 });

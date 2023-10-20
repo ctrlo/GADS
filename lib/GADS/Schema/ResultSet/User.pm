@@ -57,7 +57,8 @@ sub create_user
     my $request_base = $params{request_base};
 
     my $user = $self->create({
-        username => $params{username},
+        email    => $params{email},
+        username => $params{email},
         resetpw  => $code,
         created  => DateTime->now,
     });
