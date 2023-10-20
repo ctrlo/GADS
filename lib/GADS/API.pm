@@ -711,7 +711,6 @@ sub _post_add_user_account
         firstname             => $body->{firstname},
         surname               => $body->{surname},
         email                 => $body->{email},
-        username              => $body->{email},
         freetext1             => $body->{freetext1},
         freetext2             => $body->{freetext2},
         title                 => $body->{title},

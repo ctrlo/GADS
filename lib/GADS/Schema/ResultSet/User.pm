@@ -47,6 +47,8 @@ sub create_user
 
     error __"An email address must be specified for the user"
         if !$params{email};
+    panic "username is no longer accepted for create_user - use email instead"
+        if $params{username};
 
     error __x"User {email} already exists", email => $params{email}
         if $self->active(email => $params{email})->count;
@@ -207,7 +209,6 @@ sub upload
             firstname             => defined $user_mapping{forename} ? $row->[$user_mapping{forename}] : '',
             surname               => defined $user_mapping{surname} ? $row->[$user_mapping{surname}] : '',
             email                 => defined $user_mapping{email} ? $row->[$user_mapping{email}] : '',
-            username              => defined $user_mapping{email} ? $row->[$user_mapping{email}] : '',
             freetext1             => defined $user_mapping{$freetext1} ? $row->[$user_mapping{$freetext1}] : '',
             freetext2             => defined $user_mapping{$freetext2} ? $row->[$user_mapping{$freetext2}] : '',
             title                 => $title_id,

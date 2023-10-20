@@ -877,6 +877,8 @@ sub update_user
         $values->{account_request} = $params{account_request};
     }
 
+    my $original_username = $self->username;
+
     foreach my $field ($site->user_fields)
     {
         next if !exists $params{$field->{name}};
@@ -888,14 +890,8 @@ sub update_user
 
     my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $current_user);
 
-    if (lc $values->{username} ne lc $self->username)
-    {
-        $self->result_source->schema->resultset('User')->active->search({
-            username => $values->{username},
-        })->count
-            and error __x"Email address {username} already exists as an active user", username => $values->{username};
-        $audit->login_change("Username ".$self->username." (id ".$self->id.") being changed to $values->{username}");
-    }
+    $audit->login_change("Username $original_username (id ".$self->id.") being changed to ".$self->username)
+        if $original_username && $self->is_column_changed('username');
 
     # Coerce view_limits to value expected, ensure all removed if exists
     $params{view_limits} = []
@@ -1140,7 +1136,21 @@ sub for_data_table
 
 sub validate
 {   my $self = shift;
+    # Update value field
     $self->value(_user_value({firstname => $self->firstname, surname => $self->surname}));
+
+    # Check existing user rename, check both email address and username
+    foreach my $f (qw/username email/)
+    {
+        if ($self->is_column_changed($f) || !$self->id)
+        {
+            my $search = { $f => $self->$f };
+            $search->{id} = { '!=' => $self->id }
+                if $self->id;
+            $self->result_source->resultset->active->search($search)->next
+                and error __x"{username} already exists as an active user", username => $self->$f;
+        }
+    }
 }
 
 sub export_hash
