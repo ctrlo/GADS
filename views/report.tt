@@ -19,6 +19,8 @@ table_columns = [{
     orderable = 0,
 }];
 
+rows = [];
+
 FOREACH report IN reports;
     rows.push({
         link_placeholders = {
@@ -26,15 +28,19 @@ FOREACH report IN reports;
         },
         fields = [{
             type = "string",
-            value = report.name,
+            label = report.id,
         },
         {
             type = "string",
-            value = report.createdby,
+            label = report.name,
         },
         {
             type = "string",
-            value = report.created_on,
+            label = report.createdby,
+        },
+        {
+            type = "string",
+            label = report.created_on,
         }]
     });
 END; #foreach
@@ -42,7 +48,6 @@ END; #foreach
 %]
 
 <div class="content-block__main">
-
     <div class="card">
         <div class="card--header">
             <h3 class"card__header">Reports</h3>

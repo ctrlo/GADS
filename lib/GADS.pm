@@ -80,7 +80,7 @@ use Tie::Cache;
 use URI;
 use URI::Escape qw/uri_escape_utf8 uri_unescape/;
 
-use Log::Log4perl qw(:easy); # Just for WWW::Mechanize::Chrome
+use Log::Log4perl; #qw(:easy); # Just for WWW::Mechanize::Chrome
 use WWW::Mechanize::Chrome;
 
 use Dancer2; # Last to stop Moo generating conflicting namespace
@@ -2811,12 +2811,6 @@ prefix '/:layout_name' => sub {
              });
         }
 
-        foreach my $result (@result) {
-            foreach my $key (keys(%$result)) {
-                print $key . " : " . $result->{$key} . "\n";
-            }
-        }
-
         my $base_url = request->base;
 
         my $params;
@@ -2832,8 +2826,7 @@ prefix '/:layout_name' => sub {
         $params->{viewtype}             = 'table';
         $params->{layout}               = $layout;
         $params->{reports}              = \@result;
-        # $params->{columns}                      = \@columns;
-
+        
         template 'report' => $params;
     };
 
