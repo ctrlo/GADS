@@ -241,6 +241,13 @@ sub user_fields_as_string
     join ', ', map $_->{description}, $self->user_fields;
 }
 
+sub user_field_is_editable {
+  my $self = shift;
+  my $field = shift;
+
+  !!grep { $_->{name} eq $field && $_->{editable} } $self->user_fields();
+}
+
 sub user_fields
 {   my $self = shift;
 
