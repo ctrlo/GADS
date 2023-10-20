@@ -50,12 +50,6 @@ __PACKAGE__->table("report");
     is_foreign_key: 1
     is_nullable: 1
 
-=head2 group_id
-
-    data_type: 'bigint'
-    is_foreign_key: 1
-    is_nullable: 1
-
 =head2 createby
 
     data_type: 'bigint'
@@ -82,8 +76,6 @@ __PACKAGE__->add_columns(
     "name",
     { data_type => "varchar", is_nullable => 0, size => 128 },
     "user_id",
-    { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
-    "group_id",
     { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
     "createdby",
     { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
@@ -139,26 +131,6 @@ __PACKAGE__->belongs_to(
     },
 );
 
-=head2 group
-
-Type: belongs_to
-
-Related object: L<GADS::Schema::Result::Group>
-
-=cut
-
-__PACKAGE__->belongs_to(
-    "group",
-    "GADS::Schema::Result::Group",
-    { id => "group_id" },
-    {
-        is_deferrable => 1,
-        join_type => "LEFT",
-        on_delete => "NO ACTION",
-        on_update => "NO ACTION"
-    },
-);
-
 =head2 instance
 
 Type: belongs_to
@@ -190,6 +162,21 @@ Related object: L<GADS::Schema::Result::ReportLayout>
 __PACKAGE__->has_many(
     "report_layouts",
     "GADS::Schema::Result::ReportLayout",
+    { "foreign.report_id" => "self.id" },
+    { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 report_groups
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::ReportGroup>
+
+=cut
+
+__PACKAGE__->has_many(
+    "report_groups",
+    "GADS::Schema::Result::ReportGroup",
     { "foreign.report_id" => "self.id" },
     { cascade_copy => 0, cascade_delete => 0 },
 );

@@ -196,4 +196,19 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 group_reports
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::GroupReport>
+
+=cut
+
+__PACKAGE__->has_many(
+  "group_reports",
+  "GADS::Schema::Result::GroupReport",
+  { "foreign.group_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 1;
