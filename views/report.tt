@@ -1,64 +1,105 @@
 [% IF viewtype == 'table';
 
-table_dom = "t";
-table_show_all_records="true";
+  table_dom = "t";
+  table_show_all_records="true";
 
-table_caption = "Reports";
-table_width = 85;
+  table_caption = "Reports";
+  table_width = 85;
 
-table_columns = [{
+  table_columns = [{
     name = "Name",
     orderable = 0,
-}, {
+  }, {
     name = "Actions",
     orderable = 0
-}];
+  }];
 
-table_buttons = [];
+  table_buttons = [];
 
-rows = [];
+  rows = [];
 
-FOREACH report IN reports;
+  FOREACH report IN reports;
     data = {
-        fields = [{
-            type = "string",
-            label = report.name
-        }]
+      fields = [{
+        type = "string",
+        label = report.name
+      }]
     };
     IF user.permission.superadmin;
-        data.fields.push({
-            type = "link",
-            label = "Edit",
-            link = "report/edit" _ report.id
-        });
-    END;
+      data.fields.push({
+        type = "link",
+        label = "Edit",
+        link = "report/edit" _ report.id
+      });
+    END; #if
     rows.push(data);
-END; #foreach
-
+  END; #foreach
 %]
 
 <div class="content-block__main">
-    <div class="card">
-        <div class="card--header">
-            <h3 class"card__header">Reports</h3>
-        </div>
-
-        <div class="card__body row">
-            <div class="card__content">
-                <div class="row">
-                    <div class="col">
-                        [% INCLUDE tables/basic_table.tt %]
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="card">
+    <div class="card--header">
+      <h3 class"card__header">Reports</h3>
     </div>
+
+    <div class="card__body row">
+      <div class="card__content">
+        <div class="row">
+          <div class="col">
+            [% INCLUDE tables/basic_table.tt %]
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="content-block__footer">
+    <div class="content-block__footer-container">
+      [%
+        INCLUDE navigation/button_bar.tt
+          row_class = "row"
+          columns = [{
+            class = "col-md-4 mb-3 mb-md-0",
+            buttons = []
+          }, {
+            class = "col-md-8 d-md-flex justify-content-md-end align-items-center",
+            buttons = [{
+              type = "link",
+              target = url.page _ "/" _ layout_obj.identifier _ "/report/add",
+              class= "btn btn-inverted btn-add",
+              label= "Create Report"
+            }]
+          }];
+      %]
+    </div>
+  </footer>
 </div>
 
 [% ELSIF viewtype == 'edit' %]
+
 <h1>We be editing</h1>
+
 [% ELSIF viewtype == 'add' %]
-<h1>We be adding</h1>
+
+<div class="content-block__main">
+  <div class="card">
+    <div class="card--header">
+      <h3 class"card__header">Create Report</h3>
+    </div>
+
+    <div class="card__body row">
+      <div class="card__content">
+        <div class="row">
+          <div class="col">
+            <h2>Create Report Will Go Here!</h2>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 [% ELSE %]
+
 <h1>We be doing something else</h1>
+
 [% END; %]
