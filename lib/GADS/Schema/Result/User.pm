@@ -1139,6 +1139,11 @@ sub validate
     # Update value field
     $self->value(_user_value({firstname => $self->firstname, surname => $self->surname}));
 
+    $self->username
+        or error "Username required";
+    $self->email
+        or error "Email required";
+
     # Check existing user rename, check both email address and username
     foreach my $f (qw/username email/)
     {
