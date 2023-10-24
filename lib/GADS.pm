@@ -2788,6 +2788,12 @@ prefix '/:layout_name' => sub {
             $params->{layout_obj} = $layout;
             $params->{layout}     = $layout;
 
+            $params->{header_back_url} = "${base_url}table";
+            $params->{breadcrumbs}     = [
+                Crumb( $base_url . "table/", "Tables" ),
+                Crumb( "",                   "Table: " . $layout->name )
+            ];
+
             my $reports = schema->resultset('Report')->search(
                 {
                     instance_id => $layout->instance_id,
@@ -2807,28 +2813,77 @@ prefix '/:layout_name' => sub {
                 );
             }
 
-            $params->{header_back_url} = "${base_url}table";
-            $params->{breadcrumbs}     = [
-                Crumb( $base_url . "table/", "Tables" ),
-                Crumb( "",                   "Table: " . $layout->name )
-            ];
             $params->{viewtype} = 'table';
             $params->{reports}  = \@result;
 
             template 'report' => $params;
         };
 
-        #add a report
-        any [ 'get', 'post' ] => '/add' => require_login sub {
+        post '/add' => require_login sub {
+            print STDOUT Dumper params;
 
-            #todo: We be working on this after add!
+            redirect '/report';
+        };
+
+        #add a report
+        get '/add' => require_login sub {
+
+            my $user   = logged_in_user;
+            my $layout = var('layout') or pass;
+
+            if ( app->has_hook('plugin.linkspace.data_before_request') ) {
+                app->execute_hook( 'plugin.linkspace.data_before_request',
+                    user => $user );
+            }
+
+            my %params = (
+                user   => $user,
+                layout => $layout,
+                schema => schema,
+            );
+
+            my $records = GADS::Records->new(%params);
+
+            my @columns = @{$records->columns_render};
+
+            my $fields = [ map $_->presentation(
+                group            => $records->is_group,
+                group_col_ids    => $records->group_col_ids,
+                sort             => $records->sort_first,
+                query_parameters => query_parameters,
+            ), @columns ];
+
+            my $alert = GADS::Alert->new(
+                user   => $user,
+                layout => $layout,
+                schema => schema,
+            );
+
+            my $base_url = request->base;
+
             my $params;
+
+            $params->{alerts}      = $alert->all;
+            $params->{header_type} = 'table_tabs';
+
+            $params->{layout_obj} = $layout;
+            $params->{layout}     = $layout;
+
+            $params->{header_back_url} = "${base_url}table";
+            $params->{breadcrumbs}     = [
+                Crumb( $base_url . "table/", "Tables" ),
+                Crumb( "",                   "Table: " . $layout->name )
+            ];
+
             $params->{viewtype} = 'add';
+            $params->{fields} = $fields;
 
             template 'report' => $params;
         };
 
-        any [ 'get', 'post' ] => '/edit:id' => require_login sub {
+        any ['get','post'] => '/edit:id' => require_login sub {
+
+            #todo: We be working on this after add!
             my $user   = logged_in_user;
             my $layout = var('layout') or pass;
 
@@ -2860,7 +2915,14 @@ prefix '/:layout_name' => sub {
 
             $params->{layout_obj} = $layout;
             $params->{layout}     = $layout;
-            $params->{viewtype}   = 'edit';
+
+            $params->{header_back_url} = "${base_url}table";
+            $params->{breadcrumbs}     = [
+                Crumb( $base_url . "table/", "Tables" ),
+                Crumb( "",                   "Table: " . $layout->name )
+            ];
+
+            $params->{viewtype} = 'edit';
 
             template 'report' => $params;
         };
