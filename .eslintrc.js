@@ -46,10 +46,9 @@ module.exports = {
     'strict': 0,
     'object-shorthand': 0,
     'dot-notation': 0,
-    'prettier/prettier': 0,
+    'prettier/prettier': 'error',
     'jsdoc/require-param-description': 0,
     'jsdoc/require-returns-description': 0,
-    'no-unused-vars': 0,
-    'no-undef': 0,
   },
 };
+

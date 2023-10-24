@@ -13,10 +13,5 @@
       <a href='[% url.page %]/[% layout_obj.identifier %]/edit' class='link link--plain'><span>Edit table</span></a>
     </li>
     [% END; %]
-    [% IF user.permission.superadmin OR layout.user_can("layout"); %]
-    <li class="list__item[% page_is_active(report_active_pages, ' list__item--active'); %]">
-      <a href='[%url.page%]/[%layout_obj.identifier%]/report' class='link link--plain'><span>Reports</span></a>
-    </li>
-    [% END; %]
   </ul>
 </div>
