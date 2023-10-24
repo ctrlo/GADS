@@ -18,7 +18,7 @@ class CreateReportButtonComponent extends Component {
     this.canSubmitRecordForm = false;
     this.initSubmitReport();
   }
-  
+
   /**
    * Initialise the submit report button
    */
