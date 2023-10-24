@@ -30,7 +30,7 @@ extends 'DBIx::Class::Core';
 
 =cut
 
-__PACKAGE__->load_components("InflateColumn::DateTime");
+__PACKAGE__->load_components("InflateColumn::DateTime", "+GADS::DBIC");
 
 =head1 TABLE: C<user>
 
@@ -776,7 +776,8 @@ sub graphs
 
 # Used to check if a user has a group
 has has_group => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_has_group
@@ -845,19 +846,6 @@ sub update_user
     delete $params{team_id} if !$params{team_id};
     delete $params{title} if !$params{title};
 
-    length $params{firstname} <= 128
-        or error __"Forename must be less than 128 characters";
-    length $params{surname} <= 128
-        or error __"Surname must be less than 128 characters";
-    !defined $params{organisation} || $params{organisation} =~ /^[0-9]+$/
-        or error __x"Invalid organisation {id}", id => $params{organisation};
-    !defined $params{department_id} || $params{department_id} =~ /^[0-9]+$/
-        or error __x"Invalid department {id}", id => $params{department_id};
-    !defined $params{team_id} || $params{team_id} =~ /^[0-9]+$/
-        or error __x"Invalid team {id}", id => $params{team_id};
-    GADS::Util->email_valid($params{email})
-        or error __x"The email address \"{email}\" is invalid", email => $params{email};
-
     my $site = $self->result_source->schema->resultset('Site')->next;
 
     error __x"Please select a {name} for the user", name => $site->organisation_name
@@ -877,6 +865,8 @@ sub update_user
         $values->{account_request} = $params{account_request};
     }
 
+    my $original_username = $self->username;
+
     foreach my $field ($site->user_fields)
     {
         next if !exists $params{$field->{name}};
@@ -887,14 +877,8 @@ sub update_user
 
     my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $current_user);
 
-    if (lc $values->{username} ne lc $self->username)
-    {
-        $self->result_source->schema->resultset('User')->active->search({
-            username => $values->{username},
-        })->count
-            and error __x"Email address {username} already exists as an active user", username => $values->{username};
-        $audit->login_change("Username ".$self->username." (id ".$self->id.") being changed to $values->{username}");
-    }
+    $audit->login_change("Username $original_username (id ".$self->id.") being changed to ".$self->username)
+        if $original_username && $self->is_column_changed('username');
 
     # Coerce view_limits to value expected, ensure all removed if exists
     $params{view_limits} = []
@@ -906,12 +890,15 @@ sub update_user
     $params{permissions} = []
         if exists $params{permissions} && !$params{permissions};
 
-    $params{value} = _user_value(\%params);
-    $values->{value} = _user_value($values);
     $self->update($values);
 
-    $self->groups($current_user, $params{groups})
-        if $params{groups};
+    if ($params{groups})
+    {
+        $self->groups($current_user, $params{groups});
+        $self->clear_has_group;
+        $self->has_group;
+    }
+
     if ($params{permissions} && ref $params{permissions} eq 'ARRAY')
     {
         error __"You do not have permission to set global user permissions"
@@ -920,6 +907,36 @@ sub update_user
     }
     $self->set_view_limits($params{view_limits})
         if $params{view_limits};
+
+    my $empty = 1;
+    $empty = 0 if($params{organisation});
+
+    my $required = 0;
+    $required = 1 if $site->register_organisation_mandatory;
+    $required = 0 if $params{edit_own_user};
+    $required = 1 if $params{$site->user_field_is_editable('organisation')};
+
+    error __x"Please select a {name} for the user", name => $site->organisation_name
+        if $empty && $required;
+
+    error __x"Please select a {name} for the user", name => $site->team_name
+        if !$params{team_id} && $site->register_team_mandatory;
+
+    error __x"Please select a {name} for the user", name => $site->department_name
+        if !$params{department_id} && $site->register_department_mandatory;
+
+    length $params{firstname} <= 128
+        or error __"Forename must be less than 128 characters";
+    length $params{surname} <= 128
+        or error __"Surname must be less than 128 characters";
+    !defined $params{organisation} || $params{organisation} =~ /^[0-9]+$/
+        or error __x"Invalid organisation {id}", id => $params{organisation};
+    !defined $params{department_id} || $params{department_id} =~ /^[0-9]+$/
+        or error __x"Invalid department {id}", id => $params{department_id};
+    !defined $params{team_id} || $params{team_id} =~ /^[0-9]+$/
+        or error __x"Invalid team {id}", id => $params{team_id};
+    GADS::Util->email_valid($params{email})
+        or error __x"The email address \"{email}\" is invalid", email => $params{email};
 
     my $msg = __x"User updated: ID {id}, username: {username}",
         id => $self->id, username => $params{username};
@@ -1115,6 +1132,30 @@ sub for_data_table
     } if $site->register_freetext1_name;
 
     $return;
+}
+
+sub validate
+{   my $self = shift;
+    # Update value field
+    $self->value(_user_value({firstname => $self->firstname, surname => $self->surname}));
+
+    $self->username
+        or error "Username required";
+    $self->email
+        or error "Email required";
+
+    # Check existing user rename, check both email address and username
+    foreach my $f (qw/username email/)
+    {
+        if ($self->is_column_changed($f) || !$self->id)
+        {
+            my $search = { $f => $self->$f };
+            $search->{id} = { '!=' => $self->id }
+                if $self->id;
+            $self->result_source->resultset->active->search($search)->next
+                and error __x"{username} already exists as an active user", username => $self->$f;
+        }
+    }
 }
 
 sub export_hash
