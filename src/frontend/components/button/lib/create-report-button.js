@@ -3,20 +3,34 @@ import { Component } from "component";
 import { validateRequiredFields } from "validation";
 import { logging } from "../../../test/logging";
 
+/**
+ * CreateReportButtonComponent class to create a report submission button component
+ * @augments Component
+ */
 class CreateReportButtonComponent extends Component {
+  /**
+   * Create a new CreateReportButtonComponent
+   * @param {HTMLButtonElement} element button element
+   */
   constructor(element) {
     super(element);
     this.el = $(element);
     this.canSubmitRecordForm = false;
     this.initSubmitReport();
   }
-
+  
+  /**
+   * Initialise the submit report button
+   */
   initSubmitReport() {
     this.el.on('click', (ev) => { this.submitReport(ev) });
     this.setupCheckboxes();
     this.setupHiddenField();
   }
 
+  /**
+   * Setup the checkboxes to respond to clicks and update the hidden field
+   */
   setupCheckboxes() {
     const $fieldset = $(".fieldset--report");
     const $checkboxes = $fieldset.find("input[type=checkbox]");
@@ -53,6 +67,9 @@ class CreateReportButtonComponent extends Component {
     });
   }
 
+  /**
+   * Setup the hidden field with the values of any pre-checked checkboxes
+   */
   setupHiddenField() {
     try {
       const $fieldset = $(".fieldset--report");
@@ -76,6 +93,11 @@ class CreateReportButtonComponent extends Component {
     }
   }
 
+  /**
+   * Check if at least one checkbox is checked
+   * @param {jQuery<HTMLFieldSetElement>} $fieldset fieldset to check
+   * @returns {boolean} true if at least one checkbox is checked
+   */
   checkForAtLeastOneValue($fieldset) {
     const fields = $fieldset.find("input");
 
@@ -91,6 +113,10 @@ class CreateReportButtonComponent extends Component {
     return result;
   }
 
+  /**
+   * Check the report form and submit if valid
+   * @param {jQuery.ClickEvent} ev click event
+   */
   submitReport(ev) {
     const $button = $(ev.target).closest('button');
     const $form = $button.closest("form");
@@ -110,6 +136,10 @@ class CreateReportButtonComponent extends Component {
     }
   }
 
+  /**
+   * Submit the form
+   * @param {jQuery<HTMLFormElement>} $form form to submit
+   */
   submit($form) {
     $form.trigger("submit");
   }
