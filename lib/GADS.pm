@@ -2819,14 +2819,20 @@ prefix '/:layout_name' => sub {
             template 'report' => $params;
         };
 
-        post '/add' => require_login sub {
-            print STDOUT Dumper params;
-
-            redirect '/report';
-        };
-
         #add a report
-        get '/add' => require_login sub {
+        any ['get','post'] => '/add' => require_login sub {
+            if(body_parameters && body_parameters->{submit}){
+                my $report_description = body_parameters->{report_description};
+                my $report_name = body_parameters->{report_name};
+                my $checkbox_fields_full = body_parameters->{checkbox_fields};
+
+                my $checkbox_fields = [split(',', $checkbox_fields_full)];
+
+                my $user   = logged_in_user;
+                
+                #for now!
+                return redirect '/';
+            }
 
             my $user   = logged_in_user;
             my $layout = var('layout') or pass;
