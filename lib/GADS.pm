@@ -778,7 +778,7 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
             $update{$field->{name}} = param($field->{name}) || undef;
         }
 
-        if (process( sub { $user->update_user(current_user => logged_in_user, %update) }))
+        if (process( sub { $user->update_user(current_user => logged_in_user, edit_own_user => 1, %update) }))
         {
             return forwardHome(
                 { success => "The account details have been updated" }, 'myaccount' );
@@ -1577,16 +1577,6 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
             return forwardHome(
                 { success => "User has been updated successfully" }, 'user_overview/' );
         }
-
-        # In case of failure, pass back to form
-        my $view_limits_with_blank = [ map {
-            +{
-                view_id => $_
-            }
-        } body_parameters->get_all('view_limits') ];
-
-        $values{view_limits_with_blank} = $view_limits_with_blank;
-        $editUser = \%values;
     }
     elsif (my $delete_id = param('delete'))
     {
@@ -2760,6 +2750,182 @@ prefix '/:layout_name' => sub {
         ];
 
         template 'data' => $params;
+    };
+
+    prefix '/report' => sub {
+
+        #view the report
+        get '' => require_login sub {
+            my $user   = logged_in_user;
+            my $layout = var('layout') or pass;
+
+            if ( app->has_hook('plugin.linkspace.data_before_request') ) {
+                app->execute_hook( 'plugin.linkspace.data_before_request',
+                    user => $user );
+            }
+
+            my %params = (
+                user   => $user,
+                layout => $layout,
+                schema => schema,
+            );
+
+            my $records = GADS::Records->new(%params);
+
+            my $alert = GADS::Alert->new(
+                user   => $user,
+                layout => $layout,
+                schema => schema,
+            );
+
+            my $base_url = request->base;
+
+            my $params;
+
+            $params->{alerts}      = $alert->all;
+            $params->{header_type} = 'table_tabs';
+
+            $params->{layout_obj} = $layout;
+            $params->{layout}     = $layout;
+
+            $params->{header_back_url} = "${base_url}table";
+            $params->{breadcrumbs}     = [
+                Crumb( $base_url . "table/", "Tables" ),
+                Crumb( "",                   "Table: " . $layout->name )
+            ];
+
+            my $reports = schema->resultset('Report')->search(
+                {
+                    instance_id => $layout->instance_id,
+                }
+            );
+
+            my $report;
+            my @result;
+
+            while ( $report = $reports->next ) {
+                push(
+                    @result,
+                    {
+                        id   => $report->id,
+                        name => $report->name
+                    }
+                );
+            }
+
+            $params->{viewtype} = 'table';
+            $params->{reports}  = \@result;
+
+            template 'report' => $params;
+        };
+
+        post '/add' => require_login sub {
+            print STDOUT Dumper params;
+
+            redirect '/report';
+        };
+
+        #add a report
+        get '/add' => require_login sub {
+
+            my $user   = logged_in_user;
+            my $layout = var('layout') or pass;
+
+            if ( app->has_hook('plugin.linkspace.data_before_request') ) {
+                app->execute_hook( 'plugin.linkspace.data_before_request',
+                    user => $user );
+            }
+
+            my %params = (
+                user   => $user,
+                layout => $layout,
+                schema => schema,
+            );
+
+            my $records = GADS::Records->new(%params);
+
+            my @columns = @{$records->columns_render};
+
+            my $fields = [ map $_->presentation(
+                group            => $records->is_group,
+                group_col_ids    => $records->group_col_ids,
+                sort             => $records->sort_first,
+                query_parameters => query_parameters,
+            ), @columns ];
+
+            my $alert = GADS::Alert->new(
+                user   => $user,
+                layout => $layout,
+                schema => schema,
+            );
+
+            my $base_url = request->base;
+
+            my $params;
+
+            $params->{alerts}      = $alert->all;
+            $params->{header_type} = 'table_tabs';
+
+            $params->{layout_obj} = $layout;
+            $params->{layout}     = $layout;
+
+            $params->{header_back_url} = "${base_url}table";
+            $params->{breadcrumbs}     = [
+                Crumb( $base_url . "table/", "Tables" ),
+                Crumb( "",                   "Table: " . $layout->name )
+            ];
+
+            $params->{viewtype} = 'add';
+            $params->{fields} = $fields;
+
+            template 'report' => $params;
+        };
+
+        any ['get','post'] => '/edit:id' => require_login sub {
+
+            #todo: We be working on this after add!
+            my $user   = logged_in_user;
+            my $layout = var('layout') or pass;
+
+            if ( app->has_hook('plugin.linkspace.data_before_request') ) {
+                app->execute_hook( 'plugin.linkspace.data_before_request',
+                    user => $user );
+            }
+
+            my %params = (
+                user   => $user,
+                layout => $layout,
+                schema => schema,
+            );
+
+            my $records = GADS::Records->new(%params);
+
+            my $alert = GADS::Alert->new(
+                user   => $user,
+                layout => $layout,
+                schema => schema,
+            );
+
+            my $base_url = request->base;
+
+            my $params;
+
+            $params->{alerts}      = $alert->all;
+            $params->{header_type} = 'table_tabs';
+
+            $params->{layout_obj} = $layout;
+            $params->{layout}     = $layout;
+
+            $params->{header_back_url} = "${base_url}table";
+            $params->{breadcrumbs}     = [
+                Crumb( $base_url . "table/", "Tables" ),
+                Crumb( "",                   "Table: " . $layout->name )
+            ];
+
+            $params->{viewtype} = 'edit';
+
+            template 'report' => $params;
+        };
     };
 
     # any ['get', 'post'] => qr{/tree[0-9]*/([0-9]*)/?} => require_login sub {
