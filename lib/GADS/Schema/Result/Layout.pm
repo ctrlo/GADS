@@ -865,4 +865,19 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 report_layouts
+
+Type: has_many
+
+Related object: L<GADS::Schema::Result::ReportLayout>
+
+=cut
+
+__PACKAGE__->has_many(
+  "report_layouts",
+  "GADS::Schema::Result::ReportLayout",
+  { "foreign.report_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 1;
