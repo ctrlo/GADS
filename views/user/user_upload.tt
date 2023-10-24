@@ -60,7 +60,7 @@
             name  = "submit",
             value = "submit",
             class = "btn btn-default",
-            label = "Save changes"
+            label = "Import"
           }]
         }];
     %]
