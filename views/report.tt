@@ -95,7 +95,7 @@
   rowcount=0;
 
 %]
-<form id="myform">
+<form method="post">
   [% INCLUDE fields/hidden.tt name="submit" value="submit";
      INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
   <div class="content-block__main">
@@ -138,7 +138,6 @@
                 id = "report_fields";
               INCLUDE fields/hidden.tt
                 name = "checkbox_fields"
-                value = ""
                 id = "checkboxes";
             %]
           </div>
@@ -151,17 +150,17 @@
     <div class="content-block__footer-container">
       [%
         INCLUDE navigation/button_bar.tt
-          row_class  = "row"
-          columns       = [{
-            class       = "col-md-4 mb-3 mb-md-0",
-            buttons     = []
+          row_class         = "row"
+          columns           = [{
+            class           = "col-md-4 mb-3 mb-md-0",
+            buttons         = []
           }, {
-            class       = "col-md-8 d-md-flex justify-content-md-end align-items-center",
-            buttons     = [{
-                type    = "button",
-                class   = "btn btn-inverted btn-js-report",
-                label   = "Create Report",
-            button_type = "button"
+            class           = "col-md-8 d-md-flex justify-content-md-end align-items-center",
+            buttons         = [{
+                type        = "button",
+                class       = "btn btn-inverted btn-js-report",
+                label       = "Create Report",
+                button_type = "submit"
           }]
         }];
       %]
