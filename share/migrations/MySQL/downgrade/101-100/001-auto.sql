@@ -5,7 +5,6 @@ BEGIN;
 
 ;
 ALTER TABLE report DROP FOREIGN KEY report_fk_createdby,
-                   DROP FOREIGN KEY report_fk_group_id,
                    DROP FOREIGN KEY report_fk_instance_id,
                    DROP FOREIGN KEY report_fk_user_id;
 

@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Fri Oct 20 10:06:41 2023
+-- Created on Tue Oct 24 10:06:39 2023
 --
 ;
 SET foreign_key_checks=0;
@@ -821,18 +821,16 @@ CREATE TABLE `record` (
 CREATE TABLE `report` (
   `id` bigint NOT NULL auto_increment,
   `name` varchar(128) NOT NULL,
+  `description` varchar(128) NULL,
   `user_id` bigint NULL,
-  `group_id` bigint NULL,
   `createdby` bigint NULL,
   `created` datetime NULL,
   `instance_id` bigint NULL,
   INDEX `report_idx_createdby` (`createdby`),
-  INDEX `report_idx_group_id` (`group_id`),
   INDEX `report_idx_instance_id` (`instance_id`),
   INDEX `report_idx_user_id` (`user_id`),
   PRIMARY KEY (`id`),
   CONSTRAINT `report_fk_createdby` FOREIGN KEY (`createdby`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `report_fk_group_id` FOREIGN KEY (`group_id`) REFERENCES `group` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `report_fk_instance_id` FOREIGN KEY (`instance_id`) REFERENCES `instance` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `report_fk_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB;

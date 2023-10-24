@@ -6057,19 +6057,6 @@ schema:
         - deferrable: 1
           expression: ''
           fields:
-            - group_id
-          match_type: ''
-          name: report_fk_group_id
-          on_delete: NO ACTION
-          on_update: NO ACTION
-          options: []
-          reference_fields:
-            - id
-          reference_table: group
-          type: FOREIGN KEY
-        - deferrable: 1
-          expression: ''
-          fields:
             - instance_id
           match_type: ''
           name: report_fk_instance_id
@@ -6114,16 +6101,16 @@ schema:
           order: 5
           size:
             - 0
-        group_id:
-          data_type: bigint
+        description:
+          data_type: varchar
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
           is_unique: 0
-          name: group_id
-          order: 4
+          name: description
+          order: 3
           size:
-            - 0
+            - 128
         id:
           data_type: bigint
           default_value: ~
@@ -6162,18 +6149,13 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: user_id
-          order: 3
+          order: 4
           size:
             - 0
       indices:
         - fields:
             - createdby
           name: report_idx_createdby
-          options: []
-          type: NORMAL
-        - fields:
-            - group_id
-          name: report_idx_group_id
           options: []
           type: NORMAL
         - fields:

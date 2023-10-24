@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Fri Oct 20 10:06:41 2023
+-- Created on Tue Oct 24 10:06:40 2023
 --
 ;
 --
@@ -810,15 +810,14 @@ CREATE INDEX "record_idx_approval" on "record" ("approval");
 CREATE TABLE "report" (
   "id" bigserial NOT NULL,
   "name" character varying(128) NOT NULL,
+  "description" character varying(128),
   "user_id" bigint,
-  "group_id" bigint,
   "createdby" bigint,
   "created" timestamp,
   "instance_id" bigint,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "report_idx_createdby" on "report" ("createdby");
-CREATE INDEX "report_idx_group_id" on "report" ("group_id");
 CREATE INDEX "report_idx_instance_id" on "report" ("instance_id");
 CREATE INDEX "report_idx_user_id" on "report" ("user_id");
 
@@ -1587,10 +1586,6 @@ ALTER TABLE "record" ADD CONSTRAINT "record_fk_record_id" FOREIGN KEY ("record_i
 ;
 ALTER TABLE "report" ADD CONSTRAINT "report_fk_createdby" FOREIGN KEY ("createdby")
   REFERENCES "user" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
-
-;
-ALTER TABLE "report" ADD CONSTRAINT "report_fk_group_id" FOREIGN KEY ("group_id")
-  REFERENCES "group" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
 ALTER TABLE "report" ADD CONSTRAINT "report_fk_instance_id" FOREIGN KEY ("instance_id")

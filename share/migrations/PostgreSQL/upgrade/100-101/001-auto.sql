@@ -7,15 +7,14 @@ BEGIN;
 CREATE TABLE "report" (
   "id" bigserial NOT NULL,
   "name" character varying(128) NOT NULL,
+  "description" character varying(128),
   "user_id" bigint,
-  "group_id" bigint,
   "createdby" bigint,
   "created" timestamp,
   "instance_id" bigint,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "report_idx_createdby" on "report" ("createdby");
-CREATE INDEX "report_idx_group_id" on "report" ("group_id");
 CREATE INDEX "report_idx_instance_id" on "report" ("instance_id");
 CREATE INDEX "report_idx_user_id" on "report" ("user_id");
 
@@ -33,10 +32,6 @@ CREATE INDEX "report_instance_idx_report_id" on "report_instance" ("report_id");
 ;
 ALTER TABLE "report" ADD CONSTRAINT "report_fk_createdby" FOREIGN KEY ("createdby")
   REFERENCES "user" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
-
-;
-ALTER TABLE "report" ADD CONSTRAINT "report_fk_group_id" FOREIGN KEY ("group_id")
-  REFERENCES "group" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
 ALTER TABLE "report" ADD CONSTRAINT "report_fk_instance_id" FOREIGN KEY ("instance_id")

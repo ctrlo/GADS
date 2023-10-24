@@ -75,6 +75,8 @@ __PACKAGE__->add_columns(
     { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
     "name",
     { data_type => "varchar", is_nullable => 0, size => 128 },
+    "description",
+    { data_type => "varchar", is_nullable => 1, size => 128 },
     "user_id",
     { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
     "createdby",
@@ -162,21 +164,6 @@ Related object: L<GADS::Schema::Result::ReportLayout>
 __PACKAGE__->has_many(
     "report_layouts",
     "GADS::Schema::Result::ReportLayout",
-    { "foreign.report_id" => "self.id" },
-    { cascade_copy => 0, cascade_delete => 0 },
-);
-
-=head2 report_groups
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::ReportGroup>
-
-=cut
-
-__PACKAGE__->has_many(
-    "report_groups",
-    "GADS::Schema::Result::ReportGroup",
     { "foreign.report_id" => "self.id" },
     { cascade_copy => 0, cascade_delete => 0 },
 );
