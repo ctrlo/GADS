@@ -119,7 +119,7 @@ class CreateReportButtonComponent extends Component {
    */
   submitReport(ev) {
     const $button = $(ev.target).closest('button');
-    const $form = $button.closest("form");
+    const $form = $button.closest("form#myform");
     const $fieldset = $(".fieldset--report");
     const checked = this.checkForAtLeastOneValue($fieldset);
 
@@ -129,7 +129,8 @@ class CreateReportButtonComponent extends Component {
       const isValid = validateRequiredFields($form);
 
       if (isValid && checked) {
-        this.submit($form);
+        this.canSubmitRecordForm = true;
+        this.submit($button);
       } else if (!checked) {
         $(".alert__no__select").show();
       }
@@ -138,10 +139,11 @@ class CreateReportButtonComponent extends Component {
 
   /**
    * Submit the form
-   * @param {jQuery<HTMLFormElement>} $form form to submit
+   * @param {jQuery<HTMLButtonElement>} $button form to submit
    */
-  submit($form) {
-    $form.trigger("submit");
+  submit($button) {
+    $button.trigger("click");
+    $button.prop("disabled", true);
   }
 }
 

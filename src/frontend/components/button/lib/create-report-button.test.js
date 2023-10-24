@@ -119,7 +119,7 @@ describe('create-report-button', () => {
           <input id="7" type="checkbox">
         </fieldset>
         <input type="hidden" id="checkboxes">
-        <button type="button" class="btn btn-inverted btn-js-report" id="submit">
+        <button type="submit" class="btn btn-inverted btn-js-report" id="submit">
       </form>
     `;
 
@@ -150,7 +150,7 @@ describe('create-report-button', () => {
           <input id="7" type="checkbox">
         </fieldset>
         <input type="hidden" id="checkboxes">
-        <button type="button" class="btn btn-inverted btn-js-report" id="submit">
+        <button type="submit" class="btn btn-inverted btn-js-report" id="submit">
       </form>
     `;
 
@@ -181,7 +181,7 @@ describe('create-report-button', () => {
           <input id="7" type="checkbox">
         </fieldset>
         <input type="hidden" id="checkboxes">
-        <button type="button" class="btn btn-inverted btn-js-report" id="submit">
+        <button type="submit" class="btn btn-inverted btn-js-report" id="submit">
       </form>
     `;
 
