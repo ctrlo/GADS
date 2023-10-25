@@ -1,4 +1,5 @@
-[% IF viewtype == 'table';
+[%
+IF viewtype == 'table';
 
   table_dom = "t";
   table_show_all_records = "true";
@@ -35,27 +36,27 @@
     rows.push(data);
   END; #foreach
 %]
-
-<div class="content-block__main">
+  <div class="content-block__main">
   <div class="card">
     <div class="card--header">
-      <h3 class"card__header">Reports</h3>
+      <h3 class"card__header">
+        <span>Reports</span>
+      </h3>
     </div>
 
-    <div class="card__body row">
+    <div class="card__body">
       <div class="card__content">
         <div class="row">
           <div class="col">
-            [% INCLUDE tables/basic_table.tt %]
+            [% INCLUDE tables/basic_table.tt; %]
           </div>
         </div>
       </div>
     </div>
   </div>
-  <footer class="content-block__footer">
+<footer class="content-block__footer">
     <div class="content-block__footer-container">
-      [%
-        INCLUDE navigation/button_bar.tt
+      [% INCLUDE navigation/button_bar.tt
           row_class  = "row"
           columns    = [{
             class    = "col-md-4 mb-3 mb-md-0",
@@ -68,19 +69,55 @@
               class  = "btn btn-inverted btn-add",
               label  = "Create Report"
             }]
-          }];
-      %]
+          }]; %]
     </div>
   </footer>
 </div>
-
+   
 [% ELSIF viewtype == 'edit' %]
 
 <h1>We be editing</h1>
 
-[% ELSIF viewtype == 'add' %]
+[% ELSIF viewtype == 'debug' %]
+
+<h1>Debug Reports</h1>
+<hr />
+
+[% FOREACH report IN reports %]
+
+<h1>[% report.name %]</h1>
+[% IF report.description %]
+<h2>[% report.description %]</h2>
+<hr />
+[% END #if %]
+<h3>User</h3>
+<p>
+[% IF report.user.firstname %]
+[% report.user.firstname %][% IF report.user.surname %] [% report.user.surname %][% END %]<br />
+[% END #if %]
+[% report.user.email %]</p>
+<h3>Created By</h3>
+<p>
+[% IF report.createdby_user.firstname %]
+[% report.createdby_user.firstname %][% IF report.createdby_user.surname %] [% report.createdby_user.surname %][% END %]<br />
+[% END #if %]
+[% report.createdby_user.email %]
+</p>
+<h3>Created On</h3>
+<p>[% report.created %]</p>
+<h3>Fields</h3>
+<ul>
+[% FOREACH field IN report.layouts %]
+<li>[% field.name %]</li>
+[% END #foreach %]
+</ul>
+
+<hr />
+
+[% END #foreach %]
 
 [%
+ELSIF viewtype == 'add';
 
   items      = [];
 
@@ -93,7 +130,6 @@
   END;
 
   rowcount=0;
-
 %]
 <form method="post">
   [% INCLUDE fields/hidden.tt name="submit" value="submit";
@@ -172,4 +208,4 @@
 
 <h1>We be doing something else</h1>
 
-[% END; %]
+[% END %]
