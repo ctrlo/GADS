@@ -69,10 +69,7 @@ has createdby_user => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        if(ref($self->createdby) =~ /GADS::User/) {
-            return $self->createdby;
-        }
-        if($self->createdby) {
+        if ( $self->createdby ) {
             my $user = schema->resultset('User')->find( $self->createdby );
             return $user;
         }
@@ -115,7 +112,7 @@ has layouts => (
         if ( $self->layout_ids ) {
             @layouts = map {
                 print STDOUT "Loading layout $_\n";
-                schema->resultset('Layout')->search({id => $_})
+                schema->resultset('Layout')->search( { id => $_ } )
             } @{ $self->layout_ids };
         }
         return \@layouts;
@@ -180,18 +177,24 @@ sub add_layout {
 sub load {
     my $self = shift;
 
+    print STDOUT "Loading " . $self->id . "\n";
+
     #assume I'm going to make a mistake some time!
     die "You aren't doing it right" unless ref($self) eq __PACKAGE__;
-    die "No report id provided"     unless $self->id;
+    die "No report id provided"     unless $self->id && $self->id =~ /^\d+$/;
 
-    my $report = schema->resultset('Report')->find( $self->id )->single;
+    my $report = schema->resultset('Report')->find( $self->id );
 
-    $self->_set_name( $report->name );
-    $self->_set_description( $report->description );
-    $self->_set_user_id( $report->user_id );
-    $self->_set_createdby( $report->createdby );
-    $self->_set_instance_id( $report->instance_id );
-    $self->_set_created( $report->created );
+    die "No report found" unless $report;
+
+    print STDOUT "Loading report " . $report->name . "\n";
+
+    $self->name( $report->name );
+    $self->description( $report->description );
+    $self->user_id( $report->user_id );
+    $self->createdby( $report->createdby->id );
+    $self->instance_id( $report->instance_id );
+    $self->created( DateTime::Format::Pg->parse_datetime( $report->created ) );
 
     my $layouts = schema->resultset('ReportLayout')->search(
         {
@@ -204,6 +207,7 @@ sub load {
 }
 
 sub render_report {
+
     #TODO: render report method
 }
 
