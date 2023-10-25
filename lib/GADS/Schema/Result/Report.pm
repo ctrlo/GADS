@@ -44,13 +44,19 @@ __PACKAGE__->table("report");
     is_nullable: 0
     size: 128
 
+=head2 description
+
+    data_type: 'varchar'
+    is_nullable: 1
+    size: 128
+
 =head2 user_id
 
     data_type: 'bigint'
     is_foreign_key: 1
     is_nullable: 1
 
-=head2 createby
+=head2 createdby
 
     data_type: 'bigint'
     is_foreign_key: 1
@@ -167,5 +173,14 @@ __PACKAGE__->has_many(
     { "foreign.report_id" => "self.id" },
     { cascade_copy => 0, cascade_delete => 0 },
 );
+
+#TODO: need to work out how to implement this properly
+sub validate {
+    my ($self, $value, %options) = @_;
+    return 1 if !$value;
+
+    return 0 unless $options{fatal};
+    return 1;
+}
 
 1;
