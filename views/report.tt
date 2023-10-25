@@ -85,34 +85,35 @@ IF viewtype == 'table';
 
 [% FOREACH report IN reports %]
 
-<h1>[% report.name %]</h1>
-[% IF report.description %]
-<h2>[% report.description %]</h2>
-<hr />
-[% END #if %]
-<h3>User</h3>
-<p>
-[% IF report.user.firstname %]
-[% report.user.firstname %][% IF report.user.surname %] [% report.user.surname %][% END %]<br />
-[% END #if %]
-[% report.user.email %]</p>
-<h3>Created By</h3>
-<p>
-[% IF report.createdby_user.firstname %]
-[% report.createdby_user.firstname %][% IF report.createdby_user.surname %] [% report.createdby_user.surname %][% END %]<br />
-[% END #if %]
-[% report.createdby_user.email %]
-</p>
-<h3>Created On</h3>
-<p>[% report.created %]</p>
-<h3>Fields</h3>
-<ul>
-[% FOREACH field IN report.layouts %]
-<li>[% field.name %]</li>
-[% END #foreach %]
-</ul>
+  <h1>[% report.name %]</h1>
+  [% IF report.description %]
+    <h2>[% report.description %]</h2>
+    <hr />
+  [% END #if %]
+  <h3>User</h3>
+  <p>
+    [% IF report.user.firstname %]
+      [% report.user.firstname %][% IF report.user.surname %] [% report.user.surname %][% END %]<br />
+    [% END #if %]
+    [% report.user.email %]
+  </p>
+  <h3>Created By</h3>
+  <p>
+    [% IF report.createdby_user.firstname %]
+      [% report.createdby_user.firstname %][% IF report.createdby_user.surname %] [% report.createdby_user.surname %][% END %]<br />
+    [% END #if %]
+    [% report.createdby_user.email %]
+  </p>
+  <h3>Created On</h3>
+  <p>[% report.created %]</p>
+  <h3>Fields</h3>
+  <ul>
+    [% FOREACH field IN report.layouts %]
+      <li>[% field.name %]</li>
+    [% END #foreach %]
+  </ul>
 
-<hr />
+  <hr />
 
 [% END #foreach %]
 
