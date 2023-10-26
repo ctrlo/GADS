@@ -727,12 +727,12 @@ sub sqlt_deploy_hook {
     $sqlt_table->add_index(name => 'user_idx_username', fields => [ { name => 'username', prefix_length => 64 } ]);
 }
 
+# Used to ensure an empty selector is available in the user edit page
 has view_limits_with_blank => (
     is      => 'lazy',
     clearer => 1,
 );
 
-# Used to ensure an empty selector is available in the user edit page
 sub _build_view_limits_with_blank
 {   my $self = shift;
     return [$self->view_limits->all] if $self->view_limits->count;
