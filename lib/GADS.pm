@@ -2887,11 +2887,14 @@ prefix '/:layout_name' => sub {
 
             my %params = (
                 user   => $user,
-                layout => $layout,
                 schema => schema,
+                rewind => session('rewind')
             );
 
-            my $records = GADS::Records->new(%params);
+            my $records = GADS::Record->new(%params);
+
+            #this is pure debug only - we only want the first record!
+            my $record = $records->find_current_id(1);
 
             my $alert = GADS::Alert->new(
                 user   => $user,
@@ -2925,6 +2928,8 @@ prefix '/:layout_name' => sub {
             $params->{viewtype} = 'view';
             $params->{report}  = $result;
 
+            $params->{id}=1;
+            
             template 'report' => $params;
         };
 
@@ -4592,6 +4597,10 @@ sub _data_graph
 
 sub _process_edit
 {   my ($id, $record) = @_;
+
+    foreach my $key (keys %$record) {
+        print STDOUT "$key: $record->{$key}\n";
+    }
 
     my $user   = logged_in_user;
     my %params = (
