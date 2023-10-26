@@ -1232,6 +1232,8 @@ sub _order_dependencies
 
     return unless @columns;
 
+    # Use hashes initially for depedency tree, in order to remove duplicates
+    # and also faster searching
     my %deps = map {
         my $id = $_->id;
         $_->id =>    # Allow fields depend on theirselves, but remove from dependencies to prevent recursion
@@ -1251,6 +1253,8 @@ sub _order_dependencies
             path => $ret if $ret;
     }
 
+    # Convert dependencies into format required by Algorithm::Dependency
+    %deps = map { $_ => [keys %{$deps{$_}}] } keys %deps;
     my $source = Algorithm::Dependency::Source::HoA->new(\%deps);
     my $dep = Algorithm::Dependency::Ordered->new(source => $source)
         or die 'Failed to set up dependency algorithm';
