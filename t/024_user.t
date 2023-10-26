@@ -18,7 +18,6 @@ my %template = (
     surname          => 'Bloggs',
     firstname        => 'Joe',
     email            => 'joe@example.com',
-    username         => 'joe@example.com',
 );
 
 my $user = $schema->resultset('User')->create_user(%template);
@@ -28,6 +27,20 @@ my $user_id = $user->id;
 my $u = $schema->resultset('User')->find($user_id);
 
 is($u->value, "Bloggs, Joe", "User created successfully");
+
+# Check cannot rename to existing user
+my $existing = $schema->resultset('User')->next->username;
+ok($existing ne $u->username, "Testing username different to that of test");
+try { $u->update({ email => $existing }) };
+like($@, qr/already exists/, "Unable to rename user to existing username");
+
+# Check cannot create same username as existing
+try { $schema->resultset('User')->create_user(%template, email => $existing) };
+like($@, qr/already exists/, "Unable to create user with existing username");
+
+# Same directly in resultset
+try { $schema->resultset('User')->create({email => $existing, username => $existing}) };
+like($@, qr/already exists/, "Unable to create user with existing username");
 
 $site->update({ register_organisation_mandatory => 1 });
 try { $schema->resultset('User')->create_user(%template, email => 'joe1@example.com') };

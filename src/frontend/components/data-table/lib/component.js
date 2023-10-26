@@ -38,7 +38,6 @@ class DataTableComponent extends Component {
 
     const conf = this.getConf()
     this.el.DataTable(conf)
-    this.inFullWidthMode = false
 
     if (this.hasCheckboxes) {
       this.addSelectAllCheckbox()
@@ -58,6 +57,14 @@ class DataTableComponent extends Component {
       recordPopupElements.each((i, el) => {
         const recordPopupComp = new RecordPopupComponent(el)
       })
+    })
+
+    $(document).on('fullscreenchange', (e) => {
+      if (!document.fullscreenElement) {
+        this.exitFullScreenMode(conf)
+      } else {
+        this.enterFullScreenMode(conf)
+      }
     })
   }
 
@@ -601,71 +608,65 @@ class DataTableComponent extends Component {
       this.el.DataTable().button(0).enable();
 
       this.bindClickHandlersAfterDraw(conf)
+
+      if (document.fullscreenElement) {
+        this.setFullscreenTableContainerHeight()
+      }
     }
 
     conf['buttons'] = [
       {
-        text: 'Expand table',
+        text: 'Full screen',
         enabled: false,
         className: 'btn btn-small btn-toggle-off',
         action: function ( e, dt, node, config ) {
-          if (self.inFullWidthMode) {
-            self.collapseTable(conf)
+          if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen()
           } else {
-            self.expandTable(conf)
+            document.exitFullscreen()
           }
         }
       }
     ]
-    // Temporarily remove expand table button
-    conf['buttons'] = []
 
     return conf
   }
 
-  expandTable(conf) {
-    const self = this
+  enterFullScreenMode(conf) {
     this.originalResponsiveObj = conf.responsive
-    this.inFullWidthMode = true
     conf.responsive = false
     this.el.DataTable().destroy();
     this.el.removeClass('dtr-column collapsed');
     this.el.DataTable(conf)
+    const $dataTableContainer = this.el.parent()
 
-    const dataTableContainer = this.el.parent();
-    dataTableContainer.addClass('data-table__container--scrollable')
-    // See comments above regarding preventing multiple clicks
+    $dataTableContainer.addClass('data-table__container--scrollable')
+    // // See comments above regarding preventing multiple clicks
     this.el.DataTable().button(0).disable();
     this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').toggleClass(['btn-toggle', 'btn-toggle-off'])
 
-    //calculate height of table
-    this.setTableContainerHeight(dataTableContainer)
-      
-    $(window).on( "resize", function() {
-      self.setTableContainerHeight(dataTableContainer)
-    } );
   }
 
-  setTableContainerHeight(dataTableContainer) {
-    const offsetTop = dataTableContainer.offset().top;
-    const viewportHeight = window.innerHeight;
-    const offsetBottom = 110; //the offset from the bottom of the viewport to the bottom of the table
-    const availableHeight = viewportHeight - offsetTop;
-    
-    dataTableContainer.height('initial')
-
-    if ((dataTableContainer.height() + offsetBottom) > availableHeight) {
-      dataTableContainer.height(availableHeight - offsetBottom);
-    }
-  }
-
-  collapseTable(conf) {
-    this.inFullWidthMode = false
+  exitFullScreenMode(conf) {
     conf.responsive = this.originalResponsiveObj
     this.el.DataTable().destroy();
     this.el.DataTable(conf)
     // See comments above regarding preventing multiple clicks
     this.el.DataTable().button(0).disable();
+  }
+
+  setFullscreenTableContainerHeight() {
+    const $dataTableContainer = this.el.parent()
+    const $dataTableWrapper = $dataTableContainer.closest('.dataTables_wrapper')
+    const tableWrapperHeight = $dataTableWrapper.innerHeight()
+    const tableHeaderHeight = $dataTableWrapper.find('.row--header') ? $dataTableWrapper.find('.row--header').innerHeight() : 0
+    const tableFooterHeight = $dataTableWrapper.find('.row--footer') ? $dataTableWrapper.find('.row--footer').innerHeight() : 0
+    const viewportHeight = window.innerHeight
+    const margins = 128
+
+    if (tableWrapperHeight > viewportHeight) {
+      $dataTableContainer.height(viewportHeight - tableHeaderHeight - tableFooterHeight - margins);
+    }
   }
 
   bindClickHandlersAfterDraw(conf) {
