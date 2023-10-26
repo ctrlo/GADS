@@ -1,4 +1,5 @@
 [%
+#TODO: This will all be refactored into seperate templates, possibly in the 'reporting' folder.
 IF viewtype == 'table';
 
   table_dom = "t";
@@ -207,12 +208,29 @@ ELSIF viewtype == 'add';
 
 [% ELSIF viewtype == 'view' %]
 
+[%
+  #This appears to be needed - will probably use record.getrenderfield to filter into own topic structure
+  PROCESS snippets/datum.tt;
+%]
+
 <h1>View a test report for Report ID [% report.id %]</h1>
 <hr />
 <h2>[% report.name %]</h2>
 [% IF report.description %]
   <h3>[% report.description %]</h3>
 [% END #if %]
+<table>
+<tbody>
+[% FOREACH datum IN report.data %]
+  <tr>
+    <th>[% datum.name %]</th>
+    <td>[% datum.value %]</td>
+  </tr>
+[% END %]
+<tr>
+
+</tbody>
+</table>
 
 [% ELSE %]
 
