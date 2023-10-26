@@ -1,3 +1,4 @@
+#TODO: This MOFO needs unit tests!! Talk to AB.
 
 =pod
 GADS - Globally Accessible Data Store
@@ -93,7 +94,7 @@ has instance => (
     builder => sub {
         my $self = shift;
         my $instance =
-          schema->resultset('Instance')->find( $self->instance_id )->single;
+          schema->resultset('Instance')->find( $self->instance_id );
         return $instance;
     },
 );
@@ -110,12 +111,33 @@ has layouts => (
         my $self = shift;
         my @layouts;
         if ( $self->layout_ids ) {
-            @layouts = map {
-                print STDOUT "Loading layout $_\n";
-                schema->resultset('Layout')->search( { id => $_ } )
-            } @{ $self->layout_ids };
+            @layouts =
+              map { schema->resultset('Layout')->search( { id => $_ } ) }
+              @{ $self->layout_ids };
         }
         return \@layouts;
+    },
+);
+
+has report_id => (
+    is       => 'rw',
+    required => 0,
+);
+
+has data => (
+    is      => 'rwp',
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+
+        my $result = [];
+
+        foreach my $layout ( @{ $self->layouts } ) {
+            my $data = $self->_load_record_data($layout);
+            push( @{$result}, $data );
+        }
+
+        return $result;
     },
 );
 
@@ -160,9 +182,6 @@ sub load_all_reports {
 sub add_layout {
     my $self      = shift;
     my $layout_id = shift;
-    print STDOUT "Adding layout $layout_id\n";
-    print STDOUT Dumper $self->layout_ids;
-    print STDOUT "\n";
 
     die "You aren't doing it right" unless ref($self) eq __PACKAGE__;
     die "No layout id provided"     unless $layout_id;
@@ -177,8 +196,6 @@ sub add_layout {
 sub load {
     my $self = shift;
 
-    print STDOUT "Loading " . $self->id . "\n";
-
     #assume I'm going to make a mistake some time!
     die "You aren't doing it right" unless ref($self) eq __PACKAGE__;
     die "No report id provided"     unless $self->id && $self->id =~ /^\d+$/;
@@ -186,8 +203,6 @@ sub load {
     my $report = schema->resultset('Report')->find( $self->id );
 
     die "No report found" unless $report;
-
-    print STDOUT "Loading report " . $report->name . "\n";
 
     $self->name( $report->name );
     $self->description( $report->description );
@@ -206,9 +221,47 @@ sub load {
     }
 }
 
-sub render_report {
+sub _load_record_data {
+    my $self      = shift;
+    my $layout    = shift;
+    my $record_id = $self->report_id;
+    my $user      = $self->user;
 
-    #TODO: render report method
+    #TODO: This is dirty - make this work properly
+    $record_id = 1 if !$record_id;
+
+    my $gads_layout = GADS::Layout->new(
+        schema      => schema,
+        user        => $user,
+        instance_id => $self->instance_id,
+    );
+
+    my $record = GADS::Record->new(
+        schema => schema,
+        user   => $user,
+        layout => $gads_layout,
+    );
+    $record->find_current_id($record_id);
+
+    my $column = $self->_find_column( $layout->name, $gads_layout->columns );
+
+    my $datum = $record->get_field_value($column);
+
+    return { 'name' => $layout->name, 'value' => $datum };
+}
+
+sub _find_column {
+    my $self        = shift;
+    my $column_name = shift;
+    my $columns     = shift;
+
+    foreach my $col ( @{$columns} ) {
+        if ( $col->name eq $column_name ) {
+            return $col;
+        }
+    }
+
+    return undef;
 }
 
 1;
