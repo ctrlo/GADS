@@ -440,7 +440,7 @@ prefix '/:layout_name' => sub {
         try {
             foreach my $col (@{$curval->subvals_input_required})
             {
-                my @vals = grep { $_ } query_parameters->get_all($col->field);
+                my @vals = grep { defined $_ } query_parameters->get_all($col->field);
                 my $datum = $record->fields->{$col->id};
                 $datum->set_value(\@vals);
             }
