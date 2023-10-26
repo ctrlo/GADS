@@ -155,33 +155,30 @@ sub _build_subvals_input_required
     my @cols = @{$self->filter->columns_in_subs};
     foreach my $col (@cols)
     {
-        $deps{$self->id} ||= [];
-        push @{$deps{$self->id}}, $col->id;
+        $deps{$self->id} ||= {};
+        $deps{$self->id}->{$col->id} = 1;
         foreach my $cc (@{$col->depends_on})
         {
-            $deps{$col->id} ||= [];
-            push @{$deps{$col->id}}, $cc;
+            $deps{$col->id} ||= {};
+            $deps{$col->id}->{$cc} = 1;
             push @cols, $self->layout->column($cc);
         }
         foreach my $disp ($self->schema->resultset('DisplayField')->search({
             layout_id => $col->id
         })->all)
         {
-            $deps{$col->id} ||= [];
-            push @{$deps{$col->id}}, $disp->display_field_id;
+            $deps{$col->id} ||= {};
+            $deps{$col->id}->{$disp->display_field_id} = 1;
             push @cols, $self->layout->column($disp->display_field_id);
         }
+    }
 
-        my %seen;
-
-        # Check for recursive dependencies to prevent hanging in a loop
-        foreach my $key (keys %deps)
-        {
-            my $ret = $self->layout->check_recursive(\%deps, $key);
-            error __x"Unable to produce list of fields required for filtered field \"{field}\": calculated value or display condition recursive dependencies: {path}",
-                field => $self->name, path => $ret if $ret;
-        }
-
+    # Check for recursive dependencies to prevent hanging in a loop
+    foreach my $key (keys %deps)
+    {
+        my $ret = $self->layout->check_recursive(\%deps, $key);
+        error __x"Unable to produce list of fields required for filtered field \"{field}\": calculated value or display condition recursive dependencies: {path}",
+            field => $self->name, path => $ret if $ret;
     }
 
     # Calc values do not need written to by user
