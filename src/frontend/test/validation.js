@@ -293,8 +293,7 @@ const expandCardValidate = (field) => {
       field.scrollIntoView()
       $(this).off('shown.bs.collapse.foobar');
     })
-    if($collapse && $collapse.collapse)
-      $collapse.collapse('show')
+    $collapse.collapse('show')
   }
 }
 
