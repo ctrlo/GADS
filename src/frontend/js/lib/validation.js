@@ -282,7 +282,7 @@ const validateTree = (field) => {
 // Expand the card with a certain field and scroll it into view
 const expandCardValidate = (field) => {
   const $collapse = $(field).closest('.card--expandable').find('.collapse')
-  const $label = $(field).closest('.form-group').find('legend')
+  const $label = $(field).closest('.form-group').find('legend, label')
   // If the card is already expanded then just scroll straight to the field
   if ($collapse.hasClass('show')) {
       $label[0].scrollIntoView()
