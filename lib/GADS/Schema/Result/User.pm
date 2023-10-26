@@ -727,10 +727,15 @@ sub sqlt_deploy_hook {
     $sqlt_table->add_index(name => 'user_idx_username', fields => [ { name => 'username', prefix_length => 64 } ]);
 }
 
+has view_limits_with_blank => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
 # Used to ensure an empty selector is available in the user edit page
-sub view_limits_with_blank
+sub _build_view_limits_with_blank
 {   my $self = shift;
-    return $self->view_limits if $self->view_limits->count;
+    return [$self->view_limits->all] if $self->view_limits->count;
     return [undef];
 }
 
@@ -852,15 +857,6 @@ sub update_user
 
     my $site = $self->result_source->schema->resultset('Site')->next;
 
-    error __x"Please select a {name} for the user", name => $site->organisation_name
-        if !$params{organisation} && $site->register_organisation_mandatory;
-
-    error __x"Please select a {name} for the user", name => $site->team_name
-        if !$params{team_id} && $site->register_team_mandatory;
-
-    error __x"Please select a {name} for the user", name => $site->department_name
-        if !$params{department_id} && $site->register_department_mandatory;
-
     my $values = {
         account_request_notes => $params{account_request_notes},
     };
@@ -874,9 +870,10 @@ sub update_user
     foreach my $field ($site->user_fields)
     {
         next if !exists $params{$field->{name}};
-        $values->{$field->{name}} = $params{$field->{name}};
-        $values->{username} = $params{email}
-            if $field->{name} eq 'email';
+        my $fname = $field->{name};
+        $self->$fname($params{$fname});
+        $self->username($params{email})
+            if $fname eq 'email';
     }
 
     my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $current_user);
