@@ -55649,7 +55649,7 @@ module.exports = function calc(gd, trace) {
   for (var i = 0; i < len; i++) {
     var calcPt = calcTrace[i] = {};
     var loc = trace.locations[i];
-    var color = trace.countrycolors[i];
+    var color = trace.countrycolors && trace.countrycolors[i];
     var z = trace.z[i];
     if (isValidLoc(loc) && isNonBlankString(color)) {
       calcPt.loc = loc;
