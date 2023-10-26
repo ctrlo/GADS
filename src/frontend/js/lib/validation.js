@@ -291,6 +291,8 @@ const expandCardValidate = (field) => {
     // card has finished expanding (otherwise the scroll will happen before
     // the card has finished expanding and it won't work)
     $collapse.on('shown.bs.collapse.foobar', function(){
+      // Turn into edit mode if the topic is now in view mode
+      $(this).prev().find('.btn-edit:visible').trigger('click')
       $label[0].scrollIntoView()
       $(this).off('shown.bs.collapse.foobar');
     })
