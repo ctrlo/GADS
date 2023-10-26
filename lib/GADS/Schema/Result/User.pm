@@ -751,6 +751,10 @@ sub set_view_limits
         '!=' => [ -and => @view_ids ]
     } if @view_ids;
     $self->search_related('view_limits', $search)->delete;
+    # Rebuild view limits in case of form submission failures (see same
+    # comments as permissions0
+    $self->clear_view_limits_with_blank;
+    $self->view_limits_with_blank;
 }
 
 sub graphs
@@ -904,6 +908,11 @@ sub update_user
         error __"You do not have permission to set global user permissions"
             if !$current_user->permission->{superadmin};
         $self->permissions(@{$params{permissions}});
+        # Clear and rebuild permissions, in case of form submission failure. We
+        # need to rebuild now, otherwise the transaction may have rolled-back
+        # to the old version by the time it is built in the template
+        $self->clear_permission;
+        $self->permission;
     }
     $self->set_view_limits($params{view_limits})
         if $params{view_limits};

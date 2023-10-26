@@ -778,7 +778,7 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
             $update{$field->{name}} = param($field->{name}) || undef;
         }
 
-        if (process( sub { $user->update_user(current_user => logged_in_user, %update) }))
+        if (process( sub { $user->update_user(current_user => logged_in_user, edit_own_user => 1, %update) }))
         {
             return forwardHome(
                 { success => "The account details have been updated" }, 'myaccount' );
@@ -1576,7 +1576,7 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
         {
             return forwardHome(
                 { success => "User has been updated successfully" }, 'user_overview/' );
-        }
+}
 
         # In case of failure, pass back to form
         my $view_limits_with_blank = [ map {
