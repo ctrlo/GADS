@@ -100,17 +100,17 @@ IF viewtype == 'table';
   </p>
   <h3>Created By</h3>
   <p>
-    [% IF report.createdby_user.firstname %]
-      [% report.createdby_user.firstname %][% IF report.createdby_user.surname %] [% report.createdby_user.surname %][% END %]<br />
+    [% IF report.createdby.firstname %]
+      [% report.createdby.firstname %][% IF report.createdby.surname %] [% report.createdby.surname %][% END %]<br />
     [% END #if %]
-    [% report.createdby_user.email %]
+    [% report.createdby.email %]
   </p>
   <h3>Created On</h3>
   <p>[% report.created %]</p>
   <h3>Fields</h3>
   <ul>
-    [% FOREACH field IN report.layouts %]
-      <li>[% field.name %]</li>
+    [% FOREACH field IN report.report_layouts %]
+      <li>[% field.layout.name %]</li>
     [% END #foreach %]
   </ul>
 

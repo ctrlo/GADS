@@ -60,7 +60,7 @@ use GADS::Record;
 use GADS::Records;
 use GADS::RecordsGraph;
 use GADS::SAML;
-use GADS::Report;
+use GADS::Schema::Result::Report;
 use GADS::Type::Permissions;
 use GADS::Users;
 use GADS::Util;
@@ -2797,10 +2797,16 @@ prefix '/:layout_name' => sub {
 
             my $layout_id = $layout->{instance_id}; 
 
-            my $result = GADS::Report::load_all_reports($layout_id);
+            my $result = GADS::Schema::Result::Report::load_all_reports($layout_id, schema);
+
+            my $reports = [];
+
+            while(my $next = $result->next) {
+                push @$reports, $next;
+            }
 
             $params->{viewtype} = 'table';
-            $params->{reports}  = $result;
+            $params->{reports}  = $reports;
 
             template 'report' => $params;
         };
@@ -2921,9 +2927,9 @@ prefix '/:layout_name' => sub {
             my $layout_id = $layout->{instance_id}; 
 
             my $report_id = param('id');
+            my $record_id = 1;
 
-            my $result = GADS::Report->new({id => $report_id});
-            $result->load;
+            my $result = GADS::Schema::Result::Report::load($report_id, $record_id, schema);
 
             $params->{viewtype} = 'view';
             $params->{report}  = $result;
@@ -3020,10 +3026,10 @@ prefix '/:layout_name' => sub {
 
             my $layout_id = $layout->{instance_id}; 
 
-            my $result = GADS::Report::load_all_reports($layout_id);
+            my $reports = GADS::Schema::Result::Report::load_all_reports($layout_id, schema);
 
             $params->{viewtype} = 'debug';
-            $params->{reports}  = $result;
+            $params->{reports}  = $reports;
 
             template 'report' => $params;
         };
