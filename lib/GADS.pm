@@ -2803,6 +2803,7 @@ prefix '/:layout_name' => sub {
             $params->{viewtype} = 'table';
             $params->{reports}  = $reports;
 
+
             template 'report' => $params;
         };
 
@@ -2835,6 +2836,9 @@ prefix '/:layout_name' => sub {
                         layouts     => $checkbox_fields
                     }
                 );
+
+                my $lo = param 'layout_name';
+                return forwardHome({success=>"Report created"}, "$lo/report");
             }
 
             my $user   = logged_in_user;
