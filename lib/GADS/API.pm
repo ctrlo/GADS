@@ -1379,37 +1379,44 @@ any ['get', 'post'] => '/api/users' => require_any_role [qw/useradmin superadmin
 
     my $users     = GADS::Users->new(schema => schema)->user_summary_rs;
     my $total     = $users->count;
-    my ($sort_by, $dir);
-    if (my $col_order = $params->get('order[0][column]'))
-    {
-        $sort_by   = $params->get("columns[${col_order}][name]");
-        $dir       = $params->get('order[0][dir]');
-    }
+    my $col_order = $params->get('order[0][column]');
+    my $sort_by   = defined $col_order && $params->get("columns[${col_order}][name]");
+    my $dir       = $params->get('order[0][dir]');
     my $search    = $params->get('search[value]');
 
-    !$sort_by || $sort_by =~ /^(ID|Surname|Forename|Title|Email|Organisation|Department|Team|Created|Last login)$/
-        or error "Invalid sort";
-    $sort_by = $sort_by eq 'ID'
-        ? 'me.id'
-        : $sort_by eq 'Surname'
-        ? 'me.surname'
-        : $sort_by eq 'Forename'
-        ? 'me.firstname'
-        : $sort_by eq 'Title'
-        ? 'title.name'
-        : $sort_by eq 'Email'
-        ? 'me.email'
-        : $sort_by eq 'Organisation'
-        ? 'organisation.name'
-        : $sort_by eq 'Department'
-        ? 'department.name'
-        : $sort_by eq 'Team'
-        ? 'team.name'
-        : $sort_by eq 'Created'
-        ? 'me.created'
-        : $sort_by eq 'Last login'
-        ? 'me.lastlogin'
-        : "me.id";
+    if (my $sort_field = $site->user_field_by_description($sort_by))
+    {
+        $sort_by = $sort_field->{name} eq 'surname'
+            ? 'me.surname'
+            : $sort_field->{name} eq 'firstname'
+            ? 'me.firstname'
+            : $sort_field->{name} eq 'title'
+            ? 'title.name'
+            : $sort_field->{name} eq 'email'
+            ? 'me.email'
+            : $sort_field->{name} eq 'organisation'
+            ? 'organisation.name'
+            : $sort_field->{name} eq 'department_id'
+            ? 'department.name'
+            : $sort_field->{name} eq 'team_id'
+            ? 'team.name'
+            : 'me.id';
+    }
+    elsif ($sort_by && $sort_by eq 'Created')
+    {
+        $sort_by = 'me.created';
+    }
+    elsif ($sort_by && $sort_by eq 'ID')
+    {
+        $sort_by = 'me.id';
+    }
+    elsif ($sort_by && $sort_by eq 'Last login')
+    {
+        $sort_by = 'me.lastlogin';
+    }
+    else {
+        $sort_by = 'me.surname';
+    }
 
     my @sr;
     foreach my $s (split /\s+/, $search)
