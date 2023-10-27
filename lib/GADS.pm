@@ -2797,13 +2797,7 @@ prefix '/:layout_name' => sub {
 
             my $layout_id = $layout->{instance_id}; 
 
-            my $result = GADS::Schema::Result::Report::load_all_reports($layout_id, schema);
-
-            my $reports = [];
-
-            while(my $next = $result->next) {
-                push @$reports, $next;
-            }
+            my $reports = GADS::Schema::Result::Report::load_all_reports($layout_id, schema);
 
             $params->{viewtype} = 'table';
             $params->{reports}  = $reports;
@@ -2814,16 +2808,32 @@ prefix '/:layout_name' => sub {
         #add a report
         any [ 'get', 'post' ] => '/add' => require_login sub {
             if ( body_parameters && body_parameters->{submit} ) {
+                my $layout             = var('layout') or pass;
                 my $report_description = body_parameters->{report_description};
                 my $report_name        = body_parameters->{report_name};
                 my $checkbox_fields_full = body_parameters->{checkbox_fields};
+                my $instance             = $layout->{instance_id}
+                  if $layout && $layout->{instance_id};
+
+                die "NO INSTANCE" if !$instance;
 
                 my $checkbox_fields = [ split( ',', $checkbox_fields_full ) ];
 
+                print STDOUT Dumper $checkbox_fields;
+
                 my $user = logged_in_user;
 
-                #for now!
-                return redirect '/';
+                my $report = GADS::Schema::Result::Report->create(
+                    {
+                        schema      => schema,
+                        user        => $user,
+                        name        => $report_name,
+                        description => $report_description,
+                        instance_id => $instance,
+                        createdby   => $user,
+                        layouts     => $checkbox_fields
+                    }
+                );
             }
 
             my $user   = logged_in_user;
