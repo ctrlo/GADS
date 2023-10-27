@@ -282,15 +282,18 @@ const validateTree = (field) => {
 // Expand the card with a certain field and scroll it into view
 const expandCardValidate = (field) => {
   const $collapse = $(field).closest('.card--expandable').find('.collapse')
+  const $label = $(field).closest('.form-group').find('legend, label')
+  // Turn into edit mode if the topic is now in view mode
+  $collapse.prev().find('.btn-edit:visible').trigger('click')
   // If the card is already expanded then just scroll straight to the field
   if ($collapse.hasClass('show')) {
-      field.scrollIntoView()
+      $label[0].scrollIntoView()
   } else {
     // Otherwise add an event handler to scroll to the field, but only once the
     // card has finished expanding (otherwise the scroll will happen before
     // the card has finished expanding and it won't work)
     $collapse.on('shown.bs.collapse.foobar', function(){
-      field.scrollIntoView()
+      $label[0].scrollIntoView()
       $(this).off('shown.bs.collapse.foobar');
     })
     $collapse.collapse('show')

@@ -2299,8 +2299,9 @@ prefix '/:layout_name' => sub {
         # Deal with any alert requests
         if (param 'modal_alert')
         {
+            my $alert_user = session('views_other_user_id') ? rset('User')->find(session('views_other_user_id')) : $user;
             my $alert = GADS::Alert->new(
-                user      => $user,
+                user      => $alert_user,
                 layout    => $layout,
                 schema    => schema,
                 frequency => param('frequency'),

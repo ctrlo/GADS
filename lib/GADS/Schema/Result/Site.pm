@@ -248,6 +248,13 @@ sub user_field_is_editable {
   !!grep { $_->{name} eq $field && $_->{editable} } $self->user_fields();
 }
 
+sub user_field_by_description
+{   my ($self, $description) = @_;
+    $description or return;
+    my ($field) = grep $description eq $_->{description}, $self->user_fields;
+    $field;
+}
+
 sub user_fields
 {   my $self = shift;
 
