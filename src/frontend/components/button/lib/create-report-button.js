@@ -1,7 +1,7 @@
 //TODO: refactor this into smaller components
 import { Component } from "component";
 import { validateRequiredFields } from "validation";
-import { logging } from "../../../test/logging";
+import { logging } from "logging";
 
 /**
  * CreateReportButtonComponent class to create a report submission button component
@@ -33,8 +33,11 @@ class CreateReportButtonComponent extends Component {
    */
   setupCheckboxes() {
     const $fieldset = $(".fieldset--report");
+    if(!$fieldset) logging.info('No fieldset found');
     const $checkboxes = $fieldset.find("input[type=checkbox]");
+    if(!$checkboxes) logging.info('No checkboxes found');
     const $hidden = $('input#checkboxes');
+    if(!$hidden) logging.info('No hidden field found');
 
     $checkboxes.on("change", (ev) => {
       try {
