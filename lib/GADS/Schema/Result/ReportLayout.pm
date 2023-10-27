@@ -7,10 +7,10 @@ GADS::Schema::Result::ReportLayout
 
 =cut
 
-use strict;
-use warnings;
+use Moo;
 
-use base 'DBIx::Class::Core';
+extends 'DBIx::Class::Core';
+sub BUILDARGS { $_[2] || {} }
 
 =head1 COMPONENTS LOADED
 
@@ -22,7 +22,7 @@ use base 'DBIx::Class::Core';
 
 =cut
 
-__PACKAGE__->load_components("InflateColumn::DateTime");
+__PACKAGE__->load_components("InflateColumn::DateTime", "+GADS::DBIC");
 
 =head1 TABLE: C<report_instance>
 

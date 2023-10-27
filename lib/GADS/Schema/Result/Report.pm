@@ -8,6 +8,7 @@ GADS::Schema::Result::Report
 
 =cut
 
+use Data::Dumper;
 use Moo;
 
 extends 'DBIx::Class::Core';
@@ -184,9 +185,9 @@ sub validate {
     my ( $self, $value, %options ) = @_;
     return 1 if !$value;
 
-    my $name = $self->name;
+    my $name        = $self->name;
     my $instance_id = $self->instance_id;
-    my $layouts = $self->report_layouts;
+    my $layouts     = $self->report_layouts;
 
     return 0 unless $options{fatal};
     return 1;
@@ -289,7 +290,8 @@ sub _load_record_data {
     );
     $record->find_current_id($record_id);
 
-    my $column = $self->_find_column( $layout->layout->name, $gads_layout->columns );
+    my $column =
+      $self->_find_column( $layout->layout->name, $gads_layout->columns );
 
     my $datum = $record->get_field_value($column);
 
@@ -328,6 +330,40 @@ sub load {
       && !$result->record_id;
 
     return $result;
+}
+
+sub create {
+    my ( $self, $args ) = @_;
+
+    my $schema = $args->{schema}
+      or die "No schema provided";
+
+    my $guard = $schema->txn_scope_guard;
+
+    my $report = $schema->resultset('Report')->create(
+        {
+            user        => $args->{user},
+            name        => $args->{name},
+            description => $args->{description},
+            instance_id => $args->{instance_id},
+            createdby   => $args->{user},
+            created     => DateTime->now,
+        }
+    );
+
+    foreach my $layout ( @{$args->{layouts}} ) {
+        print STDOUT "LAYOUT: " . $layout;
+        $schema->resultset('ReportLayout')->create(
+            {
+                report_id => $report->id,
+                layout_id => $layout,
+            }
+        );
+    }
+
+    $guard->commit;
+
+    return $report;
 }
 
 1;
