@@ -59,7 +59,7 @@
             id = "freetext1"
             name = "freetext1"
             label = site.register_freetext1_name
-            placeholder = site.register_freetext1_name
+            placeholder = site.register_freetext1_placeholder || site.register_freetext1_name
             type = "text"
             help_text = site.register_freetext1_help
             filter = "html";
@@ -70,7 +70,7 @@
             id = "freetext2"
             name = "freetext2"
             label = site.register_freetext2_name
-            placeholder = site.register_freetext2_name
+            placeholder = site.register_freetext2_placeholder || site.register_freetext2_name
             type = "text"
             help_text = site.register_freetext2_help
             filter = "html";
@@ -111,8 +111,9 @@
         INCLUDE fields/textarea.tt
           id = "account_request_notes"
           name = "account_request_notes"
-          label = "Notes"
+          label = site.account_request_notes.name || "Notes"
           help_text = site.register_notes_help
+          placeholder = site.account_request_notes_placeholder || site.account_request_notes.name
           filter = "html"
           rows = 5;
       %]
