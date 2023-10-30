@@ -438,6 +438,8 @@ sub create_pdf {
         repeat    => 1,
         justify   => 'center',
         font_size => 12,
+        bg_color => '#007c88',
+        fg_color => '#ffffff',
     };
 
     $pdf->table(
