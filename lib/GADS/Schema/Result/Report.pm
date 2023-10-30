@@ -201,7 +201,7 @@ This will return 0 if the report satisfies the following:
 
 =cut
 
-#TODO: need to work out how to implement this properly - Will ask AB on Tuesday
+#TODO: need to work out how to implement this properly - Will ask AB
 sub validate {
     my ( $self, $value, %options ) = @_;
     return 1 if !$value;
@@ -339,7 +339,7 @@ sub _find_column {
 
 =head2 Update Report
 
-Function to update a report - it requires the schema to be passed in and will return a report object
+Function to update a report - it requires the schema and any updated fields to be passed in and will return a report object
 
 =cut
 
@@ -403,7 +403,7 @@ sub delete {
 
 =head2 Create PDF
 
-Function to create a PDF of the report - it requires the schema to be passed in and will return a PDF object
+Function to create a PDF of the report - it will return a PDF object
 
 =cut
 
@@ -456,7 +456,7 @@ sub create_pdf {
 
 =head2 Load
 
-Function to load a report for a given id - it requires the report id and the schema to be passed in and will return a report object
+Function to load a report for a given id - it requires the report id, record id and the schema to be passed in and will return a report object
 
 =cut
 
