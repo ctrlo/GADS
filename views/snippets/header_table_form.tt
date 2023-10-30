@@ -44,15 +44,24 @@
                 label         = "Download as PDF",
                 label_in_span = 1
               });
+
+              links = [];
+
               FOREACH report IN reports;
-                record_edit_buttons.push({
-                  type = "link",
-                  target = url.page _ '/' _ layout.identifier _ '/report/render' _ report.id _ '/' _ record.current_id,
-                  class = "link link--plain",
-                  label = report.name _ " Report",
-                  label_in_span = 1,
+                links.push({
+                  name  = report.name,
+                  target   = url.page _ '/' _ layout.identifier _ '/report/render' _ report.id _ '/' _ record.current_id,
                 });
               END;
+              
+              record_edit_buttons.push({
+                type = "button_list",
+                target = url.page _ '/' _ layout.identifier _ '/report/render' _ report.id _ '/' _ record.current_id,
+                class = "link link--plain dropdown-toggle",
+                label = report.name _ " Report",
+                label_in_span = 1,
+                links = links,
+              });
             END;
 
             IF layout.user_can("create_child") AND NOT record.parent_id AND layout.has_children;
