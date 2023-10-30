@@ -38,6 +38,7 @@ class DataTableComponent extends Component {
 
     const conf = this.getConf()
     this.el.DataTable(conf)
+    this.initializingTable = true
 
     if (this.hasCheckboxes) {
       this.addSelectAllCheckbox()
@@ -548,35 +549,40 @@ class DataTableComponent extends Component {
       const self = this
 
       this.json = json ? json : undefined
+      
+      if (this.initializingTable) {
+        dataTable.columns().every(function(index) {
+          const column = this
+          const $header = $(column.header())
 
-      dataTable.columns().every(function(index) {
-        const column = this
-        const $header = $(column.header())
+          const headerContent = $header.html()
+          $header.html(`<div class='data-table__header-wrapper position-relative ${column.search() ? 'filter' : ''}' data-ddl='ddl_${index}'>${headerContent}</div>`)
 
-        const headerContent = $header.html()
-        $header.html(`<div class='data-table__header-wrapper position-relative ${column.search() ? 'filter' : ''}' data-ddl='ddl_${index}'>${headerContent}</div>`)
-
-        // Add sort button to column header
-        if ($header.hasClass('sorting')) {
-          self.addSortButton(dataTable, column, headerContent)
-        }
-
-        // Add button to column headers (only serverside tables)
-        if ((conf.serverSide) && (tableElement.hasClass('table-search'))) {
-          const id = settings.oAjaxData.columns[index].name
-
-          if (self.searchParams.has(id)) {
-            column.search(self.searchParams.get(id)).draw()
+          // Add sort button to column header
+          if ($header.hasClass('sorting')) {
+            self.addSortButton(dataTable, column, headerContent)
           }
 
-          self.addSearchDropdown(column, id, index)
-        }
-      })
-      // If the table has not wrapped (become responsive) then hide the toggle button
-      if (!this.el.hasClass("collapsed")) {
-        if (this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').length) {
-          this.el.closest('.dataTables_wrapper').find('.dataTables_toggle_full_width').hide()
-        }
+          // Add button to column headers (only serverside tables)
+          if ((conf.serverSide) && (tableElement.hasClass('table-search'))) {
+            const id = settings.oAjaxData.columns[index].name
+
+            if (self.searchParams.has(id)) {
+              column.search(self.searchParams.get(id)).draw()
+            }
+
+            self.addSearchDropdown(column, id, index)
+          } 
+        })
+
+        // If the table has not wrapped (become responsive) then hide the toggle button
+        if (!this.el.hasClass("collapsed")) {
+          if (this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').length) {
+            this.el.closest('.dataTables_wrapper').find('.dataTables_toggle_full_width').hide()
+          }
+        } 
+
+        this.initializingTable = false
       }
     }
 
@@ -638,6 +644,7 @@ class DataTableComponent extends Component {
     this.el.DataTable().destroy();
     this.el.removeClass('dtr-column collapsed');
     this.el.DataTable(conf)
+    this.initializingTable = true
     const $dataTableContainer = this.el.parent()
 
     $dataTableContainer.addClass('data-table__container--scrollable')
@@ -651,6 +658,7 @@ class DataTableComponent extends Component {
     conf.responsive = this.originalResponsiveObj
     this.el.DataTable().destroy();
     this.el.DataTable(conf)
+    this.initializingTable = true
     // See comments above regarding preventing multiple clicks
     this.el.DataTable().button(0).disable();
   }
