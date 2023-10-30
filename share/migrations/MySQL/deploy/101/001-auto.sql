@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Tue Oct 24 15:37:13 2023
+-- Created on Mon Oct 30 12:14:39 2023
 --
 ;
 SET foreign_key_checks=0;
@@ -826,6 +826,7 @@ CREATE TABLE `report` (
   `createdby` bigint NULL,
   `created` datetime NULL,
   `instance_id` bigint NULL,
+  `deleted` tinyint NULL,
   INDEX `report_idx_createdby` (`createdby`),
   INDEX `report_idx_instance_id` (`instance_id`),
   INDEX `report_idx_user_id` (`user_id`),

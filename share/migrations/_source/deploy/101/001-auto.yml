@@ -6101,6 +6101,16 @@ schema:
           order: 5
           size:
             - 0
+        deleted:
+          data_type: tinyint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: deleted
+          order: 8
+          size:
+            - 0
         description:
           data_type: varchar
           default_value: ~
