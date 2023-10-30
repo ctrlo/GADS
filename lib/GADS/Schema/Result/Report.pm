@@ -76,6 +76,11 @@ __PACKAGE__->table("report");
     is_foreign_key: 1
     is_nullable: 1
 
+=head2 deleted
+
+    data_type: 'tinyint'
+    is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -97,6 +102,8 @@ __PACKAGE__->add_columns(
     },
     "instance_id",
     { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
+    "deleted",
+    { data_type => "tinyint", is_nullable => 1 }
 );
 
 =head1 PRIMARY KEY
@@ -180,7 +187,19 @@ __PACKAGE__->has_many(
     { cascade_copy        => 0, cascade_delete => 0 },
 );
 
-#TODO: need to work out how to implement this properly
+=head2 validation
+
+This will return 0 if the report satisfies the following:
+=over 2
+- Has a name
+- Has an instance it is linked to
+- Has at least one layout associated with it
+- There is no other report with the same name and instance id that is active (i.e. not deleted)
+=back
+
+=cut
+
+#TODO: need to work out how to implement this properly - Will ask AB on Tuesday
 sub validate {
     my ( $self, $value, %options ) = @_;
     return 1 if !$value;
@@ -189,10 +208,26 @@ sub validate {
     my $instance_id = $self->instance_id;
     my $layouts     = $self->report_layouts;
 
+    return 0 unless $name;
+    return 0 unless $instance_id;
+    return 0 unless $layouts->count;
+
+    return 0
+      if $self->schema->resultset('Report')->search(
+        {
+            name        => $name,
+            instance_id => $instance_id,
+            deleted     => 0,
+        }
+    )->count;
+
     return 0 unless $options{fatal};
     return 1;
 }
 
+#Will return 1 if the report is new, 0 if it is not - this is done via the ID being 0 for a new report.
+#This is a private field
+#Not sure if this is needed due to the app erroring if I try to create a report by creating a Report object and then calling create on it
 has _is_new => (
     is      => 'rwp',
     default => 1,
@@ -203,15 +238,33 @@ has _is_new => (
     },
 );
 
+=head2 schema
+
+The schema object used for the report
+
+=cut
+
 has schema => (
     is       => 'rw',
     required => 0,
 );
 
+=head2 Record ID
+
+This is the ID of the Record in the Instance to display the report for
+
+=cut
+
 has record_id => (
     is       => 'rw',
     required => 0,
 );
+
+=head2 Data
+
+This is the data for the report as pulled from the instance record identfied by the Record Id
+
+=cut
 
 has data => (
     is      => 'rwp',
@@ -232,43 +285,7 @@ has data => (
     },
 );
 
-sub load_all_reports {
-    my $instance_id = shift;
-    my $schema      = shift;
-
-    die "Invalid layout provided"
-      unless $instance_id && $instance_id =~ /^\d+$/;
-
-    my $items = $schema->resultset('Report')->search(
-        {
-            instance_id => $instance_id,
-        }
-    );
-
-    my $result = [];
-
-    while ( my $next = $items->next ) {
-        $next->schema($schema) if !$next->schema;
-        push( @{$result}, $next );
-    }
-
-    return $result;
-}
-
-# sub add_layout {
-#     my $self      = shift;
-#     my $layout_id = shift;
-
-#     die "You aren't doing it right" unless ref($self) eq __PACKAGE__;
-#     die "No layout id provided"     unless $layout_id;
-
-#     if ( !$self->layout_ids ) {
-#         $self->layout_ids( [] );
-#     }
-
-#     push @{ $self->layout_ids }, $layout_id;
-# }
-
+#helper function to load record data
 sub _load_record_data {
     my $self      = shift;
     my $layout    = shift;
@@ -288,6 +305,7 @@ sub _load_record_data {
         user   => $user,
         layout => $gads_layout,
     );
+
     $record->find_current_id($record_id);
 
     my $column =
@@ -298,12 +316,13 @@ sub _load_record_data {
     return { 'name' => $layout->layout->name, 'value' => $datum };
 }
 
+#helper function to find a column in a list of columns
 sub _find_column {
     my $self        = shift;
     my $column_name = shift;
     my $columns     = shift;
 
-#TODO: I know I could probably do this with a grep, but for some reason, I can't get said grep to work
+#I know I could probably do this with a grep, but for some reason, I can't get said grep to work
 #grep { $_->name eq $column_name } @{$columns};
     foreach my $col ( @{$columns} ) {
         if ( $col->name eq $column_name ) {
@@ -314,6 +333,80 @@ sub _find_column {
     return undef;
 }
 
+=head1 Object functions
+
+=head2 Update Report
+
+Function to update a report - it requires the schema to be passed in and will return a report object
+
+=cut
+
+sub update_report {
+    my ( $self, $args ) = @_;
+
+    my $guard = $self->schema->txn_scope_guard;
+
+    $self->update( { name => $args->{name} } )
+      if $args->{name} && $args->{name} ne $self->name;
+    $self->update( { description => $args->{description} } )
+      if $args->{description} && $args->{description} ne $self->description;
+
+    my $layouts        = $self->report_layouts;
+    my $report_layouts = [];
+
+    while ( my $layout = $layouts->next ) {
+        push( @{$report_layouts}, $layout->layout_id );
+    }
+
+    #we grep for less writes
+    foreach my $layout (@$report_layouts) {
+        $self->schema->resultset('ReportLayout')
+          ->find( { report_id => $self->id, layout_id => $layout } )->delete
+          if !grep { $_ == $layout->id } @{ $args->{layouts} };
+    }
+
+    #we grep for less writes
+    foreach my $layout ( @{ $args->{layouts} } ) {
+        $self->schema->resultset('ReportLayout')->create(
+            {
+                report_id => $self->id,
+                layout_id => $layout,
+            }
+        ) if !grep { $_ == $layout } @{$report_layouts};
+    }
+
+    $guard->commit;
+
+    return $self;
+}
+
+=head2 Delete
+
+Function to delete a report - it requires the schema to be passed in and will return nothing.
+If the ID is invalid, or there's nothing to delete, it will do nothing.
+
+=cut
+
+sub delete {
+    my $self = shift;
+
+    return if !$self || $self->_is_new || $self->deleted;
+
+    my $guard = $self->schema->txn_scope_guard;
+
+    $self->update( { deleted => 1 } );
+
+    $guard->commit;
+}
+
+=head1 Package functions
+
+=head2 Load
+
+Function to load a report for a given id - it requires the report id and the schema to be passed in and will return a report object
+
+=cut
+
 sub load {
     my $id        = shift;
     my $record_id = shift;
@@ -322,18 +415,82 @@ sub load {
     die "Invalid report id provided"
       unless $id && $id =~ /^\d+$/;
 
-    my $result = $schema->resultset('Report')->find($id)
+    my $result =
+      $schema->resultset('Report')
+      ->find( { id => $id }, { prefetch => 'report_layouts' } )
       or die "No report found for id $id";
     $result->schema($schema) if !$result->schema;
     $result->record_id($record_id)
       if $record_id
       && !$result->record_id;
 
+    return $result if $result->deleted == 0;
+    return undef;
+}
+
+=head2 Load for Edit
+
+Function to load a report for a given id - it requires the report id and the schema to be passed in and will return a report object for editing
+
+=cut
+
+sub load_for_edit {
+    my $id     = shift;
+    my $schema = shift;
+
+    die "Invalid report id provided"
+      unless $id && $id =~ /^\d+$/;
+
+    my $result =
+      $schema->resultset('Report')
+      ->find( { id => $id }, { prefetch => 'report_layouts' } )
+      or die "No report found for id $id";
+    $result->schema($schema) if !$result->schema;
+
+    return $result if !$result->deleted || $result->deleted == 0;
+    return undef;
+}
+
+=head2
+
+Function to load all reports for a given instance - it requires the instance id and the schema to be passed in and will return an array of report objects
+
+=cut
+
+sub load_all_reports {
+    my $instance_id = shift;
+    my $schema      = shift;
+
+    die "Invalid layout provided"
+      unless $instance_id && $instance_id =~ /^\d+$/;
+
+    my $items = $schema->resultset('Report')->search(
+        {
+            instance_id => $instance_id,
+        },
+        {
+            prefetch => 'report_layouts',
+        }
+    );
+
+    my $result = [];
+
+    while ( my $next = $items->next ) {
+        $next->schema($schema)    if !$next->schema;
+        push( @{$result}, $next ) if !$next->deleted || $next->deleted == 0;
+    }
+
     return $result;
 }
 
+=head2 Create
+
+Function to create a new report - it requires the schema and a hash of the report data to be passed in and will return a report object
+
+=cut
+
 sub create {
-    my ( $self, $args ) = @_;
+    my ( $args ) = @_;
 
     my $schema = $args->{schema}
       or die "No schema provided";
@@ -351,8 +508,7 @@ sub create {
         }
     );
 
-    foreach my $layout ( @{$args->{layouts}} ) {
-        print STDOUT "LAYOUT: " . $layout;
+    foreach my $layout ( @{ $args->{layouts} } ) {
         $schema->resultset('ReportLayout')->create(
             {
                 report_id => $report->id,
@@ -362,6 +518,8 @@ sub create {
     }
 
     $guard->commit;
+
+    $report->schema($schema) if !$report->schema;
 
     return $report;
 }
