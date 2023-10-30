@@ -438,13 +438,15 @@ sub create_pdf {
         repeat    => 1,
         justify   => 'center',
         font_size => 12,
-        bg_color => '#007c88',
-        fg_color => '#ffffff',
+        bg_color  => '#007c88',
+        fg_color  => '#ffffff',
     };
 
     $pdf->table(
         data         => $fields,
         header_props => $hdr_props,
+        border_c     => '#007c88',
+        h_border_w   => 1,
     );
 
     $pdf;
