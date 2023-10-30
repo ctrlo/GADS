@@ -91,6 +91,7 @@ use Dancer2::Plugin::Auth::Extensible::Provider::DBIC 0.623;
 use Dancer2::Plugin::LogReport 'linkspace';
 
 use GADS::API; # API routes
+use List::MoreUtils qw(uniq);
 
 # Uncomment for DBIC traces
 #schema->storage->debugobj(new GADS::DBICProfiler);
@@ -2756,7 +2757,7 @@ prefix '/:layout_name' => sub {
 
     prefix '/report' => sub {
 
-        #view the report
+        #view all reports for this instance
         get '' => require_login sub {
             my $user   = logged_in_user;
             my $layout = var('layout') or pass;
@@ -2819,9 +2820,7 @@ prefix '/:layout_name' => sub {
 
                 die "NO INSTANCE" if !$instance;
 
-                my $checkbox_fields = [ split( ',', $checkbox_fields_full ) ];
-
-                print STDOUT Dumper $checkbox_fields;
+                my $checkbox_fields = [ uniq split( ',', $checkbox_fields_full ) ];
 
                 my $user = logged_in_user;
 
@@ -2866,7 +2865,7 @@ prefix '/:layout_name' => sub {
                     sort             => $records->sort_first,
                     query_parameters => query_parameters,
                 ),
-                @columns
+                uniq @columns
             ];
 
             my $alert = GADS::Alert->new(
@@ -2897,66 +2896,39 @@ prefix '/:layout_name' => sub {
             template 'report' => $params;
         };
 
-        get '/view:id' => require_login sub {
-            my $user   = logged_in_user;
-            my $layout = var('layout') or pass;
-
-            if ( app->has_hook('plugin.linkspace.data_before_request') ) {
-                app->execute_hook( 'plugin.linkspace.data_before_request',
-                    user => $user );
-            }
-
-            my %params = (
-                user   => $user,
-                schema => schema,
-                rewind => session('rewind')
-            );
-
-            my $records = GADS::Record->new(%params);
-
-            #this is pure debug only - we only want the first record!
-            my $record = $records->find_current_id(1);
-
-            my $alert = GADS::Alert->new(
-                user   => $user,
-                layout => $layout,
-                schema => schema,
-            );
-
-            my $base_url = request->base;
-
-            my $params;
-
-            $params->{alerts}      = $alert->all;
-            $params->{header_type} = 'table_tabs';
-
-            $params->{layout_obj} = $layout;
-            $params->{layout}     = $layout;
-
-            $params->{header_back_url} = "${base_url}table";
-            $params->{breadcrumbs}     = [
-                Crumb( $base_url . "table/", "Tables" ),
-                Crumb( "",                   "Table: " . $layout->name )
-            ];
-
-            my $layout_id = $layout->{instance_id}; 
-
-            my $report_id = param('id');
-            my $record_id = 1;
-
-            my $result = GADS::Schema::Result::Report::load($report_id, $record_id, schema);
-
-            $params->{viewtype} = 'view';
-            $params->{report}  = $result;
-
-            $params->{id}=1;
-            
-            template 'report' => $params;
-        };
-
+        #Edit a report (by :id)
         any [ 'get', 'post' ] => '/edit:id' => require_login sub {
 
-            #TODO: We be working on this after add!
+            if ( body_parameters && body_parameters->{submit} ) {
+                my $layout               = var('layout') or pass;
+                my $report_description   = body_parameters->{report_description};
+                my $report_name          = body_parameters->{report_name};
+                my $checkbox_fields_full = body_parameters->{checkbox_fields};
+                my $instance             = $layout->{instance_id}
+                  if $layout && $layout->{instance_id};
+
+                die "NO INSTANCE" if !$instance;
+
+                my $checkbox_fields = [ split( ',', $checkbox_fields_full ) ];
+
+                my $user = logged_in_user;
+
+                my $report_id = param('id');
+
+                my $result =
+                    GADS::Schema::Result::Report::load_for_edit( $report_id, schema );            
+            
+                $result->update_report(
+                {
+                    name        => $report_name,
+                    description => $report_description,
+                    layouts     => [uniq grep { $_ ne '' } @$checkbox_fields]
+                });
+
+                my $lo = param 'layout_name';
+                return forwardHome({success=>"Report updated"}, "$lo/report");
+            }
+
             my $user   = logged_in_user;
             my $layout = var('layout') or pass;
 
@@ -2973,6 +2945,18 @@ prefix '/:layout_name' => sub {
 
             my $records = GADS::Records->new(%params);
 
+            my @columns = @{ $records->columns_render };
+
+            my $fields = [
+                map $_->presentation(
+                    group            => $records->is_group,
+                    group_col_ids    => $records->group_col_ids,
+                    sort             => $records->sort_first,
+                    query_parameters => query_parameters,
+                ),
+                uniq @columns
+            ];
+
             my $alert = GADS::Alert->new(
                 user   => $user,
                 layout => $layout,
@@ -2995,58 +2979,46 @@ prefix '/:layout_name' => sub {
                 Crumb( "",                   "Table: " . $layout->name )
             ];
 
+            my $report_id = param('id');
+
+            my $result =
+              GADS::Schema::Result::Report::load_for_edit( $report_id, schema );
+            
+            my $report_layouts  = $result->report_layouts;
+
+            my $layouts = [];
+
+            while(my $report_layout = $report_layouts->next) {
+                push @$layouts, $report_layout->layout_id;
+            }
+
+            foreach my $field (@$fields) {
+                if (grep { $_ eq $field->{id} } @$layouts) {
+                    $field->{is_checked} = 1;
+                }
+            }
+
+            $params->{report} = $result;
+            $params->{fields}   = $fields;
             $params->{viewtype} = 'edit';
 
             template 'report' => $params;
         };
     
-        get '/debug' => require_login sub {
+        #Delete a report (by :id)
+        get "/delete:id" => sub {
             my $user   = logged_in_user;
             my $layout = var('layout') or pass;
 
-            if ( app->has_hook('plugin.linkspace.data_before_request') ) {
-                app->execute_hook( 'plugin.linkspace.data_before_request',
-                    user => $user );
-            }
+            my $report_id = param('id');
 
-            my %params = (
-                user   => $user,
-                layout => $layout,
-                schema => schema,
-            );
+            my $result =
+              GADS::Schema::Result::Report::load_for_edit( $report_id, schema);
 
-            my $records = GADS::Records->new(%params);
-
-            my $alert = GADS::Alert->new(
-                user   => $user,
-                layout => $layout,
-                schema => schema,
-            );
-
-            my $base_url = request->base;
-
-            my $params;
-
-            $params->{alerts}      = $alert->all;
-            $params->{header_type} = 'table_tabs';
-
-            $params->{layout_obj} = $layout;
-            $params->{layout}     = $layout;
-
-            $params->{header_back_url} = "${base_url}table";
-            $params->{breadcrumbs}     = [
-                Crumb( $base_url . "table/", "Tables" ),
-                Crumb( "",                   "Table: " . $layout->name )
-            ];
-
-            my $layout_id = $layout->{instance_id}; 
-
-            my $reports = GADS::Schema::Result::Report::load_all_reports($layout_id, schema);
-
-            $params->{viewtype} = 'debug';
-            $params->{reports}  = $reports;
-
-            template 'report' => $params;
+            $result->delete;
+            
+            my $lo = param 'layout_name';
+            return forwardHome({success=>"Report deleted"}, "$lo/report");
         };
     };
 
@@ -4618,10 +4590,6 @@ sub _data_graph
 
 sub _process_edit
 {   my ($id, $record) = @_;
-
-    foreach my $key (keys %$record) {
-        print STDOUT "$key: $record->{$key}\n";
-    }
 
     my $user   = logged_in_user;
     my %params = (
