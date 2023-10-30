@@ -8,6 +8,8 @@ GADS::Schema::Result::Report
 
 =cut
 
+use CtrlO::PDF 0.06;
+use GADS::Config;
 use Data::Dumper;
 use Moo;
 
@@ -399,6 +401,53 @@ sub delete {
     $guard->commit;
 }
 
+=head2 Create PDF
+
+Function to create a PDF of the report - it requires the schema to be passed in and will return a PDF object
+
+=cut
+
+sub create_pdf {
+    my $self = shift;
+
+    my $dateformat = GADS::Config->instance->dateformat;
+    my $now        = DateTime->now;
+    $now->set_time_zone('Europe/London');
+    my $now_formatted = $now->format_cldr($dateformat) . " at " . $now->hms;
+    my $updated =
+      $self->created->format_cldr($dateformat) . " at " . $self->created->hms;
+
+    my $config = GADS::Config->instance;
+    my $header = $config && $config->gads && $config->gads->{header};
+    my $pdf    = CtrlO::PDF->new(
+        header => $header,
+        footer => "Downloaded by " . $self->user->value . " on $now_formatted",
+    );
+
+    $pdf->add_page;
+    $pdf->heading( $self->name );
+    $pdf->heading( $self->description, size => 14 ) if $self->description;
+
+    my $fields = [ [ 'Field', 'Value' ] ];
+
+    my $data = $self->data;
+
+    push( @{$fields}, [ $_->{name}, $_->{value} ] ) foreach (@$data);
+
+    my $hdr_props = {
+        repeat    => 1,
+        justify   => 'center',
+        font_size => 12,
+    };
+
+    $pdf->table(
+        data         => $fields,
+        header_props => $hdr_props,
+    );
+
+    $pdf;
+}
+
 =head1 Package functions
 
 =head2 Load
@@ -424,7 +473,7 @@ sub load {
       if $record_id
       && !$result->record_id;
 
-    return $result if $result->deleted == 0;
+    return $result if !$result->deleted || $result->deleted == 0;
     return undef;
 }
 
@@ -490,7 +539,7 @@ Function to create a new report - it requires the schema and a hash of the repor
 =cut
 
 sub create {
-    my ( $args ) = @_;
+    my ($args) = @_;
 
     my $schema = $args->{schema}
       or die "No schema provided";
@@ -505,6 +554,7 @@ sub create {
             instance_id => $args->{instance_id},
             createdby   => $args->{user},
             created     => DateTime->now,
+            deleted     => 0,
         }
     );
 

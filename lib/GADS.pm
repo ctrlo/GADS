@@ -1811,7 +1811,6 @@ get '/chronology/:id?' => require_login sub {
 };
 
 any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
-
     my ($action, $id) = splat;
 
     my $user   = logged_in_user;
@@ -1859,6 +1858,7 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
     my ($return, $options, $is_raw) = _process_edit($id, $record);
     return $return if $is_raw;
     $return->{is_history} = $action eq 'history';
+    $return->{reports} = GADS::Schema::Result::Report::load_all_reports($record->layout->instance_id, schema);
     template 'edit' => $return, $options;
 };
 
@@ -2824,7 +2824,7 @@ prefix '/:layout_name' => sub {
 
                 my $user = logged_in_user;
 
-                my $report = GADS::Schema::Result::Report->create(
+                my $report = GADS::Schema::Result::Report::create(
                     {
                         schema      => schema,
                         user        => $user,
@@ -3019,6 +3019,23 @@ prefix '/:layout_name' => sub {
             
             my $lo = param 'layout_name';
             return forwardHome({success=>"Report deleted"}, "$lo/report");
+        };
+
+        #Render the report (by :report) with the view (by :view)
+        get "/render:report/:view" => sub {
+            my $user = logged_in_user;
+
+            my $report_id = param('report');
+            my $view_id   = param('view');
+
+            my $report = GADS::Schema::Result::Report::load($report_id, $view_id, schema);
+
+            my $pdf = $report->create_pdf->content;
+
+            return send_file(
+                \$pdf,
+                content_type => 'application/pdf',
+            );
         };
     };
 

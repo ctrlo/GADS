@@ -44,6 +44,15 @@
                 label         = "Download as PDF",
                 label_in_span = 1
               });
+              FOREACH report IN reports;
+                record_edit_buttons.push({
+                  type = "link",
+                  target = url.page _ '/' _ layout.identifier _ '/report/render' _ report.id _ '/' _ record.current_id,
+                  class = "link link--plain",
+                  label = report.name _ " Report",
+                  label_in_span = 1,
+                });
+              END;
             END;
 
             IF layout.user_can("create_child") AND NOT record.parent_id AND layout.has_children;
