@@ -875,7 +875,7 @@ sub update_user
         my $fname = $field->{name};
         $self->$fname($params{$fname});
         $self->username($params{email})
-        if $fname eq 'email';
+            if $fname eq 'email';
     }
 
     my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $current_user);
@@ -916,7 +916,7 @@ sub update_user
     $self->set_view_limits($params{view_limits})
         if $params{view_limits};
 
-        my $empty = 1;
+    my $empty = 1;
     $empty = 0 if($params{organisation});
 
     my $required = 0;
