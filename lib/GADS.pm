@@ -2818,7 +2818,7 @@ prefix '/:layout_name' => sub {
                 my $instance             = $layout->{instance_id}
                   if $layout && $layout->{instance_id};
 
-                die "NO INSTANCE" if !$instance;
+                error "NO INSTANCE" if !$instance;
 
                 my $checkbox_fields = [ uniq split( ',', $checkbox_fields_full ) ];
 
@@ -2907,7 +2907,7 @@ prefix '/:layout_name' => sub {
                 my $instance             = $layout->{instance_id}
                   if $layout && $layout->{instance_id};
 
-                die "NO INSTANCE" if !$instance;
+                error "NO INSTANCE" if !$instance;
 
                 my $checkbox_fields = [ split( ',', $checkbox_fields_full ) ];
 

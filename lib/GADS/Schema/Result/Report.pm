@@ -8,9 +8,9 @@ GADS::Schema::Result::Report
 
 =cut
 
+use Dancer2;
 use CtrlO::PDF 0.06;
 use GADS::Config;
-use Data::Dumper;
 use Moo;
 
 extends 'DBIx::Class::Core';
@@ -294,7 +294,7 @@ sub _load_record_data {
     my $record_id = $self->record_id;
     my $user      = $self->user;
 
-    die "No report id given" if !$record_id;
+    error "No report id given" if !$record_id;
 
     my $gads_layout = GADS::Layout->new(
         schema      => $self->schema,
@@ -465,13 +465,13 @@ sub load {
     my $record_id = shift;
     my $schema    = shift;
 
-    die "Invalid report id provided"
+    error "Invalid report id provided"
       unless $id && $id =~ /^\d+$/;
 
     my $result =
       $schema->resultset('Report')
       ->find( { id => $id }, { prefetch => 'report_layouts' } )
-      or die "No report found for id $id";
+      or error "No report found for id $id";
     $result->schema($schema) if !$result->schema;
     $result->record_id($record_id)
       if $record_id
@@ -491,13 +491,13 @@ sub load_for_edit {
     my $id     = shift;
     my $schema = shift;
 
-    die "Invalid report id provided"
+    error "Invalid report id provided"
       unless $id && $id =~ /^\d+$/;
 
     my $result =
       $schema->resultset('Report')
       ->find( { id => $id }, { prefetch => 'report_layouts' } )
-      or die "No report found for id $id";
+      or error "No report found for id $id";
     $result->schema($schema) if !$result->schema;
 
     return $result if !$result->deleted || $result->deleted == 0;
@@ -514,7 +514,7 @@ sub load_all_reports {
     my $instance_id = shift;
     my $schema      = shift;
 
-    die "Invalid layout provided"
+    error "Invalid layout provided"
       unless $instance_id && $instance_id =~ /^\d+$/;
 
     my $items = $schema->resultset('Report')->search(
@@ -546,7 +546,7 @@ sub create {
     my ($args) = @_;
 
     my $schema = $args->{schema}
-      or die "No schema provided";
+      or error "No schema provided";
 
     my $guard = $schema->txn_scope_guard;
 
