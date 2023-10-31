@@ -2799,7 +2799,7 @@ prefix '/:layout_name' => sub {
 
             my $layout_id = $layout->{instance_id}; 
 
-            my $reports = GADS::Schema::Result::Report::load_all_reports($layout_id, schema);
+            my $reports = schema->resultset('Report')->load_all_reports($layout_id);
 
             $params->{viewtype} = 'table';
             $params->{reports}  = $reports;
@@ -2824,7 +2824,7 @@ prefix '/:layout_name' => sub {
 
                 my $user = logged_in_user;
 
-                my $report = GADS::Schema::Result::Report::create(
+                my $report = schema->resultset('Report')->create_report(
                     {
                         schema      => schema,
                         user        => $user,
@@ -2916,7 +2916,7 @@ prefix '/:layout_name' => sub {
                 my $report_id = param('id');
 
                 my $result =
-                    GADS::Schema::Result::Report::load_for_edit( $report_id, schema );            
+                    schema->resultset('Report')->load_for_edit( $report_id, schema );            
             
                 $result->update_report(
                 {
@@ -2982,7 +2982,7 @@ prefix '/:layout_name' => sub {
             my $report_id = param('id');
 
             my $result =
-              GADS::Schema::Result::Report::load_for_edit( $report_id, schema );
+              schema->resultset('Report')->load_for_edit( $report_id );
             
             my $report_layouts  = $result->report_layouts;
 
@@ -3013,7 +3013,7 @@ prefix '/:layout_name' => sub {
             my $report_id = param('id');
 
             my $result =
-              GADS::Schema::Result::Report::load_for_edit( $report_id, schema);
+              schema->resultset('Report')->load_for_edit( $report_id, schema);
 
             $result->delete;
             
@@ -3028,7 +3028,7 @@ prefix '/:layout_name' => sub {
             my $report_id = param('report');
             my $view_id   = param('view');
 
-            my $report = GADS::Schema::Result::Report::load($report_id, $view_id, schema);
+            my $report = schema->resultset('Report')->load($report_id, $view_id, schema);
 
             my $pdf = $report->create_pdf->content;
 

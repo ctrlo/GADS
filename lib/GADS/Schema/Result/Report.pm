@@ -8,7 +8,12 @@ GADS::Schema::Result::Report
 
 =cut
 
-use Dancer2;
+use strict;
+use warnings;
+
+use Data::Dumper;
+
+use Log::Report 'linkspace';
 use CtrlO::PDF 0.06;
 use GADS::Config;
 use Moo;
@@ -203,7 +208,6 @@ This will return 0 if the report satisfies the following:
 
 sub validate {
     my ( $self, $value, %options ) = @_;
-    error "No value provided" if !$value;
 
     my $name        = $self->name;
     my $instance_id = $self->instance_id;
@@ -211,16 +215,7 @@ sub validate {
 
     error "No name given" unless $name;
     # panic "No instance to link to" unless $instance_id; #This shouldn't happen, but I'm still going to check for it!
-    error "You must provide at least one row to display in the report" unless $layouts->count;
-
-    error "There must be no other report with the same name and instance"
-      if $self->schema->resultset('Report')->search(
-        {
-            name        => $name,
-            instance_id => $instance_id,
-            deleted     => 0,
-        }
-    )->count;
+    error "You must provide at least one row to display in the report" unless $layouts;
 
     0;
 }
@@ -362,7 +357,7 @@ sub update_report {
     foreach my $layout (@$report_layouts) {
         $self->schema->resultset('ReportLayout')
           ->find( { report_id => $self->id, layout_id => $layout } )->delete
-          if !grep { $_ == $layout->id } @{ $args->{layouts} };
+          if !grep { $_ == $layout } @{ $args->{layouts} };
     }
 
     #we grep for less writes
