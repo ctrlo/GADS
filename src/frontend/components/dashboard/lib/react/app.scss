@@ -114,3 +114,9 @@
 .ReactModal__Body--open {
   overflow-y: hidden;
 }
+
+.ld-widget {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
