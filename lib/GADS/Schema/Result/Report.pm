@@ -201,20 +201,19 @@ This will return 0 if the report satisfies the following:
 
 =cut
 
-#TODO: need to work out how to implement this properly - Will ask AB
 sub validate {
     my ( $self, $value, %options ) = @_;
-    return 1 if !$value;
+    error "No value provided" if !$value;
 
     my $name        = $self->name;
     my $instance_id = $self->instance_id;
     my $layouts     = $self->report_layouts;
 
-    return 0 unless $name;
-    return 0 unless $instance_id;
-    return 0 unless $layouts->count;
+    error "No name given" unless $name;
+    # panic "No instance to link to" unless $instance_id; #This shouldn't happen, but I'm still going to check for it!
+    error "You must provide at least one row to display in the report" unless $layouts->count;
 
-    return 0
+    error "There must be no other report with the same name and instance"
       if $self->schema->resultset('Report')->search(
         {
             name        => $name,
@@ -223,8 +222,7 @@ sub validate {
         }
     )->count;
 
-    return 0 unless $options{fatal};
-    return 1;
+    0;
 }
 
 #Will return 1 if the report is new, 0 if it is not - this is done via the ID being 0 for a new report.
@@ -450,132 +448,6 @@ sub create_pdf {
     );
 
     $pdf;
-}
-
-=head1 Package functions
-
-=head2 Load
-
-Function to load a report for a given id - it requires the report id, record id and the schema to be passed in and will return a report object
-
-=cut
-
-sub load {
-    my $id        = shift;
-    my $record_id = shift;
-    my $schema    = shift;
-
-    error "Invalid report id provided"
-      unless $id && $id =~ /^\d+$/;
-
-    my $result =
-      $schema->resultset('Report')
-      ->find( { id => $id }, { prefetch => 'report_layouts' } )
-      or error "No report found for id $id";
-    $result->schema($schema) if !$result->schema;
-    $result->record_id($record_id)
-      if $record_id
-      && !$result->record_id;
-
-    return $result if !$result->deleted || $result->deleted == 0;
-    return undef;
-}
-
-=head2 Load for Edit
-
-Function to load a report for a given id - it requires the report id and the schema to be passed in and will return a report object for editing
-
-=cut
-
-sub load_for_edit {
-    my $id     = shift;
-    my $schema = shift;
-
-    error "Invalid report id provided"
-      unless $id && $id =~ /^\d+$/;
-
-    my $result =
-      $schema->resultset('Report')
-      ->find( { id => $id }, { prefetch => 'report_layouts' } )
-      or error "No report found for id $id";
-    $result->schema($schema) if !$result->schema;
-
-    return $result if !$result->deleted || $result->deleted == 0;
-    return undef;
-}
-
-=head2
-
-Function to load all reports for a given instance - it requires the instance id and the schema to be passed in and will return an array of report objects
-
-=cut
-
-sub load_all_reports {
-    my $instance_id = shift;
-    my $schema      = shift;
-
-    error "Invalid layout provided"
-      unless $instance_id && $instance_id =~ /^\d+$/;
-
-    my $items = $schema->resultset('Report')->search(
-        {
-            instance_id => $instance_id,
-        },
-        {
-            prefetch => 'report_layouts',
-        }
-    );
-
-    my $result = [];
-
-    while ( my $next = $items->next ) {
-        $next->schema($schema)    if !$next->schema;
-        push( @{$result}, $next ) if !$next->deleted || $next->deleted == 0;
-    }
-
-    return $result;
-}
-
-=head2 Create
-
-Function to create a new report - it requires the schema and a hash of the report data to be passed in and will return a report object
-
-=cut
-
-sub create {
-    my ($args) = @_;
-
-    my $schema = $args->{schema}
-      or error "No schema provided";
-
-    my $guard = $schema->txn_scope_guard;
-
-    my $report = $schema->resultset('Report')->create(
-        {
-            user        => $args->{user},
-            name        => $args->{name},
-            description => $args->{description},
-            instance_id => $args->{instance_id},
-            createdby   => $args->{user},
-            created     => DateTime->now,
-            deleted     => 0,
-        }
-    );
-
-    foreach my $layout ( @{ $args->{layouts} } ) {
-        $schema->resultset('ReportLayout')->create(
-            {
-                report_id => $report->id,
-                layout_id => $layout,
-            }
-        );
-    }
-
-    $guard->commit;
-
-    $report->schema($schema) if !$report->schema;
-
-    return $report;
 }
 
 1;

@@ -1858,7 +1858,7 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
     my ($return, $options, $is_raw) = _process_edit($id, $record);
     return $return if $is_raw;
     $return->{is_history} = $action eq 'history';
-    $return->{reports} = GADS::Schema::Result::Report::load_all_reports($record->layout->instance_id, schema);
+    $return->{reports} = schema->resultset('Report')->load_all_reports($record->layout->instance_id);
     template 'edit' => $return, $options;
 };
 
