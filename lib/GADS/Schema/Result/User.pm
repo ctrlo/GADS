@@ -859,15 +859,6 @@ sub update_user
 
     my $site = $self->result_source->schema->resultset('Site')->next;
 
-    error __x"Please select a {name} for the user", name => $site->organisation_name
-        if !$params{organisation} && $site->register_organisation_mandatory;
-
-    error __x"Please select a {name} for the user", name => $site->team_name
-        if !$params{team_id} && $site->register_team_mandatory;
-
-    error __x"Please select a {name} for the user", name => $site->department_name
-        if !$params{department_id} && $site->register_department_mandatory;
-
     my $values = {
         account_request_notes => $params{account_request_notes},
     };
