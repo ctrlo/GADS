@@ -63,7 +63,7 @@ has filtering => (
         {
             $value->{to} = GADS::DateTime::parse_datetime($value->{to});
         }
-        $value->{from} ||= DateTime->now->subtract(days => 7);
+        $value->{from} ||= DateTime->now->subtract(hours => 24);
         $value->{to}   ||= DateTime->now;
         return $value;
     },
