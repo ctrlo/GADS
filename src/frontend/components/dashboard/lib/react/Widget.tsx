@@ -28,11 +28,13 @@ export default class Widget extends React.Component<any, any> {
   render() {
     return (
       <React.Fragment>
-        <div ref={this.ref} dangerouslySetInnerHTML={{ __html: this.props.widget.html }} />
-        {this.props.readOnly ? null : <React.Fragment>
-          <a className="ld-edit-button" onClick={this.props.onEditClick}><span>edit widget</span></a>
-          <span className="ld-draggable-handle"><span>drag widget</span></span>
-        </React.Fragment>}
+        <div className="ld-widget">
+          <div ref={this.ref} dangerouslySetInnerHTML={{ __html: this.props.widget.html }} />
+          {this.props.readOnly ? null : <React.Fragment>
+            <a className="ld-edit-button" onClick={this.props.onEditClick}><span>edit widget</span></a>
+            <span className="ld-draggable-handle"><span>drag widget</span></span>
+          </React.Fragment>}
+        </div>
       </React.Fragment>
     );
   }
