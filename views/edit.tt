@@ -771,6 +771,7 @@
 
       select_items  = [];
       select_values = editvalue.ids;
+      required      = field_is_required;
 
       IF col.default_to_login AND NOT record.current_id; # default to current user for new records only
         select_values = [user.id];
