@@ -107,13 +107,13 @@ sub create_report {
 
     my $report = $self->create(
         {
-            user        => $args->{user},
-            name        => $args->{name},
-            description => $args->{description},
-            instance_id => $args->{instance_id},
-            createdby   => $args->{user},
-            created     => DateTime->now,
-            deleted     => 0,
+            user           => $args->{user},
+            name           => $args->{name},
+            description    => $args->{description},
+            instance_id    => $args->{instance_id},
+            createdby      => $args->{user},
+            created        => DateTime->now,
+            deleted        => 0,
             report_layouts => $layouts,
         }
     );

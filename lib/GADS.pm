@@ -2790,15 +2790,13 @@ prefix '/:layout_name' => sub {
                 Crumb( "",                   "Table: " . $layout->name )
             ];
 
-            my $layout_id = $layout->{instance_id}; 
+            my $layout_id = $layout->{instance_id};
 
-            my $reports = schema->resultset('Report')->load_all_reports($layout_id);
+            my $reports = $layout->reports;
 
-            $params->{viewtype} = 'table';
-            $params->{reports}  = $reports;
+            $params->{reports} = $reports;
 
-
-            template 'report' => $params;
+            template 'reports/view' => $params;
         };
 
         #add a report
@@ -2807,8 +2805,8 @@ prefix '/:layout_name' => sub {
                 my $layout             = var('layout') or pass;
                 my $report_description = params->{'report_description'};
                 my $report_name        = params->{'report_name'};
-                my $checkbox_fields = params->{'checkboxes'};
-                my $instance             = $layout->{instance_id}
+                my $checkbox_fields    = params->{'checkboxes'};
+                my $instance           = $layout->{instance_id}
                   if $layout && $layout->{instance_id};
 
                 my $user = logged_in_user;
@@ -2826,7 +2824,8 @@ prefix '/:layout_name' => sub {
                 );
 
                 my $lo = param 'layout_name';
-                return forwardHome({success=>"Report created"}, "$lo/report");
+                return forwardHome( { success => "Report created" },
+                    "$lo/report" );
             }
 
             my $user   = logged_in_user;
@@ -2843,7 +2842,7 @@ prefix '/:layout_name' => sub {
                 schema => schema,
             );
 
-            my $records = [$layout->all(user_can_read => 1)];
+            my $records = [ $layout->all( user_can_read => 1 ) ];
 
             my $base_url = request->base;
 
@@ -2863,7 +2862,7 @@ prefix '/:layout_name' => sub {
             $params->{viewtype} = 'add';
             $params->{fields}   = $records;
 
-            template 'report' => $params;
+            template 'reports/edit' => $params;
         };
 
         #Edit a report (by :id)
@@ -2881,17 +2880,19 @@ prefix '/:layout_name' => sub {
                 my $report_id = param('id');
 
                 my $result =
-                    schema->resultset('Report')->load_for_edit( $report_id );            
-            
+                  schema->resultset('Report')->load_for_edit($report_id);
+
                 $result->update_report(
-                {
-                    name        => $report_name,
-                    description => $report_description,
-                    layouts     => $checkboxes
-                });
+                    {
+                        name        => $report_name,
+                        description => $report_description,
+                        layouts     => $checkboxes
+                    }
+                );
 
                 my $lo = param 'layout_name';
-                return forwardHome({success=>"Report updated"}, "$lo/report");
+                return forwardHome( { success => "Report updated" },
+                    "$lo/report" );
             }
 
             my $user   = logged_in_user;
@@ -2908,7 +2909,7 @@ prefix '/:layout_name' => sub {
                 schema => schema,
             );
 
-            my $fields = [$layout->all(user_can_read => 1)];
+            my $fields = [ $layout->all( user_can_read => 1 ) ];
 
             my $base_url = request->base;
 
@@ -2927,30 +2928,29 @@ prefix '/:layout_name' => sub {
 
             my $report_id = param('id');
 
-            my $result =
-              schema->resultset('Report')->load_for_edit( $report_id );
-            
-            my $report_layouts  = $result->report_layouts;
+            my $result = schema->resultset('Report')->load_for_edit($report_id);
+
+            my $report_layouts = $result->report_layouts;
 
             my $layouts = [];
 
-            while(my $report_layout = $report_layouts->next) {
+            while ( my $report_layout = $report_layouts->next ) {
                 push @$layouts, $report_layout->layout_id;
             }
 
             foreach my $field (@$fields) {
-                if (grep { $_ eq $field->{id} } @$layouts) {
+                if ( grep { $_ eq $field->{id} } @$layouts ) {
                     $field->{is_checked} = 1;
                 }
             }
 
-            $params->{report} = $result;
+            $params->{report}   = $result;
             $params->{fields}   = $fields;
             $params->{viewtype} = 'edit';
 
-            template 'report' => $params;
+            template 'reports/edit' => $params;
         };
-    
+
         #Delete a report (by :id)
         get "/delete:id" => sub {
             my $user   = logged_in_user;
@@ -2958,13 +2958,12 @@ prefix '/:layout_name' => sub {
 
             my $report_id = param('id');
 
-            my $result =
-              schema->resultset('Report')->load_for_edit( $report_id);
+            my $result = schema->resultset('Report')->load_for_edit($report_id);
 
             $result->delete;
-            
+
             my $lo = param 'layout_name';
-            return forwardHome({success=>"Report deleted"}, "$lo/report");
+            return forwardHome( { success => "Report deleted" }, "$lo/report" );
         };
 
         #Render the report (by :report) with the view (by :view)
@@ -2974,14 +2973,12 @@ prefix '/:layout_name' => sub {
             my $report_id = param('report');
             my $view_id   = param('view');
 
-            my $report = schema->resultset('Report')->load($report_id, $view_id);
+            my $report =
+              schema->resultset('Report')->load( $report_id, $view_id );
 
             my $pdf = $report->create_pdf->content;
 
-            return send_file(
-                \$pdf,
-                content_type => 'application/pdf',
-            );
+            return send_file( \$pdf, content_type => 'application/pdf', );
         };
     };
 

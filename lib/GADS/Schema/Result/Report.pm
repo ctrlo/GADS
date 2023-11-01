@@ -212,7 +212,8 @@ sub validate {
     my $layouts     = $self->report_layouts;
 
     error "No name given" unless $name;
-    error "You must provide at least one row to display in the report" unless $layouts;
+    error "You must provide at least one row to display in the report"
+      unless $layouts;
 
     0;
 }
@@ -331,17 +332,17 @@ sub update_report {
       if $args->{description};
 
     my $layouts = $args->{layouts};
-    
+
     foreach my $layout (@$layouts) {
-        $self->find_or_create_related('report_layouts', { layout_id => $layout });
+        $self->find_or_create_related( 'report_layouts',
+            { layout_id => $layout } );
     }
 
     my $search = {};
 
-    $search->{layout_id} = {
-        '!=' => [ -and => @$layouts ],
-    } if @$layouts;
-    $self->search_related('report_layouts', $search)->delete;
+    $search->{layout_id} = { '!=' => [ -and => @$layouts ], }
+      if @$layouts;
+    $self->search_related( 'report_layouts', $search )->delete;
 
     $guard->commit;
 

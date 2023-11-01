@@ -308,7 +308,7 @@ sub _build_reports
     my @reports;
     while (my $report = $reports_rs->next)
     {
-        push @reports, $report if !$report->deleted;
+        push @reports, $report unless $report->deleted;
     }
     \@reports;
 }

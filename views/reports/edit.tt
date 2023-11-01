@@ -1,0 +1,81 @@
+[%
+
+items      = [];
+
+  FOREACH field IN fields;
+    items.push({
+        field_id   = field.id,
+        name       = field.name
+        id         = field.id
+        is_checked = field.is_checked
+    });
+  END;
+%]
+<form method="post">
+  [% INCLUDE fields/hidden.tt name="submit" value="submit";
+     INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+  <div class="content-block__main">
+    <div class="card">
+      <div class="card--header">
+        <h3 class"card__header">
+          <span>Edit Report</span>
+        </h3>
+      </div>
+
+      <div class="card__body row">
+        <div class="card__content">
+          <div class="col-12">
+            [%
+              INCLUDE fields/input.tt
+                id          = "report_name"
+                name        = "report_name"
+                value       = report.name
+                label       = "Report Name"
+                placeholder = "New Report Name"
+                input_class = "input--required"
+                is_required = 1;
+              INCLUDE fields/input.tt
+                id          = "report_description"
+                name        = "report_description"
+                value       = report.description || ""
+                label       = "Report Description"
+                placeholder = "New Report Description"
+                input_class = "input"
+                is_required = 0;
+            %]
+            <div class="hidden alert__no__select" aria-hidden="true">
+              <p class="alert__message">Please select at least one item to add to the report!</p>
+            </div>
+            <fieldset class="fieldset--required fieldset--report" name="all_checkboxes">
+              [% FOREACH field IN fields %]
+              <input [%IF field.is_checked%]checked [% END %]type="checkbox" id="[% field.id %]" name="checkboxes" value="[% field.id %]" class="checkbox__input" />
+              <label for="[% field.id %]" class="checkbox__label">[% field.name %]</label><br />
+              [% END %]
+            </fieldset>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="content-block__footer">
+    <div class="content-block__footer-container">
+      [%
+        INCLUDE navigation/button_bar.tt
+          row_class         = "row"
+          columns           = [{
+            class           = "col-md-4 mb-3 mb-md-0",
+            buttons         = []
+          }, {
+            class           = "col-md-8 d-md-flex justify-content-md-end align-items-center",
+            buttons         = [{
+                type        = "button",
+                class       = "btn btn-inverted btn-js-report",
+                label       = "Save Report",
+                button_type = "submit"
+          }]
+        }];
+      %]
+    </div>
+  </footer>
+</form>
