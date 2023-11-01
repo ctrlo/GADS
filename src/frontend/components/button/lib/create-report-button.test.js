@@ -4,83 +4,6 @@ import CreateReportButtonComponent from './create-report-button';
 global.$ = $;
 
 describe('create-report-button', () => {
-  it('sets up hidden field', () => {
-    document.body.innerHTML = `
-      <fieldset class="fieldset fieldset--required fieldset--report" id="report_fields">
-        <input id="1" type="checkbox">
-        <input id="2" type="checkbox">
-        <input id="3" type="checkbox">
-        <input id="4" type="checkbox" checked="checked">
-        <input id="5" type="checkbox" checked="checked">
-        <input id="6" type="checkbox">
-        <input id="7" type="checkbox">
-        <input id="8" type="checkbox">
-      </fieldset>
-      <input id="checkboxes" type="hidden">
-    `;
-
-    const button = new CreateReportButtonComponent(document.body);
-
-    const $hidden = $('input#checkboxes');
-    const val = $hidden.val();
-
-    expect(val).toEqual('4,5');
-  });
-
-  it('sets up hidden field with no checked boxes', () => {
-    document.body.innerHTML = `
-      <fieldset class="fieldset fieldset--required fieldset--report" id="report_fields">
-        <input id="1" type="checkbox">
-        <input id="2" type="checkbox">
-        <input id="3" type="checkbox">
-        <input id="4" type="checkbox">
-        <input id="5" type="checkbox">
-        <input id="6" type="checkbox">
-        <input id="7" type="checkbox">
-        <input id="8" type="checkbox">
-      </fieldset>
-      <input id="checkboxes" type="hidden">
-    `;
-
-    const button = new CreateReportButtonComponent(document.body);
-
-    const $hidden = $('input#checkboxes');
-    const val = $hidden.val();
-
-    expect(val).toBeFalsy();
-  });
-
-  it('changes hidden value on click of checkboxes', () => {
-    document.body.innerHTML = `
-      <fieldset class="fieldset fieldset--required fieldset--report" id="report_fields">
-        <input id="1" type="checkbox">
-        <input id="2" type="checkbox">
-        <input id="3" type="checkbox">
-        <input id="4" type="checkbox">
-        <input id="5" type="checkbox">
-        <input id="6" type="checkbox">
-        <input id="7" type="checkbox">
-        <input id="8" type="checkbox">
-      </fieldset>
-      <input id="checkboxes" type="hidden">
-    `;
-
-    const button = new CreateReportButtonComponent(document.body);
-
-    const $hidden = $('input#checkboxes');
-    const val = $hidden.val();
-
-    expect(val).toBeFalsy();
-
-    $('#1').trigger('click');
-    $('#5').trigger('click');
-    $('#3').trigger('click');
-
-    const newVal = $hidden.val();
-
-    expect(newVal).toEqual('1,5,3');
-  });
-
   it('does not validate if no checkboxes are checked', () => {
     document.body.innerHTML = `
       <fieldset class="fieldset fieldset--required fieldset--report" id="report_fields">
@@ -118,7 +41,6 @@ describe('create-report-button', () => {
           <input id="6" type="checkbox">
           <input id="7" type="checkbox">
         </fieldset>
-        <input type="hidden" id="checkboxes">
         <button type="submit" class="btn btn-inverted btn-js-report" id="submit">
       </form>
     `;
@@ -149,7 +71,6 @@ describe('create-report-button', () => {
           <input id="6" type="checkbox">
           <input id="7" type="checkbox">
         </fieldset>
-        <input type="hidden" id="checkboxes">
         <button type="submit" class="btn btn-inverted btn-js-report" id="submit">
       </form>
     `;
@@ -180,7 +101,6 @@ describe('create-report-button', () => {
           <input id="6" type="checkbox">
           <input id="7" type="checkbox">
         </fieldset>
-        <input type="hidden" id="checkboxes">
         <button type="submit" class="btn btn-inverted btn-js-report" id="submit">
       </form>
     `;

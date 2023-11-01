@@ -60,7 +60,6 @@ use GADS::Record;
 use GADS::Records;
 use GADS::RecordsGraph;
 use GADS::SAML;
-use GADS::Schema::Result::Report;
 use GADS::Type::Permissions;
 use GADS::Users;
 use GADS::Util;
@@ -91,7 +90,6 @@ use Dancer2::Plugin::Auth::Extensible::Provider::DBIC 0.623;
 use Dancer2::Plugin::LogReport 'linkspace';
 
 use GADS::API; # API routes
-use List::MoreUtils qw(uniq);
 
 # Uncomment for DBIC traces
 #schema->storage->debugobj(new GADS::DBICProfiler);
@@ -1858,7 +1856,7 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
     my ($return, $options, $is_raw) = _process_edit($id, $record);
     return $return if $is_raw;
     $return->{is_history} = $action eq 'history';
-    $return->{reports} = schema->resultset('Report')->load_all_reports($record->layout->instance_id);
+    $return->{reports} = $layout->reports();
     template 'edit' => $return, $options;
 };
 
@@ -2762,11 +2760,6 @@ prefix '/:layout_name' => sub {
             my $user   = logged_in_user;
             my $layout = var('layout') or pass;
 
-            if ( app->has_hook('plugin.linkspace.data_before_request') ) {
-                app->execute_hook( 'plugin.linkspace.data_before_request',
-                    user => $user );
-            }
-
             my %params = (
                 user   => $user,
                 layout => $layout,
@@ -2812,15 +2805,11 @@ prefix '/:layout_name' => sub {
         any [ 'get', 'post' ] => '/add' => require_login sub {
             if ( body_parameters && body_parameters->{submit} ) {
                 my $layout             = var('layout') or pass;
-                my $report_description = body_parameters->{report_description};
-                my $report_name        = body_parameters->{report_name};
-                my $checkbox_fields_full = body_parameters->{checkbox_fields};
+                my $report_description = params->{'report_description'};
+                my $report_name        = params->{'report_name'};
+                my $checkbox_fields = params->{'checkboxes'};
                 my $instance             = $layout->{instance_id}
                   if $layout && $layout->{instance_id};
-
-                error "NO INSTANCE" if !$instance;
-
-                my $checkbox_fields = [ uniq split( ',', $checkbox_fields_full ) ];
 
                 my $user = logged_in_user;
 
@@ -2854,31 +2843,12 @@ prefix '/:layout_name' => sub {
                 schema => schema,
             );
 
-            my $records = GADS::Records->new(%params);
-
-            my @columns = @{ $records->columns_render };
-
-            my $fields = [
-                map $_->presentation(
-                    group            => $records->is_group,
-                    group_col_ids    => $records->group_col_ids,
-                    sort             => $records->sort_first,
-                    query_parameters => query_parameters,
-                ),
-                uniq @columns
-            ];
-
-            my $alert = GADS::Alert->new(
-                user   => $user,
-                layout => $layout,
-                schema => schema,
-            );
+            my $records = [$layout->all(user_can_read => 1)];
 
             my $base_url = request->base;
 
             my $params;
 
-            $params->{alerts}      = $alert->all;
             $params->{header_type} = 'table_tabs';
 
             $params->{layout_obj} = $layout;
@@ -2891,7 +2861,7 @@ prefix '/:layout_name' => sub {
             ];
 
             $params->{viewtype} = 'add';
-            $params->{fields}   = $fields;
+            $params->{fields}   = $records;
 
             template 'report' => $params;
         };
@@ -2899,30 +2869,25 @@ prefix '/:layout_name' => sub {
         #Edit a report (by :id)
         any [ 'get', 'post' ] => '/edit:id' => require_login sub {
 
-            if ( body_parameters && body_parameters->{submit} ) {
-                my $layout               = var('layout') or pass;
-                my $report_description   = body_parameters->{report_description};
-                my $report_name          = body_parameters->{report_name};
-                my $checkbox_fields_full = body_parameters->{checkbox_fields};
-                my $instance             = $layout->{instance_id}
-                  if $layout && $layout->{instance_id};
-
-                error "NO INSTANCE" if !$instance;
-
-                my $checkbox_fields = [ split( ',', $checkbox_fields_full ) ];
+            if ( params && params->{submit} ) {
+                my $layout             = var('layout') or pass;
+                my $report_description = params->{'report_description'};
+                my $report_name        = params->{'report_name'};
+                my $checkboxes         = params->{'checkboxes'};
+                my $instance           = $layout->instance_id;
 
                 my $user = logged_in_user;
 
                 my $report_id = param('id');
 
                 my $result =
-                    schema->resultset('Report')->load_for_edit( $report_id, schema );            
+                    schema->resultset('Report')->load_for_edit( $report_id );            
             
                 $result->update_report(
                 {
                     name        => $report_name,
                     description => $report_description,
-                    layouts     => [uniq grep { $_ ne '' } @$checkbox_fields]
+                    layouts     => $checkboxes
                 });
 
                 my $lo = param 'layout_name';
@@ -2943,31 +2908,12 @@ prefix '/:layout_name' => sub {
                 schema => schema,
             );
 
-            my $records = GADS::Records->new(%params);
-
-            my @columns = @{ $records->columns_render };
-
-            my $fields = [
-                map $_->presentation(
-                    group            => $records->is_group,
-                    group_col_ids    => $records->group_col_ids,
-                    sort             => $records->sort_first,
-                    query_parameters => query_parameters,
-                ),
-                uniq @columns
-            ];
-
-            my $alert = GADS::Alert->new(
-                user   => $user,
-                layout => $layout,
-                schema => schema,
-            );
+            my $fields = [$layout->all(user_can_read => 1)];
 
             my $base_url = request->base;
 
             my $params;
 
-            $params->{alerts}      = $alert->all;
             $params->{header_type} = 'table_tabs';
 
             $params->{layout_obj} = $layout;
@@ -3013,7 +2959,7 @@ prefix '/:layout_name' => sub {
             my $report_id = param('id');
 
             my $result =
-              schema->resultset('Report')->load_for_edit( $report_id, schema);
+              schema->resultset('Report')->load_for_edit( $report_id);
 
             $result->delete;
             
@@ -3028,7 +2974,7 @@ prefix '/:layout_name' => sub {
             my $report_id = param('report');
             my $view_id   = param('view');
 
-            my $report = schema->resultset('Report')->load($report_id, $view_id, schema);
+            my $report = schema->resultset('Report')->load($report_id, $view_id);
 
             my $pdf = $report->create_pdf->content;
 

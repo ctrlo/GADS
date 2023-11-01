@@ -130,16 +130,12 @@ items      = [];
             <div class="hidden alert__no__select" aria-hidden="true">
               <p class="alert__message">Please select at least one item to add to the report!</p>
             </div>
-            [%
-              INCLUDE fields/checkbox_list.tt
-                label = "Select fields to add"
-                fieldset_required = 1
-                fieldset_classes = "fieldset--report"
-                id = "report_fields";
-              INCLUDE fields/hidden.tt
-                name = "checkbox_fields"
-                id = "checkboxes";
-            %]
+            <fieldset class="fieldset--required fieldset--report" name="all_checkboxes">
+              [% FOREACH field IN fields %]
+              <input [%IF field.is_checked%]checked [% END %]type="checkbox" id="[% field.id %]" name="checkboxes" value="[% field.id %]" class="checkbox__input" />
+              <label for="[% field.id %]" class="checkbox__label">[% field.name %]</label><br />
+              [% END %]
+            </fieldset>
           </div>
         </div>
       </div>
@@ -262,7 +258,8 @@ ELSIF viewtype == 'add';
                 label = "Select fields to add"
                 fieldset_required = 1
                 fieldset_classes = "fieldset--report"
-                id = "report_fields";
+                id = "report_fields"
+                fieldset_name = "report_fields";
               INCLUDE fields/hidden.tt
                 name = "checkbox_fields"
                 id = "checkboxes";
@@ -296,11 +293,6 @@ ELSIF viewtype == 'add';
 </form>
 
 [% ELSIF viewtype == 'view' %]
-
-[%
-  #This appears to be needed - will probably use record.getrenderfield to filter into own topic structure
-  PROCESS snippets/datum.tt;
-%]
 
 <h1>View a test report for Report ID [% report.id %]</h1>
 <hr />

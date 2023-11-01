@@ -11,8 +11,6 @@ GADS::Schema::Result::Report
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use Log::Report 'linkspace';
 use CtrlO::PDF 0.06;
 use GADS::Config;
@@ -214,24 +212,10 @@ sub validate {
     my $layouts     = $self->report_layouts;
 
     error "No name given" unless $name;
-    # panic "No instance to link to" unless $instance_id; #This shouldn't happen, but I'm still going to check for it!
     error "You must provide at least one row to display in the report" unless $layouts;
 
     0;
 }
-
-#Will return 1 if the report is new, 0 if it is not - this is done via the ID being 0 for a new report.
-#This is a private field
-#Not sure if this is needed due to the app erroring if I try to create a report by creating a Report object and then calling create on it
-has _is_new => (
-    is      => 'rwp',
-    default => 1,
-    builder => sub {
-        my $self = shift;
-        return 0 if $self->id;
-        return 1;
-    },
-);
 
 =head2 schema
 
@@ -342,33 +326,22 @@ sub update_report {
     my $guard = $self->schema->txn_scope_guard;
 
     $self->update( { name => $args->{name} } )
-      if $args->{name} && $args->{name} ne $self->name;
+      if $args->{name};
     $self->update( { description => $args->{description} } )
-      if $args->{description} && $args->{description} ne $self->description;
+      if $args->{description};
 
-    my $layouts        = $self->report_layouts;
-    my $report_layouts = [];
-
-    while ( my $layout = $layouts->next ) {
-        push( @{$report_layouts}, $layout->layout_id );
+    my $layouts = $args->{layouts};
+    
+    foreach my $layout (@$layouts) {
+        $self->find_or_create_related('report_layouts', { layout_id => $layout });
     }
 
-    #we grep for less writes
-    foreach my $layout (@$report_layouts) {
-        $self->schema->resultset('ReportLayout')
-          ->find( { report_id => $self->id, layout_id => $layout } )->delete
-          if !grep { $_ == $layout } @{ $args->{layouts} };
-    }
+    my $search = {};
 
-    #we grep for less writes
-    foreach my $layout ( @{ $args->{layouts} } ) {
-        $self->schema->resultset('ReportLayout')->create(
-            {
-                report_id => $self->id,
-                layout_id => $layout,
-            }
-        ) if !grep { $_ == $layout } @{$report_layouts};
-    }
+    $search->{layout_id} = {
+        '!=' => [ -and => @$layouts ],
+    } if @$layouts;
+    $self->search_related('report_layouts', $search)->delete;
 
     $guard->commit;
 
@@ -385,7 +358,7 @@ If the ID is invalid, or there's nothing to delete, it will do nothing.
 sub delete {
     my $self = shift;
 
-    return if !$self || $self->_is_new || $self->deleted;
+    return if !$self || !$self->in_storage || $self->deleted;
 
     my $guard = $self->schema->txn_scope_guard;
 

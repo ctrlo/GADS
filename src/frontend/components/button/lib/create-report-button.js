@@ -1,4 +1,3 @@
-//TODO: refactor this into smaller components
 import { Component } from "component";
 import { validateRequiredFields } from "validation";
 import { logging } from "logging";
@@ -24,76 +23,6 @@ class CreateReportButtonComponent extends Component {
    */
   initSubmitReport() {
     this.el.on('click', (ev) => { this.submitReport(ev) });
-    this.setupCheckboxes();
-    this.setupHiddenField();
-  }
-
-  /**
-   * Setup the checkboxes to respond to clicks and update the hidden field
-   */
-  setupCheckboxes() {
-    const $fieldset = $(".fieldset--report");
-    if(!$fieldset) logging.info('No fieldset found');
-    const $checkboxes = $fieldset.find("input[type=checkbox]");
-    if(!$checkboxes) logging.info('No checkboxes found');
-    const $hidden = $('input#checkboxes');
-    if(!$hidden) logging.info('No hidden field found');
-
-    $checkboxes.on("change", (ev) => {
-      try {
-        const { target } = ev;
-        const $target = $(ev.target);
-
-        if (target.checked) {
-          $(".alert__no__select").hide();
-        }
-
-        if (target.checked) {
-          if ($hidden && !$hidden.val()) {
-            $hidden.val($target.attr('id'));
-          } else if ($hidden && $hidden.val() && !($hidden.val().includes($target.attr('id')))) {
-            $hidden.val($hidden.val() + ',' + $target.attr('id'));
-          } else {
-            throw new Error('No hidden field found');
-          }
-        } else if ($hidden && $hidden.val() && $hidden.val().includes($target.attr('id'))) {
-          const id = $target.attr('id');
-          const rx = new RegExp(id + ',?');
-          $hidden.val($hidden.val().replace(rx, ''));
-          if ($hidden.val().includes(',,')) $hidden.val($hidden.val().replace(',,', ','));
-        } else {
-          throw new Error('No hidden field found');
-        }
-      } catch (e) {
-        logging.error(e);
-      }
-    });
-  }
-
-  /**
-   * Setup the hidden field with the values of any pre-checked checkboxes
-   */
-  setupHiddenField() {
-    try {
-      const $fieldset = $(".fieldset--report");
-      const $checkboxes = $fieldset.find("input[type=checkbox]");
-      const $hidden = $('input#checkboxes');
-
-      $checkboxes.each(function () {
-        const $this = $(this)
-        if ($this.is(":checked") || this.checked) {
-          if ($hidden && !$hidden.val()) {
-            $hidden.val($(this).attr('id'));
-          } else if ($hidden && $hidden.val()) {
-            $hidden.val($hidden.val() + ',' + $(this).attr('id'));
-          } else {
-            throw new Error('No hidden field found');
-          }
-        }
-      });
-    } catch (e) {
-      logging.error(e);
-    }
   }
 
   /**

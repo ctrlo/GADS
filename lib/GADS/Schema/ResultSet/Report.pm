@@ -105,8 +105,6 @@ sub create_report {
 
     my $layouts = [ map { { layout_id => $_ } } @{ $args->{layouts} } ];
 
-    print STDOUT Dumper $layouts;
-
     my $report = $self->create(
         {
             user        => $args->{user},

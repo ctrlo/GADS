@@ -295,6 +295,24 @@ has _user_permissions_columns => (
     clearer => 1,
 );
 
+has reports=> (
+    is      => 'lazy',
+    isa     => ArrayRef,
+);
+
+sub _build_reports
+{   my $self = shift;
+    my $reports_rs = $self->schema->resultset('Report')->search({
+        instance_id => $self->instance_id,
+    });
+    my @reports;
+    while (my $report = $reports_rs->next)
+    {
+        push @reports, $report if !$report->deleted;
+    }
+    \@reports;
+}
+
 sub _build__user_permissions_columns
 {   my $self = shift;
     $self->user or return {};
