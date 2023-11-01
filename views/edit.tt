@@ -679,6 +679,7 @@
           values               = select_values
           with_details         = 1
           has_subvals          = col.has_subvals
+          has_typeahead        = col.has_typeahead
           filter               = "html";
 
           data_attributes = [];
@@ -723,6 +724,7 @@
           value                = select_value
           with_details         = 1
           has_subvals          = col.has_subvals
+          has_typeahead        = col.has_typeahead
           filter               = "html";
           
           data_attributes = [];
@@ -769,6 +771,7 @@
 
       select_items  = [];
       select_values = editvalue.ids;
+      required      = field_is_required;
 
       IF col.default_to_login AND NOT record.current_id; # default to current user for new records only
         select_values = [user.id];

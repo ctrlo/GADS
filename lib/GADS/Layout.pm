@@ -1299,7 +1299,7 @@ sub _build__columns_namehash
     {
         next unless $_->instance_id == $self->instance_id;
         error __x"Column {name} exists twice - unable to find unique column",
-            name => $_ if $columns{$_};
+            name => $_->name if $columns{$_->name};
         $columns{$_->name} = $_;
     }
     \%columns;
