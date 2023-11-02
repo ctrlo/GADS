@@ -8,6 +8,9 @@ use Log::Report;
 use lib 't/lib';
 use Test::GADS::DataSheet;
 
+# Hide "mistake" messages emitted during tests
+dispatcher PERL => 'default', accept => 'ERROR-';
+
 # Tests to check that fields that depend on another field for their display are
 # blanked if they should not have been shown
 

@@ -249,6 +249,37 @@ div.dataTables_wrapper div.dataTables_filter input.form-control {
   margin-left: 0;
 }
 
+// Table fullscreen mode
+:fullscreen {
+  body {
+    padding: 0;
+    background-color: $white;
+  }
+
+  .main {
+    max-width: none;
+  }
+
+  .sidebar,
+  .table-header,
+  .content-block__navigation,
+  .content-block__head {
+    display: none;
+  }
+
+  .content-block__main {
+    padding-top: 0;
+  }
+
+  .dataTables_wrapper {
+    padding-top: $padding-large-vertical;
+  }
+
+  .data-table {
+    margin-top: 0 !important; //Necessary to overrule external styling
+  }
+}
+
 @include media-breakpoint-up(lg) {
   .dataTables_wrapper .row--main {
     margin-bottom: $padding-large-vertical;

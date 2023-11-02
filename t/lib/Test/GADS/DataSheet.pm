@@ -261,9 +261,11 @@ sub create_user
     my $instance_id = $options{instance_id} || $self->instance_id;
     my $user_id     = $options{user_id};
 
+    # messy - username and email are madatory when creating user object
+    my $temp = 'TEMPUSER@EXAMPLE.COM';
     my $user = $user_id
-        ? $self->schema->resultset('User')->find_or_create({ id => $user_id })
-        : $self->schema->resultset('User')->create({});
+        ? $self->schema->resultset('User')->find_or_create({ id => $user_id, username => $temp, email => $temp })
+        : $self->schema->resultset('User')->create({ username => $temp, email => $temp });
     $user_id ||= $user->id;
     $user->update({
         username      => "user$user_id\@example.com",

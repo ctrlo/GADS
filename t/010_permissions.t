@@ -358,7 +358,6 @@ foreach my $test (qw/single all/)
         try {
             $user = $schema->resultset('User')->create_user(
                 current_user     => $sheet->$usertype,
-                username         => "$usertype\@example.com",
                 email            => "$usertype\@example.com",
                 firstname        => 'Joe',
                 surname          => 'Bloggs',

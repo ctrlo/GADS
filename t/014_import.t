@@ -21,12 +21,14 @@ $ENV{GADS_NO_FORK} = 1; # Prevent forking during import process
     $sheet->create_records;
 
     my $user1 = $schema->resultset('User')->create({
-        username => 'test',
+        email    => 'test@example.com',
+        username => 'test@example.com',
         password => 'test',
     });
 
     my $user2 = $schema->resultset('User')->create({
-        username => 'test2',
+        email    => 'test2@example.com',
+        username => 'test2@example.com',
         password => 'test2',
     });
 
@@ -177,7 +179,8 @@ foreach my $test (@tests)
         $sheet->create_records;
 
         my $user = $schema->resultset('User')->create({
-            username => 'test',
+            email    => 'test@example.com',
+            username => 'test@example.com',
             password => 'test',
         });
 

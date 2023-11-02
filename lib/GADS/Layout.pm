@@ -1206,11 +1206,12 @@ sub check_recursive
     # always match
     my @path2 = @$path;
     my @search = @path2[0..$#path2-1];
-    if (grep $_ == $key, @search)
+    my %search = map { $_ => 1 } @search;
+    if ($search{$key})
     {
         return join " → ", map $self->column($_)->name, @$path;
     }
-    foreach my $val (@{$deps->{$key}})
+    foreach my $val (keys %{$deps->{$key}})
     {
         # Push onto path
         push @$path, $val;
@@ -1231,10 +1232,14 @@ sub _order_dependencies
 
     return unless @columns;
 
+    # Use hashes initially for depedency tree, in order to remove duplicates
+    # and also faster searching
     my %deps = map {
         my $id = $_->id;
         $_->id =>    # Allow fields depend on theirselves, but remove from dependencies to prevent recursion
-            [grep $_ != $id, @{$_->has_display_field ? $_->display_field_col_ids : $_->depends_on}],
+            {
+                map { $_ => 1 } grep $_ != $id, @{$_->has_display_field ? $_->display_field_col_ids : $_->depends_on},
+            }
     } @columns;
 
     my %seen;
@@ -1248,6 +1253,8 @@ sub _order_dependencies
             path => $ret if $ret;
     }
 
+    # Convert dependencies into format required by Algorithm::Dependency
+    %deps = map { $_ => [keys %{$deps{$_}}] } keys %deps;
     my $source = Algorithm::Dependency::Source::HoA->new(\%deps);
     my $dep = Algorithm::Dependency::Ordered->new(source => $source)
         or die 'Failed to set up dependency algorithm';
@@ -1292,7 +1299,7 @@ sub _build__columns_namehash
     {
         next unless $_->instance_id == $self->instance_id;
         error __x"Column {name} exists twice - unable to find unique column",
-            name => $_ if $columns{$_};
+            name => $_->name if $columns{$_->name};
         $columns{$_->name} = $_;
     }
     \%columns;

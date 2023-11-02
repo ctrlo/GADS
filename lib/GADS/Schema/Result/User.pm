@@ -20,6 +20,8 @@ use Moo;
 
 extends 'DBIx::Class::Core';
 
+sub BUILDARGS { $_[2] || {} }
+
 =head1 COMPONENTS LOADED
 
 =over 4
@@ -30,7 +32,7 @@ extends 'DBIx::Class::Core';
 
 =cut
 
-__PACKAGE__->load_components("InflateColumn::DateTime");
+__PACKAGE__->load_components("InflateColumn::DateTime", "+GADS::DBIC");
 
 =head1 TABLE: C<user>
 
@@ -728,9 +730,14 @@ sub sqlt_deploy_hook {
 }
 
 # Used to ensure an empty selector is available in the user edit page
-sub view_limits_with_blank
+has view_limits_with_blank => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_view_limits_with_blank
 {   my $self = shift;
-    return $self->view_limits if $self->view_limits->count;
+    return [$self->view_limits->all] if $self->view_limits->count;
     return [undef];
 }
 
@@ -751,6 +758,10 @@ sub set_view_limits
         '!=' => [ -and => @view_ids ]
     } if @view_ids;
     $self->search_related('view_limits', $search)->delete;
+    # Rebuild view limits in case of form submission failures (see same
+    # comments as permissions0
+    $self->clear_view_limits_with_blank;
+    $self->view_limits_with_blank;
 }
 
 sub graphs
@@ -776,7 +787,8 @@ sub graphs
 
 # Used to check if a user has a group
 has has_group => (
-    is => 'lazy',
+    is      => 'lazy',
+    clearer => 1,
 );
 
 sub _build_has_group
@@ -845,6 +857,90 @@ sub update_user
     delete $params{team_id} if !$params{team_id};
     delete $params{title} if !$params{title};
 
+    my $site = $self->result_source->schema->resultset('Site')->next;
+
+    my $values = {
+        account_request_notes => $params{account_request_notes},
+    };
+
+    if(defined $params{account_request}) {
+        $values->{account_request} = $params{account_request};
+    }
+
+    my $original_username = $self->username;
+
+    foreach my $field ($site->user_fields)
+    {
+        next if !exists $params{$field->{name}};
+        my $fname = $field->{name};
+        $self->$fname($params{$fname});
+        $self->username($params{email})
+            if $fname eq 'email';
+    }
+
+    my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $current_user);
+
+    $audit->login_change("Username $original_username (id ".$self->id.") being changed to ".$self->username)
+        if $original_username && $self->is_column_changed('username');
+
+    # Coerce view_limits to value expected, ensure all removed if exists
+    $params{view_limits} = []
+        if exists $params{view_limits} && !$params{view_limits};
+    # Same for groups
+    $params{groups} = []
+        if exists $params{groups} && !$params{groups};
+    # Same for permissions
+    $params{permissions} = []
+        if exists $params{permissions} && !$params{permissions};
+
+    $self->update($values);
+
+    if ($params{groups})
+    {
+        $self->groups($current_user, $params{groups});
+        $self->clear_has_group;
+        $self->has_group;
+    }
+
+    if ($params{permissions} && ref $params{permissions} eq 'ARRAY')
+    {
+        error __"You do not have permission to set global user permissions"
+            if !$current_user->permission->{superadmin};
+        $self->permissions(@{$params{permissions}});
+        # Clear and rebuild permissions, in case of form submission failure. We
+        # need to rebuild now, otherwise the transaction may have rolled-back
+        # to the old version by the time it is built in the template
+        $self->clear_permission;
+        $self->permission;
+    }
+    $self->set_view_limits($params{view_limits})
+        if $params{view_limits};
+
+    my $empty = 1;
+    $empty = 0 if($params{organisation});
+
+    my $required = 0;
+    $required = 1 if $site->register_organisation_mandatory;
+    $required = 0 if $params{edit_own_user};
+    $required = 1 if $params{$site->user_field_is_editable('organisation')};
+
+    error __x"Please select a {name} for the user", name => $site->organisation_name
+        if $empty && $required;
+
+    $required = $site->register_team_mandatory;
+    $required = 0 if $params{edit_own_user};
+    $required = 1 if $params{$site->user_field_is_editable('team_id')};
+
+    error __x"Please select a {name} for the user", name => $site->team_name
+        if !$params{team_id} && $required;
+
+    $required = $site->register_department_mandatory;
+    $required = 0 if $params{edit_own_user};
+    $required = 1 if $params{$site->user_field_is_editable('department_id')};
+
+    error __x"Please select a {name} for the user", name => $site->department_name
+        if !$params{department_id} && $required;
+
     length $params{firstname} <= 128
         or error __"Forename must be less than 128 characters";
     length $params{surname} <= 128
@@ -857,69 +953,6 @@ sub update_user
         or error __x"Invalid team {id}", id => $params{team_id};
     GADS::Util->email_valid($params{email})
         or error __x"The email address \"{email}\" is invalid", email => $params{email};
-
-    my $site = $self->result_source->schema->resultset('Site')->next;
-
-    error __x"Please select a {name} for the user", name => $site->organisation_name
-        if !$params{organisation} && $site->register_organisation_mandatory;
-
-    error __x"Please select a {name} for the user", name => $site->team_name
-        if !$params{team_id} && $site->register_team_mandatory;
-
-    error __x"Please select a {name} for the user", name => $site->department_name
-        if !$params{department_id} && $site->register_department_mandatory;
-
-    my $values = {
-        account_request_notes => $params{account_request_notes},
-    };
-
-    if(defined $params{account_request}) {
-        $values->{account_request} = $params{account_request};
-    }
-
-    foreach my $field ($site->user_fields)
-    {
-        next if !exists $params{$field->{name}};
-        $values->{$field->{name}} = $params{$field->{name}};
-        $values->{username} = $params{email}
-            if $field->{name} eq 'email';
-    }
-
-    my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $current_user);
-
-    if (lc $values->{username} ne lc $self->username)
-    {
-        $self->result_source->schema->resultset('User')->active->search({
-            username => $values->{username},
-        })->count
-            and error __x"Email address {username} already exists as an active user", username => $values->{username};
-        $audit->login_change("Username ".$self->username." (id ".$self->id.") being changed to $values->{username}");
-    }
-
-    # Coerce view_limits to value expected, ensure all removed if exists
-    $params{view_limits} = []
-        if exists $params{view_limits} && !$params{view_limits};
-    # Same for groups
-    $params{groups} = []
-        if exists $params{groups} && !$params{groups};
-    # Same for permissions
-    $params{permissions} = []
-        if exists $params{permissions} && !$params{permissions};
-
-    $params{value} = _user_value(\%params);
-    $values->{value} = _user_value($values);
-    $self->update($values);
-
-    $self->groups($current_user, $params{groups})
-        if $params{groups};
-    if ($params{permissions} && ref $params{permissions} eq 'ARRAY')
-    {
-        error __"You do not have permission to set global user permissions"
-            if !$current_user->permission->{superadmin};
-        $self->permissions(@{$params{permissions}});
-    }
-    $self->set_view_limits($params{view_limits})
-        if $params{view_limits};
 
     my $msg = __x"User updated: ID {id}, username: {username}",
         id => $self->id, username => $params{username};
@@ -1115,6 +1148,30 @@ sub for_data_table
     } if $site->register_freetext1_name;
 
     $return;
+}
+
+sub validate
+{   my $self = shift;
+    # Update value field
+    $self->value(_user_value({firstname => $self->firstname, surname => $self->surname}));
+
+    $self->username
+        or error "Username required";
+    $self->email
+        or error "Email required";
+
+    # Check existing user rename, check both email address and username
+    foreach my $f (qw/username email/)
+    {
+        if ($self->is_column_changed($f) || !$self->id)
+        {
+            my $search = { $f => $self->$f };
+            $search->{id} = { '!=' => $self->id }
+                if $self->id;
+            $self->result_source->resultset->active->search($search)->next
+                and error __x"{username} already exists as an active user", username => $self->$f;
+        }
+    }
 }
 
 sub export_hash

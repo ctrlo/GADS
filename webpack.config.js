@@ -42,12 +42,12 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        exclude: /node_modules/,
+        exclude: [/node_modules/, /\.test\.js$/,/test/],
         use: ['babel-loader']
       },
       {
         test: /\.tsx?$/,
-        exclude: /node_modules/,
+        exclude: [/node_modules/, /\.test\.tsx?$/,/test/],
         use: ['babel-loader', 'ts-loader']
       },
       {
