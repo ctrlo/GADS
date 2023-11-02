@@ -1,7 +1,7 @@
 <div class="modal modal--form" id="[% modalId %]" tabindex="-1" role="dialog" aria-labelledby="[% modalId %]Label" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered " role="document">
     <div class="modal-content">
-      [% INCLUDE wizard/sub/modal_header.tt label="Configure alert for view:" _  v.name; %]
+      [% INCLUDE wizard/sub/modal_header.tt label="Configure alert for view: " _  v.name; %]
       
       <form method="post" class="">
         [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
