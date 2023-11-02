@@ -545,6 +545,32 @@ post '/api/table_request' => require_login sub {
     _post_table_request();
 };
 
+get '/api/:sheet/fields' => require_login sub {
+    my $data = decode_json( _get_records() );
+
+    my $otherResult = {};
+
+    foreach my $value ( @{ $data->{data} } ) {
+        foreach my $keyValue ( keys %{$value} ) {
+            if ( $keyValue ne '_id' ) {
+                my $name = $value->{$keyValue}->{name};
+                my $type = $value->{$keyValue}->{type};
+                $otherResult->{$name} = [] unless defined $otherResult->{$name};
+                if ( $type eq 'person' || $type eq 'createdby' ) {
+                    push @{ $otherResult->{$name} },
+                      $value->{$keyValue}->{values}->[0]->{text};
+                }
+                else {
+                    push @{ $otherResult->{$name} },
+                      $value->{$keyValue}->{values}->[0];
+                }
+            }
+        }
+    }
+
+    return encode_json $otherResult;
+};
+
 # AJAX record browse
 any ['get', 'post'] => '/api/:sheet/records' => require_login sub {
     _get_records();
