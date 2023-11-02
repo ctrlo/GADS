@@ -80,4 +80,15 @@ describe("tests for component replacement", () => {
     const items = $(div).find(".item");
     expect(options.length).toBe(items.length + 1);
   });
+
+  it("should hide all items on item select", ()=>{
+    const div=getDiv();
+    new DisplayConditionsComponent(div);
+    const input = $(div).find('input[type="text"]');
+    input.val("Test");
+    input.trigger("keyup");
+    const item = $(div).find(".item")[0];
+    $(item).trigger("click");
+    expect($(div).find(".item").length).toBe(0);
+  });
 });

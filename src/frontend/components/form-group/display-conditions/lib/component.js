@@ -15,6 +15,9 @@ class DisplayConditionsComponent extends Component {
   setupSelects(el) {
     const selects = el.find("select");
     const select = $(selects[selects.length - 1]);
+    const select_parent = select.closest(".rules-list")[0];
+    const value = $(select_parent).find(".rule-value-container");
+    $(value).hide();
     const self = this;
     select.hide();
     const div = document.createElement("div");
@@ -42,12 +45,17 @@ class DisplayConditionsComponent extends Component {
   }
 
   itemClick(ev) {
+    const $list = $(ev.target).closest(".rules-list");
+    const $value = $($list).find(".rule-value-container");
+    $value.show();
     const $container = $(ev.target).closest(".rule-filter-container");
     const $input = $container.find("[type='text']");
+    const $items = $container.find(".items");
     $input.val(ev.target.innerHTML);
     const $select = $container.find("select");
     $select.val(ev.target.dataset.value);
     $select.trigger("change");
+    $items.children().remove();
   }
 
   textChange(ev) {
