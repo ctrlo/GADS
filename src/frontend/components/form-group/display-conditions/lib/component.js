@@ -14,32 +14,31 @@ class DisplayConditionsComponent extends Component {
 
   setupSelects(el) {
     const selects = el.find("select");
+    const select = $(selects[selects.length - 1]);
     const self = this;
-    selects.hide();
-    selects.each(function () {
-      const div = document.createElement("div");
-      div.className = "input-container";
-      const element = document.createElement("input");
-      element.type = "text";
-      element.className = "form-control";
-      $(element).on("keyup", (ev) => self.textChange(ev));
-      div.prepend(element);
-      const itemsDiv = document.createElement("div");
-      itemsDiv.className = "items";
-      $(this)
-        .find("option")
-        .each(function () {
-          if (this.text === "------") return;
-          const item = document.createElement("div");
-          item.className = "item";
-          item.dataset.value = this.value;
-          item.innerHTML = this.text;
-          $(item).on("click", (ev) => self.itemClick(ev));
-          itemsDiv.append(item);
-        });
-      div.append(itemsDiv);
-      this.closest(".rule-filter-container").append(div);
-    });
+    select.hide();
+    const div = document.createElement("div");
+    div.className = "input-container";
+    const element = document.createElement("input");
+    element.type = "text";
+    element.className = "form-control";
+    $(element).on("keyup", (ev) => self.textChange(ev));
+    div.prepend(element);
+    const itemsDiv = document.createElement("div");
+    itemsDiv.className = "items";
+    select
+      .find("option")
+      .each(function () {
+        if (this.text === "------") return;
+        const item = document.createElement("div");
+        item.className = "item";
+        item.dataset.value = this.value;
+        item.innerHTML = this.text;
+        $(item).on("click", (ev) => self.itemClick(ev));
+        itemsDiv.append(item);
+      });
+    div.append(itemsDiv);
+    select.closest(".rule-filter-container").append(div);;
   }
 
   itemClick(ev) {
