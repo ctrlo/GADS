@@ -1,7 +1,7 @@
 <div class="modal modal--form" id="[% modalId %]" tabindex="-1" role="dialog" aria-labelledby="[% modalId %]Label" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered " role="document">
     <div class="modal-content">
-      [% INCLUDE wizard/sub/modal_header.tt label="Configure alert for " _  v.name; %]
+      [% INCLUDE wizard/sub/modal_header.tt label="Configure alert for view:" _  v.name; %]
       
       <form method="post" class="">
         [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
@@ -23,7 +23,6 @@
                   value       = NOT v.alert ? "" : v.alert.frequency
                   filter      = "html"
                   items       = [
-                    {id="", name="Never"},
                     {id="0", name="Instantly"},
                     {id="24", name="Every 24 hours"}
                   ];
@@ -40,10 +39,17 @@
               }]
               right_buttons = v.is_group ? [] : [{
                 type  = "submit"
+                class = "btn-danger"
+                name  = "modal_remove"
+                value = "submit"
+                label = "Remove"
+              }
+              {
+                type  = "submit"
                 class = "btn-default"
                 name  = "modal_alert"
                 value = "submit"
-                label = "Create alert"
+                label = "Create"
               }];
           %]
         </div>
