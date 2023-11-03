@@ -643,7 +643,6 @@ class DataTableComponent extends Component {
             if (self.searchParams.has(id)) {
               column.search(self.searchParams.get(id)).draw()
             }
-
             self.addSearchDropdown(column, id, index)
           } 
         })
@@ -720,7 +719,7 @@ class DataTableComponent extends Component {
     this.initializingTable = true
     const $dataTableContainer = this.el.parent()
 
-    $dataTableContainer.addClass('data-table__container--scrollable');
+    $dataTableContainer.addClass('data-table__container--scrollable')
     // // See comments above regarding preventing multiple clicks
     this.el.DataTable().button(0).disable();
     this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').toggleClass(['btn-toggle', 'btn-toggle-off'])
@@ -730,7 +729,7 @@ class DataTableComponent extends Component {
     conf.responsive = this.originalResponsiveObj
     this.el.DataTable().destroy();
     this.el.DataTable(conf)
-    this.initializingTable = true;
+    this.initializingTable = true
     // See comments above regarding preventing multiple clicks
     this.el.DataTable().button(0).disable();
   }
