@@ -9,6 +9,7 @@ import { setupDisclosureWidgets, onDisclosureClick } from '../../more-less/lib/d
 import RecordPopupComponent from '../../record-popup/lib/component'
 import { moreLess } from '../../more-less/lib/more-less'
 import { Buffer } from 'buffer'
+import { logging } from 'logging'
 
 const MORE_LESS_TRESHOLD = 50
 
@@ -19,7 +20,8 @@ class DataTableComponent extends Component {
     this.hasCheckboxes = this.el.hasClass('table-selectable')
     this.hasClearState = this.el.hasClass('table-clear-state')
     this.searchParams = new URLSearchParams(window.location.search)
-    this.base_url = this.el.data('href') ? this.el.data('href') : undefined
+    // Does the same as previous and is "cleaner", although officially the || undefined is not needed, I don't trust JS
+    this.base_url = this.el.data('href') || undefined
     this.initTable()
   }
 
@@ -273,30 +275,6 @@ class DataTableComponent extends Component {
       this.addColumnData(columnData);
     }
 
-    $('input', $header).on('keyup', function () {
-      const $list=$('.data-list');
-      if (this.value.length < 1) {
-        $list.empty();
-        return;
-      }
-      const data = [];
-      column.nodes().each((cell, i) => {
-        const myData = $(cell).text().toLowerCase();
-        const addition={}
-        addition.data=myData;
-        addition.id=i;
-        if (myData.includes(this.value.toLowerCase())) data.push(addition);
-      });
-      $list.empty();
-      $list.append(data.map((item) => `<li><button class='btn-link' data-id='${item.id}' data-search='${item.data}'>${item.data}</button></li>`).join(''));
-      const $btn = $list.find('button');
-      $btn.on('click', function () {
-        $list.empty();
-        const searchString = $(this).data('search');
-        column.search(searchString).draw();
-      });
-    });
-
     // Apply the search
     $('input', $header).on('change', function () {
       if (column.search() !== this.value) {
@@ -316,7 +294,27 @@ class DataTableComponent extends Component {
       // redrawn in the previous statement)
       const url = `${window.location.href.split('?')[0]}?${self.searchParams.toString()}`
       window.history.replaceState(null, '', url);
-    })
+    }).on('keyup', function (ev) {
+      if ($('#return-values').length === 0) {
+        const hiddenDiv = self.createHiddenValues();
+        $('body').append(hiddenDiv);
+      }
+      const $list = $header.find('.data-list');
+      if (this.value.length < 1) {
+        $list.empty();
+        return;
+      }
+      const data = self.getHiddenValues(title.replace('Sort', '').trim(), ev.target.value);
+      $list.empty();
+      $list.append(data.map((item) => `<li><div class="item">${item}</div></li>`).join(''));
+      const $item = $list.find('.item');
+      $item.on('click', function (event) {
+        $list.empty();
+        $('.data-table__clear', $header).trigger('click');
+        column.search(event.target.innerText).draw();
+        self.toggleFilter(column);
+      });
+    });
 
     // Clear the search
     $('.data-table__clear', $header).on('click', function () {
@@ -340,6 +338,53 @@ class DataTableComponent extends Component {
         window.history.replaceState(null, '', url);
       }
     })
+  }
+
+  createHiddenValues() {
+    const search = /[Tt]able\d+/;
+    const uri = window.location.pathname;
+    const table = uri.match(search);
+    const result = document.createElement('div');
+    result.classList.add('hidden');
+    result.id = "return-values";
+    $.ajax({
+      url: `/api/${table}/fields`,
+      type: 'GET',
+      success: function (data) {
+        data.forEach((field) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = field.name;
+          // JSON.stringify gives "undef", which is useless, so I have to serialise it manually!
+          let value = '[';
+          field.values.forEach((item) => {
+            value += '"' + item + '",';
+          });
+          if(value.endsWith(',')) value = value.slice(0, -1);
+          value += ']';
+          input.value = value;
+          input.id = field.name;
+          result.appendChild(input);
+        });
+      },
+      error: function (err) {
+        logging.error(err);
+      },
+      async: false
+    });
+    return result;
+  }
+
+  getHiddenValues(field, string) {
+    const value = $(`#${field}`).val();
+    const items = JSON.parse(value);
+    const result = [];
+    items.forEach((item) => {
+      if (item.toLowerCase().includes(string.toLowerCase())) {
+        result.push(item);
+      }
+    });
+    return result;
   }
 
   encodeHTMLEntities(text) {
@@ -557,10 +602,11 @@ class DataTableComponent extends Component {
   getConf() {
     const confData = this.el.data('config')
     let conf = {}
+    
     const self = this
 
     if (typeof confData === 'string') {
-      conf = JSON.parse(Buffer.from(confData, 'base64'))
+      conf = JSON.parse(Buffer.from(confData, 'base64').toString())
     } else if (typeof confData === 'object') {
       conf = confData
     }
@@ -574,9 +620,8 @@ class DataTableComponent extends Component {
     conf['initComplete'] = (settings, json) => {
       const tableElement = this.el
       const dataTable = tableElement.DataTable()
-      const self = this
-
-      this.json = json ? json : undefined
+      
+      this.json = json || undefined
       
       if (this.initializingTable) {
         dataTable.columns().every(function(index) {
@@ -588,7 +633,7 @@ class DataTableComponent extends Component {
 
           // Add sort button to column header
           if ($header.hasClass('sorting')) {
-            self.addSortButton(dataTable, column, headerContent)
+            self.addSortButton(dataTable, column)
           }
 
           // Add button to column headers (only serverside tables)
@@ -675,7 +720,7 @@ class DataTableComponent extends Component {
     this.initializingTable = true
     const $dataTableContainer = this.el.parent()
 
-    $dataTableContainer.addClass('data-table__container--scrollable')
+    $dataTableContainer.addClass('data-table__container--scrollable');
     // // See comments above regarding preventing multiple clicks
     this.el.DataTable().button(0).disable();
     this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').toggleClass(['btn-toggle', 'btn-toggle-off'])
@@ -685,7 +730,7 @@ class DataTableComponent extends Component {
     conf.responsive = this.originalResponsiveObj
     this.el.DataTable().destroy();
     this.el.DataTable(conf)
-    this.initializingTable = true
+    this.initializingTable = true;
     // See comments above regarding preventing multiple clicks
     this.el.DataTable().button(0).disable();
   }
