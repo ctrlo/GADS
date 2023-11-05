@@ -1,4 +1,4 @@
-import { Component } from 'component'
+import { initializeRegisteredComponents, Component } from 'component'
 import 'datatables.net'
 import 'datatables.net-buttons'
 import 'datatables.net-bs4'
@@ -6,31 +6,32 @@ import 'datatables.net-responsive'
 import 'datatables.net-responsive-bs4'
 import 'datatables.net-rowreorder-bs4'
 import { setupDisclosureWidgets, onDisclosureClick } from '../../more-less/lib/disclosure-widgets'
-import { initializeRegisteredComponents, initializeComponent } from 'component'
 import RecordPopupComponent from '../../record-popup/lib/component'
-import MoreLessComponent from '../../more-less/lib/component'
 import { moreLess } from '../../more-less/lib/more-less'
+import { Buffer } from 'buffer'
+import { logging } from 'logging'
 
 const MORE_LESS_TRESHOLD = 50
 
 class DataTableComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.hasCheckboxes = this.el.hasClass('table-selectable')
     this.hasClearState = this.el.hasClass('table-clear-state')
     this.searchParams = new URLSearchParams(window.location.search)
-    this.base_url = this.el.data('href') ? this.el.data('href') : undefined
+    // Does the same as previous and is "cleaner", although officially the || undefined is not needed, I don't trust JS
+    this.base_url = this.el.data('href') || undefined
     this.initTable()
   }
 
   initTable() {
-    if(this.hasClearState) {
+    if (this.hasClearState) {
       this.clearTableStateForPage()
 
-      let url = new URL(window.location.href)
+      const url = new URL(window.location.href)
       url.searchParams.delete('table_clear_state')
-      let targetUrl = url.toString()
+      const targetUrl = url.toString()
       window.location.replace(targetUrl.endsWith('?') ? targetUrl.slice(0, -1) : targetUrl)
 
       return
@@ -56,7 +57,7 @@ class DataTableComponent extends Component {
       setupDisclosureWidgets($childRow)
 
       recordPopupElements.each((i, el) => {
-        const recordPopupComp = new RecordPopupComponent(el)
+        new RecordPopupComponent(el)
       })
     })
 
@@ -71,19 +72,19 @@ class DataTableComponent extends Component {
 
   clearTableStateForPage() {
     for (let i = 0; i < localStorage.length; i++) {
-      let storageKey = localStorage.key( i )
+      const storageKey = localStorage.key(i)
 
       if (!storageKey.startsWith("DataTables")) {
         continue;
       }
 
-      let keySegments = storageKey.split('/')
+      const keySegments = storageKey.split('/')
 
       if (!keySegments || keySegments.length <= 1) {
         continue;
       }
 
-      if(window.location.href.indexOf('/' + keySegments.slice(1).join('/')) !== -1) {
+      if (window.location.href.indexOf(`/${keySegments.slice(1).join('/')}`) !== -1) {
         localStorage.removeItem(storageKey)
       }
     }
@@ -138,10 +139,10 @@ class DataTableComponent extends Component {
   getCheckboxElement(id, label) {
     return (
       `<div class='checkbox'>` +
-        `<input id='dt_checkbox_${id}' type='checkbox' />` +
-        `<label for='dt_checkbox_${id}'><span>${label}</span></label>` +
+      `<input id='dt_checkbox_${id}' type='checkbox' />` +
+      `<label for='dt_checkbox_${id}'><span>${label}</span></label>` +
       '</div>'
-      )
+    )
   }
 
   addSelectAllCheckbox() {
@@ -160,10 +161,10 @@ class DataTableComponent extends Component {
     })
 
     // Check if the 'select all' checkbox is checked and all checkboxes need to be checked
-    $selectAllElm.find('input').on( 'click', (ev) => {
+    $selectAllElm.find('input').on('click', (ev) => {
       const checkbox = $(ev.target)
 
-      if ($(checkbox).is( ':checked' )) {
+      if ($(checkbox).is(':checked')) {
         this.checkAllCheckboxes($checkBoxes, true)
       } else {
         this.checkAllCheckboxes($checkBoxes, false)
@@ -173,7 +174,7 @@ class DataTableComponent extends Component {
 
   checkAllCheckboxes($checkBoxes, bCheckAll) {
     if (bCheckAll) {
-      $checkBoxes.prop( 'checked', true )
+      $checkBoxes.prop('checked', true)
     } else {
       $checkBoxes.prop('checked', false)
     }
@@ -186,7 +187,6 @@ class DataTableComponent extends Component {
       if (!checkBox.checked) {
         $selectAllCheckBox.prop('checked', false)
         bSelectAll = false
-        return
       }
     })
 
@@ -210,7 +210,7 @@ class DataTableComponent extends Component {
       .off()
       .find('.data-table__header-wrapper').html($button)
 
-    dataTable.order.listener($button, column.index() )
+    dataTable.order.listener($button, column.index())
   }
 
   toggleFilter(column) {
@@ -249,9 +249,12 @@ class DataTableComponent extends Component {
         <div class='dropdown-menu p-2' aria-labelledby='search-toggle-${index}'>
           <label>
             <div class='input'>
-              <input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>
+              <input class='form-control form-control-sm field-search-${index}' type='text' placeholder='Search' value='${searchValue}'/>
             </div>
           </label>
+          <div class='data-table__live-search'>
+            <ul class='data-list list-unstyled text-center'></ul>        
+          </div>
           <button type='button' class='btn btn-link btn-small data-table__clear hidden'>
             <span>Clear filter</span>
           </button>
@@ -262,6 +265,15 @@ class DataTableComponent extends Component {
     $header.find('.data-table__header-wrapper').prepend($searchElement)
 
     this.toggleFilter(column)
+
+    const columnData = {
+      header: column.header(),
+      data: column.nodes().map((cell) => $(cell).text().toLowerCase())
+    }
+
+    if(this.checkForColumnData(columnData)) {
+      this.addColumnData(columnData);
+    }
 
     // Apply the search
     $('input', $header).on('change', function () {
@@ -280,9 +292,29 @@ class DataTableComponent extends Component {
 
       // Update URL. Do not reload otherwise the data is fetched twice (already
       // redrawn in the previous statement)
-      let url = `${window.location.href.split('?')[0]}?${self.searchParams.toString()}`
+      const url = `${window.location.href.split('?')[0]}?${self.searchParams.toString()}`
       window.history.replaceState(null, '', url);
-    })
+    }).on('keyup', function (ev) {
+      if ($('#return-values').length === 0) {
+        const hiddenDiv = self.createHiddenValues();
+        $('body').append(hiddenDiv);
+      }
+      const $list = $header.find('.data-list');
+      if (this.value.length < 1) {
+        $list.empty();
+        return;
+      }
+      const data = self.getHiddenValues(title.replace('Sort', '').trim(), ev.target.value);
+      $list.empty();
+      $list.append(data.map((item) => `<li><div class="item">${item}</div></li>`).join(''));
+      const $item = $list.find('.item');
+      $item.on('click', function (event) {
+        $list.empty();
+        $('.data-table__clear', $header).trigger('click');
+        column.search(event.target.innerText).draw();
+        self.toggleFilter(column);
+      });
+    });
 
     // Clear the search
     $('.data-table__clear', $header).on('click', function () {
@@ -308,6 +340,53 @@ class DataTableComponent extends Component {
     })
   }
 
+  createHiddenValues() {
+    const search = /[Tt]able\d+/;
+    const uri = window.location.pathname;
+    const table = uri.match(search);
+    const result = document.createElement('div');
+    result.classList.add('hidden');
+    result.id = "return-values";
+    $.ajax({
+      url: `/api/${table}/fields`,
+      type: 'GET',
+      success: function (data) {
+        data.forEach((field) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = field.name;
+          // JSON.stringify gives "undef", which is useless, so I have to serialise it manually!
+          let value = '[';
+          field.values.forEach((item) => {
+            value += '"' + item + '",';
+          });
+          if(value.endsWith(',')) value = value.slice(0, -1);
+          value += ']';
+          input.value = value;
+          input.id = field.name;
+          result.appendChild(input);
+        });
+      },
+      error: function (err) {
+        logging.error(err);
+      },
+      async: false
+    });
+    return result;
+  }
+
+  getHiddenValues(field, string) {
+    const value = $(`#${field}`).val();
+    const items = JSON.parse(value);
+    const result = [];
+    items.forEach((item) => {
+      if (item.toLowerCase().includes(string.toLowerCase())) {
+        result.push(item);
+      }
+    });
+    return result;
+  }
+
   encodeHTMLEntities(text) {
     return $("<textarea/>").text(text).html();
   }
@@ -324,9 +403,9 @@ class DataTableComponent extends Component {
         </div>`
       )
     }
-    else {
-      return strHTML
-    }
+
+    return strHTML
+
   }
 
   renderDefault(data) {
@@ -337,8 +416,8 @@ class DataTableComponent extends Component {
     }
 
     data.values.forEach((value, i) => {
-        strHTML += this.encodeHTMLEntities(value)
-        strHTML += (data.values.length > (i + 1)) ? `, ` : ``
+      strHTML += this.encodeHTMLEntities(value)
+      strHTML += (data.values.length > (i + 1)) ? `, ` : ``
     })
 
     return this.renderMoreLess(strHTML, data.name)
@@ -346,12 +425,12 @@ class DataTableComponent extends Component {
 
   renderId(data) {
     let retval = ''
-    let id = data.values[0]
+    const id = data.values[0]
     if (!id) return retval
     if (data.parent_id) {
       retval = `<span title="Child record with parent record ${data.parent_id}">${data.parent_id} &#8594;</span> `
     }
-    return retval + `<a href="${this.base_url}/${id}">${id}</a>`
+    return `${retval}<a href="${this.base_url}/${id}">${id}</a>`
   }
 
   renderPerson(data) {
@@ -374,7 +453,7 @@ class DataTableComponent extends Component {
             thisHTML += `<p>${this.encodeHTMLEntities(detail.definition)}: ${strDecodedValue}</p>`
           }
         })
-        thisHTML +=  `</div>`
+        thisHTML += `</div>`
         strHTML += (
           `<div class="position-relative">
             <button class="btn btn-small btn-inverted btn-info trigger" aria-expanded="false" type="button">
@@ -432,7 +511,7 @@ class DataTableComponent extends Component {
       strRagType = 'blank'
     }
 
-    const text = $('#rag_' + strRagType + '_meaning').text();
+    const text = $(`#rag_${strRagType}_meaning`).text();
 
     return `<span class="rag rag--${strRagType}" title="${text}" aria-labelledby="rag_${strRagType}_meaning"><span>✗</span></span>`
   }
@@ -482,7 +561,7 @@ class DataTableComponent extends Component {
     if (data.limit_rows && data.values.length >= data.limit_rows) {
       strHTML +=
         `<p><em>(showing maximum ${data.limit_rows} rows.
-          <a href="/${data.parent_layout_identifier}/data?curval_record_id=${data.curval_record_id}&curval_layout_id=${data.column_id }">view all</a>)</em>
+          <a href="/${data.parent_layout_identifier}/data?curval_record_id=${data.curval_record_id}&curval_layout_id=${data.column_id}">view all</a>)</em>
         </p>`
     }
 
@@ -493,25 +572,19 @@ class DataTableComponent extends Component {
     switch (data.type) {
       case 'id':
         return this.renderId(data)
-        break
       case 'person':
       case 'createdby':
         return this.renderPerson(data)
-        break
       case 'curval':
       case 'autocur':
       case 'filval':
         return this.renderCurCommon(data)
-        break
       case 'file':
         return this.renderFile(data)
-        break
       case 'rag':
         return this.renderRag(data)
-        break
       default:
         return this.renderDefault(data)
-        break
     }
   }
 
@@ -527,12 +600,13 @@ class DataTableComponent extends Component {
   }
 
   getConf() {
-    let confData = this.el.data('config')
+    const confData = this.el.data('config')
     let conf = {}
+    
     const self = this
 
     if (typeof confData === 'string') {
-      conf = JSON.parse(Buffer.from(confData, 'base64'))
+      conf = JSON.parse(Buffer.from(confData, 'base64').toString())
     } else if (typeof confData === 'object') {
       conf = confData
     }
@@ -546,9 +620,8 @@ class DataTableComponent extends Component {
     conf['initComplete'] = (settings, json) => {
       const tableElement = this.el
       const dataTable = tableElement.DataTable()
-      const self = this
-
-      this.json = json ? json : undefined
+      
+      this.json = json || undefined
       
       if (this.initializingTable) {
         dataTable.columns().every(function(index) {
@@ -560,7 +633,7 @@ class DataTableComponent extends Component {
 
           // Add sort button to column header
           if ($header.hasClass('sorting')) {
-            self.addSortButton(dataTable, column, headerContent)
+            self.addSortButton(dataTable, column)
           }
 
           // Add button to column headers (only serverside tables)
@@ -570,7 +643,6 @@ class DataTableComponent extends Component {
             if (self.searchParams.has(id)) {
               column.search(self.searchParams.get(id)).draw()
             }
-
             self.addSearchDropdown(column, id, index)
           } 
         })
@@ -586,15 +658,15 @@ class DataTableComponent extends Component {
       }
     }
 
-    conf['footerCallback'] = function( tfoot, data, start, end, display ) {
-      var api = this.api()
+    conf['footerCallback'] = function (tfoot, data, start, end, display) {
+      const api = this.api()
       // Add aggregate values to table if configured
-      var agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate
+      const agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate
       if (agg) {
-        var cols = api.settings()[0].oAjaxData.columns
-        api.columns().every( function () {
-          let idx = this.index()
-          const name = cols[idx].name
+        const cols = api.settings()[0].oAjaxData.columns
+        api.columns().every(function () {
+          const idx = this.index()
+          const { name } = cols[idx]
           if (agg[name]) {
             $(this.footer()).html(
               self.renderDataType(agg[name])
@@ -651,7 +723,6 @@ class DataTableComponent extends Component {
     // // See comments above regarding preventing multiple clicks
     this.el.DataTable().button(0).disable();
     this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').toggleClass(['btn-toggle', 'btn-toggle-off'])
-
   }
 
   exitFullScreenMode(conf) {
@@ -679,7 +750,7 @@ class DataTableComponent extends Component {
 
   bindClickHandlersAfterDraw(conf) {
     const tableElement = this.el
-    let rows = tableElement.DataTable().rows( {page:'current'} ).data()
+    const rows = tableElement.DataTable().rows({ page: 'current' }).data()
 
     if (rows && this.base_url) {
       // Add click handler to tr to open a record by id
@@ -710,6 +781,32 @@ class DataTableComponent extends Component {
 
       initializeRegisteredComponents(this.element)
     }
+  }
+
+  /**
+   * Check for column data in allData
+   * @param {{header: string, data: string[]}} columnData data to check
+   * @returns {boolean} true if columnData is not present in allData, false otherwise
+   */
+  checkForColumnData(columnData) {
+    //Null reference checks - better to be safe!
+    this.allData = this.allData || [];
+    this.allData.forEach((data) => {
+      if(data.header === columnData.header) {
+        return false;
+      }
+    });
+    return true;
+  }
+
+  /**
+   * Add a column to the database
+   * @param {{header: string, data:string[]}} columnData data to check
+   */
+  addColumnData(columnData) {
+    //Null reference checks - better to be safe!
+    this.allData=this.allData || [];
+    this.allData.push(columnData);
   }
 }
 
