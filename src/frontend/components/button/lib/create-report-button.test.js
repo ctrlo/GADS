@@ -1,31 +1,10 @@
 import $ from 'jquery';
 import CreateReportButtonComponent from './create-report-button';
+import { validateRequiredFields } from 'validation';
 
 global.$ = $;
 
 describe('create-report-button', () => {
-  it('does not validate if no checkboxes are checked', () => {
-    document.body.innerHTML = `
-      <fieldset class="fieldset fieldset--required fieldset--report" id="report_fields">
-        <input id="1" type="checkbox">
-        <input id="8" type="checkbox">
-        <input id="2" type="checkbox">
-        <input id="3" type="checkbox">
-        <input id="4" type="checkbox">
-        <input id="1" type="checkbox">
-        <input id="6" type="checkbox">
-        <input id="7" type="checkbox">
-      </fieldset>
-    `
-
-    const button = new CreateReportButtonComponent(document.body);
-
-    const $fieldset = $(".fieldset--report");
-    const checked = button.checkForAtLeastOneValue($fieldset);
-
-    expect(checked).toBeFalsy();
-  });
-
   it('does not submit form if no checkboxes are checked', () => {
     document.body.innerHTML = `
       <form id="myform">
@@ -109,7 +88,7 @@ describe('create-report-button', () => {
 
     const submitSpy = jest.spyOn(button, 'submit');
     const formSpyFn = jest.fn();
-    formSpyFn.mockImplementation((ev) => { ev.preventDefault(); });
+    formSpyFn.mockImplementation((ev) => { ev.preventDefault(); ev.stopPropagation(); });
 
     $('#myform').on('submit', formSpyFn);
 
@@ -117,5 +96,82 @@ describe('create-report-button', () => {
 
     expect(submitSpy).toHaveBeenCalled();
     expect(formSpyFn).toHaveBeenCalled();
+  });
+
+  it('Validates checkboxes correctly', () => {
+    document.body.innerHTML = `
+      <form>
+        <fieldset class="fieldset fieldset--required fieldset--report">
+          <div class="fieldset__legend">
+            <legend id="-label">
+              Columns to show in report:
+            </legend>
+          </div>
+          <div class="list list--vertical list--checkboxes">
+            <ul class="list__items" id="">
+              <li class="list__item">
+                <input id="8" type="checkbox">
+              </li>
+              <li class="list__item">
+                <div class="checkbox ">
+                  <input id="11" type="checkbox">
+                </div>
+              </li>
+              <li class="list__item">
+                <div class="checkbox ">
+                  <input id="12" type="checkbox">
+                </div>
+              </li>
+              <li class="list__item">
+                <div class="checkbox ">
+                  <input id="13" type="checkbox">
+                </div>
+              </li>
+              <li class="list__item">
+                <div class="checkbox ">
+                  <input id="1" type="checkbox">
+                </div>
+              </li>
+              <li class="list__item">
+                <div class="checkbox ">
+                  <input id="7" type="checkbox">
+                </div>
+              </li>
+              <li class="list__item">
+                <div class="checkbox ">
+                  <input id="6" type="checkbox">
+                </div>
+              </li>
+              <li class="list__item">
+                <div class="checkbox ">
+                  <input id="2" type="checkbox">
+                </div>
+              </li>
+              <li class="list__item">
+                <div class="checkbox ">
+                  <input id="3" type="checkbox">
+                </div>
+              </li>
+              <li class="list__item">
+                <div class="checkbox ">
+                  <input id="4" type="checkbox">
+                </div>
+              </li>
+            </ul>
+          </div>
+        </fieldset>
+        <button type="submit">
+      </form>
+    `;
+
+    const fieldSet = $('form').find('.fieldset--required');
+
+    expect(fieldSet.length).toBe(1);
+
+    fieldSet.find('input').each((index, input) => {
+      expect(input.checked).toBe(false);
+    });
+
+    expect(validateRequiredFields($('form'))).toBe(false); 
   });
 });
