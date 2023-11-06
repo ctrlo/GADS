@@ -927,11 +927,19 @@ sub update_user
     error __x"Please select a {name} for the user", name => $site->organisation_name
         if $empty && $required;
 
+    $required = $site->register_team_mandatory;
+    $required = 0 if $params{edit_own_user};
+    $required = 1 if $params{$site->user_field_is_editable('team_id')};
+
     error __x"Please select a {name} for the user", name => $site->team_name
-        if !$params{team_id} && $site->register_team_mandatory;
+        if !$params{team_id} && $required;
+
+    $required = $site->register_department_mandatory;
+    $required = 0 if $params{edit_own_user};
+    $required = 1 if $params{$site->user_field_is_editable('department_id')};
 
     error __x"Please select a {name} for the user", name => $site->department_name
-        if !$params{department_id} && $site->register_department_mandatory;
+        if !$params{department_id} && $required;
 
     length $params{firstname} <= 128
         or error __"Forename must be less than 128 characters";
