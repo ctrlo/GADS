@@ -2296,20 +2296,28 @@ prefix '/:layout_name' => sub {
         }
 
         # Deal with any alert requests
-        if (param 'modal_alert')
-        {
+        if (param('modal_alert') || param('modal_remove')) {
+            my $success_message;
+            my $frequency = '';
+    
+            if (param('modal_remove')) {
+                $frequency = '';
+                $success_message = "The alert has been removed successfully";
+            }
+            if (param('modal_alert')) {
+                $frequency = param('frequency');
+                $success_message = "The alert has been saved successfully";
+            }
             my $alert_user = session('views_other_user_id') ? rset('User')->find(session('views_other_user_id')) : $user;
             my $alert = GADS::Alert->new(
                 user      => $alert_user,
                 layout    => $layout,
                 schema    => schema,
-                frequency => param('frequency'),
+                frequency => $frequency,
                 view_id   => param('view_id'),
             );
-            if (process(sub { $alert->write }))
-            {
-                return forwardHome(
-                    { success => "The alert has been saved successfully" }, $layout->identifier.'/data' );
+            if (process(sub { $alert->write })) {
+                return forwardHome({ success => $success_message }, $layout->identifier.'/data');
             }
         }
 

@@ -88,7 +88,15 @@
                     <ul class="list__items">
                       <li class="list__item ">
                         <span class="list__key">Last edited by</span>
-                        <span class="list__value">[% record.version_user.data.text | html %]</span>
+                        <span class="list__value">
+                          <div class="d-flex position-relative">
+                            [%
+                              FOR person IN record.version_user.data.details;
+                                render_person_datum(person);
+                              END;
+                            %]
+                          </div>
+                        </span>
                       </li>
             
                       <li class="list__item ">
@@ -102,7 +110,15 @@
                     <ul class="list__items">
                       <li class="list__item ">
                         <span class="list__key">Created by</span>
-                        <span class="list__value">[% record.created_user.data.text | html %]</span>
+                        <span class="list__value">
+                          <div class="d-flex position-relative">
+                            [%
+                              FOR person IN record.created_user.data.details;
+                                render_person_datum(person);
+                              END;
+                            %]
+                          </div>
+                        </span>
                       </li>
             
                       <li class="list__item ">
@@ -663,6 +679,7 @@
           values               = select_values
           with_details         = 1
           has_subvals          = col.has_subvals
+          has_typeahead        = col.has_typeahead
           filter               = "html";
 
           data_attributes = [];
@@ -707,6 +724,7 @@
           value                = select_value
           with_details         = 1
           has_subvals          = col.has_subvals
+          has_typeahead        = col.has_typeahead
           filter               = "html";
           
           data_attributes = [];
@@ -753,6 +771,7 @@
 
       select_items  = [];
       select_values = editvalue.ids;
+      required      = field_is_required;
 
       IF col.default_to_login AND NOT record.current_id; # default to current user for new records only
         select_values = [user.id];
