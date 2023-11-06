@@ -218,16 +218,16 @@ sub validate {
     0;
 }
 
-=head2 schema
+# =head2 schema
 
-The schema object used for the report
+# The schema object used for the report
 
-=cut
+# =cut
 
-has schema => (
-    is       => 'rw',
-    required => 0,
-);
+# has schema => (
+#     is       => 'rw',
+#     required => 0,
+# );
 
 =head2 Record ID
 
@@ -274,14 +274,15 @@ sub _load_record_data {
 
     error "No report id given" if !$record_id;
 
+
     my $gads_layout = GADS::Layout->new(
-        schema      => $self->schema,
+        schema      => $self->result_source->schema,
         user        => $user,
         instance_id => $self->instance_id,
     );
 
     my $record = GADS::Record->new(
-        schema => $self->schema,
+        schema => $self->result_source->schema,
         user   => $user,
         layout => $gads_layout,
     );
@@ -324,7 +325,7 @@ Function to update a report - it requires the schema and any updated fields to b
 sub update_report {
     my ( $self, $args ) = @_;
 
-    my $guard = $self->schema->txn_scope_guard;
+    my $guard = $self->result_source->schema->txn_scope_guard;
 
     $self->update( { name => $args->{name} } )
       if $args->{name};
@@ -361,7 +362,7 @@ sub delete {
 
     return if !$self || !$self->in_storage || $self->deleted;
 
-    my $guard = $self->schema->txn_scope_guard;
+    my $guard = $self->result_source->schema->txn_scope_guard;
 
     $self->update( { deleted => 1 } );
 

@@ -2766,31 +2766,19 @@ prefix '/:layout_name' => sub {
                 schema => schema,
             );
 
-            my $records = GADS::Records->new(%params);
-
-            my $alert = GADS::Alert->new(
-                user   => $user,
-                layout => $layout,
-                schema => schema,
-            );
-
             my $base_url = request->base;
 
             my $params;
 
-            $params->{alerts}      = $alert->all;
             $params->{header_type} = 'table_tabs';
 
             $params->{layout_obj} = $layout;
-            $params->{layout}     = $layout;
 
             $params->{header_back_url} = "${base_url}table";
             $params->{breadcrumbs}     = [
                 Crumb( $base_url . "table/", "Tables" ),
                 Crumb( "",                   "Table: " . $layout->name )
             ];
-
-            my $layout_id = $layout->{instance_id};
 
             my $reports = $layout->reports;
 
@@ -2801,19 +2789,17 @@ prefix '/:layout_name' => sub {
 
         #add a report
         any [ 'get', 'post' ] => '/add' => require_login sub {
-            if ( body_parameters && body_parameters->{submit} ) {
-                my $layout             = var('layout') or pass;
-                my $report_description = params->{'report_description'};
-                my $report_name        = params->{'report_name'};
-                my $checkbox_fields    = params->{'checkboxes'};
-                my $instance           = $layout->{instance_id}
-                  if $layout && $layout->{instance_id};
+            my $layout = var('layout') or pass;
+            my $user   = logged_in_user;
 
-                my $user = logged_in_user;
+            if ( body_parameters && body_parameters->{submit} ) {
+                my $report_description = body_parameters->get('report_description');
+                my $report_name        = body_parameters->get('report_name');
+                my $checkbox_fields    = [body_parameters->get_all('checkboxes')];
+                my $instance           = $layout->instance_id;
 
                 my $report = schema->resultset('Report')->create_report(
                     {
-                        schema      => schema,
                         user        => $user,
                         name        => $report_name,
                         description => $report_description,
@@ -2826,14 +2812,6 @@ prefix '/:layout_name' => sub {
                 my $lo = param 'layout_name';
                 return forwardHome( { success => "Report created" },
                     "$lo/report" );
-            }
-
-            my $user   = logged_in_user;
-            my $layout = var('layout') or pass;
-
-            if ( app->has_hook('plugin.linkspace.data_before_request') ) {
-                app->execute_hook( 'plugin.linkspace.data_before_request',
-                    user => $user );
             }
 
             my %params = (
@@ -2868,14 +2846,16 @@ prefix '/:layout_name' => sub {
         #Edit a report (by :id)
         any [ 'get', 'post' ] => '/edit:id' => require_login sub {
 
-            if ( params && params->{submit} ) {
-                my $layout             = var('layout') or pass;
-                my $report_description = params->{'report_description'};
-                my $report_name        = params->{'report_name'};
-                my $checkboxes         = params->{'checkboxes'};
-                my $instance           = $layout->instance_id;
+            my $user   = logged_in_user;
+            my $layout = var('layout') or pass;
+            my $report_id = param('id');
 
-                my $user = logged_in_user;
+            if ( params && params->{submit} ) {
+                my $report_description = body_parameters->get('report_description');
+                my $report_name        = body_parameters->get('report_name');
+                my $checkboxes         = [body_parameters->get_all('checkboxes')];
+                print STDOUT Dumper $checkboxes;
+                my $instance           = $layout->instance_id;
 
                 my $report_id = param('id');
 
@@ -2893,14 +2873,6 @@ prefix '/:layout_name' => sub {
                 my $lo = param 'layout_name';
                 return forwardHome( { success => "Report updated" },
                     "$lo/report" );
-            }
-
-            my $user   = logged_in_user;
-            my $layout = var('layout') or pass;
-
-            if ( app->has_hook('plugin.linkspace.data_before_request') ) {
-                app->execute_hook( 'plugin.linkspace.data_before_request',
-                    user => $user );
             }
 
             my %params = (
@@ -2925,8 +2897,6 @@ prefix '/:layout_name' => sub {
                 Crumb( $base_url . "table/", "Tables" ),
                 Crumb( "",                   "Table: " . $layout->name )
             ];
-
-            my $report_id = param('id');
 
             my $result = schema->resultset('Report')->load_for_edit($report_id);
 
@@ -2970,11 +2940,11 @@ prefix '/:layout_name' => sub {
         get "/render:report/:view" => sub {
             my $user = logged_in_user;
 
-            my $report_id = param('report');
-            my $view_id   = param('view');
+            my $report_id = route_parameters->get('report');
+            my $view_id   = route_parameters->get('view');
 
             my $report =
-              schema->resultset('Report')->load( $report_id, $view_id );
+              schema->resultset('Report')->find($report_id)->load( $view_id );
 
             my $pdf = $report->create_pdf->content;
 
