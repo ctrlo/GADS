@@ -31,26 +31,32 @@
           </div>
           
           [%
-            INCLUDE wizard/sub/modal_footer.tt
-              left_buttons = [{
-                class   = "btn-cancel"
-                dismiss = "modal"
-                label   = "Cancel"
-              }]
-              right_buttons = v.is_group ? [] : [{
-                type  = "submit"
-                class = "btn-danger"
-                name  = "modal_remove"
-                value = "submit"
-                label = "Remove"
-              }
-              {
-                type  = "submit"
-                class = "btn-default"
-                name  = "modal_alert"
-                value = "submit"
+          right_buttons = v.is_group ? [] : [
+            {
+                type  = "submit",
+                class = "btn-default",
+                name  = "modal_alert",
+                value = "submit",
                 label = "Create"
-              }];
+            }
+          ];
+          IF v.alert.frequency != "";
+          right_buttons.unshift({
+              type  = "submit",
+              class = "btn-danger",
+              name  = "modal_remove",
+              value = "submit",
+              label = "Remove"
+          });
+          END;
+          %]
+
+          [% INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                  class   = "btn-cancel",
+                  dismiss = "modal",
+                  label   = "Cancel"
+              }]
           %]
         </div>
       </form>
