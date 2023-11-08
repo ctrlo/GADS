@@ -23,11 +23,11 @@ sub load {
     error __"Invalid report id provided"
       unless $id && $id =~ /^\d+$/;
 
-    my $result = $self->find( { id => $id }, { prefetch => 'report_layouts' } )
+    my $result = $self->find( { id => $id, deleted => undef }, { prefetch => 'report_layouts' } )
       or error __"No report found for id $id";
     $result->record_id($record_id);
 
-    return $result if !$result->deleted || $result->deleted == 0;
+    return $result;
     return undef;
 }
 
@@ -42,10 +42,10 @@ sub load_for_edit {
 
     my $schema = $self->result_source->schema;
 
-    my $result = $self->find( { id => $id }, { prefetch => 'report_layouts' } )
+    my $result = $self->find( { id => $id, deleted => undef }, { prefetch => 'report_layouts' } )
       or error __"No report found for id $id";
 
-    return $result if !$result->deleted || $result->deleted == 0;
+    return $result;
     return undef;
 }
 

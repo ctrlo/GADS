@@ -2791,7 +2791,7 @@ prefix '/:layout_name' => sub {
             my $layout = var('layout') or pass;
             my $user   = logged_in_user;
 
-            if ( body_parameters && body_parameters->{submit} ) {
+            if ( body_parameters && body_parameters->get('submit') ) {
                 my $report_description = body_parameters->get('report_description');
                 my $report_name        = body_parameters->get('report_name');
                 my $checkbox_fields    = [body_parameters->get_all('checkboxes')];
@@ -2840,7 +2840,7 @@ prefix '/:layout_name' => sub {
             my $layout    = var('layout') or pass;
             my $report_id = param('id');
 
-            if ( params && params->get('submit') ) {
+            if ( body_parameters && body_parameters->get('submit') ) {
                 my $report_description = body_parameters->get('report_description');
                 my $report_name        = body_parameters->get('report_name');
                 my $checkboxes         = [body_parameters->get_all('checkboxes')];
@@ -2863,14 +2863,6 @@ prefix '/:layout_name' => sub {
                 return forwardHome( { success => "Report updated" },
                     "$lo/report" );
             }
-
-            my %params = (
-                user   => $user,
-                layout => $layout,
-                schema => schema,
-            );
-
-            my $fields = [ $layout->all( user_can_read => 1 ) ];
 
             my $base_url = request->base;
 
@@ -2909,10 +2901,8 @@ prefix '/:layout_name' => sub {
             if (process( sub { $result->remove } )) {
                 return forwardHome( { success => "Report deleted" },
                     "$lo/report" );
-            }else{
-                return forwardHome( { danger => "Unable to delete report" },
-                    "$lo/report" );
             }
+            return forwardHome( "$lo/report" );
         };
 
         #Render the report (by :report) with the view (by :view)
@@ -2923,7 +2913,7 @@ prefix '/:layout_name' => sub {
             my $view_id   = route_parameters->get('view');
 
             my $report =
-              schema->resultset('Report')->find($report_id)->load( $view_id );
+              schema->resultset('Report')->load($report_id, $view_id);
 
             my $pdf = $report->create_pdf->content;
 

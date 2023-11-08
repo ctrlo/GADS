@@ -352,7 +352,7 @@ sub update_report {
     return $self;
 }
 
-=head2 Delete
+=head2 Remove
 
 Function to delete a report - it requires the schema to be passed in and will return nothing.
 If the ID is invalid, or there's nothing to delete, it will do nothing.
@@ -362,11 +362,11 @@ If the ID is invalid, or there's nothing to delete, it will do nothing.
 sub remove {
     my $self = shift;
 
-    return if !$self || !$self->in_storage || $self->deleted;
+    return if !$self->in_storage || $self->deleted;
 
     my $guard = $self->result_source->schema->txn_scope_guard;
 
-    $self->update( { deleted => 1 } );
+    $self->update( { deleted => DateTime->now } );
 
     $guard->commit;
 }
@@ -432,12 +432,16 @@ sub fields_for_render {
     my $self = shift;
     my $layout = shift;
 
-    my %checked = map { $_ => layout_id => 1 } $self->report_layouts;
+    my %checked = map { $_->layout_id => 1 } $self->report_layouts;
+
+    foreach my $key ( keys %checked ) {
+        print STDOUT "Key: $key \n";
+    }
 
     my @fields = map {
         +{
             id         => $_->id,
-            name       => $_->id,
+            name       => $_->name,
             is_checked => $checked{ $_->id },
         }
     } $layout->all( user_can_read => 1 );
