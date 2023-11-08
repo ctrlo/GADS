@@ -64,7 +64,7 @@ sub load_all_reports {
     my $items = $self->search(
         {
             instance_id => $instance_id,
-            deleted     => 0
+            deleted     => undef
         },
         {
             prefetch => 'report_layouts',
@@ -103,7 +103,6 @@ sub create_report {
             instance_id    => $args->{instance_id},
             createdby      => $args->{user},
             created        => DateTime->now,
-            deleted        => 0,
             report_layouts => $layouts,
         }
     );

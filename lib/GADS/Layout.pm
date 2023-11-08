@@ -304,7 +304,7 @@ sub _build_reports
 {   my $self = shift;
     my $reports_rs = $self->schema->resultset('Report')->search({
         instance_id => $self->instance_id,
-        deleted => 0
+        deleted => undef
     });
     my @reports;
     while (my $report = $reports_rs->next)

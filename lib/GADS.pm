@@ -2884,11 +2884,15 @@ prefix '/:layout_name' => sub {
                 push @$layouts, $report_layout->layout_id;
             }
 
-            foreach my $field (@$fields) {
-                if ( grep { $_ eq $field->{id} } @$layouts ) {
-                    $field->{is_checked} = 1;
+            my %checked = map { $_ => layout_id => 1 } $result->report_layouts;
+
+            my @fields = map {
+                +{
+                    id => $_->id,
+                    name => $_->id,
+                    is_checked => $checked{ $_->id },
                 }
-            }
+            } $layout->all( user_can_read=>1 );
 
             my $params = {
                 header_type     => 'table_tabs',
