@@ -71,13 +71,7 @@ sub load_all_reports {
         }
     );
 
-    my $result = [];
-
-    while ( my $next = $items->next ) {
-        push( @{$result}, $next );
-    }
-
-    return $result;
+    return [$items->all];
 }
 
 =head2 Create

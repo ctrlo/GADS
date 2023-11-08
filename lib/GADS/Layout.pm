@@ -306,12 +306,7 @@ sub _build_reports
         instance_id => $self->instance_id,
         deleted => undef
     });
-    my @reports;
-    while (my $report = $reports_rs->next)
-    {
-        push @reports, $report;
-    }
-    \@reports;
+    return [$reports_rs->all];
 }
 
 sub _build__user_permissions_columns
