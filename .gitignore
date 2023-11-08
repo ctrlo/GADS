@@ -34,5 +34,3 @@ webdriver/Makefile*
 yarn-error.log
 
 webpack.config.development.js
-
-.vscode/
