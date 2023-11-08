@@ -222,17 +222,6 @@ sub validate {
     0;
 }
 
-# =head2 schema
-
-# The schema object used for the report
-
-# =cut
-
-# has schema => (
-#     is       => 'rw',
-#     required => 0,
-# );
-
 =head2 Record ID
 
 This is the ID of the Record in the Instance to display the report for
@@ -297,23 +286,6 @@ sub _load_record_data {
     my $datum = $record->get_field_value($column);
 
     return { 'name' => $layout->layout->name, 'value' => $datum };
-}
-
-#helper function to find a column in a list of columns
-sub _find_column {
-    my $self        = shift;
-    my $column_name = shift;
-    my $columns     = shift;
-
-#I know I could probably do this with a grep, but for some reason, I can't get said grep to work
-#grep { $_->name eq $column_name } @{$columns};
-    foreach my $col ( @{$columns} ) {
-        if ( $col->name eq $column_name ) {
-            return $col;
-        }
-    }
-
-    return undef;
 }
 
 =head1 Object functions
@@ -433,10 +405,6 @@ sub fields_for_render {
     my $layout = shift;
 
     my %checked = map { $_->layout_id => 1 } $self->report_layouts;
-
-    foreach my $key ( keys %checked ) {
-        print STDOUT "Key: $key \n";
-    }
 
     my @fields = map {
         +{
