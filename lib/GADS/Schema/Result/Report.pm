@@ -211,8 +211,8 @@ sub validate {
     my $instance_id = $self->instance_id;
     my $layouts     = $self->report_layouts;
 
-    error "No name given" unless $name;
-    error "You must provide at least one row to display in the report"
+    error __"No name given" unless $name;
+    error __"You must provide at least one row to display in the report"
       unless $layouts;
 
     0;
@@ -272,7 +272,7 @@ sub _load_record_data {
     my $record_id = $self->record_id;
     my $user      = $self->user;
 
-    error "No report id given" if !$record_id;
+    error __"No report id given" if !$record_id;
 
 
     my $gads_layout = GADS::Layout->new(
@@ -290,7 +290,7 @@ sub _load_record_data {
     $record->find_current_id($record_id);
 
     my $column =
-      $self->_find_column( $layout->layout->name, $gads_layout->columns );
+      $gads_layout->column( $layout->layout_id );
 
     my $datum = $record->get_field_value($column);
 
@@ -357,7 +357,7 @@ If the ID is invalid, or there's nothing to delete, it will do nothing.
 
 =cut
 
-sub delete {
+sub remove {
     my $self = shift;
 
     return if !$self || !$self->in_storage || $self->deleted;

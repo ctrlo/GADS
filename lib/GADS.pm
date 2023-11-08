@@ -2768,29 +2768,20 @@ prefix '/:layout_name' => sub {
             my $user   = logged_in_user;
             my $layout = var('layout') or pass;
 
-            my %params = (
-                user   => $user,
-                layout => $layout,
-                schema => schema,
-            );
-
             my $base_url = request->base;
-
-            my $params;
-
-            $params->{header_type} = 'table_tabs';
-
-            $params->{layout_obj} = $layout;
-
-            $params->{header_back_url} = "${base_url}table";
-            $params->{breadcrumbs}     = [
-                Crumb( $base_url . "table/", "Tables" ),
-                Crumb( "",                   "Table: " . $layout->name )
-            ];
 
             my $reports = $layout->reports;
 
-            $params->{reports} = $reports;
+            my $params = {
+                header_type     => 'table_tabs',
+                layout_obj      => $layout,
+                header_back_url => "${base_url}table",
+                reports         => $reports,
+                breadcrumbs     => [
+                    Crumb( $base_url . "table/", "Tables" ),
+                    Crumb( "",                   "Table: " . $layout->name )
+                ],
+            };
 
             template 'reports/view' => $params;
         };
@@ -2822,31 +2813,22 @@ prefix '/:layout_name' => sub {
                     "$lo/report" );
             }
 
-            my %params = (
-                user   => $user,
-                layout => $layout,
-                schema => schema,
-            );
-
             my $records = [ $layout->all( user_can_read => 1 ) ];
 
             my $base_url = request->base;
 
-            my $params;
-
-            $params->{header_type} = 'table_tabs';
-
-            $params->{layout_obj} = $layout;
-            $params->{layout}     = $layout;
-
-            $params->{header_back_url} = "${base_url}table";
-            $params->{breadcrumbs}     = [
-                Crumb( $base_url . "table/", "Tables" ),
-                Crumb( "",                   "Table: " . $layout->name )
-            ];
-
-            $params->{viewtype} = 'add';
-            $params->{fields}   = $records;
+            my $params = {
+                header_type       => 'table_tabs',
+                  layout_obj      => $layout,
+                  layout          => $layout,
+                  header_back_url => "${base_url}table",
+                  viewtype        => 'add',
+                  fields          => $records,
+                  breadcrumbs     => [
+                    Crumb( $base_url . "table/", "Tables" ),
+                    Crumb( "",                   "Table: " . $layout->name )
+                  ],
+            };
 
             template 'reports/edit' => $params;
         };
@@ -2854,15 +2836,14 @@ prefix '/:layout_name' => sub {
         #Edit a report (by :id)
         any [ 'get', 'post' ] => '/edit:id' => require_login sub {
 
-            my $user   = logged_in_user;
-            my $layout = var('layout') or pass;
+            my $user      = logged_in_user;
+            my $layout    = var('layout') or pass;
             my $report_id = param('id');
 
-            if ( params && params->{submit} ) {
+            if ( params && params->get('submit') ) {
                 my $report_description = body_parameters->get('report_description');
                 my $report_name        = body_parameters->get('report_name');
                 my $checkboxes         = [body_parameters->get_all('checkboxes')];
-                print STDOUT Dumper $checkboxes;
                 my $instance           = $layout->instance_id;
 
                 my $report_id = param('id');
@@ -2893,19 +2874,6 @@ prefix '/:layout_name' => sub {
 
             my $base_url = request->base;
 
-            my $params;
-
-            $params->{header_type} = 'table_tabs';
-
-            $params->{layout_obj} = $layout;
-            $params->{layout}     = $layout;
-
-            $params->{header_back_url} = "${base_url}table";
-            $params->{breadcrumbs}     = [
-                Crumb( $base_url . "table/", "Tables" ),
-                Crumb( "",                   "Table: " . $layout->name )
-            ];
-
             my $result = schema->resultset('Report')->load_for_edit($report_id);
 
             my $report_layouts = $result->report_layouts;
@@ -2922,9 +2890,19 @@ prefix '/:layout_name' => sub {
                 }
             }
 
-            $params->{report}   = $result;
-            $params->{fields}   = $fields;
-            $params->{viewtype} = 'edit';
+            my $params = {
+                header_type     => 'table_tabs',
+                layout_obj      => $layout,
+                layout          => $layout,
+                header_back_url => "${base_url}table",
+                report          => $result,
+                fields          => $fields,
+                viewtype        => 'edit',
+                breadcrumbs     => [
+                    Crumb( $base_url . "table/", "Tables" ),
+                    Crumb( "",                   "Table: " . $layout->name )
+                ],
+            };
 
             template 'reports/edit' => $params;
         };
@@ -2936,12 +2914,17 @@ prefix '/:layout_name' => sub {
 
             my $report_id = param('id');
 
-            my $result = schema->resultset('Report')->load_for_edit($report_id);
+            my $result = schema->resultset('Report')->find ({id => $report_id}) 
+                or error 'No report found for ' . $report_id;
 
-            $result->delete;
-
-            my $lo = param 'layout_name';
-            return forwardHome( { success => "Report deleted" }, "$lo/report" );
+                my $lo = param 'layout_name';
+            if (process( sub { $result->remove } )) {
+                return forwardHome( { success => "Report deleted" },
+                    "$lo/report" );
+            }else{
+                return forwardHome( { danger => "Unable to delete report" },
+                    "$lo/report" );
+            }
         };
 
         #Render the report (by :report) with the view (by :view)
