@@ -83,7 +83,7 @@ __PACKAGE__->table("report");
 
 =head2 deleted
 
-    data_type: 'tinyint'
+    data_type: 'datetime'
     is_nullable: 1
 
 =cut
@@ -108,7 +108,11 @@ __PACKAGE__->add_columns(
     "instance_id",
     { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
     "deleted",
-    { data_type => "tinyint", is_nullable => 1 }
+    {
+        data_type                 => "datetime",
+        datetime_undef_if_invalid => 1,
+        is_nullable               => 1
+    }
 );
 
 =head1 PRIMARY KEY
@@ -289,8 +293,7 @@ sub _load_record_data {
 
     $record->find_current_id($record_id);
 
-    my $column =
-      $gads_layout->column( $layout->layout_id );
+    my $column = $gads_layout->column( $layout->layout_id );
 
     my $datum = $record->get_field_value($column);
 

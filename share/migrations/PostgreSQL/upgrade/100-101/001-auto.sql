@@ -12,7 +12,7 @@ CREATE TABLE "report" (
   "createdby" bigint,
   "created" timestamp,
   "instance_id" bigint,
-  "deleted" smallint,
+  "deleted" timestamp,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "report_idx_createdby" on "report" ("createdby");

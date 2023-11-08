@@ -15,7 +15,7 @@ CREATE TABLE `report` (
   `createdby` bigint NULL,
   `created` datetime NULL,
   `instance_id` bigint NULL,
-  `deleted` tinyint NULL,
+  `deleted` datetime NULL,
   INDEX `report_idx_createdby` (`createdby`),
   INDEX `report_idx_instance_id` (`instance_id`),
   INDEX `report_idx_user_id` (`user_id`),

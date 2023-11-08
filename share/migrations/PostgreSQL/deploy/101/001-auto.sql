@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Mon Oct 30 12:14:39 2023
+-- Created on Wed Nov  8 14:39:31 2023
 --
 ;
 --
@@ -815,7 +815,7 @@ CREATE TABLE "report" (
   "createdby" bigint,
   "created" timestamp,
   "instance_id" bigint,
-  "deleted" smallint,
+  "deleted" timestamp,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "report_idx_createdby" on "report" ("createdby");

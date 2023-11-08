@@ -6102,7 +6102,7 @@ schema:
           size:
             - 0
         deleted:
-          data_type: tinyint
+          data_type: datetime
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
