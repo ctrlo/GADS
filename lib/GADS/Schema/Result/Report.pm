@@ -215,8 +215,8 @@ sub validate {
     my $instance_id = $self->instance_id;
     my $layouts     = $self->report_layouts;
 
-    error __"No name given" unless $name;
-    error __"You must provide at least one row to display in the report"
+    error __ "No name given" unless $name;
+    error __ "You must provide at least one row to display in the report"
       unless $layouts;
 
     0;
@@ -276,8 +276,7 @@ sub _load_record_data {
     my $record_id = $self->record_id;
     my $user      = $self->user;
 
-    error __"No report id given" if !$record_id;
-
+    error __ "No report id given" if !$record_id;
 
     my $gads_layout = GADS::Layout->new(
         schema      => $self->result_source->schema,
@@ -421,6 +420,29 @@ sub create_pdf {
     );
 
     $pdf;
+}
+
+=head2 Get fields for render
+
+Function to get the fields for the report - it will return an array of fields
+
+=cut
+
+sub fields_for_render {
+    my $self = shift;
+    my $layout = shift;
+
+    my %checked = map { $_ => layout_id => 1 } $self->report_layouts;
+
+    my @fields = map {
+        +{
+            id         => $_->id,
+            name       => $_->id,
+            is_checked => $checked{ $_->id },
+        }
+    } $layout->all( user_can_read => 1 );
+
+    return \@fields;
 }
 
 1;

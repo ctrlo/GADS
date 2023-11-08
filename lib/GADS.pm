@@ -2876,23 +2876,7 @@ prefix '/:layout_name' => sub {
 
             my $result = schema->resultset('Report')->load_for_edit($report_id);
 
-            my $report_layouts = $result->report_layouts;
-
-            my $layouts = [];
-
-            while ( my $report_layout = $report_layouts->next ) {
-                push @$layouts, $report_layout->layout_id;
-            }
-
-            my %checked = map { $_ => layout_id => 1 } $result->report_layouts;
-
-            my @fields = map {
-                +{
-                    id => $_->id,
-                    name => $_->id,
-                    is_checked => $checked{ $_->id },
-                }
-            } $layout->all( user_can_read=>1 );
+            my $fields = $result->fields_for_render($layout);
 
             my $params = {
                 header_type     => 'table_tabs',
