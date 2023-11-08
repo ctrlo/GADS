@@ -31,7 +31,7 @@ class CreateReportButtonComponent extends Component {
   submitReport(ev) {
     const $button = $(ev.target).closest('button');
     const $form = $button.closest("form");
-    
+
     if (!this.canSubmitRecordForm) {
       ev.preventDefault();
 

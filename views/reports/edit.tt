@@ -33,27 +33,27 @@
             <div class="hidden alert__no__select" aria-hidden="true">
               <p class="alert__message">Please select at least one item to add to the report!</p>
             </div>
-            [%  
-              report_items = [];  
+            [%
+              report_items = [];
 
-              FOREACH field IN fields;  
-                report_items.push({  
-                  field_id   = field.id,  
-                  name       = field.name,  
-                  id         = field.id,  
-                  is_checked = field.is_checked ? 1 : 0  
-                });  
-              END;  
+              FOREACH field IN fields;
+                report_items.push({
+                  field_id   = field.id,
+                  name       = field.name,
+                  id         = field.id,
+                  is_checked = field.is_checked ? 1 : 0
+                });
+              END;
 
-              INCLUDE fields/checkbox_list.tt  
-                list_class        = "list--vertical list--checkboxes"  
-                name              = "checkboxes" 
-                label             = "Columns to show in report:"  
-                items             = report_items 
-                fieldset_required = 1  
-                fieldset_classes  = "fieldset--report"  
-                filter            = "html";  
-            %]  
+              INCLUDE fields/checkbox_list.tt
+                list_class        = "list--vertical list--checkboxes"
+                name              = "checkboxes"
+                label             = "Columns to show in report:"
+                items             = report_items
+                fieldset_required = 1
+                fieldset_classes  = ""
+                filter            = "html";
+            %]
           </div>
         </div>
       </div>

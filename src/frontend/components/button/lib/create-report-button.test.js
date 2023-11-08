@@ -10,7 +10,7 @@ describe('create-report-button', () => {
       <form id="myform">
         <input class="form-control " id="report_name" name="report_name" value="Something" data-restore-value="" required="" aria-required="true">
         <input class="form-control " id="report_description" name="report_description" placeholder="New Report Description" value="" data-restore-value="">
-        <fieldset class="fieldset fieldset--required fieldset--report" id="report_fields">
+        <fieldset class="fieldset fieldset--required" id="report_fields">
           <input id="1" type="checkbox">
           <input id="8" type="checkbox">
           <input id="2" type="checkbox">
@@ -40,7 +40,7 @@ describe('create-report-button', () => {
           <input required="" aria-required="true">
         </div>
         <input>
-        <fieldset class="fieldset fieldset--required fieldset--report" id="report_fields">
+        <fieldset class="fieldset fieldset--required" id="report_fields">
           <input id="1" type="checkbox">
           <input id="8" type="checkbox" checked="checked">
           <input id="2" type="checkbox">
@@ -70,7 +70,7 @@ describe('create-report-button', () => {
           <input required="" aria-required="true" value = "boop">
         </div>
         <input>
-        <fieldset class="fieldset fieldset--required fieldset--report" id="report_fields">
+        <fieldset class="fieldset fieldset--required" id="report_fields">
           <input id="1" type="checkbox">
           <input id="8" type="checkbox" checked="checked">
           <input id="2" type="checkbox">
@@ -101,7 +101,7 @@ describe('create-report-button', () => {
   it('Validates checkboxes correctly', () => {
     document.body.innerHTML = `
       <form>
-        <fieldset class="fieldset fieldset--required fieldset--report">
+        <fieldset class="fieldset fieldset--required">
           <div class="fieldset__legend">
             <legend id="-label">
               Columns to show in report:
@@ -172,6 +172,6 @@ describe('create-report-button', () => {
       expect(input.checked).toBe(false);
     });
 
-    expect(validateRequiredFields($('form'))).toBe(false); 
+    expect(validateRequiredFields($('form'))).toBe(false);
   });
 });

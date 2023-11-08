@@ -1,21 +1,28 @@
 [%
   table_dom = "t";
   table_show_all_records = "true";
+  table_width = 85;
+  table_class = "table-striped";
 
   table_caption = "Reports";
-  table_width = 85;
 
+  table_buttons = [
+    {
+        label  = "Edit",
+        filter = "html",
+        link   = "report/edit" _ report.id
+      },{
+        label  = "Delete",
+        filter = "html",
+        link   = "report/delete" _ report.id
+    }    
+  ]
+  
   table_columns = [{
     name      = "Name",
     orderable = 0,
-  }, {
-    name      = "Actions",
-    orderable = 0
-  }, {
-    orderable = 0
+    width     = table_width _ "%"
   }];
-
-  table_buttons = [];
 
   rows = [];
 
@@ -26,18 +33,7 @@
         label = report.name
       }]
     };
-    IF user.permission.superadmin;
-      data.fields.push({
-        type  = "link",
-        label = "Edit",
-        link  = "report/edit" _ report.id
-      },{
-        type  = "link",
-        label = "Delete",
-        link  = "report/delete" _ report.id
-    });
-      
-    END; #if
+
     rows.push(data);
   END; #foreach
 %]

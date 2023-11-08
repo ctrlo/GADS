@@ -49,18 +49,18 @@
 
               FOREACH report IN reports;
                 links.push({
-                  name  = report.name,
+                  name     = report.name,
                   target   = url.page _ '/' _ layout.identifier _ '/report/render' _ report.id _ '/' _ record.current_id,
                 });
               END;
               
               record_edit_buttons.push({
-                type = "button_list",
-                target = url.page _ '/' _ layout.identifier _ '/report/render' _ report.id _ '/' _ record.current_id,
-                class = "link link--plain dropdown-toggle",
-                label = report.name _ " Report",
+                type          = "button_list",
+                target        = url.page _ '/' _ layout.identifier _ '/report/render' _ report.id _ '/' _ record.current_id,
+                class         = "link link--plain dropdown-toggle",
+                label         = report.name _ " Report",
                 label_in_span = 1,
-                links = links,
+                links         = links,
               });
             END;
 
