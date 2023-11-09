@@ -144,9 +144,29 @@ const validateRequiredFields = (form) => {
       isValidForm = false
     }
   })
+  
+  form.find(".fieldset--required").each((i, field) => {
+    if (!validateRequiredFieldsetCheckboxes($(field))) {
+      addErrorMessage($(field), $(field).find(".fieldset__legend legend").text(), $(field).attr("id"));
+      $(field).addClass("invalid");
+      $(field).closest(".fieldset--required").addClass("fieldset--invalid");
+      isValidForm = false;
+    }
+  });
 
-  return isValidForm
-}
+  return isValidForm;
+};
+
+const validateRequiredFieldsetCheckboxes = (fieldset) => {
+  let isValid = false;
+  fieldset.find("input[type=checkbox]").each((i, field) => {
+    if (field.isChecked || $(field).is(":checked")) {
+      isValid = true;
+      return true;
+    }
+  });
+  return isValid;
+};
 
 const addErrorMessage = (field, name, id) => {
   const $errorDiv = $('<div class="error">')
@@ -282,18 +302,23 @@ const validateTree = (field) => {
 // Expand the card with a certain field and scroll it into view
 const expandCardValidate = (field) => {
   const $collapse = $(field).closest('.card--expandable').find('.collapse')
-  // If the card is already expanded then just scroll straight to the field
-  if ($collapse.hasClass('show')) {
-      field.scrollIntoView()
-  } else {
-    // Otherwise add an event handler to scroll to the field, but only once the
-    // card has finished expanding (otherwise the scroll will happen before
-    // the card has finished expanding and it won't work)
-    $collapse.on('shown.bs.collapse.foobar', function(){
-      field.scrollIntoView()
-      $(this).off('shown.bs.collapse.foobar');
-    })
-    $collapse.collapse('show')
+  if($collapse && $collapse.collapse) {
+    const $label = $(field).closest('.form-group').find('legend, label')
+    // Turn into edit mode if the topic is now in view mode
+    $collapse.prev().find('.btn-edit:visible').trigger('click')
+    // If the card is already expanded then just scroll straight to the field
+    if ($collapse.hasClass('show')) {
+        $label[0].scrollIntoView()
+    } else {
+      // Otherwise add an event handler to scroll to the field, but only once the
+      // card has finished expanding (otherwise the scroll will happen before
+      // the card has finished expanding and it won't work)
+      $collapse.on('shown.bs.collapse.foobar', function(){
+        $label[0].scrollIntoView()
+        $(this).off('shown.bs.collapse.foobar');
+      })
+      $collapse.collapse('show')
+    }
   }
 }
 

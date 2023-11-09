@@ -1,0 +1,76 @@
+[%
+  table_dom = "t";
+  table_show_all_records = "true";
+  table_width = 85;
+  table_class = "table-striped";
+
+  table_caption = "Reports";
+
+  table_buttons = [
+    {
+        label  = "Edit",
+        filter = "html",
+        link   = "report/edit" _ report.id
+      },{
+        label  = "Delete",
+        filter = "html",
+        link   = "report/delete" _ report.id
+    }    
+  ]
+  
+  table_columns = [{
+    name      = "Name",
+    orderable = 0,
+    width     = table_width _ "%"
+  }];
+
+  rows = [];
+
+  FOREACH report IN reports;
+    data = {
+      fields  = [{
+        type  = "string",
+        label = report.name
+      }]
+    };
+
+    rows.push(data);
+  END; #foreach
+%]
+  <div class="content-block__main">
+  <div class="card">
+    <div class="card--header">
+      <h3 class"card__header">
+        <span>Reports</span>
+      </h3>
+    </div>
+
+    <div class="card__body">
+      <div class="card__content">
+        <div class="row">
+          <div class="col">
+            [% INCLUDE tables/basic_table.tt; %]
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+<footer class="content-block__footer">
+    <div class="content-block__footer-container">
+      [% INCLUDE navigation/button_bar.tt
+          row_class  = "row"
+          columns    = [{
+            class    = "col-md-4 mb-3 mb-md-0",
+            buttons  = []
+          }, {
+            class    = "col-md-8 d-md-flex justify-content-md-end align-items-center",
+            buttons  = [{
+              type   = "link",
+              target = url.page _ "/" _ layout_obj.identifier _ "/report/add",
+              class  = "btn btn-inverted btn-add",
+              label  = "Create Report"
+            }]
+          }]; %]
+    </div>
+  </footer>
+</div>
