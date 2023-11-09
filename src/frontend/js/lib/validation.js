@@ -145,8 +145,29 @@ const validateRequiredFields = (form) => {
     }
   })
 
+
+  form.find(".fieldset--required").each((i, field) => {
+    if (!validateRequiredFieldsetCheckboxes($(field))) {
+      addErrorMessage($(field), $(field).find(".fieldset__legend legend").text(), $(field).attr("id"));
+      $(field).addClass("invalid");
+      $(field).closest(".fieldset--required").addClass("fieldset--invalid");
+      isValidForm = false;
+    }
+  });
+
   return isValidForm
 }
+
+const validateRequiredFieldsetCheckboxes = (fieldset) => {
+  let isValid = false;
+  fieldset.find("input[type=checkbox]").each((i, field) => {
+    if (field.isChecked || $(field).is(":checked")) {
+      isValid = true;
+      return true;
+    }
+  });
+  return isValid;
+};
 
 const addErrorMessage = (field, name, id) => {
   const $errorDiv = $('<div class="error">')

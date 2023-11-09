@@ -1857,6 +1857,7 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
     my ($return, $options, $is_raw) = _process_edit($id, $record);
     return $return if $is_raw;
     $return->{is_history} = $action eq 'history';
+    $return->{reports} = $layout->reports();
     template 'edit' => $return, $options;
 };
 
@@ -2759,6 +2760,167 @@ prefix '/:layout_name' => sub {
         ];
 
         template 'data' => $params;
+    };
+
+    prefix '/report' => sub {
+
+        #view all reports for this instance
+        get '' => require_login sub {
+            my $user   = logged_in_user;
+            my $layout = var('layout') or pass;
+
+            my $base_url = request->base;
+
+            my $reports = $layout->reports;
+
+            my $params = {
+                header_type     => 'table_tabs',
+                layout_obj      => $layout,
+                header_back_url => "${base_url}table",
+                reports         => $reports,
+                breadcrumbs     => [
+                    Crumb( $base_url . "table/", "Tables" ),
+                    Crumb( "",                   "Table: " . $layout->name )
+                ],
+            };
+
+            template 'reports/view' => $params;
+        };
+
+        #add a report
+        any [ 'get', 'post' ] => '/add' => require_login sub {
+            my $layout = var('layout') or pass;
+            my $user   = logged_in_user;
+
+            if ( body_parameters && body_parameters->get('submit') ) {
+                my $report_description = body_parameters->get('report_description');
+                my $report_name        = body_parameters->get('report_name');
+                my $checkbox_fields    = [body_parameters->get_all('checkboxes')];
+                my $instance           = $layout->instance_id;
+
+                my $report = schema->resultset('Report')->create_report(
+                    {
+                        user        => $user,
+                        name        => $report_name,
+                        description => $report_description,
+                        instance_id => $instance,
+                        createdby   => $user,
+                        layouts     => $checkbox_fields
+                    }
+                );
+
+                my $lo = param 'layout_name';
+                return forwardHome( { success => "Report created" },
+                    "$lo/report" );
+            }
+
+            my $records = [ $layout->all( user_can_read => 1 ) ];
+
+            my $base_url = request->base;
+
+            my $params = {
+                header_type       => 'table_tabs',
+                  layout_obj      => $layout,
+                  layout          => $layout,
+                  header_back_url => "${base_url}table",
+                  viewtype        => 'add',
+                  fields          => $records,
+                  breadcrumbs     => [
+                    Crumb( $base_url . "table/", "Tables" ),
+                    Crumb( "",                   "Table: " . $layout->name )
+                  ],
+            };
+
+            template 'reports/edit' => $params;
+        };
+
+        #Edit a report (by :id)
+        any [ 'get', 'post' ] => '/edit:id' => require_login sub {
+
+            my $user      = logged_in_user;
+            my $layout    = var('layout') or pass;
+            my $report_id = param('id');
+
+
+            if ( body_parameters && body_parameters->get('submit') ) {
+                my $report_description = body_parameters->get('report_description');
+                my $report_name        = body_parameters->get('report_name');
+                my $checkboxes         = [body_parameters->get_all('checkboxes')];
+                my $instance           = $layout->instance_id;
+
+                my $report_id = param('id');
+
+                my $result =
+                  schema->resultset('Report')->load_for_edit($report_id);
+
+                $result->update_report(
+                    {
+                        name        => $report_name,
+                        description => $report_description,
+                        layouts     => $checkboxes
+                    }
+                );
+
+                my $lo = param 'layout_name';
+                return forwardHome( { success => "Report updated" },
+                    "$lo/report" );
+            }
+
+            my $base_url = request->base;
+
+            my $result = schema->resultset('Report')->load_for_edit($report_id);
+
+            my $fields = $result->fields_for_render($layout);
+
+            my $params = {
+                header_type     => 'table_tabs',
+                layout_obj      => $layout,
+                layout          => $layout,
+                header_back_url => "${base_url}table",
+                report          => $result,
+                fields          => $fields,
+                viewtype        => 'edit',
+                breadcrumbs     => [
+                    Crumb( $base_url . "table/", "Tables" ),
+                    Crumb( "",                   "Table: " . $layout->name )
+                ],
+            };
+
+            template 'reports/edit' => $params;
+        };
+
+        #Delete a report (by :id)
+        get "/delete:id" => sub {
+            my $user   = logged_in_user;
+            my $layout = var('layout') or pass;
+
+            my $report_id = param('id');
+
+            my $result = schema->resultset('Report')->find ({id => $report_id})
+                or error 'No report found for ' . $report_id;
+
+                my $lo = param 'layout_name';
+            if (process( sub { $result->remove } )) {
+                return forwardHome( { success => "Report deleted" },
+                    "$lo/report" );
+            }
+            return forwardHome( "$lo/report" );
+        };
+
+        #Render the report (by :report) with the view (by :view)
+        get "/render:report/:view" => sub {
+            my $user = logged_in_user;
+
+            my $report_id = route_parameters->get('report');
+            my $view_id   = route_parameters->get('view');
+
+            my $report =
+              schema->resultset('Report')->load($report_id, $view_id);
+
+            my $pdf = $report->create_pdf->content;
+
+            return send_file( \$pdf, content_type => 'application/pdf', );
+        };
     };
 
     # any ['get', 'post'] => qr{/tree[0-9]*/([0-9]*)/?} => require_login sub {
