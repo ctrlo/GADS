@@ -1,4 +1,4 @@
-import { Component } from 'component'
+import { Component, initializeRegisteredComponents } from 'component'
 import 'datatables.net'
 import 'datatables.net-buttons'
 import 'datatables.net-bs4'
@@ -6,9 +6,7 @@ import 'datatables.net-responsive'
 import 'datatables.net-responsive-bs4'
 import 'datatables.net-rowreorder-bs4'
 import { setupDisclosureWidgets, onDisclosureClick } from '../../more-less/lib/disclosure-widgets'
-import { initializeRegisteredComponents, initializeComponent } from 'component'
 import RecordPopupComponent from '../../record-popup/lib/component'
-import MoreLessComponent from '../../more-less/lib/component'
 import { moreLess } from '../../more-less/lib/more-less'
 
 const MORE_LESS_TRESHOLD = 50
@@ -249,9 +247,12 @@ class DataTableComponent extends Component {
         <div class='dropdown-menu p-2' aria-labelledby='search-toggle-${index}'>
           <label>
             <div class='input'>
-              <input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>
+            <input class='form-control form-control-sm field-search-${index}' type='text' placeholder='Search' value='${searchValue}'/>
             </div>
           </label>
+          <div class='data-table__live-search'>
+            <ul class='data-list list-unstyled text-center'></ul>        
+          </div>
           <button type='button' class='btn btn-link btn-small data-table__clear hidden'>
             <span>Clear filter</span>
           </button>
@@ -282,7 +283,27 @@ class DataTableComponent extends Component {
       // redrawn in the previous statement)
       let url = `${window.location.href.split('?')[0]}?${self.searchParams.toString()}`
       window.history.replaceState(null, '', url);
-    })
+    }).on('keyup', function (ev) {
+      if ($('#return-values').length === 0) {
+        const hiddenDiv = self.createHiddenValues();
+        $('body').append(hiddenDiv);
+      }
+      const $list = $header.find('.data-list');
+      if (this.value.length < 1) {
+        $list.empty();
+        return;
+      }
+      const data = self.getHiddenValues(title.replace('Sort', '').trim(), ev.target.value);
+      $list.empty();
+      $list.append(data.map((item) => `<li><div class="item">${item}</div></li>`).join(''));
+      const $item = $list.find('.item');
+      $item.on('click', function (event) {
+        $list.empty();
+        $('.data-table__clear', $header).trigger('click');
+        column.search(event.target.innerText).draw();
+        self.toggleFilter(column);
+      });
+    });
 
     // Clear the search
     $('.data-table__clear', $header).on('click', function () {
@@ -307,6 +328,54 @@ class DataTableComponent extends Component {
       }
     })
   }
+
+  createHiddenValues() {
+    const search = /[Tt]able\d+/;
+    const uri = window.location.pathname;
+    const table = uri.match(search);
+    const result = document.createElement('div');
+    result.classList.add('hidden');
+    result.id = "return-values";
+    $.ajax({
+      url: `/api/${table}/fields`,
+      type: 'GET',
+      success: function (data) {
+        data.forEach((field) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = field.name;
+          // JSON.stringify gives "undef", which is useless, so I have to serialise it manually!
+          let value = '[';
+          field.values.forEach((item) => {
+            value += '"' + item + '",';
+          });
+          if(value.endsWith(',')) value = value.slice(0, -1);
+          value += ']';
+          input.value = value;
+          input.id = field.name;
+          result.appendChild(input);
+        });
+      },
+      error: function (err) {
+        logging.error(err);
+      },
+      async: false
+    });
+    return result;
+  }
+
+  getHiddenValues(field, string) {
+    const value = $(`#${field}`).val();
+    const items = JSON.parse(value);
+    const result = [];
+    items.forEach((item) => {
+      if (item.toLowerCase().includes(string.toLowerCase())) {
+        result.push(item);
+      }
+    });
+    return result;
+  }
+
 
   encodeHTMLEntities(text) {
     return $("<textarea/>").text(text).html();

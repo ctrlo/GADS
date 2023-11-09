@@ -306,3 +306,11 @@ div.dataTables_wrapper div.dataTables_filter input.form-control {
 div.dataTables_wrapper div.dataTables_processing {
   top: 10rem;
 }
+
+
+div {
+  .item:hover {
+    background: #f1f1f1;
+    cursor: pointer;
+  }
+}
