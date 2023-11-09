@@ -41,7 +41,7 @@
                 sub_params = {};
             
             ELSIF field.type == "dropdown";
-              INCLUDE fields/select.tt
+              INCLUDE fields/select_single.tt
                 id = field.name
                 name = field.name
                 value = edituser.get_column(field.name)
