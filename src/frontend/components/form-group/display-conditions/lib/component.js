@@ -9,9 +9,93 @@ class DisplayConditionsComponent extends Component {
   }
 
   initDisplayConditions() {
-    const builderData = this.el.data()
-    const filters = JSON.parse(Buffer.from(builderData.filters, 'base64'))
-    if (!filters.length) return
+    this.buildConditions(this.el);
+  }
+
+  setupSelects(el) {
+    const selects = el.find("select");
+    const select = $(selects[selects.length - 1]);
+    const select_parent = select.closest(".rules-list")[0];
+    const value = $(select_parent).find(".rule-value-container");
+    $(value).hide();
+    const self = this;
+    select.hide();
+    const div = document.createElement("div");
+    div.className = "input-container";
+    const element = document.createElement("input");
+    element.type = "text";
+    element.className = "form-control";
+    $(element).on("keyup", (ev) => self.textChange(ev));
+    div.prepend(element);
+    const itemsDiv = document.createElement("div");
+    itemsDiv.className = "items";
+    select
+      .find("option")
+      .each(function () {
+        if (this.text === "------") return;
+        const item = document.createElement("div");
+        item.className = "item";
+        item.dataset.value = this.value;
+        item.innerHTML = this.text;
+        $(item).on("click", (ev) => self.itemClick(ev));
+        itemsDiv.append(item);
+      });
+    div.append(itemsDiv);
+    select.closest(".rule-filter-container").append(div);;
+  }
+
+  itemClick(ev) {
+    const $list = $(ev.target).closest(".rules-list");
+    const $value = $($list).find(".rule-value-container");
+    $value.show();
+    const $container = $(ev.target).closest(".rule-filter-container");
+    const $input = $container.find("[type='text']");
+    const $items = $container.find(".items");
+    $input.val(ev.target.innerHTML);
+    const $select = $container.find("select");
+    $select.val(ev.target.dataset.value);
+    $select.trigger("change");
+    $items.children().remove();
+  }
+
+  textChange(ev) {
+    const $container = $(ev.target).closest(".rule-filter-container");
+    const $select = $container.find("select");
+    const $items = $container.find(".items");
+    const self = this;
+    $items.children().remove();
+    $select.find("option").each(function () {
+      if (this.text === "------") return;
+      if (this.text === "") {
+        const item = document.createElement("div");
+        item.className = "item";
+        item.dataset.value = this.value;
+        item.innerHTML = this.text;
+        $(item).on("click", (ev) => self.itemClick(ev));
+        $items.append(item);
+      } else if (
+        this.text.toLowerCase().includes(ev.target.value.toLowerCase())
+      ) {
+        const item = document.createElement("div");
+        item.className = "item";
+        item.dataset.value = this.value;
+        item.innerHTML = this.text;
+        $(item).on("click", (ev) => self.itemClick(ev));
+        $items.append(item);
+      }
+    });
+  }
+
+  buildConditions(el) {
+    const self = this;
+
+    el.on("afterCreateRuleFilters.queryBuilder", (event, filters) => {
+      self.setupSelects($(event.target));
+    });
+
+    const builderData = el.data();
+    const filters = JSON.parse(Buffer.from(builderData.filters, "base64"));
+    if (!filters.length) return;
 
     this.el.queryBuilder({
       filters: filters,
