@@ -545,6 +545,45 @@ post '/api/table_request' => require_login sub {
     _post_table_request();
 };
 
+#Quick and dirty "flat" field values endpoint
+get '/api/:sheet/fields' => require_login sub {
+    #May as well use something that's already there
+    my $data = decode_json( _get_records() );
+
+    my $otherResult = {};
+
+    #Create a hash of the values - this is rather than have to (keep) looping over an array in stead
+    foreach my $value ( @{ $data->{data} } ) {
+        foreach my $keyValue ( keys %{$value} ) {
+            if ( $keyValue ne '_id' ) {
+                my $name = $value->{$keyValue}->{name};
+                my $type = $value->{$keyValue}->{type};
+                $otherResult->{$name} = [] unless defined $otherResult->{$name};
+                if ( $type eq 'person' || $type eq 'createdby' ) {
+                    push @{ $otherResult->{$name} },
+                      $value->{$keyValue}->{values}->[0]->{text};
+                }
+                else {
+                    push @{ $otherResult->{$name} },
+                      $value->{$keyValue}->{values}->[0];
+                }
+            }
+        }
+    }
+
+    my $return = [];
+
+    #Convert the hash back into an array of hashes for the JSON
+    foreach my $key (keys %$otherResult) {
+        push @$return, {
+            name => $key,
+            values => $otherResult->{$key}
+        };
+    }
+
+    return encode_json $return;
+};
+
 # AJAX record browse
 any ['get', 'post'] => '/api/:sheet/records' => require_login sub {
     _get_records();
