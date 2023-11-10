@@ -36,8 +36,6 @@ class DisplayConditionsComponent extends Component {
   setupSelects(el) {
     const selects = el.find("select");
     const select = $(selects[selects.length - 1]);
-    const select_parent = select.closest(".rules-list")[0];
-    const value = $(select_parent).find(".rule-value-container");
     const self = this;
     $(value).hide();
     select.hide();
