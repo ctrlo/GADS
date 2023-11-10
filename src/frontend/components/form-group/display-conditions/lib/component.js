@@ -37,7 +37,6 @@ class DisplayConditionsComponent extends Component {
     const selects = el.find("select");
     const select = $(selects[selects.length - 1]);
     const self = this;
-    $(value).hide();
     select.hide();
     select
       .find("option")
