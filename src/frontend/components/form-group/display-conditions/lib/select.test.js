@@ -17,78 +17,22 @@ describe("tests for component replacement", () => {
   it("should replace selects with inputs", () => {
     const div = getDiv();
     new DisplayConditionsComponent(div);
-    expect($(div).find('input[type="text"]').length).toBe(1);
+    expect($(div).find('[type="text"]').length).toBe(1);
     expect($(div).find("select").length).toBe(1);
   });
 
-  it("should have list of options below inputs", () => {
+  it("should have list of options in data", () => {
     const div = getDiv();
-    new DisplayConditionsComponent(div);
-    expect($(div).find(".item").length).toBe(4);
+    const conditions = new DisplayConditionsComponent(div);
+    expect(conditions.data.length).toBe(4);
   });
 
-  it("should change the select value on click of the item", () => {
+  it("should have all values from the select options in it's data", () => {
     const div = getDiv();
-    new DisplayConditionsComponent(div);
-    const item = $(div).find(".item")[0];
-    expect(item.dataset.value).toBe("8");
-    $(item).trigger("click");
-    expect($(div).find("select").val()).toBe("8");
-  });
-
-  it("should provide a list of options below according to text entered", () => {
-    const div = getDiv();
-    new DisplayConditionsComponent(div);
-    const input = $(div).find('input[type="text"]');
-    input.val("Test");
-    input.trigger("keyup");
-    expect($(div).find(".item").length).toBe(4);
-    input.val("er");
-    input.trigger("keyup");
-    expect($(div).find(".item").length).toBe(2);
-  });
-
-  it("should provide a list of all items below if no text is in the textbox", () => {
-    const div = getDiv();
-    new DisplayConditionsComponent(div);
-    const input = $(div).find('input[type="text"]');
-    input.val("er");
-    input.trigger("keyup");
-    expect($(div).find(".item").length).toBe(2);
-    input.val("");
-    input.trigger("keyup");
-    expect($(div).find(".item").length).toBe(4);
-  });
-
-  it("should change the textarea value on click", () => {
-    const div = getDiv();
-    new DisplayConditionsComponent(div);
-    const input = $(div).find('input[type="text"]');
-    input.val("Test");
-    input.trigger("keyup");
-    const item = $(div).find(".item")[0];
-    const firstOption = $(div).find("option")[1]; //Actual first option is "------" which is ignored!
-    $(item).trigger("click");
-    expect($(div).find('input[type="text"]').val()).toBe(firstOption.text);
-  });
-
-  it("should have all values from the select options used below the textbox", () => {
-    const div = getDiv();
-    new DisplayConditionsComponent(div);
+    const component = new DisplayConditionsComponent(div);
     const select = $(div).find("select");
     const options = $(select).find("option");
-    const items = $(div).find(".item");
+    const items = component.data;
     expect(options.length).toBe(items.length + 1);
-  });
-
-  it("should hide all items on item select", ()=>{
-    const div=getDiv();
-    new DisplayConditionsComponent(div);
-    const input = $(div).find('input[type="text"]');
-    input.val("Test");
-    input.trigger("keyup");
-    const item = $(div).find(".item")[0];
-    $(item).trigger("click");
-    expect($(div).find(".item").length).toBe(0);
   });
 });

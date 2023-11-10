@@ -1,10 +1,12 @@
-import { Component } from 'component'
-import queryBuilder from '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
+import { Component } from 'component';
+import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min';
+import 'jquery-typeahead';
 
 class DisplayConditionsComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
+    this.data = [];
     this.initDisplayConditions()
   }
 
@@ -12,77 +14,63 @@ class DisplayConditionsComponent extends Component {
     this.buildConditions(this.el);
   }
 
+  createTypeaheadDivStructure() {
+    const div = document.createElement("div");
+    div.className = "typeahead__container";
+    const field = document.createElement("div");
+    field.className = "typeahead__field";
+    const query = document.createElement("div");
+    query.className = "typeahead__query";
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "js-typeahead";
+    input.autocomplete = "on";
+    input.name = "js-typeahead";
+    query.append(input);
+    field.append(query);
+    div.append(field);
+    this.setupTypeahead(input);
+    return div;
+  }
+
   setupSelects(el) {
     const selects = el.find("select");
     const select = $(selects[selects.length - 1]);
     const select_parent = select.closest(".rules-list")[0];
     const value = $(select_parent).find(".rule-value-container");
-    $(value).hide();
     const self = this;
+    $(value).hide();
     select.hide();
-    const div = document.createElement("div");
-    div.className = "input-container";
-    const element = document.createElement("input");
-    element.type = "text";
-    element.className = "form-control";
-    $(element).on("keyup", (ev) => self.textChange(ev));
-    div.prepend(element);
-    const itemsDiv = document.createElement("div");
-    itemsDiv.className = "items";
     select
       .find("option")
       .each(function () {
         if (this.text === "------") return;
-        const item = document.createElement("div");
-        item.className = "item";
-        item.dataset.value = this.value;
-        item.innerHTML = this.text;
-        $(item).on("click", (ev) => self.itemClick(ev));
-        itemsDiv.append(item);
+        self.addData(this.text, this.value);
       });
-    div.append(itemsDiv);
-    select.closest(".rule-filter-container").append(div);;
+    const div = this.createTypeaheadDivStructure();
+    select.closest(".rule-filter-container").append(div);
   }
 
-  itemClick(ev) {
-    const $list = $(ev.target).closest(".rules-list");
-    const $value = $($list).find(".rule-value-container");
-    $value.show();
-    const $container = $(ev.target).closest(".rule-filter-container");
-    const $input = $container.find("[type='text']");
-    const $items = $container.find(".items");
-    $input.val(ev.target.innerHTML);
-    const $select = $container.find("select");
-    $select.val(ev.target.dataset.value);
-    $select.trigger("change");
-    $items.children().remove();
-  }
-
-  textChange(ev) {
-    const $container = $(ev.target).closest(".rule-filter-container");
-    const $select = $container.find("select");
-    const $items = $container.find(".items");
-    const self = this;
-    $items.children().remove();
-    $select.find("option").each(function () {
-      if (this.text === "------") return;
-      if (this.text === "") {
-        const item = document.createElement("div");
-        item.className = "item";
-        item.dataset.value = this.value;
-        item.innerHTML = this.text;
-        $(item).on("click", (ev) => self.itemClick(ev));
-        $items.append(item);
-      } else if (
-        this.text.toLowerCase().includes(ev.target.value.toLowerCase())
-      ) {
-        const item = document.createElement("div");
-        item.className = "item";
-        item.dataset.value = this.value;
-        item.innerHTML = this.text;
-        $(item).on("click", (ev) => self.itemClick(ev));
-        $items.append(item);
-      }
+  setupTypeahead(input) {
+    const items = this.getItems();
+    console.log(items);
+    typeof $.typeahead === "function" && $.typeahead({
+      input: input,
+      minLength: 1,
+      maxItem: 15,
+      autocomplete: true,
+      order: "asc",
+      source: {
+        data: items,
+      },
+      callback: {
+        onClickAfter: (node, a, item, event) => {
+          event.preventDefault();
+          const select = $(node).closest(".rule-filter-container").find("select");
+          select.val(this.getValue(item.display));
+          select.trigger("change");
+        },
+      },
     });
   }
 
@@ -112,6 +100,25 @@ class DisplayConditionsComponent extends Component {
       const data = Buffer.from(builderData.filterBase, 'base64')
       this.el.queryBuilder('setRules', JSON.parse(data))
     }
+  }
+
+  addData(text, value) {
+    if (this.checkData(text)) return;
+    this.data.push({ text, value });
+  }
+
+  checkData(text) {
+    return this.data.find((item) => item.text === text);
+  }
+
+  getItems() {
+    return this.data.map((item) => {
+      return item.text;
+    });
+  }
+
+  getValue(item) {
+    return this.data.filter((data) => data.text === item)[0].value;
   }
 }
 
