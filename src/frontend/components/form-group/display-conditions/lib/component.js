@@ -51,7 +51,6 @@ class DisplayConditionsComponent extends Component {
 
   setupTypeahead(input) {
     const items = this.getItems();
-    console.log(items);
     typeof $.typeahead === "function" && $.typeahead({
       input: input,
       minLength: 1,
