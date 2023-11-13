@@ -1,6 +1,4 @@
 [%
-  IF layout.user_can('layout');
-
   table_dom = "t";
   table_show_all_records = "true";
   table_width = 85;
@@ -79,4 +77,3 @@
     </div>
   </footer>
 </div>
-[% END; %]

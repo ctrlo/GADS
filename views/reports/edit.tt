@@ -1,4 +1,3 @@
-[% IF layout.user_can('layout'); %]
 <form method="post">
   [% INCLUDE fields/hidden.tt name="submit" value="submit";
      INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
@@ -82,4 +81,3 @@
     </div>
   </footer>
 </form>
-[% END; %]
