@@ -37,12 +37,25 @@
             END;
 
             UNLESS layout.no_download_pdf;
+              links = [{
+                  name   = "Download as PDF",
+                  target = url.page _ "/" _ layout.identifier _ "/record/" _ record.current_id _ "?pdf",
+                }];
+
+              FOREACH report IN reports;
+                links.push({
+                  name     = report.name,
+                  target   = url.page _ '/' _ layout.identifier _ '/report/render' _ report.id _ '/' _ record.current_id,
+                });
+              END;
+
               record_edit_buttons.push({
-                type          = "link",
-                target        = url.page _ "/" _ layout.identifier _ "/record/" _ record.current_id _ "?pdf",
-                class         = "link link--plain",
-                label         = "Download as PDF",
-                label_in_span = 1
+                type          = "button_list",
+                target        = url.page _ '/' _ layout.identifier _ '/report/render' _ report.id _ '/' _ record.current_id,
+                class         = "link link--plain dropdown-toggle",
+                label         = report.name _ " Report",
+                label_in_span = 1,
+                links         = links,
               });
             END;
 
