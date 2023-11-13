@@ -37,7 +37,7 @@
             END;
 
             UNLESS layout.no_download_pdf;
-              links = [
+              links = [{
                   name   = "Download as PDF",
                   target = url.page _ "/" _ layout.identifier _ "/record/" _ record.current_id _ "?pdf",
                 }];

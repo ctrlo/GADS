@@ -204,45 +204,33 @@ has data => (
         my $result = [];
 
         my $layouts = $self->report_layouts;
+        my $user    = $self->user;
+
+        my $gads_layout = GADS::Layout->new(
+            schema      => $self->result_source->schema,
+            user        => $user,
+            instance_id => $self->instance_id,
+        );
+
+        my $record = GADS::Record->new(
+            schema => $self->result_source->schema,
+            user   => $user,
+            layout => $gads_layout,
+        );
+
+        my $record_id = $self->record_id;
+        $record->find_current_id($record_id);
 
         while ( my $layout = $layouts->next ) {
-            my $data = $self->_load_record_data($layout);
+            my $column = $gads_layout->column( $layout->layout_id );
+            my $datum  = $record->get_field_value($column);
+            my $data   = { 'name' => $layout->layout->name, 'value' => $datum };
             push( @{$result}, $data );
         }
 
         return $result;
     },
 );
-
-#helper function to load record data
-sub _load_record_data {
-    my $self      = shift;
-    my $layout    = shift;
-    my $record_id = $self->record_id;
-    my $user      = $self->user;
-
-    error __ "No report id given" if !$record_id;
-
-    my $gads_layout = GADS::Layout->new(
-        schema      => $self->result_source->schema,
-        user        => $user,
-        instance_id => $self->instance_id,
-    );
-
-    my $record = GADS::Record->new(
-        schema => $self->result_source->schema,
-        user   => $user,
-        layout => $gads_layout,
-    );
-
-    $record->find_current_id($record_id);
-
-    my $column = $gads_layout->column( $layout->layout_id );
-
-    my $datum = $record->get_field_value($column);
-
-    return { 'name' => $layout->layout->name, 'value' => $datum };
-}
 
 =head1 Object functions
 =head2 Update Report
