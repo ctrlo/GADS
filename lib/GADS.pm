@@ -2769,6 +2769,10 @@ prefix '/:layout_name' => sub {
             my $user   = logged_in_user;
             my $layout = var('layout') or pass;
 
+            return forwardHome(
+                { danger => 'You do not have permission to edit reports' } )
+              unless $layout->user_can("layout");
+
             my $base_url = request->base;
 
             my $reports = $layout->reports;
@@ -2791,6 +2795,10 @@ prefix '/:layout_name' => sub {
         any [ 'get', 'post' ] => '/add' => require_login sub {
             my $layout = var('layout') or pass;
             my $user   = logged_in_user;
+
+            return forwardHome(
+                { danger => 'You do not have permission to edit reports' } )
+                    unless $layout->user_can("layout");
 
             if ( body_parameters && body_parameters->get('submit') ) {
                 my $report_description = body_parameters->get('report_description');
@@ -2839,8 +2847,12 @@ prefix '/:layout_name' => sub {
 
             my $user      = logged_in_user;
             my $layout    = var('layout') or pass;
-            my $report_id = param('id');
 
+            return forwardHome(
+                { danger => 'You do not have permission to edit reports' } )
+                    unless $layout->user_can("layout");
+
+            my $report_id = param('id');
 
             if ( body_parameters && body_parameters->get('submit') ) {
                 my $report_description = body_parameters->get('report_description');
@@ -2893,6 +2905,10 @@ prefix '/:layout_name' => sub {
         get "/delete:id" => sub {
             my $user   = logged_in_user;
             my $layout = var('layout') or pass;
+
+            return forwardHome(
+                { danger => 'You do not have permission to edit reports' } )
+                    unless $layout->user_can("layout");
 
             my $report_id = param('id');
 
