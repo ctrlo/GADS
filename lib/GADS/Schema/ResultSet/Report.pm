@@ -15,13 +15,7 @@ Function to load a report for a given id - it requires the report id, and record
 sub load {
     my ( $self, $id, $record_id ) = @_;
 
-    my $schema = $self->result_source->schema;
-
-    error __"Invalid report id provided"
-      unless $id && $id =~ /^\d+$/;
-
-    my $result = $self->find( { id => $id, deleted => undef }, { prefetch => 'report_layouts' } )
-      or error __"No report found for id $id";
+    my $result = load_for_edit( $self, $id );
     $result->record_id($record_id);
 
     return $result;
