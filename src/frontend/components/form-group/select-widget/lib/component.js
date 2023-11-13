@@ -40,9 +40,13 @@ class SelectWidgetComponent extends Component {
     if (this.required) {
       initValidationOnField(this.el)
     }
+
+    this.$available.find(".spinner").attr("hidden", "")
   } 
 
   initSelectWidget() {
+    if(this.$available.find(".spinner").has(":hidden"))
+      this.$available.find(".spinner").removeAttr("hidden")
     this.updateState()
     if (this.$widget.is('[readonly]')) return
     this.connect()
@@ -146,6 +150,7 @@ class SelectWidgetComponent extends Component {
       }, 200)
     } else {
       // hide the answers that do not contain the searchvalue
+      this.$available.find(".spinner").removeAttr("hidden")
       let anyHits = false
       $.each(this.$answers, function() {
         const labelValue = $(this)
@@ -164,6 +169,7 @@ class SelectWidgetComponent extends Component {
       } else {
         this.$available.find(".has-noresults").removeAttr("hidden", "")
       }
+      this.$available.find(".spinner").attr("hidden", "")
     }
   }
 

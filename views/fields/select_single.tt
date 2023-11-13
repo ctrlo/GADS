@@ -50,13 +50,13 @@
             [% IF help_text %]aria-describedby="[% id %]-help"[% END %]
             role="listbox"
         >
-          [% IF has_subvals OR has_typeahead %]
+          [% # IF has_subvals OR has_typeahead %]
             <li class="spinner">
               <div class="spinner-border" role="status">
                 <span class="sr-only">Loading...</span>
               </div>
             </li>
-          [% END %]
+          [% # END %]
           <li class="has-noresults" hidden>No results</li>
           [% FOREACH item IN items %]
           <li class="answer" role="option">
