@@ -12,7 +12,7 @@
 [% IF ! hide_group %]
 <div class="form-group">
 [% END %]
-  <fieldset class="[% fieldset_extra_classes %]"[% IF fieldset_name %] data-name="[% fieldset_name %]"[% END %][%IF id%] id="[%id%]"[% END %]>
+  <fieldset class="[% fieldset_extra_classes %]"[% IF fieldset_name %] data-name="[% fieldset_name %]"[% END %]>
     [% INCLUDE fields/sub/label_fieldset.tt; %]
     <div class="list [% list_class %]">
       <ul class="list__items" id="[% id %]">
