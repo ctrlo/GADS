@@ -1187,6 +1187,7 @@ sub write
     $newitem->{display_condition} = $self->display_fields->as_hash->{condition},
     $newitem->{instance_id}       = $self->layout->instance_id;
     $newitem->{aggregate}         = $self->aggregate;
+    $newitem->{notes}             = $self->notes;
 
     !$newitem->{aggregate} || $newitem->{aggregate} =~ /^(sum|recalc)$/
         or error __x"Invalid aggregate value {agg}", agg => $newitem->{aggregate};
@@ -1747,6 +1748,20 @@ sub import_after_all
         old => $self->link_parent, new => $new_id, name => $self->name
             if $report && ($self->link_parent || 0) != ($new_id || 0);
     $self->link_parent($new_id);
+}
+
+has notes => (
+    is        => 'rw',
+    isa       => Str,
+    lazy      => 1
+);
+
+sub _build_notes {
+    my $self = shift;
+
+    my $notes = $self->schema->resultset('notes')->search({
+        layout_id => $self->id,
+    })->next;
 }
 
 1;
