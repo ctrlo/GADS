@@ -2913,7 +2913,7 @@ prefix '/:layout_name' => sub {
             my $report_id = param('id');
 
             my $result = schema->resultset('Report')->find ({id => $report_id})
-                or error 'No report found for ' . $report_id;
+                or error __x"No report found for {report_id}", report_id => $report_id;
 
                 my $lo = param 'layout_name';
             if (process( sub { $result->remove } )) {
