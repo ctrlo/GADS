@@ -146,7 +146,7 @@ const validateRequiredFields = (form) => {
   })
 
 
-  form.find(".fieldset--required").each((i, field) => {
+  form.find(".checkbox-fieldset--required").each((i, field) => {
     if (!validateRequiredFieldsetCheckboxes($(field))) {
       addErrorMessage($(field), $(field).find(".fieldset__legend legend").text(), $(field).attr("id"));
       $(field).addClass("invalid");
@@ -160,9 +160,7 @@ const validateRequiredFields = (form) => {
 
 const validateRequiredFieldsetCheckboxes = (fieldset) => {
   let isValid = false;
-  const checkboxes = fieldset.find("input[type=checkbox]");
-  if(checkboxes.length === 0) return true;
-  checkboxes.each((i, field) => {
+  fieldset.find("input[type=checkbox]").each((i, field) => {
     if (field.isChecked || $(field).is(":checked")) {
       isValid = true;
       return true;
