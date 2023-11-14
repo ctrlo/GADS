@@ -547,23 +547,23 @@ post '/api/table_request' => require_login sub {
 
 get '/api/:sheet/fields' => require_login sub {
     my $user             = logged_in_user;
-    my $layout           = var('layout') or pass;
-    my $col_title        = query_parameters->get('title');
-    my $search           = query_parameters->get('search')
-        or panic __"No search parameters found";
+    my $sheetname        = param 'sheet'
+        or panic __"No sheet name found";
+    my $layout           = var('instances')->layout_by_shortname($sheetname)
+        or panic __x"Sheet {name} not found", name => $sheetname;
+    my $col_title        = query_parameters->get('title')
+        or panic __"No column title found";
+    my $search           = query_parameters->get('search');
 
     my @columns = $layout->all(user_can_read => 1);
-
-    my $result;
+    #Not sure if I should use the below in case it returns the column regardless of permissions?
+    #my $column = $layout->column_by_name($col_title);
 
     foreach my $item (@columns) {
-        last if $result;
-        if(lc($item->name) == lc($col_title)) {
-            $result = $item->values_beginning_with($search);
-        }
+        return encode_json([$item->values_beginning_with($search)]) if lc $item->name eq lc $col_title;
     }
 
-    return encode_json($result);
+    return encode_json([]);
 };
 
 # AJAX record browse
