@@ -21,27 +21,7 @@ class DataTableComponent extends Component {
     this.hasClearState = this.el.hasClass('table-clear-state')
     this.searchParams = new URLSearchParams(window.location.search)
     this.base_url = this.el.data('href') ? this.el.data('href') : undefined
-    this.initData();
     this.initTable()
-  }
-
-  getDataUri(location) {
-    const path = location.startsWith('/') ? location.slice(1) : location
-    const view = path.split('/')[0];
-    const uri = `/api/${view}/fields`;
-    return uri;
-  }
-
-  initData() {
-    $.ajax({
-      url: this.getDataUri(window.location.pathname),
-      success: (data) => {
-        this.data = data
-      },
-      error: (err) => {
-        console.error(err.responseText)
-      }
-    });
   }
 
   initTable() {
@@ -299,12 +279,21 @@ class DataTableComponent extends Component {
       searchOnFocus: true,
       blurOnTab: true,
       source: {
-        data: this.getHiddenValues(title.replace('Sort','').trim())
+        data: () => {
+            const deferred = $.Deferred();
+            $.ajax({
+
+            }).done((data) => {
+                deferred.resolve(data);
+            });
+            deferred.always(() => {
+                console.log("Beep boop monkey poop!");
+            });
+            return deferred;
+        }
       },
       callback: {
         onClickAfter: function (node, a, item, event) {
-          input.val(item.display)
-          input.trigger('change')
         }
       }
     });
@@ -352,16 +341,6 @@ class DataTableComponent extends Component {
         window.history.replaceState(null, '', url);
       }
     })
-  }
-
-  getHiddenValues(field) {
-    let result;
-    this.data.forEach((item) => {
-      if(item.name === field) {
-        result = item.values;
-      }
-    });
-    return result;
   }
 
   encodeHTMLEntities(text) {

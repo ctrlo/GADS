@@ -19,7 +19,7 @@ const initValidationOnField = (field) => {
     } else {
       const $inputEl = field.find('input[required]')
       const $fileButton = field.find('.input__file-label')
-      
+
       $inputEl.on('blur change', (ev) => { setTimeout(() => { validateInput(field) }, 300)})
       $fileButton.on('blur', (ev) => { validateInput(field) } )
     }
@@ -50,14 +50,14 @@ const initValidationOnField = (field) => {
         const $radioButtons = field.find('input[required]')
         let inputBlurTimer
 
-        $radioButtons.on('blur change', (ev) => { 
-          inputBlurTimer = setTimeout(() => { 
-            validateRadioGroup(field) 
+        $radioButtons.on('blur change', (ev) => {
+          inputBlurTimer = setTimeout(() => {
+            validateRadioGroup(field)
           }, 300)} )
 
-        $inputSearch.on('blur', (ev) => { 
-          inputBlurTimer = setTimeout(() => { 
-            validateRadioGroup(field) 
+        $inputSearch.on('blur', (ev) => {
+          inputBlurTimer = setTimeout(() => {
+            validateRadioGroup(field)
           }, 300)} )
 
         $radioButtons.on('focus', (ev) => { clearTimeout(inputBlurTimer) } )
@@ -69,19 +69,19 @@ const initValidationOnField = (field) => {
         let inputBlurTimer
 
         $checkBoxes.on('blur change', (ev) => {
-          inputBlurTimer = setTimeout(() => { 
-            validateCheckboxGroup(field) 
+          inputBlurTimer = setTimeout(() => {
+            validateCheckboxGroup(field)
           }, 300)} )
-        
-        $inputSearch.on('blur', (ev) => { 
-          inputBlurTimer = setTimeout(() => { 
-            validateCheckboxGroup(field) 
+
+        $inputSearch.on('blur', (ev) => {
+          inputBlurTimer = setTimeout(() => {
+            validateCheckboxGroup(field)
           }, 300)} )
 
         $checkBoxes.on('focus', (ev) => { clearTimeout(inputBlurTimer) } )
 
       }
-  
+
   // Tree
   } else if (field.hasClass('tree--required')) {
     const $inputSearch = field.find('.selected-tree-value')
@@ -89,8 +89,8 @@ const initValidationOnField = (field) => {
     let anchorBlurTimer
 
     $jsTreeAnchors.on('blur change', (ev) => {
-      anchorBlurTimer = setTimeout(() => { 
-        validateTree(field) 
+      anchorBlurTimer = setTimeout(() => {
+        validateTree(field)
       }, 300)} )
 
     $jsTreeAnchors.on('focus', (ev) => { clearTimeout(anchorBlurTimer) } )
@@ -135,7 +135,7 @@ const validateRequiredFields = (form) => {
         isValidForm = false
       }
     }
-    
+
   })
 
   form.find(".tree--required").each((i, field) => {
@@ -159,7 +159,9 @@ const validateRequiredFields = (form) => {
 
 const validateRequiredFieldsetCheckboxes = (fieldset) => {
   let isValid = false;
-  fieldset.find("input[type=checkbox]").each((i, field) => {
+  const checkboxes = fieldset.find("input[type=checkbox]");
+  if(checkboxes.length === 0) return true;
+  checkboxes.each((i, field) => {
     if (field.isChecked || $(field).is(":checked")) {
       isValid = true;
       return true;
