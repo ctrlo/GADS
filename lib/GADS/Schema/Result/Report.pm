@@ -222,9 +222,9 @@ has data => (
         $record->find_current_id($record_id);
 
         while ( my $layout = $layouts->next ) {
-            my $column = $gads_layout->column( $layout->layout_id );
+            my $column = $gads_layout->column( $layout->layout_id, permission => 'read' ) or next;
             my $datum  = $record->get_field_value($column);
-            my $data   = { 'name' => $layout->layout->name, 'value' => $datum };
+            my $data   = { 'name' => $layout->layout->name, 'value' => $datum || '' };
             push( @{$result}, $data );
         }
 
