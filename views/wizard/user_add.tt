@@ -1,7 +1,7 @@
 [%-
   firstFrameFields = [];
   secondFrameFields = [];
-  
+
   FOREACH field IN site.user_fields;
     IF field.name == "firstname" OR field.name == "surname" OR field.name == "email";
       firstFrameFields.push(field);
@@ -26,7 +26,7 @@
             <span class='js-add-user'>Add a user</span>
             <span class='js-approve-account'>Approve requested account</span>
           </h3>
-          
+
           <ol class="modal__steps">
             <li class="modal__step modal__step--active" data-step="1">
                   <span>
@@ -45,15 +45,15 @@
             </li>
           </ol>
         </div>
-        
+
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true" class="hidden">Close</span>
         </button>
       </div>
-      
+
       <form method="post">
         [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
-        
+
         <div class="modal-frame" data-config='{"step":1,"frame":1,"item":null,"count":null}'>
           <div class="modal-body">
             <div class="container-fluid">
@@ -63,14 +63,14 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="row mb-4">
                 <div class="col">
                   <p class="js-add-user">In this window you can add a user in the system.</p>
                   <p class="js-approve-account">In this window you can approve this account request.</p>
                 </div>
               </div>
-              
+
               [%- field_counter = 0 -%]
               <div class="row">
               [%- FOREACH field in firstFrameFields -%]
@@ -89,7 +89,7 @@
                       sub_field  = "";
                       sub_params = {};
                     END;
-                  
+
                     IF field.type == "freetext";
                       INCLUDE fields/input.tt
                         id = field.name
@@ -101,7 +101,7 @@
                         is_required = field.is_required
                         sub_field = sub_field
                         sub_params = sub_params;
-                  
+
                     ELSIF field.type == "dropdown";
                       INCLUDE fields/select.tt
                         id = field.name
@@ -120,7 +120,7 @@
               </div>
             </div> <!-- container end -->
           </div> <!-- modal body end -->
-          
+
           [%-
             INCLUDE wizard/sub/modal_footer.tt
               left_buttons = [{
@@ -140,7 +140,7 @@
               }];
           -%]
         </div>
-        
+
         <div class="modal-frame" data-config='{"step":2,"frame":2,"item":null,"count":null}'>
           <div class="modal-body">
             <div class="container-fluid">
@@ -150,7 +150,7 @@
                     organisation, team or department</p>
                 </div>
               </div>
-              
+
               [%- field_counter = 0 -%]
               <div class="row mt-4">
                 [%- FOREACH field in secondFrameFields -%]
@@ -172,7 +172,7 @@
                       sub_field  = "";
                       sub_params = {};
                     END;
-                  
+
                     IF field.type == "freetext";
                       INCLUDE fields/input.tt
                         id = field.name
@@ -183,9 +183,9 @@
                         filter = "html"
                         sub_field = sub_field
                         sub_params = sub_params;
-                  
+
                     ELSIF field.type == "dropdown";
-                      INCLUDE fields/select_single.tt
+                      INCLUDE fields/select.tt
                         id = field.name
                         name = field.name
                         label = field.description
@@ -202,7 +202,7 @@
               </div>
             </div> <!-- container end -->
           </div> <!-- modal body end -->
-          
+
           [%-
             INCLUDE wizard/sub/modal_footer.tt
               left_buttons = [{
@@ -221,7 +221,7 @@
               }];
           -%]
         </div>
-        
+
         <div class="modal-frame" data-config='{"step":3,"frame":3,"item":null,"count":null}'>
           <div class="modal-body">
             <div class="container-fluid">
@@ -237,19 +237,19 @@
                     permissions:</p>
                 </div>
               </div>
-              
+
               [%- IF user.permission.superadmin -%]
               <div class="row mb-3">
                 [% INCLUDE snippets/user_column_permissions.tt list_class="list--no-borders list--checkboxes"; %]
               </div>
               [%- END -%]
-              
+
               <div class="row">
                 [% INCLUDE snippets/user_column_groups.tt list_class="list--no-borders list--checkboxes"; %]
               </div>
             </div> <!-- container end -->
           </div> <!-- modal body end -->
-          
+
           [%-
             INCLUDE wizard/sub/modal_footer.tt
               left_buttons = [{
