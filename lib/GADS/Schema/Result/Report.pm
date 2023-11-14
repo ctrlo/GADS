@@ -222,15 +222,30 @@ has data => (
         $record->find_current_id($record_id);
 
         while ( my $layout = $layouts->next ) {
+            next unless _is_column_allowed($self, $layout->layout->name, $gads_layout);
             my $column = $gads_layout->column( $layout->layout_id );
             my $datum  = $record->get_field_value($column);
-            my $data   = { 'name' => $layout->layout->name, 'value' => $datum };
+            my $data   = { 'name' => $layout->layout->name, 'value' => $datum || '' };
             push( @{$result}, $data );
         }
 
         return $result;
     },
 );
+
+sub _is_column_allowed {
+    my ($self, $column, $gads_layout) = @_;
+
+    my $allowed_cols = [map {$_->name} $gads_layout->all(user_can_read => 1)];
+
+    foreach my $value (@$allowed_cols) {
+        if($value eq $column) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
 
 =head1 Object functions
 =head2 Update Report
