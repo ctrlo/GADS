@@ -2,7 +2,7 @@
 
   fieldset_extra_classes = "fieldset";
   IF fieldset_required;
-    fieldset_extra_classes = fieldset_extra_classes _ " fieldset--required";
+    fieldset_extra_classes = fieldset_extra_classes _ " fieldset--required checkbox-fieldset--required";
   END;
   IF fieldset_classes;
   fieldset_extra_classes = fieldset_extra_classes _ " " _ fieldset_classes;
