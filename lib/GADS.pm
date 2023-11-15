@@ -2300,7 +2300,7 @@ prefix '/:layout_name' => sub {
         if (param('modal_alert') || param('modal_remove')) {
             my $success_message;
             my $frequency = '';
-    
+
             if (param('modal_remove')) {
                 $frequency = '';
                 $success_message = "The alert has been removed successfully";
@@ -2882,6 +2882,8 @@ prefix '/:layout_name' => sub {
 
             my $result = schema->resultset('Report')->load_for_edit($report_id);
 
+            return forwardHome({ danger => 'Report not found' } ) unless $result;
+
             my $fields = $result->fields_for_render($layout);
 
             my $params = {
@@ -2915,7 +2917,8 @@ prefix '/:layout_name' => sub {
             my $result = schema->resultset('Report')->find ({id => $report_id})
                 or error __x"No report found for {report_id}", report_id => $report_id;
 
-                my $lo = param 'layout_name';
+            my $lo = param 'layout_name';
+
             if (process( sub { $result->remove } )) {
                 return forwardHome( { success => "Report deleted" },
                     "$lo/report" );
@@ -2932,6 +2935,8 @@ prefix '/:layout_name' => sub {
 
             my $report =
               schema->resultset('Report')->load($report_id, $view_id);
+
+            return forwardHome({ danger => 'Report not found' } ) unless $report;
 
             my $pdf = $report->create_pdf->content;
 
