@@ -1592,12 +1592,22 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
         }
     }
 
+    my $titles = [];
+    foreach my $title (@{$userso->titles}) {
+        push @{$titles}, { label_html => $title->name, value => $title->id };
+    }
+
+    my $orgs = [];
+    foreach my $org (@{$userso->organisations}) {
+        push @{$orgs}, { label_html => $org->name, value => $org->id };
+    }
+
     my $output = template 'user/user_edit' => {
         edituser => $editUser,
         groups   => GADS::Groups->new(schema => schema)->all,
         values   => {
-            title         => $userso->titles,
-            organisation  => $userso->organisations,
+            title         => $titles,
+            organisation  => $orgs,
             department_id => $userso->departments,
             team_id       => $userso->teams,
         },
@@ -2300,7 +2310,7 @@ prefix '/:layout_name' => sub {
         if (param('modal_alert') || param('modal_remove')) {
             my $success_message;
             my $frequency = '';
-    
+
             if (param('modal_remove')) {
                 $frequency = '';
                 $success_message = "The alert has been removed successfully";
