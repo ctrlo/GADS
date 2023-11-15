@@ -1592,15 +1592,9 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
         }
     }
 
-    my $titles = [];
-    foreach my $title (@{$userso->titles}) {
-        push @{$titles}, { label_html => $title->name, value => $title->id };
-    }
+    my $titles = [map { +{ label_html => $_->name, value => $_->id } } @{$userso->titles}];
 
-    my $orgs = [];
-    foreach my $org (@{$userso->organisations}) {
-        push @{$orgs}, { label_html => $org->name, value => $org->id };
-    }
+    my $orgs = [map { +{ label_html => $_->name, value => $_->id } } @{$userso->organisations}];
 
     my $output = template 'user/user_edit' => {
         edituser => $editUser,
