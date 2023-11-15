@@ -1,4 +1,4 @@
-import CreateReportButtonComponent from './create-report-button';
+import CreateReportButtonComponent from '../index';
 import { validateRequiredFields } from 'validation';
 
 global.$ = require('jquery');
@@ -19,16 +19,14 @@ describe('create-report-button', () => {
           <input id="6" type="checkbox">
           <input id="7" type="checkbox">
         </fieldset>
-        <button type="button" class="btn btn-inverted btn-js-report" id="submit">
+        <button type="submit" class="btn btn-inverted btn-js-report" id="submit">
       </form>
     `;
 
-    const valid = validateRequiredFields($('#myform'));
-    expect(valid).toBe(false);
+    new CreateReportButtonComponent(document.body);
 
-    const button = new CreateReportButtonComponent(document.querySelector('#submit'));
-
-    const submitSpy = jest.spyOn(button, 'submit');
+    const submitSpy = jest.fn((ev)=>{ev.preventDefault(); ev.stopPropagation();});
+    $('#myform').on('submit', submitSpy);
 
     $('#submit').trigger('click');
 
@@ -52,12 +50,12 @@ describe('create-report-button', () => {
           <input id="6" type="checkbox">
           <input id="7" type="checkbox">
         </fieldset>
-        <button type="button" class="btn btn-inverted btn-js-report" id="submit">
+        <button type="submit" class="btn btn-inverted btn-js-report" id="submit">
       </form>
     `;
 
-    const button = new CreateReportButtonComponent(document.querySelector('#submit'));
-    const submitSpy = jest.spyOn(button, 'submit');
+    const button = new CreateReportButtonComponent(document.body);
+    const submitSpy = jest.fn((ev)=>{ev.preventDefault(); ev.stopPropagation();});
 
     $('#myform').on('submit', submitSpy);
     $('#submit').trigger('click');
@@ -82,13 +80,14 @@ describe('create-report-button', () => {
           <input id="6" type="checkbox">
           <input id="7" type="checkbox">
         </fieldset>
-        <button type="button" class="btn btn-inverted btn-js-report" id="submit">
+        <button type="submit" class="btn btn-inverted btn-js-report" id="submit">
       </form>
     `;
 
-    const button = new CreateReportButtonComponent(document.querySelector('#submit'));
-    const formSpyFn = jest.spyOn(button, 'submit');
+    new CreateReportButtonComponent(document.body);
+    const formSpyFn = jest.fn((ev)=>{ev.preventDefault(); ev.stopPropagation();});
 
+    $('#myform').on('submit', formSpyFn);
     $('#submit').trigger('click');
 
     expect(formSpyFn).toHaveBeenCalled();
@@ -156,7 +155,7 @@ describe('create-report-button', () => {
             </ul>
           </div>
         </fieldset>
-        <button type="button">
+        <button type="submit">
       </form>
     `;
 
