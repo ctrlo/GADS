@@ -68,7 +68,7 @@
             aria-haspopup="listbox"
             aria-expanded="false"
             aria-labelledby="=[% id %]">
-            Reports
+            Download Options
           </button>
 
           <div class="dropdown-menu dropdown__menu dropdown-menu-right">
