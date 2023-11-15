@@ -76,11 +76,7 @@
                   data-value="[% item.label_html %]"
               >
               <label class="radio-group__label" for="[% id %]_[% item.value %]">
-                [% IF filter == "html";
-                     item.label_html | html;
-                ELSE;
-                    item.label_html;
-                END; %]
+                [% INCLUDE fields/sub/filter.tt value=item.label_html filter=filter %]
               </label>
             </div>
           [% IF with_details %]
