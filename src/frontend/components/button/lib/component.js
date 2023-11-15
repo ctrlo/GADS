@@ -15,8 +15,8 @@ class ButtonComponent extends Component {
 
   initButton() {
     switch (true) {
-      case this.el.hasClass('btn-js-create-report'):
-        new CreateReportButtonComponent(this.el)
+      case this.el.hasClass('btn-js-report'):
+        new CreateReportButtonComponent(this.element)
         break
       case this.el.hasClass('btn-js-more-info'):
         new MoreInfoButton(this.el)
@@ -96,7 +96,7 @@ class ButtonComponent extends Component {
   }
 
   initSubmitField() {
-    this.el.on('click', (ev) => { this.submitField(ev) }) 
+    this.el.on('click', (ev) => { this.submitField(ev) })
   }
 
   initSubmitDraftRecord() {
@@ -108,17 +108,17 @@ class ButtonComponent extends Component {
   }
 
   initSaveView() {
-    this.el.on('click', (ev) => { this.saveView(ev) }) 
+    this.el.on('click', (ev) => { this.saveView(ev) })
   }
 
   initRemoveUnload() {
-    this.el.on('click', (ev) => { 
-      $(window).off('beforeunload') 
-    }) 
+    this.el.on('click', (ev) => {
+      $(window).off('beforeunload')
+    })
   }
 
   initDelete() {
-    this.el.on('click', (ev) => { this.dataToModal(ev) }) 
+    this.el.on('click', (ev) => { this.dataToModal(ev) })
   }
 
   submitField(ev) {
@@ -164,8 +164,8 @@ class ButtonComponent extends Component {
         // eslint-disable-next-line no-alert
         alert('Tree has been updated')
       })
-    } 
-    
+    }
+
     if (bUpdateFilter) {
       window.UpdateFilter($filterEl, ev)
     }
@@ -199,13 +199,13 @@ class ButtonComponent extends Component {
     const $form = $button.closest("form")
     const $requiredHiddenRecordDependentFields = $form.find(".form-group[data-has-dependency='1'][style*='display: none'] *[aria-required]")
     const $parent = $button.closest('.modal-body')
-    
+
     if (!this.requiredHiddenRecordDependentFieldsCleared) {
       ev.preventDefault()
-      
+
       // Remove the required attribute from hidden required dependent fields
       $requiredHiddenRecordDependentFields.removeAttr('required')
-      this.requiredHiddenRecordDependentFieldsCleared = true      
+      this.requiredHiddenRecordDependentFieldsCleared = true
     }
 
     if (!this.canSubmitRecordForm) {
