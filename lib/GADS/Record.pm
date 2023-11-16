@@ -962,7 +962,7 @@ sub _find
                 already_seen => $records->already_seen,
             );
             my @changed;
-            foreach my $column (@{$record->columns_retrieved_no})
+            foreach my $column (@{$record->columns_render})
             {
                 next if $column->internal;
                 my $datum = $record->fields->{$column->id};
@@ -1023,7 +1023,7 @@ sub _find
                 editor   => $record->createdby,
                 datetime => $record->created,
                 changed  => \@changed,
-            };
+            } if @changed;
             $last_record = $record;
         }
         $self->_set_chronology(\@chronology);
