@@ -1298,8 +1298,6 @@ sub values_by_shortname
         map {
             my $col = $self->layout->column_by_name_short($_)
                 or error __x"Short name {name} does not exist", name => $_;
-            # Limit to permission?
-            next if exists $params{permission} && !$col->user_can($params{permission});
             my $linked = $self->linked_id && $col->link_parent;
             my $datum = $self->get_field_value($col)
                 or panic __x"Value for column {name} missing. Possibly missing entry in layout_depend?", name => $col->name;
@@ -1310,7 +1308,11 @@ sub values_by_shortname
                 : $self->fields->{$col->id};
             # Retain and provide recurse-prevention information.
             $_ => $d->for_code(fields => $params{all_possible_names}, already_seen_code => $params{already_seen_code});
-        } @names
+        } grep {
+            # Limit to permission?
+            ! exists $params{permission} || $col->user_can($params{permission})
+        }
+        @names
     };
 }
 
