@@ -2713,6 +2713,15 @@ sub pdf
     $pdf;
 }
 
+sub get_report
+{   my ($self, $report_id) = @_;
+
+    my $report = $self->schema->resultset('Report')->find($report_id)
+        or error __x"Report ID {id} not found", id => $report_id;
+
+    $report->create_pdf($self);
+}
+
 # Delete the record entirely from the database, plus its parent current (entire
 # row) along with all related records
 sub purge_current
