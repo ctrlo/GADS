@@ -1023,7 +1023,7 @@ sub _find
                 editor   => $record->createdby,
                 datetime => $record->created,
                 changed  => \@changed,
-            } if @changed;
+            } if @changed; # There may have been changes, but not ones the user has access to
             $last_record = $record;
         }
         $self->_set_chronology(\@chronology);
