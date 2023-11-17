@@ -559,11 +559,22 @@ get '/api/:sheet/fields' => require_login sub {
     #Not sure if I should use the below in case it returns the column regardless of permissions?
     #my $column = $layout->column_by_name($col_title);
 
+    my $items;
+    my $result=[];
+
     foreach my $item (@columns) {
-        return encode_json([$item->values_beginning_with($search)]) if lc $item->name eq lc $col_title;
+        next if !$item || !($item->name) || $item->name !~ /$col_title/i;
+        last if $items;
+        $items = [$item->values_beginning_with($search)];
     }
 
-    return encode_json([]);
+    foreach my $item (@$items) {
+        if(ref($item) eq 'HASH') {
+            push @$result, $item->{'label'};
+        }
+    }
+
+    return encode_json($result);
 };
 
 # AJAX record browse
