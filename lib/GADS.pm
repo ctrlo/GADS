@@ -2770,8 +2770,8 @@ prefix '/:layout_name' => sub {
 
     prefix '/report' => sub {
 
-        #view all reports for this instance
-        get '' => require_login sub {
+        #view all reports for this instance, or delete a report
+        any ['get','post'] => '' => require_login sub {
             my $user   = logged_in_user;
             my $layout = var('layout') or pass;
 
@@ -2782,6 +2782,22 @@ prefix '/:layout_name' => sub {
             my $base_url = request->base;
 
             my $reports = $layout->reports;
+
+            if ( body_parameters->get('delete') ) {
+                my $report_id = body_parameters->get('delete');
+                my $result =
+                     schema->resultset('Report')->find( { id => $report_id } )
+                  or error __x "No report found for {report_id}",
+                  report_id => $report_id;
+
+                my $lo = param 'layout_name';
+
+                if ( process( sub { $result->remove } ) ) {
+                    return forwardHome( { success => "Report deleted" },
+                        "$lo/report" );
+                }
+                return forwardHome("$lo/report");
+            }
 
             my $params = {
                 header_type     => 'table_tabs',
@@ -2907,29 +2923,6 @@ prefix '/:layout_name' => sub {
             };
 
             template 'reports/edit' => $params;
-        };
-
-        #Delete a report (by :id)
-        get "/delete:id" => sub {
-            my $user   = logged_in_user;
-            my $layout = var('layout') or pass;
-
-            return forwardHome(
-                { danger => 'You do not have permission to edit reports' } )
-                    unless $layout->user_can("layout");
-
-            my $report_id = param('id');
-
-            my $result = schema->resultset('Report')->find ({id => $report_id})
-                or error __x"No report found for {report_id}", report_id => $report_id;
-
-            my $lo = param 'layout_name';
-
-            if (process( sub { $result->remove } )) {
-                return forwardHome( { success => "Report deleted" },
-                    "$lo/report" );
-            }
-            return forwardHome( "$lo/report" );
         };
     };
 

@@ -12,9 +12,9 @@
         filter = "html",
         link   = "report/edit{report_id}"
       },{
-        label  = "Delete",
-        filter = "html",
-        link   = "report/delete{report_id}"
+        type = "modal_button"
+        modalId = "deleteReport"
+        label = "Delete"
     }
   ]
 
@@ -30,6 +30,10 @@
     data = {
       link_placeholders = {
         report_id = report.id
+      }
+      modal = {
+        dataID = report.id
+        dataTitle = report.name
       }
       fields  = [{
         type  = "string",
@@ -65,3 +69,8 @@
     </div>
   </div>
 </div>
+
+[% INCLUDE wizard/delete.tt
+    description = "Are you sure you wish to delete this report? This cannot be undone."
+    label = "Delete " _ report.name
+    modalId = "deleteReport" %]
