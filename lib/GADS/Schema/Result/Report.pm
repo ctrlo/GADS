@@ -191,46 +191,29 @@ has record_id => (
     required => 0,
 );
 
-=head2 Data
+=head2 _data
 This is the data for the report as pulled from the instance record identfied by the Record Id
 =cut
 
-has data => (
-    is      => 'rwp',
-    lazy    => 1,
-    builder => sub {
-        my $self = shift;
+sub _data
+{   my ($self, $record) = @_;
 
-        my $result = [];
+    my $result = [];
 
-        my $layouts = $self->report_layouts;
-        my $user    = $self->user;
+    my $layouts = $self->report_layouts;
+    my $user    = $self->user;
 
-        my $gads_layout = GADS::Layout->new(
-            schema      => $self->result_source->schema,
-            user        => $user,
-            instance_id => $self->instance_id,
-        );
+    my $gads_layout = $record->layout;
 
-        my $record = GADS::Record->new(
-            schema => $self->result_source->schema,
-            user   => $user,
-            layout => $gads_layout,
-        );
+    while ( my $layout = $layouts->next ) {
+        my $column = $gads_layout->column( $layout->layout_id, permission => 'read' ) or next;
+        my $datum  = $record->get_field_value($column);
+        my $data   = { 'name' => $layout->layout->name, 'value' => $datum || '' };
+        push( @{$result}, $data );
+    }
 
-        my $record_id = $self->record_id;
-        $record->find_current_id($record_id);
-
-        while ( my $layout = $layouts->next ) {
-            my $column = $gads_layout->column( $layout->layout_id, permission => 'read' ) or next;
-            my $datum  = $record->get_field_value($column);
-            my $data   = { 'name' => $layout->layout->name, 'value' => $datum || '' };
-            push( @{$result}, $data );
-        }
-
-        return $result;
-    },
-);
+    return $result;
+}
 
 =head1 Object functions
 =head2 Update Report
@@ -286,8 +269,8 @@ sub remove {
 Function to create a PDF of the report - it will return a PDF object
 =cut
 
-sub create_pdf {
-    my $self = shift;
+sub create_pdf
+{   my ($self, $record) = @_;
 
     my $dateformat = GADS::Config->instance->dateformat;
     my $now        = DateTime->now;
@@ -309,7 +292,7 @@ sub create_pdf {
 
     my $fields = [ [ 'Field', 'Value' ] ];
 
-    my $data = $self->data;
+    my $data = $self->_data($record);
 
     push( @{$fields}, [ $_->{name}, $_->{value} ] ) foreach (@$data);
 
