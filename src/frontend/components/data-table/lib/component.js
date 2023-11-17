@@ -14,7 +14,7 @@ import { moreLess } from '../../more-less/lib/more-less'
 const MORE_LESS_TRESHOLD = 50
 
 class DataTableComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.hasCheckboxes = this.el.hasClass('table-selectable')
@@ -25,7 +25,7 @@ class DataTableComponent extends Component {
   }
 
   initTable() {
-    if(this.hasClearState) {
+    if (this.hasClearState) {
       this.clearTableStateForPage()
 
       let url = new URL(window.location.href)
@@ -71,7 +71,7 @@ class DataTableComponent extends Component {
 
   clearTableStateForPage() {
     for (let i = 0; i < localStorage.length; i++) {
-      let storageKey = localStorage.key( i )
+      let storageKey = localStorage.key(i)
 
       if (!storageKey.startsWith("DataTables")) {
         continue;
@@ -83,7 +83,7 @@ class DataTableComponent extends Component {
         continue;
       }
 
-      if(window.location.href.indexOf('/' + keySegments.slice(1).join('/')) !== -1) {
+      if (window.location.href.indexOf('/' + keySegments.slice(1).join('/')) !== -1) {
         localStorage.removeItem(storageKey)
       }
     }
@@ -138,10 +138,10 @@ class DataTableComponent extends Component {
   getCheckboxElement(id, label) {
     return (
       `<div class='checkbox'>` +
-        `<input id='dt_checkbox_${id}' type='checkbox' />` +
-        `<label for='dt_checkbox_${id}'><span>${label}</span></label>` +
+      `<input id='dt_checkbox_${id}' type='checkbox' />` +
+      `<label for='dt_checkbox_${id}'><span>${label}</span></label>` +
       '</div>'
-      )
+    )
   }
 
   addSelectAllCheckbox() {
@@ -160,10 +160,10 @@ class DataTableComponent extends Component {
     })
 
     // Check if the 'select all' checkbox is checked and all checkboxes need to be checked
-    $selectAllElm.find('input').on( 'click', (ev) => {
+    $selectAllElm.find('input').on('click', (ev) => {
       const checkbox = $(ev.target)
 
-      if ($(checkbox).is( ':checked' )) {
+      if ($(checkbox).is(':checked')) {
         this.checkAllCheckboxes($checkBoxes, true)
       } else {
         this.checkAllCheckboxes($checkBoxes, false)
@@ -173,7 +173,7 @@ class DataTableComponent extends Component {
 
   checkAllCheckboxes($checkBoxes, bCheckAll) {
     if (bCheckAll) {
-      $checkBoxes.prop( 'checked', true )
+      $checkBoxes.prop('checked', true)
     } else {
       $checkBoxes.prop('checked', false)
     }
@@ -210,7 +210,7 @@ class DataTableComponent extends Component {
       .off()
       .find('.data-table__header-wrapper').html($button)
 
-    dataTable.order.listener($button, column.index() )
+    dataTable.order.listener($button, column.index())
   }
 
   toggleFilter(column) {
@@ -249,7 +249,13 @@ class DataTableComponent extends Component {
         <div class='dropdown-menu p-2' aria-labelledby='search-toggle-${index}'>
           <label>
             <div class='input'>
-              <input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>
+              <div class='typeahead__container'>
+                <div class='typeahead__field'>
+                  <div class='typeahead__query'>
+                    <input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>
+                  </div>
+                </div>
+              </div>
             </div>
           </label>
           <button type='button' class='btn btn-link btn-small data-table__clear hidden'>
@@ -262,6 +268,35 @@ class DataTableComponent extends Component {
     $header.find('.data-table__header-wrapper').prepend($searchElement)
 
     this.toggleFilter(column)
+
+    const input = $('input', $header);
+
+    typeof $.typeahead === 'function' && input.typeahead({
+      minLength: 1,
+      maxItem: 20,
+      order: "asc",
+      hint: true,
+      searchOnFocus: true,
+      blurOnTab: true,
+      source: {
+        data: () => {
+            const deferred = $.Deferred();
+            $.ajax({
+
+            }).done((data) => {
+                deferred.resolve(data);
+            });
+            deferred.always(() => {
+                console.log("Beep boop monkey poop!");
+            });
+            return deferred;
+        }
+      },
+      callback: {
+        onClickAfter: function (node, a, item, event) {
+        }
+      }
+    });
 
     // Apply the search
     $('input', $header).on('change', function () {
@@ -337,8 +372,8 @@ class DataTableComponent extends Component {
     }
 
     data.values.forEach((value, i) => {
-        strHTML += this.encodeHTMLEntities(value)
-        strHTML += (data.values.length > (i + 1)) ? `, ` : ``
+      strHTML += this.encodeHTMLEntities(value)
+      strHTML += (data.values.length > (i + 1)) ? `, ` : ``
     })
 
     return this.renderMoreLess(strHTML, data.name)
@@ -374,7 +409,7 @@ class DataTableComponent extends Component {
             thisHTML += `<p>${this.encodeHTMLEntities(detail.definition)}: ${strDecodedValue}</p>`
           }
         })
-        thisHTML +=  `</div>`
+        thisHTML += `</div>`
         strHTML += (
           `<div class="position-relative">
             <button class="btn btn-small btn-inverted btn-info trigger" aria-expanded="false" type="button">
@@ -482,7 +517,7 @@ class DataTableComponent extends Component {
     if (data.limit_rows && data.values.length >= data.limit_rows) {
       strHTML +=
         `<p><em>(showing maximum ${data.limit_rows} rows.
-          <a href="/${data.parent_layout_identifier}/data?curval_record_id=${data.curval_record_id}&curval_layout_id=${data.column_id }">view all</a>)</em>
+          <a href="/${data.parent_layout_identifier}/data?curval_record_id=${data.curval_record_id}&curval_layout_id=${data.column_id}">view all</a>)</em>
         </p>`
     }
 
@@ -549,9 +584,9 @@ class DataTableComponent extends Component {
       const self = this
 
       this.json = json ? json : undefined
-      
+
       if (this.initializingTable) {
-        dataTable.columns().every(function(index) {
+        dataTable.columns().every(function (index) {
           const column = this
           const $header = $(column.header())
 
@@ -572,7 +607,7 @@ class DataTableComponent extends Component {
             }
 
             self.addSearchDropdown(column, id, index)
-          } 
+          }
         })
 
         // If the table has not wrapped (become responsive) then hide the toggle button
@@ -580,19 +615,19 @@ class DataTableComponent extends Component {
           if (this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').length) {
             this.el.closest('.dataTables_wrapper').find('.dataTables_toggle_full_width').hide()
           }
-        } 
+        }
 
         this.initializingTable = false
       }
     }
 
-    conf['footerCallback'] = function( tfoot, data, start, end, display ) {
+    conf['footerCallback'] = function (tfoot, data, start, end, display) {
       var api = this.api()
       // Add aggregate values to table if configured
       var agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate
       if (agg) {
         var cols = api.settings()[0].oAjaxData.columns
-        api.columns().every( function () {
+        api.columns().every(function () {
           let idx = this.index()
           const name = cols[idx].name
           if (agg[name]) {
@@ -625,7 +660,7 @@ class DataTableComponent extends Component {
         text: 'Full screen',
         enabled: false,
         className: 'btn btn-small btn-toggle-off',
-        action: function ( e, dt, node, config ) {
+        action: function (e, dt, node, config) {
           if (!document.fullscreenElement) {
             document.documentElement.requestFullscreen()
           } else {
@@ -679,7 +714,7 @@ class DataTableComponent extends Component {
 
   bindClickHandlersAfterDraw(conf) {
     const tableElement = this.el
-    let rows = tableElement.DataTable().rows( {page:'current'} ).data()
+    let rows = tableElement.DataTable().rows({ page: 'current' }).data()
 
     if (rows && this.base_url) {
       // Add click handler to tr to open a record by id

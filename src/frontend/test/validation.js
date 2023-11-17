@@ -19,7 +19,7 @@ const initValidationOnField = (field) => {
     } else {
       const $inputEl = field.find('input[required]')
       const $fileButton = field.find('.input__file-label')
-      
+
       $inputEl.on('blur change', (ev) => { setTimeout(() => { validateInput(field) }, 300)})
       $fileButton.on('blur', (ev) => { validateInput(field) } )
     }
@@ -50,14 +50,14 @@ const initValidationOnField = (field) => {
         const $radioButtons = field.find('input[required]')
         let inputBlurTimer
 
-        $radioButtons.on('blur change', (ev) => { 
-          inputBlurTimer = setTimeout(() => { 
-            validateRadioGroup(field) 
+        $radioButtons.on('blur change', (ev) => {
+          inputBlurTimer = setTimeout(() => {
+            validateRadioGroup(field)
           }, 300)} )
 
-        $inputSearch.on('blur', (ev) => { 
-          inputBlurTimer = setTimeout(() => { 
-            validateRadioGroup(field) 
+        $inputSearch.on('blur', (ev) => {
+          inputBlurTimer = setTimeout(() => {
+            validateRadioGroup(field)
           }, 300)} )
 
         $radioButtons.on('focus', (ev) => { clearTimeout(inputBlurTimer) } )
@@ -69,19 +69,19 @@ const initValidationOnField = (field) => {
         let inputBlurTimer
 
         $checkBoxes.on('blur change', (ev) => {
-          inputBlurTimer = setTimeout(() => { 
-            validateCheckboxGroup(field) 
+          inputBlurTimer = setTimeout(() => {
+            validateCheckboxGroup(field)
           }, 300)} )
-        
-        $inputSearch.on('blur', (ev) => { 
-          inputBlurTimer = setTimeout(() => { 
-            validateCheckboxGroup(field) 
+
+        $inputSearch.on('blur', (ev) => {
+          inputBlurTimer = setTimeout(() => {
+            validateCheckboxGroup(field)
           }, 300)} )
 
         $checkBoxes.on('focus', (ev) => { clearTimeout(inputBlurTimer) } )
 
       }
-  
+
   // Tree
   } else if (field.hasClass('tree--required')) {
     const $inputSearch = field.find('.selected-tree-value')
@@ -89,8 +89,8 @@ const initValidationOnField = (field) => {
     let anchorBlurTimer
 
     $jsTreeAnchors.on('blur change', (ev) => {
-      anchorBlurTimer = setTimeout(() => { 
-        validateTree(field) 
+      anchorBlurTimer = setTimeout(() => {
+        validateTree(field)
       }, 300)} )
 
     $jsTreeAnchors.on('focus', (ev) => { clearTimeout(anchorBlurTimer) } )
@@ -135,7 +135,7 @@ const validateRequiredFields = (form) => {
         isValidForm = false
       }
     }
-    
+
   })
 
   form.find(".tree--required").each((i, field) => {
@@ -145,8 +145,30 @@ const validateRequiredFields = (form) => {
     }
   })
 
+  form.find(".checkbox-fieldset--required").each((i, field) => {
+    if (!validateRequiredFieldsetCheckboxes($(field))) {
+      addErrorMessage($(field), $(field).find(".fieldset__legend legend").text(), $(field).attr("id"));
+      $(field).addClass("invalid");
+      $(field).closest(".fieldset--required").addClass("fieldset--invalid");
+      isValidForm = false;
+    }
+  });
+
   return isValidForm
 }
+
+const validateRequiredFieldsetCheckboxes = (fieldset) => {
+  let isValid = false;
+  const checkboxes = fieldset.find("input[type=checkbox]");
+  if(checkboxes.length === 0) return true;
+  checkboxes.each((i, field) => {
+    if (field.isChecked || $(field).is(":checked")) {
+      isValid = true;
+      return true;
+    }
+  });
+  return isValid;
+};
 
 const addErrorMessage = (field, name, id) => {
   const $errorDiv = $('<div class="error">')
@@ -282,18 +304,23 @@ const validateTree = (field) => {
 // Expand the card with a certain field and scroll it into view
 const expandCardValidate = (field) => {
   const $collapse = $(field).closest('.card--expandable').find('.collapse')
-  // If the card is already expanded then just scroll straight to the field
-  if ($collapse.hasClass('show')) {
-      field.scrollIntoView()
-  } else {
-    // Otherwise add an event handler to scroll to the field, but only once the
-    // card has finished expanding (otherwise the scroll will happen before
-    // the card has finished expanding and it won't work)
-    $collapse.on('shown.bs.collapse.foobar', function(){
-      field.scrollIntoView()
-      $(this).off('shown.bs.collapse.foobar');
-    })
-    $collapse.collapse('show')
+  if($collapse && $collapse.collapse) {
+    const $label = $(field).closest('.form-group').find('legend, label')
+    // Turn into edit mode if the topic is now in view mode
+    $collapse.prev().find('.btn-edit:visible').trigger('click')
+    // If the card is already expanded then just scroll straight to the field
+    if ($collapse.hasClass('show')) {
+        $label[0].scrollIntoView()
+    } else {
+      // Otherwise add an event handler to scroll to the field, but only once the
+      // card has finished expanding (otherwise the scroll will happen before
+      // the card has finished expanding and it won't work)
+      $collapse.on('shown.bs.collapse.foobar', function(){
+        $label[0].scrollIntoView()
+        $(this).off('shown.bs.collapse.foobar');
+      })
+      $collapse.collapse('show')
+    }
   }
 }
 
