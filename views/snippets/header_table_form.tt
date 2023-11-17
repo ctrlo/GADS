@@ -45,7 +45,7 @@
               FOREACH report IN reports;
                 links.push({
                   name     = report.name,
-                  target   = url.page _ '/' _ layout.identifier _ '/report/render' _ report.id _ '/' _ record.current_id,
+                  target   = url.page _ '/' _ layout.identifier _ '/record/' _ record.current_id _ "?report=" _ report.id,
                 });
               END;
 
