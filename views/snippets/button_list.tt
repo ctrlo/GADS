@@ -71,7 +71,7 @@
             Download Options
           </button>
 
-          <div class="dropdown-menu dropdown__menu dropdown-menu-right">
+          <div class="dropdown-menu dropdown__menu dropdown-menu-end">
             <ul class="dropdown__list" role="listbox" aria-labelledby="dropdown">
               [% FOREACH item IN button.links %]
               <li class="dropdown__item" role="option">
