@@ -1850,6 +1850,12 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
         return send_file(\$pdf, content_type => 'application/pdf', filename => "Record-".$record->current_id.".pdf" );
     }
 
+    if (my $report_id = query_parameters->get('report'))
+    {
+        my $pdf = $record->get_report($report_id)->content;
+        return send_file( \$pdf, content_type => 'application/pdf', );
+    }
+
     if ( app->has_hook('plugin.linkspace.record_before_template') ) {
         app->execute_hook( 'plugin.linkspace.record_before_template', record => $record );
     }
@@ -2921,21 +2927,6 @@ prefix '/:layout_name' => sub {
                     "$lo/report" );
             }
             return forwardHome( "$lo/report" );
-        };
-
-        #Render the report (by :report) with the view (by :view)
-        get "/render:report/:view" => sub {
-            my $user = logged_in_user;
-
-            my $report_id = route_parameters->get('report');
-            my $view_id   = route_parameters->get('view');
-
-            my $report =
-              schema->resultset('Report')->load($report_id, $view_id);
-
-            my $pdf = $report->create_pdf->content;
-
-            return send_file( \$pdf, content_type => 'application/pdf', );
         };
     };
 

@@ -962,7 +962,7 @@ sub _find
                 already_seen => $records->already_seen,
             );
             my @changed;
-            foreach my $column (@{$record->columns_retrieved_no})
+            foreach my $column (@{$record->columns_render})
             {
                 next if $column->internal;
                 my $datum = $record->fields->{$column->id};
@@ -1023,7 +1023,7 @@ sub _find
                 editor   => $record->createdby,
                 datetime => $record->created,
                 changed  => \@changed,
-            };
+            } if @changed; # There may have been changes, but not ones the user has access to
             $last_record = $record;
         }
         $self->_set_chronology(\@chronology);
@@ -1296,19 +1296,25 @@ sub values_by_shortname
     my @names = @{$params{names}};
     +{
         map {
-            my $col = $self->layout->column_by_name_short($_)
-                or error __x"Short name {name} does not exist", name => $_;
-            my $linked = $self->linked_id && $col->link_parent;
-            my $datum = $self->get_field_value($col)
-                or panic __x"Value for column {name} missing. Possibly missing entry in layout_depend?", name => $col->name;
-            my $d = $self->fields->{$col->id}->is_awaiting_approval # waiting approval, use old value
-                ? $self->fields->{$col->id}->oldvalue
-                : $linked && $self->fields->{$col->id}->oldvalue # linked, and linked value has been overwritten
-                ? $self->fields->{$col->id}->oldvalue
-                : $self->fields->{$col->id};
+            my $linked = $self->linked_id && $_->link_parent;
+            my $datum = $self->get_field_value($_)
+                or panic __x"Value for column {name} missing. Possibly missing entry in layout_depend?", name => $_->name;
+            my $d = $self->fields->{$_->id}->is_awaiting_approval # waiting approval, use old value
+                ? $self->fields->{$_->id}->oldvalue
+                : $linked && $self->fields->{$_->id}->oldvalue # linked, and linked value has been overwritten
+                ? $self->fields->{$_->id}->oldvalue
+                : $self->fields->{$_->id};
             # Retain and provide recurse-prevention information.
-            $_ => $d->for_code(fields => $params{all_possible_names}, already_seen_code => $params{already_seen_code});
-        } @names
+            $_->name_short => $d->for_code(fields => $params{all_possible_names}, already_seen_code => $params{already_seen_code});
+        } grep {
+            # Limit to permission?
+            ! exists $params{permission} || $_->user_can($params{permission})
+        } map {
+            # Convert short name to column
+            $self->layout->column_by_name_short($_)
+                or error __x"Short name {name} does not exist", name => $_;
+        }
+        @names
     };
 }
 
@@ -2711,6 +2717,15 @@ sub pdf
     );
 
     $pdf;
+}
+
+sub get_report
+{   my ($self, $report_id) = @_;
+
+    my $report = $self->schema->resultset('Report')->find($report_id)
+        or error __x"Report ID {id} not found", id => $report_id;
+
+    $report->create_pdf($self);
 }
 
 # Delete the record entirely from the database, plus its parent current (entire
