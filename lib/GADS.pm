@@ -2306,7 +2306,7 @@ prefix '/:layout_name' => sub {
         if (param('modal_alert') || param('modal_remove')) {
             my $success_message;
             my $frequency = '';
-    
+
             if (param('modal_remove')) {
                 $frequency = '';
                 $success_message = "The alert has been removed successfully";
@@ -3569,6 +3569,7 @@ prefix '/:layout_name' => sub {
                 # turned into base64 which requires layout to be set in
                 # GADS::Filter (to prevent a panic)
                 $column->display_fields->layout($layout);
+                $column->notes(body_parameters->get('notes'));
 
                 my $no_alerts;
                 if ($column->type eq "file")

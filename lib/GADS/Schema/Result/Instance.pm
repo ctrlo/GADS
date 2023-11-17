@@ -378,20 +378,6 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
-=head2 notes
-
-Type: has_one
-Related object: L<GADS::Schema::Result::Note>
-
-=cut
-
-__PACKAGE__->has_one(
-  "notes",
-  "GADS::Schema::Result::Note",
-  { "foreign.instance_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
-);
-
 # The following code is now removed: it is too difficult to scrub whilst still
 # retaining the required functionality and formatting (and being completely
 # safe). Given that only an administrator has access to update HTML code, this

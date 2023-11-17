@@ -1349,7 +1349,7 @@ sub _write_permissions
 
     $search->{group_id} = { '!=' => [ '-and', @groups ] }
         if @groups;
-        
+
     my @removed = $self->schema->resultset('LayoutGroup')->search($search,{
         select   => {
             max => 'group_id',
@@ -1752,17 +1752,10 @@ sub import_after_all
 
 has notes => (
     is        => 'rw',
-    isa       => Str,
-    lazy      => 1
+    required  => 0,
+    isa       => Maybe[Str],
+    coerce    => sub { $_[0] ? $_[0] : undef },
 );
-
-sub _build_notes {
-    my $self = shift;
-
-    my $notes = $self->schema->resultset('notes')->search({
-        layout_id => $self->id,
-    })->next;
-}
 
 1;
 
