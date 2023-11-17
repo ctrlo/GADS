@@ -1118,6 +1118,16 @@ any ['get', 'post'] => '/settings/organisation_edit/:id' => require_any_role [qw
         }
     }
 
+    if (body_parameters->get('submit'))
+    {
+        $organisation->name(body_parameters->get('name'));
+        if (process( sub { $organisation->insert_or_update } ))
+        {
+            return forwardHome(
+                { success => "The $organisation_name has been edited successfully" }, 'settings/organisation_overview/' );
+        }
+    }
+
     my $base_url = request->base;
 
     $organisation->{type}        = $organisation_name;
@@ -2306,7 +2316,7 @@ prefix '/:layout_name' => sub {
         if (param('modal_alert') || param('modal_remove')) {
             my $success_message;
             my $frequency = '';
-    
+
             if (param('modal_remove')) {
                 $frequency = '';
                 $success_message = "The alert has been removed successfully";
