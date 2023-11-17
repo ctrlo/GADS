@@ -159,9 +159,7 @@ const validateRequiredFields = (form) => {
 
 const validateRequiredFieldsetCheckboxes = (fieldset) => {
   let isValid = false;
-  const checkboxes = fieldset.find("input[type=checkbox]");
-  if(checkboxes.length === 0) return true;
-  checkboxes.each((i, field) => {
+  fieldset.find("input[type=checkbox]").each((i, field) => {
     if (field.isChecked || $(field).is(":checked")) {
       isValid = true;
       return true;
