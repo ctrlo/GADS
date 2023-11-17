@@ -35,9 +35,7 @@ sub load_for_edit {
     my $result = $self->find( { id => $id, deleted => undef }, { prefetch => 'report_layouts' } )
       or error __"No report found for id $id";
 
-    return undef if $result->deleted;
-
-    return $result;
+    return $result unless $result->deleted;
     return undef;
 }
 
