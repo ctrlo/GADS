@@ -15,12 +15,12 @@ Function to load a report for a given id - it requires the report id, and record
 sub load {
     my ( $self, $id, $record_id ) = @_;
 
-    my $result = load_for_edit( $self, $id );
-    return undef unless $result;
+    my $result = load_for_edit( $self, $id )
+        or return undef;
+
     $result->record_id($record_id);
 
     return $result;
-    return undef;
 }
 
 =head2 Load for Edit

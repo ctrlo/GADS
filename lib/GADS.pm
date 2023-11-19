@@ -2783,12 +2783,10 @@ prefix '/:layout_name' => sub {
 
             my $reports = $layout->reports;
 
-            if ( body_parameters->get('delete') ) {
-                my $report_id = body_parameters->get('delete');
-                my $result =
-                     schema->resultset('Report')->find( { id => $report_id } )
-                  or error __x "No report found for {report_id}",
-                  report_id => $report_id;
+            if (my $report_id = body_parameters->get('delete'))
+            {
+                my $result = schema->resultset('Report')->find($report_id)
+                      or error __x "No report found for {report_id}", report_id => $report_id;
 
                 my $lo = param 'layout_name';
 
@@ -2904,7 +2902,7 @@ prefix '/:layout_name' => sub {
 
             my $result = schema->resultset('Report')->load_for_edit($report_id);
 
-            return forwardHome({ danger => 'Report not found' } ) unless $result;
+            return forwardHome({ danger => 'Report not found' }) unless $result;
 
             my $fields = $result->fields_for_render($layout);
 
