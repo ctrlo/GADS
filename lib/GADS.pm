@@ -1118,6 +1118,16 @@ any ['get', 'post'] => '/settings/organisation_edit/:id' => require_any_role [qw
         }
     }
 
+    if (body_parameters->get('submit'))
+    {
+        $organisation->name(body_parameters->get('name'));
+        if (process( sub { $organisation->insert_or_update } ))
+        {
+            return forwardHome(
+                { success => "The $organisation_name has been edited successfully" }, 'settings/organisation_overview/' );
+        }
+    }
+
     my $base_url = request->base;
 
     $organisation->{type}        = $organisation_name;
