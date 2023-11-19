@@ -1187,6 +1187,7 @@ sub write
     $newitem->{display_condition} = $self->display_fields->as_hash->{condition},
     $newitem->{instance_id}       = $self->layout->instance_id;
     $newitem->{aggregate}         = $self->aggregate;
+    $newitem->{notes}             = $self->notes;
 
     !$newitem->{aggregate} || $newitem->{aggregate} =~ /^(sum|recalc)$/
         or error __x"Invalid aggregate value {agg}", agg => $newitem->{aggregate};
@@ -1348,7 +1349,7 @@ sub _write_permissions
 
     $search->{group_id} = { '!=' => [ '-and', @groups ] }
         if @groups;
-        
+
     my @removed = $self->schema->resultset('LayoutGroup')->search($search,{
         select   => {
             max => 'group_id',
@@ -1748,6 +1749,13 @@ sub import_after_all
             if $report && ($self->link_parent || 0) != ($new_id || 0);
     $self->link_parent($new_id);
 }
+
+has notes => (
+    is        => 'rw',
+    required  => 0,
+    isa       => Maybe[Str],
+    coerce    => sub { $_[0] ? $_[0] : undef },
+);
 
 1;
 

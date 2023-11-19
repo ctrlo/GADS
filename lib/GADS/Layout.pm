@@ -971,7 +971,8 @@ sub _build_columns
             internal    => $col->{internal},
             instance_id => $col->{instance_id},
             schema      => $schema,
-            layout      => $self
+            layout      => $self,
+            notes       => $col->{notes},
         );
         push @return, $column;
     }

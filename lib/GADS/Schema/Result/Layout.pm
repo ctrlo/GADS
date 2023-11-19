@@ -180,6 +180,11 @@ __PACKAGE__->table("layout");
   is_nullable: 1
   size: 12
 
+=head2 notes
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -251,6 +256,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "lookup_group",
   { data_type => "smallint", is_nullable => 1 },
+  "notes",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
