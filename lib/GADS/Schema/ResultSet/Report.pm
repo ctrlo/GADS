@@ -16,6 +16,7 @@ sub load {
     my ( $self, $id, $record_id ) = @_;
 
     my $result = load_for_edit( $self, $id );
+    return undef unless $result;
     $result->record_id($record_id);
 
     return $result;
@@ -34,7 +35,7 @@ sub load_for_edit {
     my $result = $self->find( { id => $id, deleted => undef }, { prefetch => 'report_layouts' } )
       or error __"No report found for id $id";
 
-    return $result;
+    return $result unless $result->deleted;
     return undef;
 }
 

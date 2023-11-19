@@ -1,5 +1,6 @@
 import { Component } from "component";
 import { validateRequiredFields } from "validation";
+import { stopPropagation } from "../../util/common";
 
 /**
  * CreateReportButtonComponent class to create a report submission button component
@@ -33,7 +34,7 @@ class CreateReportButtonComponent extends Component {
     const $form = $button.closest("form");
 
     if (!this.canSubmitRecordForm) {
-      ev.preventDefault();
+      stopPropagation(ev);
 
       const isValid = validateRequiredFields($form);
 

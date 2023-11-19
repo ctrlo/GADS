@@ -1,4 +1,4 @@
-import CreateReportButtonComponent from './create-report-button';
+import CreateReportButtonComponent from '../index';
 import { validateRequiredFields } from 'validation';
 
 global.$ = require('jquery');
@@ -9,7 +9,7 @@ describe('create-report-button', () => {
       <form id="myform">
         <input class="form-control " id="report_name" name="report_name" value="Something" data-restore-value="" required="" aria-required="true">
         <input class="form-control " id="report_description" name="report_description" placeholder="New Report Description" value="" data-restore-value="">
-        <fieldset class="fieldset checkbox-fieldset--required" id="report_fields">
+        <fieldset class="fieldset fieldset--required checkbox-fieldset--required" id="report_fields">
           <input id="1" type="checkbox">
           <input id="8" type="checkbox">
           <input id="2" type="checkbox">
@@ -23,9 +23,10 @@ describe('create-report-button', () => {
       </form>
     `;
 
-    const button = new CreateReportButtonComponent(document.getElementById('submit'));
+    new CreateReportButtonComponent(document.body);
 
-    const submitSpy = jest.spyOn(button, 'submit');
+    const submitSpy = jest.fn((ev)=>{ev.preventDefault(); ev.stopPropagation();});
+    $('#myform').on('submit', submitSpy);
 
     $('#submit').trigger('click');
 
@@ -39,7 +40,7 @@ describe('create-report-button', () => {
           <input required="" aria-required="true">
         </div>
         <input>
-        <fieldset class="fieldset checkbox-fieldset--required" id="report_fields">
+        <fieldset class="fieldset fieldset--required checkbox-fieldset--required" id="report_fields">
           <input id="1" type="checkbox">
           <input id="8" type="checkbox" checked="checked">
           <input id="2" type="checkbox">
@@ -53,10 +54,10 @@ describe('create-report-button', () => {
       </form>
     `;
 
-    const button = new CreateReportButtonComponent(document.getElementById('submit'));
+    const button = new CreateReportButtonComponent(document.body);
+    const submitSpy = jest.fn((ev)=>{ev.preventDefault(); ev.stopPropagation();});
 
-    const submitSpy = jest.spyOn(button, 'submit');
-
+    $('#myform').on('submit', submitSpy);
     $('#submit').trigger('click');
 
     expect(submitSpy).not.toHaveBeenCalled();
@@ -69,7 +70,7 @@ describe('create-report-button', () => {
           <input required="" aria-required="true" value = "boop">
         </div>
         <input>
-        <fieldset class="fieldset checkbox-fieldset--required" id="report_fields">
+        <fieldset class="fieldset fieldset--required checkbox-fieldset--required" id="report_fields">
           <input id="1" type="checkbox">
           <input id="8" type="checkbox" checked="checked">
           <input id="2" type="checkbox">
@@ -83,24 +84,19 @@ describe('create-report-button', () => {
       </form>
     `;
 
-    const button = new CreateReportButtonComponent(document.getElementById('submit'));
-
-    const submitSpy = jest.spyOn(button, 'submit');
-    const formSpyFn = jest.fn();
-    formSpyFn.mockImplementation((ev) => { ev.preventDefault(); ev.stopPropagation(); });
+    new CreateReportButtonComponent(document.body);
+    const formSpyFn = jest.fn((ev)=>{ev.preventDefault(); ev.stopPropagation();});
 
     $('#myform').on('submit', formSpyFn);
-
     $('#submit').trigger('click');
 
-    expect(submitSpy).toHaveBeenCalled();
     expect(formSpyFn).toHaveBeenCalled();
   });
 
   it('Validates checkboxes correctly', () => {
     document.body.innerHTML = `
       <form>
-        <fieldset class="fieldset checkbox-fieldset--required">
+        <fieldset class="fieldset fieldset--required checkbox-fieldset--required">
           <div class="fieldset__legend">
             <legend id="-label">
               Columns to show in report:
@@ -169,6 +165,7 @@ describe('create-report-button', () => {
 
     fieldSet.find('input').each((index, input) => {
       expect(input.checked).toBe(false);
+      expect($(input).has(':checked').length).toBe(0);
     });
 
     expect(validateRequiredFields($('form'))).toBe(false);
