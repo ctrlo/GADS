@@ -48,7 +48,7 @@
                 label = field.description
                 placeholder = field.placeholder
                 items = values.${field.name}
-                filter = "html"
+                text_filter = "html"
                 sub_field = ""
                 sub_params = {};
 

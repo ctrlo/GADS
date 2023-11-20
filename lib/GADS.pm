@@ -1602,13 +1602,13 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
         }
     }
 
-    my $titles = [map { +{ label_html => $_->name, value => $_->id } } @{$userso->titles}];
+    my $titles = [ map { +{ label_plain => $_->name, value => $_->id } } @{ $userso->titles } ];
 
-    my $orgs = [map { +{ label_html => $_->name, value => $_->id } } @{$userso->organisations}];
+    my $orgs = [ map { +{ label_plain => $_->name, value => $_->id } } @{ $userso->organisations } ];
 
-    my $depts = [map {+{label_html=>$_->name, value=>$_->id}} @{$userso->departments}];
+    my $depts = [ map { +{ label_plain => $_->name, value => $_->id } } @{ $userso->departments } ];
 
-    my $teams = [map {+{label_html => $_->name, value => $_->id}} @{$userso->teams}];
+    my $teams = [ map { +{ label_plain => $_->name, value => $_->id } } @{ $userso->teams } ];
 
     my $output = template 'user/user_edit' => {
         edituser => $editUser,
