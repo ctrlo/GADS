@@ -118,10 +118,10 @@ class InputComponent extends Component {
       };
 
       const builder = new TypeaheadBuilder();
-      builder.withInput($(self.input));
-      builder.withCallback(suggestionCallback);
-      builder.withAjaxSource(self.getURL());
-      builder.withName('users');
+      builder.withInput($(self.input))
+             .withCallback(suggestionCallback)
+             .withAjaxSource(self.getURL())
+             .withName('users');
       builder.build();
     }
 
