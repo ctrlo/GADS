@@ -15,11 +15,12 @@ Function to load a report for a given id - it requires the report id, and record
 sub load {
     my ( $self, $id, $record_id ) = @_;
 
-    my $result = load_for_edit( $self, $id );
+    my $result = load_for_edit( $self, $id )
+        or return undef;
+
     $result->record_id($record_id);
 
     return $result;
-    return undef;
 }
 
 =head2 Load for Edit
@@ -34,7 +35,7 @@ sub load_for_edit {
     my $result = $self->find( { id => $id, deleted => undef }, { prefetch => 'report_layouts' } )
       or error __"No report found for id $id";
 
-    return $result;
+    return $result unless $result->deleted;
     return undef;
 }
 

@@ -1118,6 +1118,16 @@ any ['get', 'post'] => '/settings/organisation_edit/:id' => require_any_role [qw
         }
     }
 
+    if (body_parameters->get('submit'))
+    {
+        $organisation->name(body_parameters->get('name'));
+        if (process( sub { $organisation->insert_or_update } ))
+        {
+            return forwardHome(
+                { success => "The $organisation_name has been edited successfully" }, 'settings/organisation_overview/' );
+        }
+    }
+
     my $base_url = request->base;
 
     $organisation->{type}        = $organisation_name;
@@ -1592,12 +1602,16 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
         }
     }
 
+    my $titles = [map { +{ label_html => $_->name, value => $_->id } } @{$userso->titles}];
+
+    my $orgs = [map { +{ label_html => $_->name, value => $_->id } } @{$userso->organisations}];
+
     my $output = template 'user/user_edit' => {
         edituser => $editUser,
         groups   => GADS::Groups->new(schema => schema)->all,
         values   => {
-            title         => $userso->titles,
-            organisation  => $userso->organisations,
+            title         => $titles,
+            organisation  => $orgs,
             department_id => $userso->departments,
             team_id       => $userso->teams,
         },
@@ -2306,7 +2320,7 @@ prefix '/:layout_name' => sub {
         if (param('modal_alert') || param('modal_remove')) {
             my $success_message;
             my $frequency = '';
-    
+
             if (param('modal_remove')) {
                 $frequency = '';
                 $success_message = "The alert has been removed successfully";
@@ -2770,8 +2784,8 @@ prefix '/:layout_name' => sub {
 
     prefix '/report' => sub {
 
-        #view all reports for this instance
-        get '' => require_login sub {
+        #view all reports for this instance, or delete a report
+        any ['get','post'] => '' => require_login sub {
             my $user   = logged_in_user;
             my $layout = var('layout') or pass;
 
@@ -2782,6 +2796,20 @@ prefix '/:layout_name' => sub {
             my $base_url = request->base;
 
             my $reports = $layout->reports;
+
+            if (my $report_id = body_parameters->get('delete'))
+            {
+                my $result = schema->resultset('Report')->find($report_id)
+                      or error __x "No report found for {report_id}", report_id => $report_id;
+
+                my $lo = param 'layout_name';
+
+                if ( process( sub { $result->remove } ) ) {
+                    return forwardHome( { success => "Report deleted" },
+                        "$lo/report" );
+                }
+                return forwardHome("$lo/report");
+            }
 
             my $params = {
                 header_type     => 'table_tabs',
@@ -2888,6 +2916,8 @@ prefix '/:layout_name' => sub {
 
             my $result = schema->resultset('Report')->load_for_edit($report_id);
 
+            return forwardHome({ danger => 'Report not found' }) unless $result;
+
             my $fields = $result->fields_for_render($layout);
 
             my $params = {
@@ -2905,28 +2935,6 @@ prefix '/:layout_name' => sub {
             };
 
             template 'reports/edit' => $params;
-        };
-
-        #Delete a report (by :id)
-        get "/delete:id" => sub {
-            my $user   = logged_in_user;
-            my $layout = var('layout') or pass;
-
-            return forwardHome(
-                { danger => 'You do not have permission to edit reports' } )
-                    unless $layout->user_can("layout");
-
-            my $report_id = param('id');
-
-            my $result = schema->resultset('Report')->find ({id => $report_id})
-                or error __x"No report found for {report_id}", report_id => $report_id;
-
-                my $lo = param 'layout_name';
-            if (process( sub { $result->remove } )) {
-                return forwardHome( { success => "Report deleted" },
-                    "$lo/report" );
-            }
-            return forwardHome( "$lo/report" );
         };
     };
 
@@ -3569,6 +3577,7 @@ prefix '/:layout_name' => sub {
                 # turned into base64 which requires layout to be set in
                 # GADS::Filter (to prevent a panic)
                 $column->display_fields->layout($layout);
+                $column->notes(body_parameters->get('notes'));
 
                 my $no_alerts;
                 if ($column->type eq "file")
