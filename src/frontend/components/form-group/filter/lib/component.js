@@ -1,6 +1,6 @@
 import { Component } from 'component'
-import queryBuilder from '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
-import 'jquery-typeahead'
+import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
+import 'typeahead.js'
 import { logging } from 'logging'
 
 class FilterComponent extends Component {
@@ -88,18 +88,18 @@ class FilterComponent extends Component {
     const $builderEl = this.el
     const builderID = $(this.el).data('builder-id')
     const $builderJSON = $(`#builder_json_${builderID}`)
-    
+
     if (!$builderJSON.length) return
 
     const builderConfig = JSON.parse($builderJSON.html())
     const filterBase = $builderEl.data('filter-base')
-    
+
     if (!builderConfig.filters.length) return
     if (builderConfig.filterNotDone) this.makeUpdateFilter()
 
     $builderEl.queryBuilder({
       showPreviousValues: builderConfig.showPreviousValues,
-      filters: builderConfig.filters.map(col => 
+      filters: builderConfig.filters.map(col =>
         this.buildFilter(builderConfig, col)
       ),
       allow_empty: true,
@@ -190,7 +190,7 @@ class FilterComponent extends Component {
       const data = Buffer.from(filterBase, 'base64')
       try {
         const obj = JSON.parse(data);
-        if (obj.rules && obj.rules.length) { 
+        if (obj.rules && obj.rules.length) {
           $builderEl.queryBuilder('setRules', obj)
         } else {
           // Ensure that no blank rules by default, otherwise view cannot be submitted
@@ -283,7 +283,7 @@ class FilterComponent extends Component {
         path: 'records'
       })
     )
-  } 
+  }
 }
 
 export default FilterComponent
