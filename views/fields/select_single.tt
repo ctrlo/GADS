@@ -43,7 +43,7 @@
             [% END %]
           </ul>
         </div>
-        
+
         <ul hidden class="available select__menu dropdown-menu show [% with_details ? 'with-details' : ''; %]"
             id="[% id %]-values-single"
             aria-labelledby="[% id %]-label"
@@ -76,7 +76,7 @@
                   data-value="[% item.label_html %]"
               >
               <label class="radio-group__label" for="[% id %]_[% item.value %]">
-                [% item.label_html %]
+                [% INCLUDE fields/sub/filter.tt value=item.label_html filter=filter %]
               </label>
             </div>
           [% IF with_details %]

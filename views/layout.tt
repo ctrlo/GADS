@@ -1334,6 +1334,41 @@
           %]
         </div>
 
+        [% IF user.permission.superadmin %]
+        <div class="row mb-3">
+          <div class="col">
+            <div class="card card--expandable">
+              <div class="card__header">
+                <button class="card__header-left" type="button" data-toggle="collapse" data-target="#notes" aria-expanded="false" aria-controls="notes">
+                  <span class="card__title">
+                    Notes
+                  </span>
+                </button>
+                <div class="card__header-right">
+                  <button class="card__toggle" type="button" data-toggle="collapse" data-target="#notes" aria-expanded="false" aria-controls="notes">
+                    <span>Toggle collapsible</span>
+                  </button>
+                </div>
+              </div>
+              <div class="collapse" id="notes">
+                <div class="card__content">
+                  [% INCLUDE fields/textarea.tt
+                       id = "field_notes"
+                       name = "notes"
+                       value = column.notes
+                       label = "Notes"
+                       placeholder = "Notes for field editor"
+                       is_required = 0
+                       filter = "html"
+                       popover_body = "This is an admin notes field and is not displayed elsewhere"
+                 %]
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        [% END %]
+
         <div class="row mb-3">
           <div class="col">
             <div class="card card--expandable">

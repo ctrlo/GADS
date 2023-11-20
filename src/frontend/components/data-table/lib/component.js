@@ -257,13 +257,7 @@ class DataTableComponent extends Component {
         <div class='dropdown-menu p-2' aria-labelledby='search-toggle-${index}'>
           <label>
             <div class='input'>
-              <div class='typeahead__container'>
-                <div class='typeahead__field'>
-                  <div class='typeahead__query'>
-                    <input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>
-                  </div>
-                </div>
-              </div>
+              <input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>
             </div>
           </label>
           <button type='button' class='btn btn-link btn-small data-table__clear hidden'>
@@ -578,7 +572,7 @@ class DataTableComponent extends Component {
       const self = this
 
       this.json = json ? json : undefined
-
+      
       if (this.initializingTable) {
         dataTable.columns().every(function(index) {
           const column = this
@@ -601,7 +595,7 @@ class DataTableComponent extends Component {
             }
 
             self.addSearchDropdown(column, id, index)
-          }
+          } 
         })
 
         // If the table has not wrapped (become responsive) then hide the toggle button
@@ -609,7 +603,7 @@ class DataTableComponent extends Component {
           if (this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').length) {
             this.el.closest('.dataTables_wrapper').find('.dataTables_toggle_full_width').hide()
           }
-        }
+        } 
 
         this.initializingTable = false
       }
