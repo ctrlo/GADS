@@ -570,7 +570,17 @@ get '/api/:sheet/fields' => require_login sub {
 
     foreach my $item (@$items) {
         if(ref($item) eq 'HASH') {
-            push @$result, $item->{'label'};
+            my $addition = +{
+                'name' => $item->{'label'},
+                'id' => $item->{'id'}
+            };
+            push @$result, $addition;
+        }else {
+            my $addition = +{
+                'name' => $item,
+                'id' => 0
+            };
+            push @$result, $addition;
         }
     }
 

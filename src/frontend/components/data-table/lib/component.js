@@ -271,11 +271,18 @@ class DataTableComponent extends Component {
 
     this.toggleFilter(column)
 
+    let setField = title.trim();
+    if(setField.endsWith("Sort")) {
+      setField = setField.substring(0, setField.length - 4);
+    }
+    setField=setField.replace(/\W+^/g, '').trim();
+    const setName = setField.replace(/\W/g, '').trim();
+
     const builder = new TypeaheadBuilder();
-    builder.withAjaxSource(this.getApiEndpoint(title.replace(/Sort/g, '').trim()))
+    builder.withAjaxSource(this.getApiEndpoint(setField))
            .withInput($('input', $header))
            .withAppendQuery()
-           .withName(title.replace(/Sort/g, '').trim())
+           .withName(setName +'Search')
            .withCallback((data) => {
               console.log(JSON.stringify(data));
             })

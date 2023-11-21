@@ -69,6 +69,9 @@ class TypeaheadBuilder<T extends { name: string, id: number }> {
      */
     withName(name: string) {
         this.name = name;
+        if(this.name == "ID") {
+            this.name = "__(" + this.name + ")";
+        }
         return this;
     }
 
@@ -169,6 +172,9 @@ class Typeahead<T extends { name: string, id: number }> {
                 },
                 pending: () => {
                     return `<div>Loading...</div>`;
+                },
+                notFound: () => {
+                    return `<div>No results found</div>`;
                 }
             }
         });
