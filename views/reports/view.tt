@@ -1,0 +1,76 @@
+[%
+  table_dom = "t";
+  table_show_all_records = "true";
+  table_width = 85;
+  table_class = "table-striped";
+
+  table_caption = "Reports";
+
+  table_buttons = [
+    {
+        label  = "Edit",
+        filter = "html",
+        link   = "report/edit{report_id}"
+      },{
+        type = "modal_button"
+        modalId = "deleteReport"
+        label = "Delete"
+    }
+  ]
+
+  table_columns = [{
+    name      = "Name",
+    orderable = 0,
+    width     = table_width _ "%"
+  }];
+
+  rows = [];
+
+  FOREACH report IN reports;
+    data = {
+      link_placeholders = {
+        report_id = report.id
+      }
+      modal = {
+        dataID = report.id
+        dataTitle = report.name
+      }
+      fields  = [{
+        type  = "string",
+        label = report.name
+      }]
+    };
+
+    rows.push(data);
+  END; #foreach
+%]
+  <div class="content-block__head row">
+    <div class="content-block__info col-lg-6"></div>
+    <div class="content-block__aside col-lg-6">
+        <a href = [% url.page _ "/" _ layout_obj.identifier _ "/report/add" %] class="btn btn-add">Create Report</a>
+    </div>
+  </div>
+  <div class="content-block__main">
+  <div class="card">
+    <div class="card--header">
+      <h3 class"card__header">
+        <span>Reports</span>
+      </h3>
+    </div>
+
+    <div class="card__body">
+      <div class="card__content">
+        <div class="row">
+          <div class="col">
+            [% INCLUDE tables/basic_table.tt; %]
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+[% INCLUDE wizard/delete.tt
+    description = "Are you sure you wish to delete this report? This cannot be undone."
+    label = "Delete " _ report.name
+    modalId = "deleteReport" %]

@@ -180,6 +180,11 @@ __PACKAGE__->table("layout");
   is_nullable: 1
   size: 12
 
+=head2 notes
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -251,6 +256,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "lookup_group",
   { data_type => "smallint", is_nullable => 1 },
+  "notes",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -861,6 +868,18 @@ Related object: L<GADS::Schema::Result::ViewLayout>
 __PACKAGE__->has_many(
   "view_layouts",
   "GADS::Schema::Result::ViewLayout",
+  { "foreign.layout_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+=head2 report_layouts
+Type: has_many
+Related object: L<GADS::Schema::Result::ReportLayout>
+=cut
+
+__PACKAGE__->has_many(
+  "report_layouts",
+  "GADS::Schema::Result::ReportLayout",
   { "foreign.layout_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );

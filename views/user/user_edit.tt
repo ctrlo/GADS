@@ -14,9 +14,9 @@
         INCLUDE fields/hidden.tt name="page" value=page;
         INCLUDE fields/hidden.tt name="username" value=user.username filter="html_entity";
         INCLUDE fields/hidden.tt name="id" value=edituser.id;
-      
+
         field_counter = 0;
-        
+
         IF site.user_fields.size > 0;
       -%]
       <div class="row">
@@ -39,9 +39,9 @@
                 filter = "html"
                 sub_field = ""
                 sub_params = {};
-            
+
             ELSIF field.type == "dropdown";
-              INCLUDE fields/select.tt
+              INCLUDE fields/select_single.tt
                 id = field.name
                 name = field.name
                 value = edituser.get_column(field.name)
@@ -62,7 +62,7 @@
                 filter = "html"
                 sub_field = ""
                 sub_params = {};
-            
+
             END;
           %]
         </div>
@@ -77,13 +77,13 @@
       [% IF site.user_fields.size > 0 %]
       </div>
       [% END %]
-      
+
     </fieldset>
-  
+
     <div class="row mb-4">
       [% INCLUDE snippets/user_column_view_limits.tt user=edituser column_class="col-lg-6"; %]
     </div>
-    
+
     <div class="row">
       [%-
         INCLUDE snippets/user_column_permissions.tt column_class="col-lg-5 mb-4 mb-lg-0" list_class="list--vertical list--checkboxes"

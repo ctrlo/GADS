@@ -58,6 +58,34 @@
       >
         <span class="btn__title">[%- button.label || button.name | html -%]</span>
       </button>
+      [% ELSIF button.type == "button_list"; %]
+        <div class="dropdown [% custom_classes %]">
+          <button
+            class="dropdown-toggle dropdown__toggle"
+            type="button"
+            id="[% id %]"
+            data-toggle="dropdown"
+            aria-haspopup="listbox"
+            aria-expanded="false"
+            aria-labelledby="=[% id %]">
+            Download Options
+          </button>
+
+          <div class="dropdown-menu dropdown__menu dropdown-menu-end">
+            <ul class="dropdown__list" role="listbox" aria-labelledby="dropdown">
+              [% FOREACH item IN button.links %]
+              <li class="dropdown__item" role="option">
+                  <a role="menuitem"
+                    [% IF item.id %]id="[% item.id %]" [% END %]
+                    class='link link--plain [% item.class %]'
+                    href='[% item.target %]'>
+                      [% item.label || item.name | html %]
+                  </a>
+                [% END %]
+              </li>
+            </ul>
+          </div>
+        </div>
       [% END %]
     </li>
     [% END %]

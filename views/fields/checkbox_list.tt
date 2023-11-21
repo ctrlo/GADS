@@ -1,7 +1,18 @@
+[%
+
+  fieldset_extra_classes = "fieldset";
+  IF fieldset_required;
+    fieldset_extra_classes = fieldset_extra_classes _ " fieldset--required checkbox-fieldset--required";
+  END;
+  IF fieldset_classes;
+  fieldset_extra_classes = fieldset_extra_classes _ " " _ fieldset_classes;
+  END;
+
+%]
 [% IF ! hide_group %]
 <div class="form-group">
 [% END %]
-  <fieldset class="fieldset"[% IF fieldset_name %] data-name="[% fieldset_name %]"[% END %]>
+  <fieldset class="[% fieldset_extra_classes %]"[% IF fieldset_name %] data-name="[% fieldset_name %]"[% END %]>
     [% INCLUDE fields/sub/label_fieldset.tt; %]
     <div class="list [% list_class %]">
       <ul class="list__items" id="[% id %]">
