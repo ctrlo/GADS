@@ -306,3 +306,24 @@ div.dataTables_wrapper div.dataTables_filter input.form-control {
 div.dataTables_wrapper div.dataTables_processing {
   top: 10rem;
 }
+
+.dropdown-menu {
+  .twitter-typeahead {
+    .tt-menu {
+      background-color: #F9F9F9;
+      border: solid 2px #E5E5E5;
+
+      .tt-suggestion {
+        background-color: #F9F9F9;
+        color: #40374A;
+        border-bottom: 1px solid #E5E5E5;
+        padding: 0.5rem 1rem;
+        font-weight: normal;
+      }
+
+      .tt-suggestion:hover {
+        background-color: #E5E5E5;
+      }
+    }
+  }
+}
