@@ -576,7 +576,7 @@ class DataTableComponent extends Component {
       const self = this
 
       this.json = json ? json : undefined
-
+      
       if (this.initializingTable) {
         dataTable.columns().every(function(index) {
           const column = this
@@ -599,7 +599,7 @@ class DataTableComponent extends Component {
             }
 
             self.addSearchDropdown(column, id, index)
-          }
+          } 
         })
 
         // If the table has not wrapped (become responsive) then hide the toggle button
@@ -607,7 +607,7 @@ class DataTableComponent extends Component {
           if (this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').length) {
             this.el.closest('.dataTables_wrapper').find('.dataTables_toggle_full_width').hide()
           }
-        }
+        } 
 
         this.initializingTable = false
       }
