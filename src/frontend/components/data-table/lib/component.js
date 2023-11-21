@@ -267,32 +267,36 @@ class DataTableComponent extends Component {
       </div>`
     )
 
-    $header.find('.data-table__header-wrapper').prepend($searchElement)
+    $header.find('.data-table__header-wrapper').prepend($searchElement);
 
-    this.toggleFilter(column)
+    this.toggleFilter(column);
 
     let setField = title.trim();
-    if(setField.endsWith("Sort")) {
+    if (setField.endsWith("Sort")) {
       setField = setField.substring(0, setField.length - 4);
     }
-    setField=setField.replace(/\W+^/g, '').trim();
-    const setName = setField.replace(/\W/g, '').trim();
+    setField = setField.replace(/\W+^/g, '').trim();
+    const setName = setField.replace(/\W+/g, '').trim();
 
     const builder = new TypeaheadBuilder();
-    builder.withAjaxSource(this.getApiEndpoint(setField))
-           .withInput($('input', $header))
-           .withAppendQuery()
-           .withName(setName +'Search')
-           .withCallback((data) => {
-              console.log(JSON.stringify(data));
-            })
-            .build();
+    builder
+      .withAjaxSource(this.getApiEndpoint(setField))
+      .withInput($('input', $header))
+      .withAppendQuery()
+      .withName(setName + 'Search')
+      .withCallback((data) => {
+        $('input', $header).val(data.name);
+        $('input', $header).trigger('change');
+      })
+      .build();
 
     // Apply the search
-    $('input', $header).on('change', () => {
-      if (column.search() !== this.value) {
+    // Odd bug within the typeahead application requires a check the ev.target.value rather than this.value
+    $('input', $header).on('change', (ev) => {
+      console.log(ev.target.value);
+      if (column.search() !== this.value || ev.target.value) {
         column
-          .search(this.value)
+          .search(this.value || ev.target.value)
           .draw()
       }
 
