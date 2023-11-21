@@ -1,3 +1,6 @@
+type EventOrJQueryEvent = Event | JQuery.Event;
+type ElementOrJQueryElement = HTMLElement | JQuery<HTMLElement>;
+
 export const stopPropagation = (e: EventOrJQueryEvent) => {
     e.stopPropagation();
     e.preventDefault();

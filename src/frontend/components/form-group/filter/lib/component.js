@@ -1,7 +1,7 @@
 import { Component } from 'component'
-import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
+import queryBuilder from '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
+import 'jquery-typeahead'
 import { logging } from 'logging'
-import { TypeaheadBuilder } from '../../../util/typeahead'
 
 class FilterComponent extends Component {
   constructor(element)  {
@@ -88,18 +88,18 @@ class FilterComponent extends Component {
     const $builderEl = this.el
     const builderID = $(this.el).data('builder-id')
     const $builderJSON = $(`#builder_json_${builderID}`)
-
+    
     if (!$builderJSON.length) return
 
     const builderConfig = JSON.parse($builderJSON.html())
     const filterBase = $builderEl.data('filter-base')
-
+    
     if (!builderConfig.filters.length) return
     if (builderConfig.filterNotDone) this.makeUpdateFilter()
 
     $builderEl.queryBuilder({
       showPreviousValues: builderConfig.showPreviousValues,
-      filters: builderConfig.filters.map(col =>
+      filters: builderConfig.filters.map(col => 
         this.buildFilter(builderConfig, col)
       ),
       allow_empty: true,
@@ -146,30 +146,51 @@ class FilterComponent extends Component {
         $ruleInputHidden.val($ruleInputText.val())
       })
 
-      const filterCallback = (suggestions) => {
-        if(filterConfig.useIdInFilter) {
-          $ruleInputHidden.val(suggestion.id) }
-          else{
-            $ruleInputHidden.val(suggestion.label)
+      $ruleInputText.typeahead({
+        delay: 100, // Delay in ms when dynamic option is set to true
+        dynamic: true, // When true, Typeahead will get a new dataset from the source option on every key press
+        minLength: 1, // Accepts 0 to search on focus, minimum character length to perform a search
+        offset: true, // Set to true to match items starting from their first character
+        order: "asc", // "asc" or "desc" to sort results
+        matcher: function() { // Add an extra filtering function after the typeahead functions
+          return true
+        },
+        callback: {
+          onClickAfter (node, a, item, event) { // Happens after the default clicked behaviors has been executed
+            if (filterConfig.useIdInFilter) {
+              $ruleInputHidden.val(item.id)
+            } else {
+              $ruleInputHidden.val(item.label)
+            }
+            $ruleInputHidden.trigger('change')
+          },
+          onCancel () {
+            $ruleInputHidden.val('')
           }
-          $ruleInputHidden.trigger('change')
-      }
+        },
+        source: { // Source of data for Typeahead to filter
+          record: {
+            display: 'label',
+              ajax: function (query) {
+                return {
+                type: 'GET',
+                url: self.getURL(builderConfig.layoutId, filterConfig.urlSuffix),
+                data: { q: query, oi: filterConfig.instanceId },
+                dataType: 'json',
+                path: 'records'
+              }
+            }
+          }
+        },
+      })
 
-      const builder = new TypeaheadBuilder()
-      builder
-        .withInput($ruleInputText)
-        .withAjaxSource(self.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
-        .withData({ q: query, oi: filterConfig.instanceId })
-        .withName('rule')
-        .withCallback(filterCallback)
-        .build();
     })
 
     if(filterBase) {
       const data = Buffer.from(filterBase, 'base64')
       try {
         const obj = JSON.parse(data);
-        if (obj.rules && obj.rules.length) {
+        if (obj.rules && obj.rules.length) { 
           $builderEl.queryBuilder('setRules', obj)
         } else {
           // Ensure that no blank rules by default, otherwise view cannot be submitted
@@ -262,7 +283,7 @@ class FilterComponent extends Component {
         path: 'records'
       })
     )
-  }
+  } 
 }
 
 export default FilterComponent

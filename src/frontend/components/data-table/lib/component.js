@@ -1,10 +1,3 @@
-/* eslint-disable prefer-destructuring */
-/* eslint-disable array-callback-return */
-/* eslint-disable no-unneeded-ternary */
-/* eslint-disable no-unreachable */
-/* eslint-disable no-else-return */
-/* eslint-disable no-useless-return */
-/* eslint-disable prefer-const,no-duplicate-imports*/
 import { Component } from 'component'
 import 'datatables.net'
 import 'datatables.net-buttons'
@@ -17,7 +10,6 @@ import { initializeRegisteredComponents, initializeComponent } from 'component'
 import RecordPopupComponent from '../../record-popup/lib/component'
 import MoreLessComponent from '../../more-less/lib/component'
 import { moreLess } from '../../more-less/lib/more-less'
-import { TypeaheadBuilder } from '../../util/typeahead'
 
 const MORE_LESS_TRESHOLD = 50
 
@@ -267,36 +259,15 @@ class DataTableComponent extends Component {
       </div>`
     )
 
-    $header.find('.data-table__header-wrapper').prepend($searchElement);
+    $header.find('.data-table__header-wrapper').prepend($searchElement)
 
-    this.toggleFilter(column);
-
-    let setField = title.trim();
-    if (setField.endsWith("Sort")) {
-      setField = setField.substring(0, setField.length - 4);
-    }
-    setField = setField.replace(/\W+^/g, '').trim();
-    const setName = setField.replace(/\W+/g, '').trim();
-
-    const builder = new TypeaheadBuilder();
-    builder
-      .withAjaxSource(this.getApiEndpoint(setField))
-      .withInput($('input', $header))
-      .withAppendQuery()
-      .withName(setName + 'Search')
-      .withCallback((data) => {
-        $('input', $header).val(data.name);
-        $('input', $header).trigger('change');
-      })
-      .build();
+    this.toggleFilter(column)
 
     // Apply the search
-    // Odd bug within the typeahead application requires a check the ev.target.value rather than this.value
-    $('input', $header).on('change', (ev) => {
-      console.log(ev.target.value);
-      if (column.search() !== this.value || ev.target.value) {
+    $('input', $header).on('change', function () {
+      if (column.search() !== this.value) {
         column
-          .search(this.value || ev.target.value)
+          .search(this.value)
           .draw()
       }
 
@@ -335,11 +306,6 @@ class DataTableComponent extends Component {
         window.history.replaceState(null, '', url);
       }
     })
-  }
-
-  getApiEndpoint(title) {
-    const table = window.location.pathname.substring(1).split('/')[0];
-    return `/api/${table}/fields?title=${title}&search=`;
   }
 
   encodeHTMLEntities(text) {
