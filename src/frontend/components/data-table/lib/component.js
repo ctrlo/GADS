@@ -1,10 +1,3 @@
-/* eslint-disable prefer-destructuring */
-/* eslint-disable array-callback-return */
-/* eslint-disable no-unneeded-ternary */
-/* eslint-disable no-unreachable */
-/* eslint-disable no-else-return */
-/* eslint-disable no-useless-return */
-/* eslint-disable prefer-const,no-duplicate-imports*/
 import { Component } from 'component'
 import 'datatables.net'
 import 'datatables.net-buttons'
@@ -17,7 +10,6 @@ import { initializeRegisteredComponents, initializeComponent } from 'component'
 import RecordPopupComponent from '../../record-popup/lib/component'
 import MoreLessComponent from '../../more-less/lib/component'
 import { moreLess } from '../../more-less/lib/more-less'
-import 'jquery-typeahead';
 
 const MORE_LESS_TRESHOLD = 50
 
@@ -271,18 +263,8 @@ class DataTableComponent extends Component {
 
     this.toggleFilter(column)
 
-    $.typeahead({
-      input: $('input', $header),
-      minLength: 0,
-      seachOnFocus: true,
-      source: {
-        url: this.getApiEndpoint(title.replace(/Sort/g, '').trim()),
-      },
-      debug: true
-    });
-
     // Apply the search
-    $('input', $header).on('change', () => {
+    $('input', $header).on('change', function () {
       if (column.search() !== this.value) {
         column
           .search(this.value)
@@ -324,11 +306,6 @@ class DataTableComponent extends Component {
         window.history.replaceState(null, '', url);
       }
     })
-  }
-
-  getApiEndpoint(title) {
-    const table = window.location.pathname.substring(1).split('/')[0];
-    return `/api/${table}/fields?title=${title}`;
   }
 
   encodeHTMLEntities(text) {
