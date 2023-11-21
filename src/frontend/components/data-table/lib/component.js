@@ -1,10 +1,3 @@
-/* eslint-disable prefer-destructuring */
-/* eslint-disable array-callback-return */
-/* eslint-disable no-unneeded-ternary */
-/* eslint-disable no-unreachable */
-/* eslint-disable no-else-return */
-/* eslint-disable no-useless-return */
-/* eslint-disable prefer-const,no-duplicate-imports*/
 import { Component } from 'component'
 import 'datatables.net'
 import 'datatables.net-buttons'
