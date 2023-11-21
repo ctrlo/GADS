@@ -17,7 +17,7 @@ import { initializeRegisteredComponents, initializeComponent } from 'component'
 import RecordPopupComponent from '../../record-popup/lib/component'
 import MoreLessComponent from '../../more-less/lib/component'
 import { moreLess } from '../../more-less/lib/more-less'
-import 'jquery-typeahead';
+import { TypeaheadBuilder } from '../../util/typeahead'
 
 const MORE_LESS_TRESHOLD = 50
 
@@ -271,15 +271,15 @@ class DataTableComponent extends Component {
 
     this.toggleFilter(column)
 
-    $.typeahead({
-      input: $('input', $header),
-      minLength: 0,
-      seachOnFocus: true,
-      source: {
-        url: this.getApiEndpoint(title.replace(/Sort/g, '').trim()),
-      },
-      debug: true
-    });
+    const builder = new TypeaheadBuilder();
+    builder.withAjaxSource(this.getApiEndpoint(title.replace(/Sort/g, '').trim()))
+           .withInput($('input', $header))
+           .withAppendQuery()
+           .withName(title.replace(/Sort/g, '').trim())
+           .withCallback((data) => {
+              console.log(JSON.stringify(data));
+            })
+            .build();
 
     // Apply the search
     $('input', $header).on('change', () => {
@@ -328,7 +328,7 @@ class DataTableComponent extends Component {
 
   getApiEndpoint(title) {
     const table = window.location.pathname.substring(1).split('/')[0];
-    return `/api/${table}/fields?title=${title}`;
+    return `/api/${table}/fields?title=${title}&search=`;
   }
 
   encodeHTMLEntities(text) {
@@ -572,7 +572,7 @@ class DataTableComponent extends Component {
       const self = this
 
       this.json = json ? json : undefined
-      
+
       if (this.initializingTable) {
         dataTable.columns().every(function(index) {
           const column = this
@@ -595,7 +595,7 @@ class DataTableComponent extends Component {
             }
 
             self.addSearchDropdown(column, id, index)
-          } 
+          }
         })
 
         // If the table has not wrapped (become responsive) then hide the toggle button
@@ -603,7 +603,7 @@ class DataTableComponent extends Component {
           if (this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').length) {
             this.el.closest('.dataTables_wrapper').find('.dataTables_toggle_full_width').hide()
           }
-        } 
+        }
 
         this.initializingTable = false
       }
