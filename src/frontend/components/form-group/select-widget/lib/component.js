@@ -613,6 +613,7 @@ class SelectWidgetComponent extends Component {
       return
     }
     this.$selectWidget.addClass("select-widget--open")
+    this.$available.find(".spinner").attr("hidden", "")
     $trigger.attr("aria-expanded", true)
 
     if (
