@@ -61,6 +61,11 @@ is ($value->{label}, "Bar, 99, foo2, , 2009-01-02, 2008-05-04 to 2008-07-14, , ,
 is (scalar @values, 1, "Typeahead returned correct number of results");
 @values = $column->values_beginning_with('');
 is (scalar @values, 2, "Typeahead returns all results for blank search");
+# Test searching multiple values in the same record
+@values = $column->values_beginning_with('bar foo');
+is (scalar @values, 1, "Typeahead allows search to match multiple conditions");
+is ($value->{id}, 2, "Typeahead result has correct ID");
+
 # Add a filter to the curval
 $column->filter(GADS::Filter->new(
     as_hash => {
