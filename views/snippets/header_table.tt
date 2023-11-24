@@ -4,7 +4,7 @@
     <div class="table-header-top row justify-content-between no-gutters">
       <div class="table-header__meta">
         [% INCLUDE navigation/breadcrumbs.tt %]
-        <h1 class="table-header__title">[% layout_obj.name %]</h1>
+        <h1 class="table-header__title">[% layout_obj.name | html %]</h1>
       </div>
       [% INCLUDE navigation/user_menu.tt user_menu_class="table-header__navigation" %]
     </div>
