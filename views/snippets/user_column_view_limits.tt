@@ -18,7 +18,7 @@
   END;
 -%]
 <div class="[% column_class %]">
-  <fieldset class="fieldset">
+  <fieldset class="fieldset" data-name="view_limits">
     <div class="fieldset__legend">
       <legend >
         Only allow this user to see records in these views
