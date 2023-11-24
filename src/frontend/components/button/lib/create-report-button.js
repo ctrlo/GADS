@@ -1,6 +1,6 @@
 import { Component } from "component";
 import { validateRequiredFields } from "validation";
-import { stopPropagation } from "../../util/common";
+import { stopPropagation } from "util/common";
 
 /**
  * CreateReportButtonComponent class to create a report submission button component

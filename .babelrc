@@ -17,7 +17,7 @@
     "@babel/preset-typescript",
     "@babel/preset-react"
   ],
-  "ignore": [
-    "src/frontend/js/lib/**/*.js"
-  ]
+  // "ignore": [
+  //   "src/frontend/js/lib/**/*.js"
+  // ]
 }

@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": "./src/frontend",
     "outDir": "./dist/",
     "noImplicitAny": false,
     "module": "es2015",
@@ -9,7 +10,28 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
+    "sourceMap": true,
+    "paths": {
+      "js/*": [
+        "src/frontend/js/*"
+      ],
+      "components/*": [
+        "src/frontend/components/*"
+      ],
+      "util/*" : [
+        "src/frontend/js/lib/util/*"
+      ],
+      "component": [
+        "src/frontend/js/lib/component"
+      ],
+      "validation": [
+        "src/frontend/js/lib/validation"
+      ],
+    }
   },
+  "include": [
+    "src/frontend/**/*"
+  ],
   "exclude": [
     "node_modules",
     "dist",
