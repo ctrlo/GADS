@@ -65,6 +65,10 @@ is (scalar @values, 2, "Typeahead returns all results for blank search");
 @values = $column->values_beginning_with('bar foo');
 is (scalar @values, 1, "Typeahead allows search to match multiple conditions");
 is ($value->{id}, 2, "Typeahead result has correct ID");
+# Test searching for values contains (experimental, depending on performance)
+@values = $column->values_beginning_with('ar oo');
+is (scalar @values, 1, "Typeahead allows search to match values containing");
+is ($value->{id}, 2, "Typeahead result has correct ID");
 
 # Add a filter to the curval
 $column->filter(GADS::Filter->new(

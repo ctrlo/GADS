@@ -595,7 +595,7 @@ sub values_beginning_with
                 id       => $_->id,
                 type     => $_->type,
                 value    => $m,
-                operator => $_->return_type eq 'string' ? 'begins_with' : 'equal',
+                operator => $_->return_type eq 'string' ? 'contains' : 'equal',
             },
         } @{$self->curval_fields};
         my @this_rules = (
