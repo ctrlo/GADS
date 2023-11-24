@@ -223,7 +223,8 @@ class ModalComponent extends Component {
     clearTimeout(this.typingTimer)
 
     this.typingTimer = setTimeout(() => {
-      this.validateField(field)
+      if ($(field).val())
+        this.validateField(field)
     },
     doneTypingInterval)
   }
@@ -236,7 +237,8 @@ class ModalComponent extends Component {
     const field = ev.target
     clearTimeout(this.typingTimer)
 
-    this.validateField(field)
+    if ($(field).val())
+      this.validateField(field)
   }
 
   // Check if a field is valid
