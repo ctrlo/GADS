@@ -72,6 +72,9 @@ plugins:
       module: Mail::Message
       options:
         via: sendmail
+        sendmail_options:
+          - "-f"
+          - "support@example.com"
     mail_from: '"Linkspace Database" <user@example.com>'
     password_reset_text: GADS::reset_text
     welcome_text: GADS::welcome_text
