@@ -952,20 +952,20 @@
     ELSIF col.type == "calc";
       FOREACH val IN editvalue.html_form;
         IF col.show_in_edit;
-          INCLUDE fields/input.tt
+          INCLUDE fields/textarea.tt
             id           = col.id
             name         = field
             label        = field_label
             label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
             value        = val
             input_class  = ""
+            custom_classes = "auto-adjust"
             placeholder  = ""
             help_text    = col.description
             popover_body = col.helptext_html
             filter       = "html"
             is_readonly  = 1
-            hide_group   = 1
-            type         = "text";
+            hide_group   = 1;
         ELSE;
           INCLUDE fields/hidden.tt
             id     = col.id
