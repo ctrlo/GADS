@@ -297,7 +297,8 @@ class ModalComponent extends Component {
       let errorList = ""
 
       $.each(this.frame.error, (i, errorMsg) => {
-        errorList += `<li>${errorMsg}</li>`
+        const errorMsgHtml = $('<span>').text(errorMsg).html()
+        errorList += `<li>${errorMsgHtml}</li>`
       })
 
       alert.html(`<div>${errorIntro}<ul>${errorList}</ul></div>`)
@@ -378,7 +379,8 @@ class ModalComponent extends Component {
   showError(strError) {
     const alert = this.frame.object.find('.alert')
 
-    alert.html(`<p>Error: ${strError}</p>`)
+    const strErrorHtml = $('<span>').text(strError).html()
+    alert.html(`<p>Error: ${strErrorHtml}</p>`)
     alert.show()
     this.el.animate({ scrollTop: alert.offset().top }, 500)
   }
