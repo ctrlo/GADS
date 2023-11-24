@@ -245,5 +245,12 @@ sub html_form
     return $self->ids;
 }
 
+sub _build_for_code
+{   my $self = shift;
+    my @return = map { $_->{name} } @{$self->files};
+    # Make consistent with JS
+    $self->column->multivalue ? \@return : $return[0];
+}
+
 1;
 

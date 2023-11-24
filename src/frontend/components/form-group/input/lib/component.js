@@ -82,7 +82,7 @@ class InputComponent extends Component {
           var $li = $(
             `<li class="help-block">
               <div class="checkbox">
-                <input type="checkbox" id="file-${fileId}" name="${field}" value="${fileId}" aria-label="${fileName}" checked>
+                <input type="checkbox" id="file-${fileId}" name="${field}" value="${fileId}" aria-label="${fileName}" data-filename="${fileName}" checked>
                 <label for="file-${fileId}">
                   <span>Include file. Current file name: <a class="link" href="/file/${fileId}">${fileName}</a>.</span>
                 </label>
@@ -90,6 +90,10 @@ class InputComponent extends Component {
             </li>`
           );
           $ul.append($li);
+          // Change event will alreayd have been triggered with initial file
+          // selection (XXX ideally remove this first trigger?). Trigger
+          // change again now that the full element has been recreated.
+          $ul.closest('.linkspace-field').trigger('change')
           // .list class contains the checkboxes to be validated
           validateCheckboxGroup($fieldset.find('.list'))
           // Once a file has been uploaded, it will appear as a checkbox and
