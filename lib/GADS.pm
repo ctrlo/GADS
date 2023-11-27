@@ -2980,7 +2980,7 @@ prefix '/:layout_name' => sub {
 
         if (param('purge') || param('restore'))
         {
-            my @current_ids = body_parameters->get_all('record_selected')
+            my @current_ids = body_parameters->get_all('record')
                 or forwardHome({ danger => "Please select some records before clicking an action" }, $layout->identifier.'/purge');
             my $records = GADS::Records->new(
                 limit_current_ids   => [@current_ids],
