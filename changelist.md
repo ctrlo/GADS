@@ -2,7 +2,7 @@
 
 -------
 
-Last Updated 27/11/2023
+Version: CURRENT
 
 -------
 
@@ -35,12 +35,3 @@ Last Updated 27/11/2023
 - Now able to edit region and organisation names
 - Sorting on PDU or Region within the users page no longer results in an error
 - Fixed issue where multi-value mandatory fields were not erroring correctly
-
-## In progress
-
-- Installation scripts and instructions
-  - Updated Readme for installation
-- Version tracking
-- Type ahead functionality for filters when creating a field
-- Type ahead functionality for column/field filtering
-- Drag and Drop for files
