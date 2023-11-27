@@ -200,7 +200,6 @@
                         label = field.description
                         placeholder = field.placeholder
                         items = items
-                        filter = "html"
                         sub_field = sub_field
                         sub_params = sub_params;
                     END;

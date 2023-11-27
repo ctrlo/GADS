@@ -78,7 +78,7 @@
               <label class="radio-group__label" for="[% id %]_[% item.value %]">
                 [%
                     IF item.label_plain;
-                        INCLUDE fields/sub/filter.tt value=item.label_plain filter=text_filter
+                        INCLUDE fields/sub/filter.tt value=item.label_plain filter="html"
                     ELSIF item.label_html;
                         item.label_html;
                     ELSE;

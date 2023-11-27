@@ -1602,22 +1602,14 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
         }
     }
 
-    my $titles = [ map { +{ label_plain => $_->name, value => $_->id } } @{ $userso->titles } ];
-
-    my $orgs = [ map { +{ label_plain => $_->name, value => $_->id } } @{ $userso->organisations } ];
-
-    my $depts = [ map { +{ label_plain => $_->name, value => $_->id } } @{ $userso->departments } ];
-
-    my $teams = [ map { +{ label_plain => $_->name, value => $_->id } } @{ $userso->teams } ];
-
     my $output = template 'user/user_edit' => {
         edituser => $editUser,
         groups   => GADS::Groups->new(schema => schema)->all,
         values   => {
-            title         => $titles,
-            organisation  => $orgs,
-            department_id => $depts,
-            team_id       => $teams,
+            title         => $userso->titles,
+            organisation  => $userso->organisations,
+            department_id => $userso->departments,
+            team_id       => $userso->teams,
         },
         permissions => $userso->permissions,
         page        => 'user',

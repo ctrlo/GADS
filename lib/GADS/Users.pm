@@ -158,7 +158,7 @@ sub _build_titles
             order_by => 'name',
         }
     )->all;
-    \@titles;
+    [map {+{label_plain => $_->name, value => $_->id}} @titles];
 }
 
 sub _build_organisations
@@ -171,7 +171,7 @@ sub _build_organisations
             order_by => 'name',
         }
     )->all;
-    \@organisations;
+    [map {+{label_plain => $_->name, value => $_->id}} @organisations];
 }
 
 sub _build_departments
@@ -184,7 +184,7 @@ sub _build_departments
             order_by => 'name',
         }
     )->all;
-    \@departments;
+    [map {+{label_plain => $_->name, value => $_->id}} @departments];
 }
 
 sub _build_teams
@@ -197,7 +197,7 @@ sub _build_teams
             order_by => 'name',
         }
     )->all;
-    \@teams;
+    [map {+{label_plain => $_->name, value => $_->id}} @teams];
 }
 
 sub _build_permissions
