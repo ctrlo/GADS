@@ -406,6 +406,12 @@ has calc_return_type => (
     isa     => Str,
     default => 'integer',
 );
+
+has has_rag => (
+    is      => 'ro',
+    default => 1,
+);
+
 has rag_code => (
     is  => 'lazy',
     isa => Str,
@@ -799,21 +805,25 @@ sub __build_columns
         }
     }
 
-    my $rag1 = GADS::Column::Rag->new(
-        schema => $schema,
-        user   => undef,
-        layout => $layout,
-    );
-    $rag1->code($self->rag_code);
-    $rag1->type('rag');
-    $rag1->name('rag1');
-    $rag1->set_permissions({$self->group->id => $permissions})
-        if $self->group;
-    try { $rag1->write };
-    if ($@)
+    my $rag1;
+    if ($self->has_rag)
     {
-        $@->wasFatal->throw(is_fatal => 0);
-        return;
+        $rag1 = GADS::Column::Rag->new(
+            schema => $schema,
+            user   => undef,
+            layout => $layout,
+        );
+        $rag1->code($self->rag_code);
+        $rag1->type('rag');
+        $rag1->name('rag1');
+        $rag1->set_permissions({$self->group->id => $permissions})
+            if $self->group;
+        try { $rag1->write };
+        if ($@)
+        {
+            $@->wasFatal->throw(is_fatal => 0);
+            return;
+        }
     }
 
     # At this point, layout will have been built with current columns (it will
@@ -853,7 +863,8 @@ sub __build_columns
     $columns->{$_->name}   = $layout->column($_->id)
         foreach (@strings, @enums, @curvals, @trees, @integers, @dates, @dateranges);
     $columns->{calc1}      = $layout->column($calc1->id);
-    $columns->{rag1}       = $layout->column($rag1->id);
+    $columns->{rag1}       = $layout->column($rag1->id)
+        if $self->has_rag;
     $columns->{file1}      = $layout->column($file1->id);
     $columns->{person1}    = $layout->column($person1->id);
     $columns;

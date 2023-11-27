@@ -8,21 +8,57 @@
 [% IF records.size %]
     <form role="form" method="post">
         <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-        <table class="table table-striped">
-            <caption class="sr-only">Table to show deleted records</caption>
-            <tr>
-                <th><input type="checkbox" id="selectall" title="Select/deselect all"></th>
-                <th>ID</th>
-                <th>Deleted</th>
-            </tr>
-            [% FOREACH record IN records %]
-                <tr>
-                    <td><input class="record_selected" type="checkbox" name="record_selected" value="[% record.current_id %]"></td>
-                    <td><a href="/[% layout.identifier %]/purge/[% record.current_id %]">[% record.current_id %]</a></td>
-                    <td>[% record.deleted %] by [% record.deletedby | html %]</td>
-                </tr>
-            [% END %]
-        </table>
+
+        [%
+          # prepare table config
+          table_class            = 'table-striped table-selectable';
+          table_dom              = 't';
+          table_language         = {
+            emptyTable => "There are no deleted records in this table.",
+          };
+          table_show_all_records = 1;
+          table_unresponsive     = 0;
+          table_caption          = "Table to show deleted records";
+          rows                   = [];
+          table_columns          = [{
+            name      = "Select",
+            orderable = 0,
+            data      = "check",
+            class     = "check"
+          },{
+            name      = "Deleted",
+            orderable = 1,
+          }];
+
+          FOR record IN records;
+            current_id = record.current_id;
+
+            rows.push({
+              fields = [{
+                type        = "text"
+                label       = ""
+                sub_field   = "fields/sub/checkbox.tt"
+                sub_params  = {
+                  id => "dt_checkbox_" _ current_id
+                  name => "record"
+                  label => "<a href='/" _ layout.identifier _ "/purge/" _ current_id _ "'>" _ current_id _ "</a>"
+                  checked => 0
+                  is_required => 0
+                  autofocus => 0
+                  input_class => ""
+                  label_in_span => 1
+                  value => current_id
+                }
+              },{
+                type   = "text"
+                label  = record.deleted _ ' by ' _ record.deletedby
+                filter = "html"
+              }],
+            });
+          END;
+        %]
+        [% INCLUDE tables/basic_table.tt; %]
+
         [% WRAPPER modal_dialog.tt
             modal_id="purge"
             modal_action_text="Confirm"

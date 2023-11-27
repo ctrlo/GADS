@@ -248,13 +248,17 @@
               </div>
 
               [%- IF user.permission.superadmin -%]
-              <div class="row mb-3">
-                [% INCLUDE snippets/user_column_permissions.tt list_class="list--no-borders list--checkboxes"; %]
+              <div class="row">
+                [% INCLUDE snippets/user_column_permissions.tt list_class="list--no-borders list--checkboxes form-group"; %]
               </div>
               [%- END -%]
 
               <div class="row">
-                [% INCLUDE snippets/user_column_groups.tt list_class="list--no-borders list--checkboxes"; %]
+                [% INCLUDE snippets/user_column_groups.tt list_class="list--no-borders list--checkboxes form-group"; %]
+              </div>
+
+              <div class="row">
+                [% INCLUDE snippets/user_column_view_limits.tt user=edituser column_class="col-lg-12"; %]
               </div>
             </div> <!-- container end -->
           </div> <!-- modal body end -->

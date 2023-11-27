@@ -19,7 +19,7 @@
       <div class="content-block__main-content">
         <div class="card card--primary mb-3">
           <h4 class="card__title">
-            <span> Edit your table: [% layout_obj.name %] </span>
+            <span> Edit your table: [% layout_obj.name | html %] </span>
           </h4>
           
           <div class="card__body row">

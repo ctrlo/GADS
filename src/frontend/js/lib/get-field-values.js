@@ -157,6 +157,12 @@ const getFieldValues = function($depends, filtered, for_code) {
       }
     }
 
+  } else if (type === "file") {
+
+    values = $depends.find("input:checkbox:checked").map(function(){
+      return $(this).data('filename')
+    }).get();
+
   } else {
     // Can't use map as an undefined return value is skipped
     values = [];
