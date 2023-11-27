@@ -53,14 +53,14 @@ class ModalComponent extends Component {
     
     fields.each((i, field) => {
       if ($(field).val()) {
-        if (($(field).attr('type') !== 'hidden' && $(field).attr('type') !== 'checkbox' && $(field).attr('type') !== 'radiobutton') || 
+        if (($(field).attr('type') !== 'hidden' && $(field).attr('type') !== 'checkbox' && $(field).attr('type') !== 'radio') ||
           ($(field).attr('type') === 'hidden' && $(field).parents('.select').length)) {
           if (($(field).data('original-value') && $(field).val().toString() !== $(field).data('original-value').toString()) || 
             !$(field).data('original-value')) {
             hasChanged = true
             return false
           }
-        } else if ($(field).attr('type') !== 'hidden' && (($(field).data('original-value') && $(field).prop('checked') !== $(field).data('original-value').toString()) || 
+        } else if ($(field).attr('type') !== 'hidden' && (($(field).data('original-value') && $(field).prop('checked') && $(field).val() !== $(field).data('original-value').toString()) ||
           (!$(field).data('original-value') && $(field).prop('checked')))) {
           hasChanged = true
           return false
@@ -94,8 +94,12 @@ class ModalComponent extends Component {
     fields.each((i, field) => {
       const $field = $(field)
 
-      if ($field.attr('type') === 'checkbox') {
+      if ($field.attr('type') === 'radio') {
+        // Simple removal of checked property will suffice
         $field.prop('checked', false)
+      } else if ($field.attr('type') === 'checkbox') {
+        // Need to trigger click event to ensure widget is updated
+        if ($field.is(':checked')) $field.trigger('click')
       } else {
         if ($field.data('restore-value')) {
           $field.val($field.data('restore-value'))
