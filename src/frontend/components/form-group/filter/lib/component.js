@@ -1,7 +1,7 @@
 import { Component } from 'component'
 import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
 import { logging } from 'logging'
-import { TypeaheadBuilder } from '../../../util/typeahead'
+import { TypeaheadBuilder } from 'util/typeahead'
 
 class FilterComponent extends Component {
   constructor(element)  {
@@ -154,6 +154,8 @@ class FilterComponent extends Component {
           }
           $ruleInputHidden.trigger('change')
       }
+
+      const query = $ruleInputText.val()
 
       const builder = new TypeaheadBuilder()
       builder
