@@ -11,7 +11,7 @@ class TextareaComponent extends Component {
       }
       
       // Check if there is a textarea with the class 'auto-adjust'
-      const $autoAdjustTextarea = this.$el.find('textarea.auto-adjust');
+      const $autoAdjustTextarea = this.el.find('textarea.auto-adjust');
       if ($autoAdjustTextarea.length) {
         this.adjustTextareaHeight();
 
@@ -21,7 +21,7 @@ class TextareaComponent extends Component {
       }
     } 
     adjustTextareaHeight() {
-        const $textarea = this.$el.find('textarea.auto-adjust');
+        const $textarea = this.el.find('textarea.auto-adjust');
 
         // Create a hidden div with just the text content
         const $hiddenDiv = $('<div></div>').text($textarea.val()).css({
