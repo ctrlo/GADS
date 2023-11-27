@@ -106,8 +106,15 @@ class SelectWidgetComponent extends Component {
   handleDocumentClick(e) {
     const clickedOutside =
       !this.el.is(e.target) && this.el.has(e.target).length === 0
+    // clickInDialog was introduced in commit
+    // 8a233a0b4c2d5ad123bcd864363fa9dc641a9d47 with the comment "Don't close
+    // select widget when exiting a dialog". I am not sure why this is
+    // desirable, and indeed it means that the select-widget behaves
+    // differently in a modal than a normal page (it doesn't collapse when
+    // clicking somewhere else in the modal). I am removing it for the
+    // timebeing but documenting as such in case it needs reinstating
     const clickedInDialog = $(e.target).closest(".modal").length !== 0
-    if (clickedOutside && !clickedInDialog) {
+    if (clickedOutside) {
       this.collapse(this.$widget, this.$trigger, this.$target)
     }
   }
