@@ -29,10 +29,12 @@
             <li
               data-list-id="[% item.value %]"
               data-list-item="[% id %]_[% item.value %]"
-              data-list-text="[% item.label_plain | html %]"
+              data-list-text="[% INCLUDE fields/sub/filter.tt value=item.label_plain filter="html" %]"
               [% value_hidden %]
             >
-              <span class="widget-value__value">[% item.label_html %]</span>
+              <span class="widget-value__value">
+                  [% IF item.label_html; item.label_html; ELSE; INCLUDE fields/sub/filter.tt value=item.label_plain filter="html"; END %]
+              </span>
               [% UNLESS is_readonly %]
                 <button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
               [% END %]
@@ -90,9 +92,9 @@
                   id              = id _ '_' _ item.value
                   name            = name
                   value           = item.value
-                  label           = item.label_html
+                  label           = item.label_html || item.label_plain
                   is_required     = 0
-                  filter          = ""
+                  filter          = item.label_html ? "" : "html"
                   popover_body    = ""
                   checked         = checkbox_checked;
               %]
