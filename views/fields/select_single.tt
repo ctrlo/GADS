@@ -19,10 +19,10 @@
             <li
               data-list-id="[% item.value %]"
               data-list-item="[% id %]_[% item.value %]"
-              data-list-text="[% item.label_plain | html %]"
+              data-list-text="[% INCLUDE fields/sub/filter.tt value=item.label_plain filter="html" %]"
               [% value_hidden %]
             >
-              <span class="widget-value__value">[% item.label_html %]</span>
+              <span class="widget-value__value">[% IF item.label_html; item.label_html; ELSIF item.label_plain; INCLUDE fields/sub/filter.tt value=item.label_plain filter="html"; ELSE; item;END; %]</span>
               [% UNLESS is_readonly %]
                 <button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>
               [% END %]
@@ -78,7 +78,7 @@
               <label class="radio-group__label" for="[% id %]_[% item.value %]">
                 [%
                     IF item.label_plain;
-                        INCLUDE fields/sub/filter.tt value=item.label_plain filter="html"
+                        INCLUDE fields/sub/filter.tt value=item.label_plain filter="html";
                     ELSIF item.label_html;
                         item.label_html;
                     ELSE;
