@@ -26,6 +26,8 @@ Last Updated 21/11/2023
 - Provided admins the ability to manage the alerts of another user
 - Added a spin wheel when searching for cur-vals
 - Modified the created_by and edited_by fields so they can now be selected for more info.
+- Calc fields now automatically resize
+- Calc fields can now be resized manually
 
 ## Fixes
 
