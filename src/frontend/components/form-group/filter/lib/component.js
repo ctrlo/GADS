@@ -1,10 +1,11 @@
 import { Component } from 'component'
 import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
 import { logging } from 'logging'
-import { TypeaheadBuilder } from 'util/typeahead'
+import TypeaheadBuilder from 'util/typeahead'
+import { map } from 'util/typeahead/lib/mapper'
 
 class FilterComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.operators = [
@@ -84,6 +85,8 @@ class FilterComponent extends Component {
   }
 
   initFilter() {
+    console.log('initFilter')
+
     const self = this
     const $builderEl = this.el
     const builderID = $(this.el).data('builder-id')
@@ -111,17 +114,17 @@ class FilterComponent extends Component {
       }
     })
 
-    $builderEl.on('validationError.queryBuilder', function(e, node, error, value) {
+    $builderEl.on('validationError.queryBuilder', function (e, node, error, value) {
       logging.log(error);
       logging.log(value);
       logging.log(e);
       logging.log(node);
     });
 
-    $builderEl.on('afterCreateRuleInput.queryBuilder', function(e, rule) {
+    $builderEl.on('afterCreateRuleInput.queryBuilder', function (e, rule) {
       let filterConfig
 
-      builderConfig.filters.forEach(function(value) {
+      builderConfig.filters.forEach(function (value) {
         if (value.filterId === rule.filter.id) {
           filterConfig = value
           return false
@@ -147,12 +150,13 @@ class FilterComponent extends Component {
       })
 
       const filterCallback = (suggestions) => {
-        if(filterConfig.useIdInFilter) {
-          $ruleInputHidden.val(suggestion.id) }
-          else{
-            $ruleInputHidden.val(suggestion.label)
-          }
-          $ruleInputHidden.trigger('change')
+        if (filterConfig.useIdInFilter) {
+          $ruleInputHidden.val(suggestion.id)
+        }
+        else {
+          $ruleInputHidden.val(suggestion.label)
+        }
+        $ruleInputHidden.trigger('change')
       }
 
       const query = $ruleInputText.val()
@@ -162,12 +166,13 @@ class FilterComponent extends Component {
         .withInput($ruleInputText)
         .withAjaxSource(self.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
         .withData({ q: query, oi: filterConfig.instanceId })
+        .withMapper(m => map(m))
         .withName('rule')
         .withCallback(filterCallback)
         .build();
     })
 
-    if(filterBase) {
+    if (filterBase) {
       const data = Buffer.from(filterBase, 'base64')
       try {
         const obj = JSON.parse(data);
@@ -175,7 +180,7 @@ class FilterComponent extends Component {
           $builderEl.queryBuilder('setRules', obj)
         } else {
           // Ensure that no blank rules by default, otherwise view cannot be submitted
-          $builderEl.queryBuilder('setRules', {rules:[]})
+          $builderEl.queryBuilder('setRules', { rules: [] })
         }
       } catch (error) {
         logging.log('Incorrect data object passed to queryBuilder')
@@ -203,22 +208,22 @@ class FilterComponent extends Component {
 
   buildFilter = (builderConfig, col) => {
     return ({
-    id: col.filterId,
-    label: col.label,
-    type: 'string',
-    operators: this.buildFilterOperators(col.type),
-    ...(col.type === 'rag'
-      ? this.ragProperties
-      : col.hasFilterTypeahead
-      ? this.typeaheadProperties(
-          col.urlSuffix,
-          builderConfig.layoutId,
-          col.instanceId,
-          col.useIdInFilter
-        )
-      : {})
-  })
-}
+      id: col.filterId,
+      label: col.label,
+      type: 'string',
+      operators: this.buildFilterOperators(col.type),
+      ...(col.type === 'rag'
+        ? this.ragProperties
+        : col.hasFilterTypeahead
+          ? this.typeaheadProperties(
+            col.urlSuffix,
+            builderConfig.layoutId,
+            col.instanceId,
+            col.useIdInFilter
+          )
+          : {})
+    })
+  }
 
   buildFilterOperators(type) {
     if (!['date', 'daterange'].includes(type)) return undefined
@@ -250,7 +255,7 @@ class FilterComponent extends Component {
       rule.$el.find('.typeahead_text').val(rule.data.text)
     },
     validation: {
-      callback: () => {return true}
+      callback: () => { return true }
     }
   })
 

@@ -1,4 +1,6 @@
-import { Typeahead } from "./typeahead";
+import { MappedResponse } from "./interfaces";
+import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
+import { Typeahead } from "./Typeahead";
 
 /**
  * TypeaheadBuilder class for building Typeahead class
@@ -19,6 +21,7 @@ export class TypeaheadBuilder {
     private ajaxSource: string;
     private appendQuery: boolean;
     private data: any;
+    private mapper: (data: any[]) => MappedResponse[] = (data: any) => {return data.map(d=> {return {name: d.name, id: d.id}})};
 
     /**
      * Constructor for TypeaheadBuilder class
@@ -87,6 +90,11 @@ export class TypeaheadBuilder {
         return this;
     }
 
+    withMapper(mapper: (data: any) => MappedResponse[]) {
+        this.mapper = mapper;
+        return this;
+    }
+
     /**
      * Build the Typeahead class
      * @returns The built Typeahead class
@@ -96,11 +104,7 @@ export class TypeaheadBuilder {
         if (!this.callback) throw new Error("Callback not set");
         if (!this.name) throw new Error("Name not set");
         if (!this.ajaxSource) throw new Error("Ajax source not set");
-        return new Typeahead(this.$input, this.callback, {
-            name: this.name,
-            ajaxSource: this.ajaxSource,
-            appendQuery: this.appendQuery,
-            data: this.data
-        });
+        const options = new TypeaheadSourceOptions(this.name, this.ajaxSource, this.mapper, this.appendQuery, this.data);
+        return new Typeahead(this.$input, this.callback, options);
     }
 }

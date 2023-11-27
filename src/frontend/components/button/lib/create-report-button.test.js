@@ -1,7 +1,8 @@
 import CreateReportButtonComponent from '../index';
 import { validateRequiredFields } from 'validation';
 
-global.$ = require('jquery');
+// This should be window.$ not global.$ - window.$ is the correct way within the browser (global.$ is for node)
+window.$ = require('jquery');
 
 describe('create-report-button', () => {
   it('does not submit form if no checkboxes are checked', () => {

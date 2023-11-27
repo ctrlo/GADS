@@ -1,15 +1,5 @@
-import { initializeComponent, getComponentElements } from 'component'
+import { initializeComponent } from 'component'
+import Component from './lib/component'
 
-export default (scope) => {
-    if (!getComponentElements(scope, '.filter').length) {
-      return;
-    }
-  
-    import(
-      /* webpackChunkName: "filter" */
-      './lib/component' 
-    ).then(({ default: Component }) => {
-      initializeComponent(scope, '.filter', Component)
-    });
-  }
+export default (scope) => initializeComponent(scope, '.filter', Component)
   
