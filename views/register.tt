@@ -45,7 +45,7 @@
           help_text = site.register_email_help;
         
         IF site.register_show_title;
-          INCLUDE fields/select.tt
+          INCLUDE fields/select_single.tt
             id = "title"
             name = "title"
             label = "Title"
