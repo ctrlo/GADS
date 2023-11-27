@@ -77,6 +77,50 @@ has register_requests => (
     isa => ArrayRef,
 );
 
+has titles_hash => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+has organisations_hash => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+has departments_hash => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+has teams_hash => (
+    is  => 'lazy',
+    isa => ArrayRef,
+);
+
+sub _build_titles_hash
+{
+    my $self = shift;
+    return [map {+{label_plain => $_->name, value => $_->id}} @{$self->titles}];
+}
+
+sub _build_organisations_hash
+{
+    my $self = shift;
+    return [map {+{label_plain => $_->name, value => $_->id}} @{$self->organisations}];
+}
+
+sub _build_departments_hash
+{
+    my $self = shift;
+    return [map {+{label_plain => $_->name, value => $_->id}} @{$self->departments}];
+}
+
+sub _build_teams_hash
+{
+    my $self = shift;
+    return [map {+{label_plain => $_->name, value => $_->id}} @{$self->teams}];
+}
+
 sub user_rs
 {   my $self = shift;
     $self->schema->resultset('User')->active;
@@ -158,7 +202,7 @@ sub _build_titles
             order_by => 'name',
         }
     )->all;
-    [map {+{label_plain => $_->name, value => $_->id}} @titles];
+    \@titles;
 }
 
 sub _build_organisations
@@ -171,7 +215,7 @@ sub _build_organisations
             order_by => 'name',
         }
     )->all;
-    [map {+{label_plain => $_->name, value => $_->id}} @organisations];
+    \@organisations;
 }
 
 sub _build_departments
@@ -184,7 +228,7 @@ sub _build_departments
             order_by => 'name',
         }
     )->all;
-    [map {+{label_plain => $_->name, value => $_->id}} @departments];
+    \@departments;
 }
 
 sub _build_teams
@@ -197,7 +241,7 @@ sub _build_teams
             order_by => 'name',
         }
     )->all;
-    [map {+{label_plain => $_->name, value => $_->id}} @teams];
+    \@teams;
 }
 
 sub _build_permissions

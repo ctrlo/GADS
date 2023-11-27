@@ -185,7 +185,7 @@
                         sub_params = sub_params;
 
                     ELSIF field.type == "dropdown";
-                      INCLUDE fields/select_single.tt
+                      INCLUDE fields/select.tt
                         id = field.name
                         name = field.name
                         label = field.description
