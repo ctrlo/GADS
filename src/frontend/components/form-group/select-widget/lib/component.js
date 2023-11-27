@@ -241,7 +241,7 @@ class SelectWidgetComponent extends Component {
     if (
       !this.$selectWidget.find(newlyFocussedElement).length &&
       newlyFocussedElement &&
-      !$(newlyFocussedElement).is(".modal, .page") &&
+      !$(newlyFocussedElement).is(".modal, .page, body") &&
       this.$selectWidget.get(0).parentNode !== newlyFocussedElement
     ) {
       this.collapse(this.$widget, this.$trigger, this.$target)
