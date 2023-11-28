@@ -62,7 +62,7 @@ class CalcFieldsComponent extends Component {
         var returnval = func.apply(first, vars)
 
         // Update the field holding the code's value
-        $field.find('textarea').text(returnval)
+        $field.find('textarea').val(returnval)
         // And trigger a change on its parent div to trigger any display
         // conditions
         $field.closest('.linkspace-field').trigger("change")
