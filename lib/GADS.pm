@@ -1602,16 +1602,12 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
         }
     }
 
-    my $titles = [map { +{ label_html => $_->name, value => $_->id } } @{$userso->titles}];
-
-    my $orgs = [map { +{ label_html => $_->name, value => $_->id } } @{$userso->organisations}];
-
     my $output = template 'user/user_edit' => {
         edituser => $editUser,
         groups   => GADS::Groups->new(schema => schema)->all,
         values   => {
-            title         => $titles,
-            organisation  => $orgs,
+            title         => $userso->titles,
+            organisation  => $userso->organisations,
             department_id => $userso->departments,
             team_id       => $userso->teams,
         },
@@ -2980,7 +2976,7 @@ prefix '/:layout_name' => sub {
 
         if (param('purge') || param('restore'))
         {
-            my @current_ids = body_parameters->get_all('record_selected')
+            my @current_ids = body_parameters->get_all('record')
                 or forwardHome({ danger => "Please select some records before clicking an action" }, $layout->identifier.'/purge');
             my $records = GADS::Records->new(
                 limit_current_ids   => [@current_ids],

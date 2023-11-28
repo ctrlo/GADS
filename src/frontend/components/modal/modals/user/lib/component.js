@@ -16,6 +16,7 @@ class UserModalComponent extends ModalComponent {
     this.el.on('show.bs.modal', (ev) => { 
       this.toggleContent(ev)
       modal.validate() 
+      this.updateEmail()
       this.emailField.keyup( () => { this.updateEmail() })
     })
   }

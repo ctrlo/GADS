@@ -185,22 +185,12 @@
                         sub_params = sub_params;
 
                     ELSIF field.type == "dropdown";
-                      items = [];
-
-                      FOREACH value IN values.${field.name};
-                        items.push({
-                          value = value.id,
-                          label_html = value.name,
-                        });
-                      END;
-
                       INCLUDE fields/select_single.tt
                         id = field.name
                         name = field.name
                         label = field.description
                         placeholder = field.placeholder
-                        items = items
-                        filter = "html"
+                        items = values.${field.name}
                         sub_field = sub_field
                         sub_params = sub_params;
                     END;
