@@ -46,7 +46,7 @@ class TextareaComponent extends Component {
         const maxHeight = 18;  // max height in REM
 
         // Calculate the adjusted height
-        let adjustedHeight = (contentHeight < minHeight) ? contentHeight : contentHeight + lineHeight;
+        let adjustedHeight = (contentHeight < minHeight) ? minHeight : contentHeight + lineHeight;
 
         // Apply the maximum height constraint
         adjustedHeight = Math.min(adjustedHeight, maxHeight);
