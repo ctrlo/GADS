@@ -150,54 +150,26 @@ sub _build_all_admins
 
 sub _build_titles
 {   my $self = shift;
-    my @titles = $self->schema->resultset('Title')->search(
-        {
-            deleted => 0,
-        },
-        {
-            order_by => 'name',
-        }
-    )->all;
-    \@titles;
+    my @titles = $self->schema->resultset('Title')->ordered->all;
+    [map {+{label_plain => $_->name, value => $_->id}} @titles];
 }
 
 sub _build_organisations
 {   my $self = shift;
-    my @organisations = $self->schema->resultset('Organisation')->search(
-        {
-            deleted => 0,
-        },
-        {
-            order_by => 'name',
-        }
-    )->all;
-    \@organisations;
+    my @organisations = $self->schema->resultset('Organisation')->ordered->all;
+    [map {+{label_plain => $_->name, value => $_->id}} @organisations];
 }
 
 sub _build_departments
 {   my $self = shift;
-    my @departments = $self->schema->resultset('Department')->search(
-        {
-            deleted => 0,
-        },
-        {
-            order_by => 'name',
-        }
-    )->all;
-    \@departments;
+    my @departments = $self->schema->resultset('Department')->ordered->all;
+    [map {+{label_plain => $_->name, value => $_->id}} @departments];
 }
 
 sub _build_teams
 {   my $self = shift;
-    my @teams = $self->schema->resultset('Team')->search(
-        {
-            deleted => 0,
-        },
-        {
-            order_by => 'name',
-        }
-    )->all;
-    \@teams;
+    my @teams = $self->schema->resultset('Team')->ordered->all;
+    [map {+{label_plain => $_->name, value => $_->id}} @teams];
 }
 
 sub _build_permissions

@@ -127,10 +127,18 @@ class DataTableComponent extends Component {
       const fieldName = $(field).attr('name')
       const fieldValue = $(row).find(`td[data-${fieldName}]`).data(fieldName)
 
-      if (fieldValue) {
-        $(field).val(fieldValue)
-        $(field).data('original-value', fieldValue)
-        $(field).trigger('change')
+      if (fieldName && fieldValue) {
+        const $field = $(field)
+        $field.data('original-value', fieldValue)
+        if ($field.is(":radio, :checkbox")) {
+          if ($field.val() == fieldValue) {
+            $field.trigger("click")
+          }
+        } else {
+          $field.data('original-value', fieldValue)
+          $field.trigger('change')
+          $field.val(fieldValue)
+        }
       }
     })
   }

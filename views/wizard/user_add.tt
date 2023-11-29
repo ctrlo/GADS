@@ -185,22 +185,12 @@
                         sub_params = sub_params;
 
                     ELSIF field.type == "dropdown";
-                      items = [];
-
-                      FOREACH value IN values.${field.name};
-                        items.push({
-                          value = value.id,
-                          label_html = value.name,
-                        });
-                      END;
-
                       INCLUDE fields/select_single.tt
                         id = field.name
                         name = field.name
                         label = field.description
                         placeholder = field.placeholder
-                        items = items
-                        filter = "html"
+                        items = values.${field.name}
                         sub_field = sub_field
                         sub_params = sub_params;
                     END;
@@ -248,13 +238,17 @@
               </div>
 
               [%- IF user.permission.superadmin -%]
-              <div class="row mb-3">
-                [% INCLUDE snippets/user_column_permissions.tt list_class="list--no-borders list--checkboxes"; %]
+              <div class="row">
+                [% INCLUDE snippets/user_column_permissions.tt list_class="list--no-borders list--checkboxes form-group"; %]
               </div>
               [%- END -%]
 
               <div class="row">
-                [% INCLUDE snippets/user_column_groups.tt list_class="list--no-borders list--checkboxes"; %]
+                [% INCLUDE snippets/user_column_groups.tt list_class="list--no-borders list--checkboxes form-group"; %]
+              </div>
+
+              <div class="row">
+                [% INCLUDE snippets/user_column_view_limits.tt user=edituser column_class="col-lg-12"; %]
               </div>
             </div> <!-- container end -->
           </div> <!-- modal body end -->

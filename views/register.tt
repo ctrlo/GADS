@@ -45,7 +45,7 @@
           help_text = site.register_email_help;
         
         IF site.register_show_title;
-          INCLUDE fields/select.tt
+          INCLUDE fields/select_single.tt
             id = "title"
             name = "title"
             label = "Title"
@@ -77,7 +77,7 @@
         END;
         
         IF site.register_show_organisation;
-          INCLUDE fields/select.tt
+          INCLUDE fields/select_single.tt
             id = "organisation"
             name = "organisation"
             label = site.register_organisation_name
@@ -87,7 +87,7 @@
         END;
         
         IF site.register_show_department;
-          INCLUDE fields/select.tt
+          INCLUDE fields/select_single.tt
             id = "department_id"
             name = "department_id"
             label = site.department_name
@@ -98,7 +98,7 @@
         END;
         
         IF site.register_show_team;
-          INCLUDE fields/select.tt
+          INCLUDE fields/select_single.tt
             id = "team_id"
             name = "team_id"
             label = site.team_name

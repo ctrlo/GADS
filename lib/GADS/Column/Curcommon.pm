@@ -581,22 +581,37 @@ sub validate_search
 sub values_beginning_with
 {   my ($self, $match, %options) = @_;
     return if !$self->filter_view_is_ready; # Record not ready yet in sub_values
-    # First create a view to search for this value in the column.
-    my @conditions = map {
-        +{
-            field    => $_->id,
-            id       => $_->id,
-            type     => $_->type,
-            value    => $match,
-            operator => $_->return_type eq 'string' ? 'begins_with' : 'equal',
-        },
-    } @{$self->curval_fields};
-    my @rules = (
-        {
-            condition => 'OR',
-            rules     => [@conditions],
-        },
-    );
+
+    # Allow a user to enter multiple searches in one typeahead
+    my @matches = split /[\s,]+/, $match;
+
+    my @rules;
+    foreach my $m (@matches)
+    {
+        # For each search param, construct a search that matches it in any field
+        my @conditions = map {
+            +{
+                field    => $_->id,
+                id       => $_->id,
+                type     => $_->type,
+                value    => $m,
+                operator => $_->return_type eq 'string' ? 'contains' : 'equal',
+            },
+        } @{$self->curval_fields};
+        my @this_rules = (
+            {
+                condition => 'OR',
+                rules     => [@conditions],
+            },
+        );
+        push @rules, (
+            {
+                condition => 'AND',
+                rules     => \@this_rules,
+            }
+        );
+    }
+
     push @rules, $self->view->filter->as_hash
         if $self->view;
     my $filter = GADS::Filter->new(
@@ -617,7 +632,7 @@ sub values_beginning_with
         if $self->override_permissions;
     my $records = GADS::Records->new(
         user    => $self->layout->user,
-        rows    => 20,
+        rows    => 10,
         view    => $view,
         layout  => $self->layout_parent,
         schema  => $self->schema,

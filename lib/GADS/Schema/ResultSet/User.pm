@@ -111,13 +111,14 @@ sub upload
     try { open_bom($fh, $file) }; # Can raise various exceptions which would cause panic
     error __"Unable to open CSV file for reading: ".$@->wasFatal->message if $@; # Make any error user friendly
 
-    my $guard = $self->result_source->schema->txn_scope_guard;
+    my $schema = $self->result_source->schema;
+    my $guard  = $schema->txn_scope_guard;
 
     my $csv = Text::CSV->new({ binary => 1 }) # should set binary attribute?
         or error "Cannot use CSV: ".Text::CSV->error_diag ();
 
-    my $userso = GADS::Users->new(schema => $self->result_source->schema);
-    my $site   = $self->result_source->schema->resultset('Site')->next;
+    my $userso = GADS::Users->new(schema => $schema);
+    my $site   = $schema->resultset('Site')->next;
 
     # Get first row for column headings
     my $row = $csv->getline($fh);
@@ -157,10 +158,10 @@ sub upload
     my $team_name = lc $site->team_name;
 
     # Map out titles and organisations for conversion to ID
-    my %titles        = map { lc $_->name => $_->id } @{$userso->titles};
-    my %organisations = map { lc $_->name => $_->id } @{$userso->organisations};
-    my %departments   = map { lc $_->name => $_->id } @{$userso->departments};
-    my %teams         = map { lc $_->name => $_->id } @{$userso->teams};
+    my %titles        = map { lc $_->name => $_->id } $schema->resultset('Title')->ordered->all;
+    my %organisations = map { lc $_->name => $_->id } $schema->resultset('Organisation')->ordered->all;
+    my %departments   = map { lc $_->name => $_->id } $schema->resultset('Department')->ordered->all;
+    my %teams         = map { lc $_->name => $_->id } $schema->resultset('Team')->ordered->all;
 
     $count = 0; my @errors;
     my @welcome_emails;
