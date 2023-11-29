@@ -19,13 +19,13 @@
         "src/frontend/components/*"
       ],
       "util/*" : [
-        "src/frontend/js/lib/util/*"
+        "js/lib/util/*"
       ],
       "component": [
-        "src/frontend/js/lib/component"
+        "js/lib/component"
       ],
       "validation": [
-        "src/frontend/js/lib/validation"
+        "js/lib/validation"
       ],
     }
   },
