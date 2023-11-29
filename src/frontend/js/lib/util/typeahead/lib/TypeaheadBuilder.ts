@@ -1,6 +1,8 @@
-import { MappedResponse } from "./interfaces";
-import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
 import { Typeahead } from "./Typeahead";
+import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
+import { MapperFunction } from "./mapper";
+
+type TypeaheadCallback = (suggestion: {name:string, id:number}) => void;
 
 /**
  * TypeaheadBuilder class for building Typeahead class
@@ -16,12 +18,12 @@ import { Typeahead } from "./Typeahead";
  */
 export class TypeaheadBuilder {
     private $input: JQuery<HTMLInputElement>;
-    private callback: (suggestion: {name:string, id:number}) => void;
+    private callback: TypeaheadCallback;
     private name: string;
     private ajaxSource: string;
     private appendQuery: boolean;
     private data: any;
-    private mapper: (data: any[]) => MappedResponse[] = (data: any) => {return data.map(d=> {return {name: d.name, id: d.id}})};
+    private mapper: MapperFunction = (data: any) => {return data.map(d=> {return {name: d.name, id: d.id}})};
 
     /**
      * Constructor for TypeaheadBuilder class
@@ -46,7 +48,7 @@ export class TypeaheadBuilder {
      * @param callback The callback function to be called when a suggestion is selected - this function should take in a suggestion of type T and return void
      * @returns The builder being used
      */
-    withCallback(callback: (suggestion: {name:string, id: number}) => void) {
+    withCallback(callback: TypeaheadCallback) {
         this.callback = callback;
         return this;
     }
@@ -90,7 +92,7 @@ export class TypeaheadBuilder {
         return this;
     }
 
-    withMapper(mapper: (data: any) => MappedResponse[]) {
+    withMapper(mapper: MapperFunction) {
         this.mapper = mapper;
         return this;
     }

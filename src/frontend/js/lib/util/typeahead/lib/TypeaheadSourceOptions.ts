@@ -1,4 +1,4 @@
-import { MappedResponse } from "./interfaces";
+import { MapperFunction } from "./mapper";
 
 /**
  * TypeaheadSourceOptions interface for Typeahead class
@@ -12,7 +12,7 @@ export class TypeaheadSourceOptions {
     constructor(
         public name: string,
         public ajaxSource: string,
-        public mapper: (data: any) => MappedResponse[] = (d) => { return d.map(data => { return { id: data.id, name: data.name } }) },
+        public mapper: MapperFunction = (d) => { return d.map(data => { return { id: data.id, name: data.name } }) },
         public appendQuery: boolean = false,
         public data: any = undefined) {
     }

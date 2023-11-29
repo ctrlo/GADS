@@ -1,6 +1,6 @@
 import "typeahead.js";
-import { MappedResponse } from "./interfaces";
 import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
+import { MappedResponse } from "./mapper";
 
 /**
  * Typeahead class for creating a typeahead

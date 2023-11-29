@@ -2,7 +2,7 @@ import { Component } from 'component'
 import { initValidationOnField, validateCheckboxGroup } from 'validation'
 import initDateField from 'components/datepicker/lib/helper'
 import 'blueimp-file-upload'
-import { TypeaheadBuilder } from 'util/typeahead'
+import TypeaheadBuilder from 'util/typeahead'
 
 class InputComponent extends Component {
     constructor(element)  {

@@ -1,9 +1,12 @@
+export type MappedResponse = { name: string, id: number };
+export type MapperFunction = (any) => MappedResponse[];
+
 /**
  * ScriptResponse interface for Typeahead class script responses
  * @param error - error code (if there is one)
  * @param records - records returned from the script
  */
-export interface ScriptResponse {
+interface ScriptResponse {
     error: number;
     records: Record[];
 }
@@ -23,7 +26,7 @@ interface Record {
  * @param r The response from the script
  * @returns The mapped response
  */
-export const map: (ScriptResponse) => { name: string, id: number }[] = (r) => {
+export const map: MapperFunction = (r:ScriptResponse) => {
     return r.records.map((record) => {
         return {
             name: record.label,
