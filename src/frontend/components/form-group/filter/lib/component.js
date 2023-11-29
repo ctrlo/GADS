@@ -85,8 +85,6 @@ class FilterComponent extends Component {
   }
 
   initFilter() {
-    console.log('initFilter')
-
     const self = this
     const $builderEl = this.el
     const builderID = $(this.el).data('builder-id')
