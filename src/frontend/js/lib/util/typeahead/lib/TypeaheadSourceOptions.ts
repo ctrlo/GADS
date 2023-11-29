@@ -2,6 +2,8 @@ import { MapperFunction } from "./mapper";
 
 export interface TypeaheadSourceOptions {
     isStatic: boolean;
+    name: string;
+    data?: any;
 }
 
 /**
