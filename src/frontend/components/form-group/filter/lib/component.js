@@ -149,7 +149,7 @@ class FilterComponent extends Component {
         $ruleInputHidden.val($ruleInputText.val())
       })
 
-      const filterCallback = (suggestions) => {
+      const filterCallback = (suggestion) => {
         if (filterConfig.useIdInFilter) {
           $ruleInputHidden.val(suggestion.id)
         }
