@@ -13,6 +13,8 @@ export const hideElement = (element: ElementOrJQueryElement) => {
     if(hasClass($el, 'hidden')) return;
     $el.addClass('hidden');
     $el.attr('aria-hidden', 'true');
+    $el.css('display', 'none');
+    $el.css('visibility', 'hidden');
 };
 
 export const showElement = (element: ElementOrJQueryElement) => {
@@ -20,4 +22,6 @@ export const showElement = (element: ElementOrJQueryElement) => {
     if(!hasClass($el, 'hidden')) return;
     $el.removeClass('hidden');
     $el.removeAttr('aria-hidden');
+    $el.css('display', '');
+    $el.css('visibility', '');
 };
