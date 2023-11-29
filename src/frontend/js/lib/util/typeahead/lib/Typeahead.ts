@@ -1,5 +1,5 @@
 import "typeahead.js";
-import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
+import { TypeaheadAjaxSourceOptions, TypeaheadSourceOptions, TypeaheadStaticSourceOptions } from "./TypeaheadSourceOptions";
 import { MappedResponse } from "./mapper";
 
 /**
@@ -9,6 +9,8 @@ import { MappedResponse } from "./mapper";
  * @param sourceOptions - options for the typeahead data source
  */
 export class Typeahead {
+    public isStatic: boolean;
+
     /**
      * Create a new Typeahead class
      * @param $input The input element to attach typeahead to
@@ -16,14 +18,48 @@ export class Typeahead {
      * @param sourceOptions The options for the typeahead data source
      */
     constructor(private $input: JQuery<HTMLInputElement>, private callback: (suggestion: MappedResponse) => void, private sourceOptions: TypeaheadSourceOptions) {
-        this.init();
+        if (sourceOptions.isStatic) {
+            this.initStatic();
+        } else {
+            this.initAjax();
+        }
     }
 
     /**
      * Initialize the typeahead
      */
-    init() {
-        const { appendQuery, mapper, name, ajaxSource } = this.sourceOptions;
+    initStatic() {
+        this.isStatic = true;
+        const { data, name } = this.sourceOptions as TypeaheadStaticSourceOptions;
+        this.$input.typeahead({
+            hint: true,
+            highlight: true,
+            minLength: 1
+        }, {
+            name: name,
+            source: (query, syncResults) => {
+                syncResults(data.filter((item: MappedResponse) => { return item.name.toLowerCase().indexOf(query.toLowerCase()) !== -1; }));
+            },
+            display: 'name',
+            limit: 10,
+            templates: {
+                suggestion: (item: { name: String, id: number }) => {
+                    return `<div>${item.name}</div>`;
+                }
+            }
+        });
+
+        this.$input.on('typeahead:select', (ev: any, suggestion: MappedResponse) => {
+            this.callback(suggestion);
+        });
+    }
+
+    /**
+     * Initialize the typeahead
+     */
+    initAjax() {
+        this.isStatic = false;
+        const { appendQuery, mapper, name, ajaxSource } = this.sourceOptions as TypeaheadAjaxSourceOptions;
         this.$input.typeahead({
             hint: true,
             highlight: true,
@@ -42,7 +78,7 @@ export class Typeahead {
             display: 'name',
             limit: 10,
             templates: {
-                suggestion: (item: {name:String, id:number}) => {
+                suggestion: (item: { name: String, id: number }) => {
                     return `<div>${item.name}</div>`;
                 },
                 pending: () => {

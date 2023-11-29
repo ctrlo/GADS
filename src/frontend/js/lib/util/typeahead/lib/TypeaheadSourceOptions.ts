@@ -1,5 +1,9 @@
 import { MapperFunction } from "./mapper";
 
+export interface TypeaheadSourceOptions {
+    isStatic: boolean;
+}
+
 /**
  * TypeaheadSourceOptions interface for Typeahead class
  * @param name - name of the typeahead data source
@@ -8,7 +12,7 @@ import { MapperFunction } from "./mapper";
  * @param data - data to be sent with the ajax request (if any)
  */
 
-export class TypeaheadSourceOptions {
+export class TypeaheadAjaxSourceOptions implements TypeaheadSourceOptions {
     constructor(
         public name: string,
         public ajaxSource: string,
@@ -16,4 +20,15 @@ export class TypeaheadSourceOptions {
         public appendQuery: boolean = false,
         public data: any = undefined) {
     }
+
+    isStatic: boolean = false;
+}
+
+export class TypeaheadStaticSourceOptions{
+    constructor(
+        public name: string,
+        public data: {name:string, id:number}[]) {
+    }
+
+    isStatic: boolean = true;
 }

@@ -41,12 +41,25 @@ describe('builder', () => {
         expect(() => { builder.build(); }).toThrow('Ajax source not set');
     });
 
-    it('should build the typeahead', () => {
+    it('should build an ajax typeahead', () => {
         var builder = new TypeaheadBuilder();
         builder.withInput($(document.createElement('input')));
         builder.withCallback((suggestion) => { return; });
         builder.withName('test');
         builder.withAjaxSource('test');
-        expect(() => { builder.build(); }).not.toThrow();
+        let typeahead;
+        expect(() => { typeahead = builder.build(); }).not.toThrow();
+        expect(typeahead.isStatic).toBe(false);
+    });
+
+    it('should build a static typeahead', () => {
+        var builder = new TypeaheadBuilder();
+        builder.withInput($(document.createElement('input')));
+        builder.withCallback((suggestion) => { return; });
+        builder.withName('test');
+        builder.withStaticSource([]);
+        let typeahead;
+        expect(() => { typeahead = builder.build(); }).not.toThrow();
+        expect(typeahead.isStatic).toBe(true);
     });
 });

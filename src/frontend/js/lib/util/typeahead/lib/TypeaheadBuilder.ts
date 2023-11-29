@@ -1,12 +1,11 @@
 import { Typeahead } from "./Typeahead";
-import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
+import { TypeaheadAjaxSourceOptions, TypeaheadStaticSourceOptions } from "./TypeaheadSourceOptions";
 import { MapperFunction } from "./mapper";
 
 type TypeaheadCallback = (suggestion: {name:string, id:number}) => void;
 
 /**
  * TypeaheadBuilder class for building Typeahead class
- * @type T - type of the suggestion extending `{ name: string, id: number }`
  * @param $input - input element to attach typeahead to
  * @param callback - callback function to be called when a suggestion is selected
  * @param name - name of the typeahead data source
@@ -14,7 +13,6 @@ type TypeaheadCallback = (suggestion: {name:string, id:number}) => void;
  * @param appendQuery - whether to append the query to the ajax source url
  * @param data - data to be sent with the ajax request (if any)
  * @returns Typeahead class
- * @throws Error if $input, callback, name, or ajaxSource is not set
  */
 export class TypeaheadBuilder {
     private $input: JQuery<HTMLInputElement>;
@@ -23,7 +21,9 @@ export class TypeaheadBuilder {
     private ajaxSource: string;
     private appendQuery: boolean;
     private data: any;
-    private mapper: MapperFunction = (data: any) => {return data.map(d=> {return {name: d.name, id: d.id}})};
+    private mapper: MapperFunction;
+    private staticSource: {name:string, id:number}[];
+    private isStatic: boolean;
 
     /**
      * Constructor for TypeaheadBuilder class
@@ -31,6 +31,14 @@ export class TypeaheadBuilder {
     constructor() {
         this.appendQuery = false;
         this.data = undefined;
+        this.mapper = (data: any) => {return data.map(d=> {return {name: d.name, id: d.id}})};
+        this.isStatic = false;
+    }
+
+    withStaticSource(sourceData: {name:string, id:number}[]) {
+        this.staticSource = sourceData;
+        this.isStatic = true;
+        return this;
     }
 
     /**
@@ -102,11 +110,25 @@ export class TypeaheadBuilder {
      * @returns The built Typeahead class
      */
     build() {
+        if(this.isStatic) return this.buildStatic();
+        return this.buildAjax();
+    }
+
+    private buildStatic():Typeahead {
+        if (!this.$input) throw new Error("Input not set");
+        if (!this.callback) throw new Error("Callback not set");
+        if (!this.name) throw new Error("Name not set");
+        if (!this.staticSource) throw new Error("Static source not set");
+        const options = new TypeaheadStaticSourceOptions(this.name, this.staticSource);
+        return new Typeahead(this.$input, this.callback, options);
+    }
+
+    private buildAjax():Typeahead {
         if (!this.$input) throw new Error("Input not set");
         if (!this.callback) throw new Error("Callback not set");
         if (!this.name) throw new Error("Name not set");
         if (!this.ajaxSource) throw new Error("Ajax source not set");
-        const options = new TypeaheadSourceOptions(this.name, this.ajaxSource, this.mapper, this.appendQuery, this.data);
+        const options = new TypeaheadAjaxSourceOptions(this.name, this.ajaxSource, this.mapper, this.appendQuery, this.data);
         return new Typeahead(this.$input, this.callback, options);
     }
 }
