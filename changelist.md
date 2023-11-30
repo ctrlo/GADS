@@ -2,7 +2,8 @@
 
 -------
 
-Version: CURRENT
+**Version:** 2.3.18 \
+**Released:** 29 Nov 2023
 
 -------
 
