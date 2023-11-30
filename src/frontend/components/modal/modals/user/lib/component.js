@@ -46,48 +46,31 @@ class UserModalComponent extends ModalComponent {
 
   // Get all data from all fields in the modal
   getData() {
-    let data = {
+    const data = {
       view_limits: [],
       permissions: [],
       groups: []
     }
 
-    const fieldSets = this.el.find('fieldset[data-name="view_limits"], fieldset[data-name="permissions"], fieldset[data-name="groups"]')
-    const fields = this.el.find('input, textarea')
-    
-    // find all fields that are inside a fieldset
-    fieldSets.each((i, fieldSet) => {
-      const fieldSetName = $(fieldSet).data('name') || ""
-      const fields = $(fieldSet).find('input')
-
-      fields.each((i,field) => { 
-        const fieldValue = isNaN($(field).val()) ? $(field).val() : parseInt($(field).val())
-
-        if ($(field).prop('type') === 'checkbox') {
-          if ($(field).prop('checked')) {
-            data[fieldSetName].push(fieldValue)
-          }
-        } else {
-          if ($(field).val()) {
-            data[fieldSetName].push(fieldValue)
+    this.el.find('input, textarea').each((i, field) => {
+      if (($(field).prop('type') === 'radio' || $(field).prop('type') === 'checkbox')) {
+        if ($(field).prop('checked')) {
+          if ($(field).prop('type') === 'checkbox') {
+            if (!data[$(field).attr('name')]) data[$(field).attr('name')] = []
+            const fieldValue = isNaN($(field).val()) ? $(field).val() : parseInt($(field).val())
+            data[$(field).attr('name')].push(fieldValue)
+          } else {
+            const fieldValue = isNaN($(field).val()) ? $(field).val() : parseInt($(field).val())
+            data[$(field).attr('name')] = fieldValue
           }
         }
-        
-      })
-    }) 
-
-    // find all other fields
-    fields.each((i, field) => {
-      if ((!$(field).closest('fieldset[data-name="view_limits"]').length) &&
-        (!$(field).closest('fieldset[data-name="permissions"]').length) &&
-        (!$(field).closest('fieldset[data-name="groups"]').length)) {
-        if ($(field).val() !== '') {
-          const fieldValue = $(field).val()
-          const fieldParsedValue = isNaN(fieldValue) ? this.parseValue(fieldValue) : parseInt(fieldValue)
-          data[$(field).attr('name')] = fieldParsedValue
-        }
+      } else if ($(field).val() !== '') {
+        const fieldValue = $(field).val()
+        const fieldParsedValue = isNaN(fieldValue) ? this.parseValue(fieldValue) : parseInt(fieldValue)
+        data[$(field).attr('name')] = fieldParsedValue
       }
-    })
+    });
+
     return data
   }
 
