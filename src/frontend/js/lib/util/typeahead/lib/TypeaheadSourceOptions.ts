@@ -8,7 +8,13 @@
 
 import { MapperFunction } from "util/mapper/mapper"
 
-export class TypeaheadSourceOptions {
+export interface TypeaheadSourceOptions {
+    isStatic: boolean;
+    name: string;
+    data?: any;
+}
+
+export class TypeaheadAjaxSourceOptions implements TypeaheadSourceOptions {
     constructor(
         public name: string,
         public ajaxSource: string,
@@ -16,4 +22,15 @@ export class TypeaheadSourceOptions {
         public appendQuery: boolean = false,
         public data: any = undefined) {
     }
+
+    readonly isStatic: boolean=true;
+}
+
+export class TypeaheadStaticSourceOptions implements TypeaheadSourceOptions {
+    constructor(
+        public name: string,
+        public data: any) {
+    }
+
+    readonly isStatic: boolean=true;
 }
