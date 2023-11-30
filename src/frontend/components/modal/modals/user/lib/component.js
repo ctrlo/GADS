@@ -81,7 +81,12 @@ class UserModalComponent extends ModalComponent {
       if ((!$(field).closest('fieldset[data-name="view_limits"]').length) &&
         (!$(field).closest('fieldset[data-name="permissions"]').length) &&
         (!$(field).closest('fieldset[data-name="groups"]').length)) {
-        if ($(field).val() !== '') {
+          if($(field).prop('type') === 'radio') {
+            if ($(field).prop('checked')) {
+              const fieldValue = isNaN($(field).val()) ? $(field).val() : parseInt($(field).val())
+              data[$(field).attr('name')] = fieldValue
+            }
+          }else if ($(field).val() !== '') {
           const fieldValue = $(field).val()
           const fieldParsedValue = isNaN(fieldValue) ? this.parseValue(fieldValue) : parseInt(fieldValue)
           data[$(field).attr('name')] = fieldParsedValue
