@@ -1,4 +1,4 @@
-import { Component } from 'component'
+import { Component, initializeRegisteredComponents } from 'component'
 import 'datatables.net'
 import 'datatables.net-buttons'
 import 'datatables.net-bs4'
@@ -6,10 +6,9 @@ import 'datatables.net-responsive'
 import 'datatables.net-responsive-bs4'
 import 'datatables.net-rowreorder-bs4'
 import { setupDisclosureWidgets, onDisclosureClick } from '../../more-less/lib/disclosure-widgets'
-import { initializeRegisteredComponents, initializeComponent } from 'component'
 import RecordPopupComponent from '../../record-popup/lib/component'
-import MoreLessComponent from '../../more-less/lib/component'
 import { moreLess } from '../../more-less/lib/more-less'
+import TypeaheadBuilder from 'util/typeahead'
 
 const MORE_LESS_TRESHOLD = 50
 
@@ -28,9 +27,9 @@ class DataTableComponent extends Component {
     if(this.hasClearState) {
       this.clearTableStateForPage()
 
-      let url = new URL(window.location.href)
+      const url = new URL(window.location.href)
       url.searchParams.delete('table_clear_state')
-      let targetUrl = url.toString()
+      const targetUrl = url.toString()
       window.location.replace(targetUrl.endsWith('?') ? targetUrl.slice(0, -1) : targetUrl)
 
       return
@@ -71,13 +70,13 @@ class DataTableComponent extends Component {
 
   clearTableStateForPage() {
     for (let i = 0; i < localStorage.length; i++) {
-      let storageKey = localStorage.key( i )
+      const storageKey = localStorage.key( i )
 
       if (!storageKey.startsWith("DataTables")) {
         continue;
       }
 
-      let keySegments = storageKey.split('/')
+      const keySegments = storageKey.split('/')
 
       if (!keySegments || keySegments.length <= 1) {
         continue;
@@ -194,7 +193,6 @@ class DataTableComponent extends Component {
       if (!checkBox.checked) {
         $selectAllCheckBox.prop('checked', false)
         bSelectAll = false
-        return
       }
     })
 
@@ -271,11 +269,30 @@ class DataTableComponent extends Component {
 
     this.toggleFilter(column)
 
+    let setField = title.trim();
+    if (setField.endsWith('Sort')) {
+      setField = setField.substring(0, setField.length - 4);
+    }
+    setField = setField.replace(/\W+^/g, '').trim();
+    const setName = setField.replace(/\W+/g, '').trim();
+
+    const builder = new TypeaheadBuilder();
+    builder
+      .withAjaxSource(this.getApiEndpoint(setField))
+      .withInput($('input', $header))
+      .withAppendQuery()
+      .withName(setName + 'Search')
+      .withCallback((data) => {
+        $('input', $header).val(data.name);
+        $('input', $header).trigger('change');
+      })
+      .build();
+
     // Apply the search
-    $('input', $header).on('change', function () {
-      if (column.search() !== this.value) {
+    $('input', $header).on('change', function (ev) {
+      if (column.search() !== (this.value || ev.target.value)) {
         column
-          .search(this.value)
+          .search(this.value || ev.target.value)
           .draw()
       }
 
@@ -288,7 +305,7 @@ class DataTableComponent extends Component {
 
       // Update URL. Do not reload otherwise the data is fetched twice (already
       // redrawn in the previous statement)
-      let url = `${window.location.href.split('?')[0]}?${self.searchParams.toString()}`
+      const url = `${window.location.href.split('?')[0]}?${self.searchParams.toString()}`
       window.history.replaceState(null, '', url);
     })
 
@@ -316,6 +333,11 @@ class DataTableComponent extends Component {
     })
   }
 
+  getApiEndpoint(title) {
+    const table = window.location.pathname.substring(1).split('/')[0];
+    return `/api/${table}/fields?title=${title}&search=`;
+  }
+
   encodeHTMLEntities(text) {
     return $("<textarea/>").text(text).html();
   }
@@ -332,9 +354,7 @@ class DataTableComponent extends Component {
         </div>`
       )
     }
-    else {
-      return strHTML
-    }
+    return strHTML
   }
 
   renderDefault(data) {
@@ -354,7 +374,7 @@ class DataTableComponent extends Component {
 
   renderId(data) {
     let retval = ''
-    let id = data.values[0]
+    const id = data.values[0]
     if (!id) return retval
     if (data.parent_id) {
       retval = `<span title="Child record with parent record ${data.parent_id}">${data.parent_id} &#8594;</span> `
@@ -501,25 +521,19 @@ class DataTableComponent extends Component {
     switch (data.type) {
       case 'id':
         return this.renderId(data)
-        break
       case 'person':
       case 'createdby':
         return this.renderPerson(data)
-        break
       case 'curval':
       case 'autocur':
       case 'filval':
         return this.renderCurCommon(data)
-        break
       case 'file':
         return this.renderFile(data)
-        break
       case 'rag':
         return this.renderRag(data)
-        break
       default:
         return this.renderDefault(data)
-        break
     }
   }
 
@@ -535,7 +549,7 @@ class DataTableComponent extends Component {
   }
 
   getConf() {
-    let confData = this.el.data('config')
+    const confData = this.el.data('config')
     let conf = {}
     const self = this
 
@@ -556,7 +570,7 @@ class DataTableComponent extends Component {
       const dataTable = tableElement.DataTable()
       const self = this
 
-      this.json = json ? json : undefined
+      this.json = json || undefined
       
       if (this.initializingTable) {
         dataTable.columns().every(function(index) {
@@ -580,7 +594,8 @@ class DataTableComponent extends Component {
             }
 
             self.addSearchDropdown(column, id, index)
-          } 
+          }
+          return true; 
         })
 
         // If the table has not wrapped (become responsive) then hide the toggle button
@@ -601,13 +616,14 @@ class DataTableComponent extends Component {
       if (agg) {
         var cols = api.settings()[0].oAjaxData.columns
         api.columns().every( function () {
-          let idx = this.index()
-          const name = cols[idx].name
+          const idx = this.index()
+          const {name} = cols[idx]
           if (agg[name]) {
             $(this.footer()).html(
               self.renderDataType(agg[name])
             )
           }
+          return true;
         })
       }
     }
@@ -687,7 +703,7 @@ class DataTableComponent extends Component {
 
   bindClickHandlersAfterDraw(conf) {
     const tableElement = this.el
-    let rows = tableElement.DataTable().rows( {page:'current'} ).data()
+    const rows = tableElement.DataTable().rows( {page:'current'} ).data()
 
     if (rows && this.base_url) {
       // Add click handler to tr to open a record by id
