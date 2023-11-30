@@ -58,16 +58,24 @@ class UserModalComponent extends ModalComponent {
           if ($(field).prop('type') === 'checkbox') {
             if (!data[$(field).attr('name')]) data[$(field).attr('name')] = []
             const fieldValue = isNaN($(field).val()) ? $(field).val() : parseInt($(field).val())
-            data[$(field).attr('name')].push(fieldValue)
+            data[$(field).attr('name')].push(fieldValue) // <-- Array check not required here because it's defined above
           } else {
             const fieldValue = isNaN($(field).val()) ? $(field).val() : parseInt($(field).val())
-            data[$(field).attr('name')] = fieldValue
+            if(Array.isArray(data[$(field).attr('name')])) { // <-- Array check required here because of a bug in the view_limits field
+              data[$(field).attr('name')].push(fieldValue)
+            }else{
+              data[$(field).attr('name')] = fieldValue
+            }
           }
         }
       } else if ($(field).val() !== '') {
         const fieldValue = $(field).val()
         const fieldParsedValue = isNaN(fieldValue) ? this.parseValue(fieldValue) : parseInt(fieldValue)
-        data[$(field).attr('name')] = fieldParsedValue
+        if(Array.isArray(data[$(field).attr('name')])) { // <-- Array check required here because of a bug in the view_limits field
+          data[$(field).attr('name')].push(fieldParsedValue)
+        }else{
+          data[$(field).attr('name')] = fieldParsedValue
+        }
       }
     });
 
