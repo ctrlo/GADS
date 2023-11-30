@@ -55,25 +55,19 @@ class UserModalComponent extends ModalComponent {
     this.el.find('input, textarea').each((i, field) => {
       if (($(field).prop('type') === 'radio' || $(field).prop('type') === 'checkbox')) {
         if ($(field).prop('checked')) {
-          if ($(field).prop('type') === 'checkbox') {
-            if (!data[$(field).attr('name')]) data[$(field).attr('name')] = []
-            const fieldValue = isNaN($(field).val()) ? $(field).val() : parseInt($(field).val())
-            data[$(field).attr('name')].push(fieldValue) // <-- Array check not required here because it's defined above
+          const fieldValue = isNaN($(field).val()) ? $(field).val() : parseInt($(field).val())
+          if (Array.isArray(data[$(field).attr('name')])) {
+            data[$(field).attr('name')].push(fieldValue)
           } else {
-            const fieldValue = isNaN($(field).val()) ? $(field).val() : parseInt($(field).val())
-            if(Array.isArray(data[$(field).attr('name')])) { // <-- Array check required here because of a bug in the view_limits field
-              data[$(field).attr('name')].push(fieldValue)
-            }else{
-              data[$(field).attr('name')] = fieldValue
-            }
+            data[$(field).attr('name')] = fieldValue
           }
         }
       } else if ($(field).val() !== '') {
         const fieldValue = $(field).val()
         const fieldParsedValue = isNaN(fieldValue) ? this.parseValue(fieldValue) : parseInt(fieldValue)
-        if(Array.isArray(data[$(field).attr('name')])) { // <-- Array check required here because of a bug in the view_limits field
+        if (Array.isArray(data[$(field).attr('name')])) {
           data[$(field).attr('name')].push(fieldParsedValue)
-        }else{
+        } else {
           data[$(field).attr('name')] = fieldParsedValue
         }
       }
