@@ -7,15 +7,17 @@
         [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
         <div class="modal-frame">
           <div class="modal-body">
-            <p class="mt-3">File to upload:</p>
-            [%
-              INCLUDE fields/file.tt
-                id = "filename"
-                name = "file"
-                label = "Choose file"
-                placeholder = "No file chosen"
-                tabindex = 1;
-            %]
+            <div class="file-upload">
+              <p class="mt-3">File to upload:</p>
+              [%
+                INCLUDE fields/file.tt
+                  id = "filename"
+                  name = "file"
+                  label = "Choose file"
+                  placeholder = "No file chosen"
+                  tabindex = 1;
+              %]
+            </div>
           </div>
           
           [%-
