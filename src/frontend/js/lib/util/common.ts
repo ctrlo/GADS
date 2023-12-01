@@ -14,7 +14,7 @@ const hasClass = (element: ElementOrJQueryElement, className: string) => {
 export const hideElement = (element: ElementOrJQueryElement) => {
     const $el = element instanceof HTMLElement ? $(element) : element;
     if(hasClass($el, 'hidden')) return;
-    $el.addClass('hidden');
+    addClass($el,'hidden');
     $el.attr('aria-hidden', 'true');
     $el.css('display', 'none');
     $el.css('visibility', 'hidden');
@@ -23,7 +23,19 @@ export const hideElement = (element: ElementOrJQueryElement) => {
 export const showElement = (element: ElementOrJQueryElement) => {
     const $el = element instanceof HTMLElement ? $(element) : element;
     if(!hasClass($el, 'hidden')) return;
-    $el.removeClass('hidden');
+    removeClass($el,'hidden');
     $el.removeAttr('aria-hidden');
     $el.removeAttr('style');
 };
+
+export const addClass = (element : ElementOrJQueryElement, className: string) => {
+    const $el = element instanceof HTMLElement ? $(element) : element;
+    if(hasClass($el, className)) return;
+    $el.addClass(className);
+}
+
+export const removeClass = (element : ElementOrJQueryElement, className: string) => {
+    const $el = element instanceof HTMLElement ? $(element) : element;
+    if(!hasClass($el, className)) return;
+    $el.removeClass(className);
+}
