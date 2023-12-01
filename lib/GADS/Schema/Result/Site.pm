@@ -278,6 +278,12 @@ sub user_fields
             placeholder => 'name@example.com',
             is_required => 1,
         },
+        {
+          name          => 'notes',
+          description   => 'Notes',
+          type          => 'textarea',
+          placeholder   => 'Notes'
+        }
     );
     push @fields, {
         name        => 'title',
