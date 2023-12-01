@@ -113,7 +113,7 @@ class DataTableComponent extends Component {
   }
 
   fillModalData(row) {
-    const fields = $(this.modal).find('input')
+    const fields = $(this.modal).find('input, textarea')
     const btnReject = $(this.modal).find('.btn-js-reject-request')
     const id = parseInt($(row).find(`td[data-id]`).data('id'), 10)
 

@@ -57,10 +57,11 @@ sub create_user
     my $request_base = $params{request_base};
 
     my $user = $self->create({
-        email    => $params{email},
-        username => $params{email},
-        resetpw  => $code,
-        created  => DateTime->now,
+        email                 => $params{email},
+        username              => $params{email},
+        resetpw               => $code,
+        created               => DateTime->now,
+        account_request_notes => $params{notes},
     });
 
     my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $params{current_user});
