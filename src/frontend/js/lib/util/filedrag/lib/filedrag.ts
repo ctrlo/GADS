@@ -1,6 +1,4 @@
-import { addClass, hideElement, removeClass, showElement, stopPropagation } from "util/common";
-
-type HtmlOrJQuery = HTMLElement | JQuery<HTMLElement>;
+import { HtmlOrJQuery, addClass, hideElement, removeClass, showElement, stopPropagation } from "util/common";
 
 interface FileDragOptions {
     allowMultiple?: boolean;
@@ -10,7 +8,8 @@ interface FileDragOptions {
 class FileDrag {
     private el: JQuery<HTMLElement>;
     private dropZone: JQuery<HTMLElement>;
-    private dragging: boolean = false;
+    // for testing
+    protected dragging: boolean = false;
 
     constructor(private element: HtmlOrJQuery, private options: FileDragOptions = {}, private onDrop?: (files: FileList | File) => void) {
         if (options.debug) console.log('FileDrag', element, options);
