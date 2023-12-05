@@ -537,10 +537,6 @@ post '/api/user_account/?:id?' => require_login sub {
     _post_add_user_account();
 };
 
-post '/api/user_account_request/:id' => require_login sub {
-    _post_request_account();
-};
-
 post '/api/table_request' => require_login sub {
     _post_table_request();
 };
@@ -732,53 +728,6 @@ sub _post_add_user_account
 
     my $msg = __x"User {type} successfully", type => $id ? 'updated' : 'created';
     return _success("$msg");
-}
-
-sub _post_request_account {
-    if (request->content_type ne 'application/json') # Try in body of JSON
-    {
-        return;
-    }
-
-    my $body = try { decode_json(request->body) };
-
-    if (!$body)
-    {
-        return;
-    }
-
-    my %values = (
-        firstname             => $body->{'firstname'},
-        surname               => $body->{'surname'},
-        email                 => $body->{'email'},
-        username              => $body->{'email'},
-        freetext1             => $body->{'freetext1'},
-        freetext2             => $body->{'freetext2'},
-        title                 => $body->{'title'} || undef,
-        organisation          => $body->{'organisation'} || undef,
-        department_id         => $body->{'department_id'} || undef,
-        team_id               => $body->{'team_id'} || undef,
-        account_request       => $body->{'approve-account'},
-        account_request_notes => $body->{'notes'} || '',
-        view_limits           => $body->{'view_limits'} || [],
-        groups                => $body->{'groups'} || [],
-    );
-
-    if(logged_in_user->permission->{superadmin})
-    {
-        $values{permissions} = $body->{'permissions'} || [];
-    }
-
-    my $id = route_parameters->get('id');
-
-    if (process sub {
-        my $user = rset('User')->active->search({ id => $id })->next
-            or error __x"User ID {id} not found", id => $id;
-        # Don't use DBIC update directly, so that permissions etc are updated properly
-        $user->update_user(current_user => logged_in_user, %values);
-    }) {
-        return _success("User updated successfully");
-    }
 }
 
 sub _create_table
