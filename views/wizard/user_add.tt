@@ -126,7 +126,7 @@
                     END;
                   -%]
                 </div>
-                [%- IF field.name == "email"; field_counter = field_counter + 2; ELSE; field_counter = field_counter + 1; END; -%]
+                [%- field_counter = field_counter + 1; -%]
               [%- END -%]
               </div>
             </div> <!-- container end -->
