@@ -24,7 +24,7 @@
     name      = "Forename"
     orderable = 1
   },{
-    name = "Notes"
+    name      = "Notes"
     orderable = 0
   }];
 
@@ -93,13 +93,13 @@
   FOREACH user_row IN users;
     row = {
       link_placeholders = {
-        user_id = user_row.id,
+        user_id    = user_row.id,
         user_notes = user_row.account_request_notes
       }
       fields = [{
-        type  = "link"
-        label = user_row.id
-        name  = "id"
+        type   = "link"
+        label  = user_row.id
+        name   = "id"
         value  = user_row.id
       }, {
         type   = "link"
