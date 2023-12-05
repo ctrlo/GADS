@@ -845,6 +845,7 @@ sub value_html
 
 sub update_user
 {   my ($self, %params) = @_;
+    my $request = 0;
 
     my $guard = $self->result_source->schema->txn_scope_guard;
 
@@ -865,6 +866,7 @@ sub update_user
 
     if(defined $params{account_request}) {
         $values->{account_request} = $params{account_request};
+        $request = 1;
     }
 
     my $original_username = $self->username;
@@ -965,6 +967,26 @@ sub update_user
 
     $guard->commit;
 
+    if(!!$request) {
+      $self->_send_welcome_email($params{email});
+    }
+}
+
+sub _send_welcome_email
+{   my ($self, %params) = @_;
+
+    $params{email} = $self->email;
+    
+    my %welcome_email = GADS::welcome_text(undef, %params);
+
+    my $email = GADS::Email->instance;
+
+    $email->send({
+        subject => $welcome_email{subject},
+        text    => $welcome_email{plain},
+        html    => $welcome_email{html},
+        emails  => [$params{email}],
+    });
 }
 
 sub permissions
