@@ -93,7 +93,7 @@ class DataTableComponent extends Component {
   }
 
   initClickableTable() {
-    const links = $('tbody td .link')
+    const links = this.el.find('tbody td .link')
     // Remove all existing click events to prevent multiple bindings
     links.off('click');
     links.off('focus');
