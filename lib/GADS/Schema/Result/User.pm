@@ -967,16 +967,14 @@ sub update_user
 
     $guard->commit;
 
-    if(!!$request) {
-      $self->send_welcome_email($params{email});
-    }
+    $self->send_welcome_email($params{email})
+      if $request;
 }
 
 sub send_welcome_email
 {   my ($self, %params) = @_;
 
-    $params{email} = $self->email
-      unless defined $params{email} || $params{email};
+    $params{email} ||= $self->email;
     
     my %welcome_email = GADS::welcome_text(undef, %params);
 
