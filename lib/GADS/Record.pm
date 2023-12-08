@@ -1046,7 +1046,7 @@ sub clone
     $cloned->fields({});
     $cloned->fields->{$_} = $self->layout->column($_)->user_can('write')
         ? $self->fields->{$_}->clone(fresh => 1, record => $cloned, current_id => undef, record_id => undef)
-        : $self->initialise_field($_)
+        : $self->initialise_field($_, record => $cloned)
             foreach keys %{$self->fields};
     return $cloned;
 }
@@ -1339,7 +1339,7 @@ sub initialise
 }
 
 sub initialise_field
-{   my ($self, $col_id) = @_;
+{   my ($self, $col_id, %options) = @_;
     my $layout = $self->layout;
     my $column = $layout->column($col_id);
     if ($self->linked_id && $column->link_parent)
@@ -1347,13 +1347,14 @@ sub initialise_field
         return $self->linked_record->fields->{$column->link_parent->id};
     }
     else {
+        my $record = $options{record} || $self;
         my $f = $column->class->new(
-            record           => $self,
-            record_id        => $self->record_id,
+            record           => $record,
+            record_id        => $record->record_id,
             column           => $column,
-            schema           => $self->schema,
-            layout           => $self->layout,
-            datetime_parser  => $self->schema->storage->datetime_parser,
+            schema           => $record->schema,
+            layout           => $record->layout,
+            datetime_parser  => $record->schema->storage->datetime_parser,
         );
         # Unlike other fields this has a default value, so set it now.
         # XXX Probably need to do created_by field as well.
