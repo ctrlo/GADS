@@ -974,7 +974,7 @@ sub update_user
 sub send_welcome_email
 {   my ($self, %params) = @_;
 
-    $params{email} ||= $self->email;
+    $params{email} = $self->email;
     
     my %welcome_email = GADS::welcome_text(undef, %params);
 

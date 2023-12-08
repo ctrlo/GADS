@@ -226,7 +226,7 @@ sub upload
             $count++;
         }
 
-        push @welcome_emails, \%values
+        push @welcome_emails, $u
             unless @errors; # No point collecting if we're not going to send
     }
 
@@ -240,7 +240,7 @@ sub upload
     # Won't get this far if we have any errors in the previous statement
     $guard->commit;
 
-    Schema::Result::User::send_welcome_email(%$_, request_base => $options{request_base})
+    $_->send_welcome_email(code=>$_->resetpw, request_base => $options{request_base})
         foreach @welcome_emails;
 
     $count;
