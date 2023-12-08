@@ -79,27 +79,12 @@ sub create_user
         $self->find($id)->delete;
     }
 
-    $self->_send_welcome_email(%params, code => $code)
-        unless $params{no_welcome_email};
-
     $guard->commit;
 
+    $user->send_welcome_email(%params, code => $code)
+        unless $params{no_welcome_email};
+
     return $user;
-}
-
-sub _send_welcome_email
-{   my ($self, %params) = @_;
-
-    my %welcome_email = GADS::welcome_text(undef, %params);
-
-    my $email = GADS::Email->instance;
-
-    $email->send({
-        subject => $welcome_email{subject},
-        text    => $welcome_email{plain},
-        html    => $welcome_email{html},
-        emails  => [$params{email}],
-    });
 }
 
 sub upload
@@ -255,7 +240,7 @@ sub upload
     # Won't get this far if we have any errors in the previous statement
     $guard->commit;
 
-    $self->_send_welcome_email(%$_, request_base => $options{request_base})
+    Schema::Result::User::send_welcome_email(%$_, request_base => $options{request_base})
         foreach @welcome_emails;
 
     $count;
