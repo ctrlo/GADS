@@ -15,7 +15,7 @@ Function to load a report for a given id - it requires the report id, and record
 sub load {
     my ( $self, $id, $record_id ) = @_;
 
-    my $result = load_for_edit( $self, $id )
+    my $result = $self->load_for_edit( $self, $id )
         or return undef;
 
     $result->record_id($record_id);
@@ -29,8 +29,6 @@ Function to load a report for a given id - it requires the report id to be passe
 
 sub load_for_edit {
     my ( $self, $id ) = @_;
-
-    my $schema = $self->result_source->schema;
 
     my $result = $self->find( { id => $id, deleted => undef }, { prefetch => 'report_layouts' } )
       or error __"No report found for id $id";
@@ -46,8 +44,6 @@ Function to load all reports for a given instance - it requires the instance id 
 sub load_all_reports {
 
     my ( $self, $instance_id ) = @_;
-
-    my $schema = $self->result_source->schema;
 
     my $items = $self->search(
         {
@@ -79,6 +75,7 @@ sub create_report {
         {
             user           => $args->{user},
             name           => $args->{name},
+            title          => $args->{title},
             description    => $args->{description},
             instance_id    => $args->{instance_id},
             createdby      => $args->{user},

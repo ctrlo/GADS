@@ -287,7 +287,7 @@ sub create_pdf
     );
 
     $pdf->add_page;
-    $pdf->heading( $self->name );
+    $pdf->heading( $self->title );
     $pdf->heading( $self->description, size => 14 ) if $self->description;
 
     my $fields = [ [ 'Field', 'Value' ] ];

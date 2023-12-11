@@ -22,6 +22,14 @@
                 input_class = "input--required"
                 is_required = 1;
               INCLUDE fields/input.tt
+                id          = "report_title"
+                name        = "report_title"
+                value       = report.title
+                label       = "Report Title"
+                placeholder = "New Report Title"
+                input_class = "input--required"
+                is_required = 1;
+              INCLUDE fields/input.tt
                 id          = "report_description"
                 name        = "report_description"
                 value       = report.description || ""
