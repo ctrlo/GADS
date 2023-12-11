@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Mon Dec 11 09:46:44 2023
+-- Created on Mon Dec 11 13:43:09 2023
 --
 ;
 --
@@ -812,9 +812,7 @@ CREATE INDEX "record_idx_approval" on "record" ("approval");
 CREATE TABLE "report" (
   "id" bigserial NOT NULL,
   "name" character varying(128) NOT NULL,
-  "title" character varying(128) NOT NULL,
-  "security_marking" character varying(128),
-  "security_marking_addendum" character varying(128),
+  "title" character varying(128),
   "description" character varying(128),
   "user_id" bigint,
   "createdby" bigint,
@@ -826,6 +824,20 @@ CREATE TABLE "report" (
 CREATE INDEX "report_idx_createdby" on "report" ("createdby");
 CREATE INDEX "report_idx_instance_id" on "report" ("instance_id");
 CREATE INDEX "report_idx_user_id" on "report" ("user_id");
+
+;
+--
+-- Table: report_defaults
+--
+CREATE TABLE "report_defaults" (
+  "id" bigserial NOT NULL,
+  "name" character varying(128) NOT NULL,
+  "value" character varying(128),
+  "data" bytea,
+  "type" character varying(128),
+  PRIMARY KEY ("id")
+);
+CREATE INDEX "name_idx" on "report_defaults" ("name");
 
 ;
 --

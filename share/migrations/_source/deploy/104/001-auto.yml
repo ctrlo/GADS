@@ -6105,7 +6105,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: created
-          order: 9
+          order: 7
           size:
             - 0
         createdby:
@@ -6115,7 +6115,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: createdby
-          order: 8
+          order: 6
           size:
             - 0
         deleted:
@@ -6125,7 +6125,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: deleted
-          order: 11
+          order: 9
           size:
             - 0
         description:
@@ -6135,7 +6135,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: description
-          order: 6
+          order: 4
           size:
             - 128
         id:
@@ -6156,7 +6156,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: instance_id
-          order: 10
+          order: 8
           size:
             - 0
         name:
@@ -6169,30 +6169,10 @@ schema:
           order: 2
           size:
             - 128
-        security_marking:
-          data_type: varchar
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: security_marking
-          order: 4
-          size:
-            - 128
-        security_marking_addendum:
-          data_type: varchar
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: security_marking_addendum
-          order: 5
-          size:
-            - 128
         title:
           data_type: varchar
           default_value: ~
-          is_nullable: 0
+          is_nullable: 1
           is_primary_key: 0
           is_unique: 0
           name: title
@@ -6206,7 +6186,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: user_id
-          order: 7
+          order: 5
           size:
             - 0
       indices:
@@ -6228,6 +6208,81 @@ schema:
       name: report
       options: []
       order: 47
+    report_defaults:
+      constraints:
+        - deferrable: 1
+          expression: ''
+          fields:
+            - id
+          match_type: ''
+          name: ''
+          on_delete: ''
+          on_update: ''
+          options: []
+          reference_fields: []
+          reference_table: ''
+          type: PRIMARY KEY
+      fields:
+        data:
+          data_type: longblob
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: data
+          order: 4
+          size:
+            - 0
+        id:
+          data_type: bigint
+          default_value: ~
+          is_auto_increment: 1
+          is_nullable: 0
+          is_primary_key: 1
+          is_unique: 0
+          name: id
+          order: 1
+          size:
+            - 0
+        name:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 0
+          is_primary_key: 0
+          is_unique: 0
+          name: name
+          order: 2
+          size:
+            - 128
+        type:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: type
+          order: 5
+          size:
+            - 128
+        value:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: value
+          order: 3
+          size:
+            - 128
+      indices:
+        - fields:
+            - name
+          name: name_idx
+          options: []
+          type: NORMAL
+      name: report_defaults
+      options: []
+      order: 48
     report_layout:
       constraints:
         - deferrable: 1
@@ -6323,7 +6378,7 @@ schema:
           type: NORMAL
       name: report_layout
       options: []
-      order: 48
+      order: 49
     site:
       constraints:
         - deferrable: 1
@@ -6743,7 +6798,7 @@ schema:
       indices: []
       name: site
       options: []
-      order: 49
+      order: 50
     sort:
       constraints:
         - deferrable: 1
@@ -6877,7 +6932,7 @@ schema:
           type: NORMAL
       name: sort
       options: []
-      order: 50
+      order: 51
     string:
       constraints:
         - deferrable: 1
@@ -6998,7 +7053,7 @@ schema:
           type: NORMAL
       name: string
       options: []
-      order: 51
+      order: 52
     submission:
       constraints:
         - deferrable: 1
@@ -7071,7 +7126,7 @@ schema:
       indices: []
       name: submission
       options: []
-      order: 52
+      order: 53
     team:
       constraints:
         - deferrable: 1
@@ -7149,7 +7204,7 @@ schema:
           type: NORMAL
       name: team
       options: []
-      order: 53
+      order: 54
     title:
       constraints:
         - deferrable: 1
@@ -7227,7 +7282,7 @@ schema:
           type: NORMAL
       name: title
       options: []
-      order: 54
+      order: 55
     topic:
       constraints:
         - deferrable: 1
@@ -7353,7 +7408,7 @@ schema:
           type: NORMAL
       name: topic
       options: []
-      order: 55
+      order: 56
     user:
       constraints:
         - deferrable: 1
@@ -7835,7 +7890,7 @@ schema:
           type: NORMAL
       name: user
       options: []
-      order: 56
+      order: 57
     user_graph:
       constraints:
         - deferrable: 1
@@ -7921,7 +7976,7 @@ schema:
           type: NORMAL
       name: user_graph
       options: []
-      order: 57
+      order: 58
     user_group:
       constraints:
         - deferrable: 1
@@ -8007,7 +8062,7 @@ schema:
           type: NORMAL
       name: user_group
       options: []
-      order: 58
+      order: 59
     user_lastrecord:
       constraints:
         - deferrable: 1
@@ -8121,7 +8176,7 @@ schema:
           type: NORMAL
       name: user_lastrecord
       options: []
-      order: 59
+      order: 60
     user_permission:
       constraints:
         - deferrable: 1
@@ -8207,7 +8262,7 @@ schema:
           type: NORMAL
       name: user_permission
       options: []
-      order: 60
+      order: 61
     view:
       constraints:
         - deferrable: 1
@@ -8409,7 +8464,7 @@ schema:
           type: NORMAL
       name: view
       options: []
-      order: 61
+      order: 62
     view_group:
       constraints:
         - deferrable: 1
@@ -8533,7 +8588,7 @@ schema:
           type: NORMAL
       name: view_group
       options: []
-      order: 62
+      order: 63
     view_layout:
       constraints:
         - deferrable: 1
@@ -8629,7 +8684,7 @@ schema:
           type: NORMAL
       name: view_layout
       options: []
-      order: 63
+      order: 64
     view_limit:
       constraints:
         - deferrable: 1
@@ -8715,7 +8770,7 @@ schema:
           type: NORMAL
       name: view_limit
       options: []
-      order: 64
+      order: 65
     widget:
       constraints:
         - deferrable: 1
@@ -8962,7 +9017,7 @@ schema:
           type: NORMAL
       name: widget
       options: []
-      order: 65
+      order: 66
   triggers: {}
   views: {}
 translator:
@@ -9020,6 +9075,7 @@ translator:
       - Record
       - Report
       - ReportLayout
+      - ReportSetting
       - Site
       - Sort
       - String

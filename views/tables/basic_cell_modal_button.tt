@@ -13,7 +13,8 @@
     data-layout-id="[% dataLayoutId | html %]"[% END %][% IF dataCurrentId %]
     data-current-id="[% dataCurrentId | html %]"[% END %][% IF dataTitle %]
     data-title="[% dataTitle | html %]"[% END %][% IF dataID %]
-    data-id=[% dataID | html %][% END %]
+    data-id=[% dataID | html %][% END %][% IF currentValue %]
+    data-current-value="[% currentValue | html %]"[% END %]
   >
     <span class="btn__title">
       [% INCLUDE fields/sub/filter.tt value=label; %]

@@ -65,6 +65,7 @@
     FOREACH row in rows;
       FOREACH button in table_buttons;
         row.fields.push({
+          currentValue     = row.modal.currentValue || ''
           type             = button.type || "button"
           button_type      = button.button_type || "link"
           class            = button.class || ''

@@ -13,6 +13,9 @@ ALTER TABLE report DROP COLUMN security_marking;
 ALTER TABLE report DROP COLUMN security_marking_addendum;
 
 ;
+DROP TABLE report_defaults CASCADE;
+
+;
 
 COMMIT;
 

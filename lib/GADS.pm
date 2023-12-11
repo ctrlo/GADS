@@ -2934,6 +2934,65 @@ prefix '/:layout_name' => sub {
 
             template 'reports/edit' => $params;
         };
+
+        prefix '/settings' => sub {
+            any [ 'get', 'post' ] => '' => require_login sub {
+                my $user   = logged_in_user;
+                my $layout = var('layout') or pass;
+
+                return forwardHome(
+                    { danger => 'You do not have permission to edit reports' } )
+                  unless $layout->user_can("layout");
+
+                my $base_url = request->base;
+
+                my $settings =
+                  schema->resultset('ReportSetting')->load_all_strings;
+
+                if ( my $setting_id = body_parameters->get('delete') ) {
+                    my $result =
+                         schema->resultset('ReportSetting')->find($setting_id)
+                      or error __x "No default found for {setting_id}",
+                      setting_id => $setting_id;
+
+                    my $lo = param 'layout_name';
+
+                    return forwardHome(
+                        { danger => "You cannot delete this default, it is required for all reports" },
+                        "$lo/report/settings"
+                    ) unless $result->name ne 'security_marking';
+
+                    if ( process( sub { $result->remove } ) ) {
+                        return forwardHome( { success => "Default deleted" },
+                            "$lo/report/settings" );
+                    }
+                    return forwardHome("$lo/report/settings");
+                }
+
+                if ( my $setting_name = body_parameters->get('submit') ) {
+                    my $setting_value = body_parameters->get('setting_value')
+                      or error __x "No value specified for {setting_name}",
+                      setting_name => $setting_name;
+                    my $result = schema->resultset('ReportSetting')
+                      ->save_string( $setting_name, $setting_value );
+                }
+
+                #Need to work out breadcrumbs etc
+
+                my $params = {
+                    header_type     => 'table_tabs',
+                    layout_obj      => $layout,
+                    header_back_url => "${base_url}table",
+                    report_settings => $settings,
+                    breadcrumbs     => [
+                        Crumb( $base_url . "table/", "Tables" ),
+                        Crumb( "",                   "Table: " . $layout->name )
+                    ],
+                };
+
+                template 'reports/defaults.tt' => $params;
+            }
+          }
     };
 
     # any ['get', 'post'] => qr{/tree[0-9]*/([0-9]*)/?} => require_login sub {

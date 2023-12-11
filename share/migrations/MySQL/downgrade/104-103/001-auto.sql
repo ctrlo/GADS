@@ -9,6 +9,9 @@ ALTER TABLE report DROP COLUMN title,
                    DROP COLUMN security_marking_addendum;
 
 ;
+DROP TABLE report_defaults;
+
+;
 
 COMMIT;
 

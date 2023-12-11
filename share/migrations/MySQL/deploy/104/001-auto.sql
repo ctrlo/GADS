@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Mon Dec 11 09:46:44 2023
+-- Created on Mon Dec 11 13:43:09 2023
 --
 ;
 SET foreign_key_checks=0;
@@ -823,9 +823,7 @@ CREATE TABLE `record` (
 CREATE TABLE `report` (
   `id` bigint NOT NULL auto_increment,
   `name` varchar(128) NOT NULL,
-  `title` varchar(128) NOT NULL,
-  `security_marking` varchar(128) NULL,
-  `security_marking_addendum` varchar(128) NULL,
+  `title` varchar(128) NULL,
   `description` varchar(128) NULL,
   `user_id` bigint NULL,
   `createdby` bigint NULL,
@@ -840,6 +838,18 @@ CREATE TABLE `report` (
   CONSTRAINT `report_fk_instance_id` FOREIGN KEY (`instance_id`) REFERENCES `instance` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `report_fk_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB;
+--
+-- Table: `report_defaults`
+--
+CREATE TABLE `report_defaults` (
+  `id` bigint NOT NULL auto_increment,
+  `name` varchar(128) NOT NULL,
+  `value` varchar(128) NULL,
+  `data` longblob NULL,
+  `type` varchar(128) NULL,
+  INDEX `name_idx` (`name`),
+  PRIMARY KEY (`id`)
+);
 --
 -- Table: `report_layout`
 --

@@ -39,6 +39,10 @@ __PACKAGE__->table("report");
     data_type: 'varchar'
     is_nullable: 0
     size: 128
+=head2 title
+    data_type: 'varchar'
+    is_nullable: 1
+    size: 128
 =head2 description
     data_type: 'varchar'
     is_nullable: 1

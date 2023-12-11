@@ -1,0 +1,108 @@
+[%
+  table_dom = "t";
+  table_show_all_records = "true";
+  table_width = 42;
+  table_class = "table-striped";
+
+  table_caption = "Report Defaults";
+
+  table_buttons = [
+    {
+        type         = "modal_button"
+        modalId      = "editSetting"
+        label        = "Edit"
+        button_class = "btn btn-edit btn-small"
+      },{
+        type         = "modal_button"
+        modalId      = "deleteSetting"
+        label        = "Delete"
+    }
+  ]
+
+  table_columns = [{
+    name      = "Name",
+    orderable = 0,
+    width     = table_width _ "%"
+  },{
+    name      = "Value",
+    orderable = 0,
+    width     = table_width _ "%"
+  }];
+
+  rows = [];
+
+  FOREACH default IN report_settings;
+    data = {
+      link_placeholders = {
+        default_id = default.id
+      }
+      modal = {
+        dataID = default.id
+        dataTitle = default.name
+        currentValue = default.value
+      }
+      fields  = [{
+        type  = "string",
+        label = default.name
+      },
+      {
+        type  = "string",
+        label = default.value
+      }]
+    };
+
+    rows.push(data);
+  END; #foreach
+%]
+
+  <div class="content-block__main">
+  <div class="card">
+    <div class="card--header">
+      <h3 class"card__header">
+        <span>Default Settings</span>
+      </h3>
+    </div>
+
+    <div class="card__body">
+      <div class="card__content">
+        <div class="row">
+          <div class="col">
+            [% INCLUDE tables/basic_table.tt; %]
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+[% INCLUDE wizard/delete.tt
+    description = "Are you sure you wish to delete this setting? This cannot be undone."
+    label = "Delete " _ setting.name
+    modalId = "deleteSetting" %]
+
+<!-- Modal -->
+<div class="modal fade modal--edit-setting" id="editSetting" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form role="form" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="[% csrf_token %]">
+            <div class="modal-header">
+                <h4 class="modal-title" id="myModalLabel">Edit Value</h4>
+            </div>
+            <div class="modal-body">
+                [% INCLUDE fields/input.tt
+                    id          = 'setting_value'
+                    name        = 'setting_value'
+                    label       = 'Setting Value'
+                    placeholder = 'Setting Value'
+                    is_required = 1
+                    filter      = 'html' %]
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="submit" name="submit" value="submit" class="btn btn-primary">Save</button>
+            </div>
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

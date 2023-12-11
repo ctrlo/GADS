@@ -47,7 +47,8 @@
             dataLayoutId=field.dataLayoutId
             dataCurrentId=field.dataCurrentId
             dataTitle=field.dataTitle
-            dataID=field.dataID;
+            dataID=field.dataID
+            currentValue = field.currentValue;
         CASE 'header';
           INCLUDE tables/basic_cell_header.tt
             class=field.class
