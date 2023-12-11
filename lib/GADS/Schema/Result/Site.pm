@@ -280,9 +280,9 @@ sub user_fields
         },
         {
           name          => 'account_request_notes',
-          description   => $self->account_request_notes_name || 'User Request Notes',
+          description   => $self->account_request_notes_name || 'Notes',
           type          => 'textarea',
-          placeholder   => $self->account_request_notes_placeholder || 'User Request Notes',
+          placeholder   => $self->account_request_notes_placeholder || 'Notes',
         }
     );
     push @fields, {
