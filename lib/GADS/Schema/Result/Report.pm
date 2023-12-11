@@ -278,23 +278,19 @@ Function to create a PDF of the report - it will return a PDF object
 sub create_pdf
 {   my ($self, $record) = @_;
 
-    my $dateformat = GADS::Config->instance->dateformat;
-    my $now        = DateTime->now;
-    $now->set_time_zone('Europe/London');
-    my $now_formatted = $now->format_cldr($dateformat) . " at " . $now->hms;
-    my $updated =
-      $self->created->format_cldr($dateformat) . " at " . $self->created->hms;
+    my $header = $self->settings->load_string('security_marking')
+        or error __x"Could not load security marking";
+    my $default_background = $self->settings->load_string('bgcolour') || '#007C88';
+    my $default_foreground = $self->settings->load_string('bgcolour') || '#FFFFFF';
 
-    my $config = GADS::Config->instance;
-    my $header = $config && $config->gads && $config->gads->{header};
     my $pdf    = CtrlO::PDF->new(
         header => $header,
-        footer => "Downloaded by " . $self->user->value . " on $now_formatted",
+        footer => $header,
     );
 
     $pdf->add_page;
-    $pdf->heading( $self->title );
-    $pdf->heading( $self->description, size => 14 ) if $self->description;
+    $pdf->heading( $self->title || $self->name, size => 16 , justify => 'center' );
+    $pdf->heading( $self->description, size => 14, justify => 'center' ) if $self->description;
 
     my $fields = [ [ 'Field', 'Value' ] ];
 
@@ -306,14 +302,14 @@ sub create_pdf
         repeat    => 1,
         justify   => 'center',
         font_size => 12,
-        bg_color  => '#007c88',
-        fg_color  => '#ffffff',
+        bg_color  => $default_background,
+        fg_color  => $default_foreground,
     };
 
     $pdf->table(
         data         => $fields,
         header_props => $hdr_props,
-        border_c     => '#007c88',
+        border_c     => $default_background,
         h_border_w   => 1,
     );
 
@@ -339,6 +335,18 @@ sub fields_for_render {
     } $layout->all( user_can_read => 1 );
 
     return \@fields;
+}
+
+has settings => (
+    is=> 'lazy',
+);
+
+sub _build_settings {
+    my $self = shift;
+
+    my $settings = $self->result_source->schema->resultset('ReportSetting');
+
+    return $settings;
 }
 
 1;
