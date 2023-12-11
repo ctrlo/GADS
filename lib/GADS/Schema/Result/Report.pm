@@ -69,6 +69,8 @@ __PACKAGE__->add_columns(
     { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
     "name",
     { data_type => "varchar", is_nullable => 0, size => 128 },
+    "title",
+    { data_type => "varchar", is_nullable => 1, size => 128, default=>'Untitled' },
     "description",
     { data_type => "varchar", is_nullable => 1, size => 128 },
     "user_id",
