@@ -24,7 +24,7 @@
               INCLUDE fields/input.tt
                 id          = "report_title"
                 name        = "report_title"
-                value       = report.title
+                value       =  report.title
                 label       = "Report Title"
                 placeholder = "New Report Title"
                 input_class = "input--required"
@@ -62,6 +62,40 @@
                 fieldset_classes  = ""
                 filter            = "html";
             %]
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-3 mt-3">
+      <div class="col">
+        <div class="card card--expandable">
+          <div class="card--header">
+              <button class="card__header-left" type="button" data-toggle="collapse" data-target="#textFieldSettings" aria-expanded="false" aria-controls="textFieldSettings">
+                <span class="card__title">
+                  Advanced Settings
+                </span>
+              </button>
+          </div>
+          <div class="collapse" id="textFieldSettings">
+            <div class="card__content">
+              [% INCLUDE fields/input.tt
+                    id          = "security_marking"
+                    name        = "security_marking"
+                    label       = "Security Marking"
+                    placeholder = report.default_marking
+                    value       = report.security_marking || ""
+                    input_class = "input"
+                    required    = 0;
+                 INCLUDE fields/input.tt
+                    id          = "security_marking_extra"
+                    name        = "security_marking_extra"
+                    label       = "Security Marking Supplimental Text"
+                    placeholder = "New Security Marking Suppliment"
+                    value       = report.security_marking_extra || ""
+                    input_class = "input"
+                    required    = 0 %]
+            </div>
           </div>
         </div>
       </div>

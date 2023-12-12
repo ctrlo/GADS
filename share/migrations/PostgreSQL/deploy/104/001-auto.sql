@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Mon Dec 11 13:43:09 2023
+-- Created on Tue Dec 12 09:48:58 2023
 --
 ;
 --
@@ -814,6 +814,8 @@ CREATE TABLE "report" (
   "name" character varying(128) NOT NULL,
   "title" character varying(128),
   "description" character varying(128),
+  "security_marking" character varying(128),
+  "security_marking_extra" character varying(128),
   "user_id" bigint,
   "createdby" bigint,
   "created" timestamp,

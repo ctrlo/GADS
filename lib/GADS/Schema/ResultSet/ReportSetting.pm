@@ -15,8 +15,6 @@ sub BUILDARGS { $_[2] || {} }
 sub _init_strings {
     my ($self) = @_;
 
-    print STDOUT "Initialising strings\n";
-
     $self->save_string( 'security_marking', 'Official Secret' )
       unless ( $self->load_string( 'security_marking', 1 ) );
 }

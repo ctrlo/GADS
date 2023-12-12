@@ -21,7 +21,7 @@ ALTER TABLE report ADD COLUMN title character varying(128);
 ALTER TABLE report ADD COLUMN security_marking character varying(128);
 
 ;
-ALTER TABLE report ADD COLUMN security_marking_addendum character varying(128);
+ALTER TABLE report ADD COLUMN security_marking_extra character varying(128);
 
 ;
 

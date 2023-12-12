@@ -6,7 +6,7 @@ BEGIN;
 ;
 ALTER TABLE report DROP COLUMN title,
                    DROP COLUMN security_marking,
-                   DROP COLUMN security_marking_addendum;
+                   DROP COLUMN security_marking_extra;
 
 ;
 DROP TABLE report_defaults;

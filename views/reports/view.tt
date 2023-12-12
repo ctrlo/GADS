@@ -1,4 +1,6 @@
 [%
+  INCLUDE navigation/reports_top_bar.tt;
+  INCLUDE snippets/message_center.tt;
   table_dom = "t";
   table_show_all_records = "true";
   table_width = 42;
@@ -10,7 +12,8 @@
     {
         label  = "Edit",
         filter = "html",
-        link   = "report/edit{report_id}"
+        link   = "report/edit{report_id}",
+        icon   = "fa-edit"
       },{
         type = "modal_button"
         modalId = "deleteReport"

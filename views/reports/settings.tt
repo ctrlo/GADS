@@ -1,4 +1,6 @@
 [%
+  INCLUDE navigation/reports_top_bar.tt;
+  INCLUDE snippets/message_center.tt;
   table_dom = "t";
   table_show_all_records = "true";
   table_width = 42;

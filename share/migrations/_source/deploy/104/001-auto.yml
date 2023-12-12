@@ -6105,7 +6105,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: created
-          order: 7
+          order: 9
           size:
             - 0
         createdby:
@@ -6115,7 +6115,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: createdby
-          order: 6
+          order: 8
           size:
             - 0
         deleted:
@@ -6125,7 +6125,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: deleted
-          order: 9
+          order: 11
           size:
             - 0
         description:
@@ -6156,7 +6156,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: instance_id
-          order: 8
+          order: 10
           size:
             - 0
         name:
@@ -6167,6 +6167,26 @@ schema:
           is_unique: 0
           name: name
           order: 2
+          size:
+            - 128
+        security_marking:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: security_marking
+          order: 5
+          size:
+            - 128
+        security_marking_extra:
+          data_type: varchar
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: security_marking_extra
+          order: 6
           size:
             - 128
         title:
@@ -6186,7 +6206,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: user_id
-          order: 5
+          order: 7
           size:
             - 0
       indices:

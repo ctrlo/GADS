@@ -47,6 +47,14 @@ __PACKAGE__->table("report");
     data_type: 'varchar'
     is_nullable: 1
     size: 128
+=head2 security_marking
+    data_type: 'varchar'
+    is_nullable: 1
+    size: 128
+=head2 security_marking_extra
+    data_type: 'varchar'
+    is_nullable: 1
+    size: 128
 =head2 user_id
     data_type: 'bigint'
     is_foreign_key: 1
@@ -76,6 +84,10 @@ __PACKAGE__->add_columns(
     "title",
     { data_type => "varchar", is_nullable => 1, size => 128, default=>'Untitled' },
     "description",
+    { data_type => "varchar", is_nullable => 1, size => 128 },
+    "security_marking",
+    { data_type => "varchar", is_nullable => 1, size => 128 },
+    "security_marking_extra",
     { data_type => "varchar", is_nullable => 1, size => 128 },
     "user_id",
     { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
@@ -178,10 +190,12 @@ sub validate {
     my ( $self, $value, %options ) = @_;
 
     my $name        = $self->name;
+    my $title       = $self->title;
     my $instance_id = $self->instance_id;
     my $layouts     = $self->report_layouts;
 
     error __ "No name given" unless $name;
+    error __ "No title given" unless $title;
     error __ "You must provide at least one row to display in the report"
       unless $layouts;
 
@@ -196,6 +210,16 @@ has record_id => (
     is       => 'rw',
     required => 0,
 );
+
+has default_marking => (
+    is => 'lazy',
+);
+
+sub _build_default_marking {
+    my $self = shift;
+
+    return $self->settings->load_string('security_marking');
+}
 
 =head2 _data
 This is the data for the report as pulled from the instance record identfied by the Record Id
@@ -231,10 +255,13 @@ sub update_report {
 
     my $guard = $self->result_source->schema->txn_scope_guard;
 
-    $self->update( { name => $args->{name} } )
-      if $args->{name};
-    $self->update( { description => $args->{description} } )
-      if $args->{description};
+    $self->update( { 
+        name => $args->{name},
+        description => $args->{description},
+        title => $args->{title},
+        security_marking => $args->{security_marking} eq '' ? undef : $args->{security_marking},
+        security_marking_extra => $args->{security_marking_extra} eq '' ? undef : $args->{security_marking_extra},
+    } );
 
     my $layouts = $args->{layouts};
 
@@ -278,19 +305,21 @@ Function to create a PDF of the report - it will return a PDF object
 sub create_pdf
 {   my ($self, $record) = @_;
 
-    my $header = $self->settings->load_string('security_marking')
-        or error __x"Could not load security marking";
-    my $default_background = $self->settings->load_string('bgcolour') || '#007C88';
-    my $default_foreground = $self->settings->load_string('bgcolour') || '#FFFFFF';
+    my $marking = $self->security_marking;
+    $marking = $self->settings->load_string('security_marking') unless $marking && $marking ne '';
+    my $security_marking_extra = $self->security_marking_extra;
+    $marking = "$marking - $security_marking_extra" if $security_marking_extra;
+    my $background = $self->settings->load_string('background') || '#007C88';
+    my $foreground = $self->settings->load_string('foreground') || '#FFFFFF';
 
     my $pdf    = CtrlO::PDF->new(
-        header => $header,
-        footer => $header,
+        header => $marking,
+        footer => $marking,
     );
 
     $pdf->add_page;
-    $pdf->heading( $self->title || $self->name, size => 16 , justify => 'center' );
-    $pdf->heading( $self->description, size => 14, justify => 'center' ) if $self->description;
+    $pdf->heading( $self->title || $self->name, size => 16 );
+    $pdf->heading( $self->description, size => 14) if $self->description;
 
     my $fields = [ [ 'Field', 'Value' ] ];
 
@@ -302,14 +331,14 @@ sub create_pdf
         repeat    => 1,
         justify   => 'center',
         font_size => 12,
-        bg_color  => $default_background,
-        fg_color  => $default_foreground,
+        bg_color  => $background,
+        fg_color  => $foreground,
     };
 
     $pdf->table(
         data         => $fields,
         header_props => $hdr_props,
-        border_c     => $default_background,
+        border_c     => $background,
         h_border_w   => 1,
     );
 

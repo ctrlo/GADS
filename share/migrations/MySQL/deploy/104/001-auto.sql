@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Mon Dec 11 13:43:09 2023
+-- Created on Tue Dec 12 09:48:57 2023
 --
 ;
 SET foreign_key_checks=0;
@@ -825,6 +825,8 @@ CREATE TABLE `report` (
   `name` varchar(128) NOT NULL,
   `title` varchar(128) NULL,
   `description` varchar(128) NULL,
+  `security_marking` varchar(128) NULL,
+  `security_marking_extra` varchar(128) NULL,
   `user_id` bigint NULL,
   `createdby` bigint NULL,
   `created` datetime NULL,

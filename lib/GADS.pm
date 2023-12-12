@@ -2812,6 +2812,7 @@ prefix '/:layout_name' => sub {
                 layout_obj      => $layout,
                 header_back_url => "${base_url}table",
                 reports         => $reports,
+                viewtype        => 'view',
                 breadcrumbs     => [
                     Crumb( $base_url . "table/", "Tables" ),
                     Crumb( "",                   "Table: " . $layout->name )
@@ -2889,8 +2890,11 @@ prefix '/:layout_name' => sub {
             if ( body_parameters && body_parameters->get('submit') ) {
                 my $report_description = body_parameters->get('report_description');
                 my $report_name        = body_parameters->get('report_name');
+                my $report_title       = body_parameters->get('report_title');
                 my $checkboxes         = [body_parameters->get_all('checkboxes')];
                 my $instance           = $layout->instance_id;
+                my $security_marking   = body_parameters->get('security_marking');
+                my $security_marking_extra = body_parameters->get('security_marking_extra');
 
                 my $report_id = param('id');
 
@@ -2899,9 +2903,12 @@ prefix '/:layout_name' => sub {
 
                 $result->update_report(
                     {
-                        name        => $report_name,
-                        description => $report_description,
-                        layouts     => $checkboxes
+                        name                   => $report_name,
+                        description            => $report_description,
+                        title                  => $report_title,
+                        layouts                => $checkboxes,
+                        security_marking       => $security_marking,
+                        security_marking_extra => $security_marking_extra,
                     }
                 );
 
@@ -2980,6 +2987,7 @@ prefix '/:layout_name' => sub {
                 #Need to work out breadcrumbs etc
 
                 my $params = {
+                    viewtype        => 'settings',
                     header_type     => 'table_tabs',
                     layout_obj      => $layout,
                     header_back_url => "${base_url}table",
@@ -2990,7 +2998,7 @@ prefix '/:layout_name' => sub {
                     ],
                 };
 
-                template 'reports/defaults.tt' => $params;
+                template 'reports/settings.tt' => $params;
             }
           }
     };

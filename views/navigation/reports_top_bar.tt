@@ -1,0 +1,26 @@
+<div class="content-block__navigation">
+  <div class="content-block__navigation-left">
+    <div class="list list--horizontal list--no-borders">
+        [%
+          #AB: this feels dirty - but for some reason the ternary operator is not working in the button definition - is there a neater way?
+          report_view_active = viewtype == "view" ? " link--active" : "";
+          setting_view_active = viewtype == "settings" ? " link--active" : "";
+          report_buttons = [{
+            type        = "link",
+            target      = url.page _ "/" _ layout_obj.identifier _ "/report",
+            class       = "link link--primary" _ report_view_active,
+            label       = "Reports"
+          },{
+            type        = "link",
+            target      = url.page _ "/" _ layout_obj.identifier _ "/report/settings",
+            class       = "link link--primary" _ setting_view_active,
+            label       = "Settings"
+          }];
+
+          INCLUDE snippets/button_list.tt
+            list_class = "list--horizontal list--no-borders"
+            buttons    = report_buttons;
+        %]
+    </div>
+  </div>
+</div>

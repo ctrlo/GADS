@@ -23,7 +23,7 @@ SET foreign_key_checks=1;
 ;
 ALTER TABLE report ADD COLUMN title varchar(128) NULL,
                    ADD COLUMN security_marking varchar(128) NULL,
-                   ADD COLUMN security_marking_addendum varchar(128) NULL;
+                   ADD COLUMN security_marking_extra varchar(128) NULL;
 
 ;
 

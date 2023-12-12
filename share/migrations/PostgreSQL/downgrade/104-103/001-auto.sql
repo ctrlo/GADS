@@ -10,7 +10,7 @@ ALTER TABLE report DROP COLUMN title;
 ALTER TABLE report DROP COLUMN security_marking;
 
 ;
-ALTER TABLE report DROP COLUMN security_marking_addendum;
+ALTER TABLE report DROP COLUMN security_marking_extra;
 
 ;
 DROP TABLE report_defaults CASCADE;
