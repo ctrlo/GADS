@@ -3,7 +3,7 @@
     <div class="list list--horizontal list--no-borders">
         [%
           #AB: this feels dirty - but for some reason the ternary operator is not working in the button definition - is there a neater way?
-          report_view_active = viewtype == "view" ? " link--active" : "";
+          report_view_active  = viewtype == "view" ? " link--active" : "";
           setting_view_active = viewtype == "settings" ? " link--active" : "";
           report_buttons = [{
             type        = "link",

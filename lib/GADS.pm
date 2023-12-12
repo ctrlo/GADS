@@ -2888,12 +2888,12 @@ prefix '/:layout_name' => sub {
             my $report_id = param('id');
 
             if ( body_parameters && body_parameters->get('submit') ) {
-                my $report_description = body_parameters->get('report_description');
-                my $report_name        = body_parameters->get('report_name');
-                my $report_title       = body_parameters->get('report_title');
-                my $checkboxes         = [body_parameters->get_all('checkboxes')];
-                my $instance           = $layout->instance_id;
-                my $security_marking   = body_parameters->get('security_marking');
+                my $report_description     = body_parameters->get('report_description');
+                my $report_name            = body_parameters->get('report_name');
+                my $report_title           = body_parameters->get('report_title');
+                my $checkboxes             = [body_parameters->get_all('checkboxes')];
+                my $instance               = $layout->instance_id;
+                my $security_marking       = body_parameters->get('security_marking');
                 my $security_marking_extra = body_parameters->get('security_marking_extra');
 
                 my $report_id = param('id');
