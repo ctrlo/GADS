@@ -21,6 +21,7 @@
       <div class="row">
       [% END %]
       [% FOREACH field IN site.user_fields %]
+        [% UNLESS field.user_hidden; %]
         [% IF field_counter > 0 AND field_counter % 2 == 0 %]
       </div>
       <div class="row">
@@ -81,7 +82,7 @@
           %]
         </div>
         [% IF field.name == "email"; field_counter = field_counter + 2; ELSE; field_counter = field_counter + 1; END; %]
-      [% END %]
+      [% END; END; %]
       [% IF site.user_fields.size > 0 %]
       </div>
       [% END %]
