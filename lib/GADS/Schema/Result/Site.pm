@@ -283,6 +283,7 @@ sub user_fields
           description   => $self->account_request_notes_name || 'Notes',
           type          => 'textarea',
           placeholder   => $self->account_request_notes_placeholder || 'Notes',
+          user_hidden => 1,
         }
     );
     push @fields, {

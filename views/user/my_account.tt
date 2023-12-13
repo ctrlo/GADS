@@ -21,6 +21,7 @@
       <div class="row">
       [% END %]
       [% FOREACH field IN site.user_fields %]
+        [% NEXT IF field.user_hidden; %]
         [% IF field_counter > 0 AND field_counter % 2 == 0 %]
       </div>
       <div class="row">
@@ -66,11 +67,22 @@
                 is_disabled = field_disabled
                 sub_field = sub_field
                 sub_params = sub_params;
+            ELSIF field.type == "textarea";
+              INCLUDE fields/textarea.tt
+                id = field.name
+                name = field.name
+                value = user.${field.name}
+                label = field.description
+                placeholder = field.placeholder
+                filter = "html"
+                is_disabled = field_disabled
+                sub_field = sub_field
+                sub_params = sub_params;
             END;
           %]
         </div>
         [% IF field.name == "email"; field_counter = field_counter + 2; ELSE; field_counter = field_counter + 1; END; %]
-      [% END %]
+      [% END; %]
       [% IF site.user_fields.size > 0 %]
       </div>
       [% END %]
