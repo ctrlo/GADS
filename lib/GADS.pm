@@ -2942,6 +2942,21 @@ prefix '/:layout_name' => sub {
             template 'reports/edit' => $params;
         };
 
+        get '/logo' => sub {
+            my $logo = schema->resultset('ReportSetting')->load_data('default_logo');
+            if ( !$logo ) {
+                status('not_found');
+                return "File not found!";
+            }
+            
+            my $mimetype = $logo->{type};
+            print STDOUT $mimetype;
+            my $data     = $logo->{data};
+            print STDOUT length($data);
+
+            send_file( \$data, content_type => $mimetype );
+        };
+
         prefix '/settings' => sub {
             any [ 'get', 'post' ] => '' => require_login sub {
                 my $user   = logged_in_user;
@@ -2997,6 +3012,9 @@ prefix '/:layout_name' => sub {
                         Crumb( "",                   "Table: " . $layout->name )
                     ],
                 };
+
+                my $logo = schema->resultset('ReportSetting')->load_data('default_logo');
+                $params->{report_logo} = '/' . param('layout_name') . '/report/logo' if $logo;
 
                 template 'reports/settings.tt' => $params;
             }

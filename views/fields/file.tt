@@ -49,6 +49,7 @@
       multiple[% END %][% IF is_required_html %]
       required
       aria-required="true"[% END %]
+      [% IF accept %]accept="[% accept %]"[% END %]
     >
   </div>
 </div>

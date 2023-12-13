@@ -13,6 +13,11 @@ class InputComponent extends Component {
         this.btnReveal = this.el.find('.input__reveal-password')
         this.input = this.el.find('.form-control')
         this.initInputPassword()
+      } else if (this.el.hasClass('input--logo')) {
+        this.fileInput = this.el.find('.form-control-file')
+        this.hideFields();
+        this.hideEmptyLogo();
+        this.initInputLogo();
       } else if (this.el.hasClass('input--document')) {
         this.fileInput = this.el.find('.form-control-file')
         this.initInputDocument()
@@ -33,6 +38,42 @@ class InputComponent extends Component {
       if (this.el.hasClass("input--required")) {
         initValidationOnField(this.el)
       }
+    }
+
+    hideFields() {
+      const fileName = this.el.find('.file__name')
+      fileName.addClass("hidden");
+      const fileDelete = this.el.find('.file__delete')
+      fileDelete.addClass("hidden");
+    }
+
+    hideEmptyLogo() {
+      const logo_container = $('#logo-container');
+      if(logo_container.find('img').attr('src') == "#")
+        logo_container.addClass("hidden");
+      else if(logo_container.hasClass("hidden"))
+        logo_container.removeClass("hidden");
+    }
+
+    initInputLogo() {
+      const url = this.el.data("fileupload-url")
+      const self = this;
+      this.el.fileupload({
+        dataType: "json",
+        url: url,
+        paramName: "file",
+
+        done: function(e, data) {
+          const logo_container = $('#logo-container');
+          logo_container.find('img').attr('src',self.getLogoUrl());
+          self.hideEmptyLogo();
+        }
+      });
+    }
+
+    getLogoUrl() {
+      const table = window.location.pathname.split('/')[1];
+      return `/${table}/report/logo`;
     }
 
     initInputDocument() {

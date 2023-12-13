@@ -546,6 +546,27 @@ any ['get', 'post'] => '/api/:sheet/records' => require_login sub {
     _get_records();
 };
 
+post '/api/logo/default' => require_login sub {
+    my $filecheck = GADS::Filecheck->instance;
+    if(my $upload = upload('file')) {
+        my $mimetype = $filecheck->check_file($upload);
+        my $file;
+        # using ! rather than / as delimiter to avoid escaping
+        if ($mimetype =~ m!^image/!) {
+            if(process( sub{$file = schema->resultset("ReportSetting")->save_data("default_logo",$upload->content,$mimetype)}))
+            {
+                return _success("Logo updated successfully");
+            }
+            else {
+                error __x"Error saving logo: {error}", error => $file;
+            }
+        }
+        else {
+            error __x"Invalid file type: {type}", type => $mimetype;
+        }
+    }
+};
+
 sub _post_dashboard_widget {
     my $layout = shift;
     my $user   = logged_in_user;

@@ -221,6 +221,16 @@ sub _build_default_marking {
     return $self->settings->load_string('security_marking');
 }
 
+has default_logo => (
+    is => 'lazy',
+);
+
+sub _build_default_logo {
+    my $self = shift;
+
+    return $self->settings->load_data('default_logo');
+}
+
 =head2 _data
 This is the data for the report as pulled from the instance record identfied by the Record Id
 =cut
@@ -302,6 +312,7 @@ sub remove {
 Function to create a PDF of the report - it will return a PDF object
 =cut
 
+#What do you mean "it's complicated?"
 sub create_pdf
 {   my ($self, $record) = @_;
 
@@ -312,20 +323,85 @@ sub create_pdf
     my $background = $self->settings->load_string('background') || '#007C88';
     my $foreground = $self->settings->load_string('foreground') || '#FFFFFF';
 
-    my $pdf    = CtrlO::PDF->new(
-        header => $marking,
-        footer => $marking,
-    );
+    my $logo_path;
+
+    if (my $logo = $self->default_logo ) {
+        if ( -e $logo_path ) {
+            unlink $logo_path;
+        }
+        open LOGO, '>./uploads/default_logo';
+        print LOGO $logo->{data};
+        close LOGO;
+    } else {
+        $logo_path = undef;
+    }
+    
+    my $pdf;
+
+    if ( !$logo_path ) {
+        $pdf = CtrlO::PDF->new(
+            header => $marking,
+            footer => $marking,
+        );
+    }
+    else {
+        $pdf = CtrlO::PDF->new(
+            header => $marking,
+            footer => $marking,
+            logo   => $logo_path,
+        );
+    }
+    
+    my $options;
+    my $topMargin = 0;
+
+    my @headingParts = @{$self->_get_parts($self->title,$logo_path ? 40: 60) if $self->title};
+    my @descriptionParts = @{$self->_get_parts($self->description,$logo_path ? 50: 70) if $self->description};
+    
+    $topMargin = ((scalar(@headingParts) * 16 * 2.5) + (scalar(@descriptionParts) * 14 * 2.5))*-1 if $logo_path;
 
     $pdf->add_page;
-    $pdf->heading( $self->title || $self->name, size => 16 );
-    $pdf->heading( $self->description, size => 14) if $self->description;
+    if ( scalar(@headingParts) == 1 ) {
+        $pdf->heading( $headingParts[0], topmargin => $topMargin );
+    }
+    else {
+        foreach my $part (@headingParts) {
+            $pdf->heading( $part, topmargin => $topMargin, bottommargin => 0 )
+              if $part eq $headingParts[0];
+            $pdf->heading( $part, topmargin => 0, bottommargin => 0 )
+              unless $part eq $headingParts[0] || $part eq $headingParts[-1];
+            $pdf->heading( $part, topmargin => 0 )
+              if $part eq $headingParts[-1] && $part ne $headingParts[0];
+        }
+    }
+
+    if ( scalar(@descriptionParts) == 1 ) {
+        $pdf->heading( $descriptionParts[0], size => 14, bottommargin => 0 );
+    }
+    else {
+        foreach my $part (@descriptionParts) {
+            $pdf->heading( $part, size => 14, bottommargin => 0 )
+              if $part eq $descriptionParts[0];
+            $pdf->heading(
+                $part,
+                size         => 14,
+                topmargin    => 0,
+                bottommargin => 0
+            ) unless $part eq $descriptionParts[0];
+            #this is to ensure spacing between the description and the table
+            $pdf->heading( '', size => 14 ) if $part eq $descriptionParts[-1] && $logo_path;
+        }
+    }
 
     my $fields = [ [ 'Field', 'Value' ] ];
 
     my $data = $self->_data($record);
 
     push( @{$fields}, [ $_->{name}, $_->{value} ] ) foreach (@$data);
+
+    if($logo_path) {
+        $pdf->heading( '', size => 14)
+    }
 
     my $hdr_props = {
         repeat    => 1,
@@ -343,6 +419,26 @@ sub create_pdf
     );
 
     $pdf;
+}
+
+sub _get_parts {
+    my($self,$header,$max) = @_;
+
+    my @result;
+
+    my @words = split(/\b/, $header);
+    my $line = '';
+
+    foreach my $word (@words) {
+        if (length($line) + length($word) > $max) {
+            push(@result,$line);
+            $line = '';
+        }
+        $line .= $word;
+    }
+    push(@result,$line);
+
+    return \@result;
 }
 
 =head2 Get fields for render

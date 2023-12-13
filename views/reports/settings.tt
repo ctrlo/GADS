@@ -1,6 +1,11 @@
 [%
   INCLUDE navigation/reports_top_bar.tt;
   INCLUDE snippets/message_center.tt;
+%]
+
+<div class="content-block__main">
+
+[%
   table_dom = "t";
   table_show_all_records = "true";
   table_width = 42;
@@ -57,11 +62,10 @@
   END; #foreach
 %]
 
-  <div class="content-block__main">
   <div class="card">
     <div class="card--header">
       <h3 class"card__header">
-        <span>Default Settings</span>
+        <span>Report Settings</span>
       </h3>
     </div>
 
@@ -69,6 +73,25 @@
       <div class="card__content">
         <div class="row">
           <div class="col">
+              <div id="logo-container">
+                <p>Current Logo:</p>
+                <img src="[% report_logo || "#" %]" class="img img-thumbnail" alt="Report Logo" />
+              </div>
+            
+            [%
+              INCLUDE fields/file.tt
+                id              = 'report_logo'
+                name            = 'report_logo'
+                label           = 'Upload Logo'
+                placeholder     = 'No Logo Chosen'
+                input_class     = 'input--logo'
+                data_attributes = [
+                  {name = "field", value = "report_logo"},
+                  {name = "fileupload-url", value = url.page _ "/api/logo/default?csrf-token=" _ csrf_token},
+                ]
+                accept          = "image/*"
+            %]
+
             [% INCLUDE tables/basic_table.tt; %]
           </div>
         </div>

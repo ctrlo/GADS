@@ -22,15 +22,11 @@ sub _init_strings {
 sub load_all_strings {
     my ($self) = @_;
 
-    print STDOUT "Loading strings\n";
-
     $self->_init_strings;
 
     my $strings = $self->search( { type => 'string' } );
 
-    my $result = [ map { $self->_map_setting($_) } $strings->all ];
-
-    return $result;
+    return [ map { $self->_map_setting($_) } $strings->all ];
 }
 
 sub load_string {
@@ -99,8 +95,6 @@ sub delete {
     $setting->delete if $setting;
 
     $txn_guard->commit;
-
-    return;
 }
 
 sub load_all {
@@ -108,9 +102,7 @@ sub load_all {
 
     my $all_settings = $self->search( {} );
 
-    my @settings = [ map { $self->_map_setting($_) } $all_settings->all ];
-
-    return \@settings;
+    return [ map { $self->_map_setting($_) } $all_settings->all ];
 }
 
 sub _map_setting {
