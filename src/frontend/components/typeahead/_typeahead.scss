@@ -1,0 +1,18 @@
+.tt-menu {
+    background-color: $gray-light;
+    border: solid 2px $gray-light;
+    width: 210px;
+    margin-left: 1px;
+  
+    .tt-suggestion {
+      background-color: $gray-light;
+      color: $gray-extra-dark;
+      border-bottom: 1px solid $gray-light;
+      padding: 0.5rem 1rem;
+      font-weight: normal;
+    }
+  
+    .tt-suggestion:hover {
+      background-color: $gray-light;
+    }
+  }

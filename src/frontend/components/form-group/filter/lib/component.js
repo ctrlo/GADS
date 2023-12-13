@@ -151,7 +151,7 @@ class FilterComponent extends Component {
         if(filterConfig.useIdInFilter) {
           $ruleInputHidden.val(suggestion.id)
         }else {
-          $ruleInputHidden.val(suggestion.label)
+          $ruleInputHidden.val(suggestion.name)
         }
       }
 
