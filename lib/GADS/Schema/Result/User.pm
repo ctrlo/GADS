@@ -852,13 +852,13 @@ sub update_user
     my $current_user = delete $params{current_user}
         or panic "Current user not defined on user update";
 
-    # Set null values where required for database insertions
-    delete $params{organisation} if !$params{organisation};
-    delete $params{department_id} if !$params{department_id};
-    delete $params{team_id} if !$params{team_id};
-    delete $params{title} if !$params{title};
-
     my $site = $self->result_source->schema->resultset('Site')->next;
+
+    # Set null values where required for database insertions
+    delete $params{organisation} if !$params{organisation} && !$site->user_field_is_editable('organisation');
+    delete $params{department_id} if !$params{department_id} && !$site->user_field_is_editable('department_id');
+    delete $params{team_id} if !$params{team_id} && !$site->user_field_is_editable('team_id');
+    delete $params{title} if !$params{title} && !$site->user_field_is_editable('title');
 
     my $values = {
         account_request_notes => $params{account_request_notes},
