@@ -6480,6 +6480,16 @@ schema:
           order: 1
           size:
             - 0
+        logo:
+          data_type: longblob
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: logo
+          order: 42
+          size:
+            - 0
         name:
           data_type: text
           default_value: ~

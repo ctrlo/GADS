@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Fri Dec 15 13:56:56 2023
+-- Created on Fri Dec 15 14:16:48 2023
 --
 ;
 SET foreign_key_checks=0;
@@ -899,6 +899,7 @@ CREATE TABLE `site` (
   `account_request_notes_name` text NULL,
   `account_request_notes_placeholder` text NULL,
   `security_marking` text NULL,
+  `logo` longblob NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB;
 --

@@ -13,7 +13,7 @@ ALTER TABLE report DROP COLUMN security_marking;
 ALTER TABLE report DROP COLUMN security_marking_extra;
 
 ;
-DROP TABLE report_defaults CASCADE;
+ALTER TABLE site DROP COLUMN security_marking;
 
 ;
 

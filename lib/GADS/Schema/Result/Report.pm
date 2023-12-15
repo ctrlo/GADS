@@ -218,10 +218,13 @@ has default_marking => (
     is => 'lazy',
 );
 
+has site =>(
+    is=>'ro',
+);
+
 sub _build_default_marking {
     my $self = shift;
-
-    return $self->settings->load_string('security_marking');
+    return $self->site->security_marking;
 }
 
 has default_logo => (
@@ -230,8 +233,7 @@ has default_logo => (
 
 sub _build_default_logo {
     my $self = shift;
-
-    return $self->settings->load_data('default_logo');
+    return $self->site->logo;
 }
 
 =head2 _data
@@ -472,18 +474,6 @@ sub fields_for_render {
     } $layout->all( user_can_read => 1 );
 
     return \@fields;
-}
-
-has settings => (
-    is=> 'lazy',
-);
-
-sub _build_settings {
-    my $self = shift;
-
-    my $settings = $self->result_source->schema->resultset('ReportSetting');
-
-    return $settings;
 }
 
 1;

@@ -99,6 +99,10 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "account_request_notes_placeholder",
   { data_type => "text", is_nullable => 1 },
+  "security_marking",
+  { data_type => "text", is_nullable => 1 },
+  "logo",
+  {data_type => "longblob", is_nullable => 1},
 );
 
 __PACKAGE__->set_primary_key("id");
@@ -334,6 +338,11 @@ sub user_fields
         foreach @fields;
 
     return @fields;
+}
+
+sub report_security_marking {
+  my $self = shift;
+  return $self->security_marking;
 }
 
 1;

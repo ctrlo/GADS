@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Fri Dec 15 13:56:56 2023
+-- Created on Fri Dec 15 14:16:49 2023
 --
 ;
 --
@@ -887,6 +887,7 @@ CREATE TABLE "site" (
   "account_request_notes_name" text,
   "account_request_notes_placeholder" text,
   "security_marking" text,
+  "logo" bytea,
   PRIMARY KEY ("id")
 );
 
