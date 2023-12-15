@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Tue Dec 12 09:48:58 2023
+-- Created on Fri Dec 15 13:56:56 2023
 --
 ;
 --
@@ -829,20 +829,6 @@ CREATE INDEX "report_idx_user_id" on "report" ("user_id");
 
 ;
 --
--- Table: report_defaults
---
-CREATE TABLE "report_defaults" (
-  "id" bigserial NOT NULL,
-  "name" character varying(128) NOT NULL,
-  "value" character varying(128),
-  "data" bytea,
-  "type" character varying(128),
-  PRIMARY KEY ("id")
-);
-CREATE INDEX "name_idx" on "report_defaults" ("name");
-
-;
---
 -- Table: report_layout
 --
 CREATE TABLE "report_layout" (
@@ -900,6 +886,7 @@ CREATE TABLE "site" (
   "register_freetext2_placeholder" text,
   "account_request_notes_name" text,
   "account_request_notes_placeholder" text,
+  "security_marking" text,
   PRIMARY KEY ("id")
 );
 

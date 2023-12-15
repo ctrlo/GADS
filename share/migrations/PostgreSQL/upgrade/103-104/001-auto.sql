@@ -4,17 +4,6 @@
 BEGIN;
 
 ;
-CREATE TABLE "report_defaults" (
-  "id" bigserial NOT NULL,
-  "name" character varying(128) NOT NULL,
-  "value" character varying(128),
-  "data" bytea,
-  "type" character varying(128),
-  PRIMARY KEY ("id")
-);
-CREATE INDEX "name_idx" on "report_defaults" ("name");
-
-;
 ALTER TABLE report ADD COLUMN title character varying(128);
 
 ;
@@ -22,6 +11,9 @@ ALTER TABLE report ADD COLUMN security_marking character varying(128);
 
 ;
 ALTER TABLE report ADD COLUMN security_marking_extra character varying(128);
+
+;
+ALTER TABLE site ADD COLUMN security_marking text;
 
 ;
 

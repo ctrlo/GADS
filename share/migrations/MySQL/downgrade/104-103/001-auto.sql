@@ -9,7 +9,7 @@ ALTER TABLE report DROP COLUMN title,
                    DROP COLUMN security_marking_extra;
 
 ;
-DROP TABLE report_defaults;
+ALTER TABLE site DROP COLUMN security_marking;
 
 ;
 
