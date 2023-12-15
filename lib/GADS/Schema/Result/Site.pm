@@ -101,6 +101,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "security_marking",
   { data_type => "text", is_nullable => 1 },
+  "logo",
+  {data_type => "longblob", is_nullable => 1},
 );
 
 __PACKAGE__->set_primary_key("id");

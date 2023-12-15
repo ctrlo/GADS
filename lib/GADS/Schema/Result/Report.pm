@@ -230,8 +230,7 @@ has default_logo => (
 
 sub _build_default_logo {
     my $self = shift;
-
-    return $self->settings->load_data('default_logo');
+    return $self->site->logo;
 }
 
 =head2 _data
@@ -464,9 +463,5 @@ sub fields_for_render {
 
     return \@fields;
 }
-
-has settings => (
-    is=> 'lazy',
-);
 
 1;
