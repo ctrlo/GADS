@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Fri Nov 24 11:36:03 2023
+-- Created on Fri Dec 15 16:20:29 2023
 --
 ;
 --
@@ -812,6 +812,7 @@ CREATE INDEX "record_idx_approval" on "record" ("approval");
 CREATE TABLE "report" (
   "id" bigserial NOT NULL,
   "name" character varying(128) NOT NULL,
+  "title" character varying(128),
   "description" character varying(128),
   "user_id" bigint,
   "createdby" bigint,

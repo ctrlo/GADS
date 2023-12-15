@@ -2833,6 +2833,7 @@ prefix '/:layout_name' => sub {
             if ( body_parameters && body_parameters->get('submit') ) {
                 my $report_description = body_parameters->get('report_description');
                 my $report_name        = body_parameters->get('report_name');
+                my $report_title       = body_parameters->get('report_title');
                 my $checkbox_fields    = [body_parameters->get_all('checkboxes')];
                 my $instance           = $layout->instance_id;
 
@@ -2840,6 +2841,7 @@ prefix '/:layout_name' => sub {
                     {
                         user        => $user,
                         name        => $report_name,
+                        title       => $report_title,
                         description => $report_description,
                         instance_id => $instance,
                         createdby   => $user,
@@ -2887,17 +2889,18 @@ prefix '/:layout_name' => sub {
             if ( body_parameters && body_parameters->get('submit') ) {
                 my $report_description = body_parameters->get('report_description');
                 my $report_name        = body_parameters->get('report_name');
+                my $report_title       = body_parameters->get('report_title');
                 my $checkboxes         = [body_parameters->get_all('checkboxes')];
                 my $instance           = $layout->instance_id;
 
                 my $report_id = param('id');
 
-                my $result =
-                  schema->resultset('Report')->load_for_edit($report_id);
+                my $result = schema->resultset('Report')->load_for_edit($report_id);
 
                 $result->update_report(
                     {
                         name        => $report_name,
+                        title       => $report_title,
                         description => $report_description,
                         layouts     => $checkboxes
                     }

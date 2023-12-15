@@ -79,6 +79,7 @@ sub create_report {
         {
             user           => $args->{user},
             name           => $args->{name},
+            title          => $args->{title},
             description    => $args->{description},
             instance_id    => $args->{instance_id},
             createdby      => $args->{user},

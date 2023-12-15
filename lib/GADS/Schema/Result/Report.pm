@@ -6,9 +6,6 @@ package GADS::Schema::Result::Report;
 GADS::Schema::Result::Report
 =cut
 
-use strict;
-use warnings;
-
 use Log::Report 'linkspace';
 use CtrlO::PDF 0.06;
 use GADS::Config;
@@ -38,6 +35,10 @@ __PACKAGE__->table("report");
 =head2 name
     data_type: 'varchar'
     is_nullable: 0
+    size: 128
+=head2 title
+    data_type: 'varchar'
+    is_nullable: 1
     size: 128
 =head2 description
     data_type: 'varchar'
@@ -69,6 +70,8 @@ __PACKAGE__->add_columns(
     { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
     "name",
     { data_type => "varchar", is_nullable => 0, size => 128 },
+    "title",
+    { data_type => "varchar", is_nullable => 1, size => 128 },
     "description",
     { data_type => "varchar", is_nullable => 1, size => 128 },
     "user_id",
@@ -172,10 +175,12 @@ sub validate {
     my ( $self, $value, %options ) = @_;
 
     my $name        = $self->name;
+    my $title       = $self->title;
     my $instance_id = $self->instance_id;
     my $layouts     = $self->report_layouts;
 
     error __ "No name given" unless $name;
+    error __"No title given" unless $title;
     error __ "You must provide at least one row to display in the report"
       unless $layouts;
 
@@ -225,10 +230,13 @@ sub update_report {
 
     my $guard = $self->result_source->schema->txn_scope_guard;
 
-    $self->update( { name => $args->{name} } )
-      if $args->{name};
-    $self->update( { description => $args->{description} } )
-      if $args->{description};
+    $self->update(
+        {
+            name        => $args->{name},
+            title       => $args->{title},
+            description => $args->{description},
+        }
+    );
 
     my $layouts = $args->{layouts};
 
@@ -272,22 +280,15 @@ Function to create a PDF of the report - it will return a PDF object
 sub create_pdf
 {   my ($self, $record) = @_;
 
-    my $dateformat = GADS::Config->instance->dateformat;
-    my $now        = DateTime->now;
-    $now->set_time_zone('Europe/London');
-    my $now_formatted = $now->format_cldr($dateformat) . " at " . $now->hms;
-    my $updated =
-      $self->created->format_cldr($dateformat) . " at " . $self->created->hms;
+    my $marking = 'Official Secret';
 
-    my $config = GADS::Config->instance;
-    my $header = $config && $config->gads && $config->gads->{header};
     my $pdf    = CtrlO::PDF->new(
-        header => $header,
-        footer => "Downloaded by " . $self->user->value . " on $now_formatted",
+        header => $marking,
+        footer => $marking,
     );
 
     $pdf->add_page;
-    $pdf->heading( $self->name );
+    $pdf->heading( $self->title || $self->name );
     $pdf->heading( $self->description, size => 14 ) if $self->description;
 
     my $fields = [ [ 'Field', 'Value' ] ];
