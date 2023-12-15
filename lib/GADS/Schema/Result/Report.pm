@@ -9,9 +9,12 @@ GADS::Schema::Result::Report
 use strict;
 use warnings;
 
+use Data::Dumper;
+
 use Log::Report 'linkspace';
 use CtrlO::PDF 0.06;
 use GADS::Config;
+use File::Temp qw(tempfile);
 use Moo;
 
 extends 'DBIx::Class::Core';
@@ -235,8 +238,8 @@ sub _build_default_logo {
 This is the data for the report as pulled from the instance record identfied by the Record Id
 =cut
 
-sub _data
-{   my ($self, $record) = @_;
+sub _data {
+    my ( $self, $record ) = @_;
 
     my $result = [];
 
@@ -245,11 +248,21 @@ sub _data
 
     my $gads_layout = $record->layout;
 
+    my $mapped;
+
     while ( my $layout = $layouts->next ) {
         my $column = $gads_layout->column( $layout->layout_id, permission => 'read' ) or next;
-        my $datum  = $record->get_field_value($column);
-        my $data   = { 'name' => $layout->layout->name, 'value' => $datum || '' };
-        push( @{$result}, $data );
+        my $topic_value  = $column->topic;
+        my $topic = $topic_value ? $topic_value->name : "Other";
+        my $datum  = $record->get_field_value($column) || '';
+        my $name   = $layout->layout->name;
+        my $data   = { 'name' => $name, 'value' => $datum };
+        $mapped->{$topic} = [] unless exists $mapped->{$topic};
+        push( @{ $mapped->{$topic} }, $data );
+    }
+
+    foreach my $key (keys %$mapped) {
+        push @$result, +{topic=>$key, values=>$mapped->{$key}};
     }
 
     return $result;
@@ -312,7 +325,6 @@ sub remove {
 Function to create a PDF of the report - it will return a PDF object
 =cut
 
-#What do you mean "it's complicated?"
 sub create_pdf
 {   my ($self, $record) = @_;
 
@@ -323,15 +335,11 @@ sub create_pdf
     my $background = $self->settings->load_string('background') || '#007C88';
     my $foreground = $self->settings->load_string('foreground') || '#FFFFFF';
 
-    my $logo_path;
+    my ($fh, $logo_path) = tempfile(UNLINK=>1);
 
     if (my $logo = $self->default_logo ) {
-        if ( -e $logo_path ) {
-            unlink $logo_path;
-        }
-        open LOGO, '>./uploads/default_logo';
-        print LOGO $logo->{data};
-        close LOGO;
+        print $fh $logo->{data};
+        close $fh;
     } else {
         $logo_path = undef;
     }
@@ -393,15 +401,7 @@ sub create_pdf
         }
     }
 
-    my $fields = [ [ 'Field', 'Value' ] ];
-
-    my $data = $self->_data($record);
-
-    push( @{$fields}, [ $_->{name}, $_->{value} ] ) foreach (@$data);
-
-    if($logo_path) {
-        $pdf->heading( '', size => 14)
-    }
+    $pdf->heading( '', size => 14) if $logo_path;
 
     my $hdr_props = {
         repeat    => 1,
@@ -411,12 +411,24 @@ sub create_pdf
         fg_color  => $foreground,
     };
 
-    $pdf->table(
-        data         => $fields,
-        header_props => $hdr_props,
-        border_c     => $background,
-        h_border_w   => 1,
-    );
+    my $data = $self->_data($record);
+
+    foreach my $topic (@$data) {
+        my $fields = [
+            [ $topic->{topic}, '' ]
+        ];
+        foreach my $field (@{$topic->{values}}) {
+            push( @{$fields}, [ $field->{name}, $field->{value} ] );
+        }
+        $pdf->table(
+            data           => $fields,
+            header_props   => $hdr_props,
+            border_c       => $background,
+            h_border_w     => 1,
+            bg_color_even  => '#FFFFFF',
+            bg_color_odd   => '#EEEEEE',
+        );
+    }
 
     $pdf;
 }
