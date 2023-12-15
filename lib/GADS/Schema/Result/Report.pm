@@ -9,8 +9,6 @@ GADS::Schema::Result::Report
 use strict;
 use warnings;
 
-use Data::Dumper;
-
 use Log::Report 'linkspace';
 use CtrlO::PDF 0.06;
 use GADS::Config;
