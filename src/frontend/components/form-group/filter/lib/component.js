@@ -240,7 +240,7 @@ class FilterComponent extends Component {
   typeaheadProperties = (urlSuffix, layoutId, instanceId, useIdInFilter) => ({
     input: (container, input_name) => {
       return (
-        `<div class='typeahead__container'>
+        `<div class='tt__container'>
           <input class='form-control typeahead_text' type='text' name='${input_name}_text'/>
           <input class='form-control typeahead_hidden' type='hidden' name='${input_name}'/>
         </div>`
