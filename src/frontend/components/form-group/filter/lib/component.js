@@ -248,7 +248,15 @@ class FilterComponent extends Component {
     },
     valueSetter: (rule, value) => {
       rule.$el.find('.typeahead_hidden').val(value)
-      rule.$el.find('.typeahead_text').val(rule.data.text)
+      //This is horrible, but I can't find _why_ the value is being cleared (at all), or where I can set a default!
+      const typeahead = rule.$el.find('.typeahead_text')
+      typeahead.val(rule.data.text)
+      typeahead.data("original", rule.data.text);
+      typeahead.on("blur", (ev)=> {
+        const $target= $(ev.target);
+        if($target.val()) return;
+        $target.val($target.data("original"));
+      })
     },
     validation: {
       callback: () => {return true}
