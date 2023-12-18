@@ -90,9 +90,10 @@ const config = {
 
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
   moduleNameMapper: {
-    "^component$": "<rootDir>/src/frontend/test/component",
-    "^validation$": "<rootDir>/src/frontend/test/validation",
-    "^logging$": "<rootDir>/src/frontend/test/logging",
+    "^component$": "<rootDir>/src/frontend/js/lib/component",
+    "^validation$": "<rootDir>/src/frontend/js/lib/validation",
+    "^logging$": "<rootDir>/src/frontend/js/lib/logging",
+    "^util/(.*)$": "<rootDir>/src/frontend/js/lib/util/$1",
   },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader

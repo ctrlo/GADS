@@ -15,7 +15,8 @@ describe('common functions', () => {
         const el = {
             hasClass: jest.fn().mockReturnValue(false),
             addClass: jest.fn(),
-            attr: jest.fn()
+            attr: jest.fn(),
+            css: jest.fn()
         };
         hideElement(el);
         expect(el.hasClass).toHaveBeenCalledWith('hidden');
@@ -39,7 +40,8 @@ describe('common functions', () => {
         const el = {
             hasClass: jest.fn().mockReturnValue(true),
             removeClass: jest.fn(),
-            removeAttr: jest.fn()
+            removeAttr: jest.fn(),
+            css: jest.fn()
         };
         showElement(el);
         expect(el.hasClass).toHaveBeenCalledWith('hidden');
