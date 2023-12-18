@@ -9,15 +9,15 @@
     margin: 2px 0 0;
     list-style: none;
     text-align: left;
-    background-color: #FFF;
+    background-color: $white;
     background-clip: padding-box;
 
     .tt-suggestion {
-        background-color: #FFF;
+        background-color: $white;
         margin: 2px;
         color: $gray-extra-dark;
-        border-bottom: 1px solid $gray-light;
-        padding: 0.5rem 1rem;
+        border-bottom: 1px solid $input-border;
+        padding: $padding-small-horizontal $padding-base-horizontal;
         font-weight: normal;
         cursor: pointer;
     }
