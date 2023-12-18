@@ -3,7 +3,7 @@
 -------
 
 **Version**: 2.1.0
-**Released**: 13th December 2023
+**Released**: 18th December 2023
 
 -------
 
@@ -15,6 +15,7 @@
 
 ## QoL Changes
 
+- New typeahead library
 - User request notes now visible on account requests in create user wizard
 - Users able to have view limits set
 - Additional user fields added
