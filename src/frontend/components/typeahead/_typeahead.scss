@@ -12,7 +12,8 @@
     background-color: $white;
     background-clip: padding-box;
 
-    .tt-suggestion {
+    .tt-suggestion,
+    .tt-dataset div {
         background-color: $white;
         margin: 2px;
         color: $gray-extra-dark;
