@@ -40,7 +40,7 @@
                   aria-describedby="[% id %]-label"
                   [% IF is_disabled %]
                   disabled = "disabled"
-                  aria-disabled = true
+                  aria-disabled = "true"
                   [% END %]
                 >
               </li>
