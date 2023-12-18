@@ -38,8 +38,10 @@
                   aria-controls="[% id %]-values-single"
                   aria-expanded="false"
                   aria-describedby="[% id %]-label"
-                  disabled=is_disabled
-                  aria-disabled=is_disabled
+                  [% IF is_disabled %]
+                  disabled = "disabled"
+                  aria-disabled = "true"
+                  [% END %]
                 >
               </li>
             [% END %]
