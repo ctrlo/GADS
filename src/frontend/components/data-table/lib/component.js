@@ -5,9 +5,9 @@ import 'datatables.net-bs4'
 import 'datatables.net-responsive'
 import 'datatables.net-responsive-bs4'
 import 'datatables.net-rowreorder-bs4'
-import { setupDisclosureWidgets, onDisclosureClick } from '../../more-less/lib/disclosure-widgets'
-import RecordPopupComponent from '../../record-popup/lib/component'
-import { moreLess } from '../../more-less/lib/more-less'
+import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets'
+import RecordPopupComponent from 'components/record-popup/lib/component'
+import { moreLess } from 'components/more-less/lib/more-less'
 import TypeaheadBuilder from 'util/typeahead'
 
 const MORE_LESS_TRESHOLD = 50
@@ -288,6 +288,15 @@ class DataTableComponent extends Component {
       .withAjaxSource(this.getApiEndpoint(setField))
       .withInput($('input', $header))
       .withAppendQuery()
+      .withMapper((data) => {
+        let i = 0;
+        return data.map((item) => {
+          return {
+            id: i++,
+            name: item
+          }
+        });
+      })
       .withName(setName + 'Search')
       .withCallback((data) => {
         $('input', $header).val(data.name);
