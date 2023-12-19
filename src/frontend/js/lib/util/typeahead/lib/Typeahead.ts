@@ -47,9 +47,13 @@ export class Typeahead {
                 },
                 pending: () => {
                     return `<div>Loading...</div>`;
+                },
+                notFound: () => {
+                    return `<div>No results found</div>`;
                 }
-            }
+            },
         });
+        // .val(this.sourceOptions.initialValue);
 
         this.$input.on('typeahead:select', (ev: any, suggestion: MappedResponse) => {
             this.callback(suggestion);

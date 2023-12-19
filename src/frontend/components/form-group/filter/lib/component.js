@@ -151,7 +151,7 @@ class FilterComponent extends Component {
         if(filterConfig.useIdInFilter) {
           $ruleInputHidden.val(suggestion.id)
         }else {
-          $ruleInputHidden.val(suggestion.label)
+          $ruleInputHidden.val(suggestion.name)
         }
       }
 
@@ -240,7 +240,7 @@ class FilterComponent extends Component {
   typeaheadProperties = (urlSuffix, layoutId, instanceId, useIdInFilter) => ({
     input: (container, input_name) => {
       return (
-        `<div class='typeahead__container'>
+        `<div class='tt__container'>
           <input class='form-control typeahead_text' type='text' name='${input_name}_text'/>
           <input class='form-control typeahead_hidden' type='hidden' name='${input_name}'/>
         </div>`
@@ -248,7 +248,9 @@ class FilterComponent extends Component {
     },
     valueSetter: (rule, value) => {
       rule.$el.find('.typeahead_hidden').val(value)
-      rule.$el.find('.typeahead_text').val(rule.data.text)
+      const typeahead = rule.$el.find('.typeahead_text')
+      typeahead.typeahead('val',rule.data.text)
+      typeahead.val(rule.data.text)
     },
     validation: {
       callback: () => {return true}

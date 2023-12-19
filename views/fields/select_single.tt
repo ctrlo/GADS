@@ -34,16 +34,21 @@
                   type="search"
                   class="form-control-search"
                   style="width:100px"
-                  placeholder="Search..."
+                  placeholder = [% is_disabled ? "Admin-Only" : "Search..."; %]
                   aria-controls="[% id %]-values-single"
                   aria-expanded="false"
                   aria-describedby="[% id %]-label"
+                  [% IF is_disabled %]
+                  disabled = "disabled"
+                  aria-disabled = "true"
+                  [% END %]
                 >
               </li>
             [% END %]
           </ul>
         </div>
 
+        [% IF !is_disabled; %]
         <ul hidden class="available select__menu dropdown-menu show [% with_details ? 'with-details' : ''; %]"
             id="[% id %]-values-single"
             aria-labelledby="[% id %]-label"
@@ -97,6 +102,8 @@
                 data-target=#detailsModal
                 data-record-id="[% item.value %]"
                 aria-described-by="lbl-single-details-0"
+                disabled=is_disabled
+                aria-disabled=is_disabled
               >
                 <span class="btn__title">Details</span>
               </button>
@@ -105,6 +112,7 @@
         </li>
         [% END; %]
       </ul>
+      [% END %]
     </div>
   </div>
 </fieldset>

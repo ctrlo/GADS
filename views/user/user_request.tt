@@ -23,6 +23,9 @@
   },{
     name      = "Forename"
     orderable = 1
+  },{
+    name      = "Notes"
+    orderable = 0
   }];
 
   IF site.register_show_title;
@@ -90,12 +93,13 @@
   FOREACH user_row IN users;
     row = {
       link_placeholders = {
-        user_id = user_row.id
+        user_id    = user_row.id,
+        user_notes = user_row.account_request_notes
       }
       fields = [{
-        type  = "link"
-        label = user_row.id
-        name  = "id"
+        type   = "link"
+        label  = user_row.id
+        name   = "id"
         value  = user_row.id
       }, {
         type   = "link"
@@ -109,6 +113,12 @@
         filter = "html_entity"
         name   = "firstname"
         value  = user_row.firstname
+      }, {
+        type   = "link"
+        label  = user_row.account_request_notes
+        filter = "html_entity"
+        name   = "notes"
+        value  = user_row.account_request_notes
       }]
     };
 

@@ -278,6 +278,13 @@ sub user_fields
             placeholder => 'name@example.com',
             is_required => 1,
         },
+        {
+          name          => 'account_request_notes',
+          description   => $self->account_request_notes_name || 'Notes',
+          type          => 'textarea',
+          placeholder   => $self->account_request_notes_placeholder || 'Notes',
+          user_hidden => 1,
+        }
     );
     push @fields, {
         name        => 'title',
@@ -315,13 +322,7 @@ sub user_fields
         type        => 'freetext',
         placeholder => $self->register_freetext2_placeholder || $self->register_freetext2_name,
     } if $self->register_freetext2_name;
-    push @fields, {
-      name          => 'account_request_notes',
-      description   => $self->account_request_notes_name || 'Notes',
-      type          => 'textarea',
-      placeholder   => $self->account_request_notes_placeholder || 'Notes',
-    };
-
+    
     my $user_editable = decode_json($self->user_editable_fields || '{}');
 
     $_->{editable} = $user_editable->{$_->{name}} // 1 # Default to editable

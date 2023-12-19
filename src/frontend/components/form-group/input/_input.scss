@@ -194,24 +194,6 @@
   .form-control {
     padding-right: $padding-large-horizontal;
   }
-
-  .typeahead__list {
-    border-radius: $input-border-radius;
-
-    & > li {
-      border-top: 0;
-    }
-  }
-
-  .typeahead__cancel-button {
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  .typeahead__label .typeahead__cancel-button:hover,
-  .typeahead__container.cancel:not(.loading) .typeahead__cancel-button:hover {
-    color: $brand-danger;
-  }
 }
 
 .input--document {

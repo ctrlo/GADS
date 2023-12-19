@@ -45,6 +45,9 @@ class DataTableComponent extends Component {
     if (this.el.hasClass('table-account-requests')) {
       this.modal = $.find('#userModal')
       this.initClickableTable()
+      this.el.on('draw.dt', ()=> {
+        this.initClickableTable();
+      })
     }
 
     // Bind events to disclosure buttons and record-popup links on opening of child row
@@ -90,6 +93,10 @@ class DataTableComponent extends Component {
 
   initClickableTable() {
     const links = this.el.find('tbody td .link')
+    // Remove all existing click events to prevent multiple bindings
+    links.off('click');
+    links.off('focus');
+    links.off('blur');
     links.on('click', (ev) => { this.handleClick(ev) })
     links.on('focus', (ev) => { this.toggleFocus(ev, true) })
     links.on('blur', (ev) => { this.toggleFocus(ev, false) })
@@ -112,7 +119,7 @@ class DataTableComponent extends Component {
   }
 
   fillModalData(row) {
-    const fields = $(this.modal).find('input')
+    const fields = $(this.modal).find('input, textarea')
     const btnReject = $(this.modal).find('.btn-js-reject-request')
     const id = parseInt($(row).find(`td[data-id]`).data('id'), 10)
 

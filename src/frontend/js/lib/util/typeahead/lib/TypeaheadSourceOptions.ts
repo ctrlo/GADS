@@ -1,5 +1,3 @@
-import { MapperFunction } from "util/mapper/mapper"
-
 /**
  * TypeaheadSourceOptions interface for Typeahead class
  * @param name - name of the typeahead data source
@@ -7,6 +5,9 @@ import { MapperFunction } from "util/mapper/mapper"
  * @param appendQuery - whether to append the query to the ajax source url
  * @param data - data to be sent with the ajax request (if any)
  */
+
+import { MapperFunction } from "util/mapper/mapper"
+
 export class TypeaheadSourceOptions {
     constructor(
         public name: string,
