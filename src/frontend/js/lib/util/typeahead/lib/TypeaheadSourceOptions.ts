@@ -12,8 +12,9 @@ export class TypeaheadSourceOptions {
     constructor(
         public name: string,
         public ajaxSource: string,
-        public mapper: MapperFunction = (d) => { return d.map(data => { return { id: data.id, name: data.name } }) },
-        public appendQuery: boolean = false,
-        public data: any = undefined) {
+        public mapper: MapperFunction,
+        public appendQuery: boolean,
+        public data: any,
+        public dataBuilder: Function) {
     }
 }

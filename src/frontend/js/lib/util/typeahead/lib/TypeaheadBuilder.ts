@@ -24,6 +24,7 @@ export class TypeaheadBuilder {
     private appendQuery: boolean;
     private data: any;
     private mapper: MapperFunction = (data: any) => {return data.map(d=> {return {name: d.name, id: d.id}})};
+    private dataBuilder: Function;
 
     /**
      * Constructor for TypeaheadBuilder class
@@ -88,12 +89,29 @@ export class TypeaheadBuilder {
      * @returns The builder being used
      */
     withData(data: any) {
+        this.dataBuilder = undefined;
         this.data = data;
         return this;
     }
 
+    /**
+     * Sets the mapper to use with the typeahead
+     * @param mapper The mapper function to be used to map the ajax response to the typeahead suggestion
+     * @returns The builder being used
+     */
     withMapper(mapper: MapperFunction) {
         this.mapper = mapper;
+        return this;
+    }
+
+    /**
+     * Set the data builder function to be used to build the data to be sent with the ajax request
+     * @param dataBuilderFunction The function to be used to build the data to be sent with the ajax request
+     * @returns The builder being used
+     */
+    withDataBuilder(dataBuilderFunction:Function) {
+        this.data = undefined;
+        this.dataBuilder = dataBuilderFunction;
         return this;
     }
 
@@ -106,7 +124,7 @@ export class TypeaheadBuilder {
         if (!this.callback) throw new Error("Callback not set");
         if (!this.name) throw new Error("Name not set");
         if (!this.ajaxSource) throw new Error("Ajax source not set");
-        const options = new TypeaheadSourceOptions(this.name, this.ajaxSource, this.mapper, this.appendQuery, this.data);
+        const options = new TypeaheadSourceOptions(this.name, this.ajaxSource, this.mapper, this.appendQuery, this.data, this.dataBuilder);
         return new Typeahead(this.$input, this.callback, options);
     }
 }
