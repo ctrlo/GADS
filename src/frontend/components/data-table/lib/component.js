@@ -243,6 +243,10 @@ class DataTableComponent extends Component {
     const title = $header.text().trim()
     const searchValue = column.search()
     const self = this
+    const {context} = column;
+    const {oAjaxData} = context[0];
+    const {columns} = oAjaxData;
+    const columnId = columns[column.index()].name;
 
     const $searchElement = $(
       `<div class='data-table__search'>
@@ -276,28 +280,13 @@ class DataTableComponent extends Component {
 
     this.toggleFilter(column)
 
-    let setField = title.trim();
-    if (setField.endsWith('Sort')) {
-      setField = setField.substring(0, setField.length - 4);
-    }
-    setField = setField.replace(/\W+^/g, '').trim();
-    const setName = setField.replace(/\W+/g, '').trim();
-
     const builder = new TypeaheadBuilder();
     builder
-      .withAjaxSource(this.getApiEndpoint(setField))
+      .withAjaxSource(this.getApiEndpoint(columnId))
       .withInput($('input', $header))
       .withAppendQuery()
-      .withMapper((data) => {
-        let i = 0;
-        return data.map((item) => {
-          return {
-            id: i++,
-            name: item
-          }
-        });
-      })
-      .withName(setName + 'Search')
+      .withDefaultMapper()
+      .withName(columnId.replace(/\W+/g,'') + 'Search')
       .withCallback((data) => {
         $('input', $header).val(data.name);
         $('input', $header).trigger('change');
@@ -349,9 +338,9 @@ class DataTableComponent extends Component {
     })
   }
 
-  getApiEndpoint(title) {
-    const table = window.location.pathname.substring(1).split('/')[0];
-    return `/api/${table}/fields?title=${title}&search=`;
+  getApiEndpoint(columnId) {
+    const table = $("body").data("layout-identifier");
+    return `/${table}/match/layout/${columnId}?q=`;
   }
 
   encodeHTMLEntities(text) {

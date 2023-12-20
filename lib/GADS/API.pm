@@ -546,27 +546,6 @@ any ['get', 'post'] => '/api/:sheet/records' => require_login sub {
     _get_records();
 };
 
-get '/api/:sheet/fields' => require_login sub {
-    my $user             = logged_in_user;
-    my $sheetname        = param 'sheet'
-        or panic __"No sheet name found";
-    my $layout           = var('instances')->layout_by_shortname($sheetname)
-        or panic __x"Sheet {name} not found", name => $sheetname;
-    my $col_title        = query_parameters->get('title')
-        or panic __"No column title found";
-    my $search           = query_parameters->get('search');
-
-    my @columns = $layout->all(user_can_read => 1);
-    #Not sure if I should use the below in case it returns the column regardless of permissions?
-    #my $column = $layout->column_by_name($col_title);
-
-    foreach my $item (@columns) {
-        return encode_json([$item->values_beginning_with($search)]) if lc $item->name eq lc $col_title;
-    }
-
-    return encode_json([]);
-};
-
 sub _post_dashboard_widget {
     my $layout = shift;
     my $user   = logged_in_user;
