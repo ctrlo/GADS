@@ -155,14 +155,15 @@ class FilterComponent extends Component {
         }
       }
 
-      const query = $ruleInputText.val()
+      // This is required to ensure that the correct query is sent each time
+      const buildQuery = () => {return {q:$ruleInputText.val(), oi:filterConfig.instanceId}}
 
       const builder = new TypeaheadBuilder();
       builder
         .withInput($ruleInputText)
         .withAjaxSource(self.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
-        .withData({ q: query, oi: filterConfig.instanceId })
-        .withMapper(m=>map(m))
+        .withDataBuilder(buildQuery)
+        .withMapper(map)
         .withName('rule')
         .withCallback(filterCallback)
         .build()
