@@ -303,6 +303,7 @@ const validateTree = (field) => {
 // Expand the card with a certain field and scroll it into view
 const expandCardValidate = (field) => {
   const $collapse = $(field).closest('.card--expandable').find('.collapse')
+  if(!$collapse || !$collapse.collapse) return;
   const $label = $(field).closest('.form-group').find('legend, label')
   // Turn into edit mode if the topic is now in view mode
   $collapse.prev().find('.btn-edit:visible').trigger('click')

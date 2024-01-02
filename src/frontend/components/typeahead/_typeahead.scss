@@ -1,0 +1,33 @@
+.tt-menu {
+    border: 1px solid $input-border;
+    border-radius: $input-border-radius;
+    position: absolute;
+    left: 0;
+    z-index: 1000;
+    width: 100%;
+    min-width: 160px;
+    margin: 2px 0 0;
+    list-style: none;
+    text-align: left;
+    background-color: $white;
+    background-clip: padding-box;
+
+    .tt-suggestion,
+    .tt-dataset div {
+        background-color: $white;
+        margin: 2px;
+        color: $gray-extra-dark;
+        border-bottom: 1px solid $input-border;
+        padding: $padding-small-horizontal $padding-base-horizontal;
+        font-weight: normal;
+        cursor: pointer;
+    }
+
+    .tt-suggestion:last-child {
+        border-bottom: none;
+    }
+
+    .tt-suggestion:hover {
+        background-color: $gray-light;
+    }
+}
