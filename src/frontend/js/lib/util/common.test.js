@@ -1,4 +1,4 @@
-import { hideElement, showElement, stopPropagation } from "./common";
+import { asJSON, hideElement, showElement, stopPropagation } from "./common";
 
 describe('common functions', () => {
     it('stops propagation', () => {
@@ -59,5 +59,35 @@ describe('common functions', () => {
         expect(el.hasClass).toHaveBeenCalledWith('hidden');
         expect(el.removeClass).not.toHaveBeenCalled();
         expect(el.removeAttr).not.toHaveBeenCalled();
+    });
+
+    it('parses a JSON string', () => {
+        const json = '{"foo":"bar"}';
+        const parsed = asJSON(json);
+        expect(parsed.foo).toEqual('bar');
+    });
+
+    it('parses a JSON object', ()=>{
+        const json = {foo: "bar"};
+        const parsed = asJSON(json);
+        expect(parsed.foo).toEqual('bar');
+    });
+
+    it('returns an empty object for invalid JSON', ()=>{
+        const json = "foo";
+        const parsed = asJSON(json);
+        expect(parsed).toEqual({});
+    });
+
+    it('returns an empty object for null', ()=>{
+        const json = null;
+        const parsed = asJSON(json);
+        expect(parsed).toEqual({});
+    });
+
+    it('returns an empty object for undefined', ()=>{
+        const json = undefined;
+        const parsed = asJSON(json);
+        expect(parsed).toEqual({});
     });
 });

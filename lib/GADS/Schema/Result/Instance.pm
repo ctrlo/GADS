@@ -87,6 +87,12 @@ __PACKAGE__->table("instance");
   data_type: 'text'
   is_nullable: 1
 
+=head2 security_marking
+
+  data_type: 'varchar'
+  is_nullable: 1
+  size: 45
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -128,6 +134,8 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "hide_in_selector",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "security_marking",
+  { data_type => "varchar", is_nullable => 1, size => 45 },
 );
 
 =head1 PRIMARY KEY

@@ -29,6 +29,11 @@ export const showElement = (element: ElementOrJQueryElement) => {
 };
 
 export const asJSON = (json: string | object):object => {
-    if(typeof json === 'string') return JSON.parse(json);
-    return json;
+    try {
+        if(!json) return {};
+        if(typeof json === 'string') return JSON.parse(json);
+        return json;
+    }catch(e){
+        return {};
+    }
 }

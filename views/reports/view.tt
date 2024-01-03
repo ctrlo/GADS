@@ -45,7 +45,14 @@
   END; #foreach
 %]
   <div class="content-block__head row">
-    <div class="content-block__info col-lg-6"></div>
+    <div class="content-block__info col-lg-6">
+      [% INCLUDE 'fields/editable_text.tt'
+          value = security_marking
+          label = "Security Marking"
+          placeholder = "Input Security Marking"
+          type = "text"
+          url = url.page _ "/" _ layout_obj.identifier _ "/report/security_marking" %]
+    </div>
     <div class="content-block__aside col-lg-6">
         <a href = [% url.page _ "/" _ layout_obj.identifier _ "/report/add" %] class="btn btn-add">Create Report</a>
     </div>

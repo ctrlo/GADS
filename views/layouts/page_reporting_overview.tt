@@ -25,13 +25,12 @@
   <div class="row">
     <div class="col">
       <h3>Security Marking</h3>
-      <div class = "js-editable-text" data-url="/settings/security_marking">
-      <div class="error-message">&nbsp;</div>
-      <div class="input-group mb-3">
-        <input type="text" class="form-control" value="[% security_marking %]" placeholder="Security Marking" aria-label="Security Marking" aria-describedby="security-button">
-        <button type="button" class="btn btn-outline-secondary disabled" id="security-button">Update</button>
-      </div>
-      </div>
+      [% INCLUDE 'fields/editable_text.tt'
+          value = security_marking
+          label = "Security Marking"
+          placeholder = "Enter security marking"
+          type = "text"
+          url = "/settings/security_marking" %]
     </div>
   </div>
 </div>

@@ -1355,7 +1355,6 @@ any [ 'get', 'post' ] => '/settings/logo' => require_login sub {
         forwardHome({ danger => "You do not have permission to manage system settings"}, '')
             unless logged_in_user->permission->{superadmin};
 
-        print "Content: " . $file->content . "\n";
         my $txn_scope_guard = schema->txn_scope_guard;
 
         $site->update({ site_logo => $file->content });
@@ -2862,6 +2861,7 @@ prefix '/:layout_name' => sub {
         any ['get','post'] => '' => require_login sub {
             my $user   = logged_in_user;
             my $layout = var('layout') or pass;
+            my $site   = var('site');
 
             return forwardHome(
                 { danger => 'You do not have permission to edit reports' } )
@@ -2885,7 +2885,10 @@ prefix '/:layout_name' => sub {
                 return forwardHome("$lo/report");
             }
 
+            my $security_marking = $layout->security_marking || $site->security_marking || config->{gads}->{header};
+
             my $params = {
+                security_marking => $security_marking,
                 header_type     => 'table_tabs',
                 layout_obj      => $layout,
                 header_back_url => "${base_url}table",
@@ -3012,6 +3015,28 @@ prefix '/:layout_name' => sub {
             };
 
             template 'reports/edit' => $params;
+        };
+
+        post '/security_marking' => require_login sub {
+            my $user   = logged_in_user;
+            my $layout = var('layout') or pass;
+            my $body   = from_json( request->body );
+
+            return forwardHome(
+                { danger => 'You do not have permission to edit reports' } )
+              unless $layout->user_can("layout");
+
+            return forwardHome( { danger => 'No JSON body given' } )
+              unless $body;
+
+            print Dumper $body;
+
+            my $text = $body->{text};
+
+            $layout->set_marking($text);
+
+            content_type 'application/json';
+            to_json( { error => 0, text => $text } );
         };
     };
 

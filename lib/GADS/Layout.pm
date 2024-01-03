@@ -300,6 +300,16 @@ has reports=> (
     isa     => ArrayRef,
 );
 
+has security_marking => (
+    is      => 'lazy',
+);
+
+sub _build_security_marking {
+    my $self = shift;
+
+    return $self->_rset->security_marking;
+}
+
 sub _build_reports
 {   my $self = shift;
     my $reports_rs = $self->schema->resultset('Report')->search({
@@ -1578,5 +1588,16 @@ sub purge
     $self->_rset->delete;
 }
 
-1;
+sub set_marking {
+    my ($self, $marking) = @_;
 
+    my $txn_scope_guard = $self->schema->txn_scope_guard;
+
+    $self->schema->resultset('Instance')->find($self->instance_id)->update({
+        security_marking => $marking,
+    });
+
+    $txn_scope_guard->commit;
+}
+
+1;
