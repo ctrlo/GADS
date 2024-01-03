@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Fri Dec 15 16:20:29 2023
+-- Created on Wed Jan  3 16:41:17 2024
 --
 ;
 --
@@ -528,6 +528,7 @@ CREATE TABLE "instance" (
   "no_download_pdf" smallint DEFAULT 0 NOT NULL,
   "no_copy_record" smallint DEFAULT 0 NOT NULL,
   "hide_in_selector" smallint DEFAULT 0 NOT NULL,
+  "security_marking" character varying(45),
   PRIMARY KEY ("id")
 );
 CREATE INDEX "instance_idx_api_index_layout_id" on "instance" ("api_index_layout_id");
@@ -819,6 +820,7 @@ CREATE TABLE "report" (
   "created" timestamp,
   "instance_id" bigint,
   "deleted" timestamp,
+  "security_marking" character varying(128),
   PRIMARY KEY ("id")
 );
 CREATE INDEX "report_idx_createdby" on "report" ("createdby");
@@ -884,6 +886,8 @@ CREATE TABLE "site" (
   "register_freetext2_placeholder" text,
   "account_request_notes_name" text,
   "account_request_notes_placeholder" text,
+  "security_marking" text,
+  "site_logo" bytea,
   PRIMARY KEY ("id")
 );
 
