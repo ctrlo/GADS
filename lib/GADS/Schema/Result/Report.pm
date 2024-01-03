@@ -11,8 +11,6 @@ use CtrlO::PDF 0.06;
 use GADS::Config;
 use Moo;
 
-use Data::Dumper;
-
 extends 'DBIx::Class::Core';
 sub BUILDARGS { $_[2] || {} }
 
