@@ -1939,7 +1939,9 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
 
     if (my $report_id = query_parameters->get('report'))
     {
-        my $pdf = $record->get_report($report_id)->content;
+        my $site = var 'site';
+        my $site_marking = $site->security_marking || config->{gads}->{header};
+        my $pdf = $record->get_report($report_id, $site_marking)->content;
         return send_file( \$pdf, content_type => 'application/pdf', );
     }
 

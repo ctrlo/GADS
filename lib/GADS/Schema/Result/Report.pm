@@ -285,9 +285,9 @@ Function to create a PDF of the report - it will return a PDF object
 =cut
 
 sub create_pdf
-{   my ($self, $record) = @_;
+{   my ($self, $record, $default_marking) = @_;
 
-    my $marking = 'Official Secret';
+    my $marking = $self->security_marking || $default_marking;
 
     my $pdf    = CtrlO::PDF->new(
         header => $marking,
