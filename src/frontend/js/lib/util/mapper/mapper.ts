@@ -26,11 +26,17 @@ interface Record {
  * @param r The response from the script
  * @returns The mapped response
  */
-export const map: MapperFunction = (r:ScriptResponse) => {
+export const map: MapperFunction = (r: ScriptResponse) => {
     return r.records.map((record) => {
+        if (record instanceof Object) {
+            return {
+                name: record.label,
+                id: record.id
+            }
+        }
         return {
-            name: record.label,
-            id: record.id
+            name: record,
+            id: 0
         }
     });
 }

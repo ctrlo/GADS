@@ -1,4 +1,4 @@
-import { MapperFunction } from "util/mapper/mapper";
+import { MapperFunction, map } from "util/mapper/mapper";
 import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
 import { Typeahead } from "./Typeahead";
 
@@ -101,6 +101,11 @@ export class TypeaheadBuilder {
      */
     withMapper(mapper: MapperFunction) {
         this.mapper = mapper;
+        return this;
+    }
+
+    withDefaultMapper() {
+        this.mapper = map;
         return this;
     }
 
