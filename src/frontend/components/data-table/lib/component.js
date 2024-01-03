@@ -208,11 +208,11 @@ class DataTableComponent extends Component {
     }
   }
 
-  addSortButton(dataTable, column) {
+  addSortButton(dataTable, column, headerContent) {
     const $header = $(column.header())
     const $button = $(`
       <button class="data-table__sort" type="button">
-        <span>${$header.html()}</span>
+        <span>${headerContent}</span>
         <span class="btn btn-sort">
           <span>Sort</span>
         </span>
