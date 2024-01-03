@@ -22,7 +22,7 @@ export class Typeahead {
     /**
      * Initialize the typeahead
      */
-    init() {
+    private init() {
         const { appendQuery, mapper, name, ajaxSource } = this.sourceOptions;
         this.$input.typeahead({
             hint: true,
