@@ -1,0 +1,37 @@
+[%-
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title         = page_title
+    description   = page_description
+    back_button   = back_url ? { url = url.page _ back_url } : ''
+-%]
+<div class="content-block__main">
+  <div class="row">
+    <div class="col">
+      <h3>Logo</h3>
+      <img src = "[% logo ? '/settings/logo' : '#' %]" alt = "Report Logo" /><br />
+      [% INCLUDE 'fields/file.tt'
+          id = 'logo'
+          name = 'logo'
+          mimetype = "image/*"
+          label = "Upload Logo"
+          placeholder = "No file selected"
+          input_class = "input--logo"
+          data_attributes = [
+            {name = "fileupload-url", value = url.page _ '/settings/logo'}
+          ] %]
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <h3>Security Marking</h3>
+      <div class = "js-editable-text" data-url="/settings/security_marking">
+      <div class="error-message">&nbsp;</div>
+      <div class="input-group mb-3">
+        <input type="text" class="form-control" value="[% security_marking %]" placeholder="Security Marking" aria-label="Security Marking" aria-describedby="security-button">
+        <button type="button" class="btn btn-outline-secondary disabled" id="security-button">Update</button>
+      </div>
+      </div>
+    </div>
+  </div>
+</div>

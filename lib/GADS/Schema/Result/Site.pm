@@ -9,6 +9,7 @@ use base 'DBIx::Class::Core';
 use Lingua::EN::Inflect qw/PL/;
 
 use JSON qw(decode_json encode_json);
+use File::Temp qw/tempfile/;
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
@@ -99,6 +100,10 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "account_request_notes_placeholder",
   { data_type => "text", is_nullable => 1 },
+  "security_marking",
+  { data_type => "text", is_nullable => 1 },
+  "site_logo",
+  { data_type => "longblob", is_nullable => 1 },
 );
 
 __PACKAGE__->set_primary_key("id");
@@ -329,6 +334,36 @@ sub user_fields
         foreach @fields;
 
     return @fields;
+}
+
+sub load_logo {
+  my $self = shift;
+  my $filecheck = GADS::Filecheck->instance();
+
+  my $logo_path = $self->_create_logo;
+
+  return undef unless $logo_path;
+
+  my $result = +{
+    'content_type'=> $filecheck->get_filetype($logo_path),
+    'filename' => 'logo',
+    'data' => $self->site_logo
+  };
+
+  return $result;
+}
+
+sub _create_logo {
+  my $self = shift;
+  my $logo = $self->site_logo;
+
+  return undef unless $logo;
+
+  my ($fh, $filename) = tempfile(UNLINK => 1);
+  print $fh $logo;
+  close $fh;
+
+  return $filename;
 }
 
 1;

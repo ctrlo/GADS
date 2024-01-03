@@ -3,6 +3,7 @@ import { initValidationOnField, validateCheckboxGroup } from 'validation'
 import initDateField from 'components/datepicker/lib/helper'
 import 'blueimp-file-upload'
 import TypeaheadBuilder from 'util/typeahead'
+import { asJSON, stopPropagation } from 'util/common'
 
 class InputComponent extends Component {
     constructor(element)  {
@@ -13,6 +14,10 @@ class InputComponent extends Component {
         this.btnReveal = this.el.find('.input__reveal-password')
         this.input = this.el.find('.form-control')
         this.initInputPassword()
+      } else if (this.el.hasClass('input--logo')) {
+        this.logoDisplay = this.el.parent().find('img');
+        this.fileInput = this.el.find('.form-control-file')
+        this.initInputLogo();
       } else if (this.el.hasClass('input--document')) {
         this.fileInput = this.el.find('.form-control-file')
         this.initInputDocument()
@@ -34,6 +39,36 @@ class InputComponent extends Component {
         initValidationOnField(this.el)
       }
     }
+
+  initInputLogo() {
+    if (this.logoDisplay && this.logoDisplay.attr('src') === '#') {
+      this.logoDisplay.hide();
+    }
+
+    this.el.find('.file').hide();
+
+    this.fileInput.on('change', (ev) => {
+      stopPropagation(ev);
+      const url = this.el.data("fileupload-url")
+
+      const formData = new FormData();
+      formData.append('file', this.el.find('input[type="file"]')[0].files[0]);
+      formData.append('csrf_token', $('body').data('csrf'));
+
+      const request = new XMLHttpRequest();
+      request.open('POST', url, true);
+      request.onreadystatechange = () =>{
+        if(request.readyState==4 && request.status==200){
+          const result = asJSON(request.responseText);
+          if(result && !result.error){
+            this.logoDisplay.attr('src', result.url);
+            this.logoDisplay.show();
+          }
+        }
+      };
+      request.send(formData);
+    });
+  }
 
     initInputDocument() {
       const url = this.el.data("fileupload-url")

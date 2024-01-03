@@ -48,7 +48,8 @@
       readonly[% END %][% IF is_multiple %]
       multiple[% END %][% IF is_required_html %]
       required
-      aria-required="true"[% END %]
+      aria-required="true"[% END %][% IF mimetype %]
+      accept="[% mimetype %]"[% END %]
     >
   </div>
 </div>

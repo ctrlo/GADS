@@ -27,3 +27,8 @@ export const showElement = (element: ElementOrJQueryElement) => {
     $el.removeAttr('aria-hidden');
     $el.removeAttr('style');
 };
+
+export const asJSON = (json: string | object):object => {
+    if(typeof json === 'string') return JSON.parse(json);
+    return json;
+}

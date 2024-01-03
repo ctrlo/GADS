@@ -13,6 +13,12 @@ with 'MooX::Singleton';
 # Only load magic library once
 my $magic = File::LibMagic->new;
 
+sub get_filetype {
+    my ($self, $path) = @_;
+    my $info = $magic->info_from_filename($path);
+    return $info->{'mime_type'};
+}
+
 sub is_image
 {   my ($self, $upload) = @_;
     my $info = $magic->info_from_filename($upload->tempname);

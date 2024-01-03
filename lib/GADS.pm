@@ -1329,6 +1329,84 @@ any ['get', 'post'] => '/settings/team_edit/:id' => require_any_role [qw/useradm
     };
 };
 
+any [ 'get', 'post' ] => '/settings/report_defaults/' => require_role 'superadmin'=> sub {
+    my $site             = var 'site';
+    my $logo             = $site->site_logo ? 1 : 0;
+    my $security_marking = $site->security_marking || config->{gads}->{header};
+
+    template 'layouts/page_reporting_overview' => {
+        page             => 'report_defaults',
+        page_title       => 'Report Defaults',
+        page_description =>
+          'In this window you can set the default values for reports.',
+        back_url         => '/settings/',
+        logo             => $logo,
+        security_marking => $security_marking,
+        data_attributes => {
+            fileupload_url => '/settings/logo'
+        }
+    };
+};
+
+any [ 'get', 'post' ] => '/settings/logo' => require_login sub {
+    my $site = var 'site';
+
+    if ( my $file = upload('file') ) {
+        forwardHome({ danger => "You do not have permission to manage system settings"}, '')
+            unless logged_in_user->permission->{superadmin};
+
+        print "Content: " . $file->content . "\n";
+        my $txn_scope_guard = schema->txn_scope_guard;
+
+        $site->update({ site_logo => $file->content });
+
+        $txn_scope_guard->commit;
+
+        content_type 'application/json';
+        return encode_json(
+            {
+                error => 0,
+                url   => '/settings/logo'
+            }
+        );
+    }
+
+    if ( my $logo = $site->site_logo ) {
+        my $metadata = $site->load_logo;
+        my $mimetype = $metadata->{'content_type'};
+        my $filename = $metadata->{'filename'};
+        content_type $mimetype;
+        return $logo;
+    }else{
+        send_error ("not found", 404);
+    }
+};
+
+post '/settings/security_marking' => require_role 'superadmin' => sub {
+    my $site = var 'site';
+    my $data = from_json(request->body);
+
+    print Dumper $data;
+
+    my $security_marking = $data->{text};
+
+    return encode_json({error=>1, text=>"No marking provided"}) unless $security_marking;
+
+    my $txn_scope_guard = schema->txn_scope_guard;
+
+    $site->update({ security_marking => $security_marking });
+
+    $txn_scope_guard->commit;
+
+    content_type 'application/json';
+    return encode_json(
+        {
+            error => 0,
+            text   => $security_marking
+        }
+    );
+};
+
 any ['get', 'post'] => '/settings/audit/?' => require_role audit => sub {
 
     my $audit = GADS::Audit->new(schema => schema);

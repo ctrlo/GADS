@@ -84,7 +84,7 @@
   <h3>System wide settings</h3>
   
   <div class="row mb-3">
-    
+
     <div class="col-md-4 col-sm-6 mb-3">
       <a href="[% url.page %]/settings/default_welcome_email/" class="card card--settings">
         <h4 class="card__title">
@@ -114,6 +114,22 @@
           </div>
         </div>
       </a>
+    </div>
+
+    <div class="col-md-4 col-sm-6 mb-3">
+      <a href="[% url.page %]/settings/report_defaults/" class="card card--settings">
+        <h4 class="card__title">
+          <div class="card__title-icon card__title-icon--report"></div>
+          <span>Report Logo and Security Marking</span>
+        </h4>
+        
+        <div class="card__body row">
+          <div class="card__content">
+            <p>Upload a Logo and set the default Security Marking for reports</p>
+          </div>
+        </div>
+      </a>
+    
     </div>
     
   </div>
