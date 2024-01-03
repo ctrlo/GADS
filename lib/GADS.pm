@@ -1337,8 +1337,7 @@ any [ 'get', 'post' ] => '/settings/report_defaults/' => require_role 'superadmi
     template 'layouts/page_reporting_overview' => {
         page             => 'report_defaults',
         page_title       => 'Report Defaults',
-        page_description =>
-          'In this window you can set the default values for reports.',
+        page_description => 'In this window you can set the default values for reports.',
         back_url         => '/settings/',
         logo             => $logo,
         security_marking => $security_marking,
@@ -1389,7 +1388,10 @@ post '/settings/security_marking' => require_role 'superadmin' => sub {
 
     my $security_marking = $data->{text};
 
-    return encode_json({error=>1, text=>"No marking provided"}) unless $security_marking;
+    return encode_json({
+        error => 1,
+        text  => "No marking provided"}) 
+        unless $security_marking;
 
     my $txn_scope_guard = schema->txn_scope_guard;
 
@@ -1401,7 +1403,7 @@ post '/settings/security_marking' => require_role 'superadmin' => sub {
     return encode_json(
         {
             error => 0,
-            text   => $security_marking
+            text  => $security_marking
         }
     );
 };
