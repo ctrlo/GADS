@@ -1,7 +1,16 @@
 /**
- * Attribute that's set on a component that's initialized
+ * Base attribute name that's set on a component that's initialized
  */
 const componentInitializedAttr = 'data-component-initialized'
+
+/**
+ * The actual attribute name that's set on a component that's initialized.
+ * This is appended with the component name, to allow multiple different
+ * components to be initialized on the same element.
+ */
+const componentInitializedAttrName = (component_name) => {
+  return componentInitializedAttr + "-" + component_name;
+}
 
 /**
  * Default component class.
@@ -16,7 +25,7 @@ class Component {
     }
 
     this.element = element
-    this.element.setAttribute(componentInitializedAttr, true)
+    this.element.setAttribute(componentInitializedAttrName(this.constructor.name), true)
   }
 }
 
@@ -87,7 +96,7 @@ const initializeComponent = (scope, selector, ComponentClass) => {
   }
 
   return elements
-    .filter((el) => !el.getAttribute(componentInitializedAttr))
+    .filter((el) => !el.getAttribute(componentInitializedAttrName(ComponentClass.name)))
     .map((el) => new ComponentClass(el))
 }
 
