@@ -1941,7 +1941,8 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
     {
         my $site = var 'site';
         my $site_marking = $site->security_marking || config->{gads}->{header};
-        my $pdf = $record->get_report($report_id, $site_marking)->content;
+        my $file = $site->create_temp_logo;
+        my $pdf = $record->get_report($report_id, $site_marking, $file)->content;
         return send_file( \$pdf, content_type => 'application/pdf', );
     }
 

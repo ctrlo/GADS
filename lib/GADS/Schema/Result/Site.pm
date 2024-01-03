@@ -340,7 +340,7 @@ sub load_logo {
   my $self = shift;
   my $filecheck = GADS::Filecheck->instance();
 
-  my $logo_path = $self->_create_logo;
+  my $logo_path = $self->create_temp_logo;
 
   return undef unless $logo_path;
 
@@ -353,7 +353,7 @@ sub load_logo {
   return $result;
 }
 
-sub _create_logo {
+sub create_temp_logo {
   my $self = shift;
   my $logo = $self->site_logo;
 

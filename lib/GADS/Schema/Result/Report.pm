@@ -285,18 +285,35 @@ Function to create a PDF of the report - it will return a PDF object
 =cut
 
 sub create_pdf
-{   my ($self, $record, $default_marking) = @_;
+{   my ($self, $record, $default_marking, $logo) = @_;
 
     my $marking = $self->security_marking || $default_marking;
 
-    my $pdf    = CtrlO::PDF->new(
-        header => $marking,
-        footer => $marking,
-    );
+    my $pdf;
 
-    $pdf->add_page;
-    $pdf->heading( $self->title || $self->name );
-    $pdf->heading( $self->description, size => 14 ) if $self->description;
+    if($logo) {
+        $pdf    = CtrlO::PDF->new(
+            header => $marking,
+            footer => $marking,
+            logo   => $logo,
+        );
+        $pdf->add_page;
+        my $lines = [];
+        $lines= $self->_wraptext($self->description, 50) if($self->description);
+        my $topmargin = -40 - (scalar(@$lines) * 20);
+        $pdf->heading( $self->title || $self->name, topmargin=>$topmargin );
+        if($lines) {
+            $pdf->heading($_ , size => 14 ) foreach (@$lines);
+        }
+    } else {
+        $pdf    = CtrlO::PDF->new(
+            header => $marking,
+            footer => $marking,
+        );
+        $pdf->add_page;
+        $pdf->heading( $self->title || $self->name );
+        $pdf->heading($self->description , size => 14 );
+    }
 
     my $fields = [ [ 'Field', 'Value' ] ];
 
@@ -320,6 +337,26 @@ sub create_pdf
     );
 
     $pdf;
+}
+
+sub _wraptext {
+    my ($self, $text, $width) = @_;
+
+    my @words = split(/\s+/, $text);
+    my @lines;
+
+    my $line = '';
+
+    foreach my $word (@words) {
+        if (length($line) + length($word) > $width) {
+            push @lines, $line;
+            $line = '';
+        }
+        $line .= $word . ' ';
+    }
+    push @lines, $line;
+
+    return \@lines;
 }
 
 =head2 Get fields for render
