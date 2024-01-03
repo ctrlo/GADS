@@ -63,6 +63,10 @@ __PACKAGE__->table("report");
 =head2 deleted
     data_type: 'datetime'
     is_nullable: 1
+=head2 security_marking
+    data_type: 'varchar'
+    is_nullable: 1
+    size: 128
 =cut
 
 __PACKAGE__->add_columns(
@@ -91,7 +95,9 @@ __PACKAGE__->add_columns(
         data_type                 => "datetime",
         datetime_undef_if_invalid => 1,
         is_nullable               => 1
-    }
+    },
+    "security_marking",
+    { data_type => "varchar", is_nullable => 1, size => 128 },
 );
 
 =head1 PRIMARY KEY
@@ -232,9 +238,10 @@ sub update_report {
 
     $self->update(
         {
-            name        => $args->{name},
-            title       => $args->{title},
-            description => $args->{description},
+            name             => $args->{name},
+            title            => $args->{title},
+            description      => $args->{description},
+            security_marking => $args->{security_marking},
         }
     );
 

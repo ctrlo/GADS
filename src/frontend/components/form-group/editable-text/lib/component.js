@@ -4,7 +4,6 @@ import { asJSON, hideElement, showElement } from "util/common";
 export default class EditableText extends Component {
     constructor(element) {
         super(element);
-        console.log("EditableText")
         this.el = $(element);
         this.textbox = this.el.find('input');
         this.button = this.el.find('button');
@@ -13,11 +12,9 @@ export default class EditableText extends Component {
     }
 
     init() {
-        console.log("EditableText.init")
         this.currentText = this.textbox.val();
         hideElement(this.errorDisplay);
         this.textbox.on('keyup', (e)=>{
-            console.log("EditableText.init.keyup")
             if(this.textbox.val() !== "" && this.currentText !== this.textbox.val()) {
                 this.button.removeClass('disabled');
                 this.button.attr('disabled', false);
@@ -27,7 +24,6 @@ export default class EditableText extends Component {
             }
         });
         this.button.on('click', (e)=>{
-            console.log("EditableText.init.click")
             this.saveChanges();
         });
     }

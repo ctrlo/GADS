@@ -2917,16 +2917,18 @@ prefix '/:layout_name' => sub {
                 my $report_title       = body_parameters->get('report_title');
                 my $checkbox_fields    = [body_parameters->get_all('checkboxes')];
                 my $instance           = $layout->instance_id;
+                my $security_marking   = body_parameters->get('security_marking');
 
                 my $report = schema->resultset('Report')->create_report(
                     {
-                        user        => $user,
-                        name        => $report_name,
-                        title       => $report_title,
-                        description => $report_description,
-                        instance_id => $instance,
-                        createdby   => $user,
-                        layouts     => $checkbox_fields
+                        user             => $user,
+                        name             => $report_name,
+                        title            => $report_title,
+                        description      => $report_description,
+                        instance_id      => $instance,
+                        createdby        => $user,
+                        layouts          => $checkbox_fields,
+                        security_marking => $security_marking,
                     }
                 );
 
@@ -2972,6 +2974,7 @@ prefix '/:layout_name' => sub {
                 my $report_name        = body_parameters->get('report_name');
                 my $report_title       = body_parameters->get('report_title');
                 my $checkboxes         = [body_parameters->get_all('checkboxes')];
+                my $security_marking   = body_parameters->get('security_marking');
                 my $instance           = $layout->instance_id;
 
                 my $report_id = param('id');
@@ -2980,10 +2983,11 @@ prefix '/:layout_name' => sub {
 
                 $result->update_report(
                     {
-                        name        => $report_name,
-                        title       => $report_title,
-                        description => $report_description,
-                        layouts     => $checkboxes
+                        name             => $report_name,
+                        title            => $report_title,
+                        description      => $report_description,
+                        layouts          => $checkboxes,
+                        security_marking => $security_marking,
                     }
                 );
 
@@ -2999,6 +3003,8 @@ prefix '/:layout_name' => sub {
             return forwardHome({ danger => 'Report not found' }) unless $result;
 
             my $fields = $result->fields_for_render($layout);
+
+            print $result->security_marking;
 
             my $params = {
                 header_type     => 'table_tabs',

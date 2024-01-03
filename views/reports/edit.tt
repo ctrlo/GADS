@@ -32,11 +32,20 @@
               INCLUDE fields/input.tt
                 id          = "report_description"
                 name        = "report_description"
-                value       = report.description || ""
+                value       = report.description
                 label       = "Report Description"
                 placeholder = "New Report Description"
                 input_class = "input"
                 is_required = 0;
+              INCLUDE fields/input.tt
+                id = "security_marking"
+                name = "security_marking"
+                value = report.security_marking
+                label = "Security Marking"
+                placeholder = "New Security Marking"
+                input_class = "input"
+                is_required = 0
+                popover_body = "The security marking for this report if different from the default.";
             %]
             <div class="hidden alert__no__select" aria-hidden="true">
               <p class="alert__message">Please select at least one item to add to the report!</p>
