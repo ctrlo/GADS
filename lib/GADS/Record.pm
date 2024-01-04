@@ -1044,8 +1044,10 @@ sub clone
         schema => $self->schema,
     );
     $cloned->fields({});
-    $cloned->fields->{$_} = $self->fields->{$_}->clone(fresh => 1, record => $cloned, current_id => undef, record_id => undef)
-        foreach keys %{$self->fields};
+    $cloned->fields->{$_} = $self->layout->column($_)->user_can('write')
+        ? $self->fields->{$_}->clone(fresh => 1, record => $cloned, current_id => undef, record_id => undef)
+        : $self->initialise_field($_, record => $cloned)
+            foreach keys %{$self->fields};
     return $cloned;
 }
 
@@ -1064,7 +1066,7 @@ sub load_remembered_values
             # Set created date to latest time rather than time draft was saved,
             # in case used in any calculated values
             my $record_created_col = $self->layout->column_by_name_short('_created');
-            $self->initialise_field($self->fields, $record_created_col->id);
+            $self->fields->{$record_created_col->id} = $self->initialise_field($record_created_col->id);
             $self->remove_id;
             return;
         }
@@ -1329,7 +1331,7 @@ sub initialise
     my $fields = {};
     foreach my $column ($self->layout->all(include_internal => 1))
     {
-        $self->initialise_field($fields, $column->id);
+        $fields->{$column->id} = $self->initialise_field($column->id);
     }
 
     $self->columns_retrieved_do([ $self->layout->all(include_internal => 1) ]);
@@ -1337,27 +1339,28 @@ sub initialise
 }
 
 sub initialise_field
-{   my ($self, $fields, $id) = @_;
+{   my ($self, $col_id, %options) = @_;
     my $layout = $self->layout;
-    my $column = $layout->column($id);
+    my $column = $layout->column($col_id);
     if ($self->linked_id && $column->link_parent)
     {
-        $fields->{$id} = $self->linked_record->fields->{$column->link_parent->id};
+        return $self->linked_record->fields->{$column->link_parent->id};
     }
     else {
+        my $record = $options{record} || $self;
         my $f = $column->class->new(
-            record           => $self,
-            record_id        => $self->record_id,
+            record           => $record,
+            record_id        => $record->record_id,
             column           => $column,
-            schema           => $self->schema,
-            layout           => $self->layout,
-            datetime_parser  => $self->schema->storage->datetime_parser,
+            schema           => $record->schema,
+            layout           => $record->layout,
+            datetime_parser  => $record->schema->storage->datetime_parser,
         );
         # Unlike other fields this has a default value, so set it now.
         # XXX Probably need to do created_by field as well.
         $f->set_value(DateTime->now, is_parent_value => 1)
             if $column->name_short && $column->name_short eq '_created';
-        $fields->{$id} = $f;
+        return $f;
     }
 }
 

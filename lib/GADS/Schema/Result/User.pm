@@ -845,19 +845,20 @@ sub value_html
 
 sub update_user
 {   my ($self, %params) = @_;
+    my $request = 0;
 
     my $guard = $self->result_source->schema->txn_scope_guard;
 
     my $current_user = delete $params{current_user}
         or panic "Current user not defined on user update";
 
-    # Set null values where required for database insertions
-    delete $params{organisation} if !$params{organisation};
-    delete $params{department_id} if !$params{department_id};
-    delete $params{team_id} if !$params{team_id};
-    delete $params{title} if !$params{title};
-
     my $site = $self->result_source->schema->resultset('Site')->next;
+
+    # Set null values where required for database insertions
+    delete $params{organisation} if !$params{organisation} && !$site->user_field_is_editable('organisation');
+    delete $params{department_id} if !$params{department_id} && !$site->user_field_is_editable('department_id');
+    delete $params{team_id} if !$params{team_id} && !$site->user_field_is_editable('team_id');
+    delete $params{title} if !$params{title} && !$site->user_field_is_editable('title');
 
     my $values = {
         account_request_notes => $params{account_request_notes},
@@ -865,6 +866,7 @@ sub update_user
 
     if(defined $params{account_request}) {
         $values->{account_request} = $params{account_request};
+        $request = 1;
     }
 
     my $original_username = $self->username;
@@ -965,6 +967,25 @@ sub update_user
 
     $guard->commit;
 
+    $self->send_welcome_email($params{email})
+      if $request;
+}
+
+sub send_welcome_email
+{   my ($self, %params) = @_;
+
+    $params{email} = $self->email;
+    
+    my %welcome_email = GADS::welcome_text(undef, %params);
+
+    my $email = GADS::Email->instance;
+
+    $email->send({
+        subject => $welcome_email{subject},
+        text    => $welcome_email{plain},
+        html    => $welcome_email{html},
+        emails  => [$params{email}],
+    });
 }
 
 sub permissions

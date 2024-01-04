@@ -128,7 +128,7 @@ class InputComponent extends Component {
       const self = this
       
       const suggestionCallback = (suggestion) => {
-        $(self.el).find('input[type="hidden"]').val(suggestion.data.id)
+        $(self.el).find('input[type="hidden"]').val(suggestion.id)
       }
       
       const builder = new TypeaheadBuilder();

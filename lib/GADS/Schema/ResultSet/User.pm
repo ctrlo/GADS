@@ -57,10 +57,11 @@ sub create_user
     my $request_base = $params{request_base};
 
     my $user = $self->create({
-        email    => $params{email},
-        username => $params{email},
-        resetpw  => $code,
-        created  => DateTime->now,
+        email                 => $params{email},
+        username              => $params{email},
+        resetpw               => $code,
+        created               => DateTime->now,
+        account_request_notes => $params{notes},
     });
 
     my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $params{current_user});
@@ -78,27 +79,12 @@ sub create_user
         $self->find($id)->delete;
     }
 
-    $self->_send_welcome_email(%params, code => $code)
-        unless $params{no_welcome_email};
-
     $guard->commit;
 
+    $user->send_welcome_email(%params, code => $code)
+        unless $params{no_welcome_email};
+
     return $user;
-}
-
-sub _send_welcome_email
-{   my ($self, %params) = @_;
-
-    my %welcome_email = GADS::welcome_text(undef, %params);
-
-    my $email = GADS::Email->instance;
-
-    $email->send({
-        subject => $welcome_email{subject},
-        text    => $welcome_email{plain},
-        html    => $welcome_email{html},
-        emails  => [$params{email}],
-    });
 }
 
 sub upload
@@ -240,7 +226,7 @@ sub upload
             $count++;
         }
 
-        push @welcome_emails, \%values
+        push @welcome_emails, $u
             unless @errors; # No point collecting if we're not going to send
     }
 
@@ -254,7 +240,7 @@ sub upload
     # Won't get this far if we have any errors in the previous statement
     $guard->commit;
 
-    $self->_send_welcome_email(%$_, request_base => $options{request_base})
+    $_->send_welcome_email(code=>$_->resetpw, request_base => $options{request_base})
         foreach @welcome_emails;
 
     $count;

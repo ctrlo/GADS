@@ -22,7 +22,7 @@ export class Typeahead {
     /**
      * Initialize the typeahead
      */
-    init() {
+    private init() {
         const { appendQuery, mapper, name, ajaxSource } = this.sourceOptions;
         this.$input.typeahead({
             hint: true,
@@ -31,13 +31,16 @@ export class Typeahead {
         }, {
             name: name,
             source: (query, syncResults, asyncResults) => {
-                $.ajax({
+                const request: JQuery.AjaxSettings<any> = {
                     url: ajaxSource + (appendQuery ? query : ""),
                     dataType: "json",
                     success: (data) => {
                         asyncResults(mapper(data).filter((item: MappedResponse) => { return item.name.toLowerCase().indexOf(query.toLowerCase()) !== -1; }));
                     }
-                });
+                };
+                if(this.sourceOptions.data) request.data = this.sourceOptions.data;
+                if(this.sourceOptions.dataBuilder) request.data = this.sourceOptions.dataBuilder();
+                $.ajax(request);
             },
             display: 'name',
             limit: 10,
@@ -47,8 +50,11 @@ export class Typeahead {
                 },
                 pending: () => {
                     return `<div>Loading...</div>`;
+                },
+                notFound: () => {
+                    return `<div>No results found</div>`;
                 }
-            }
+            },
         });
 
         this.$input.on('typeahead:select', (ev: any, suggestion: MappedResponse) => {
