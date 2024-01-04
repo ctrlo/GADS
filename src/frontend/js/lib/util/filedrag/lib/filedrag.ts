@@ -1,4 +1,4 @@
-import { HtmlOrJQuery, addClass, hideElement, removeClass, showElement, stopPropagation } from "util/common";
+import { ElementOrJQueryElement, addClass, hideElement, removeClass, showElement, stopPropagation } from "util/common";
 
 interface FileDragOptions {
     allowMultiple?: boolean;
@@ -11,7 +11,7 @@ class FileDrag {
     // for testing
     protected dragging: boolean = false;
 
-    constructor(private element: HtmlOrJQuery, private options: FileDragOptions = {}, private onDrop?: (files: FileList | File) => void) {
+    constructor(private element: ElementOrJQueryElement, private options: FileDragOptions = {}, private onDrop?: (files: FileList | File) => void) {
         if (options.debug) console.log('FileDrag', element, options);
         this.el = element instanceof HTMLElement ? $(element) : element;
         this.initElements()

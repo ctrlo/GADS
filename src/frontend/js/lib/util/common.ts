@@ -1,5 +1,6 @@
-type EventOrJQueryEvent = Event | JQuery.Event;
-type ElementOrJQueryElement = HTMLElement | JQuery<HTMLElement>;
+export type EventOrJQueryEvent = Event | JQuery.Event;
+export type TOrJQuery<T> = T | JQuery<T>;
+export type ElementOrJQueryElement = TOrJQuery<HTMLElement>;
 
 export const stopPropagation = (e: EventOrJQueryEvent) => {
     try {
@@ -24,7 +25,7 @@ export const hideElement = (element: ElementOrJQueryElement) => {
     $el.css('visibility', 'hidden');
 };
 
-export const showElement = (element: HtmlOrJQuery) => {
+export const showElement = (element: ElementOrJQueryElement) => {
     const $el = element instanceof HTMLElement ? $(element) : element;
     if (!hasClass($el, 'hidden')) return;
     removeClass($el, 'hidden');
@@ -32,13 +33,13 @@ export const showElement = (element: HtmlOrJQuery) => {
     $el.removeAttr('style');
 };
 
-export const addClass = (element: HtmlOrJQuery, className: string) => {
+export const addClass = (element: ElementOrJQueryElement, className: string) => {
     const $el = element instanceof HTMLElement ? $(element) : element;
     if (hasClass($el, className)) return;
     $el.addClass(className);
 }
 
-export const removeClass = (element: HtmlOrJQuery, className: string) => {
+export const removeClass = (element: ElementOrJQueryElement, className: string) => {
     const $el = element instanceof HTMLElement ? $(element) : element;
     if (!hasClass($el, className)) return;
     $el.removeClass(className);
