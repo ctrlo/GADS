@@ -6,10 +6,13 @@ import { validateRadioGroup, validateCheckboxGroup } from 'validation'
 import SelectWidgetComponent from '../../../../form-group/select-widget/lib/component'
 
 class CurvalModalComponent extends ModalComponent {
+
+  static get allowReinitialization() { return true }
+
   constructor(element)  {
     super(element)
-    this.context = undefined
-    this.initCurvalModal()
+    this.context = undefined // Populated on modal show
+    if (!this.wasInitialized) this.initCurvalModal()
   }
 
   // Initialize the modal

@@ -13,10 +13,25 @@ const componentInitializedAttrName = (component_name) => {
 }
 
 /**
+ * Establish whether a component has already been initialized on an element
+ */
+const componentIsInitialized = (element, name) => {
+  return element.getAttribute(componentInitializedAttrName(name)) ? true : false
+}
+
+/**
  * Default component class.
  * Components should inherit this class.
  */
 class Component {
+
+  // Whether a component can be reinitialized on an element. For legacy
+  // reasons, the default is not to be and initialization will only be run
+  // once. For components that set this to true, they must cleanly handle
+  // such a reinitialization (returning the object but not resetting up HTML
+  // elements etc)
+  static get allowReinitialization() { return false }
+
   constructor(element) {
     if (!(element instanceof HTMLElement)) {
       throw new Error(
@@ -25,6 +40,7 @@ class Component {
     }
 
     this.element = element
+    this.wasInitialized = componentIsInitialized(this.element, this.constructor.name)
     this.element.setAttribute(componentInitializedAttrName(this.constructor.name), true)
   }
 }
@@ -48,7 +64,8 @@ const registerComponent = (componentInitializer) => {
  * Initialize all registered components in the defined scope
  *
  * @export
- * @param {HTMLElement} scope The scope to initialize the components in.
+ * @param {HTMLElement} scope The scope to initialize the components in (either
+ *   JQuery elements or DOM).
  */
 const initializeRegisteredComponents = (scope) => {
   registeredComponents.forEach((componentInitializer) => {
@@ -90,14 +107,24 @@ const initializeComponent = (scope, selector, ComponentClass) => {
     )
   }
 
-  const elements = typeof(selector) === 'function' ? selector(scope) : getComponentElements(scope, selector)
+  const scopes = (scope instanceof jQuery) ? scope.get() : [scope]
+
+  const elements = scopes.flatMap(
+      (scope) => typeof(selector) === 'function' ? selector(scope) : getComponentElements(scope, selector)
+  )
+
   if (!elements.length) {
     return []
   }
 
   return elements
-    .filter((el) => !el.getAttribute(componentInitializedAttrName(ComponentClass.name)))
-    .map((el) => new ComponentClass(el))
+    .filter((el) => {
+        return (
+            ComponentClass.allowReinitialization
+            // See comments for allowReinitialization()
+            || !componentIsInitialized(el, ComponentClass.name)
+        )
+    }).map((el) => new ComponentClass(el))
 }
 
 export {
