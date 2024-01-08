@@ -37,7 +37,6 @@ class InputComponent extends Component {
 
     initInputDocument() {
       const url = this.el.data("fileupload-url")
-      const field = this.el.data("field")
       const $fieldset = this.el.closest('.fieldset');
       const $ul = $fieldset.find(".fileupload__files")
       const $progressBarContainer = this.el.find(".progress-bar__container")
@@ -89,17 +88,7 @@ class InputComponent extends Component {
           var fileId = data.result.url.split("/").pop();
           var fileName = data.files[0].name;
 
-          var $li = $(
-            `<li class="help-block">
-              <div class="checkbox">
-                <input type="checkbox" id="file-${fileId}" name="${field}" value="${fileId}" aria-label="${fileName}" data-filename="${fileName}" checked>
-                <label for="file-${fileId}">
-                  <span>Include file. Current file name: <a class="link" href="/file/${fileId}">${fileName}</a>.</span>
-                </label>
-              </div>
-            </li>`
-          );
-          $ul.append($li);
+          var $li = self.addFileToField({ id: fileId, name: fileName })
           // Change event will alreayd have been triggered with initial file
           // selection (XXX ideally remove this first trigger?). Trigger
           // change again now that the full element has been recreated.
@@ -185,17 +174,7 @@ class InputComponent extends Component {
                 var fileId = data.url.split("/").pop();
                 var fileName = data.filename;
 
-                var $li = $(
-                    `<li class="help-block">
-                      <div class="checkbox">
-                        <input type="checkbox" id="file-${fileId}" name="${field}" value="${fileId}" aria-label="${fileName}" data-filename="${fileName}" checked>
-                        <label for="file-${fileId}">
-                          <span>Include file. Current file name: <a class="link" href="/file/${fileId}">${fileName}</a>.</span>
-                        </label>
-                      </div>
-                    </li>`
-                );
-                $ul.append($li);
+                self.addFileToField({ id: fileId, name: fileName })
                 // Change event will alreayd have been triggered with initial file
                 // selection (XXX ideally remove this first trigger?). Trigger
                 // change again now that the full element has been recreated.
@@ -287,6 +266,26 @@ class InputComponent extends Component {
       this.fileDelete.addClass("hidden");
       // TO DO: set fo us back to input__file-label 9without triggering keyup event on it)
     }
+
+    addFileToField(file) {
+      const $field = this.el
+      const $ul = $field.closest('.fieldset').find(".fileupload__files")
+      const fileId = file.id
+      const fileName = file.name
+      const field = $field.find('.input--file').data("field")
+      const $li = $(
+        `<li class="help-block">
+          <div class="checkbox">
+            <input type="checkbox" id="file-${fileId}" name="${field}" value="${fileId}" aria-label="${fileName}" data-filename="${fileName}" checked>
+            <label for="file-${fileId}">
+              <span>Include file. Current file name: <a class="link" href="/file/${fileId}">${fileName}</a>.</span>
+            </label>
+          </div>
+        </li>`
+      );
+      $ul.append($li);
+    }
+
 }
 
 export default InputComponent
