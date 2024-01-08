@@ -1,4 +1,4 @@
-import { hideElement, showElement, stopPropagation } from "./common";
+import { addClass, hideElement, removeClass, showElement, stopPropagation } from "./common";
 
 describe('common functions', () => {
     it('stops propagation', () => {
@@ -59,5 +59,45 @@ describe('common functions', () => {
         expect(el.hasClass).toHaveBeenCalledWith('hidden');
         expect(el.removeClass).not.toHaveBeenCalled();
         expect(el.removeAttr).not.toHaveBeenCalled();
+    });
+
+    it('adds a class', ()=> {
+        const el = {
+            hasClass: jest.fn().mockReturnValue(false),
+            addClass: jest.fn()
+        };
+        addClass(el, 'foo');
+        expect(el.hasClass).toHaveBeenCalledWith('foo');
+        expect(el.addClass).toHaveBeenCalledWith('foo');
+    });
+
+    it('does not add a class if it already exists', ()=> {
+        const el = {
+            hasClass: jest.fn().mockReturnValue(true),
+            addClass: jest.fn()
+        };
+        addClass(el, 'foo');
+        expect(el.hasClass).toHaveBeenCalledWith('foo');
+        expect(el.addClass).not.toHaveBeenCalled();
+    });
+
+    it('removes a class', ()=> {
+        const el = {
+            hasClass: jest.fn().mockReturnValue(true),
+            removeClass: jest.fn()
+        };
+        removeClass(el, 'foo');
+        expect(el.hasClass).toHaveBeenCalledWith('foo');
+        expect(el.removeClass).toHaveBeenCalledWith('foo');
+    });
+
+    it('does not remove a class if it does not exist', ()=> {
+        const el = {
+            hasClass: jest.fn().mockReturnValue(false),
+            removeClass: jest.fn()
+        };
+        removeClass(el, 'foo');
+        expect(el.hasClass).toHaveBeenCalledWith('foo');
+        expect(el.removeClass).not.toHaveBeenCalled();
     });
 });

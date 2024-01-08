@@ -874,6 +874,7 @@
             END;
           '</ul>';
        '</div>';
+       '<div class="file-upload">';
         INCLUDE fields/file.tt
           id               = col.id
           name             = "file"
@@ -899,6 +900,7 @@
           show_progress = 0;
           data_attributes = "";
       END;
+      '</div>';
       '</fieldset>';
     ELSIF col.type == "daterange";
       IF col.multivalue;

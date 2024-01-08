@@ -6,8 +6,9 @@
     "build": "NODE_ENV=production webpack --progress --watch",
     "jshint": "jshint public/js/*.js",
     "lint": "eslint src",
-    "start": "npm-watch",
-    "test": "jest"
+    "test": "jest",
+    "build:dev": "webpack --env development --progress -c webpack.config.js -w",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "@egjs/hammerjs": "^2.0.0",

@@ -56,7 +56,6 @@ export class Typeahead {
                 }
             },
         });
-        // .val(this.sourceOptions.initialValue);
 
         this.$input.on('typeahead:select', (ev: any, suggestion: MappedResponse) => {
             this.callback(suggestion);
