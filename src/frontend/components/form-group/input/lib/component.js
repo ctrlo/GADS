@@ -85,10 +85,7 @@ class InputComponent extends Component {
           if (!self.el.data("multivalue")) {
             $ul.empty();
           }
-          var fileId = data.result.url.split("/").pop();
-          var fileName = data.files[0].name;
-
-          var $li = self.addFileToField({ id: fileId, name: fileName })
+          var $li = self.addFileToField({ id: data.result.id, name: data.result.filename })
           // Change event will alreayd have been triggered with initial file
           // selection (XXX ideally remove this first trigger?). Trigger
           // change again now that the full element has been recreated.
@@ -171,10 +168,7 @@ class InputComponent extends Component {
                 if (!self.el.data("multivalue")) {
                     $ul.empty();
                 }
-                var fileId = data.url.split("/").pop();
-                var fileName = data.filename;
-
-                self.addFileToField({ id: fileId, name: fileName })
+                self.addFileToField({ id: data.id, name: data.filename })
                 // Change event will alreayd have been triggered with initial file
                 // selection (XXX ideally remove this first trigger?). Trigger
                 // change again now that the full element has been recreated.
