@@ -37,8 +37,6 @@ class InputComponent extends Component {
 
     initInputDocument() {
       const url = this.el.data("fileupload-url")
-      const $fieldset = this.el.closest('.fieldset');
-      const $ul = $fieldset.find(".fileupload__files")
       const $progressBarContainer = this.el.find(".progress-bar__container")
       const $progressBarProgress = this.el.find(".progress-bar__progress")
       const $progressBarPercentage = this.el.find(".progress-bar__percentage")
@@ -82,20 +80,7 @@ class InputComponent extends Component {
           }
         },
         done: function(e, data) {
-          if (!self.el.data("multivalue")) {
-            $ul.empty();
-          }
           var $li = self.addFileToField({ id: data.result.id, name: data.result.filename })
-          // Change event will alreayd have been triggered with initial file
-          // selection (XXX ideally remove this first trigger?). Trigger
-          // change again now that the full element has been recreated.
-          $ul.closest('.linkspace-field').trigger('change')
-          // .list class contains the checkboxes to be validated
-          validateCheckboxGroup($fieldset.find('.list'))
-          // Once a file has been uploaded, it will appear as a checkbox and
-          // the file input will still be empty. Remove the HTML required
-          // attribute so that the form can be submitted
-          $fieldset.find('input[type="file"]').removeAttr('required');
         },
         fail: function(e, data) {
           const ret = data.jqXHR.responseJSON;
@@ -154,8 +139,6 @@ class InputComponent extends Component {
         if (!file) throw new Error("No file provided");
         const self = this;
         const field = this.el.data("field")
-        const $fieldset = this.el.closest('.fieldset');
-        const $ul = $fieldset.find(".fileupload__files")
       
         const fileData = new FormData();
         fileData.append("file", file);
@@ -165,20 +148,7 @@ class InputComponent extends Component {
         request.onreadystatechange = () => {
             if (request.readyState === 4 && request.status === 200) {
                 const data = JSON.parse(request.responseText);
-                if (!self.el.data("multivalue")) {
-                    $ul.empty();
-                }
                 self.addFileToField({ id: data.id, name: data.filename })
-                // Change event will alreayd have been triggered with initial file
-                // selection (XXX ideally remove this first trigger?). Trigger
-                // change again now that the full element has been recreated.
-                $ul.closest('.linkspace-field').trigger('change')
-                // .list class contains the checkboxes to be validated
-                validateCheckboxGroup($fieldset.find('.list'))
-                // Once a file has been uploaded, it will appear as a checkbox and
-                // the file input will still be empty. Remove the HTML required
-                // attribute so that the form can be submitted
-                $fieldset.find('input[type="file"]').removeAttr('required');
             }
         };
         request.send(fileData);
@@ -262,11 +232,15 @@ class InputComponent extends Component {
     }
 
     addFileToField(file) {
+      const $fieldset = this.el.closest('.fieldset');
+      const $ul = $fieldset.find(".fileupload__files")
       const $field = this.el
-      const $ul = $field.closest('.fieldset').find(".fileupload__files")
       const fileId = file.id
       const fileName = file.name
       const field = $field.find('.input--file').data("field")
+      if (!this.el.data("multivalue")) {
+        $ul.empty();
+      }
       const $li = $(
         `<li class="help-block">
           <div class="checkbox">
@@ -278,6 +252,16 @@ class InputComponent extends Component {
         </li>`
       );
       $ul.append($li);
+      // Change event will alreayd have been triggered with initial file
+      // selection (XXX ideally remove this first trigger?). Trigger
+      // change again now that the full element has been recreated.
+      $ul.closest('.linkspace-field').trigger('change')
+      // .list class contains the checkboxes to be validated
+      validateCheckboxGroup($fieldset.find('.list'))
+      // Once a file has been uploaded, it will appear as a checkbox and
+      // the file input will still be empty. Remove the HTML required
+      // attribute so that the form can be submitted
+      $fieldset.find('input[type="file"]').removeAttr('required');
     }
 
 }
