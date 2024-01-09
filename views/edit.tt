@@ -952,12 +952,12 @@
     ELSIF col.type == "rag";
       # XXX To implement
     ELSIF col.type == "calc";
+      INCLUDE fields/sub/label_input.tt label_type="textarea" label=field_label;
       FOREACH val IN editvalue.html_form;
         IF col.show_in_edit;
           INCLUDE fields/textarea.tt
             id           = col.id
             name         = field
-            label        = field_label
             label_checkbox_name = page == "bulk" ? "bulk_inc_" _ col.id : ''
             value        = val
             input_class  = ""
