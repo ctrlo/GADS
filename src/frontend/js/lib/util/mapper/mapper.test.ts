@@ -38,7 +38,7 @@ describe('mapper', () => {
             },
             {
                 name: "test2",
-                id: 0
+                id: 1
             }
         ];
         const actual = map(response);

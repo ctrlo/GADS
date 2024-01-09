@@ -9,6 +9,8 @@ import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
  * @param sourceOptions - options for the typeahead data source
  */
 export class Typeahead {
+    private debug = false;
+
     /**
      * Create a new Typeahead class
      * @param $input The input element to attach typeahead to
@@ -35,17 +37,26 @@ export class Typeahead {
                     url: ajaxSource + (appendQuery ? query : ""),
                     dataType: "json",
                     success: (data) => {
-                        asyncResults(mapper(data).filter((item: MappedResponse) => { return item.name.toLowerCase().indexOf(query.toLowerCase()) !== -1; }));
-                    }
+                        if (this.debug) console.log("Typeahead data:", data);
+                        const mapped = mapper(data);
+                        if (this.debug) console.log("Typeahead mapped data:", mapped);
+                        const filtered = mapped.filter((item: MappedResponse) => { return item.name.toLowerCase().indexOf(query.toLowerCase()) !== -1; });
+                        if (this.debug) console.log("Typeahead filtered data:", filtered);
+                        syncResults(
+                            mapped
+                        );
+                    },
+                    async: false
                 };
-                if(this.sourceOptions.data) request.data = this.sourceOptions.data;
-                if(this.sourceOptions.dataBuilder) request.data = this.sourceOptions.dataBuilder();
+                if (this.sourceOptions.data) request.data = this.sourceOptions.data;
+                if (this.sourceOptions.dataBuilder) request.data = this.sourceOptions.dataBuilder();
+                if (this.debug) console.log("Typeahead request: ", request);
                 $.ajax(request);
             },
             display: 'name',
             limit: 10,
             templates: {
-                suggestion: (item: {name:String, id:number}) => {
+                suggestion: (item: { name: String, id: number }) => {
                     return `<div>${item.name}</div>`;
                 },
                 pending: () => {
