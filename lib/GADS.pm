@@ -4281,6 +4281,28 @@ prefix '/:layout_name' => sub {
         my $column = $layout->column($layout_id, permission => 'read');
 
         content_type 'application/json';
+        if ( $column->type eq "rag" ) {
+            my %ragmap = (
+                danger     => 'red',
+                warning    => 'amber',
+                success    => 'green',
+                advisory   => 'yellow',
+                undefined  => "grey",
+                unexpected => "purple",
+                attention  => "red (attention)",
+                complete   => "blue"
+            );
+            my $enabled_rags = $layout->enabled_rags;
+            my $result = [];
+            foreach my $rag (@$enabled_rags) {
+                push @$result, $ragmap{$rag->rag};
+            }
+            return to_json {
+                error => 0,
+                records => $result
+            };
+        }
+
         # To match data structure returned from getting filtered curval values
         to_json {
             error   => 0,
