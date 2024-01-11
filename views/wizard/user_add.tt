@@ -3,7 +3,7 @@
   secondFrameFields = [];
 
   FOREACH field IN site.user_fields;
-    IF field.name == "firstname" OR field.name == "surname" OR field.name == "email" OR field.name == "notes";
+    IF field.name == "firstname" OR field.name == "surname" OR field.name == "email" OR field.name == "account_request_notes";
       firstFrameFields.push(field);
     ELSE;
       secondFrameFields.push(field);
