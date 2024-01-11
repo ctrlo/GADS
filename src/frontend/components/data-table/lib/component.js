@@ -247,6 +247,7 @@ class DataTableComponent extends Component {
     const {oAjaxData} = context[0];
     const {columns} = oAjaxData;
     const columnId = columns[column.index()].name;
+    const columnType = $header.find(".data-table__header-wrapper").data("type");
 
     const $searchElement = $(
       `<div class='data-table__search'>
@@ -280,18 +281,20 @@ class DataTableComponent extends Component {
 
     this.toggleFilter(column)
 
-    const builder = new TypeaheadBuilder();
-    builder
-      .withAjaxSource(this.getApiEndpoint(columnId))
-      .withInput($('input', $header))
-      .withAppendQuery()
-      .withDefaultMapper()
-      .withName(columnId.replace(/\s+/g,'') + 'Search')
-      .withCallback((data) => {
-        $('input', $header).val(data.name);
-        $('input', $header).trigger('change');
-      })
-      .build();
+    if (columnType != 'date') {
+      const builder = new TypeaheadBuilder();
+      builder
+        .withAjaxSource(this.getApiEndpoint(columnId))
+        .withInput($('input', $header))
+        .withAppendQuery()
+        .withDefaultMapper()
+        .withName(columnId.replace(/\s+/g, '') + 'Search')
+        .withCallback((data) => {
+          $('input', $header).val(data.name);
+          $('input', $header).trigger('change');
+        })
+        .build();
+    }
 
     // Apply the search
     $('input', $header).on('change', function (ev) {
