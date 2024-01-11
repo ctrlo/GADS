@@ -951,7 +951,9 @@
       END;
     ELSIF col.type == "rag";
       # XXX To implement
-    ELSIF col.type == "calc";
+    ELSIF col.type == "calc"; %]
+  <div class="textarea [% input_class %]"[% textarea_style %]>
+    [%
       INCLUDE fields/sub/label_input.tt label_type="textarea" label=field_label;
       FOREACH val IN editvalue.html_form;
         IF col.show_in_edit;
@@ -976,6 +978,9 @@
             filter = "html";
         END;
       END;
+    %]
+  </div>
+  [%
     ELSIF col.textbox;
       IF col.multivalue;
         INCLUDE fields/multi_field.tt
