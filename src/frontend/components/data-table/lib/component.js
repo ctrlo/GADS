@@ -286,7 +286,7 @@ class DataTableComponent extends Component {
       .withInput($('input', $header))
       .withAppendQuery()
       .withDefaultMapper()
-      .withName(columnId.replace(/\W+/g,'') + 'Search')
+      .withName(columnId.replace(/\s+/g,'') + 'Search')
       .withCallback((data) => {
         $('input', $header).val(data.name);
         $('input', $header).trigger('change');

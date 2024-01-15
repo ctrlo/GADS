@@ -96,6 +96,7 @@ class MultipleSelectComponent extends Component {
       } else {
         const target = $(ev.currentTarget)
         target.closest('.multiple-select__row').remove()
+        this.el.trigger("change")
 
         const newMultipleSelectArray = this.multipleSelectList.find('> .multiple-select__row')
 

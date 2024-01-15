@@ -239,7 +239,6 @@ class SelectWidgetComponent extends Component {
     const $visible = this.$current.children("[data-list-item]:not([hidden])")
 
     this.$current.toggleClass("empty", $visible.length === 0)
-    this.$widget.trigger("change")
   }
 
   possibleCloseWidget(e) {
@@ -264,7 +263,6 @@ class SelectWidgetComponent extends Component {
 
       $associated.unbind("change")
       $associated.on("change", (e) => {
-        e.stopPropagation()
         if ($(e.target).prop("checked")) {
           $item.removeAttr("hidden")
         } else {

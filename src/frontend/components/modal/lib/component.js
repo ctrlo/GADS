@@ -4,6 +4,9 @@ import { Frame } from './frame'
 import { logging } from 'logging'
 
 class ModalComponent extends Component {
+
+  static get allowReinitialization() { return true }
+
   constructor(element)  {
     super(element)
     this.el = $(this.element)
@@ -11,7 +14,7 @@ class ModalComponent extends Component {
     this.isForm = this.el.hasClass('modal--form')
     this.frames = this.el.find('.modal-frame')
     this.typingTimer = null
-    this.initModal()
+    if (!this.wasInitialized) this.initModal()
   }
 
   // Initialize the modal
