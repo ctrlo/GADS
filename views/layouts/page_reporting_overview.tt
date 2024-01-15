@@ -18,19 +18,24 @@
           placeholder = "No file selected"
           input_class = "input--logo"
           data_attributes = [
-            {name = "fileupload-url", value = url.page _ '/settings/logo'}
+            {name = "fileupload-url", value = url.page _ '/api/settings/logo'}
           ] %]
     </div>
   </div>
   <div class="row">
     <div class="col">
-      <h3>Security Marking</h3>
-      [% INCLUDE 'fields/editable_text.tt'
-          value = security_marking
-          label = "Security Marking"
-          placeholder = "Enter security marking"
-          type = "text"
-          url = "/settings/security_marking" %]
+      <form method="post">
+        [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+        <h3>Security Marking</h3>
+        [% INCLUDE 'fields/editable_text.tt'
+            value = security_marking
+            label = "Security Marking"
+            placeholder = "Enter security marking"
+            type = "text"
+            btn_type = "submit"
+            btn_val = "submit"
+            name = "security_marking" %]
+      </form>
     </div>
   </div>
 </div>

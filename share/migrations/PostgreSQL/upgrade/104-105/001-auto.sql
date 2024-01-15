@@ -7,7 +7,10 @@ BEGIN;
 ALTER TABLE instance ADD COLUMN security_marking character varying(45);
 
 ;
-ALTER TABLE report ADD COLUMN security_marking character varying(128);
+ALTER TABLE report ADD COLUMN security_marking text;
+
+;
+ALTER TABLE report ALTER COLUMN title TYPE text;
 
 ;
 ALTER TABLE site ADD COLUMN security_marking text;

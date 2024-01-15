@@ -10,6 +10,7 @@ use Lingua::EN::Inflect qw/PL/;
 
 use JSON qw(decode_json encode_json);
 use File::Temp qw/tempfile/;
+use GADS::Config;
 
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
@@ -364,6 +365,18 @@ sub create_temp_logo {
   close $fh;
 
   return $filename;
+}
+
+sub read_security_marking {
+  my $self = shift;
+  my $marking = $self->security_marking;
+
+  return $marking if $marking;
+
+  my $config = GADS::Config->instance;
+  $marking = $config && $config->gads && $config->gads->{header};
+
+  return $marking;
 }
 
 1;

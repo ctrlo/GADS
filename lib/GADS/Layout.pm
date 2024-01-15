@@ -306,8 +306,7 @@ has security_marking => (
 
 sub _build_security_marking {
     my $self = shift;
-
-    return $self->_rset->security_marking;
+    my $rset = $self->_rset->read_security_marking;
 }
 
 sub _build_reports
@@ -1593,9 +1592,7 @@ sub set_marking {
 
     my $txn_scope_guard = $self->schema->txn_scope_guard;
 
-    $self->schema->resultset('Instance')->find($self->instance_id)->update({
-        security_marking => $marking,
-    });
+    $self->_rset->update({security_marking => $marking});
 
     $txn_scope_guard->commit;
 }

@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Wed Jan  3 16:41:16 2024
+-- Created on Mon Jan 15 11:45:07 2024
 --
 ;
 SET foreign_key_checks=0;
@@ -824,14 +824,14 @@ CREATE TABLE `record` (
 CREATE TABLE `report` (
   `id` bigint NOT NULL auto_increment,
   `name` varchar(128) NOT NULL,
-  `title` varchar(128) NULL,
+  `title` text NULL,
   `description` varchar(128) NULL,
   `user_id` bigint NULL,
   `createdby` bigint NULL,
   `created` datetime NULL,
   `instance_id` bigint NULL,
   `deleted` datetime NULL,
-  `security_marking` varchar(128) NULL,
+  `security_marking` text NULL,
   INDEX `report_idx_createdby` (`createdby`),
   INDEX `report_idx_instance_id` (`instance_id`),
   INDEX `report_idx_user_id` (`user_id`),

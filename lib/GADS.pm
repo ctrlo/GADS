@@ -1331,6 +1331,19 @@ any ['get', 'post'] => '/settings/team_edit/:id' => require_any_role [qw/useradm
 
 any [ 'get', 'post' ] => '/settings/report_defaults/' => require_role 'superadmin'=> sub {
     my $site             = var 'site';
+
+    if(body_parameters->get('submit')) {
+        print STDOUT "submitting\n";
+
+        my $post_marking = body_parameters->get('security_marking');
+
+        my $txn_scope_guard = schema->txn_scope_guard;
+        
+        $site->update({ security_marking => $post_marking });
+        
+        $txn_scope_guard->commit;
+    }
+
     my $logo             = $site->site_logo ? 1 : 0;
     my $security_marking = $site->security_marking || config->{gads}->{header};
 
@@ -1347,27 +1360,8 @@ any [ 'get', 'post' ] => '/settings/report_defaults/' => require_role 'superadmi
     };
 };
 
-any [ 'get', 'post' ] => '/settings/logo' => require_login sub {
+get '/settings/logo' => require_login sub {
     my $site = var 'site';
-
-    if ( my $file = upload('file') ) {
-        forwardHome({ danger => "You do not have permission to manage system settings"}, '')
-            unless logged_in_user->permission->{superadmin};
-
-        my $txn_scope_guard = schema->txn_scope_guard;
-
-        $site->update({ site_logo => $file->content });
-
-        $txn_scope_guard->commit;
-
-        content_type 'application/json';
-        return encode_json(
-            {
-                error => 0,
-                url   => '/settings/logo'
-            }
-        );
-    }
 
     if ( my $logo = $site->site_logo ) {
         my $metadata = $site->load_logo;
@@ -1383,8 +1377,6 @@ any [ 'get', 'post' ] => '/settings/logo' => require_login sub {
 post '/settings/security_marking' => require_role 'superadmin' => sub {
     my $site = var 'site';
     my $data = from_json(request->body);
-
-    print Dumper $data;
 
     my $security_marking = $data->{text};
 
@@ -1941,10 +1933,7 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
 
     if (my $report_id = query_parameters->get('report'))
     {
-        my $site = var 'site';
-        my $site_marking = $site->security_marking || config->{gads}->{header};
-        my $file = $site->create_temp_logo;
-        my $pdf = $record->get_report($report_id, $site_marking, $file)->content;
+        my $pdf = $record->get_report($report_id)->content;
         return send_file( \$pdf, content_type => 'application/pdf', );
     }
 
@@ -2890,7 +2879,12 @@ prefix '/:layout_name' => sub {
                 return forwardHome("$lo/report");
             }
 
-            my $security_marking = $layout->security_marking || $site->security_marking || config->{gads}->{header};
+            if(body_parameters->get('submit')) {
+                my $security_marking = body_parameters->get('security_marking');
+                $layout->set_marking($security_marking);
+            }
+
+            my $security_marking = $layout->security_marking;
 
             my $params = {
                 security_marking => $security_marking,
@@ -3009,8 +3003,6 @@ prefix '/:layout_name' => sub {
 
             my $fields = $result->fields_for_render($layout);
 
-            print $result->security_marking;
-
             my $params = {
                 header_type     => 'table_tabs',
                 layout_obj      => $layout,
@@ -3026,28 +3018,6 @@ prefix '/:layout_name' => sub {
             };
 
             template 'reports/edit' => $params;
-        };
-
-        post '/security_marking' => require_login sub {
-            my $user   = logged_in_user;
-            my $layout = var('layout') or pass;
-            my $body   = from_json( request->body );
-
-            return forwardHome(
-                { danger => 'You do not have permission to edit reports' } )
-              unless $layout->user_can("layout");
-
-            return forwardHome( { danger => 'No JSON body given' } )
-              unless $body;
-
-            print Dumper $body;
-
-            my $text = $body->{text};
-
-            $layout->set_marking($text);
-
-            content_type 'application/json';
-            to_json( { error => 0, text => $text } );
         };
     };
 

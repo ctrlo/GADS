@@ -75,7 +75,7 @@ __PACKAGE__->add_columns(
     "name",
     { data_type => "varchar", is_nullable => 0, size => 128 },
     "title",
-    { data_type => "varchar", is_nullable => 1, size => 128 },
+    { data_type => "text", is_nullable => 1 },
     "description",
     { data_type => "varchar", is_nullable => 1, size => 128 },
     "user_id",
@@ -97,7 +97,7 @@ __PACKAGE__->add_columns(
         is_nullable               => 1
     },
     "security_marking",
-    { data_type => "varchar", is_nullable => 1, size => 128 },
+    { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -286,9 +286,10 @@ Function to create a PDF of the report - it will return a PDF object
 =cut
 
 sub create_pdf
-{   my ($self, $record, $default_marking, $logo) = @_;
+{   my ($self, $record) = @_;
 
-    my $marking = $self->security_marking || $default_marking;
+    my $marking = $self->_read_security_marking;
+    my $logo = $self->instance->site->create_temp_logo;
 
     my $pdf;
 
@@ -299,13 +300,9 @@ sub create_pdf
             logo   => $logo,
         );
         $pdf->add_page;
-        my $lines = [];
-        $lines= $self->_wraptext($self->description, 50) if($self->description);
-        my $topmargin = -40 - (scalar(@$lines) * 20);
+        my $topmargin = -30;
         $pdf->heading( $self->title || $self->name, topmargin=>$topmargin );
-        if($lines) {
-            $pdf->heading($_ , size => 14 ) foreach (@$lines);
-        }
+        $pdf->text($self->description , size => 14 ) if $self->description;
     } else {
         $pdf    = CtrlO::PDF->new(
             header => $marking,
@@ -356,26 +353,6 @@ sub create_pdf
     $pdf;
 }
 
-sub _wraptext {
-    my ($self, $text, $width) = @_;
-
-    my @words = split(/\s+/, $text);
-    my @lines;
-
-    my $line = '';
-
-    foreach my $word (@words) {
-        if (length($line) + length($word) > $width) {
-            push @lines, $line;
-            $line = '';
-        }
-        $line .= $word . ' ';
-    }
-    push @lines, $line;
-
-    return \@lines;
-}
-
 =head2 Get fields for render
 Function to get the fields for the report - it will return an array of fields
 =cut
@@ -408,6 +385,18 @@ sub _group_by_topic {
     }
     
     return $grouped_data;
+}
+
+sub _read_security_marking {
+    my $self = shift;
+
+    my $marking = $self->security_marking;
+
+    return $marking if $marking;
+
+    my $instance = $self->instance;
+
+    return $instance->read_security_marking;
 }
 
 1;

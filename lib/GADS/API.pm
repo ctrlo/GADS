@@ -546,6 +546,40 @@ any ['get', 'post'] => '/api/:sheet/records' => require_login sub {
     _get_records();
 };
 
+post '/api/settings/logo' => require_login sub {
+    my $site = var 'site';
+
+    if ( my $file = upload('file') ) {
+        #should this not return a json response with error set to 1?
+        forwardHome({ danger => "You do not have permission to manage system settings"}, '')
+            unless logged_in_user->permission->{superadmin};
+
+        my $txn_scope_guard = schema->txn_scope_guard;
+
+        $site->update({ site_logo => $file->content });
+
+        $txn_scope_guard->commit;
+
+        content_type 'application/json';
+        # 201 is created rather than ok
+        status 201;
+        return encode_json(
+            {
+                error => 0,
+                url   => '/settings/logo'
+            }
+        );
+    } else {
+        content_type 'application/json';
+        return encode_json(
+            {
+                error => 1,
+                text  => "No file provided"
+            }
+        );
+    }
+};
+
 sub _post_dashboard_widget {
     my $layout = shift;
     my $user   = logged_in_user;

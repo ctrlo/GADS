@@ -7,7 +7,8 @@ BEGIN;
 ALTER TABLE instance DROP COLUMN security_marking;
 
 ;
-ALTER TABLE report DROP COLUMN security_marking;
+ALTER TABLE report DROP COLUMN security_marking,
+                   CHANGE COLUMN title title varchar(128) NULL;
 
 ;
 ALTER TABLE site DROP COLUMN security_marking,

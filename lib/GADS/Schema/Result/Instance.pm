@@ -451,4 +451,11 @@ sub _scrub
     $scrubber->scrub($html);
 }
 
+sub read_security_marking {
+    my $self = shift;
+    my $marking = $self->security_marking;
+    return $marking if $marking;
+    return $self->site->read_security_marking;
+}
+
 1;

@@ -50,23 +50,36 @@ class InputComponent extends Component {
     this.fileInput.on('change', (ev) => {
       stopPropagation(ev);
       const url = this.el.data("fileupload-url")
+      console.log("URL", url);
 
       const formData = new FormData();
       formData.append('file', this.el.find('input[type="file"]')[0].files[0]);
       formData.append('csrf_token', $('body').data('csrf'));
 
-      const request = new XMLHttpRequest();
-      request.open('POST', url, true);
-      request.onreadystatechange = () =>{
-        if(request.readyState==4 && request.status==200){
-          const result = asJSON(request.responseText);
-          if(result && !result.error){
-            this.logoDisplay.attr('src', result.url);
-            this.logoDisplay.show();
-          }
+      console.log("url", url);
+
+      //This has been moved over to the new fetch API - all the other ajax calls need moving as well. This is now on ticket #1529
+      fetch(url,{
+        method: 'POST',
+        body: formData,
+      }).then((response) => {
+        if (response.ok) {
+          return response.json();
         }
-      };
-      request.send(formData);
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }).then((data) => {
+        if (data && !data.error) {
+          this.logoDisplay.attr('src', data.url);
+          this.logoDisplay.show();
+        } else if (data.error) {
+          throw new Error(`Error: ${data.text}`);
+        }else{
+          throw new Error(`Error: No data returned`);
+        }
+      }).catch((error) => {
+        // this is not nice, but I haven't implemented a better way yet!
+        console.error(error);
+      });
     });
   }
 

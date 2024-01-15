@@ -10,6 +10,9 @@ ALTER TABLE instance DROP COLUMN security_marking;
 ALTER TABLE report DROP COLUMN security_marking;
 
 ;
+ALTER TABLE report ALTER COLUMN title TYPE character varying(128);
+
+;
 ALTER TABLE site DROP COLUMN security_marking;
 
 ;

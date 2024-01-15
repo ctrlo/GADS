@@ -10,19 +10,20 @@
   #   url = "/settings/update"
 -%]
 
-<div class = "js-editable-text" data-url="[% url %]">
-    <div class="error-message">&nbsp;</div>
-    <div class="input-group mb-3">
-        <input 
-            type=" [% type OR 'text' %]"
-            class="form-control"
-            value="[% value %]"
-            placeholder="[% placeholder %]"
-            aria-label="[% label %]"
-            aria-describedby="update-button" />
-        <button
-            type="button"
-            class="btn btn-outline-secondary disabled"
-            id="update-button">Update</button>
-    </div>
+<div class="input-group mb-3">
+    <input 
+        type=" [% type OR 'text' %]"
+        class="form-control"
+        value="[% value %]"
+        placeholder="[% placeholder %]"
+        aria-label="[% label %]"
+        aria-describedby="update-button"
+        name = "[% name %]" />
+    <button
+        type="[% btn_type || 'button' %]"[% IF btn_val %]
+        value="[% btn_val %]"
+        id="[% btn_val %]"
+        name="[% btn_val %]"[% END %]
+        class="btn btn-success"
+        id="update-button">Update</button>
 </div>

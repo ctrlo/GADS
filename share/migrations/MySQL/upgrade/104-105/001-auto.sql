@@ -7,7 +7,8 @@ BEGIN;
 ALTER TABLE instance ADD COLUMN security_marking varchar(45) NULL;
 
 ;
-ALTER TABLE report ADD COLUMN security_marking varchar(128) NULL;
+ALTER TABLE report ADD COLUMN security_marking text NULL,
+                   CHANGE COLUMN title title text NULL;
 
 ;
 ALTER TABLE site ADD COLUMN security_marking text NULL,
