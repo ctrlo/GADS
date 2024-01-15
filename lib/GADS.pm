@@ -1329,6 +1329,49 @@ any ['get', 'post'] => '/settings/team_edit/:id' => require_any_role [qw/useradm
     };
 };
 
+any [ 'get', 'post' ] => '/settings/report_defaults/' => require_role 'superadmin'=> sub {
+    my $site             = var 'site';
+
+    if(body_parameters->get('submit')) {
+        my $post_marking = body_parameters->get('security_marking');
+
+        my $txn_scope_guard = schema->txn_scope_guard;
+
+        $site->update({ security_marking => $post_marking });
+
+        $txn_scope_guard->commit;
+    }
+
+    my $logo             = $site->site_logo ? 1 : 0;
+    my $security_marking = $site->security_marking || config->{gads}->{header};
+
+    template 'layouts/page_reporting_overview' => {
+        page             => 'report_defaults',
+        page_title       => 'Report Defaults',
+        page_description => 'In this window you can set the default values for reports.',
+        back_url         => '/settings/',
+        logo             => $logo,
+        security_marking => $security_marking,
+        data_attributes => {
+            fileupload_url => '/settings/logo'
+        }
+    };
+};
+
+get '/settings/logo' => require_login sub {
+    my $site = var 'site';
+
+    if ( my $logo = $site->site_logo ) {
+        my $metadata = $site->load_logo;
+        my $mimetype = $metadata->{'content_type'};
+        my $filename = $metadata->{'filename'};
+        content_type $mimetype;
+        return $logo;
+    }else{
+        send_error ("not found", 404);
+    }
+};
+
 any ['get', 'post'] => '/settings/audit/?' => require_role audit => sub {
 
     my $audit = GADS::Audit->new(schema => schema);
@@ -2807,6 +2850,13 @@ prefix '/:layout_name' => sub {
                 return forwardHome("$lo/report");
             }
 
+            if(body_parameters->get('submit')) {
+                my $security_marking = body_parameters->get('security_marking');
+                $layout->set_marking($security_marking);
+            }
+
+            my $security_marking = $layout->security_marking;
+
             my $params = {
                 header_type     => 'table_tabs',
                 layout_obj      => $layout,
@@ -2833,17 +2883,21 @@ prefix '/:layout_name' => sub {
             if ( body_parameters && body_parameters->get('submit') ) {
                 my $report_description = body_parameters->get('report_description');
                 my $report_name        = body_parameters->get('report_name');
+                my $report_title       = body_parameters->get('report_title');
                 my $checkbox_fields    = [body_parameters->get_all('checkboxes')];
+                my $security_marking   = body_parameters->get('security_marking');
                 my $instance           = $layout->instance_id;
 
                 my $report = schema->resultset('Report')->create_report(
                     {
-                        user        => $user,
-                        name        => $report_name,
-                        description => $report_description,
-                        instance_id => $instance,
-                        createdby   => $user,
-                        layouts     => $checkbox_fields
+                        user             => $user,
+                        name             => $report_name,
+                        title            => $report_title,
+                        description      => $report_description,
+                        instance_id      => $instance,
+                        createdby        => $user,
+                        layouts          => $checkbox_fields,
+                        security_marking => $security_marking,
                     }
                 );
 
@@ -2887,19 +2941,22 @@ prefix '/:layout_name' => sub {
             if ( body_parameters && body_parameters->get('submit') ) {
                 my $report_description = body_parameters->get('report_description');
                 my $report_name        = body_parameters->get('report_name');
+                my $report_title       = body_parameters->get('report_title');
                 my $checkboxes         = [body_parameters->get_all('checkboxes')];
+                my $security_marking   = body_parameters->get('security_marking');
                 my $instance           = $layout->instance_id;
 
                 my $report_id = param('id');
 
-                my $result =
-                  schema->resultset('Report')->load_for_edit($report_id);
+                my $result = schema->resultset('Report')->load_for_edit($report_id);
 
                 $result->update_report(
                     {
-                        name        => $report_name,
-                        description => $report_description,
-                        layouts     => $checkboxes
+                        name             => $report_name,
+                        title            => $report_title,
+                        description      => $report_description,
+                        layouts          => $checkboxes,
+                        security_marking => $security_marking,
                     }
                 );
 

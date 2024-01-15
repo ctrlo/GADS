@@ -1,0 +1,28 @@
+[%-
+  # Template for single-value editable input
+  # Implementation Example:
+  #
+  # INCLUDE fields/editable_text.tt
+  #   value = user.name
+  #   label = "Email address"
+  #   placeholder = "name@example.com"
+  #   type = "email"
+-%]
+
+<div class="input-group mb-3">
+    <input 
+        type=" [% type OR 'text' %]"
+        class="form-control"
+        value="[% value %]"
+        placeholder="[% placeholder %]"
+        aria-label="[% label %]"
+        aria-describedby="update-button"
+        name = "[% name %]" />
+    <button
+        type="[% btn_type || 'button' %]"[% IF btn_val %]
+        value="[% btn_val %]"
+        id="[% btn_val %]"
+        name="[% btn_val %]"[% END %]
+        class="btn btn-success"
+        id="update-button">Update</button>
+</div>

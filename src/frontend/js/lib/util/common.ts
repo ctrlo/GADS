@@ -44,3 +44,13 @@ export const removeClass = (element: ElementOrJQueryElement, className: string) 
     if (!hasClass($el, className)) return;
     $el.removeClass(className);
 }
+
+export const asJSON = (json: any) => {
+    try {
+        if(!json) return {};
+        if(typeof json === 'string') return JSON.parse(json);
+        return json;
+    }catch(e){
+        return {};
+    }
+};

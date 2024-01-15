@@ -6,9 +6,6 @@ package GADS::Schema::Result::Report;
 GADS::Schema::Result::Report
 =cut
 
-use strict;
-use warnings;
-
 use Log::Report 'linkspace';
 use CtrlO::PDF 0.06;
 use GADS::Config;
@@ -39,6 +36,9 @@ __PACKAGE__->table("report");
     data_type: 'varchar'
     is_nullable: 0
     size: 128
+=head2 title
+    data_type: 'text'
+    is_nullable: 1
 =head2 description
     data_type: 'varchar'
     is_nullable: 1
@@ -62,6 +62,9 @@ __PACKAGE__->table("report");
 =head2 deleted
     data_type: 'datetime'
     is_nullable: 1
+=head2 security_marking
+    data_type: 'text'
+    is_nullable: 1
 =cut
 
 __PACKAGE__->add_columns(
@@ -69,6 +72,8 @@ __PACKAGE__->add_columns(
     { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
     "name",
     { data_type => "varchar", is_nullable => 0, size => 128 },
+    "title",
+    { data_type => "text", is_nullable => 1 },
     "description",
     { data_type => "varchar", is_nullable => 1, size => 128 },
     "user_id",
@@ -88,7 +93,9 @@ __PACKAGE__->add_columns(
         data_type                 => "datetime",
         datetime_undef_if_invalid => 1,
         is_nullable               => 1
-    }
+    },
+    "security_marking",
+    { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -172,11 +179,13 @@ sub validate {
     my ( $self, $value, %options ) = @_;
 
     my $name        = $self->name;
+    my $title       = $self->title;
     my $instance_id = $self->instance_id;
     my $layouts     = $self->report_layouts;
 
-    error __ "No name given" unless $name;
-    error __ "You must provide at least one row to display in the report"
+    error __"No name given" unless $name;
+    error __"No title given" unless $title;
+    error __"You must provide at least one row to display in the report"
       unless $layouts;
 
     0;
@@ -207,8 +216,9 @@ sub _data
 
     while ( my $layout = $layouts->next ) {
         my $column = $gads_layout->column( $layout->layout_id, permission => 'read' ) or next;
+        my $topic = $column->topic->name if $column->topic;
         my $datum  = $record->get_field_value($column);
-        my $data   = { 'name' => $layout->layout->name, 'value' => $datum || '' };
+        my $data   = { 'name' => $layout->layout->name, 'value' => $datum || '', 'topic' => $topic || 'Other' };
         push( @{$result}, $data );
     }
 
@@ -225,10 +235,14 @@ sub update_report {
 
     my $guard = $self->result_source->schema->txn_scope_guard;
 
-    $self->update( { name => $args->{name} } )
-      if $args->{name};
-    $self->update( { description => $args->{description} } )
-      if $args->{description};
+    $self->update(
+        {
+            name => $args->{name},
+            title => $args->{title},
+            description => $args->{description},
+            security_marking => $args->{security_marking},
+        }
+    );
 
     my $layouts = $args->{layouts};
 
@@ -272,29 +286,34 @@ Function to create a PDF of the report - it will return a PDF object
 sub create_pdf
 {   my ($self, $record) = @_;
 
-    my $dateformat = GADS::Config->instance->dateformat;
-    my $now        = DateTime->now;
-    $now->set_time_zone('Europe/London');
-    my $now_formatted = $now->format_cldr($dateformat) . " at " . $now->hms;
-    my $updated =
-      $self->created->format_cldr($dateformat) . " at " . $self->created->hms;
+    my $marking = $self->_read_security_marking;
+    my $logo = $self->instance->site->create_temp_logo;
 
-    my $config = GADS::Config->instance;
-    my $header = $config && $config->gads && $config->gads->{header};
-    my $pdf    = CtrlO::PDF->new(
-        header => $header,
-        footer => "Downloaded by " . $self->user->value . " on $now_formatted",
-    );
+    my $pdf;
 
-    $pdf->add_page;
-    $pdf->heading( $self->name );
-    $pdf->heading( $self->description, size => 14 ) if $self->description;
-
-    my $fields = [ [ 'Field', 'Value' ] ];
+    if($logo) {
+        $pdf    = CtrlO::PDF->new(
+            header => $marking,
+            footer => $marking,
+            logo   => $logo,
+        );
+        $pdf->add_page;
+        my $topmargin = -30;
+        $pdf->heading( $self->title || $self->name, topmargin=>$topmargin );
+        $pdf->text($self->description , size => 14 ) if $self->description;
+    } else {
+        $pdf    = CtrlO::PDF->new(
+            header => $marking,
+            footer => $marking,
+        );
+        $pdf->add_page;
+        $pdf->heading( $self->title || $self->name );
+        $pdf->heading($self->description , size => 14 );
+    }
 
     my $data = $self->_data($record);
 
-    push( @{$fields}, [ $_->{name}, $_->{value} ] ) foreach (@$data);
+    my $grouped_data = $self->_group_by_topic($data);
 
     my $hdr_props = {
         repeat    => 1,
@@ -304,12 +323,31 @@ sub create_pdf
         fg_color  => '#ffffff',
     };
 
-    $pdf->table(
-        data         => $fields,
-        header_props => $hdr_props,
-        border_c     => '#007c88',
-        h_border_w   => 1,
-    );
+    foreach my $topic (keys %$grouped_data) {
+        next if $topic eq 'Other';
+        my $fields = [ [$topic, ''] ];
+        push( @{$fields}, [ $_->{name}, $_->{value} ] ) foreach (@{$grouped_data->{$topic}});
+
+        $pdf->table(
+            data         => $fields,
+            header_props => $hdr_props,
+            border_c     => '#007c88',
+            h_border_w   => 1,
+        );
+    }
+
+    foreach my $topic (keys %$grouped_data) {
+        next unless $topic eq 'Other';
+        my $fields = [ [$topic, ''] ];
+        push( @{$fields}, [ $_->{name}, $_->{value} ] ) foreach (@{$grouped_data->{$topic}});
+
+        $pdf->table(
+            data         => $fields,
+            header_props => $hdr_props,
+            border_c     => '#007c88',
+            h_border_w   => 1,
+        );
+    }
 
     $pdf;
 }
@@ -333,6 +371,31 @@ sub fields_for_render {
     } $layout->all( user_can_read => 1 );
 
     return \@fields;
+}
+
+sub _group_by_topic {
+    my ($self, $data) = @_;
+
+    my $grouped_data = {};
+
+    foreach my $datum (@$data) {
+        my $topic = $datum->{topic};
+        push( @{$grouped_data->{$topic}}, {name=>$datum->{name}, value=>$datum->{value}} );
+    }
+
+    return $grouped_data;
+}
+
+sub _read_security_marking {
+    my $self = shift;
+
+    my $marking = $self->security_marking;
+
+    return $marking if $marking;
+
+    my $instance = $self->instance;
+
+    return $instance->read_security_marking;
 }
 
 1;
