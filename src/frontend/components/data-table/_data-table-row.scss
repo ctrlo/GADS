@@ -25,7 +25,7 @@ table.dataTable {
     @extend %icon-font;
 
     content: "\E805";
-    position: absolute;
+    // position: absolute; // This is causing the arrow to be misplaced
     top: 1.3rem;
     right: $padding-small-horizontal;
     left: auto;
@@ -36,6 +36,7 @@ table.dataTable {
     box-shadow: none;
     color: $gray-extra-dark;
     font-size: 0.9em;
+    transition: all 0.2s ease-in-out;
   }
 
   &.dtr-column > tbody > tr.parent > td.dtr-control::before,

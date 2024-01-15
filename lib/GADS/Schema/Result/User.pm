@@ -866,7 +866,7 @@ sub update_user
 
     if(defined $params{account_request}) {
         $values->{account_request} = $params{account_request};
-        $request = 1;
+        $request = 1 if $self->account_request && !$params{account_request};
     }
 
     my $original_username = $self->username;
@@ -974,7 +974,7 @@ sub update_user
 sub send_welcome_email
 {   my ($self, %params) = @_;
 
-    $params{email} = $self->email;
+    $params{email} ||= $self->email;
     
     my %welcome_email = GADS::welcome_text(undef, %params);
 
