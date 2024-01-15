@@ -89,7 +89,7 @@ class FilterComponent extends Component {
     const $builderEl = this.el
     const builderID = $(this.el).data('builder-id')
     const $builderJSON = $(`#builder_json_${builderID}`)
-    
+
     if (!$builderJSON.length) return
 
     const builderConfig = JSON.parse($builderJSON.html())
