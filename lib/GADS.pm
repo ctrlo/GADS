@@ -4281,6 +4281,14 @@ prefix '/:layout_name' => sub {
         my $column = $layout->column($layout_id, permission => 'read');
 
         content_type 'application/json';
+
+        # This would be a great idea, if anything apart from dropdowns, and person fields had a typeahead flag set on them
+        # I'll look at creating a new flag for this
+        # return to_json {
+        #     error   => 0,
+        #     records => ['no typeahead'] # Dummy value to prevent typeahead from being called
+        # } unless $column->has_filter_typeahead;
+
         if ( $column->type eq "rag" ) {
             my %ragmap = (
                 danger     => 'red',
@@ -4303,11 +4311,10 @@ prefix '/:layout_name' => sub {
             };
         }
 
-        # To match data structure returned from getting filtered curval values
-        to_json {
+        return to_json {
             error   => 0,
             records => [ $column->values_beginning_with($query, noempty => query_parameters->get('noempty')) ]
-        };
+        }
     };
 
 };
