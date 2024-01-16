@@ -72,7 +72,8 @@
           title = col.name,
           type = col.type,
           orderable = 1,
-          filter = "html"
+          filter = "html",
+          typeahead = col.has_typeahead,
         });
     
         processed_columns.push(col.id);

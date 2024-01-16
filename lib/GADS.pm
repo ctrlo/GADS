@@ -4272,6 +4272,7 @@ prefix '/:layout_name' => sub {
         to_json [ rset('User')->match($query) ];
     };
 
+    # I don't know where else this is used, so I am going to revert it to it's original setup and leave it alone for now!
     get '/match/layout/:layout_id' => require_login sub {
 
         my $layout = var('layout') or pass;
@@ -4281,35 +4282,6 @@ prefix '/:layout_name' => sub {
         my $column = $layout->column($layout_id, permission => 'read');
 
         content_type 'application/json';
-
-        # This would be a great idea, if anything apart from dropdowns, and person fields had a typeahead flag set on them
-        # I'll look at creating a new flag for this
-        # return to_json {
-        #     error   => 0,
-        #     records => ['no typeahead'] # Dummy value to prevent typeahead from being called
-        # } unless $column->has_filter_typeahead;
-
-        if ( $column->type eq "rag" ) {
-            my %ragmap = (
-                danger     => 'red',
-                warning    => 'amber',
-                success    => 'green',
-                advisory   => 'yellow',
-                undefined  => "grey",
-                unexpected => "purple",
-                attention  => "red (attention)",
-                complete   => "blue"
-            );
-            my $enabled_rags = $layout->enabled_rags;
-            my $result = [];
-            foreach my $rag (@$enabled_rags) {
-                push @$result, $ragmap{$rag->rag};
-            }
-            return to_json {
-                error => 0,
-                records => $result
-            };
-        }
 
         return to_json {
             error   => 0,

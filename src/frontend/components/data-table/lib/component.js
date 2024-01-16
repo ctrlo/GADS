@@ -36,6 +36,8 @@ class DataTableComponent extends Component {
     }
 
     const conf = this.getConf()
+    const {columns} = conf;
+    this.columns = columns;
     this.el.DataTable(conf)
     this.initializingTable = true
 
@@ -247,7 +249,7 @@ class DataTableComponent extends Component {
     const {oAjaxData} = context[0];
     const {columns} = oAjaxData;
     const columnId = columns[column.index()].name;
-    const columnType = $header.find(".data-table__header-wrapper").data("type");
+    const col = this.columns.filter((col) => col.name === columnId.replace(/\s+/g, ''))[0];
 
     const $searchElement = $(
       `<div class='data-table__search'>
@@ -281,7 +283,7 @@ class DataTableComponent extends Component {
 
     this.toggleFilter(column)
 
-    if (columnType != 'date') {
+    if (col && col.typeahead) {
       const builder = new TypeaheadBuilder();
       builder
         .withAjaxSource(this.getApiEndpoint(columnId))

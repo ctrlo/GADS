@@ -36,6 +36,7 @@
     IF column.data; mycol.data = column.data; END;
     IF column.class; mycol.class = column.class; END;
     IF column.width; mycol.width = column.width; END;
+    IF column.typeahead; mycol.typeahead = column.typeahead; END;
 
     config_columns.push(mycol);
 
