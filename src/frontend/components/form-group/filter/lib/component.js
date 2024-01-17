@@ -94,13 +94,13 @@ class FilterComponent extends Component {
 
     const builderConfig = JSON.parse($builderJSON.html())
     const filterBase = $builderEl.data('filter-base')
-    
+
     if (!builderConfig.filters.length) return
     if (builderConfig.filterNotDone) this.makeUpdateFilter()
 
     $builderEl.queryBuilder({
       showPreviousValues: builderConfig.showPreviousValues,
-      filters: builderConfig.filters.map(col => 
+      filters: builderConfig.filters.map(col =>
         this.buildFilter(builderConfig, col)
       ),
       allow_empty: true,
@@ -117,6 +117,13 @@ class FilterComponent extends Component {
       logging.log(value);
       logging.log(e);
       logging.log(node);
+    });
+
+    this.el.on("afterCreateRuleFilters.queryBuilder", (e, rule) => {
+      const select= $(rule.$el.find('select'));
+      if(!select || !select[0]) console.log("No select found");
+      select.data("live-search","true");
+      select.selectpicker();
     });
 
     $builderEl.on('afterCreateRuleInput.queryBuilder', function(e, rule) {
@@ -173,7 +180,7 @@ class FilterComponent extends Component {
       const data = Buffer.from(filterBase, 'base64')
       try {
         const obj = JSON.parse(data);
-        if (obj.rules && obj.rules.length) { 
+        if (obj.rules && obj.rules.length) {
           $builderEl.queryBuilder('setRules', obj)
         } else {
           // Ensure that no blank rules by default, otherwise view cannot be submitted
@@ -268,7 +275,7 @@ class FilterComponent extends Component {
         path: 'records'
       })
     )
-  } 
+  }
 }
 
 export default FilterComponent
