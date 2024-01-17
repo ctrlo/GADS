@@ -290,6 +290,7 @@ sub create_pdf
     my $logo = $self->instance->site->create_temp_logo;
 
     my $pdf;
+    my $topmargin = 0;
 
     if($logo) {
         $pdf    = CtrlO::PDF->new(
@@ -297,19 +298,17 @@ sub create_pdf
             footer => $marking,
             logo   => $logo,
         );
-        $pdf->add_page;
-        my $topmargin = -30;
-        $pdf->heading( $self->title || $self->name, topmargin=>$topmargin );
-        $pdf->text($self->description , size => 14 ) if $self->description;
+        $topmargin = -30;
     } else {
         $pdf    = CtrlO::PDF->new(
             header => $marking,
             footer => $marking,
         );
-        $pdf->add_page;
-        $pdf->heading( $self->title || $self->name );
-        $pdf->heading($self->description , size => 14 );
     }
+
+    $pdf->add_page;
+    $pdf->heading( $self->title || $self->name, topmargin=>$topmargin );
+    $pdf->text($self->description , size => 14 ) if $self->description;
 
     my $data = $self->_data($record);
 
@@ -336,10 +335,9 @@ sub create_pdf
         );
     }
 
-    foreach my $topic (keys %$grouped_data) {
-        next unless $topic eq 'Other';
-        my $fields = [ [$topic, ''] ];
-        push( @{$fields}, [ $_->{name}, $_->{value} ] ) foreach (@{$grouped_data->{$topic}});
+    if(defined($grouped_data->{Other}) && scalar(@{$grouped_data->{Other}}) > 0) {
+        my $fields = [ ['Other', ''] ];
+        push( @{$fields}, [ $_->{name}, $_->{value} ] ) foreach (@{$grouped_data->{Other}});
 
         $pdf->table(
             data         => $fields,
@@ -389,13 +387,7 @@ sub _group_by_topic {
 sub _read_security_marking {
     my $self = shift;
 
-    my $marking = $self->security_marking;
-
-    return $marking if $marking;
-
-    my $instance = $self->instance;
-
-    return $instance->read_security_marking;
+    return $self->security_marking || $self->instance->security_marking;
 }
 
 1;

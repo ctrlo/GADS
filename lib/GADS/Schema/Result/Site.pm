@@ -341,17 +341,13 @@ sub load_logo {
   my $self = shift;
   my $filecheck = GADS::Filecheck->instance();
 
-  my $logo_path = $self->create_temp_logo;
+  my $logo_path = $self->create_temp_logo or return;
 
-  return undef unless $logo_path;
-
-  my $result = +{
+  return +{
     'content_type'=> $filecheck->get_filetype($logo_path),
     'filename' => 'logo',
     'data' => $self->site_logo
   };
-
-  return $result;
 }
 
 sub create_temp_logo {
@@ -369,14 +365,8 @@ sub create_temp_logo {
 
 sub read_security_marking {
   my $self = shift;
-  my $marking = $self->security_marking;
-
-  return $marking if $marking;
-
   my $config = GADS::Config->instance;
-  $marking = $config && $config->gads && $config->gads->{header};
-
-  return $marking;
+  return $self->security_marking || $config->gads->{header};
 }
 
 1;

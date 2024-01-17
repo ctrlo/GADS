@@ -1335,11 +1335,7 @@ any [ 'get', 'post' ] => '/settings/report_defaults/' => require_role 'superadmi
     if(body_parameters->get('submit')) {
         my $post_marking = body_parameters->get('security_marking');
 
-        my $txn_scope_guard = schema->txn_scope_guard;
-
         $site->update({ security_marking => $post_marking });
-
-        $txn_scope_guard->commit;
     }
 
     my $logo             = $site->site_logo ? 1 : 0;
