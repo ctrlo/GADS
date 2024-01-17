@@ -35,7 +35,9 @@ class FileDrag {
             if (!this.dragging) return;
             this.dragging = false;
             removeClass(this.el, 'dragging');
-            hideElement(this.dropZone);
+            hideElement($('.drop-zone'));
+            showElement($('[data-draggable="true"]'));
+            if (this.options.debug) console.log(e.originalEvent.dataTransfer.files);
             showElement(this.el);
             console.log(e.originalEvent.dataTransfer.files);
             if (this.options.allowMultiple) {
@@ -72,8 +74,13 @@ class FileDrag {
 
     initElements() {
         if (this.options.debug) console.log('initElements');
+        this.el.data('draggable', 'true');
         this.dropZone = $('<div class="drop-zone">Drop files here</div>');
-        this.el.parent().append(this.dropZone);
+        const error = $('<div class="upload__error">Error</div>');
+        hideElement(error)
+        const parent = this.el.parent();
+        parent.append(this.dropZone);
+        parent.append(error);
         hideElement(this.dropZone);
     }
 }
