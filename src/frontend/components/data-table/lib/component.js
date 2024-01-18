@@ -249,7 +249,7 @@ class DataTableComponent extends Component {
     const {oAjaxData} = context[0];
     const {columns} = oAjaxData;
     const columnId = columns[column.index()].name;
-    const col = this.columns.filter((col) => col.name === columnId.replace(/\s+/g, ''))[0];
+    const col = this.columns[column.index()];
 
     const $searchElement = $(
       `<div class='data-table__search'>
@@ -581,7 +581,7 @@ class DataTableComponent extends Component {
       const self = this
 
       this.json = json || undefined
-      
+
       if (this.initializingTable) {
         dataTable.columns().every(function(index) {
           const column = this
@@ -605,7 +605,7 @@ class DataTableComponent extends Component {
 
             self.addSearchDropdown(column, id, index)
           }
-          return true; 
+          return true;
         })
 
         // If the table has not wrapped (become responsive) then hide the toggle button
@@ -613,7 +613,7 @@ class DataTableComponent extends Component {
           if (this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').length) {
             this.el.closest('.dataTables_wrapper').find('.dataTables_toggle_full_width').hide()
           }
-        } 
+        }
 
         this.initializingTable = false
       }
