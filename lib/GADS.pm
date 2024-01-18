@@ -2862,6 +2862,7 @@ prefix '/:layout_name' => sub {
                     Crumb( $base_url . "table/", "Tables" ),
                     Crumb( "",                   "Table: " . $layout->name )
                 ],
+                security_marking => $security_marking,
             };
 
             template 'reports/view' => $params;

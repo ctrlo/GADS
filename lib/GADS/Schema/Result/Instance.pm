@@ -452,9 +452,7 @@ sub _scrub
 
 sub read_security_marking {
     my $self = shift;
-    my $marking = $self->security_marking;
-    return $marking if $marking;
-    return $self->site->security_marking;
+    $self->security_marking || $self->site->read_security_marking;
 }
 
 1;

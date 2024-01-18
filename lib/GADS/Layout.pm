@@ -306,8 +306,7 @@ has security_marking => (
 
 sub _build_security_marking {
     my $self = shift;
-    my $rset = $self->_rset->read_security_marking;
-    return $rset;
+    $self->_rset->read_security_marking;
 }
 
 sub _build_reports
