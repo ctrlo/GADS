@@ -1,3 +1,5 @@
+$error: adjust-color($color: $brand-danger, $red: -100, $green: -100, $blue: -100);
+
 .drop-zone {
     border: 2px dashed $gray;
     border-radius: 5px;
@@ -11,4 +13,14 @@
         border-color: $brand-secundary;
         color: $brand-primary;
     }
+}
+
+.upload__error {
+    color: $error;
+    font-size: 14px;
+    margin-top: 5px;
+    padding: 5px;
+    background-color: $brand-danger-light;
+    border: 1px dashed $error;
+    border-radius: $input-border-radius;
 }

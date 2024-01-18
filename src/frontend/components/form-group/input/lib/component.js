@@ -3,7 +3,7 @@ import { initValidationOnField, validateCheckboxGroup } from 'validation'
 import initDateField from 'components/datepicker/lib/helper'
 import 'blueimp-file-upload'
 import TypeaheadBuilder from 'util/typeahead'
-import { stopPropagation } from 'util/common'
+import { stopPropagation, fromJson, hideElement, showElement } from 'util/common'
 
 class InputComponent extends Component {
     constructor(element)  {
@@ -92,8 +92,9 @@ class InputComponent extends Component {
         dropTarget.filedrag(dragOptions).on('onFileDrop', (ev, file) => {
           this.handleAjaxUpload(url, token, file);
         });
+        this.error = dropTarget.parent().find('.upload__error');
       } else throw new Error("Could not find file-upload element");
-
+      
       this.el.fileupload({
         dataType: "json",
         url: url,
@@ -178,6 +179,8 @@ class InputComponent extends Component {
     }
 
     handleAjaxUpload(uri, csrf_token, file) {
+      try{
+        hideElement(this.error);
         if (!file) throw new Error("No file provided");
         const self = this;
         const field = this.el.data("field")
@@ -190,10 +193,26 @@ class InputComponent extends Component {
         request.onreadystatechange = () => {
             if (request.readyState === 4 && request.status === 200) {
                 const data = JSON.parse(request.responseText);
-                self.addFileToField({ id: data.id, name: data.filename })
+                self.addFileToField({ id: data.id, name: data.filename });
+            }
+            if(request.readyState === 4 && request.status <= 400){
+                const response = fromJson(request.responseText);
+                if(response.is_error && response.message) self.showException(response.message);
+                else self.showException("An unexpected error occurred");
             }
         };
+        request.onerror=()=>{
+            self.showException("An unexpected error occurred");
+        };
         request.send(fileData);
+      }catch(e){
+        this.showException(e);
+      }
+    }
+    
+    showException(e) {
+        this.error.html(e);
+        showElement(this.error);
     }
 
     handleFormUpload(file) {

@@ -45,12 +45,17 @@ export const removeClass = (element: ElementOrJQueryElement, className: string) 
     $el.removeClass(className);
 }
 
-export const asJSON = (json: any) => {
+export const fromJson = (json: String | object) => {
     try {
-        if(!json) return {};
-        if(typeof json === 'string') return JSON.parse(json);
+        if (!json || json === '') return undefined;
+        if (typeof json === 'string') {
+            return JSON.parse(json);
+        }
         return json;
-    }catch(e){
-        return {};
+    } catch (e) {
+        return undefined;
     }
-};
+}
+
+//I don't know if the ambiguity I currently have introduced across changes will cause problems, I'll refactor this function out should it be in the code and replace as required in the future
+export const asJson = fromJson;
