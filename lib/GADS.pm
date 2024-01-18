@@ -4272,6 +4272,7 @@ prefix '/:layout_name' => sub {
         to_json [ rset('User')->match($query) ];
     };
 
+    # I don't know where else this is used, so I am going to revert it to it's original setup and leave it alone for now!
     get '/match/layout/:layout_id' => require_login sub {
 
         my $layout = var('layout') or pass;
@@ -4281,11 +4282,11 @@ prefix '/:layout_name' => sub {
         my $column = $layout->column($layout_id, permission => 'read');
 
         content_type 'application/json';
-        # To match data structure returned from getting filtered curval values
-        to_json {
+
+        return to_json {
             error   => 0,
             records => [ $column->values_beginning_with($query, noempty => query_parameters->get('noempty')) ]
-        };
+        }
     };
 
 };

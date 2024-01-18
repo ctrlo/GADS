@@ -36,6 +36,8 @@ class DataTableComponent extends Component {
     }
 
     const conf = this.getConf()
+    const {columns} = conf;
+    this.columns = columns;
     this.el.DataTable(conf)
     this.initializingTable = true
 
@@ -247,6 +249,7 @@ class DataTableComponent extends Component {
     const {oAjaxData} = context[0];
     const {columns} = oAjaxData;
     const columnId = columns[column.index()].name;
+    const col = this.columns[column.index()];
 
     const $searchElement = $(
       `<div class='data-table__search'>
@@ -280,18 +283,20 @@ class DataTableComponent extends Component {
 
     this.toggleFilter(column)
 
-    const builder = new TypeaheadBuilder();
-    builder
-      .withAjaxSource(this.getApiEndpoint(columnId))
-      .withInput($('input', $header))
-      .withAppendQuery()
-      .withDefaultMapper()
-      .withName(columnId.replace(/\s+/g,'') + 'Search')
-      .withCallback((data) => {
-        $('input', $header).val(data.name);
-        $('input', $header).trigger('change');
-      })
-      .build();
+    if (col && col.typeahead) {
+      const builder = new TypeaheadBuilder();
+      builder
+        .withAjaxSource(this.getApiEndpoint(columnId))
+        .withInput($('input', $header))
+        .withAppendQuery()
+        .withDefaultMapper()
+        .withName(columnId.replace(/\s+/g, '') + 'Search')
+        .withCallback((data) => {
+          $('input', $header).val(data.name);
+          $('input', $header).trigger('change');
+        })
+        .build();
+    }
 
     // Apply the search
     $('input', $header).on('change', function (ev) {
@@ -576,7 +581,7 @@ class DataTableComponent extends Component {
       const self = this
 
       this.json = json || undefined
-      
+
       if (this.initializingTable) {
         dataTable.columns().every(function(index) {
           const column = this
@@ -600,7 +605,7 @@ class DataTableComponent extends Component {
 
             self.addSearchDropdown(column, id, index)
           }
-          return true; 
+          return true;
         })
 
         // If the table has not wrapped (become responsive) then hide the toggle button
@@ -608,7 +613,7 @@ class DataTableComponent extends Component {
           if (this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').length) {
             this.el.closest('.dataTables_wrapper').find('.dataTables_toggle_full_width').hide()
           }
-        } 
+        }
 
         this.initializingTable = false
       }
