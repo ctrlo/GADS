@@ -1,5 +1,6 @@
 import { Component } from 'component'
-import queryBuilder from '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
+import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
+import 'bootstrap-select/dist/js/bootstrap-select'
 
 class DisplayConditionsComponent extends Component {
   constructor(element)  {
@@ -12,6 +13,13 @@ class DisplayConditionsComponent extends Component {
     const builderData = this.el.data()
     const filters = JSON.parse(Buffer.from(builderData.filters, 'base64'))
     if (!filters.length) return
+
+    this.el.on("afterCreateRuleFilters.queryBuilder", (e, rule) => {
+      const select= $(rule.$el.find('select'));
+      if(!select || !select[0]) console.log("No select found");
+      select.data("live-search","true");
+      select.selectpicker();
+    });
 
     this.el.queryBuilder({
       filters: filters,

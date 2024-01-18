@@ -1,4 +1,4 @@
-import { addClass, hideElement, removeClass, showElement, stopPropagation } from "./common";
+import { addClass, fromJson, hideElement, removeClass, showElement, stopPropagation } from "./common";
 
 describe('common functions', () => {
     it('stops propagation', () => {
@@ -101,3 +101,36 @@ describe('common functions', () => {
         expect(el.removeClass).not.toHaveBeenCalled();
     });
 });
+
+it('should convert a JSON string to a JSON object', () => {
+    const json = '{"foo":"bar"}';
+    const obj = fromJson(json);
+    expect(obj.foo).toBe('bar');
+});
+
+it('should give a json response with no modification when one is passed in', () => {
+    const json = {foo:"bar"};
+    const obj = fromJson(json);
+    expect(obj.foo).toBe('bar');
+});
+
+it('should return null when an invalid json string is passed in', () => {
+    const json = '{"foo":"bar"';
+    const obj = fromJson(json);
+    expect(obj).toBe(undefined);
+});
+
+it('should return undefined when null is passed in', () => {
+    const obj = fromJson(null);
+    expect(obj).toBe(undefined);
+});
+
+it('should return undefined when undefined is passed in', () => {
+    const obj = fromJson(undefined);
+    expect(obj).toBe(undefined);
+});
+
+it('should return undefined when an empty string is passed in', () => {
+    const obj = fromJson('');
+    expect(obj).toBe(undefined);
+})
