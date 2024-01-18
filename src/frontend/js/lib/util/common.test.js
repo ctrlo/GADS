@@ -1,4 +1,4 @@
-import { asJSON, addClass, hideElement, removeClass, showElement, stopPropagation } from "./common";
+import { addClass, fromJson, hideElement, removeClass, showElement, stopPropagation } from "./common";
 
 describe('common functions', () => {
     describe('event handling', () => {
@@ -108,31 +108,31 @@ describe('common functions', () => {
     describe('JSON tests',() => {
         it('parses a JSON string', () => {
             const json = '{"foo":"bar"}';
-            const parsed = asJSON(json);
+            const parsed = fromJson(json);
             expect(parsed.foo).toEqual('bar');
         });
 
         it('parses a JSON object', ()=>{
             const json = {foo: "bar"};
-            const parsed = asJSON(json);
+            const parsed = fromJson(json);
             expect(parsed.foo).toEqual('bar');
         });
 
         it('returns an empty object for invalid JSON', ()=>{
             const json = "foo";
-            const parsed = asJSON(json);
+            const parsed = fromJson(json);
             expect(parsed).toEqual({});
         });
 
         it('returns an empty object for null', ()=>{
             const json = null;
-            const parsed = asJSON(json);
+            const parsed = fromJson(json);
             expect(parsed).toEqual({});
         });
 
         it('returns an empty object for undefined', ()=>{
             const json = undefined;
-            const parsed = asJSON(json);
+            const parsed = fromJson(json);
             expect(parsed).toEqual({});
         });
     });
