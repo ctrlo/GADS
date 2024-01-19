@@ -683,7 +683,8 @@ class DataTableComponent extends Component {
 
     $dataTableContainer.addClass('data-table__container--scrollable')
     // // See comments above regarding preventing multiple clicks
-    this.el.DataTable().button(0).disable();
+    if(location.pathname!=='/settings/audit/')
+      this.el.DataTable().button(0).disable();
     this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').toggleClass(['btn-toggle', 'btn-toggle-off'])
 
   }
@@ -694,7 +695,8 @@ class DataTableComponent extends Component {
     this.el.DataTable(conf)
     this.initializingTable = true
     // See comments above regarding preventing multiple clicks
-    this.el.DataTable().button(0).disable();
+    if(location.pathname!=='/settings/audit/')
+      this.el.DataTable().button(0).disable();
   }
 
   setFullscreenTableContainerHeight() {

@@ -3,7 +3,7 @@
   # PROCESS snippets/datum.tt
 
   # prepare files table config
-  table_dom = "t";
+  table_dom = "Bt";
   table_show_all_records = 1;
 
   table_caption = "Table for audit log";
