@@ -45,6 +45,7 @@ class FileDrag {
             } else {
                 this.onDrop(e.originalEvent.dataTransfer.files[0]);
             }
+            $(document).trigger('drop');
             stopPropagation(e);
         });
     }
@@ -66,6 +67,13 @@ class FileDrag {
             hideElement(this.dropZone);
             showElement(this.el);
         });
+        $(document).on('drop', (e) => {
+            if (!this.dragging) return;
+            this.dragging = false;
+            hideElement(this.dropZone);
+            showElement(this.el);
+            stopPropagation(e);
+        })
         $(document).on('dragover', (e) => {
             if (!this.dragging) return;
             stopPropagation(e);
