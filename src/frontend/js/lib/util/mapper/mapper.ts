@@ -31,11 +31,13 @@ export const map: MapperFunction = (r: ScriptResponse) => {
     let i = 0;
     r.records.forEach((record) => {
         if (record instanceof Object) {
+          if(!result.filter((item) => { return item.name === record.label }).length)
             result.push({
                 name: record.label,
                 id: record.id
             });
         } else {
+          if(!result.filter((item) => { return item.name === record }).length)
             result.push({
                 name: record,
                 id: i++
