@@ -1,7 +1,7 @@
 import { Component } from 'component'
 import { logging } from 'logging'
 import { MoreInfoButton } from './more-info-button'
-import { validateRequiredFields } from 'validation'
+import { addErrorMessage, validateRequiredFields } from 'validation'
 import CreateReportButtonComponent from './create-report-button'
 
 class ButtonComponent extends Component {
@@ -239,7 +239,29 @@ class ButtonComponent extends Component {
     }
   }
 
+  addValidationError(field, name, id) {
+    const $errorDiv = $('<div class="error">');
+    const $span = $(`<span id="${id}-err" class="form-text form-text--error" aria-live="off"></span>`);
+    $span.text(`${name || id} is a required field.`);
+    $errorDiv.html($span);
+    $errorDiv.appendTo(field);
+  }
+
   saveView(ev){
+    //Don't ask me why, but standard validation doesn't work here, so I'm having to "home cook" it, as it were.
+    const $form = $(ev.target).closest('form');
+    $form.find('.error').remove();
+    const $global = $form.find('#global');
+    if($global.checked || $global.is(':checked') || $global.val() === '1') {
+      const $group = $form.find('#group_id');
+      if($group.val() === '') {
+        this.addValidationError($group.parent(), $group.parent().find('label').text(), $group.attr('id'));
+        ev.preventDefault();
+      } else {
+        console.log('Group is:', $group.val());
+        if($group.val()==='allusers') $group.val('');
+      }
+    }
     $(".filter").each((i, el) => {
       if (!$(el).queryBuilder('validate')) ev.preventDefault();
       const res = $(el).queryBuilder('getRules')
