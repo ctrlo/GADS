@@ -3,10 +3,11 @@
   # PROCESS snippets/datum.tt
 
   # prepare files table config
-  table_dom = "Bt";
+  table_dom = 'Bt';
   table_show_all_records = 1;
 
   table_caption = "Table for audit log";
+  table_class = "table-force-buttons";
 
   table_columns = [{
     name = "ID"

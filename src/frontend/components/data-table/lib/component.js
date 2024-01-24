@@ -18,6 +18,7 @@ class DataTableComponent extends Component {
     this.el = $(this.element)
     this.hasCheckboxes = this.el.hasClass('table-selectable')
     this.hasClearState = this.el.hasClass('table-clear-state')
+    this.forceButtons = this.el.hasClass('table-force-buttons')
     this.searchParams = new URLSearchParams(window.location.search)
     this.base_url = this.el.data('href') ? this.el.data('href') : undefined
     this.initTable()
@@ -683,7 +684,7 @@ class DataTableComponent extends Component {
 
     $dataTableContainer.addClass('data-table__container--scrollable')
     // // See comments above regarding preventing multiple clicks
-    if(location.pathname!=='/settings/audit/')
+    if(!this.forceButtons)
       this.el.DataTable().button(0).disable();
     this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').toggleClass(['btn-toggle', 'btn-toggle-off'])
 
@@ -695,7 +696,7 @@ class DataTableComponent extends Component {
     this.el.DataTable(conf)
     this.initializingTable = true
     // See comments above regarding preventing multiple clicks
-    if(location.pathname!=='/settings/audit/')
+    if(!this.forceButtons)
       this.el.DataTable().button(0).disable();
   }
 
