@@ -53,11 +53,14 @@ class InputComponent extends Component {
         });
         this.error = dropTarget.parent().find('.upload__error');
       } else throw new Error("Could not find file-upload element");
-      
+
       this.el.fileupload({
         dataType: "json",
         url: url,
         paramName: "file",
+        options: {
+          dropTarget: undefined
+        },
 
         submit: function() {
           $progressBarContainer.css("display", "block");
@@ -153,8 +156,7 @@ class InputComponent extends Component {
             if (request.readyState === 4 && request.status === 200) {
                 const data = JSON.parse(request.responseText);
                 self.addFileToField({ id: data.id, name: data.filename });
-            }
-            if(request.readyState === 4 && request.status <= 400){
+            } else if(request.readyState === 4 && request.status >= 400){
                 const response = fromJson(request.responseText);
                 if(response.is_error && response.message) self.showException(response.message);
                 else self.showException("An unexpected error occurred");
