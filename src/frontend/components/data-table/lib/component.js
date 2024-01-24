@@ -673,6 +673,11 @@ class DataTableComponent extends Component {
     return conf
   }
 
+  /*
+    For some reason, the current code that is present doesn't enable/disable the button as expected; it will disable the button, but will not re-enable the button.
+    I have tried manually changing the DOM, as well as the methods already present in the code, and I currently believe there is a bug within the DataTables button
+    code that is meaning that this won't change (although I am open to the fact that I am being a little slow and missing something glaringly obvious). - DR:24/01/2024
+  */
   enterFullScreenMode(conf) {
     this.originalResponsiveObj = conf.responsive
     conf.responsive = false
