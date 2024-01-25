@@ -4275,6 +4275,7 @@ prefix '/:layout_name' => sub {
 
     # I don't know where else this is used, so I am going to revert it to it's original setup and leave it alone for now!
     get '/match/layout/:layout_id' => require_login sub {
+        print STDOUT "match/layout/:layout_id\n";
 
         my $layout = var('layout') or pass;
         my $query = param('q');
@@ -4284,11 +4285,9 @@ prefix '/:layout_name' => sub {
 
         content_type 'application/json';
 
-        my %seen;
-
         return to_json {
             error   => 0,
-            records => [grep { !$seen{$_->{label}}++ } $column->values_beginning_with($query, noempty => query_parameters->get('noempty'))],
+            records => [$column->values_beginning_with($query, noempty => query_parameters->get('noempty'))],
         }
     };
 
