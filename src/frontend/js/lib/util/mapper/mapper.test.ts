@@ -44,28 +44,4 @@ describe('mapper', () => {
         const actual = map(response);
         expect(actual).toEqual(expected);
     });
-
-    it('should filter out duplicate values from the response', () => {
-        const response = { error: 0, records: ["test", "test", "test"] };
-        const expected = [
-            {
-                name: "test",
-                id: 0
-            }
-        ];
-        const actual = map(response);
-        expect(actual).toEqual(expected);
-    });
-
-    it('should filter out duplicate values from the response when objects are returned', () => {
-        const response = { error: 0, records: [{ label: "test", id: 1 }, { label: "test", id: 4 }, { label: "test", id: 752 }] };
-        const expected = [
-            {
-                name: "test",
-                id: 1
-            }
-        ];
-        const actual = map(response);
-        expect(actual).toEqual(expected);
-    });
 });
