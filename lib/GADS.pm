@@ -79,7 +79,6 @@ $huge = 'overflow';
 use Tie::Cache;
 use URI;
 use URI::Escape qw/uri_escape_utf8 uri_unescape/;
-use List::MoreUtils qw/ uniq /;
 
 use Log::Log4perl qw(:easy); # Just for WWW::Mechanize::Chrome
 use WWW::Mechanize::Chrome;
@@ -4275,6 +4274,7 @@ prefix '/:layout_name' => sub {
 
     # I don't know where else this is used, so I am going to revert it to it's original setup and leave it alone for now!
     get '/match/layout/:layout_id' => require_login sub {
+
         my $layout = var('layout') or pass;
         my $query = param('q');
         my $layout_id = param('layout_id');
@@ -4285,7 +4285,7 @@ prefix '/:layout_name' => sub {
 
         return to_json {
             error   => 0,
-            records => [$column->values_beginning_with($query, noempty => query_parameters->get('noempty'))],
+            records => [ $column->values_beginning_with($query, noempty => query_parameters->get('noempty')) ],
         }
     };
 
