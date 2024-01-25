@@ -117,7 +117,7 @@
         type   = "link"
         label  = user_row.account_request_notes
         filter = "html_entity"
-        name   = "notes"
+        name   = "account_request_notes"
         value  = user_row.account_request_notes
       }]
     };
