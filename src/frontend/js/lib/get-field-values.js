@@ -14,7 +14,7 @@ const format_date = function(date) {
 };
 
 // get the value from a field, depending on its type
-const getFieldValues = function($depends, filtered, for_code) {
+const getFieldValues = function($depends, filtered, for_code, form_value) {
   const type = $depends.data("column-type");
 
   // If a field is not shown then treat it as a blank value (e.g. if fields
@@ -32,19 +32,23 @@ const getFieldValues = function($depends, filtered, for_code) {
   }
 
   let values = [];
-  let $visible;
   let $f;
-  if (type === "enum" || type === "curval") {
-    if (filtered) {
+  if (type === "enum" || type === "curval" || type === "person") {
+    if ($depends.data('value-selector') == "noshow") {
+      $depends.find('.table-curval-group').find('input').each(function(){
+        const item = $(this);
+        values.push(item)
+      });
+    } else if (filtered) {
       // Field is type "filval". Therefore the values are any visible value in
       // the associated filtered drop-down
-      $visible = $depends.find(".select-widget .available .answer");
+      let $visible = $depends.find(".select-widget .available .answer");
       $visible.each(function() {
         const item = $(this);
         values.push(item);
       });
     } else {
-      $visible = $depends.find(
+      let $visible = $depends.find(
         ".select-widget .current [data-list-item]:not([hidden])"
       );
       $visible.each(function() {
@@ -78,6 +82,16 @@ const getFieldValues = function($depends, filtered, for_code) {
           return undefined;
         }
       }
+    } else if (form_value) {
+      values = $.map(values, function(item) {
+        if (item) {
+          // If this is a newly added item, return the form data instead of the
+          // ID (which won't be saved yet)
+          return item.data("list-id") || item.data("form-data");
+        } else {
+          return null;
+        }
+      });
     } else {
       values = $.map(values, function(item) {
         if (item) {
@@ -92,7 +106,11 @@ const getFieldValues = function($depends, filtered, for_code) {
   } else if (type === "tree") {
     // get the hidden fields of the control - their textual value is located in a dat field
     $depends.find(".selected-tree-value").each(function() {
-      values.push($(this).data("text-value"));
+      if (form_value) {
+        values.push($(this).val());
+      } else {
+        values.push($(this).data("text-value"));
+      }
     });
   } else if (type === "daterange") {
 
@@ -132,6 +150,13 @@ const getFieldValues = function($depends, filtered, for_code) {
       } else {
         return codevals[0];
       }
+    } else if (form_value) {
+      values = dateranges.map(function(dr) {
+        return {
+            from: dr.from.val(),
+            to: dr.to.val()
+        }
+      })
     } else {
       values = dateranges.map(function(dr) {
         return dr.from.val() + ' to ' + dr.to.val();
@@ -145,12 +170,12 @@ const getFieldValues = function($depends, filtered, for_code) {
         const $df = $(this);
         return for_code ? format_date($df.datepicker("getDate")) : $df.val();
       }).get();
-      if (for_code) {
+      if (for_code || form_value) {
         return values;
       }
     } else {
       const $df = $depends.find(".form-control");
-      if (for_code) {
+      if (for_code || form_value) {
         return format_date($df.datepicker("getDate"));
       } else {
         values = [$df.val()];
@@ -160,7 +185,14 @@ const getFieldValues = function($depends, filtered, for_code) {
   } else if (type === "file") {
 
     values = $depends.find("input:checkbox:checked").map(function(){
-      return $(this).data('filename')
+      if (form_value) {
+        return {
+            id: $(this).val(),
+            filename: $(this).data('filename')
+        }
+      } else {
+        return $(this).data('filename')
+      }
     }).get();
 
   } else {
