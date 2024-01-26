@@ -1,5 +1,27 @@
 # GADS Changelist
 
+**Version**: 2.2.0
+**Released**: {TBC}
+
+## QoL changes
+
+- Typeahead on column search for certain fields
+- Search on view filters
+- Added full screen control to audit screen
+- Drag and Drop modified on file upload in order to improve user experience
+
+## fixes
+
+- Header and formatting for multival calc fields fixed
+- Fixed misplaced chevron for viewing record details
+- Moved over to typeahead.js from previous typeahead library as previous library was deprecated
+- Modified header and value placement for multival calc field views
+
+## Development changes
+
+- Changed webpack config for ease of development
+- Added build:dev and test:watch yarn tasks for development use
+
 -------
 
 **Version**: 2.1.0
