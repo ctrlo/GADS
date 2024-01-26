@@ -104,11 +104,33 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
   } else if (type === "person") {
     values = [$depends.find("input").val()];
   } else if (type === "tree") {
-    // get the hidden fields of the control - their textual value is located in a dat field
+    const jstree = $depends.find('.jstree').jstree(true);
     $depends.find(".selected-tree-value").each(function() {
+      const $node = $(this);
       if (form_value) {
-        values.push($(this).val());
+        values.push($node.val());
+      } else if (for_code) {
+        // Replicate backend format.
+        // Find node in JStree and then its parents
+        if ($node.val()) {
+          const node   = jstree.get_node($node.val());
+          const ps     = node.parents;
+          let parents = {};
+          ps.filter(id => id !== '#').reverse().forEach(function(id, index) {
+            parents["parent"+(index+1)] = jstree.get_node(id).text;
+          })
+          values.push({
+            value: node.text,
+            parents: parents
+          });
+        } else {
+          values.push({
+            value: undefined,
+            parents: {}
+          });
+        }
       } else {
+        // get the hidden fields of the control - their textual value is located in a data field
         values.push($(this).data("text-value"));
       }
     });
