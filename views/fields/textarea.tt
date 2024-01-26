@@ -27,7 +27,7 @@
 [% IF ! hide_group %]
 <div class="form-group">
 [% END %]
-[% IF value_label %]
+[% IF label %]
   <div class="textarea [% input_class %]"[% textarea_style %]>
     [% INCLUDE fields/sub/label_input.tt label_type="textarea"; %]
 [% END %]
@@ -45,7 +45,7 @@
         aria-required="true"[% END %]
       >[% INCLUDE fields/sub/filter.tt; %]</textarea>
     </div>
-[% IF value_label %]
+[% IF label %]
   </div>
 [% END %]
 [% INCLUDE snippets/subfield.tt %]
