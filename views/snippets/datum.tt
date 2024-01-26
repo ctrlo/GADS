@@ -32,7 +32,7 @@
     [% END %]
     [% IF col.limit_rows AND curval.links.size >= col.limit_rows %]
         <p><em>(showing maximum [% col.limit_rows %] rows.
-            <a href="/[% curval.parent_layout_identifier %]/data?curval_record_id=[% curval.record_id %]&curval_layout_id=[% curval.column_id %]">view all</a>)</em>
+            <a href="/[% curval.parent_layout_identifier %]/data?curval_record_id=[% curval.record_id %]&curval_layout_id=[% curval.column_id %]" target="_blank">view all</a>)</em>
         </p>
     [% END %]
 [% END %]
