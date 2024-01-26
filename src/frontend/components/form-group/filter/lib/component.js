@@ -1,5 +1,6 @@
 import { Component } from 'component'
 import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
+import 'bootstrap-select/dist/js/bootstrap-select'
 import { logging } from 'logging'
 import TypeaheadBuilder from 'util/typeahead'
 import { map } from 'util/mapper/mapper'
@@ -97,6 +98,13 @@ class FilterComponent extends Component {
 
     if (!builderConfig.filters.length) return
     if (builderConfig.filterNotDone) this.makeUpdateFilter()
+
+    this.el.on("afterUpdateRuleFilter.queryBuilder", (e, rule) => {
+      const select= $(rule.$el.find('select'));
+      if(!select || !select[0]) console.log("No select found");
+      select.data("live-search","true");
+      select.selectpicker();
+    });
 
     $builderEl.queryBuilder({
       showPreviousValues: builderConfig.showPreviousValues,
