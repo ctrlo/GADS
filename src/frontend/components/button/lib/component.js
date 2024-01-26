@@ -1,7 +1,7 @@
 import { Component } from 'component'
 import { logging } from 'logging'
 import { MoreInfoButton } from './more-info-button'
-import { addErrorMessage, validateRequiredFields } from 'validation'
+import { validateRequiredFields } from 'validation'
 import CreateReportButtonComponent from './create-report-button'
 
 class ButtonComponent extends Component {
@@ -108,6 +108,16 @@ class ButtonComponent extends Component {
   }
 
   initSaveView() {
+    const $form = this.el.closest('form');
+    const $global = $form.find('#global');
+    $global.on('change', (ev) => {
+      const $input = $form.find('input[type=hidden][name=group_id]');
+      if (ev.target.checked) {
+        $input.attr('required', 'required');
+      } else {
+        $input.removeAttr('required');
+      }
+    });
     this.el.on('click', (ev) => { this.saveView(ev) })
   }
 
@@ -247,20 +257,13 @@ class ButtonComponent extends Component {
     $errorDiv.appendTo(field);
   }
 
-  saveView(ev){
-    //Don't ask me why, but standard validation doesn't work here, so I'm having to "home cook" it, as it were.
+  saveView(ev) {
     const $form = $(ev.target).closest('form');
-    $form.find('.error').remove();
-    const $global = $form.find('#global');
-    if($global.checked || $global.is(':checked') || $global.val() === '1') {
-      const $group = $form.find('#group_id');
-      if($group.val() === '') {
-        this.addValidationError($group.parent(), $group.parent().find('label').text(), $group.attr('id'));
-        ev.preventDefault();
-      } else {
-        console.log('Group is:', $group.val());
-        if($group.val()==='allusers') $group.val('');
-      }
+    if(!validateRequiredFields($form)) ev.preventDefault();
+    const select = $form.find('input[type=hidden][name=group_id]');
+    if(select.val() === 'allusers') {
+      select.val('');
+      select.removeAttr('required');
     }
     $(".filter").each((i, el) => {
       if (!$(el).queryBuilder('validate')) ev.preventDefault();

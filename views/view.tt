@@ -86,7 +86,8 @@
                             select_class = "select--select"
                             filter       = "html"
                             hide_group   = 0
-                            items        = group_id_items;
+                            items        = group_id_items,
+                            is_required  = 1;
                         %]
                       </div>
                     
