@@ -1,7 +1,7 @@
 # GADS Changelist
 
 **Version**: 2.2.0
-**Released**: {TBC}
+**Released**: 01st Feb 2023
 
 ## QoL changes
 
