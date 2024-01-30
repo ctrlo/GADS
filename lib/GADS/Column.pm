@@ -1562,7 +1562,14 @@ sub values_beginning_with
                     label => $_->get_column($self->value_field),
                 }
             } $match_result->search({}, {
-                columns => ['id', $value_field],
+                select => [
+                    {
+                        max => 'me.id',
+                        -as => 'id',
+                    },
+                    $value_field
+                ],
+                group_by => $value_field,
             })->all;
         }
         else {

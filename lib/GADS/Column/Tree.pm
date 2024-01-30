@@ -645,51 +645,5 @@ sub import_value
     });
 }
 
-sub values_beginning_with {
-    my ( $self, $match_string, %options ) = @_;
-
-    my $resultset = $self->resultset_for_values;
-    my @value;
-    my $value_field = 'me.' . $self->value_field;
-    $match_string =~ s/([_%])/\\$1/g;
-    my $search =
-      $match_string
-      ? {
-        $value_field => {
-            -like => "${match_string}%",
-        },
-      }
-      : $options{noempty}
-      && !$match_string ? { \"0 = 1" }    # Nothing to match, return nothing
-      :                   {};
-    if ($resultset) {
-        my $match_result = $resultset->search(
-            $search,
-            {
-                rows => 10,
-            },
-        );
-        @value = map {
-            {
-                id    => $_->get_column('id'),
-                label => $_->get_column( $self->value_field ),
-            }
-        } $match_result->search(
-            {},
-            {
-                select => [
-                    {
-                        max => 'me.id',
-                        -as => 'id',
-                    },
-                    $value_field
-                ],
-                group_by => $value_field,
-            }
-        )->all;
-    }
-    return @value;
-}
-
 1;
 
