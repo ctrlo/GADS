@@ -34,12 +34,12 @@ export const map: MapperFunction = (r: ScriptResponse) => {
             result.push({
                 name: record.label,
                 id: record.id
-            })
+            });
         } else {
             result.push({
                 name: record,
                 id: i++
-            })
+            });
         }
     })
     return result;
