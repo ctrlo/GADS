@@ -29,7 +29,9 @@ export default class ApiClient {
       credentials: 'same-origin', // Needed for older versions of Firefox, otherwise cookies not sent
     };
     if (body) {
-      opts.body = JSON.stringify(body);
+      const b = JSON.stringify(body);
+      console.log("body", b);
+      opts.body = b;
     }
     return fetch(fullRoute, opts);
   }
@@ -69,7 +71,7 @@ export default class ApiClient {
   }
 
   saveWidget = async (url, params) => {
-    const result = this.isDev ? await this.GET(`/widget/update.json`) : await this.PUT(`${url}?${params}`, null);
+    const result = this.isDev ? await this.GET(`/widget/update.json`) : await this.PUT(`${url}`, params);
     return await result.json();
   }
 }
