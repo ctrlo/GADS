@@ -629,8 +629,7 @@ sub _put_dashboard_widget_edit {
 
     my $body = from_json(request->body);
     
-    my $title = $body->{title};
-    $widget->title($title);
+    $widget->title($body->{'title'});
     $widget->static(query_parameters->get('static') ? 1 : 0)
         if $widget->dashboard->is_shared;
     if ($widget->type eq 'notice')
