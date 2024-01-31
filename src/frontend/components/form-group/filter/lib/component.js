@@ -127,13 +127,6 @@ class FilterComponent extends Component {
       logging.log(node);
     });
 
-    this.el.on("afterCreateRuleFilters.queryBuilder", (e, rule) => {
-      const select= $(rule.$el.find('select'));
-      if(!select || !select[0]) console.log("No select found");
-      select.data("live-search","true");
-      select.selectpicker();
-    });
-
     $builderEl.on('afterCreateRuleInput.queryBuilder', function(e, rule) {
       let filterConfig
 
