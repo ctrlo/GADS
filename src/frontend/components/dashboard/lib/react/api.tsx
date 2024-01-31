@@ -29,9 +29,7 @@ export default class ApiClient {
       credentials: 'same-origin', // Needed for older versions of Firefox, otherwise cookies not sent
     };
     if (body) {
-      const b = JSON.stringify(body);
-      console.log("body", b);
-      opts.body = b;
+      opts.body = JSON.stringify(body);
     }
     return fetch(fullRoute, opts);
   }
