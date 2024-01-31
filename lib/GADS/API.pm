@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS::API;
 
-use Data::Dumper;
 use Crypt::SaltedHash;
 use MIME::Base64 qw/decode_base64/;
 use Net::OAuth2::AuthorizationServer::PasswordGrant;
@@ -628,11 +627,8 @@ sub _put_dashboard_widget_edit {
     my $user   = logged_in_user;
     my $widget = _get_widget_write(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user);
 
-    print STDERR Dumper request->body;
-
     my $body = from_json(request->body);
-    print STDERR Dumper $body;
-
+    
     my $title = $body->{title};
     $widget->title($title);
     $widget->static(query_parameters->get('static') ? 1 : 0)
