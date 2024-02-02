@@ -259,7 +259,7 @@ class InputComponent extends Component {
       const $field = this.el
       const fileId = file.id
       const fileName = file.name
-      const field = $field.find('.input--file').data("field")
+      const field = $fieldset.find('.input--file').data("field")
       if (!this.el.data("multivalue")) {
         $ul.empty();
       }
