@@ -10,6 +10,7 @@ import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
  */
 export class Typeahead {
     private debug = false;
+    private timeout = null;
 
     /**
      * Create a new Typeahead class
@@ -33,25 +34,28 @@ export class Typeahead {
         }, {
             name: name,
             source: (query, syncResults, asyncResults) => {
-                const request: JQuery.AjaxSettings<any> = {
-                    url: ajaxSource + (appendQuery ? query : ""),
-                    dataType: "json",
-                    success: (data) => {
-                        if (this.debug) console.log("Typeahead data:", data);
-                        const mapped = mapper(data);
-                        if (this.debug) console.log("Typeahead mapped data:", mapped);
-                        const filtered = mapped.filter((item: MappedResponse) => { return item.name.toLowerCase().indexOf(query.toLowerCase()) !== -1; });
-                        if (this.debug) console.log("Typeahead filtered data:", filtered);
-                        syncResults(
-                            mapped
-                        );
-                    },
-                    async: false
-                };
-                if (this.sourceOptions.data) request.data = this.sourceOptions.data;
-                if (this.sourceOptions.dataBuilder) request.data = this.sourceOptions.dataBuilder();
-                if (this.debug) console.log("Typeahead request: ", request);
-                $.ajax(request);
+                if (this.timeout) clearTimeout(this.timeout);
+                this.timeout = setTimeout(() => {
+                    const request: JQuery.AjaxSettings<any> = {
+                        url: ajaxSource + (appendQuery ? query : ""),
+                        dataType: "json",
+                        success: (data) => {
+                            if (this.debug) console.log("Typeahead data:", data);
+                            const mapped = mapper(data);
+                            if (this.debug) console.log("Typeahead mapped data:", mapped);
+                            const filtered = mapped.filter((item: MappedResponse) => { return item.name.toLowerCase().indexOf(query.toLowerCase()) !== -1; });
+                            if (this.debug) console.log("Typeahead filtered data:", filtered);
+                            asyncResults(
+                                mapped
+                            );
+                        },
+                        async: false
+                    };
+                    if (this.sourceOptions.data) request.data = this.sourceOptions.data;
+                    if (this.sourceOptions.dataBuilder) request.data = this.sourceOptions.dataBuilder();
+                    if (this.debug) console.log("Typeahead request: ", request);
+                    $.ajax(request);
+                }, 200);
             },
             display: 'name',
             limit: 10,
