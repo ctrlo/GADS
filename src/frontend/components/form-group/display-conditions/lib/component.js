@@ -15,7 +15,7 @@ class DisplayConditionsComponent extends Component {
     if (!filters.length) return
 
     this.el.on("afterUpdateRuleFilter.queryBuilder", (e, rule) => {
-      const select= $(rule.$el.find('select'));
+      const select= $(rule.$el.find(`select[name=${rule.id}_filter]`));
       if(!select || !select[0]) console.log("No select found");
       select.data("live-search","true");
       select.selectpicker();
