@@ -6,6 +6,8 @@ package GADS::Schema::Result::Report;
 GADS::Schema::Result::Report
 =cut
 
+use Data::Dumper;
+
 use Log::Report 'linkspace';
 use CtrlO::PDF 0.06;
 use GADS::Config;
@@ -200,31 +202,6 @@ has record_id => (
     required => 0,
 );
 
-=head2 _data
-This is the data for the report as pulled from the instance record identfied by the Record Id
-=cut
-
-sub _data
-{   my ($self, $record) = @_;
-
-    my $result = [];
-
-    my $layouts = $self->report_layouts;
-    my $user    = $self->user;
-
-    my $gads_layout = $record->layout;
-
-    while ( my $layout = $layouts->next ) {
-        my $column = $gads_layout->column( $layout->layout_id, permission => 'read' ) or next;
-        my $topic = $column->topic->name if $column->topic;
-        my $datum  = $record->get_field_value($column);
-        my $data   = { 'name' => $layout->layout->name, 'value' => $datum || '', 'topic' => $topic || 'Other' };
-        push( @{$result}, $data );
-    }
-
-    return $result;
-}
-
 =head1 Object functions
 =head2 Update Report
 Function to update a report - it requires the schema and any updated fields to be passed in and will return a report object
@@ -237,9 +214,9 @@ sub update_report {
 
     $self->update(
         {
-            name => $args->{name},
-            title => $args->{title},
-            description => $args->{description},
+            name             => $args->{name},
+            title            => $args->{title},
+            description      => $args->{description},
             security_marking => $args->{security_marking},
         }
     );
@@ -247,8 +224,7 @@ sub update_report {
     my $layouts = $args->{layouts};
 
     foreach my $layout (@$layouts) {
-        $self->find_or_create_related( 'report_layouts',
-            { layout_id => $layout } );
+        $self->find_or_create_related( 'report_layouts', { layout_id => $layout } );
     }
 
     my $search = {};
@@ -310,10 +286,6 @@ sub create_pdf
     $pdf->heading( $self->title || $self->name, topmargin=>$topmargin );
     $pdf->text($self->description , size => 14 ) if $self->description;
 
-    my $data = $self->_data($record);
-
-    my $grouped_data = $self->_group_by_topic($data);
-
     my $hdr_props = {
         repeat    => 1,
         justify   => 'center',
@@ -322,28 +294,35 @@ sub create_pdf
         fg_color  => '#ffffff',
     };
 
-    foreach my $topic (keys %$grouped_data) {
-        next if $topic eq 'Other';
-        my $fields = [ [$topic, ''] ];
-        push( @{$fields}, [ $_->{name}, $_->{value} ] ) foreach (@{$grouped_data->{$topic}});
+    my $d=$record->columns_render;
+    my @layouts = $self->report_layouts;
+    my $result = [];
+    my %include;
 
-        $pdf->table(
-            data         => $fields,
-            header_props => $hdr_props,
-            border_c     => '#007c88',
-            h_border_w   => 1,
-        );
+    for my $val (@layouts) {
+        $include{$val->layout->name} = 1;
     }
 
-    if(defined($grouped_data->{Other}) && scalar(@{$grouped_data->{Other}}) > 0) {
-        my $fields = [ ['Other', ''] ];
-        push( @{$fields}, [ $_->{name}, $_->{value} ] ) foreach (@{$grouped_data->{Other}});
+    foreach my $col (@$d) {
+        next unless $include{$col->name};
+        push @$result, $col;
+    }
+
+    my @cols = $record->presentation_map_columns(columns=>$result);
+    my @topics = $record->get_topics(\@cols);
+
+    foreach my $topic (@topics) {
+        my $topic_value = defined $topic->{topic}? $topic->{topic} : undef;
+        my $topic_name = "Other";
+        $topic_name = $topic_value->name if $topic_value;
+        my $fields = [[$topic_name,""]];
+        push @$fields, [$_->{name}, $_->{data}->{value} || ""] for @{$topic->{columns}};
 
         $pdf->table(
-            data         => $fields,
-            header_props => $hdr_props,
-            border_c     => '#007c88',
-            h_border_w   => 1,
+            data => $fields,
+            header_props=> $hdr_props,
+            border_c => '#007C88',
+            h_border_w=>1,
         );
     }
 
@@ -369,19 +348,6 @@ sub fields_for_render {
     } $layout->all( user_can_read => 1 );
 
     return \@fields;
-}
-
-sub _group_by_topic {
-    my ($self, $data) = @_;
-
-    my $grouped_data = {};
-
-    foreach my $datum (@$data) {
-        my $topic = $datum->{topic};
-        push( @{$grouped_data->{$topic}}, {name=>$datum->{name}, value=>$datum->{value}} );
-    }
-
-    return $grouped_data;
 }
 
 sub _read_security_marking {

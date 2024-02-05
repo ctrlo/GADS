@@ -1339,7 +1339,7 @@ any [ 'get', 'post' ] => '/settings/report_defaults/' => require_role 'superadmi
     }
 
     my $logo             = $site->site_logo ? 1 : 0;
-    my $security_marking = $site->security_marking || config->{gads}->{header};
+    my $security_marking = $site->read_security_marking;
 
     template 'layouts/page_reporting_overview' => {
         page             => 'report_defaults',
@@ -1357,15 +1357,12 @@ any [ 'get', 'post' ] => '/settings/report_defaults/' => require_role 'superadmi
 get '/settings/logo' => require_login sub {
     my $site = var 'site';
 
-    if ( my $logo = $site->site_logo ) {
-        my $metadata = $site->load_logo;
-        my $mimetype = $metadata->{'content_type'};
-        my $filename = $metadata->{'filename'};
-        content_type $mimetype;
-        return $logo;
-    }else{
-        send_error ("not found", 404);
-    }
+    my $logo = $site->site_logo or error __"No logo configured";
+    my $metadata = $site->load_logo;
+    my $mimetype = $metadata->{'content_type'};
+    my $filename = $metadata->{'filename'};
+    content_type $mimetype;
+    return $logo;
 };
 
 any ['get', 'post'] => '/settings/audit/?' => require_role audit => sub {
@@ -2847,8 +2844,13 @@ prefix '/:layout_name' => sub {
             }
 
             if(body_parameters->get('submit')) {
-                my $security_marking = body_parameters->get('security_marking');
-                $layout->set_marking($security_marking);
+                if(process(sub {
+                        my $security_marking = body_parameters->get('security_marking');
+                        $layout->set_marking($security_marking);
+                })) {
+                    my $lo = param 'layout_name';
+                    return forwardHome({ success => "Security marking updated" }, "$lo/report");
+                }
             }
 
             my $security_marking = $layout->security_marking;

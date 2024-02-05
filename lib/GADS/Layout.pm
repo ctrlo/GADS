@@ -1590,13 +1590,9 @@ sub purge
 sub set_marking {
     my ($self, $marking) = @_;
 
-    my $txn_scope_guard = $self->schema->txn_scope_guard;
-
     $self->_rset->update({
-        securitymarking => $marking,
+        security_marking => $marking,
     });
-
-    $txn_scope_guard->commit;
 }
 
 1;

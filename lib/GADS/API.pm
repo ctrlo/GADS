@@ -550,21 +550,22 @@ post '/api/settings/logo' => require_login sub {
     my $site = var 'site';
 
     my $file = upload('file') or error __"No file provided";
-        #should this not return a json response with error set to 1?
-        forwardHome({ danger => "You do not have permission to manage system settings"}, '')
-            unless logged_in_user->permission->{superadmin};
+    #should this not return a json response with error set to 1?
+    unless(logged_in_user->permission->{superadmin}){
+        error __"You do not have permission to manage system settings";
+    }
 
-        $site->update({ site_logo => $file->content });
+    $site->update({ site_logo => $file->content });
 
-        content_type 'application/json';
-        # 201 is created rather than ok
-        status 201;
-        return encode_json(
-            {
-                error => 0,
-                url   => '/settings/logo'
-            }
-        );
+    content_type 'application/json';
+    # 201 is created rather than ok
+    status 201;
+    return encode_json(
+        {
+            error => 0,
+            url   => '/settings/logo'
+        }
+    );
 };
 
 sub _post_dashboard_widget {
