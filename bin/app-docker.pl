@@ -12,6 +12,12 @@ my $postgres_pass = $ENV{POSTGRES_PASSWORD} || 'postgres';
 my $postgres_db = $ENV{POSTGRES_DB} || 'gads';
 my $hostname = `hostname`;
 
+$ENV{PGPASSWORD} = $postgres_pass;
+
+my $output=`setupdb.sh $postgres_host $postgres_user $postgres_db`;
+
+die "Error setting up database: $output" if $output !~ "SUCCESS";
+
 my $file = "$FindBin::Bin/../config_local.yml";
 
 if(-e $file) {
