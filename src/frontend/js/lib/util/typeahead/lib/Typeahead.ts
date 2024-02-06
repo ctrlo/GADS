@@ -11,6 +11,7 @@ import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
 export class Typeahead {
     private debug = false;
     private timeout = null;
+    ajaxRequest: JQuery.jqXHR<any>;
 
     /**
      * Create a new Typeahead class
@@ -36,25 +37,28 @@ export class Typeahead {
             source: (query, syncResults, asyncResults) => {
                 if (this.timeout) clearTimeout(this.timeout);
                 this.timeout = setTimeout(() => {
+                    console.log("Typeahead query:", query);
                     const request: JQuery.AjaxSettings<any> = {
-                        url: ajaxSource + (appendQuery ? query : ""),
+                        url: ajaxSource + (appendQuery ? "?q=" + query : ""),
                         dataType: "json",
+                        beforeSend: () => {
+                            this.ajaxRequest && this.ajaxRequest.abort();
+                        },
                         success: (data) => {
                             if (this.debug) console.log("Typeahead data:", data);
                             const mapped = mapper(data);
                             if (this.debug) console.log("Typeahead mapped data:", mapped);
-                            const filtered = mapped.filter((item: MappedResponse) => { return item.name.toLowerCase().indexOf(query.toLowerCase()) !== -1; });
+                            const filtered = mapped.filter((item: MappedResponse) => {
+                                return item.name.toLowerCase().indexOf(query.toLowerCase()) !== -1;
+                            });
                             if (this.debug) console.log("Typeahead filtered data:", filtered);
-                            asyncResults(
-                                mapped
-                            );
-                        },
-                        async: false
+                            asyncResults(filtered);
+                        }
                     };
                     if (this.sourceOptions.data) request.data = this.sourceOptions.data;
                     if (this.sourceOptions.dataBuilder) request.data = this.sourceOptions.dataBuilder();
                     if (this.debug) console.log("Typeahead request: ", request);
-                    $.ajax(request);
+                    this.ajaxRequest = $.ajax(request);
                 }, 200);
             },
             display: 'name',

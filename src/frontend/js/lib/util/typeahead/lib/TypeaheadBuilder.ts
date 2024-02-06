@@ -78,8 +78,8 @@ export class TypeaheadBuilder {
      * Sets the append query to true
      * @returns The builder being used
      */
-    withAppendQuery() {
-        this.appendQuery = true;
+    withAppendQuery(appendQuery: boolean = true) {
+        this.appendQuery = appendQuery;
         return this;
     }
 
