@@ -3,7 +3,6 @@ import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min
 import 'bootstrap-select/dist/js/bootstrap-select'
 import { logging } from 'logging'
 import TypeaheadBuilder from 'util/typeahead'
-import { map } from 'util/mapper/mapper'
 
 class FilterComponent extends Component {
   constructor(element)  {
@@ -171,9 +170,10 @@ class FilterComponent extends Component {
         .withInput($ruleInputText)
         .withAjaxSource(self.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
         .withDataBuilder(buildQuery)
-        .withMapper(map)
+        .withDefaultMapper()
         .withName('rule')
         .withCallback(filterCallback)
+        .withAppendQuery()
         .build()
     })
 
