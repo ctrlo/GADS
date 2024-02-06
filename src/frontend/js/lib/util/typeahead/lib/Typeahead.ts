@@ -37,7 +37,6 @@ export class Typeahead {
             source: (query, syncResults, asyncResults) => {
                 if (this.timeout) clearTimeout(this.timeout);
                 this.timeout = setTimeout(() => {
-                    console.log("Typeahead query:", query);
                     const request: JQuery.AjaxSettings<any> = {
                         url: ajaxSource + (appendQuery ? "?q=" + query : ""),
                         dataType: "json",
