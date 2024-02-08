@@ -4,8 +4,6 @@ COPY ./ /app
 WORKDIR /app
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PGPASSWORD=mysecret
-ENV GADS_EMAIL=admin@localhost
-ENV GADS_PASSWORD=supersecretpassword
 RUN ["apt-get","update"]
 RUN ["apt-get","install","-y","cpanminus","liblua5.3-dev","gcc","g++","libdatetime-format-sqlite-perl","libtest-most-perl","libdatetime-set-perl"]
 RUN ["apt-get","install","-y","libdbix-class-schema-loader-perl","libmagic-dev","postgresql-client","libpng-dev","libssl-dev","libpq-dev"]
@@ -19,4 +17,3 @@ RUN ["apt-get","install","-y","liburl-encode-perl","libtie-cache-perl","libhtml-
 RUN ["apt-get","install","-y","libalgorithm-dependency-perl","libdancer-plugin-auth-extensible-perl","libfile-libmagic-perl","postfix"]
 RUN perl ./bin/output_cpanfile > cpanfile
 RUN ["cpanm","--installdeps",".","--cpanfile","cpanfile","--notest"]
-ENTRYPOINT ["./bin/docker.sh",${GADS_EMAIL},${GADS_PASSWORD}]

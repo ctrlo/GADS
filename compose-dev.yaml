@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:alpine
+    environment:
+      POSTGRES_USER: gads
+      POSTGRES_PASSWORD: mysecret
+      POSTGRES_DB: gads
+    ports:
+      - 5432:5432
+    container_name: db
+    expose:
+      - 5432
+  app:
+    entrypoint:
+    - sleep
+    - infinity
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - 3000:3000
+    expose:
+      - 3000
+    volumes:
+    - type: bind
+      source: /var/run/docker.sock
+      target: /var/run/docker.sock
+    depends_on:
+      - db
