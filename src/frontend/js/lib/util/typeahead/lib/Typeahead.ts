@@ -38,7 +38,7 @@ export class Typeahead {
                 if (this.timeout) clearTimeout(this.timeout);
                 this.timeout = setTimeout(() => {
                     const request: JQuery.AjaxSettings<any> = {
-                        url: ajaxSource + (appendQuery ? "?q=" + query : ""),
+                        url: ajaxSource + (appendQuery ?  query : ""),
                         dataType: "json",
                         beforeSend: () => {
                             this.ajaxRequest && this.ajaxRequest.abort();
