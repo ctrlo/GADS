@@ -9,6 +9,6 @@ WriteMakefile(
         'Test::More'            => 0,
         'Test2::API'            => 0,
         'Test2::Tools::Compare' => 0,
-        'WebDriver::Tiny'       => 0.102,
+        'WebDriver::Tiny'       => '0.102',
     },
 );
