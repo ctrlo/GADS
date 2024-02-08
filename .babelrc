@@ -16,5 +16,8 @@
     ],
     "@babel/preset-typescript",
     "@babel/preset-react"
+  ],
+  "ignore": [
+    "src/frontend/js/lib/plotly/*.js",
   ]
 }
