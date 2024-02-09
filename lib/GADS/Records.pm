@@ -577,6 +577,10 @@ sub search_view
 
     return unless $view && @$current_ids;
 
+    # Need to set view in this object, otherwise construction of any general
+    # searches misses the search conditions of the view
+    $self->view($view);
+
     # Need to specify no columns to be retrieved, otherwise as soon as
     # $self->joins is called, prefetch will have all the columns in
     $self->columns([]);
