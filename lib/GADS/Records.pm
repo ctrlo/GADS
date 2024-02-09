@@ -615,12 +615,14 @@ sub search_view
             {
                 # See comment above about searching for all current_ids
                 my $search = { -and => \@searches };
-                unless (@$current_ids == $self->count)
-                {
-                    my $max = $i + 499;
-                    $max = @$current_ids-1 if $max >= @$current_ids;
-                    $search->{'me.id'} = [@{$current_ids}[$i..$max]];
-                }
+                # At this point we used to see if the number of records in the
+                # view was equal to the number of current_ids, to try and skip
+                # the multiple loops if possile. However, it turned out that
+                # count() is expensive (especially if only one current_id), so
+                # this has been removed
+                my $max = $i + 499;
+                $max = @$current_ids-1 if $max >= @$current_ids;
+                $search->{'me.id'} = [@{$current_ids}[$i..$max]];
                 push @ids, $self->schema->resultset('Current')->search($search, {
                     join => [
                         [$self->linked_hash(search => 1)],
