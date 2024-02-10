@@ -6,4 +6,10 @@ use warnings;
 
 our %prereq_pm;
 require "./Makefile.PL";
-foreach my $k (sort keys %prereq_pm) { say qq(requires "$k";) }
+foreach my $module (sort keys %prereq_pm) {
+    my $version = "";
+    if ( $prereq_pm{$module} ) {
+        $version = ", '$prereq_pm{$module}'";
+    }
+    say qq(requires "${module}"${version};)
+}

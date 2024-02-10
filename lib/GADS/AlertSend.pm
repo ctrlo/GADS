@@ -23,7 +23,7 @@ use GADS::Config;
 use GADS::Email;
 use GADS::Records;
 use GADS::Views;
-use List::MoreUtils qw/ uniq /;
+use List::Util qw/ uniq /;
 use Log::Report 'linkspace';
 use Scalar::Util qw(looks_like_number);
 
