@@ -173,7 +173,6 @@ class FilterComponent extends Component {
         .withDefaultMapper()
         .withName('rule')
         .withCallback(filterCallback)
-        .withAppendQuery()
         .build()
     })
 
