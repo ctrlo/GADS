@@ -10,9 +10,6 @@ import { MappedResponse } from "util/mapper/mapper";
  * @param sourceOptions - options for the typeahead data source
  */
 export class Typeahead {
-    private timeout = null;
-    private ajaxRequest: JQuery.jqXHR<any>;
-
     /**
      * Create a new Typeahead class
      * @param $input The input element to attach typeahead to
@@ -37,17 +34,21 @@ export class Typeahead {
                 transform: (response) => {
                     return mapper(response);
                 },
+                rateLimitBy: 'debounce',
+                rateLimitWait: 300,
+                cache: false,
             }
         });
+
         this.$input.typeahead({
             hint: false,
             highlight: false,
-            minLength: 1
+            minLength: 0
         }, {
             name: name,
             source: bloodhound,
             display: 'name',
-            limit: 10,
+            limit: 20,
             templates: {
                 suggestion: (item: MappedResponse) => {
                     return `<div>${item.name}</div>`;
@@ -78,24 +79,5 @@ export class Typeahead {
                 console.log("Typeahead async cancel");
             });
         }
-    }
-
-    /**
-     * This function is to filter the data based on the query
-     * @param query The query to use in this filter
-     * @param data The data to filter
-     * @returns The filtered data
-     */
-    filterData(data: MappedResponse[], query?: string): MappedResponse[] {
-        // I know that this was originally above, and _shouldn't_ need to be here, but there is a bug in the filtering somewhere,
-        // and I need to unit test it here to ensure this isn't the problem! - DR 19/02/2024
-        if(!query || !query.length) {
-            if(window.test) console.log("No query, returning data:", data);
-            return data;
-        }
-        if(window.test) console.log("Filtering data with query:", query);
-        return data.filter((item) => {
-            return item.name.toLowerCase().includes(query.toLowerCase());
-        });
     }
 };
