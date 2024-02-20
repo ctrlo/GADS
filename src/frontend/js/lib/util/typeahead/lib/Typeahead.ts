@@ -1,6 +1,7 @@
 import "typeahead.js";
-import { MappedResponse } from "util/mapper/mapper";
+import Bloodhound from "typeahead.js/dist/bloodhound";
 import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
+import { MappedResponse } from "util/mapper/mapper";
 
 /**
  * Typeahead class for creating a typeahead
@@ -27,41 +28,28 @@ export class Typeahead {
      */
     private init() {
         const { appendQuery, mapper, name, ajaxSource } = this.sourceOptions;
+        const bloodhound = new Bloodhound({
+            datumTokenizer: Bloodhound.tokenizers.whitespace,
+            queryTokenizer: Bloodhound.tokenizers.whitespace,
+            remote: {
+                url: ajaxSource + (appendQuery ?  "%QUERY" : ""),
+                wildcard: '%QUERY',
+                transform: (response) => {
+                    return mapper(response);
+                },
+            }
+        });
         this.$input.typeahead({
-            hint: true,
-            highlight: true,
+            hint: false,
+            highlight: false,
             minLength: 1
         }, {
             name: name,
-            source: (query, syncResults, asyncResults) => {
-                this.debounce(() => {
-                    const request: JQuery.AjaxSettings<any> = {
-                        url: ajaxSource + (appendQuery ?  query : ""),
-                        dataType: "json",
-                        beforeSend: () => {
-                            this.ajaxRequest && this.ajaxRequest.abort();
-                        },
-                        success: (data) => {
-                            if (window.test) console.log("Typeahead data:", data);
-                            const mapped = mapper(data);
-                            if (window.test) console.log("Typeahead mapped data:", mapped);
-                            const filtered = this.filterData(mapped, query);
-                            if (window.test) console.log("Typeahead filtered data:", filtered);
-                            asyncResults(filtered);
-                        },
-                        async: window.test ? false : true,
-                        cache: false
-                    };
-                    if (this.sourceOptions.data) request.data = this.sourceOptions.data;
-                    if (this.sourceOptions.dataBuilder) request.data = this.sourceOptions.dataBuilder();
-                    if (window.test) console.log("Typeahead request: ", request);
-                    this.ajaxRequest = $.ajax(request);
-                }, 200);
-            },
+            source: bloodhound,
             display: 'name',
             limit: 10,
             templates: {
-                suggestion: (item: { name: String, id: number }) => {
+                suggestion: (item: MappedResponse) => {
                     return `<div>${item.name}</div>`;
                 },
                 pending: () => {
@@ -109,20 +97,5 @@ export class Typeahead {
         return data.filter((item) => {
             return item.name.toLowerCase().includes(query.toLowerCase());
         });
-    }
-
-    /**
-     * Debounce function to prevent multiple requests being sent to the server - not required when testing, as we want to trigger immediately!
-     * @param func The function to debounce
-     * @param wait The time to wait before calling the function
-     */
-    debounce(func: Function, wait: number) {
-        if (window.test) {
-            console.log("Test mode - no debounce applied!")
-            return func();
-        }
-        if(this.timeout) clearTimeout(this.timeout);
-        // Weird casting error - having to cast to this in order to stop typing error.
-        this.timeout = setTimeout(<(args:void)=>void>func, wait);
     }
 };
