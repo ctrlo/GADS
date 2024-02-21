@@ -98,7 +98,8 @@ class FilterComponent extends Component {
     if (!builderConfig.filters.length) return
     if (builderConfig.filterNotDone) this.makeUpdateFilter()
 
-    this.el.on("afterUpdateRuleFilter.queryBuilder", (e, rule) => {
+    this.el.on("afterCreateRuleFilters.queryBuilder", (e, rule) => {
+      console.log("afterCreateRuleFilter", rule);
       const select= $(rule.$el.find(`select[name=${rule.id}_filter]`));
       if(!select || !select[0]) console.log("No select found");
       select.data("live-search","true");

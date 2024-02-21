@@ -14,9 +14,9 @@ class DisplayConditionsComponent extends Component {
     const filters = JSON.parse(Buffer.from(builderData.filters, 'base64'))
     if (!filters.length) return
 
-    this.el.on("afterUpdateRuleFilter.queryBuilder", (e, rule) => {
+    this.el.on("afterCreateRuleFilters.queryBuilder", (e, rule) => {
       const select= $(rule.$el.find(`select[name=${rule.id}_filter]`));
-      if(!select || !select[0]) console.log("No select found");
+      if(!select || !select[0]) console.error("No select found");
       select.data("live-search","true");
       select.selectpicker();
     });
