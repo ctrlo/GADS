@@ -298,28 +298,15 @@ sub create_pdf
         fg_color  => '#ffffff',
     };
 
-    my $d = $record->columns_render;
-    my @layouts = $self->report_layouts;
-    my $result = [];
-    my %include;
-
-    for my $val (@layouts) {
-        $include{ $val->layout->name } = 1;
-    }
-
-    foreach my $col (@$d) {
-        next unless $include{ $col->name };
-        push @$result, $col;
-    }
+    my %include = map { $_->layout_id => 1 } $self->report_layouts;
+    my $result = [grep $include{$_->id}, @{$record->columns_render}];
 
     my @cols = $record->presentation_map_columns(columns=>$result);
     my @topics = $record->get_topics(\@cols);
 
 
     foreach my $topic (@topics) {
-        my $topic_value = defined $topic->{topic}? $topic->{topic} : undef;
-        my $topic_name = "Other";
-        $topic_name = $topic_value->name if $topic_value;
+        my $topic_name = $topic->{topic} ? $topic->{topic}->name : 'Other';
         my $fields = [ [ $topic_name, "" ] ];
         push @$fields, [ $_->{name}, $_->{data}->{value} || "" ] for @{ $topic->{columns} };
 

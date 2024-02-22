@@ -2817,7 +2817,7 @@ prefix '/:layout_name' => sub {
     prefix '/report' => sub {
 
         #view all reports for this instance, or delete a report
-        any [ 'get', 'post' ] => '' => require_login sub {
+        any ['get','post'] => '' => require_login sub {
             my $user   = logged_in_user;
             my $layout = var('layout') or pass;
 
@@ -2829,7 +2829,8 @@ prefix '/:layout_name' => sub {
 
             my $reports = $layout->reports;
 
-            if (my $report_id = body_parameters->get('delete')) {
+            if (my $report_id = body_parameters->get('delete'))
+            {
                 my $result = schema->resultset('Report')->find($report_id)
                       or error __x "No report found for {report_id}", report_id => $report_id;
 
@@ -2842,7 +2843,8 @@ prefix '/:layout_name' => sub {
                 return forwardHome("$lo/report");
             }
 
-            if(body_parameters->get('submit')) {
+            if(body_parameters->get('submit'))
+            {
                 if(process(sub {
                         my $security_marking = body_parameters->get('security_marking');
                         $layout->set_marking($security_marking);
@@ -2946,7 +2948,8 @@ prefix '/:layout_name' => sub {
 
                 my $report_id = param('id');
 
-                my $result = schema->resultset('Report')->load_for_edit($report_id);
+                my $result =
+                  schema->resultset('Report')->load_for_edit($report_id);
 
                 $result->update_report(
                     {
@@ -2961,7 +2964,6 @@ prefix '/:layout_name' => sub {
                 my $lo = param 'layout_name';
                 return forwardHome( { success => "Report updated" },
                     "$lo/report" );
-
             }
 
             my $base_url = request->base;
