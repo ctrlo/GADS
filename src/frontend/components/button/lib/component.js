@@ -249,14 +249,6 @@ class ButtonComponent extends Component {
     }
   }
 
-  addValidationError(field, name, id) {
-    const $errorDiv = $('<div class="error">');
-    const $span = $(`<span id="${id}-err" class="form-text form-text--error" aria-live="off"></span>`);
-    $span.text(`${name || id} is a required field.`);
-    $errorDiv.html($span);
-    $errorDiv.appendTo(field);
-  }
-
   saveView(ev) {
     const $form = $(ev.target).closest('form');
     if(!validateRequiredFields($form)) ev.preventDefault();
