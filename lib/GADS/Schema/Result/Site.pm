@@ -338,35 +338,35 @@ sub user_fields
 }
 
 sub load_logo {
-  my $self = shift;
-  my $filecheck = GADS::Filecheck->instance();
+    my $self      = shift;
+    my $filecheck = GADS::Filecheck->instance();
 
-  my $logo_path = $self->create_temp_logo or return;
+    my $logo_path = $self->create_temp_logo or return;
 
-  return +{
-    'content_type'=> $filecheck->get_filetype($logo_path),
-    'filename' => 'logo',
-    'data' => $self->site_logo
-  };
+    return +{
+        'content_type' => $filecheck->get_filetype($logo_path),
+        'filename'     => 'logo',
+        'data'         => $self->site_logo
+    };
 }
 
 sub create_temp_logo {
-  my $self = shift;
-  my $logo = $self->site_logo;
+    my $self = shift;
+    my $logo = $self->site_logo;
 
-  return undef unless $logo;
+    return undef unless $logo;
 
-  my ($fh, $filename) = tempfile(UNLINK => 1);
-  print $fh $logo;
-  close $fh;
+    my ( $fh, $filename ) = tempfile( UNLINK => 1 );
+    print $fh $logo;
+    close $fh;
 
-  return $filename;
+    return $filename;
 }
 
 sub read_security_marking {
-  my $self = shift;
-  my $config = GADS::Config->instance;
-  return $self->security_marking || $config->gads->{header};
+    my $self   = shift;
+    my $config = GADS::Config->instance;
+    return $self->security_marking || $config->gads->{header};
 }
 
 1;

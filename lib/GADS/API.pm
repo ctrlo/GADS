@@ -550,7 +550,6 @@ post '/api/settings/logo' => require_login sub {
     my $site = var 'site';
 
     my $file = upload('file') or error __"No file provided";
-    #should this not return a json response with error set to 1?
     unless(logged_in_user->permission->{superadmin}){
         error __"You do not have permission to manage system settings";
     }

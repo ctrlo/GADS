@@ -2817,7 +2817,7 @@ prefix '/:layout_name' => sub {
     prefix '/report' => sub {
 
         #view all reports for this instance, or delete a report
-        any ['get','post'] => '' => require_login sub {
+        any [ 'get', 'post' ] => '' => require_login sub {
             my $user   = logged_in_user;
             my $layout = var('layout') or pass;
 
@@ -2829,10 +2829,10 @@ prefix '/:layout_name' => sub {
 
             my $reports = $layout->reports;
 
-            if (my $report_id = body_parameters->get('delete'))
-            {
+            if ( my $report_id = body_parameters->get('delete') ) {
                 my $result = schema->resultset('Report')->find($report_id)
-                      or error __x "No report found for {report_id}", report_id => $report_id;
+                  or error __x "No report found for {report_id}",
+                  report_id => $report_id;
 
                 my $lo = param 'layout_name';
 
@@ -2843,13 +2843,21 @@ prefix '/:layout_name' => sub {
                 return forwardHome("$lo/report");
             }
 
-            if(body_parameters->get('submit')) {
-                if(process(sub {
-                        my $security_marking = body_parameters->get('security_marking');
-                        $layout->set_marking($security_marking);
-                })) {
+            if ( body_parameters->get('submit') ) {
+                if (
+                    process(
+                        sub {
+                            my $security_marking =
+                              body_parameters->get('security_marking');
+                            $layout->set_marking($security_marking);
+                        }
+                    )
+                  )
+                {
                     my $lo = param 'layout_name';
-                    return forwardHome({ success => "Security marking updated" }, "$lo/report");
+                    return forwardHome(
+                        { success => "Security marking updated" },
+                        "$lo/report" );
                 }
             }
 
@@ -2875,15 +2883,13 @@ prefix '/:layout_name' => sub {
             my $layout = var('layout') or pass;
             my $user   = logged_in_user;
 
-            return forwardHome(
-                { danger => 'You do not have permission to edit reports' } )
-                    unless $layout->user_can("layout");
+            return forwardHome({ danger => 'You do not have permission to edit reports' }) unless $layout->user_can("layout");
 
             if ( body_parameters && body_parameters->get('submit') ) {
                 my $report_description = body_parameters->get('report_description');
                 my $report_name        = body_parameters->get('report_name');
                 my $report_title       = body_parameters->get('report_title');
-                my $checkbox_fields    = [body_parameters->get_all('checkboxes')];
+                my $checkbox_fields    = [ body_parameters->get_all('checkboxes') ];
                 my $security_marking   = body_parameters->get('security_marking');
                 my $instance           = $layout->instance_id;
 
@@ -2901,8 +2907,7 @@ prefix '/:layout_name' => sub {
                 );
 
                 my $lo = param 'layout_name';
-                return forwardHome( { success => "Report created" },
-                    "$lo/report" );
+                return forwardHome({ success => "Report created" }, "$lo/report");
             }
 
             my $records = [ $layout->all( user_can_read => 1 ) ];
@@ -2910,16 +2915,16 @@ prefix '/:layout_name' => sub {
             my $base_url = request->base;
 
             my $params = {
-                header_type       => 'table_tabs',
-                  layout_obj      => $layout,
-                  layout          => $layout,
-                  header_back_url => "${base_url}table",
-                  viewtype        => 'add',
-                  fields          => $records,
-                  breadcrumbs     => [
+                header_type     => 'table_tabs',
+                layout_obj      => $layout,
+                layout          => $layout,
+                header_back_url => "${base_url}table",
+                viewtype        => 'add',
+                fields          => $records,
+                breadcrumbs     => [
                     Crumb( $base_url . "table/", "Tables" ),
                     Crumb( "",                   "Table: " . $layout->name )
-                  ],
+                ],
             };
 
             template 'reports/edit' => $params;
@@ -2928,12 +2933,10 @@ prefix '/:layout_name' => sub {
         #Edit a report (by :id)
         any [ 'get', 'post' ] => '/edit:id' => require_login sub {
 
-            my $user      = logged_in_user;
-            my $layout    = var('layout') or pass;
+            my $user   = logged_in_user;
+            my $layout = var('layout') or pass;
 
-            return forwardHome(
-                { danger => 'You do not have permission to edit reports' } )
-                    unless $layout->user_can("layout");
+            return forwardHome({ danger => 'You do not have permission to edit reports' }) unless $layout->user_can("layout");
 
             my $report_id = param('id');
 
@@ -2941,7 +2944,7 @@ prefix '/:layout_name' => sub {
                 my $report_description = body_parameters->get('report_description');
                 my $report_name        = body_parameters->get('report_name');
                 my $report_title       = body_parameters->get('report_title');
-                my $checkboxes         = [body_parameters->get_all('checkboxes')];
+                my $checkboxes         = [ body_parameters->get_all('checkboxes') ];
                 my $security_marking   = body_parameters->get('security_marking');
                 my $instance           = $layout->instance_id;
 
@@ -2960,15 +2963,14 @@ prefix '/:layout_name' => sub {
                 );
 
                 my $lo = param 'layout_name';
-                return forwardHome( { success => "Report updated" },
-                    "$lo/report" );
+                return forwardHome( { success => "Report updated" }, "$lo/report" );
             }
 
             my $base_url = request->base;
 
             my $result = schema->resultset('Report')->load_for_edit($report_id);
 
-            return forwardHome({ danger => 'Report not found' }) unless $result;
+            return forwardHome( { danger => 'Report not found' } ) unless $result;
 
             my $fields = $result->fields_for_render($layout);
 
