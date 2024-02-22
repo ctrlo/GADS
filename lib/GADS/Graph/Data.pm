@@ -90,36 +90,41 @@ my $yellow = 'FCFC4B';
 my $green  = '5CB85C';
 my $grey   = '8C8C8C';
 my $purple = '4B0F44';
+my $blue   = '3B3AF2';
+my $attention = $red;
 
 has _colors => (
     is      => 'ro',
     default => sub {
         {
-            "7A221B" => 1,
-            "D1D3D4" => 1,
-            "34C3E0" => 1,
-            "FFDD00" => 1,
-            "9F6512" => 1,
-            "F0679E" => 1,
-            "2C4269" => 1,
-            "7F3F98" => 1,
-            "1C75BC" => 1,
-            "51417B" => 1,
-            "F26522" => 1,
-            "BDE0E9" => 1,
-            "B0B11A" => 1,
-            "4D4C4C" => 1,
-            "007B45" => 1,
-            "F37970" => 1,
-            "EE2D72" => 1,
-            "F9DDB6" => 1,
-            "97C9B3" => 1,
-            "FFED7D" => 1,
-            $red     => 1,
-            $amber   => 1,
-            $green   => 1,
-            $grey    => 1,
-            $purple  => 1,
+            "7A221B"   => 1,
+            "D1D3D4"   => 1,
+            "34C3E0"   => 1,
+            "FFDD00"   => 1,
+            "9F6512"   => 1,
+            "F0679E"   => 1,
+            "2C4269"   => 1,
+            "7F3F98"   => 1,
+            "1C75BC"   => 1,
+            "51417B"   => 1,
+            "F26522"   => 1,
+            "BDE0E9"   => 1,
+            "B0B11A"   => 1,
+            "4D4C4C"   => 1,
+            "007B45"   => 1,
+            "F37970"   => 1,
+            "EE2D72"   => 1,
+            "F9DDB6"   => 1,
+            "97C9B3"   => 1,
+            "FFED7D"   => 1,
+            $red       => 1,
+            $amber     => 1,
+            $yellow    => 1,
+            $green     => 1,
+            $grey      => 1,
+            $purple    => 1,
+            $blue      => 1,
+            $attention => 1,
         },
     },
 );
@@ -212,6 +217,10 @@ sub get_color
                ? $green
                : $value eq 'e_purple'
                ? $purple
+               : $value eq 'd_blue'
+               ? $blue
+               : $value eq 'b_attention'
+               ? $attention
                : (keys %{$self->_colors})[0];
         $self->schema->resultset('GraphColor')->update_or_create({
             name  => $value,
