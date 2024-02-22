@@ -459,13 +459,6 @@ sub filter_value_to_text
     $return;
 }
 
-sub id_as_string
-{   my ($self, $id) = @_;
-    $id or return '';
-    my @vals =  $self->ids_to_values([$id]);
-    $vals[0]->{value};
-}
-
 # Used to return a formatted value for a single datum. Normally called from a
 # Datum::Curval object
 sub ids_to_values

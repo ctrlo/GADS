@@ -102,12 +102,6 @@ sub values_for_timeline
     map $_->{value}, @{$self->enumvals};
 }
 
-sub id_as_string
-{   my ($self, $id) = @_;
-    $id or return '';
-    $self->enumval($id)->{value};
-}
-
 sub string_as_id
 {   my ($self, $value) = @_;
     my $rs = $self->schema->resultset('Enumval')->search({
