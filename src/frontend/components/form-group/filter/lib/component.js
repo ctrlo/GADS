@@ -77,7 +77,9 @@ class FilterComponent extends Component {
         c_yellow: 'Yellow',
         d_green: 'Green',
         a_grey: 'Grey',
-        e_purple: 'Purple'
+        e_purple: 'Purple',
+        d_blue: 'Blue',
+        b_attention: 'Red (Attention)'
       }
     }
 
