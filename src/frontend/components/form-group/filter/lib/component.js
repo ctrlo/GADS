@@ -172,6 +172,7 @@ class FilterComponent extends Component {
         .withDataBuilder(buildQuery)
         .withDefaultMapper()
         .withName('rule')
+        .withAppendQuery()
         .withCallback(filterCallback)
         .build()
     })
@@ -198,7 +199,7 @@ class FilterComponent extends Component {
     if (devEndpoint) {
       return devEndpoint
     } else {
-      return `/${layoutId}/match/layout/${urlSuffix}`
+      return `/${layoutId}/match/layout/${urlSuffix}?q=`
     }
   }
 

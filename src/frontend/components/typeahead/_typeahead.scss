@@ -11,6 +11,8 @@
     text-align: left;
     background-color: $white;
     background-clip: padding-box;
+    max-height: 15em;
+    overflow-y: auto;
 
     .tt-suggestion,
     .tt-dataset div {
