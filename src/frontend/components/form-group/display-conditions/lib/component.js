@@ -14,11 +14,45 @@ class DisplayConditionsComponent extends Component {
     const filters = JSON.parse(Buffer.from(builderData.filters, 'base64'))
     if (!filters.length) return
 
+    let ruleFilterSelect;
+    let operatorSelect;
+
     this.el.on("afterCreateRuleFilters.queryBuilder", (e, rule) => {
-      const select= $(rule.$el.find(`select[name=${rule.id}_filter]`));
-      if(!select || !select[0]) console.error("No select found");
-      select.data("live-search","true");
-      select.selectpicker();
+      ruleFilterSelect= $(rule.$el.find(`select[name=${rule.id}_filter]`));
+      if(!ruleFilterSelect || !ruleFilterSelect[0]) {
+        console.error("No select found");
+        return;
+      }
+      ruleFilterSelect.data("live-search","true");
+      ruleFilterSelect.selectpicker();
+    });
+
+    this.el.on("afterCreateRuleOperators.queryBuilder", (e, rule, operators) => {
+      operatorSelect = $(rule.$el.find(`select[name=${rule.id}_operator]`));
+      if(!operatorSelect || !operatorSelect[0]) {
+        console.error("No operator select found");
+        return;
+      }
+      if(operatorSelect.data("live-search")) return;
+      operatorSelect.data("live-search","true");
+      operatorSelect.selectpicker();
+    });
+
+    this.el.on("afterSetRules.queryBuilder", (e) => {
+      if(!ruleFilterSelect || !ruleFilterSelect[0]) {
+        console.error("No select found");
+        return;
+      }
+      ruleFilterSelect.selectpicker("refresh");
+      operatorSelect?.selectpicker("refresh");
+    });
+
+    this.el.on("afterSetRuleOperator.queryBuilder", (e, rule,operator) => {
+      if(!operatorSelect || !operatorSelect[0]) {
+        console.error("No select found");
+        return;
+      }
+      operatorSelect.selectpicker("refresh");
     });
 
     this.el.queryBuilder({

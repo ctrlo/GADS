@@ -98,25 +98,45 @@ class FilterComponent extends Component {
     if (!builderConfig.filters.length) return
     if (builderConfig.filterNotDone) this.makeUpdateFilter()
 
-    let select = null;
+    let filterSelect = null;
+    let operatorSelect=null;
 
     this.el.on("afterCreateRuleFilters.queryBuilder", (e, rule) => {
-      console.log("rule ID", rule.id)
-      select = $(rule.$el.find(`select[name=${rule.id}_filter]`));
-      if (!select || !select[0]) { 
+      filterSelect = $(rule.$el.find(`select[name=${rule.id}_filter]`));
+      if (!filterSelect || !filterSelect[0]) { 
         console.error("No select found"); 
         return; 
       }
-      select.data("live-search", "true");
-      select.selectpicker();
+      filterSelect.data("live-search", "true");
+      filterSelect.selectpicker();
+    });
+
+    this.el.on("afterCreateRuleOperators.queryBuilder", (e, rule, operators) => {
+      operatorSelect = $(rule.$el.find(`select[name=${rule.id}_operator]`));
+      if(!operatorSelect || !operatorSelect[0]) {
+        console.error("No operator select found");
+        return;
+      }
+      if(operatorSelect.data("live-search")) return;
+      operatorSelect.data("live-search","true");
+      operatorSelect.selectpicker();
     });
 
     this.el.on("afterSetRules.queryBuilder", (e) => {
-      if (!select || !select[0]) { 
+      if (!filterSelect || !filterSelect[0]) { 
         console.error("No select found"); 
         return; 
       }
-      select.selectpicker("refresh");
+      filterSelect.selectpicker("refresh");
+      operatorSelect?.selectpicker("refresh");
+    });
+
+    this.el.on("afterSetRuleOperator.queryBuilder", (e, rule,operator) => {
+      if(!operatorSelect || !operatorSelect[0]) {
+        console.error("No select found");
+        return;
+      }
+      operatorSelect.selectpicker("refresh");
     });
 
     $builderEl.queryBuilder({
@@ -201,6 +221,7 @@ class FilterComponent extends Component {
           $builderEl.queryBuilder('setRules', { rules: [] })
         }
       } catch (error) {
+        console.log("Error",error);
         logging.log('Incorrect data object passed to queryBuilder')
       }
     }
