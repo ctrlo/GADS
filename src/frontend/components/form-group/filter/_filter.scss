@@ -8,3 +8,24 @@
         }
     }
 }
+
+.filter {
+    .rules-group-container {
+        .rules-group-body {
+            .rules-list {
+                .rule-container {
+                    .rule-value-container {
+                        .tt__container {
+                            .twitter-typeahead {
+                                .tt-menu {
+                                    max-height: 12em;
+                                    overflow-y: auto;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
