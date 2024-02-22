@@ -109,3 +109,8 @@
     </footer>
   </div>
 </form>
+
+[% INCLUDE wizard/delete.tt
+    description = "Are you sure you wish to delete this report? This cannot be undone."
+    label = "Delete " _ report.name
+    modalId = "deleteReport" %]
