@@ -44,31 +44,71 @@
     rows.push(data);
   END; #foreach
 %]
-  <div class="content-block__head row">
-    <div class="content-block__info col-lg-6"></div>
-    <div class="content-block__aside col-lg-6">
-        <a href = [% url.page _ "/" _ layout_obj.identifier _ "/report/add" %] class="btn btn-add">Create Report</a>
-    </div>
-  </div>
+<form method="post">
+  [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
   <div class="content-block__main">
-  <div class="card">
-    <div class="card--header">
-      <h3 class"card__header">
-        <span>Reports</span>
-      </h3>
-    </div>
-
-    <div class="card__body">
-      <div class="card__content">
-        <div class="row">
-          <div class="col">
-            [% INCLUDE tables/basic_table.tt; %]
+    <div class="row">
+      <div class="col mb-3">
+        <div class="card">
+          <div class="card--header">
+            <div class="row">
+              <div class="col">
+                <h3 class="card__title">
+                  <span>Reports</span>
+                </h3>
+              </div>
+              <div class="col d-md-flex justify-content-md-end align-items-center">
+                <a href = [% url.page _ "/" _ layout_obj.identifier _ "/report/add" %] class="btn btn-add">Create Report</a>
+              </div>
+            </div>
+          </div>
+          <div class="card__body">
+            <div class="card__content">
+              <div class="row">
+                <div class="col">
+                  [% INCLUDE tables/basic_table.tt; %]
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
+    <div class="row mb-3">
+      <div class="col">
+        <div class="card">
+          <div class="card--header">
+            <h3 class="card__title">
+              <span>Settings</span>
+            </h3>
+          </div>
+          <div class="card__body">
+            <div class="card__content">
+              <fieldset>
+                [% INCLUDE 'fields/input.tt'
+                    id = "security_marking"
+                    name = "security_marking"
+                    value = security_marking
+                    label = "Security Marking"
+                    placeholder = "Input security marking"
+                    type = "input"
+                    filter = "html" %]
+              </fieldset>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer class="content-block__footer">
+      <div class="content-block__footer-container">
+        <div class="row">
+          <div class="col-md-4 mb-3 mb-md-0"></div>
+          <div class="col-md-8 d-md-flex justify-content-md-end align-items-center"><button type="submit" class="btn-primary btn" id="submit" name="submit" value="submit">Save</button></div>
+        </div>
+      </div>
+    </footer>
   </div>
-</div>
+</form>
 
 [% INCLUDE wizard/delete.tt
     description = "Are you sure you wish to delete this report? This cannot be undone."

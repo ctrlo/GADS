@@ -3,7 +3,7 @@ import { initValidationOnField, validateCheckboxGroup } from 'validation'
 import initDateField from 'components/datepicker/lib/helper'
 import 'blueimp-file-upload'
 import TypeaheadBuilder from 'util/typeahead'
-import { fromJson, hideElement, showElement } from 'util/common'
+import { stopPropagation, fromJson, hideElement, showElement } from 'util/common'
 
 class InputComponent extends Component {
     constructor(element)  {
@@ -14,6 +14,10 @@ class InputComponent extends Component {
         this.btnReveal = this.el.find('.input__reveal-password')
         this.input = this.el.find('.form-control')
         this.initInputPassword()
+      } else if (this.el.hasClass('input--logo')) {
+        this.logoDisplay = this.el.parent().find('img');
+        this.fileInput = this.el.find('.form-control-file')
+        this.initInputLogo();
       } else if (this.el.hasClass('input--document')) {
         this.fileInput = this.el.find('.form-control-file')
         this.initInputDocument()
@@ -29,11 +33,48 @@ class InputComponent extends Component {
       } else if (this.el.hasClass('input--autocomplete')) {
         this.input = this.el.find('.form-control')
         this.initInputAutocomplete()
-      } 
+      }
 
       if (this.el.hasClass("input--required")) {
         initValidationOnField(this.el)
       }
+    }
+
+    initInputLogo() {
+      this.logoDisplay.hide();
+
+      this.el.find('.file').hide();
+
+      this.fileInput.on('change', (ev) => {
+        stopPropagation(ev);
+        const url = this.el.data("fileupload-url")
+
+        const formData = new FormData();
+        formData.append('file', this.el.find('input[type="file"]')[0].files[0]);
+        formData.append('csrf_token', $('body').data('csrf'));
+
+        //This has been moved over to the new fetch API - all the other ajax calls need moving as well. This is now on ticket #1529
+        fetch(url,{
+          method: 'POST',
+          body: formData,
+        }).then((response) => {
+          if (response.ok) {
+            return response.json();
+          }
+          throw new Error(`Error: ${response.status} ${response.statusText}`);
+        }).then((data) => {
+          if (data && !data.error) {
+            this.logoDisplay.attr('src', data.url);
+            this.logoDisplay.show();
+          } else if (data.error) {
+            throw new Error(`Error: ${data.text}`);
+          }else{
+            throw new Error(`Error: No data returned`);
+          }
+        }).catch((error) => {
+          console.error(error);
+        });
+      });
     }
 
     initInputDocument() {
@@ -102,11 +143,11 @@ class InputComponent extends Component {
 
     initInputAutocomplete() {
       const self = this
-      
+
       const suggestionCallback = (suggestion) => {
         $(self.el).find('input[type="hidden"]').val(suggestion.id)
       }
-      
+
       const builder = new TypeaheadBuilder();
       builder
         .withInput($(self.input))
@@ -146,7 +187,7 @@ class InputComponent extends Component {
         if (!file) throw new Error("No file provided");
         const self = this;
         const field = this.el.data("field")
-      
+
         const fileData = new FormData();
         fileData.append("file", file);
         fileData.append("csrf_token", csrf_token);

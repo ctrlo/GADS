@@ -87,6 +87,11 @@ __PACKAGE__->table("instance");
   data_type: 'text'
   is_nullable: 1
 
+=head2 security_marking
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -128,6 +133,8 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "hide_in_selector",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "security_marking",
+  { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -441,6 +448,11 @@ sub _scrub
         ],
     );
     $scrubber->scrub($html);
+}
+
+sub read_security_marking {
+    my $self = shift;
+    $self->security_marking || $self->site->read_security_marking;
 }
 
 1;

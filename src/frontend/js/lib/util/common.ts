@@ -47,12 +47,12 @@ export const removeClass = (element: ElementOrJQueryElement, className: string) 
 
 export const fromJson = (json: String | object) => {
     try {
-        if (!json || json === '') return undefined;
+        if (!json || json === '') return {};
         if (typeof json === 'string') {
             return JSON.parse(json);
         }
         return json;
     } catch (e) {
-        return undefined;
+        return {};
     }
 }

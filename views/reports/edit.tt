@@ -22,6 +22,14 @@
                 input_class = "input--required"
                 is_required = 1;
               INCLUDE fields/input.tt
+                id = "report_title"
+                name = "report_title"
+                value = report.title || report.name
+                label = "Report Title"
+                placeholder = "New Report Title"
+                input_class = "input--required"
+                is_required = 1;
+              INCLUDE fields/input.tt
                 id          = "report_description"
                 name        = "report_description"
                 value       = report.description || ""
@@ -29,6 +37,15 @@
                 placeholder = "New Report Description"
                 input_class = "input"
                 is_required = 0;
+              INCLUDE fields/input.tt
+                id = "security_marking"
+                name = "security_marking"
+                value = report.security_marking || ""
+                label = "Security Marking"
+                placeholder = "New Security Marking"
+                input_class = "input"
+                is_required = 0
+                popover_body = "The security marking for this report. This is used to determine who can view the report. If it is not set the admin setting is used.";
             %]
             <div class="hidden alert__no__select" aria-hidden="true">
               <p class="alert__message">Please select at least one item to add to the report!</p>

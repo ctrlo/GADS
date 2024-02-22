@@ -2838,5 +2838,53 @@ sub _purge_record_values
     })->delete;
 }
 
-1;
+sub presentation_map_columns {
+    my ($self, %options) = @_;
 
+    my @columns = @{delete $options{columns}};
+
+    # When rendering a grouped column, in order to show all its filters, it may
+    # also need the filter values of grouped columns before it. Pass these in
+    # using the data key
+    my $mapping_done;
+    my @mapped = map {
+        my $pres = $mapping_done->{$_->id} = $self->fields->{$_->id}->presentation;
+        $_->presentation(datum_presentation => $pres, data => $mapping_done, %options);
+    } @columns;
+
+    return @mapped;
+}
+
+sub get_topics {
+    my $self = shift;
+    my $presentation_columns = shift;
+    my %topics; my $order; my %has_editable;
+    foreach my $col (@$presentation_columns)
+    {
+        my $topic_id = $col->{topic_id} || 0;
+        if (!$topics{$topic_id})
+        {
+            # Topics are listed in the order of their first column to appear in
+            # the layout
+            $order++;
+            $topics{$topic_id} = {
+                order    => $order,
+                topic    => $col->{topic},
+                columns  => [],
+                topic_id => $topic_id,
+            }
+        }
+        $has_editable{$topic_id} = 1
+            if !$col->{readonly};
+        push @{$topics{$topic_id}->{columns}}, $col;
+    }
+
+    my @topics = sort { $a->{order} <=> $b->{order} } values %topics;
+
+    $_->{has_editable} = $has_editable{$_->{topic_id}}
+        foreach @topics;
+
+    return @topics
+}
+
+1;

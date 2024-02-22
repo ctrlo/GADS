@@ -546,6 +546,27 @@ any ['get', 'post'] => '/api/:sheet/records' => require_login sub {
     _get_records();
 };
 
+post '/api/settings/logo' => require_login sub {
+    my $site = var 'site';
+
+    my $file = upload('file') or error __"No file provided";
+    unless(logged_in_user->permission->{superadmin}) {
+        error __"You do not have permission to manage system settings";
+    }
+
+    $site->update({ site_logo => $file->content });
+
+    content_type 'application/json';
+    # 201 is created rather than ok
+    status 201;
+    return encode_json(
+        {
+            error => 0,
+            url   => '/settings/logo'
+        }
+    );
+};
+
 sub _post_dashboard_widget {
     my $layout = shift;
     my $user   = logged_in_user;

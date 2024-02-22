@@ -1329,6 +1329,42 @@ any ['get', 'post'] => '/settings/team_edit/:id' => require_any_role [qw/useradm
     };
 };
 
+any [ 'get', 'post' ] => '/settings/report_defaults/' => require_role 'superadmin'=> sub {
+    my $site             = var 'site';
+
+    if(body_parameters->get('submit')) {
+        my $post_marking = body_parameters->get('security_marking');
+
+        $site->update({ security_marking => $post_marking });
+    }
+
+    my $logo             = $site->site_logo ? 1 : 0;
+    my $security_marking = $site->read_security_marking;
+
+    template 'layouts/page_reporting_overview' => {
+        page             => 'report_defaults',
+        page_title       => 'Report Defaults',
+        page_description => 'In this window you can set the default values for reports.',
+        back_url         => '/settings/',
+        logo             => $logo,
+        security_marking => $security_marking,
+        data_attributes => {
+            fileupload_url => '/settings/logo'
+        }
+    };
+};
+
+get '/settings/logo' => require_login sub {
+    my $site = var 'site';
+
+    my $logo = $site->site_logo or error __"No logo configured";
+    my $metadata = $site->load_logo;
+    my $mimetype = $metadata->{'content_type'};
+    my $filename = $metadata->{'filename'};
+    content_type $mimetype;
+    return $logo;
+};
+
 any ['get', 'post'] => '/settings/audit/?' => require_role audit => sub {
 
     my $audit = GADS::Audit->new(schema => schema);
@@ -2807,6 +2843,19 @@ prefix '/:layout_name' => sub {
                 return forwardHome("$lo/report");
             }
 
+            if(body_parameters->get('submit'))
+            {
+                if(process(sub {
+                        my $security_marking = body_parameters->get('security_marking');
+                        $layout->set_marking($security_marking);
+                })) {
+                    my $lo = param 'layout_name';
+                    return forwardHome({ success => "Security marking updated" }, "$lo/report");
+                }
+            }
+
+            my $security_marking = $layout->security_marking;
+
             my $params = {
                 header_type     => 'table_tabs',
                 layout_obj      => $layout,
@@ -2816,6 +2865,7 @@ prefix '/:layout_name' => sub {
                     Crumb( $base_url . "table/", "Tables" ),
                     Crumb( "",                   "Table: " . $layout->name )
                 ],
+                security_marking => $security_marking,
             };
 
             template 'reports/view' => $params;
@@ -2833,17 +2883,21 @@ prefix '/:layout_name' => sub {
             if ( body_parameters && body_parameters->get('submit') ) {
                 my $report_description = body_parameters->get('report_description');
                 my $report_name        = body_parameters->get('report_name');
+                my $report_title       = body_parameters->get('report_title');
                 my $checkbox_fields    = [body_parameters->get_all('checkboxes')];
+                my $security_marking   = body_parameters->get('security_marking');
                 my $instance           = $layout->instance_id;
 
                 my $report = schema->resultset('Report')->create_report(
                     {
-                        user        => $user,
-                        name        => $report_name,
-                        description => $report_description,
-                        instance_id => $instance,
-                        createdby   => $user,
-                        layouts     => $checkbox_fields
+                        user             => $user,
+                        name             => $report_name,
+                        title            => $report_title,
+                        description      => $report_description,
+                        instance_id      => $instance,
+                        createdby        => $user,
+                        layouts          => $checkbox_fields,
+                        security_marking => $security_marking,
                     }
                 );
 
@@ -2858,15 +2912,15 @@ prefix '/:layout_name' => sub {
 
             my $params = {
                 header_type       => 'table_tabs',
-                  layout_obj      => $layout,
-                  layout          => $layout,
-                  header_back_url => "${base_url}table",
-                  viewtype        => 'add',
-                  fields          => $records,
-                  breadcrumbs     => [
+                layout_obj      => $layout,
+                layout          => $layout,
+                header_back_url => "${base_url}table",
+                viewtype        => 'add',
+                fields          => $records,
+                breadcrumbs     => [
                     Crumb( $base_url . "table/", "Tables" ),
                     Crumb( "",                   "Table: " . $layout->name )
-                  ],
+                ],
             };
 
             template 'reports/edit' => $params;
@@ -2875,8 +2929,8 @@ prefix '/:layout_name' => sub {
         #Edit a report (by :id)
         any [ 'get', 'post' ] => '/edit:id' => require_login sub {
 
-            my $user      = logged_in_user;
-            my $layout    = var('layout') or pass;
+            my $user   = logged_in_user;
+            my $layout = var('layout') or pass;
 
             return forwardHome(
                 { danger => 'You do not have permission to edit reports' } )
@@ -2887,7 +2941,9 @@ prefix '/:layout_name' => sub {
             if ( body_parameters && body_parameters->get('submit') ) {
                 my $report_description = body_parameters->get('report_description');
                 my $report_name        = body_parameters->get('report_name');
+                my $report_title       = body_parameters->get('report_title');
                 my $checkboxes         = [body_parameters->get_all('checkboxes')];
+                my $security_marking   = body_parameters->get('security_marking');
                 my $instance           = $layout->instance_id;
 
                 my $report_id = param('id');
@@ -2897,9 +2953,11 @@ prefix '/:layout_name' => sub {
 
                 $result->update_report(
                     {
-                        name        => $report_name,
-                        description => $report_description,
-                        layouts     => $checkboxes
+                        name             => $report_name,
+                        title            => $report_title,
+                        description      => $report_description,
+                        layouts          => $checkboxes,
+                        security_marking => $security_marking,
                     }
                 );
 
