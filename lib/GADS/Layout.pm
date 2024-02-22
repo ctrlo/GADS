@@ -1588,9 +1588,9 @@ sub purge
 }
 
 sub set_marking {
-    my ( $self, $marking ) = @_;
+    my ($self, $marking) = @_;
 
-    $self->_rset->update({ security_marking => $marking });
+    $self->_rset->update({security_marking => $marking});
 }
 
 1;

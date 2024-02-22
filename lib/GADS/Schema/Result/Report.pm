@@ -186,9 +186,10 @@ sub validate {
     my $instance_id = $self->instance_id;
     my $layouts     = $self->report_layouts;
 
-    error __"No name given"  unless $name;
+    error __"No name given" unless $name;
     error __"No title given" unless $title;
-    error __"You must provide at least one row to display in the report" unless $layouts;
+    error __"You must provide at least one row to display in the report"
+      unless $layouts;
 
     0;
 }
@@ -229,7 +230,8 @@ sub update_report {
 
     my $search = {};
 
-    $search->{layout_id} = { '!=' => [ -and => @$layouts ], } if @$layouts;
+    $search->{layout_id} = { '!=' => [ -and => @$layouts ], }
+      if @$layouts;
     $self->search_related( 'report_layouts', $search )->delete;
 
     $guard->commit;
@@ -258,24 +260,23 @@ sub remove {
 Function to create a PDF of the report - it will return a PDF object
 =cut
 
-sub create_pdf {
-    my ( $self, $record ) = @_;
+sub create_pdf
+{   my ($self, $record) = @_;
 
     my $marking = $self->_read_security_marking;
-    my $logo    = $self->instance->site->create_temp_logo;
+    my $logo = $self->instance->site->create_temp_logo;
 
     my $pdf;
     my $topmargin = 0;
 
-    if ($logo) {
+    if($logo) {
         $pdf = CtrlO::PDF->new(
             header => $marking,
             footer => $marking,
             logo   => $logo,
         );
-
-# Adjust the top margin to allow for the logo - 30px allows the table (below the logo) to not encroach on the logo when rendered
-# This is used rather than overcomplicating and using image size to centre the header, and then having to "drop" the table down to avoid the logo
+        # Adjust the top margin to allow for the logo - 30px allows the table (below the logo) to not encroach on the logo when rendered
+        # This is used rather than overcomplicating and using image size to centre the header, and then having to "drop" the table down to avoid the logo
         $topmargin = -30;
     }
     else {
@@ -287,7 +288,7 @@ sub create_pdf {
 
     $pdf->add_page;
     $pdf->heading( $self->title || $self->name, topmargin => $topmargin );
-    $pdf->text( $self->description, size => 14 ) if $self->description;
+    $pdf->text($self->description , size => 14 ) if $self->description;
 
     my $hdr_props = {
         repeat    => 1,
@@ -297,9 +298,9 @@ sub create_pdf {
         fg_color  => '#ffffff',
     };
 
-    my $d       = $record->columns_render;
+    my $d = $record->columns_render;
     my @layouts = $self->report_layouts;
-    my $result  = [];
+    my $result = [];
     my %include;
 
     for my $val (@layouts) {
@@ -311,12 +312,13 @@ sub create_pdf {
         push @$result, $col;
     }
 
-    my @cols   = $record->presentation_map_columns( columns => $result );
-    my @topics = $record->get_topics( \@cols );
+    my @cols = $record->presentation_map_columns(columns=>$result);
+    my @topics = $record->get_topics(\@cols);
+
 
     foreach my $topic (@topics) {
-        my $topic_value = defined $topic->{topic} ? $topic->{topic} : undef;
-        my $topic_name  = "Other";
+        my $topic_value = defined $topic->{topic}? $topic->{topic} : undef;
+        my $topic_name = "Other";
         $topic_name = $topic_value->name if $topic_value;
         my $fields = [ [ $topic_name, "" ] ];
         push @$fields, [ $_->{name}, $_->{data}->{value} || "" ] for @{ $topic->{columns} };
