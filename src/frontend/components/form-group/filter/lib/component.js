@@ -5,7 +5,7 @@ import { logging } from 'logging'
 import TypeaheadBuilder from 'util/typeahead'
 
 class FilterComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.operators = [
@@ -98,12 +98,25 @@ class FilterComponent extends Component {
     if (!builderConfig.filters.length) return
     if (builderConfig.filterNotDone) this.makeUpdateFilter()
 
+    let select = null;
+
     this.el.on("afterCreateRuleFilters.queryBuilder", (e, rule) => {
-      console.log("afterCreateRuleFilter", rule);
-      const select= $(rule.$el.find(`select[name=${rule.id}_filter]`));
-      if(!select || !select[0]) console.log("No select found");
-      select.data("live-search","true");
+      console.log("rule ID", rule.id)
+      select = $(rule.$el.find(`select[name=${rule.id}_filter]`));
+      if (!select || !select[0]) { 
+        console.error("No select found"); 
+        return; 
+      }
+      select.data("live-search", "true");
       select.selectpicker();
+    });
+
+    this.el.on("afterSetRules.queryBuilder", (e) => {
+      if (!select || !select[0]) { 
+        console.error("No select found"); 
+        return; 
+      }
+      select.selectpicker("refresh");
     });
 
     $builderEl.queryBuilder({
@@ -120,17 +133,17 @@ class FilterComponent extends Component {
       }
     })
 
-    $builderEl.on('validationError.queryBuilder', function(e, node, error, value) {
+    $builderEl.on('validationError.queryBuilder', function (e, node, error, value) {
       logging.log(error);
       logging.log(value);
       logging.log(e);
       logging.log(node);
     });
 
-    $builderEl.on('afterCreateRuleInput.queryBuilder', function(e, rule) {
+    $builderEl.on('afterCreateRuleInput.queryBuilder', function (e, rule) {
       let filterConfig
 
-      builderConfig.filters.forEach(function(value) {
+      builderConfig.filters.forEach(function (value) {
         if (value.filterId === rule.filter.id) {
           filterConfig = value
           return false
@@ -156,15 +169,15 @@ class FilterComponent extends Component {
       })
 
       const filterCallback = (suggestion) => {
-        if(filterConfig.useIdInFilter) {
+        if (filterConfig.useIdInFilter) {
           $ruleInputHidden.val(suggestion.id)
-        }else {
+        } else {
           $ruleInputHidden.val(suggestion.name)
         }
       }
 
       // This is required to ensure that the correct query is sent each time
-      const buildQuery = () => {return {q:$ruleInputText.val(), oi:filterConfig.instanceId}}
+      const buildQuery = () => { return { q: $ruleInputText.val(), oi: filterConfig.instanceId } }
 
       const builder = new TypeaheadBuilder();
       builder
@@ -177,7 +190,7 @@ class FilterComponent extends Component {
         .build()
     })
 
-    if(filterBase) {
+    if (filterBase) {
       const data = Buffer.from(filterBase, 'base64')
       try {
         const obj = JSON.parse(data);
@@ -185,7 +198,7 @@ class FilterComponent extends Component {
           $builderEl.queryBuilder('setRules', obj)
         } else {
           // Ensure that no blank rules by default, otherwise view cannot be submitted
-          $builderEl.queryBuilder('setRules', {rules:[]})
+          $builderEl.queryBuilder('setRules', { rules: [] })
         }
       } catch (error) {
         logging.log('Incorrect data object passed to queryBuilder')
@@ -213,22 +226,22 @@ class FilterComponent extends Component {
 
   buildFilter = (builderConfig, col) => {
     return ({
-    id: col.filterId,
-    label: col.label,
-    type: 'string',
-    operators: this.buildFilterOperators(col.type),
-    ...(col.type === 'rag'
-      ? this.ragProperties
-      : col.hasFilterTypeahead
-      ? this.typeaheadProperties(
-          col.urlSuffix,
-          builderConfig.layoutId,
-          col.instanceId,
-          col.useIdInFilter
-        )
-      : {})
-  })
-}
+      id: col.filterId,
+      label: col.label,
+      type: 'string',
+      operators: this.buildFilterOperators(col.type),
+      ...(col.type === 'rag'
+        ? this.ragProperties
+        : col.hasFilterTypeahead
+          ? this.typeaheadProperties(
+            col.urlSuffix,
+            builderConfig.layoutId,
+            col.instanceId,
+            col.useIdInFilter
+          )
+          : {})
+    })
+  }
 
   buildFilterOperators(type) {
     if (!['date', 'daterange'].includes(type)) return undefined
@@ -258,11 +271,11 @@ class FilterComponent extends Component {
     valueSetter: (rule, value) => {
       rule.$el.find('.typeahead_hidden').val(value)
       const typeahead = rule.$el.find('.typeahead_text')
-      typeahead.typeahead('val',rule.data.text)
+      typeahead.typeahead('val', rule.data.text)
       typeahead.val(rule.data.text)
     },
     validation: {
-      callback: () => {return true}
+      callback: () => { return true }
     }
   })
 
