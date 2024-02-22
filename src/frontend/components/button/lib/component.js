@@ -108,6 +108,16 @@ class ButtonComponent extends Component {
   }
 
   initSaveView() {
+    const $form = this.el.closest('form');
+    const $global = $form.find('#global');
+    $global.on('change', (ev) => {
+      const $input = $form.find('input[type=hidden][name=group_id]');
+      if (ev.target.checked) {
+        $input.attr('required', 'required');
+      } else {
+        $input.removeAttr('required');
+      }
+    });
     this.el.on('click', (ev) => { this.saveView(ev) })
   }
 
@@ -239,7 +249,14 @@ class ButtonComponent extends Component {
     }
   }
 
-  saveView(ev){
+  saveView(ev) {
+    const $form = $(ev.target).closest('form');
+    if(!validateRequiredFields($form)) ev.preventDefault();
+    const select = $form.find('input[type=hidden][name=group_id]');
+    if(select.val() === 'allusers') {
+      select.val('');
+      select.removeAttr('required');
+    }
     $(".filter").each((i, el) => {
       if (!$(el).queryBuilder('validate')) ev.preventDefault();
       const res = $(el).queryBuilder('getRules')

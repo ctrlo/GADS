@@ -33,6 +33,7 @@
                     <div class="col">
                       <div class="form-group">
                         <div class="row">
+                        [% IF layout.user_can("view_group") OR layout.user_can("layout") %]
                           <div class="col-lg-3">
                             [%
                               INCLUDE fields/sub/checkbox.tt
@@ -44,7 +45,8 @@
                                 input_class = "mb-lg-0 checkbox--reveal";
                             %]
                           </div>
-                          
+                        [% END %]
+                        [% IF layout.user_can("layout") %]
                           <div class="col-lg-9">
                             [%
                               INCLUDE fields/sub/checkbox.tt
@@ -55,6 +57,7 @@
                                 checked     = view_edit.is_admin ? 1 : 0
                                 input_class = "mb-lg-0";
                             %]
+                        [% END %]
                           </div>
                         </div>
                       </div>
@@ -66,7 +69,7 @@
                       
                       <div class="checkbox-reveal" id="global-reveal">
                         [%
-                          group_id_items = layout.user_can("layout") ? [{id="", name="<All users>"}] : [];
+                          group_id_items = layout.user_can("layout") ? [{id="allusers", name="<All users>"}] : [];
                         
                           IF layout.user_can("view_group");
                             FOREACH group IN user.groups;
@@ -83,7 +86,8 @@
                             select_class = "select--select"
                             filter       = "html"
                             hide_group   = 0
-                            items        = group_id_items;
+                            items        = group_id_items,
+                            is_required  = 1;
                         %]
                       </div>
                     
