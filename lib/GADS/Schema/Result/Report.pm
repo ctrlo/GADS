@@ -11,6 +11,7 @@ use warnings;
 
 use Log::Report 'linkspace';
 use CtrlO::PDF 0.06;
+use PDF::Table 0.11.0; # Needed for colspan feature
 use GADS::Config;
 use Moo;
 
@@ -305,16 +306,46 @@ sub create_pdf
     my @topics = $record->get_topics(\@cols);
 
 
+    my $i = 0;
     foreach my $topic (@topics) {
         my $topic_name = $topic->{topic} ? $topic->{topic}->name : 'Other';
-        my $fields = [ [ $topic_name, "" ] ];
-        push @$fields, [ $_->{name}, $_->{data}->{value} || "" ] for @{ $topic->{columns} };
+        my $fields = [ [ $topic_name ] ];
+        
+        my $width = 0;
+        foreach my $col (@{$topic->{columns}}) {
+            if($col->{data}->{selected_values}) {
+                my $first=1;
+                foreach my $c (@{$col->{data}->{selected_values}}) {
+                    my $values = $c->{values};
+                    $width = $width<(scalar(@$values)+1)? scalar(@$values)+1 : $width;
+                    push @$fields, [$first?$col->{name}:'',@$values];
+                    $first=0;
+                }
+            } else {
+                push @$fields, [ $col->{name}, $col->{data}->{value} || "" ];
+                $width = 2 if $width < 2;
+            }
+        }
+
+        my $cell_props = [];
+        foreach my $d (@$fields)
+        {
+            my $has = @$d;
+            # $max_fields does not include field name
+            my $gap = $width - $has + 1;
+            push @$d, undef for (1..$gap);
+            push @$cell_props, [
+                (undef) x ($has - 1),
+                {colspan => $gap + 1}
+            ];
+        }
 
         $pdf->table(
             data         => $fields,
             header_props => $hdr_props,
             border_c     => '#007C88',
             h_border_w   => 1,
+            cell_props   => $cell_props,
         );
     }
 
