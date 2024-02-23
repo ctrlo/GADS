@@ -153,13 +153,6 @@ sub id_to_hash
     return $prs->next;
 }
 
-sub id_as_string
-{   my ($self, $id) = @_;
-    my $person = $self->id_to_hash($id)
-        or return '';
-    $person->{value};
-}
-
 after build_values => sub {
     my ($self, $original) = @_;
 

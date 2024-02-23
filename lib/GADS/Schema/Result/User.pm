@@ -849,8 +849,8 @@ sub update_user
 
     my $guard = $self->result_source->schema->txn_scope_guard;
 
-    my $current_user = delete $params{current_user}
-        or panic "Current user not defined on user update";
+    # This was originally a delete call, does this now create an issue as it's required for the internal "update" call within `create user`
+    my $current_user = $params{current_user};
 
     my $site = $self->result_source->schema->resultset('Site')->next;
 
@@ -869,106 +869,113 @@ sub update_user
         $request = 1 if $self->account_request && !$params{account_request};
     }
 
-    my $original_username = $self->username;
+    if($request) {
 
-    foreach my $field ($site->user_fields)
-    {
-        next if !exists $params{$field->{name}};
-        my $fname = $field->{name};
-        $self->$fname($params{$fname});
-        $self->username($params{email})
-            if $fname eq 'email';
+      $self->result_source->schema->resultset('User')->create_user(%params);
+      $self->result_source->schema->resultset('User')->find($self->id)->delete;
+
+      $guard->commit;
+
+    } else {
+
+      my $original_username = $self->username;
+
+      foreach my $field ($site->user_fields)
+      {
+          next if !exists $params{$field->{name}};
+          my $fname = $field->{name};
+          $self->$fname($params{$fname});
+          $self->username($params{email})
+              if $fname eq 'email';
+      }
+
+      my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $current_user);
+
+      $audit->login_change("Username $original_username (id ".$self->id.") being changed to ".$self->username)
+          if $original_username && $self->is_column_changed('username');
+
+      # Coerce view_limits to value expected, ensure all removed if exists
+      $params{view_limits} = []
+          if exists $params{view_limits} && !$params{view_limits};
+      # Same for groups
+      $params{groups} = []
+          if exists $params{groups} && !$params{groups};
+      # Same for permissions
+      $params{permissions} = []
+          if exists $params{permissions} && !$params{permissions};
+
+      $self->update($values);
+
+      if ($params{groups})
+      {
+          $self->groups($current_user, $params{groups});
+          $self->clear_has_group;
+          $self->has_group;
+      }
+
+      if ($params{permissions} && ref $params{permissions} eq 'ARRAY')
+      {
+          error __"You do not have permission to set global user permissions"
+              if !$current_user->permission->{superadmin};
+          $self->permissions(@{$params{permissions}});
+          # Clear and rebuild permissions, in case of form submission failure. We
+          # need to rebuild now, otherwise the transaction may have rolled-back
+          # to the old version by the time it is built in the template
+          $self->clear_permission;
+          $self->permission;
+      }
+      $self->set_view_limits($params{view_limits})
+          if $params{view_limits};
+
+      my $empty = 1;
+      $empty = 0 if($params{organisation});
+
+      my $required = 0;
+      $required = 1 if $site->register_organisation_mandatory;
+      $required = 0 if $params{edit_own_user};
+      $required = 1 if $params{$site->user_field_is_editable('organisation')};
+
+      error __x"Please select a {name} for the user", name => $site->organisation_name
+          if $empty && $required;
+
+      $required = $site->register_team_mandatory;
+      $required = 0 if $params{edit_own_user};
+      $required = 1 if $params{$site->user_field_is_editable('team_id')};
+
+      error __x"Please select a {name} for the user", name => $site->team_name
+          if !$params{team_id} && $required;
+
+      $required = $site->register_department_mandatory;
+      $required = 0 if $params{edit_own_user};
+      $required = 1 if $params{$site->user_field_is_editable('department_id')};
+
+      error __x"Please select a {name} for the user", name => $site->department_name
+          if !$params{department_id} && $required;
+
+      length $params{firstname} <= 128
+          or error __"Forename must be less than 128 characters";
+      length $params{surname} <= 128
+          or error __"Surname must be less than 128 characters";
+      !defined $params{organisation} || $params{organisation} =~ /^[0-9]+$/
+          or error __x"Invalid organisation {id}", id => $params{organisation};
+      !defined $params{department_id} || $params{department_id} =~ /^[0-9]+$/
+          or error __x"Invalid department {id}", id => $params{department_id};
+      !defined $params{team_id} || $params{team_id} =~ /^[0-9]+$/
+          or error __x"Invalid team {id}", id => $params{team_id};
+      GADS::Util->email_valid($params{email})
+          or error __x"The email address \"{email}\" is invalid", email => $params{email};
+
+      my $msg = __x"User updated: ID {id}, username: {username}",
+          id => $self->id, username => $params{username};
+      $msg .= __x", groups: {groups}", groups => join ', ', @{$params{groups}}
+          if $params{groups};
+      $msg .= __x", permissions: {permissions}", permissions => join ', ', @{$params{permissions}}
+          if $params{permissions};
+
+      $audit->login_change($msg);
+
+      $guard->commit;
     }
-
-    my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $current_user);
-
-    $audit->login_change("Username $original_username (id ".$self->id.") being changed to ".$self->username)
-        if $original_username && $self->is_column_changed('username');
-
-    # Coerce view_limits to value expected, ensure all removed if exists
-    $params{view_limits} = []
-        if exists $params{view_limits} && !$params{view_limits};
-    # Same for groups
-    $params{groups} = []
-        if exists $params{groups} && !$params{groups};
-    # Same for permissions
-    $params{permissions} = []
-        if exists $params{permissions} && !$params{permissions};
-
-    $self->update($values);
-
-    if ($params{groups})
-    {
-        $self->groups($current_user, $params{groups});
-        $self->clear_has_group;
-        $self->has_group;
-    }
-
-    if ($params{permissions} && ref $params{permissions} eq 'ARRAY')
-    {
-        error __"You do not have permission to set global user permissions"
-            if !$current_user->permission->{superadmin};
-        $self->permissions(@{$params{permissions}});
-        # Clear and rebuild permissions, in case of form submission failure. We
-        # need to rebuild now, otherwise the transaction may have rolled-back
-        # to the old version by the time it is built in the template
-        $self->clear_permission;
-        $self->permission;
-    }
-    $self->set_view_limits($params{view_limits})
-        if $params{view_limits};
-
-    my $empty = 1;
-    $empty = 0 if($params{organisation});
-
-    my $required = 0;
-    $required = 1 if $site->register_organisation_mandatory;
-    $required = 0 if $params{edit_own_user};
-    $required = 1 if $params{$site->user_field_is_editable('organisation')};
-
-    error __x"Please select a {name} for the user", name => $site->organisation_name
-        if $empty && $required;
-
-    $required = $site->register_team_mandatory;
-    $required = 0 if $params{edit_own_user};
-    $required = 1 if $params{$site->user_field_is_editable('team_id')};
-
-    error __x"Please select a {name} for the user", name => $site->team_name
-        if !$params{team_id} && $required;
-
-    $required = $site->register_department_mandatory;
-    $required = 0 if $params{edit_own_user};
-    $required = 1 if $params{$site->user_field_is_editable('department_id')};
-
-    error __x"Please select a {name} for the user", name => $site->department_name
-        if !$params{department_id} && $required;
-
-    length $params{firstname} <= 128
-        or error __"Forename must be less than 128 characters";
-    length $params{surname} <= 128
-        or error __"Surname must be less than 128 characters";
-    !defined $params{organisation} || $params{organisation} =~ /^[0-9]+$/
-        or error __x"Invalid organisation {id}", id => $params{organisation};
-    !defined $params{department_id} || $params{department_id} =~ /^[0-9]+$/
-        or error __x"Invalid department {id}", id => $params{department_id};
-    !defined $params{team_id} || $params{team_id} =~ /^[0-9]+$/
-        or error __x"Invalid team {id}", id => $params{team_id};
-    GADS::Util->email_valid($params{email})
-        or error __x"The email address \"{email}\" is invalid", email => $params{email};
-
-    my $msg = __x"User updated: ID {id}, username: {username}",
-        id => $self->id, username => $params{username};
-    $msg .= __x", groups: {groups}", groups => join ', ', @{$params{groups}}
-        if $params{groups};
-    $msg .= __x", permissions: {permissions}", permissions => join ', ', @{$params{permissions}}
-        if $params{permissions};
-
-    $audit->login_change($msg);
-
-    $guard->commit;
-
-    $self->send_welcome_email($params{email})
-      if $request;
 }
 
 sub send_welcome_email

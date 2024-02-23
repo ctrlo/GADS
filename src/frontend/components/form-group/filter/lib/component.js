@@ -1,8 +1,8 @@
 import { Component } from 'component'
 import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
+import 'bootstrap-select/dist/js/bootstrap-select'
 import { logging } from 'logging'
 import TypeaheadBuilder from 'util/typeahead'
-import { map } from 'util/mapper/mapper'
 
 class FilterComponent extends Component {
   constructor(element)  {
@@ -77,7 +77,9 @@ class FilterComponent extends Component {
         c_yellow: 'Yellow',
         d_green: 'Green',
         a_grey: 'Grey',
-        e_purple: 'Purple'
+        e_purple: 'Purple',
+        d_blue: 'Blue',
+        b_attention: 'Red (Attention)'
       }
     }
 
@@ -98,6 +100,13 @@ class FilterComponent extends Component {
     if (!builderConfig.filters.length) return
     if (builderConfig.filterNotDone) this.makeUpdateFilter()
 
+    this.el.on("afterUpdateRuleFilter.queryBuilder", (e, rule) => {
+      const select= $(rule.$el.find(`select[name=${rule.id}_filter]`));
+      if(!select || !select[0]) console.log("No select found");
+      select.data("live-search","true");
+      select.selectpicker();
+    });
+
     $builderEl.queryBuilder({
       showPreviousValues: builderConfig.showPreviousValues,
       filters: builderConfig.filters.map(col =>
@@ -117,13 +126,6 @@ class FilterComponent extends Component {
       logging.log(value);
       logging.log(e);
       logging.log(node);
-    });
-
-    this.el.on("afterCreateRuleFilters.queryBuilder", (e, rule) => {
-      const select= $(rule.$el.find('select'));
-      if(!select || !select[0]) console.log("No select found");
-      select.data("live-search","true");
-      select.selectpicker();
     });
 
     $builderEl.on('afterCreateRuleInput.queryBuilder', function(e, rule) {
@@ -170,8 +172,9 @@ class FilterComponent extends Component {
         .withInput($ruleInputText)
         .withAjaxSource(self.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
         .withDataBuilder(buildQuery)
-        .withMapper(map)
+        .withDefaultMapper()
         .withName('rule')
+        .withAppendQuery()
         .withCallback(filterCallback)
         .build()
     })
@@ -198,7 +201,7 @@ class FilterComponent extends Component {
     if (devEndpoint) {
       return devEndpoint
     } else {
-      return `/${layoutId}/match/layout/${urlSuffix}`
+      return `/${layoutId}/match/layout/${urlSuffix}?q=`
     }
   }
 

@@ -102,9 +102,12 @@ class TreeComponent extends Component {
     const self = this
 
     $.each(selectedElms, (_, selectedElm) => {
-      // store the selected values in hidden fields as children of the element
+      // store the selected values in hidden fields as children of the element.
+      // Keep them in the same order as the tree (although we don't specify the
+      // order of multivalue values, it makes sense to have them in the same
+      // order in this case for calc values)
       const node = $(`<input type="hidden" class="selected-tree-value" name="${self.field}" value="${selectedElm.id}" />`)
-        .insertAfter(self.$treeContainer)
+        .appendTo(self.$treeContainer.closest('.tree'))
       const text_value = data.instance.get_path(selectedElm, '#')
       node.data('text-value', text_value)
     })

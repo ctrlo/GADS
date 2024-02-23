@@ -1,6 +1,7 @@
 import "typeahead.js";
-import { MappedResponse } from "util/mapper/mapper";
+import Bloodhound from "typeahead.js/dist/bloodhound";
 import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
+import { MappedResponse } from "util/mapper/mapper";
 
 /**
  * Typeahead class for creating a typeahead
@@ -9,8 +10,6 @@ import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
  * @param sourceOptions - options for the typeahead data source
  */
 export class Typeahead {
-    private debug = false;
-
     /**
      * Create a new Typeahead class
      * @param $input The input element to attach typeahead to
@@ -26,37 +25,32 @@ export class Typeahead {
      */
     private init() {
         const { appendQuery, mapper, name, ajaxSource } = this.sourceOptions;
+        const bloodhound = new Bloodhound({
+            datumTokenizer: Bloodhound.tokenizers.whitespace,
+            queryTokenizer: Bloodhound.tokenizers.whitespace,
+            remote: {
+                url: ajaxSource + (appendQuery ?  "%QUERY" : ""),
+                wildcard: '%QUERY',
+                transform: (response) => {
+                    return mapper(response);
+                },
+                rateLimitBy: 'debounce',
+                rateLimitWait: 300,
+                cache: false,
+            }
+        });
+
         this.$input.typeahead({
-            hint: true,
-            highlight: true,
-            minLength: 1
+            hint: false,
+            highlight: false,
+            minLength: 0
         }, {
             name: name,
-            source: (query, syncResults, asyncResults) => {
-                const request: JQuery.AjaxSettings<any> = {
-                    url: ajaxSource + (appendQuery ? query : ""),
-                    dataType: "json",
-                    success: (data) => {
-                        if (this.debug) console.log("Typeahead data:", data);
-                        const mapped = mapper(data);
-                        if (this.debug) console.log("Typeahead mapped data:", mapped);
-                        const filtered = mapped.filter((item: MappedResponse) => { return item.name.toLowerCase().indexOf(query.toLowerCase()) !== -1; });
-                        if (this.debug) console.log("Typeahead filtered data:", filtered);
-                        syncResults(
-                            mapped
-                        );
-                    },
-                    async: false
-                };
-                if (this.sourceOptions.data) request.data = this.sourceOptions.data;
-                if (this.sourceOptions.dataBuilder) request.data = this.sourceOptions.dataBuilder();
-                if (this.debug) console.log("Typeahead request: ", request);
-                $.ajax(request);
-            },
+            source: bloodhound,
             display: 'name',
-            limit: 10,
+            limit: 20,
             templates: {
-                suggestion: (item: { name: String, id: number }) => {
+                suggestion: (item: MappedResponse) => {
                     return `<div>${item.name}</div>`;
                 },
                 pending: () => {
@@ -71,5 +65,19 @@ export class Typeahead {
         this.$input.on('typeahead:select', (ev: any, suggestion: MappedResponse) => {
             this.callback(suggestion);
         });
+
+        if(window.test) {
+            this.$input.on("typeahead:asyncrequest", () => {
+                console.log("Typeahead async request");
+            });
+
+            this.$input.on("typeahead:asyncreceive", () => {
+                console.log("Typeahead async receive");
+            });
+
+            this.$input.on("typeahead:asynccancel", () => {
+                console.log("Typeahead async cancel");
+            });
+        }
     }
 };

@@ -648,52 +648,54 @@ sub _put_dashboard_widget_edit {
     my $user   = logged_in_user;
     my $widget = _get_widget_write(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user);
 
-    $widget->title(query_parameters->get('title'));
+    my $body = from_json(request->body);
+    
+    $widget->title($body->{'title'});
     $widget->static(query_parameters->get('static') ? 1 : 0)
         if $widget->dashboard->is_shared;
     if ($widget->type eq 'notice')
     {
         $widget->set_columns({
-            content => query_parameters->get('content'),
+            content => $body->{'content'},
         });
     }
     elsif ($widget->type eq 'graph')
     {
         $widget->set_columns({
-            graph_id => query_parameters->get('graph_id'),
-            view_id  => query_parameters->get('view_id'),
+            graph_id => $body->{'graph_id'},
+            view_id  => $body->{'view_id'},
         });
     }
     elsif ($widget->type eq 'table')
     {
         $widget->set_columns({
-            rows     => query_parameters->get('rows'),
-            view_id  => query_parameters->get('view_id'),
+            rows     => $body->{'rows'},
+            view_id  => $body->{'view_id'},
         });
     }
     elsif ($widget->type eq 'timeline')
     {
         my $tl_options = {
-            label   => query_parameters->get('tl_label'),
-            group   => query_parameters->get('tl_group'),
-            color   => query_parameters->get('tl_color'),
-            overlay => query_parameters->get('tl_overlay'),
+            label   => $body->{'tl_label'},
+            group   => $body->{'tl_group'},
+            color   => $body->{'tl_color'},
+            overlay => $body->{'tl_overlay'},
         };
         $widget->set_columns({
             tl_options => encode_json($tl_options),
-            view_id    => query_parameters->get('view_id'),
+            view_id    => $body->{'view_id'},
         });
     }
     elsif ($widget->type eq 'globe')
     {
         my $globe_options = {
-            label   => query_parameters->get('globe_label'),
-            group   => query_parameters->get('globe_group'),
-            color   => query_parameters->get('globe_color'),
+            label   => $body->{'globe_label'},
+            group   => $body->{'globe_group'},
+            color   => $body->{'globe_color'},
         };
         $widget->set_columns({
             globe_options => encode_json($globe_options),
-            view_id       => query_parameters->get('view_id'),
+            view_id       => $body->{'view_id'},
         });
     }
     $widget->update;

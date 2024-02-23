@@ -24,12 +24,14 @@ class MoreLessComponent extends Component {
 
   // Traverse up through the tree and find the parent element that is hidden
   parentHidden($elem) {
-    if ($elem.css('display') == 'none') {
-      return $elem
-    }
+    // Test parent first in case we have reached the root of the DOM, in which
+    // case .css() will throw an error on the element
     const $parent = $elem.parent()
     if (!$parent || !$parent.length) {
       return undefined
+    }
+    if ($elem.css('display') == 'none') {
+      return $elem
     }
     return this.parentHidden($parent)
   }
@@ -42,6 +44,11 @@ class MoreLessComponent extends Component {
     if ($elem.attr('data-actual-height')) {
       // cached heights from previous runs
       return $elem.attr('data-actual-height')
+    }
+
+    // If the element is blank then it will have 0 height
+    if ($elem.text().trim().length == 0) {
+      return 0;
     }
 
     if ($elem.height()) {
@@ -116,7 +123,9 @@ class MoreLessComponent extends Component {
 
     $ml.removeClass('transparent')
     // Element may be hidden (e.g. when rendering edit fields on record page).
-    if (this.getActualHeight($ml) < MAX_HEIGHT) {
+    // Actual height may be undefined in the event of errors.
+    const ah = this.getActualHeight($ml);
+    if (!ah || ah < MAX_HEIGHT) {
       return
     }
     $ml.addClass('clipped')

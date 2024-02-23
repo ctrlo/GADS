@@ -2,7 +2,7 @@
   PROCESS navigation/active_pages.tt;
   PROCESS navigation/skip_links.tt;
 %]
-<nav class="col-lg-2 sticky-top sidebar sidebar--collapsible" aria-label="Main">
+<nav class="col-lg-2 sticky-top sidebar sidebar--collapsible hidden" aria-label="Main">
   <div class="sidebar__container">
     <div class="sidebar__header">
       <div class="sidebar__logo">

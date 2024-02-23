@@ -4,7 +4,7 @@ use v5.24.0;
 use Moo;
 
 use GADSDriver ();
-use List::MoreUtils 'zip';
+use List::Util 'zip';
 use Test2::API 'context';
 use Test2::Tools::Compare qw( is like unlike );
 

@@ -69,7 +69,7 @@ export default class ApiClient {
   }
 
   saveWidget = async (url, params) => {
-    const result = this.isDev ? await this.GET(`/widget/update.json`) : await this.PUT(`${url}?${params}`, null);
+    const result = this.isDev ? await this.GET(`/widget/update.json`) : await this.PUT(`${url}`, params);
     return await result.json();
   }
 }

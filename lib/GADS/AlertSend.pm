@@ -23,7 +23,7 @@ use GADS::Config;
 use GADS::Email;
 use GADS::Records;
 use GADS::Views;
-use List::MoreUtils qw/ uniq /;
+use List::Util qw/ uniq /;
 use Log::Report 'linkspace';
 use Scalar::Util qw(looks_like_number);
 
@@ -135,6 +135,7 @@ sub _process_instance
         unless $self->current_new;
     my @view_ids = $self->schema->resultset('View')->search($search,{
         join     => ['alerts', 'filters'],
+        group_by => 'me.id', # Remove same view ID across multiple alerts
     })->get_column('id')->all;
 
     # We now have all the views that may have been affected by this update.

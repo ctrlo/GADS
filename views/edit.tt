@@ -899,8 +899,8 @@
   
           show_progress = 0;
           data_attributes = "";
+        '</div>';
       END;
-      '</div>';
       '</fieldset>';
     ELSIF col.type == "daterange";
       IF col.multivalue;

@@ -39,6 +39,7 @@ h3 {
   min-height: 100vh;
   padding-right: $grid-offset-mobile;
   padding-left: 0;
+  transition: all 0.2s ease;
 
   &:not(.main--expanded) {
     display: none;

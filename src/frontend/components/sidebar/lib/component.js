@@ -16,6 +16,7 @@ class SidebarComponent extends Component {
         this.currentState = localStorage.getItem(KEY_NAV_STATE) || (this.isMobile ? NAV_STATE_COLLAPSED : NAV_STATE_EXPANDED)
 
         this.initSidebar()
+        this.el.removeClass('hidden');
     }
 
     initSidebar() {

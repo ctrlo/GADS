@@ -64,17 +64,13 @@ jobs:
           # Avoid "Install CPAN dependencies" needing to compile so much
           sudo apt-get install libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl
       - name: 'Build cpanfile'
-        run: perl bin/output_cpanfile > cpanfile
+        run: |
+          perl bin/output_cpanfile > cpanfile
+          ( cd webdriver && perl ../bin/output_cpanfile ) >> cpanfile
       - name: 'Install CPAN dependencies'
         uses: 'perl-actions/install-with-cpanm@v1'
         with:
           cpanfile: 'cpanfile'
-      - name: 'Install Webdriver CPAN dependencies'
-        uses: 'perl-actions/install-with-cpanm@v1'
-        with:
-          install: |
-            Test2::Tools::Compare
-            WebDriver::Tiny
       - name: 'Set up credentials for psql'
         # See https://wiki.postgresql.org/wiki/Pgpass
         run: |

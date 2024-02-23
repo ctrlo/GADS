@@ -55,24 +55,6 @@ has '+fixedvals' => (
     default => 1,
 );
 
-sub id_as_string
-{   my ($self, $id) = @_;
-    $id or return '';
-    $id eq 'b_red'
-        ? 'Red'
-        : $id eq 'c_amber'
-        ? 'Amber'
-        : 'c_yellow'
-        ? 'Yellow'
-        : 'd_green'
-        ? 'Green'
-        : 'a_grey'
-        ? 'Grey'
-        : 'e_purple'
-        ? 'Purple'
-        : panic("Unknown RAG ID $id");
-}
-
 sub cleanup
 {   my ($class, $schema, $id) = @_;
     $schema->resultset('Rag')->search({ layout_id => $id })->delete;

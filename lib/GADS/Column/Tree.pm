@@ -118,12 +118,6 @@ sub _build__enumvals_index
     \%enumvals;
 }
 
-sub id_as_string
-{   my ($self, $id) = @_;
-    my $node = $self->node($id) or return '';
-    $node->{value};
-}
-
 sub string_as_id
 {   my ($self, $value) = @_;
     my $rs = $self->schema->resultset('Enumval')->search({
