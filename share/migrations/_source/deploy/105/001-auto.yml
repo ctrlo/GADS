@@ -6139,7 +6139,7 @@ schema:
           size:
             - 0
         description:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 1
           is_primary_key: 0
@@ -6170,7 +6170,7 @@ schema:
           size:
             - 0
         name:
-          data_type: varchar
+          data_type: text
           default_value: ~
           is_nullable: 0
           is_primary_key: 0
