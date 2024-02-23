@@ -2728,6 +2728,9 @@ sub get_report
     my $report = $self->schema->resultset('Report')->find($report_id)
         or error __x"Report ID {id} not found", id => $report_id;
 
+    error __x"Report ID {id} not found", id => $report_id
+        if $report->deleted;
+
     $report->create_pdf($self,$user);
 }
 

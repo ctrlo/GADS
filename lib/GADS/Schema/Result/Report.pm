@@ -381,7 +381,7 @@ sub fields_for_render {
 sub _read_security_marking {
     my $self = shift;
 
-    return $self->security_marking || $self->instance->security_marking;
+    return $self->security_marking || $self->instance->read_security_marking;
 }
 
 1;
