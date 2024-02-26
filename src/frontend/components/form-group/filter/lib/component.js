@@ -3,6 +3,7 @@ import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min
 import 'bootstrap-select/dist/js/bootstrap-select'
 import { logging } from 'logging'
 import TypeaheadBuilder from 'util/typeahead'
+import { refreshSelects } from 'components/form-group/common/bootstrap-select'
 
 class FilterComponent extends Component {
   constructor(element) {
@@ -98,46 +99,7 @@ class FilterComponent extends Component {
     if (!builderConfig.filters.length) return
     if (builderConfig.filterNotDone) this.makeUpdateFilter()
 
-    let filterSelect = null;
-    let operatorSelect=null;
-
-    this.el.on("afterCreateRuleFilters.queryBuilder", (e, rule) => {
-      filterSelect = $(rule.$el.find(`select[name=${rule.id}_filter]`));
-      if (!filterSelect || !filterSelect[0]) { 
-        console.error("No select found"); 
-        return; 
-      }
-      filterSelect.data("live-search", "true");
-      filterSelect.selectpicker();
-    });
-
-    this.el.on("afterCreateRuleOperators.queryBuilder", (e, rule, operators) => {
-      operatorSelect = $(rule.$el.find(`select[name=${rule.id}_operator]`));
-      if(!operatorSelect || !operatorSelect[0]) {
-        console.error("No operator select found");
-        return;
-      }
-      if(operatorSelect.data("live-search")) return;
-      operatorSelect.data("live-search","true");
-      operatorSelect.selectpicker();
-    });
-
-    this.el.on("afterSetRules.queryBuilder", (e) => {
-      if (!filterSelect || !filterSelect[0]) { 
-        console.error("No select found"); 
-        return; 
-      }
-      filterSelect.selectpicker("refresh");
-      operatorSelect?.selectpicker("refresh");
-    });
-
-    this.el.on("afterSetRuleOperator.queryBuilder", (e, rule,operator) => {
-      if(!operatorSelect || !operatorSelect[0]) {
-        console.error("No select found");
-        return;
-      }
-      operatorSelect.selectpicker("refresh");
-    });
+    refreshSelects(this.el);
 
     $builderEl.queryBuilder({
       showPreviousValues: builderConfig.showPreviousValues,
