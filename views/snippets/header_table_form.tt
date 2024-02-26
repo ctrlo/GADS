@@ -39,13 +39,13 @@
             UNLESS layout.no_download_pdf;
               links = [{
                   name   = "Default PDF",
-                  target = url.page _ "/" _ layout.identifier _ "/record/" _ record.current_id _ "?pdf",
+                  target = "?pdf",
                 }];
 
               FOREACH report IN reports;
                 links.push({
                   name     = report.name,
-                  target   = url.page _ '/' _ layout.identifier _ '/record/' _ record.current_id _ "?report=" _ report.id,
+                  target   = "?report=" _ report.id,
                 });
               END;
 
