@@ -305,7 +305,6 @@ sub create_pdf
     my @cols = $record->presentation_map_columns(columns=>$result);
     my @topics = $record->get_topics(\@cols);
 
-
     my $i = 0;
     foreach my $topic (@topics) {
         my $topic_name = $topic->{topic} ? $topic->{topic}->name : 'Other';
@@ -322,7 +321,11 @@ sub create_pdf
                     $first=0;
                 }
             } else {
-                push @$fields, [ $col->{name}, $col->{data}->{value} || "" ];
+                if($col->{data}->{value}) {
+                    push @$fields, [ $col->{name}, $col->{data}->{value} || "" ];
+                } else {
+                    push @$fields, [ $col->{name}, $col->{data}->{grade} ];
+                }
                 $width = 2 if $width < 2;
             }
         }

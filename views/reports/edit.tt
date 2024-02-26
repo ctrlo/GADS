@@ -63,6 +63,7 @@
               END;
 
               INCLUDE fields/checkbox_list.tt
+                select_all        = 1
                 list_class        = "list--vertical list--checkboxes"
                 name              = "checkboxes"
                 label             = "Columns to show in report:"

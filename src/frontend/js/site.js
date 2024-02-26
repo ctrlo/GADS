@@ -39,6 +39,7 @@ import UserModalComponent from 'components/modal/modals/user'
 import ValueLookupComponent from 'components/form-group/value-lookup'
 import MarkdownComponent from "components/markdown"
 import ButtonComponent from "components/button"
+import SelectAllComponent from "components/select-all"
 
 // Register them
 registerComponent(AddTableModalComponent)
@@ -75,6 +76,7 @@ registerComponent(TreeComponent)
 registerComponent(UserModalComponent)
 registerComponent(ValueLookupComponent)
 registerComponent(MarkdownComponent)
+registerComponent(SelectAllComponent)
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body)

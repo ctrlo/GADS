@@ -13,12 +13,21 @@
 <div class="form-group">
 [% END %]
   <fieldset class="[% fieldset_extra_classes %]"[% IF fieldset_name %] data-name="[% fieldset_name %]"[% END %]>
-    [% INCLUDE fields/sub/label_fieldset.tt; %]
+    [% 
+      INCLUDE fields/sub/label_fieldset.tt;
+    %]
     <div class="list [% list_class %]">
       <ul class="list__items" id="[% id %]">
-        [%
-          IF !message_empty OR items.size;
-            FOREACH item IN items;
+      [%
+        IF select_all;
+          INCLUDE fields/sub/checkbox.tt
+            label          = "Select All"
+            id             = "select_all"
+            name           = "select_all"
+            custom_classes = "select_all";
+        END;
+        IF !message_empty OR items.size;
+          FOREACH item IN items;
         %]
         <li class="list__item">
             [%
