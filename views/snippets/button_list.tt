@@ -78,7 +78,8 @@
                   <a role="menuitem"
                     [% IF item.id %]id="[% item.id %]" [% END %]
                     class='link link--plain [% item.class %]'
-                    href='[% item.target %]'>
+                    href='[% item.target %]'
+                    target="_blank">
                       [% item.label || item.name | html %]
                   </a>
                 [% END %]

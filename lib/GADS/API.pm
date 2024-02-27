@@ -549,11 +549,13 @@ any ['get', 'post'] => '/api/:sheet/records' => require_login sub {
 post '/api/settings/logo' => require_login sub {
     my $site = var 'site';
 
-    my $file = upload('file') or error __"No file provided";
-    unless(logged_in_user->permission->{superadmin}) {
-        error __"You do not have permission to manage system settings";
-    }
+    error __"You do not have permission to manage system settings" unless logged_in_user->permission->{superadmin};
 
+    my $file = upload('file') or error __"No file provided";
+    my $filecheck = GADS::Filecheck->instance;
+    error __x"Files of mimetype {mimetype} are not allowed", mimetype => $filecheck->get_filetype($file)
+        unless $filecheck->is_image($file);
+    
     $site->update({ site_logo => $file->content });
 
     content_type 'application/json';

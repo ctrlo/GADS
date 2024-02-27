@@ -41,7 +41,7 @@ class InputComponent extends Component {
     }
 
     initInputLogo() {
-      this.logoDisplay.hide();
+      if(this.logoDisplay.attr('src') == '#') this.logoDisplay.hide();
 
       this.el.find('.file').hide();
 
