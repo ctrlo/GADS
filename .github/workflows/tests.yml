@@ -97,7 +97,7 @@ jobs:
           ./bin/setup_database
           perl bin/app.pl &
       - name: 'Run the Webdriver tests'
-        run: yarn cypress --browser ${{ matrix.browser.name }}
+        run: yarn cypress run --browser ${{ matrix.browser.name }}
         # TODO: Delete the line below and uncomment the line beneath that
         #run: prove -lmrsv webdriver/t/login.t
         #run: prove -lmrsv webdriver/t
