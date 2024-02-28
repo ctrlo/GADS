@@ -76,6 +76,10 @@ jobs:
         run: |
           echo '*:*:*:postgres:postgrespassword' > ~/.pgpass
           chmod 600 ~/.pgpass
+      - name: 'Install YARN dependencies'
+        run: |
+          apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+          yarn
       - name: 'Start the application'
         env:
           DANCER_CONFDIR: 'webdriver'
@@ -85,11 +89,10 @@ jobs:
         run: |
           ./bin/setup_database
           perl bin/app.pl &
-      - name: 'Run the Webdriver implementation'
-        run: '${{ matrix.browser.command }}'
       - name: 'Run the Webdriver tests'
+        run: yarn cypress --browser ${{ matrix.browser.name }}
         # TODO: Delete the line below and uncomment the line beneath that
-        run: prove -lmrsv webdriver/t/login.t
+        #run: prove -lmrsv webdriver/t/login.t
         #run: prove -lmrsv webdriver/t
 
   js_tests:
