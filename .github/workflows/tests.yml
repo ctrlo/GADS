@@ -34,10 +34,10 @@ jobs:
       fail-fast: false
       matrix:
         browser:
-          - name: 'Chrome'
+          - name: 'chromium'
             command: 'chromedriver --port=4444 &'
             os: 'ubuntu-22.04'
-          - name: 'Firefox'
+          - name: 'firefox'
             command: 'MOZ_HEADLESS=1 geckodriver --log warn &'
             os: 'ubuntu-20.04'
 
