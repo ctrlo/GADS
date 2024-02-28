@@ -60,9 +60,16 @@ jobs:
         uses: 'actions/checkout@v3'
       - name: 'Install Non-CPAN dependencies'
         run: |
-          sudo apt-get install cpanminus liblua5.3-dev
-          # Avoid "Install CPAN dependencies" needing to compile so much
-          sudo apt-get install libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl
+          sudo apt-get install -y cpanminus liblua5.3-dev gcc g++ libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl
+          sudo apt-get install -y libdbix-class-schema-loader-perl libmagic-dev postgresql-client libpng-dev libssl-dev libpq-dev
+          sudo apt-get install -y libjson-perl libsession-token-perl libnet-oauth2-authorizationserver-perl libtext-csv-encoded-perl
+          sudo apt-get install -y libcrypt-urandom-perl libhtml-scrubber-perl libtext-markdown-perl libwww-form-urlencoded-xs-perl
+          sudo apt-get install -y libstring-camelcase-perl libmail-transport-perl liblog-log4perl-perl libplack-perl libdbd-pg-perl
+          sudo apt-get install -y libmail-message-perl libmath-random-isaac-xs-perl libdbix-class-helpers-perl libtree-dagnode-perl
+          sudo apt-get install -y libmath-round-perl libdatetime-format-dateparse-perl libwww-mechanize-perl libdatetime-format-iso8601-perl
+          sudo apt-get install -y libmoox-types-mooselike-perl libmoox-singleton-perl libpdf-table-perl libdancer2-perl liblist-compare-perl
+          sudo apt-get install -y liburl-encode-perl libtie-cache-perl libhtml-fromtext-perl libdata-compare-perl libfile-bom-perl
+          sudo apt-get install -y libalgorithm-dependency-perl libdancer-plugin-auth-extensible-perl libfile-libmagic-perl postfix
       - name: 'Build cpanfile'
         run: |
           perl bin/output_cpanfile > cpanfile
