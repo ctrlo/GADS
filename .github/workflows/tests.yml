@@ -34,7 +34,7 @@ jobs:
       fail-fast: false
       matrix:
         browser:
-          - name: 'Chromium'
+          - name: 'Chrome'
             command: 'chromedriver --port=4444 &'
             os: 'ubuntu-22.04'
           - name: 'Firefox'
