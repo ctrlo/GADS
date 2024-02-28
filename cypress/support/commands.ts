@@ -42,10 +42,15 @@ declare global {
     namespace Cypress {
         interface Chainable {
             getByName(name: string): Chainable<JQuery<HTMLElement>>;
+            getByTitle(title: string): Chainable<JQuery<HTMLElement>>;
         }
     }
 }
 
 Cypress.Commands.add('getByName', (name: string) => {
     return cy.get(`[name=${name}]`);
+});
+
+Cypress.Commands.add('getByTitle', (title: string) => {
+    return cy.get(`[title=${title}]`);
 });
