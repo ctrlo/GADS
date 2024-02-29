@@ -43,6 +43,7 @@ declare global {
         interface Chainable {
             getByName(name: string): Chainable<JQuery<HTMLElement>>;
             getByTitle(title: string): Chainable<JQuery<HTMLElement>>;
+            loginAndGoTo(email:string, password:string, path:string): Chainable<JQuery<Element>>;
         }
     }
 }
@@ -53,4 +54,13 @@ Cypress.Commands.add('getByName', (name: string) => {
 
 Cypress.Commands.add('getByTitle', (title: string) => {
     return cy.get(`[title=${title}]`);
+});
+
+Cypress.Commands.add('loginAndGoTo', (email:string, password:string, path:string) => {
+    cy.visit('http://localhost:3000');
+    cy.get("#username").type(email);
+    cy.get("#password").type(password);
+    cy.getByName("signin").click();
+    cy.location("pathname").should("not.include", "/login");
+    cy.visit(path);
 });
