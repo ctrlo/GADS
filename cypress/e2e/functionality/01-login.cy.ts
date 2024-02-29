@@ -1,3 +1,4 @@
+/// <reference types="cypress" />
 describe('Login Tests', () => {
   const errorText = "The username or password was not recognised";
   const goodUser = "test@example.com"
