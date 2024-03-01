@@ -176,7 +176,7 @@ class FilterComponent extends Component {
       const data = Buffer.from(filterBase, 'base64')
       try {
         const obj = JSON.parse(data);
-        if(obj.rules && obj.rules.length) {
+        if (obj.rules && obj.rules.length) {
           $builderEl.queryBuilder('setRules', obj)
         } else {
           // Ensure that no blank rules by default, otherwise view cannot be submitted
