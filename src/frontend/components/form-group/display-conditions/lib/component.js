@@ -1,6 +1,7 @@
 import { Component } from 'component'
 import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
 import 'bootstrap-select/dist/js/bootstrap-select'
+import { refreshSelects } from 'components/form-group/common/bootstrap-select'
 
 class DisplayConditionsComponent extends Component {
   constructor(element)  {
@@ -14,12 +15,7 @@ class DisplayConditionsComponent extends Component {
     const filters = JSON.parse(Buffer.from(builderData.filters, 'base64'))
     if (!filters.length) return
 
-    this.el.on("afterUpdateRuleFilter.queryBuilder", (e, rule) => {
-      const select= $(rule.$el.find(`select[name=${rule.id}_filter]`));
-      if(!select || !select[0]) console.log("No select found");
-      select.data("live-search","true");
-      select.selectpicker();
-    });
+    refreshSelects(this.el)
 
     this.el.queryBuilder({
       filters: filters,
