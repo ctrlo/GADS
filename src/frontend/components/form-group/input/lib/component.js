@@ -53,7 +53,6 @@ class InputComponent extends Component {
         formData.append('file', this.el.find('input[type="file"]')[0].files[0]);
         formData.append('csrf_token', $('body').data('csrf'));
 
-        //This has been moved over to the new fetch API - all the other ajax calls need moving as well. This is now on ticket #1529
         fetch(url,{
           method: 'POST',
           body: formData,
