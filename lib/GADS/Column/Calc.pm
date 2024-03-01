@@ -70,7 +70,7 @@ sub has_time
 
 sub _build_has_filter_typeahead
 {   my $self = shift;
-    $self->return_type eq 'string' ? 1 : 0;
+    $self->value_field eq 'value_text' ? 1 : 0;
 }
 
 sub _build__rset_code
