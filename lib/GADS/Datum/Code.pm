@@ -189,7 +189,7 @@ sub write_cache
         {
             foreach my $oldval (@{$old->value})
             {
-                my $sv = $self->column->value_field eq 'value_date'
+                my $sv = $oldval && $self->column->value_field eq 'value_date'
                     ? $formatter->format_date($oldval)
                     : $oldval;
                 $self->_delete_unique($vfield => $oldval)
@@ -232,7 +232,7 @@ sub write_cache
                 my $old_value = $row->$vfield;
                 $row->update({ %blank, %to_write });
                 # Delete unique cache, unless exists in another
-                my $sv = $self->column->value_field eq 'value_date'
+                my $sv = $old_value && $self->column->value_field eq 'value_date'
                     ? $formatter->format_date($old_value)
                     : $old_value;
                 $self->_delete_unique(%old)
