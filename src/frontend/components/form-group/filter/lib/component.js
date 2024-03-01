@@ -5,8 +5,8 @@ import { logging } from 'logging'
 import TypeaheadBuilder from 'util/typeahead'
 import { refreshSelects } from 'components/form-group/common/bootstrap-select'
 
-class FilterComponent extends Component  {
-  constructor(element) {
+class FilterComponent extends Component {
+  constructor(element)  {
     super(element)
     this.el = $(this.element)
     this.operators = [
