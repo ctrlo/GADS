@@ -167,6 +167,8 @@ has '+has_cache' => (
     default => 1,
 );
 
+sub table_unique {}
+
 sub params
 {   my $self = shift;
     $self->_params_from_code($self->code);

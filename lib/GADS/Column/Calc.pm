@@ -134,6 +134,8 @@ has '+table' => (
     default => 'Calcval',
 );
 
+sub table_unique { "CalcUnique" }
+
 has '+return_type' => (
     isa => sub {
         return unless $_[0];
@@ -188,6 +190,12 @@ sub write_code
         || $self->_rset_code->code ne $self->code
         || $self->_rset_code->return_format ne $self->return_type
         || $options{old_rset}->{multivalue} != $self->multivalue;
+    # If changing return type, then remove all previous cached calc values, as
+    # they will all be recalculated
+    $self->schema->resultset($self->table_unique)->search({
+        layout_id => $self->id,
+    })->delete if $self->table_unique
+        && $self->_rset_code->return_format && $self->_rset_code->return_format ne $self->return_type;
     $rset->layout_id($layout_id);
     $rset->code($self->code);
     $rset->return_format($self->return_type);
@@ -198,7 +206,7 @@ sub write_code
 
 sub resultset_for_values
 {   my $self = shift;
-    return $self->schema->resultset('Calcval')->search({
+    return $self->schema->resultset('CalcUnique')->search({
         layout_id => $self->id,
     },{
         group_by  => 'me.'.$self->value_field,
