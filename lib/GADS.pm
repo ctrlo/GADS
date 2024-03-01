@@ -1896,7 +1896,7 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
         return send_file(\$pdf, content_type => 'application/pdf', filename => "Record-".$record->current_id.".pdf" );
     }
 
-    if (defined(query_parameters->get('report')) && !$record->layout->no_download_pdf)
+    if (query_parameters->get('report') && !$record->layout->no_download_pdf)
     {
         my $report_id = query_parameters->get('report');
         my $pdf = $record->get_report($report_id, $user)->content;
