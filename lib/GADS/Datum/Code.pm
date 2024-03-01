@@ -156,6 +156,8 @@ sub _delete_unique
 sub write_cache
 {   my ($self, $table) = @_;
 
+    my $formatter = $self->schema->storage->datetime_parser;
+
     my @values = sort @{$self->value} if defined $self->value->[0];
 
     # We are generally already in a transaction at this point, but
@@ -187,8 +189,11 @@ sub write_cache
         {
             foreach my $oldval (@{$old->value})
             {
+                my $sv = $self->column->value_field eq 'value_date'
+                    ? $formatter->format_date($oldval)
+                    : $oldval;
                 $self->_delete_unique($vfield => $oldval)
-                    unless $records->find_unique($self->column, $oldval);
+                    unless $records->find_unique($self->column, $sv);
             }
         }
     }
@@ -227,8 +232,11 @@ sub write_cache
                 my $old_value = $row->$vfield;
                 $row->update({ %blank, %to_write });
                 # Delete unique cache, unless exists in another
+                my $sv = $self->column->value_field eq 'value_date'
+                    ? $formatter->format_date($old_value)
+                    : $old_value;
                 $self->_delete_unique(%old)
-                    unless $records->find_unique($self->column, $old_value);
+                    unless $records->find_unique($self->column, $sv);
                 $self->_write_unique(%to_write);
             }
         }

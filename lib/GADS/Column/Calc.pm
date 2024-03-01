@@ -180,6 +180,7 @@ sub cleanup
 {   my ($class, $schema, $id) = @_;
     $schema->resultset('Calc')->search({ layout_id => $id })->delete;
     $schema->resultset('Calcval')->search({ layout_id => $id })->delete;
+    $schema->resultset('CalcUnique')->search({ layout_id => $id })->delete;
 }
 
 # Returns whether an update is needed
