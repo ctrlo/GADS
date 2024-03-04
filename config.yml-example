@@ -55,10 +55,10 @@ plugins:
     session_messages: [ NOTICE, MISTAKE, WARNING, ERROR, FAULT, ALERT, FAILURE, PANIC ]
   DBIC:
     default:
-      dsn: dbi:Pg:database=gads;host=127.0.0.1 # or dbi:mysql:database=dbname;mysql_enable_utf8=1;host=localhost
+      dsn: dbi:Pg:database=gads;host=db # or dbi:mysql:database=dbname;mysql_enable_utf8=1;host=localhost
       schema_class: GADS::Schema
-      user: dbuser
-      password: dbpass
+      user: gads
+      password: mysecret
       options:
         RaiseError: 1
         PrintError: 1

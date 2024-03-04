@@ -30,6 +30,19 @@ use Dancer2;
 use Dancer2::Plugin::DBIC;
 use DBIx::Class::Migration;
 
+use GADS::Config;
+use GADS::Layout;
+use GADS::Group;
+use GADS::Column::String;
+use GADS::Column::Intgr;
+use GADS::Column::Enum;
+use GADS::Column::Tree;
+
+# Seed singleton
+GADS::Config->instance(
+    config => config,
+);
+
 my ($initial_username, $instance_name, $host);
 my $namespace = $ENV{CDB_NAMESPACE};
 GetOptions (
@@ -41,16 +54,16 @@ GetOptions (
 my ($dbic) = values %{config->{plugins}->{DBIC}}
     or die "Please create config.yml before running this script";
 
-unless ($instance_name)
-{
-    say "Please enter the name of the first datasheet";
-    chomp ($instance_name = <STDIN>);
-}
-
 unless ($initial_username)
 {
     say "Please enter the email address of the first user";
     chomp ($initial_username = <STDIN>);
+}
+
+unless ($instance_name)
+{
+    say "Please enter the name of the first datasheet";
+    chomp ($instance_name = <STDIN>);
 }
 
 unless ($host)
@@ -107,3 +120,143 @@ rset('Instance')->create({
     site_id => $site->id,
 });
 
+my $group  = GADS::Group->new(schema => schema);
+$group->name('Read/write');
+$group->write;
+
+rset('UserGroup')->create({
+    user_id  => $user->id,
+    group_id => $group->id,
+});
+
+my $perms = {$group->id => [qw/read write_existing write_existing_no_approval write_new write_new_no_approval/]};
+
+my $activities = _create_table("Activities", $site, string => 20, tree => 5, enum => 20, intgr => 20);
+
+for my $i (1..10)
+{
+    my $curval_layout = _create_table("Curval$i", $site, string => 3, tree => 0, enum => 3, intgr => 1);
+
+    my $curval = GADS::Column::Curval->new(
+        optional   => 1,
+        schema     => schema,
+        user       => $user,
+        layout     => $activities,
+    );
+    $curval->refers_to_instance_id($curval_layout->instance_id);
+    my @curval_field_ids = schema->resultset('Layout')->search({
+        internal    => 0,
+        instance_id => $curval_layout->instance_id,
+    })->get_column('id')->all;
+    $curval->curval_field_ids(\@curval_field_ids);
+    $curval->type('curval');
+    $curval->name("curval$i");
+    $curval->delete_not_used(1);
+    $curval->show_add(1);
+    $curval->value_selector('noshow');
+    $curval->set_permissions($perms);
+    $curval->write;
+}
+
+sub _create_table
+{   my ($name, $site, %counts) = @_;
+
+    say "Creating table";
+
+    my $activities = rset('Instance')->create({
+        name => "$name",
+        site_id => $site->id,
+    });
+
+    my $layout = GADS::Layout->new(
+        user        => $user,
+        schema      => schema,
+        config      => config,
+        instance_id => $activities->id,
+    );
+    $layout->create_internal_columns;
+
+    say "Creating string fields";
+
+    for my $i (1..$counts{string})
+    {
+        my $string = GADS::Column::String->new(
+            optional => 1,
+            schema   => schema,
+            user     => $user,
+            layout   => $layout,
+        );
+        $string->type('string');
+        $string->name("string$i");
+        $string->set_permissions($perms);
+        $string->write;
+    }
+
+    say "Creating tree fields";
+
+    for my $i (1..$counts{tree})
+    {
+        my $tree = GADS::Column::Tree->new(
+            optional => 1,
+            schema   => schema,
+            user     => $user,
+            layout   => $layout,
+        );
+        $tree->type('tree');
+        $tree->name("tree$i");
+        $tree->set_permissions($perms);
+        $tree->write;
+
+        my @nodes;
+        for my $j (1..200)
+        {
+            push @nodes, {
+                text => "Node $i $j",
+                children => [],
+            };
+        }
+        $tree->update(\@nodes);
+    }
+
+    say "Creating enum fields";
+
+    for my $i (1..$counts{enum})
+    {
+        my $enum = GADS::Column::Enum->new(
+            optional => 1,
+            schema   => schema,
+            user     => $user,
+            layout   => $layout,
+        );
+        $enum->type('enum');
+        $enum->name("enum$i");
+        $enum->set_permissions($perms);
+        my @enumvals;
+        for my $j (1..100)
+        {
+            push @enumvals, {
+                value => "foo$j",
+            };
+        }
+        $enum->enumvals(\@enumvals);
+        $enum->write;
+    }
+
+    say "Creating integer fields";
+
+    for my $i (1..$counts{intgr})
+    {
+        my $intgr = GADS::Column::Intgr->new(
+            optional => 1,
+            schema   => schema,
+            user     => $user,
+            layout   => $layout,
+        );
+        $intgr->type('intgr');
+        $intgr->name("integer$i");
+        $intgr->set_permissions($perms);
+        $intgr->write;
+    }
+
+    return $layout;
+}
