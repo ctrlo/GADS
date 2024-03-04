@@ -63,8 +63,8 @@ class InputComponent extends Component {
           throw new Error(`Error: ${response.status} ${response.statusText}`);
         }).then((data) => {
           if (data && !data.error) {
-            this.logoDisplay.attr('src', data.url);
-            this.logoDisplay.show();
+            // Quick and dirty, but without having a "unique" identifier for the logo each time, it's the only sensible way to do it
+            location.reload();
           } else if (data.error) {
             throw new Error(`Error: ${data.text}`);
           }else{
