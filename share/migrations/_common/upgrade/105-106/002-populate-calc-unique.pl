@@ -3,13 +3,13 @@ use warnings;
 
 use DBIx::Class::Migration::RunScript;
 use Log::Report;
- 
+
 migrate {
     my $schema = shift->schema;
+
     # dbic_connect_attrs is ignored, so quote_names needs to be forced
     $schema->storage->connect_info(
-        [sub {$schema->storage->dbh}, { quote_names => 1 }]
-    );
+        [ sub { $schema->storage->dbh }, { quote_names => 1 } ] );
 
     my $rec_class = $schema->class('Record');
     $rec_class->might_have(
@@ -39,36 +39,47 @@ migrate {
                 'record_later',
             ],
         },
+        page => 1,
+        rows => 100,
+        order_by => 'me.id',
     });
-    foreach my $current ($rs->all)
-    {
-        foreach my $record ($current->records->all)
+    my $pager     = $rs->pager;
+    my $page      = $pager->current_page;
+    my $last_page = $pager->last_page;
+    do {
+        print STDERR "Page: $page of $last_page\n";
+        $pager->current_page($page);
+        foreach my $current ($rs->all)
         {
-            foreach my $calcval ($record->calcvals)
+            foreach my $record ($current->records->all)
             {
-                my $svp = $schema->storage->svp_begin;
-                try {
-                    $schema->resultset('CalcUnique')->create({
-                        layout_id       => $calcval->layout_id,
-                        value_text      => $calcval->value_text,
-                        value_int       => $calcval->value_int,
-                        value_date      => $calcval->value_date,
-                        value_numeric   => $calcval->value_numeric,
-                        value_date_from => $calcval->value_date_from,
-                        value_date_to   => $calcval->value_date_to,
-                    });
-                };
-                if ($@ =~ /duplicate/i) # Pg: duplicate key, Mysql: Dupiicate entry
+                foreach my $calcval ($record->calcvals)
                 {
-                        $schema->storage->svp_rollback;
-                }
-                elsif ($@) {
-                    $@->reportAll;
-                }
-                else {
-                    $schema->storage->svp_release;
+                    my $svp = $schema->storage->svp_begin;
+                    try {
+                        $schema->resultset('CalcUnique')->create({
+                            layout_id       => $calcval->layout_id,
+                            value_text      => $calcval->value_text,
+                            value_int       => $calcval->value_int,
+                            value_date      => $calcval->value_date,
+                            value_numeric   => $calcval->value_numeric,
+                            value_date_from => $calcval->value_date_from,
+                            value_date_to   => $calcval->value_date_to,
+                        });
+                    };
+                    if ($@ =~ /duplicate/i) # Pg: duplicate key, Mysql: Dupiicate entry
+                    {
+                            $schema->storage->svp_rollback;
+                    }
+                    elsif ($@) {
+                        $@->reportAll;
+                    }
+                    else {
+                        $schema->storage->svp_release;
+                    }
                 }
             }
         }
-    }
+        $page = $pager->next_page;
+    } while ($page);
 };
