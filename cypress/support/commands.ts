@@ -41,6 +41,9 @@ declare global {
             getByName(name: string): Chainable<JQuery<HTMLElement>>;
             getByTitle(title: string): Chainable<JQuery<HTMLElement>>;
             loginAndGoTo(email:string, password:string, path:string): Chainable<JQuery<Element>>;
+            mainBody(): Chainable<JQuery<HTMLElement>>;
+            mainHeader(): Chainable<JQuery<HTMLElement>>;
+            getDataTable(): Chainable<JQuery<HTMLElement>>;
         }
     }
 }
@@ -60,4 +63,16 @@ Cypress.Commands.add('loginAndGoTo', (email:string, password:string, path:string
     cy.getByName("signin").click();
     cy.location("pathname").should("not.include", "/login");
     cy.visit(path);
+});
+
+Cypress.Commands.add('mainBody',()=>{
+    return cy.get(".content-block__main");
+});
+
+Cypress.Commands.add('mainHeader',()=>{
+    return cy.get(".content-block__head");
+});
+
+Cypress.Commands.add('getDataTable',()=>{
+    return cy.mainBody().find(".data-table");
 });
