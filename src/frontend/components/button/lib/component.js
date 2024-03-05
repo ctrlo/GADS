@@ -3,6 +3,7 @@ import { logging } from 'logging'
 import { MoreInfoButton } from './more-info-button'
 import { validateRequiredFields } from 'validation'
 import CreateReportButtonComponent from './create-report-button'
+import { transferRowToTable } from 'components/data-table/lib/helper'
 
 class ButtonComponent extends Component {
   constructor(element)  {
@@ -26,6 +27,9 @@ class ButtonComponent extends Component {
         break
       case this.el.hasClass('btn-js-submit-field'):
         this.initSubmitField()
+        break
+      case this.el.hasClass('btn-js-add-all-fields'):
+        this.initAddAllFields()
         break
       case this.el.hasClass('btn-js-submit-draft-record'):
         this.initSubmitDraftRecord()
@@ -51,6 +55,19 @@ class ButtonComponent extends Component {
     if (this.el.hasClass('btn-js-calculator')) {
       this.initCalculator()
     }
+  }
+
+  // "Add fields" button on the add/edit view page
+  initAddAllFields() {
+    this.el.on('click', (ev) => {
+      ev.preventDefault()
+      const sourceTableId = $(ev.target).data('transferSource')
+      const destionationTableId = $(ev.target).data('transferDestination')
+      const rows = $(sourceTableId).find('tbody tr')
+      rows.each((index, row) => {
+        transferRowToTable($(row), sourceTableId, destionationTableId)
+      })
+    })
   }
 
   initRemoveCurval() {
