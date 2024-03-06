@@ -45,9 +45,7 @@ migrate {
     });
     my $pager     = $rs->pager;
     my $page      = $pager->current_page;
-    my $last_page = $pager->last_page;
     do {
-        print STDERR "Page: $page of $last_page\n";
         $pager->current_page($page);
         foreach my $current ($rs->all)
         {
