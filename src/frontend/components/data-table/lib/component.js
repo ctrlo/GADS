@@ -64,14 +64,6 @@ class DataTableComponent extends Component {
         const recordPopupComp = new RecordPopupComponent(el)
       })
     })
-
-    $(document).on('fullscreenchange', (e) => {
-      if (!document.fullscreenElement) {
-        this.exitFullScreenMode(conf)
-      } else {
-        this.enterFullScreenMode(conf)
-      }
-    })
   }
 
   clearTableStateForPage() {
@@ -609,7 +601,7 @@ class DataTableComponent extends Component {
           return true;
         })
 
-        // If the table has not wrapped (become responsive) then hide the toggle button
+        // If the table has not wrapped (become responsive) then hide the "Full screen" toggle button
         if (!this.el.hasClass("collapsed")) {
           if (this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').length) {
             this.el.closest('.dataTables_wrapper').find('.dataTables_toggle_full_width').hide()
@@ -649,23 +641,18 @@ class DataTableComponent extends Component {
       this.el.DataTable().button(0).enable();
 
       this.bindClickHandlersAfterDraw(conf)
-
-      if (document.fullscreenElement) {
-        this.setFullscreenTableContainerHeight()
-      }
     }
 
     conf['buttons'] = [
       {
         text: 'Full screen',
         enabled: false,
+        attr: {
+          id: 'full-screen-btn'
+        },
         className: 'btn btn-small btn-toggle-off',
         action: function ( e, dt, node, config ) {
-          if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen()
-          } else {
-            document.exitFullscreen()
-          }
+          self.toggleFullScreenMode(e)
         }
       }
     ]
@@ -678,21 +665,42 @@ class DataTableComponent extends Component {
     I have tried manually changing the DOM, as well as the methods already present in the code, and I currently believe there is a bug within the DataTables button
     code that is meaning that this won't change (although I am open to the fact that I am being a little slow and missing something glaringly obvious).
   */
-  enterFullScreenMode(conf) {
-    this.originalResponsiveObj = conf.responsive
-    conf.responsive = false
-    this.el.DataTable().destroy();
-    this.el.removeClass('dtr-column collapsed');
-    this.el.DataTable(conf)
-    this.initializingTable = true
-    const $dataTableContainer = this.el.parent()
+  toggleFullScreenMode(buttonElement) {
+    const fullScreenButton = document.querySelector('#full-screen-btn');
+    if (!fullScreenButton) {
+      console.warn('Missing full screen button.');
+    }
+    const currentTable = document.querySelector('.dataTables_wrapper');
+    if (!currentTable) {
+      console.warn('Failed to toggle full screen; missing data table.');
+    }
+    const isFullScreen = fullScreenButton.classList.contains('btn-toggle');
+    if (!isFullScreen) {
+      // Create new modal
+      const newModal = document.createElement('div');
+      newModal.id = "table-modal"
+      newModal.classList.add('table-modal');
+      newModal.classList.add('data-table__container--scrollable');
 
-    $dataTableContainer.addClass('data-table__container--scrollable')
-    // // See comments above regarding preventing multiple clicks
-    if(!this.forceButtons)
-      this.el.DataTable().button(0).disable();
-    this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').toggleClass(['btn-toggle', 'btn-toggle-off'])
+      // Move data table into new modal
+      newModal.append(currentTable);
+      document.body.appendChild(newModal);
+    } else {
+      // Move data table back to original page
+      const mainContent = document.querySelector('.content-block__main-content');
+      if (!mainContent) {
+        console.warn('Failed to close full screen; missing main content');
+        return;
+      }
 
+      mainContent.appendChild(currentTable);
+
+      // Remove the modal
+      document.querySelector('#table-modal').remove();
+    }
+
+    // Toggle the full screen button
+    $(buttonElement.target).toggleClass(['btn-toggle', 'btn-toggle-off'])
   }
 
   exitFullScreenMode(conf) {
