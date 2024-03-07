@@ -38,10 +38,11 @@ describe("settings tests", () => {
     });
 
     context("manage titles", () => {
-        it("should navigate to the settings page and navigate to the manage titles page", () => {
-            cy.get("a.nav__link--admin-settings")
-                .should("exist")
-                .click();
+        beforeEach(()=>{
+            cy.visit('http://localhost:3000/settings');
+        });
+
+        it("should navigate to the manage titles page", () => {
             cy.mainBody()
                 .find("a")
                 .eq(0)
@@ -58,9 +59,6 @@ describe("settings tests", () => {
         });
 
         it("can cancel creation of a new title", () => {
-            cy.get("a.nav__link--admin-settings")
-                .should("exist")
-                .click();
             cy.mainBody()
                 .find("a")
                 .eq(0)
@@ -89,9 +87,6 @@ describe("settings tests", () => {
         });
 
         it("Can create a new title", () => {
-            cy.get("a.nav__link--admin-settings")
-                .should("exist")
-                .click();
             cy.mainBody()
                 .find("a")
                 .eq(0)
@@ -120,9 +115,6 @@ describe("settings tests", () => {
         });
 
         it("Can delete a title", () => {
-            cy.get("a.nav__link--admin-settings")
-                .should("exist")
-                .click();
             cy.mainBody()
                 .find("a")
                 .eq(0)
@@ -144,6 +136,108 @@ describe("settings tests", () => {
                 .find("tbody")
                 .find("tr")
                 .contains("No titles available");
+        });
+    });
+
+    context("manage organisations", () => {
+        beforeEach(()=>{
+            cy.visit('http://localhost:3000/settings');
+        })
+
+        it("should navigate to the manage organisations page", () => {
+            cy.mainBody()
+                .find("a")
+                .eq(1)
+                .click();
+            cy.location("pathname").should("include", "/organisation_overview");
+            cy.mainHeader()
+                .find(".btn__title")
+                .should("exist")
+                .contains("Manage organisations"); // <--inconsistent casing
+            cy.mainHeader()
+                .find(".content-block__intro")
+                .should("exist")
+                .contains("In this window you can list the parts of the organisation that you want to assign users to.");
+        });
+
+        it("can cancel creation of a new organisation", () => {
+            cy.mainBody()
+                .find("a")
+                .eq(1)
+                .click();
+            cy.getDataTable()
+                .find("tbody")
+                .find("tr")
+                .contains("No organisations available");
+            cy.mainHeader()
+                .find(".btn-default")
+                .should("exist")
+                .click();
+            cy.location("pathname").should("include", "/organisation_add");
+            cy.mainBody()
+                .find("input#name")
+                .type("test organisation");
+            cy.mainBody()
+                .find("a.btn-cancel")
+                .should("exist")
+                .click();
+            cy.location("pathname").should("include", "/organisation_overview");
+            cy.getDataTable()
+                .find("tbody")
+                .find("tr")
+                .should("not.contain", "test organisation");
+        });
+
+        it("Can create a new organisation", () => {
+            cy.mainBody()
+                .find("a")
+                .eq(1)
+                .click();
+            cy.getDataTable()
+                .find("tbody")
+                .find("tr")
+                .contains("No organisations available");
+            cy.mainHeader()
+                .find(".btn-default")
+                .should("exist")
+                .click();
+            cy.location("pathname").should("include", "/organisation_add");
+            cy.mainBody()
+                .find("input#name")
+                .type("test organisation");
+            cy.mainBody()
+                .find("button[type=submit]")
+                .should("exist")
+                .click();
+            cy.location("pathname").should("include", "/organisation_overview");
+            cy.getDataTable()
+                .find("tbody")
+                .find("tr")
+                .contains("test organisation");
+        });
+
+        it("Can delete a organisation", () => {
+            cy.mainBody()
+                .find("a")
+                .eq(1)
+                .click();
+            cy.getDataTable()
+                .find("tbody")
+                .find("tr")
+                .contains("test organisation");
+            cy.getDataTable()
+                .find("tbody")
+                .find("tr")
+                .find("button.btn-delete")
+                .click();
+            cy.get(".modal")
+                .should("be.visible")
+                .find("button[type=submit].btn-danger")
+                .click();
+            cy.getDataTable()
+                .find("tbody")
+                .find("tr")
+                .contains("No organisations available");
         });
     });
 });

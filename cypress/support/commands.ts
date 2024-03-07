@@ -40,10 +40,13 @@ declare global {
         interface Chainable {
             getByName(name: string): Chainable<JQuery<HTMLElement>>;
             getByTitle(title: string): Chainable<JQuery<HTMLElement>>;
+            login(email: string, password: string): Chainable<JQuery<Element>>;
             loginAndGoTo(email:string, password:string, path:string): Chainable<JQuery<Element>>;
             mainBody(): Chainable<JQuery<HTMLElement>>;
             mainHeader(): Chainable<JQuery<HTMLElement>>;
             getDataTable(): Chainable<JQuery<HTMLElement>>;
+            createTitle(title:string): Chainable<JQuery<HTMLElement>>;
+            createOrganisation(title:string): Chainable<JQuery<HTMLElement>>;
         }
     }
 }
@@ -56,13 +59,16 @@ Cypress.Commands.add('getByTitle', (title: string) => {
     return cy.get(`[title=${title}]`);
 });
 
-Cypress.Commands.add('loginAndGoTo', (email:string, password:string, path:string) => {
+Cypress.Commands.add("login",(email:string,password:string)=>{
     cy.visit('http://localhost:3000');
     cy.get("#username").type(email);
     cy.get("#password").type(password);
     cy.getByName("signin").click();
-    cy.location("pathname").should("not.include", "/login");
-    cy.visit(path);
+    return cy.location("pathname").should("not.include", "/login");
+});
+
+Cypress.Commands.add('loginAndGoTo', (email:string, password:string, path:string) => {
+    return cy.login(email,password).visit(path);
 });
 
 Cypress.Commands.add('mainBody',()=>{
@@ -75,4 +81,22 @@ Cypress.Commands.add('mainHeader',()=>{
 
 Cypress.Commands.add('getDataTable',()=>{
     return cy.mainBody().find(".data-table");
+});
+
+Cypress.Commands.add('createTitle',(title:string)=>{
+    if(!location.pathname.match(/title_add/)) {
+        cy.visit('http://localhost:3000/settings/title_add/');
+    }
+    cy.mainBody().find("input[name='title']").type(title);
+    cy.mainBody().find("button[type='submit']").click();
+    return cy.getDataTable().find("tbody").find("tr").contains(title);
+});
+
+Cypress.Commands.add('createOrganisation',(title:string)=>{
+    if(!location.pathname.match(/organisation_add/)) {
+        cy.visit('http://localhost:3000/settings/organisation_add/');
+    }
+    cy.mainBody().find("input[name='title']").type(title);
+    cy.mainBody().find("button[type='submit']").click();
+    return cy.getDataTable().find("tbody").find("tr").contains(title);
 });
