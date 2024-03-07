@@ -92,6 +92,7 @@ jobs:
           PGDATABASE: 'postgres'
           PGHOST: 'localhost'
           PGUSER: 'postgres'
+          TEST: '1'
         run: |
           ./bin/setup_database
           perl bin/app.pl &
