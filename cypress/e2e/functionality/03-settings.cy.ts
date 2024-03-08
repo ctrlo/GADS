@@ -240,4 +240,380 @@ describe("settings tests", () => {
                 .contains("No organisations available");
         });
     });
+
+    context("welcome email", () => {
+        beforeEach(()=>{
+            cy.visit('http://localhost:3000/settings');
+        })
+
+        it("should navigate to the welcome email page", () => {
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.location("pathname").should("include", "/default_welcome_email");
+            cy.mainHeader()
+                .find(".btn__title")
+                .should("exist")
+                .contains("Default welcome email");
+            cy.mainHeader()
+                .find(".content-block__intro")
+                .should("exist")
+                .contains("On this page you can define your welcome email to new users of your system.");
+        });
+
+        it("Should be able to set the System Name", ()=>{
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#name")
+                .type("Test System Name");
+            cy.mainBody()
+                .find("button[type=submit]")
+                .click();
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#name")
+                .should("have.value", "Test System Name");
+        });
+
+        it("Should be able to clear the System Name", ()=>{
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#name")
+                .should("have.value", "Test System Name")
+                .clear();
+            cy.mainBody()
+                .find("button[type=submit]")
+                .click();
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#name")
+                .clear()
+                .should("have.value", "");
+        });
+
+        it("Should be able to set the Welcome Email Subject", ()=>{
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#email_welcome_subject")
+                .type("Test Subject");
+            cy.mainBody()
+                .find("button[type=submit]")
+                .click();
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#email_welcome_subject")
+                .should("have.value", "Test Subject");
+        });
+
+        it("Should be able to clear the Welcome Email Subject", ()=>{
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#email_welcome_subject")
+                .should("have.value", "Test Subject")
+                .clear();
+            cy.mainBody()
+                .find("button[type=submit]")
+                .click();
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#email_welcome_subject")
+                .clear()
+                .should("have.value", "");
+        });
+
+        it("Should be able to set the Welcome Email Text", ()=>{
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("textarea#email_welcome_text")
+                .type("Test Body\n\nTest Body");
+            cy.mainBody()
+                .find("button[type=submit]")
+                .click();
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("textarea#email_welcome_text")
+                .should("have.value", "Test Body\n\nTest Body");
+        });
+
+        it("Should be able to clear the Welcome Email Text", ()=>{
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("textarea#email_welcome_text")
+                .should("have.value", "Test Body\n\nTest Body")
+                .clear();
+            cy.mainBody()
+                .find("button[type=submit]")
+                .click();
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("textarea#email_welcome_text")
+                .should("have.value", "");
+        });
+
+        it("Should be able to set both the System Name, and Welcome Email Subject", ()=>{
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#name")
+                .type("Test System Name");
+            cy.mainBody()
+                .find("input#email_welcome_subject")
+                .type("Test Subject");
+            cy.mainBody()
+                .find("button[type=submit]")
+                .click();
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#name")
+                .should("have.value", "Test System Name");
+            cy.mainBody()
+                .find("input#email_welcome_subject")
+                .should("have.value", "Test Subject");
+        });
+
+        it("Should be able to clear both the System Name, and Welcome Email Subject", ()=>{
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#name")
+                .should("have.value", "Test System Name")
+                .clear();
+            cy.mainBody()
+                .find("input#email_welcome_subject")
+                .should("have.value", "Test Subject")
+                .clear();
+            cy.mainBody()
+                .find("button[type=submit]")
+                .click();
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#name")
+                .should("have.value", "");
+            cy.mainBody()
+                .find("input#email_welcome_subject")
+                .should("have.value", "");
+        });
+
+        it("Should be able to set both the System Name, and Welcome Email Text", ()=>{
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#name")
+                .type("Test System Name");
+            cy.mainBody()
+                .find("textarea#email_welcome_text")
+                .type("Test Body\n\nTest Body");
+            cy.mainBody()
+                .find("button[type=submit]")
+                .click();
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#name")
+                .should("have.value", "Test System Name");
+            cy.mainBody()
+                .find("textarea#email_welcome_text")
+                .should("have.value", "Test Body\n\nTest Body");
+        });
+
+        it("Should be able to clear both the System Name, and Welcome Email Text", ()=>{
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#name")
+                .should("have.value", "Test System Name")
+                .clear();
+            cy.mainBody()
+                .find("textarea#email_welcome_text")
+                .should("have.value", "Test Body\n\nTest Body")
+                .clear();
+            cy.mainBody()
+                .find("button[type=submit]")
+                .click();
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#name")
+                .should("have.value", "");
+            cy.mainBody()
+                .find("textarea#email_welcome_text")
+                .should("have.value", "");
+        });
+
+        it("Should be able to set both the Welcome Email Subject, and Welcome Email Text", ()=>{
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#email_welcome_subject")
+                .type("Test Subject");
+            cy.mainBody()
+                .find("textarea#email_welcome_text")
+                .type("Test Body\n\nTest Body");
+            cy.mainBody()
+                .find("button[type=submit]")
+                .click();
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#email_welcome_subject")
+                .should("have.value", "Test Subject");
+            cy.mainBody()
+                .find("textarea#email_welcome_text")
+                .should("have.value", "Test Body\n\nTest Body");
+        });
+
+        it("Should be able to clear both the Welcome Email Subject, and Welcome Email Text", ()=>{
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#email_welcome_subject")
+                .should("have.value", "Test Subject")
+                .clear();
+            cy.mainBody()
+                .find("textarea#email_welcome_text")
+                .should("have.value", "Test Body\n\nTest Body")
+                .clear();
+            cy.mainBody()
+                .find("button[type=submit]")
+                .click();
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#email_welcome_subject")
+                .should("have.value", "");
+            cy.mainBody()
+                .find("textarea#email_welcome_text")
+                .should("have.value", "");
+        });
+
+        it("Should be able to set the System Name, Welcome Email Subject, and Welcome Email Text", ()=>{
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#name")
+                .type("Test System Name");
+            cy.mainBody()
+                .find("input#email_welcome_subject")
+                .type("Test Subject");
+            cy.mainBody()
+                .find("textarea#email_welcome_text")
+                .type("Test Body\n\nTest Body");
+            cy.mainBody()
+                .find("button[type=submit]")
+                .click();
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#name")
+                .should("have.value", "Test System Name");
+            cy.mainBody()
+                .find("input#email_welcome_subject")
+                .should("have.value", "Test Subject");
+            cy.mainBody()
+                .find("textarea#email_welcome_text")
+                .should("have.value", "Test Body\n\nTest Body");
+        });
+
+        it("Should be able to clear the System Name, Welcome Email Subject, and Welcome Email Text", ()=>{
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#name")
+                .should("have.value", "Test System Name")
+                .clear();
+            cy.mainBody()
+                .find("input#email_welcome_subject")
+                .should("have.value", "Test Subject")
+                .clear();
+            cy.mainBody()
+                .find("textarea#email_welcome_text")
+                .should("have.value", "Test Body\n\nTest Body")
+                .clear();
+            cy.mainBody()
+                .find("button[type=submit]")
+                .click();
+            cy.mainBody()
+                .find("a")
+                .eq(2)
+                .click();
+            cy.mainBody()
+                .find("input#name")
+                .should("have.value", "");
+            cy.mainBody()
+                .find("input#email_welcome_subject")
+                .should("have.value", "");
+            cy.mainBody()
+                .find("textarea#email_welcome_text")
+                .should("have.value", "");
+        });
+    });
 });
