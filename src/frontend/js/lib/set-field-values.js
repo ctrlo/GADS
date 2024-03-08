@@ -53,7 +53,7 @@ const setFieldValues = function($field, values) {
       set_date($single, value)
     })
 
-  } else if (type === "string" || type === "integer") {
+  } else if (type === "string" || type === "intgr") {
 
     values.forEach(function(value, index){
       let $single = prepare_multi($field, index)
