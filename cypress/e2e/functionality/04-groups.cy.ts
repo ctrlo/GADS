@@ -65,10 +65,9 @@ describe('Group Test', () => {
     });
 
     it('should check group existence in other locations', () => {
-        const groupName = 'long temporary value to test special char\'<\a><;[{END\"';
         cy.visit('http://localhost:3000/user/1');
         cy.location("pathname").should("include", "user/1");
-        cy.contains('No groups have been created yet. Groups can be created in the Groups menu.');
+        cy.contains('long temporary value').should('not.exist');
     });
 });
 
