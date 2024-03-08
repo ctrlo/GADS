@@ -6,15 +6,8 @@ describe('Another Test Suite', () => {
 
     beforeEach(() => {
         // Login
-        cy.visit('http://localhost:3000');
-        cy.get("#username").type(goodUser);
-        cy.get("#password").type(goodPassword);
-        cy.getByName("signin").click();
-        cy.location("pathname").should("not.include", "/login");
-
-        // Navigate to table page if
-         cy.visit('http://localhost:3000/table');
-         cy.location("pathname").should("include", "/table");
+        cy.loginAndGoTo(goodUser,goodPassword,'http://localhost:3000/table');
+        cy.location("pathname").should("include", "/table");
     });
 
 //attempt save with incorrect (fails)
@@ -38,7 +31,7 @@ describe('Another Test Suite', () => {
         cy.get('.btn-js-save').eq(0).click();
         cy.location("pathname").should("include", "/table");
         cy.contains('1-test-table').should('exist');
-     });
+    });
 
 
     it('table is accessible', () => {
@@ -46,7 +39,7 @@ describe('Another Test Suite', () => {
             .contains('a', 'Edit table')
             .click();
         cy.location("pathname").should("include", "1-test_table/edit");
-     });
+    });
 
     it('table can be deleted', () => {
         cy.visit('http://localhost:3000/1-test_table/edit');
@@ -62,12 +55,12 @@ describe('Another Test Suite', () => {
     });
 
     it('Deleted table no longer accessible', () => {
-    cy.request({
-        url: 'http://localhost:3000/1-test_table/edit',
-        failOnStatusCode: false // Prevent Cypress from failing the test on non-2xx status codes
-    }).then((response) => {
-        // Check if the response status is either 302 or 404
-        expect(response.status).to.be.oneOf([302, 404]);
-    });
+        cy.request({
+            url: 'http://localhost:3000/1-test_table/edit',
+            failOnStatusCode: false // Prevent Cypress from failing the test on non-2xx status codes
+        }).then((response) => {
+            // Check if the response status is either 302 or 404
+            expect(response.status).to.be.oneOf([302, 404]);
+        });
     });
 });

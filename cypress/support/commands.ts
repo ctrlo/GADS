@@ -38,14 +38,60 @@
 declare global {
     namespace Cypress {
         interface Chainable {
+            /**
+             * Get a component by name
+             * @param name The name of the element to get
+             * @example cy.getByName('username') - this is the same as `cy.get('[name="username"]')`
+             */
             getByName(name: string): Chainable<JQuery<HTMLElement>>;
+            /**
+             * Get a component by title
+             * @param title The title of the element to get
+             * @example cy.getByTitle('username') - this is the same as `cy.get('[title="username"]')`
+             */
             getByTitle(title: string): Chainable<JQuery<HTMLElement>>;
+            /**
+             * Login to the application
+             * @param email The email to use to login
+             * @param password The password to use to login
+             * @example cy.login('username@example.com','password') - this will log in the user with the given email and password
+             */
             login(email: string, password: string): Chainable<JQuery<Element>>;
+            /**
+             * Login then navigate to a page
+             * @param email The email to use to login
+             * @param password The password to use to login
+             * @param path The location to navigate to after login
+             * @example cy.loginAndGoTo('username@example.com','password','/home') - this is the same as `cy.login('username@example.com','password').visit('/home')`
+             */
             loginAndGoTo(email:string, password:string, path:string): Chainable<JQuery<Element>>;
+            /**
+             * Get the main body of the page
+             * @example cy.mainBody() - this is the same as `cy.get('.content-block__main')`
+             * @see login
+             */
             mainBody(): Chainable<JQuery<HTMLElement>>;
+            /**
+             * Get the main header of the page
+             * @example cy.mainHeader() - this is the same as `cy.get('.content-block__head')`
+             */
             mainHeader(): Chainable<JQuery<HTMLElement>>;
+            /**
+             * Get the data table of the page
+             * @example cy.getDataTable() - this is the same as `cy.mainBody().find('.data-table')`
+             */
             getDataTable(): Chainable<JQuery<HTMLElement>>;
+            /**
+             * Create a title in the system
+             * @param title The title to create in the system
+             * @example cy.createTitle('New Title')
+             */
             createTitle(title:string): Chainable<JQuery<HTMLElement>>;
+            /**
+             * Create an organisation in the system
+             * @param title The title of the organisation to create
+             * @example cy.createOrganisation('New Organisation')
+             */
             createOrganisation(title:string): Chainable<JQuery<HTMLElement>>;
         }
     }

@@ -6,14 +6,7 @@ describe('Group Test', () => {
 
     beforeEach(() => {
         // Login
-        cy.visit('http://localhost:3000');
-        cy.get("#username").type(goodUser);
-        cy.get("#password").type(goodPassword);
-        cy.getByName("signin").click();
-        cy.location("pathname").should("not.include", "/login");
-
-        // Navigate to group_overview page
-        cy.visit('http://localhost:3000/group_overview/');
+        cy.loginAndGoTo(goodUser,goodPassword,'http://localhost:3000/group_overview/');
         cy.location("pathname").should("include", "/group_overview/");
     });
 
