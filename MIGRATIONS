@@ -15,6 +15,7 @@
 * Change following text => citext columns in share/migrations/PostgreSQL/deploy/
 
 calcval.value_text citext
+calc_unique.value_text citext
 daterange.value citext
 enumval.value citext
 string.value citext
