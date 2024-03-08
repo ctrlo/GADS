@@ -8,7 +8,6 @@ describe("settings tests", () => {
     });
 
     afterEach(() => {
-        cy.visit('http://localhost:3000/?did=1');
         cy.location("pathname").should("not.include", "/login");
         cy.getByTitle("Logout")
             .should("exist")
@@ -114,6 +113,30 @@ describe("settings tests", () => {
                 .contains("test title");
         });
 
+        it("Can cancel deletion of a title",()=>{
+            cy.mainBody()
+                .find("a")
+                .eq(0)
+                .click();
+            cy.getDataTable()
+                .find("tbody")
+                .find("tr")
+                .contains("test title");
+            cy.getDataTable()
+                .find("tbody")
+                .find("tr")
+                .find("button.btn-delete")
+                .click();
+            cy.get(".modal")
+                .should("be.visible")
+                .find("button.btn-cancel")
+                .click();
+            cy.getDataTable()
+                .find("tbody")
+                .find("tr")
+                .contains("test title");
+        });
+
         it("Can delete a title", () => {
             cy.mainBody()
                 .find("a")
@@ -210,6 +233,30 @@ describe("settings tests", () => {
                 .should("exist")
                 .click();
             cy.location("pathname").should("include", "/organisation_overview");
+            cy.getDataTable()
+                .find("tbody")
+                .find("tr")
+                .contains("test organisation");
+        });
+
+        it("Can cancel deletion of an organisation",()=>{
+            cy.mainBody()
+                .find("a")
+                .eq(1)
+                .click();
+            cy.getDataTable()
+                .find("tbody")
+                .find("tr")
+                .contains("test organisation");
+            cy.getDataTable()
+                .find("tbody")
+                .find("tr")
+                .find("button.btn-delete")
+                .click();
+            cy.get(".modal")
+                .should("be.visible")
+                .find("button.btn-cancel")
+                .click();
             cy.getDataTable()
                 .find("tbody")
                 .find("tr")
