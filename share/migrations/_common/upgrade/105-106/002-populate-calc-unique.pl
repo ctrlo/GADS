@@ -47,6 +47,19 @@ migrate {
     my $page      = $pager->current_page;
     my $last_page = $pager->last_page;
     do {
+        $rs = $schema->resultset('Current')->search({
+            'record_later.id' => undef,
+        },{
+            prefetch => {
+                records => [
+                    'calcvals',
+                    'record_later',
+                ],
+            },
+            page => $page,
+            rows => 100,
+            order_by => 'me.id',
+        });
         notice __x"Page {page} of {last}", page => $page, last => $last_page;
         $pager->current_page($page);
         foreach my $current ($rs->all)
