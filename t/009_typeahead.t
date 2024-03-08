@@ -14,10 +14,12 @@ use Test::GADS::DataSheet;
 
 my $data = [
     {
+        string1    => 'Foo',
         curval1    => 2,
         daterange1 => ['2012-02-10', '2013-06-15'],
     },
     {
+        string1    => 'Bar',
         curval1    => 1,
         daterange1 => ['2012-02-10', '2013-06-15'],
     },
@@ -105,8 +107,32 @@ is (scalar @values, 1, "Typeahead returned correct number of results (with match
 @values = $column->values_beginning_with('99');
 is (scalar @values, 1, "Typeahead returned correct number of results (with no match filter)");
 
-$column = $columns->{calc1};
-@values = $column->values_beginning_with('2');
+my $calc1 = $columns->{calc1};
+my $string1 = $columns->{string1};
+@values = $calc1->values_beginning_with('2');
 is (scalar @values, 0, "Typeahead on calculated integer does not search as string begins with");
+
+# Check typeahead of text calc
+$calc1->code("function evaluate (L1string1) \n return L1string1 \nend");
+$calc1->return_type('string');
+$calc1->write;
+
+@values = $calc1->values_beginning_with('F');
+is (scalar @values, 1, "Typeahead on calculated integer does not search as string begins with");
+is ($values[0], 'Foo', "Correct typeahead value");
+
+# Write value and check that old value no longer appears in typeahead
+my $record = GADS::Record->new(
+    user    => $sheet->user,
+    layout  => $layout,
+    schema  => $schema,
+);
+$record->find_current_id(3);
+$record->fields->{$string1->id}->set_value("Foo2");
+$record->write(no_alerts => 1);
+
+@values = $calc1->values_beginning_with('F');
+is (scalar @values, 1, "Typeahead on calculated integer does not search as string begins with");
+is ($values[0], 'Foo2', "Correct typeahead value");
 
 done_testing();

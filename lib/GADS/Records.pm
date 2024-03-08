@@ -29,6 +29,7 @@ use GADS::Record;
 use GADS::Timeline;
 use GADS::View;
 use HTML::Entities;
+use JSON qw(encode_json);
 use List::Util  qw(min max);
 use Log::Report 'linkspace';
 use POSIX qw(ceil);
@@ -656,6 +657,44 @@ sub search_view
         }
     }
     @foundin;
+}
+
+sub find_unique
+{   my ($self, $column, $value, @retrieve_columns) = @_;
+
+    # First create a view to search for this value in the column.
+    my $filter = encode_json({
+        rules => [{
+            field       => $column->id,
+            id          => $column->id,
+            type        => $column->type,
+            value       => $value,
+            value_field => $column->value_field_as_index($value), # May need to use value ID instead of string as search
+            operator    => 'equal',
+        }]
+    });
+    my $view = GADS::View->new(
+        filter      => $filter,
+        instance_id => $self->layout->instance_id,
+        layout      => $self->layout,
+        schema      => $self->schema,
+        user        => undef,
+    );
+    @retrieve_columns = ($column->id)
+        unless @retrieve_columns;
+    # Do not limit by user
+    local $GADS::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
+    my $records = GADS::Records->new(
+        user    => $self->user,
+        rows    => 1,
+        view    => $view,
+        layout  => $self->layout,
+        schema  => $self->schema,
+        columns => \@retrieve_columns,
+    );
+
+    # Might be more, but one will do
+    $records->single;
 }
 
 sub _escape_like
@@ -2205,7 +2244,7 @@ sub _search_construct
             push @conditions, {
                 type     => $filter_operator,
                 operator => $operator,
-                s_field  => "value",
+                s_field  => $column->value_field,
             };
         }
         elsif ($operator eq ">" || $operator eq "<=")

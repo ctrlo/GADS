@@ -70,7 +70,7 @@ sub has_time
 
 sub _build_has_filter_typeahead
 {   my $self = shift;
-    $self->return_type eq 'string' ? 1 : 0;
+    $self->value_field eq 'value_text' ? 1 : 0;
 }
 
 sub _build__rset_code
@@ -134,6 +134,8 @@ has '+table' => (
     default => 'Calcval',
 );
 
+sub table_unique { "CalcUnique" }
+
 has '+return_type' => (
     isa => sub {
         return unless $_[0];
@@ -178,6 +180,7 @@ sub cleanup
 {   my ($class, $schema, $id) = @_;
     $schema->resultset('Calc')->search({ layout_id => $id })->delete;
     $schema->resultset('Calcval')->search({ layout_id => $id })->delete;
+    $schema->resultset('CalcUnique')->search({ layout_id => $id })->delete;
 }
 
 # Returns whether an update is needed
@@ -188,6 +191,12 @@ sub write_code
         || $self->_rset_code->code ne $self->code
         || $self->_rset_code->return_format ne $self->return_type
         || $options{old_rset}->{multivalue} != $self->multivalue;
+    # If changing return type, then remove all previous cached calc values, as
+    # they will all be recalculated
+    $self->schema->resultset($self->table_unique)->search({
+        layout_id => $self->id,
+    })->delete if $self->table_unique
+        && $self->_rset_code->return_format && $self->_rset_code->return_format ne $self->return_type;
     $rset->layout_id($layout_id);
     $rset->code($self->code);
     $rset->return_format($self->return_type);
@@ -198,7 +207,7 @@ sub write_code
 
 sub resultset_for_values
 {   my $self = shift;
-    return $self->schema->resultset('Calcval')->search({
+    return $self->schema->resultset('CalcUnique')->search({
         layout_id => $self->id,
     },{
         group_by  => 'me.'.$self->value_field,

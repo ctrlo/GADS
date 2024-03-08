@@ -3,6 +3,7 @@ import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min
 import 'bootstrap-select/dist/js/bootstrap-select'
 import { logging } from 'logging'
 import TypeaheadBuilder from 'util/typeahead'
+import { refreshSelects } from 'components/form-group/common/bootstrap-select'
 
 class FilterComponent extends Component {
   constructor(element)  {
@@ -100,12 +101,7 @@ class FilterComponent extends Component {
     if (!builderConfig.filters.length) return
     if (builderConfig.filterNotDone) this.makeUpdateFilter()
 
-    this.el.on("afterUpdateRuleFilter.queryBuilder", (e, rule) => {
-      const select= $(rule.$el.find(`select[name=${rule.id}_filter]`));
-      if(!select || !select[0]) console.log("No select found");
-      select.data("live-search","true");
-      select.selectpicker();
-    });
+    refreshSelects(this.el);
 
     $builderEl.queryBuilder({
       showPreviousValues: builderConfig.showPreviousValues,

@@ -102,6 +102,7 @@ around 'clone' => sub {
         has_value => $self->has_value,
         layout    => $self->layout,
         schema    => $self->schema,
+        value     => [@{$self->value}], # Copy
         @_,
     );
 };
@@ -116,8 +117,46 @@ sub text_all
     $self->value; # Already array ref
 }
 
+sub _write_unique
+{   my ($self, %values) = @_;
+    my $schema = $self->schema;
+    if (my $table = $self->column->table_unique)
+    {
+        my $svp = $schema->storage->svp_begin;
+        try {
+            $schema->resultset($table)->create({
+                layout_id => $self->column->id,
+                %values,
+            });
+        };
+        if ($@ =~ /(duplicate|unique constraint failed)/i) # Pg: duplicate key, Mysql: Dupiicate entry, Sqlite: UNIQUE constraint failed
+        {
+                $schema->storage->svp_rollback;
+        }
+        elsif ($@) {
+            $@->reportAll;
+        }
+        else {
+            $schema->storage->svp_release;
+        }
+    }
+}
+
+sub _delete_unique
+{   my ($self, %values) = @_;
+    if (my $table = $self->column->table_unique)
+    {
+        $self->schema->resultset($table)->search({
+            layout_id => $self->column->id,
+            %values,
+        })->delete;
+    }
+}
+
 sub write_cache
 {   my ($self, $table) = @_;
+
+    my $formatter = $self->schema->storage->datetime_parser;
 
     my @values = sort @{$self->value} if defined $self->value->[0];
 
@@ -129,16 +168,38 @@ sub write_cache
     my $vfield = $self->column->value_field;
 
     # First see if the number of existing values is different to the number to
-    # write. If it is, delete and start again
+    # write. If it is, delete and start again.
     my $rs = $self->schema->resultset($tablec)->search({
         record_id => $self->record_id,
         layout_id => $self->column->id,
     }, {
         order_by => "me.$vfield",
     });
-    $rs->delete if @values != $rs->count;
+    my $records = GADS::Records->new(
+        user    => undef, # Do not want to limit by user
+        layout  => $self->column->layout,
+        schema  => $self->schema,
+    );
+    # As part of the update, write any new unique values and delete any old
+    # ones, as long as they are not relevant for any other records
+    if (@values != $rs->count)
+    {
+        $rs->delete;
+        if (my $old = $self->oldvalue)
+        {
+            foreach my $oldval (@{$old->value})
+            {
+                my $sv = $oldval && $self->column->value_field eq 'value_date'
+                    ? $formatter->format_date($oldval)
+                    : $oldval;
+                $self->_delete_unique($vfield => $oldval)
+                    unless $records->find_unique($self->column, $sv);
+            }
+        }
+    }
 
     my $format = $self->column->dateformat;
+    my $text;
     foreach my $value (@values)
     {
         my $row = $rs->next;
@@ -148,7 +209,7 @@ sub write_cache
         {
             if ($value)
             {
-                my $text = $self->daterange_as_string($value, $format);
+                $text = $self->daterange_as_string($value, $format);
                 %to_write = (
                     value_date_from => $value->start,
                     value_date_to   => $value->end,
@@ -158,21 +219,34 @@ sub write_cache
         }
         else {
             %to_write = ($vfield => $value);
+            $text = $value;
         }
         if ($row)
         {
             if (!$self->equal($row->$vfield, $value))
             {
                 my %blank = %{$self->column->blank_row};
+                # Snapshot old value
+                my %old;
+                $old{$_} = $row->$_ foreach grep $_, keys %blank;
+                my $old_value = $row->$vfield;
                 $row->update({ %blank, %to_write });
+                # Delete unique cache, unless exists in another
+                my $sv = $old_value && $self->column->value_field eq 'value_date'
+                    ? $formatter->format_date($old_value)
+                    : $old_value;
+                $self->_delete_unique(%old)
+                    unless $records->find_unique($self->column, $sv);
+                $self->_write_unique(%to_write);
             }
         }
         else {
             $self->schema->resultset($tablec)->create({
                 record_id => $self->record_id,
-                layout_id => $self->column->{id},
+                layout_id => $self->column->id,
                 %to_write,
             });
+            $self->_write_unique(%to_write);
         }
     }
     while (my $row = $rs->next)
@@ -187,6 +261,7 @@ sub re_evaluate
 {   my ($self, %options) = @_;
     return if $options{no_errors} && $self->column->return_type eq 'error';
     my $old = $self->value;
+    my $original = $self->clone;
     # If this is a new value, don't re-evaluate, otherwise we'll just get
     # exactly the same value and evaluation can be expensive
     if (!$self->record->new_entry || $options{force})
@@ -196,7 +271,11 @@ sub re_evaluate
         $self->clear_vars;
     }
     my $new = $self->value; # Force new value to be calculated
-    $self->changed(1) if !$self->equal($old, $new);
+    if (!$self->equal($old, $new))
+    {
+        $self->changed(1);
+        $self->oldvalue($original);
+    }
 }
 
 sub values

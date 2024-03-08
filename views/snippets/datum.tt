@@ -21,7 +21,7 @@
                         <td><em>[% link.status %]:</em></td>
                     [% END %]
                     [% FOREACH col_inner IN link.presentation.columns %]
-                        <td class="[% col_inner.type %]">
+                        <td class="[% col_inner.type %]" title="[% col_inner.name %]">
                             [% render_datum(col_inner) %]
                         </td>
                     [% END %]

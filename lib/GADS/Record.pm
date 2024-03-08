@@ -650,39 +650,14 @@ sub find_unique
     return $self->find_serial_id($value)
         if $column->id == $serial_col->id;
 
-    # First create a view to search for this value in the column.
-    my $filter = encode_json({
-        rules => [{
-            field       => $column->id,
-            id          => $column->id,
-            type        => $column->type,
-            value       => $value,
-            value_field => $column->value_field_as_index($value), # May need to use value ID instead of string as search
-            operator    => 'equal',
-        }]
-    });
-    my $view = GADS::View->new(
-        filter      => $filter,
-        instance_id => $self->layout->instance_id,
-        layout      => $self->layout,
-        schema      => $self->schema,
-        user        => undef,
-    );
-    @retrieve_columns = ($column->id)
-        unless @retrieve_columns;
-    # Do not limit by user
-    local $GADS::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
     my $records = GADS::Records->new(
         user    => undef, # Do not want to limit by user
-        rows    => 1,
-        view    => $view,
         layout  => $self->layout,
         schema  => $self->schema,
-        columns => \@retrieve_columns,
     );
 
-    # Might be more, but one will do
-    my $r = $records->single;
+    my $record = $records->find_unique($column, $value, @retrieve_columns);
+
     # Horrible hack. The record of layout will have been overwritten during the
     # above searches. Needs to be changed back to this record.
     $self->layout->record($self);
@@ -690,8 +665,8 @@ sub find_unique
     # user on which find_unique() was called. This affects imports, in ensuring
     # that the user of the new record version is as per the user running the
     # import
-    $r->user($self->user) if $r;
-    return $r;
+    $record->user($self->user) if $record;
+    return $record;
 }
 
 sub clear
