@@ -10,13 +10,13 @@ sub presentation {
 
     my $raw = $base->{value};
 
-    my $html = text2html(
-        $raw,
+    my $html = [map {text2html(
+        $_,
         lines     => 1,
         urls      => 1,
         email     => 1,
         metachars => 1,
-    );
+    ) } @{$base->{html_form}}];
 
     $base->{raw}  = $raw;
     $base->{html} = $html;
