@@ -681,6 +681,11 @@
                           </div>
                         </div>
                       </div>
+                      <div class="row">
+                        <div class="col">
+                          <div class="people-filter" data-filters="[% fields %]"></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

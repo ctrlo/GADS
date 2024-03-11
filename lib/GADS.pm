@@ -3729,6 +3729,19 @@ prefix '/:layout_name' => sub {
             $header_type = 'table_tabs';
         }
 
+        my $site = var 'site';
+
+        my $org    = $site->register_organisation_name || "Organisation";
+        my $dep    = $site->register_department_name || "Department";
+        my $team   = $site->register_team_name || "Team";
+        my $title  = "Title";
+        my $fields = [];
+        push (@$fields, { id => 'organisation', label => $org, type => 'string'}) if $site->register_show_organisation;
+        push (@$fields, { id => 'department', label => $dep, type => 'string'}) if $site->register_show_department;
+        push (@$fields, { id => 'team', label => $team, type => 'string'}) if $site->register_show_team;
+        push (@$fields, { id => 'title', label => $title, type => 'string'}) if $site->register_show_title;
+        my $json   = encode_json($fields);
+        my $b64    = encode_base64($json);
 
         $params->{groups}                       = GADS::Groups->new(schema => schema);
         $params->{permissions}                  = [GADS::Type::Permissions->all];
@@ -3740,6 +3753,7 @@ prefix '/:layout_name' => sub {
         $params->{header_back_url}              = $back_url;
         $params->{layout_obj}                   = $layout;
         $params->{breadcrumbs}                  = $breadCrumbs;
+        $params->{fields}                       = $b64;
 
         if (param 'saveposition')
         {
