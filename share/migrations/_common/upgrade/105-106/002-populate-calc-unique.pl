@@ -47,6 +47,7 @@ migrate {
     my $page      = $pager->current_page;
     my $last_page = $pager->last_page;
     do {
+        $rs = $rs->search({},{page => $page,});
         notice __x"Page {page} of {last}", page => $page, last => $last_page;
         $pager->current_page($page);
         foreach my $current ($rs->all)
