@@ -63,7 +63,9 @@ class InputComponent extends Component {
           throw new Error(`Error: ${response.status} ${response.statusText}`);
         }).then((data) => {
           if (data && !data.error) {
-            this.logoDisplay.attr('src', data.url);
+            const version = this.logoDisplay.attr('src').split('?')[1];
+            const newVersion = version? parseInt(version) + 1 : 1;
+            this.logoDisplay.attr('src', data.url+'?'+newVersion);
             this.logoDisplay.show();
           } else if (data.error) {
             throw new Error(`Error: ${data.text}`);
