@@ -37,9 +37,9 @@ jobs:
           - name: 'chrome'
           #   command: 'chromedriver --port=4444 &'
             os: 'ubuntu-22.04'
-          # - name: 'firefox'
+          - name: 'firefox'
           #   command: 'MOZ_HEADLESS=1 geckodriver --log warn &'
-          #   os: 'ubuntu-20.04'
+            os: 'ubuntu-20.04'
 
     services:
       postgres:
