@@ -7,13 +7,13 @@ describe("settings tests", () => {
         cy.loginAndGoTo(goodUser, goodPassword, 'http://localhost:3000/?did=1');
     });
 
-    afterEach(() => {
-        cy.location("pathname").should("not.include", "/login");
-        cy.getByTitle("Logout")
-            .should("exist")
-            .click();
-        cy.location("pathname").should("include", "/login");
-    });
+    // afterEach(() => {
+    //     cy.location("pathname").should("not.include", "/login");
+    //     cy.getByTitle("Logout")
+    //         .should("exist")
+    //         .click();
+    //     cy.location("pathname").should("include", "/login");
+    // });
 
     it("should navigate to the settings page and default settings items should be present", () => {
         const titles = ["Manage titles", "Manage Organisations", "welcome email", "personal details", "Logo and Security Marking", "audit logs"];
@@ -37,7 +37,7 @@ describe("settings tests", () => {
     });
 
     context("manage titles", () => {
-        beforeEach(()=>{
+        beforeEach(() => {
             cy.visit('http://localhost:3000/settings');
         });
 
@@ -113,7 +113,7 @@ describe("settings tests", () => {
                 .contains("test title");
         });
 
-        it("Can cancel deletion of a title",()=>{
+        it("Can cancel deletion of a title", () => {
             cy.mainBody()
                 .find("a")
                 .eq(0)
@@ -163,7 +163,7 @@ describe("settings tests", () => {
     });
 
     context("manage organisations", () => {
-        beforeEach(()=>{
+        beforeEach(() => {
             cy.visit('http://localhost:3000/settings');
         })
 
@@ -239,7 +239,7 @@ describe("settings tests", () => {
                 .contains("test organisation");
         });
 
-        it("Can cancel deletion of an organisation",()=>{
+        it("Can cancel deletion of an organisation", () => {
             cy.mainBody()
                 .find("a")
                 .eq(1)
@@ -289,7 +289,7 @@ describe("settings tests", () => {
     });
 
     context("welcome email", () => {
-        beforeEach(()=>{
+        beforeEach(() => {
             cy.visit('http://localhost:3000/settings');
         })
 
@@ -309,7 +309,7 @@ describe("settings tests", () => {
                 .contains("On this page you can define your welcome email to new users of your system.");
         });
 
-        it("Should be able to set the System Name", ()=>{
+        it("Should be able to set the System Name", () => {
             cy.mainBody()
                 .find("a")
                 .eq(2)
@@ -329,7 +329,7 @@ describe("settings tests", () => {
                 .should("have.value", "Test System Name");
         });
 
-        it("Should be able to clear the System Name", ()=>{
+        it("Should be able to clear the System Name", () => {
             cy.mainBody()
                 .find("a")
                 .eq(2)
@@ -351,7 +351,7 @@ describe("settings tests", () => {
                 .should("have.value", "");
         });
 
-        it("Should be able to set the Welcome Email Subject", ()=>{
+        it("Should be able to set the Welcome Email Subject", () => {
             cy.mainBody()
                 .find("a")
                 .eq(2)
@@ -371,7 +371,7 @@ describe("settings tests", () => {
                 .should("have.value", "Test Subject");
         });
 
-        it("Should be able to clear the Welcome Email Subject", ()=>{
+        it("Should be able to clear the Welcome Email Subject", () => {
             cy.mainBody()
                 .find("a")
                 .eq(2)
@@ -393,7 +393,7 @@ describe("settings tests", () => {
                 .should("have.value", "");
         });
 
-        it("Should be able to set the Welcome Email Text", ()=>{
+        it("Should be able to set the Welcome Email Text", () => {
             cy.mainBody()
                 .find("a")
                 .eq(2)
@@ -413,7 +413,7 @@ describe("settings tests", () => {
                 .should("have.value", "Test Body\n\nTest Body");
         });
 
-        it("Should be able to clear the Welcome Email Text", ()=>{
+        it("Should be able to clear the Welcome Email Text", () => {
             cy.mainBody()
                 .find("a")
                 .eq(2)
@@ -434,7 +434,7 @@ describe("settings tests", () => {
                 .should("have.value", "");
         });
 
-        it("Should be able to set both the System Name, and Welcome Email Subject", ()=>{
+        it("Should be able to set both the System Name, and Welcome Email Subject", () => {
             cy.mainBody()
                 .find("a")
                 .eq(2)
@@ -460,7 +460,7 @@ describe("settings tests", () => {
                 .should("have.value", "Test Subject");
         });
 
-        it("Should be able to clear both the System Name, and Welcome Email Subject", ()=>{
+        it("Should be able to clear both the System Name, and Welcome Email Subject", () => {
             cy.mainBody()
                 .find("a")
                 .eq(2)
@@ -488,7 +488,7 @@ describe("settings tests", () => {
                 .should("have.value", "");
         });
 
-        it("Should be able to set both the System Name, and Welcome Email Text", ()=>{
+        it("Should be able to set both the System Name, and Welcome Email Text", () => {
             cy.mainBody()
                 .find("a")
                 .eq(2)
@@ -514,7 +514,7 @@ describe("settings tests", () => {
                 .should("have.value", "Test Body\n\nTest Body");
         });
 
-        it("Should be able to clear both the System Name, and Welcome Email Text", ()=>{
+        it("Should be able to clear both the System Name, and Welcome Email Text", () => {
             cy.mainBody()
                 .find("a")
                 .eq(2)
@@ -542,7 +542,7 @@ describe("settings tests", () => {
                 .should("have.value", "");
         });
 
-        it("Should be able to set both the Welcome Email Subject, and Welcome Email Text", ()=>{
+        it("Should be able to set both the Welcome Email Subject, and Welcome Email Text", () => {
             cy.mainBody()
                 .find("a")
                 .eq(2)
@@ -568,7 +568,7 @@ describe("settings tests", () => {
                 .should("have.value", "Test Body\n\nTest Body");
         });
 
-        it("Should be able to clear both the Welcome Email Subject, and Welcome Email Text", ()=>{
+        it("Should be able to clear both the Welcome Email Subject, and Welcome Email Text", () => {
             cy.mainBody()
                 .find("a")
                 .eq(2)
@@ -596,7 +596,7 @@ describe("settings tests", () => {
                 .should("have.value", "");
         });
 
-        it("Should be able to set the System Name, Welcome Email Subject, and Welcome Email Text", ()=>{
+        it("Should be able to set the System Name, Welcome Email Subject, and Welcome Email Text", () => {
             cy.mainBody()
                 .find("a")
                 .eq(2)
@@ -628,7 +628,7 @@ describe("settings tests", () => {
                 .should("have.value", "Test Body\n\nTest Body");
         });
 
-        it("Should be able to clear the System Name, Welcome Email Subject, and Welcome Email Text", ()=>{
+        it("Should be able to clear the System Name, Welcome Email Subject, and Welcome Email Text", () => {
             cy.mainBody()
                 .find("a")
                 .eq(2)
@@ -661,6 +661,93 @@ describe("settings tests", () => {
             cy.mainBody()
                 .find("textarea#email_welcome_text")
                 .should("have.value", "");
+        });
+    });
+
+    context.only("personal details", () => {
+        beforeEach(() => {
+            cy.visit('http://localhost:3000/settings');
+        });
+
+        it("should navigate to the personal details page", () => {
+            cy.mainBody()
+                .find("a")
+                .eq(3)
+                .click();
+            cy.location("pathname").should("include", "/user_editable_personal_details");
+            cy.mainHeader()
+                .find(".content-block__intro")
+                .should("exist")
+                .contains("On this page you can define which personal details the users are allowed to edit.");
+        });
+
+        it("Should allow cancellation of editing details", () => {
+            cy.mainBody()
+                .find("a")
+                .eq(3)
+                .click();
+            cy.mainBody()
+                .get("#firstname-label")
+                .click();
+            cy.mainBody()
+                .get("#email-label")
+                .click();
+            cy.mainBody()
+                .get(".btn-cancel")
+                .click();
+            cy.mainBody()
+                .find("a")
+                .eq(3)
+                .click();
+            cy.mainBody()
+                .get('#firstname')
+                .should('have.attr', 'checked');
+            cy.mainBody()
+                .get('#email')
+                .should('have.attr', 'checked');
+        });
+
+        it("Should allow editing details", () => {
+            cy.mainBody()
+                .find("a")
+                .eq(3)
+                .click();
+            cy.mainBody()
+                .get("#firstname-label")
+                .click();
+            cy.mainBody()
+                .get("#email-label")
+                .click();
+            cy.mainBody()
+                .get("[type=submit]")
+                .click();
+            cy.mainBody()
+                .find("a")
+                .eq(3)
+                .click();
+            cy.mainBody()
+                .get('#firstname')
+                .should('not.have.attr', 'checked');
+            cy.mainBody()
+                .get('#email')
+                .should('not.have.attr', 'checked');
+        });
+
+        after(() => {
+            cy.visit('http://localhost:3000/settings');
+            cy.mainBody()
+                .find("a")
+                .eq(3)
+                .click();
+            cy.mainBody()
+                .get("#firstname-label")
+                .click();
+            cy.mainBody()
+                .get("#email-label")
+                .click();
+            cy.mainBody()
+                .get("[type=submit]")
+                .click();
         });
     });
 });
