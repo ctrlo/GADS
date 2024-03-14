@@ -125,7 +125,7 @@ CREATE INDEX "calc_idx_layout_id" on "calc" ("layout_id");
 CREATE TABLE "calc_unique" (
   "id" bigserial NOT NULL,
   "layout_id" integer NOT NULL,
-  "value_text" text,
+  "value_text" citext,
   "value_int" bigint,
   "value_date" date,
   "value_numeric" numeric(20,5),
