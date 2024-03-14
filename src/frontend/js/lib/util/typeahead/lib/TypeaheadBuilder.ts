@@ -1,6 +1,5 @@
 import { MapperFunction, map } from "util/mapper/mapper";
 import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
-import { Typeahead } from "./Typeahead";
 
 type TypeaheadCallback = (suggestion: {name:string, id:number}) => void;
 
@@ -130,6 +129,8 @@ export class TypeaheadBuilder {
         if (!this.name) throw new Error("Name not set");
         if (!this.ajaxSource) throw new Error("Ajax source not set");
         const options = new TypeaheadSourceOptions(this.name, this.ajaxSource, this.mapper, this.appendQuery, this.data, this.dataBuilder);
-        return new Typeahead(this.$input, this.callback, options);
+        import(/* webpackChunkName: "typeahead" */ "./Typeahead").then(({Typeahead}) => {
+            return new Typeahead(this.$input, this.callback, options);
+        });
     }
 }
