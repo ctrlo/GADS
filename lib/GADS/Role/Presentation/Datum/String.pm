@@ -18,6 +18,7 @@ sub presentation {
         metachars => 1,
     ) } @{$base->{html_form}}];
 
+    $base->{visible} = $self->visible;
     $base->{raw}  = $raw;
     $base->{html} = $html;
 

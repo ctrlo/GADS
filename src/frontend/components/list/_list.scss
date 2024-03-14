@@ -287,3 +287,7 @@
     flex-basis: calc(33.33% - 1rem);
   }
 }
+
+li.list__item.hidden {
+  display: none;
+}

@@ -438,7 +438,7 @@
             NEXT IF !is_history AND col_panel.data.dependent_not_shown;
             NEXT IF view_modal AND col.type == "autocur";
         %]
-        <li class="list__item[% IF col_panel.data.blank AND NOT layout.no_hide_blank %] list__item--blank[% END %] list-group-item">
+        <li class="list__item[% IF col_panel.data.blank AND NOT layout.no_hide_blank %] list__item--blank[% END %] list-group-item[% UNLESS col_panel.data.visible %] hidden[% END %]" [% UNLESS col_panel.data.visible %] aria-hidden="true"[% END %]>
           <span class="list__key">[% col_panel.name | html_entity %]</span>
           <span class="list__value">[% render_datum(col_panel, 'full') %]</span>
         </li>
@@ -952,7 +952,7 @@
     ELSIF col.type == "rag";
       # XXX To implement
     ELSIF col.type == "calc"; %]
-  <div class="textarea [% input_class %]"[% textarea_style %]>
+  <div class="textarea [% input_class %][% UNLESS col.data.visible %] hidden[% END %]"[% textarea_style %][% UNLESS col.visible %] aria-hidden="true"[% END %]>
     [%
       INCLUDE fields/sub/label_input.tt label_type="textarea" label=field_label;
       FOREACH val IN editvalue.html_form;
