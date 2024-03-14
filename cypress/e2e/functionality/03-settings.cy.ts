@@ -7,13 +7,13 @@ describe("settings tests", () => {
         cy.loginAndGoTo(goodUser, goodPassword, 'http://localhost:3000/?did=1');
     });
 
-    // afterEach(() => {
-    //     cy.location("pathname").should("not.include", "/login");
-    //     cy.getByTitle("Logout")
-    //         .should("exist")
-    //         .click();
-    //     cy.location("pathname").should("include", "/login");
-    // });
+    afterEach(() => {
+        cy.location("pathname").should("not.include", "/login");
+        cy.getByTitle("Logout")
+            .should("exist")
+            .click();
+        cy.location("pathname").should("include", "/login");
+    });
 
     it("should navigate to the settings page and default settings items should be present", () => {
         const titles = ["Manage titles", "Manage Organisations", "welcome email", "personal details", "Logo and Security Marking", "audit logs"];
@@ -664,7 +664,7 @@ describe("settings tests", () => {
         });
     });
 
-    context.only("personal details", () => {
+    context("personal details", () => {
         beforeEach(() => {
             cy.visit('http://localhost:3000/settings');
         });
@@ -734,7 +734,7 @@ describe("settings tests", () => {
         });
 
         after(() => {
-            cy.visit('http://localhost:3000/settings');
+            cy.loginAndGoTo(goodUser, goodPassword, 'http://localhost:3000/settings');
             cy.mainBody()
                 .find("a")
                 .eq(3)
@@ -748,6 +748,80 @@ describe("settings tests", () => {
             cy.mainBody()
                 .get("[type=submit]")
                 .click();
+        });
+    });
+
+    context("Logo and Security Marking", () => {
+        beforeEach(() => {
+            cy.visit('http://localhost:3000/settings');
+        });
+
+        it("Should navigate to the Logo and Security Marking page", () => {
+            cy.mainBody()
+                .find("a")
+                .eq(4)
+                .click();
+            cy.location("pathname").should("include", "/report_defaults");
+            cy.mainHeader()
+                .find(".content-block__intro")
+                .should("exist")
+                .contains("In this window you can set the default values for reports.");
+        });
+
+        it("Should have the default security marking value", () => {
+            cy.mainBody()
+                .find("a")
+                .eq(4)
+                .click();
+            cy.mainBody()
+                .getByName("security_marking")
+                .should("have.value", "Example Application");
+        })
+
+        it("Should be able to change the default security marking value", () => {
+            cy.mainBody()
+                .find("a")
+                .eq(4)
+                .click();
+            cy.mainBody()
+                .getByName("security_marking")
+                .should("have.value", "Example Application");
+            cy.getByName("security_marking")
+                .clear()
+                .type("Test Application");
+            cy.mainBody()
+                .get("button[type=submit]")
+                .click();
+            cy.visit('http://localhost:3000/settings');
+            cy.mainBody()
+                .find("a")
+                .eq(4)
+                .click();
+            cy.mainBody()
+                .getByName("security_marking")
+                .should("have.value", "Test Application");
+        });
+
+        it("Should be able to clear the default security marking value", () => {
+            cy.mainBody()
+                .find("a")
+                .eq(4)
+                .click();
+            cy.mainBody()
+                .getByName("security_marking")
+                .should("have.value", "Test Application")
+                .clear();
+            cy.mainBody()
+                .get("button[type=submit]")
+                .click();
+            cy.visit('http://localhost:3000/settings');
+            cy.mainBody()
+                .find("a")
+                .eq(4)
+                .click();
+            cy.mainBody()
+                .getByName("security_marking")
+                .should("have.value", "Example Application");
         });
     });
 });
