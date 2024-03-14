@@ -824,4 +824,22 @@ describe("settings tests", () => {
                 .should("have.value", "Example Application");
         });
     });
+
+    context("audit logs", () => {
+        beforeEach(() => {
+            cy.visit('http://localhost:3000/settings');
+        });
+
+        it("Should navigate to the audit logs page", () => {
+            cy.mainBody()
+                .find("a")
+                .eq(5)
+                .click();
+            cy.location("pathname").should("include", "/audit");
+            cy.mainHeader()
+                .find(".content-block__intro")
+                .should("exist")
+                .contains("In this window you can view your system audit log.");
+        });
+    });
 });
