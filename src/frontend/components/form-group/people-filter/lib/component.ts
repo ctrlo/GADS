@@ -3,21 +3,39 @@
 import { Component } from "component";
 import "@lol768/jquery-querybuilder-no-eval";
 
-class PeopleFilterComponent extends Component {
+declare global {
+    interface Window {
+        UpdatePeopleFilter: (builder:JQuery, ev:Event) => void;
+    }
+}
 
-    constructor(element: HTMLElement) {
+interface FilterSettings {
+    filterNotDone?: any;
+    filters: any;
+    operators: string[];
+    allow_empty: boolean;
+}
+
+class PeopleFilterComponent extends Component {
+    constructor(public element: HTMLElement) {
         super(element);
-        console.log("PeopleFilterComponent", element);
         this.init();
     }
 
     init() {
-        // filters should come from B64 encoded JSON in the data attribute - this is to ensure the naming is kept consistent within a system as the names can be changed
         const data = atob($(this.element).data('filters'));
-        console.log("data", data);
         const filters = JSON.parse(data);
-        const settings = { filters: filters, operators: ['equal', 'not_equal', 'contains', 'not_contains', 'begins_with', 'ends_with', 'is_empty', 'is_not_empty'] };
-        $(this.element).queryBuilder(settings);
+        const b64_values = atob($('#people-display').data('filter-base64'));
+        const values = JSON.parse(b64_values);
+        const settings:FilterSettings = { filters: filters, operators: ['equal', 'not_equal', 'contains', 'not_contains', 'begins_with', 'ends_with', 'is_empty', 'is_not_empty'], allow_empty: true };
+        const el = $(this.element);
+        el.queryBuilder(settings);
+        el.queryBuilder('setRules', values);
+        window.UpdatePeopleFilter = (builder,ev) => {
+            if(!builder.queryBuilder('validate')) ev.preventDefault();
+            const query = builder.queryBuilder('getRules');
+            $('#people-display').val(JSON.stringify(query, null, 2));
+        }
     }
 }
 

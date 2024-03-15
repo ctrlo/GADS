@@ -119,16 +119,21 @@ sub _clear_lazy
 
 sub base64
 {   my $self = shift;
-    # First make sure we have the hash version
-    $self->as_hash;
-    # Then clear the JSON version so that we can rebuild it
-    $self->clear_as_json;
-    # Next update the filters
+    my $first = 1;
     foreach my $filter (@{$self->filters})
     {
         $self->layout or panic "layout has not been set in filter";
         my $col = $self->layout->column($filter->{column_id})
             or next; # Ignore invalid - possibly since deleted
+        #for some reason the value doesn't rebuild properly if it's a person, so I've moved it down here
+        if($first){
+            # First make sure we have the hash version
+            $self->as_hash;
+            # Then clear the JSON version so that we can rebuild it
+            $self->clear_as_json;
+            $first = 0;
+        }
+        # Next update the filters
         if ($col->has_filter_typeahead)
         {
             $filter->{data} = {

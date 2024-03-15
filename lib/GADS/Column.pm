@@ -899,10 +899,10 @@ sub build_values
     $self->aggregate($original->{aggregate} || undef);
 
     # XXX Move to curval class
-    if ($self->type eq 'curval')
+    if ($self->type eq 'curval' || $self->type eq 'person')
     {
         $self->set_filter($original->{filter});
-        $self->multivalue(1) if $self->show_add && $self->value_selector eq 'noshow';
+        $self->multivalue(1) if $self->type eq 'curval' && $self->show_add && $self->value_selector eq 'noshow';
     }
 
 }

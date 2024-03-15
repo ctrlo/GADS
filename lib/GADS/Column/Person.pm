@@ -29,6 +29,21 @@ with 'GADS::Role::Presentation::Column::Person';
 
 our @person_properties = qw/id email username firstname surname freetext1 freetext2 organisation department_id team_id title value/;
 
+has set_filter => (
+    is      => 'rw',
+    clearer => 1,
+);
+
+has '+filter' => (
+    builder => sub {
+        my $self = shift;
+        GADS::Filter->new(
+            as_json => $self->set_filter || ($self->_rset && $self->_rset->filter),
+            layout => $self->layout
+        )
+    },
+);
+
 # Convert based on whether ID or full name provided
 sub value_field_as_index
 {   my ($self, $value) = @_;
