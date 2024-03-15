@@ -99,6 +99,9 @@ declare global {
     }
 }
 
+export const goodUser = "test@example.com";
+export const goodPassword = "xyz123";
+
 Cypress.Commands.add('getByName', (name: string) => {
     return cy.get(`[name=${name}]`);
 });

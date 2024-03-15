@@ -1,8 +1,6 @@
-/// <reference types="cypress" />
-describe('Dashboard Tests', () => {
-  const goodUser = "test@example.com"
-  const goodPassword = "xyz123";
+import { goodPassword, goodUser } from "../../support/commands";
 
+describe('Dashboard Tests', () => {
   const bigLipsum = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque accumsan, sem et vulputate imperdiet, enim ipsum rhoncus massa, sit amet pellentesque lacus urna sit amet enim. In tristique mollis tincidunt. Sed eget ligula metus. Integer sodales placerat erat. Aliquam erat volutpat. Curabitur varius lacinia diam fringilla efficitur. Sed euismod purus vel turpis molestie, ac fringilla nisi vestibulum. Maecenas ullamcorper ornare dui sodales gravida. Donec maximus egestas eleifend. Etiam in ultrices ante. Duis quis volutpat turpis. Nulla dignissim ornare aliquet.
 Fusce interdum gravida est, sit amet vehicula nisi suscipit at. Pellentesque nec fermentum leo, in vehicula nulla. Nam dapibus ultricies tortor in maximus. Donec enim velit, molestie nec feugiat sed, posuere non ex. Nulla pellentesque gravida feugiat. Sed ornare purus vel libero semper aliquet. Nulla rutrum nunc sed vulputate gravida. Cras lobortis, lacus non tincidunt suscipit, leo quam vehicula libero, in vehicula diam justo ac est.
 Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque nunc libero eu augue. Cras ornare ut lectus in mattis. Quisque magna elit, efficitur nec dolor sed, semper dictum nunc. Cras ultricies, augue eget interdum aliquam, quam ex blandit sem, nec sollicitudin ex elit non mauris. Fusce dui justo, feugiat id lacus sit amet, pulvinar tristique felis. Etiam rhoncus ex ut congue aliquet. Sed at felis eget neque rhoncus malesuada. Aliquam commodo condimentum massa, sed volutpat nibh congue et. Maecenas blandit massa sed nisl pulvinar, vitae consectetur tortor placerat. Nulla laoreet diam ipsum, sit amet consectetur sem condimentum quis. Nullam et justo sem. Sed et sapien tempus, scelerisque nisl ac, pretium arcu.

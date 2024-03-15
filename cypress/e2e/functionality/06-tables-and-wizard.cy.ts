@@ -1,11 +1,7 @@
- /// <reference types="cypress" />
+import { goodPassword, goodUser } from "../../support/commands";
 
 describe('Another Test Suite', () => {
-    const goodUser = "test@example.com";
-    const goodPassword = "xyz123";
-
     beforeEach(() => {
-        // Login
         cy.loginAndGoTo(goodUser,goodPassword,'http://localhost:3000/table');
         cy.location("pathname").should("include", "/table");
     });

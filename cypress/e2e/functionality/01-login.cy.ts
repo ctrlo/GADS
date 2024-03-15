@@ -1,8 +1,7 @@
-/// <reference types="cypress" />
+import { goodPassword, goodUser } from "../../support/commands";
+
 describe('Login Tests', () => {
   const errorText = "The username or password was not recognised";
-  const goodUser = "test@example.com"
-  const goodPassword = "xyz123";
 
   beforeEach(()=>{
     cy.visit('http://localhost:3000');

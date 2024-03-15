@@ -1,8 +1,6 @@
-/// <reference types="cypress" />
-describe("settings tests", () => {
-    const goodUser = "test@example.com"
-    const goodPassword = "xyz123";
+import { goodPassword, goodUser } from "../../support/commands";
 
+describe("settings tests", () => {
     beforeEach(() => {
         cy.loginAndGoTo(goodUser, goodPassword, 'http://localhost:3000/?did=1');
     });
