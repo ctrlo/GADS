@@ -2,22 +2,21 @@ import { goodPassword, goodUser } from "../../support/commands";
 
 describe('Another Test Suite', () => {
     beforeEach(() => {
-        cy.loginAndGoTo(goodUser,goodPassword,'http://localhost:3000/table');
+        cy.loginAndGoTo(goodUser, goodPassword, 'http://localhost:3000/table');
         cy.location("pathname").should("include", "/table");
     });
 
-//attempt save with incorrect (fails)
-//    it('should fail to save new table with  invalid shortname ', () => {
-//        cy.get('[data-target="#newTableModal"]').click();
-//        cy.get('#shortName').type('This value wont $4v£');
-//        cy.get("#name").type("table to fail");
-//        cy.get('.btn-js-next').eq(0).click();
-//        cy.get('.btn-js-save').eq(0).click();
-//        cy.get('div.alert.alert-danger')
-//            .should('be.visible')
-//            .and('contain', 'Invalid short name for table');
-
-//     });
+    //attempt save with incorrect (fails)
+    it.skip('should fail to save new table with  invalid shortname ', () => {
+        cy.get('[data-target="#newTableModal"]').click();
+        cy.get('#shortName').type('This value wont $4v£');
+        cy.get("#name").type("table to fail");
+        cy.get('.btn-js-next').eq(0).click();
+        cy.get('.btn-js-save').eq(0).click();
+        cy.get('div.alert.alert-danger')
+            .should('be.visible')
+            .and('contain', 'Invalid short name for table');
+    });
 
     it('should save a new table successfully', () => {
         cy.get('[data-target="#newTableModal"]').click();

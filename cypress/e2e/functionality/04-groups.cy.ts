@@ -3,7 +3,7 @@ import { goodPassword, goodUser } from "../../support/commands";
 describe('Group Test', () => {
     beforeEach(() => {
         // Login
-        cy.loginAndGoTo(goodUser,goodPassword,'http://localhost:3000/group_overview/');
+        cy.loginAndGoTo(goodUser, goodPassword, 'http://localhost:3000/group_overview/');
         cy.location("pathname").should("include", "/group_overview/");
     });
 

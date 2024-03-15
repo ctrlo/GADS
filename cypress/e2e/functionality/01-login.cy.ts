@@ -3,24 +3,24 @@ import { goodPassword, goodUser } from "../../support/commands";
 describe('Login Tests', () => {
   const errorText = "The username or password was not recognised";
 
-  beforeEach(()=>{
+  beforeEach(() => {
     cy.visit('http://localhost:3000');
   })
 
   it('loads the login page', () => {
-    cy.location("pathname").should("include","/login");
+    cy.location("pathname").should("include", "/login");
     cy.contains('Email address');
     cy.contains('Password');
   });
 
-  it('errors with no email or password', ()=>{
+  it('errors with no email or password', () => {
     cy.get("#username").should("have.value", "");
     cy.get("#password").should("have.value", "");
     cy.getByName("signin").click();
     cy.get(".alert-danger").should("exist").contains(errorText);
   });
 
-  it('errors with no email', ()=> {
+  it('errors with no email', () => {
     cy.get("#username").should("have.value", "");
     cy.get("#password").type("password");
     cy.get("#password").should("have.value", "password");
@@ -28,7 +28,7 @@ describe('Login Tests', () => {
     cy.get(".alert-danger").should("exist").contains(errorText);
   });
 
-  it('errors with no password', ()=> {
+  it('errors with no password', () => {
     cy.get("#username").type("username@site.com");
     cy.get("#username").should("have.value", "username@site.com");
     cy.get("#password").should("have.value", "");

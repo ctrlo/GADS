@@ -7,7 +7,7 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
 Donec quis finibus ante. Nulla et dui posuere, semper elit quis, maximus ipsum. Aliquam ante nulla, pellentesque sed neque sit amet, finibus cursus est. Aliquam sed sollicitudin orci. Nulla malesuada augue lectus, ac tincidunt orci fermentum ac. Nullam pulvinar diam felis, sed condimentum arcu ornare sit amet. Praesent eget lobortis purus. In hac habitasse platea dictumst. Ut lorem nisl, fringilla vitae quam lobortis, vehicula egestas magna. Sed convallis placerat ante quis convallis. Vivamus pharetra quam diam, ut ultricies neque mollis vitae. Morbi augue tellus, feugiat a interdum a, tincidunt vel ante.
 Ut diam tortor, hendrerit eget ipsum non, suscipit mattis elit. Pellentesque ut porttitor risus, at pulvinar tortor. Integer eleifend volutpat efficitur. Maecenas massa odio, pharetra eu eleifend eu, volutpat sed dui. Donec efficitur sed risus sit amet imperdiet. Pellentesque nec arcu non nibh congue cursus et a sapien. Phasellus ullamcorper magna nec varius facilisis. Curabitur et tempus est. Nulla tincidunt porttitor mollis. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Aenean vitae pretium felis. Aliquam vehicula et nisl sit amet pharetra. Nulla ac sollicitudin velit. Cras egestas ac sem vitae sollicitudin. Nullam convallis risus id massa vestibulum imperdiet. Cras in enim sit amet ligula placerat eleifend.`
 
-  beforeEach(()=>{
+  beforeEach(() => {
     cy.loginAndGoTo(goodUser, goodPassword, 'http://localhost:3000/?did=1');
   })
 
