@@ -292,7 +292,7 @@ sub create_pdf
     $pdf->text($self->description , size => 14 ) if $self->description;
 
     my $hdr_props = {
-        repeat    => 1,
+        repeat    => 0,
         justify   => 'center',
         font_size => 12,
         bg_color  => '#007c88',
@@ -307,6 +307,7 @@ sub create_pdf
 
     my $i = 0;
     foreach my $topic (@topics) {
+        next unless $topic->{topic};
         my $topic_name = $topic->{topic} ? $topic->{topic}->name : 'Other';
         my $fields = [ [ $topic_name ] ];
         
@@ -349,8 +350,55 @@ sub create_pdf
             border_c     => '#007C88',
             h_border_w   => 1,
             cell_props   => $cell_props,
+            size         => '4cm *',
         );
     }
+
+    my $fields = [ [ 'Other' ] ];
+    my $width = 0;
+    my $topic = [grep !$_->{topic}, @topics]->[0];
+
+    foreach my $col (@{$topic->{columns}}) {
+        if($col->{data}->{selected_values}) {
+            my $first=1;
+            foreach my $c (@{$col->{data}->{selected_values}}) {
+                my $values = $c->{values};
+                $width = $width<(scalar(@$values)+1)? scalar(@$values)+1 : $width;
+                push @$fields, [$first?$col->{name}:'',@$values];
+                $first=0;
+            }
+        } else {
+            if($col->{data}->{value}) {
+                push @$fields, [ $col->{name}, $col->{data}->{value} || "" ];
+            } else {
+                push @$fields, [ $col->{name}, $col->{data}->{grade} ];
+            }
+            $width = 2 if $width < 2;
+        }
+    }
+
+    my $cell_props = [];
+
+    foreach my $d (@$fields)
+    {
+        my $has = @$d;
+        # $max_fields does not include field name
+        my $gap = $width - $has + 1;
+        push @$d, undef for (1..$gap);
+        push @$cell_props, [
+            (undef) x ($has - 1),
+            {colspan => $gap + 1}
+        ];
+    }
+
+    $pdf->table(
+        data         => $fields,
+        header_props => $hdr_props,
+        border_c     => '#007C88',
+        h_border_w   => 1,
+        cell_props   => $cell_props,
+        size         => '4cm *',
+    );
 
     my $now = DateTime->now;
     my $format = GADS::Config->instance->dateformat;
