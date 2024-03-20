@@ -20,6 +20,7 @@ package GADS::Filter;
 
 use Data::Compare qw/Compare/;
 use GADS::Config;
+use GADS::Helper::ConditionBuilder;
 use Encode;
 use JSON qw(decode_json encode_json);
 use Log::Report 'linkspace';
@@ -315,6 +316,16 @@ sub parse_date_filter
     if ($op2 && $op2 eq '-' && $v2)
     { $now->subtract(seconds => $v2) }
     $now;
+}
+
+has person_filter => (
+    is => 'lazy',
+);
+
+sub _build_person_filter {
+    my $self = shift;
+
+    return GADS::Helper::ConditionBuilder->instance->map($self->as_hash);
 }
 
 1;
