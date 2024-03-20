@@ -120,20 +120,16 @@ sub _clear_lazy
 
 sub base64
 {   my $self = shift;
-    my $first = 1;
+    # First make sure we have the hash version
+    $self->as_hash;
+    # Then clear the JSON version so that we can rebuild it
+    $self->clear_as_json;
+    # Next update the filters
     foreach my $filter (@{$self->filters})
     {
         $self->layout or panic "layout has not been set in filter";
         my $col = $self->layout->column($filter->{column_id})
             or next; # Ignore invalid - possibly since deleted
-        #for some reason the value doesn't rebuild properly if it's a person, so I've moved it down here
-        if($first){
-            # First make sure we have the hash version
-            $self->as_hash;
-            # Then clear the JSON version so that we can rebuild it
-            $self->clear_as_json;
-            $first = 0;
-        }
         # Next update the filters
         if ($col->has_filter_typeahead)
         {
@@ -316,16 +312,6 @@ sub parse_date_filter
     if ($op2 && $op2 eq '-' && $v2)
     { $now->subtract(seconds => $v2) }
     $now;
-}
-
-has person_filter => (
-    is => 'lazy',
-);
-
-sub _build_person_filter {
-    my $self = shift;
-
-    return GADS::Helper::ConditionBuilder->instance->map($self->as_hash);
 }
 
 1;

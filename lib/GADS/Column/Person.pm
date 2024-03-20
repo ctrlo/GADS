@@ -20,6 +20,7 @@ package GADS::Column::Person;
 
 use Log::Report 'linkspace';
 use GADS::Users;
+use GADS::PeopleFilter;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 
@@ -37,7 +38,7 @@ has set_filter => (
 has '+filter' => (
     builder => sub {
         my $self = shift;
-        GADS::Filter->new(
+        GADS::PeopleFilter->new(
             as_json => $self->set_filter || ($self->_rset && $self->_rset->filter),
             layout => $self->layout
         )
