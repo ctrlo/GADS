@@ -146,7 +146,11 @@ has people => (
     clearer => 1,
     builder => sub {
         my $self = shift;
-        GADS::Users->new( schema => $self->schema )->all;
+        if($self->filter) {
+            return GADS::Users->new( schema => $self->schema, person_filter => $self->filter->person_filter )->all;
+        }else{
+            return GADS::Users->new( schema => $self->schema )->all;
+        }
     },
 );
 

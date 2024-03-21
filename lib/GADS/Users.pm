@@ -24,9 +24,15 @@ use Log::Report 'linkspace';
 use POSIX ();
 use Scope::Guard qw(guard);
 use Text::CSV;
+use GADS::Helper::ConditionBuilder;
 
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
+
+has person_filter => (
+    is => 'ro',
+    required => 0,
+);
 
 has schema => (
     is       => 'ro',
@@ -101,7 +107,9 @@ sub user_summary_rs
 
 sub _build_all
 {   my $self = shift;
-    my @users = $self->user_summary_rs->all;
+    my @users;
+    @users = $self->user_summary_rs->all unless $self->person_filter;
+    @users = $self->user_summary_rs->search($self->person_filter)->all if $self->person_filter;
     \@users;
 }
 
