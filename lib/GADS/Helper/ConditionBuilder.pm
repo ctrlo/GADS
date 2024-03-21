@@ -84,7 +84,7 @@ sub mapRules {
         }
 
         my ( $field, $operator, $value ) =
-          ( $rule->{field}, $rule->{operator}, $rule->{value} );
+          ( $rule->{field} . '.name', $rule->{operator}, $rule->{value} );
         my $mappedOperator = $self->fieldMap->{$operator};
         my $mappedValue    = $self->getFieldValue( $operator, $value );
 
