@@ -152,7 +152,7 @@ hook before => sub {
     schema->site_id(undef);
 
     # See if there are multiple sites. If so, find site and configure in schema
-    if (schema->resultset('Site')->count > 1 && request->dispatch_path !~ m{/invalidsite})
+    if (schema->resultset('Site')->count > 1 && request->path !~ m{/invalidsite})
     {
         my $site = schema->resultset('Site')->search({
             host => request->base->host,

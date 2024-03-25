@@ -565,3 +565,38 @@ $btn-border-radius: 23px;
     }
   }
 }
+
+.table-transfer--add .btn,
+.table-transfer--remove .btn {
+  $button-size: 19px;
+
+  position: absolute;
+  right: 1rem;
+  width: $button-size;
+  height: $button-size;
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+  line-height: $button-size;
+}
+
+.table-transfer--add .btn {
+  border: 2px solid $brand-success;
+
+  &::before {
+    content: "+";
+    color: $brand-success;
+  }
+}
+
+.table-transfer--remove .btn {
+  border: 2px solid $brand-danger;
+
+  &::before {
+    @extend %icon-font;
+
+    content: "\E82B";
+    color: $brand-danger;
+    font-weight: 800;
+  }
+}
