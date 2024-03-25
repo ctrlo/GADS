@@ -1065,30 +1065,19 @@ sub delete
             , graph => $g;
     }
 
-    if(my @reportLayouts = $self->schema->resultset('ReportLayout')->search(
+    my $rs = $self->schema->resultset('ReportLayout')->search(
             [
                 {layout_id => $self->id},
             ], {prefetch => 'report'}
-        )->all
-    ) {
-        my @notDeleted = grep {!$_->report->deleted} @reportLayouts;
-        if(@notDeleted) {
-            my @reports = uniq (map {$_->report} @notDeleted);
-            my $r = join(q{, }, map {$_->name} @reports);
-            error __x"The following reports reference this field: \"{report}\". Please update them before deletion."
-                , report => $r;
-        }
+        );
+    my $rs_live = $rs->search({},{'report.deleted' => undef});
+    if ( $rs_live->count ) {
+        my %reports = map { $_->report_id => $_->report } $rs_live->all;
+        my $r       = join( q{, }, map { $_->name } values %reports );
+        error __x"The following reports reference this field: \"{report}\". Please update them before deletion.", report => $r;
     }
 
-    foreach my $reportLayout ($self->schema->resultset('ReportLayout')->search(
-            [
-                {layout_id => $self->id},
-            ]
-        )->all
-    ) {
-        #In theory, we would only reach here if there are layouts in a deleted report
-        $reportLayout->delete;
-    }
+    $_->delete for $rs->all;
 
     # Remove this column from any filters defined on views
     foreach my $filter ($self->schema->resultset('Filter')->search({
