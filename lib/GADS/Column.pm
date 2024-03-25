@@ -30,7 +30,6 @@ use GADS::View;
 use HTML::Entities qw/encode_entities/;
 use MIME::Base64 qw/encode_base64/;
 use Text::Markdown qw/markdown/;
-use List::Util qw/uniq/;
 
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
@@ -1065,11 +1064,11 @@ sub delete
             , graph => $g;
     }
 
-    my $rs = $self->schema->resultset('ReportLayout')->search(
-            [
-                {layout_id => $self->id},
-            ], {prefetch => 'report'}
-        );
+    my $rs = $self->schema->resultset('ReportLayout')->search({
+        layout_id => $self->id
+    }, {
+        prefetch  => 'report'
+    });
     my $rs_live = $rs->search({'report.deleted' => undef});
     if ( $rs_live->count ) {
         my %reports = map { $_->report_id => $_->report } $rs_live->all;

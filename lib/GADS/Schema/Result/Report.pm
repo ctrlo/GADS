@@ -11,7 +11,7 @@ use warnings;
 
 use Log::Report 'linkspace';
 use CtrlO::PDF 0.06;
-use PDF::Table 0.11.0; # Needed for colspan feature
+use PDF::Table 1.006; # Needed for colspan feature
 use GADS::Config;
 use Moo;
 
