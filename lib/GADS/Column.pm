@@ -1070,7 +1070,7 @@ sub delete
                 {layout_id => $self->id},
             ], {prefetch => 'report'}
         );
-    my $rs_live = $rs->search({},{'report.deleted' => undef});
+    my $rs_live = $rs->search({'report.deleted' => undef});
     if ( $rs_live->count ) {
         my %reports = map { $_->report_id => $_->report } $rs_live->all;
         my $r       = join( q{, }, map { $_->name } values %reports );
