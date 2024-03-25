@@ -30,6 +30,7 @@ use GADS::View;
 use HTML::Entities qw/encode_entities/;
 use MIME::Base64 qw/encode_base64/;
 use Text::Markdown qw/markdown/;
+use List::Util qw/uniq/;
 
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
@@ -1062,6 +1063,31 @@ sub delete
         my $g = join(q{, }, map{$_->title} @graphs);
         error __x"The following graphs references this field: {graph}. Please update them before deletion."
             , graph => $g;
+    }
+
+    if(my @reportLayouts = $self->schema->resultset('ReportLayout')->search(
+            [
+                {layout_id => $self->id},
+            ], {prefetch => 'report'}
+        )->all
+    ) {
+        my @notDeleted = grep {!$_->report->deleted} @reportLayouts;
+        if(@notDeleted) {
+            my @reports = uniq (map {$_->report} @notDeleted);
+            my $r = join(q{, }, map {$_->name} @reports);
+            error __x"The following reports reference this field: \"{report}\". Please update them before deletion."
+                , report => $r;
+        }
+    }
+
+    foreach my $reportLayout ($self->schema->resultset('ReportLayout')->search(
+            [
+                {layout_id => $self->id},
+            ]
+        )->all
+    ) {
+        #In theory, we would only reach here if there are layouts in a deleted report
+        $reportLayout->delete;
     }
 
     # Remove this column from any filters defined on views
