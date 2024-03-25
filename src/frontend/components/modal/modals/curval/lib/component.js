@@ -3,7 +3,6 @@ import { getFieldValues } from "get-field-values"
 import { guid as Guid } from "guid"
 import { initializeRegisteredComponents } from 'component'
 import { validateRadioGroup, validateCheckboxGroup } from 'validation'
-import SelectWidgetComponent from '../../../../form-group/select-widget/lib/component'
 
 class CurvalModalComponent extends ModalComponent {
 
@@ -139,7 +138,10 @@ class CurvalModalComponent extends ModalComponent {
 
       /* Reinitialize widget */
       initializeRegisteredComponents($formGroup[0])
-      const selectWidgetComponent = new SelectWidgetComponent($widget[0])
+      import(/* webpackChunkName: "select-widget" */ '../../../../form-group/select-widget/lib/component')
+        .then(({ default: SelectWidgetComponent }) => {
+          new SelectWidgetComponent($widget[0])
+        });
     }
 
     $(this.element).modal('hide')

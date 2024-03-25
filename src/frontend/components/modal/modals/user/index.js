@@ -1,4 +1,4 @@
-import { initializeComponent } from 'component'
+import { getComponentElements, initializeComponent } from 'component'
 
 export default (scope) => {
     if(!getComponentElements(scope, '.modal--user').length) return;

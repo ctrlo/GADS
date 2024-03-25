@@ -1,7 +1,6 @@
 import { Component } from 'component'
 import { logging } from 'logging'
 import { initValidationOnField } from 'validation'
-import { MoreInfoButton } from '../../../button/lib/more-info-button'
 
   /*
    * A SelectWidget is a custom disclosure widget
@@ -521,7 +520,9 @@ class SelectWidgetComponent extends Component {
         self.$availableItems.on("blur", (e) => { self.possibleCloseWidget(e) })
         self.$moreInfoButtons.on("blur", (e) => { self.possibleCloseWidget(e) })
         self.$moreInfoButtons.each((_, button) => {
-          const moreInfoButton = new MoreInfoButton(button)
+          import(/* webpackChunkName: "more-info-button" */ '../../../button/lib/more-info-button')
+            .then(({ default: MoreInfoButton }) => { new MoreInfoButton(button); }
+            );
         })
 
       } else {

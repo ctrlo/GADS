@@ -2,7 +2,6 @@ import { Component } from 'component'
 import { initValidationOnField, validateCheckboxGroup } from 'validation'
 import initDateField from 'components/datepicker/lib/helper'
 import 'blueimp-file-upload'
-import TypeaheadBuilder from 'util/typeahead'
 import { stopPropagation, fromJson, hideElement, showElement } from 'util/common'
 
 class InputComponent extends Component {
@@ -149,13 +148,16 @@ class InputComponent extends Component {
         $(self.el).find('input[type="hidden"]').val(suggestion.id)
       }
 
-      const builder = new TypeaheadBuilder();
-      builder
-        .withInput($(self.input))
-        .withCallback(suggestionCallback)
-        .withAjaxSource(self.getURL())
-        .withName('users')
-        .build()
+      import(/* webpackChunkName: "typeahead" */ 'util/typeahead')
+        .then(({ default: TypeaheadBuilder }) => {
+          const builder = new TypeaheadBuilder();
+          builder
+            .withInput($(self.input))
+            .withCallback(suggestionCallback)
+            .withAjaxSource(self.getURL())
+            .withName('users')
+            .build()
+        });
     }
 
     getURL() {

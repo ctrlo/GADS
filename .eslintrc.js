@@ -1,7 +1,7 @@
 module.exports = {
   env: {
     browser: true,
-    es6: true,
+    es2020: true,
     jquery: true
   },
 
@@ -26,7 +26,6 @@ module.exports = {
   plugins: ['prettier', 'jsdoc'],
 
   parserOptions: {
-    ecmaVersion: 6,
     ecmaFeatures: {
       experimentalObjectRestSpread: true
     },

@@ -2,7 +2,6 @@ import { Component } from 'component'
 import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
 import 'bootstrap-select/dist/js/bootstrap-select'
 import { logging } from 'logging'
-import TypeaheadBuilder from 'util/typeahead'
 import { refreshSelects } from 'components/form-group/common/bootstrap-select'
 
 class FilterComponent extends Component {
@@ -163,16 +162,19 @@ class FilterComponent extends Component {
       // This is required to ensure that the correct query is sent each time
       const buildQuery = () => {return {q:$ruleInputText.val(), oi:filterConfig.instanceId}}
 
-      const builder = new TypeaheadBuilder();
-      builder
-        .withInput($ruleInputText)
-        .withAjaxSource(self.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
-        .withDataBuilder(buildQuery)
-        .withDefaultMapper()
-        .withName('rule')
-        .withAppendQuery()
-        .withCallback(filterCallback)
-        .build()
+      import(/* webpackChunkName: "typeahead" */ 'util/typeahead')
+        .then(({ default: TypeaheadBuilder }) => {
+          const builder = new TypeaheadBuilder();
+          builder
+            .withInput($ruleInputText)
+            .withAjaxSource(self.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
+            .withDataBuilder(buildQuery)
+            .withDefaultMapper()
+            .withName('rule')
+            .withAppendQuery()
+            .withCallback(filterCallback)
+            .build()
+        });
     })
 
     if(filterBase) {

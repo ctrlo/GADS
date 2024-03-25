@@ -1,8 +1,6 @@
 import { Component } from 'component'
 import { logging } from 'logging'
-import { MoreInfoButton } from './more-info-button'
 import { validateRequiredFields } from 'validation'
-import CreateReportButtonComponent from './create-report-button'
 
 class ButtonComponent extends Component {
   constructor(element)  {
@@ -16,10 +14,16 @@ class ButtonComponent extends Component {
   initButton() {
     switch (true) {
       case this.el.hasClass('btn-js-report'):
-        new CreateReportButtonComponent(this.element)
+        import(/* webpackChunkName: "create-report-button" */ './create-report-button.js')
+          .then(({ default: CreateReportButtonComponent }) => {
+            new CreateReportButtonComponent(this.element)
+          });
         break
       case this.el.hasClass('btn-js-more-info'):
-        new MoreInfoButton(this.el)
+        import(/* webpackChunkName: "more-info-button" */ './more-info-button.js')
+          .then(({ default: MoreInfoButton }) => {
+            new MoreInfoButton(this.el)
+          });
         break
       case this.el.hasClass('btn-js-delete'):
         this.initDelete()

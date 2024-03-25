@@ -6,9 +6,7 @@ import 'datatables.net-responsive'
 import 'datatables.net-responsive-bs4'
 import 'datatables.net-rowreorder-bs4'
 import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets'
-import RecordPopupComponent from 'components/record-popup/lib/component'
 import { moreLess } from 'components/more-less/lib/more-less'
-import TypeaheadBuilder from 'util/typeahead'
 
 const MORE_LESS_TRESHOLD = 50
 
@@ -61,8 +59,11 @@ class DataTableComponent extends Component {
       setupDisclosureWidgets($childRow)
 
       recordPopupElements.each((i, el) => {
-        const recordPopupComp = new RecordPopupComponent(el)
-      })
+        import(/* webpackChunkName: "record-popup" */ 'components/record-popup/lib/component')
+          .then(({ default: RecordPopupComponent }) => {
+            new RecordPopupComponent(el)
+          });
+      });
     })
   }
 
@@ -277,18 +278,21 @@ class DataTableComponent extends Component {
     this.toggleFilter(column)
 
     if (col && col.typeahead) {
-      const builder = new TypeaheadBuilder();
-      builder
-        .withAjaxSource(this.getApiEndpoint(columnId))
-        .withInput($('input', $header))
-        .withAppendQuery()
-        .withDefaultMapper()
-        .withName(columnId.replace(/\s+/g, '') + 'Search')
-        .withCallback((data) => {
-          $('input', $header).val(data.name);
-          $('input', $header).trigger('change');
-        })
-        .build();
+      import(/* webpackChunkName: "typeaheadbuilder" */ 'util/typeahead')
+        .then(({ default: TypeaheadBuilder }) => {
+          const builder = new TypeaheadBuilder();
+          builder
+            .withAjaxSource(this.getApiEndpoint(columnId))
+            .withInput($('input', $header))
+            .withAppendQuery()
+            .withDefaultMapper()
+            .withName(columnId.replace(/\s+/g, '') + 'Search')
+            .withCallback((data) => {
+              $('input', $header).val(data.name);
+              $('input', $header).trigger('change');
+            })
+            .build();
+        });
     }
 
     // Apply the search

@@ -1,7 +1,6 @@
 import { Component } from 'component'
 import { setupDisclosureWidgets } from "./disclosure-widgets";
 import { moreLess } from './more-less';
-import RecordPopupComponent from '../../record-popup/lib/component'
 
 const MAX_HEIGHT = 50
 
@@ -171,10 +170,13 @@ class MoreLessComponent extends Component {
     setupDisclosureWidgets($ml)
 
     // Set up the record-popup modal for any curvals in this more-less
-    const recordPopupElements = $ml.find('.record-popup')
-    recordPopupElements.each((i, el) => {
-      const recordPopupComp = new RecordPopupComponent(el)
-    })
+    import(/* webpackChunkName: "record-popup" */ '../../record-popup/lib/component')
+      .then(({ default: RecordPopupComponent }) => {
+        const recordPopupElements = $ml.find('.record-popup')
+        recordPopupElements.each((i, el) => {
+          new RecordPopupComponent(el)
+        });
+      });
 
     // Process any more-less divs within this. These won't be done by the
     // original find, as the original ones will have been obliterated by

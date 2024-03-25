@@ -1,5 +1,4 @@
 import { Component } from 'component'
-import SelectComponent from '../../select/lib/component'
 import initDateField from 'components/datepicker/lib/helper'
 
 const SELECT_PLACEHOLDER = 'select__placeholder'
@@ -71,10 +70,12 @@ class MultipleSelectComponent extends Component {
         $selectMenu.attr('aria-labelledby', `${$selectMenu.attr('aria-labelledby')}-${this.countSelect}`)
 
         // Bind events to the new select element
-        const newSelectComponent = new SelectComponent(selectEl)
-        newSelectComponent.initSelect()
-        newSelectComponent.resetSelect()
-  
+        import(/* webpackChunkName: "selectBuilder" */ '../../select/lib/component')
+          .then(({ default: SelectComponent }) => {
+            const newSelectComponent = new SelectComponent(selectEl)
+            newSelectComponent.initSelect()
+            newSelectComponent.resetSelect()
+          });
       })
 
       $dateElmsInNewRow.each( (i, dateEl) => {

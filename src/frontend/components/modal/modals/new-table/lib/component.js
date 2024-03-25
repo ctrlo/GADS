@@ -12,6 +12,7 @@ class AddTableModalComponent extends ModalComponent {
     this.topicsTable = this.el.find('#topics')
     this.fieldsTable = this.el.find('#fields')
     this.selectTopic = this.el.find('.modal-body .select--js-topic')[0]
+    //No point doing this as an import if it's in the initialisation
     this.selectTopicComponent = new SelectComponent(this.selectTopic)
     this.currentFieldObject = {}
     this.currentTopicObject = {}
