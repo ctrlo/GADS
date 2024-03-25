@@ -3,7 +3,7 @@
 -------
 
 **Version**: 2.3.0
-**Released**: 04th March 2024
+**Released**: 26th March 2024
 
 -------
 
@@ -14,6 +14,7 @@
   - Added security marking - this can be set at admin, instance (table), and report level
 - Made creation of views clearer
 - Added searchable dropdowns to view filters
+- Multi-value displays are now clearer for string values
 
 ## Fixes
 
@@ -23,6 +24,7 @@
 - Fixed globe bug introduced with Typeahead functionality
 - Fixed incorrect rendering of readonly fields
 - Fixed incorrect use of Put in dashboards
+- Fixed layout referenced in report stopping deletion of layout
 
 ## Other
 
