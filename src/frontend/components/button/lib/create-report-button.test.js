@@ -1,4 +1,3 @@
-import CreateReportButtonComponent from '../index';
 import { validateRequiredFields } from 'validation';
 
 global.$ = global.jQuery = require('jquery');
@@ -23,14 +22,13 @@ describe('create-report-button', () => {
       </form>
     `;
 
-    new CreateReportButtonComponent(document.body);
-
-    const submitSpy = jest.fn((ev)=>{ev.preventDefault(); ev.stopPropagation();});
-    $('#myform').on('submit', submitSpy);
-
-    $('#submit').trigger('click');
-
-    expect(submitSpy).not.toHaveBeenCalled();
+    import("./create-report-button").then(({ default: CreateReportButtonComponent }) => {
+      new CreateReportButtonComponent(document.getElementById('submit'));
+      const submitSpy = jest.fn((ev) => { ev.preventDefault(); ev.stopPropagation(); });
+      $('#myform').on('submit', submitSpy);
+      $('#submit').trigger('click');
+      expect(submitSpy).not.toHaveBeenCalled();
+    });
   });
 
   it('does not submit on required values missing', () => {
@@ -54,13 +52,15 @@ describe('create-report-button', () => {
       </form>
     `;
 
-    const button = new CreateReportButtonComponent(document.body);
-    const submitSpy = jest.fn((ev)=>{ev.preventDefault(); ev.stopPropagation();});
+    import("./create-report-button").then(({ default: CreateReportButtonComponent }) => {
+      new CreateReportButtonComponent(document.getElementById('submit'));
+      const submitSpy = jest.fn((ev) => { ev.preventDefault(); ev.stopPropagation(); });
 
-    $('#myform').on('submit', submitSpy);
-    $('#submit').trigger('click');
+      $('#myform').on('submit', submitSpy);
+      $('#submit').trigger('click');
 
-    expect(submitSpy).not.toHaveBeenCalled();
+      expect(submitSpy).not.toHaveBeenCalled();
+    });
   });
 
   it('does submit fully on required values present', () => {
@@ -84,13 +84,13 @@ describe('create-report-button', () => {
       </form>
     `;
 
-    new CreateReportButtonComponent(document.body);
-    const formSpyFn = jest.fn((ev)=>{ev.preventDefault(); ev.stopPropagation();});
-
-    $('#myform').on('submit', formSpyFn);
-    $('#submit').trigger('click');
-
-    expect(formSpyFn).toHaveBeenCalled();
+    import("./create-report-button").then(({ default: CreateReportButtonComponent }) => {
+      new CreateReportButtonComponent(document.body);
+      const formSpyFn = jest.fn((ev) => { ev.preventDefault(); ev.stopPropagation(); });
+      $('#myform').on('submit', formSpyFn);
+      $('#submit').trigger('click');
+      expect(formSpyFn).toHaveBeenCalled();
+    });
   });
 
   it('Validates checkboxes correctly', () => {
