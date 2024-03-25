@@ -34,6 +34,10 @@ has '+is_curcommon' => (
     default => 1,
 );
 
+has '+has_filter_typeahead' => (
+    default => 1,
+);
+
 # Dummy functions, overridden in child classes
 sub value_selector { '' }
 sub show_add { 0 }
