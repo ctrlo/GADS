@@ -1,4 +1,5 @@
 import { initializeComponent } from 'component'
-import SelectComponent from './lib/component'
 
-export default (scope) => initializeComponent(scope, '.select', SelectComponent)
+export default (scope) =>
+    import('./lib/component')
+        .then(({ default: SelectComponent }) => { initializeComponent(scope, '.select', SelectComponent) });

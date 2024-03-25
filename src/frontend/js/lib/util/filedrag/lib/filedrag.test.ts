@@ -24,7 +24,7 @@ class FileDragTest extends FileDrag {
 
 describe('FileDrag class tests', () => {
     function createBaseDOM() {
-        let div = document.createElement('div');
+        const div = document.createElement('div');
         const child = document.createElement('div');
         child.className = 'boop';
         div.append(child);
@@ -79,7 +79,7 @@ describe('FileDrag class tests', () => {
 
     it('shows the correct element when dragging ends', () => {
         const child = createBaseDOM();
-        const fileDrag = new FileDragTest(child);
+        new FileDragTest(child);
         const parent = child.parentElement;
         expect(parent).toBeDefined();
         const dropZone = parent!.querySelector('.drop-zone');
@@ -97,7 +97,7 @@ describe('FileDrag class tests', () => {
 
     it('creates the correct drop zone element', () => {
         const child = createBaseDOM();
-        const fileDrag = new FileDragTest(child);
+        new FileDragTest(child);
         const parent = child.parentElement;
         expect(parent).toBeDefined();
         const dropZone = parent!.querySelector('.drop-zone');

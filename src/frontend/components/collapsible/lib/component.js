@@ -17,12 +17,10 @@ class CollapsibleComponent extends Component {
         }
 
         this.titleExpanded.addClass('hidden')
-        button.click( (ev) => { this.handleClick(ev) })
+        button.click( () => { this.handleClick() })
     }
 
-    handleClick(ev) {
-      const target = $(ev.target)
-      
+    handleClick() {
       this.titleExpanded.toggleClass('hidden')
       this.titleCollapsed.toggleClass('hidden')
     }

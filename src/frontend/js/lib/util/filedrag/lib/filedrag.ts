@@ -52,7 +52,7 @@ class FileDrag {
 
     initDocumentEvents() {
         if (this.options.debug) console.log('initDocumentEvents');
-        $(document).on('dragenter', (e) => {
+        $(document).on('dragenter', () => {
             if (this.dragging) return;
             this.dragging = true;
             hideElement(this.el);

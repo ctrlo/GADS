@@ -17,7 +17,7 @@ class MarkdownComponent extends Component {
 
     const $textArea = $(this.element).find(".js-markdown-input");
     const $preview = $(this.element).find(".js-markdown-preview");
-    $().ready(() => {
+    $().on("ready", () => {
       if ($textArea.val() !== "") {
         const htmlText = this.renderMarkdown($textArea.val());
         $preview.html(htmlText);

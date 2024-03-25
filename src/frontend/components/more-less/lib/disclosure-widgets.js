@@ -1,10 +1,8 @@
 const positionDisclosure = function(offsetTop, offsetLeft, triggerHeight) {
-  const $disclosure = this
-
   const left = offsetLeft + 'px'
   const top = offsetTop + triggerHeight + 'px'
 
-  $disclosure.css({
+  this.css({
     left: left,
     top: top
   })
@@ -13,13 +11,13 @@ const positionDisclosure = function(offsetTop, offsetLeft, triggerHeight) {
   if (
     document.body &&
     document.body.clientWidth &&
-    $disclosure.get(0).getBoundingClientRect
+    this.get(0).getBoundingClientRect
   ) {
     const windowOffset =
       document.body.clientWidth -
-      $disclosure.get(0).getBoundingClientRect().right
+      this.get(0).getBoundingClientRect().right
     if (windowOffset < 0) {
-      $disclosure.css({
+      this.css({
         left: offsetLeft + windowOffset + 'px'
       })
     }

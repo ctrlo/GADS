@@ -1,4 +1,8 @@
-import { initializeComponent } from 'component'
-import DashboardGraphComponent from './lib/component'
+import { getComponentElements, initializeComponent } from 'component'
 
-export default (scope) => initializeComponent(scope, '.dashboard-graph', DashboardGraphComponent)
+export default (scope) => {
+    if(getComponentElements(scope, '.dashboard-graph').length === 0) return;
+    import('./lib/component').then(({default: DashboardGraphComponent}) =>{
+        initializeComponent(scope, '.dashboard-graph', DashboardGraphComponent)
+    });
+}

@@ -68,7 +68,6 @@ class TreeComponent extends Component {
     return (
       {
         url: function() {
-          const self = this
           if (devEndpoint) {
             return devEndpoint
           } else {
@@ -99,15 +98,14 @@ class TreeComponent extends Component {
     // remove all existing hidden value fields
     this.$treeContainer.nextAll('.selected-tree-value').remove()
     const selectedElms = this.$treeContainer.jstree('get_selected', true)
-    const self = this
-
+    
     $.each(selectedElms, (_, selectedElm) => {
       // store the selected values in hidden fields as children of the element.
       // Keep them in the same order as the tree (although we don't specify the
       // order of multivalue values, it makes sense to have them in the same
       // order in this case for calc values)
-      const node = $(`<input type="hidden" class="selected-tree-value" name="${self.field}" value="${selectedElm.id}" />`)
-        .appendTo(self.$treeContainer.closest('.tree'))
+      const node = $(`<input type="hidden" class="selected-tree-value" name="${this.field}" value="${selectedElm.id}" />`)
+        .appendTo(this.$treeContainer.closest('.tree'))
       const text_value = data.instance.get_path(selectedElm, '#')
       node.data('text-value', text_value)
     })
@@ -115,11 +113,11 @@ class TreeComponent extends Component {
     // selected, to ensure the forward/back functionality works. XXX If the
     // forward/back functionality is removed, this can be removed too.
     if (selectedElms.length == 0) {
-      self.$treeContainer.after(`<input type="hidden" class="selected-tree-value" name="${self.field}" value="" />`)
+      this.$treeContainer.after(`<input type="hidden" class="selected-tree-value" name="${this.field}" value="" />`)
     }
 
     if (this.initialized)
-      self.$treeContainer.trigger('change')
+      this.$treeContainer.trigger('change')
   }
 
   setupJStreeButtons($treeContainer) {
@@ -130,12 +128,12 @@ class TreeComponent extends Component {
     const $btnRename = this.el.find('.btn-js-tree-rename')
     const $btnDelete = this.el.find('.btn-js-tree-delete')
 
-    $btnExpand.on('click', (ev) => {$treeContainer.jstree('open_all')})
-    $btnCollapse.on('click', (ev) => {$treeContainer.jstree('close_all')})
-    $btnReload.on('click', (ev) => {$treeContainer.jstree('refresh')})
-    $btnAdd.on('click', (ev) => {this.handleAdd()})
-    $btnRename.on('click', (ev) => {this.handleRename()})
-    $btnDelete.on('click', (ev) => {this.handleDelete()})
+    $btnExpand.on('click', () => {$treeContainer.jstree('open_all')})
+    $btnCollapse.on('click', () => {$treeContainer.jstree('close_all')})
+    $btnReload.on('click', () => {$treeContainer.jstree('refresh')})
+    $btnAdd.on('click', () => {this.handleAdd()})
+    $btnRename.on('click', () => {this.handleRename()})
+    $btnDelete.on('click', () => {this.handleDelete()})
   }
 
   handleAdd() {

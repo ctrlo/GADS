@@ -6,7 +6,7 @@ export default (scope) => {
   }
 
   import(
-    /* webpackChunkName: "modal--newtable" */
+    /* webpackChunkName: "modal" */
     './lib/component'
   ).then(({ default: Component }) => {
     initializeComponent(scope, '.modal--new-table', Component)

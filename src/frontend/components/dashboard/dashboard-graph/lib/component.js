@@ -1,4 +1,3 @@
-import { Component } from 'component'
 import { do_plot_json } from '../../../graph/lib/chart'
 import GraphComponent from '../../../graph/lib/component'
 

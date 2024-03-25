@@ -28,11 +28,11 @@ class SortableComponent extends Component {
         handle: `.${SORTABLE_HANDLE}`
       })
 
-      this.addBtn.on('click', (ev) => { this.handleClickAdd(ev) } )
+      this.addBtn.on('click', () => { this.handleClickAdd() } )
       this.delBtn.on('click', (ev) => { this.handleClickDelete(ev) } )
     }
 
-    handleClickAdd(ev) {
+    handleClickAdd() {
       this.el.find(`.${BTN_ICON_CLOSE}`).removeClass(BTN_ICON_CLOSE_HIDDEN)
       this.el.find(`.${SORTABLE_HANDLE}`).removeClass(SORTABLE_HANDLE_HIDDEN)
 

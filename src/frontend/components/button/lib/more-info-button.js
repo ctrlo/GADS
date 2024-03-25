@@ -4,7 +4,7 @@ class MoreInfoButton {
     }
   
     initButton(button) {
-      $(button).click((ev) => {this.handleClickMoreInfo(ev)})
+      $(button).on("click", (ev) => { this.handleClickMoreInfo(ev) })
     }
   
     handleClickMoreInfo(ev) {

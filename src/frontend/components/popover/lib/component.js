@@ -27,7 +27,6 @@ class PopoverComponent extends Component {
   }
 
   handleClick(ev) {
-    const target = $(ev.target)
     this.togglePopover()
     ev.stopPropagation();
 

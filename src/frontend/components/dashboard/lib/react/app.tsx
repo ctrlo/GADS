@@ -7,8 +7,6 @@ import RGL, { WidthProvider } from "react-grid-layout";
 import Header from "./Header";
 import Widget from './Widget';
 import Footer from "./Footer";
-import SummerNoteComponent from "../../../summernote/lib/component";
-import GlobeComponent from '../../../globe/lib/component';
 import { sidebarObservable } from '../../../sidebar/lib/sidebarObservable';
 
 declare global {
@@ -82,14 +80,19 @@ class App extends React.Component<any, any> {
   initializeSummernoteComponent = () => {
     const summernoteEl = this.formRef.current.querySelector('.summernote');
     if (summernoteEl) {
-      const summernote = new SummerNoteComponent(summernoteEl)
-    };
+      import(/* WebpackChunkName: "summernote" */ "../../../summernote/lib/component")
+        .then(({ default: SummerNoteComponent }) => {
+          new SummerNoteComponent(summernoteEl)
+        });
+    }
   }
 
   initializeGlobeComponents = () => {
     const arrGlobe = document.querySelectorAll(".globe");
-    arrGlobe.forEach((globe) => {
-      const globeComponent = new GlobeComponent(globe)
+    import('../../../globe/lib/component').then(({default: GlobeComponent}) => {
+      arrGlobe.forEach((globe) => {
+        new GlobeComponent(globe)
+      });
     });
   }
 

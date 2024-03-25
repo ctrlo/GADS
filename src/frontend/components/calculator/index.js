@@ -1,4 +1,9 @@
-import { initializeComponent } from 'component'
-import CalculatorComponent from './lib/component'
+import { getComponentElements, initializeComponent } from 'component'
 
-export default (scope) => initializeComponent(scope, '.calculator', CalculatorComponent)
+export default (scope) => {
+    if (!getComponentElements(scope, '.calculator').length) return;
+
+    import(/* webpackChunkName: "calculator" */ "./lib/component").then(
+        ({ default: CalculatorComponent }) =>
+            initializeComponent(scope, '.calculator', CalculatorComponent));
+}

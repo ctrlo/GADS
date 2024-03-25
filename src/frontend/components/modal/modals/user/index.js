@@ -1,4 +1,7 @@
-import { initializeComponent } from 'component'
-import UserModalComponent from './lib/component'
+import { getComponentElements, initializeComponent } from 'component'
 
-export default (scope) => initializeComponent(scope, '.modal--user', UserModalComponent)
+export default (scope) => {
+    if(!getComponentElements(scope, '.modal--user').length) return;
+    import(/* webpackChunkName: "modal" */ "./lib/component")
+        .then(({default:UserModalComponent})=>initializeComponent(scope, '.modal--user', UserModalComponent));
+};

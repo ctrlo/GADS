@@ -14,7 +14,7 @@ class DependentFieldsComponent extends Component {
 
   getFieldDependency() {
     const dependency = $(this.element).data("dependency");
-    const decoded = JSON.parse(Buffer.from(dependency, 'base64'));
+    const decoded = JSON.parse(atob(dependency));
     const rules = decoded.rules;
     const condition = decoded.condition;
 

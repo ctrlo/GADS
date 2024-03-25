@@ -1,5 +1,4 @@
 import { Component } from 'component'
-import SelectComponent from '../../select/lib/component'
 import initDateField from 'components/datepicker/lib/helper'
 
 const SELECT_PLACEHOLDER = 'select__placeholder'
@@ -25,11 +24,11 @@ class MultipleSelectComponent extends Component {
         this.el.find('.multiple-select__row').each((i, row) => {
           this.handleDeleteButtonVisibility(row)
 
-          $(row).find('input[type="hidden"]').on('change', (ev) => this.handleDeleteButtonVisibility(row))
+          $(row).find('input[type="hidden"]').on('change', () => this.handleDeleteButtonVisibility(row))
         })
 
         this.delBtn.on('click', (ev) => { this.handleClickDelete(ev) } )
-        this.addBtn.on('click', (ev) => { this.handleClick(ev) } )
+        this.addBtn.on('click', () => { this.handleClick() } )
     }
 
     handleDeleteButtonVisibility(row) {
@@ -45,7 +44,7 @@ class MultipleSelectComponent extends Component {
       })
     }
 
-    handleClick(ev) {
+    handleClick() {
       this.el.find('.btn-delete').removeClass('btn-delete--hidden')
 
       const $lastMultipleSelectRow = this.el.find('.multiple-select__row').last()
@@ -71,10 +70,12 @@ class MultipleSelectComponent extends Component {
         $selectMenu.attr('aria-labelledby', `${$selectMenu.attr('aria-labelledby')}-${this.countSelect}`)
 
         // Bind events to the new select element
-        const newSelectComponent = new SelectComponent(selectEl)
-        newSelectComponent.initSelect()
-        newSelectComponent.resetSelect()
-  
+        import(/* webpackChunkName: "selectBuilder" */ '../../select/lib/component')
+          .then(({ default: SelectComponent }) => {
+            const newSelectComponent = new SelectComponent(selectEl)
+            newSelectComponent.initSelect()
+            newSelectComponent.resetSelect()
+          });
       })
 
       $dateElmsInNewRow.each( (i, dateEl) => {
