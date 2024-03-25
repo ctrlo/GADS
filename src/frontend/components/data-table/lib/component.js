@@ -700,7 +700,7 @@ class DataTableComponent extends Component {
     }
 
     // Toggle the full screen button
-    $(buttonElement.target).toggleClass(['btn-toggle', 'btn-toggle-off'])
+    $(fullScreenButton).toggleClass(['btn-toggle', 'btn-toggle-off'])
   }
 
   exitFullScreenMode(conf) {
