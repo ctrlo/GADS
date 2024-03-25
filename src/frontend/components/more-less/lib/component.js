@@ -39,7 +39,6 @@ class MoreLessComponent extends Component {
   // (https://github.com/dreamerslab/jquery.actual) but its performance was slow
   // when a page had many more-less divs
   getActualHeight($elem) {
-    const self = this
     if ($elem.attr('data-actual-height')) {
       // cached heights from previous runs
       return $elem.attr('data-actual-height')
@@ -67,7 +66,7 @@ class MoreLessComponent extends Component {
     // data value to its real equivalent element using this unique class.
     $parent.find('.more-less').each(function() {
       const $e = $(this)
-      $e.addClass('more-less-id-' + self.uuid())
+      $e.addClass('more-less-id-' + this.uuid())
     })
 
     // Clone the element and show it to find out its height

@@ -126,7 +126,7 @@ class ButtonComponent extends Component {
   }
 
   initRemoveUnload() {
-    this.el.on('click', (ev) => {
+    this.el.on('click', () => {
       $(window).off('beforeunload')
     })
   }

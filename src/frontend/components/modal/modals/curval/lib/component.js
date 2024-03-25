@@ -33,18 +33,17 @@ class CurvalModalComponent extends ModalComponent {
     })
     const $formGroup = $("div[data-column-id=" + col_id + "]")
     const valueSelector = $formGroup.data("value-selector")
-    const self = this
-
+    
     if (valueSelector === "noshow") {
-      const row_cells = $('<tr class="table-curval-item">', self.context)
+      const row_cells = $('<tr class="table-curval-item">', this.context)
 
       jQuery.map(modal_field_ids, function(element) {
         const control = form.find('[data-column-id="' + element + '"]')
         let value = getFieldValues(control)
         value = values["field" + element]
-        value = $("<div />", self.context).text(value).html()
+        value = $("<div />", this.context).text(value).html()
         row_cells.append(
-          $('<td class="curval-inner-text">', self.context).append(value)
+          $('<td class="curval-inner-text">', this.context).append(value)
         )
       })
 
@@ -54,7 +53,7 @@ class CurvalModalComponent extends ModalComponent {
             <span class="btn__title">Edit</span>
           </button>
           </td>`,
-        self.context
+        this.context
       )
 
       const removeButton = $(
@@ -63,7 +62,7 @@ class CurvalModalComponent extends ModalComponent {
             <span class="btn__title">Remove</span>
           </button>
         </td>`,
-        self.context
+        this.context
       )
 
       row_cells.append(editButton.append(hidden_input)).append(removeButton)
@@ -72,7 +71,7 @@ class CurvalModalComponent extends ModalComponent {
       initializeRegisteredComponents(row_cells[0])
 
       if (guid) {
-        const hidden = $('input[data-guid="' + guid + '"]', self.context).val(form_data)
+        const hidden = $('input[data-guid="' + guid + '"]', this.context).val(form_data)
         hidden.closest(".table-curval-item").replaceWith(row_cells)
       } else {
         $(`#curval_list_${col_id}`).find("tbody").prepend(row_cells)
@@ -145,7 +144,7 @@ class CurvalModalComponent extends ModalComponent {
     }
 
     $(this.element).modal('hide')
-  };
+  }
 
   updateWidgetState($widget, multi, required) {
     const $current = $widget.find(".current")
@@ -175,8 +174,6 @@ class CurvalModalComponent extends ModalComponent {
   }
 
   setupModal() {
-    const self = this
-
     this.el.on('show.bs.modal', (ev) => { 
       const button = ev.relatedTarget
       const layout_id = $(button).data("layout-id")
@@ -191,9 +188,9 @@ class CurvalModalComponent extends ModalComponent {
       let guid
 
       if ($formGroup.find('.table-curval-group').length) {
-        self.context = $formGroup.find('.table-curval-group')
+        this.context = $formGroup.find('.table-curval-group')
       } else if ($formGroup.find('.select-widget').length) {
-        self.context = $formGroup.find('.select-widget')
+        this.context = $formGroup.find('.select-widget')
       }
 
       if (mode === "edit") {
@@ -204,7 +201,7 @@ class CurvalModalComponent extends ModalComponent {
         }
       }
 
-      const $m = $(self.element)
+      const $m = $(this.element)
       $m.find(".modal-body").text("Loading...")
 
       const url = current_id
@@ -212,12 +209,12 @@ class CurvalModalComponent extends ModalComponent {
         : `/${instance_name}/record/`
 
       $m.find(".modal-body").load(
-        self.getURL(url, layout_id, form_data, $formGroup),
+        this.getURL(url, layout_id, form_data, $formGroup),
         function() {
           if (mode === "edit") {
             $m.find("form").data("guid", guid);
           }
-          initializeRegisteredComponents(self.element)
+          initializeRegisteredComponents(this.element)
         }
       )
 
@@ -229,7 +226,7 @@ class CurvalModalComponent extends ModalComponent {
       })
 
       $m.off('hide.bs.modal')
-        .on('hide.bs.modal', (ev) => {
+        .on('hide.bs.modal', () => {
         return confirm("Closing this dialogue will cancel any work. Are you sure you want to do so?")
       })
     })
@@ -251,11 +248,9 @@ class CurvalModalComponent extends ModalComponent {
   }
 
   setupSubmit() {
-    const self = this
-
     $(this.element).on("submit", ".curval-edit-form", function(e) {
       // Don't show close warning when user clicks submit button
-      self.el.off('hide.bs.modal')
+      this.el.off('hide.bs.modal')
 
       e.preventDefault()
       const $form = $(this)
@@ -267,32 +262,32 @@ class CurvalModalComponent extends ModalComponent {
       const devData = window.siteConfig && window.siteConfig.curvalData
 
       if (devData) {
-        self.curvalModalValidationSucceeded($form, devData.values)
+        this.curvalModalValidationSucceeded($form, devData.values)
       } else {
         $.post(
           $form.attr("action") + "?validate&include_draft&source=" + $form.data("curval-id"),
           form_data,
           function(data) {
             if (data.error === 0) {
-              self.curvalModalValidationSucceeded($form, data.values)
+              this.curvalModalValidationSucceeded($form, data.values)
             } else {
               const errorMessage =
                 data.error === 1 ? data.message : "Oops! Something went wrong."
-              self.curvalModalValidationFailed($form, errorMessage)
+              this.curvalModalValidationFailed($form, errorMessage)
             }
           },
           "json"
         )
         .fail(function(jqXHR, textstatus, errorthrown) {
           const errorMessage = `Oops! Something went wrong: ${textstatus}: ${errorthrown}`
-          self.curvalModalValidationFailed($form, errorMessage);
+          this.curvalModalValidationFailed($form, errorMessage);
         })
         .always(function() {
           $form.removeClass("edit-form--validating")
         });
       }
     });
-  };
+  }
 }
 
 export default CurvalModalComponent

@@ -24,11 +24,11 @@ class MultipleSelectComponent extends Component {
         this.el.find('.multiple-select__row').each((i, row) => {
           this.handleDeleteButtonVisibility(row)
 
-          $(row).find('input[type="hidden"]').on('change', (ev) => this.handleDeleteButtonVisibility(row))
+          $(row).find('input[type="hidden"]').on('change', () => this.handleDeleteButtonVisibility(row))
         })
 
         this.delBtn.on('click', (ev) => { this.handleClickDelete(ev) } )
-        this.addBtn.on('click', (ev) => { this.handleClick(ev) } )
+        this.addBtn.on('click', () => { this.handleClick() } )
     }
 
     handleDeleteButtonVisibility(row) {
@@ -44,7 +44,7 @@ class MultipleSelectComponent extends Component {
       })
     }
 
-    handleClick(ev) {
+    handleClick() {
       this.el.find('.btn-delete').removeClass('btn-delete--hidden')
 
       const $lastMultipleSelectRow = this.el.find('.multiple-select__row').last()

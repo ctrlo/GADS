@@ -84,7 +84,7 @@ class App extends React.Component<any, any> {
         .then(({ default: SummerNoteComponent }) => {
           new SummerNoteComponent(summernoteEl)
         });
-    };
+    }
   }
 
   initializeGlobeComponents = () => {

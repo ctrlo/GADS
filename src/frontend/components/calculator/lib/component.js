@@ -85,7 +85,7 @@ class CalculatorComponent extends Component {
       const keypress_action = {}
       const operator_btns_elem = calculator_elem.find('.radio-group--buttons')
 
-      $(calculator_button).each((i, button) => {
+      $(calculator_button).each((i) => {
         const btn = calculator_button[i]
         const button_elem = $(
           `<div class="radio-group__option">` +

@@ -12,7 +12,7 @@ class DisplayConditionsComponent extends Component {
 
   initDisplayConditions() {
     const builderData = this.el.data()
-    const filters = JSON.parse(Buffer.from(builderData.filters, 'base64'))
+    const filters = JSON.parse(atob(builderData.filters))
     if (!filters.length) return
 
     refreshSelects(this.el)
@@ -29,7 +29,7 @@ class DisplayConditionsComponent extends Component {
     })
 
     if (builderData.filterBase) {
-      const data = Buffer.from(builderData.filterBase, 'base64')
+      const data = atob(builderData.filterBase)
       this.el.queryBuilder('setRules', JSON.parse(data))
     }
   }

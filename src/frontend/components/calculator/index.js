@@ -1,7 +1,7 @@
 import { getComponentElements, initializeComponent } from 'component'
 
 export default (scope) => {
-    if (!getComponentElements(scope, 'globe').length) return;
+    if (!getComponentElements(scope, '.calculator').length) return;
 
     import(/* webpackChunkName: "calculator" */ "./lib/component").then(
         ({ default: CalculatorComponent }) =>

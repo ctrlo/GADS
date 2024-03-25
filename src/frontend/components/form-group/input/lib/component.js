@@ -82,7 +82,6 @@ class InputComponent extends Component {
       const $progressBarContainer = this.el.find(".progress-bar__container")
       const $progressBarProgress = this.el.find(".progress-bar__progress")
       const $progressBarPercentage = this.el.find(".progress-bar__percentage")
-      const self = this
 
       const tokenField = this.el.closest('form').find('input[name="csrf_token"]');
       const token = tokenField.val();
@@ -110,7 +109,7 @@ class InputComponent extends Component {
           $progressBarContainer.removeClass('progress-bar__container--fail');
         },
         progress: function(e, data) {
-          if (!self.el.data("multivalue")) {
+          if (!this.el.data("multivalue")) {
             var $uploadProgression =
               Math.round((data.loaded / data.total) * 10000) / 100 + "%";
             $progressBarPercentage.html($uploadProgression);
@@ -118,7 +117,7 @@ class InputComponent extends Component {
           }
         },
         progressall: function(e, data) {
-          if (self.el.data("multivalue")) {
+          if (this.el.data("multivalue")) {
             var $uploadProgression =
               Math.round((data.loaded / data.total) * 10000) / 100 + "%";
             $progressBarPercentage.html($uploadProgression);
@@ -126,7 +125,7 @@ class InputComponent extends Component {
           }
         },
         done: function(e, data) {
-          var $li = self.addFileToField({ id: data.result.id, name: data.result.filename })
+          this.addFileToField({ id: data.result.id, name: data.result.filename })
         },
         fail: function(e, data) {
           const ret = data.jqXHR.responseJSON;
@@ -142,19 +141,17 @@ class InputComponent extends Component {
     }
 
     initInputAutocomplete() {
-      const self = this
-
       const suggestionCallback = (suggestion) => {
-        $(self.el).find('input[type="hidden"]').val(suggestion.id)
+        $(this.el).find('input[type="hidden"]').val(suggestion.id)
       }
 
       import(/* webpackChunkName: "typeahead" */ 'util/typeahead')
         .then(({ default: TypeaheadBuilder }) => {
           const builder = new TypeaheadBuilder();
           builder
-            .withInput($(self.input))
+            .withInput($(this.input))
             .withCallback(suggestionCallback)
-            .withAjaxSource(self.getURL())
+            .withAjaxSource(this.getURL())
             .withName('users')
             .build()
         });
@@ -188,9 +185,7 @@ class InputComponent extends Component {
       try{
         hideElement(this.error);
         if (!file) throw new Error("No file provided");
-        const self = this;
-        const field = this.el.data("field")
-
+        
         const fileData = new FormData();
         fileData.append("file", file);
         fileData.append("csrf_token", csrf_token);
@@ -199,15 +194,15 @@ class InputComponent extends Component {
         request.onreadystatechange = () => {
             if (request.readyState === 4 && request.status === 200) {
                 const data = JSON.parse(request.responseText);
-                self.addFileToField({ id: data.id, name: data.filename });
+                this.addFileToField({ id: data.id, name: data.filename });
             } else if(request.readyState === 4 && request.status >= 400){
                 const response = fromJson(request.responseText);
-                if(response.is_error && response.message) self.showException(response.message);
-                else self.showException("An unexpected error occurred");
+                if(response.is_error && response.message) this.showException(response.message);
+                else this.showException("An unexpected error occurred");
             }
         };
         request.onerror=()=>{
-            self.showException("An unexpected error occurred");
+            this.showException("An unexpected error occurred");
         };
         request.send(fileData);
       }catch(e){
@@ -262,9 +257,7 @@ class InputComponent extends Component {
       this.fileDelete.click( (ev) => { this.deleteFile(ev) } )
     }
 
-    handleClickReveal(ev) {
-        const target = $(ev.target)
-
+    handleClickReveal() {
         this.btnReveal.toggleClass("show");
 
         if (this.input.attr("type") == "password") {
@@ -300,7 +293,6 @@ class InputComponent extends Component {
     addFileToField(file) {
       const $fieldset = this.el.closest('.fieldset');
       const $ul = $fieldset.find(".fileupload__files")
-      const $field = this.el
       const fileId = file.id
       const fileName = file.name
       const field = $fieldset.find('.input--file').data("field")

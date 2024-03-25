@@ -87,7 +87,6 @@ class FilterComponent extends Component {
   }
 
   initFilter() {
-    const self = this
     const $builderEl = this.el
     const builderID = $(this.el).data('builder-id')
     const $builderJSON = $(`#builder_json_${builderID}`)
@@ -167,7 +166,7 @@ class FilterComponent extends Component {
           const builder = new TypeaheadBuilder();
           builder
             .withInput($ruleInputText)
-            .withAjaxSource(self.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
+            .withAjaxSource(this.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
             .withDataBuilder(buildQuery)
             .withDefaultMapper()
             .withName('rule')
@@ -178,7 +177,7 @@ class FilterComponent extends Component {
     })
 
     if(filterBase) {
-      const data = Buffer.from(filterBase, 'base64')
+      const data = atob(filterBase)
       try {
         const obj = JSON.parse(data);
         if (obj.rules && obj.rules.length) {
@@ -203,7 +202,7 @@ class FilterComponent extends Component {
     }
   }
 
-  makeUpdateFilter(builder) {
+  makeUpdateFilter() {
     window.UpdateFilter = (builder, ev) => {
       if (!builder.queryBuilder('validate')) ev.preventDefault();
       const res = builder.queryBuilder('getRules')
@@ -246,7 +245,7 @@ class FilterComponent extends Component {
     return operators
   }
 
-  typeaheadProperties = (urlSuffix, layoutId, instanceId, useIdInFilter) => ({
+  typeaheadProperties = () => ({
     input: (container, input_name) => {
       return (
         `<div class='tt__container'>

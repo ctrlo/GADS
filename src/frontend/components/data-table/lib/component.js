@@ -165,7 +165,7 @@ class DataTableComponent extends Component {
     // Check if all checkboxes are checked and the 'select all' checkbox needs to be checked
     this.checkSelectAll($checkBoxes, $selectAllElm.find('input'))
 
-    $checkBoxes.on('click', (ev) => {
+    $checkBoxes.on('click', () => {
       this.checkSelectAll($checkBoxes, $selectAllElm.find('input'))
     })
 
@@ -238,7 +238,6 @@ class DataTableComponent extends Component {
     const $header = $(column.header())
     const title = $header.text().trim()
     const searchValue = column.search()
-    const self = this
     const {context} = column;
     const {oAjaxData} = context[0];
     const {columns} = oAjaxData;
@@ -303,16 +302,16 @@ class DataTableComponent extends Component {
           .draw()
       }
 
-      self.toggleFilter(column)
+      this.toggleFilter(column)
 
       // Update or add the filter to the searchParams
-      self.searchParams.has(id) ?
-        self.searchParams.set(id, this.value) :
-        self.searchParams.append(id, this.value)
+      this.searchParams.has(id) ?
+        this.searchParams.set(id, this.value) :
+        this.searchParams.append(id, this.value)
 
       // Update URL. Do not reload otherwise the data is fetched twice (already
       // redrawn in the previous statement)
-      const url = `${window.location.href.split('?')[0]}?${self.searchParams.toString()}`
+      const url = `${window.location.href.split('?')[0]}?${this.searchParams.toString()}`
       window.history.replaceState(null, '', url);
     })
 
@@ -323,15 +322,15 @@ class DataTableComponent extends Component {
         .search('')
         .draw()
 
-      self.toggleFilter(column)
+      this.toggleFilter(column)
 
       // Delete the filter from the searchparams and update and reload the url
-      if (self.searchParams.has(id)) {
-        self.searchParams.delete(id)
+      if (this.searchParams.has(id)) {
+        this.searchParams.delete(id)
         let url = `${window.location.href.split('?')[0]}`
 
-        if (self.searchParams.entries().next().value !== undefined) {
-          url += `?${self.searchParams.toString()}`
+        if (this.searchParams.entries().next().value !== undefined) {
+          url += `?${this.searchParams.toString()}`
         }
 
         // Update URL. See comment above about the same
@@ -396,9 +395,7 @@ class DataTableComponent extends Component {
       return strHTML
     }
 
-    const value = data.values[0] // There's always only one person
-
-    data.values.forEach((value, i) => {
+    data.values.forEach((value) => {
       if (value.details.length) {
         let thisHTML = `<div>`
         value.details.forEach((detail) => {
@@ -558,10 +555,9 @@ class DataTableComponent extends Component {
   getConf() {
     const confData = this.el.data('config')
     let conf = {}
-    const self = this
-
+    
     if (typeof confData === 'string') {
-      conf = JSON.parse(Buffer.from(confData, 'base64'))
+      conf = atob(confData)
     } else if (typeof confData === 'object') {
       conf = confData
     }
@@ -575,32 +571,30 @@ class DataTableComponent extends Component {
     conf['initComplete'] = (settings, json) => {
       const tableElement = this.el
       const dataTable = tableElement.DataTable()
-      const self = this
-
+      
       this.json = json || undefined
 
       if (this.initializingTable) {
         dataTable.columns().every(function(index) {
-          const column = this
-          const $header = $(column.header())
+          const $header = $(this.header())
 
           const headerContent = $header.html()
-          $header.html(`<div class='data-table__header-wrapper position-relative ${column.search() ? 'filter' : ''}' data-ddl='ddl_${index}'>${headerContent}</div>`)
+          $header.html(`<div class='data-table__header-wrapper position-relative ${this.search() ? 'filter' : ''}' data-ddl='ddl_${index}'>${headerContent}</div>`)
 
           // Add sort button to column header
           if ($header.hasClass('sorting')) {
-            self.addSortButton(dataTable, column, headerContent)
+            this.addSortButton(dataTable, this, headerContent)
           }
 
           // Add button to column headers (only serverside tables)
           if ((conf.serverSide) && (tableElement.hasClass('table-search'))) {
             const id = settings.oAjaxData.columns[index].name
 
-            if (self.searchParams.has(id)) {
-              column.search(self.searchParams.get(id)).draw()
+            if (this.searchParams.has(id)) {
+              this.search(this.searchParams.get(id)).draw()
             }
 
-            self.addSearchDropdown(column, id, index)
+            this.addSearchDropdown(this, id, index)
           }
           return true;
         })
@@ -616,7 +610,7 @@ class DataTableComponent extends Component {
       }
     }
 
-    conf['footerCallback'] = function( tfoot, data, start, end, display ) {
+    conf['footerCallback'] = () => {
       var api = this.api()
       // Add aggregate values to table if configured
       var agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate
@@ -627,7 +621,7 @@ class DataTableComponent extends Component {
           const {name} = cols[idx]
           if (agg[name]) {
             $(this.footer()).html(
-              self.renderDataType(agg[name])
+              this.renderDataType(agg[name])
             )
           }
           return true;
@@ -635,7 +629,7 @@ class DataTableComponent extends Component {
       }
     }
 
-    conf['drawCallback'] = (settings) => {
+    conf['drawCallback'] = () => {
 
       //Re-initialize more-less components after initialisation is complete
       moreLess.reinitialize()
@@ -655,8 +649,8 @@ class DataTableComponent extends Component {
           id: 'full-screen-btn'
         },
         className: 'btn btn-small btn-toggle-off',
-        action: function ( e, dt, node, config ) {
-          self.toggleFullScreenMode(e)
+        action: function ( e ) {
+          this.toggleFullScreenMode(e)
         }
       }
     ]
