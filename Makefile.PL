@@ -53,7 +53,7 @@ our %prereq_pm = (
     'Net::SAML2'                                => 0,
     'Plack'                                     => '1.0047',
     # Not depended on directly, but needed for features used via CtrlO::PDF
-    'PDF::Table'                                => '0.11.0',
+    'PDF::Table'                                => 0,
     'Session::Token'                            => 0,
     'Starman'                                   => 0,
     'String::CamelCase'                         => 0,
