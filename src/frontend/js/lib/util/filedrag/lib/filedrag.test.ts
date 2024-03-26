@@ -10,7 +10,7 @@ window.$ = require('jquery');
 
 class FileDragTest extends FileDrag {
     constructor(element, onDrop?: (files: FileList | File) => void) {
-        super(element, { debug: true }, onDrop);
+        super(element, {}, onDrop);
     }
 
     setDragging(dragging: boolean) {
@@ -79,7 +79,7 @@ describe('FileDrag class tests', () => {
 
     it('shows the correct element when dragging ends', () => {
         const child = createBaseDOM();
-        const fileDrag = new FileDragTest(child);
+        new FileDragTest(child);
         const parent = child.parentElement;
         expect(parent).toBeDefined();
         const dropZone = parent!.querySelector('.drop-zone');
@@ -97,7 +97,7 @@ describe('FileDrag class tests', () => {
 
     it('creates the correct drop zone element', () => {
         const child = createBaseDOM();
-        const fileDrag = new FileDragTest(child);
+        new FileDragTest(child);
         const parent = child.parentElement;
         expect(parent).toBeDefined();
         const dropZone = parent!.querySelector('.drop-zone');

@@ -1,9 +1,8 @@
 import { Component } from 'component'
 import { initValidationOnField, validateCheckboxGroup } from 'validation'
 import initDateField from 'components/datepicker/lib/helper'
-import 'blueimp-file-upload'
 import TypeaheadBuilder from 'util/typeahead'
-import { stopPropagation, fromJson, hideElement, showElement } from 'util/common'
+import { stopPropagation, hideElement, showElement } from 'util/common'
 
 class InputComponent extends Component {
     constructor(element)  {
@@ -41,7 +40,7 @@ class InputComponent extends Component {
     }
 
     initInputLogo() {
-      if(this.logoDisplay.attr('src') == '#') this.logoDisplay.hide();
+      if (this.logoDisplay.attr('src') == '#') this.logoDisplay.hide();
 
       this.el.find('.file').hide();
 
@@ -53,28 +52,24 @@ class InputComponent extends Component {
         formData.append('file', this.el.find('input[type="file"]')[0].files[0]);
         formData.append('csrf_token', $('body').data('csrf'));
 
-        fetch(url,{
-          method: 'POST',
-          body: formData,
-        }).then((response) => {
-          if (response.ok) {
-            return response.json();
-          }
-          throw new Error(`Error: ${response.status} ${response.statusText}`);
-        }).then((data) => {
-          if (data && !data.error) {
-            const version = this.logoDisplay.attr('src').split('?')[1];
-            const newVersion = version? parseInt(version) + 1 : 1;
-            this.logoDisplay.attr('src', data.url+'?'+newVersion);
-            this.logoDisplay.show();
-          } else if (data.error) {
-            throw new Error(`Error: ${data.text}`);
-          }else{
-            throw new Error(`Error: No data returned`);
-          }
-        }).catch((error) => {
-          console.error(error);
-        });
+        import(/* webpackChunkName: "uploader" */ 'util/upload')
+          .then(({ upload }) => {
+            upload(url, formData)
+              .then((data) => {
+                if (data && !data.error) {
+                  const version = this.logoDisplay.attr('src').split('?')[1];
+                  const newVersion = version ? parseInt(version) + 1 : 1;
+                  this.logoDisplay.attr('src', data.url + '?' + newVersion);
+                  this.logoDisplay.show();
+                } else if (data.error) {
+                  throw new Error(`Error: ${data.text}`);
+                } else {
+                  throw new Error(`Error: No data returned`);
+                }
+              }).catch((error) => {
+                console.error(error);
+              });
+          });
       });
     }
 
@@ -91,54 +86,55 @@ class InputComponent extends Component {
       if (dropTarget) {
         const dragOptions = { allowMultiple: false };
         dropTarget.filedrag(dragOptions).on('onFileDrop', (ev, file) => {
-          this.handleAjaxUpload(url, token, file);
-        });
-        this.error = dropTarget.parent().find('.upload__error');
-      } else throw new Error("Could not find file-upload element");
-
-      this.el.fileupload({
-        dataType: "json",
-        url: url,
-        paramName: "file",
-        options: {
-          dropTarget: undefined
-        },
-
-        submit: function() {
           $progressBarContainer.css("display", "block");
           $progressBarPercentage.html("0%");
           $progressBarProgress.css("width", "0%");
           $progressBarContainer.removeClass('progress-bar__container--fail');
-        },
-        progress: function(e, data) {
-          if (!self.el.data("multivalue")) {
-            var $uploadProgression =
-              Math.round((data.loaded / data.total) * 10000) / 100 + "%";
-            $progressBarPercentage.html($uploadProgression);
-            $progressBarProgress.css("width", $uploadProgression);
-          }
-        },
-        progressall: function(e, data) {
-          if (self.el.data("multivalue")) {
-            var $uploadProgression =
-              Math.round((data.loaded / data.total) * 10000) / 100 + "%";
-            $progressBarPercentage.html($uploadProgression);
-            $progressBarProgress.css("width", $uploadProgression);
-          }
-        },
-        done: function(e, data) {
-          var $li = self.addFileToField({ id: data.result.id, name: data.result.filename })
-        },
-        fail: function(e, data) {
-          const ret = data.jqXHR.responseJSON;
-          $progressBarProgress.css("width", "100%");
-          $progressBarContainer.addClass('progress-bar__container--fail');
-          if (ret.message) {
-              $progressBarPercentage.html("Error: " + ret.message);
-          } else {
-              $progressBarPercentage.html("An unexpected error occurred");
-          }
-        }
+          const progress = (size, total) => {
+            const percentage = Math.round((size / total) * 10000) / 100 + "%";
+            $progressBarPercentage.html(percentage);
+            $progressBarProgress.css("width", percentage);
+          };
+          this.handleAjaxUpload(url, token, file, progress);
+        });
+        this.error = dropTarget.parent().find('.upload__error');
+      } else throw new Error("Could not find file-upload element");
+
+      this.el.on("change", () => {
+        import(/* webpackChunkName: "uploader" */ 'util/upload')
+          .then(({ upload }) => {
+            const formData = new FormData();
+            formData.append('csrf_token', token);
+            formData.append('file', this.el.find('input[type="file"]')[0].files[0]);
+
+            $progressBarContainer.css("display", "block");
+            $progressBarPercentage.html("0%");
+            $progressBarProgress.css("width", "0%");
+            $progressBarContainer.removeClass('progress-bar__container--fail');
+
+            upload(url, formData, "POST", (size, total) => {
+              const percentage = Math.round((size / total) * 10000) / 100 + "%";
+              $progressBarPercentage.html(percentage);
+              $progressBarProgress.css("width", percentage);
+            }).then((data) => {
+              if (data && !data.error) {
+                self.addFileToField({ id: data.id, name: data.filename });
+              } else if (data.error) {
+                throw new Error(`Error: ${data.text}`);
+              } else {
+                throw new Error(`Error: No data returned`);
+              }
+            }).catch((error) => {
+              $progressBarProgress.css("width", "100%");
+              $progressBarContainer.addClass('progress-bar__container--fail');
+              if (error) {
+                $progressBarPercentage.html("Error: " + error);
+              } else {
+                $progressBarPercentage.html("An unexpected error occurred");
+              }
+              console.log(error);
+            });
+          });
       });
     }
 
@@ -182,37 +178,35 @@ class InputComponent extends Component {
       this.btnReveal.click( (ev) => { this.handleClickReveal(ev) } )
     }
 
-    handleAjaxUpload(uri, csrf_token, file) {
-      try{
+    handleAjaxUpload(uri, csrf_token, file, progressCallback = undefined) {
+      try {
         hideElement(this.error);
         if (!file) throw new Error("No file provided");
         const self = this;
-        const field = this.el.data("field")
 
         const fileData = new FormData();
         fileData.append("file", file);
         fileData.append("csrf_token", csrf_token);
-        const request = new XMLHttpRequest();
-        request.open("POST", uri, true);
-        request.onreadystatechange = () => {
-            if (request.readyState === 4 && request.status === 200) {
-                const data = JSON.parse(request.responseText);
+
+        import(/* webpackChunkName: "uploader" */ 'util/upload')
+          .then(({ upload }) => {
+            upload(uri, fileData, "POST", progressCallback).then((data) => {
+              if (data && !data.error) {
                 self.addFileToField({ id: data.id, name: data.filename });
-            } else if(request.readyState === 4 && request.status >= 400){
-                const response = fromJson(request.responseText);
-                if(response.is_error && response.message) self.showException(response.message);
-                else self.showException("An unexpected error occurred");
-            }
-        };
-        request.onerror=()=>{
-            self.showException("An unexpected error occurred");
-        };
-        request.send(fileData);
-      }catch(e){
+              } else if (data.error) {
+                throw new Error(`Error: ${data.text}`);
+              } else {
+                throw new Error(`Error: No data returned`);
+              }
+            }).catch((error) => {
+              console.error(error);
+            });
+          });
+      } catch (e) {
         this.showException(e);
       }
     }
-    
+
     showException(e) {
         this.error.html(e);
         showElement(this.error);
@@ -222,23 +216,26 @@ class InputComponent extends Component {
         if (!file) throw new Error("No file provided");
         const form = this.el.closest('form');
         const action = form.attr('action') ? window.location.href + form.attr('action') : window.location.href;
-        const method = form.attr('method') || 'GET';
+        const method = form.attr('method') || 'POST';
         const tokenField = form.find('input[name="csrf_token"]');
         const token = tokenField.val();
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('csrf_token', token);
         if (method.toUpperCase() == 'POST') {
-            const request = new XMLHttpRequest();
-            const formData = new FormData();
-            request.open(method, action, true);
-            request.onreadystatechange = () => {
-                if (request.readyState === 4 && request.status === 200) {
-                    location.reload();
-                }
-            };
-            formData.append('file', file);
-            formData.append('csrf_token', token);
-            request.send(formData);
+          import(/* webpackChunkName: "uploader" */ 'util/upload')
+            .then(({ upload }) => {
+              upload(action, formData, method.toUpperCase())
+                .then((data)=>{
+                  console.log("data",data)
+                  location.reload()
+                })
+                .catch((error) => {
+                  console.error(error);
+                });
+            }).catch((error) => {
+              console.error(error);
+            });
         } else {
             throw new Error("Method not supported");
         }
