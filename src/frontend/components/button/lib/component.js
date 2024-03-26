@@ -180,6 +180,11 @@ class ButtonComponent extends Component {
       window.UpdateFilter($filterEl, ev)
     }
 
+    if(window.UpdatePeopleFilter) {
+      const peopleFilterEl = $('.people-filter')
+      window.UpdatePeopleFilter(peopleFilterEl, ev)
+    }
+
     if (bUpdateDisplayConditions) {
       $displayConditionsField.val(JSON.stringify(res, null, 2))
     }

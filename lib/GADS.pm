@@ -3675,6 +3675,10 @@ prefix '/:layout_name' => sub {
                     my @curval_field_ids = body_parameters->get_all('curval_field_ids');
                     $column->curval_field_ids([@curval_field_ids]);
                 }
+                elsif ($column->type eq "person")
+                {
+                    $column->filter->as_json(param 'people-display');
+                }
                 elsif ($column->type eq "autocur")
                 {
                     my @curval_field_ids = body_parameters->get_all('autocur_field_ids');
@@ -3729,6 +3733,23 @@ prefix '/:layout_name' => sub {
             $header_type = 'table_tabs';
         }
 
+        my $site = var 'site';
+
+        if($column && $column->type eq 'person') {
+            my $org    = $site->register_organisation_name || "Organisation";
+            my $dep    = $site->register_department_name || "Department";
+            my $team   = $site->register_team_name || "Team";
+            my $title  = "Title";
+            my $fields = [];
+            push (@$fields, { id => 'organisation', label => $org, type => 'string'}) if $site->register_show_organisation;
+            push (@$fields, { id => 'department', label => $dep, type => 'string'}) if $site->register_show_department;
+            push (@$fields, { id => 'team', label => $team, type => 'string'}) if $site->register_show_team;
+            push (@$fields, { id => 'title', label => $title, type => 'string'}) if $site->register_show_title;
+            my $json   = encode_json($fields);
+            my $b64    = encode_base64($json);
+            $params->{fields} = $b64;
+            $params->{people_filter} = $column->filter->as_json;
+        }
 
         $params->{groups}                       = GADS::Groups->new(schema => schema);
         $params->{permissions}                  = [GADS::Type::Permissions->all];

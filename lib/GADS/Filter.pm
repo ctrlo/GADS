@@ -20,6 +20,7 @@ package GADS::Filter;
 
 use Data::Compare qw/Compare/;
 use GADS::Config;
+use GADS::Helper::ConditionBuilder;
 use Encode;
 use JSON qw(decode_json encode_json);
 use Log::Report 'linkspace';
@@ -129,6 +130,7 @@ sub base64
         $self->layout or panic "layout has not been set in filter";
         my $col = $self->layout->column($filter->{column_id})
             or next; # Ignore invalid - possibly since deleted
+        # Next update the filters
         if ($col->has_filter_typeahead)
         {
             $filter->{data} = {

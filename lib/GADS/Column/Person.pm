@@ -20,6 +20,7 @@ package GADS::Column::Person;
 
 use Log::Report 'linkspace';
 use GADS::Users;
+use GADS::PeopleFilter;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 
@@ -28,6 +29,21 @@ extends 'GADS::Column';
 with 'GADS::Role::Presentation::Column::Person';
 
 our @person_properties = qw/id email username firstname surname freetext1 freetext2 organisation department_id team_id title value/;
+
+has set_filter => (
+    is      => 'rw',
+    clearer => 1,
+);
+
+has '+filter' => (
+    builder => sub {
+        my $self = shift;
+        GADS::PeopleFilter->new(
+            as_json => $self->set_filter || ( $self->_rset && $self->_rset->filter ),
+            layout => $self->layout
+        );
+    },
+);
 
 # Convert based on whether ID or full name provided
 sub value_field_as_index
@@ -130,7 +146,11 @@ has people => (
     clearer => 1,
     builder => sub {
         my $self = shift;
-        GADS::Users->new(schema => $self->schema)->all;
+        if($self->filter) {
+            return GADS::Users->new( schema => $self->schema, person_filter => $self->filter->person_filter )->all;
+        }else{
+            return GADS::Users->new( schema => $self->schema )->all;
+        }
     },
 );
 
@@ -174,9 +194,10 @@ sub random
     $hash{(keys %hash)[rand keys %hash]}->value;
 }
 
-sub resultset_for_values
-{   my $self = shift;
-    return $self->schema->resultset('User')->active;
+sub resultset_for_values {
+    my $self = shift;
+    return $self->schema->resultset('User')
+      ->active->search( {}, { prefetch => ['organisation','department','team','title'] } );
 }
 
 sub cleanup
@@ -195,5 +216,44 @@ sub import_value
     });
 }
 
-1;
+sub values_beginning_with {
+    my ( $self, $match_string, %options ) = @_;
 
+    my $resultset = $self->resultset_for_values;
+    my @value;
+    my $value_field = 'me.' . $self->value_field;
+    $match_string =~ s/([_%])/\\$1/g;
+        my $search =
+      $match_string
+      ? {
+        $value_field => {
+            -like => "${match_string}%",
+        },
+      }
+      : $options{noempty}
+      && !$match_string ? { \"0 = 1" }    # Nothing to match, return nothing
+      :                   {};
+    if ($resultset) {
+        my $filter       = $self->filter->person_filter;
+        my $match_result = $resultset->search(
+            $search,
+            {
+                rows => 10,
+            },
+        );
+        @value = map {
+            {
+                id    => $_->get_column('id'),
+                label => $_->get_column( $self->value_field ),
+            }
+        } $match_result->search(
+            {},
+            {
+                select => [$value_field],
+            }
+        )->search($filter)->all;
+    }
+    return @value;
+}
+
+1;
