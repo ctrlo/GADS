@@ -95,6 +95,26 @@ declare global {
              * @example cy.createOrganisation('New Organisation')
              */
             createOrganisation(title: string): void;
+            /**
+             * Create a group in the system
+             * @param title The title of the group to create
+             * @example cy.createGroup('New Group')
+             */
+            createGroup(title: string): void;
+            /**
+             * Add a user to a group
+             * @param email The email of the user to add to the group
+             * @param group The name of the group to add the user to
+             * @example cy.addUserGroup('bob@home.com','Admin')
+             * @see createGroup 
+             */
+            addUserGroup(email: string, group: string): void;
+            /**
+             * Delete a group from the system
+             * @param title The title of the group to delete
+             * @example cy.deleteGroup('Admin')
+             */
+            deleteGroup(title: string): void;
         }
     }
 }
@@ -151,4 +171,32 @@ Cypress.Commands.add('createOrganisation', (title: string) => {
     cy.mainBody().find("input[name='title']").type(title);
     cy.mainBody().find("button[type='submit']").click();
     cy.getDataTable().find("tbody").find("tr").contains(title);
+});
+
+Cypress.Commands.add('createGroup', (title: string) => {
+    if (!location.pathname.match(/group_add/)) {
+        cy.visit('http://localhost:3000/group_add/');
+    }
+    cy.mainBody().find('input[name="name"]').type(title);
+    cy.mainBody().find("button[type='submit']").click();
+    cy.getDataTable().find("tbody").find("tr").contains(title);
+});
+
+Cypress.Commands.add('addUserGroup', (email: string, group: string) => {
+    if (!location.pathname.match('/user_overview/')) {
+        cy.visit('http://localhost:3000/user_overview/');
+    }
+    cy.get('tr').contains('td', email).parent().click();
+    cy.get('label.checkbox-label').contains(group).prev('input[type="checkbox"]').check({ force: true });
+    cy.mainBody().find("button[type='submit']").click();
+});
+
+
+Cypress.Commands.add('deleteGroup', (title: string) => {
+    if (!location.pathname.match(/group_overview/)) {
+        cy.visit('http://localhost:3000/group_overview/');
+    }
+    cy.contains('a', title).click();
+    cy.get('.btn-delete').click();
+    cy.get('.btn.btn-danger').click();
 });
