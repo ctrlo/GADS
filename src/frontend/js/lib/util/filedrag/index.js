@@ -10,7 +10,7 @@ import FileDrag from "./lib/filedrag";
         if (!this.data("filedrag")) {
             this.data("filedrag", "true");
             new FileDrag(this, options, (files) => { 
-                if(options.debug) console.log("onFileDrop", files);
+                if(options.debug || window.test) console.log("onFileDrop", files);
                 this.trigger("onFileDrop", files) 
             })
         }
