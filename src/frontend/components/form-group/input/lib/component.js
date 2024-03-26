@@ -73,7 +73,6 @@ class InputComponent extends Component {
       });
     }
 
-    //TODO: Refactor this method to use the same method as the logo upload - blueimp-file-upload needs to be removed
     initInputDocument() {
       const url = this.el.data("fileupload-url")
       const $progressBarContainer = this.el.find(".progress-bar__container")
@@ -217,17 +216,23 @@ class InputComponent extends Component {
         if (!file) throw new Error("No file provided");
         const form = this.el.closest('form');
         const action = form.attr('action') ? window.location.href + form.attr('action') : window.location.href;
-        const method = form.attr('method') || 'GET';
+        const method = form.attr('method') || 'POST';
         const tokenField = form.find('input[name="csrf_token"]');
         const token = tokenField.val();
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('csrf_token', token);
         if (method.toUpperCase() == 'POST') {
           import(/* webpackChunkName: "uploader" */ 'util/upload')
             .then(({ upload }) => {
-              formData.append('file', file);
-              formData.append('csrf_token', token);
-              upload(action, formDatam, method.toUpperCase());
+              upload(action, formData, method.toUpperCase())
+                .then((data)=>{
+                  console.log("data",data)
+                  location.reload()
+                })
+                .catch((error) => {
+                  console.error(error);
+                });
             }).catch((error) => {
               console.error(error);
             });
