@@ -3,7 +3,7 @@ import { initValidationOnField, validateCheckboxGroup } from 'validation'
 import initDateField from 'components/datepicker/lib/helper'
 import 'blueimp-file-upload'
 import TypeaheadBuilder from 'util/typeahead'
-import { stopPropagation, fromJson, hideElement, showElement } from 'util/common'
+import { stopPropagation, hideElement, showElement } from 'util/common'
 
 class InputComponent extends Component {
     constructor(element)  {
@@ -41,7 +41,7 @@ class InputComponent extends Component {
     }
 
     initInputLogo() {
-      if(this.logoDisplay.attr('src') == '#') this.logoDisplay.hide();
+      if (this.logoDisplay.attr('src') == '#') this.logoDisplay.hide();
 
       this.el.find('.file').hide();
 
@@ -53,31 +53,28 @@ class InputComponent extends Component {
         formData.append('file', this.el.find('input[type="file"]')[0].files[0]);
         formData.append('csrf_token', $('body').data('csrf'));
 
-        fetch(url,{
-          method: 'POST',
-          body: formData,
-        }).then((response) => {
-          if (response.ok) {
-            return response.json();
-          }
-          throw new Error(`Error: ${response.status} ${response.statusText}`);
-        }).then((data) => {
-          if (data && !data.error) {
-            const version = this.logoDisplay.attr('src').split('?')[1];
-            const newVersion = version? parseInt(version) + 1 : 1;
-            this.logoDisplay.attr('src', data.url+'?'+newVersion);
-            this.logoDisplay.show();
-          } else if (data.error) {
-            throw new Error(`Error: ${data.text}`);
-          }else{
-            throw new Error(`Error: No data returned`);
-          }
-        }).catch((error) => {
-          console.error(error);
-        });
+        import(/* webpackChunkName: "uploader" */ 'util/upload')
+          .then(({ upload }) => {
+            upload(url, formData)
+              .then((data) => {
+                if (data && !data.error) {
+                  const version = this.logoDisplay.attr('src').split('?')[1];
+                  const newVersion = version ? parseInt(version) + 1 : 1;
+                  this.logoDisplay.attr('src', data.url + '?' + newVersion);
+                  this.logoDisplay.show();
+                } else if (data.error) {
+                  throw new Error(`Error: ${data.text}`);
+                } else {
+                  throw new Error(`Error: No data returned`);
+                }
+              }).catch((error) => {
+                console.error(error);
+              });
+          });
       });
     }
 
+    //TODO: Refactor this method to use the same method as the logo upload - blueimp-file-upload needs to be removed
     initInputDocument() {
       const url = this.el.data("fileupload-url")
       const $progressBarContainer = this.el.find(".progress-bar__container")
@@ -183,7 +180,7 @@ class InputComponent extends Component {
     }
 
     handleAjaxUpload(uri, csrf_token, file) {
-      try{
+      try {
         hideElement(this.error);
         if (!file) throw new Error("No file provided");
         const self = this;
@@ -192,23 +189,23 @@ class InputComponent extends Component {
         const fileData = new FormData();
         fileData.append("file", file);
         fileData.append("csrf_token", csrf_token);
-        const request = new XMLHttpRequest();
-        request.open("POST", uri, true);
-        request.onreadystatechange = () => {
-            if (request.readyState === 4 && request.status === 200) {
-                const data = JSON.parse(request.responseText);
+
+        import(/* webpackChunkName: "uploader" */ 'util/upload')
+          .then(({ upload }) => {
+
+            upload(uri, fileData).then((data) => {
+              if (data && !data.error) {
                 self.addFileToField({ id: data.id, name: data.filename });
-            } else if(request.readyState === 4 && request.status >= 400){
-                const response = fromJson(request.responseText);
-                if(response.is_error && response.message) self.showException(response.message);
-                else self.showException("An unexpected error occurred");
-            }
-        };
-        request.onerror=()=>{
-            self.showException("An unexpected error occurred");
-        };
-        request.send(fileData);
-      }catch(e){
+              } else if (data.error) {
+                throw new Error(`Error: ${data.text}`);
+              } else {
+                throw new Error(`Error: No data returned`);
+              }
+            }).catch((error) => {
+              console.error(error);
+            });
+          });
+      } catch (e) {
         this.showException(e);
       }
     }
@@ -228,17 +225,14 @@ class InputComponent extends Component {
         const formData = new FormData();
         formData.append('file', file);
         if (method.toUpperCase() == 'POST') {
-            const request = new XMLHttpRequest();
-            const formData = new FormData();
-            request.open(method, action, true);
-            request.onreadystatechange = () => {
-                if (request.readyState === 4 && request.status === 200) {
-                    location.reload();
-                }
-            };
-            formData.append('file', file);
-            formData.append('csrf_token', token);
-            request.send(formData);
+          import(/* webpackChunkName: "uploader" */ 'util/upload')
+            .then(({ upload }) => {
+              formData.append('file', file);
+              formData.append('csrf_token', token);
+              upload(action, formDatam, method.toUpperCase());
+            }).catch((error) => {
+              console.error(error);
+            });
         } else {
             throw new Error("Method not supported");
         }
