@@ -197,7 +197,7 @@ sub random
 sub resultset_for_values {
     my $self = shift;
     return $self->schema->resultset('User')
-      ->active->search( {}, { prefetch => 'organisation' } );
+      ->active->search( {}, { prefetch => ['organisation','department','team','title'] } );
 }
 
 sub cleanup
