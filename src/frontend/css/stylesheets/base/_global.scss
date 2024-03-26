@@ -94,3 +94,11 @@ table.table-bordered {
     border: solid 1px $gray;
   }
 }
+
+.dropdown-menu {
+  li.spacer {
+    border-bottom: $border-width solid $gray;
+    width: 98%;
+    margin: 0 auto;
+  }
+}
