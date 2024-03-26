@@ -7,8 +7,9 @@ import { fromJson } from "util/common";
  * @param method The method to use, either POST or PUT
  * @returns A promise that resolves to the JSON response from the server
  */
-function upload<T>(url: string, data: FormData, method: 'POST' | 'PUT' = 'POST'): Promise<T> {
+function upload<T>(url: string, data: FormData, method: 'POST' | 'PUT' = 'POST', onProgress:(size:number,total:number)=>void = ()=>{}): Promise<T> {
     const uploader = new Uploader<T>(url, method);
+    if(onProgress) uploader.onProgress(onProgress);
     return uploader.upload(data);
 }
 

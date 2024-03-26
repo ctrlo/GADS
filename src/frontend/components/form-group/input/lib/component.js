@@ -1,7 +1,6 @@
 import { Component } from 'component'
 import { initValidationOnField, validateCheckboxGroup } from 'validation'
 import initDateField from 'components/datepicker/lib/helper'
-import 'blueimp-file-upload'
 import TypeaheadBuilder from 'util/typeahead'
 import { stopPropagation, hideElement, showElement } from 'util/common'
 
@@ -88,54 +87,55 @@ class InputComponent extends Component {
       if (dropTarget) {
         const dragOptions = { allowMultiple: false };
         dropTarget.filedrag(dragOptions).on('onFileDrop', (ev, file) => {
-          this.handleAjaxUpload(url, token, file);
-        });
-        this.error = dropTarget.parent().find('.upload__error');
-      } else throw new Error("Could not find file-upload element");
-
-      this.el.fileupload({
-        dataType: "json",
-        url: url,
-        paramName: "file",
-        options: {
-          dropTarget: undefined
-        },
-
-        submit: function() {
           $progressBarContainer.css("display", "block");
           $progressBarPercentage.html("0%");
           $progressBarProgress.css("width", "0%");
           $progressBarContainer.removeClass('progress-bar__container--fail');
-        },
-        progress: function(e, data) {
-          if (!self.el.data("multivalue")) {
-            var $uploadProgression =
-              Math.round((data.loaded / data.total) * 10000) / 100 + "%";
-            $progressBarPercentage.html($uploadProgression);
-            $progressBarProgress.css("width", $uploadProgression);
-          }
-        },
-        progressall: function(e, data) {
-          if (self.el.data("multivalue")) {
-            var $uploadProgression =
-              Math.round((data.loaded / data.total) * 10000) / 100 + "%";
-            $progressBarPercentage.html($uploadProgression);
-            $progressBarProgress.css("width", $uploadProgression);
-          }
-        },
-        done: function(e, data) {
-          var $li = self.addFileToField({ id: data.result.id, name: data.result.filename })
-        },
-        fail: function(e, data) {
-          const ret = data.jqXHR.responseJSON;
-          $progressBarProgress.css("width", "100%");
-          $progressBarContainer.addClass('progress-bar__container--fail');
-          if (ret.message) {
-              $progressBarPercentage.html("Error: " + ret.message);
-          } else {
-              $progressBarPercentage.html("An unexpected error occurred");
-          }
-        }
+          const progress = (size, total) => {
+            const percentage = Math.round((size / total) * 10000) / 100 + "%";
+            $progressBarPercentage.html(percentage);
+            $progressBarProgress.css("width", percentage);
+          };
+          this.handleAjaxUpload(url, token, file, progress);
+        });
+        this.error = dropTarget.parent().find('.upload__error');
+      } else throw new Error("Could not find file-upload element");
+
+      this.el.on("change", () => {
+        import(/* webpackChunkName: "uploader" */ 'util/upload')
+          .then(({ upload }) => {
+            const formData = new FormData();
+            formData.append('csrf_token', token);
+            formData.append('file', this.el.find('input[type="file"]')[0].files[0]);
+
+            $progressBarContainer.css("display", "block");
+            $progressBarPercentage.html("0%");
+            $progressBarProgress.css("width", "0%");
+            $progressBarContainer.removeClass('progress-bar__container--fail');
+
+            upload(url, formData, "POST", (size, total) => {
+              const percentage = Math.round((size / total) * 10000) / 100 + "%";
+              $progressBarPercentage.html(percentage);
+              $progressBarProgress.css("width", percentage);
+            }).then((data) => {
+              if (data && !data.error) {
+                self.addFileToField({ id: data.id, name: data.filename });
+              } else if (data.error) {
+                throw new Error(`Error: ${data.text}`);
+              } else {
+                throw new Error(`Error: No data returned`);
+              }
+            }).catch((error) => {
+              $progressBarProgress.css("width", "100%");
+              $progressBarContainer.addClass('progress-bar__container--fail');
+              if (error) {
+                $progressBarPercentage.html("Error: " + error);
+              } else {
+                $progressBarPercentage.html("An unexpected error occurred");
+              }
+              console.log(error);
+            });
+          });
       });
     }
 
@@ -179,12 +179,11 @@ class InputComponent extends Component {
       this.btnReveal.click( (ev) => { this.handleClickReveal(ev) } )
     }
 
-    handleAjaxUpload(uri, csrf_token, file) {
+    handleAjaxUpload(uri, csrf_token, file, progressCallback = undefined) {
       try {
         hideElement(this.error);
         if (!file) throw new Error("No file provided");
         const self = this;
-        const field = this.el.data("field")
 
         const fileData = new FormData();
         fileData.append("file", file);
@@ -192,8 +191,7 @@ class InputComponent extends Component {
 
         import(/* webpackChunkName: "uploader" */ 'util/upload')
           .then(({ upload }) => {
-
-            upload(uri, fileData).then((data) => {
+            upload(uri, fileData, "POST", progressCallback).then((data) => {
               if (data && !data.error) {
                 self.addFileToField({ id: data.id, name: data.filename });
               } else if (data.error) {
@@ -209,7 +207,7 @@ class InputComponent extends Component {
         this.showException(e);
       }
     }
-    
+
     showException(e) {
         this.error.html(e);
         showElement(this.error);
