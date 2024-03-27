@@ -10,10 +10,10 @@ set -eu
 echo "
     CREATE USER ${PSQL_USER} WITH PASSWORD '${PSQL_PASSWORD}';
     CREATE DATABASE ${PSQL_DATABASE} OWNER ${PSQL_USER};
-" | psql -U postgres
+" | psql -U postgres -h $GADS_HOSTNAME -p 5432
 echo "
     CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
-" | psql -U postgres ${PSQL_DATABASE}
+" | psql -U postgres -h $GADS_HOSTNAME -p 5432 ${PSQL_DATABASE}
 
 # Deploy the database
 perl bin/seed-database.pl \
@@ -29,5 +29,5 @@ perl -Ilib -MDancer2 -MDancer2::Plugin::Auth::Extensible -wE \
 
 echo "
     UPDATE public.site SET host = '${GADS_HOSTNAME}';
-    UPDATE public.user SET account_request = 0, pwchanged = NOW();
-" | psql -U postgres ${PSQL_DATABASE}
+    UPDATE public.user SET account_request = 0, pwchanged = NOW(), created = NOW();
+" | psql -U postgres -h $GADS_HOSTNAME -p 5432 ${PSQL_DATABASE}
