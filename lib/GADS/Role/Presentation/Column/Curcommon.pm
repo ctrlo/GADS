@@ -17,6 +17,8 @@ sub after_presentation
     # anyway
     $return->{filtered_values}    = $self->filtered_values($options{record}->submission_token)
         if $options{edit} && !$self->has_subvals;
+    # I'm confused - shouldn't this be set in the column->presentation method?
+    $return->{has_typeahead}      = $self->has_filter_typeahead;
 }
 
 1;
