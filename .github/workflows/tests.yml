@@ -67,7 +67,7 @@ jobs:
           sudo apt-get install libstring-camelcase-perl libmail-transport-perl liblog-log4perl-perl libplack-perl libdbd-pg-perl
           sudo apt-get install libmail-message-perl libmath-random-isaac-xs-perl libdbix-class-helpers-perl libtree-dagnode-perl
           sudo apt-get install libmath-round-perl libdatetime-format-dateparse-perl libwww-mechanize-perl libdatetime-format-iso8601-perl
-          sudo apt-get install libmoox-types-mooselike-perl libmoox-singleton-perl libpdf-table-perl libdancer2-perl liblist-compare-perl
+          sudo apt-get install libmoox-types-mooselike-perl libmoox-singleton-perl libdancer2-perl liblist-compare-perl
           sudo apt-get install liburl-encode-perl libtie-cache-perl libhtml-fromtext-perl libdata-compare-perl libfile-bom-perl
           sudo apt-get install libalgorithm-dependency-perl libdancer-plugin-auth-extensible-perl libfile-libmagic-perl postfix
       - name: 'Build cpanfile'
