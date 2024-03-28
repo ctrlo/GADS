@@ -45,13 +45,13 @@ task 'config', sub {
       owner   => "root",
       group   => "root",
       mode    => 644;
-    append_or_amend_line "./webdriver/config.yml",
+    append_or_amend_line "/srv/gads/webdriver/config.yml",
       line   => "dbi:Pg:database=$db_host;host=localhost;port=5432",
       regexp => qr/dbi:Pg:database=linkspace;host=localhost;port=5432/,
       on_change => sub {
         say "Changed db connection string";
       };
-    append_or_amend_line "./bin/setup_database",
+    append_or_amend_line "/srv/gads/bin/setup_database",
       line => ': ${PSQL_HOSTNAME:=' . $db_host . '}',
       regexp => qr/PSQL_HOSTNAME:=localhost/,
       on_change => sub {
