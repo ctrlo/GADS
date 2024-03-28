@@ -101,6 +101,27 @@ foreach my $perm (rset('Permission')->all)
     });
 }
 
+if($ENV{TEST}) {
+
+    say 'Creating basic user "basic@example.com" with no permissions...';
+    my $user = rset('User')->create({
+        username => 'basic@example.com',
+        email    => 'basic@exmaple.com',
+        site_id  => $site->id,
+    });
+
+    say "Creating group for basic user";
+    my $group = rset('Group')->create({
+        name   => 'basic',
+        site_id => $site->id,
+    });
+
+    say "Adding basic user to basic group";
+    $user->search_related('user_groups')->create({
+        group_id => $group->id,
+    });
+}
+
 say "Creating initial datasheet...";
 rset('Instance')->create({
     name    => $instance_name,

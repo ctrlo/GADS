@@ -34,11 +34,11 @@ jobs:
       fail-fast: false
       matrix:
         browser:
-          - name: 'Chromium'
-            command: 'chromedriver --port=4444 &'
+          - name: 'chrome'
+          #   command: 'chromedriver --port=4444 &'
             os: 'ubuntu-22.04'
-          - name: 'Firefox'
-            command: 'MOZ_HEADLESS=1 geckodriver --log warn &'
+          - name: 'firefox'
+          #   command: 'MOZ_HEADLESS=1 geckodriver --log warn &'
             os: 'ubuntu-20.04'
 
     services:
@@ -60,13 +60,19 @@ jobs:
         uses: 'actions/checkout@v3'
       - name: 'Install Non-CPAN dependencies'
         run: |
-          sudo apt-get install cpanminus liblua5.3-dev
-          # Avoid "Install CPAN dependencies" needing to compile so much
-          sudo apt-get install libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl
+          sudo apt-get install cpanminus liblua5.3-dev gcc g++ libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl
+          sudo apt-get install libdbix-class-schema-loader-perl libmagic-dev postgresql-client libpng-dev libssl-dev libpq-dev
+          sudo apt-get install libjson-perl libsession-token-perl libnet-oauth2-authorizationserver-perl libtext-csv-encoded-perl
+          sudo apt-get install libcrypt-urandom-perl libhtml-scrubber-perl libtext-markdown-perl libwww-form-urlencoded-xs-perl
+          sudo apt-get install libstring-camelcase-perl libmail-transport-perl liblog-log4perl-perl libplack-perl libdbd-pg-perl
+          sudo apt-get install libmail-message-perl libmath-random-isaac-xs-perl libdbix-class-helpers-perl libtree-dagnode-perl
+          sudo apt-get install libmath-round-perl libdatetime-format-dateparse-perl libwww-mechanize-perl libdatetime-format-iso8601-perl
+          sudo apt-get install libmoox-types-mooselike-perl libmoox-singleton-perl libdancer2-perl liblist-compare-perl
+          sudo apt-get install liburl-encode-perl libtie-cache-perl libhtml-fromtext-perl libdata-compare-perl libfile-bom-perl
+          sudo apt-get install libalgorithm-dependency-perl libdancer-plugin-auth-extensible-perl libfile-libmagic-perl postfix
       - name: 'Build cpanfile'
         run: |
           perl bin/output_cpanfile > cpanfile
-          ( cd webdriver && perl ../bin/output_cpanfile ) >> cpanfile
       - name: 'Install CPAN dependencies'
         uses: 'perl-actions/install-with-cpanm@v1'
         with:
@@ -76,20 +82,24 @@ jobs:
         run: |
           echo '*:*:*:postgres:postgrespassword' > ~/.pgpass
           chmod 600 ~/.pgpass
+      - name: 'Install YARN dependencies'
+        run: |
+          sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+          yarn
       - name: 'Start the application'
         env:
           DANCER_CONFDIR: 'webdriver'
           PGDATABASE: 'postgres'
           PGHOST: 'localhost'
           PGUSER: 'postgres'
+          TEST: '1'
         run: |
           ./bin/setup_database
           perl bin/app.pl &
-      - name: 'Run the Webdriver implementation'
-        run: '${{ matrix.browser.command }}'
       - name: 'Run the Webdriver tests'
+        run: yarn cypress run --browser ${{ matrix.browser.name }}
         # TODO: Delete the line below and uncomment the line beneath that
-        run: prove -lmrsv webdriver/t/login.t
+        #run: prove -lmrsv webdriver/t/login.t
         #run: prove -lmrsv webdriver/t
 
   js_tests:
@@ -97,7 +107,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x, 18.x]
+        node-version: [18.x, 20.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
