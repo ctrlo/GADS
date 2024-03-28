@@ -51,6 +51,12 @@ task 'config', sub {
       on_change => sub {
         say "Changed db connection string";
       };
+    append_or_amend_line "./bin/setup_database",
+      line => ': ${PSQL_HOSTNAME:=' . $db_host . '}',
+      regexp => qr/PSQL_HOSTNAME:=localhost/,
+      on_change => sub {
+        say "Changed db hostname";
+      };
 };
 
 batch 'setup', 'libs', 'cypress', 'nvm', 'clone', 'cpan', 'config';
