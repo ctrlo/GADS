@@ -2,6 +2,7 @@
 
 use v5.24.0;
 use warnings;
+no warnings 'qw';
 
 =head1 NAME
 
@@ -43,7 +44,7 @@ $gads->submit_login_form_ok;
 # Create a new group
 $gads->navigate_ok(
     'Navigate to the add a group page',
-    [ qw( .user-editor [href$="/group/0"] ) ],
+    [ qw( .nav__link--groups [href$="/group_add/"] ) ],
 );
 $gads->assert_on_add_a_group_page;
 
@@ -54,7 +55,7 @@ $gads->assert_error_absent('No error message is visible after adding a group');
 # Add the user to the new group
 $gads->navigate_ok(
     'Navigate to the manage users page',
-    [ qw( .user-editor [href$="/user/"] ) ],
+    [ qw( .nav__link--users [href$="/user_overview/"] ) ],
 );
 $gads->assert_on_manage_users_page;
 
@@ -70,14 +71,13 @@ $gads->assert_error_absent(
 
 # Create a new table
 $gads->navigate_ok(
-    'Navigate to the add a table page',
-    [ qw( .table-editor .table-add ) ],
+    'Navigate to the table setup modal',
+    [ qw( .nav__link--tables [data-target='#newTableModal' ) ],
 );
 $gads->assert_on_add_a_table_page;
 
 $gads->submit_add_a_table_form_ok( 'Add a table to create the view on',
     { name => $table_name, group_name => $group_name } );
-$gads->assert_success_present('A success message is visible after adding a table');
 $gads->assert_error_absent('No error message is visible after adding a table');
 
 $gads->select_table_to_edit_ok( 'Prepare to add fields to the new table',
@@ -85,7 +85,7 @@ $gads->select_table_to_edit_ok( 'Prepare to add fields to the new table',
 $gads->assert_on_manage_this_table_page;
 
 # Add fields to the new table
-$gads->follow_link_ok( undef, 'Manage fields' );
+$gads->follow_link_ok( undef, 'Fields' );
 $gads->assert_on_manage_fields_page;
 $gads->follow_link_ok( undef, 'Add a field' );
 $gads->assert_on_add_a_field_page;
@@ -282,7 +282,7 @@ $gads->assert_on_manage_fields_page(
 
 $gads->navigate_ok(
     'Navigate back to the manage tables page',
-    [ qw( .table-editor .tables-manage ) ],
+    [ ".nav__link--tables" ],
 );
 $gads->assert_on_manage_tables_page;
 
@@ -302,7 +302,7 @@ $gads->assert_table_not_listed( 'The deleted table is not listed',
 # Tidy up: remove the group created earlier
 $gads->navigate_ok(
     'Navigate to the manage groups page',
-    [ qw( .user-editor [href$="/group/"] ) ],
+    [ '.nav__link--groups' ],
 );
 $gads->assert_on_manage_groups_page;
 
