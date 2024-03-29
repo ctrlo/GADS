@@ -80,8 +80,7 @@ $gads->submit_add_a_table_form_ok( 'Add a table to create the view on',
 $gads->assert_success_present('A success message is visible after adding a table');
 $gads->assert_error_absent('No error message is visible after adding a table');
 
-# Set permissions on the new table
-$gads->select_table_to_edit_ok( 'Prepare to set permissions on the new table',
+$gads->select_table_to_edit_ok( 'Prepare to add fields to the new table',
     $table_name );
 $gads->assert_on_manage_this_table_page;
 
