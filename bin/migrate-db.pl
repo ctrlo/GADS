@@ -11,7 +11,7 @@ use strict;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 
-use Dancer2;
+use Dancer2 qw( !error !info !warning );
 my $config = config;
 
 use DBIx::Class::Migration;
