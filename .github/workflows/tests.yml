@@ -88,9 +88,7 @@ jobs:
       - name: 'Run the Webdriver implementation'
         run: '${{ matrix.browser.command }}'
       - name: 'Run the Webdriver tests'
-        # TODO: Delete the line below and uncomment the line beneath that
-        run: prove -lmrsv webdriver/t/login.t
-        #run: prove -lmrsv webdriver/t
+        run: prove -lmrsv webdriver/t
 
   js_tests:
     runs-on: ubuntu-latest
