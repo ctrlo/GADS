@@ -24,6 +24,6 @@
       %]
     </div>
     <script type="text/javascript" src="[% url.js %]/fengari-web.js"></script>
-    <script type="text/javascript" src="[% url.js %]/site.js?v=25"></script>
+    <script type="text/javascript" src="[% url.js %]/site.js?v=26"></script>
   </body>
 </html>
