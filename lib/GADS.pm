@@ -4344,7 +4344,7 @@ prefix '/:layout_name' => sub {
 
         return to_json {
             error   => 0,
-            records => [ $column->values_beginning_with($query, noempty => query_parameters->get('noempty')) ]
+            records => [ $column->values_beginning_with($query, noempty => query_parameters->get('noempty'), use_id => query_parameters->get('use_id') ) ]
         }
     };
 

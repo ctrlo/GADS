@@ -262,7 +262,6 @@ class DataTableComponent extends Component {
         <div class='dropdown-menu p-2' aria-labelledby='search-toggle-${index}'>
           <label>
             <div class='input'>
-              <input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>
             </div>
           </label>
           <button type='button' class='btn btn-link btn-small data-table__clear hidden'>
@@ -272,6 +271,29 @@ class DataTableComponent extends Component {
       </div>`
     )
 
+    /* Construct search box for filtering. If the filter has a typeahead and if
+     * it uses an ID rather than text, then add a second (hidden) input field
+     * to store the ID. If we already have a stored search value for the
+     * column, then if it's an ID we will need to look up the textual value for
+     * insertion into the visible input */
+    const $searchInput = $(`<input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>`)
+    $searchInput.appendTo($('.input', $searchElement))
+    if (col.typeahead_use_id) {
+      $searchInput.after(`<input type="hidden" class="search">`)
+      $.ajax({
+        type: 'GET',
+        url: this.getApiEndpoint(columnId) + searchValue + '&use_id=1',
+        dataType: 'json'
+      }).done(function(data) {
+        if (!data.error) {
+          $searchInput.val(data.records[0].label)
+        }
+      })
+    } else {
+      $('input', $searchElement).addClass('search')
+    }
+
+
     $header.find('.data-table__header-wrapper').prepend($searchElement)
 
     this.toggleFilter(column)
@@ -280,22 +302,31 @@ class DataTableComponent extends Component {
       const builder = new TypeaheadBuilder();
       builder
         .withAjaxSource(this.getApiEndpoint(columnId))
-        .withInput($('input', $header))
+        .withInput($('input[type=text]', $header))
         .withAppendQuery()
         .withDefaultMapper()
         .withName(columnId.replace(/\s+/g, '') + 'Search')
         .withCallback((data) => {
-          $('input', $header).val(data.name);
-          $('input', $header).trigger('change');
+          let $text_input = $('input[type=text]', $header);
+          $text_input.val(data.name);
+          if (col.typeahead_use_id) {
+            // Update hidden input with actual ID value and search on that
+            let $id_input = $('input[type=hidden]', $header);
+            $id_input.val(data.id);
+            $id_input.trigger('change');
+          } else {
+            $text_input.trigger('change');
+          }
         })
         .build();
     }
 
     // Apply the search
-    $('input', $header).on('change', function (ev) {
-      if (column.search() !== (this.value || ev.target.value)) {
+    $('input.search', $header).on('change', function (ev) {
+      let value = this.value || ev.target.value;
+      if (column.search() !== value) {
         column
-          .search(this.value || ev.target.value)
+          .search(value)
           .draw()
       }
 
