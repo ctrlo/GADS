@@ -1,4 +1,7 @@
 /// <reference types="cypress" />
+
+import { IBuildable } from "./LayoutBuilder";
+
 // ***********************************************
 // This example commands.ts shows you how to
 // create various custom commands and overwrite
@@ -115,6 +118,18 @@ declare global {
              * @example cy.deleteGroup('Admin')
              */
             deleteGroup(title: string): void;
+            /**
+             * Create a layout in the system
+             * @param builders The layout builder to use to create the layout
+             * @example cy.createLayout(LayoutBuilder.createBuilder('TEXT').setName('test').setShortName('t'))
+             */
+            createLayout(builder: IBuildable): void;
+            /**
+             * Delete a layout by short name
+             * @param shortName The short name of the layout to delete
+             * @example cy.deleteLayoutByShortName('t')
+             */
+            deleteLayoutByShortName(shortName: string): void;
         }
     }
 }
@@ -199,4 +214,32 @@ Cypress.Commands.add('deleteGroup', (title: string) => {
     cy.contains('a', title).click();
     cy.get('.btn-delete').click();
     cy.get('.btn.btn-danger').click();
+});
+
+Cypress.Commands.add('createLayout', (builder: IBuildable) => {
+    builder.build();
+});
+
+Cypress.Commands.add('deleteLayoutByShortName', (shortName: string) => {
+    cy.visit("http://localhost:3000/table");
+    cy.getDataTable()
+        .find("a")
+        .contains("Edit table")
+        .click();
+    cy.get("a")
+        .contains("Fields")
+        .click();
+    cy.getDataTable()
+        .find("tbody")
+        .find("tr")
+        .find("td")
+        .contains(shortName)
+        .click();
+    cy.get(".btn-danger")
+        .contains("Delete field")
+        .click();
+    cy.get(".modal")
+        .find(".btn-danger")
+        .contains("Delete")
+        .click();
 });
