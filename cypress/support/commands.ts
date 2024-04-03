@@ -2,43 +2,11 @@
 
 import { IBuildable } from "./LayoutBuilder";
 
-// ***********************************************
-// This example commands.ts shows you how to
-// create various custom commands and overwrite
-// existing commands.
-//
-// For more comprehensive examples of custom
-// commands please read more here:
-// https://on.cypress.io/custom-commands
-// ***********************************************
-//
-//
-// -- This is a parent command --
-// Cypress.Commands.add('login', (email, password) => { ... })
-//
-//
-// -- This is a child command --
-// Cypress.Commands.add('drag', { prevSubject: 'element'}, (subject, options) => { ... })
-//
-//
-// -- This is a dual command --
-// Cypress.Commands.add('dismiss', { prevSubject: 'optional'}, (subject, options) => { ... })
-//
-//
-// -- This will overwrite an existing command --
-// Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
-//
-// declare global {
-//   namespace Cypress {
-//     interface Chainable {
-//       login(email: string, password: string): Chainable<void>
-//       drag(subject: string, options?: Partial<TypeOptions>): Chainable<Element>
-//       dismiss(subject: string, options?: Partial<TypeOptions>): Chainable<Element>
-//       visit(originalFn: CommandOriginalFn, url: string, options: Partial<VisitOptions>): Chainable<Element>
-//     }
-//   }
-// }
-export { }
+type instanceMode = "layout" | "permissions" | "topics" | "edit" | "data" | "report" | undefined;
+
+export { 
+    instanceMode
+}
 
 declare global {
     namespace Cypress {
@@ -130,6 +98,24 @@ declare global {
              * @example cy.deleteLayoutByShortName('t')
              */
             deleteLayoutByShortName(shortName: string): void;
+            /**
+             * Create an instance in the system
+             * @param instanceName The name of the instance to create
+             * @example cy.createInstance('Test Instance')
+             */
+            createInstance(instanceName: string, shortName?:string): void;
+            /**
+             * Go to an instance by short name
+             * @param shortName The short name of the instance to go to
+             * @example cy.gotoInstanceByShortName('test')
+             */
+            gotoInstanceByShortName(shortName: string, mode: instanceMode): void;
+            /**
+             * Delete a instance by short name
+             * @param shortName The short name of the instance to delete
+             * @example cy.deleteInstanceByShortName('t')
+             */
+            deleteInstanceByShortName(shortName: string): void;
         }
     }
 }
@@ -137,13 +123,9 @@ declare global {
 export const goodUser = "test@example.com";
 export const goodPassword = "xyz123";
 
-Cypress.Commands.add('getByName', (name: string) => {
-    return cy.get(`[name=${name}]`);
-});
+Cypress.Commands.add('getByName', (name: string) => cy.get(`[name=${name}]`));
 
-Cypress.Commands.add('getByTitle', (title: string) => {
-    return cy.get(`[title=${title}]`);
-});
+Cypress.Commands.add('getByTitle', (title: string) => cy.get(`[title=${title}]`));
 
 Cypress.Commands.add("login", (email: string, password: string) => {
     cy.visit('http://localhost:3000');
@@ -158,17 +140,11 @@ Cypress.Commands.add('loginAndGoTo', (email: string, password: string, path: str
     cy.visit(path);
 });
 
-Cypress.Commands.add('mainBody', () => {
-    return cy.get(".content-block__main");
-});
+Cypress.Commands.add('mainBody', () => cy.get(".content-block__main"));
 
-Cypress.Commands.add('mainHeader', () => {
-    return cy.get(".content-block__head");
-});
+Cypress.Commands.add('mainHeader', () => cy.get(".content-block__head"));
 
-Cypress.Commands.add('getDataTable', () => {
-    return cy.mainBody().find(".data-table");
-});
+Cypress.Commands.add('getDataTable', () => cy.mainBody().find(".data-table"));
 
 Cypress.Commands.add('createTitle', (title: string) => {
     if (!location.pathname.match(/title_add/)) {
@@ -221,14 +197,16 @@ Cypress.Commands.add('createLayout', (builder: IBuildable) => {
 });
 
 Cypress.Commands.add('deleteLayoutByShortName', (shortName: string) => {
-    cy.visit("http://localhost:3000/table");
-    cy.getDataTable()
-        .find("a")
-        .contains("Edit table")
-        .click();
-    cy.get("a")
-        .contains("Fields")
-        .click();
+    if (!location.pathname.match(/layout/g)) {
+        cy.visit("http://localhost:3000/table");
+        cy.getDataTable()
+            .find("a")
+            .contains("Edit table")
+            .click();
+        cy.get("a")
+            .contains("Fields")
+            .click();
+    }
     cy.getDataTable()
         .find("tbody")
         .find("tr")
@@ -240,6 +218,43 @@ Cypress.Commands.add('deleteLayoutByShortName', (shortName: string) => {
         .click();
     cy.get(".modal")
         .find(".btn-danger")
+        .contains("Delete")
+        .click();
+});
+
+Cypress.Commands.add("createInstance", (instanceName: string, shortname:string = instanceName.toLocaleLowerCase().replace(" ","")) => {
+    cy.visit("http://localhost:3000/table");
+    cy.get("button")
+        .contains("New table")
+        .click();
+    cy.get(".modal")
+        .should("be.visible")
+        .find("input#name[name=name]")
+        .type(instanceName);
+    cy.get("input[name=shortName]")
+        .type(shortname);
+    cy.get("button.btn-js-next")
+        .contains("Next")
+        .should("be.visible")
+        .click();
+    cy.get("button.btn-js-save")
+        .contains("Save table")
+        .should("be.visible")
+        .click();
+});
+
+Cypress.Commands.add("gotoInstanceByShortName", (shortName: string, mode: instanceMode) => {
+    cy.visit(`http://localhost:3000/${shortName}/${mode ? mode : ""}`);
+});
+
+Cypress.Commands.add("deleteInstanceByShortName", (shortName: string) => {
+    cy.gotoInstanceByShortName(shortName, "edit");
+    cy.get("button")
+        .contains("Delete table")
+        .click();
+    cy.get(".modal")
+        .should("be.visible")
+        .find("button")
         .contains("Delete")
         .click();
 });

@@ -8,8 +8,27 @@ export interface IBuildable {
     build(): void;
 }
 
+export interface ILayoutBuilder extends IBuildable {
+    withName(name: string): this;
+    withShortName(shortname?: string): this;
+    checkField(): void;
+}
+
+export interface IDropdownLayoutBuilder extends ILayoutBuilder {
+    addOption(option: string): this;
+}
+
+export interface ICodeLayoutBuilder extends ILayoutBuilder {
+    withCode(code: LUACode): this;
+}
+
+export interface ICurvalLayoutBuilder extends ILayoutBuilder {
+    withReference(reference: string): this;
+    withField(field: string): this;
+}
+
 export class LayoutBuilder {
-    public static create(layoutType: LayoutType): BasicLayoutBuilder | CodeLayoutBuilder | DropdownLayoutBuilder | CurvalLayoutBuilder {
+    public static create(layoutType: LayoutType) {
         switch (layoutType) {
             case "TEXT":
             case "INTEGER":
@@ -63,13 +82,13 @@ function translateLayoutType(type: LayoutType) {
         case "PERSON": return "Person";
         case "RAG": return "RedAmberGreen (RAG) status";
         case "CALC": return "Calculated value";
-        case "CURVAL": return "curval";
+        case "CURVAL": return "Record from other data sheet";
         case "AUTOCUR": return "autocur";
         default: throw new Error("Invalid layout type");
     }
 };
 
-abstract class LayoutBuilderBase implements IBuildable {
+abstract class LayoutBuilderBase implements ILayoutBuilder {
     protected name: string;
     protected shortName?: string;
     protected layoutType: LayoutType;
@@ -89,15 +108,17 @@ abstract class LayoutBuilderBase implements IBuildable {
     }
 
     build(): void {
-        cy.visit("http://localhost:3000/table");
-        cy.getDataTable()
-            .find("tbody")
-            .find("tr").first()
-            .find("a").contains("Edit table")
-            .click();
-        cy.get("a")
-            .contains("Fields")
-            .click();
+        if (!(location.pathname.match(/layout/g))) {
+            cy.visit("http://localhost:3000/table");
+            cy.getDataTable()
+                .find("tbody")
+                .find("tr").first()
+                .find("a").contains("Edit table")
+                .click();
+            cy.get("a")
+                .contains("Fields")
+                .click();
+        }
         cy.get("a")
             .contains("Add a field")
             .click();
@@ -147,7 +168,7 @@ abstract class LayoutBuilderBase implements IBuildable {
     }
 }
 
-class BasicLayoutBuilder extends LayoutBuilderBase {
+class BasicLayoutBuilder extends LayoutBuilderBase implements ILayoutBuilder {
     constructor(type: LayoutType) {
         super(type);
     }
@@ -157,7 +178,7 @@ class BasicLayoutBuilder extends LayoutBuilderBase {
     }
 }
 
-class CodeLayoutBuilder extends LayoutBuilderBase {
+class CodeLayoutBuilder extends LayoutBuilderBase implements ICodeLayoutBuilder {
     private code: LUACode;
 
     constructor(type: LayoutType) {
@@ -166,6 +187,7 @@ class CodeLayoutBuilder extends LayoutBuilderBase {
 
     withCode(code: LUACode) {
         this.code = code;
+        return this;
     }
 
     buildSpecific() {
@@ -190,7 +212,7 @@ class CodeLayoutBuilder extends LayoutBuilderBase {
 }
 
 
-class DropdownLayoutBuilder extends LayoutBuilderBase {
+class DropdownLayoutBuilder extends LayoutBuilderBase implements IDropdownLayoutBuilder {
     private options: string[];
 
     constructor() {
@@ -221,29 +243,41 @@ class DropdownLayoutBuilder extends LayoutBuilderBase {
     }
 }
 
-class CurvalLayoutBuilder extends LayoutBuilderBase {
-    private reference: number;
+class CurvalLayoutBuilder extends LayoutBuilderBase implements ICurvalLayoutBuilder {
+    private reference: string;
     private field: string;
 
     constructor() {
         super("CURVAL");
     }
 
-    withReference(reference: number) {
+    withReference(reference: string) {
         this.reference = reference;
+        return this;
     }
 
     withField(field: string) {
         this.field = field;
+        return this;
     }
 
     buildSpecific() {
-        // Expand the options
+        // Expand Field settings
+        cy.get("button")
+            .contains("Field settings for fields from another table")
+            .click();
         // Enter the options
-    }
-
-    checkField(): void {
-        // Check the field is present
-        // Check the field is of the correct type
+        cy.get("button#btn-refers_to_instance_id")
+            .click();
+        cy.get("li[role='option']")
+            .contains(this.reference)
+            .click();
+        cy.get("label")
+            .contains(this.field)
+            .click();
+        cy.get("button.btn-xs[data-delete='rule']")
+            .eq(1)
+            .click();
+        //Someone owes me a drink!
     }
 }
