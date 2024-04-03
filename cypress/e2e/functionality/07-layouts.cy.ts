@@ -16,13 +16,13 @@ describe("Layout creation tests", () => {
                 builder
                     .withName("test1")
                     .withShortName("t1");
-                cy.createLayout(builder);
+                cy.createLayout(builder, true);
                 builder.checkField();
             });
         });
 
         afterEach(() => {
-            cy.deleteLayoutByShortName("t1");
+            cy.deleteLayoutByShortName("t1", true);
         });
     });
 
@@ -39,9 +39,9 @@ function beepbeep(${refShortName})
     return ${refShortName}
 end
         `);
-            cy.createLayout(refField);
+            cy.createLayout(refField, true);
             refField.checkField();
-            cy.createLayout(builder);
+            cy.createLayout(builder, true);
 
             cy.get(".alert-danger")
                 .contains("Invalid code")
@@ -52,7 +52,7 @@ end
                 .contains("Cancel")
                 .click();
 
-            cy.deleteLayoutByShortName(refShortName);
+            cy.deleteLayoutByShortName(refShortName, true);
         });
 
         it("Should create a RAG layout with valid code", () => {
@@ -67,14 +67,14 @@ function evaluate(${refShortName})
     return "red";
 end
         `);
-            cy.createLayout(refField);
+            cy.createLayout(refField, true);
             refField.checkField();
-            cy.createLayout(builder);
+            cy.createLayout(builder, true);
             builder.checkField();
 
             //As the layouts aren't consistent across tests, we need to delete them manually rather than afterEach
-            cy.deleteLayoutByShortName("t1");
-            cy.deleteLayoutByShortName(refShortName);
+            cy.deleteLayoutByShortName("t1", true);
+            cy.deleteLayoutByShortName(refShortName, true);
         });
 
         it("Should error on creating a CALC layout with invalid code", () => {
@@ -89,13 +89,13 @@ function beepboop()
     return ${refShortName}
 end
         `);
-            cy.createLayout(refField);
+            cy.createLayout(refField, true);
             refField.checkField();
-            cy.createLayout(builder);
+            cy.createLayout(builder, true);
             cy.get(".alert-danger").contains("Invalid code");
 
             //As the layouts aren't consistent across tests, we need to delete them manually rather than afterEach
-            cy.deleteLayoutByShortName(refShortName);
+            cy.deleteLayoutByShortName(refShortName, true);
         });
 
         it("Should create a CALC layout with valid code", () => {
@@ -110,14 +110,14 @@ function evaluate (${refShortName})
     return ${refShortName}
 end
         `);
-            cy.createLayout(refField);
+            cy.createLayout(refField, true);
             refField.checkField();
-            cy.createLayout(builder);
+            cy.createLayout(builder, true);
             builder.checkField();
 
             //As the layouts aren't consistent across tests, we need to delete them manually rather than afterEach
-            cy.deleteLayoutByShortName("t1");
-            cy.deleteLayoutByShortName(refShortName);
+            cy.deleteLayoutByShortName("t1", true);
+            cy.deleteLayoutByShortName(refShortName, true);
         });
     });
 
@@ -130,12 +130,12 @@ end
                 .addOption("Option 1")
                 .addOption("Option 2")
                 .addOption("Option 3");
-            cy.createLayout(builder);
+            cy.createLayout(builder, true);
             builder.checkField();
         })
 
         afterEach(() => {
-            cy.deleteLayoutByShortName("t1");
+            cy.deleteLayoutByShortName("t1", true);
         });
     });
 

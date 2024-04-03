@@ -8,7 +8,13 @@
     "lint": "eslint src",
     "test": "jest",
     "build:dev": "webpack --env development --progress -c webpack.config.js -w",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "e2e": "yarn cypress run",
+    "e2e:open": "yarn cypress open",
+    "e2e:chrome": "yarn cypress run --browser chrome",
+    "e2e:firefox": "yarn cypress run --browser firefox",
+    "e2e:edge": "yarn cypress run --browser edge",
+    "e2e:electron": "yarn cypress run --browser electron"
   },
   "dependencies": {
     "@egjs/hammerjs": "^2.0.0",
@@ -71,7 +77,7 @@
     "copy-webpack-plugin": "6",
     "core-js": "^3.15.2",
     "css-loader": "^3.2.0",
-    "cypress": "^13.7.0",
+    "cypress": "^13.7.2",
     "eslint-config-prettier": "^9.0.0",
     "eslint-config-problems": "^8.0.0",
     "eslint-plugin-jsdoc": "^46.8.1",

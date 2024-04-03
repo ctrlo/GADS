@@ -6,6 +6,7 @@ type LayoutType = "TEXT" | "INTEGER" | "DATE" | "DATE-RANGE" | "DROPDOWN" | "TRE
 
 export interface IBuildable {
     build(): void;
+    build(navigate:boolean): void;
 }
 
 export interface ILayoutBuilder extends IBuildable {
@@ -107,8 +108,8 @@ abstract class LayoutBuilderBase implements ILayoutBuilder {
         return this;
     }
 
-    build(): void {
-        if (!(location.pathname.match(/layout/g))) {
+    build(navigate:boolean = false): void {
+        if (navigate) {
             cy.visit("http://localhost:3000/table");
             cy.getDataTable()
                 .find("tbody")
