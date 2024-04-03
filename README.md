@@ -118,12 +118,12 @@ There are also a number of useful DB commands, these are:
 - `perl ./bin/migrate-db.pl --fixtures=export` - Dump all data to fixtures
 - `perl ./bin/migrate-db.pl --fixtures=import` - Load all fixture data
 
-[^1] Isn't Data Store one word, or is it hyphenated?
+[^1]: Isn't Data Store one word, or is it hyphenated?
 
-[^2] Taken from the original Readme.md - this probably needs significant changes
+[^2]: Taken from the original Readme.md - this probably needs significant changes
 
-[^3] This functionality is currenty undergoing significant changes and improvements
+[^3]: This functionality is currenty undergoing significant changes and improvements
 
-[^4] Let's be honest, we want them to contribute to their own branch (i.e. have a `contributions` branch for use for external contributions?)
+[^4]: Let's be honest, we want them to contribute to their own branch (i.e. have a `contributions` branch for use for external contributions?)
 
-[^5] The implementation of this is underway, but not yet included in this version
+[^5]: The implementation of this is underway, but not yet included in this version
