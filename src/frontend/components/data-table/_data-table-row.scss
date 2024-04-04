@@ -63,6 +63,10 @@ table.dataTable {
     }
   }
 
+  td {
+    line-height: 1.125rem; // 18px
+  }
+
   td.reorder {
     text-align: right;
     cursor: move;
@@ -94,6 +98,10 @@ table.dataTable {
   tbody tr.odd,
   tbody tr.odd + tr.child {
     background-color: $gray-light;
+  }
+
+  tbody tr > td {
+    line-height: 17px; // Makes each row 50px high
   }
 
   /* stylelint-disable declaration-no-important */
@@ -142,5 +150,29 @@ table.dataTable {
   tbody tr.tr--focus,
   tbody tr.odd.tr--focus {
     background-color: rgba($brand-secundary, 0.2);
+  }
+}
+
+/* Necessary to overrule default styling */
+.dataTables_scroll {
+  .dataTables_scrollHead .dataTables_scrollHeadInner {
+    width: 100% !important;
+
+    .data-table {
+      width: 100% !important;
+
+      &.table-striped {
+        border-bottom: none;
+      }
+
+      tr th {
+        width: 100% !important;
+      }
+    }
+  }
+
+  // First row of fixed height, scrollable tables should still have a top border to ensure the same height of each row
+  .dataTables_scrollBody > table > tbody tr:first-child td {
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
   }
 }

@@ -1,3 +1,4 @@
+import { transferRowToTable } from './helper'
 import { Component, initializeRegisteredComponents } from 'component'
 import 'datatables.net'
 import 'datatables.net-buttons'
@@ -45,13 +46,16 @@ class DataTableComponent extends Component {
     if (this.hasCheckboxes) {
       this.addSelectAllCheckbox()
     }
+
     if (this.el.hasClass('table-account-requests')) {
       this.modal = $.find('#userModal')
       this.initClickableTable()
       this.el.on('draw.dt', ()=> {
-        this.initClickableTable();
+        this.initClickableTable()
       })
     }
+
+    this.bindTransferTableClickHandlers();
 
     // Bind events to disclosure buttons and record-popup links on opening of child row
     $(this.el).on('childRow.dt', (e, show, row) => {
@@ -671,7 +675,7 @@ class DataTableComponent extends Component {
       // any drawing to prevent it being clicked multiple times during a draw
       this.el.DataTable().button(0).enable();
 
-      this.bindClickHandlersAfterDraw(conf)
+      this.bindClickHandlersAfterDraw(conf);
     }
 
     conf['buttons'] = [
@@ -791,6 +795,30 @@ class DataTableComponent extends Component {
 
       initializeRegisteredComponents(this.element)
     }
+
+   this.bindTransferTableClickHandlers();
+  }
+
+  bindTransferTableClickHandlers() {
+    const tableElement = this.el;
+
+    if (tableElement.hasClass('table-transfer')) {
+      const fields = this.el.find('tbody tr')
+      fields.off('click', this.transferRow)
+      fields.on('click', this.transferRow)
+
+      const buttons = this.el.find('tbody btn')
+      buttons.off('click', this.transferRow)
+      buttons.on('click', this.transferRow)
+    }
+  }
+
+  transferRow = (ev) => {
+    ev.preventDefault()
+    const sourceTableID = '#' + this.el.attr('id')
+    const destinationTableID = this.el.data('transferDestination')
+    const rowClicked = $(ev.target).closest('tr')
+    transferRowToTable(rowClicked, sourceTableID, destinationTableID)
   }
 }
 
