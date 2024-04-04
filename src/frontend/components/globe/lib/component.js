@@ -13,7 +13,7 @@ class GlobeComponent extends Component {
     Plotly.setPlotConfig({ locale: "en-GB" })
 
     const globeBase = $(this.element).data("globe-data")
-    const globe_data = JSON.parse(Buffer.from(globeBase, 'base64'))
+    const globe_data = JSON.parse(atob(globeBase))
     const data = globe_data.data
 
     const layout = {
@@ -58,7 +58,7 @@ class GlobeComponent extends Component {
           })
           .join("&");
 
-          const url =
+          let url =
           "/" +
           params.layout_identifier +
           "/data?viewtype=table&view=" +

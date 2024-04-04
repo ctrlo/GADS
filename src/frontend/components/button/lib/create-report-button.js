@@ -13,7 +13,6 @@ class CreateReportButtonComponent extends Component {
    */
   constructor(element) {
     super(element);
-    this.el = $(element);
     this.canSubmitRecordForm = false;
     this.initSubmitReport();
   }
@@ -22,7 +21,7 @@ class CreateReportButtonComponent extends Component {
    * Initialise the submit report button
    */
   initSubmitReport() {
-    this.el.on('click', (ev) => { this.submitReport(ev) });
+    $(this.element).on('click', (ev) => { this.submitReport(ev) });
   }
 
   /**
@@ -37,7 +36,7 @@ class CreateReportButtonComponent extends Component {
       stopPropagation(ev);
 
       const isValid = validateRequiredFields($form);
-
+      
       if (isValid) {
         this.canSubmitRecordForm = true;
         this.submit($button);

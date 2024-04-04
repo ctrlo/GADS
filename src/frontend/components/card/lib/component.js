@@ -1,5 +1,4 @@
 import { Component } from 'component'
-import RecordPopupComponent from '../../record-popup/lib/component'
 
 class ExpandableCardComponent extends Component {
   constructor(element)  {
@@ -49,7 +48,10 @@ class ExpandableCardComponent extends Component {
     })
 
     $recordPopup.each((i, el) => {
-      const recordPopupComp = new RecordPopupComponent(el)
+      import(/* webpackChunkName: "record-popup" */ '../../record-popup/lib/component')
+        .then(({ default: RecordPopupComponent }) =>
+          new RecordPopupComponent(el)
+        );
     })
   }
 

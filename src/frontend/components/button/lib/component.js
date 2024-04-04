@@ -1,9 +1,6 @@
 import { Component } from 'component'
 import { logging } from 'logging'
-import { MoreInfoButton } from './more-info-button'
 import { validateRequiredFields } from 'validation'
-import CreateReportButtonComponent from './create-report-button'
-import { transferRowToTable } from '../../data-table/lib/helper'
 
 class ButtonComponent extends Component {
   constructor(element)  {
@@ -17,10 +14,16 @@ class ButtonComponent extends Component {
   initButton() {
     switch (true) {
       case this.el.hasClass('btn-js-report'):
-        new CreateReportButtonComponent(this.element)
+        import(/* webpackChunkName: "create-report-button" */ './create-report-button.js')
+          .then(({ default: CreateReportButtonComponent }) => {
+            new CreateReportButtonComponent(this.element)
+          });
         break
       case this.el.hasClass('btn-js-more-info'):
-        new MoreInfoButton(this.el)
+        import(/* webpackChunkName: "more-info-button" */ './more-info-button.js')
+          .then(({ default: MoreInfoButton }) => {
+            new MoreInfoButton(this.el)
+          });
         break
       case this.el.hasClass('btn-js-delete'):
         this.initDelete()
@@ -64,9 +67,12 @@ class ButtonComponent extends Component {
       const sourceTableId = $(ev.target).data('transferSource')
       const destionationTableId = $(ev.target).data('transferDestination')
       const rows = $(sourceTableId).find('tbody tr')
-      rows.each((index, row) => {
-        transferRowToTable($(row), sourceTableId, destionationTableId)
-      })
+      import(/* webpackChunkName: "datatable-helper" */ '../../data-table/lib/helper')
+        .then(({transferRowToTable})=>{
+          rows.each((index, row) => {
+            transferRowToTable($(row), sourceTableId, destionationTableId)
+          })
+        });
     })
   }
 
@@ -139,7 +145,7 @@ class ButtonComponent extends Component {
   }
 
   initRemoveUnload() {
-    this.el.on('click', (ev) => {
+    this.el.on('click', () => {
       $(window).off('beforeunload')
     })
   }
