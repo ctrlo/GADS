@@ -28,14 +28,6 @@ with 'GADS::Role::Presentation::Datum';
 
 use overload 'bool' => sub { 1 }, '""'  => 'as_string', '0+' => 'as_integer', fallback => 1;
 
-has visible => (
-    is=> 'ro',
-    builder=> sub {
-        my $self = shift;
-        return $self->column->user_can('read');
-    }
-);
-
 sub set_value
 {   my ($self, $value, %options) = @_;
     error __"Cannot set this value as it is a parent value"

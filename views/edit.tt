@@ -438,7 +438,7 @@
             NEXT IF !is_history AND col_panel.data.dependent_not_shown;
             NEXT IF view_modal AND col.type == "autocur";
         %]
-        <li class="list__item[% IF col_panel.data.blank AND NOT layout.no_hide_blank %] list__item--blank[% END %] list-group-item[% UNLESS col_panel.data.visible %] hidden[% END %]" [% UNLESS col_panel.data.visible %] aria-hidden="true"[% END %]>
+        <li class="list__item[% IF col_panel.data.blank AND NOT layout.no_hide_blank %] list__item--blank[% END %] list-group-item">
           <span class="list__key">[% col_panel.name | html_entity %]</span>
           <span class="list__value">[% render_datum(col_panel, 'full') %]</span>
         </li>
@@ -497,8 +497,8 @@
 
 [% BLOCK print_field; %]
   <div
-      class="[% IF col.show_in_edit %]form-group[% END %]
-      linkspace-field"
+      class="[% IF col.show_in_edit %]form-group [% END %]linkspace-field[% IF col.show_in_edit==2 %] hidden[% END %]"
+      [% IF col.show_in_edit==2 %]aria-hidden="true"[% END %]
       data-column-id="[% col.id %]"
       data-column-type="[% col.type %]"
       data-value-selector="[% col.value_selector %]"
@@ -952,7 +952,7 @@
     ELSIF col.type == "rag";
       # XXX To implement
     ELSIF col.type == "calc"; %]
-  <div class="textarea [% input_class %][% UNLESS col.data.visible %] hidden[% END %]"[% textarea_style %][% UNLESS col.visible %] aria-hidden="true"[% END %]>
+  <div class="textarea [% input_class %]"[% textarea_style %]>
     [%
       INCLUDE fields/sub/label_input.tt label_type="textarea" label=field_label;
       FOREACH val IN editvalue.html_form;
