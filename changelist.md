@@ -1,7 +1,41 @@
 # GADS Changelist
 
+-------
+
+**Version**: 2.3.0
+**Released**: 26th March 2024
+
+-------
+
+## QoL changes
+
+- Reporting changes
+  - Added ability to add logo in admin settings
+  - Added security marking - this can be set at admin, instance (table), and report level
+- Made creation of views clearer
+- Added searchable dropdowns to view filters
+- Multi-value displays are now clearer for string values
+
+## Fixes
+
+- Fixed typeahead bugs
+- Added RAG values that were missing to filters
+- Fixed `OwnerDocument is null` error in tables
+- Fixed globe bug introduced with Typeahead functionality
+- Fixed incorrect rendering of readonly fields
+- Fixed incorrect use of Put in dashboards
+- Fixed layout referenced in report stopping deletion of layout
+
+## Other
+
+- Added Docker development scripts
+
+-------
+
 **Version**: 2.2.0
-**Released**: 01st Feb 2023
+**Released**: 26th January 2024
+
+-------
 
 ## QoL changes
 

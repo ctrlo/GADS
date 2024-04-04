@@ -7,6 +7,8 @@ use Log::Report;
 migrate {
     my $schema = shift->schema;
 
+    my $guard = $schema->txn_scope_guard;
+
     # dbic_connect_attrs is ignored, so quote_names needs to be forced
     $schema->storage->connect_info(
         [ sub { $schema->storage->dbh }, { quote_names => 1 } ] );
@@ -56,7 +58,7 @@ migrate {
             {
                 foreach my $calcval ($record->calcvals)
                 {
-                    my $svp = $schema->storage->svp_begin;
+                    my $svp = $schema->storage->svp_begin("sp_uq_calc");
                     try {
                         $schema->resultset('CalcUnique')->create({
                             layout_id       => $calcval->layout_id,
@@ -70,17 +72,20 @@ migrate {
                     };
                     if ($@ =~ /duplicate/i) # Pg: duplicate key, Mysql: Dupiicate entry
                     {
-                            $schema->storage->svp_rollback;
+                        $schema->storage->svp_rollback("sp_uq_calc");
+                        $schema->storage->svp_release("sp_uq_calc");
                     }
                     elsif ($@) {
                         $@->reportAll;
                     }
                     else {
-                        $schema->storage->svp_release;
+                        $schema->storage->svp_release("sp_uq_calc");
                     }
                 }
             }
         }
         $page = $pager->next_page;
     } while ($page);
+
+    $guard->commit;
 };
