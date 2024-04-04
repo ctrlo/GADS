@@ -22,7 +22,7 @@
     });
   END;
 
-  # create table columns and column config for each requested column.
+  # Create table columns and column config for each requested column
   FOREACH column in table_columns;
     columnName  = column.name || column.title || '' | html;
     columnTitle = column.title || column.name || '' | html;
@@ -37,6 +37,7 @@
     IF column.class; mycol.class = column.class; END;
     IF column.width; mycol.width = column.width; END;
     IF column.typeahead; mycol.typeahead = column.typeahead; END;
+    IF column.typeahead_use_id; mycol.typeahead_use_id = column.typeahead_use_id; END;
 
     config_columns.push(mycol);
 
@@ -48,7 +49,7 @@
   END;
 
   IF table_buttons;
-    # create table columns and column config for each button
+    # Create table columns and column config for each button
     FOREACH button in table_buttons;
       buttonConfig = buttonConfig _ tmplColumnButtonConfig;
       config_columns.push({
@@ -86,7 +87,7 @@
     END;
   END;
 
-  # add column for screen overflow expand/collapse column
+  # Add column for screen overflow expand/collapse column
   config_columns.push({
     name      = "Toggle child row",
     orderable = 0,
@@ -104,7 +105,7 @@
     fieldCounter = 1;
 
     FOREACH field in row.fields;
-      # add hidden fields for row reordering
+      # Add hidden fields for row reordering
       IF table_reorder_rows AND fieldCounter == 1;
         row.fields.unshift({
           type = "text",
@@ -155,11 +156,14 @@
   table_config = {
     dom        = ( table_dom || '' ),
     order      = ( table_order && table_order.size ? table_order : [] ),
-    ordering   = ( table_reordering.defined ? table_reordering : 1 ),
+    ordering   = ( table_ordering.defined ? table_ordering : 1 ), # Defines if you can sort records (enabled by default)
     language   = ( table_language && table_language.size ? table_language : { emptyTable => "There is no data available in this table" } ),
     responsive = ( table_unresponsive ? 0 : { details => { type => "column", target => -1}} ),
     autoWidth  = 0,
     columns    = config_columns,
+    paging     = ( table_paging.defined ? table_paging : 1 ) # Defines whether to show pagination (enabled by default)
+    scrollY    = ( table_scroll_y.defined ? table_scroll_y : '' ) # Defines a fixed table height (disabled by default)
+    info       = ( table_info.defined ? table_info : 1 ) # Defines whether to show table info ("showing x to y of z entries")
   };
 
   IF table_ajax;
@@ -194,9 +198,10 @@
 %]
 
 <table
-  class="data-table table [% table_class %]"[% IF table_id %]
-  id="[% table_id %]"[% END %][% IF table_ajax AND table_ajax_target %]
-  data-href="[% table_ajax_target %]"[% END %]
+  class="data-table table [% table_class %]"
+  [% IF table_id %]id="[% table_id %]"[% END %]
+  [% IF table_ajax AND table_ajax_target %]data-href="[% table_ajax_target %]"[% END %]
+  [% IF table_transfer_destination %]data-transfer-destination="[% table_transfer_destination %]"[% END %]
   width="100%"
   data-config='[% b64_filter(table_config) %]'
 >

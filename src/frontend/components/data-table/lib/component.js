@@ -1,3 +1,4 @@
+import { transferRowToTable } from './helper'
 import { Component, initializeRegisteredComponents } from 'component'
 import 'datatables.net'
 import 'datatables.net-buttons'
@@ -43,13 +44,16 @@ class DataTableComponent extends Component {
     if (this.hasCheckboxes) {
       this.addSelectAllCheckbox()
     }
+
     if (this.el.hasClass('table-account-requests')) {
       this.modal = $.find('#userModal')
       this.initClickableTable()
       this.el.on('draw.dt', ()=> {
-        this.initClickableTable();
+        this.initClickableTable()
       })
     }
+
+    this.bindTransferTableClickHandlers();
 
     // Bind events to disclosure buttons and record-popup links on opening of child row
     $(this.el).on('childRow.dt', (e, show, row) => {
@@ -262,7 +266,6 @@ class DataTableComponent extends Component {
         <div class='dropdown-menu p-2' aria-labelledby='search-toggle-${index}'>
           <label>
             <div class='input'>
-              <input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>
             </div>
           </label>
           <button type='button' class='btn btn-link btn-small data-table__clear hidden'>
@@ -271,6 +274,29 @@ class DataTableComponent extends Component {
         </div>
       </div>`
     )
+
+    /* Construct search box for filtering. If the filter has a typeahead and if
+     * it uses an ID rather than text, then add a second (hidden) input field
+     * to store the ID. If we already have a stored search value for the
+     * column, then if it's an ID we will need to look up the textual value for
+     * insertion into the visible input */
+    const $searchInput = $(`<input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>`)
+    $searchInput.appendTo($('.input', $searchElement))
+    if (col.typeahead_use_id) {
+      $searchInput.after(`<input type="hidden" class="search">`)
+      $.ajax({
+        type: 'GET',
+        url: this.getApiEndpoint(columnId) + searchValue + '&use_id=1',
+        dataType: 'json'
+      }).done(function(data) {
+        if (!data.error) {
+          $searchInput.val(data.records[0].label)
+        }
+      })
+    } else {
+      $('input', $searchElement).addClass('search')
+    }
+
 
     $header.find('.data-table__header-wrapper').prepend($searchElement)
 
@@ -295,10 +321,11 @@ class DataTableComponent extends Component {
     }
 
     // Apply the search
-    $('input', $header).on('change', function (ev) {
-      if (column.search() !== (this.value || ev.target.value)) {
+    $('input.search', $header).on('change', function (ev) {
+      let value = this.value || ev.target.value;
+      if (column.search() !== value) {
         column
-          .search(this.value || ev.target.value)
+          .search(value)
           .draw()
       }
 
@@ -638,7 +665,7 @@ class DataTableComponent extends Component {
       // any drawing to prevent it being clicked multiple times during a draw
       this.el.DataTable().button(0).enable();
 
-      this.bindClickHandlersAfterDraw(conf)
+      this.bindClickHandlersAfterDraw(conf);
     }
 
     conf['buttons'] = [
@@ -698,7 +725,7 @@ class DataTableComponent extends Component {
     }
 
     // Toggle the full screen button
-    $(buttonElement.target).toggleClass(['btn-toggle', 'btn-toggle-off'])
+    $(fullScreenButton).toggleClass(['btn-toggle', 'btn-toggle-off'])
   }
 
   exitFullScreenMode(conf) {
@@ -758,6 +785,30 @@ class DataTableComponent extends Component {
 
       initializeRegisteredComponents(this.element)
     }
+
+   this.bindTransferTableClickHandlers();
+  }
+
+  bindTransferTableClickHandlers() {
+    const tableElement = this.el;
+
+    if (tableElement.hasClass('table-transfer')) {
+      const fields = this.el.find('tbody tr')
+      fields.off('click', this.transferRow)
+      fields.on('click', this.transferRow)
+
+      const buttons = this.el.find('tbody btn')
+      buttons.off('click', this.transferRow)
+      buttons.on('click', this.transferRow)
+    }
+  }
+
+  transferRow = (ev) => {
+    ev.preventDefault()
+    const sourceTableID = '#' + this.el.attr('id')
+    const destinationTableID = this.el.data('transferDestination')
+    const rowClicked = $(ev.target).closest('tr')
+    transferRowToTable(rowClicked, sourceTableID, destinationTableID)
   }
 }
 

@@ -31,6 +31,9 @@ class ButtonComponent extends Component {
       case this.el.hasClass('btn-js-submit-field'):
         this.initSubmitField()
         break
+      case this.el.hasClass('btn-js-add-all-fields'):
+        this.initAddAllFields()
+        break
       case this.el.hasClass('btn-js-submit-draft-record'):
         this.initSubmitDraftRecord()
         break
@@ -55,6 +58,19 @@ class ButtonComponent extends Component {
     if (this.el.hasClass('btn-js-calculator')) {
       this.initCalculator()
     }
+  }
+
+  // "Add fields" button on the add/edit view page
+  initAddAllFields() {
+    this.el.on('click', (ev) => {
+      ev.preventDefault()
+      const sourceTableId = $(ev.target).data('transferSource')
+      const destionationTableId = $(ev.target).data('transferDestination')
+      const rows = $(sourceTableId).find('tbody tr')
+      rows.each((index, row) => {
+        transferRowToTable($(row), sourceTableId, destionationTableId)
+      })
+    })
   }
 
   initRemoveCurval() {
