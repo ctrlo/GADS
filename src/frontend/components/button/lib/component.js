@@ -3,7 +3,7 @@ import { logging } from 'logging'
 import { MoreInfoButton } from './more-info-button'
 import { validateRequiredFields } from 'validation'
 import CreateReportButtonComponent from './create-report-button'
-import { transferRowToTable } from 'components/data-table/lib/helper'
+import { transferRowToTable } from '../../data-table/lib/helper'
 
 class ButtonComponent extends Component {
   constructor(element)  {
