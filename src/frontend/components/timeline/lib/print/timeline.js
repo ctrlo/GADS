@@ -205,7 +205,9 @@ function parseTimelineForPdfPrinting() {
     // positioned absolute from the top of the group. The group is dynamic in height.
     const visGroups = getVisGroups();
 
-    parseVisGroups(visGroups);
+    if (visGroups !== {}) {
+      parseVisGroups(visGroups);
+    }
 }
 
 /**

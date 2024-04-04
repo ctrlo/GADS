@@ -124,7 +124,6 @@ has _rset_code => (
 );
 
 sub _build_has_browser_code {
-    #In theory this should remain the same - the value of show_in_edit is actually the one that defines if the field is "hidden" or not
     my $self = shift;
     return 1 if $self->show_in_edit;
     return 1 if $self->schema->resultset('DisplayField')->search({
