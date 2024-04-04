@@ -15,7 +15,7 @@ class CalcFieldsComponent extends Component {
   getFieldCalc() {
 
       const dependency = $(this.element).data("calc-depends-on")
-      const depends_on_ids = atob(dependency)
+      const depends_on_ids = JSON.parse(atob(dependency))
       const depends_on = jQuery.map(depends_on_ids, function(id) {
         return $('[data-column-id="' + id + '"]')
       });
@@ -23,7 +23,7 @@ class CalcFieldsComponent extends Component {
       return {
         field: $(this.element),
         code: atob($(this.element).data("code")).toString(),
-        params: atob($(this.element).data("code-params")),
+        params: JSON.parse(atob($(this.element).data("code-params"))),
         depends_on: depends_on
       };
 
