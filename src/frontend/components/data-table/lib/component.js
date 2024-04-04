@@ -584,7 +584,7 @@ class DataTableComponent extends Component {
     let conf = {}
     
     if (typeof confData === 'string') {
-      conf = atob(confData)
+      conf = JSON.parse(atob(confData))
     } else if (typeof confData === 'object') {
       conf = confData
     }
