@@ -38,9 +38,8 @@ has '+option_names' => (
 
 has show_in_edit => (
     is      => 'rw',
-    isa     => Bool,
+    isa     => Int,
     lazy    => 1,
-    coerce  => sub { $_[0] ? 1 : 0 },
     builder => sub {
         my $self = shift;
         return 0 unless $self->has_options;
