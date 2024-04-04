@@ -67,9 +67,12 @@ class ButtonComponent extends Component {
       const sourceTableId = $(ev.target).data('transferSource')
       const destionationTableId = $(ev.target).data('transferDestination')
       const rows = $(sourceTableId).find('tbody tr')
-      rows.each((index, row) => {
-        transferRowToTable($(row), sourceTableId, destionationTableId)
-      })
+      import(/* webpackChunkName: "datatable-helper" */ '../../data-table/lib/helper')
+        .then(({transferRowToTable})=>{
+          rows.each((index, row) => {
+            transferRowToTable($(row), sourceTableId, destionationTableId)
+          })
+        });
     })
   }
 

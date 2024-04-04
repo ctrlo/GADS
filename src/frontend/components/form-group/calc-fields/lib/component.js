@@ -30,10 +30,9 @@ class CalcFieldsComponent extends Component {
   }
 
   setupCalcField(field) {
-    let code = field.code
-    const depends_on = field.depends_on
+    let {code} = field
+    const {depends_on,params} = field
     const $field = field.field
-    const params = field.params
 
     // Change standard backend code format to a format that works for
     // evaluating in the browser
