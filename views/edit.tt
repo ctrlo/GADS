@@ -497,8 +497,8 @@
 
 [% BLOCK print_field; %]
   <div
-      class="[% IF col.show_in_edit %]form-group[% END %]
-      linkspace-field"
+      class="[% IF col.show_in_edit %]form-group [% END %]linkspace-field[% IF col.show_in_edit==2 %] hidden[% END %]"
+      [% IF col.show_in_edit==2 %]aria-hidden="true"[% END %]
       data-column-id="[% col.id %]"
       data-column-type="[% col.type %]"
       data-value-selector="[% col.value_selector %]"

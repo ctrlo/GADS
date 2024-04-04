@@ -11,11 +11,11 @@ use strict;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 
-use Dancer2 qw( !error !info !warning );
+use Dancer2;
 my $config = config;
 
 use DBIx::Class::Migration;
-use Log::Report 'lspace';
+use Dancer2::Plugin::LogReport 'linkspace', mode => 'NORMAL';
 use Getopt::Long;
 
 my ($prepare, $install, $upgrade, $downgrade, $status, $fixtures);

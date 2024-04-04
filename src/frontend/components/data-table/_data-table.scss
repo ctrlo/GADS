@@ -72,6 +72,10 @@ table.dataTable thead .sorting_disabled {
   .row--main {
     margin-bottom: $padding-base-vertical;
   }
+
+  .row--fiv-header {
+    margin-bottom: 63px; // Used for "fields in view" table to compensate missing search bar
+  }
 }
 
 .dataTables_toggle_full_width {
@@ -192,6 +196,43 @@ table.dataTable thead .sorting_disabled {
   .data-table__header--invisible & {
     display: none;
   }
+}
+
+.dataTables_scrollBody:has(.table-transfer) {
+  @include media-breakpoint-down(md) {
+    height: auto !important;
+  }
+}
+
+.dataTables_scrollHead .table--bordered {
+  box-sizing: border-box;
+  border-top: 1px solid $gray;
+  border-right: 1px solid $gray;
+  border-left: 1px solid $gray;
+  border-top-left-radius: $table-border-radius;
+  border-top-right-radius: $table-border-radius;
+
+  thead {
+    $table-bordered-head-color: #585858;
+
+    color: $table-bordered-head-color;
+  }
+}
+
+.dataTables_scrollBody:has(.table--bordered) {
+  border-right: 1px solid $gray;
+  border-bottom: 1px solid $gray;
+  border-left: 1px solid $gray;
+  border-bottom-left-radius: $table-border-radius;
+  border-bottom-right-radius: $table-border-radius;
+
+  .table-striped {
+    border-bottom: 0;
+  }
+}
+
+.dataTables_scrollFoot .table-striped.table--bordered {
+  border: 0;
 }
 
 .data-table__header-wrapper {
