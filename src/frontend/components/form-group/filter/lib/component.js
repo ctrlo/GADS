@@ -87,6 +87,7 @@ class FilterComponent extends Component {
   }
 
   initFilter() {
+    const self = this;
     const $builderEl = this.el
     const builderID = $(this.el).data('builder-id')
     const $builderJSON = $(`#builder_json_${builderID}`)
@@ -166,7 +167,7 @@ class FilterComponent extends Component {
           const builder = new TypeaheadBuilder();
           builder
             .withInput($ruleInputText)
-            .withAjaxSource(this.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
+            .withAjaxSource(self.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
             .withDataBuilder(buildQuery)
             .withDefaultMapper()
             .withName('rule')

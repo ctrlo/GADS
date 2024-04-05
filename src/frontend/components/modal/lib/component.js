@@ -355,8 +355,9 @@ class ModalComponent extends Component {
     })
   }
 
-  // Handle upload to server
+  // Handle upload to server - reference to this is used here due to XMLHttpRequest scope issues
   handleUpload(dataObj){
+    const self = this;
     const url = this.el.data('config').url
     const id = this.el.data('config').id
     const csrf = $('body').data('csrf').toString()
@@ -376,7 +377,7 @@ class ModalComponent extends Component {
     })
     .fail(function(jqXHR) {
       const strError = jqXHR.responseJSON.message
-      this.showError(strError)
+      self.showError(strError)
     })
   }
 
