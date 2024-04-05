@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component'
 import { setupDisclosureWidgets } from "./disclosure-widgets";
 import { moreLess } from './more-less';

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component'
 import { initValidationOnField, validateCheckboxGroup } from 'validation'
 import initDateField from 'components/datepicker/lib/helper'

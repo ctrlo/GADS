@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import ModalComponent from '../../../lib/component'
 import { getFieldValues } from "get-field-values"
 import { guid as Guid } from "guid"
