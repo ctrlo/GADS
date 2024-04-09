@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import ModalComponent from '../../../lib/component'
 import { getFieldValues } from "get-field-values"
 import { guid as Guid } from "guid"
@@ -35,15 +36,17 @@ class CurvalModalComponent extends ModalComponent {
     const valueSelector = $formGroup.data("value-selector")
     
     if (valueSelector === "noshow") {
-      const row_cells = $('<tr class="table-curval-item">', this.context)
+      const self=this;
+      // No strict requirement for alias here, but it is needed below, so for the sake of consistency
+      const row_cells = $('<tr class="table-curval-item">', self.context)
 
       jQuery.map(modal_field_ids, function(element) {
         const control = form.find('[data-column-id="' + element + '"]')
         let value = getFieldValues(control)
         value = values["field" + element]
-        value = $("<div />", this.context).text(value).html()
+        value = $("<div />", self.context).text(value).html()
         row_cells.append(
-          $('<td class="curval-inner-text">', this.context).append(value)
+          $('<td class="curval-inner-text">', self.context).append(value)
         )
       })
 
@@ -202,6 +205,7 @@ class CurvalModalComponent extends ModalComponent {
       }
 
       const $m = $(this.element)
+      const self = this;
       $m.find(".modal-body").text("Loading...")
 
       const url = current_id
@@ -214,7 +218,7 @@ class CurvalModalComponent extends ModalComponent {
           if (mode === "edit") {
             $m.find("form").data("guid", guid);
           }
-          initializeRegisteredComponents(this.element)
+          initializeRegisteredComponents(self.element)
         }
       )
 
@@ -248,9 +252,11 @@ class CurvalModalComponent extends ModalComponent {
   }
 
   setupSubmit() {
+    const self = this;
+
     $(this.element).on("submit", ".curval-edit-form", function(e) {
       // Don't show close warning when user clicks submit button
-      this.el.off('hide.bs.modal')
+      self.el.off('hide.bs.modal')
 
       e.preventDefault()
       const $form = $(this)
@@ -262,25 +268,25 @@ class CurvalModalComponent extends ModalComponent {
       const devData = window.siteConfig && window.siteConfig.curvalData
 
       if (devData) {
-        this.curvalModalValidationSucceeded($form, devData.values)
+        self.curvalModalValidationSucceeded($form, devData.values)
       } else {
         $.post(
           $form.attr("action") + "?validate&include_draft&source=" + $form.data("curval-id"),
           form_data,
           function(data) {
             if (data.error === 0) {
-              this.curvalModalValidationSucceeded($form, data.values)
+              self.curvalModalValidationSucceeded($form, data.values)
             } else {
               const errorMessage =
                 data.error === 1 ? data.message : "Oops! Something went wrong."
-              this.curvalModalValidationFailed($form, errorMessage)
+              self.curvalModalValidationFailed($form, errorMessage)
             }
           },
           "json"
         )
         .fail(function(jqXHR, textstatus, errorthrown) {
           const errorMessage = `Oops! Something went wrong: ${textstatus}: ${errorthrown}`
-          this.curvalModalValidationFailed($form, errorMessage);
+          self.curvalModalValidationFailed($form, errorMessage);
         })
         .always(function() {
           $form.removeClass("edit-form--validating")

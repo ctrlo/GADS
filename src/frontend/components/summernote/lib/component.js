@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component'
 import 'summernote/dist/summernote-bs4'
 import { logging } from 'logging'
@@ -9,6 +10,7 @@ class SummerNoteComponent extends Component {
     }
 
     initSummerNote() {
+      const self = this;
       $(this.element).summernote({
         toolbar: [
           ['style', ['style']],
@@ -31,7 +33,7 @@ class SummerNoteComponent extends Component {
           },
           onImageUpload: function(files) {
             for (var i = 0; i < files.length; i++) {
-              this.handleHtmlEditorFileUpload(files[i], this)
+              self.handleHtmlEditorFileUpload(files[i], this)
             }
           },
           onChange: function(contents) {

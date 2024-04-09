@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component'
 import { logging } from 'logging'
 import { initValidationOnField } from 'validation'
@@ -113,6 +114,7 @@ class SelectWidgetComponent extends Component {
     const searchValue = $(e.target)
     .val()
     .toLowerCase()
+    const self = this
 
     this.$fakeInput =
       this.$fakeInput ||
@@ -132,13 +134,13 @@ class SelectWidgetComponent extends Component {
       clearTimeout(this.timeout)
       this.$available.find(".spinner").removeAttr("hidden")
       this.timeout = setTimeout(function() {
-        this.$available.find(".answer").not('.answer--blank').each(function() {
+        self.$available.find(".answer").not('.answer--blank').each(function() {
           const $answer = $(this)
           if (!$answer.find('input:checked').length) {
             $answer.remove()
           }
         })
-        this.updateJson(url + '?noempty=1&q=' + searchValue, true)
+        self.updateJson(url + '?noempty=1&q=' + searchValue, true)
       }, 200)
     } else {
       // hide the answers that do not contain the searchvalue
@@ -252,6 +254,7 @@ class SelectWidgetComponent extends Component {
       const $item = $(this)
       const itemId = $item.data("list-item")
       const $associated = $("#" + itemId)
+      const self = this
 
       $associated.unbind("change")
       $associated.on("change", (e) => {
@@ -260,7 +263,7 @@ class SelectWidgetComponent extends Component {
         } else {
           $item.attr("hidden", "")
         }
-        this.updateState()
+        self.updateState()
       })
 
       $associated.unbind("keydown")
@@ -271,15 +274,15 @@ class SelectWidgetComponent extends Component {
           case 38: // UP
           case 40: // DOWN
             {
-              const currentIndex = this.$answers.index($associated.closest(".answer"))
+              const currentIndex = self.$answers.index($associated.closest(".answer"))
               let nextItem
 
               e.preventDefault()
 
               if (key === 38) {
-                nextItem = this.$answers[currentIndex - 1]
+                nextItem = self.$answers[currentIndex - 1]
               } else {
-                nextItem = this.$answers[currentIndex + 1]
+                nextItem = self.$answers[currentIndex + 1]
               }
 
               if (nextItem) {
@@ -302,6 +305,8 @@ class SelectWidgetComponent extends Component {
   }
 
   connectSingle() {
+    const self = this;
+
     this.$currentItems.each((_, item) => {
       const $item = $(item)
       const itemId = $item.data("list-item")
@@ -315,7 +320,7 @@ class SelectWidgetComponent extends Component {
       $associated.off("change");
       $associated.on("change", function() {
         // First hide all items in the drop-down display
-        this.$currentItems.each((_, currentItem) => {
+        self.$currentItems.each((_, currentItem) => {
           $(currentItem).attr("hidden", "")
         })
         // Then show the one selected
@@ -324,7 +329,7 @@ class SelectWidgetComponent extends Component {
         }
         // Update state so as to show "select option" default text for nothing
         // selected
-        this.updateState()
+        self.updateState()
       });
 
       $associated.parent().unbind("keypress")
@@ -438,8 +443,10 @@ class SelectWidgetComponent extends Component {
     return $li
   }
 
+  //Some odd scoping issues here - but it works
   updateJson(url, typeahead) {
     this.loadCounter++
+    const self = this;
     const myLoad = this.loadCounter // ID of this process
     this.$available.find(".spinner").removeAttr("hidden")
     const currentValues = this.$available
@@ -543,11 +550,11 @@ class SelectWidgetComponent extends Component {
             errorMessage +
             "</label></span></li>"
         )
-        this.$available.append(errorLi)
+        self.$available.append(errorLi)
       })
       .always(function() {
         if (hideSpinner) {
-          this.$available.find(".spinner").attr("hidden", "")
+          self.$available.find(".spinner").attr("hidden", "")
         }
       })
   }

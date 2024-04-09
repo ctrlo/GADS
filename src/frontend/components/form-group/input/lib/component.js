@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component'
 import { initValidationOnField, validateCheckboxGroup } from 'validation'
 import initDateField from 'components/datepicker/lib/helper'
@@ -77,11 +78,13 @@ class InputComponent extends Component {
       });
     }
 
+    // Self is used here due to XMLHttpRequest's scope issues
     initInputDocument() {
       const url = this.el.data("fileupload-url")
       const $progressBarContainer = this.el.find(".progress-bar__container")
       const $progressBarProgress = this.el.find(".progress-bar__progress")
       const $progressBarPercentage = this.el.find(".progress-bar__percentage")
+      let self = this
 
       const tokenField = this.el.closest('form').find('input[name="csrf_token"]');
       const token = tokenField.val();
@@ -109,7 +112,7 @@ class InputComponent extends Component {
           $progressBarContainer.removeClass('progress-bar__container--fail');
         },
         progress: function(e, data) {
-          if (!this.el.data("multivalue")) {
+          if (!self.el.data("multivalue")) {
             var $uploadProgression =
               Math.round((data.loaded / data.total) * 10000) / 100 + "%";
             $progressBarPercentage.html($uploadProgression);
@@ -117,7 +120,7 @@ class InputComponent extends Component {
           }
         },
         progressall: function(e, data) {
-          if (this.el.data("multivalue")) {
+          if (self.el.data("multivalue")) {
             var $uploadProgression =
               Math.round((data.loaded / data.total) * 10000) / 100 + "%";
             $progressBarPercentage.html($uploadProgression);
@@ -125,7 +128,7 @@ class InputComponent extends Component {
           }
         },
         done: function(e, data) {
-          this.addFileToField({ id: data.result.id, name: data.result.filename })
+          self.addFileToField({ id: data.result.id, name: data.result.filename })
         },
         fail: function(e, data) {
           const ret = data.jqXHR.responseJSON;
@@ -181,6 +184,7 @@ class InputComponent extends Component {
       this.btnReveal.click( (ev) => { this.handleClickReveal(ev) } )
     }
 
+    // As previous
     handleAjaxUpload(uri, csrf_token, file) {
       try{
         hideElement(this.error);

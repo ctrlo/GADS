@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component'
 import { setupDisclosureWidgets } from "./disclosure-widgets";
 import { moreLess } from './more-less';
@@ -64,9 +65,10 @@ class MoreLessComponent extends Component {
     // Add a unique identifier to each more-less class, before cloning. Once we
     // measure the height on the cloned elements, we can apply the height as a
     // data value to its real equivalent element using this unique class.
+    const self = this
     $parent.find('.more-less').each(function() {
       const $e = $(this)
-      $e.addClass('more-less-id-' + this.uuid())
+      $e.addClass('more-less-id-' + self.uuid())
     })
 
     // Clone the element and show it to find out its height

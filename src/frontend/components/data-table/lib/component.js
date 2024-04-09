@@ -1,4 +1,4 @@
-import { transferRowToTable } from './helper'
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { Component, initializeRegisteredComponents } from 'component'
 import 'datatables.net'
 import 'datatables.net-buttons'
@@ -8,6 +8,7 @@ import 'datatables.net-responsive-bs4'
 import 'datatables.net-rowreorder-bs4'
 import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets'
 import { moreLess } from 'components/more-less/lib/more-less'
+import { transferRowToTable } from './helper'
 
 const MORE_LESS_TRESHOLD = 50
 
@@ -62,12 +63,13 @@ class DataTableComponent extends Component {
 
       setupDisclosureWidgets($childRow)
 
-      recordPopupElements.each((i, el) => {
-        import(/* webpackChunkName: "record-popup" */ 'components/record-popup/lib/component')
-          .then(({ default: RecordPopupComponent }) => {
+      if (recordPopupElements) {
+        import(/* webpackChunkName: "record-popup" */ 'components/record-popup/lib/component').then(({ default: RecordPopupComponent }) => {
+          recordPopupElements.each((i, el) => {
             new RecordPopupComponent(el)
           });
-      });
+        });
+      }
     })
   }
 
@@ -238,10 +240,12 @@ class DataTableComponent extends Component {
     }
   }
 
+  // Self reference included due to scoping
   addSearchDropdown(column, id, index) {
     const $header = $(column.header())
     const title = $header.text().trim()
     const searchValue = column.search()
+    const self = this
     const {context} = column;
     const {oAjaxData} = context[0];
     const {columns} = oAjaxData;
@@ -329,16 +333,16 @@ class DataTableComponent extends Component {
           .draw()
       }
 
-      this.toggleFilter(column)
+      self.toggleFilter(column)
 
       // Update or add the filter to the searchParams
-      this.searchParams.has(id) ?
-        this.searchParams.set(id, this.value) :
-        this.searchParams.append(id, this.value)
+      self.searchParams.has(id) ?
+        self.searchParams.set(id, this.value) :
+        self.searchParams.append(id, this.value)
 
       // Update URL. Do not reload otherwise the data is fetched twice (already
       // redrawn in the previous statement)
-      const url = `${window.location.href.split('?')[0]}?${this.searchParams.toString()}`
+      const url = `${window.location.href.split('?')[0]}?${self.searchParams.toString()}`
       window.history.replaceState(null, '', url);
     })
 
@@ -349,15 +353,15 @@ class DataTableComponent extends Component {
         .search('')
         .draw()
 
-      this.toggleFilter(column)
+      self.toggleFilter(column)
 
       // Delete the filter from the searchparams and update and reload the url
-      if (this.searchParams.has(id)) {
-        this.searchParams.delete(id)
+      if (self.searchParams.has(id)) {
+        self.searchParams.delete(id)
         let url = `${window.location.href.split('?')[0]}`
 
-        if (this.searchParams.entries().next().value !== undefined) {
-          url += `?${this.searchParams.toString()}`
+        if (self.searchParams.entries().next().value !== undefined) {
+          url += `?${self.searchParams.toString()}`
         }
 
         // Update URL. See comment above about the same
@@ -579,10 +583,11 @@ class DataTableComponent extends Component {
     return this.renderDataType(data)
   }
 
+  // DO NOT REMOVE THE SELF REFERENCE IN THE FUNCTION
   getConf() {
     const confData = this.el.data('config')
     let conf = {}
-    
+
     if (typeof confData === 'string') {
       conf = JSON.parse(atob(confData))
     } else if (typeof confData === 'object') {
@@ -598,30 +603,32 @@ class DataTableComponent extends Component {
     conf['initComplete'] = (settings, json) => {
       const tableElement = this.el
       const dataTable = tableElement.DataTable()
-      
+      const self = this
+
       this.json = json || undefined
 
       if (this.initializingTable) {
         dataTable.columns().every(function(index) {
-          const $header = $(this.header())
+          const column = this
+          const $header = $(column.header())
 
           const headerContent = $header.html()
-          $header.html(`<div class='data-table__header-wrapper position-relative ${this.search() ? 'filter' : ''}' data-ddl='ddl_${index}'>${headerContent}</div>`)
+          $header.html(`<div class='data-table__header-wrapper position-relative ${column.search() ? 'filter' : ''}' data-ddl='ddl_${index}'>${headerContent}</div>`)
 
           // Add sort button to column header
           if ($header.hasClass('sorting')) {
-            this.addSortButton(dataTable, this, headerContent)
+            self.addSortButton(dataTable, column, headerContent)
           }
 
           // Add button to column headers (only serverside tables)
           if ((conf.serverSide) && (tableElement.hasClass('table-search'))) {
             const id = settings.oAjaxData.columns[index].name
 
-            if (this.searchParams.has(id)) {
-              this.search(this.searchParams.get(id)).draw()
+            if (self.searchParams.has(id)) {
+              column.search(self.searchParams.get(id)).draw()
             }
 
-            this.addSearchDropdown(this, id, index)
+            self.addSearchDropdown(column, id, index)
           }
           return true;
         })
@@ -637,7 +644,7 @@ class DataTableComponent extends Component {
       }
     }
 
-    conf['footerCallback'] = () => {
+    conf['footerCallback'] = function() {
       var api = this.api()
       // Add aggregate values to table if configured
       var agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate
@@ -648,7 +655,7 @@ class DataTableComponent extends Component {
           const {name} = cols[idx]
           if (agg[name]) {
             $(this.footer()).html(
-              this.renderDataType(agg[name])
+              self.renderDataType(agg[name])
             )
           }
           return true;
@@ -665,7 +672,7 @@ class DataTableComponent extends Component {
       // any drawing to prevent it being clicked multiple times during a draw
       this.el.DataTable().button(0).enable();
 
-      this.bindClickHandlersAfterDraw(conf);
+      this.bindClickHandlersAfterDraw(conf)
     }
 
     conf['buttons'] = [
@@ -677,7 +684,7 @@ class DataTableComponent extends Component {
         },
         className: 'btn btn-small btn-toggle-off',
         action: function ( e ) {
-          this.toggleFullScreenMode(e)
+          self.toggleFullScreenMode(e)
         }
       }
     ]
@@ -690,6 +697,7 @@ class DataTableComponent extends Component {
     I have tried manually changing the DOM, as well as the methods already present in the code, and I currently believe there is a bug within the DataTables button
     code that is meaning that this won't change (although I am open to the fact that I am being a little slow and missing something glaringly obvious).
   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toggleFullScreenMode(buttonElement) {
     const fullScreenButton = document.querySelector('#full-screen-btn');
     if (!fullScreenButton) {
