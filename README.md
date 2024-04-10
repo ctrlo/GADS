@@ -2,15 +2,15 @@
 
 ## What is GADS?
 
-GADS is the Globally Accessable Data Store[^1] - it is designed for a powerful online replacement of Spreadsheets and other (semi) flat data stores with the power to perform tasks that don't quite require a fully-fledged database, but a spreadsheet can't quite meet.
+GADS is the Globally Accessable Data Store - it is designed for a powerful online replacement of Spreadsheets and other (semi) flat data stores with the power to perform tasks that don't quite require a fully-fledged database, but a spreadsheet can't quite meet.
 
-GADS provides a much more user-friendly interface and makes the data easier to maintain; it's features include[^2]:
+GADS provides a much more user-friendly interface and makes the data easier to maintain; it's features include:
 
 - Allow multiple users to view and update data simultaneously
 - Customise data views by user
 - Easy version control
 - Approval process for updating data fields
-- Basic graph functionality[^3]
+- Basic graph functionality[^1]
 - Red/Amber/Green calculated status indicators for values
 - Complex calculated values
 
@@ -33,7 +33,7 @@ GADS as a system uses a number of languages in it's implementation, these includ
 
 ## Contributing
 
-Contributing to this project can be achieved through opening pull requests to the UIUX[^4] branch. The following requirements are to be met before a pull request is even considered:
+Contributing to this project can be achieved through opening pull requests to the UIUX branch. The following requirements are to be met before a pull request is even considered:
 
 - All code and exernal libraries are to be fully [ISO:27001](https://www.iso.org/standard/27001) compliant
 - All pull requests and commit messages are to have explicit titles, as well as comprehensive descriptions as far as is possible
@@ -41,7 +41,7 @@ Contributing to this project can be achieved through opening pull requests to th
 - All code is to pass all tests included within the suite - custom code is to include unit tests where possible, but changes to current unit tests are only to be performed with _full_ justification. These tests include:
   - Perl unit tests
   - Jest JS/TS tests
-  - Cypress E2E tests[^5]
+  - Cypress E2E tests[^2]
 
 ### Development Requirements
 
@@ -118,12 +118,6 @@ There are also a number of useful DB commands, these are:
 - `perl ./bin/migrate-db.pl --fixtures=export` - Dump all data to fixtures
 - `perl ./bin/migrate-db.pl --fixtures=import` - Load all fixture data
 
-[^1]: Isn't Data Store one word, or is it hyphenated?
+[^1]: This functionality is currenty undergoing significant changes and improvements
 
-[^2]: Taken from the original Readme.md - this probably needs significant changes
-
-[^3]: This functionality is currenty undergoing significant changes and improvements
-
-[^4]: Let's be honest, we want them to contribute to their own branch (i.e. have a `contributions` branch for use for external contributions?)
-
-[^5]: The implementation of this is underway, but not yet included in this version
+[^2]: The implementation of this is underway, but not yet included in this version
