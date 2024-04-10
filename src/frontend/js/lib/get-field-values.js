@@ -101,8 +101,6 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
         }
       });
     }
-  } else if (type === "person") {
-    values = [$depends.find("input").val()];
   } else if (type === "tree") {
     const jstree = $depends.find('.jstree').jstree(true);
     $depends.find(".selected-tree-value").each(function() {

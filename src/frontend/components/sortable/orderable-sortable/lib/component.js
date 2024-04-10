@@ -10,7 +10,7 @@ class OrderableSortableComponent extends Component {
     }
 
     initSortable() {
-      this.selectElement.click( (ev) => { this.handleOrder(ev) } )
+      this.selectElement.on("click", (ev) => { this.handleOrder(ev) } )
     }
 
     handleOrder(ev) {

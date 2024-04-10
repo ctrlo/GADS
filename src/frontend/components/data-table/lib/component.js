@@ -1,4 +1,4 @@
-import { transferRowToTable } from './helper'
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { Component, initializeRegisteredComponents } from 'component'
 import 'datatables.net'
 import 'datatables.net-buttons'
@@ -7,9 +7,8 @@ import 'datatables.net-responsive'
 import 'datatables.net-responsive-bs4'
 import 'datatables.net-rowreorder-bs4'
 import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets'
-import RecordPopupComponent from 'components/record-popup/lib/component'
 import { moreLess } from 'components/more-less/lib/more-less'
-import TypeaheadBuilder from 'util/typeahead'
+import { transferRowToTable } from './helper'
 
 const MORE_LESS_TRESHOLD = 50
 
@@ -64,9 +63,13 @@ class DataTableComponent extends Component {
 
       setupDisclosureWidgets($childRow)
 
-      recordPopupElements.each((i, el) => {
-        const recordPopupComp = new RecordPopupComponent(el)
-      })
+      if (recordPopupElements) {
+        import(/* webpackChunkName: "record-popup" */ 'components/record-popup/lib/component').then(({ default: RecordPopupComponent }) => {
+          recordPopupElements.each((i, el) => {
+            new RecordPopupComponent(el)
+          });
+        });
+      }
     })
   }
 
@@ -168,7 +171,7 @@ class DataTableComponent extends Component {
     // Check if all checkboxes are checked and the 'select all' checkbox needs to be checked
     this.checkSelectAll($checkBoxes, $selectAllElm.find('input'))
 
-    $checkBoxes.on('click', (ev) => {
+    $checkBoxes.on('click', () => {
       this.checkSelectAll($checkBoxes, $selectAllElm.find('input'))
     })
 
@@ -237,6 +240,7 @@ class DataTableComponent extends Component {
     }
   }
 
+  // Self reference included due to scoping
   addSearchDropdown(column, id, index) {
     const $header = $(column.header())
     const title = $header.text().trim()
@@ -303,26 +307,21 @@ class DataTableComponent extends Component {
     this.toggleFilter(column)
 
     if (col && col.typeahead) {
-      const builder = new TypeaheadBuilder();
-      builder
-        .withAjaxSource(this.getApiEndpoint(columnId))
-        .withInput($('input[type=text]', $header))
-        .withAppendQuery()
-        .withDefaultMapper()
-        .withName(columnId.replace(/\s+/g, '') + 'Search')
-        .withCallback((data) => {
-          let $text_input = $('input[type=text]', $header);
-          $text_input.val(data.name);
-          if (col.typeahead_use_id) {
-            // Update hidden input with actual ID value and search on that
-            let $id_input = $('input[type=hidden]', $header);
-            $id_input.val(data.id);
-            $id_input.trigger('change');
-          } else {
-            $text_input.trigger('change');
-          }
-        })
-        .build();
+      import(/* webpackChunkName: "typeaheadbuilder" */ 'util/typeahead')
+        .then(({ default: TypeaheadBuilder }) => {
+          const builder = new TypeaheadBuilder();
+          builder
+            .withAjaxSource(this.getApiEndpoint(columnId))
+            .withInput($('input', $header))
+            .withAppendQuery()
+            .withDefaultMapper()
+            .withName(columnId.replace(/\s+/g, '') + 'Search')
+            .withCallback((data) => {
+              $('input', $header).val(data.name);
+              $('input', $header).trigger('change');
+            })
+            .build();
+        });
     }
 
     // Apply the search
@@ -427,9 +426,7 @@ class DataTableComponent extends Component {
       return strHTML
     }
 
-    const value = data.values[0] // There's always only one person
-
-    data.values.forEach((value, i) => {
+    data.values.forEach((value) => {
       if (value.details.length) {
         let thisHTML = `<div>`
         value.details.forEach((detail) => {
@@ -586,13 +583,13 @@ class DataTableComponent extends Component {
     return this.renderDataType(data)
   }
 
+  // DO NOT REMOVE THE SELF REFERENCE IN THE FUNCTION
   getConf() {
     const confData = this.el.data('config')
     let conf = {}
-    const self = this
 
     if (typeof confData === 'string') {
-      conf = JSON.parse(Buffer.from(confData, 'base64'))
+      conf = JSON.parse(atob(confData))
     } else if (typeof confData === 'object') {
       conf = confData
     }
@@ -647,7 +644,7 @@ class DataTableComponent extends Component {
       }
     }
 
-    conf['footerCallback'] = function( tfoot, data, start, end, display ) {
+    conf['footerCallback'] = function() {
       var api = this.api()
       // Add aggregate values to table if configured
       var agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate
@@ -666,7 +663,7 @@ class DataTableComponent extends Component {
       }
     }
 
-    conf['drawCallback'] = (settings) => {
+    conf['drawCallback'] = () => {
 
       //Re-initialize more-less components after initialisation is complete
       moreLess.reinitialize()
@@ -675,7 +672,7 @@ class DataTableComponent extends Component {
       // any drawing to prevent it being clicked multiple times during a draw
       this.el.DataTable().button(0).enable();
 
-      this.bindClickHandlersAfterDraw(conf);
+      this.bindClickHandlersAfterDraw(conf)
     }
 
     conf['buttons'] = [
@@ -686,7 +683,7 @@ class DataTableComponent extends Component {
           id: 'full-screen-btn'
         },
         className: 'btn btn-small btn-toggle-off',
-        action: function ( e, dt, node, config ) {
+        action: function ( e ) {
           self.toggleFullScreenMode(e)
         }
       }
@@ -700,6 +697,7 @@ class DataTableComponent extends Component {
     I have tried manually changing the DOM, as well as the methods already present in the code, and I currently believe there is a bug within the DataTables button
     code that is meaning that this won't change (although I am open to the fact that I am being a little slow and missing something glaringly obvious).
   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toggleFullScreenMode(buttonElement) {
     const fullScreenButton = document.querySelector('#full-screen-btn');
     if (!fullScreenButton) {

@@ -6,7 +6,7 @@ export default (scope) => {
     }
 
     import(
-        /* webpackChunkName: "datatable" */
+        /* webpackChunkName: "sortable" */
         './lib/component' 
     ).then(({ default: Component }) => {
         initializeComponent(scope, '.sortable', Component)

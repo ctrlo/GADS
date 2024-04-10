@@ -68,8 +68,8 @@ const do_plot = (plotData, options_in) => {
 // replaced by a more modern graphing library, the PNG/Phantomjs functionality
 // will probably unneccessary if that functionality is built into the library.
 const do_plot_json = (window.do_plot_json = function(plotData, options_in) {
-  plotData = JSON.parse(Buffer.from(plotData, 'base64'))
-  options_in = JSON.parse(Buffer.from(options_in, 'base64'))
+  plotData = JSON.parse(atob(plotData))
+  options_in = JSON.parse(atob(options_in))
   do_plot(plotData, options_in);
 });
 

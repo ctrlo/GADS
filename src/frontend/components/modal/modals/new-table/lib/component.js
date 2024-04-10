@@ -12,6 +12,7 @@ class AddTableModalComponent extends ModalComponent {
     this.topicsTable = this.el.find('#topics')
     this.fieldsTable = this.el.find('#fields')
     this.selectTopic = this.el.find('.modal-body .select--js-topic')[0]
+    //No point doing this as an import if it's in the initialisation
     this.selectTopicComponent = new SelectComponent(this.selectTopic)
     this.currentFieldObject = {}
     this.currentTopicObject = {}
@@ -20,12 +21,12 @@ class AddTableModalComponent extends ModalComponent {
   }
 
   // Initialize the new table wizzard
-  initNewTable(el) {
+  initNewTable() {
     const btnCreateTopic = this.el.find('.modal-body .btn-js-create-topic')
     const btnCreateField = this.el.find('.modal-body .btn-js-create-field')
 
-    btnCreateTopic.on("click", (ev) => { modal.activate(4, true) } )
-    btnCreateField.on("click", (ev) => { modal.activate(7, true) } )
+    btnCreateTopic.on("click", () => { modal.activate(4, true) } )
+    btnCreateField.on("click", () => { modal.activate(7, true) } )
     this.fieldOptions.addClass('hidden')
     this.setupDataObject()
   }
@@ -184,7 +185,7 @@ class AddTableModalComponent extends ModalComponent {
 
     $btnEditItem.each((i, btn) => {
       const tempId = $(btn).data('tempid')
-      $(btn).on('click', (ev) => { modal.activate(frameNumber, true, tempId) } )
+      $(btn).on('click', () => { modal.activate(frameNumber, true, tempId) } )
     })
   }
 
@@ -257,67 +258,77 @@ class AddTableModalComponent extends ModalComponent {
 
     switch ($fieldTypeContainer.attr('id')) {
       case 'field_type_enum':
-        const $orderField = $fieldTypeContainer.find('input[name="ordering"]')
-        const $sortableFields = $fieldTypeContainer.find('.sortable input')
+        {
+          const $orderField = $fieldTypeContainer.find('input[name="ordering"]')
+          const $sortableFields = $fieldTypeContainer.find('.sortable input')
 
-        let enumSettingsObject = {
-          dropdown_values: [],
-          ordering: $orderField.val()
-        }
-
-        $sortableFields.each((i, field) => {
-          let fieldObj = {}
-          fieldObj[$(field).attr('name')] = $(field).val()
-          enumSettingsObject.dropdown_values.push(fieldObj)
-        })
-
-        currentField.field_type_settings = enumSettingsObject
-
-        break
-      case 'field_type_tree':
-        const $jstreeEl = $fieldTypeContainer.find('.tree-widget-container')
-
-        let treeSettingsObject = {
-          data: {},
-          dataJson: {}
-        }
-
-        if ($jstreeEl.length) {
-          const v = $jstreeEl.jstree(true).get_json('#', { flat: false })
-          const mytext = JSON.stringify(v)
-          const data = $jstreeEl.data().jstree._model.data
-
-          treeSettingsObject.data = data
-          treeSettingsObject.dataJson = v
-        }
-
-        treeSettingsObject = this.addFieldsToObject($fields, treeSettingsObject)
-        currentField.field_type_settings = treeSettingsObject
-
-        break
-      case 'field_type_curval':
-        const $curvalFieldIds = $fieldTypeContainer.find('input[name="curval_field_ids"]:visible')
-        const $otherFields = $fieldTypeContainer.find('input:not([name="curval_field_ids"]), textarea')
-
-        let curvalSettingsObject = {
-          curval_field_ids: []
-        }
-
-        $curvalFieldIds.each((i, field) => {
-          if ($(field).val()) {
-            curvalSettingsObject.curval_field_ids.push($(field).val())
+          let enumSettingsObject = {
+            dropdown_values: [],
+            ordering: $orderField.val()
           }
-        })
 
-        curvalSettingsObject = this.addFieldsToObject($otherFields, curvalSettingsObject)
-        currentField.field_type_settings = curvalSettingsObject
+          $sortableFields.each((i, field) => {
+            let fieldObj = {}
+            fieldObj[$(field).attr('name')] = $(field).val()
+            enumSettingsObject.dropdown_values.push(fieldObj)
+          })
 
-        break
+          currentField.field_type_settings = enumSettingsObject
+
+          break
+        }
+      case 'field_type_tree':
+        {
+          const $jstreeEl = $fieldTypeContainer.find('.tree-widget-container')
+
+          let treeSettingsObject = {
+            data: {},
+            dataJson: {}
+          }
+
+          if ($jstreeEl.length) {
+            const v = $jstreeEl.jstree(true).get_json('#', { flat: false })
+            //Not entirely sure what this is - I'm going to leave it in for now
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const mytext = JSON.stringify(v)
+            const data = $jstreeEl.data().jstree._model.data
+
+            treeSettingsObject.data = data
+            treeSettingsObject.dataJson = v
+          }
+
+          treeSettingsObject = this.addFieldsToObject($fields, treeSettingsObject)
+          currentField.field_type_settings = treeSettingsObject
+
+          break
+        }
+      case 'field_type_curval':
+        {
+          const $curvalFieldIds = $fieldTypeContainer.find('input[name="curval_field_ids"]:visible')
+          const $otherFields = $fieldTypeContainer.find('input:not([name="curval_field_ids"]), textarea')
+
+          let curvalSettingsObject = {
+            curval_field_ids: []
+          }
+
+          $curvalFieldIds.each((i, field) => {
+            if ($(field).val()) {
+              curvalSettingsObject.curval_field_ids.push($(field).val())
+            }
+          })
+
+          curvalSettingsObject = this.addFieldsToObject($otherFields, curvalSettingsObject)
+          currentField.field_type_settings = curvalSettingsObject
+
+          break
+        }
       default:
-        let fieldTypeSettingsObject = {}
+        {
+          let fieldTypeSettingsObject = {}
 
-        fieldTypeSettingsObject = this.addFieldsToObject($fields, fieldTypeSettingsObject)
-        currentField.field_type_settings = fieldTypeSettingsObject
+          fieldTypeSettingsObject = this.addFieldsToObject($fields, fieldTypeSettingsObject)
+          currentField.field_type_settings = fieldTypeSettingsObject
+        }
     }
   }
 
@@ -325,11 +336,10 @@ class AddTableModalComponent extends ModalComponent {
   addTable(frame) {
     const $fields = frame.find('input, textarea')
     const $modalTitle = this.el.find('.modal-title')
-    const self = this
-
+    
     $fields.each((i, field) => {
       if ($(field).val()) {
-        self.json[$(field).attr('name')] = $(field).val()
+        this.json[$(field).attr('name')] = $(field).val()
       }
     })
 
@@ -340,15 +350,14 @@ class AddTableModalComponent extends ModalComponent {
 
   // Add default_field_permissions to the json
   addCustomFieldPermissions(frame) {
-    const self = this
     const $customFieldPermissionsTable = frame.find('#custom_field_permissions_table')
     const $groups = $customFieldPermissionsTable.DataTable().rows()
-    const currentField = self.json.fields.find(x => x.tempId === this.currentFieldObject.tempId)
+    const currentField = this.json.fields.find(x => x.tempId === this.currentFieldObject.tempId)
 
     // Clear custom field permissions in json
     currentField.custom_field_permissions = []
 
-    $groups.every(function (rowIdx)  {
+    $groups.every(() =>  {
       const group = this.nodes()[0]
       const iGroupId = group.dataset.groupId
       const strGroupName = $(group).find('td')[0].innerHTML.trim()
@@ -362,7 +371,7 @@ class AddTableModalComponent extends ModalComponent {
       }
 
       // Add fields to permissions object
-      groupObject.permissions = self.addFieldsToObject($fields, groupObject.permissions)
+      groupObject.permissions = this.addFieldsToObject($fields, groupObject.permissions)
 
       // Add groupObject to custom_field_permissions in json
       currentField.custom_field_permissions.push(groupObject)
@@ -372,8 +381,7 @@ class AddTableModalComponent extends ModalComponent {
   // Add table_permissions to the json
   addTablePermissions(frame) {
     const $groups = frame.find('.card--expandable')
-    const self = this
-
+    
     $groups.each((i, group) => {
       const $groupRow = $(group).closest('.permission-group')
       const iGroupId = ($groupRow && typeof $groupRow.data('group-id') !== 'undefined') ? $groupRow.data('group-id') : ''
@@ -398,7 +406,7 @@ class AddTableModalComponent extends ModalComponent {
       })
 
       // Add groupObject to table_permissions in json
-      self.json.table_permissions.push(groupObject)
+      this.json.table_permissions.push(groupObject)
     })
   }
 
@@ -427,8 +435,10 @@ class AddTableModalComponent extends ModalComponent {
         this.addTablePermissions(frame)
         break
       default:
-        const $fields = frame.find('input, textarea')
-        this.addFieldsToObject($fields, this.json)
+        {
+          const $fields = frame.find('input, textarea')
+          this.addFieldsToObject($fields, this.json)
+        }
     }
   }
 
@@ -438,7 +448,7 @@ class AddTableModalComponent extends ModalComponent {
   }
 
   // Handle back
-  handleBack(frame) {
+  handleBack() {
     super.handleBack()
   }
 
