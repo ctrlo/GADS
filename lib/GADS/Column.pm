@@ -40,6 +40,11 @@ use namespace::clean; # Otherwise Enum clashes with MooseLike
 
 with 'GADS::Role::Presentation::Column';
 
+sub purge {
+    my $self=shift;
+    print STDERR $self->id . "\n";
+}
+
 sub types
 { qw(date daterange string intgr person tree enum file rag
     calc curval autocur id createddate createdby serial deletedby filval)

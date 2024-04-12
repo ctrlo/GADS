@@ -1,0 +1,136 @@
+[% IF page == 'initial_purge' %]
+  [% IF columns.size %]
+      <form role="form" method="post">
+          <input type="hidden" name="csrf_token" value="[% csrf_token %]">
+          [%
+            # prepare table config
+            table_class            = 'table-striped table-selectable';
+            table_dom              = 't';
+            table_language         = {
+              emptyTable => "There are records in this view.",
+            };
+            table_show_all_records = 1;
+            table_unresponsive     = 0;
+            table_caption          = "Table to show records to purge";
+            rows                   = [];
+            table_columns          = [{
+              name      = "Column",
+              data = "check",
+              class = "check",
+              orderable = 0,
+            }, {name = "Count"}];
+
+            FOR column IN columns;
+              current_name = column.name;
+              current_id = column.id;
+              rows.push({
+                fields = [{
+                  type        = "text"
+                  label       = ""
+                  sub_field   = "fields/sub/checkbox.tt"
+                  sub_params  = {
+                    id => "dt_checkbox_" _ current_name
+                    name => "record"
+                    label => current_name
+                    checked => 0
+                    is_required => 0
+                    autofocus => 0
+                    input_class => ""
+                    label_in_span => 1
+                    value => current_id
+                  }
+                },{
+                  type = "text",
+                  label = column.count,
+                  filter = "html",
+                }],
+              });
+            END;
+          %]
+          [% INCLUDE tables/basic_table.tt; %]
+          [% INCLUDE navigation/button_bar.tt
+                row_class="row mt-5"
+                columns = [{
+                  class = "col-sm-auto mb-3 mb-sm-0"
+                  buttons = [{
+                    type = "link",
+                    class = "btn btn-secondary",
+                    label = "Cancel",
+                    target = url.page _ "/" _ layout.identifier _ "/data",
+                  },{
+                    type = "submit",
+                    class = "btn btn-danger",
+                    label = "Purge",
+                    value = "submit",
+                    name = "submit"
+                  }]
+                }] %]
+      </form>
+  [% ELSE %]
+      <div role="alert" class="alert alert-info">There are no records in this view</div>
+  [% END %]
+[% ELSIF page == 'purge_stage_2' %]
+    [% IF records; %]
+    <form role="form" method="post">
+        <input type="hidden" name="csrf_token" value="[% csrf_token %]">
+        [%
+        # prepare table config
+        table_class            = 'table-striped table-selectable';
+        table_dom              = 't';
+        table_language         = {
+                emptyTable => "There are records in this view.",
+            };
+        table_show_all_records = 1;
+        table_unresponsive     = 0;
+        table_caption          = "Table to show records to purge";
+        rows                   = [];
+        table_columns          = [{name = "ID"}, {name = "Column"}, {name = "Data"}];
+
+        FOR column IN records;
+            current_name = column.name;
+            current_id = column.id;
+            rows.push({
+                    fields = [{
+                            type        = "text"
+                            label       = column.id,
+                        },{
+                            type        = "text"
+                            label       = column.name,
+                            filter      = "html",
+                        },{
+                            type = "text",
+                            label = column.value,
+                            filter = "html",
+                        }],
+                });
+        END;
+        %]
+        [% INCLUDE tables/basic_table.tt; %]
+        [% INCLUDE fields/hidden.tt
+            name = 'records'
+            value = column_list
+        %]
+        [% INCLUDE navigation/button_bar.tt
+            row_class="row mt-5"
+            columns = [{
+                    class = "col-sm-auto mb-3 mb-sm-0"
+                    buttons = [{
+                            type = "link",
+                            class = "btn btn-secondary",
+                            label = "Cancel",
+                            target = url.page _ "/" _ layout.identifier _ "/data",
+                        },{
+                            type = "submit",
+                            class = "btn btn-danger",
+                            label = "Purge",
+                            value = "purge",
+                            name = "purge"
+                        }]
+                }] %]
+    </form>
+    [% ELSE %]
+        <div role="alert" class="alert alert-info">There are no records to purge - check your handling, this should never display</div>
+    [% END %]
+[% ELSE %]
+  <div role="alert" class="alert alert-info">Invalid View Mode</div>
+[% END %]

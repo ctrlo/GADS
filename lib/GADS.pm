@@ -3024,6 +3024,94 @@ prefix '/:layout_name' => sub {
 
     };
 
+    any ['get', 'post'] => '/historic_purge/' => require_login sub {
+
+        my $layout = var('layout') or pass;
+
+        my $user        = logged_in_user;
+        my $view        = current_view($user, $layout);
+
+        my $records = GADS::Records->new(
+            user                => $user,
+            layout              => $layout,
+            schema              => schema,
+            include_children    => 1,
+            view_limit_extra_id => undef, # Override any value that may be set
+            view                => $view,
+        );
+
+        my $params = +{};
+        my $record_data = [];
+
+        if(param 'submit') {
+            my @columns = body_parameters->get_all('record');
+            $records->columns([@columns]);
+        } elsif(param 'purge') {
+            my @columns = split(/,/,body_parameters->get('records'));
+            $records->columns([@columns]);
+        }
+
+        unless(param 'purge') {
+            while (my $record = $records->single) {
+                foreach my $column (@{$record->presentation->{columns}}) {
+                    next if $column->{readonly};
+                    my $result = +{};
+                    $result->{col_id} = $column->{id};
+                    $result->{name} = $column->{name};
+                    $result->{id} = $column->{data}->{record_id};
+                    $result->{value} = $column->{data}->{value};
+                    push @$record_data, $result;
+                }
+            }
+        }
+
+        $params->{page} = 'initial_purge';
+
+        if(param 'submit') {
+            $params->{page} = 'purge_stage_2';
+            $params->{records} = $record_data;
+            my @mapped_ids = map {$_->{col_id}} @$record_data;
+            $params->{column_list} = join(',', @mapped_ids);
+        }elsif(param 'purge') {
+            $params->{page} = 'purge_stage_3';
+            if(process(sub {
+                my $once = 0;
+                while (my $record = $records->single) {
+                    foreach my $column (@{$record->columns_render}) {
+                        next if ($column->internal);
+                        $once = 1;
+                        $column->purge;
+                    }
+                }
+                if(!$once) {
+                    error __"Nothing happened!";
+                }
+            })){
+                return forwardHome({ success => "Records have now been purged" }, $layout->identifier.'/data');
+            }else{
+                return forwardHome({ danger => "There was an error purging the records" }, $layout->identifier.'/data');
+            }
+        }else {
+            my $result = [];
+            my $seen = {};
+            foreach my $val (@$record_data) {
+                if($seen->{$val->{name}}) {
+                    foreach my $d (@$result) {
+                        next unless $d->{name} eq $val->{name};
+                        $d->{count}++;
+                    }
+                }
+                else {
+                    $seen->{$val->{name}} = 1;
+                    push @$result, {id=>$val->{col_id}, name => $val->{name}, count => 1};
+                }
+            }
+            $params->{columns} = $result;
+        }
+
+        template 'historic_purge' => $params;
+    };
+
     any ['get', 'post'] => '/purge/?' => require_login sub {
 
         my $layout = var('layout') or pass;
