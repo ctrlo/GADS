@@ -38,7 +38,8 @@ sub purge {
     for my $person (@people) {
         next if $person->layout_id != $self->layout_id;
         $schema->txn_do(sub {
-            $person->update({value => undef});
+            my $record = $schema->resultset('Person')->find($person->id);
+            $record->update({value => undef});
         });
     }
 }

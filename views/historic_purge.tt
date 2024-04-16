@@ -7,7 +7,7 @@
             table_class            = 'table-striped table-selectable';
             table_dom              = 't';
             table_language         = {
-              emptyTable => "There are records in this view.",
+              emptyTable => "There are no records in this view.",
             };
             table_show_all_records = 1;
             table_unresponsive     = 0;
@@ -104,13 +104,14 @@
                         }],
                 });
         END;
-        %]
-        [% INCLUDE tables/basic_table.tt; %]
-        [% INCLUDE fields/hidden.tt
+        INCLUDE tables/basic_table.tt;
+        INCLUDE fields/hidden.tt
+            name = 'columns'
+            value = column_list;
+           INCLUDE fields/hidden.tt
             name = 'records'
-            value = column_list
-        %]
-        [% INCLUDE navigation/button_bar.tt
+            value = record_list;
+        INCLUDE navigation/button_bar.tt
             row_class="row mt-5"
             columns = [{
                     class = "col-sm-auto mb-3 mb-sm-0"

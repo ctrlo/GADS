@@ -66,10 +66,14 @@ sub purge {
 sub _purge_strings {
     my $self = shift;
 
+    my $layout_id = $self->layout_id or die "Invalid Layout ID";
+    my $schema = $self->schema or die "Invalid Schema";
+    my $record = $self->record or die "Invalid Record";
+
     my $string_purger = GADS::Purge::StringPurger->new(
-        layout_id => $self->layout_id,
-        schema    => $self->schema,
-        record    => $self->record,
+        layout_id => $layout_id,
+        schema    => $schema,
+        record    => $record,
     );
     $string_purger->purge();
 }

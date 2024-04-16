@@ -36,7 +36,7 @@ sub purge {
     for my $string (@strings) {
         next if $string->layout_id != $self->layout_id;
         $schema->txn_do(sub {
-            my $value = $schema->restultset('strings')->search({ id => $string->id });
+            my $value = $schema->resultset('String')->search({ id => $string->id });
             $value->update({ value => undef });
         });
     }

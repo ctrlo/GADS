@@ -3,6 +3,8 @@ package GADS::Purge::Purger;
 use strict;
 use warnings;
 
+use GADS::Purge::RecordsPurger;
+
 use Moo;
 
 has record_id => (
@@ -40,6 +42,8 @@ sub purge {
     my $instance = $layout->instance;
     my @currents = $instance->currents;
 
+    my $total = 0;
+
     foreach my $current (@currents) {
         my @records = $current->records();
         my $purger = GADS::Purge::RecordsPurger->new(
@@ -49,7 +53,10 @@ sub purge {
             layout_type => $layout_type,
             records   => \@records);
         $purger->purge();
+        $total++;
     }
+
+    return $total;
 }
 
 1;

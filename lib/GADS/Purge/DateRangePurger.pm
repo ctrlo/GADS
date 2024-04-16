@@ -38,7 +38,8 @@ sub purge {
     for my $daterange (@dateranges) {
         next if $daterange->layout_id != $self->layout_id;
         $schema->txn_do(sub {
-            $daterange->update({
+            my $record = $schema->resultset('Daterange')->find($daterange->id);
+            $record->update({
                 from => undef,
                 to   => undef,
             });

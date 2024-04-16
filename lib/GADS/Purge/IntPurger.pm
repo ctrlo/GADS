@@ -38,7 +38,8 @@ sub purge {
     for my $intgr (@intgrs) {
         next if $intgr->layout_id != $self->layout_id;
         $schema->txn_do(sub {
-            $intgr->update({ value => undef });
+            my $record = $schema->resultset('Intgr')->find($intgr->id);
+            $record->update({ value => undef });
         });
     }
 }

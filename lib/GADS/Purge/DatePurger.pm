@@ -38,7 +38,8 @@ sub purge {
     for my $date (@dates) {
         next if $date->layout_id != $self->layout_id;
         $schema->txn_do(sub {
-            $date->update({value=>undef});
+            my $record = $schema->resultset('Date')->find($date->id);
+            $record->update({value=>undef});
         });
     }
 }

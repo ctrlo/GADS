@@ -56,6 +56,7 @@ use GADS::Instances;
 use GADS::Layout;
 use GADS::MetricGroup;
 use GADS::MetricGroups;
+use GADS::Purge::Purger;
 use GADS::Record;
 use GADS::Records;
 use GADS::RecordsGraph;
@@ -79,6 +80,7 @@ $huge = 'overflow';
 use Tie::Cache;
 use URI;
 use URI::Escape qw/uri_escape_utf8 uri_unescape/;
+use List::Util qw/uniq/;
 
 use Log::Log4perl qw(:easy); # Just for WWW::Mechanize::Chrome
 use WWW::Mechanize::Chrome;
@@ -3060,6 +3062,7 @@ prefix '/:layout_name' => sub {
                     $result->{name} = $column->{name};
                     $result->{id} = $column->{data}->{record_id};
                     $result->{value} = $column->{data}->{value};
+                    print STDERR "$_\n" for keys %{$column};
                     push @$record_data, $result;
                 }
             }
@@ -3071,26 +3074,29 @@ prefix '/:layout_name' => sub {
             $params->{page} = 'purge_stage_2';
             $params->{records} = $record_data;
             my @mapped_ids = map {$_->{col_id}} @$record_data;
+            my @mapped_records = uniq map {$_->{id}} @$record_data;
             $params->{column_list} = join(',', @mapped_ids);
+            $params->{record_list} = join(',', @mapped_records);
         }elsif(param 'purge') {
-            $params->{page} = 'purge_stage_3';
-            if(process(sub {
-                my $once = 0;
-                while (my $record = $records->single) {
-                    foreach my $column (@{$record->columns_render}) {
-                        next if ($column->internal);
-                        $once = 1;
-                        $column->purge;
-                    }
+            my $columns = body_parameters->get('columns') or error __"Unable to get columns";
+            my $rids = body_parameters->get('records') or error __"Unable to get records";
+            my @mapped_ids = split(/,/,$columns);
+            my @mapped_records = split(/,/,$rids);
+            my $total = 0;
+            foreach my $r (@mapped_records) {
+                foreach my $l (@mapped_ids) {
+                    print STDERR "$r\n";
+                    print STDERR "$l\n";
+                    my $purger= GADS::Purge::Purger->new(
+                        record_id => $r,
+                        layout_id => $l,
+                        schema    => schema,
+                    );
+                    $total += $purger->purge;
                 }
-                if(!$once) {
-                    error __"Nothing happened!";
-                }
-            })){
-                return forwardHome({ success => "Records have now been purged" }, $layout->identifier.'/data');
-            }else{
-                return forwardHome({ danger => "There was an error purging the records" }, $layout->identifier.'/data');
             }
+            forwardHome({ success => "$total records have now been purged" }, $layout->identifier) if $total;
+            forwardHome({ danger => "No records were purged" }, $layout->identifier) unless $total;
         }else {
             my $result = [];
             my $seen = {};
