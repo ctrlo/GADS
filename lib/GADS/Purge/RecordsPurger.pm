@@ -41,7 +41,7 @@ sub purge {
 
     my $count = 0;
     foreach my $record (@{$self->records}) {
-        next unless $record->current_id == $self->record_id;
+        next unless $record->id == $self->record_id;
         $self->purge_record($record);
         $count++;
     }
