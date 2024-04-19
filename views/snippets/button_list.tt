@@ -58,7 +58,7 @@
       >
         <span class="btn__title">[%- button.label || button.name | html -%]</span>
       </button>
-      [% ELSIF button.type == "button_list"; %]
+      [% ELSIF button.type == "button_list" && layout.user_can('download') %]
         <div class="dropdown [% custom_classes %]">
           <button
             class="dropdown-toggle dropdown__toggle"
