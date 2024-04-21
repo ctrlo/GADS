@@ -175,9 +175,14 @@ sub write_cache
     }, {
         order_by => "me.$vfield",
     });
+    # If we use the layout from the column then it may have the wrong instance
+    # ID if it was initially created with another instance ID. At some point
+    # this can hopefully be removed once the layout object can be reused across
+    # columns from different instances
+    my $layout = $self->column->layout->clone(instance_id => $self->column->instance_id);
     my $records = GADS::Records->new(
         user    => undef, # Do not want to limit by user
-        layout  => $self->column->layout,
+        layout  => $layout,
         schema  => $self->schema,
     );
     # As part of the update, write any new unique values and delete any old
@@ -192,8 +197,11 @@ sub write_cache
                 my $sv = $oldval && $self->column->value_field eq 'value_date'
                     ? $formatter->format_date($oldval)
                     : $oldval;
+                # Ignore values from this record itself as it hasn't been
+                # written. Ignore blank values which may return true even if
+                # not used.
                 $self->_delete_unique($vfield => $oldval)
-                    unless $records->find_unique($self->column, $sv);
+                    unless $sv && $records->find_unique($self->column, $sv, ignore_current_id => $self->record->current_id);
             }
         }
     }
@@ -236,7 +244,7 @@ sub write_cache
                     ? $formatter->format_date($old_value)
                     : $old_value;
                 $self->_delete_unique(%old)
-                    unless $records->find_unique($self->column, $sv);
+                    unless $sv && $records->find_unique($self->column, $sv, ignore_current_id => $self->record->current_id);
                 $self->_write_unique(%to_write);
             }
         }
