@@ -641,7 +641,7 @@ sub find_deleted_recordid
 
 # Returns new GADS::Record object, doesn't change current one
 sub find_unique
-{   my ($self, $column, $value, @retrieve_columns) = @_;
+{   my ($self, $column, $value, %params) = @_;
 
     return $self->find_current_id($value)
         if $column->id == $self->layout->column_id;
@@ -656,7 +656,7 @@ sub find_unique
         schema  => $self->schema,
     );
 
-    my $record = $records->find_unique($column, $value, @retrieve_columns);
+    my $record = $records->find_unique($column, $value, %params);
 
     # Horrible hack. The record of layout will have been overwritten during the
     # above searches. Needs to be changed back to this record.

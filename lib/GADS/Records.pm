@@ -24,6 +24,7 @@ use DateTime::Format::Strptime qw( );
 use DBIx::Class::Helper::ResultSet::Util qw(correlate);
 use DBIx::Class::ResultClass::HashRefInflator;
 use GADS::Config;
+use GADS::Filter;
 use GADS::Graph::Data;
 use GADS::Record;
 use GADS::Timeline;
@@ -660,19 +661,35 @@ sub search_view
 }
 
 sub find_unique
-{   my ($self, $column, $value, @retrieve_columns) = @_;
+{   my ($self, $column, $value, %params) = @_;
+
+    my @retrieve_columns = $params{retrieve_columns} && @{$params{retrieve_columns}};
 
     # First create a view to search for this value in the column.
-    my $filter = encode_json({
-        rules => [{
-            field       => $column->id,
-            id          => $column->id,
-            type        => $column->type,
-            value       => $value,
-            value_field => $column->value_field_as_index($value), # May need to use value ID instead of string as search
-            operator    => 'equal',
-        }]
+    my @rules = ({
+        field       => $column->id,
+        id          => $column->id,
+        type        => $column->type,
+        value       => $value,
+        value_field => $column->value_field_as_index($value), # May need to use value ID instead of string as search
+        operator    => 'equal',
     });
+
+    push @rules, ({
+        field       => $self->layout->column_id->id,
+        id          => $self->layout->column_id->id,
+        type        => 'string',
+        value       => $params{ignore_current_id},
+        operator    => 'not_equal',
+    }) if $params{ignore_current_id};
+
+    my $filter = GADS::Filter->new(
+        as_hash => {
+            rules     => \@rules,
+            condition => 'AND',
+        },
+    );
+
     my $view = GADS::View->new(
         filter      => $filter,
         instance_id => $self->layout->instance_id,
