@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
+
 import { Component, initializeRegisteredComponents } from 'component'
 import 'datatables.net'
 import 'datatables.net-buttons'
@@ -603,7 +604,6 @@ class DataTableComponent extends Component {
     conf['initComplete'] = (settings, json) => {
       const tableElement = this.el
       const dataTable = tableElement.DataTable()
-      const self = this
 
       this.json = json || undefined
 
@@ -645,11 +645,11 @@ class DataTableComponent extends Component {
     }
 
     conf['footerCallback'] = function() {
-      var api = this.api()
+      const api = this.api();
       // Add aggregate values to table if configured
-      var agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate
+      const agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate;
       if (agg) {
-        var cols = api.settings()[0].oAjaxData.columns
+        const cols = api.settings()[0].oAjaxData.columns;
         api.columns().every( function () {
           const idx = this.index()
           const {name} = cols[idx]
@@ -683,8 +683,8 @@ class DataTableComponent extends Component {
           id: 'full-screen-btn'
         },
         className: 'btn btn-small btn-toggle-off',
-        action: function ( e ) {
-          self.toggleFullScreenMode(e)
+        action: ( e ) => {
+          this.toggleFullScreenMode(e)
         }
       }
     ]
@@ -700,13 +700,9 @@ class DataTableComponent extends Component {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toggleFullScreenMode(buttonElement) {
     const fullScreenButton = document.querySelector('#full-screen-btn');
-    if (!fullScreenButton) {
-      console.warn('Missing full screen button.');
-    }
+    if (!fullScreenButton) console.warn('Missing full screen button.');
     const currentTable = document.querySelector('.dataTables_wrapper');
-    if (!currentTable) {
-      console.warn('Failed to toggle full screen; missing data table.');
-    }
+    if (!currentTable) console.warn('Failed to toggle full screen; missing data table.');
     const isFullScreen = fullScreenButton.classList.contains('btn-toggle');
     if (!isFullScreen) {
       // Create new modal
@@ -718,6 +714,12 @@ class DataTableComponent extends Component {
       // Move data table into new modal
       newModal.append(currentTable);
       document.body.appendChild(newModal);
+
+      $(document).on("keyup", (ev)=>{
+        if(ev.key === "Escape") {
+          this.toggleFullScreenMode(buttonElement)
+        }
+      });
     } else {
       // Move data table back to original page
       const mainContent = document.querySelector('.content-block__main-content');
@@ -730,34 +732,12 @@ class DataTableComponent extends Component {
 
       // Remove the modal
       document.querySelector('#table-modal').remove();
+
+      $(document).off("keyup");
     }
 
     // Toggle the full screen button
     $(fullScreenButton).toggleClass(['btn-toggle', 'btn-toggle-off'])
-  }
-
-  exitFullScreenMode(conf) {
-    conf.responsive = this.originalResponsiveObj
-    this.el.DataTable().destroy();
-    this.el.DataTable(conf)
-    this.initializingTable = true
-    // See comments above regarding preventing multiple clicks
-    if(!this.forceButtons)
-      this.el.DataTable().button(0).disable();
-  }
-
-  setFullscreenTableContainerHeight() {
-    const $dataTableContainer = this.el.parent()
-    const $dataTableWrapper = $dataTableContainer.closest('.dataTables_wrapper')
-    const tableWrapperHeight = $dataTableWrapper.innerHeight()
-    const tableHeaderHeight = $dataTableWrapper.find('.row--header') ? $dataTableWrapper.find('.row--header').innerHeight() : 0
-    const tableFooterHeight = $dataTableWrapper.find('.row--footer') ? $dataTableWrapper.find('.row--footer').innerHeight() : 0
-    const viewportHeight = window.innerHeight
-    const margins = 128
-
-    if (tableWrapperHeight > viewportHeight) {
-      $dataTableContainer.height(viewportHeight - tableHeaderHeight - tableFooterHeight - margins);
-    }
   }
 
   bindClickHandlersAfterDraw(conf) {
