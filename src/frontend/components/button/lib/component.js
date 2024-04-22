@@ -270,6 +270,7 @@ class ButtonComponent extends Component {
         this.requiredHiddenRecordDependentFieldsCleared = false
       }
     }
+    $button.prop("disabled", this.requiredHiddenRecordDependentFieldsCleared);
   }
 
   saveView(ev) {
