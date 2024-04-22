@@ -206,6 +206,11 @@ class CodeLayoutBuilder extends LayoutBuilderBase implements ICodeLayoutBuilder 
                 .click();
             cy.get("textarea[name='code_calc']")
                 .type(this.code);
+            cy.get("#btn-show_in_edit")
+                .click();
+            cy.get("li")
+                .contains("Yes")
+                .click();
         } else {
             throw new Error("Invalid layout type");
         }
