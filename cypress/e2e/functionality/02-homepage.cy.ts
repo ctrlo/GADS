@@ -1,4 +1,4 @@
-import { goodPassword, goodUser } from "../../support/commands";
+import { goodPassword, goodUser } from "../../support/constants";
 
 describe('Dashboard Tests', () => {
   const bigLipsum = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque accumsan, sem et vulputate imperdiet, enim ipsum rhoncus massa, sit amet pellentesque lacus urna sit amet enim. In tristique mollis tincidunt. Sed eget ligula metus. Integer sodales placerat erat. Aliquam erat volutpat. Curabitur varius lacinia diam fringilla efficitur. Sed euismod purus vel turpis molestie, ac fringilla nisi vestibulum. Maecenas ullamcorper ornare dui sodales gravida. Donec maximus egestas eleifend. Etiam in ultrices ante. Duis quis volutpat turpis. Nulla dignissim ornare aliquet.

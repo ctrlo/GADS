@@ -1,32 +1,9 @@
 /// <reference types="cypress" />
 
-import { LUACode } from "../../src/frontend/js/lib/util/formatters/lua";
-
-type LayoutType = "TEXT" | "INTEGER" | "DATE" | "DATE-RANGE" | "DROPDOWN" | "TREE" | "DOCUMENT" | "PERSON" | "RAG" | "CALC" | "CURVAL" | "AUTOCUR";
-
-export interface IBuildable {
-    build(): void;
-    build(navigate:boolean): void;
-}
-
-export interface ILayoutBuilder extends IBuildable {
-    withName(name: string): this;
-    withShortName(shortname?: string): this;
-    checkField(): void;
-}
-
-export interface IDropdownLayoutBuilder extends ILayoutBuilder {
-    addOption(option: string): this;
-}
-
-export interface ICodeLayoutBuilder extends ILayoutBuilder {
-    withCode(code: LUACode): this;
-}
-
-export interface ICurvalLayoutBuilder extends ILayoutBuilder {
-    withReference(reference: string): this;
-    withField(field: string): this;
-}
+import { LUACode } from "../../../../src/frontend/js/lib/util/formatters/lua";
+import { ICodeLayoutBuilder, ICurvalLayoutBuilder, IDropdownLayoutBuilder, ILayoutBuilder } from "./interfaces";
+import { translateLayoutToDropdown, translateLayoutType } from "./functions";
+import { LayoutType } from "./types";
 
 export class LayoutBuilder {
     public static create(layoutType: LayoutType) {
@@ -52,42 +29,6 @@ export class LayoutBuilder {
         }
     }
 }
-
-function translateLayoutToDropdown(type:LayoutType) {
-    switch (type) {
-        case "TEXT": return "Text";
-        case "INTEGER": return "Integer";
-        case "DATE": return "Date";
-        case "DATE-RANGE": return "Date range";
-        case "DROPDOWN": return "Dropdown list";
-        case "TREE": return "Tree";
-        case "DOCUMENT": return "Document";
-        case "PERSON": return "Person";
-        case "RAG": return "RedAmberGreen status (RAG)";
-        case "CALC": return "Calculated value";
-        case "CURVAL": return "Field(s) for records from another table";
-        case "AUTOCUR": return "Automatic value of other sheet's references to this one";
-        default: throw new Error("Invalid layout type");
-    }
-}
-
-function translateLayoutType(type: LayoutType) {
-    switch (type) {
-        case "TEXT": return "Text";
-        case "INTEGER": return "Integer";
-        case "DATE": return "Date";
-        case "DATE-RANGE": return "Date range";
-        case "DROPDOWN": return "Select";
-        case "TREE": return "Tree";
-        case "DOCUMENT": return "File";
-        case "PERSON": return "Person";
-        case "RAG": return "RedAmberGreen (RAG) status";
-        case "CALC": return "Calculated value";
-        case "CURVAL": return "Record from other data sheet";
-        case "AUTOCUR": return "autocur";
-        default: throw new Error("Invalid layout type");
-    }
-};
 
 abstract class LayoutBuilderBase implements ILayoutBuilder {
     protected name: string;

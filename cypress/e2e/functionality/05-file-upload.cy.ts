@@ -1,4 +1,4 @@
-import { goodPassword, goodUser } from "../../support/commands";
+import { goodPassword, goodUser } from "../../support/constants";
 
 describe('Files upload', () => {
     beforeEach(() => {

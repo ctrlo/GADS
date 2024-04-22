@@ -1,12 +1,10 @@
+/* eslint-disable @typescript-eslint/no-namespace */
 /// <reference types="cypress" />
 
-import { IBuildable } from "./LayoutBuilder";
+import { IBuildable } from "./builders/layout/interfaces";
+import { instanceMode } from "./constants";
 
-type instanceMode = "layout" | "permissions" | "topics" | "edit" | "data" | "report" | undefined;
-
-export { 
-    instanceMode
-}
+export { }
 
 declare global {
     namespace Cypress {
@@ -133,9 +131,6 @@ declare global {
         }
     }
 }
-
-export const goodUser = "test@example.com";
-export const goodPassword = "xyz123";
 
 Cypress.Commands.add('getByName', (name: string) => cy.get(`[name=${name}]`));
 

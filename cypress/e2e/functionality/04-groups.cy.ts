@@ -1,4 +1,4 @@
-import { goodPassword, goodUser } from "../../support/commands";
+import { goodPassword, goodUser } from "../../support/constants";
 
 describe('Group Test', () => {
     beforeEach(() => {
@@ -8,7 +8,7 @@ describe('Group Test', () => {
     });
 
     it('should create a group successfully', () => {
-        const groupName = 'long temporary value to test special char\'<\a><;[{END\"';
+        const groupName = 'long temporary value to test special char\'<\\a><;[{END\\"';
 
         cy.contains('a', 'Add group').click();
         cy.location("pathname").should("include", "/group_add/");
@@ -20,14 +20,14 @@ describe('Group Test', () => {
     });
 
     it('should access a group and cancel', () => {
-        const groupName = 'long temporary value to test special char\'<\a><;[{END\"';
+        const groupName = 'long temporary value to test special char\'<\\a><;[{END\\"';
         cy.contains('a', groupName).click();
         cy.location("pathname").should("include", "group_edit/");
         cy.contains('a.btn-cancel', 'Cancel').click();
     });
 
     it('should delete a group and cancel', () => {
-        const groupName = 'long temporary value to test special char\'<\a><;[{END\"';
+        const groupName = 'long temporary value to test special char\'<\\a><;[{END\\"';
         cy.contains('tr', groupName).within(() => {
             cy.get('.btn-delete').click();
         });
@@ -37,7 +37,7 @@ describe('Group Test', () => {
     });
 
     it('should edit and delete a group', () => {
-        const groupName = 'long temporary value to test special char\'<\a><;[{END\"';
+        const groupName = 'long temporary value to test special char\'<\\a><;[{END\\"';
         cy.contains('a', groupName).click();
         cy.location("pathname").should("include", "group_edit/");
         cy.get('#name').type('to Be deleted');
