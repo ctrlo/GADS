@@ -1,5 +1,18 @@
 name: 'GADS Tests'
-on: [ 'push', 'pull_request' ]
+on: 
+  push:
+    branches:
+      - master
+      - dev
+      - hotfix
+  pull_request:
+    branches:
+      - master
+      - dev
+      - hotfix
+    paths-ignore:
+      - '*.md'
+      - VERSION
 
 jobs:
   unit_tests:
