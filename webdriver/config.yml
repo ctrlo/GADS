@@ -22,7 +22,7 @@ plugins:
         session_messages: [ NOTICE, MISTAKE, ERROR, FAULT, ALERT, FAILURE, PANIC ]
     DBIC:
         default:
-            dsn: dbi:Pg:database=linkspace;host=localhost;port=5432
+            dsn: dbi:Pg:database=linkspace
             schema_class: GADS::Schema
             user: linkspace
             password: linkspace
