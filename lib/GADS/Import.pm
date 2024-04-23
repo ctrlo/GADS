@@ -566,7 +566,7 @@ sub _import_rows
                             $record->initialise;
                         }
                     }
-                    elsif (my $existing = $record->find_unique($self->layout->column($self->update_unique), $unique_value, @all_column_ids))
+                    elsif (my $existing = $record->find_unique($self->layout->column($self->update_unique), $unique_value, retrieve_columns => \@all_column_ids))
                     {
                         $record = $existing;
                     }
