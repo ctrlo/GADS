@@ -846,7 +846,7 @@
                               id    = "show_in_edit"
                               name  = "show_in_edit"
                               label = "Is this field used when editing records:"
-                              value = column.show_in_edit || '2'
+                              value = column.show_in_edit==0 ? '0' : '2'
                               items = [
                                 {id = "0", name = "No"},
                                 {id = "1", name = "Yes"},
