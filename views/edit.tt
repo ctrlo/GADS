@@ -1016,7 +1016,7 @@
       IF col.type == "date";
         field_input_class = "input--date";
         field_placeholder = config.dateformat_datepicker;
-        dateformat        = config.dateformat_datepicker;
+        field_dateformat  = config.dateformat_datepicker;
   
         IF col.show_datepicker AND !readonly;
           field_input_class = field_input_class _ " input--datepicker";
@@ -1040,6 +1040,7 @@
           field_input_class = field_input_class
           input_class  = field_input_class
           placeholder  = field_placeholder
+          dateformat   = field_dateformat
           help_text    = col.description
           popover_body = col.helptext_html
           filter       = "html"
@@ -1055,6 +1056,7 @@
           value        = editvalue.html_form.shift
           input_class  = field_input_class
           placeholder  = field_placeholder
+          dateformat   = field_dateformat
           help_text    = col.description
           popover_body = col.helptext_html
           filter       = "html"

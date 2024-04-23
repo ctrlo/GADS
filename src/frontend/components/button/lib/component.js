@@ -29,7 +29,10 @@ class ButtonComponent extends Component {
         this.initDelete()
         break
       case this.el.hasClass('btn-js-submit-field'):
-        this.initSubmitField()
+        import(/* webpackChunkName: "submit-field-button" */ "./submit-field-button.js")
+            .then(({ default: SubmitFieldButtonComponent }) => {
+                new SubmitFieldButtonComponent(this.element);
+            });
         break
       case this.el.hasClass('btn-js-add-all-fields'):
         this.initAddAllFields()
@@ -41,7 +44,10 @@ class ButtonComponent extends Component {
         this.initSubmitRecord()
         break
       case this.el.hasClass('btn-js-save-view'):
-        this.initSaveView()
+        import(/* webpackChunkName: "save-view-button" */ './save-view-button.js')
+            .then(({ default: SaveViewButtonComponent }) => {
+              new SaveViewButtonComponent(this.element);
+            });
         break
       case this.el.hasClass('btn-js-show-blank'):
         this.initShowBlank()
@@ -85,7 +91,7 @@ class ButtonComponent extends Component {
           const curvalItem=$btn.closest(".table-curval-item");
           const parent = curvalItem.parent();
           curvalItem.remove();
-          if(parent && parent.children().length==1) {
+          if(parent && parent.children().length===1) {
             parent.children('.odd').children('.dataTables_empty').show();
           }
         } else {
@@ -118,30 +124,12 @@ class ButtonComponent extends Component {
     })
   }
 
-  initSubmitField() {
-    this.el.on('click', (ev) => { this.submitField(ev) })
-  }
-
   initSubmitDraftRecord() {
     this.el.on('click', (ev) => { this.submitDraftRecord(ev) })
   }
 
   initSubmitRecord() {
     this.el.on('click', (ev) => { this.submitRecord(ev) })
-  }
-
-  initSaveView() {
-    const $form = this.el.closest('form');
-    const $global = $form.find('#global');
-    $global.on('change', (ev) => {
-      const $input = $form.find('input[type=hidden][name=group_id]');
-      if (ev.target.checked) {
-        $input.attr('required', 'required');
-      } else {
-        $input.removeAttr('required');
-      }
-    });
-    this.el.on('click', (ev) => { this.saveView(ev) })
   }
 
   initRemoveUnload() {
@@ -152,71 +140,6 @@ class ButtonComponent extends Component {
 
   initDelete() {
     this.el.on('click', (ev) => { this.dataToModal(ev) })
-  }
-
-  submitField(ev) {
-    const $jstreeContainer = $('#field_type_tree')
-    const $jstreeEl = $('#tree-config .tree-widget-container')
-
-    const $displayConditionsBuilderEl = $('#displayConditionsBuilder')
-    const res = $displayConditionsBuilderEl.length && $displayConditionsBuilderEl.queryBuilder('getRules')
-    const $displayConditionsField = $('#displayConditions')
-
-    const $instanceIDField = $('#refers_to_instance_id')
-    const $filterEl = $instanceIDField.length && $(`[data-builder-id='${$instanceIDField.val()}']`)
-
-    const $permissionTable = $('#default_field_permissions_table');
-
-    let bUpdateTree = false
-    let bUpdateFilter = false
-    let bUpdateDisplayConditions = false
-
-    if (($jstreeContainer.length && $jstreeContainer.is(':visible') && $jstreeEl.length) || (!$jstreeContainer.length && $jstreeEl.length)) {
-      bUpdateTree = true
-    }
-
-    if ($instanceIDField.length && !$instanceIDField.prop('disabled') && $filterEl.length) {
-      bUpdateFilter = true
-    }
-
-    if (res && $displayConditionsField.length) {
-      bUpdateDisplayConditions = true
-    }
-
-    if (bUpdateTree) {
-      const v = $jstreeEl.jstree(true).get_json('#', { flat: false })
-      const mytext = JSON.stringify(v)
-      const data = $jstreeEl.data()
-
-      $.ajax({
-        async: false,
-        type: 'POST',
-        url: this.getURL(data),
-        data: { data: mytext, csrf_token: data.csrfToken }
-      }).done(() => {
-        // eslint-disable-next-line no-alert
-        alert('Tree has been updated')
-      })
-    }
-
-    if (bUpdateFilter) {
-      window.UpdateFilter($filterEl, ev)
-    }
-
-    if (bUpdateDisplayConditions) {
-      $displayConditionsField.val(JSON.stringify(res, null, 2))
-    }
-
-    /* By default, if the permissions datatable is paginated, then the
-     * permission checkboxes on other pages will not be submitted and will
-     * therefore be cleared. This code gets all the inputs in the datatable
-     * and appends them to the form manually */
-    var $inputs = $permissionTable.DataTable().$('input,select,textarea')
-    $inputs.hide() // Stop them appearing to the user in a strange format
-    let $form = $(ev.currentTarget).closest('form')
-    $permissionTable.remove()
-    $form.append($inputs)
-
   }
 
   submitDraftRecord(ev) {
@@ -270,21 +193,7 @@ class ButtonComponent extends Component {
         this.requiredHiddenRecordDependentFieldsCleared = false
       }
     }
-  }
-
-  saveView(ev) {
-    const $form = $(ev.target).closest('form');
-    if(!validateRequiredFields($form)) ev.preventDefault();
-    const select = $form.find('input[type=hidden][name=group_id]');
-    if(select.val() === 'allusers') {
-      select.val('');
-      select.removeAttr('required');
-    }
-    $(".filter").each((i, el) => {
-      if (!$(el).queryBuilder('validate')) ev.preventDefault();
-      const res = $(el).queryBuilder('getRules')
-      $(el).next('#filter').val(JSON.stringify(res, null, 2))
-    })
+    $button.prop("disabled", this.requiredHiddenRecordDependentFieldsCleared);
   }
 
   getURL(data) {

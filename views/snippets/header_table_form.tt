@@ -68,8 +68,6 @@
               });
             END;
 
-            INCLUDE 'extension/record_edit_extra.tt';
-
             IF user.permission.link;
               record_edit_buttons.push({
                 type          = "link",

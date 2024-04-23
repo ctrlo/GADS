@@ -373,7 +373,7 @@ while (my $row = $csv->getline($fh))
                         $skip = 1;
                     }
                 }
-                elsif (my $existing = $record->find_unique($update_unique_col, $input->{$unique_field}, @all_column_ids))
+                elsif (my $existing = $record->find_unique($update_unique_col, $input->{$unique_field}, retrieve_columns => \@all_column_ids))
                 {
                     $record = $existing;
                 }
