@@ -33,7 +33,7 @@ GADS as a system uses a number of languages in it's implementation, these includ
 
 ## Contributing
 
-Contributing to this project can be achieved through opening pull requests to the UIUX branch. The following requirements are to be met before a pull request is even considered:
+Contributing to this project can be achieved through opening pull requests to the dev branch. The following requirements are to be met before a pull request is even considered:
 
 - All code and exernal libraries are to be fully [ISO:27001](https://www.iso.org/standard/27001) compliant
 - All pull requests and commit messages are to have explicit titles, as well as comprehensive descriptions as far as is possible
