@@ -1,6 +1,6 @@
 import { LayoutType } from "./types";
 
-function translateLayoutToDropdown(type:LayoutType) {
+function translateLayoutToDropdown(type: LayoutType) {
     switch (type) {
         case "TEXT": return "Text";
         case "INTEGER": return "Integer";

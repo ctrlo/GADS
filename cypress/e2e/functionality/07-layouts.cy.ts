@@ -13,7 +13,7 @@ describe("Layout creation tests", () => {
     context("Simple layout creation", () => {
         ["TEXT", "INTEGER", "DATE", "DATE-RANGE", "DOCUMENT", "PERSON", "TREE"].forEach((layoutType) => {
             it(`Should create ${layoutType} layout`, () => {
-                const builder:ILayoutBuilder = LayoutBuilder.create(<any>layoutType) as ILayoutBuilder;
+                const builder: ILayoutBuilder = LayoutBuilder.create(<any>layoutType) as ILayoutBuilder;
                 builder
                     .withName("test1")
                     .withShortName("t1");
@@ -31,7 +31,7 @@ describe("Layout creation tests", () => {
         it("Should error on creating a RAG layout with invalid code", () => {
             const refField = LayoutBuilder.create("TEXT");
             refField.withName("refField").withShortName(refShortName);
-            const builder:ICodeLayoutBuilder = LayoutBuilder.create("RAG") as ICodeLayoutBuilder;
+            const builder: ICodeLayoutBuilder = LayoutBuilder.create("RAG") as ICodeLayoutBuilder;
             builder
                 .withName("test1")
                 .withShortName("t1")
@@ -59,7 +59,7 @@ end
         it("Should create a RAG layout with valid code", () => {
             const refField = LayoutBuilder.create("TEXT");
             refField.withName("refField").withShortName(refShortName);
-            const builder:ICodeLayoutBuilder = LayoutBuilder.create("RAG") as ICodeLayoutBuilder;
+            const builder: ICodeLayoutBuilder = LayoutBuilder.create("RAG") as ICodeLayoutBuilder;
             builder
                 .withName("test1")
                 .withShortName("t1")
@@ -81,7 +81,7 @@ end
         it("Should error on creating a CALC layout with invalid code", () => {
             const refField = LayoutBuilder.create("TEXT");
             refField.withName("refField").withShortName(refShortName);
-            const builder:ICodeLayoutBuilder = LayoutBuilder.create("CALC") as ICodeLayoutBuilder;
+            const builder: ICodeLayoutBuilder = LayoutBuilder.create("CALC") as ICodeLayoutBuilder;
             builder
                 .withName("test1")
                 .withShortName("t1")
@@ -102,7 +102,7 @@ end
         it("Should create a CALC layout with valid code", () => {
             const refField = LayoutBuilder.create("TEXT");
             refField.withName("refField").withShortName(refShortName);
-            const builder:ICodeLayoutBuilder = LayoutBuilder.create("CALC") as ICodeLayoutBuilder;
+            const builder: ICodeLayoutBuilder = LayoutBuilder.create("CALC") as ICodeLayoutBuilder;
             builder
                 .withName("test1")
                 .withShortName("t1")
@@ -124,7 +124,7 @@ end
 
     context("Layout creation with dropdown", () => {
         it("Creates a dropdown", () => {
-            const builder:IDropdownLayoutBuilder = LayoutBuilder.create("DROPDOWN") as IDropdownLayoutBuilder;
+            const builder: IDropdownLayoutBuilder = LayoutBuilder.create("DROPDOWN") as IDropdownLayoutBuilder;
             builder
                 .withName("test1")
                 .withShortName("t1")
@@ -140,8 +140,8 @@ end
         });
     });
 
-    context("Layout creation with Curval", ()=>{
-        it("Creates a Curval with reference", ()=>{
+    context("Layout creation with Curval", () => {
+        it("Creates a Curval with reference", () => {
             const refName = "refField";
             const refTable = "curval";
             // Create reference table
@@ -155,7 +155,7 @@ end
             // Go to table1
             cy.gotoInstanceByShortName("table1", "layout")
             // Create curval field with reference to reference field
-            const builder:ICurvalLayoutBuilder = LayoutBuilder.create("CURVAL") as ICurvalLayoutBuilder;
+            const builder: ICurvalLayoutBuilder = LayoutBuilder.create("CURVAL") as ICurvalLayoutBuilder;
             builder
                 .withName("test1")
                 .withShortName("t1")
@@ -164,7 +164,7 @@ end
             // Check the field exists and doesn't error
             cy.createLayout(builder);
             builder.checkField();
-            
+
             // Delete the field
             cy.gotoInstanceByShortName("table1", "layout");
             cy.deleteLayoutByShortName("t1");

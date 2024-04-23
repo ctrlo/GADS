@@ -89,14 +89,14 @@ declare global {
              * @param builder The layout builder to use to create the layout
              * @example cy.createLayout(LayoutBuilder.createBuilder('TEXT').setName('test').setShortName('t'))
              */
-            createLayout(builder:IBuildable):void;
+            createLayout(builder: IBuildable): void;
             /**
              * Create a layout in the system
              * @param builder The layout builder to use to create the layout
              * @param navigate Whether to navigate to the layout page before creating the layout
              * @example cy.createLayout(LayoutBuilder.createBuilder('TEXT').setName('test').setShortName('t'), true)
              */
-            createLayout(builder: IBuildable, navigate:boolean): void;
+            createLayout(builder: IBuildable, navigate: boolean): void;
             /**
              * Delete a layout by short name
              * @param shortName The short name of the layout to delete
@@ -109,13 +109,13 @@ declare global {
              * @param navigate Whether to navigate to the layout page before deleting the layout
              * @example cy.deleteLayoutByShortName('t')
              */
-            deleteLayoutByShortName(shortName: string, navigate:boolean): void;
+            deleteLayoutByShortName(shortName: string, navigate: boolean): void;
             /**
              * Create an instance in the system
              * @param instanceName The name of the instance to create
              * @example cy.createInstance('Test Instance')
              */
-            createInstance(instanceName: string, shortName?:string): void;
+            createInstance(instanceName: string, shortName?: string): void;
             /**
              * Go to an instance by short name
              * @param shortName The short name of the instance to go to
@@ -201,7 +201,7 @@ Cypress.Commands.add('deleteGroup', (title: string) => {
     cy.get('.btn.btn-danger').click();
 });
 
-Cypress.Commands.add('createLayout', (builder: IBuildable, navigate:boolean = false) => {
+Cypress.Commands.add('createLayout', (builder: IBuildable, navigate: boolean = false) => {
     builder.build(navigate);
 });
 
@@ -231,7 +231,7 @@ Cypress.Commands.add('deleteLayoutByShortName', (shortName: string, navigate: bo
         .click();
 });
 
-Cypress.Commands.add("createInstance", (instanceName: string, shortname:string = instanceName.toLocaleLowerCase().replace(" ","")) => {
+Cypress.Commands.add("createInstance", (instanceName: string, shortname: string = instanceName.toLocaleLowerCase().replace(" ", "")) => {
     cy.visit("http://localhost:3000/table");
     cy.get("button")
         .contains("New table")

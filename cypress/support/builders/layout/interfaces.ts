@@ -2,7 +2,7 @@ import { LUACode } from "../../../../src/frontend/js/lib/util/formatters/lua";
 
 interface IBuildable {
     build(): void;
-    build(navigate:boolean): void;
+    build(navigate: boolean): void;
 }
 
 interface ILayoutBuilder extends IBuildable {
