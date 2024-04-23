@@ -787,7 +787,7 @@
               <div class="col">
                 <div class="card card--expandable">
                   <div class="card__header">
-                    <button class="card__header-left" type="button" data-toggle="collapse" data-target="#calcValueFieldSettings" aria-expanded="false" aria-controls="calcValueFieldSettings">
+                    <button id="calcfield_card_header" class="card__header-left" type="button" data-toggle="collapse" data-target="#calcValueFieldSettings" aria-expanded="false" aria-controls="calcValueFieldSettings">
                       <span class="card__title">
                         Field settings for calculated value
                       </span>
