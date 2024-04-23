@@ -41,7 +41,10 @@ class ButtonComponent extends Component {
         this.initSubmitRecord()
         break
       case this.el.hasClass('btn-js-save-view'):
-        this.initSaveView()
+        import(/* webpackChunkName: "save-view-button" */ './save-view-button.js')
+            .then(({ default: SaveViewButtonComponent }) => {
+              new SaveViewButtonComponent(this.element);
+            });
         break
       case this.el.hasClass('btn-js-show-blank'):
         this.initShowBlank()
@@ -85,7 +88,7 @@ class ButtonComponent extends Component {
           const curvalItem=$btn.closest(".table-curval-item");
           const parent = curvalItem.parent();
           curvalItem.remove();
-          if(parent && parent.children().length==1) {
+          if(parent && parent.children().length===1) {
             parent.children('.odd').children('.dataTables_empty').show();
           }
         } else {
@@ -128,20 +131,6 @@ class ButtonComponent extends Component {
 
   initSubmitRecord() {
     this.el.on('click', (ev) => { this.submitRecord(ev) })
-  }
-
-  initSaveView() {
-    const $form = this.el.closest('form');
-    const $global = $form.find('#global');
-    $global.on('change', (ev) => {
-      const $input = $form.find('input[type=hidden][name=group_id]');
-      if (ev.target.checked) {
-        $input.attr('required', 'required');
-      } else {
-        $input.removeAttr('required');
-      }
-    });
-    this.el.on('click', (ev) => { this.saveView(ev) })
   }
 
   initRemoveUnload() {
@@ -271,21 +260,6 @@ class ButtonComponent extends Component {
       }
     }
     $button.prop("disabled", this.requiredHiddenRecordDependentFieldsCleared);
-  }
-
-  saveView(ev) {
-    const $form = $(ev.target).closest('form');
-    if(!validateRequiredFields($form)) ev.preventDefault();
-    const select = $form.find('input[type=hidden][name=group_id]');
-    if(select.val() === 'allusers') {
-      select.val('');
-      select.removeAttr('required');
-    }
-    $(".filter").each((i, el) => {
-      if (!$(el).queryBuilder('validate')) ev.preventDefault();
-      const res = $(el).queryBuilder('getRules')
-      $(el).next('#filter').val(JSON.stringify(res, null, 2))
-    })
   }
 
   getURL(data) {
