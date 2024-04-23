@@ -33,14 +33,14 @@ describe('Files upload', () => {
         cy.get(".modal")
             .find("input[type='file']")
             .invoke('show')
-            .selectFile("./cypress/fixtures/smiley.png", { force: true });
+            .selectFile("./cypress/fixtures/testfile.csv", { force: true });
         cy.contains("Submit").click();
         cy.get(".modal").should("not.be.visible");
         cy.get(".alert-success").should("be.visible").and("contain", "File has been uploaded");
         cy.getDataTable()
             .find("tbody")
             .find("tr")
-            .contains("smiley.png");
+            .contains("testfile.csv");
     });
 
     it("Should cancel deletion of a file", () => {
@@ -58,7 +58,7 @@ describe('Files upload', () => {
         cy.getDataTable()
             .find("tbody")
             .find("tr")
-            .contains("smiley.png");
+            .contains("testfile.csv");
     });
 
     it("Should delete a file", () => {
