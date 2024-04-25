@@ -13,8 +13,14 @@ GADS::Schema::Result::File
 use strict;
 use warnings;
 
-use base 'DBIx::Class::Core';
+use Moo;
+
+extends 'DBIx::Class::Core';
+sub BUILDARGS { $_[2] || {} }
+
 use MIME::Base64;
+
+with 'GADS::Role::Purge::FilePurgeable';
 
 =head1 COMPONENTS LOADED
 

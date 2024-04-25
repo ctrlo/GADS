@@ -56,7 +56,6 @@ use GADS::Instances;
 use GADS::Layout;
 use GADS::MetricGroup;
 use GADS::MetricGroups;
-use GADS::Purge::Purger;
 use GADS::Record;
 use GADS::Records;
 use GADS::RecordsGraph;
@@ -3053,16 +3052,22 @@ prefix '/:layout_name' => sub {
             $records->columns([@columns]);
         }
 
+        my %ignores = (
+            id => 1,
+            createddate => 1,
+            createdby => 1,
+            serial => 1,
+        );
+
         unless(param 'purge') {
             while (my $record = $records->single) {
                 foreach my $column (@{$record->presentation->{columns}}) {
-                    next if $column->{readonly};
+                    next if $ignores{$column->{type}};
                     my $result = +{};
                     $result->{col_id} = $column->{id};
                     $result->{name} = $column->{name};
                     $result->{id} = $column->{data}->{record_id};
                     $result->{value} = $column->{data}->{value};
-                    print STDERR "$_\n" for keys %{$column};
                     push @$record_data, $result;
                 }
             }
@@ -3077,27 +3082,22 @@ prefix '/:layout_name' => sub {
             my @mapped_records = uniq map {$_->{id}} @$record_data;
             $params->{column_list} = join(',', @mapped_ids);
             $params->{record_list} = join(',', @mapped_records);
-        }elsif(param 'purge') {
+        } elsif(param 'purge') {
             my $columns = body_parameters->get('columns') or error __"Unable to get columns";
             my $rids = body_parameters->get('records') or error __"Unable to get records";
             my @mapped_ids = split(/,/,$columns);
-            my @mapped_records = split(/,/,$rids);
+            my @records = split(/,/,$rids);
             my $total = 0;
-            foreach my $r (@mapped_records) {
-                foreach my $l (@mapped_ids) {
-                    print STDERR "$r\n";
-                    print STDERR "$l\n";
-                    my $purger= GADS::Purge::Purger->new(
-                        record_id => $r,
-                        layout_id => $l,
-                        schema    => schema,
-                    );
-                    $total += $purger->purge;
-                }
+            foreach my $r (@records) {
+                my $record = schema->resultset('Record')->find($r);
+                my $current_id = $record->current_id;
+                my $current = schema->resultset('Current')->find($current_id);
+                $current->historic_purge(@mapped_ids);
+                $total++;
             }
             forwardHome({ success => "$total records have now been purged" }, $layout->identifier) if $total;
             forwardHome({ danger => "No records were purged" }, $layout->identifier) unless $total;
-        }else {
+        } else {
             my $result = [];
             my $seen = {};
             foreach my $val (@$record_data) {
