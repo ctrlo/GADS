@@ -21,7 +21,7 @@ task 'cypress', sub {
 
 task 'clone', sub {
     chdir '/srv';
-    run "git clone https://github.com/droberts-ctrlo/gads -b cypress";
+    run "git clone https://github.com/ctrlo/gads";
 };
 
 task 'cpan', sub {
