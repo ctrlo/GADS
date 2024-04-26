@@ -20,7 +20,7 @@ sub BUILDARGS { $_[2] || {} }
 
 use MIME::Base64;
 
-with 'GADS::Purge::FilePurger';
+with 'GADS::Role::Purge::FilePurgeable';
 
 =head1 COMPONENTS LOADED
 
