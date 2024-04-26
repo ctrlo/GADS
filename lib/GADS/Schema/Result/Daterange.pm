@@ -13,7 +13,12 @@ GADS::Schema::Result::Daterange
 use strict;
 use warnings;
 
-use base 'DBIx::Class::Core';
+use Moo;
+
+extends 'DBIx::Class::Core';
+sub BUILDARGS { $_[2] || {} }
+
+with 'GADS::Role::Purge::DateRangePurgable';
 
 =head1 COMPONENTS LOADED
 

@@ -10,7 +10,12 @@ GADS::Schema::Result::String
 use strict;
 use warnings;
 
-use base 'DBIx::Class::Core';
+use Moo;
+
+extends 'DBIx::Class::Core';
+sub BUILDARGS;
+
+with 'GADS::Role::Purge::StringPurgable';
 
 =head1 COMPONENTS LOADED
 

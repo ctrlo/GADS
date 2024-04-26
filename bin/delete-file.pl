@@ -9,24 +9,32 @@ use lib "$FindBin::Bin/../lib";
 
 use Dancer2::Plugin::DBIC;
 
-use GADS::Purge::Purger;
-
-say "Usage: ./delete-file.pl <layout_id> <current_id> [<current_id> ...]" unless @ARGV > 1;
+say "Usage: ./delete-file.pl <current_id> <layout_id> [<layout id>...]" unless @ARGV > 1;
 exit(1) unless @ARGV > 1;
 
-my $layout_id = shift(@ARGV);
+my $current_id = shift(@ARGV);
 
 my $total = 0;
 
-foreach my $current_id (@ARGV) {
-    my $current = schema->resultset('Current')->find($current_id);
-    my $record_id = $current->record_id;
-    my $purger= GADS::Purge::Purger->new(
-        schema => schema,
-        record_id => $record_id,
-        layout_id => $layout_id,
-    );
-    $total += $purger->purge;
+my $current = schema->resultset('Current')->find($current_id);
+my @records = $current->records->all;
+my @values;
+
+foreach my $layout (@ARGV) {
+    push @values, $_->calcvals->search({ layout_id => $layout })->all foreach @records;
+    push @values, $_->dateranges->search({ layout_id => $layout })->all foreach @records;
+    push @values, $_->dates->search({ layout_id => $layout })->all foreach @records;
+    push @values, $_->enums->search({ layout_id => $layout })->all foreach @records;
+    push @values, $_->files->search({ layout_id => $layout })->all foreach @records;
+    push @values, $_->intgrs->search({ layout_id => $layout })->all foreach @records;
+    push @values, $_->people->search({ layout_id => $layout })->all foreach @records;
+    push @values, $_->ragvals->search({ layout_id => $layout })->all foreach @records;
+    push @values, $_->strings->search({ layout_id => $layout })->all foreach @records;
+}
+
+foreach my $value (@values) {
+    $value->purge;
+    $total++;
 }
 
 say "Purged $total records";
