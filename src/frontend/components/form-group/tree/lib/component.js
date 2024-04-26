@@ -48,19 +48,17 @@ class TreeComponent extends Component {
     }
 
     //Deselect Fix - 26.04.24 - DR
+    //Unless you have a click event, the select_node event doesn't trigger when you click on the same node - I don't know why this is, 
+    //all I know is, it gave me a headache! Either way, it appears to work now, so I'm happy!!
     let node;
 
     this.$treeContainer.on('click', '.jstree-clicked', () => {
-      console.log('click');
       if (!node) throw 'Not a node!';
       this.$treeContainer.jstree(true).deselect_node(node);
-      // node = null;
     });
 
     this.$treeContainer.on('select_node.jstree', (e, data) => {
-      console.log('select_node', data.node.id, node && node.id);
       if (node && data.node.id == node.id) {
-        console.log('selecty mcselectface')
         this.$treeContainer.jstree(true).deselect_node(data.node);
         node = null;
       } else {
