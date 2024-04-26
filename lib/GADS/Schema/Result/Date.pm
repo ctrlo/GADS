@@ -16,7 +16,7 @@ use warnings;
 use Moo;
 
 extends 'DBIx::Class::Core';
-sub BUILDARGS { $_[2]||{} }
+sub BUILDARGS { $_[2] || {} }
 
 with 'GADS::Role::Purge::DatePurgable';
 
