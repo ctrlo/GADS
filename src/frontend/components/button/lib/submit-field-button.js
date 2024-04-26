@@ -1,4 +1,4 @@
-import {Component} from "component";
+import { Component } from "component";
 
 export default class SubmitFieldButtonComponent extends Component {
     constructor(element) {
@@ -29,7 +29,7 @@ export default class SubmitFieldButtonComponent extends Component {
 
             const $showInEdit = $("#show_in_edit")
             if (($calcCode.length && $calcCode.is(':visible')) && !$showInEdit.val()) {
-                if(!this.errored) {
+                if (!this.errored) {
                     const error = document.createElement("div");
                     error.classList.add("form-text", "form-text--error");
                     error.innerHTML = "Please select the calculation field visibility before submitting the form";
@@ -86,5 +86,15 @@ export default class SubmitFieldButtonComponent extends Component {
             $permissionTable.remove();
             $form.append($inputs);
         });
+    }
+
+    getURL(data) {
+        const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi
+
+        if (devEndpoint) {
+            return devEndpoint
+        } else {
+            return `/${data.layoutIdentifier}/tree/${data.columnId}`
+        }
     }
 }
