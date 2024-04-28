@@ -1,0 +1,62 @@
+use Rex -feature => [1.4];
+
+use strict;
+use warnings;
+
+use feature 'say';
+
+task 'libs', sub {
+    update_package_db;
+    pkg "git", ensure => "present";
+    pkg $_, ensure => "present"
+      foreach
+      qw/cpanminus liblua5.3-dev gcc g++ libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl libmagic-dev postgresql-client libpng-dev libssl-dev libpq-dev libjson-perl libsession-token-perl libnet-oauth2-authorizationserver-perl libtext-csv-encoded-perl libcrypt-urandom-perl libhtml-scrubber-perl libtext-markdown-perl libwww-form-urlencoded-xs-perl libstring-camelcase-perl libmail-transport-perl liblog-log4perl-perl libplack-perl libdbd-pg-perl libmail-message-perl libmath-random-isaac-xs-perl libdbix-class-helpers-perl libtree-dagnode-perl libmath-round-perl libdatetime-format-dateparse-perl libwww-mechanize-perl libdatetime-format-iso8601-perl libmoox-types-mooselike-perl libmoox-singleton-perl libdancer2-perl liblist-compare-perl liburl-encode-perl libtie-cache-perl libhtml-fromtext-perl libdata-compare-perl libfile-bom-perl libalgorithm-dependency-perl libdancer-plugin-auth-extensible-perl libfile-libmagic-perl postfix perl/;
+};
+
+task 'cypress', sub {
+    pkg $_, ensure => "present"
+      foreach
+      qw/libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb/;
+};
+
+task 'clone', sub {
+    chdir '/srv';
+    run "git clone https://github.com/ctrlo/gads";
+};
+
+task 'cpan', sub {
+    chdir '/srv/gads';
+    run "perl ./bin/output_cpanfile > cpanfile";
+    run "cpanm --installdeps . --notest --cpanfile ./cpanfile";
+};
+
+task 'nvm', sub {
+    pkg "curl", ensure => 'present';
+    run "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash";
+    run "source ~/.bashrc";
+    run "nvm install --lts";
+    run 'npm install -g npm@latest yarn';
+};
+
+task 'config', sub {
+    my $db_host = $ENV{DB_HOST} || 'db';
+    file "/etc/timezone",
+      content => "Europe/London",
+      owner   => "root",
+      group   => "root",
+      mode    => 644;
+    append_or_amend_line "/srv/gads/webdriver/config.yml",
+      line   => "dbi:Pg:database=$db_host;host=localhost;port=5432",
+      regexp => qr/dbi:Pg:database=linkspace;host=localhost;port=5432/,
+      on_change => sub {
+        say "Changed db connection string";
+      };
+    append_or_amend_line "/srv/gads/bin/setup_database",
+      line => ': ${PSQL_HOSTNAME:=' . $db_host . '}',
+      regexp => qr/PSQL_HOSTNAME:=localhost/,
+      on_change => sub {
+        say "Changed db hostname";
+      };
+};
+
+batch 'setup', 'libs', 'cypress', 'nvm', 'clone', 'cpan', 'config';
