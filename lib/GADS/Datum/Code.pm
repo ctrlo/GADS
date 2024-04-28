@@ -180,6 +180,9 @@ sub write_cache
     # this can hopefully be removed once the layout object can be reused across
     # columns from different instances
     my $layout = $self->column->layout->clone(instance_id => $self->column->instance_id);
+
+    # Do not limit by user
+    local $GADS::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
     my $records = GADS::Records->new(
         user    => undef, # Do not want to limit by user
         layout  => $layout,
@@ -201,7 +204,7 @@ sub write_cache
                 # written. Ignore blank values which may return true even if
                 # not used.
                 $self->_delete_unique($vfield => $oldval)
-                    unless $sv && $records->find_unique($self->column, $sv, ignore_current_id => $self->record->current_id);
+                    unless $sv && $records->find_unique($self->column, $sv, ignore_current_id => $self->record->current_id)->count;
             }
         }
     }
@@ -244,7 +247,7 @@ sub write_cache
                     ? $formatter->format_date($old_value)
                     : $old_value;
                 $self->_delete_unique(%old)
-                    unless $sv && $records->find_unique($self->column, $sv, ignore_current_id => $self->record->current_id);
+                    unless $sv && $records->find_unique($self->column, $sv, ignore_current_id => $self->record->current_id)->count;
                 $self->_write_unique(%to_write);
             }
         }
