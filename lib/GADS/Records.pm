@@ -699,9 +699,7 @@ sub find_unique
     );
     @retrieve_columns = ($column->id)
         unless @retrieve_columns;
-    # Do not limit by user
-    local $GADS::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
-    my $records = GADS::Records->new(
+    GADS::Records->new(
         user    => $self->user,
         rows    => 1,
         view    => $view,
@@ -709,9 +707,6 @@ sub find_unique
         schema  => $self->schema,
         columns => \@retrieve_columns,
     );
-
-    # Might be more, but one will do
-    $records->single;
 }
 
 sub _escape_like

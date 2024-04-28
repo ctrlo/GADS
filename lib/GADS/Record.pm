@@ -656,7 +656,12 @@ sub find_unique
         schema  => $self->schema,
     );
 
-    my $record = $records->find_unique($column, $value, %params);
+    my $record;
+    {
+        # Do not limit by user
+        local $GADS::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
+        $record = $records->find_unique($column, $value, %params)->single;
+    }
 
     # Horrible hack. The record of layout will have been overwritten during the
     # above searches. Needs to be changed back to this record.
@@ -1570,6 +1575,8 @@ sub write
     my %no_write_topics;
     foreach my $column (@cols)
     {
+        next if $options{re_evaluate_only};
+
         my $datum = $self->fields->{$column->id}
             or next; # Will not be set for child records
 
@@ -1945,6 +1952,8 @@ sub write_values
     my %update_autocurs;
     foreach my $column ($self->layout->all(order_dependencies => 1))
     {
+        next if $options{re_evaluate_only} && !$column->has_cache;
+
         # Prevent warnings when writing incomplete calc values on draft
         next if $options{draft} && !$column->userinput;
 
@@ -2160,7 +2169,7 @@ sub write_values
             {
                 $record->fields->{$_}->changed(1)
                     foreach @{$update_autocurs{$record->current_id}};
-                $record->write(%options, update_only => 1, re_evaluate => 1, submission_token => undef);
+                $record->write(%options, update_only => 1, re_evaluate_only => 1, submission_token => undef);
             }
         }
     }
