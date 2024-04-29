@@ -80,16 +80,20 @@ export default class SubmitFieldButtonComponent extends Component {
              * permission checkboxes on other pages will not be submitted and will
              * therefore be cleared. This code gets all the inputs in the datatable
              * and appends them to the form manually */
-            const $inputs = $permissionTable.DataTable().$('input,select,textarea');
-            $inputs.hide(); // Stop them appearing to the user in a strange format
-            const $form = $(ev.currentTarget).closest('form');
-            $permissionTable.remove();
-            $form.append($inputs);
+            if($permissionTable && $permissionTable.length && $permissionTable.DataTable) {
+                const $inputs = $permissionTable.DataTable().$('input,select,textarea');
+                $inputs.hide(); // Stop them appearing to the user in a strange format
+                const $form = $(ev.currentTarget).closest('form');
+                $permissionTable.remove();
+                $form.append($inputs);
+            }
         });
     }
 
     getURL(data) {
         const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi
+
+        if(window.test) return "";
 
         if (devEndpoint) {
             return devEndpoint
