@@ -149,14 +149,17 @@ class InputComponent extends Component {
         $(self.el).find('input[type="hidden"]').val(suggestion.id)
       }
 
-      const builder = new TypeaheadBuilder();
-      builder
-        .withInput($(self.input))
-        .withCallback(suggestionCallback)
-        .withAppendQuery()
-        .withAjaxSource(self.getURL())
-        .withName('users')
-        .build()
+      import(/* webpackChunkName: "typeahead" */ 'util/typeahead')
+        .then(({ default: TypeaheadBuilder }) => {
+          const builder = new TypeaheadBuilder();
+          builder
+            .withInput($(this.input))
+            .withCallback(suggestionCallback)
+            .withAjaxSource(this.getURL())
+            .withAppendQuery()
+            .withName('users')
+            .build()
+        });
     }
 
     getURL() {
