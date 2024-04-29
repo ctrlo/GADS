@@ -1,14 +1,13 @@
-import {Component} from "component";
-
-export default class SubmitFieldButtonComponent extends Component {
+/**
+ * This class is responsible for handling the submit button on the field
+ */
+export default class SubmitFieldButton {
+    /**
+     * Create a submit field button
+     * @param element {JQuery<HTMLElement>} The submit button element
+     */
     constructor(element) {
-        super(element);
-        this.el = $(element);
-        this.initSubmitField();
-    }
-
-    initSubmitField() {
-        this.el.on('click', (ev) => {
+        element.on('click', (ev) => {
 
             const $jstreeContainer = $('#field_type_tree');
             const $jstreeEl = $('#tree-config .tree-widget-container');
@@ -29,7 +28,7 @@ export default class SubmitFieldButtonComponent extends Component {
 
             const $showInEdit = $("#show_in_edit")
             if (($calcCode.length && $calcCode.is(':visible')) && !$showInEdit.val()) {
-                if(!this.errored) {
+                if (!this.errored) {
                     const error = document.createElement("div");
                     error.classList.add("form-text", "form-text--error");
                     error.innerHTML = "Please select the calculation field visibility before submitting the form";
@@ -53,7 +52,7 @@ export default class SubmitFieldButtonComponent extends Component {
             }
 
             if (bUpdateTree) {
-                const v = $jstreeEl.jstree(true).get_json('#', { flat: false });
+                const v = $jstreeEl.jstree(true).get_json('#', {flat: false});
                 const mytext = JSON.stringify(v);
                 const data = $jstreeEl.data();
 
@@ -61,7 +60,7 @@ export default class SubmitFieldButtonComponent extends Component {
                     async: false,
                     type: 'POST',
                     url: this.getURL(data),
-                    data: { data: mytext, csrf_token: data.csrfToken }
+                    data: {data: mytext, csrf_token: data.csrfToken}
                 }).done(() => {
                     // eslint-disable-next-line no-alert
                     alert('Tree has been updated')
@@ -86,5 +85,18 @@ export default class SubmitFieldButtonComponent extends Component {
             $permissionTable.remove();
             $form.append($inputs);
         });
+    }
+
+    /**
+     * Get the URL for the tree API
+     * @param data {JQuery.PlainObject} The data for the tree
+     * @returns {string}
+     */
+    getURL(data) {
+        if (window.test) return "";
+
+        const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi;
+
+        return devEndpoint ? devEndpoint : `/${data.layoutIdentifier}/tree/${data.columnId}`
     }
 }
