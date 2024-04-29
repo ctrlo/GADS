@@ -9,7 +9,7 @@ class ButtonComponent extends Component {
      * Create a button component
      * @param element {HTMLElement} The button element
      */
-    constructor(element) {
+    constructor(element:HTMLElement) {
         super(element)
         this.initButton(element)
     }
@@ -18,8 +18,8 @@ class ButtonComponent extends Component {
      * Initialize the button
      * @param element {HTMLElement} The button element
      */
-    initButton(element) {
-        const el = $(element)
+    initButton(element:HTMLElement) {
+        const el:JQuery<HTMLElement> = $(element)
         switch (true) {
             case el.hasClass('btn-js-report'):
                 import(/* webpackChunkName: "create-report-button" */ './create-report-button')
@@ -78,7 +78,7 @@ class ButtonComponent extends Component {
             case el.hasClass('btn-js-curval-remove'):
                 import(/* webpackChunkName: "curval-remove-button" */ './remove-curval-button')
                     .then(({default: createRemoveCurvalButton}) => {
-                        createRemoveCurvalButton(this.element);
+                        createRemoveCurvalButton(el);
                     });
                 break
         }
@@ -86,7 +86,7 @@ class ButtonComponent extends Component {
         if (el.hasClass('btn-js-remove-unload')) {
             import(/* webpackChunkName: "remove-unload-button" */ './remove-unload-button')
                 .then(({default: createRemoveUnloadButton}) => {
-                    createRemoveUnloadButton(this.element);
+                    createRemoveUnloadButton(el);
                 });
         }
     }

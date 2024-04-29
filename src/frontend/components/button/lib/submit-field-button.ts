@@ -1,12 +1,18 @@
+import "jstree";
+import "datatables.net";
+import "@lol768/jquery-querybuilder-no-eval"
+
 /**
  * This class is responsible for handling the submit button on the field
  */
 export default class SubmitFieldButton {
+    private errored: boolean;
+
     /**
      * Create a submit field button
-     * @param element {JQuery<HTMLElement>} The submit button element
+     * @param element The submit button element
      */
-    constructor(element) {
+    constructor(element:JQuery<HTMLElement>) {
         element.on('click', (ev) => {
 
             const $jstreeContainer = $('#field_type_tree');
@@ -14,7 +20,8 @@ export default class SubmitFieldButton {
             const $calcCode = $('#calcfield_card_header');
 
             const $displayConditionsBuilderEl = $('#displayConditionsBuilder');
-            const res = $displayConditionsBuilderEl.length && $displayConditionsBuilderEl.queryBuilder('getRules');
+            //Bit of typecasting here, purely because the queryBuilder plugin doesn't have types
+            const res = $displayConditionsBuilderEl.length && (<any>$displayConditionsBuilderEl).queryBuilder('getRules');
             const $displayConditionsField = $('#displayConditions');
 
             const $instanceIDField = $('#refers_to_instance_id');
@@ -52,7 +59,8 @@ export default class SubmitFieldButton {
             }
 
             if (bUpdateTree) {
-                const v = $jstreeEl.jstree(true).get_json('#', {flat: false});
+                //Bit of typecasting here, purely because the jstree plugin doesn't have types
+                const v = (<any>$jstreeEl).jstree(true).get_json('#', {flat: false});
                 const mytext = JSON.stringify(v);
                 const data = $jstreeEl.data();
 
@@ -67,7 +75,9 @@ export default class SubmitFieldButton {
                 });
             }
 
+            // @ts-expect-error - This is a global function
             if (bUpdateFilter && window.UpdateFilter) {
+                // @ts-expect-error - This is a global function
                 window.UpdateFilter($filterEl, ev);
             }
 
@@ -89,10 +99,10 @@ export default class SubmitFieldButton {
 
     /**
      * Get the URL for the tree API
-     * @param data {JQuery.PlainObject} The data for the tree
-     * @returns {string}
+     * @param data The data for the tree
+     * @returns The URL for the tree API
      */
-    getURL(data) {
+    getURL(data:JQuery.PlainObject):string {
         if (window.test) return "";
 
         const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi;

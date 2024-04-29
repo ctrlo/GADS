@@ -5,11 +5,13 @@ import {stopPropagation} from "util/common";
  * CreateReportButtonComponent class to create a report submission button component
  */
 export default class CreateReportButtonComponent {
+    private canSubmitRecordForm: boolean;
+
     /**
      * Create a new CreateReportButtonComponent
-     * @param {JQuery<HTMLButtonElement>} element button element
+     * @param {JQuery<HTMLElement>} element button element
      */
-    constructor(element) {
+    constructor(element:JQuery<HTMLElement>) {
         this.canSubmitRecordForm = false;
 
         element.on('click', (ev) => {
@@ -31,9 +33,9 @@ export default class CreateReportButtonComponent {
 
     /**
      * Submit the form
-     * @param {jQuery<HTMLButtonElement>} $button form to submit
+     * @param {JQuery<HTMLElement>} $button form to submit
      */
-    submit($button) {
+    submit($button:JQuery<HTMLElement>) {
         $button.trigger("click");
         $button.prop("disabled", true);
     }
