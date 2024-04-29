@@ -1952,7 +1952,9 @@ sub write_values
     my %update_autocurs;
     foreach my $column ($self->layout->all(order_dependencies => 1))
     {
-        next if $options{re_evaluate_only} && !$column->has_cache;
+        # If doing a re-evaluate of the existing record, then there will be no
+        # changes to user-input fields. Short-circuit for speed.
+        next if $options{re_evaluate_only} && $column->userinput;
 
         # Prevent warnings when writing incomplete calc values on draft
         next if $options{draft} && !$column->userinput;
