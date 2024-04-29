@@ -155,6 +155,7 @@ class InputComponent extends Component {
             .withInput($(this.input))
             .withCallback(suggestionCallback)
             .withAjaxSource(this.getURL())
+            .withAppendQuery()
             .withName('users')
             .build()
         });
