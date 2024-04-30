@@ -28,7 +28,7 @@ extends 'GADS::Datum';
 with 'GADS::Role::Presentation::Datum::String';
 
 after set_value => sub {
-    my ($self, $value) = @_;
+    my ($self, $value, %options) = @_;
     $value = [$value] if ref $value ne 'ARRAY'; # Allow legacy single values as scalar
     $value ||= [];
     my @values = grep {defined $_} @$value; # Take a copy first
@@ -48,15 +48,14 @@ after set_value => sub {
     }
     my $changed = "@text_all" ne "@old_texts";
 
-    if (my $regex = $self->column->force_regex)
-    {
-        foreach my $val (@values)
-        {
-            my $msg = __x"Invalid value \"{value}\" for {field}", value => $val, field => $self->column->name;
-            # Empty values are not checked - these should be done in optional value for field
-            if ($val && $val !~ /^$regex$/i)
-            {
-                $changed ? error($msg) : warning($msg);
+    if(!$options{draft}) {
+        if (my $regex = $self->column->force_regex) {
+            foreach my $val (@values) {
+                my $msg = __x "Invalid value \"{value}\" for {field}", value => $val, field => $self->column->name;
+                # Empty values are not checked - these should be done in optional value for field
+                if ($val && $val !~ /^$regex$/i) {
+                    $changed ? error($msg) : warning($msg);
+                }
             }
         }
     }
@@ -157,4 +156,3 @@ sub _build_for_code
 }
 
 1;
-

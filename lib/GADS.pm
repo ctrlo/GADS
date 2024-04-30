@@ -4648,7 +4648,13 @@ sub _process_edit
                     }
                 }
                 else {
-                    $failed = !process( sub { $datum->set_value($newv) } ) || $failed;
+                    $failed = !process( sub {
+                        my %options;
+                        if(defined(param 'draft')) {
+                            $options{draft} = 1;
+                        }
+                        $datum->set_value($newv)
+                    } ) || $failed;
                 }
             }
         }
