@@ -2,11 +2,13 @@ import "jstree";
 import "datatables.net";
 import "@lol768/jquery-querybuilder-no-eval"
 
+// TODO: This probably need refactoring
+
 /**
  * This class is responsible for handling the submit button on the field
  */
 export default class SubmitFieldButton {
-    private errored: boolean;
+    private errored: boolean = false;
 
     /**
      * Create a submit field button
@@ -102,7 +104,7 @@ export default class SubmitFieldButton {
      * @param data The data for the tree
      * @returns The URL for the tree API
      */
-    getURL(data:JQuery.PlainObject):string {
+    private getURL(data:JQuery.PlainObject):string {
         if (window.test) return "";
 
         const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi;
