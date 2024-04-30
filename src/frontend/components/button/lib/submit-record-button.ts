@@ -4,16 +4,15 @@ import {validateRequiredFields} from "validation";
  * Button to submit records
  */
 export default class SubmitRecordButton {
-    private requiredHiddenRecordDependentFieldsCleared: boolean;
-    private canSubmitRecordForm: boolean;
+    private requiredHiddenRecordDependentFieldsCleared: boolean = false;
+    private canSubmitRecordForm: boolean = false;
+    private disableButton: boolean = false;
 
     /**
      * Create a button to submit records
      * @param el {JQuery<HTMLElement>} Element to create as a button
      */
     constructor(private el: JQuery<HTMLElement>) {
-        this.requiredHiddenRecordDependentFieldsCleared = false;
-        this.canSubmitRecordForm = false;
         this.el.on("click", (ev) => this.submitRecord(ev));
     }
 
@@ -42,12 +41,14 @@ export default class SubmitRecordButton {
 
             if (isValid) {
                 this.canSubmitRecordForm = true;
+                this.disableButton=false;
                 if ($parent.hasClass('modal-body')) {
                     $form.trigger("submit");
                 } else {
                     $button.trigger('click');
                 }
                 // Prevent double-submission
+                this.disableButton=true;
                 $button.prop("disabled", true);
                 if ($button.prop("name")) {
                     $button.after(`<input type="hidden" name="${$button.prop("name")}" value="${$button.val()}" />`);
@@ -58,6 +59,6 @@ export default class SubmitRecordButton {
                 this.requiredHiddenRecordDependentFieldsCleared = false;
             }
         }
-        $button.prop("disabled", this.requiredHiddenRecordDependentFieldsCleared);
+        this.disableButton && $button.prop("disabled", this.requiredHiddenRecordDependentFieldsCleared);
     }
 }
