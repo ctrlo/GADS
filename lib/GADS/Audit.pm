@@ -82,7 +82,7 @@ sub user_action
         type        => 'user_action',
         method      => $options{method},
         url         => $options{url},
-        datetime    => DateTime->now,
+        datetime    => localtime,
         instance_id => $layout && $layout->instance_id,
     });
 }
@@ -94,7 +94,7 @@ sub login_change
         user_id     => $self->user_id,
         description => $description,
         type        => 'login_change',
-        datetime    => DateTime->now,
+        datetime    => localtime,
     });
 }
 
@@ -105,7 +105,7 @@ sub login_success
         user_id     => $self->user_id,
         description => "Successful login by username ".$self->username,
         type        => 'login_success',
-        datetime    => DateTime->now,
+        datetime    => localtime,
     });
 }
 
@@ -116,7 +116,7 @@ sub logout
         user_id     => $self->user_id,
         description => "Logout by username $username",
         type        => 'logout',
-        datetime    => DateTime->now,
+        datetime    => localtime,
     });
 }
 
@@ -126,7 +126,7 @@ sub login_failure
     $self->schema->resultset('Audit')->create({
         description => "Login failure using username $username",
         type        => 'login_failure',
-        datetime    => DateTime->now,
+        datetime    => localtime,
     });
 }
 
