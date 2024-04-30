@@ -174,6 +174,7 @@ class ButtonComponent extends Component {
         if($parent.hasClass('modal-body')) {
           $form.submit()
         }else{
+          this.disableButton = false;
           $button.trigger('click')
         }
         // Prevent double-submission
@@ -187,13 +188,14 @@ class ButtonComponent extends Component {
               '" />'
           );
         }
+        this.disableButton=true;
       } else {
         // Re-add the required attribute to required dependent fields
         $requiredHiddenRecordDependentFields.attr('required', '')
         this.requiredHiddenRecordDependentFieldsCleared = false
       }
     }
-    $button.prop("disabled", this.requiredHiddenRecordDependentFieldsCleared);
+    this.disableButton && $button.prop("disabled", this.requiredHiddenRecordDependentFieldsCleared);
   }
 
   getURL(data) {
