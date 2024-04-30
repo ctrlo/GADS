@@ -75,6 +75,8 @@ sub audit_types{ [qw/user_action login_change login_success logout login_failure
 sub user_action
 {   my ($self, %options) = @_;
 
+    my $datetime = localtime;
+
     my $layout = $options{layout};
     $self->schema->resultset('Audit')->create({
         user_id     => $self->user_id,
@@ -82,7 +84,7 @@ sub user_action
         type        => 'user_action',
         method      => $options{method},
         url         => $options{url},
-        datetime    => localtime,
+        datetime    => $datetime,
         instance_id => $layout && $layout->instance_id,
     });
 }
@@ -90,43 +92,51 @@ sub user_action
 sub login_change
 {   my ($self, $description) = @_;
 
+    my $datetime = localtime;
+
     $self->schema->resultset('Audit')->create({
         user_id     => $self->user_id,
         description => $description,
         type        => 'login_change',
-        datetime    => localtime,
+        datetime    => $datetime,
     });
 }
 
 sub login_success
 {   my $self = shift;
 
+    my $datetime = localtime;
+
     $self->schema->resultset('Audit')->create({
         user_id     => $self->user_id,
         description => "Successful login by username ".$self->username,
         type        => 'login_success',
-        datetime    => localtime,
+        datetime    => $datetime,
     });
 }
 
 sub logout
 {   my ($self, $username) = @_;
 
+    my $datetime = localtime;
+
     $self->schema->resultset('Audit')->create({
         user_id     => $self->user_id,
         description => "Logout by username $username",
         type        => 'logout',
-        datetime    => localtime,
+        datetime    => $datetime,
     });
 }
 
 sub login_failure
 {   my ($self, $username) = @_;
 
+    my $datetime = localtime;
+
     $self->schema->resultset('Audit')->create({
         description => "Login failure using username $username",
         type        => 'login_failure',
-        datetime    => localtime,
+        datetime    => $datetime,
     });
 }
 
