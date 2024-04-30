@@ -114,9 +114,7 @@ jobs:
         browser:
           - name: 'chrome'
             os: 'ubuntu-22.04'
-          - name: 'firefox'
-            os: 'ubuntu-20.04'
-
+          
     services:
       postgres:
         image: postgres
