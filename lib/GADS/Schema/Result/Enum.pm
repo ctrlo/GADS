@@ -18,7 +18,6 @@ use Moo;
 extends 'DBIx::Class::Core';
 sub BUILDARGS { $_[2] || {} }
 
-with 'GADS::Role::Purge::EnumPurgable';
 
 =head1 COMPONENTS LOADED
 

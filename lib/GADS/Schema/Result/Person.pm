@@ -18,8 +18,6 @@ use Moo;
 extends 'DBIx::Class::Core';
 sub BUILDARGS { $_[2] || {} }
 
-with 'GADS::Role::Purge::PersonPurgable';
-
 =head1 COMPONENTS LOADED
 
 =over 4
