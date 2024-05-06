@@ -132,7 +132,7 @@ has _view_limits => (
 sub _build__view_limits
 {   my $self = shift;
     $self->user or return [];
-    return [] if $GADS::Schema::IGNORE_PERMISSIONS;
+    return [] if $GADS::Schema::IGNORE_PERMISSIONS_SEARCH || $GADS::Schema::IGNORE_PERMISSIONS;
 
     # If this is loading subrecords for a draft record, then do not apply any
     # view limits. Otherwise, the subrecords that a user has created in a draft
@@ -181,6 +181,7 @@ has _view_limit_extra => (
 sub _build__view_limit_extra
 {   my $self = shift;
     return if $self->ignore_view_limit_extra;
+    return if $GADS::Schema::IGNORE_PERMISSIONS_SEARCH || $GADS::Schema::IGNORE_PERMISSIONS;
     my $extra   = $self->view_limit_extra_id;
     my $default = $self->_build_view_limit_extra_id;
     # Validate first - can the user set this? (may be from session and have
