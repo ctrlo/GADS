@@ -236,22 +236,23 @@ sub _view_limits_search
             }
         }
     }
-    my $limit = [ '-or' => \@search ];
+    my @limit = @search ? ('-or' => \@search) : ();
 
     if (my $filter = $self->_view_limit_extra && $self->_view_limit_extra->filter)
     {
         my $decoded = $filter->as_hash;
         if (keys %$decoded)
         {
+            my @s = $self->_search_construct($decoded, $self->layout, %options, ignore_perms => 1);
             # Get the user search criteria. As above we do not let permissions
             # affect these admin-defined views.
-            $limit = [
-                -and => [ $limit, $self->_search_construct($decoded, $self->layout, %options, ignore_perms => 1) ],
-            ];
+            @limit = @limit ? (
+                -and => [ [@limit], @s ],
+            ) : @s;
         }
     }
 
-    return $limit;
+    return @limit;
 }
 
 has from => (
@@ -1812,19 +1813,18 @@ sub _query_params
         $self->_search_date($c, $search_date);
     }
 
-    my @limit;  # The overall limit, for example reduction by date range or approval field
     my @search; # The user search
     # The following code needs to be run twice, to make sure that join numbers
     # are worked out correctly. Otherwise, a search criteria might not take
     # into account a subsuquent sort, and vice-versa.
     for (1..2)
     {
-        @search = (); @limit = (); # Reset from first loop
+        @search = (); # Reset from first loop
         # Add any date ranges to the search from above
         if (@$search_date)
         {
             my @res = ($self->_search_construct({condition => 'OR', rules => $search_date}, $layout, %options));
-            push @limit, @res if @res;
+            push @search, @res if @res;
         }
 
         foreach my $additional (@{$self->additional_filters})
@@ -1839,7 +1839,7 @@ sub _query_params
                 value       => $additional->{value},
                 value_field => !$additional->{is_text} && $col->value_field_as_index($additional->{value}),
             };
-            push @limit, $self->_search_construct($f, $layout, %options);
+            push @search, $self->_search_construct($f, $layout, %options);
         }
 
         # Now add all the filters as joins (we don't need to prefetch this data). However,
@@ -1874,14 +1874,14 @@ sub _query_params
             layout_id => $fc->{layout_id},
             value     => { '!=' => undef },
         })->get_column('value')->all;
-        push @limit, {
+        push @search, {
             'me.id' => {
                 -in => \@cids,
             },
         };
     }
 
-    (@limit, @search);
+    @search;
 }
 
 sub _build__sorts
@@ -2408,7 +2408,8 @@ sub _search_construct
             %options
         );
     } @conditions;
-    @final = ("-$gate" => [@final]);
+    @final = ("-$gate" => [@final])
+        if @final != 2;
     my $parent_column_link = $parent_column && $parent_column->link_parent;;
     if ($parent_column_link || $column->link_parent)
     {
