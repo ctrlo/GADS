@@ -661,6 +661,7 @@ sub search_view
     @foundin;
 }
 
+
 sub find_unique
 {   my ($self, $column, $value, %params) = @_;
 
@@ -1548,6 +1549,31 @@ sub _build_count
     $self->schema->resultset('Current')->search(
         [-and => $search_query], $select
     )->count;
+}
+
+# Whether any records exist in this set
+sub exists
+{   my $self = shift;
+
+    my $search_query = $self->search_query(search => 1, linked => 1);
+    my @joins  = $self->jpfetch(search => 1, linked => 0);
+    my @linked = $self->linked_hash(search => 1, linked => 1);
+    my $select = {
+        join     => [
+            [@linked],
+            {
+                'record_single' => [
+                    'record_later',
+                    @joins
+                ],
+            },
+        ],
+        rows => 1,
+    };
+
+    !! $self->schema->resultset('Current')->search(
+        [-and => $search_query], $select
+    )->get_column('me.id')->next;
 }
 
 sub _build_has_children

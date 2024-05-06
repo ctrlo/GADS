@@ -204,7 +204,7 @@ sub write_cache
                 # written. Ignore blank values which may return true even if
                 # not used.
                 $self->_delete_unique($vfield => $oldval)
-                    unless $sv && $records->find_unique($self->column, $sv, ignore_current_id => $self->record->current_id)->count;
+                    unless $sv && $records->find_unique($self->column, $sv, ignore_current_id => $self->record->current_id)->exists;
             }
         }
     }
@@ -247,7 +247,7 @@ sub write_cache
                     ? $formatter->format_date($old_value)
                     : $old_value;
                 $self->_delete_unique(%old)
-                    unless $sv && $records->find_unique($self->column, $sv, ignore_current_id => $self->record->current_id)->count;
+                    unless $sv && $records->find_unique($self->column, $sv, ignore_current_id => $self->record->current_id)->exists;
                 $self->_write_unique(%to_write);
             }
         }
