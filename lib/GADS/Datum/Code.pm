@@ -132,6 +132,7 @@ sub _write_unique
         if ($@ =~ /(duplicate|unique constraint failed)/i) # Pg: duplicate key, Mysql: Dupiicate entry, Sqlite: UNIQUE constraint failed
         {
                 $schema->storage->svp_rollback;
+                $schema->storage->svp_release;
         }
         elsif ($@) {
             $@->reportAll;
