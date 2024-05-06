@@ -43,7 +43,7 @@ has show_in_edit => (
     builder => sub {
         my $self = shift;
         return 0 unless $self->has_options;
-        $self->options->{show_in_edit};
+        $self->options->{show_in_edit} || 0;
     },
     trigger => sub { $_[0]->reset_options },
 );
