@@ -1975,11 +1975,11 @@ sub order_by
         : @{$self->_sorts};
 
     my @order_by; my %has_time;
-    my $random_sort = $self->schema->resultset('Current')->_rand_order_by;
     foreach my $s (@sorts)
     {
         if ($s->{type} eq 'random')
         {
+            my $random_sort = $self->schema->resultset('Current')->_rand_order_by;
             push @order_by, \$random_sort;
         }
         else {
