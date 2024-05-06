@@ -1879,7 +1879,7 @@ sub _query_params
                 if (keys %$decoded)
                 {
                     # Get the user search criteria
-                    @search = $self->_search_construct($decoded, $layout, %options);
+                    push @search, $self->_search_construct($decoded, $layout, %options);
                 }
             }
         }
