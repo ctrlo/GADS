@@ -1551,13 +1551,56 @@ sub _build_count
     )->count;
 }
 
-# Whether any records exist in this set
-sub exists
-{   my $self = shift;
+# Cache for exists() function
+has _exists_cache => (
+    is => 'rw',
+);
 
-    my $search_query = $self->search_query(search => 1, linked => 1);
-    my @joins  = $self->jpfetch(search => 1, linked => 0);
-    my @linked = $self->linked_hash(search => 1, linked => 1);
+# Whether any records exist in this set. As an optimisation, allow a new value
+# to be passed in multiple times, to save rebuilding the search query
+# everytime.
+sub exists
+{   my ($self, $value) = @_;
+
+    my (@joins, @linked, $search_query);
+
+    if (my $cache = $self->_exists_cache)
+    {
+        @joins        = @{$cache->{joins}};
+        @linked       = @{$cache->{linked}};
+        $search_query = $cache->{search_query};
+    }
+    else {
+        $search_query = $self->search_query(search => 1, linked => 1);
+        @joins        = $self->jpfetch(search => 1, linked => 0);
+        @linked       = $self->linked_hash(search => 1, linked => 1);
+        $self->_exists_cache({
+            joins        => \@joins,
+            linked       => \@linked,
+            search_query => $search_query,
+        });
+    }
+
+    # Hacky code to update search condition. Look for search condition of
+    # unique field and update its search value
+    foreach my $q (@$search_query)
+    {
+        next unless ref $q eq 'ARRAY';
+        my $next;
+        foreach my $q2 (@$q)
+        {
+            if ($next)
+            {
+                $q2->{'='} = $value;
+                undef $next;
+            }
+            if ($q2 =~ /^field/)
+            {
+                $next = 1;
+            }
+        }
+    }
+
     my $select = {
         join     => [
             [@linked],
