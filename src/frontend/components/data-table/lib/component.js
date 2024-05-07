@@ -607,6 +607,8 @@ class DataTableComponent extends Component {
 
       this.json = json || undefined
 
+      const self = this
+
       if (this.initializingTable) {
         dataTable.columns().every(function(index) {
           const column = this
