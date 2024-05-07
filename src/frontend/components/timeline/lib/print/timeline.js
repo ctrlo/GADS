@@ -207,7 +207,7 @@ function parseTimelineForPdfPrinting() {
 
     if (Object.keys(visGroups).length !== 0) {
       parseVisGroups(visGroups);
-    // }
+    }
 }
 
 /**
