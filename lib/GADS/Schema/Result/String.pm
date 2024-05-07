@@ -15,6 +15,8 @@ use Moo;
 extends 'DBIx::Class::Core';
 sub BUILDARGS { $_[2] || {} }
 
+with 'GADS::Role::Purgable';
+
 =head1 COMPONENTS LOADED
 
 =over 4
@@ -146,5 +148,7 @@ sub export_hash
         value_index  => $self->value_index,
     };
 }
+
+sub _build_recordsource { 'String'; }
 
 1;

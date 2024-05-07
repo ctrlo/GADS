@@ -18,6 +18,8 @@ use Moo;
 extends 'DBIx::Class::Core';
 sub BUILDARGS { $_[2] || {} }
 
+with 'GADS::Role::Purgable';
+
 =head1 COMPONENTS LOADED
 
 =over 4
@@ -182,6 +184,7 @@ sub export_hash
     };
 }
 
+sub _build_recordsource { 'Person'; }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

@@ -18,6 +18,8 @@ use Moo;
 extends 'DBIx::Class::Core';
 sub BUILDARGS { $_[2] || {} }
 
+with 'GADS::Role::Purgable';
+
 =head1 COMPONENTS LOADED
 
 =over 4
@@ -143,6 +145,8 @@ sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
     $sqlt_table->add_index(name => 'ragval_idx_value', fields => ['value']);
 }
+
+sub _build_recordsource { 'Ragval'; }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;
