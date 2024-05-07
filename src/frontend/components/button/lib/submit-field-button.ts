@@ -1,21 +1,29 @@
-import { Component } from "component";
+import "jstree";
+import "datatables.net";
+import "@lol768/jquery-querybuilder-no-eval"
 
-export default class SubmitFieldButtonComponent extends Component {
-    constructor(element) {
-        super(element);
-        this.el = $(element);
-        this.initSubmitField();
-    }
+// TODO: This probably need refactoring
 
-    initSubmitField() {
-        this.el.on('click', (ev) => {
+/**
+ * This class is responsible for handling the submit button on the field
+ */
+export default class SubmitFieldButton {
+    private errored: boolean = false;
+
+    /**
+     * Create a submit field button
+     * @param element The submit button element
+     */
+    constructor(element:JQuery<HTMLElement>) {
+        element.on('click', (ev) => {
 
             const $jstreeContainer = $('#field_type_tree');
             const $jstreeEl = $('#tree-config .tree-widget-container');
             const $calcCode = $('#calcfield_card_header');
 
             const $displayConditionsBuilderEl = $('#displayConditionsBuilder');
-            const res = $displayConditionsBuilderEl.length && $displayConditionsBuilderEl.queryBuilder('getRules');
+            //Bit of typecasting here, purely because the queryBuilder plugin doesn't have types
+            const res = $displayConditionsBuilderEl.length && (<any>$displayConditionsBuilderEl).queryBuilder('getRules');
             const $displayConditionsField = $('#displayConditions');
 
             const $instanceIDField = $('#refers_to_instance_id');
@@ -53,7 +61,8 @@ export default class SubmitFieldButtonComponent extends Component {
             }
 
             if (bUpdateTree) {
-                const v = $jstreeEl.jstree(true).get_json('#', { flat: false });
+                //Bit of typecasting here, purely because the jstree plugin doesn't have types
+                const v = (<any>$jstreeEl).jstree(true).get_json('#', {flat: false});
                 const mytext = JSON.stringify(v);
                 const data = $jstreeEl.data();
 
@@ -61,14 +70,16 @@ export default class SubmitFieldButtonComponent extends Component {
                     async: false,
                     type: 'POST',
                     url: this.getURL(data),
-                    data: { data: mytext, csrf_token: data.csrfToken }
+                    data: {data: mytext, csrf_token: data.csrfToken}
                 }).done(() => {
                     // eslint-disable-next-line no-alert
                     alert('Tree has been updated')
                 });
             }
 
+            // @ts-expect-error - This is a global function
             if (bUpdateFilter && window.UpdateFilter) {
+                // @ts-expect-error - This is a global function
                 window.UpdateFilter($filterEl, ev);
             }
 
@@ -80,25 +91,24 @@ export default class SubmitFieldButtonComponent extends Component {
              * permission checkboxes on other pages will not be submitted and will
              * therefore be cleared. This code gets all the inputs in the datatable
              * and appends them to the form manually */
-            if($permissionTable && $permissionTable.length && $permissionTable.DataTable) {
-                const $inputs = $permissionTable.DataTable().$('input,select,textarea');
-                $inputs.hide(); // Stop them appearing to the user in a strange format
-                const $form = $(ev.currentTarget).closest('form');
-                $permissionTable.remove();
-                $form.append($inputs);
-            }
+            const $inputs = $permissionTable.DataTable().$('input,select,textarea');
+            $inputs.hide(); // Stop them appearing to the user in a strange format
+            const $form = $(ev.currentTarget).closest('form');
+            $permissionTable.remove();
+            $form.append($inputs);
         });
     }
 
-    getURL(data) {
-        const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi
+    /**
+     * Get the URL for the tree API
+     * @param data The data for the tree
+     * @returns The URL for the tree API
+     */
+    private getURL(data:JQuery.PlainObject):string {
+        if (window.test) return "";
 
-        if(window.test) return "";
+        const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi;
 
-        if (devEndpoint) {
-            return devEndpoint
-        } else {
-            return `/${data.layoutIdentifier}/tree/${data.columnId}`
-        }
+        return devEndpoint ? devEndpoint : `/${data.layoutIdentifier}/tree/${data.columnId}`
     }
 }
