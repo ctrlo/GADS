@@ -798,7 +798,7 @@
               <div class="col">
                 <div class="card card--expandable">
                   <div class="card__header">
-                    <button class="card__header-left" type="button" data-toggle="collapse" data-target="#calcValueFieldSettings" aria-expanded="false" aria-controls="calcValueFieldSettings">
+                    <button id="calcfield_card_header" class="card__header-left" type="button" data-toggle="collapse" data-target="#calcValueFieldSettings" aria-expanded="false" aria-controls="calcValueFieldSettings">
                       <span class="card__title">
                         Field settings for calculated value
                       </span>
@@ -853,12 +853,17 @@
                       <div class="row">
                         <div class="col">
                           [%
-                            INCLUDE fields/sub/checkbox.tt
-                              id      = "show_in_edit"
-                              name    = "show_in_edit"
-                              value   = 1
-                              label   = "Show this field when editing records"
-                              checked = column.show_in_edit ? 1 : 0;
+                            INCLUDE fields/select.tt
+                              id    = "show_in_edit"
+                              name  = "show_in_edit"
+                              label = "Is this field used when editing records:"
+                              value = column.show_in_edit.defined ? column.show_in_edit : 2
+                              items = [
+                                {id = "0", name = "No"},
+                                {id = "1", name = "Yes"},
+                                {id = "2", name = "Yes (hidden)"}
+                              ]
+                              popover_body = "If you select 'Yes (hidden)', the field will be hidden from the user interface but will still be used in live calculations.";
                           %]
                         </div>
                       </div>

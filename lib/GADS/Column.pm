@@ -1064,6 +1064,20 @@ sub delete
             , graph => $g;
     }
 
+    my $rs = $self->schema->resultset('ReportLayout')->search({
+        layout_id => $self->id
+    }, {
+        prefetch  => 'report'
+    });
+    my $rs_live = $rs->search({'report.deleted' => undef});
+    if ( $rs_live->count ) {
+        my %reports = map { $_->report_id => $_->report } $rs_live->all;
+        my $r       = join( q{, }, map { $_->name } values %reports );
+        error __x"The following reports reference this field: \"{report}\". Please update them before deletion.", report => $r;
+    }
+
+    $_->delete for $rs->all;
+
     # Remove this column from any filters defined on views
     foreach my $filter ($self->schema->resultset('Filter')->search({
         layout_id      => $self->id,

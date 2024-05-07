@@ -7,6 +7,7 @@
     class="[% custom_classes %]"
     [%- IF checked -%]checked="checked"[%- END -%]
     [%- IF tabindex -%]tabindex="[%- tabindex -%]"[%- END -%]
+    [%- IF order.size -%]data-order="[%- order -%]"[%- END -%]
     [%- IF is_disabled -%]disabled[%- END -%]
     aria-labelledby="[% id %]-label"
     data-value="[% INCLUDE fields/sub/filter.tt value=label; %]"

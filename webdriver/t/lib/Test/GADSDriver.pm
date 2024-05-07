@@ -128,7 +128,7 @@ sub _assert_error {
     );
 
     my $error_text = $error_el->text;
-    if ($error_text) {
+    if ( $error_text =~ /\S/ ) {
         my $diagnostic_text = "The error message is '${error_text}'";
         if ($expect_present) {
             $test->note($diagnostic_text);
@@ -147,14 +147,14 @@ sub _assert_success {
     my $test = context();
 
     my $success_el = $self->_assert_element(
-        '.messages .alert-success',
+        '.alert-success',
         $expect_present,
         qr/\bNOTICE: /,
         $name,
     );
 
     my $success_text = $success_el->text;
-    if ($success_text) {
+    if ( $success_text =~ /\S/ ) {
         my $diagnostic_text = "The success message is '${success_text}'";
         if ($expect_present) {
             $test->note($diagnostic_text);
@@ -304,11 +304,14 @@ sub assert_on_add_a_field_page {
 
     $self->_assert_on_page(
         $name,
-        'body.layout\\/0',
-        # TODO: Check the table name appears in the h2 text
-        { selector => 'h2', match => '\\AAdd a field to ' },
-        { selector => '#basic-panel h3', text => 'Field properties' },
+        '.breadcrumbs__item',
+        { selector => '.breadcrumbs__item:nth-of-type(1)', text => 'Tables' },
+        # TODO: Match the table name
+        { selector => '.breadcrumbs__item:nth-of-type(2)', match => '\ATable: ' },
+        { selector => '.breadcrumbs__item:nth-of-type(3)', text => 'Fields' },
+        { selector => '.breadcrumbs__item:nth-of-type(4)', text => 'Add a field' },
     );
+    # TODO: Check the table name appears in the h1 text
 
     $test->release;
     return $self;
@@ -327,8 +330,7 @@ sub assert_on_add_a_group_page {
 
     $self->_assert_on_page(
         $name,
-        'body.group\\/0',
-        { selector => 'h2', text => 'Add a group' },
+        { selector => 'h1', text => 'Create group' },
     );
 
     $test->release;
@@ -348,8 +350,8 @@ sub assert_on_add_a_table_page {
 
     $self->_assert_on_page(
         $name,
-        'body.table\\/0',
-        { selector => 'h2', text => 'Add a table' },
+        '#newTableModal',
+        { selector => 'h3', text => 'Table setup' },
     );
 
     $test->release;
@@ -411,9 +413,7 @@ sub assert_on_edit_user_page {
 
     $self->_assert_on_page(
         $name,
-        'body.user',
-        # TODO Check the user's name appears in the heading text
-        { selector => 'h1', match => '\\AEdit: ' },
+        { selector => 'h1', match => '\A(?i)Edit user:' },
     );
 
     $test->release;
@@ -455,10 +455,13 @@ sub assert_on_manage_fields_page {
 
     $self->_assert_on_page(
         $name,
-        'body.layout',
-        # TODO: Check the table name appears in the h2 text
-        { selector => 'h2.list-fields', match => '\\AManage fields in ' },
+        '.breadcrumbs__item',
+        { selector => '.breadcrumbs__item:nth-of-type(1)', text => 'Tables' },
+        # TODO: Match the table name
+        { selector => '.breadcrumbs__item:nth-of-type(2)', match => '\ATable: ' },
+        { selector => '.breadcrumbs__item:nth-of-type(3)', text => 'Fields' },
     );
+    # TODO: Check the table name appears in the h1 text
 
     $test->release;
     return $self;
@@ -477,8 +480,7 @@ sub assert_on_manage_groups_page {
 
     $self->_assert_on_page(
         $name,
-        'body.group',
-        { selector => 'h2', text => 'Groups' },
+        { selector => 'h1', text => 'Group' },
     );
 
     $test->release;
@@ -498,8 +500,8 @@ sub assert_on_manage_tables_page {
 
     $self->_assert_on_page(
         $name,
-        'body.table',
-        { selector => 'h2', text => 'Manage tables' },
+        { selector => 'h1', text => 'Tables' },
+        { selector => 'th.sorting', match => '\A(?i)Table\s+\z' },
     );
 
     $test->release;
@@ -519,8 +521,10 @@ sub assert_on_manage_this_table_page {
 
     $self->_assert_on_page(
         $name,
-        'body.this_table',
-        { selector => 'h2', text => 'Manage this table' },
+        '.breadcrumbs__item',
+        { selector => '.breadcrumbs__item:nth-of-type(1)', text => 'Tables' },
+        # TODO: Match the table name
+        { selector => '.breadcrumbs__item:nth-of-type(2)', match => '\ATable: ' },
     );
 
     $test->release;
@@ -540,8 +544,8 @@ sub assert_on_manage_users_page {
 
     $self->_assert_on_page(
         $name,
-        'body.user',
-        { selector => 'h1', match => '\AManage users\s*\z' },
+        { selector => 'h1', text => 'Users' },
+        { selector => '.sr-only', match => '\b(?i)users?\b' },
     );
 
     $test->release;
@@ -805,7 +809,7 @@ sub assign_current_user_to_group_ok {
     my $test = context();
     my $webdriver = $self->gads->webdriver;
 
-    my $query = "//label[ contains(., '${group_name}') ]/input[
+    my $query = "//label[ contains(., '${group_name}') ]/../input[
             \@type = 'checkbox'
             and \@name = 'groups'
         ]";
@@ -818,7 +822,7 @@ sub assign_current_user_to_group_ok {
         $success = 0;
         $test->diag("The ${description} is unexpectedly selected");
     }
-    $checkbox_el->click;
+    $checkbox_el->find('../label', method => 'xpath')->click;
 
     my $group_id = $checkbox_el->attr('value');
     $webdriver->find( "input[name='groups'][value='${group_id}']:checked" );
@@ -850,15 +854,9 @@ sub confirm_deletion_ok {
     )->attr('value');
 
     my $delete_button_el = $webdriver->find(
-        # TODO: Use a better selector
-        'form a[data-target="#myModal"]',
+        'button.btn-js-delete',
         dies => 0,
     );
-
-    # Disable Bootstrap transitions to avoid timing issues.  Trying to
-    # click on an element whilst it animates fails with an "Element ...
-    # could not be scrolled into view" error.
-    $webdriver->js( '$.support.transition = false' );
 
     my $success = $self->_check_only_one( $delete_button_el, 'delete button' );
     if ($success) {
@@ -1118,6 +1116,13 @@ sub select_table_to_edit_ok {
     my $test = context();
 
     my $result = $self->_select_item_row_to_edit_ok( @_, 'table' );
+    my $edit_el = $self->gads->webdriver->find(
+        '//*[contains( @class, "list--tabs")]//a[contains( ., "Edit table")]',
+        method => 'xpath',
+        dies => 0,
+    );
+    $result &&= $edit_el;
+    $edit_el->click if $edit_el;
 
     $test->release;
     return $result;
@@ -1128,10 +1133,14 @@ sub _select_item_row_to_edit_ok {
     $name //= "Select the '${item_row_name}' ${type_name} to edit";
     my $test = context();
 
-    my $edit_el = $self->_find_named_item_row_el($item_row_name);
+    my $item_el = $self->_find_named_item_row_el($item_row_name);
     my $success = $self->_check_only_one(
-        $edit_el, "${type_name} named '${item_row_name}'" );
-    $edit_el->click if $success;
+        $item_el, "${type_name} named '${item_row_name}'" );
+
+    my $a_el = $item_el->find( 'a', dies => 0 );
+    if ( $a_el->size ) { $item_el = $a_el }
+
+    $item_el->click if $success;
     $test->ok( $success, $name );
 
     $test->release;
@@ -1258,22 +1267,41 @@ sub submit_add_a_table_form_ok {
 
     my $success = $self->_fill_in_field( 'input[name=name]', $arg{name} );
 
-    # Fill in checkboxes to give the specified group all permissions
     my $webdriver = $self->gads->webdriver;
-    my $group_row_el = $webdriver->find(
+    # Click the "Next" button
+    $webdriver->find(
+        '#newTableModal .modal-frame:not(.invisible) .btn-default',
+        tries => 20,
+    )->click;
+
+    # Wait for the "Table permissions" frame (frame 2) to appear
+    my $groups_el = $webdriver->find('#newTableModal .modal-frame[data-config*=":2,"]:not(.invisible)');
+
+    # Select the required group
+    my $group_button_el = $groups_el->find(
         # TODO: "contains" isn't the same as "equals"
-        "//tr/td[1][ contains( ., '$arg{group_name}') ]/..",
+        "//button[ contains( ., '$arg{group_name}') ]",
         method => 'xpath',
         dies => 0,
     );
     $success &&= $self->_check_only_one(
-        $group_row_el, "group named '$arg{group_name}'" );
+        $group_button_el, "group named '$arg{group_name}'" );
+    $group_button_el->click;
+    my $group_el = $group_button_el->find(
+        '../../..',
+        method => 'xpath',
+    );
+
+    # Wait for the permissions checkboxes to appear
+    $group_el->find('[id^="group_permissions_"].show');
+
+    # Fill in checkboxes to give the specified group all permissions
     if ($success) {
-        $_->click foreach $group_row_el->find('input[name=permissions]');
+        $_->click foreach $group_el->find('input[type=checkbox] + label');
     }
 
     $test->note("About to add a table named $arg{name}");
-    $success &&= $self->_click_submit_button;
+    $groups_el->find('button.btn-js-save')->click;
 
     my $result = $test->ok( $success, $name );
     $test->release;
@@ -1498,7 +1526,7 @@ sub _find_named_item_row_el {
     my ( $self, $name ) = @_;
 
     my $webdriver = $self->gads->webdriver;
-    my $xpath = "//tr[ contains( ., '$name' ) ]//a";
+    my $xpath = "//td[ contains( ., '$name' ) ]";
     my $found_el = $webdriver->find( $xpath,
         method => 'xpath', dies => 0, tries => 10 );
 

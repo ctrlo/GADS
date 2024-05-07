@@ -641,7 +641,7 @@ sub find_deleted_recordid
 
 # Returns new GADS::Record object, doesn't change current one
 sub find_unique
-{   my ($self, $column, $value, @retrieve_columns) = @_;
+{   my ($self, $column, $value, %params) = @_;
 
     return $self->find_current_id($value)
         if $column->id == $self->layout->column_id;
@@ -656,7 +656,12 @@ sub find_unique
         schema  => $self->schema,
     );
 
-    my $record = $records->find_unique($column, $value, @retrieve_columns);
+    my $record;
+    {
+        # Do not limit by user
+        local $GADS::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
+        $record = $records->find_unique($column, $value, %params)->single;
+    }
 
     # Horrible hack. The record of layout will have been overwritten during the
     # above searches. Needs to be changed back to this record.
@@ -1570,6 +1575,8 @@ sub write
     my %no_write_topics;
     foreach my $column (@cols)
     {
+        next if $options{re_evaluate_only};
+
         my $datum = $self->fields->{$column->id}
             or next; # Will not be set for child records
 
@@ -1945,6 +1952,10 @@ sub write_values
     my %update_autocurs;
     foreach my $column ($self->layout->all(order_dependencies => 1))
     {
+        # If doing a re-evaluate of the existing record, then there will be no
+        # changes to user-input fields. Short-circuit for speed.
+        next if $options{re_evaluate_only} && $column->userinput;
+
         # Prevent warnings when writing incomplete calc values on draft
         next if $options{draft} && !$column->userinput;
 
@@ -2160,7 +2171,7 @@ sub write_values
             {
                 $record->fields->{$_}->changed(1)
                     foreach @{$update_autocurs{$record->current_id}};
-                $record->write(%options, update_only => 1, re_evaluate => 1, submission_token => undef);
+                $record->write(%options, update_only => 1, re_evaluate_only => 1, submission_token => undef);
             }
         }
     }

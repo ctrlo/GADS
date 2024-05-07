@@ -65,7 +65,7 @@ class ValueLookupComponent extends Component {
           removeStatusMessage($field)
         }
       })
-      .fail(function(jqXHR, textStatus, textError) {
+      .fail(function(jqXHR, textStatus) {
         // Use error in JSON from endpoint if available, otherwise try and
         // interpret error response appropriately
         const err_message = textStatus == "timeout"

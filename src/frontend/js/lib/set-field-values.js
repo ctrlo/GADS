@@ -53,7 +53,7 @@ const setFieldValues = function($field, values) {
       set_date($single, value)
     })
 
-  } else if (type === "string" || type === "integer") {
+  } else if (type === "string" || type === "intgr") {
 
     values.forEach(function(value, index){
       let $single = prepare_multi($field, index)
@@ -86,7 +86,7 @@ const set_enum_single = function($element, values) {
 
   // Accept ID or text value, specified depending on the key of the value
   // object
-  values.forEach(function(value, index){
+  values.forEach(function(value){
     let $option
     let val
     if (value.hasOwnProperty('id')) {
@@ -181,7 +181,7 @@ const set_tree = function($field, values) {
     nodes_hash[node.text] = node.id
   })
   $jstree.deselect_all()
-  values.forEach(function(value, index){
+  values.forEach(function(value){
     let id;
     if (value.hasOwnProperty('id')) {
       id = value['id']

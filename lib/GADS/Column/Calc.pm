@@ -38,13 +38,12 @@ has '+option_names' => (
 
 has show_in_edit => (
     is      => 'rw',
-    isa     => Bool,
+    isa     => Int,
     lazy    => 1,
-    coerce  => sub { $_[0] ? 1 : 0 },
     builder => sub {
         my $self = shift;
         return 0 unless $self->has_options;
-        $self->options->{show_in_edit};
+        $self->options->{show_in_edit} || 0;
     },
     trigger => sub { $_[0]->reset_options },
 );
@@ -191,12 +190,6 @@ sub write_code
         || $self->_rset_code->code ne $self->code
         || $self->_rset_code->return_format ne $self->return_type
         || $options{old_rset}->{multivalue} != $self->multivalue;
-    # If changing return type, then remove all previous cached calc values, as
-    # they will all be recalculated
-    $self->schema->resultset($self->table_unique)->search({
-        layout_id => $self->id,
-    })->delete if $self->table_unique
-        && $self->_rset_code->return_format && $self->_rset_code->return_format ne $self->return_type;
     $rset->layout_id($layout_id);
     $rset->code($self->code);
     $rset->return_format($self->return_type);

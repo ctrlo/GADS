@@ -15,7 +15,7 @@ use Dancer2;
 my $config = config;
 
 use DBIx::Class::Migration;
-use Log::Report 'lspace';
+use Dancer2::Plugin::LogReport 'linkspace', mode => 'NORMAL';
 use Getopt::Long;
 
 my ($prepare, $install, $upgrade, $downgrade, $status, $fixtures);

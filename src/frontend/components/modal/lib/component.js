@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component'
 import { modal } from './modal'
 import { Frame } from './frame'
@@ -161,8 +162,6 @@ class ModalComponent extends Component {
 
   // Activate a frame by it's number
   activateFrame(frameNumber, previousFrameNumber, clearFields) {
-    const self = this
-
     this.frames.each((i, frame) => {
       const config = $(frame).data('config')
 
@@ -170,21 +169,21 @@ class ModalComponent extends Component {
         throw 'activateFrame: frame is not a number!'
       }
 
-      self.unbindEventHandlers($(frame))
+      this.unbindEventHandlers($(frame))
 
       if (config.frame === frameNumber) {
         try {
-          self.frame = self.createFrame(frame, previousFrameNumber)
+          this.frame = this.createFrame(frame, previousFrameNumber)
         } catch (e) {
           logging.error(e)
         }
 
-        self.frame.object.removeClass('invisible')
-        self.frame.object.find('.alert').hide()
-        self.activateStep(self.frame.step)
-        self.bindEventHandlers()
+        this.frame.object.removeClass('invisible')
+        this.frame.object.find('.alert').hide()
+        this.activateStep(this.frame.step)
+        this.bindEventHandlers()
 
-        if (self.frame.requiredFields.length) {
+        if (this.frame.requiredFields.length) {
           this.frame.buttons.next && this.setNextButtonState(false)
           this.frame.buttons.invisible && this.setInvisibleButtonState(false)
         }
@@ -213,8 +212,7 @@ class ModalComponent extends Component {
 
   // Add event listeners to the buttons and required fields of the current frame
   bindEventHandlers() {
-    const self = this
-    this.frame.buttons.next.click( () => { modal.next(self.frame.object) } )
+    this.frame.buttons.next.click( () => { modal.next(this.frame.object) } )
     this.frame.buttons.back.click( () => { modal.back(this.frame.object) } )
     this.frame.buttons.skip.click( () => { this.frame.skip && modal.skip(this.frame.skip) } )
     this.frame.buttons.addNext.click( () => { modal.add(this.frame.object) } )
@@ -273,11 +271,10 @@ class ModalComponent extends Component {
 
   // Validate the required fields of the frame
   validateFrame() {
-    const self = this
     this.frame.isValid = true
 
     this.frame.requiredFields.each((i, field) => {
-      if (!self.isValidField($(field))) {
+      if (!this.isValidField($(field))) {
         this.frame.isValid = false
       }
     })
@@ -285,7 +282,7 @@ class ModalComponent extends Component {
     this.setFrameState()
   }
 
-  setInputState($field, valid){
+  setInputState($field){
     if($field.is(':invalid')) {
       $field.attr('aria-invalid', true)
       $field.closest('.input').addClass('input--invalid')
@@ -359,11 +356,11 @@ class ModalComponent extends Component {
     })
   }
 
-  // Handle upload to server
+  // Handle upload to server - reference to this is used here due to XMLHttpRequest scope issues
   handleUpload(dataObj){
+    const self = this;
     const url = this.el.data('config').url
     const id = this.el.data('config').id
-    const self = this
     const csrf = $('body').data('csrf').toString()
     dataObj['csrf_token'] = csrf || ""
     const dataStr = JSON.stringify(dataObj)
@@ -376,10 +373,10 @@ class ModalComponent extends Component {
       data: dataStr,
       processData: false
     })
-    .done(function(data, textStatus, jqXHR) {
+    .done(function() {
       location.reload()
     })
-    .fail(function(jqXHR, textStatus, errorThrown ) {
+    .fail(function(jqXHR) {
       const strError = jqXHR.responseJSON.message
       self.showError(strError)
     })

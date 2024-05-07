@@ -11,7 +11,7 @@ use warnings;
 
 use Log::Report 'linkspace';
 use CtrlO::PDF 0.06;
-use PDF::Table 0.11.0; # Needed for colspan feature
+use PDF::Table 1.006; # Needed for colspan feature
 use GADS::Config;
 use Moo;
 
@@ -292,7 +292,7 @@ sub create_pdf
     $pdf->text($self->description , size => 14 ) if $self->description;
 
     my $hdr_props = {
-        repeat    => 1,
+        repeat    => 0,
         justify   => 'center',
         font_size => 12,
         bg_color  => '#007c88',
@@ -349,6 +349,7 @@ sub create_pdf
             border_c     => '#007C88',
             h_border_w   => 1,
             cell_props   => $cell_props,
+            size         => '4cm *',
         );
     }
 

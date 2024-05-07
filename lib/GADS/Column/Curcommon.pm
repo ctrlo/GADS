@@ -579,30 +579,48 @@ sub values_beginning_with
     my @matches = split /[\s,]+/, $match;
 
     my @rules;
-    foreach my $m (@matches)
+    # use_id option performs a search on a specific record by ID rather than a
+    # general textual search
+    if ($options{use_id})
     {
-        # For each search param, construct a search that matches it in any field
-        my @conditions = map {
-            +{
-                field    => $_->id,
-                id       => $_->id,
-                type     => $_->type,
+        foreach my $m (@matches)
+        {
+            my $column_id = $self->layout->column_id;
+            push @rules, {
+                field    => $column_id->id,
+                id       => $column_id->id,
+                type     => $column_id->type,
                 value    => $m,
-                operator => $_->return_type eq 'string' ? 'contains' : 'equal',
-            },
-        } @{$self->curval_fields};
-        my @this_rules = (
-            {
-                condition => 'OR',
-                rules     => [@conditions],
-            },
-        );
-        push @rules, (
-            {
-                condition => 'AND',
-                rules     => \@this_rules,
-            }
-        );
+                operator => 'equal',
+            };
+        }
+    }
+    else {
+        foreach my $m (@matches)
+        {
+            # For each search param, construct a search that matches it in any field
+            my @conditions = map {
+                +{
+                    field    => $_->id,
+                    id       => $_->id,
+                    type     => $_->type,
+                    value    => $m,
+                    operator => $_->return_type eq 'string' ? 'contains' : 'equal',
+                },
+            } @{$self->curval_fields};
+            my @this_rules = (
+                {
+                    condition => 'OR',
+                    rules     => [@conditions],
+                },
+            );
+            push @rules, (
+                {
+                    condition => 'AND',
+                    rules     => \@this_rules,
+                }
+            );
+        }
     }
 
     push @rules, $self->view->filter->as_hash

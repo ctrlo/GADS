@@ -205,8 +205,7 @@ function parseTimelineForPdfPrinting() {
     // positioned absolute from the top of the group. The group is dynamic in height.
     const visGroups = getVisGroups();
 
-    // This was causing an error within webpack - removed condition to remove it.
-    // if (visGroups !== {}) {
+    if (Object.keys(visGroups).length !== 0) {
       parseVisGroups(visGroups);
     // }
 }

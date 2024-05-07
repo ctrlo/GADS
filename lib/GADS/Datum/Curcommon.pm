@@ -329,7 +329,7 @@ has ids_affected => (
 sub _build_ids_affected
 {   my $self = shift;
     my %ids = map { $_ => 1 } $self->oldvalue ?  @{$self->oldvalue->all_ids} : ();
-    $ids{$_} = 1 foreach @{$self->ids};
+    $ids{$_} = 1 foreach @{$self->all_ids};
     [ keys %ids ];
 }
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component'
 import 'summernote/dist/summernote-bs4'
 import { logging } from 'logging'
@@ -9,8 +10,7 @@ class SummerNoteComponent extends Component {
     }
 
     initSummerNote() {
-      const self = this
-
+      const self = this;
       $(this.element).summernote({
         toolbar: [
           ['style', ['style']],

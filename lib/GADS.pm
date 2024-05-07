@@ -152,7 +152,7 @@ hook before => sub {
     schema->site_id(undef);
 
     # See if there are multiple sites. If so, find site and configure in schema
-    if (schema->resultset('Site')->count > 1 && request->dispatch_path !~ m{/invalidsite})
+    if (schema->resultset('Site')->count > 1 && request->path !~ m{/invalidsite})
     {
         my $site = schema->resultset('Site')->search({
             host => request->base->host,
@@ -4365,7 +4365,7 @@ prefix '/:layout_name' => sub {
 
         return to_json {
             error   => 0,
-            records => [ $column->values_beginning_with($query, noempty => query_parameters->get('noempty')) ]
+            records => [ $column->values_beginning_with($query, noempty => query_parameters->get('noempty'), use_id => query_parameters->get('use_id') ) ]
         }
     };
 

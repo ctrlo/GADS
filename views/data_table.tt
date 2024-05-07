@@ -74,6 +74,7 @@
           orderable = 1,
           filter = "html",
           typeahead = col.has_typeahead,
+          typeahead_use_id = col.typeahead_use_id,
         });
     
         processed_columns.push(col.id);

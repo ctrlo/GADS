@@ -497,8 +497,8 @@
 
 [% BLOCK print_field; %]
   <div
-      class="[% IF col.show_in_edit %]form-group[% END %]
-      linkspace-field"
+      class="[% IF col.show_in_edit %]form-group [% END %]linkspace-field[% IF col.show_in_edit==2 %] hidden[% END %]"
+      [% IF col.show_in_edit==2 %]aria-hidden="true"[% END %]
       data-column-id="[% col.id %]"
       data-column-type="[% col.type %]"
       data-value-selector="[% col.value_selector %]"
@@ -1016,7 +1016,7 @@
       IF col.type == "date";
         field_input_class = "input--date";
         field_placeholder = config.dateformat_datepicker;
-        dateformat        = config.dateformat_datepicker;
+        field_dateformat  = config.dateformat_datepicker;
   
         IF col.show_datepicker AND !readonly;
           field_input_class = field_input_class _ " input--datepicker";
@@ -1040,6 +1040,7 @@
           field_input_class = field_input_class
           input_class  = field_input_class
           placeholder  = field_placeholder
+          dateformat   = field_dateformat
           help_text    = col.description
           popover_body = col.helptext_html
           filter       = "html"
@@ -1055,6 +1056,7 @@
           value        = editvalue.html_form.shift
           input_class  = field_input_class
           placeholder  = field_placeholder
+          dateformat   = field_dateformat
           help_text    = col.description
           popover_body = col.helptext_html
           filter       = "html"

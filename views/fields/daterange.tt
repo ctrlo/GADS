@@ -20,6 +20,7 @@
           help_text    = from.help_text
           popover_body = from.popover_body
           placeholder  = from.placeholder || config.dateformat
+          dateformat   = from.placeholder || config.dateformat
           value        = from.value
           filter       = from.filter || "html"
           is_required  = from.is_required ? 1 : 0
@@ -43,6 +44,7 @@
           help_text    = from.help_text
           popover_body = from.popover_body
           placeholder  = to.placeholder || config.dateformat
+          dateformat   = to.placeholder || config.dateformat
           value        = to.value
           filter       = to.filter || "html"
           is_required  = to.is_required ? 1 : 0

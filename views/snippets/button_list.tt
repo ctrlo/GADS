@@ -82,8 +82,9 @@
                     target="_blank">
                       [% item.label || item.name | html %]
                   </a>
-                [% END %]
               </li>
+              [% END %]
+              [% INCLUDE extension/record_edit_extra.tt %]
             </ul>
           </div>
         </div>

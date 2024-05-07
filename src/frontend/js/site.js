@@ -30,7 +30,6 @@ import SelectComponent from 'components/form-group/select'
 import SelectWidgetComponent from 'components/form-group/select-widget'
 import SidebarComponent from 'components/sidebar'
 import SortableComponent from 'components/sortable'
-import SummerNoteComponent from 'components/summernote'
 import TextareaComponent from 'components/form-group/textarea'
 import TimelineComponent from 'components/timeline'
 import TippyComponent from 'components/timeline/tippy'
@@ -69,7 +68,6 @@ registerComponent(SelectComponent)
 registerComponent(SelectWidgetComponent)
 registerComponent(SidebarComponent)
 registerComponent(SortableComponent)
-registerComponent(SummerNoteComponent)
 registerComponent(TextareaComponent)
 registerComponent(TimelineComponent)
 registerComponent(TippyComponent)

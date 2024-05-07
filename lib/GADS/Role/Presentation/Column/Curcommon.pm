@@ -9,8 +9,8 @@ sub after_presentation
     $return->{value_selector}     = $self->value_selector;
     $return->{show_add}           = $self->show_add;
     $return->{has_subvals}        = $self->has_subvals;
-    $return->{has_typeahead}      = $self->value_selector eq 'typeahead';
     $return->{data_filter_fields} = $self->data_filter_fields;
+    $return->{typeahead_use_id}   = 1;
     $return->{limit_rows}         = $self->limit_rows;
     # Expensive to build, so avoid if possible. Only needed for an edit, and no
     # point if they are filtered from record values as they will be rebuilt
