@@ -94,6 +94,7 @@ has _view_rs => (
 
 sub _build__view_rs
 {   my $self = shift;
+    return if !$self->id;
     $self->schema->resultset('View')->find({
         'me.id'          => $self->id,
         # instance_id isn't strictly needed as id is the primary key

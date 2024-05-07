@@ -235,22 +235,23 @@ sub _view_limits_search
             }
         }
     }
-    my $limit = [ '-or' => \@search ];
+    my @limit = @search ? ('-or' => \@search) : ();
 
     if (my $filter = $self->_view_limit_extra && $self->_view_limit_extra->filter)
     {
         my $decoded = $filter->as_hash;
         if (keys %$decoded)
         {
+            my @s = $self->_search_construct($decoded, $self->layout, %options, ignore_perms => 1);
             # Get the user search criteria. As above we do not let permissions
             # affect these admin-defined views.
-            $limit = [
-                -and => [ $limit, $self->_search_construct($decoded, $self->layout, %options, ignore_perms => 1) ],
-            ];
+            @limit = @limit ? (
+                -and => [ [@limit], @s ],
+            ) : @s;
         }
     }
 
-    return $limit;
+    return @limit;
 }
 
 has from => (
@@ -660,6 +661,7 @@ sub search_view
     @foundin;
 }
 
+
 sub find_unique
 {   my ($self, $column, $value, %params) = @_;
 
@@ -699,9 +701,7 @@ sub find_unique
     );
     @retrieve_columns = ($column->id)
         unless @retrieve_columns;
-    # Do not limit by user
-    local $GADS::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
-    my $records = GADS::Records->new(
+    GADS::Records->new(
         user    => $self->user,
         rows    => 1,
         view    => $view,
@@ -709,9 +709,6 @@ sub find_unique
         schema  => $self->schema,
         columns => \@retrieve_columns,
     );
-
-    # Might be more, but one will do
-    $records->single;
 }
 
 sub _escape_like
@@ -1554,6 +1551,74 @@ sub _build_count
     )->count;
 }
 
+# Cache for exists() function
+has _exists_cache => (
+    is => 'rw',
+);
+
+# Whether any records exist in this set. As an optimisation, allow a new value
+# to be passed in multiple times, to save rebuilding the search query
+# everytime.
+sub exists
+{   my ($self, $value) = @_;
+
+    my (@joins, @linked, $search_query);
+
+    if (my $cache = $self->_exists_cache)
+    {
+        @joins        = @{$cache->{joins}};
+        @linked       = @{$cache->{linked}};
+        $search_query = $cache->{search_query};
+    }
+    else {
+        $search_query = $self->search_query(search => 1, linked => 1);
+        @joins        = $self->jpfetch(search => 1, linked => 0);
+        @linked       = $self->linked_hash(search => 1, linked => 1);
+        $self->_exists_cache({
+            joins        => \@joins,
+            linked       => \@linked,
+            search_query => $search_query,
+        });
+    }
+
+    # Hacky code to update search condition. Look for search condition of
+    # unique field and update its search value
+    foreach my $q (@$search_query)
+    {
+        next unless ref $q eq 'ARRAY';
+        my $next;
+        foreach my $q2 (@$q)
+        {
+            if ($next)
+            {
+                $q2->{'='} = $value;
+                undef $next;
+            }
+            if ($q2 =~ /^field/)
+            {
+                $next = 1;
+            }
+        }
+    }
+
+    my $select = {
+        join     => [
+            [@linked],
+            {
+                'record_single' => [
+                    'record_later',
+                    @joins
+                ],
+            },
+        ],
+        rows => 1,
+    };
+
+    !! $self->schema->resultset('Current')->search(
+        [-and => $search_query], $select
+    )->get_column('me.id')->next;
+}
+
 sub _build_has_children
 {   my $self = shift;
 
@@ -1816,19 +1881,18 @@ sub _query_params
         $self->_search_date($c, $search_date);
     }
 
-    my @limit;  # The overall limit, for example reduction by date range or approval field
     my @search; # The user search
     # The following code needs to be run twice, to make sure that join numbers
     # are worked out correctly. Otherwise, a search criteria might not take
     # into account a subsuquent sort, and vice-versa.
     for (1..2)
     {
-        @search = (); @limit = (); # Reset from first loop
+        @search = (); # Reset from first loop
         # Add any date ranges to the search from above
         if (@$search_date)
         {
             my @res = ($self->_search_construct({condition => 'OR', rules => $search_date}, $layout, %options));
-            push @limit, @res if @res;
+            push @search, @res if @res;
         }
 
         foreach my $additional (@{$self->additional_filters})
@@ -1843,7 +1907,7 @@ sub _query_params
                 value       => $additional->{value},
                 value_field => !$additional->{is_text} && $col->value_field_as_index($additional->{value}),
             };
-            push @limit, $self->_search_construct($f, $layout, %options);
+            push @search, $self->_search_construct($f, $layout, %options);
         }
 
         # Now add all the filters as joins (we don't need to prefetch this data). However,
@@ -1858,7 +1922,7 @@ sub _query_params
                 if (keys %$decoded)
                 {
                     # Get the user search criteria
-                    @search = $self->_search_construct($decoded, $layout, %options);
+                    push @search, $self->_search_construct($decoded, $layout, %options);
                 }
             }
         }
@@ -1878,14 +1942,14 @@ sub _query_params
             layout_id => $fc->{layout_id},
             value     => { '!=' => undef },
         })->get_column('value')->all;
-        push @limit, {
+        push @search, {
             'me.id' => {
                 -in => \@cids,
             },
         };
     }
 
-    (@limit, @search);
+    @search;
 }
 
 sub _build__sorts
@@ -1980,11 +2044,11 @@ sub order_by
         : @{$self->_sorts};
 
     my @order_by; my %has_time;
-    my $random_sort = $self->schema->resultset('Current')->_rand_order_by;
     foreach my $s (@sorts)
     {
         if ($s->{type} eq 'random')
         {
+            my $random_sort = $self->schema->resultset('Current')->_rand_order_by;
             push @order_by, \$random_sort;
         }
         else {
@@ -2412,7 +2476,8 @@ sub _search_construct
             %options
         );
     } @conditions;
-    @final = ("-$gate" => [@final]);
+    @final = ("-$gate" => [@final])
+        if @final != 2;
     my $parent_column_link = $parent_column && $parent_column->link_parent;;
     if ($parent_column_link || $column->link_parent)
     {
