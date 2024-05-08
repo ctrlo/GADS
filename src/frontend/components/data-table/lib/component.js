@@ -287,7 +287,7 @@ class DataTableComponent extends Component {
      * insertion into the visible input */
     const $searchInput = $(`<input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>`)
     $searchInput.appendTo($('.input', $searchElement))
-    if (col.typeahead_use_id) {
+    if (col.typeahead_use_id && searchValue) {
       $searchInput.after(`<input type="hidden" class="search">`)
       $.ajax({
         type: 'GET',
