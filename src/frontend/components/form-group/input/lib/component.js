@@ -169,7 +169,7 @@ class InputComponent extends Component {
       if (devEndpoint) {
         return devEndpoint
       } else {
-        return layout_identifier ? '/' + layout_identifier + '/match/user/' : '/match/user/'
+        return layout_identifier ? '/' + layout_identifier + '/match/user/?q=' : '/match/user/?q='
       }
     }
 
