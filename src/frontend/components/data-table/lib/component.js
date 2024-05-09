@@ -22,6 +22,7 @@ class DataTableComponent extends Component {
     this.forceButtons = this.el.hasClass('table-force-buttons')
     this.searchParams = new URLSearchParams(window.location.search)
     this.base_url = this.el.data('href') ? this.el.data('href') : undefined
+    this.isFullScreen = false
     this.initTable()
   }
 
@@ -584,8 +585,7 @@ class DataTableComponent extends Component {
     return this.renderDataType(data)
   }
 
-  // DO NOT REMOVE THE SELF REFERENCE IN THE FUNCTION
-  getConf() {
+  getConf(overrides = undefined) {
     const confData = this.el.data('config')
     let conf = {}
 
@@ -593,6 +593,12 @@ class DataTableComponent extends Component {
       conf = JSON.parse(atob(confData))
     } else if (typeof confData === 'object') {
       conf = confData
+    }
+
+    if(overrides) {
+      for(const key in overrides) {
+        conf[key] = overrides[key]
+      }
     }
 
     if (conf.serverSide) {
@@ -701,12 +707,12 @@ class DataTableComponent extends Component {
   */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toggleFullScreenMode(buttonElement) {
-    const fullScreenButton = document.querySelector('#full-screen-btn');
-    if (!fullScreenButton) console.warn('Missing full screen button.');
-    const currentTable = document.querySelector('.dataTables_wrapper');
-    if (!currentTable) console.warn('Failed to toggle full screen; missing data table.');
-    const isFullScreen = fullScreenButton.classList.contains('btn-toggle');
-    if (!isFullScreen) {
+    const table = document.querySelector("table.data-table");
+    const currentTable = $(table);
+    if(currentTable && $.fn.dataTable.isDataTable(currentTable)) {
+      currentTable.DataTable().destroy();
+    }
+    if (!this.isFullScreen) {
       // Create new modal
       const newModal = document.createElement('div');
       newModal.id = "table-modal"
@@ -714,7 +720,10 @@ class DataTableComponent extends Component {
       newModal.classList.add('data-table__container--scrollable');
 
       // Move data table into new modal
-      newModal.append(currentTable);
+      newModal.append(table);
+      if(currentTable && !($.fn.dataTable.isDataTable(currentTable))) {
+        currentTable.DataTable(this.getConf({responsive: false}));
+      }
       document.body.appendChild(newModal);
 
       $(document).on("keyup", (ev)=>{
@@ -730,8 +739,10 @@ class DataTableComponent extends Component {
         return;
       }
 
-      mainContent.appendChild(currentTable);
-
+      mainContent.appendChild(table);
+      if(currentTable && !($.fn.dataTable.isDataTable(currentTable))) {
+        currentTable.DataTable(this.getConf());
+      }
       // Remove the modal
       document.querySelector('#table-modal').remove();
 
@@ -739,7 +750,9 @@ class DataTableComponent extends Component {
     }
 
     // Toggle the full screen button
-    $(fullScreenButton).toggleClass(['btn-toggle', 'btn-toggle-off'])
+    this.isFullScreen = !this.isFullScreen;
+    $("#full-screen-btn").removeClass(this.isFullScreen ? 'btn-toggle-off': 'btn-toggle');
+    $("#full-screen-btn").addClass(this.isFullScreen ? 'btn-toggle': 'btn-toggle-off');
   }
 
   bindClickHandlersAfterDraw(conf) {
