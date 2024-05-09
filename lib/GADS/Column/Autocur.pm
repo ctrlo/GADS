@@ -145,32 +145,48 @@ sub fetch_multivalues
     # then this ensures it is properly applied
     local $GADS::Schema::IGNORE_PERMISSIONS_SEARCH = 1;
 
-    my $m_rs = $self->multivalue_rs($record_ids);
-    $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
-    my @values = $m_rs->all;
+    my @values = $self->multivalue_rs($record_ids)->all;
 
     # Keep a track of sheet joins in a tree. Add this column to the tree.
     my $tree = $options{already_seen};
     my $child = Tree::DAG_Node->new({name => $self->id});
     $tree->add_daughter($child);
 
-    my $records = GADS::Records->new(
-        already_seen            => $child,
-        user                    => $self->layout->user,
-        layout                  => $self->layout_parent,
-        schema                  => $self->schema,
-        columns                 => $self->curval_field_ids_retrieve(%options, already_seen => $child),
-        limit_current_ids       => [map { $_->{record}->{current_id} } @values],
-        include_children        => 1, # Ensure all autocur records are shown even if they have the same text content
-        ignore_view_limit_extra => 1,
-    );
-    my %retrieved; my $order;
-    while (my $record = $records->single)
+    my @all_current_ids = map { $_->get_column('my_current_id') } @values;
+    my %unique = map { $_ => 1 } @all_current_ids;
+    @all_current_ids = keys %unique
+        or return;
+    my %retrieved;
+    # If there is only one record (no ordering required) and it has already
+    # been fetched in this request, then use that cached version
+    if (@all_current_ids == 1 && $self->layout->cached_records_autocur->{$all_current_ids[0]})
     {
+        my $record = $self->layout->cached_records_autocur->{$all_current_ids[0]};
         $retrieved{$record->current_id} = {
             record => $record,
-            order  => ++$order, # store order
+            order  => 1,
         };
+    }
+    else {
+        my $order;
+        my $records = GADS::Records->new(
+            already_seen            => $child,
+            user                    => $self->layout->user,
+            layout                  => $self->layout_parent,
+            schema                  => $self->schema,
+            columns                 => $self->curval_field_ids_retrieve(%options, already_seen => $child),
+            limit_current_ids       => \@all_current_ids,
+            include_children        => 1, # Ensure all autocur records are shown even if they have the same text content
+            ignore_view_limit_extra => 1,
+        );
+        while (my $record = $records->single)
+        {
+            $retrieved{$record->current_id} = {
+                record => $record,
+                order  => ++$order, # store order
+            };
+            $self->layout->cached_records_autocur->{$record->current_id} = $record;
+        }
     }
 
     # It shouldn't happen under normal circumstances, but there is a chance
@@ -179,9 +195,9 @@ sub fetch_multivalues
     my @v; my $done = {};
     foreach (@values)
     {
-        next unless exists $retrieved{$_->{record}->{current_id}};
-        my $cid = $_->{record}->{current_id};
-        my $rid = $_->{value}->{records}->[0]->{id};
+        my $cid = $_->get_column('my_current_id');
+        next unless exists $retrieved{$cid};
+        my $rid = $_->get_column('records_id');
         push @v, +{
             layout_id => $self->id,
             record_id => $rid,
@@ -201,25 +217,55 @@ sub multivalue_rs
     # for that, otherwise a large number of unreferenced curvals could be
     # returned
     $record_ids = [ grep { defined $_ } @$record_ids ];
-    my $subquery = $self->schema->resultset('Current')->search({
-            'record_later.id' => undef,
-    },{
-        join => {
-            'record_single' => 'record_later'
-        },
-    })->get_column('record_single.id')->as_query;
 
-    $self->schema->resultset('Curval')->search({
-        'me.record_id' => { -in => $subquery },
+    # We want to retrieve all the records currently using these autocur values.
+    # Although we could do this with one sql statement, it is most efficient to
+    # do this in multiple statements
+
+    # First find all the possible records that have ever referred to these
+    # records, including historical values
+    my $m_rs = $self->schema->resultset('Curval')->search({
         'me.layout_id' => $self->related_field->id,
         'records.id'   => $record_ids,
     },{
-        prefetch => [
+        group_by => 'record.current_id',
+        join => [
             'record',
             {
                 value => 'records',
             },
         ],
+    });
+    my @all_possible_current = $m_rs->get_column('record.current_id')->all;
+
+    # Then a subquery for these, to only retrieve the latest version (which may
+    # or may not still be referring to the value)
+    my $subquery = $self->schema->resultset('Current')->search({
+        'me.id' => \@all_possible_current,
+        'record_later.id' => undef,
+    },{
+        join => {
+            'record_single' => 'record_later'
+        },
+    })->get_column('record_single.id')->as_query;
+    # Now run the actual query, finding the records that as of now are
+    # referring to this curval
+    $self->schema->resultset('Curval')->search({
+        'me.record_id' => { -in => $subquery },
+        'me.layout_id' => $self->related_field->id,
+        'records.id'   => $record_ids,
+    },{
+        columns => [
+            {'my_current_id' => 'record.current_id'},
+            {'records_id' => 'records.id'},
+        ],
+        join => [
+            'record',
+            {
+                value => 'records',
+            },
+        ],
+        group_by => ['record.current_id','records.id'],
     });
 
 }
