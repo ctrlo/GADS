@@ -12,6 +12,7 @@
 - Fix for typeahead issues
   - Increased efficiency of typeahead response times
   - Fixed bug causing locking issues with PSQL
+  - Fix for searching for people where results were not displaying correctly
 
 -------
 
