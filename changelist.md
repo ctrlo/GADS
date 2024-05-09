@@ -2,6 +2,32 @@
 
 -------
 
+**Version**: 2.3.2
+**Released**: 09th May 2024
+
+-------
+
+## Hotfix
+
+- Fix for typeahead issues
+  - Increased efficiency of typeahead response times
+  - Fixed bug causing locking issues with PSQL
+
+-------
+
+**Version**: 2.3.1
+**Released**: 10th April 2024
+
+-------
+
+## Hotfix
+
+- Fix for fullscreen bugs
+  - Fullscreen now renders with correct width
+  - Label now causes fullscreen to be triggered correctly
+
+-------
+
 **Version**: 2.3.0
 **Released**: 26th March 2024
 
