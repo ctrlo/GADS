@@ -3,13 +3,16 @@
 -------
 
 **Version**: 2.3.2
-**Released**: 30th April 2024
+**Released**: 09th May 2024
 
 -------
 
 ## Hotfix
 
-- Fix for edit views of another user not filtering correctly
+- Fix for typeahead issues
+  - Increased efficiency of typeahead response times
+  - Fixed bug causing locking issues with PSQL
+  - Fix for searching for people where results were not displaying correctly
 
 -------
 
