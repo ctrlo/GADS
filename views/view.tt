@@ -502,6 +502,13 @@
                                   table_unresponsive = 1
                                   rows = fields_selected
                                 %]
+
+                                <button
+                                  class="btn btn-default btn-small btn-remove btn-js-toggle-all-fields"
+                                  data-toggle-source="#table-view-fields-selected"
+                                  data-toggle-destination="#table-view-fields-available">
+                                    Remove all fields
+                                </button>
                               </div>
 
                               <!-- Available fields -->
@@ -537,12 +544,11 @@
                                   table_unresponsive = 1
                                   rows = fields_available
                                 %]
-
                                 <button
-                                  class="btn btn-default btn-small btn-add btn-js-add-all-fields"
+                                  class="btn btn-default btn-small btn-add btn-js-toggle-all-fields"
                                   data-toggle-source="#table-view-fields-available"
                                   data-toggle-destination="#table-view-fields-selected">
-                                    All fields
+                                    Select all fields
                                 </button>
                               </div>
 

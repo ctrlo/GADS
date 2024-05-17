@@ -223,6 +223,18 @@ $btn-border-radius: 23px;
   }
 }
 
+.btn-remove {
+  @include btn-default;
+
+  &::before {
+    @extend %icon-font;
+
+    content: "\e82b";
+    margin-right: 0.5rem;
+    color: $white;
+  }
+}
+
 .btn-import,
 .btn-export,
 .btn-add-link,

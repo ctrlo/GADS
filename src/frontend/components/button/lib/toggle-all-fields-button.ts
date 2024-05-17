@@ -1,8 +1,8 @@
 /**
- * Add all fields from source table to destination table
+ * Toggles (switches) all fields from the source toggle table to the destination toggle table
  * @param element {JQuery<HTMLElement>} - The button element
  */
-export default function createAddAllFieldsButton(element: JQuery<HTMLElement>) {
+export default function createToggleAllFieldsButton(element: JQuery<HTMLElement>) {
     element.on('click', (ev) => {
         ev.preventDefault()
         const sourceTableId = $(ev.target).data('toggleSource')
