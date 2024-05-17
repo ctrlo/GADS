@@ -566,8 +566,8 @@ $btn-border-radius: 23px;
   }
 }
 
-.table-transfer--add .btn,
-.table-transfer--remove .btn {
+.table-toggle--add .btn,
+.table-toggle--remove .btn {
   $button-size: 19px;
 
   position: absolute;
@@ -580,7 +580,7 @@ $btn-border-radius: 23px;
   line-height: $button-size;
 }
 
-.table-transfer--add .btn {
+.table-toggle--add .btn {
   border: 2px solid $brand-success;
 
   &::before {
@@ -589,7 +589,7 @@ $btn-border-radius: 23px;
   }
 }
 
-.table-transfer--remove .btn {
+.table-toggle--remove .btn {
   border: 2px solid $brand-danger;
 
   &::before {

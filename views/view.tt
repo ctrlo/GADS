@@ -399,6 +399,7 @@
                               [%
                                 fields_available = [];
                                 fields_selected  = [];
+
                                 row_height = 50;
 
                                 # Calculate height needed for the table
@@ -416,7 +417,18 @@
                                   id = column.id;
                                   is_selected = view_edit.columns.grep("^$id\$").size;
 
-                                  field = {
+                                  selected_field_row = {
+                                    id = "selected-field-" _ column.id
+                                    data_attributes = [{
+                                      name => 'toggle-field-id-selector'
+                                      value => '#available-field-'
+                                    }, {
+                                      name => 'toggle-field-id'
+                                      value => column.id
+                                    }, {
+                                      name => 'field-is-toggled',
+                                      value => is_selected ? 'true' : 'false'
+                                    }]
                                     fields = [{
                                       type   = "text"
                                       label  = column.name
@@ -425,7 +437,6 @@
                                         autofocus     => 0
                                         checked       => is_selected ? 1 : 0
                                         filter        => "html"
-                                        id            => "dt_checkbox_" _ column.id
                                         input_class   => "invisible"
                                         is_required   => 0
                                         label         => column.name
@@ -437,11 +448,26 @@
                                     }]
                                   };
 
-                                  IF is_selected;
-                                    fields_selected.push(field);
-                                  ELSE;
-                                    fields_available.push(field);
-                                  END;
+                                  available_field_row = {
+                                    id = "available-field-" _ column.id
+                                    data_attributes = [{
+                                      name => 'toggle-field-id-selector'
+                                      value => '#selected-field-'
+                                    }, {
+                                      name => 'toggle-field-id'
+                                      value => column.id
+                                    }, {
+                                      name => 'field-is-toggled',
+                                      value => is_selected ? 'false' : 'true'
+                                    }]
+                                    fields = [{
+                                      type  = "text"
+                                      label = column.name
+                                    }]
+                                  };
+
+                                  fields_selected.push(selected_field_row);
+                                  fields_available.push(available_field_row);
                                 END;
                               %]
 
@@ -452,7 +478,7 @@
 
                                   # Table configuration
                                   table_id = "table-view-fields-selected"
-                                  table_class = 'table-striped table--bordered table-hover table-transfer table-transfer--remove'
+                                  table_class = 'table--bordered table-hover table-toggle table-toggle--remove'
                                   table_dom = '<"row row--fiv-header"><"row row--main"<"col-sm-12"tr>>'
                                   table_buttons = [{
                                     button_class = "btn"
@@ -472,7 +498,7 @@
                                   table_paging = 0
                                   table_scroll_y = table_height
                                   table_show_all_records = 1
-                                  table_transfer_destination = "#table-view-fields-available"
+                                  table_destination = "#table-view-fields-available"
                                   table_unresponsive = 1
                                   rows = fields_selected
                                 %]
@@ -485,7 +511,7 @@
 
                                   # Table configuration
                                   table_id = "table-view-fields-available"
-                                  table_class = 'table-striped table--bordered table-hover table-transfer table-transfer--add table-search'
+                                  table_class = 'table--bordered table-hover table-toggle table-toggle--add table-search'
                                   table_dom = '<"row row--header"<"col"' _ (session.rewind ? '' : 'f') _ '>><"row row--main"<"col-sm-12"tr>>'
                                   table_buttons = [{
                                     button_class = "btn"
@@ -507,15 +533,15 @@
                                   table_paging = 0
                                   table_scroll_y = table_height
                                   table_show_all_records = 1
-                                  table_transfer_destination = "#table-view-fields-selected"
+                                  table_destination = "#table-view-fields-selected"
                                   table_unresponsive = 1
                                   rows = fields_available
                                 %]
 
                                 <button
                                   class="btn btn-default btn-small btn-add btn-js-add-all-fields"
-                                  data-transfer-source="#table-view-fields-available"
-                                  data-transfer-destination="#table-view-fields-selected">
+                                  data-toggle-source="#table-view-fields-available"
+                                  data-toggle-destination="#table-view-fields-selected">
                                     All fields
                                 </button>
                               </div>
