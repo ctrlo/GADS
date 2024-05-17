@@ -56,7 +56,6 @@ const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceChec
 
     if (typeof forceCheck == "boolean") {
       // Set the checkbox
-      console.log('Set source checkbox to', !forceCheck)
       sourceRowCheckbox.checked = !forceCheck
     } else {
       // Toggle the checkbox
@@ -69,7 +68,6 @@ const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceChec
   if (destinationRowCheckbox) {
     if (typeof forceCheck == "boolean") {
       // Set the checkbox
-      console.log('Set dest checkbox to', forceCheck)
       destinationRowCheckbox.checked = forceCheck
     } else {
       // Toggle the checkbox
