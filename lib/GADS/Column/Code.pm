@@ -205,6 +205,9 @@ sub update_cached
 
     $self->clear; # Refresh calc for updated calculation
     my $layout = $self->layout;
+    # Need to clear layout so that GADS::Records below uses the new parameters
+    # for this column (such as if the return type has changed)
+    $layout->clear;
 
     local $GADS::Schema::IGNORE_PERMISSIONS = 1;
 
