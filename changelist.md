@@ -2,6 +2,17 @@
 
 -------
 
+**Version**: 2.3.3
+**Released**: 09th May 2024
+
+-------
+
+## Hotfix
+
+- Fix for extra request on curval fields
+
+-------
+
 **Version**: 2.3.2
 **Released**: 30th April 2024
 
