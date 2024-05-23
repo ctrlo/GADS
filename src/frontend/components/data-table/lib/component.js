@@ -9,7 +9,7 @@ import 'datatables.net-responsive-bs4'
 import 'datatables.net-rowreorder-bs4'
 import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets'
 import { moreLess } from 'components/more-less/lib/more-less'
-import { transferRowToTable } from './helper'
+import { bindToggleTableClickHandlers } from './toggle-table'
 
 const MORE_LESS_TRESHOLD = 50
 
@@ -39,8 +39,8 @@ class DataTableComponent extends Component {
     }
 
     const conf = this.getConf()
-    const {columns} = conf;
-    this.columns = columns;
+    const {columns} = conf
+    this.columns = columns
     this.el.DataTable(conf)
     this.initializingTable = true
 
@@ -56,7 +56,7 @@ class DataTableComponent extends Component {
       })
     }
 
-    this.bindTransferTableClickHandlers();
+    bindToggleTableClickHandlers(this.el)
 
     // Bind events to disclosure buttons and record-popup links on opening of child row
     $(this.el).on('childRow.dt', (e, show, row) => {
@@ -98,9 +98,9 @@ class DataTableComponent extends Component {
   initClickableTable() {
     const links = this.el.find('tbody td .link')
     // Remove all existing click events to prevent multiple bindings
-    links.off('click');
-    links.off('focus');
-    links.off('blur');
+    links.off('click')
+    links.off('focus')
+    links.off('blur')
     links.on('click', (ev) => { this.handleClick(ev) })
     links.on('focus', (ev) => { this.toggleFocus(ev, true) })
     links.on('blur', (ev) => { this.toggleFocus(ev, false) })
@@ -788,30 +788,6 @@ class DataTableComponent extends Component {
 
       initializeRegisteredComponents(this.element)
     }
-
-   this.bindTransferTableClickHandlers();
-  }
-
-  bindTransferTableClickHandlers() {
-    const tableElement = this.el;
-
-    if (tableElement.hasClass('table-transfer')) {
-      const fields = this.el.find('tbody tr')
-      fields.off('click', this.transferRow)
-      fields.on('click', this.transferRow)
-
-      const buttons = this.el.find('tbody btn')
-      buttons.off('click', this.transferRow)
-      buttons.on('click', this.transferRow)
-    }
-  }
-
-  transferRow = (ev) => {
-    ev.preventDefault()
-    const sourceTableID = '#' + this.el.attr('id')
-    const destinationTableID = this.el.data('transferDestination')
-    const rowClicked = $(ev.target).closest('tr')
-    transferRowToTable(rowClicked, sourceTableID, destinationTableID)
   }
 }
 
