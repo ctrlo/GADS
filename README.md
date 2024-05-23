@@ -66,6 +66,12 @@ To run JEST tests, run `yarn test`, to watch any tests and run them according to
 
 Probably the quickest and easiest way to set up GADS within your environment is using [(R)?ex](http://rexify.org). Set up Rex on your system, and then run `rex -b setup` within the gads root (obviously clone using `git clone https://github.com/ctrlo/GADS -b uiux` first and chdir into the GADS directory) to set up a basic GADS environment on your system.
 
+### The container way (Docker)
+
+From the root folder, run the following command `docker compose up`
+This will automatically run the seed script as well.
+Access the application on http://localhost and login with `admin@localhost` and password `qwedsa`
+
 ### Manual package installation
 
 GADS is complicated, there are a _lot_ of packages required - to install GADS locally you need to install GCC, G++, Make, Perl, and CPAN, then:

@@ -16,7 +16,7 @@ describe("Button Component", () => {
         {name: "more info", class: "btn-js-more-info"},
         {name: "delete", class: "btn-js-delete"},
         {name: "submit field", class: "btn-js-submit-field"},
-        {name: "add all fields", class: "btn-js-add-all-fields"},
+        {name: "add all fields", class: "btn-js-toggle-all-fields"},
         {name: "submit draft record", class: "btn-js-submit-draft-record"},
         {name: "submit record", class: "btn-js-submit-record"},
         {name: "save view", class: "btn-js-save-view"},
