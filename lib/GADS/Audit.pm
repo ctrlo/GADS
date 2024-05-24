@@ -75,8 +75,6 @@ sub audit_types{ [qw/user_action login_change login_success logout login_failure
 sub user_action
 {   my ($self, %options) = @_;
 
-    my $datetime = DateTime->now;
-
     my $layout = $options{layout};
     $self->schema->resultset('Audit')->create({
         user_id     => $self->user_id,
@@ -84,7 +82,7 @@ sub user_action
         type        => 'user_action',
         method      => $options{method},
         url         => $options{url},
-        datetime    => $datetime,
+        datetime    => DateTime->now,
         instance_id => $layout && $layout->instance_id,
     });
 }
@@ -92,51 +90,43 @@ sub user_action
 sub login_change
 {   my ($self, $description) = @_;
 
-    my $datetime = DateTime->now;
-
     $self->schema->resultset('Audit')->create({
         user_id     => $self->user_id,
         description => $description,
         type        => 'login_change',
-        datetime    => $datetime,
+        datetime    => DateTime->now,
     });
 }
 
 sub login_success
 {   my $self = shift;
 
-    my $datetime = DateTime->now;
-
     $self->schema->resultset('Audit')->create({
         user_id     => $self->user_id,
         description => "Successful login by username ".$self->username,
         type        => 'login_success',
-        datetime    => $datetime,
+        datetime    => DateTime->now,
     });
 }
 
 sub logout
 {   my ($self, $username) = @_;
 
-    my $datetime = DateTime->now;
-
     $self->schema->resultset('Audit')->create({
         user_id     => $self->user_id,
         description => "Logout by username $username",
         type        => 'logout',
-        datetime    => $datetime,
+        datetime    => DateTime->now,
     });
 }
 
 sub login_failure
 {   my ($self, $username) = @_;
 
-    my $datetime = DateTime->now;
-
     $self->schema->resultset('Audit')->create({
         description => "Login failure using username $username",
         type        => 'login_failure',
-        datetime    => $datetime,
+        datetime    => DateTime->now,
     });
 }
 
