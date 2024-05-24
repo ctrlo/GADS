@@ -31,7 +31,12 @@
 [% IF ! hide_group %]
 <div class="form-group">
 [% END %]
-  <div class="input [% input_class %]">
+  <div class="input [% input_class %]"
+  [% IF data %]
+    [% FOREACH d IN data %]
+      data-[% d.key %]="[% d.value %]"
+    [% END %]
+  [%END %]>
     [%
       IF label;
         INCLUDE fields/sub/label_input.tt;

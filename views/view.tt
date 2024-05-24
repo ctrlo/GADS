@@ -24,7 +24,13 @@
                           value = view_edit.name
                           placeholder = ""
                           filter = "html"
-                          type = "text";
+                          type = "text"
+                          input_class = "help-view"
+                          data = {
+                            "help-text" => "The name of the view is used to identify it in the list of views."
+                            "help-target" => "help__card"
+                            "help-title" => "Name of the view"
+                          }
                       %]
                     </div>
                   </div>
@@ -34,6 +40,14 @@
                   <div class="row">
                     <div class="col">
                       <div class="form-group">
+                        <div class="row">
+                          <div class="col help-view"
+                            data-help-text="***Personal*** - available to all users and only visible to the user that creates them. **Note**: Administrators can manage other user's personal views.\n***Shared*** - users with permission to create shared views can check the shared view box and then select which groups to share the view with.\n***Administration*** - these views are only visible to Administrative users, and primarily for controlling user access to records."
+                            data-help-title="View Type"
+                            data-help-target="help__card">
+                            <label>View type</label>
+                          </div>
+                        </div>
                         <div class="row">
                           <div class="col-lg-3">
                             [%
@@ -112,12 +126,13 @@
                           <div class="card__content">
                             <div class="row mb-3">
                               <div class="col">
-                                <div class="form-group">
+                                <div class="form-group help-view"
+                                  data-help-text='Use filters to select the records that you want to include in your view.\n#### How they Work\nFilters are created by adding rules and selecting the fields and the corresponding values that will return the records you require. Using the fundamental concept of **"AND"** and **"OR"** logic, rules can be combined to help you refine your filters based on multiple criteria.\nThis logical approach means that your views will return records where the filter rule or combination of rules and/or groups are "TRUE" statements.\n#### Examples\n***"AND":***   If you search for "Apples AND Oranges," you are looking for results that include both apples and oranges together.\n***"OR":***   If you search for "Apples OR Oranges," you are looking for results that include either apples, oranges, or both.'
+                                  data-help-title="Filters"
+                                  data-help-target="help__card">
                                   <fieldset class="fieldset" >
-                                    <div class="fieldset__legend ">
-                                      <legend >
-                                        Filter
-                                      </legend>
+                                    <div>
+                                      <label>Filter</label>
                                     </div>
 
 
@@ -174,12 +189,13 @@
                           <div class="card__content">
                             <div class="row mb-3">
                               <div class="col">
-                                <div class="form-group">
+                                <div class="form-group help-view"
+                                  data-help-title = "Filters and Grouping"
+                                  data-help-text = 'Filters and Groups allow you to construct sophisticated filters by defining specific conditions (rules) and combining them into logical groupings (groups) to precisely control which records are displayed\n#### Rules\nThese are three part statements comprised of a data field, an operator and a value.\n- ***Field*** - a drop down selector for all of the fields on your table.\n- ***Operator*** - symbols or key words to determine how the field and value interact.\n- ***Value*** - the value that is being searched for in the selected field.\n#### Groups\nThese are combinations of rules that result in a "**TRUE**" or "**FALSE**" outcome and can be combined with other rules or groups.'
+                                  data-help-target = "help__card">
                                   <fieldset class="fieldset">
-                                    <div class="fieldset__legend">
-                                      <legend >
-                                        Field to sort the records in your view by
-                                      </legend>
+                                    <div>
+                                      <label>Field to sort the records in your view by</label>
                                     </div>
                                     <div class="form-group">
                                       <div class="multiple-select">
@@ -392,7 +408,9 @@
                               <div class="col-sm-12">
                                 <fieldset class="fieldset" >
                                   <div class="fieldset__legend fieldset__legend--standalone">
-                                    <legend>Add fields to your view by selecting them from available fields.</legend>
+                                    <label>
+                                      <strong>Add fields to your view by selecting them from available fields.</strong>
+                                    </label>
                                   </div>
                                 </fieldset>
                               </div>
@@ -570,7 +588,7 @@
               </h4>
 
               <div class="card__body row">
-                <div class="card__content">
+                <div id="help__card" class="card__content">
                   <dl>
                     <dt>General</dt>
                     <dd>
