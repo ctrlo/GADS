@@ -9,7 +9,7 @@ import 'datatables.net-responsive-bs4'
 import 'datatables.net-rowreorder-bs4'
 import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets'
 import { moreLess } from 'components/more-less/lib/more-less'
-import { transferRowToTable } from './helper'
+import { bindToggleTableClickHandlers } from './toggle-table'
 
 const MORE_LESS_TRESHOLD = 50
 
@@ -22,6 +22,7 @@ class DataTableComponent extends Component {
     this.forceButtons = this.el.hasClass('table-force-buttons')
     this.searchParams = new URLSearchParams(window.location.search)
     this.base_url = this.el.data('href') ? this.el.data('href') : undefined
+    this.isFullScreen = false
     this.initTable()
   }
 
@@ -38,8 +39,8 @@ class DataTableComponent extends Component {
     }
 
     const conf = this.getConf()
-    const {columns} = conf;
-    this.columns = columns;
+    const {columns} = conf
+    this.columns = columns
     this.el.DataTable(conf)
     this.initializingTable = true
 
@@ -55,7 +56,7 @@ class DataTableComponent extends Component {
       })
     }
 
-    this.bindTransferTableClickHandlers();
+    bindToggleTableClickHandlers(this.el)
 
     // Bind events to disclosure buttons and record-popup links on opening of child row
     $(this.el).on('childRow.dt', (e, show, row) => {
@@ -97,9 +98,9 @@ class DataTableComponent extends Component {
   initClickableTable() {
     const links = this.el.find('tbody td .link')
     // Remove all existing click events to prevent multiple bindings
-    links.off('click');
-    links.off('focus');
-    links.off('blur');
+    links.off('click')
+    links.off('focus')
+    links.off('blur')
     links.on('click', (ev) => { this.handleClick(ev) })
     links.on('focus', (ev) => { this.toggleFocus(ev, true) })
     links.on('blur', (ev) => { this.toggleFocus(ev, false) })
@@ -287,7 +288,7 @@ class DataTableComponent extends Component {
      * insertion into the visible input */
     const $searchInput = $(`<input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>`)
     $searchInput.appendTo($('.input', $searchElement))
-    if (col.typeahead_use_id) {
+    if (col.typeahead_use_id && searchValue) {
       $searchInput.after(`<input type="hidden" class="search">`)
       $.ajax({
         type: 'GET',
@@ -584,8 +585,7 @@ class DataTableComponent extends Component {
     return this.renderDataType(data)
   }
 
-  // DO NOT REMOVE THE SELF REFERENCE IN THE FUNCTION
-  getConf() {
+  getConf(overrides = undefined) {
     const confData = this.el.data('config')
     let conf = {}
 
@@ -593,6 +593,12 @@ class DataTableComponent extends Component {
       conf = JSON.parse(atob(confData))
     } else if (typeof confData === 'object') {
       conf = confData
+    }
+
+    if(overrides) {
+      for(const key in overrides) {
+        conf[key] = overrides[key]
+      }
     }
 
     if (conf.serverSide) {
@@ -606,6 +612,8 @@ class DataTableComponent extends Component {
       const dataTable = tableElement.DataTable()
 
       this.json = json || undefined
+
+      const self = this
 
       if (this.initializingTable) {
         dataTable.columns().every(function(index) {
@@ -699,12 +707,12 @@ class DataTableComponent extends Component {
   */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toggleFullScreenMode(buttonElement) {
-    const fullScreenButton = document.querySelector('#full-screen-btn');
-    if (!fullScreenButton) console.warn('Missing full screen button.');
-    const currentTable = document.querySelector('.dataTables_wrapper');
-    if (!currentTable) console.warn('Failed to toggle full screen; missing data table.');
-    const isFullScreen = fullScreenButton.classList.contains('btn-toggle');
-    if (!isFullScreen) {
+    const table = document.querySelector("table.data-table");
+    const currentTable = $(table);
+    if(currentTable && $.fn.dataTable.isDataTable(currentTable)) {
+      currentTable.DataTable().destroy();
+    }
+    if (!this.isFullScreen) {
       // Create new modal
       const newModal = document.createElement('div');
       newModal.id = "table-modal"
@@ -712,7 +720,10 @@ class DataTableComponent extends Component {
       newModal.classList.add('data-table__container--scrollable');
 
       // Move data table into new modal
-      newModal.append(currentTable);
+      newModal.append(table);
+      if(currentTable && !($.fn.dataTable.isDataTable(currentTable))) {
+        currentTable.DataTable(this.getConf({responsive: false}));
+      }
       document.body.appendChild(newModal);
 
       $(document).on("keyup", (ev)=>{
@@ -728,8 +739,10 @@ class DataTableComponent extends Component {
         return;
       }
 
-      mainContent.appendChild(currentTable);
-
+      mainContent.appendChild(table);
+      if(currentTable && !($.fn.dataTable.isDataTable(currentTable))) {
+        currentTable.DataTable(this.getConf());
+      }
       // Remove the modal
       document.querySelector('#table-modal').remove();
 
@@ -737,7 +750,9 @@ class DataTableComponent extends Component {
     }
 
     // Toggle the full screen button
-    $(fullScreenButton).toggleClass(['btn-toggle', 'btn-toggle-off'])
+    this.isFullScreen = !this.isFullScreen;
+    $("#full-screen-btn").removeClass(this.isFullScreen ? 'btn-toggle-off': 'btn-toggle');
+    $("#full-screen-btn").addClass(this.isFullScreen ? 'btn-toggle': 'btn-toggle-off');
   }
 
   bindClickHandlersAfterDraw(conf) {
@@ -773,30 +788,6 @@ class DataTableComponent extends Component {
 
       initializeRegisteredComponents(this.element)
     }
-
-   this.bindTransferTableClickHandlers();
-  }
-
-  bindTransferTableClickHandlers() {
-    const tableElement = this.el;
-
-    if (tableElement.hasClass('table-transfer')) {
-      const fields = this.el.find('tbody tr')
-      fields.off('click', this.transferRow)
-      fields.on('click', this.transferRow)
-
-      const buttons = this.el.find('tbody btn')
-      buttons.off('click', this.transferRow)
-      buttons.on('click', this.transferRow)
-    }
-  }
-
-  transferRow = (ev) => {
-    ev.preventDefault()
-    const sourceTableID = '#' + this.el.attr('id')
-    const destinationTableID = this.el.data('transferDestination')
-    const rowClicked = $(ev.target).closest('tr')
-    transferRowToTable(rowClicked, sourceTableID, destinationTableID)
   }
 }
 

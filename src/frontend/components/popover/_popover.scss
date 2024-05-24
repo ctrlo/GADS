@@ -35,7 +35,7 @@
 
     display: none;
     position: absolute;
-    z-index: 2;
+    z-index: 101; // One more than popover box
     bottom: -1px;
     left: 0;
     width: 1rem;

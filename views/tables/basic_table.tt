@@ -201,7 +201,7 @@
   class="data-table table [% table_class %]"
   [% IF table_id %]id="[% table_id %]"[% END %]
   [% IF table_ajax AND table_ajax_target %]data-href="[% table_ajax_target %]"[% END %]
-  [% IF table_transfer_destination %]data-transfer-destination="[% table_transfer_destination %]"[% END %]
+  [% IF table_destination %]data-destination="[% table_destination %]"[% END %]
   width="100%"
   data-config='[% b64_filter(table_config) %]'
 >

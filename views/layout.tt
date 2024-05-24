@@ -2,7 +2,7 @@
 <form method="post" class="">
   [%
     INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
-  
+
     IF column.id;
       INCLUDE fields/hidden.tt name="id" value=column.id;
     END;
@@ -14,9 +14,9 @@
           Edit Table
         </legend>
       </div>
-    
+
       <div class="content-block__main-content">
-        
+
         <div class="card card--primary mb-3">
           <div class="card__body row">
             <div class="card__content">
@@ -50,7 +50,7 @@
                 <div class="col-md-6">
                   [%
                     topic_items = [{id="" name="No topic"}];
-                    
+
                     INCLUDE fields/select.tt
                       id          = "topic_id"
                       name        = "topic_id"
@@ -80,11 +80,11 @@
                       {id = "curval", name = "Field(s) for records from another table"},
                       {id = "autocur", name = "Automatic value of other sheet's references to this one"}
                     ];
-                  
+
                     IF layout_obj.filtered_curvals.size ;
                       field_types.push({id = "filval", name = "Automatic filtered values of other field"});
                     END;
-                  
+
                     INCLUDE fields/select.tt
                       id           = "field_type"
                       name         = "type"
@@ -136,7 +136,7 @@
             </div>
           </div>
         </div>
-  
+
         <div class="select-reveal select-reveal--field_type">
           [%
             IF ! column.id OR column.type == 'string';
@@ -227,7 +227,7 @@
                                 Show pop-up calculator:
                               </legend>
                             </div>
-  
+
                             <div class="form-group">
                               [%
                                 INCLUDE fields/sub/checkbox.tt
@@ -282,7 +282,7 @@
                                 Show date picker:
                               </legend>
                             </div>
-  
+
                             <div class="form-group mb-2">
                               [%
                                 INCLUDE fields/sub/checkbox.tt
@@ -304,7 +304,7 @@
                                 Default value:
                               </legend>
                             </div>
-  
+
                             <div class="form-group">
                               [%
                                 INCLUDE fields/sub/checkbox.tt
@@ -359,7 +359,7 @@
                                 Show date picker:
                               </legend>
                             </div>
-  
+
                             <div class="form-group">
                               [%
                                 INCLUDE fields/sub/checkbox.tt
@@ -405,7 +405,7 @@
                   </div>
                   <div class="collapse" id="dropdownListFieldSettings">
                     <div class="card__content">
-                      
+
                       <div class="orderable-sortable">
                         [%
                           INCLUDE fields/select.tt
@@ -420,7 +420,7 @@
                               {id = "desc", name = "Descending"}
                             ];
                         %]
-  
+
                         <div class="sortable">
                           <div class="sortable__label">
                             <label>
@@ -430,18 +430,18 @@
                           <ul class="sortable__list">
                             [%
                               enumvalIsEmpty = 1;
-  
+
                               FOREACH enumval IN column.enumvals;
                                 UNLESS enumval.deleted;
                                   enumvalIsEmpty = 0;
                                   last;
                                 END;
                               END;
-                            
+
                               # load empty field if no fields have been saved
                               rows       = enumvalIsEmpty ? [{}] : column.enumvals;
                               rowCounter = 0;
-                            
+
                               FOREACH enumval IN rows;
                                 UNLESS enumval.deleted;
                                   rowCounter = rowCounter + 1;
@@ -452,7 +452,7 @@
                               </span>
                               [%
                                 INCLUDE fields/hidden.tt name="enumval_id" value=enumval.id;
-                              
+
                                 INCLUDE fields/input.tt
                                   id          = "enumval_" _ rowCounter
                                   name        = "enumval"
@@ -464,7 +464,7 @@
                                   type        = "text"
                                   hide_group  = 1;
                               %]
-                              
+
                               <button
                                 type="button"
                                 class="btn btn-icon-close"
@@ -477,7 +477,7 @@
                               END;
                             %]
                           </ul>
-    
+
                           <button
                             type="button"
                             class="btn btn-default"
@@ -522,7 +522,7 @@
                         <div class="col">
                           [% IF column.id %]
                           <p>Each value in the tree is referred to as a node.</p>
-  
+
                           <div class="form-group">
                             [%
                               INCLUDE fields/sub/checkbox.tt
@@ -533,7 +533,7 @@
                                 checked = column.end_node_only ? 1 : 0;
                             %]
                           </div>
-  
+
                           [%
                               INCLUDE fields/tree.tt
                                 id                = "jstree_demo_div"
@@ -541,7 +541,7 @@
                                 layout_id         = column.id
                                 layout_identifier = layout_obj.identifier
                                 edit_tree         = 1;
-                          
+
                             ELSE;
                           %]
                           <p>Use a tree to structure the values that users can select into categories and sub-categories.</p>
@@ -626,7 +626,7 @@
                   </div>
                   <div class="collapse" id="personFieldSettings">
                     <div class="card__content">
-                      
+
                       <div class="row">
                         <div class="col">
                           <div class="form-group">
@@ -637,7 +637,7 @@
                                 label   = "Default new values to current logged-in user"
                                 value   = 1
                                 checked = column.default_to_login ? 1 : 0;
-                            
+
                               INCLUDE fields/sub/checkbox.tt
                                 id          = "notify_on_selection"
                                 name        = "notify_on_selection"
@@ -649,7 +649,7 @@
                           </div>
                         </div>
                       </div>
-  
+
                       <div class="checkbox-reveal" id="notify_on_selection-reveal">
                         <div class="row">
                           <div class="col">
@@ -750,7 +750,7 @@
                                 Alerts:
                               </legend>
                             </div>
-    
+
                             <div class="form-group">
                             [%
                               INCLUDE fields/sub/checkbox.tt
@@ -875,7 +875,7 @@
                                 Alerts:
                               </legend>
                             </div>
-    
+
                             <div class="form-group">
                             [%
                               INCLUDE fields/sub/checkbox.tt
@@ -972,9 +972,9 @@
                               <legend >
                                 New values:
                               </legend>
-  
+
                             </div>
-  
+
                             <div class="form-group ">
                               [%
                                 INCLUDE fields/sub/checkbox.tt
@@ -996,7 +996,7 @@
                                 Old values:
                               </legend>
                             </div>
-      
+
                             <div class="form-group ">
                               [%
                                 INCLUDE fields/sub/checkbox.tt
@@ -1018,7 +1018,7 @@
                                 Permissions override:
                               </legend>
                             </div>
-      
+
                             <div class="form-group ">
                               [%
                                 INCLUDE fields/sub/checkbox.tt
@@ -1053,7 +1053,7 @@
                             FOREACH instance_layout IN instance_layouts;
                               refers_items.push({id = instance_layout.instance_id, name = instance_layout.name});
                             END;
-                          
+
                             INCLUDE fields/select.tt
                               id           = "refers_to_instance_id"
                               name         = "refers_to_instance_id"
@@ -1074,14 +1074,14 @@
                             <div class="col">
                               [%
                                 curval_field_ids_items = [];
-                              
+
                                 FOREACH c IN instance_layout.all;
                                   NEXT IF c.type == "curval";
                                   c.is_checked = instance_layout.instance_id == rti AND column.has_curval_field(c.id) ? 1 : 0;
                                   c.field_id = "curval_field_ids_" _ instance_layout.instance_id _ "-" _ c.id;
                                   curval_field_ids_items.push(c);
                                 END;
-                              
+
                                 INCLUDE fields/checkbox_list.tt
                                   list_class = "list--vertical list--checkboxes"
                                   name = "curval_field_ids"
@@ -1099,7 +1099,7 @@
                                     Apply the following filters to records in the selected table:
                                   </legend>
                                 </div>
-  
+
                                 <div class="form-group">
                                   [%
                                     PROCESS builder.tt
@@ -1108,7 +1108,7 @@
                                       filter_normal = column.filter
                                       filter_base64 = column.filter.base64
                                       show_all_columns = 1;
-                                  
+
                                     extra_filter = '';
                                     IF column.filter.as_json AND NOT column.filter.as_json.match('^[{}\s]*$') AND column.refers_to_instance_id == instance_layout.instance_id;
                                       extra_filter = 'data-filter-base="' _ column.filter.base64 _ '"';
@@ -1164,7 +1164,7 @@
                                 Permissions override:
                               </legend>
                             </div>
-      
+
                             <div class="form-group ">
                               [%
                                 INCLUDE fields/sub/checkbox.tt
@@ -1192,19 +1192,19 @@
                           [%
                             related_field_id_items     = NOT column.related_field_id ? [{id="" name=""}] : [];
                             related_field_id_reveal_id = '';
-                        
+
                             FOREACH referring IN layout_obj.referred_by;
                               IF column.related_field_id == referring.id;
                                 related_field_id_reveal_id = referring.instance_id;
                               END;
-                        
+
                               related_field_id_items.push({
                                 id        = referring.id,
                                 name      = referring.name _ " (" _ referring.instance.name _ ")",
                                 reveal_id = referring.instance_id
                               });
                             END;
-                            
+
                             INCLUDE fields/select.tt
                               id           = "related_field_id"
                               name         = "related_field_id"
@@ -1229,14 +1229,14 @@
                             <div class="col">
                               [%
                                 related_field_id_items = [];
-                              
+
                                 FOREACH c IN instance.all;
                                   NEXT IF c.type == "curval";
                                   c.is_checked = instance.instance_id == column.refers_to_instance_id AND column.has_curval_field(c.id) ? 1 : 0;
                                   c.field_id = "autocur_field_ids_" _ instance.instance_id _ "-" _ c.id;
                                   related_field_id_items.push(c);
                                 END;
-                              
+
                                 INCLUDE fields/checkbox_list.tt
                                   list_class = "list--vertical list--checkboxes"
                                   name = "autocur_field_ids"
@@ -1293,7 +1293,7 @@
                                 name = filtered_curval.name
                               });
                             END;
-                            
+
                             INCLUDE fields/select.tt
                               id           = "filval_related_field_id"
                               name         = "filval_related_field_id"
@@ -1305,7 +1305,7 @@
                             %]
                         </div>
                       </div>
-          
+
                       <div class="select-reveal select-reveal--filval_related_field_id">
                         [%
                           FOREACH filtered_curval IN layout_obj.filtered_curvals;
@@ -1317,14 +1317,14 @@
                             <div class="col">
                               [%
                                 filval_related_field_id_items = [];
-                              
+
                                 FOREACH c IN instance.all;
                                   NEXT IF c.type == "curval";
                                   c.is_checked = column.has_curval_field(c.id) ? 1 : 0;
                                   c.field_id = "filval_field_ids_" _ filtered_curval.id _ "-" _ c.id;
                                   filval_related_field_id_items.push(c);
                                 END;
-                              
+
                                 INCLUDE fields/checkbox_list.tt
                                   list_class = "list--vertical list--checkboxes"
                                   name = "filval_field_ids"
@@ -1426,7 +1426,7 @@
                       table_length_menu  = 'detail';
                       table_unresponsive = 1;
                       table_caption      = "Table to edit permissions in a table";
-                    
+
                       table_columns = [{
                         name      = "Group"
                         orderable = 1
@@ -1460,14 +1460,16 @@
                       #   orderable = 0
                       # }
                       ];
-  
+
                       existing_perms = column.permissions.keys;
                       rows           = [];
 
                       FOREACH group IN groups.all;
                         row = {
-                          data_attr_name    = 'group-id'
-                          data_attr_value   = group.id
+                          data_attributes = [{
+                            name => 'group-id'
+                            value => group.id
+                          }],
                           fields = [{
                             type  = "text"
                             label = group.name
@@ -1588,7 +1590,7 @@
                           # }
                           ]
                         };
-                  
+
                         rows.push(row);
                       END;
 
@@ -1671,7 +1673,7 @@
                       </div>
                     </div>
                   </fieldset>
-                  
+
                   [%
                     INCLUDE fields/input.tt
                       id            = "name_short"
@@ -1696,7 +1698,7 @@
                           });
                         END;
                       END;
-                    
+
                       INCLUDE fields/select.tt
                         id           = "link_parent_id"
                         name         = "link_parent_id"
@@ -1726,7 +1728,7 @@
                       IF column.type == "calc";
                         aggregate_items.push({id = "recalc", name = "Recalculate from other aggregate values"});
                       END;
-                  
+
                       INCLUDE fields/select.tt
                         id           = "aggregate"
                         name         = "aggregate"
@@ -1746,7 +1748,7 @@
                           {id = "unique", name = "Display count of unique values in grouped views"}
                         ];
                     END;
-                  
+
                     INCLUDE fields/select.tt
                       id           = "width"
                       name         = "width"
@@ -1812,12 +1814,12 @@
       </div>
     </fieldset>
   </div>
-  
+
   <footer class="content-block__footer">
     <div class="content-block__footer-container">
       [%
       right_buttons = [];
-      
+
       IF column.id;
       right_buttons.push({
         type      = "modal_button",
@@ -1828,7 +1830,7 @@
         label     = "Delete field"
       });
       END;
-      
+
       right_buttons.push({
         type  = "button",
         class = "btn btn-default btn-js-submit-field"
@@ -1837,7 +1839,7 @@
         value = "submit"
         label = "Save"
       });
-      
+
       INCLUDE navigation/button_bar.tt
         row_class = "row"
         columns   = [{

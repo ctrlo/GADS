@@ -1,8 +1,15 @@
 [%
+  row_id = row.id ?  'id="' _ row.id _ '"' : '';
   row_class = row.class ? 'class="' _ row.class _ '"' : '';
-  data_attr = row.data_attr_name AND row.data_attr_value ? 'data-' _ row.data_attr_name _ '="' _ row.data_attr_value _ '"' : '';
+
+  row_data_attr = '';
+  FOREACH attribute IN row.data_attributes;
+    IF attribute.name AND attribute.value;
+      row_data_attr = row_data_attr _ ' data-' _ attribute.name _ '="' _ attribute.value _ '"';
+    END;
+  END;
 %]
-<tr [% row_class; data_attr; %]>
+<tr [% row_id; row_class; row_data_attr; %]>
   [%
     FOREACH field in row.fields;
       SWITCH field.type;

@@ -198,12 +198,6 @@ table.dataTable thead .sorting_disabled {
   }
 }
 
-.dataTables_scrollBody:has(.table-transfer) {
-  @include media-breakpoint-down(md) {
-    height: auto !important;
-  }
-}
-
 .dataTables_scrollHead .table--bordered {
   box-sizing: border-box;
   border-top: 1px solid $gray;
