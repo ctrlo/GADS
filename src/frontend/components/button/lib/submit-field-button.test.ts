@@ -7,8 +7,8 @@ describe("Submit field button tests", () => {
     })
 
     async function loadSubmitFieldButtonComponent(element: HTMLElement) {
-        const {default: SubmitFieldButtonComponent} = await import("./submit-field-button.js");
-        return new SubmitFieldButtonComponent(element);
+        const {default: SubmitFieldButtonComponent} = await import("./submit-field-button");
+        return new SubmitFieldButtonComponent($(element));
     }
 
     it("should create a button", async () => {
