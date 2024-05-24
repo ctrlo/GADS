@@ -84,7 +84,7 @@ sub user_action
         type        => 'user_action',
         method      => $options{method},
         url         => $options{url},
-        datetime    => $datetime->gads_time,
+        datetime    => $datetime,
         instance_id => $layout && $layout->instance_id,
     });
 }
@@ -98,7 +98,7 @@ sub login_change
         user_id     => $self->user_id,
         description => $description,
         type        => 'login_change',
-        datetime    => $datetime->gads_time,
+        datetime    => $datetime,
     });
 }
 
@@ -111,7 +111,7 @@ sub login_success
         user_id     => $self->user_id,
         description => "Successful login by username ".$self->username,
         type        => 'login_success',
-        datetime    => $datetime->gads_time,
+        datetime    => $datetime,
     });
 }
 
@@ -124,7 +124,7 @@ sub logout
         user_id     => $self->user_id,
         description => "Logout by username $username",
         type        => 'logout',
-        datetime    => $datetime->gads_time,
+        datetime    => $datetime,
     });
 }
 
@@ -136,7 +136,7 @@ sub login_failure
     $self->schema->resultset('Audit')->create({
         description => "Login failure using username $username",
         type        => 'login_failure',
-        datetime    => $datetime->gads_time,
+        datetime    => $datetime,
     });
 }
 
@@ -177,6 +177,16 @@ sub logs
         schema     => $self->schema,
         init_value => $_->{user},
     )->presentation(type => 'person', site => $site) foreach @logs;
+    
+    my $df = DateTime::Format::Strptime->new(
+        pattern   => '%Y-%m-%d %H:%M:%S',
+        time_zone => 'UTC',
+    );
+    foreach (@logs) {
+        my $datetime = $df->parse_datetime($_->{datetime});
+        $_->{datetime} = $datetime->gads_time;
+    }
+    
     \@logs;
 }
 
