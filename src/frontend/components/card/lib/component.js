@@ -43,7 +43,14 @@ class ExpandableCardComponent extends Component {
     $collapsibleElm.on('shown.bs.collapse', () => {
       if ($.fn.dataTable) {
         $($.fn.dataTable.tables(true)).DataTable()
-        .columns.adjust()  
+          .columns.adjust()
+      }
+    })
+
+    $(window).on('resize', () => {
+      if ($.fn.dataTable) {
+        $($.fn.dataTable.tables(true)).DataTable()
+          .columns.adjust()
       }
     })
 
