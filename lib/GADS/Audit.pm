@@ -160,24 +160,21 @@ sub logs
             -desc => 'datetime',
         },
     });
-    $rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    
     my @logs = $rs->all;
     my $site = $self->schema->resultset('Site')->next;
-    $_->{user} = GADS::Datum::Person->new(
-        schema     => $self->schema,
-        init_value => $_->{user},
-    )->presentation(type => 'person', site => $site) foreach @logs;
     
-    my $df = DateTime::Format::Strptime->new(
-        pattern   => '%Y-%m-%d %H:%M:%S',
-        time_zone => 'UTC',
-    );
-    foreach (@logs) {
-        my $datetime = $df->parse_datetime($_->{datetime});
-        $_->{datetime} = $datetime->gads_time;
-    }
-    
-    \@logs;
+    my @result = map {
+        +{
+            id          => $_->id,
+            type        => $_->type,
+            datetime    => $_->datetime->gads_time,
+            description => $_->description,
+            user        => $_->user,
+        }
+    } @logs;
+
+    \@result;
 }
 
 sub csv
