@@ -56,6 +56,13 @@ foreach my $layout (@ARGV) {
     push @values, $_->files->search( { layout_id => $layout } )->all foreach @records;
 }
 
+say "Found " . scalar(@values) . " files to purge.";
+say "These are...";
+say $_->value->name foreach @values;
+print "Do you wish to continue? [y/N] ";
+chomp( my $response = <STDIN> );
+exit(0) unless $response =~ /^y/i;
+
 purge $_ foreach @values;
 
 exit(0);
