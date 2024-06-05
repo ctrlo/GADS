@@ -29,8 +29,8 @@ use GADS::Helper::ConditionBuilder;
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
 
-has person_filter => (
-    is => 'ro',
+has filter => (
+    is       => 'ro',
     required => 0,
 );
 
@@ -107,10 +107,9 @@ sub user_summary_rs
 
 sub _build_all
 {   my $self = shift;
-    my @users;
-    @users = $self->user_summary_rs->all unless $self->person_filter;
-    @users = $self->user_summary_rs->search($self->person_filter)->all if $self->person_filter;
-    \@users;
+    my $users = $self->user_summary_rs;
+    $users->search_rs(GADS::Helper::ConditionBuilder->instance->map($self->filter)) if $self->filter;
+    [$users->all];
 }
 
 sub user_exists

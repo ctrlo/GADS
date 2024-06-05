@@ -20,7 +20,6 @@ package GADS::Column::Person;
 
 use Log::Report 'linkspace';
 use GADS::Users;
-use GADS::PeopleFilter;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 
@@ -37,12 +36,12 @@ has set_filter => (
 
 has '+filter' => (
     builder => sub {
-        my $self = shift;
-        GADS::PeopleFilter->new(
-            as_json => $self->set_filter || ( $self->_rset && $self->_rset->filter ),
-            layout => $self->layout
+        my $self=shift;
+        GADS::Filter->new(
+            as_json => $self->set_filter || ($self->_rset && $self->_rset->filter),
+            layout  => $self->layout
         );
-    },
+    }
 );
 
 # Convert based on whether ID or full name provided
@@ -146,11 +145,7 @@ has people => (
     clearer => 1,
     builder => sub {
         my $self = shift;
-        if($self->filter) {
-            return GADS::Users->new( schema => $self->schema, person_filter => $self->filter->person_filter )->all;
-        }else{
-            return GADS::Users->new( schema => $self->schema )->all;
-        }
+        GADS::Users->new( schema => $self->schema, filter => $self->filter )->all;
     },
 );
 
@@ -234,7 +229,7 @@ sub values_beginning_with {
       && !$match_string ? { \"0 = 1" }    # Nothing to match, return nothing
       :                   {};
     if ($resultset) {
-        my $filter       = $self->filter->person_filter;
+        my $filter       = $self->filter;
         my $match_result = $resultset->search(
             $search,
             {

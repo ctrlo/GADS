@@ -20,7 +20,6 @@ package GADS::Filter;
 
 use Data::Compare qw/Compare/;
 use GADS::Config;
-use GADS::Helper::ConditionBuilder;
 use Encode;
 use JSON qw(decode_json encode_json);
 use Log::Report 'linkspace';

@@ -7,9 +7,15 @@ use warnings;
 
 use Moo;
 
-use Data::Dumper;
-
 with 'MooX::Singleton';
+
+sub _escape_like {
+    my ( $self, $string ) = @_;
+    $string =~ s!\\!\\\\!;
+    $string =~ s/%/\\%/;
+    $string =~ s/_/\\_/;
+    $string;
+}
 
 has fieldMap => (
     is      => 'ro',
@@ -29,6 +35,10 @@ has fieldMap => (
 
 sub getFieldValue {
     my ( $self, $field, $value ) = @_;
+
+    my $value_local = $value;
+
+    $value_local = $self->_escape_like($value_local);
 
     if ( lc $field eq 'equal' ) {
         return $value;
@@ -55,7 +65,7 @@ sub getFieldValue {
         return;
     }
     else {
-        print STDERR "Unknown field: $field\n";
+        error __x "Unknown field: {field}\n", field => $field;
         return;
     }
 }

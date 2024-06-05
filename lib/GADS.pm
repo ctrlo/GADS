@@ -3736,18 +3736,9 @@ prefix '/:layout_name' => sub {
         my $site = var 'site';
 
         if($column && $column->type eq 'person') {
-            my $org    = $site->register_organisation_name || "Organisation";
-            my $dep    = $site->register_department_name || "Department";
-            my $team   = $site->register_team_name || "Team";
-            my $title  = "Title";
-            my $fields = [];
-            push (@$fields, { id => 'organisation', label => $org, type => 'string'}) if $site->register_show_organisation;
-            push (@$fields, { id => 'department', label => $dep, type => 'string'}) if $site->register_show_department;
-            push (@$fields, { id => 'team', label => $team, type => 'string'}) if $site->register_show_team;
-            push (@$fields, { id => 'title', label => $title, type => 'string'}) if $site->register_show_title;
-            my $json   = encode_json($fields);
-            my $b64    = encode_base64($json);
-            $params->{fields} = $b64;
+            my @fields = $site->user_fields;
+            my @mapped_fields = map { +{id=>$_->{name}, label=>$_->{description}, type=>'string'} } @fields;
+            $params->{fields} = encode_base64(encode_json(\@mapped_fields));
             $params->{people_filter} = $column->filter->as_json;
         }
 
