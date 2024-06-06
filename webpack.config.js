@@ -46,7 +46,17 @@ module.exports = (env) => {
         {
           test: /\.js$/,
           exclude: [/node_modules/, /\.test\.js$/, /test/, /definitions/],
-          use: ['babel-loader']
+          use: ['babel-loader'],
+        },
+        {
+          test: /\.m?js/,
+          type: 'javascript/auto'
+        },
+        {
+          test: /\.m?js/,
+          resolve: {
+            fullySpecified: false
+          }
         },
         {
           test: /\.tsx?$/,

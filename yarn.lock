@@ -1084,77 +1084,54 @@
     debug "^3.1.0"
     lodash.once "^4.1.1"
 
-"@davetheitguy/common@^1.0.4":
+"@davetheitguy/common@^1.0.6":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@davetheitguy/common/-/common-1.0.7.tgz#2675584c5e9da5b44eb0c89282c81c11172148f6"
+  integrity sha512-BFIr8zy8tfrNl3Aarvtt1ib49ujh3O/edO91J+H6qVqi36q9bBqDyU4RAdnw2mkVxpC/9moHdK/krWRxr9fxEg==
+  dependencies:
+    "@davetheitguy/common" "^1.0.6"
+    "@davetheitguy/markdown-formatter" "^1.0.6"
+    jquery "^3.7.1"
+
+"@davetheitguy/common@^1.0.8":
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@davetheitguy/common/-/common-1.0.8.tgz#aedc524a96f50b75ed5fbebbe9b37e615603c195"
+  integrity sha512-wRtK8OH8J0MlEKV3/kLzsXsDpAjdXgFntOTU/vQalwUXlM45Av04aQNjxl1pLjZUTj1GeHlCKwwaxqixuoXr3w==
+  dependencies:
+    "@davetheitguy/common" "^1.0.6"
+    "@davetheitguy/markdown-formatter" "^1.0.6"
+    jquery "^3.7.1"
+
+"@davetheitguy/filedrag@^1.0.7":
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@davetheitguy/filedrag/-/filedrag-1.0.7.tgz#ad0331b3cb8554abc44cc23fa0beee9415235967"
+  integrity sha512-Yd4NcEriNIoMtssEChKA2BJ1/+eXkXyBWUeDxPWaBcDCovOWI3Iz5yCGtzV+lVCPnzNnnsxUl6NofioQsEHtUA==
+  dependencies:
+    "@davetheitguy/common" "^1.0.6"
+    jquery "^3.7.1"
+
+"@davetheitguy/markdown-component@^1.0.4":
   version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@davetheitguy/common/-/common-1.0.4.tgz#62a55352e885c4b864367cd0e6c02555f9e3672c"
-  integrity sha512-STE6inxvIfgXeVPndOmA2IgArDkhEjHd5+AM7rPim+SMmoZCx54KTy6oXpFEDqbfl2r2Taf+3wm4Q5cbA0FAWA==
+  resolved "https://registry.yarnpkg.com/@davetheitguy/markdown-component/-/markdown-component-1.0.4.tgz#7f8610b40d56ce89ef870fdb91a5c94781a1a6bc"
+  integrity sha512-GP8Jdha1ArzfgGxzCOyn4mB+FcHsD8BBHfgF02COxtWSMJaKsYC65YXoTco9Kz/b7MgumnTqQISITL+ZG6ODlg==
   dependencies:
+    "@davetheitguy/common" "^1.0.8"
+    "@davetheitguy/markdown-formatter" "^1.0.6"
     jquery "^3.7.1"
 
-"@davetheitguy/common@^1.0.5":
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/@davetheitguy/common/-/common-1.0.5.tgz#e45a759316c9417745e83f5c0c757c9b63f4e1b4"
-  integrity sha512-yd9+9RnH0NYgRVWTbF+ZAgPEeNFTqg9OYfqZpFxbkGQXSFIoOZPG61qJUDS+ln6a2Puh+tjZ2PjWBGwMVsW81g==
-  dependencies:
-    jquery "^3.7.1"
-
-"@davetheitguy/filedrag@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@davetheitguy/filedrag/-/filedrag-1.0.1.tgz#550ecb44851909faa760fe3a4cb33cc64ad1a8cf"
-  integrity sha512-/iIDqk0m6f3XHgrRP2ind72fPHC4ymjJTXMauxhBHYhxagGPHNNxvkbxl2G1zfD8/l3QL1VMBct+WPUFmrDPqQ==
-  dependencies:
-    "@davetheitguy/common" "^1.0.4"
-    jquery "^3.7.1"
-
-"@davetheitguy/filedrag@^1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@davetheitguy/filedrag/-/filedrag-1.0.3.tgz#236bb5e8d3572ab55e88986b28f10ad176c20acf"
-  integrity sha512-zCGBDr/wTFHY1llDMFLq4C5hdOdXdEdrHvfbcMCqJMzx3t/9IkWOE+vQQy0qCgOLgTDwhc5zUd8shv6AIBbiuw==
-  dependencies:
-    "@davetheitguy/common" "^1.0.4"
-    jquery "^3.7.1"
-
-"@davetheitguy/markdown-component@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@davetheitguy/markdown-component/-/markdown-component-1.0.1.tgz#154e1576e16e1c178175055ec63d4e8f745328bf"
-  integrity sha512-CnTKz+3WpHpYv+Rri8ss+8ShQxRPGvgBkSwwLeZvA/PRooAwlABRq0FUlSJ1QofXEk7CxV0TgPl8HcFRLGKAxg==
-  dependencies:
-    "@davetheitguy/common" "^1.0.4"
-    "@davetheitguy/markdown-formatter" "^1.0.3"
-    jquery "^3.7.1"
-
-"@davetheitguy/markdown-formatter@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@davetheitguy/markdown-formatter/-/markdown-formatter-1.0.2.tgz#9b3c021a403513906442500cfa6340956479eadc"
-  integrity sha512-98GtWDIc7wsxI/qN22r4kOl38davSigyuhxJ2F6DMX/DFUrtU8Y76YPNVEqjzv/8G/diVrvjdZOfNNIv9lMtVg==
-  dependencies:
-    marked "^12.0.2"
-
-"@davetheitguy/markdown-formatter@^1.0.3":
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/@davetheitguy/markdown-formatter/-/markdown-formatter-1.0.5.tgz#17b4454359dad87c636187d17d249c1cf1a7cae6"
-  integrity sha512-7wicJIsMgQntaoV1WeijMW6Zy9l8ht5tBT8ui540AXIsmyVvDmn31EMVKyOiRUigVAVOOZ4w5IjIQ6dhV/0u3w==
+"@davetheitguy/markdown-formatter@^1.0.6":
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/@davetheitguy/markdown-formatter/-/markdown-formatter-1.0.6.tgz#a017e0c3714bdbf71ea3831606fe05a66ea52d89"
+  integrity sha512-TWki95j7E0HlMJrXUceJBfn3d/+lhB5RqK1wSMj47be5mUkcq44+W+wziyVJ+zAARJAg74nKhcKuihNBoEwMyg==
   dependencies:
     eslint "9.x"
     marked "^12.0.2"
 
-"@davetheitguy/typeahead@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@davetheitguy/typeahead/-/typeahead-1.0.1.tgz#2cfac0516f1ae716049228787f8831cba3eae239"
-  integrity sha512-mKzTppJUIiWGVQQmgxiESEvGbIBEtayGuYHNjHsuYmvPhzEC6CWaFJgDiT/0w3KTdYIVjk+PZepc40d9B5bteQ==
+"@davetheitguy/typeahead@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@davetheitguy/typeahead/-/typeahead-1.0.3.tgz#7977da1096d3af7471ae457b33fba86341240393"
+  integrity sha512-8g9yyLtUOPAbt9tGk9nKqckvhp/Kqazma3Aou7pwOxPwY3C0X9tJPF47XA7cNe2ZxrkdIhyIN6G8RBeF++sXlw==
   dependencies:
-    jquery "^3.7.1"
-    typeahead.js "^0.11.1"
-
-"@davetheitguy/typeahead@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@davetheitguy/typeahead/-/typeahead-1.0.2.tgz#4a4ab84766799de5749ad8c6983e80177c0df30c"
-  integrity sha512-YsjQezNaDUzOi395m25xVJku6R7mYwITuysSgrMuAUe5dKPyp77EZXLd3mS37n+czm6uw1OdPoZ6kCBCFBEo0A==
-  dependencies:
-    "@davetheitguy/common" "^1.0.4"
-    "@davetheitguy/filedrag" "^1.0.1"
-    "@davetheitguy/markdown-formatter" "^1.0.3"
-    "@davetheitguy/typeahead" "^1.0.1"
     jquery "^3.7.1"
     typeahead.js "^0.11.1"
 
@@ -3520,10 +3497,10 @@ csstype@^3.0.2:
   resolved "https://registry.yarnpkg.com/csstype/-/csstype-3.1.3.tgz#d80ff294d114fb0e6ac500fbf85b60137d7eff81"
   integrity sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==
 
-cypress@^13.7.2:
-  version "13.7.2"
-  resolved "https://registry.yarnpkg.com/cypress/-/cypress-13.7.2.tgz#61e841382abb20e0a9a063086ee0d850af3ef6bc"
-  integrity sha512-FF5hFI5wlRIHY8urLZjJjj/YvfCBrRpglbZCLr/cYcL9MdDe0+5usa8kTIrDHthlEc9lwihbkb5dmwqBDNS2yw==
+cypress@^13.11.0:
+  version "13.11.0"
+  resolved "https://registry.yarnpkg.com/cypress/-/cypress-13.11.0.tgz#17097366390424cba5db6bf0ee5e97503f036e07"
+  integrity sha512-NXXogbAxVlVje4XHX+Cx5eMFZv4Dho/2rIcdBHg9CNPFUGZdM4cRdgIgM7USmNYsC12XY0bZENEQ+KBk72fl+A==
   dependencies:
     "@cypress/request" "^3.0.0"
     "@cypress/xvfb" "^1.2.4"
