@@ -16,10 +16,11 @@
     "e2e:electron": "yarn cypress run --browser electron"
   },
   "dependencies": {
-    "@davetheitguy/common": "^1.0.3",
-    "@davetheitguy/filedrag": "^1.0.1",
+    "@davetheitguy/common": "^1.0.5",
+    "@davetheitguy/filedrag": "^1.0.3",
+    "@davetheitguy/markdown-component": "^1.0.1",
     "@davetheitguy/markdown-formatter": "^1.0.2",
-    "@davetheitguy/typeahead": "^1.0.1",
+    "@davetheitguy/typeahead": "^1.0.2",
     "@egjs/hammerjs": "^2.0.0",
     "@lol768/jquery-querybuilder-no-eval": "^2.6.0",
     "blueimp-file-upload": "^10.32.0",
