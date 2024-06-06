@@ -1,18 +1,12 @@
-import {validateRequiredFields} from 'validation';
+import { validateRequiredFields } from 'validation';
 import CreateReportButtonComponent from "./create-report-button";
-
-window.$ = window.jQuery = require('jquery');
-
-declare global {
-    interface Window {
-        $: JQueryStatic;
-        jQuery: JQueryStatic;
-    }
-}
-
-export {}
+import initGlobals from '../../../testing/globals.definitions';
 
 describe('create-report-button', () => {
+    beforeEach(() => {
+        initGlobals();
+    });
+
     it('does not submit form if no checkboxes are checked', () => {
         document.body.innerHTML = `
       <form id="myform">

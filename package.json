@@ -16,6 +16,10 @@
     "e2e:electron": "yarn cypress run --browser electron"
   },
   "dependencies": {
+    "@davetheitguy/common": "^1.0.3",
+    "@davetheitguy/filedrag": "^1.0.1",
+    "@davetheitguy/markdown-formatter": "^1.0.2",
+    "@davetheitguy/typeahead": "^1.0.1",
     "@egjs/hammerjs": "^2.0.0",
     "@lol768/jquery-querybuilder-no-eval": "^2.6.0",
     "blueimp-file-upload": "^10.32.0",
@@ -35,7 +39,6 @@
     "jquery-ui-sortable-npm": "^1.0.0",
     "jstree": "^3.3.12",
     "keycharm": "^0.3.0",
-    "marked": "^9.1.1",
     "moment": "^2.24.0",
     "npm-run-all": "^4.1.5",
     "popper.js": "^1.16.1",

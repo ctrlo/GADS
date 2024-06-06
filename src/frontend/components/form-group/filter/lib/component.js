@@ -163,7 +163,7 @@ class FilterComponent extends Component {
       // This is required to ensure that the correct query is sent each time
       const buildQuery = () => {return {q:$ruleInputText.val(), oi:filterConfig.instanceId}}
 
-      import(/* webpackChunkName: "typeahead" */ 'util/typeahead')
+      import(/* webpackChunkName: "typeahead" */ '@davetheitguy/typeahead')
         .then(({ default: TypeaheadBuilder }) => {
           const builder = new TypeaheadBuilder();
           builder

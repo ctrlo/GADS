@@ -3,7 +3,7 @@ import { Component } from 'component'
 import { initValidationOnField, validateCheckboxGroup } from 'validation'
 import initDateField from 'components/datepicker/lib/helper'
 import 'blueimp-file-upload'
-import { stopPropagation, fromJson, hideElement, showElement } from 'util/common'
+import { stopPropagation, fromJson, hideElement, showElement } from '@davetheitguy/common'
 
 class InputComponent extends Component {
     constructor(element)  {
@@ -148,7 +148,7 @@ class InputComponent extends Component {
         $(this.el).find('input[type="hidden"]').val(suggestion.id)
       }
 
-      import(/* webpackChunkName: "typeahead" */ 'util/typeahead')
+      import(/* webpackChunkName: "typeahead" */ '@davetheitguy/typeahead')
         .then(({ default: TypeaheadBuilder }) => {
           const builder = new TypeaheadBuilder();
           builder

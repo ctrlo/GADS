@@ -309,7 +309,7 @@ class DataTableComponent extends Component {
     this.toggleFilter(column)
 
     if (col && col.typeahead) {
-      import(/* webpackChunkName: "typeaheadbuilder" */ 'util/typeahead')
+      import(/* webpackChunkName: "typeaheadbuilder" */ '@davetheitguy/typeahead')
         .then(({ default: TypeaheadBuilder }) => {
           const builder = new TypeaheadBuilder();
           builder

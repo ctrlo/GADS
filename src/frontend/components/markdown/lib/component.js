@@ -1,5 +1,5 @@
-import { marked } from "marked";
 import { Component } from "component";
+import {Markdown} from "@davetheitguy/markdown-formatter";
 
 class MarkdownComponent extends Component {
   constructor(element) {
@@ -8,12 +8,11 @@ class MarkdownComponent extends Component {
   }
 
   renderMarkdown(md) {
-    const mdEncoded = $('<span>').text(md).html()
-    return marked(mdEncoded);
+    const mdEncoded = $('<span>').text(md.replace(/[\n\r]+/,"\n\n")).html()
+    return Markdown`${mdEncoded}`;
   }
 
   initMarkdownEditor() {
-    marked.use({ breaks: true });
 
     const $textArea = $(this.element).find(".js-markdown-input");
     const $preview = $(this.element).find(".js-markdown-preview");
