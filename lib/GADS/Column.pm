@@ -1546,28 +1546,40 @@ sub validate_search_date
 # possible (e.g. integer)
 sub resultset_for_values {};
 
-sub values_beginning_with
-{   my ($self, $match_string, %options) = @_;
+sub match_result {
+    my ( $self, $match_string, %options ) = @_;
 
+    my $match_result;
     my $resultset = $self->resultset_for_values;
-    my @value;
-    my $value_field = 'me.'.$self->value_field;
+    my $value_field = 'me.' . $self->value_field;
     $match_string =~ s/([_%])/\\$1/g;
     my $search = $match_string
-        ? {
-            $value_field => {
-                -like => "${match_string}%",
-            },
-        }
-        : $options{noempty} && !$match_string
-        ? { \"0 = 1" } # Nothing to match, return nothing
-        : {};
+      ? {
+        $value_field => {
+            -like => "${match_string}%",
+        },
+      }
+      : $options{noempty} && !$match_string
+      ? { \"0 = 1" }    # Nothing to match, return nothing
+      : {};
     if ($resultset) {
-        my $match_result = $resultset->search($search,
+        $match_result = $resultset->search($search,
             {
                 rows => 10,
             },
         );
+    }
+    return $match_result;
+}
+
+sub values_beginning_with {
+    my ($self, $match_string, %options) = @_;
+
+    my @value;
+    my $value_field = 'me.' . $self->value_field;
+    my $match_result = $self->match_result($match_string, %options);
+
+    if($match_result) {
         if ($self->fixedvals)
         {
             @value = map {

@@ -74,11 +74,14 @@ sub map {
     my ( $self, $input ) = @_;
 
     my %result;
-    my $condition = "-" . lc( $input->{condition} );
-    $result{$condition} = {};
+    if(defined($input->{condition})) {
+        my $condition = "-" . lc( $input->{condition} );
+        $result{$condition} = {};
 
-    $self->mapRules( $input->{rules}, $result{$condition} );
+        $self->mapRules( $input->{rules}, $result{$condition} );
 
+    }
+    
     return \%result;
 }
 
