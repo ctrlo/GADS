@@ -1102,12 +1102,19 @@
     "@davetheitguy/markdown-formatter" "^1.0.6"
     jquery "^3.7.1"
 
-"@davetheitguy/filedrag@^1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@davetheitguy/filedrag/-/filedrag-1.0.7.tgz#ad0331b3cb8554abc44cc23fa0beee9415235967"
-  integrity sha512-Yd4NcEriNIoMtssEChKA2BJ1/+eXkXyBWUeDxPWaBcDCovOWI3Iz5yCGtzV+lVCPnzNnnsxUl6NofioQsEHtUA==
+"@davetheitguy/common@^1.0.9":
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/@davetheitguy/common/-/common-1.0.9.tgz#065fc7336d9ffa685966ec8daa945c97bbd9080e"
+  integrity sha512-gK2HPv602iHja0eKO0Ld6aMpKnWWLBqiZDiRe//yCJ1ZaARofeD9pTn23OiyuAN4QfOVKnq15ytOzZy9hx925A==
   dependencies:
-    "@davetheitguy/common" "^1.0.6"
+    jquery "^3.7.1"
+
+"@davetheitguy/filedrag@^1.0.8":
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@davetheitguy/filedrag/-/filedrag-1.0.8.tgz#ccb6a093caecd44651daabb008ba4b4fbf0784d0"
+  integrity sha512-4+TYEg76c7oidAPL4FLDRA14PVOQJUvVngvYEPT9YKBZXEQk3rchGnS/USx8kIQhjIYdxP61FgIAKJcRg4FtpQ==
+  dependencies:
+    "@davetheitguy/common" "^1.0.9"
     jquery "^3.7.1"
 
 "@davetheitguy/markdown-component@^1.0.4":

@@ -16,8 +16,8 @@
     "e2e:electron": "yarn cypress run --browser electron"
   },
   "dependencies": {
-    "@davetheitguy/common": "^1.0.8",
-    "@davetheitguy/filedrag": "^1.0.7",
+    "@davetheitguy/common": "^1.0.9",
+    "@davetheitguy/filedrag": "^1.0.8",
     "@davetheitguy/markdown-component": "^1.0.4",
     "@davetheitguy/typeahead": "^1.0.3",
     "@egjs/hammerjs": "^2.0.0",
