@@ -5,8 +5,6 @@ package GADS::Helper::ConditionBuilder;
 use strict;
 use warnings;
 
-use Data::Dump qq/pp/;
-
 use Moo;
 
 with 'MooX::Singleton';
