@@ -87,8 +87,6 @@ sub map {
 
     }
 
-    print STDERR pp(%result);
-
     \%result;
 }
 
