@@ -5,12 +5,14 @@ package GADS::Helper::ConditionBuilder;
 use strict;
 use warnings;
 
+use Data::Dump qq/pp/;
+
 use Moo;
 
 with 'MooX::Singleton';
 
 sub _escape_like {
-    my ( $self, $string ) = @_;
+    my $string = $_[1];
     $string =~ s!\\!\\\\!;
     $string =~ s/%/\\%/;
     $string =~ s/_/\\_/;
@@ -41,22 +43,22 @@ sub getFieldValue {
     $value_local = $self->_escape_like($value_local);
 
     if ( lc $field eq 'equal' ) {
-        return $value;
+        return $value_local;
     }
     elsif ( lc $field eq 'not_equal' ) {
-        return $value;
+        return $value_local;
     }
     elsif ( lc $field eq 'begins_with' ) {
-        return $value . '%';
+        return $value_local . '%';
     }
     elsif ( lc $field eq 'ends_with' ) {
-        return '%' . $value;
+        return '%' . $value_local;
     }
     elsif ( lc $field eq 'contains' ) {
-        return '%' . $value . '%';
+        return '%' . $value_local . '%';
     }
     elsif ( lc $field eq 'not_contains' ) {
-        return '%' . $value . '%';
+        return '%' . $value_local . '%';
     }
     elsif ( lc $field eq 'is_empty' ) {
         return;
@@ -73,16 +75,21 @@ sub getFieldValue {
 sub map {
     my ( $self, $input ) = @_;
 
+    my $input_hash = $input->as_hash;
+
     my %result;
-    if(defined($input->{condition})) {
-        my $condition = "-" . lc( $input->{condition} );
+
+    if(defined($input_hash->{condition})) {
+        my $condition = "-" . lc( $input_hash->{condition} );
         $result{$condition} = {};
 
-        $self->mapRules( $input->{rules}, $result{$condition} );
+        $self->mapRules( $input_hash->{rules}, $result{$condition} );
 
     }
-    
-    return \%result;
+
+    print STDERR pp(%result);
+
+    \%result;
 }
 
 sub mapRules {
@@ -97,7 +104,7 @@ sub mapRules {
         }
 
         my ( $field, $operator, $value ) =
-          ( $rule->{field} . '.name', $rule->{operator}, $rule->{value} );
+          ( $rule->{field}, $rule->{operator}, $rule->{value} );
         my $mappedOperator = $self->fieldMap->{$operator};
         my $mappedValue    = $self->getFieldValue( $operator, $value );
 

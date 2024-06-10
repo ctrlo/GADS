@@ -23,6 +23,8 @@ use GADS::Users;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 
+use Data::Dump qq/pp/;
+
 extends 'GADS::Column';
 
 with 'GADS::Role::Presentation::Column::Person';
@@ -38,8 +40,9 @@ has '+filter' => (
     builder => sub {
         my $self=shift;
         GADS::Filter->new(
-            as_json => $self->set_filter || ($self->_rset && $self->_rset->filter),
-            layout  => $self->layout
+            as_json       => $self->set_filter || ($self->_rset && $self->_rset->filter),
+            layout        => $self->layout,
+            people_filter => 1
         );
     }
 );
