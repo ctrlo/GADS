@@ -23,7 +23,8 @@
       color: $brand-secundary;
     }
 
-    &.data-table__header--invisible span {
+    &.data-table__header--invisible span,
+    &.dt__header--inivisible span {
       @include visually-hidden;
     }
   }
@@ -201,13 +202,13 @@ table.dataTable thead .sorting_disabled {
 .dataTables_scrollHead .table--bordered,
 .dt-scroll-head .table--bordered {
   box-sizing: border-box;
-  border-top: 1px solid $gray;
-  border-right: 1px solid $gray;
-  border-left: 1px solid $gray;
+  border: 1px solid $gray;
+  border-bottom: 0;
   border-top-left-radius: $table-border-radius;
   border-top-right-radius: $table-border-radius;
 
   thead {
+    // Why is this not in the variables file?? Or even more important, why is this a variable?
     $table-bordered-head-color: #585858;
 
     color: $table-bordered-head-color;
@@ -216,9 +217,8 @@ table.dataTable thead .sorting_disabled {
 
 .dataTables_scrollBody:has(.table--bordered),
 .dt-scroll-body:has(.table--bordered) {
-  border-right: 1px solid $gray;
-  border-bottom: 1px solid $gray;
-  border-left: 1px solid $gray;
+  border: 1px solid $gray;
+  border-top: 0;
   border-bottom-left-radius: $table-border-radius;
   border-bottom-right-radius: $table-border-radius;
 
