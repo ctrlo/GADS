@@ -593,22 +593,14 @@ $btn-border-radius: 23px;
   line-height: 16px;
 }
 
-.table-toggle--add .btn {
-  border: 2px solid $brand-success;
-
-  &::before {
-    content: "+";
-    color: $brand-success;
-  }
+.table-toggle--add .btn::before {
+  @extend %icon-font;
+  content: "\E804";
+  color: $brand-success;
 }
 
-.table-toggle--remove .btn {
-  border: 2px solid $brand-danger;
-
-  &::before {
-    @extend %icon-font;
-
-    content: "\E82B";
-    color: $brand-danger;
-  }
+.table-toggle--remove .btn::before {
+  @extend %icon-font;
+  content: "\E807";
+  color: $brand-danger;
 }
