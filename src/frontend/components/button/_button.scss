@@ -245,7 +245,8 @@ $btn-border-radius: 23px;
 .btn-search,
 .btn-sort,
 .btn-toggle,
-.btn-toggle-off {
+.btn-toggle-off,
+.btn-clear {
   display: flex;
   align-items: center;
   width: max-content;
@@ -433,6 +434,13 @@ $btn-border-radius: 23px;
   }
 }
 
+.btn-clear {
+  &::before {
+    content: "\E80B";
+    transform: rotate(180deg);
+  }
+}
+
 .btn-filter {
   &::before {
     content: "\E80c";
@@ -562,7 +570,8 @@ $btn-border-radius: 23px;
   .btn-import,
   .btn-export,
   .btn-add-link,
-  .btn-filter { // to overwrite auto width of .btn
+  .btn-filter,
+  .btn-clear { // to overwrite auto width of .btn
     width: max-content;
   }
 
