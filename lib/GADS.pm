@@ -1370,9 +1370,6 @@ any ['get', 'post'] => '/settings/audit/?' => require_role audit => sub {
     my $audit = GADS::Audit->new(schema => schema);
     my $users = GADS::Users->new(schema => schema, config => config);
 
-    my $session = session;
-    $session->delete('audit_filtering')  && $session->read('audit_filtering') && !param('audit_filtering');
-
     if (param 'audit_filtering')
     {
         session 'audit_filtering' => {
