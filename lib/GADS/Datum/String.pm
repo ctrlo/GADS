@@ -48,7 +48,8 @@ after set_value => sub {
     }
     my $changed = "@text_all" ne "@old_texts";
 
-    if(!$options{draft}) {
+    if(!$options{draft})
+    {
         if (my $regex = $self->column->force_regex) {
             foreach my $val (@values) {
                 my $msg = __x "Invalid value \"{value}\" for {field}", value => $val, field => $self->column->name;
