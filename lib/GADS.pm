@@ -1380,6 +1380,10 @@ any ['get', 'post'] => '/settings/audit/?' => require_role audit => sub {
             to     => param('to'),
         }
     }
+    elsif defined(param('clear'))
+    {
+        session 'audit_filtering' => undef;
+    }
 
     $audit->filtering(session 'audit_filtering')
         if session 'audit_filtering';

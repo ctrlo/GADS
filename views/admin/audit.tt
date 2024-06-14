@@ -67,6 +67,11 @@
         <div class="list list--horizontal list--no-borders list--buttons">
           <ul class="list__items">
             <li class="list__item">
+              <a href="/settings/audit?clear" class="btn btn-clear">
+                <span class="btn__title">Clear Filter</span>
+              </a>
+            </li>
+            <li class="list__item">
               <button
                 type="button"
                 class="btn btn-filter"
