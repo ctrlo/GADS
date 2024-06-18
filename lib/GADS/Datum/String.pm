@@ -50,11 +50,14 @@ after set_value => sub {
 
     if(!$options{draft})
     {
-        if (my $regex = $self->column->force_regex) {
-            foreach my $val (@values) {
+        if (my $regex = $self->column->force_regex)
+        {
+            foreach my $val (@values)
+            {
                 my $msg = __x "Invalid value \"{value}\" for {field}", value => $val, field => $self->column->name;
                 # Empty values are not checked - these should be done in optional value for field
-                if ($val && $val !~ /^$regex$/i) {
+                if ($val && $val !~ /^$regex$/i)
+                {
                     $changed ? error($msg) : warning($msg);
                 }
             }
