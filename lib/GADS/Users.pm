@@ -29,8 +29,6 @@ use GADS::Helper::ConditionBuilder;
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
 
-use Data::Dump qq\pp\;
-
 has filter => (
     is       => 'ro',
     required => 0,

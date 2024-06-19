@@ -23,8 +23,6 @@ use GADS::Users;
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 
-use Data::Dump qq/pp/;
-
 extends 'GADS::Column';
 
 with 'GADS::Role::Presentation::Column::Person';
