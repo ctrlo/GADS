@@ -680,7 +680,7 @@ class DataTableComponent extends Component {
       // any drawing to prevent it being clicked multiple times during a draw
       this.el.DataTable().button(0).enable();
 
-      this.bindClickHandlersAfterDraw(conf)
+      this.bindClickHandlersAfterDraw(conf);
     }
 
     conf['buttons'] = [

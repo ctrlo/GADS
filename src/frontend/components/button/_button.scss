@@ -597,27 +597,19 @@ $btn-border-radius: 23px;
   height: $button-size;
   margin: 0;
   padding: 0;
-  font-size: 16px;
-  line-height: $button-size;
+  font-size: 18px;
+  font-weight: bolder;
+  line-height: 16px;
 }
 
-.table-toggle--add .btn {
-  border: 2px solid $brand-success;
-
-  &::before {
-    content: "+";
-    color: $brand-success;
-  }
+.table-toggle--add .btn::before {
+  @extend %icon-font;
+  content: "\E804";
+  color: $brand-success;
 }
 
-.table-toggle--remove .btn {
-  border: 2px solid $brand-danger;
-
-  &::before {
-    @extend %icon-font;
-
-    content: "\E82B";
-    color: $brand-danger;
-    font-weight: 800;
-  }
+.table-toggle--remove .btn::before {
+  @extend %icon-font;
+  content: "\E807";
+  color: $brand-danger;
 }
