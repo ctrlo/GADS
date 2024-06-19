@@ -4652,7 +4652,7 @@ sub _process_edit
                     }
                 }
                 else {
-                    $failed = !process( sub { $datum->set_value($newv, draft => defined(param draft)) } ) || $failed;
+                    $failed = !process( sub { $datum->set_value($newv, draft => defined(param 'draft')) } ) || $failed;
                 }
             }
         }
