@@ -3026,8 +3026,10 @@ prefix '/:layout_name' => sub {
     };
 
     any ['get', 'post'] => '/historic_purge/' => require_login sub {
-
         my $layout = var('layout') or pass;
+
+        forwardHome({ danger => "You do not have permission to manage deleted records"}, '')
+            unless $layout->user_can("purge");
 
         my $user        = logged_in_user;
         my $view        = current_view($user, $layout);
@@ -3037,62 +3039,54 @@ prefix '/:layout_name' => sub {
             layout              => $layout,
             schema              => schema,
             include_children    => 1,
-            view_limit_extra_id => undef, # Override any value that may be set
             view                => $view,
         );
 
         my $params = +{};
-        my $record_data = [];
+        my @record_data;
 
         if(param 'submit') {
-            my @columns = body_parameters->get_all('record');
-            $records->columns([@columns]);
+            my @columns = body_parameters->get_all('column_id');
+            $records->columns(\@columns);
         } elsif(param 'purge') {
-            my @columns = split(/,/,body_parameters->get('records'));
-            $records->columns([@columns]);
+            my @columns = body_parameters->get_all('column_id');
+            $records->columns(\@columns);
         }
-
-        my %ignores = (
-            id => 1,
-            createddate => 1,
-            createdby => 1,
-            serial => 1,
-        );
 
         unless(param 'purge') {
             while (my $record = $records->single) {
-                foreach my $column (@{$record->presentation->{columns}}) {
-                    next if $ignores{$column->{type}};
-                    my $result = +{};
-                    $result->{col_id} = $column->{id};
-                    $result->{name} = $column->{name};
-                    $result->{id} = $column->{data}->{record_id};
-                    $result->{value} = $column->{data}->{value};
-                    push @$record_data, $result;
+                foreach my $column (@{$record->columns_render}) {
+                    next if $column->internal;
+                    push @record_data, {
+                        col_id => $column->id,
+                        name => $column->name,
+                        id => $record->record->{id},
+                        value => '', # THIS SHOULD BE THE VALUE OF THE GIVEN RECORD/COLUMN
+                    };
                 }
             }
         }
 
-        $params->{page} = 'initial_purge';
-
         if(param 'submit') {
-            $params->{page} = 'purge_stage_2';
-            $params->{records} = $record_data;
-            my @mapped_ids = map {$_->{col_id}} @$record_data;
-            my @mapped_records = uniq map {$_->{id}} @$record_data;
-            $params->{column_list} = join(',', @mapped_ids);
-            $params->{record_list} = join(',', @mapped_records);
+            foreach my $r (@record_data) {
+                print STDERR "Value: " . $r->{value} . "\n";
+            }
+
+            $params->{records} = \@record_data;
+            my @mapped_ids = map {$_->{col_id}} @record_data;
+            my @mapped_records = uniq map {$_->{id}} @record_data;
+            $params->{column_list} = \@mapped_ids;
+            $params->{record_list} = \@mapped_records;
+            return template 'historic_purge/confirm' => $params;
         } elsif(param 'purge') {
-            my $columns = body_parameters->get('columns') or error __"Unable to get columns";
-            my $rids = body_parameters->get('records') or error __"Unable to get records";
-            my @mapped_ids = split(/,/,$columns);
-            my @records = split(/,/,$rids);
+            my @columns = body_parameters->get_all('columns') or error __"Unable to get columns";
+            my @rids = body_parameters->get_all('column_id') or error __"Unable to get records";
             my $total = 0;
-            foreach my $r (@records) {
+            foreach my $r (@rids) {
                 my $record = schema->resultset('Record')->find($r);
                 my $current_id = $record->current_id;
                 my $current = schema->resultset('Current')->find($current_id);
-                $current->historic_purge(@mapped_ids);
+                $current->historic_purge(@columns);
                 $total++;
             }
             forwardHome({ success => "$total records have now been purged" }, $layout->identifier) if $total;
@@ -3100,7 +3094,7 @@ prefix '/:layout_name' => sub {
         } else {
             my $result = [];
             my $seen = {};
-            foreach my $val (@$record_data) {
+            foreach my $val (@record_data) {
                 if($seen->{$val->{name}}) {
                     foreach my $d (@$result) {
                         next unless $d->{name} eq $val->{name};
@@ -3113,9 +3107,8 @@ prefix '/:layout_name' => sub {
                 }
             }
             $params->{columns} = $result;
+            return template 'historic_purge/initial' => $params;
         }
-
-        template 'historic_purge' => $params;
     };
 
     any ['get', 'post'] => '/purge/?' => require_login sub {

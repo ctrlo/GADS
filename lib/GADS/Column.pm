@@ -41,8 +41,7 @@ use namespace::clean; # Otherwise Enum clashes with MooseLike
 with 'GADS::Role::Presentation::Column';
 
 sub purge {
-    my $self=shift;
-    print STDERR $self->id . "\n";
+    # Overridden in subclass
 }
 
 sub types

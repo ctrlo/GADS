@@ -18,13 +18,11 @@ has valuefield => (
 sub purge {
     my $self = shift;
     
-    my $source = $self->recordsource or error __"No recordsource defined";
     my @field = $self->valuefield or error __"No valuefield defined";
     my $schema = $self->result_source->schema;
 
     $schema->txn_do(sub {
-        my $rs = $schema->resultset($source)->find($self->id);
-        $rs->update({ $_ => undef}) foreach @field;
+        $self->update({ $_ => undef}) foreach @field;
     });
 }
 
