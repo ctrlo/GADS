@@ -35,47 +35,50 @@ use Log::Report syntax => 'LONG';
 
 my ($site_id, @instance_ids, $include_data);
 
-GetOptions (
+GetOptions(
     'site-id=s'     => \$site_id,
     'instance-id=s' => \@instance_ids,
     'include-data'  => \$include_data,
 ) or exit;
 
-$site_id or report ERROR =>  "Please provide site ID with --site-id";
+$site_id or report ERROR => "Please provide site ID with --site-id";
 
 mkdir '_export'
     or report FAULT => "Unable to create export directory";
 
-GADS::Config->instance(
-    config => config,
-);
+GADS::Config->instance(config => config,);
 
 schema->site_id($site_id);
 local $GADS::Schema::IGNORE_PERMISSIONS = 1;
 
 my $instances_object = GADS::Instances->new(schema => schema, user => undef);
 
-my @instances = @instance_ids
+my @instances =
+    @instance_ids
     ? (map { $instances_object->layout($_) } @instance_ids)
-    : @{$instances_object->all};
+    : @{ $instances_object->all };
 
 my $encoder = JSON->new->pretty;
 
 mkdir '_export/groups'
     or report FAULT => "Unable to create groups directory";
 
-my @groups = schema->resultset('Group')->search([
-    'layout.instance_id'          => [map $_->instance_id, @instances],
-    'instance_groups.instance_id' => [map $_->instance_id, @instances],
-],{
-    join => [
-        {
-            layout_groups => 'layout',
-        },
-        'instance_groups',
+my @groups = schema->resultset('Group')->search(
+    [
+        'layout.instance_id'          => [ map $_->instance_id, @instances ],
+        'instance_groups.instance_id' =>
+            [ map $_->instance_id, @instances ],
     ],
-    collapse => 1,
-})->all;
+    {
+        join => [
+            {
+                layout_groups => 'layout',
+            },
+            'instance_groups',
+        ],
+        collapse => 1,
+    },
+)->all;
 
 foreach my $group (@groups)
 {
@@ -83,7 +86,7 @@ foreach my $group (@groups)
         id   => $group->id,
         name => $group->name,
     });
-    my $file = "_export/groups/".$group->id;
+    my $file = "_export/groups/" . $group->id;
     open(my $fh, ">:encoding(UTF-8)", $file)
         or report FAULT => "Error opening $file for write";
     print $fh $json;
@@ -96,21 +99,27 @@ if ($include_data)
     my @users;
     if (@instance_ids)
     {
-        @users = schema->resultset('User')->search([
-            'current.instance_id'             => [map $_->instance_id, @instances],
-            'current_deletedbies.instance_id' => [map $_->instance_id, @instances],
-        ],{
-            collapse => 1,
-            join => [
-                {
-                    record_createdbies => 'current',
-                },
-                'current_deletedbies',
+        @users = schema->resultset('User')->search(
+            [
+                'current.instance_id' =>
+                    [ map $_->instance_id, @instances ],
+                'current_deletedbies.instance_id' =>
+                    [ map $_->instance_id, @instances ],
             ],
-        });
+            {
+                collapse => 1,
+                join     => [
+                    {
+                        record_createdbies => 'current',
+                    },
+                    'current_deletedbies',
+                ],
+            },
+        );
     }
-    else {
-        @users = schema->resultset('User')->all,
+    else
+    {
+        @users = schema->resultset('User')->all,;
     }
     dump_all("_export/users/", @users);
 }
@@ -118,7 +127,7 @@ if ($include_data)
 foreach my $layout (@instances)
 {
     my $instance_id = $layout->instance_id;
-    my $ins_dir = "_export/instance$instance_id";
+    my $ins_dir     = "_export/instance$instance_id";
     mkdir $ins_dir
         or report FAULT => "Unable to create instance directory";
     my $json = $encoder->encode($layout->export);
@@ -129,7 +138,9 @@ foreach my $layout (@instances)
 
     mkdir "$ins_dir/topics"
         or report FAULT => "Unable to create topics directory";
-    foreach my $topic (schema->resultset('Topic')->search({ instance_id => $instance_id })->all)
+    foreach my $topic (
+        schema->resultset('Topic')->search({ instance_id => $instance_id })
+        ->all)
     {
         my $json = $encoder->encode({
             id            => $topic->id,
@@ -139,7 +150,7 @@ foreach my $layout (@instances)
             click_to_edit => $topic->click_to_edit,
             instance_id   => $topic->instance_id,
         });
-        my $file = "$ins_dir/topics/".$topic->id;
+        my $file = "$ins_dir/topics/" . $topic->id;
         open(my $fh, ">:encoding(UTF-8)", $file)
             or report FAULT => "Error opening $file for write";
         print $fh $json;
@@ -152,30 +163,46 @@ foreach my $layout (@instances)
 
     mkdir "$ins_dir/metrics"
         or report FAULT => "Unable to create metrics directory";
-    dump_all("$ins_dir/metrics/", @{GADS::MetricGroups->new(schema => schema, instance_id => $instance_id)->all});
+    dump_all(
+        "$ins_dir/metrics/",
+        @{ GADS::MetricGroups->new(
+                schema      => schema,
+                instance_id => $instance_id
+            )->all
+        }
+    );
 
     mkdir "$ins_dir/graphs"
         or report FAULT => "Unable to create graphs directory";
-    my @graphs = @{GADS::Graphs->new(schema => schema, layout => $layout)->all_all_users};
+    my @graphs = @{ GADS::Graphs->new(schema => schema, layout => $layout)
+            ->all_all_users };
     @graphs = grep !$_->user_id, @graphs
-        if !$include_data; # Users not included without include_data flag
+        if !$include_data;    # Users not included without include_data flag
     dump_all("$ins_dir/graphs/", @graphs);
 
     mkdir "$ins_dir/views"
         or report FAULT => "Unable to create views directory";
-    my $views = GADS::Views->new(schema => schema, layout => $layout, instance_id => $layout->instance_id, user_permission_override => 1);
-    my @views = @{$views->global};
-    push @views, @{$views->admin};
+    my $views = GADS::Views->new(
+        schema                   => schema,
+        layout                   => $layout,
+        instance_id              => $layout->instance_id,
+        user_permission_override => 1
+    );
+    my @views = @{ $views->global };
+    push @views, @{ $views->admin };
     dump_all("$ins_dir/views/", @views);
 
     if ($include_data)
     {
         mkdir "$ins_dir/records"
             or report FAULT => "Unable to create records directory";
-        dump_all("$ins_dir/records/", schema->resultset('Current')->search({
-            instance_id  => $instance_id,
-            draftuser_id => undef,
-        })->all);
+        dump_all(
+            "$ins_dir/records/",
+            schema->resultset('Current')->search({
+                instance_id  => $instance_id,
+                draftuser_id => undef,
+            })->all,
+        );
     }
 }
 

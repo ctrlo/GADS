@@ -32,41 +32,41 @@ use DBIx::Class::Migration;
 
 my ($initial_username, $instance_name, $host);
 my $namespace = $ENV{CDB_NAMESPACE};
-GetOptions (
+GetOptions(
     'initial_username=s' => \$initial_username,
     'instance_name=s'    => \$instance_name,
     'site=s'             => \$host,
 ) or exit;
 
-my ($dbic) = values %{config->{plugins}->{DBIC}}
+my ($dbic) = values %{ config->{plugins}->{DBIC} }
     or die "Please create config.yml before running this script";
 
 unless ($instance_name)
 {
     say "Please enter the name of the first datasheet";
-    chomp ($instance_name = <STDIN>);
+    chomp($instance_name = <STDIN>);
 }
 
 unless ($initial_username)
 {
     say "Please enter the email address of the first user";
-    chomp ($initial_username = <STDIN>);
+    chomp($initial_username = <STDIN>);
 }
 
 unless ($host)
 {
     say "Please enter the hostname that will be used to access this site";
-    chomp ($host = <STDIN>);
+    chomp($host = <STDIN>);
 }
 
 my $migration = DBIx::Class::Migration->new(
     schema_class => 'GADS::Schema',
-    schema_args  => [{
-        user         => $dbic->{user},
-        password     => $dbic->{password},
-        dsn          => $dbic->{dsn},
-        quote_names  => 1,
-    }],
+    schema_args  => [ {
+        user        => $dbic->{user},
+        password    => $dbic->{password},
+        dsn         => $dbic->{dsn},
+        quote_names => 1,
+    } ],
 );
 
 say "Installing schema and fixtures if needed...";
@@ -101,7 +101,8 @@ foreach my $perm (rset('Permission')->all)
     });
 }
 
-if($ENV{TEST}) {
+if ($ENV{TEST})
+{
 
     say 'Creating basic user "basic@example.com" with no permissions...';
     my $user = rset('User')->create({
@@ -112,7 +113,7 @@ if($ENV{TEST}) {
 
     say "Creating group for basic user";
     my $group = rset('Group')->create({
-        name   => 'basic',
+        name    => 'basic',
         site_id => $site->id,
     });
 

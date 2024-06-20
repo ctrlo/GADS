@@ -37,11 +37,9 @@ GADS::DB->setup(schema);
 
 # Setup singleton classes with required parameters for if/when
 # they are called in classes later.
-GADS::Config->instance(
-    config => config,
-);
+GADS::Config->instance(config => config,);
 
-tie %{schema->storage->dbh->{CachedKids}}, 'Tie::Cache', 100;
+tie %{ schema->storage->dbh->{CachedKids} }, 'Tie::Cache', 100;
 
 foreach my $site (schema->resultset('Site')->all)
 {
@@ -52,47 +50,51 @@ foreach my $site (schema->resultset('Site')->all)
         user_permission_override => 1,
     );
 
-    foreach my $layout (@{$instances->all})
+    foreach my $layout (@{ $instances->all })
     {
 
         my @filval = grep $_->type eq 'filval', $layout->all;
         next if !@filval;
-        say STDERR "doing table ".$layout->name;
+        say STDERR "doing table " . $layout->name;
 
         my $records = GADS::Records->new(
-            user                 => undef,
-            layout               => $layout,
-            schema               => schema,
-            #columns              => $cols,
-            #curcommon_all_fields => 1, # Code might contain curcommon fields not in normal display
-            include_children     => 1, # Update all child records regardless
+            user   => undef,
+            layout => $layout,
+            schema => schema,
+
+#columns              => $cols,
+#curcommon_all_fields => 1, # Code might contain curcommon fields not in normal display
+            include_children => 1,    # Update all child records regardless
         );
 
         while (my $record = $records->single)
         {
-            say STDERR "Doing ".$record->current_id;
-            my $guard = schema->txn_scope_guard;
-            my $rewind = schema->storage->datetime_parser->format_datetime($record->created);
+            say STDERR "Doing " . $record->current_id;
+            my $guard  = schema->txn_scope_guard;
+            my $rewind = schema->storage->datetime_parser->format_datetime(
+                $record->created);
             foreach my $filval (@filval)
             {
                 schema->resultset('Curval')->search({
                     record_id => $record->record_id,
                     layout_id => $filval->id,
                 })->delete;
-                next if schema->resultset('Curval')->search({
-                    record_id => $record->record_id,
-                    layout_id => $filval->id,
-                })->count;
+                next
+                    if schema->resultset('Curval')->search({
+                        record_id => $record->record_id,
+                        layout_id => $filval->id,
+                    })->count;
                 $layout->record($record);
                 local $GADS::Schema::Result::Record::REWIND = $rewind;
-                my $datum = $record->fields->{$filval->id};
+                my $datum = $record->fields->{ $filval->id };
                 $filval->related_field->clear;
                 my $vals = $filval->related_field->filtered_values;
                 schema->resultset('Curval')->create({
                     record_id => $record->record_id,
                     layout_id => $filval->id,
                     value     => $_->{id},
-                }) foreach @$vals;
+                })
+                    foreach @$vals;
             }
             $guard->commit;
         }

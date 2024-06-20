@@ -28,15 +28,16 @@ use Text::CSV;
 
 my ($layout_id, $parent_top) = @ARGV;
 
-$layout_id or die "Usage: $0 layout-id [parent-id] (use STDIN for the CSV data)";
+$layout_id
+    or die "Usage: $0 layout-id [parent-id] (use STDIN for the CSV data)";
 
 my $l = rset('Layout')->find($layout_id)
     or die "Layout ID $layout_id not found in database";
 
-say STDERR "Using field ".$l->name;
+say STDERR "Using field " . $l->name;
 
-my $csv = Text::CSV->new({ binary => 1 }) # should set binary attribute?
-    or die "Cannot use CSV: ".Text::CSV->error_diag ();
+my $csv = Text::CSV->new({ binary => 1 })    # should set binary attribute?
+    or die "Cannot use CSV: " . Text::CSV->error_diag();
 
 my @parents;
 while (<STDIN>)
@@ -49,7 +50,7 @@ while (<STDIN>)
     {
         $count++;
         next unless $col;
-        my $parent = $parents[$count-1] || $parent_top;
+        my $parent = $parents[ $count - 1 ] || $parent_top;
         $parent = rset('Enumval')->create({
             value     => $col,
             layout_id => $layout_id,
@@ -58,4 +59,4 @@ while (<STDIN>)
         $parents[$count] = $parent;
     }
 }
- 
+

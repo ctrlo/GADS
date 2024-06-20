@@ -14,24 +14,25 @@ dispatcher close => 'error_handler';
 
 GADS::DB->setup(schema);
 
-GADS::Config->instance(
-    config => config,
-);
+GADS::Config->instance(config => config,);
 
 my ($record_id);
 
-GetOptions (
-    'record-id=s' => \$record_id,
-) or exit;
+GetOptions('record-id=s' => \$record_id,)
+    or exit;
 
 $record_id
-    or error __"Please provide the record version ID with --record-id";
+    or error __ "Please provide the record version ID with --record-id";
 
 my $record = schema->resultset('Record')->find($record_id)
-    or error __"Record ID not found";
+    or error __ "Record ID not found";
 
-say __x"This will purge the version {rid} from record {cid} created by {user} at {date}. Press any key to continue.",
-    rid => $record_id, cid => $record->current_id, user => $record->createdby->value, date => $record->created;
+say __x
+"This will purge the version {rid} from record {cid} created by {user} at {date}. Press any key to continue.",
+    rid  => $record_id,
+    cid  => $record->current_id,
+    user => $record->createdby->value,
+    date => $record->created;
 
 <STDIN>;
 

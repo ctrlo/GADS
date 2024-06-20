@@ -20,7 +20,7 @@ use Getopt::Long;
 
 my ($prepare, $install, $upgrade, $downgrade, $status, $fixtures);
 
-GetOptions (
+GetOptions(
     'prepare'    => \$prepare,
     'install'    => \$install,
     'upgrade'    => \$upgrade,
@@ -30,7 +30,8 @@ GetOptions (
 ) or exit;
 
 $prepare || $install || $upgrade || $downgrade || $status || $fixtures
-    or error "Please specify --prepare, --install, --status, --fixtures or --upgrade";
+    or error
+    "Please specify --prepare, --install, --status, --fixtures or --upgrade";
 
 my $db_settings = $config->{plugins}{DBIC}{default}
     or panic "configuration file structure changed.";
@@ -48,11 +49,11 @@ my @app_connect = (
 my $migration = DBIx::Class::Migration->new(
     schema_class => 'GADS::Schema',
     schema_args  => \@app_connect,
-    target_dir => "$FindBin::Bin/../share",
+    target_dir   => "$FindBin::Bin/../share",
     dbic_dh_args => {
-        force_overwrite => 1,
-        quote_identifiers => 1,
-        databases => ['MySQL', 'PostgreSQL'],
+        force_overwrite     => 1,
+        quote_identifiers   => 1,
+        databases           => [ 'MySQL', 'PostgreSQL' ],
         sql_translator_args => {
             producer_args => {
                 mysql_version => 5.7,
@@ -61,20 +62,15 @@ my $migration = DBIx::Class::Migration->new(
     },
 );
 
-if ($prepare)
-{ $migration->prepare }
-elsif ($install)
-{ $migration->install }
-elsif ($upgrade)
-{ $migration->upgrade }
-elsif ($downgrade)
-{ $migration->downgrade }
-elsif ($status)
-{ $migration->status }
+if    ($prepare)   { $migration->prepare }
+elsif ($install)   { $migration->install }
+elsif ($upgrade)   { $migration->upgrade }
+elsif ($downgrade) { $migration->downgrade }
+elsif ($status)    { $migration->status }
 elsif ($fixtures)
 {
-    my $rootdir       = "$FindBin::Bin/..";
-    my @dirs = grep { -d } glob "$rootdir/share/fixtures/*";
+    my $rootdir = "$FindBin::Bin/..";
+    my @dirs    = grep { -d } glob "$rootdir/share/fixtures/*";
     my $version = 0;
     foreach (@dirs)
     {
@@ -104,7 +100,8 @@ elsif ($fixtures)
             update_existing    => 1,
         });
     }
-    else {
+    else
+    {
         error "Invalid fixtures action $fixtures";
     }
 }

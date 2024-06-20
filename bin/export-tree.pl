@@ -37,28 +37,34 @@ $layout_id or die "Usage: $0 layout-id";
 my $l = rset('Layout')->find($layout_id)
     or die "Layout ID $layout_id not found in database";
 
-say STDERR "Using field ".$l->name;
+say STDERR "Using field " . $l->name;
 
 my $original;
 
-my $tree; my @order;
+my $tree;
+my @order;
 
 foreach my $enum (
-    rset('Enumval')->search({
-        'me.layout_id' => $layout_id,
-        'me.deleted'   => 0,
-    },{
-        prefetch => 'parent',
-        order_by => 'me.value',
-    })->all
-){
+    rset('Enumval')->search(
+        {
+            'me.layout_id' => $layout_id,
+            'me.deleted'   => 0,
+        },
+        {
+            prefetch => 'parent',
+            order_by => 'me.value',
+        },
+    )->all
+    )
+{
     my $parent = $enum->parent && $enum->parent->id;
-    my $node = Tree::DAG_Node->new();
+    my $node   = Tree::DAG_Node->new();
     $node->name($enum->value);
-    $tree->{$enum->id} = {
+    $tree->{ $enum->id } = {
         node   => $node,
         parent => $parent,
     };
+
     # Keep order in a list
     push @order, $enum->id;
 }
@@ -73,7 +79,8 @@ foreach my $n (@order)
     {
         $tree->{$parent}->{node}->add_daughter($node->{node});
     }
-    else {
+    else
+    {
         $root->add_daughter($node->{node});
     }
 }
@@ -81,6 +88,7 @@ foreach my $n (@order)
 _do_node($root);
 
 my $newline;
+
 sub _do_node
 {   my ($node) = @_;
     foreach my $child ($node->daughters)
@@ -88,16 +96,17 @@ sub _do_node
         my $level = scalar($child->ancestors);
         if ($newline)
         {
-            print "," foreach (1..$level - 1);
+            print "," foreach (1 .. $level - 1);
         }
-        print '"'.$child->name.'"';
-        print "," if $child->daughters;# || !$newline;
+        print '"' . $child->name . '"';
+        print "," if $child->daughters;    # || !$newline;
         if (!$child->daughters)
         {
             print "\n";
             $newline = 1;
         }
-        else {
+        else
+        {
             $newline = 0;
         }
         _do_node($child);

@@ -16,24 +16,22 @@ use Text::CSV;
 
 my ($instance_id, $site_id);
 
-GetOptions (
+GetOptions(
     'instance-id=s' => \$instance_id,
     'site-id=s'     => \$site_id,
 ) or exit;
 
 $instance_id or die "Need instance ID with --instance-id";
-$site_id or die "Need site ID with --site-id";
+$site_id     or die "Need site ID with --site-id";
 
 GADS::DB->setup(schema);
 
-GADS::Config->instance(
-    config => config,
-);
+GADS::Config->instance(config => config,);
 
 schema->site_id($site_id);
 
-my $csv = Text::CSV->new ( { binary => 1 } )  # should set binary attribute.
-    or die "Cannot use CSV: ".Text::CSV->error_diag ();
+my $csv = Text::CSV->new({ binary => 1 })    # should set binary attribute.
+    or die "Cannot use CSV: " . Text::CSV->error_diag();
 
 my $layout = GADS::Layout->new(
     user        => undef,
@@ -42,26 +40,27 @@ my $layout = GADS::Layout->new(
     instance_id => $instance_id,
 );
 
-my @row; my @columns;
+my @row;
+my @columns;
 foreach my $col ($layout->all)
 {
     next if $col->type eq "file" || !$col->userinput;
-    push @row, $col->name;
+    push @row,     $col->name;
     push @columns, $col;
 }
 
 my @rows = (\@row);
 
 my $start = DateTime->new(
-      year       => 2013,
-      month      => 10,
-      day        => 16,
+    year  => 2013,
+    month => 10,
+    day   => 16,
 );
 
 my $end = DateTime->new(
-      year       => 2020,
-      month      => 8,
-      day        => 23,
+    year  => 2020,
+    month => 8,
+    day   => 23,
 );
 
 my $config = GADS::Config->instance(
@@ -71,7 +70,7 @@ my $config = GADS::Config->instance(
 
 my $dateformat = $config->dateformat;
 
-for (1..1000)
+for (1 .. 1000)
 {
     my @row;
     foreach my $column (@columns)
@@ -87,24 +86,38 @@ for (1..1000)
         }
         elsif ($column->type eq "date")
         {
-            push @row, DateTime::Event::Random->datetime( after => $start, before => $end )->format_cldr($dateformat);
+            push @row,
+                DateTime::Event::Random->datetime(
+                    after  => $start,
+                    before => $end
+            )->format_cldr($dateformat);
         }
         elsif ($column->type eq "daterange")
         {
-            my $date1 = DateTime::Event::Random->datetime( after => $start, before => $end );
-            my $date2 = DateTime::Event::Random->datetime( after => $start, before => $end );
-            ($date2, $date1) = ($date1, $date2) if DateTime->compare($date1, $date2) > 0;
-            push @row, ($date1->format_cldr($dateformat)." - ".$date2->format_cldr($dateformat));
+            my $date1 = DateTime::Event::Random->datetime(
+                after  => $start,
+                before => $end
+            );
+            my $date2 = DateTime::Event::Random->datetime(
+                after  => $start,
+                before => $end
+            );
+            ($date2, $date1) = ($date1, $date2)
+                if DateTime->compare($date1, $date2) > 0;
+            push @row,
+                (     $date1->format_cldr($dateformat) . " - "
+                    . $date2->format_cldr($dateformat));
         }
-        else {
+        else
+        {
             push @row, "String text";
         }
     }
     push @rows, \@row;
 }
 
-$csv->eol ("\n");
+$csv->eol("\n");
 open my $fh, ">:encoding(utf8)", "new.csv" or die "new.csv: $!";
-$csv->print ($fh, $_) for @rows;
+$csv->print($fh, $_) for @rows;
 close $fh or die "new.csv: $!";
 

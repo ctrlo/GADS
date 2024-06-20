@@ -31,7 +31,7 @@ my ($file) = @ARGV;
 $file or die "Usage: $0 filename";
 
 my $csv = Text::CSV->new({ binary => 1 })
-    or die "Cannot use CSV: ".Text::CSV->error_diag ();
+    or die "Cannot use CSV: " . Text::CSV->error_diag();
 
 open my $fh, "<:encoding(utf8)", $file or die "$file: $!";
 
@@ -44,12 +44,15 @@ my $guard = schema->txn_scope_guard;
 
 while (my $row = $csv->getline($fh))
 {
-    my ($firstname, $surname, $email, $freetext1, $freetext2, $title, $organisation, $group) = @$row;
+    my ($firstname, $surname, $email, $freetext1, $freetext2, $title,
+        $organisation, $group)
+        = @$row;
 
     my $title_id        = $titles{$title} or die qq(Title "$title" not found);
-    my $organisation_id = $organisations{$organisation} or die qq(Organisation "$organisation" not found);
-    my $group_id        = $groups{$group} or die qq(Group "$group" not found);
-    my $user = rset('User')->create({
+    my $organisation_id = $organisations{$organisation}
+        or die qq(Organisation "$organisation" not found);
+    my $group_id = $groups{$group} or die qq(Group "$group" not found);
+    my $user     = rset('User')->create({
         firstname    => $firstname,
         surname      => $surname,
         email        => $email,

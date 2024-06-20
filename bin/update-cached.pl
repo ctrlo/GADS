@@ -34,9 +34,8 @@ use Tie::Cache;
 
 my ($from_record_id);
 
-GetOptions (
-    'from-record-id=s' => \$from_record_id,
-) or exit;
+GetOptions('from-record-id=s' => \$from_record_id,)
+    or exit;
 
 # Close dancer2 special dispatcher, which tries to write to the session
 dispatcher close => 'error_handler';
@@ -50,7 +49,7 @@ GADS::Config->instance(
     app_location => app->location,
 );
 
-tie %{schema->storage->dbh->{CachedKids}}, 'Tie::Cache', 100;
+tie %{ schema->storage->dbh->{CachedKids} }, 'Tie::Cache', 100;
 
 local $GADS::Schema::IGNORE_PERMISSIONS = 1;
 
@@ -63,7 +62,7 @@ foreach my $site (schema->resultset('Site')->all)
         user_permission_override => 1,
     );
 
-    foreach my $layout (@{$instances->all})
+    foreach my $layout (@{ $instances->all })
     {
         next if $layout->no_overnight_update;
 
@@ -71,6 +70,7 @@ foreach my $site (schema->resultset('Site')->all)
         next if !@$cols;
 
         my $view;
+
         # Allow the update to be performed starting from a particular
         # current_id
         if ($from_record_id)
@@ -105,20 +105,22 @@ foreach my $site (schema->resultset('Site')->all)
             layout               => $layout,
             schema               => schema,
             columns              => !$from_record_id && $cols,
-            curcommon_all_fields => 1, # Code might contain curcommon fields not in normal display
-            include_children     => 1, # Update all child records regardless
+            curcommon_all_fields =>
+                1,   # Code might contain curcommon fields not in normal display
+            include_children => 1,    # Update all child records regardless
         );
 
         my %changed;
         while (my $record = $records->single)
         {
-            foreach my $column ($layout->all(order_dependencies => 1, has_cache => 1))
+            foreach my $column (
+                $layout->all(order_dependencies => 1, has_cache => 1))
             {
-                my $datum = $record->fields->{$column->id};
+                my $datum = $record->fields->{ $column->id };
                 $datum->re_evaluate(no_errors => 1);
                 $datum->write_value;
-                $changed{$column->id} ||= [];
-                push @{$changed{$column->id}}, $record->current_id
+                $changed{ $column->id } ||= [];
+                push @{ $changed{ $column->id } }, $record->current_id
                     if $datum->changed;
             }
         }

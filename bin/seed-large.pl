@@ -39,39 +39,37 @@ use GADS::Column::Enum;
 use GADS::Column::Tree;
 
 # Seed singleton
-GADS::Config->instance(
-    config => config,
-);
+GADS::Config->instance(config => config,);
 
 my ($initial_username, $host);
-GetOptions (
+GetOptions(
     'initial_username=s' => \$initial_username,
     'site'               => \$host,
 ) or exit;
 
-my ($dbic) = values %{config->{plugins}->{DBIC}}
+my ($dbic) = values %{ config->{plugins}->{DBIC} }
     or die "Please create config.yml before running this script";
 
 unless ($initial_username)
 {
     say "Please enter the email address of the first user";
-    chomp ($initial_username = <STDIN>);
+    chomp($initial_username = <STDIN>);
 }
 
 unless ($host)
 {
     say "Please enter the hostname that will be used to access this site";
-    chomp ($host = <STDIN>);
+    chomp($host = <STDIN>);
 }
 
 my $migration = DBIx::Class::Migration->new(
     schema_class => 'GADS::Schema',
-    schema_args  => [{
-        user         => $dbic->{user},
-        password     => $dbic->{password},
-        dsn          => $dbic->{dsn},
-        quote_names  => 1,
-    }],
+    schema_args  => [ {
+        user        => $dbic->{user},
+        password    => $dbic->{password},
+        dsn         => $dbic->{dsn},
+        quote_names => 1,
+    } ],
 );
 
 say "Installing schema...";
@@ -109,7 +107,7 @@ foreach my $perm (rset('Permission')->all)
     });
 }
 
-my $group  = GADS::Group->new(schema => schema);
+my $group = GADS::Group->new(schema => schema);
 $group->name('Read/write');
 $group->write;
 
@@ -118,19 +116,35 @@ rset('UserGroup')->create({
     group_id => $group->id,
 });
 
-my $perms = {$group->id => [qw/read write_existing write_existing_no_approval write_new write_new_no_approval/]};
+my $perms = {
+    $group->id => [
+        qw/read write_existing write_existing_no_approval write_new write_new_no_approval/
+    ]
+};
 
-my $activities = _create_table("Activities", string => 50, tree => 5, enum => 50, intgr => 50);
+my $activities = _create_table(
+    "Activities",
+    string => 50,
+    tree   => 5,
+    enum   => 50,
+    intgr  => 50
+);
 
-for my $i (1..10)
+for my $i (1 .. 10)
 {
-    my $curval_layout = _create_table("Curval$i", string => 3, tree => 0, enum => 3, intgr => 1);
+    my $curval_layout = _create_table(
+        "Curval$i",
+        string => 3,
+        tree   => 0,
+        enum   => 3,
+        intgr  => 1
+    );
 
     my $curval = GADS::Column::Curval->new(
-        optional   => 1,
-        schema     => schema,
-        user       => $user,
-        layout     => $activities,
+        optional => 1,
+        schema   => schema,
+        user     => $user,
+        layout   => $activities,
     );
     $curval->refers_to_instance_id($curval_layout->instance_id);
     my @curval_field_ids = schema->resultset('Layout')->search({
@@ -166,7 +180,7 @@ sub _create_table
 
     say "Creating string fields";
 
-    for my $i (1..$counts{string})
+    for my $i (1 .. $counts{string})
     {
         my $string = GADS::Column::String->new(
             optional => 1,
@@ -182,7 +196,7 @@ sub _create_table
 
     say "Creating tree fields";
 
-    for my $i (1..$counts{tree})
+    for my $i (1 .. $counts{tree})
     {
         my $tree = GADS::Column::Tree->new(
             optional => 1,
@@ -196,19 +210,20 @@ sub _create_table
         $tree->write;
 
         my @nodes;
-        for my $j (1..200)
+        for my $j (1 .. 200)
         {
-            push @nodes, {
-                text => "Node $i $j",
-                children => [],
-            };
+            push @nodes,
+                {
+                    text     => "Node $i $j",
+                    children => [],
+                };
         }
         $tree->update(\@nodes);
     }
 
     say "Creating enum fields";
 
-    for my $i (1..$counts{enum})
+    for my $i (1 .. $counts{enum})
     {
         my $enum = GADS::Column::Enum->new(
             optional => 1,
@@ -220,11 +235,9 @@ sub _create_table
         $enum->name("enum$i");
         $enum->set_permissions($perms);
         my @enumvals;
-        for my $j (1..100)
+        for my $j (1 .. 100)
         {
-            push @enumvals, {
-                value => "foo$j",
-            };
+            push @enumvals, { value => "foo$j", };
         }
         $enum->enumvals(\@enumvals);
         $enum->write;
@@ -232,7 +245,7 @@ sub _create_table
 
     say "Creating integer fields";
 
-    for my $i (1..$counts{intgr})
+    for my $i (1 .. $counts{intgr})
     {
         my $intgr = GADS::Column::Intgr->new(
             optional => 1,

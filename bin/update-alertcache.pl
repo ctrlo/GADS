@@ -36,13 +36,9 @@ GADS::DB->setup(schema);
 
 # Setup these singleton classes with required parameters for if/when
 # they are called in classes later.
-GADS::Config->instance(
-    config => config,
-);
+GADS::Config->instance(config => config,);
 
-GADS::Email->instance(
-    config => config,
-);
+GADS::Email->instance(config => config,);
 
 foreach my $site (schema->resultset('Site')->all)
 {
@@ -54,9 +50,9 @@ foreach my $site (schema->resultset('Site')->all)
         user_permission_override => 1,
     );
 
-    foreach my $layout (@{$instances->all})
+    foreach my $layout (@{ $instances->all })
     {
-        my $views      = GADS::Views->new(
+        my $views = GADS::Views->new(
             user                     => undef,
             schema                   => schema,
             layout                   => $layout,
@@ -64,20 +60,21 @@ foreach my $site (schema->resultset('Site')->all)
             user_permission_override => 1,
         );
 
-        foreach my $view (@{$views->all})
+        foreach my $view (@{ $views->all })
         {
             if ($view->has_alerts)
             {
                 my $alert = GADS::Alert->new(
-                    user      => undef,
-                    layout    => $layout,
-                    schema    => schema,
-                    view_id   => $view->id,
-                    view      => $view,
+                    user    => undef,
+                    layout  => $layout,
+                    schema  => schema,
+                    view_id => $view->id,
+                    view    => $view,
                 );
                 $alert->update_cache(all_users => 1);
             }
-            else {
+            else
+            {
                 schema->resultset('AlertCache')->search({
                     view_id => $view->id,
                 })->delete;

@@ -32,21 +32,19 @@ use Dancer2::Plugin::LogReport 'linkspace', mode => 'NORMAL';
 
 GADS::DB->setup(schema);
 
-GADS::Config->instance(
-    config => config,
-);
+GADS::Config->instance(config => config,);
 
-my $alert_description = GADS::AlertDescription->new(
-    schema => schema,
-);
+my $alert_description = GADS::AlertDescription->new(schema => schema,);
 
 sub _send
 {   my ($email, @notifications) = @_;
 
     @notifications or return;
 
-    my $text = "This email contains details of any changes in views that you have asked to be alerted to.\n\n";
-    my $html = "<p>This email contains details of any changes in views that you have asked to be alerted to.</p>";
+    my $text =
+"This email contains details of any changes in views that you have asked to be alerted to.\n\n";
+    my $html =
+"<p>This email contains details of any changes in views that you have asked to be alerted to.</p>";
     $text .= join "\n", map { $_->{text} } @notifications;
     $html .= join "\n", map { $_->{html} } @notifications;
     my $email_send = GADS::Email->new;
@@ -66,7 +64,7 @@ sub record_description
 sub _do_columns
 {   my ($current, $user, @columns) = @_;
     @columns or return;
-    my $cols = join ', ', @columns;
+    my $cols        = join ', ', @columns;
     my $description = $alert_description->description(
         instance_id => $current->instance_id,
         current_ids => $current->id,
@@ -77,21 +75,27 @@ sub _do_columns
         current_ids => $current->id,
         user        => $user,
     );
-    my $notification = "* The following columns have changed in $description: $cols";
-    my $notification_html = qq(<li>The following columns have changed in $link: $cols</li>);
+    my $notification =
+        "* The following columns have changed in $description: $cols";
+    my $notification_html =
+        qq(<li>The following columns have changed in $link: $cols</li>);
     {
         text => $notification,
         html => $notification_html,
     };
 }
 
-my @rows = rset('AlertSend')->search({}, {
-    join     => { alert => 'user' },
-    order_by => [qw/ user.id alert_id current_id /],
-})->all;
+my @rows = rset('AlertSend')->search(
+    {},
+    {
+        join     => { alert => 'user' },
+        order_by => [qw/ user.id alert_id current_id /],
+    },
+)->all;
 
 my ($last_current, $last_alert_id, $last_user);
-my @notifications; my @columns;
+my @notifications;
+my @columns;
 foreach my $row (@rows)
 {
     my $current_id = $row->current_id;
@@ -108,22 +112,27 @@ foreach my $row (@rows)
     {
         push @notifications, _do_columns($last_current, $last_user, @columns);
         @columns = ();
-        push @notifications, { text => '', html => '</ul><p></p>' } if @notifications; # blank line separater
+        push @notifications, { text => '', html => '</ul><p></p>' }
+            if @notifications;    # blank line separater
         my $view_name = $row->alert->view->name;
-        push @notifications, {
-            text => qq(The following are changes in the view "$view_name":),
-            html => qq(<p>The following are changes in the view "$view_name":</p><ul>),
-        };
+        push @notifications,
+            {
+                text => qq(The following are changes in the view "$view_name":),
+                html =>
+qq(<p>The following are changes in the view "$view_name":</p><ul>),
+            };
     }
 
-    if (defined $last_current && $last_current->id != $row->current_id && @columns)
+    if (   defined $last_current
+        && $last_current->id != $row->current_id
+        && @columns)
     {
         my $current_id = $row->current_id;
         push @notifications, _do_columns($last_current, $last_user, @columns);
         @columns = ();
     }
 
-    my $current = $row->current;
+    my $current     = $row->current;
     my $description = $alert_description->description(
         instance_id => $current->instance_id,
         current_ids => $current->id,
@@ -138,21 +147,26 @@ foreach my $row (@rows)
     {
         push @columns, $row->layout->name;
     }
-    elsif ($row->status =~ /^gone/) # XXX Fixed with CHAR field pads 4 letter word
+    elsif ($row->status =~
+        /^gone/)    # XXX Fixed with CHAR field pads 4 letter word
     {
-        push @notifications, {
-            text => "* $description has now disappeared from the view",
-            html => "<li>$link has disappeared from the view</li>",
-        };
+        push @notifications,
+            {
+                text => "* $description has now disappeared from the view",
+                html => "<li>$link has disappeared from the view</li>",
+            };
     }
-    elsif ($row->status eq 'arrived') {
-        push @notifications, {
-            text => "* $description is now in the view",
-            html => "<li>$link is now in the view</li>",
-        };
+    elsif ($row->status eq 'arrived')
+    {
+        push @notifications,
+            {
+                text => "* $description is now in the view",
+                html => "<li>$link is now in the view</li>",
+            };
     }
-    else {
-        panic __x"I don't know what to do with alert status of '{status}'",
+    else
+    {
+        panic __x "I don't know what to do with alert status of '{status}'",
             status => $row->status;
     }
 
@@ -164,6 +178,7 @@ foreach my $row (@rows)
 }
 
 push @notifications, _do_columns($last_current, $last_user, @columns);
-push @notifications, { text => '', html => '</ul><p></p>' } if @notifications; # blank line separater
+push @notifications, { text => '', html => '</ul><p></p>' }
+    if @notifications;    # blank line separater
 _send $last_user->email, @notifications if $last_user;
 

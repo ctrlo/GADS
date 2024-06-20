@@ -35,42 +35,43 @@ use Log::Report syntax => 'LONG';
 
 my ($site_id, @instance_ids, $output);
 
-GetOptions (
+GetOptions(
     'site-id=s'     => \$site_id,
     'instance-id=s' => \@instance_ids,
     'output=s'      => \$output,
 ) or exit;
 
-$site_id or report ERROR =>  "Please provide site ID with --site-id";
-$output or report ERROR =>  "Please provide output file name with --output";
+$site_id or report ERROR => "Please provide site ID with --site-id";
+$output  or report ERROR => "Please provide output file name with --output";
 
-GADS::Config->instance(
-    config => config,
-);
+GADS::Config->instance(config => config,);
 
 schema->site_id($site_id);
 
-my $pdf = CtrlO::PDF->new(
-    footer => "Linkspace configuration",
+my $pdf = CtrlO::PDF->new(footer => "Linkspace configuration",);
+
+my $instances_object = GADS::Instances->new(
+    schema                   => schema,
+    user                     => undef,
+    user_permission_override => 1
 );
 
-my $instances_object = GADS::Instances->new(schema => schema, user => undef, user_permission_override => 1);
-
-my @instances = @instance_ids
+my @instances =
+    @instance_ids
     ? (map { $instances_object->layout($_) } @instance_ids)
-    : @{$instances_object->all};
+    : @{ $instances_object->all };
 
 foreach my $layout (@instances)
 {
     my $instance_id = $layout->instance_id;
 
     $pdf->add_page;
-    $pdf->heading('Linkspace configuration for table "'.$layout->name.'"');
+    $pdf->heading('Linkspace configuration for table "' . $layout->name . '"');
 
     foreach my $field ($layout->all(exclude_internal => 1))
     {
         my $id = $field->id;
-        $pdf->heading($field->name." (ID $id)", size => 12);
+        $pdf->heading($field->name . " (ID $id)", size => 12);
 
         my $data = [];
 
@@ -89,38 +90,39 @@ foreach my $layout (@instances)
             rag       => 'RAG',
             filval    => 'Automatic capture of filtered values',
         );
-        my $type = $types{$field->type} or die "Unknown type ".$field->type;
-        push @$data, ['Type', $type];
-        push @$data, ['Short name', $field->name_short]
+        my $type = $types{ $field->type } or die "Unknown type " . $field->type;
+        push @$data, [ 'Type', $type ];
+        push @$data, [ 'Short name', $field->name_short ]
             if $field->name_short;
-        push @$data, ['Topic', $field->topic->name]
+        push @$data, [ 'Topic', $field->topic->name ]
             if $field->topic;
-        push @$data, ['Mandatory', $field->optional ? 'No' : 'Yes'];
-        push @$data, ['Unique values only', $field->isunique ? 'Yes' : 'No'];
-        push @$data, ['Description', $field->description || '<blank>'];
-        push @$data, ['User help text', $field->helptext || '<blank>'];
-        push @$data, ['Allow multiple values', $field->multivalue ? 'Yes' : 'No'];
-        push @$data, ['Permissions', $field->group_summary];
+        push @$data, [ 'Mandatory',          $field->optional ? 'No'  : 'Yes' ];
+        push @$data, [ 'Unique values only', $field->isunique ? 'Yes' : 'No' ];
+        push @$data, [ 'Description',        $field->description || '<blank>' ];
+        push @$data, [ 'User help text',     $field->helptext    || '<blank>' ];
+        push @$data,
+            [ 'Allow multiple values', $field->multivalue ? 'Yes' : 'No' ];
+        push @$data, [ 'Permissions', $field->group_summary ];
 
         if (my $df = $field->display_fields_summary)
         {
             push @$data, $df;
         }
-        else {
-            push @$data, ['Display conditions', 'This field is always displayed'];
+        else
+        {
+            push @$data,
+                [ 'Display conditions', 'This field is always displayed' ];
         }
 
         push @$data, $field->additional_pdf_export;
 
         my $hdr_props = {
-            repeat     => 1,
-            justify    => 'center',
-            font_size  => 8,
+            repeat    => 1,
+            justify   => 'center',
+            font_size => 8,
         };
 
-        $pdf->table(
-            data => $data,
-        );
+        $pdf->table(data => $data,);
 
         $pdf->_down(15);
     }

@@ -31,25 +31,23 @@ use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::LogReport mode => 'NORMAL';
 
 GADS::DB->setup(schema);
-GADS::Config->instance(
-    config => config,
-);
+GADS::Config->instance(config => config,);
 
-my $user_id = # XXX
-my $user    = schema->resultset('User')->find($user_id);
+my $user_id =    # XXX
+    my $user = schema->resultset('User')->find($user_id);
 
 my $layout = GADS::Layout->new(
     user        => $user,
     schema      => schema,
-    instance_id => # XXX,
+    instance_id =>           # XXX,
 );
-my $views      = GADS::Views->new(
+my $views = GADS::Views->new(
     user        => $user,
     schema      => schema,
     layout      => $layout,
-    instance_id => # XXX,
+    instance_id =>            # XXX,
 );
-my $view = $views->view(1); # XXX
+my $view    = $views->view(1);      # XXX
 my $records = GADS::Records->new(
     user   => $user,
     view   => $view,
@@ -59,24 +57,30 @@ my $records = GADS::Records->new(
 
 my $guard = schema->txn_scope_guard;
 
-foreach my $record (@{$records->results})
+foreach my $record (@{ $records->results })
 {
-    my $latest = schema->resultset('Date')->search({
-        current_id => $record->current_id,
-        value      => { '!=' => undef },
-        layout_id  => # XXX,
-    },{
-        join => 'record',
-    })->get_column('id')->max;
+    my $latest = schema->resultset('Date')->search(
+        {
+            current_id => $record->current_id,
+            value      => { '!=' => undef },
+            layout_id  =>                        # XXX,
+        },
+        {
+            join => 'record',
+        },
+    )->get_column('id')->max;
     my $val = schema->resultset('Date')->find($latest)->value;
-    schema->resultset('Date')->search({
-        'record.current_id' => $record->current_id,
-        'me.id'             => { '>' => $latest },
-        layout_id           => # XXX,
-    },{
-        join => 'record',
-    })->update({
-        value => $val,
+    schema->resultset('Date')->search(
+        {
+            'record.current_id' => $record->current_id,
+            'me.id'             => { '>' => $latest },
+            layout_id           =>                        # XXX,
+        },
+        {
+            join => 'record',
+        },
+    )->update({
+            value => $val,
     });
 }
 
