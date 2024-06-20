@@ -26,11 +26,6 @@ extends 'GADS::Column';
 
 with 'GADS::Role::Presentation::Column::String';
 
-sub purge {
-    my ($self) = @_;
-    print STDERR "String - " . $self->id . "\n";
-}
-
 has textbox => (
     is      => 'rw',
     isa     => Bool,

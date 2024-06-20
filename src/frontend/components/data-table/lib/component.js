@@ -588,8 +588,7 @@ class DataTableComponent extends Component {
   getConf() {
     const confData = this.el.data('config')
     let conf = {}
-    const self = this;
-
+    
     if (typeof confData === 'string') {
       conf = JSON.parse(atob(confData))
     } else if (typeof confData === 'object') {
