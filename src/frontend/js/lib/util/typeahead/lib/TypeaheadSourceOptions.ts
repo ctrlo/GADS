@@ -6,7 +6,7 @@
  * @param data - data to be sent with the ajax request (if any)
  */
 
-import { MapperFunction } from "util/mapper/mapper"
+import { MapperFunction } from "util/mapper/mapper";
 
 export class TypeaheadSourceOptions {
     constructor(

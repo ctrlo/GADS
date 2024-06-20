@@ -1,22 +1,22 @@
 class SidebarObservable {
   constructor() {
-    this.observers = []
+    this.observers = [];
   }
 
   addSubscriber(subscriber) {
-    this.observers.push(subscriber)
+    this.observers.push(subscriber);
   }
 
   sideBarChange() {
-    this.observers.forEach(item => item.handleSideBarChange?.())
+    this.observers.forEach(item => item.handleSideBarChange?.());
   }
 }
 
-const sidebarObservable = new SidebarObservable
+const sidebarObservable = new SidebarObservable;
 
 export { 
   SidebarObservable,
   sidebarObservable
-}
+};
 
 

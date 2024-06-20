@@ -1,4 +1,4 @@
-import { initializeComponent } from 'component'
-import MoreLessComponent from './lib/component'
+import { initializeComponent } from 'component';
+import MoreLessComponent from './lib/component';
 
-export default (scope) => initializeComponent(scope, '.more-less', MoreLessComponent)
+export default (scope) => initializeComponent(scope, '.more-less', MoreLessComponent);

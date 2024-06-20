@@ -3,33 +3,33 @@ class Logging {
       this.allowLogging =
           location.hostname === 'localhost' ||
           location.hostname === '127.0.0.1' ||
-          location.hostname.endsWith('.peek.digitpaint.nl')
+          location.hostname.endsWith('.peek.digitpaint.nl');
   }
 
   log(message) {
       if(this.allowLogging) {
-          console.log(message)
+          console.log(message);
       }
   }
 
   info(message) {
       if(this.allowLogging) {
-          console.info(message)
+          console.info(message);
       }
   }
 
   warn(message) {
       if(this.allowLogging) {
-          console.warn(message)
+          console.warn(message);
       }
   }
 
   error(message) {
       if(this.allowLogging) {
-          console.error(message)
+          console.error(message);
       }
   }
 }
 
-const logging = new Logging
-export { logging }
+const logging = new Logging;
+export { logging };

@@ -63,7 +63,7 @@ class App extends React.Component<any, any> {
 
   componentDidMount = () => {
     this.initializeGlobeComponents();
-  }
+  };
 
   componentDidUpdate = (prevProps, prevState) => {
     window.requestAnimationFrame(this.overWriteSubmitEventListener);
@@ -75,26 +75,26 @@ class App extends React.Component<any, any> {
     if (!this.state.editModalOpen && !prevState.loadingEditHtml && !this.state.loadingEditHtml) {
       this.initializeGlobeComponents();
     }
-  }
+  };
 
   initializeSummernoteComponent = () => {
     const summernoteEl = this.formRef.current.querySelector('.summernote');
     if (summernoteEl) {
       import(/* WebpackChunkName: "summernote" */ "../../../summernote/lib/component")
         .then(({ default: SummerNoteComponent }) => {
-          new SummerNoteComponent(summernoteEl)
+          new SummerNoteComponent(summernoteEl);
         });
     }
-  }
+  };
 
   initializeGlobeComponents = () => {
     const arrGlobe = document.querySelectorAll(".globe");
     import('../../../globe/lib/component').then(({default: GlobeComponent}) => {
       arrGlobe.forEach((globe) => {
-        new GlobeComponent(globe)
+        new GlobeComponent(globe);
       });
     });
-  }
+  };
 
   updateWidgetHtml = async (id) => {
     const newHtml = await this.props.api.getWidgetHtml(id);
@@ -108,7 +108,7 @@ class App extends React.Component<any, any> {
       return widget;
     });
     this.setState({ widgets: newWidgets });
-  }
+  };
 
   fetchEditForm = async (id) => {
     const editFormHtml = await this.props.api.getEditForm(id);
@@ -117,33 +117,33 @@ class App extends React.Component<any, any> {
       return;
     }
     this.setState({ loadingEditHtml: false, editError: false, editHtml: editFormHtml.content });
-  }
+  };
 
   onEditClick = id => (event) => {
     event.preventDefault();
     this.showEditForm(id);
-  }
+  };
 
   showEditForm = (id) => {
     this.setState({ editModalOpen: true, loadingEditHtml: true, activeItem: id });
     this.fetchEditForm(id);
-  }
+  };
 
   closeModal = () => {
     this.setState({ editModalOpen: false });
-  }
+  };
 
   deleteActiveWidget = () => {
     // eslint-disable-next-line no-alert
     if (!window.confirm("Deleting a widget is permanent! Are you sure?"))
-      return
+      return;
 
     this.setState({
       widgets: this.state.widgets.filter(item => item.config.i !== this.state.activeItem),
       editModalOpen: false,
     });
     this.props.api.deleteWidget(this.state.activeItem);
-  }
+  };
 
   saveActiveWidget = async (event) => {
     event.preventDefault();
@@ -162,7 +162,7 @@ class App extends React.Component<any, any> {
     }
     this.updateWidgetHtml(this.state.activeItem);
     this.closeModal();
-  }
+  };
 
   isGridConflict = (x, y, w, h) => {
     const ulc = { x, y };
@@ -176,7 +176,7 @@ class App extends React.Component<any, any> {
       }
       return true;
     });
-  }
+  };
 
   firstAvailableSpot = (w, h) => {
     let x = 0;
@@ -191,12 +191,12 @@ class App extends React.Component<any, any> {
       if (y > 200) break;
     }
     return { x, y };
-  }
+  };
 
   // eslint-disable-next-line no-unused-vars
   addWidget = async (type) => {
     this.setState({loading: true});
-    const result = await this.props.api.createWidget(type)
+    const result = await this.props.api.createWidget(type);
     if (result.error) {
       this.setState({loading: false});
       alert(result.message);
@@ -222,7 +222,7 @@ class App extends React.Component<any, any> {
     }, () => this.updateWidgetHtml(id));
     this.props.api.saveLayout(this.props.dashboardId, newLayout);
     this.showEditForm(id);
-  }
+  };
 
   generateDOM = () => (
     this.state.widgets.map(widget => (
@@ -230,14 +230,14 @@ class App extends React.Component<any, any> {
         <Widget key={widget.config.i} widget={widget} readOnly={this.props.readOnly || widget.config.static} onEditClick={this.onEditClick(widget.config.i)} />
       </div>
     ))
-  )
+  );
 
   onLayoutChange = (layout) => {
     if (this.shouldSaveLayout(this.state.layout, layout)) {
       this.props.api.saveLayout(this.props.dashboardId, layout);
     }
     this.setState({ layout });
-  }
+  };
 
   shouldSaveLayout = (prevLayout, newLayout) => {
     if (prevLayout.length !== newLayout.length) {
@@ -254,7 +254,7 @@ class App extends React.Component<any, any> {
       if (isDifferent) return true;
     }
     return false;
-  }
+  };
 
   renderModal = () => (
     <Modal
@@ -285,27 +285,27 @@ class App extends React.Component<any, any> {
         </div>
       </div>
     </Modal>
-  )
+  );
 
   overWriteSubmitEventListener = () => {
     const formContainer = document.getElementById("ld-form-container");
     if (!formContainer)
-      return
+      return;
 
     const form = formContainer.querySelector("form");
     if (!form)
-      return
+      return;
 
     form.addEventListener("submit", this.saveActiveWidget);
     const submitButton = document.createElement("input");
     submitButton.setAttribute("type", "submit");
     submitButton.setAttribute("style", "visibility: hidden");
     form.appendChild(submitButton);
-  }
+  };
 
   handleSideBarChange = () => {
     window.dispatchEvent(new Event('resize'));
-  }
+  };
 
   render() {
     return (

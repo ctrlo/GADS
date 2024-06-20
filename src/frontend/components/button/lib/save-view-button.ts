@@ -7,7 +7,7 @@ import "@lol768/jquery-querybuilder-no-eval";
 export default function createSaveViewButtonComponent(el: JQuery<HTMLElement>) {
     const $form = el.closest('form');
     const $global = $form.find('#global');
-    const $dropdown = $form.find(".select.dropdown")
+    const $dropdown = $form.find(".select.dropdown");
     $global.on('change', (ev) => {
         const $input = $form.find('input[type=hidden][name=group_id]');
         if ((ev.target as HTMLInputElement)?.checked) {
@@ -29,8 +29,8 @@ export default function createSaveViewButtonComponent(el: JQuery<HTMLElement>) {
         $(".filter").each((_i, el) => {
             //Bit of typecasting here, purely because the queryBuilder plugin doesn't have types
             if (!(<any>$(el)).queryBuilder('validate')) ev.preventDefault();
-            const res = (<any>$(el)).queryBuilder('getRules')
-            $(el).next('#filter').val(JSON.stringify(res, null, 2))
-        })
+            const res = (<any>$(el)).queryBuilder('getRules');
+            $(el).next('#filter').val(JSON.stringify(res, null, 2));
+        });
     });
 }

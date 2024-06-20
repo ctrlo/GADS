@@ -14,7 +14,7 @@ class FileDrag {
     constructor(private element: ElementOrJQueryElement, private options: FileDragOptions = {}, private onDrop?: (files: FileList | File) => void) {
         if (options.debug) console.log('FileDrag', element, options);
         this.el = element instanceof HTMLElement ? $(element) : element;
-        this.initElements()
+        this.initElements();
         this.initDocumentEvents();
         this.initElementEvents();
     }
@@ -73,7 +73,7 @@ class FileDrag {
             hideElement(this.dropZone);
             showElement(this.el);
             stopPropagation(e);
-        })
+        });
         $(document).on('dragover', (e) => {
             if (!this.dragging) return;
             stopPropagation(e);
@@ -85,7 +85,7 @@ class FileDrag {
         this.el.data('draggable', 'true');
         this.dropZone = $('<div class="drop-zone">Drop files here</div>');
         const error = $('<div class="upload__error">Error</div>');
-        hideElement(error)
+        hideElement(error);
         const parent = this.el.parent();
         parent.append(this.dropZone);
         parent.append(error);

@@ -1,6 +1,6 @@
 import "jstree";
 import "datatables.net";
-import "@lol768/jquery-querybuilder-no-eval"
+import "@lol768/jquery-querybuilder-no-eval";
 
 // TODO: This probably need refactoring
 
@@ -35,7 +35,7 @@ export default class SubmitFieldButton {
             let bUpdateFilter = false;
             let bUpdateDisplayConditions = false;
 
-            const $showInEdit = $("#show_in_edit")
+            const $showInEdit = $("#show_in_edit");
             if (($calcCode.length && $calcCode.is(':visible')) && !$showInEdit.val()) {
                 if (!this.errored) {
                     const error = document.createElement("div");
@@ -73,7 +73,7 @@ export default class SubmitFieldButton {
                     data: {data: mytext, csrf_token: data.csrfToken}
                 }).done(() => {
                     // eslint-disable-next-line no-alert
-                    alert('Tree has been updated')
+                    alert('Tree has been updated');
                 });
             }
 
@@ -109,6 +109,6 @@ export default class SubmitFieldButton {
 
         const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi;
 
-        return devEndpoint ? devEndpoint : `/${data.layoutIdentifier}/tree/${data.columnId}`
+        return devEndpoint ? devEndpoint : `/${data.layoutIdentifier}/tree/${data.columnId}`;
     }
 }

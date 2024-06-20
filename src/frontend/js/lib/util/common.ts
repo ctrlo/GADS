@@ -9,7 +9,7 @@ export const stopPropagation = (e: EventOrJQueryEvent) => {
     } catch (e) {
         //ignore - this is because unit tests are failing - there will be a "better" fix incoming in the future
     }
-}
+};
 
 export const hasClass = (element: ElementOrJQueryElement, className: string) => {
     const $el = element instanceof HTMLElement ? $(element) : element;
@@ -37,15 +37,15 @@ export const addClass = (element: ElementOrJQueryElement, className: string) => 
     const $el = element instanceof HTMLElement ? $(element) : element;
     if (hasClass($el, className)) return;
     $el.addClass(className);
-}
+};
 
 export const removeClass = (element: ElementOrJQueryElement, className: string) => {
     const $el = element instanceof HTMLElement ? $(element) : element;
     if (!hasClass($el, className)) return;
     $el.removeClass(className);
-}
+};
 
-export const fromJson = (json: String | object) => {
+export const fromJson = (json: string | object) => {
     try {
         if (!json || json === '') return {};
         if (typeof json === 'string') {
@@ -55,4 +55,4 @@ export const fromJson = (json: String | object) => {
     } catch (e) {
         return {};
     }
-}
+};

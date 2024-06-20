@@ -6,7 +6,7 @@ export default class ApiClient {
   constructor(baseUrl = "") {
     this.baseUrl = baseUrl;
     this.headers = {};
-    this.isDev = window.siteConfig && window.siteConfig.isDev
+    this.isDev = window.siteConfig && window.siteConfig.isDev;
   }
 
   async _fetch(route, method, body) {
@@ -49,27 +49,27 @@ export default class ApiClient {
       const strippedLayout = layout.map(widget => ({ ...widget, moved: undefined }));
       return this.PUT(`/dashboard/${id}`, strippedLayout);
     }
-  }
+  };
 
   createWidget = async type => {
-    const response = this.isDev ? await this.GET(`/widget/create.json?type=${type}`) : await this.POST(`/widget?type=${type}`, null)
-    return await response.json()
-  }
+    const response = this.isDev ? await this.GET(`/widget/create.json?type=${type}`) : await this.POST(`/widget?type=${type}`, null);
+    return await response.json();
+  };
 
   getWidgetHtml = async id => {
-    const html = this.isDev ? await this.GET(`/widget/${id}/create`) : await this.GET(`/widget/${id}`)
+    const html = this.isDev ? await this.GET(`/widget/${id}/create`) : await this.GET(`/widget/${id}`);
     return html.text();
-  }
+  };
 
-  deleteWidget = id => !this.isDev && this.DELETE(`/widget/${id}`)
+  deleteWidget = id => !this.isDev && this.DELETE(`/widget/${id}`);
 
   getEditForm = async id => {
     const response = await this.GET(`/widget/${id}/edit`);
     return response.json();
-  }
+  };
 
   saveWidget = async (url, params) => {
     const result = this.isDev ? await this.GET(`/widget/update.json`) : await this.PUT(`${url}`, params);
     return await result.json();
-  }
+  };
 }

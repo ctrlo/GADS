@@ -8,7 +8,7 @@ class MarkdownComponent extends Component {
   }
 
   renderMarkdown(md) {
-    const mdEncoded = $('<span>').text(md).html()
+    const mdEncoded = $('<span>').text(md).html();
     return marked(mdEncoded);
   }
 

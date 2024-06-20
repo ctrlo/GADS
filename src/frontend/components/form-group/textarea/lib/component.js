@@ -1,13 +1,13 @@
-import { Component } from 'component'
-import { initValidationOnField } from 'validation'
+import { Component } from 'component';
+import { initValidationOnField } from 'validation';
 
 class TextareaComponent extends Component {
     constructor(element)  {
-      super(element)
-      this.el = $(this.element)
+      super(element);
+      this.el = $(this.element);
 
       if (this.el.hasClass("textarea--required")) {
-        initValidationOnField(this.el)
+        initValidationOnField(this.el);
       }
       
       // Check if there is a textarea with the class 'auto-adjust'
@@ -55,4 +55,4 @@ class TextareaComponent extends Component {
         $textarea.css('height', `${adjustedHeight}rem`);
     }
 }
-export default TextareaComponent
+export default TextareaComponent;

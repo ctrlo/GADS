@@ -1,5 +1,5 @@
 import React from "react";
-import { initializeRegisteredComponents } from 'component'
+import { initializeRegisteredComponents } from 'component';
 
 export default class Widget extends React.Component<any, any> {
   private ref;
@@ -12,18 +12,18 @@ export default class Widget extends React.Component<any, any> {
 
   shouldComponentUpdate = (nextProps) => {
     return nextProps.widget.html !== this.props.widget.html;
-  }
+  };
 
   componentDidUpdate = () => {
     this.initializeLinkspace();
-  }
+  };
 
   initializeLinkspace = () => {
     if (!this.ref) {
       return;
     }
-    initializeRegisteredComponents(this.ref.current)
-  }
+    initializeRegisteredComponents(this.ref.current);
+  };
 
   render() {
     return (

@@ -34,5 +34,5 @@ describe("LUA tests", ()=>{
 
     it("Should return string with value", ()=>{
         expect(LUA`${new TestObject()}`).toBe("test");        
-    })
+    });
 });

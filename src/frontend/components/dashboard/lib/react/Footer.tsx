@@ -24,7 +24,7 @@ const Footer = ({ addWidget, widgetTypes, currentDashboard, readOnly, noDownload
           <ul id="menu_view" className="dropdown__list">
             {widgetTypes.map(type => (
               <li key={type} className="dropdown__item">
-                <a className="link link--plain" href="#" onClick={(e) => {e.preventDefault(); addWidget(type)}}>{type}</a>
+                <a className="link link--plain" href="#" onClick={(e) => {e.preventDefault(); addWidget(type);}}>{type}</a>
               </li>
             ))}
           </ul>

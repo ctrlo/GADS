@@ -1,4 +1,4 @@
-import  'bootstrap-datepicker'
+import  'bootstrap-datepicker';
 
 const initDateField = (field) => {
   field.datepicker({
@@ -6,11 +6,11 @@ const initDateField = (field) => {
     "autoclose": "true"
   }).on('show.bs.modal', function(event) {
     // prevent datepicker from firing bootstrap modal "show.bs.modal"
-    event.stopPropagation()
+    event.stopPropagation();
   }).on('hide', (e) => {
     // prevent datepicker from firing bootstrap modal "hide.bs.modal"
-    e.stopPropagation()
-  })
-}
+    e.stopPropagation();
+  });
+};
 
-export default initDateField
+export default initDateField;

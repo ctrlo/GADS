@@ -1,4 +1,4 @@
-import { initializeComponent } from 'component'
-import RadioGroupComponent from './lib/component'
+import { initializeComponent } from 'component';
+import RadioGroupComponent from './lib/component';
 
-export default (scope) => initializeComponent(scope, '.radio-group', RadioGroupComponent)
+export default (scope) => initializeComponent(scope, '.radio-group', RadioGroupComponent);

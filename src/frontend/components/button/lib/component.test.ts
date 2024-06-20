@@ -6,7 +6,7 @@ declare global {
     }
 }
 
-export {}
+export {};
 
 window.$ = require('jquery');
 
