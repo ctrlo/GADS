@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -42,22 +43,28 @@ has schema => (
 after set_value => sub {
     my ($self, $all, %options) = @_;
     $all ||= [];
-    my @all = @$all; # Take a copy first
+    my @all   = @$all;          # Take a copy first
     my $clone = $self->clone;
-    shift @all if @all % 2 == 1 && !$all[0]; # First is hidden value from form
+    shift @all
+        if @all % 2 == 1 && !$all[0];    # First is hidden value from form
     my @values;
     while (@all)
     {
         # Allow multiple sets of dateranges to be submitted in array ref blocks
         # or as one long array, 2 elements per range
         my $first = shift @all;
-        my ($start, $end) = ref $first eq 'ARRAY' ? @$first : ($first, shift @all);
-        my @dt = $self->parse_daterange([$start, $end], source => 'user', %options);
+        my ($start, $end) =
+            ref $first eq 'ARRAY' ? @$first : ($first, shift @all);
+        my @dt = $self->parse_daterange(
+            [ $start, $end ],
+            source => 'user',
+            %options
+        );
         push @values, @dt if @dt;
     }
-    my @text_all = sort map { $self->_as_string($_) } @values;
-    my @old_texts = @{$self->text_all};
-    my $changed = "@text_all" ne "@old_texts";
+    my @text_all  = sort map { $self->_as_string($_) } @values;
+    my @old_texts = @{ $self->text_all };
+    my $changed   = "@text_all" ne "@old_texts";
     if ($changed)
     {
         $self->changed(1);
@@ -76,18 +83,21 @@ has values => (
     builder => sub {
         my $self = shift;
         $self->init_value or return [];
-        my @values = map { $self->parse_daterange($_, source => 'db') } @{$self->init_value};
+        my @values = map { $self->parse_daterange($_, source => 'db') }
+            @{ $self->init_value };
         $self->has_value(!!@values);
         [@values];
     },
-    coerce  => sub {
+    coerce => sub {
         my $values = shift;
+
         # If the timezone is floating, then assume it is UTC (e.g. from MySQL
         # database which do not have timezones stored). Set it as UTC, as
         # otherwise any changes to another timezone will not make any effect
         foreach my $v (@$values)
         {
             $v->start->time_zone->is_floating && $v->set_time_zone('UTC');
+
             #$v->end->time_zone->is_floating && $v->end->set_time_zone('UTC');
         }
         return $values;
@@ -100,20 +110,18 @@ has text_all => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        [ map { $self->_as_string($_) } @{$self->values} ];
+        [ map { $self->_as_string($_) } @{ $self->values } ];
     },
 );
 
 sub _build_blank
 {   my $self = shift;
-    ! grep { $_->start && $_->end } @{$self->values};
+    !grep { $_->start && $_->end } @{ $self->values };
 }
 
 # Can't use predicate, as value may not have been built on
 # second time it's set
-has has_value => (
-    is => 'rw',
-);
+has has_value => (is => 'rw',);
 
 around 'clone' => sub {
     my $orig = shift;
@@ -129,13 +137,13 @@ around 'clone' => sub {
 # XXX Why is this needed? Error when creating new record otherwise
 sub as_integer
 {   my $self = shift;
-    $self->value; # Force update of values
+    $self->value;    # Force update of values
     $self->value && $self->value->start ? $self->value->start->epoch : 0;
 }
 
 sub as_string
 {   my $self = shift;
-    join ', ', @{$self->text_all};
+    join ', ', @{ $self->text_all };
 }
 
 sub _as_string
@@ -145,7 +153,7 @@ sub _as_string
 }
 
 sub for_table
-{   my $self = shift;
+{   my $self   = shift;
     my $return = $self->for_table_template;
     $return->{values} = $self->text_all;
     $return;
@@ -158,10 +166,12 @@ has html_form => (
 
 sub _build_html_form
 {   my $self = shift;
-    [ map {
-        $_->start->format_cldr($self->column->dateformat),
-        $_->end->format_cldr($self->column->dateformat),
-    } @{$self->values} ];
+    [
+        map {
+            $_->start->format_cldr($self->column->dateformat),
+                $_->end->format_cldr($self->column->dateformat),
+        } @{ $self->values }
+    ];
 }
 
 sub filter_value
@@ -182,7 +192,7 @@ sub _build_for_code
             to    => $self->date_for_code($_->end),
             value => $self->_as_string($_),
         };
-    } @{$self->values};
+    } @{ $self->values };
 
     $self->column->multivalue || @return > 1 ? \@return : $return[0];
 }

@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -28,25 +29,15 @@ extends 'GADS::Column';
 with 'GADS::Role::Presentation::Column::Daterange';
 with 'GADS::DateTime';
 
-has '+return_type' => (
-    builder => sub { 'daterange' },
-);
+has '+return_type' => (builder => sub { 'daterange' },);
 
-has '+addable' => (
-    default => 1,
-);
+has '+addable' => (default => 1,);
 
-has '+can_multivalue' => (
-    default => 1,
-);
+has '+can_multivalue' => (default => 1,);
 
-has '+has_multivalue_plus' => (
-    default => 1,
-);
+has '+has_multivalue_plus' => (default => 1,);
 
-has '+option_names' => (
-    default => sub { [qw/show_datepicker/] },
-);
+has '+option_names' => (default => sub { [qw/show_datepicker/] },);
 
 sub _build_retrieve_fields
 {   my $self = shift;
@@ -54,15 +45,13 @@ sub _build_retrieve_fields
 }
 
 # Still counts as string storage for search (value field is string)
-has '+string_storage' => (
-    default => sub {shift->return_type eq 'string'},
-);
+has '+string_storage' => (default => sub { shift->return_type eq 'string' },);
 
 sub _build_sort_field { 'from' }
 
 # The from and to fields from the database table
 sub from_field { 'from' }
-sub to_field { 'to' }
+sub to_field   { 'to' }
 
 has show_datepicker => (
     is      => 'rw',
@@ -99,9 +88,11 @@ sub import_value
         record_id    => $value->{record_id},
         layout_id    => $self->id,
         child_unique => $value->{child_unique},
-        from         => $value->{from} && DateTime::Format::ISO8601->parse_datetime($value->{from}),
-        to           => $value->{to} && DateTime::Format::ISO8601->parse_datetime($value->{to}),
-        value        => $value->{value},
+        from         => $value->{from}
+            && DateTime::Format::ISO8601->parse_datetime($value->{from}),
+        to => $value->{to}
+            && DateTime::Format::ISO8601->parse_datetime($value->{to}),
+        value => $value->{value},
     });
 }
 

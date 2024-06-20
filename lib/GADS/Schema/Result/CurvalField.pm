@@ -1,4 +1,5 @@
 use utf8;
+
 package GADS::Schema::Result::CurvalField;
 
 # Created by DBIx::Class::Schema::Loader
@@ -56,12 +57,12 @@ __PACKAGE__->table("curval_fields");
 =cut
 
 __PACKAGE__->add_columns(
-  "id",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
-  "parent_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "child_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+    "id",
+    { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+    "parent_id",
+    { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+    "child_id",
+    { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -87,10 +88,14 @@ Related object: L<GADS::Schema::Result::Layout>
 =cut
 
 __PACKAGE__->belongs_to(
-  "child",
-  "GADS::Schema::Result::Layout",
-  { id => "child_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+    "child",
+    "GADS::Schema::Result::Layout",
+    { id => "child_id" },
+    {
+        is_deferrable => 1,
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION"
+    },
 );
 
 =head2 parent
@@ -102,16 +107,18 @@ Related object: L<GADS::Schema::Result::Layout>
 =cut
 
 __PACKAGE__->belongs_to(
-  "parent",
-  "GADS::Schema::Result::Layout",
-  { id => "parent_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+    "parent",
+    "GADS::Schema::Result::Layout",
+    { id => "parent_id" },
+    {
+        is_deferrable => 1,
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION"
+    },
 );
-
 
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-10-25 19:57:49
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:bhfHjXthxSMVWYGRx6PGWw
-
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

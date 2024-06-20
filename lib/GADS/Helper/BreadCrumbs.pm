@@ -7,12 +7,11 @@ our @EXPORT_OK = qw(
 );
 
 sub Crumb
-{
-    my ($href, $text) = @_;
+{   my ($href, $text) = @_;
 
     return +{
-        text => $text,
-        href => $href,
+        text    => $text,
+        href    => $href,
         is_link => $href ? 1 : 0,
     };
 }

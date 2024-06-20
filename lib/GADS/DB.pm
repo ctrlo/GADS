@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -27,10 +28,11 @@ sub setup
 {   my ($class, $schema) = @_;
 
     my $layout_rs = $schema->resultset('Layout');
-    my @cols = $layout_rs->all;
+    my @cols      = $layout_rs->all;
 
     foreach my $col (@cols)
-    {   $class->add_column($schema, $col);
+    {
+        $class->add_column($schema, $col);
     }
 
     my $rec_class = $schema->class('Record');
@@ -40,10 +42,12 @@ sub setup
             my $args = shift;
 
             return {
-                "$args->{foreign_alias}.current_id"  => { -ident => "$args->{self_alias}.current_id" },
-                "$args->{foreign_alias}.id" => { '<' => \"$args->{self_alias}.id" },
+                "$args->{foreign_alias}.current_id" =>
+                    { -ident => "$args->{self_alias}.current_id" },
+                "$args->{foreign_alias}.id" =>
+                    { '<' => \"$args->{self_alias}.id" },
             };
-        }
+        },
     );
 
     GADS::Schema->unregister_source('Record');
@@ -63,15 +67,14 @@ sub add_column
 sub _add_column
 {   my ($class, $schema, $col, $alt) = @_;
     return if $col->internal; # Result sources are only added for "real" columns
-    my $coltype = $col->type eq "tree"
-                ? 'enum'
-                : $col->type eq "calc"
-                ? 'calcval'
-                : $col->type eq "rag"
-                ? 'ragval'
-                : $col->type;
+    my $coltype =
+          $col->type eq "tree" ? 'enum'
+        : $col->type eq "calc" ? 'calcval'
+        : $col->type eq "rag"  ? 'ragval'
+        :                        $col->type;
 
-    my $colname = "field".$col->id;
+    my $colname = "field" . $col->id;
+
     # We add each column twice, with a standard join and with an alternative
     # join. The alternative join allows correlated sub-queries to be used, with
     # the inner sub-query referencing a value from the main query
@@ -85,37 +88,46 @@ sub _add_column
         # Capture now before any weakrefs go out of scope
         my $related_field_id = $col->related_field->id;
 
-        my $subquery = $schema->resultset('Current')->search({
-            'record_later.id' => undef,
-        },{
-            join => {
-                'record_single' => 'record_later'
+        my $subquery = $schema->resultset('Current')->search(
+            {
+                'record_later.id' => undef,
             },
-        })->get_column('record_single.id')->as_query;
+            {
+                join => {
+                    'record_single' => 'record_later'
+                },
+            },
+        )->get_column('record_single.id')->as_query;
         $rec_class->has_many(
             $colname => 'Curval',
             sub {
                 my $args = shift;
 
                 return {
-                    "$args->{foreign_alias}.value"     => { -ident => "$args->{self_alias}.current_id" },
+                    "$args->{foreign_alias}.value" =>
+                        { -ident => "$args->{self_alias}.current_id" },
                     "$args->{foreign_alias}.layout_id" => $related_field_id,
-                    "$args->{foreign_alias}.record_id" => { -in => $subquery },
+                    "$args->{foreign_alias}.record_id" =>
+                        { -in => $subquery },
                 };
-            }
+            },
         );
     }
-    else {
+    else
+    {
         $rec_class->has_many(
-            $colname => $coltype eq 'filval' ? 'Curval' : camelize($coltype),
+            $colname => $coltype eq 'filval'
+            ? 'Curval'
+            : camelize($coltype),
             sub {
                 my $args = shift;
 
                 return {
-                    "$args->{foreign_alias}.record_id" => { -ident => "$args->{self_alias}.id" },
+                    "$args->{foreign_alias}.record_id" =>
+                        { -ident => "$args->{self_alias}.id" },
                     "$args->{foreign_alias}.layout_id" => $col->id,
                 };
-            }
+            },
         );
     }
 
@@ -130,8 +142,10 @@ sub update
 {   my ($class, $schema) = @_;
 
     # Find out what latest field ID is
-    my $max = $schema->resultset('Layout')->search({ internal => 0 })->get_column('id')->max
-        or return; # No fields
+    my $max =
+        $schema->resultset('Layout')->search({ internal => 0 })
+        ->get_column('id')->max
+        or return;    # No fields
 
     # Does this exist as an accessor?
     my $rec_rsource = $schema->resultset('Record')->result_source;
@@ -140,14 +154,15 @@ sub update
         # No. Need to go back until we find the one that exists
         my $id = $max;
         $id-- while !$rec_rsource->has_relationship("field$id");
-        $id++; # Start at one the doesn't exist
-        for ($id..$max) {
+        $id++;    # Start at one the doesn't exist
+        for ($id .. $max)
+        {
             # Add them/it
             my $col = $schema->resultset('Layout')->find($_);
             $class->add_column($schema, $col)
-                if $col; # May have since been deleted
+                if $col;    # May have since been deleted
             $class->add_column($schema, $col, 1)
-                if $col; # May have since been deleted
+                if $col;    # May have since been deleted
         }
     }
 }

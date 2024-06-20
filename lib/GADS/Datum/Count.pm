@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2019 Ctrl O Ltd
@@ -36,7 +37,7 @@ has value => (
 sub as_string
 {   my $self = shift;
     defined $self->value or return '';
-    $self->as_integer." unique";
+    $self->as_integer . " unique";
 }
 
 sub as_integer
@@ -47,7 +48,7 @@ sub as_integer
 
 sub _build_blank
 {   my $self = shift;
-    !! defined $self->value;
+    !!defined $self->value;
 }
 
 sub _build_for_code
@@ -56,10 +57,10 @@ sub _build_for_code
 }
 
 sub for_table
-{   my $self = shift;
+{   my $self   = shift;
     my $return = $self->for_table_template;
-    $return->{type} = 'count';
-    $return->{values} = [$self->as_string];
+    $return->{type}   = 'count';
+    $return->{values} = [ $self->as_string ];
     $return;
 }
 

@@ -1,3 +1,4 @@
+
 =pod
 This file is a rip-off of Frew's excellent DBIx::Class::Helpers, but is used to
 provide a concatentation function. It would be nice to release this separately,
@@ -21,119 +22,127 @@ use Log::Report 'linkspace';
 use Safe::Isa;
 
 sub _flatten_thing
-{
-    my ($self, $thing) = @_;
+{   my ($self, $thing) = @_;
 
     die 'you dummy' unless defined $thing;
     my $ref = ref $thing;
 
     return ('?', $thing) if !$ref;
 
-    if ($ref eq 'HASH') {
-        if (exists $thing->{'-ident'}) {
+    if ($ref eq 'HASH')
+    {
+        if (exists $thing->{'-ident'})
+        {
             my $thing = $thing->{'-ident'};
             $thing = $self->current_source_alias . $thing if $thing =~ m/^\./;
-            return $self->result_source->storage->sql_maker->_quote($thing)
+            return $self->result_source->storage->sql_maker->_quote($thing);
         }
-        else {
+        else
+        {
             my ($func, $thing2) = %$thing;
-            return "$func(".$self->_flatten_thing($thing2).")";
+            return "$func(" . $self->_flatten_thing($thing2) . ")";
         }
     }
 
     return ${$thing} if $ref eq 'SCALAR';
 
-    return @{${$thing}};
+    return @{ ${$thing} };
 }
 
 sub _introspector_concat # Do not conflict with _introspector in DBIx::Class::Helper::*
-{
-    my $d = DBIx::Introspector->new(drivers => '2013-12.01');
+{   my $d = DBIx::Introspector->new(drivers => '2013-12.01');
 
-    SQLITE: {
-        $d->decorate_driver_unconnected(SQLite =>
-            concat => sub {
+SQLITE:
+    {
+        $d->decorate_driver_unconnected(
+            SQLite => concat => sub {
                 sub {
                     my @fields = map { "COALESCE($_, '')" } @_;
                     [ join ' || ', @fields ];
-                },
+                },;
             }
         );
-        $d->decorate_driver_unconnected(SQLite =>
-            least => sub {
+        $d->decorate_driver_unconnected(
+            SQLite => least => sub {
                 sub {
                     # Under some circumstances, sqlite doesn't like only one
                     # value in a MIN()
                     return [ $_[0] ] if @_ == 1;
+
                     # Aghhhh, Sqlite returns NULL for a MIN() if any one of the
                     # values is a NULL (unlike its aggregate function MIN and
                     # the equivalent Pg function
-                    my $fields = join ', ', map "COALESCE($_, '9999-12-31')", @_;
-                    [ "MIN( $fields )" ];
-                },
+                    my $fields = join ', ',
+                        map "COALESCE($_, '9999-12-31')", @_;
+                    ["MIN( $fields )"];
+                },;
             }
         );
-        $d->decorate_driver_unconnected(SQLite =>
-            greatest => sub {
+        $d->decorate_driver_unconnected(
+            SQLite => greatest => sub {
                 sub {
                     return [ $_[0] ] if @_ == 1;
+
                     # See comment above
-                    my $fields = join ', ', map "COALESCE($_, '0000-01-01')", @_;
-                    [ "MAX( $fields )" ];
-                },
+                    my $fields = join ', ',
+                        map "COALESCE($_, '0000-01-01')", @_;
+                    ["MAX( $fields )"];
+                },;
             }
         );
     }
 
-    PG: {
-        $d->decorate_driver_unconnected(Pg =>
-            concat => sub {
+PG:
+    {
+        $d->decorate_driver_unconnected(
+            Pg => concat => sub {
                 sub {
                     my $fields = join ', ', @_;
-                    [ "CONCAT( $fields )" ];
-                },
+                    ["CONCAT( $fields )"];
+                },;
             }
         );
-        $d->decorate_driver_unconnected(Pg =>
-            least => sub {
+        $d->decorate_driver_unconnected(
+            Pg => least => sub {
                 sub {
                     my $fields = join ', ', @_;
-                    [ "LEAST( $fields )" ];
-                },
+                    ["LEAST( $fields )"];
+                },;
             }
         );
-        $d->decorate_driver_unconnected(Pg =>
-            greatest => sub {
+        $d->decorate_driver_unconnected(
+            Pg => greatest => sub {
                 sub {
                     my $fields = join ', ', @_;
-                    [ "GREATEST( $fields )" ];
-                },
+                    ["GREATEST( $fields )"];
+                },;
             }
         );
     }
 
-    MYSQL: {
-        $d->decorate_driver_unconnected(mysql =>
-            concat => sub {
+MYSQL:
+    {
+        $d->decorate_driver_unconnected(
+            mysql => concat => sub {
                 sub {
                     my $fields = join ', ', @_;
-                    [ "CONCAT( $fields )" ];
-                },
+                    ["CONCAT( $fields )"];
+                },;
             }
         );
-        $d->decorate_driver_unconnected(mysql =>
-            least => sub {
+        $d->decorate_driver_unconnected(
+            mysql => least => sub {
                 sub {
                     my $fields = join ', ', @_;
-                    [ "LEAST( $fields )" ];
+                    ["LEAST( $fields )"];
                 }
             }
         );
-        $d->decorate_driver_unconnected(mysql =>
-            greatest => sub {
+        $d->decorate_driver_unconnected(
+            mysql => greatest => sub {
                 sub {
                     my $fields = join ', ', @_;
-                    [ "GREATEST( $fields )" ];
+                    ["GREATEST( $fields )"];
                 }
             }
         );
@@ -155,11 +164,7 @@ sub _helper
 
     @things = map { _flatten_thing $self, $_ } @things;
 
-    return \(
-        $d->get($storage->dbh, undef, $type)->(
-            @things
-        )
-    );
+    return \($d->get($storage->dbh, undef, $type)->(@things));
 }
 
 sub helper_concat

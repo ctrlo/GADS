@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2019 Ctrl O Ltd
@@ -24,9 +25,7 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column::Date';
 
-has '+value_field' => (
-    default => 'created',
-);
+has '+value_field' => (default => 'created',);
 
 sub _build_table
 {   my $self = shift;
@@ -38,17 +37,13 @@ sub _build_sprefix
     'record';
 }
 
-has '+internal' => (
-    default => 1,
-);
+has '+internal' => (default => 1,);
 
-has '+userinput' => (
-    default => 0,
-);
+has '+userinput' => (default => 0,);
 
-sub tjoin {};
+sub tjoin { }
 
-sub has_time { 1 };
+sub has_time { 1 }
 
 1;
 

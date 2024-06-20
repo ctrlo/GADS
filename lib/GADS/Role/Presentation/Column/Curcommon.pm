@@ -12,10 +12,12 @@ sub after_presentation
     $return->{data_filter_fields} = $self->data_filter_fields;
     $return->{typeahead_use_id}   = 1;
     $return->{limit_rows}         = $self->limit_rows;
+
     # Expensive to build, so avoid if possible. Only needed for an edit, and no
     # point if they are filtered from record values as they will be rebuilt
     # anyway
-    $return->{filtered_values}    = $self->filtered_values($options{record}->submission_token)
+    $return->{filtered_values} =
+        $self->filtered_values($options{record}->submission_token)
         if $options{edit} && !$self->has_subvals;
 }
 

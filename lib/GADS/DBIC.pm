@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2017 Ctrl O Ltd
@@ -28,7 +29,7 @@ sub insert
 {   my $self = shift;
     $self->_validate(@_);
     $self->_before_create(@_);
-    my $guard = $self->result_source->schema->txn_scope_guard;
+    my $guard  = $self->result_source->schema->txn_scope_guard;
     my $return = $self->next::method(@_);
     $self->after_create
         if $self->can('after_create');
@@ -43,7 +44,7 @@ sub delete
     $self->next::method(@_);
 }
 
-sub update 
+sub update
 {   my $self = shift;
     $self->_validate(@_);
     $self->next::method(@_);
@@ -51,6 +52,7 @@ sub update
 
 sub _validate
 {   my ($self, $values) = @_;
+
     # If update() has been called with a set of values, then these need to be
     # updated in the object first, otherwise validation will be done on the
     # existing values in the object not the new ones.
@@ -60,13 +62,12 @@ sub _validate
     }
     $self->validate
         if $self->can('validate');
-};
+}
 
 sub _before_create
 {   my $self = shift;
     $self->before_create
         if $self->can('before_create');
-};
-
+}
 
 1;

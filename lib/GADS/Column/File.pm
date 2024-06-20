@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -26,15 +27,13 @@ use MooX::Types::MooseLike::Base qw/:all/;
 extends 'GADS::Column';
 
 has filesize => (
-    is      => 'rw',
-    isa     => Maybe[Int],
+    is  => 'rw',
+    isa => Maybe [Int],
 );
 
-has '+can_multivalue' => (
-    default => 1,
-);
+has '+can_multivalue' => (default => 1,);
 
-sub _build_sprefix { 'value' };
+sub _build_sprefix { 'value' }
 
 # Convert based on whether ID or name provided
 sub value_field_as_index
@@ -64,26 +63,26 @@ sub validate
 {   my ($self, $value, %options) = @_;
     return 1 if !$value;
 
-    if ($value !~ /^[0-9]+$/ || !$self->schema->resultset('Fileval')->find($value))
+    if ($value !~ /^[0-9]+$/
+        || !$self->schema->resultset('Fileval')->find($value))
     {
         return 0 unless $options{fatal};
-        error __x"'{int}' is not a valid file ID for '{col}'",
-            int => $value, col => $self->name;
+        error __x "'{int}' is not a valid file ID for '{col}'",
+            int => $value,
+            col => $self->name;
     }
     1;
 }
 
 # Any value is valid for a search, as it can include begins_with etc
-sub validate_search {1};
+sub validate_search { 1 }
 
 sub write_special
 {   my ($self, %options) = @_;
 
-    my $id   = $options{id};
+    my $id = $options{id};
 
-    my $foption = {
-        filesize => $self->filesize,
-    };
+    my $foption = { filesize => $self->filesize, };
     my ($file_option) = $self->schema->resultset('FileOption')->search({
         layout_id => $id,
     })->all;
@@ -91,42 +90,51 @@ sub write_special
     {
         $file_option->update($foption);
     }
-    else {
+    else
+    {
         $foption->{layout_id} = $id;
         $self->schema->resultset('FileOption')->create($foption);
     }
 
     return ();
-};
+}
 
 sub tjoin
 {   my $self = shift;
-    +{$self->field => 'value'};
+    +{ $self->field => 'value' };
 }
 
 sub cleanup
-{   my ($class, $schema, $id)  = @_;
+{   my ($class, $schema, $id) = @_;
     $schema->resultset('File')->search({ layout_id => $id })->delete;
     $schema->resultset('FileOption')->search({ layout_id => $id })->delete;
-};
+}
 
 sub resultset_for_values
 {   my $self = shift;
-    return $self->schema->resultset('Fileval')->search({
-        'files.layout_id' => $self->id,
-    }, {
-        join => 'files',
-        group_by => 'me.name',
-    });
+    return $self->schema->resultset('Fileval')->search(
+        {
+            'files.layout_id' => $self->id,
+        },
+        {
+            join     => 'files',
+            group_by => 'me.name',
+        },
+    );
 }
 
 before import_hash => sub {
     my ($self, $values, %options) = @_;
     my $report = $options{report_only} && $self->id;
-    notice __x"Update: filesize from {old} to {new}", old => $self->filesize, new => $values->{filesize}
-        if $report && (
+    notice __x "Update: filesize from {old} to {new}",
+        old => $self->filesize,
+        new => $values->{filesize}
+        if $report
+        && (
             (defined $self->filesize xor defined $values->{filesize})
-            || (defined $self->filesize && defined $values->{filesize} && $self->filesize != $values->{filesize})
+            || (   defined $self->filesize
+                && defined $values->{filesize}
+                && $self->filesize != $values->{filesize})
         );
     $self->filesize($values->{filesize});
 };
@@ -142,11 +150,12 @@ around export_hash => sub {
 sub import_value
 {   my ($self, $value) = @_;
 
-    my $file = $value->{content} && $self->schema->resultset('Fileval')->create({
-        name     => $value->{name},
-        mimetype => $value->{mimetype},
-        content  => decode_base64($value->{content}),
-    });
+    my $file =
+        $value->{content} && $self->schema->resultset('Fileval')->create({
+            name     => $value->{name},
+            mimetype => $value->{mimetype},
+            content  => decode_base64($value->{content}),
+        });
     $self->schema->resultset('File')->create({
         record_id    => $value->{record_id},
         layout_id    => $self->id,

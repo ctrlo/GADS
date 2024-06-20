@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2019 Ctrl O Ltd
@@ -29,17 +30,11 @@ with 'GADS::Role::Curcommon::CurvalMulti';
 
 extends 'GADS::Column::Curcommon';
 
-has '+multivalue' => (
-    coerce => sub { 1 },
-);
+has '+multivalue' => (coerce => sub { 1 },);
 
-has '+userinput' => (
-    default => 0,
-);
+has '+userinput' => (default => 0,);
 
-has '+table' => (
-    default => 'Curval',
-);
+has '+table' => (default => 'Curval',);
 
 # Same as Column::Curval
 sub make_join
@@ -49,7 +44,7 @@ sub make_join
     +{
         $self->field => {
             value => {
-                record_single => ['record_later', @joins],
+                record_single => [ 'record_later', @joins ],
             }
         }
     };
@@ -63,7 +58,7 @@ sub write_special
     my $rset = $options{rset};
 
     $self->related_field_id
-        or error __x"Please select a field to store the filtered values from";
+        or error __x "Please select a field to store the filtered values from";
 
     $rset->update({
         related_field => $self->related_field_id,
@@ -75,7 +70,7 @@ sub write_special
     $self->clear;
 
     return ();
-};
+}
 
 sub _build_refers_to_instance_id
 {   my $self = shift;
@@ -85,7 +80,7 @@ sub _build_refers_to_instance_id
 
 # Filvals are defined as not user input, so they get updated during
 # update-cached. This makes sure that it does nothing silently
-sub update_cached {}
+sub update_cached { }
 
 # Not applicable for filvals - there is no filtering for an autocur column as
 # there is with curvals
@@ -98,14 +93,14 @@ has view => (
     is      => 'ro',
     lazy    => 1,
     clearer => 1,
-    builder => sub {},
+    builder => sub { },
 );
 
 around export_hash => sub {
-    my $orig = shift;
-    my $self = shift;
+    my $orig    = shift;
+    my $self    = shift;
     my %options = @_;
-    my $hash = $orig->($self, @_);
+    my $hash    = $orig->($self, @_);
     $hash->{related_field_id} = $self->related_field_id;
     $hash;
 };
@@ -114,9 +109,11 @@ around import_after_all => sub {
     my $orig = shift;
     my ($self, $values, %options) = @_;
     my $mapping = $options{mapping};
-    my $report = $options{report_only};
-    my $new_id = $mapping->{$values->{related_field_id}};
-    notice __x"Update: related_field_id from {old} to {new}", old => $self->related_field_id, new => $new_id
+    my $report  = $options{report_only};
+    my $new_id  = $mapping->{ $values->{related_field_id} };
+    notice __x "Update: related_field_id from {old} to {new}",
+        old => $self->related_field_id,
+        new => $new_id
         if $report && $self->related_field_id != $new_id;
     $self->related_field_id($new_id);
     $orig->(@_);

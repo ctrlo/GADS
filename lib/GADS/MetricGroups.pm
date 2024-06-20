@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2015 Ctrl O Ltd
@@ -34,9 +35,7 @@ has instance_id => (
     required => 1,
 );
 
-has all => (
-    is      => 'lazy',
-);
+has all => (is => 'lazy',);
 
 sub _build_all
 {   my $self = shift;
@@ -44,19 +43,22 @@ sub _build_all
     my @metrics;
 
     my @all = $self->schema->resultset('MetricGroup')->search(
-    {
-        instance_id => $self->instance_id,
-    },{
-        order_by => 'me.name',
-    });
+        {
+            instance_id => $self->instance_id,
+        },
+        {
+            order_by => 'me.name',
+        },
+    );
     foreach my $metric (@all)
     {
-        push @metrics, GADS::MetricGroup->new({
-            id          => $metric->id,
-            name        => $metric->name,
-            schema      => $self->schema,
-            instance_id => $self->instance_id,
-        });
+        push @metrics,
+            GADS::MetricGroup->new({
+                id          => $metric->id,
+                name        => $metric->name,
+                schema      => $self->schema,
+                instance_id => $self->instance_id,
+            });
     }
 
     \@metrics;
@@ -64,12 +66,11 @@ sub _build_all
 
 sub purge
 {   my $self = shift;
-    foreach my $mg (@{$self->all})
+    foreach my $mg (@{ $self->all })
     {
         $mg->delete;
     }
 }
 
 1;
-
 

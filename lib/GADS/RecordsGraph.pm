@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -20,18 +21,14 @@ package GADS::RecordsGraph;
 
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base     qw(:all);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 
 extends 'GADS::Records';
 
-has '+group_values_as_index' => (
-    default => 0,
-);
+has '+group_values_as_index' => (default => 0,);
 
-has '+is_group' => (
-    default => 1,
-);
+has '+is_group' => (default => 1,);
 
 1;
 

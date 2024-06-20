@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -26,21 +27,13 @@ extends 'GADS::Column';
 
 with 'GADS::Role::Presentation::Column::Intgr';
 
-has '+numeric' => (
-    default => 1,
-);
+has '+numeric' => (default => 1,);
 
-has '+addable' => (
-    default => 1,
-);
+has '+addable' => (default => 1,);
 
-has '+return_type' => (
-    builder => sub { 'integer' },
-);
+has '+return_type' => (builder => sub { 'integer' },);
 
-has '+option_names' => (
-    default => sub { [qw/show_calculator/] },
-);
+has '+option_names' => (default => sub { [qw/show_calculator/] },);
 
 has show_calculator => (
     is      => 'rw',
@@ -55,13 +48,9 @@ has show_calculator => (
     trigger => sub { $_[0]->reset_options },
 );
 
-has '+can_multivalue' => (
-    default => 1,
-);
+has '+can_multivalue' => (default => 1,);
 
-has '+has_multivalue_plus' => (
-    default => 1,
-);
+has '+has_multivalue_plus' => (default => 1,);
 
 sub validate
 {   my ($self, $value, %options) = @_;
@@ -71,8 +60,9 @@ sub validate
         if ($v && $v !~ /^-?[0-9]+$/)
         {
             return 0 unless $options{fatal};
-            error __x"'{int}' is not a valid integer for '{col}'",
-                int => $v, col => $self->name;
+            error __x "'{int}' is not a valid integer for '{col}'",
+                int => $v,
+                col => $self->name;
         }
     }
     1;

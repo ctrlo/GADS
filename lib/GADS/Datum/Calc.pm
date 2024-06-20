@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -36,20 +37,20 @@ sub as_strings
 
     my $format = $df // $self->column->dateformat;
 
-    foreach my $value ( @{$self->value} )
-    {   push @return,
-            ! defined $value
-          ? ''
-          : ref $value eq 'DateTime'
-          ? $self->date_as_string($value, $format)
-          : $self->column->return_type eq 'daterange'
-          ? $self->daterange_as_string($value, $format)
-          : $self->column->return_type eq 'numeric'
-          ? ( ($dc //= $self->column->decimal_places // 0)
-            ? sprintf("%.${dc}f", $value)
-            : ($value + 0)   # Remove trailing zeros
+    foreach my $value (@{ $self->value })
+    {
+        push @return, !defined $value
+            ? ''
+            : ref $value eq 'DateTime'
+            ? $self->date_as_string($value, $format)
+            : $self->column->return_type eq 'daterange'
+            ? $self->daterange_as_string($value, $format)
+            : $self->column->return_type eq 'numeric' ? (
+                ($dc //= $self->column->decimal_places // 0)
+                ? sprintf("%.${dc}f", $value)
+                : ($value + 0)    # Remove trailing zeros
             )
-          : $value;
+            : $value;
     }
 
     @return;
@@ -76,30 +77,35 @@ sub _convert_date
         {
             warning "$@";
         }
-        else {
+        else
+        {
             return $ret;
         }
     }
 }
 
 sub values { $_[0]->value }
+
 sub convert_value
 {   my ($self, $in) = @_;
 
     my $column = $self->column;
 
-    my @values = $column->multivalue && ref $in->{return} eq 'ARRAY'
-        ? @{$in->{return}} : $in->{return};
+    my @values = $column->multivalue
+        && ref $in->{return} eq 'ARRAY' ? @{ $in->{return} } : $in->{return};
 
-    {  local $Data::Dumper::Indent = 0;
-       trace __x"Values into convert_value is: {value}", value => Dumper(\@values);
+    {
+        local $Data::Dumper::Indent = 0;
+        trace __x "Values into convert_value is: {value}",
+            value => Dumper(\@values);
     }
 
-    if ($in->{error}) # Will have already been reported
+    if ($in->{error})    # Will have already been reported
     {
         # Report useful error in case used as return type "error"
-        my $m = __x"Unable to evaluate field \"{name}\": {error}",
-            name => $self->column->name, error => $in->{error};
+        my $m = __x "Unable to evaluate field \"{name}\": {error}",
+            name  => $self->column->name,
+            error => $in->{error};
         @values = ($m->toString);
     }
 
@@ -107,15 +113,17 @@ sub convert_value
 
     foreach my $val (@values)
     {
-        if ($column->return_type eq "date") # Currently no time element
+        if ($column->return_type eq "date")    # Currently no time element
         {
             $val = $self->_convert_date($val);
+
             # Database only stores date part, so ensure local value reflects
             # that
             $val->truncate(to => 'day') if $val;
             push @return, $val || undef;
         }
-        elsif ($column->return_type eq "daterange") # Currently always has time element
+        elsif ($column->return_type eq
+            "daterange")    # Currently always has time element
         {
             if (!$val)
             {
@@ -123,21 +131,25 @@ sub convert_value
             }
             elsif (ref $val eq 'HASH' && $val->{from} && $val->{to})
             {
-                push @return, $self->parse_daterange({
-                    from => $self->_convert_date($val->{from}),
-                    to   => $self->_convert_date($val->{to}),
-                });
+                push @return,
+                    $self->parse_daterange({
+                        from => $self->_convert_date($val->{from}),
+                        to   => $self->_convert_date($val->{to}),
+                    });
             }
-            else {
-                warning __"Unexpected daterange return type";
+            else
+            {
+                warning __ "Unexpected daterange return type";
             }
         }
-        elsif ($column->return_type eq 'numeric' || $column->return_type eq 'integer')
+        elsif ($column->return_type eq 'numeric'
+            || $column->return_type eq 'integer')
         {
             if (defined $val && looks_like_number($val))
             {
                 my $ret = $val;
-                $ret = round $ret if defined $ret && $column->return_type eq 'integer';
+                $ret = round $ret
+                    if defined $ret && $column->return_type eq 'integer';
                 push @return, $ret;
             }
         }
@@ -147,17 +159,22 @@ sub convert_value
             {
                 push @return, $val;
             }
-            else {
-                mistake __x"Failed to produce globe location: unknown country {country}", country => $val;
+            else
+            {
+                mistake __x
+"Failed to produce globe location: unknown country {country}",
+                    country => $val;
             }
         }
-        else {
+        else
+        {
             push @return, $val if defined $val;
         }
     }
 
     no warnings "uninitialized";
-    trace __x"Returning value from convert_value: {value}", value => Dumper(\@return);
+    trace __x "Returning value from convert_value: {value}",
+        value => Dumper(\@return);
 
     @return;
 }
@@ -180,14 +197,24 @@ sub equal
     if ($self->column->return_type eq 'daterange')
     {
         my $format = $self->column->dateformat;
+
         # Values can be a text representation ("xx to yy") or a DateTime::Span
         # Convert to a consistent textual value for comparison purposes
-        @a = map { ref $_ eq 'DateTime::Span' ? $self->daterange_as_string($_, $format) : $_ } @a;
-        @b = map { ref $_ eq 'DateTime::Span' ? $self->daterange_as_string($_, $format) : $_ } @b;
+        @a = map {
+            ref $_ eq 'DateTime::Span'
+                ? $self->daterange_as_string($_, $format)
+                : $_
+        } @a;
+        @b = map {
+            ref $_ eq 'DateTime::Span'
+                ? $self->daterange_as_string($_, $format)
+                : $_
+        } @b;
     }
     @a = sort @a if defined $a[0];
     @b = sort @b if defined $b[0];
     return 0 if @a != @b;
+
     # Iterate over each pair, return 0 if different
     foreach my $a2 (@a)
     {
@@ -195,11 +222,12 @@ sub equal
 
         (defined $a2 xor defined $b2)
             and return 0;
-        !defined $a2 && !defined $b2 and next; # Same
+        !defined $a2 && !defined $b2 and next;    # Same
         my $rt = $self->column->return_type;
         if ($rt eq 'numeric' || $rt eq 'integer')
         {
-            $a2 += 0; $b2 += 0; # Remove trailing zeros
+            $a2 += 0;
+            $b2 += 0;                             # Remove trailing zeros
             return 0 if $a2 != $b2;
         }
         elsif ($rt eq 'date')
@@ -211,30 +239,35 @@ sub equal
         elsif ($rt eq 'daterange')
         {
             # Type might have changed and old value be string
-            ref $a2 eq 'HASH' && $a2->{from} eq 'DateTime' && ref $b2 eq 'HASH' && $b2->{from} eq 'DateTime'
+            ref $a2 eq 'HASH'
+                && $a2->{from} eq 'DateTime'
+                && ref $b2 eq 'HASH'
+                && $b2->{from} eq 'DateTime'
                 or return 0;
             return 0 if $a2->{from} != $b2->{from} && $a2->{to} != $b2->{to};
         }
-        else {
+        else
+        {
             return 0 if $a2 ne $b2;
         }
     }
+
     # Assume same
     return 1;
 }
 
 sub for_table
-{   my $self = shift;
+{   my $self   = shift;
     my $return = $self->for_table_template;
-    $return->{values} = [$self->as_strings];
+    $return->{values} = [ $self->as_strings ];
     $return;
 }
 
 sub _build_for_code
 {   my $self = shift;
-    my $rt = $self->column->return_type;
+    my $rt   = $self->column->return_type;
     my @return;
-    foreach my $val (@{$self->value})
+    foreach my $val (@{ $self->value })
     {
         if ($rt eq 'date')
         {
@@ -242,11 +275,12 @@ sub _build_for_code
         }
         elsif ($rt eq 'daterange')
         {
-            push @return, {
-                from  => $self->date_for_code($_->start),
-                to    => $self->date_for_code($_->end),
-                value => $self->_as_string($_),
-            };
+            push @return,
+                {
+                    from  => $self->date_for_code($_->start),
+                    to    => $self->date_for_code($_->end),
+                    value => $self->_as_string($_),
+                };
         }
         elsif ($rt eq 'numeric')
         {
@@ -258,7 +292,8 @@ sub _build_for_code
         {
             push @return, defined $val ? int $val : undef;
         }
-        else {
+        else
+        {
             push @return, defined $val ? "$val" : undef;
         }
     }
@@ -266,6 +301,6 @@ sub _build_for_code
     $self->column->multivalue ? \@return : $return[0];
 }
 
-sub _build_blank { ! length shift->as_string }
+sub _build_blank { !length shift->as_string }
 
 1;

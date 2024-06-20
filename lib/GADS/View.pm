@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -36,9 +37,7 @@ has id => (
 );
 
 # Whether the logged-in user has the layout permission
-has user_has_layout => (
-    is => 'lazy',
-);
+has user_has_layout => (is => 'lazy',);
 
 sub _build_user_has_layout
 {   my $self = shift;
@@ -48,7 +47,7 @@ sub _build_user_has_layout
 # Whether to write the view as another user
 has other_user_id => (
     is  => 'rw',
-    isa => Maybe[Int],
+    isa => Maybe [Int],
 );
 
 has user_permission_override => (
@@ -76,33 +75,45 @@ has layout => (
 sub current_user_has_access
 {   my $self = shift;
     return 1 if $self->user_permission_override;
-    my $view = $self->_view_rs;
+    my $view    = $self->_view_rs;
     my $user_id = $self->layout->user && $self->layout->user->id;
-    my $no_access = $self->has_id && $self->layout->user && !$view->global && !$view->is_admin && !$view->is_limit_extra
-        && !$self->layout->user_can("layout") && $view->user_id != $user_id;
-    $no_access ||= $view->global && $view->group_id
-        && !$self->schema->resultset('User')->find($user_id)->has_group->{$view->group_id};
+    my $no_access =
+           $self->has_id
+        && $self->layout->user
+        && !$view->global
+        && !$view->is_admin
+        && !$view->is_limit_extra
+        && !$self->layout->user_can("layout")
+        && $view->user_id != $user_id;
+    $no_access ||=
+           $view->global
+        && $view->group_id
+        && !$self->schema->resultset('User')->find($user_id)
+        ->has_group->{ $view->group_id };
     $no_access = 0
         if $self->layout->user && $self->layout->user->permission->{superadmin};
     return !$no_access;
 }
 
 # Internal DBIC object of view
-has _view_rs => (
-    is => 'lazy',
-);
+has _view_rs => (is => 'lazy',);
 
 sub _build__view_rs
 {   my $self = shift;
     return if !$self->id;
-    $self->schema->resultset('View')->find({
-        'me.id'          => $self->id,
-        # instance_id isn't strictly needed as id is the primary key
-        'me.instance_id' => $self->instance_id,
-    },{
-        prefetch => ['sorts', 'alerts', 'view_groups'],
-        order_by => 'sorts.order', # Ensure sorts are retrieve in correct order to apply
-    });
+    $self->schema->resultset('View')->find(
+        {
+            'me.id' => $self->id,
+
+            # instance_id isn't strictly needed as id is the primary key
+            'me.instance_id' => $self->instance_id,
+        },
+        {
+            prefetch => [ 'sorts', 'alerts', 'view_groups' ],
+            order_by => 'sorts.order'
+            ,    # Ensure sorts are retrieve in correct order to apply
+        },
+    );
 }
 
 has _view => (
@@ -117,10 +128,12 @@ has _view => (
             $self->clear_id;
             return;
         }
+
         # Check whether user has read access to view
         return $view if $self->current_user_has_access;
-        error __x"User {user} does not have access to view {view}",
-            user => $self->layout->user->id, view => $self->id;
+        error __x "User {user} does not have access to view {view}",
+            user => $self->layout->user->id,
+            view => $self->id;
     },
 );
 
@@ -148,7 +161,7 @@ has is_admin => (
 
 has group_id => (
     is      => 'rw',
-    isa     => Maybe[Int],
+    isa     => Maybe [Int],
     lazy    => 1,
     coerce  => sub { $_[0] || undef },
     builder => sub { $_[0]->_view && $_[0]->_view->group_id },
@@ -170,22 +183,22 @@ has filter => (
         {
             if (ref $value eq 'HASH')
             {
-                $value = GADS::Filter->new(
-                    as_hash => $value,
-                );
+                $value = GADS::Filter->new(as_hash => $value,);
             }
-            else {
-                $value = GADS::Filter->new(
-                    as_json => $value,
-                );
+            else
+            {
+                $value = GADS::Filter->new(as_json => $value,);
             }
         }
         $value;
     },
     builder => sub {
-        my $self = shift;
-        my $filter = $self->_view # Don't trigger changed() in Filter
-            ? GADS::Filter->new(layout => $self->layout, as_json => $self->_view->filter)
+        my $self   = shift;
+        my $filter = $self->_view    # Don't trigger changed() in Filter
+            ? GADS::Filter->new(
+                layout  => $self->layout,
+                as_json => $self->_view->filter
+            )
             : GADS::Filter->new(layout => $self->layout);
     },
 );
@@ -198,9 +211,15 @@ has sorts => (
         my $self = shift;
         if ($self->set_sorts)
         {
-            return [ $self->_set_sorts_groups('sorts', $self->set_sorts->{fields}, $self->set_sorts->{types}) ];
+            return [
+                $self->_set_sorts_groups(
+                    'sorts', $self->set_sorts->{fields},
+                    $self->set_sorts->{types}
+                )
+            ];
         }
-        else {
+        else
+        {
             my $view = $self->_view
                 or return [];
             [ $view->sorts->all ];
@@ -216,9 +235,11 @@ has groups => (
         my $self = shift;
         if ($self->set_groups)
         {
-            return [ $self->_set_sorts_groups('groups', $self->set_groups) ];
+            return [
+                $self->_set_sorts_groups('groups', $self->set_groups) ];
         }
-        else {
+        else
+        {
             my $view = $self->_view
                 or return [];
             [ $view->view_groups->all ];
@@ -232,9 +253,10 @@ has alert => (
     builder => sub {
         my $self = shift;
         $self->_view or return;
-        my ($alert) = grep { $self->layout->user->id == $_->user_id } $self->_view->alerts;
+        my ($alert) = grep { $self->layout->user->id == $_->user_id }
+            $self->_view->alerts;
         $alert;
-    }
+    },
 );
 
 has all_alerts => (
@@ -259,8 +281,8 @@ has columns => (
     builder => sub {
         my $self = shift;
         $self->_view or return [];
-        my @view_layouts = map {$_->layout_id} $self->_view->view_layouts;
-        \@view_layouts,
+        my @view_layouts = map { $_->layout_id } $self->_view->view_layouts;
+        \@view_layouts,;
     },
 );
 
@@ -273,12 +295,14 @@ has has_curuser => (
 
 sub _build_has_curuser
 {   my $self = shift;
-    !! grep {
-        ($self->layout->column($_->{column_id})->type eq 'person'
-            && $_->{value} && $_->{value} eq '[CURUSER]')
-        || ($self->layout->column($_->{column_id})->return_type eq 'string'
-            && $_->{value} && $_->{value} eq '[CURUSER]')
-    } @{$self->filter->filters};
+    !!grep {
+        (          $self->layout->column($_->{column_id})->type eq 'person'
+                && $_->{value}
+                && $_->{value} eq '[CURUSER]')
+            || ($self->layout->column($_->{column_id})->return_type eq 'string'
+                && $_->{value}
+                && $_->{value} eq '[CURUSER]')
+    } @{ $self->filter->filters };
 }
 
 has owner => (
@@ -307,8 +331,10 @@ sub _build_writable
     elsif ($self->global)
     {
         return 1 if !$self->group_id && $self->layout->user_can("layout");
-        return 1 if $self->group_id
-            && ($self->layout->user_can("view_group") || $self->layout->user_can("layout"));
+        return 1
+            if $self->group_id
+            && (   $self->layout->user_can("view_group")
+                || $self->layout->user_can("layout"));
     }
     elsif (!$self->has_id)
     {
@@ -331,16 +357,16 @@ sub write
 
     my $fatal = $options{no_errors} ? 0 : 1;
 
-    $self->name or error __"Please enter a name for the view";
+    $self->name or error __ "Please enter a name for the view";
 
     # XXX Database schema currently restricts length of name. Should be changed
     # to normal text field at some point
     length $self->name < 128
-        or error __"View name must be less than 128 characters";
+        or error __ "View name must be less than 128 characters";
 
-    my $global   = !$self->layout->user ? 1 : $self->global;
+    my $global = !$self->layout->user ? 1 : $self->global;
 
-    $self->clear_writable; # Force rebuild based on any updated values
+    $self->clear_writable;    # Force rebuild based on any updated values
 
     my $vu = {
         name        => $self->name,
@@ -355,22 +381,26 @@ sub write
     {
         $vu->{user_id} = undef;
     }
-    elsif (!$self->_view || !$self->_view->user_id) { # Preserve owner if editing other user's view
-        $vu->{user_id} = ($self->user_has_layout && $self->other_user_id) || $self->layout->user->id;
+    elsif (!$self->_view || !$self->_view->user_id)
+    {    # Preserve owner if editing other user's view
+        $vu->{user_id} = ($self->user_has_layout && $self->other_user_id)
+            || $self->layout->user->id;
     }
 
     $self->clear_has_curuser;
 
     # Get all the columns in the filter. Check whether the user has
     # access to them.
-    foreach my $filter (@{$self->filter->filters})
+    foreach my $filter (@{ $self->filter->filters })
     {
-        my $col   = $self->layout->column($filter->{column_id})
-            or error __x"Field ID {id} does not exist", id => $filter->{column_id};
+        my $col = $self->layout->column($filter->{column_id})
+            or error __x "Field ID {id} does not exist",
+            id => $filter->{column_id};
         my $val   = $filter->{value};
         my $op    = $filter->{operator};
         my $rtype = $col->return_type;
-        if ($op eq 'changed_after') # Will always be a date, regardless of field type
+        if ($op eq 'changed_after'
+            )    # Will always be a date, regardless of field type
         {
             $col->validate_search_date($val, fatal => $fatal);
         }
@@ -379,32 +409,43 @@ sub write
             if ($op eq 'equal' || $op eq 'not_equal')
             {
                 # expect exact daterange format, e.g. "yyyy-mm-dd to yyyy-mm-dd"
-                $col->validate_search($val, fatal => $fatal, full_only => 1); # Will bork on failure
+                $col->validate_search($val, fatal => $fatal, full_only => 1)
+                    ;    # Will bork on failure
             }
-            else {
-                $col->validate_search($val, fatal => $fatal, single_only => 1); # Will bork on failure
+            else
+            {
+                $col->validate_search($val, fatal => $fatal, single_only => 1)
+                    ;    # Will bork on failure
             }
         }
-        else {
-            $col->validate_search($val, fatal => $fatal) # Will bork on failure
-                unless $op eq 'is_empty' || $op eq 'is_not_empty'; # Would normally fail on blank value
+        else
+        {
+            $col->validate_search($val, fatal => $fatal)  # Will bork on failure
+                unless $op eq 'is_empty'
+                || $op eq 'is_not_empty';   # Would normally fail on blank value
         }
 
         my $has_value = $val && (ref $val ne 'ARRAY' || @$val);
         error __x "No value can be entered for empty and not empty operators"
             if ($op eq 'is_empty' || $op eq 'is_not_empty') && $has_value;
-        error __x"Invalid field ID {id} in filter", id => $filter->{column_id}
+        error __x "Invalid field ID {id} in filter", id => $filter->{column_id}
             unless $col->user_can('read');
     }
 
     $self->writable || $options{force}
         or error $self->id
-            ? __x("User {user_id} does not have access to modify view {id}", user_id => $self->layout->user->id, id => $self->id)
-            : __x("User {user_id} does not have permission to create new views", user_id => $self->layout->user->id);
+        ? __x(
+        "User {user_id} does not have access to modify view {id}",
+        user_id => $self->layout->user->id,
+        id      => $self->id
+        )
+        : __x("User {user_id} does not have permission to create new views",
+        user_id => $self->layout->user->id);
 
-    error __"It is not possible to have alerts on a grouped view. Please either "
-        ."remove the grouping or disable the alerts"
-            if $self->has_alerts && $self->is_group;
+    error __
+        "It is not possible to have alerts on a grouped view. Please either "
+        . "remove the grouping or disable the alerts"
+        if $self->has_alerts && $self->is_group;
 
     if ($self->id)
     {
@@ -414,15 +455,16 @@ sub write
         if ($self->filter->changed && $self->has_alerts)
         {
             my $alert = GADS::Alert->new(
-                user      => $self->layout->user,
-                layout    => $self->layout,
-                schema    => $self->schema,
-                view_id   => $self->id,
+                user    => $self->layout->user,
+                layout  => $self->layout,
+                schema  => $self->schema,
+                view_id => $self->id,
             );
             $alert->update_cache;
         }
     }
-    else {
+    else
+    {
         $vu->{created}   = DateTime->now;
         $vu->{createdby} = $self->layout->user && $self->layout->user->id;
         my $rset = $self->schema->resultset('View')->create($vu);
@@ -437,7 +479,7 @@ sub write
     {
         # Delete all old ones first
         $schema->resultset($table)->search({ view_id => $self->id })->delete;
-        foreach my $item (@{$table eq 'Sort' ? $self->sorts : $self->groups})
+        foreach my $item (@{ $table eq 'Sort' ? $self->sorts : $self->groups })
         {
             # Create afresh as could be new row or existing one that has been
             # deleted
@@ -452,29 +494,38 @@ sub write
     $self->clear_set_sorts;
     $self->clear_set_groups;
 
-    my @colviews = @{$self->columns};
+    my @colviews = @{ $self->columns };
 
     foreach my $c ($self->layout->all(user_can_read => 1))
     {
         my $item = { view_id => $self->id, layout_id => $c->id };
-        if (grep {$c->id == $_} @colviews)
+        if (grep { $c->id == $_ } @colviews)
         {
             # Column should be in view
-            unless($schema->resultset('ViewLayout')->search($item)->count)
+            unless ($schema->resultset('ViewLayout')->search($item)->count)
             {
                 $schema->resultset('ViewLayout')->create($item);
+
                 # Update alert cache with new column
-                my @alerts = $schema->resultset('View')->search({
-                    'me.id' => $self->id
-                },{
-                    columns  => [
-                        { 'me.id'  => \"MAX(me.id)" },
-                        { 'alert_caches.id'  => \"MAX(alert_caches.id)" },
-                        { 'alert_caches.current_id'  => \"MAX(alert_caches.current_id)" },
-                    ],
-                    join     => 'alert_caches',
-                    group_by => 'current_id',
-                })->all;
+                my @alerts = $schema->resultset('View')->search(
+                    {
+                        'me.id' => $self->id
+                    },
+                    {
+                        columns => [
+                            { 'me.id' => \"MAX(me.id)" },
+                            {
+                                'alert_caches.id' => \"MAX(alert_caches.id)"
+                            },
+                            {
+                                'alert_caches.current_id' => \
+                                    "MAX(alert_caches.current_id)"
+                            },
+                        ],
+                        join     => 'alert_caches',
+                        group_by => 'current_id',
+                    },
+                )->all;
                 my @pop;
                 foreach my $alert (@alerts)
                 {
@@ -490,8 +541,8 @@ sub write
     }
 
     # Delete any no longer needed
-    my $search = {view_id => $self->id};
-    $search->{'-not'} = {'layout_id' => \@colviews} if @colviews;
+    my $search = { view_id => $self->id };
+    $search->{'-not'} = { 'layout_id' => \@colviews } if @colviews;
     $self->schema->resultset('ViewLayout')->search($search)->delete;
     $self->schema->resultset('AlertCache')->search($search)->delete;
 
@@ -500,8 +551,10 @@ sub write
     # We don't sanitise the columns the user has visible at this point -
     # there is not much point, as they could be removed later anyway. We
     # do this during the processing of the alerts and filters elsewhere.
-    my @existing = $self->schema->resultset('Filter')->search({ view_id => $self->id })->all;
-    my @all_filters = @{$self->filter->filters};
+    my @existing =
+        $self->schema->resultset('Filter')->search({ view_id => $self->id })
+        ->all;
+    my @all_filters = @{ $self->filter->filters };
     foreach my $filter (@all_filters)
     {
         unless (grep { $_->layout_id == $filter->{column_id} } @existing)
@@ -515,9 +568,12 @@ sub write
             });
         }
     }
+
     # Delete those no longer there
     $search = { view_id => $self->id };
-    $search->{layout_id} = { '!=' => [ '-and', map { $_->{column_id} } @all_filters ] } if @all_filters;
+    $search->{layout_id} =
+        { '!=' => [ '-and', map { $_->{column_id} } @all_filters ] }
+        if @all_filters;
     $self->schema->resultset('Filter')->search($search)->delete;
 }
 
@@ -525,31 +581,47 @@ sub delete
 {   my $self = shift;
 
     $self->writable
-        or error __x"You do not have permission to delete {id}", id => $self->id;
-    my $vl = $self->schema->resultset('ViewLimit')->search({
-        view_id => $self->id,
-    },{
-        prefetch => 'user',
-    });
+        or error __x "You do not have permission to delete {id}",
+        id => $self->id;
+    my $vl = $self->schema->resultset('ViewLimit')->search(
+        {
+            view_id => $self->id,
+        },
+        {
+            prefetch => 'user',
+        },
+    );
     if ($vl->count)
     {
         my $users = join '; ', $vl->get_column('user.value')->all;
-        error __x"This view cannot be deleted as it is used to limit user data. Remove the view from the limited views of the following users before deleting: {users}", users => $users;
+        error __x
+"This view cannot be deleted as it is used to limit user data. Remove the view from the limited views of the following users before deleting: {users}",
+            users => $users;
     }
 
-    if (my $w = $self->schema->resultset('Widget')->search({ view_id => $self->id })->next)
+    if (my $w =
+        $self->schema->resultset('Widget')->search({ view_id => $self->id })
+        ->next)
     {
-        error __x"This view cannot be used as it is used in widget ID {id}", id => $w->id;
+        error __x "This view cannot be used as it is used in widget ID {id}",
+            id => $w->id;
     }
 
     my $view = $self->_view
-        or return; # Doesn't exist. May be attempt to delete view not yet written
+        or
+        return;   # Doesn't exist. May be attempt to delete view not yet written
     $self->schema->resultset('Sort')->search({ view_id => $view->id })->delete;
-    $self->schema->resultset('ViewLayout')->search({ view_id => $view->id })->delete;
-    $self->schema->resultset('ViewGroup')->search({ view_id => $view->id })->delete;
-    $self->schema->resultset('Filter')->search({ view_id => $view->id })->delete;
-    $self->schema->resultset('AlertCache')->search({ view_id => $view->id })->delete;
-    my @alerts = $self->schema->resultset('Alert')->search({ view_id => $view->id })->all;
+    $self->schema->resultset('ViewLayout')->search({ view_id => $view->id })
+        ->delete;
+    $self->schema->resultset('ViewGroup')->search({ view_id => $view->id })
+        ->delete;
+    $self->schema->resultset('Filter')->search({ view_id => $view->id })
+        ->delete;
+    $self->schema->resultset('AlertCache')->search({ view_id => $view->id })
+        ->delete;
+    my @alerts =
+        $self->schema->resultset('Alert')->search({ view_id => $view->id })
+        ->all;
     my @alert_ids = map { $_->id } @alerts;
     $self->schema->resultset('AlertSend')->search({
         alert_id => \@alert_ids,
@@ -557,39 +629,36 @@ sub delete
     $self->schema->resultset('Alert')->search({
         id => \@alert_ids,
     })->delete;
-    $self->schema->resultset('User')->search({ lastview => $view->id })->update({
-        lastview => undef,
-    });
+    $self->schema->resultset('User')->search({ lastview => $view->id })
+        ->update({
+            lastview => undef,
+        });
     $view->delete;
 }
 
 sub sort_types
-{
-    [
-        {
-            name        => "asc",
-            description => "Ascending"
-        },
-        {
-            name        => "desc",
-            description => "Descending"
-        },
-        {
-            name        => "random",
-            description => "Random"
-        },
-    ]
-}
+{ [
+    {
+        name        => "asc",
+        description => "Ascending",
+    },
+    {
+        name        => "desc",
+        description => "Descending",
+    },
+    {
+        name        => "random",
+        description => "Random",
+    },
+] }
 
 sub filter_types
-{
-    [
-        { code => 'gt'      , text => 'Greater than' },
-        { code => 'lt'      , text => 'Less than'    },
-        { code => 'equal'   , text => 'Equals'       },
-        { code => 'contains', text => 'Contains'     },
-    ]
-}
+{ [
+    { code => 'gt',       text => 'Greater than' },
+    { code => 'lt',       text => 'Less than' },
+    { code => 'equal',    text => 'Equals' },
+    { code => 'contains', text => 'Contains' },
+] }
 
 has set_sorts => (
     is      => 'rw',
@@ -622,7 +691,9 @@ sub _set_sorts_groups
 
     my @fields   = @$sortfield;
     my @sorttype = $type eq 'sorts' && @$sorttype;
-    my $order; my $type_last; my @return;
+    my $order;
+    my $type_last;
+    my @return;
     foreach my $filter_id (@fields)
     {
         $filter_id or next;
@@ -632,17 +703,26 @@ sub _set_sorts_groups
             $parent_id = $1;
             $layout_id = $2;
         }
-        else {
+        else
+        {
             $layout_id = $filter_id;
         }
         my $sorttype = shift @sorttype || $type_last;
-        error __x"Invalid type {type}", type => $sorttype
-            if $type eq 'sorts' && !grep { $_->{name} eq $sorttype } @{sort_types()};
+        error __x "Invalid type {type}", type => $sorttype
+            if $type eq 'sorts' && !grep { $_->{name} eq $sorttype }
+            @{ sort_types() };
+
         # Check column is valid and user has access
-        error __x"Invalid field ID {id} in {type}", id => $layout_id, type => $type
-            if $layout_id && !$self->layout->column($layout_id)->user_can('read');
-        error __x"Invalid field ID {id} in {type}", id => $parent_id, type => $type
-            if $parent_id && !$self->layout->column($parent_id)->user_can('read');
+        error __x "Invalid field ID {id} in {type}",
+            id   => $layout_id,
+            type => $type
+            if $layout_id
+            && !$self->layout->column($layout_id)->user_can('read');
+        error __x "Invalid field ID {id} in {type}",
+            id   => $parent_id,
+            type => $type
+            if $parent_id
+            && !$self->layout->column($parent_id)->user_can('read');
         my $sort = {
             layout_id => $layout_id,
             parent_id => $parent_id,
@@ -664,7 +744,7 @@ has is_group => (
 
 sub _build_is_group
 {   my $self = shift;
-    !! @{$self->groups};
+    !!@{ $self->groups };
 }
 
 sub parse_date_filter
@@ -673,14 +753,12 @@ sub parse_date_filter
         or return;
     my $now = DateTime->now;
     my ($v1, $op1, $op2, $v2) = ($2, $3, $5, $6);
-    if ($op1 && $op1 eq '+' && $v1)
-    { $now->add(seconds => $v1) }
-#    if ($op1 eq '-' && $v1) # Doesn't work, needs coding differently
-#    { $now->subtract(seconds => $v1) }
-    if ($op2 && $op2 eq '+' && $v2)
-    { $now->add(seconds => $v2) }
-    if ($op2 && $op2 eq '-' && $v2)
-    { $now->subtract(seconds => $v2) }
+    if ($op1 && $op1 eq '+' && $v1) { $now->add(seconds => $v1) }
+
+    #    if ($op1 eq '-' && $v1) # Doesn't work, needs coding differently
+    #    { $now->subtract(seconds => $v1) }
+    if ($op2 && $op2 eq '+' && $v2) { $now->add(seconds => $v2) }
+    if ($op2 && $op2 eq '-' && $v2) { $now->subtract(seconds => $v2) }
     $now;
 }
 
@@ -693,8 +771,8 @@ sub export_hash
         group_id => $self->group_id,
         name     => $self->name,
         filter   => $self->filter->as_hash,
-        sorts    => [map $_->as_hash, @{$self->sorts}],
-        groups   => [map $_->as_hash, @{$self->groups}],
+        sorts    => [ map $_->as_hash, @{ $self->sorts } ],
+        groups   => [ map $_->as_hash, @{ $self->groups } ],
         columns  => $self->columns,
     };
 }
@@ -702,49 +780,61 @@ sub export_hash
 sub import_hash
 {   my ($self, $values, %options) = @_;
     no warnings "uninitialized";
-    notice __x"Updating global from {old} to {new} for view {name}",
-        old => $self->global, new => $values->{global}, name => $self->name
-            if $options{report_only} && $self->global ne $values->{global};
+    notice __x "Updating global from {old} to {new} for view {name}",
+        old  => $self->global,
+        new  => $values->{global},
+        name => $self->name
+        if $options{report_only} && $self->global ne $values->{global};
     $self->global($values->{global});
-    notice __x"Updating is_admin from {old} to {new} for view {name}",
-        old => $self->is_admin, new => $values->{is_admin}, name => $self->name
-            if $options{report_only} && $self->is_admin ne $values->{is_admin};
+    notice __x "Updating is_admin from {old} to {new} for view {name}",
+        old  => $self->is_admin,
+        new  => $values->{is_admin},
+        name => $self->name
+        if $options{report_only} && $self->is_admin ne $values->{is_admin};
     $self->is_admin($values->{is_admin});
-    notice __x"Updating group from {old} to {new} for view {name}",
-        old => $self->group_id, new => $values->{group_id}, name => $self->name
-            if $options{report_only} && $self->group_id ne $values->{group_id};
+    notice __x "Updating group from {old} to {new} for view {name}",
+        old  => $self->group_id,
+        new  => $values->{group_id},
+        name => $self->name
+        if $options{report_only} && $self->group_id ne $values->{group_id};
     $self->group_id($values->{group_id});
-    notice __x"Updating name from {old} to {new} for view {name}",
-        old => $self->name, new => $values->{name}, name => $self->name
-            if $options{report_only} && $self->name ne $values->{name};
+    notice __x "Updating name from {old} to {new} for view {name}",
+        old  => $self->name,
+        new  => $values->{name},
+        name => $self->name
+        if $options{report_only} && $self->name ne $values->{name};
     $self->name($values->{name});
     $self->filter($values->{filter}->as_hash)
         if $values->{filter};
-    notice __x"Updating filter for view {name}",
-        name => $self->name
-            if $options{report_only} && $self->filter->changed;
+    notice __x "Updating filter for view {name}", name => $self->name
+        if $options{report_only} && $self->filter->changed;
+
     # Lazy, no reporting of sorts and groups
     $self->columns($values->{columns});
     unless ($options{report_only})
     {
         $self->write;
+
         # Sorts
-        $_->delete foreach @{$self->sorts};
+        $_->delete foreach @{ $self->sorts };
         $self->schema->resultset('Sort')->create({
             view_id   => $self->id,
             layout_id => $_->{layout_id},
             parent_id => $_->{parent_id},
             order     => $_->{order},
             type      => $_->{type},
-        }) foreach @{$values->{sorts}};
+        })
+            foreach @{ $values->{sorts} };
+
         # Groups
-        $_->delete foreach @{$self->groups};
+        $_->delete foreach @{ $self->groups };
         $self->schema->resultset('ViewGroup')->create({
             view_id   => $self->id,
             layout_id => $_->{layout_id},
             parent_id => $_->{parent_id},
             order     => $_->{order},
-        }) foreach @{$values->{groups}};
+        })
+            foreach @{ $values->{groups} };
     }
 }
 

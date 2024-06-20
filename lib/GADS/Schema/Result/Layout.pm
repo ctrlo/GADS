@@ -1,4 +1,5 @@
 use utf8;
+
 package GADS::Schema::Result::Layout;
 
 =head1 NAME
@@ -188,76 +189,76 @@ __PACKAGE__->table("layout");
 =cut
 
 __PACKAGE__->add_columns(
-  "id",
-  { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
-  "name",
-  { data_type => "text", is_nullable => 1 },
-  "name_short",
-  { data_type => "varchar", is_nullable => 1, size => 64 },
-  "type",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
-  "permission",
-  { data_type => "integer", default_value => 0, is_nullable => 0 },
-  "optional",
-  { data_type => "smallint", default_value => 0, is_nullable => 0 },
-  "remember",
-  { data_type => "smallint", default_value => 0, is_nullable => 0 },
-  "isunique",
-  { data_type => "smallint", default_value => 0, is_nullable => 0 },
-  "textbox",
-  { data_type => "smallint", default_value => 0, is_nullable => 0 },
-  "typeahead",
-  { data_type => "smallint", default_value => 0, is_nullable => 0 },
-  "force_regex",
-  { data_type => "text", is_nullable => 1 },
-  "position",
-  { data_type => "integer", is_nullable => 1 },
-  "ordering",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
-  "end_node_only",
-  { data_type => "smallint", default_value => 0, is_nullable => 0 },
-  "multivalue",
-  { data_type => "smallint", default_value => 0, is_nullable => 0 },
-  "can_child",
-  { data_type => "smallint", default_value => 0, is_nullable => 0 },
-  "internal",
-  { data_type => "smallint", default_value => 0, is_nullable => 0 },
-  "description",
-  { data_type => "text", is_nullable => 1 },
-  "helptext",
-  { data_type => "text", is_nullable => 1 },
-  "options",
-  { data_type => "text", is_nullable => 1 },
-  "display_field",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "display_regex",
-  { data_type => "text", is_nullable => 1 },
-  "display_condition",
-  { data_type => "char", is_nullable => 1, size => 3 },
-  "display_matchtype",
-  { data_type => "text", is_nullable => 1 },
-  "instance_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "link_parent",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "related_field",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "width",
-  { data_type => "integer", is_nullable => 0, default_value => 50 },
-  "filter",
-  { data_type => "text", is_nullable => 1 },
-  "topic_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "aggregate",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
-  "group_display",
-  { data_type => "varchar", is_nullable => 1, size => 45 },
-  "lookup_endpoint",
-  { data_type => "text", is_nullable => 1 },
-  "lookup_group",
-  { data_type => "smallint", is_nullable => 1 },
-  "notes",
-  { data_type => "text", is_nullable => 1 },
+    "id",
+    { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
+    "name",
+    { data_type => "text", is_nullable => 1 },
+    "name_short",
+    { data_type => "varchar", is_nullable => 1, size => 64 },
+    "type",
+    { data_type => "varchar", is_nullable => 1, size => 45 },
+    "permission",
+    { data_type => "integer", default_value => 0, is_nullable => 0 },
+    "optional",
+    { data_type => "smallint", default_value => 0, is_nullable => 0 },
+    "remember",
+    { data_type => "smallint", default_value => 0, is_nullable => 0 },
+    "isunique",
+    { data_type => "smallint", default_value => 0, is_nullable => 0 },
+    "textbox",
+    { data_type => "smallint", default_value => 0, is_nullable => 0 },
+    "typeahead",
+    { data_type => "smallint", default_value => 0, is_nullable => 0 },
+    "force_regex",
+    { data_type => "text", is_nullable => 1 },
+    "position",
+    { data_type => "integer", is_nullable => 1 },
+    "ordering",
+    { data_type => "varchar", is_nullable => 1, size => 45 },
+    "end_node_only",
+    { data_type => "smallint", default_value => 0, is_nullable => 0 },
+    "multivalue",
+    { data_type => "smallint", default_value => 0, is_nullable => 0 },
+    "can_child",
+    { data_type => "smallint", default_value => 0, is_nullable => 0 },
+    "internal",
+    { data_type => "smallint", default_value => 0, is_nullable => 0 },
+    "description",
+    { data_type => "text", is_nullable => 1 },
+    "helptext",
+    { data_type => "text", is_nullable => 1 },
+    "options",
+    { data_type => "text", is_nullable => 1 },
+    "display_field",
+    { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+    "display_regex",
+    { data_type => "text", is_nullable => 1 },
+    "display_condition",
+    { data_type => "char", is_nullable => 1, size => 3 },
+    "display_matchtype",
+    { data_type => "text", is_nullable => 1 },
+    "instance_id",
+    { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+    "link_parent",
+    { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+    "related_field",
+    { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+    "width",
+    { data_type => "integer", is_nullable => 0, default_value => 50 },
+    "filter",
+    { data_type => "text", is_nullable => 1 },
+    "topic_id",
+    { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+    "aggregate",
+    { data_type => "varchar", is_nullable => 1, size => 45 },
+    "group_display",
+    { data_type => "varchar", is_nullable => 1, size => 45 },
+    "lookup_endpoint",
+    { data_type => "text", is_nullable => 1 },
+    "lookup_group",
+    { data_type => "smallint", is_nullable => 1 },
+    "notes",
+    { data_type => "text", is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -288,7 +289,8 @@ __PACKAGE__->set_primary_key("id");
 
 # name_short should actually be unique across a whole site, but this at least
 # stops multiple internal columns being inserted into the same table
-__PACKAGE__->add_unique_constraint("layout_ux_instance_name_short", ["instance_id", "name_short"]);
+__PACKAGE__->add_unique_constraint("layout_ux_instance_name_short",
+    [ "instance_id", "name_short" ]);
 
 =head1 RELATIONS
 
@@ -301,10 +303,10 @@ Related object: L<GADS::Schema::Result::AlertCache>
 =cut
 
 __PACKAGE__->has_many(
-  "alert_caches",
-  "GADS::Schema::Result::AlertCache",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "alert_caches",
+    "GADS::Schema::Result::AlertCache",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 alerts_send
@@ -316,10 +318,10 @@ Related object: L<GADS::Schema::Result::AlertSend>
 =cut
 
 __PACKAGE__->has_many(
-  "alerts_send",
-  "GADS::Schema::Result::AlertSend",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "alerts_send",
+    "GADS::Schema::Result::AlertSend",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 alert_columns
@@ -331,10 +333,10 @@ Related object: L<GADS::Schema::Result::AlertColumn>
 =cut
 
 __PACKAGE__->has_many(
-  "alert_columns",
-  "GADS::Schema::Result::AlertColumn",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "alert_columns",
+    "GADS::Schema::Result::AlertColumn",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 calcs
@@ -346,10 +348,9 @@ Related object: L<GADS::Schema::Result::Calc>
 =cut
 
 __PACKAGE__->has_many(
-  "calcs",
-  "GADS::Schema::Result::Calc",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "calcs", "GADS::Schema::Result::Calc",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 calcvals
@@ -361,10 +362,10 @@ Related object: L<GADS::Schema::Result::Calcval>
 =cut
 
 __PACKAGE__->has_many(
-  "calcvals",
-  "GADS::Schema::Result::Calcval",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "calcvals",
+    "GADS::Schema::Result::Calcval",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 curval_fields_children
@@ -376,10 +377,10 @@ Related object: L<GADS::Schema::Result::CurvalField>
 =cut
 
 __PACKAGE__->has_many(
-  "curval_fields_children",
-  "GADS::Schema::Result::CurvalField",
-  { "foreign.child_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "curval_fields_children",
+    "GADS::Schema::Result::CurvalField",
+    { "foreign.child_id" => "self.id" },
+    { cascade_copy       => 0, cascade_delete => 0 },
 );
 
 =head2 curval_fields_parents
@@ -391,10 +392,10 @@ Related object: L<GADS::Schema::Result::CurvalField>
 =cut
 
 __PACKAGE__->has_many(
-  "curval_fields_parents",
-  "GADS::Schema::Result::CurvalField",
-  { "foreign.parent_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "curval_fields_parents",
+    "GADS::Schema::Result::CurvalField",
+    { "foreign.parent_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 curvals
@@ -406,10 +407,10 @@ Related object: L<GADS::Schema::Result::Curval>
 =cut
 
 __PACKAGE__->has_many(
-  "curvals",
-  "GADS::Schema::Result::Curval",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "curvals",
+    "GADS::Schema::Result::Curval",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 dateranges
@@ -421,10 +422,10 @@ Related object: L<GADS::Schema::Result::Daterange>
 =cut
 
 __PACKAGE__->has_many(
-  "dateranges",
-  "GADS::Schema::Result::Daterange",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "dateranges",
+    "GADS::Schema::Result::Daterange",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 dates
@@ -436,10 +437,9 @@ Related object: L<GADS::Schema::Result::Date>
 =cut
 
 __PACKAGE__->has_many(
-  "dates",
-  "GADS::Schema::Result::Date",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "dates", "GADS::Schema::Result::Date",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 display_field
@@ -451,15 +451,15 @@ Related object: L<GADS::Schema::Result::Layout>
 =cut
 
 __PACKAGE__->belongs_to(
-  "display_field",
-  "GADS::Schema::Result::Layout",
-  { id => "display_field" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
+    "display_field",
+    "GADS::Schema::Result::Layout",
+    { id => "display_field" },
+    {
+        is_deferrable => 1,
+        join_type     => "LEFT",
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION",
+    },
 );
 
 =head2 display_fields
@@ -471,10 +471,10 @@ Related object: L<GADS::Schema::Result::DisplayField>
 =cut
 
 __PACKAGE__->has_many(
-  "display_fields",
-  "GADS::Schema::Result::DisplayField",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "display_fields",
+    "GADS::Schema::Result::DisplayField",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 enums
@@ -486,10 +486,9 @@ Related object: L<GADS::Schema::Result::Enum>
 =cut
 
 __PACKAGE__->has_many(
-  "enums",
-  "GADS::Schema::Result::Enum",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "enums", "GADS::Schema::Result::Enum",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 enumvals
@@ -501,10 +500,10 @@ Related object: L<GADS::Schema::Result::Enumval>
 =cut
 
 __PACKAGE__->has_many(
-  "enumvals",
-  "GADS::Schema::Result::Enumval",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "enumvals",
+    "GADS::Schema::Result::Enumval",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 file_options
@@ -516,10 +515,10 @@ Related object: L<GADS::Schema::Result::FileOption>
 =cut
 
 __PACKAGE__->has_many(
-  "file_options",
-  "GADS::Schema::Result::FileOption",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "file_options",
+    "GADS::Schema::Result::FileOption",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 files
@@ -531,10 +530,9 @@ Related object: L<GADS::Schema::Result::File>
 =cut
 
 __PACKAGE__->has_many(
-  "files",
-  "GADS::Schema::Result::File",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "files", "GADS::Schema::Result::File",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 filters
@@ -546,10 +544,10 @@ Related object: L<GADS::Schema::Result::Filter>
 =cut
 
 __PACKAGE__->has_many(
-  "filters",
-  "GADS::Schema::Result::Filter",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "filters",
+    "GADS::Schema::Result::Filter",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 graph_groups_by
@@ -561,10 +559,9 @@ Related object: L<GADS::Schema::Result::Graph>
 =cut
 
 __PACKAGE__->has_many(
-  "graph_groups_by",
-  "GADS::Schema::Result::Graph",
-  { "foreign.group_by" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "graph_groups_by", "GADS::Schema::Result::Graph",
+    { "foreign.group_by" => "self.id" },
+    { cascade_copy       => 0, cascade_delete => 0 },
 );
 
 =head2 graph_y_axes
@@ -576,10 +573,9 @@ Related object: L<GADS::Schema::Result::Graph>
 =cut
 
 __PACKAGE__->has_many(
-  "graph_y_axes",
-  "GADS::Schema::Result::Graph",
-  { "foreign.y_axis" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "graph_y_axes", "GADS::Schema::Result::Graph",
+    { "foreign.y_axis" => "self.id" },
+    { cascade_copy     => 0, cascade_delete => 0 },
 );
 
 =head2 graphs_x_axis
@@ -591,10 +587,9 @@ Related object: L<GADS::Schema::Result::Graph>
 =cut
 
 __PACKAGE__->has_many(
-  "graphs_x_axis",
-  "GADS::Schema::Result::Graph",
-  { "foreign.x_axis" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "graphs_x_axis", "GADS::Schema::Result::Graph",
+    { "foreign.x_axis" => "self.id" },
+    { cascade_copy     => 0, cascade_delete => 0 },
 );
 
 =head2 instance
@@ -606,15 +601,15 @@ Related object: L<GADS::Schema::Result::Instance>
 =cut
 
 __PACKAGE__->belongs_to(
-  "instance",
-  "GADS::Schema::Result::Instance",
-  { id => "instance_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
+    "instance",
+    "GADS::Schema::Result::Instance",
+    { id => "instance_id" },
+    {
+        is_deferrable => 1,
+        join_type     => "LEFT",
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION",
+    },
 );
 
 =head2 topic
@@ -626,15 +621,15 @@ Related object: L<GADS::Schema::Result::Topic>
 =cut
 
 __PACKAGE__->belongs_to(
-  "topic",
-  "GADS::Schema::Result::Topic",
-  { id => "topic_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
+    "topic",
+    "GADS::Schema::Result::Topic",
+    { id => "topic_id" },
+    {
+        is_deferrable => 1,
+        join_type     => "LEFT",
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION",
+    },
 );
 
 =head2 instances
@@ -646,10 +641,10 @@ Related object: L<GADS::Schema::Result::Instance>
 =cut
 
 __PACKAGE__->has_many(
-  "instances",
-  "GADS::Schema::Result::Instance",
-  { "foreign.sort_layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "instances",
+    "GADS::Schema::Result::Instance",
+    { "foreign.sort_layout_id" => "self.id" },
+    { cascade_copy             => 0, cascade_delete => 0 },
 );
 
 =head2 intgrs
@@ -661,10 +656,9 @@ Related object: L<GADS::Schema::Result::Intgr>
 =cut
 
 __PACKAGE__->has_many(
-  "intgrs",
-  "GADS::Schema::Result::Intgr",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "intgrs", "GADS::Schema::Result::Intgr",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 layout_depend_layouts
@@ -676,10 +670,10 @@ Related object: L<GADS::Schema::Result::LayoutDepend>
 =cut
 
 __PACKAGE__->has_many(
-  "layout_depend_layouts",
-  "GADS::Schema::Result::LayoutDepend",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "layout_depend_layouts",
+    "GADS::Schema::Result::LayoutDepend",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 layout_groups
@@ -691,10 +685,10 @@ Related object: L<GADS::Schema::Result::LayoutGroup>
 =cut
 
 __PACKAGE__->has_many(
-  "layout_groups",
-  "GADS::Schema::Result::LayoutGroup",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "layout_groups",
+    "GADS::Schema::Result::LayoutGroup",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 layout_link_parents
@@ -706,10 +700,10 @@ Related object: L<GADS::Schema::Result::Layout>
 =cut
 
 __PACKAGE__->has_many(
-  "layout_link_parents",
-  "GADS::Schema::Result::Layout",
-  { "foreign.link_parent" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "layout_link_parents",
+    "GADS::Schema::Result::Layout",
+    { "foreign.link_parent" => "self.id" },
+    { cascade_copy          => 0, cascade_delete => 0 },
 );
 
 =head2 layouts
@@ -721,10 +715,10 @@ Related object: L<GADS::Schema::Result::Layout>
 =cut
 
 __PACKAGE__->has_many(
-  "layouts",
-  "GADS::Schema::Result::Layout",
-  { "foreign.display_field" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "layouts",
+    "GADS::Schema::Result::Layout",
+    { "foreign.display_field" => "self.id" },
+    { cascade_copy            => 0, cascade_delete => 0 },
 );
 
 =head2 layouts_depend_depends_on
@@ -736,10 +730,10 @@ Related object: L<GADS::Schema::Result::LayoutDepend>
 =cut
 
 __PACKAGE__->has_many(
-  "layouts_depend_depends_on",
-  "GADS::Schema::Result::LayoutDepend",
-  { "foreign.depends_on" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "layouts_depend_depends_on",
+    "GADS::Schema::Result::LayoutDepend",
+    { "foreign.depends_on" => "self.id" },
+    { cascade_copy         => 0, cascade_delete => 0 },
 );
 
 =head2 link_parent
@@ -751,15 +745,15 @@ Related object: L<GADS::Schema::Result::Layout>
 =cut
 
 __PACKAGE__->belongs_to(
-  "link_parent",
-  "GADS::Schema::Result::Layout",
-  { id => "link_parent" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
+    "link_parent",
+    "GADS::Schema::Result::Layout",
+    { id => "link_parent" },
+    {
+        is_deferrable => 1,
+        join_type     => "LEFT",
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION",
+    },
 );
 
 =head2 related_field
@@ -771,15 +765,15 @@ Related object: L<GADS::Schema::Result::Layout>
 =cut
 
 __PACKAGE__->belongs_to(
-  "related_field",
-  "GADS::Schema::Result::Layout",
-  { id => "related_field" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
+    "related_field",
+    "GADS::Schema::Result::Layout",
+    { id => "related_field" },
+    {
+        is_deferrable => 1,
+        join_type     => "LEFT",
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION",
+    },
 );
 
 =head2 people
@@ -791,10 +785,10 @@ Related object: L<GADS::Schema::Result::Person>
 =cut
 
 __PACKAGE__->has_many(
-  "people",
-  "GADS::Schema::Result::Person",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "people",
+    "GADS::Schema::Result::Person",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 rags
@@ -806,10 +800,9 @@ Related object: L<GADS::Schema::Result::Rag>
 =cut
 
 __PACKAGE__->has_many(
-  "rags",
-  "GADS::Schema::Result::Rag",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "rags", "GADS::Schema::Result::Rag",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 ragvals
@@ -821,10 +814,10 @@ Related object: L<GADS::Schema::Result::Ragval>
 =cut
 
 __PACKAGE__->has_many(
-  "ragvals",
-  "GADS::Schema::Result::Ragval",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "ragvals",
+    "GADS::Schema::Result::Ragval",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 sorts
@@ -836,10 +829,9 @@ Related object: L<GADS::Schema::Result::Sort>
 =cut
 
 __PACKAGE__->has_many(
-  "sorts",
-  "GADS::Schema::Result::Sort",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "sorts", "GADS::Schema::Result::Sort",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 strings
@@ -851,10 +843,10 @@ Related object: L<GADS::Schema::Result::String>
 =cut
 
 __PACKAGE__->has_many(
-  "strings",
-  "GADS::Schema::Result::String",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "strings",
+    "GADS::Schema::Result::String",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 view_layouts
@@ -866,10 +858,10 @@ Related object: L<GADS::Schema::Result::ViewLayout>
 =cut
 
 __PACKAGE__->has_many(
-  "view_layouts",
-  "GADS::Schema::Result::ViewLayout",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "view_layouts",
+    "GADS::Schema::Result::ViewLayout",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 report_layouts
@@ -878,10 +870,10 @@ Related object: L<GADS::Schema::Result::ReportLayout>
 =cut
 
 __PACKAGE__->has_many(
-  "report_layouts",
-  "GADS::Schema::Result::ReportLayout",
-  { "foreign.layout_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "report_layouts",
+    "GADS::Schema::Result::ReportLayout",
+    { "foreign.layout_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 1;

@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -24,28 +25,34 @@ extends 'GADS::Datum::Curcommon';
 
 sub _transform_value
 {   my ($self, $value) = @_;
+
     # XXX - messy to account for different initial values. Can be tidied once
     # we are no longer pre-fetching multiple records
-    $value = $value->{value} if ref $value eq 'HASH' && exists $value->{value}
-        && (!defined $value->{value} || ref $value->{value} eq 'HASH' || ref $value->{value} eq 'GADS::Record');
+    $value = $value->{value}
+        if ref $value eq 'HASH'
+        && exists $value->{value}
+        && (!defined $value->{value}
+        || ref $value->{value} eq 'HASH'
+        || ref $value->{value} eq 'GADS::Record');
     my ($record, $id);
 
     if (ref $value eq 'GADS::Record')
     {
         $record = $value;
-        $id = $value->current_id;
+        $id     = $value->current_id;
     }
     elsif (ref $value)
     {
         my $record_id;
         if (exists $value->{record_single})
         {
-            $id = $value->{record_single}->{current_id};
-            $value = $value->{record_single};
+            $id        = $value->{record_single}->{current_id};
+            $value     = $value->{record_single};
             $record_id = $value->{id};
         }
-        else {
-            $id = $value->{value};
+        else
+        {
+            $id        = $value->{value};
             $record_id = $value->{record_id};
         }
         my %params = (
@@ -58,15 +65,18 @@ sub _transform_value
             columns_retrieved_do => $self->column->curval_fields_retrieve,
             columns_retrieved_no => $self->column->curval_fields_retrieve,
         );
+
         # Do not set these values, as if the values do not exist then they will
         # not be lazily built
         $params{linked_id} = $value->{linked_id} if exists $value->{linked_id};
         $params{parent_id} = $value->{parent_id} if exists $value->{parent_id};
-        $params{is_draft}  = $value->{draftuser_id} if exists $value->{draftuser_id};
+        $params{is_draft}  = $value->{draftuser_id}
+            if exists $value->{draftuser_id};
         $record = GADS::Record->new(%params);
     }
-    else {
-        $id = $value if !ref $value && defined $value; # Just ID
+    else
+    {
+        $id = $value if !ref $value && defined $value;    # Just ID
     }
     ($record, $id);
 }

@@ -12,10 +12,10 @@ use DBIx::Class::ResultSet;
 
 use base qw/DBIx::Class/;
 __PACKAGE__->load_components(qw/ResultSource/);
-__PACKAGE__->mk_group_accessors(
-    'simple' => qw(is_virtual view_definition) );
+__PACKAGE__->mk_group_accessors('simple' => qw(is_virtual view_definition));
 
-our $CHANGED_PARAMS; # XXX is there a better way to pass parameters?
+our $CHANGED_PARAMS;    # XXX is there a better way to pass parameters?
+
 sub from
 {   my $self = shift;
 
@@ -29,35 +29,39 @@ sub from
     # having changed. Might want to change to true textual values.
 
     # XXX Change to DBIx::Class::Helper::WindowFunctions ?
-    my $window      = "first_value(${field}_2.$value_field) OVER (
+    my $window = "first_value(${field}_2.$value_field) OVER (
         PARTITION BY record_earlier.current_id ORDER BY record_earlier.created DESC
     ) as first_value";
 
     # XXX It would be nice to pull the Current resultset from somewhere common,
     # with things like "records.approval = 0" already set
-    local $GADS::Schema::Result::Record::RECORD_EARLIER_BEFORE = $CHANGED_PARAMS->{date};
-    my $query = $self->schema->resultset('Current')->search({
-        'records.approval' => 0,
-        'me_other.instance_id'   => $CHANGED_PARAMS->{instance_id},
-        'records.created'  => { '>' => $CHANGED_PARAMS->{date} },
-    },{
-        alias => 'me_other',
-        columns => [
-            'me_other.id',
-            $column->field.'.'.$value_field,
-            \$window,
-        ],
-        join => {
-            records => [
-                $column->field,
-                'record_later',
-                {
-                    record_earlier => $column->field,
-                }
-            ]
+    local $GADS::Schema::Result::Record::RECORD_EARLIER_BEFORE =
+        $CHANGED_PARAMS->{date};
+    my $query = $self->schema->resultset('Current')->search(
+        {
+            'records.approval'     => 0,
+            'me_other.instance_id' => $CHANGED_PARAMS->{instance_id},
+            'records.created'      => { '>' => $CHANGED_PARAMS->{date} },
         },
-        #group_by => 'me_other.id',
-    })->as_query;
+        {
+            alias   => 'me_other',
+            columns => [
+                'me_other.id', $column->field . '.' . $value_field,
+                \$window,
+            ],
+            join => {
+                records => [
+                    $column->field,
+                    'record_later',
+                    {
+                        record_earlier => $column->field,
+                    },
+                ]
+            },
+
+            #group_by => 'me_other.id',
+        },
+    )->as_query;
     local $GADS::Schema::Result::Record::RECORD_EARLIER_BEFORE = undef;
     return $query;
 }

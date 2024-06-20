@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -34,9 +35,7 @@ has user => (
     required => 1,
 );
 
-has layout => (
-    is => 'ro',
-);
+has layout => (is => 'ro',);
 
 has records => (
     is  => 'lazy',
@@ -55,19 +54,23 @@ has count => (
 
 sub _build_records
 {   my $self = shift;
-    [values %{$self->_records}];
+    [ values %{ $self->_records } ];
 }
 
 sub _build__records
 {   my $self = shift;
 
     # First short-cut and see if it is worth continuing
-    return {} unless $self->schema->resultset('Record')->search({
-        approval              => 1,
-        'current.instance_id' => $self->layout->instance_id,
-    }, {
-        join => 'current',
-    })->count;
+    return {}
+        unless $self->schema->resultset('Record')->search(
+            {
+                approval              => 1,
+                'current.instance_id' => $self->layout->instance_id,
+            },
+            {
+                join => 'current',
+            },
+    )->count;
 
     my $search = {
         'current.instance_id'      => $self->layout->instance_id,
@@ -76,14 +79,14 @@ sub _build__records
         'user_id'                  => $self->user->id,
         'record_previous.id'       => undef,
     };
-    
+
     my $options = {
         join => [
             {
                 'record' => [
                     'current',
                     {
-                        'record' => ['record_previous', 'createdby'],
+                        'record' => [ 'record_previous', 'createdby' ],
                     },
                 ],
             },
@@ -106,18 +109,20 @@ sub _build__records
             { max => 'createdby.freetext2' },
             { max => 'createdby.value' },
         ],
-        as => [qw/
-            record.id
-            record.current_id
-            createdby.id
-            createdby.firstname
-            createdby.surname
-            createdby.email
-            createdby.freetext1
-            createdby.freetext2
-            createdby.value
-        /],
-        group_by => 'record.id',
+        as => [
+            qw/
+                record.id
+                record.current_id
+                createdby.id
+                createdby.firstname
+                createdby.surname
+                createdby.email
+                createdby.freetext1
+                createdby.freetext2
+                createdby.value
+                /
+        ],
+        group_by     => 'record.id',
         result_class => 'DBIx::Class::ResultClass::HashRefInflator',
     };
 
@@ -125,14 +130,23 @@ sub _build__records
 
     if ($self->layout->user_can('approve_new'))
     {
-        push @records, $self->schema->resultset('String')->search($search, $options)->all;
-        push @records, $self->schema->resultset('Date')->search($search, $options)->all;
-        push @records, $self->schema->resultset('Daterange')->search($search, $options)->all;
-        push @records, $self->schema->resultset('Intgr')->search($search, $options)->all;
-        push @records, $self->schema->resultset('Enum')->search($search, $options)->all;
-        push @records, $self->schema->resultset('Curval')->search($search, $options)->all;
-        push @records, $self->schema->resultset('File')->search($search, $options)->all;
-        push @records, $self->schema->resultset('Person')->search($search, $options)->all;
+        push @records,
+            $self->schema->resultset('String')->search($search, $options)->all;
+        push @records,
+            $self->schema->resultset('Date')->search($search, $options)->all;
+        push @records,
+            $self->schema->resultset('Daterange')->search($search, $options)
+            ->all;
+        push @records,
+            $self->schema->resultset('Intgr')->search($search, $options)->all;
+        push @records,
+            $self->schema->resultset('Enum')->search($search, $options)->all;
+        push @records,
+            $self->schema->resultset('Curval')->search($search, $options)->all;
+        push @records,
+            $self->schema->resultset('File')->search($search, $options)->all;
+        push @records,
+            $self->schema->resultset('Person')->search($search, $options)->all;
     }
 
     $search = {
@@ -145,14 +159,23 @@ sub _build__records
 
     if ($self->layout->user_can('approve_existing'))
     {
-        push @records, $self->schema->resultset('String')->search($search, $options)->all;
-        push @records, $self->schema->resultset('Date')->search($search, $options)->all;
-        push @records, $self->schema->resultset('Daterange')->search($search, $options)->all;
-        push @records, $self->schema->resultset('Intgr')->search($search, $options)->all;
-        push @records, $self->schema->resultset('Enum')->search($search, $options)->all;
-        push @records, $self->schema->resultset('Curval')->search($search, $options)->all;
-        push @records, $self->schema->resultset('File')->search($search, $options)->all;
-        push @records, $self->schema->resultset('Person')->search($search, $options)->all;
+        push @records,
+            $self->schema->resultset('String')->search($search, $options)->all;
+        push @records,
+            $self->schema->resultset('Date')->search($search, $options)->all;
+        push @records,
+            $self->schema->resultset('Daterange')->search($search, $options)
+            ->all;
+        push @records,
+            $self->schema->resultset('Intgr')->search($search, $options)->all;
+        push @records,
+            $self->schema->resultset('Enum')->search($search, $options)->all;
+        push @records,
+            $self->schema->resultset('Curval')->search($search, $options)->all;
+        push @records,
+            $self->schema->resultset('File')->search($search, $options)->all;
+        push @records,
+            $self->schema->resultset('Person')->search($search, $options)->all;
     }
 
     my $records = {};
@@ -166,7 +189,7 @@ sub _build__records
             current_id => $record->{record}->{current_id},
             createdby  => GADS::Datum::Person->new(
                 record_id => $record->{record}->{id},
-                set_value => {value => $record->{createdby}},
+                set_value => { value => $record->{createdby} },
                 schema    => $self->schema,
                 layout    => $self->layout,
             ),
@@ -178,7 +201,7 @@ sub _build__records
 
 sub _build_count
 {   my $self = shift;
-    scalar keys %{$self->_records};
+    scalar keys %{ $self->_records };
 }
 
 1;

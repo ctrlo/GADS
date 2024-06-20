@@ -1,4 +1,5 @@
 use utf8;
+
 package GADS::Schema::Result::File;
 
 # Created by DBIx::Class::Schema::Loader
@@ -69,16 +70,16 @@ __PACKAGE__->table("file");
 =cut
 
 __PACKAGE__->add_columns(
-  "id",
-  { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
-  "record_id",
-  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
-  "layout_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "child_unique",
-  { data_type => "smallint", default_value => 0, is_nullable => 0 },
-  "value",
-  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
+    "id",
+    { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
+    "record_id",
+    { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
+    "layout_id",
+    { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+    "child_unique",
+    { data_type => "smallint", default_value => 0, is_nullable => 0 },
+    "value",
+    { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -104,15 +105,15 @@ Related object: L<GADS::Schema::Result::Layout>
 =cut
 
 __PACKAGE__->belongs_to(
-  "layout",
-  "GADS::Schema::Result::Layout",
-  { id => "layout_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
+    "layout",
+    "GADS::Schema::Result::Layout",
+    { id => "layout_id" },
+    {
+        is_deferrable => 1,
+        join_type     => "LEFT",
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION",
+    },
 );
 
 =head2 record
@@ -124,15 +125,15 @@ Related object: L<GADS::Schema::Result::Record>
 =cut
 
 __PACKAGE__->belongs_to(
-  "record",
-  "GADS::Schema::Result::Record",
-  { id => "record_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
+    "record",
+    "GADS::Schema::Result::Record",
+    { id => "record_id" },
+    {
+        is_deferrable => 1,
+        join_type     => "LEFT",
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION",
+    },
 );
 
 =head2 value
@@ -144,32 +145,32 @@ Related object: L<GADS::Schema::Result::Fileval>
 =cut
 
 __PACKAGE__->belongs_to(
-  "value",
-  "GADS::Schema::Result::Fileval",
-  { id => "value" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
+    "value",
+    "GADS::Schema::Result::Fileval",
+    { id => "value" },
+    {
+        is_deferrable => 1,
+        join_type     => "LEFT",
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION",
+    },
 );
 
 __PACKAGE__->belongs_to(
-  "value_alternative",
-  "GADS::Schema::Result::Fileval",
-  { id => "value" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
+    "value_alternative",
+    "GADS::Schema::Result::Fileval",
+    { id => "value" },
+    {
+        is_deferrable => 1,
+        join_type     => "LEFT",
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION",
+    },
 );
 
 sub export_hash
 {   my $self = shift;
-    my $val = $self->value;
+    my $val  = $self->value;
     +{
         layout_id    => $self->layout_id,
         child_unique => $self->child_unique,
@@ -179,10 +180,8 @@ sub export_hash
     };
 }
 
-
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:266q8eJmPiCjcNhwddaUkw
-
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

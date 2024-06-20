@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -23,9 +24,7 @@ use Moo;
 use MooX::Types::MooseLike::Base qw/ArrayRef HashRef Int Maybe Bool/;
 
 # Whether the logged-in user has the layout permission
-has user_has_layout => (
-    is => 'lazy',
-);
+has user_has_layout => (is => 'lazy',);
 
 sub _build_user_has_layout
 {   my $self = shift;
@@ -35,7 +34,7 @@ sub _build_user_has_layout
 # Whether to show another user's views
 has other_user_id => (
     is  => 'ro',
-    isa => Maybe[Int],
+    isa => Maybe [Int],
 );
 
 has user_permission_override => (
@@ -68,7 +67,7 @@ has user_views_all => (
 
 sub _build_user_views_all
 {   my $all = shift->user_views;
-    [@{$all->{shared}}, @{$all->{personal}}, @{$all->{admin}}];
+    [ @{ $all->{shared} }, @{ $all->{personal} }, @{ $all->{admin} } ];
 }
 
 has global => (
@@ -87,35 +86,38 @@ has all => (
 );
 
 # Only required a full view is retrieved
-has layout => (
-    is => 'rw',
-);
+has layout => (is => 'rw',);
 
 sub _user_views
 {   my $self = shift;
-    # Allow user ID to be overridden, but only if the logged-in user has permission
-    my $user_id = ($self->user_has_layout && $self->other_user_id) || ($self->layout->user && $self->layout->user->id);
+
+ # Allow user ID to be overridden, but only if the logged-in user has permission
+    my $user_id = ($self->user_has_layout && $self->other_user_id)
+        || ($self->layout->user && $self->layout->user->id);
     my $search = [
         'me.user_id' => $user_id,
         {
-            global  => 1,
-            -or     => [
+            global => 1,
+            -or    => [
                 'me.group_id'         => undef,
                 'user_groups.user_id' => $user_id,
             ],
-        }
+        },
     ];
     push @$search, (is_admin => 1) if $self->user_has_layout;
-    my @views = $self->schema->resultset('View')->search({
-        -or         => $search,
-        instance_id => $self->instance_id,
-    },{
-        join     => {
-            group => 'user_groups',
+    my @views = $self->schema->resultset('View')->search(
+        {
+            -or         => $search,
+            instance_id => $self->instance_id,
         },
-        order_by => ['me.global', 'me.is_admin', 'me.name'],
-        collapse => 1,
-    })->all;
+        {
+            join => {
+                group => 'user_groups',
+            },
+            order_by => [ 'me.global', 'me.is_admin', 'me.name' ],
+            collapse => 1,
+        },
+    )->all;
     my $return = {
         admin    => [],
         shared   => [],
@@ -125,37 +127,39 @@ sub _user_views
     {
         if ($view->global)
         {
-            push @{$return->{shared}}, $view;
+            push @{ $return->{shared} }, $view;
         }
         elsif ($view->is_admin)
         {
-            push @{$return->{admin}}, $view;
+            push @{ $return->{admin} }, $view;
         }
-        else {
-            push @{$return->{personal}}, $view;
+        else
+        {
+            push @{ $return->{personal} }, $view;
         }
     }
     $return;
 }
 
-has views_limit_extra => (
-    is => 'lazy',
-);
+has views_limit_extra => (is => 'lazy',);
 
 sub _build_views_limit_extra
 {   my $self = shift;
     return [] if !$self->layout->user_can('view_limit_extra');
-    my @views = $self->schema->resultset('View')->search({
-        is_limit_extra => 1,
-        instance_id    => $self->instance_id,
-    },{
-        order_by => 'me.name',
-    });
+    my @views = $self->schema->resultset('View')->search(
+        {
+            is_limit_extra => 1,
+            instance_id    => $self->instance_id,
+        },
+        {
+            order_by => 'me.name',
+        },
+    );
     \@views;
 }
 
 sub _build_global
-{   my $self = shift;
+{   my $self  = shift;
     my @views = $self->schema->resultset('View')->search({
         global      => 1,
         instance_id => $self->instance_id,
@@ -165,7 +169,7 @@ sub _build_global
 }
 
 sub _build_admin
-{   my $self = shift;
+{   my $self  = shift;
     my @views = $self->schema->resultset('View')->search({
         is_admin    => 1,
         instance_id => $self->instance_id,
@@ -175,7 +179,7 @@ sub _build_admin
 }
 
 sub _build_all
-{   my $self = shift;
+{   my $self  = shift;
     my @views = $self->schema->resultset('View')->search({
         instance_id => $self->instance_id,
     })->all;
@@ -185,16 +189,18 @@ sub _build_all
 
 # Default user view
 sub default
-{   my $self = shift;
-    my @user_views   = @{$self->user_views_all} or return;
-    my $default_view = shift @user_views or return;
-    my $view_id      = $default_view->id or return;
+{   my $self         = shift;
+    my @user_views   = @{ $self->user_views_all } or return;
+    my $default_view = shift @user_views          or return;
+    my $view_id      = $default_view->id          or return;
     $self->view($view_id);
 }
 
 sub view
-{   my ($self, $view_id) =  @_;
-    my $layout = $self->layout or die "layout needs to be defined to retrieve view";
+{   my ($self, $view_id) = @_;
+    my $layout = $self->layout
+        or die "layout needs to be defined to retrieve view";
+
     # Try to create a view using the ID. Don't bork if it fails
     my $view = GADS::View->new(
         id                       => $view_id,
@@ -208,10 +214,11 @@ sub view
 
 sub purge
 {   my $self = shift;
-    foreach my $view (@{$self->all})
+    foreach my $view (@{ $self->all })
     {
-        # Remove any view limits, which would otherwise cause the view to not be deleted
-        $self->schema->resultset('ViewLimit')->search({ view_id => $view->id })->delete;
+# Remove any view limits, which would otherwise cause the view to not be deleted
+        $self->schema->resultset('ViewLimit')->search({ view_id => $view->id })
+            ->delete;
         $view->delete;
     }
 }

@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2015 Ctrl O Ltd
@@ -23,13 +24,9 @@ use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 
 # Only needed when manipulating the object
-has schema => (
-    is => 'ro',
-);
+has schema => (is => 'ro',);
 
-has id => (
-    is  => 'rwp',
-);
+has id => (is => 'rwp',);
 
 has metric_group_id => (
     is      => 'rw',
@@ -58,9 +55,7 @@ has y_axis_grouping_value => (
     builder => sub { $_[0]->_rset->y_axis_grouping_value },
 );
 
-has _rset => (
-    is => 'lazy',
-);
+has _rset => (is => 'lazy',);
 
 sub _build__rset
 {   my $self = shift;
@@ -68,13 +63,15 @@ sub _build__rset
     if ($self->id)
     {
         $self->id =~ /^[0-9]+$/
-            or error __x"Invalid id {id}", id => $self->id;
+            or error __x "Invalid id {id}", id => $self->id;
         $rset = $self->schema->resultset('Metric')->find($self->id)
-            or error __x"Metric ID {id} not found", id => $self->id;
+            or error __x "Metric ID {id} not found", id => $self->id;
     }
-    else {
+    else
+    {
         $self->metric_group_id =~ /^[0-9]+$/
-            or error __x"Invalid metric group ID {id}", id => $self->metric_group_id;
+            or error __x "Invalid metric group ID {id}",
+            id => $self->metric_group_id;
         $rset = $self->schema->resultset('Metric')->create({
             metric_group => $self->metric_group_id,
         });
@@ -95,5 +92,4 @@ sub write
 }
 
 1;
-
 

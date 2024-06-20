@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -33,15 +34,15 @@ sub _build_value
     $self->current_id;
 }
 
-sub _build_blank {
-    my $self = shift;
-    ! $self->value;
+sub _build_blank
+{   my $self = shift;
+    !$self->value;
 }
 
 sub for_table
-{   my $self = shift;
+{   my $self   = shift;
     my $return = $self->for_table_template;
-    $return->{values} = $self->value ? [$self->as_string] : [];
+    $return->{values}    = $self->value ? [ $self->as_string ] : [];
     $return->{parent_id} = $self->record->parent_id;
     $return;
 }

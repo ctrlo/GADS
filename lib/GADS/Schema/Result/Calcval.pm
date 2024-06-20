@@ -1,4 +1,5 @@
 use utf8;
+
 package GADS::Schema::Result::Calcval;
 
 # Created by DBIx::Class::Schema::Loader
@@ -78,24 +79,36 @@ __PACKAGE__->table("calcval");
 =cut
 
 __PACKAGE__->add_columns(
-  "id",
-  { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
-  "record_id",
-  { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
-  "layout_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "value_text",
-  { data_type => "text", is_nullable => 1 },
-  "value_int",
-  { data_type => "bigint", is_nullable => 1 },
-  "value_date",
-  { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
-  "value_numeric",
-  { data_type => "decimal", is_nullable => 1, size => [20, 5] },
-  "value_date_from",
-  { data_type => "datetime", datetime_undef_if_invalid => 1, is_nullable => 1 },
-  "value_date_to",
-  { data_type => "datetime", datetime_undef_if_invalid => 1, is_nullable => 1 },
+    "id",
+    { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
+    "record_id",
+    { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
+    "layout_id",
+    { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+    "value_text",
+    { data_type => "text", is_nullable => 1 },
+    "value_int",
+    { data_type => "bigint", is_nullable => 1 },
+    "value_date",
+    {
+        data_type                 => "date",
+        datetime_undef_if_invalid => 1,
+        is_nullable               => 1
+    },
+    "value_numeric",
+    { data_type => "decimal", is_nullable => 1, size => [ 20, 5 ] },
+    "value_date_from",
+    {
+        data_type                 => "datetime",
+        datetime_undef_if_invalid => 1,
+        is_nullable               => 1
+    },
+    "value_date_to",
+    {
+        data_type                 => "datetime",
+        datetime_undef_if_invalid => 1,
+        is_nullable               => 1
+    },
 );
 
 =head1 PRIMARY KEY
@@ -121,10 +134,14 @@ Related object: L<GADS::Schema::Result::Layout>
 =cut
 
 __PACKAGE__->belongs_to(
-  "layout",
-  "GADS::Schema::Result::Layout",
-  { id => "layout_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+    "layout",
+    "GADS::Schema::Result::Layout",
+    { id => "layout_id" },
+    {
+        is_deferrable => 1,
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION"
+    },
 );
 
 =head2 record
@@ -136,22 +153,37 @@ Related object: L<GADS::Schema::Result::Record>
 =cut
 
 __PACKAGE__->belongs_to(
-  "record",
-  "GADS::Schema::Result::Record",
-  { id => "record_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+    "record",
+    "GADS::Schema::Result::Record",
+    { id => "record_id" },
+    {
+        is_deferrable => 1,
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION"
+    },
 );
-
 
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-02-09 12:55:53
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:yVFUGNM0ceG5Lf2KyimIvA
 
-sub sqlt_deploy_hook {
-    my ($self, $sqlt_table) = @_;
-    $sqlt_table->add_index(name => 'calcval_idx_value_text', fields => [ { name => 'value_text', prefix_length => 64 } ]);
-    $sqlt_table->add_index(name => 'calcval_idx_value_numeric', fields => [ 'value_numeric' ]);
-    $sqlt_table->add_index(name => 'calcval_idx_value_int', fields => [ 'value_int' ]);
-    $sqlt_table->add_index(name => 'calcval_idx_value_date', fields => [ 'value_date' ]);
+sub sqlt_deploy_hook
+{   my ($self, $sqlt_table) = @_;
+    $sqlt_table->add_index(
+        name   => 'calcval_idx_value_text',
+        fields => [ { name => 'value_text', prefix_length => 64 } ]
+    );
+    $sqlt_table->add_index(
+        name   => 'calcval_idx_value_numeric',
+        fields => ['value_numeric']
+    );
+    $sqlt_table->add_index(
+        name   => 'calcval_idx_value_int',
+        fields => ['value_int']
+    );
+    $sqlt_table->add_index(
+        name   => 'calcval_idx_value_date',
+        fields => ['value_date']
+    );
 }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

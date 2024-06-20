@@ -1,4 +1,5 @@
 use utf8;
+
 package GADS::Schema::Result::UserGroup;
 
 # Created by DBIx::Class::Schema::Loader
@@ -56,12 +57,12 @@ __PACKAGE__->table("user_group");
 =cut
 
 __PACKAGE__->add_columns(
-  "id",
-  { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
-  "user_id",
-  { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
-  "group_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+    "id",
+    { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
+    "user_id",
+    { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
+    "group_id",
+    { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -87,10 +88,14 @@ Related object: L<GADS::Schema::Result::Group>
 =cut
 
 __PACKAGE__->belongs_to(
-  "group",
-  "GADS::Schema::Result::Group",
-  { id => "group_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+    "group",
+    "GADS::Schema::Result::Group",
+    { id => "group_id" },
+    {
+        is_deferrable => 1,
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION"
+    },
 );
 
 =head2 user
@@ -102,16 +107,18 @@ Related object: L<GADS::Schema::Result::User>
 =cut
 
 __PACKAGE__->belongs_to(
-  "user",
-  "GADS::Schema::Result::User",
-  { id => "user_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+    "user",
+    "GADS::Schema::Result::User",
+    { id => "user_id" },
+    {
+        is_deferrable => 1,
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION"
+    },
 );
-
 
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:G99PMCYEb3GXb1WIvyoqqw
-
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

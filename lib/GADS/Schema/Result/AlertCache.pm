@@ -1,4 +1,5 @@
 use utf8;
+
 package GADS::Schema::Result::AlertCache;
 
 # Created by DBIx::Class::Schema::Loader
@@ -68,16 +69,16 @@ __PACKAGE__->table("alert_cache");
 =cut
 
 __PACKAGE__->add_columns(
-  "id",
-  { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
-  "layout_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "view_id",
-  { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
-  "current_id",
-  { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
-  "user_id",
-  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
+    "id",
+    { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
+    "layout_id",
+    { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+    "view_id",
+    { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
+    "current_id",
+    { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
+    "user_id",
+    { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -103,10 +104,14 @@ Related object: L<GADS::Schema::Result::Current>
 =cut
 
 __PACKAGE__->belongs_to(
-  "current",
-  "GADS::Schema::Result::Current",
-  { id => "current_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+    "current",
+    "GADS::Schema::Result::Current",
+    { id => "current_id" },
+    {
+        is_deferrable => 1,
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION"
+    },
 );
 
 =head2 layout
@@ -118,10 +123,14 @@ Related object: L<GADS::Schema::Result::Layout>
 =cut
 
 __PACKAGE__->belongs_to(
-  "layout",
-  "GADS::Schema::Result::Layout",
-  { id => "layout_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+    "layout",
+    "GADS::Schema::Result::Layout",
+    { id => "layout_id" },
+    {
+        is_deferrable => 1,
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION"
+    },
 );
 
 =head2 view
@@ -133,10 +142,14 @@ Related object: L<GADS::Schema::Result::View>
 =cut
 
 __PACKAGE__->belongs_to(
-  "view",
-  "GADS::Schema::Result::View",
-  { id => "view_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+    "view",
+    "GADS::Schema::Result::View",
+    { id => "view_id" },
+    {
+        is_deferrable => 1,
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION"
+    },
 );
 
 =head2 user
@@ -148,16 +161,18 @@ Related object: L<GADS::Schema::Result::User>
 =cut
 
 __PACKAGE__->belongs_to(
-  "user",
-  "GADS::Schema::Result::User",
-  { id => "user_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+    "user",
+    "GADS::Schema::Result::User",
+    { id => "user_id" },
+    {
+        is_deferrable => 1,
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION"
+    },
 );
-
 
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:+TH/6fumAS4x4cEhGnNL4A
-
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

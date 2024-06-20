@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -29,13 +30,9 @@ has schema => (
     required => 1,
 );
 
-has current_user => (
-    is => 'rw',
-);
+has current_user => (is => 'rw',);
 
-has layout => (
-    is => 'rw',
-);
+has layout => (is => 'rw',);
 
 has all => (
     is      => 'rw',
@@ -46,43 +43,48 @@ has all => (
 sub _all
 {   my $self = shift;
 
-    my @graphs; my @user_graphs;
+    my @graphs;
+    my @user_graphs;
 
     # First create a hash of all the graphs the user has selected
-    my %user_selected = map {
-        $_->id => 1
-    } $self->schema->resultset('Graph')->search({
-        'user_graphs.user_id' => $self->current_user->id,
-        instance_id           => $self->layout->instance_id,
-    },{
-        join => 'user_graphs',
-    })->all;
+    my %user_selected =
+        map { $_->id => 1 } $self->schema->resultset('Graph')->search(
+            {
+                'user_graphs.user_id' => $self->current_user->id,
+                instance_id           => $self->layout->instance_id,
+            },
+            {
+                join => 'user_graphs',
+            },
+    )->all;
 
     # Now get all graphs, and use the previous hash to see
     # if the user has this graph selected
     my $all_rs = $self->schema->resultset('Graph')->search(
-    {
-        instance_id => $self->layout->instance_id,
-        -or         => [
-            {
-                'me.is_shared' => 1,
-                'me.group_id'  => undef,
-            },
-            {
-                'me.is_shared'        => 1,
-                'user_groups.user_id' => $self->current_user->id,
-            },
-            {
-                'me.user_id' => $self->current_user->id,
-            },
-        ],
-    },{
-        join => {
-            group => 'user_groups',
+        {
+            instance_id => $self->layout->instance_id,
+            -or         => [
+                {
+                    'me.is_shared' => 1,
+                    'me.group_id'  => undef,
+                },
+                {
+                    'me.is_shared'        => 1,
+                    'user_groups.user_id' => $self->current_user->id,
+                },
+                {
+                    'me.user_id' => $self->current_user->id,
+                },
+            ],
         },
-        collapse => 1,
-        order_by => 'me.title',
-    });
+        {
+            join => {
+                group => 'user_groups',
+            },
+            collapse => 1,
+            order_by => 'me.title',
+        },
+    );
     $all_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my @all_graphs = $all_rs->all;
     foreach my $grs (@all_graphs)
@@ -91,7 +93,7 @@ sub _all
             schema       => $self->schema,
             layout       => $self->layout,
             current_user => $self->current_user,
-            selected     => $user_selected{$grs->{id}},
+            selected     => $user_selected{ $grs->{id} },
             set_values   => $grs,
         );
         push @graphs, $graph;
@@ -101,34 +103,31 @@ sub _all
 }
 
 has all_shared => (
-    is => 'lazy',
+    is  => 'lazy',
     isa => ArrayRef,
 );
 
 sub _build_all_shared
 {   my $self = shift;
-    [ grep $_->is_shared, @{$self->all} ];
+    [ grep $_->is_shared, @{ $self->all } ];
 }
 
 has all_personal => (
-    is => 'lazy',
+    is  => 'lazy',
     isa => ArrayRef,
 );
 
 sub _build_all_personal
 {   my $self = shift;
-    [ grep !$_->is_shared, @{$self->all} ];
+    [ grep !$_->is_shared, @{ $self->all } ];
 }
 
-has all_all_users => (
-    is => 'lazy',
-);
+has all_all_users => (is => 'lazy',);
 
 sub _build_all_all_users
 {   my $self = shift;
 
-    my $all_rs = $self->schema->resultset('Graph')->search(
-    {
+    my $all_rs = $self->schema->resultset('Graph')->search({
         instance_id => $self->layout->instance_id,
     });
     $all_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
@@ -137,9 +136,9 @@ sub _build_all_all_users
     foreach my $grs (@all_graphs)
     {
         my $graph = GADS::Graph->new(
-            schema       => $self->schema,
-            layout       => $self->layout,
-            set_values   => $grs,
+            schema     => $self->schema,
+            layout     => $self->layout,
+            set_values => $grs,
         );
         push @graphs, $graph;
     }
@@ -149,15 +148,13 @@ sub _build_all_all_users
 
 sub purge
 {   my $self = shift;
-    foreach my $graph (@{$self->all_all_users})
+    foreach my $graph (@{ $self->all_all_users })
     {
         $graph->delete;
     }
 }
 
-sub types
-{ qw(bar line donut scatter pie) }
+sub types { qw(bar line donut scatter pie) }
 
 1;
-
 

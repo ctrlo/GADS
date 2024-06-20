@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -29,25 +30,16 @@ extends 'GADS::Column';
 
 with 'GADS::Role::Presentation::Column::Date';
 
-has '+return_type' => (
-    builder => sub { 'date' },
-);
+has '+return_type' => (builder => sub { 'date' },);
 
-has '+addable' => (
-    default => 1,
-);
+has '+addable' => (default => 1,);
 
-has '+can_multivalue' => (
-    default => 1,
-);
+has '+can_multivalue' => (default => 1,);
 
-has '+has_multivalue_plus' => (
-    default => 1,
-);
+has '+has_multivalue_plus' => (default => 1,);
 
-has '+option_names' => (
-    default => sub { [qw/show_datepicker default_today/] },
-);
+has '+option_names' =>
+    (default => sub { [qw/show_datepicker default_today/] },);
 
 has show_datepicker => (
     is      => 'rw',
@@ -99,7 +91,8 @@ sub import_value
         record_id    => $value->{record_id},
         layout_id    => $self->id,
         child_unique => $value->{child_unique},
-        value        => $value->{value} && DateTime::Format::ISO8601->parse_datetime($value->{value}),
+        value        => $value->{value}
+            && DateTime::Format::ISO8601->parse_datetime($value->{value}),
     });
 }
 

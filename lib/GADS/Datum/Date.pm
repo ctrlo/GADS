@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -41,18 +42,19 @@ after set_value => sub {
     my ($self, $all, %options) = @_;
     $all ||= [];
     $all = [$all] if ref $all ne 'ARRAY';
-    my @all = @$all; # Take a copy first
+    my @all   = @$all;          # Take a copy first
     my $clone = $self->clone;
-    shift @all if @all % 2 == 1 && !$all[0]; # First is hidden value from form
+    shift @all
+        if @all % 2 == 1 && !$all[0];    # First is hidden value from form
     my @values;
     while (@all)
     {
         my @dt = $self->_to_dt(shift @all, source => 'user', %options);
         push @values, @dt if @dt;
     }
-    my @text_all = sort map { $self->_as_string($_) } @values;
-    my @old_texts = @{$self->text_all};
-    my $changed = "@text_all" ne "@old_texts";
+    my @text_all  = sort map { $self->_as_string($_) } @values;
+    my @old_texts = @{ $self->text_all };
+    my $changed   = "@text_all" ne "@old_texts";
     if ($changed)
     {
         $self->changed(1);
@@ -65,32 +67,37 @@ after set_value => sub {
 };
 
 sub for_table
-{   my $self = shift;
+{   my $self   = shift;
     my $return = $self->for_table_template;
     $return->{values} = $self->text_all;
     $return;
 }
 
 has values => (
-    is      => 'rwp',
-    isa     => ArrayRef,
-    lazy    => 1,
-    coerce  => sub {
+    is     => 'rwp',
+    isa    => ArrayRef,
+    lazy   => 1,
+    coerce => sub {
         my $values = shift;
+
         # If the timezone is floating, then assume it is UTC (e.g. from MySQL
         # database which do not have timezones stored). Set it as UTC, as
         # otherwise any changes to another timezone will not make any effect
-        $_->time_zone->is_floating && $_->set_time_zone('UTC') foreach @$values;
+        $_->time_zone->is_floating && $_->set_time_zone('UTC')
+            foreach @$values;
         return $values;
     },
     builder => sub {
         my $self = shift;
-        if ($self->record && $self->record->new_entry && $self->column->default_today)
+        if (   $self->record
+            && $self->record->new_entry
+            && $self->column->default_today)
         {
-            return [DateTime->now];
+            return [ DateTime->now ];
         }
         $self->init_value or return [];
-        my @values = map { $self->_to_dt($_, source => 'db') } @{$self->init_value};
+        my @values =
+            map { $self->_to_dt($_, source => 'db') } @{ $self->init_value };
         $self->has_value(!!@values);
         [@values];
     },
@@ -98,15 +105,12 @@ has values => (
 
 sub _build_blank
 {   my $self = shift;
-    ! grep { $_ } @{$self->values};
+    !grep { $_ } @{ $self->values };
 }
-
 
 # Can't use predicate, as value may not have been built on
 # second time it's set
-has has_value => (
-    is => 'rw',
-);
+has has_value => (is => 'rw',);
 
 around 'clone' => sub {
     my $orig = shift;
@@ -128,33 +132,42 @@ sub _to_dt
     }
     elsif ($source eq 'db')
     {
-        if ($value =~ / /) # Assume datetime
+        if ($value =~ / /)    # Assume datetime
         {
-            return $self->schema->storage->datetime_parser->parse_datetime($value);
-        } else {
+            return $self->schema->storage->datetime_parser->parse_datetime(
+                $value);
+        }
+        else
+        {
             return $self->schema->storage->datetime_parser->parse_date($value);
         }
     }
-    else { # Assume 'user'
-        if (!$self->column->validate($value) && $options{bulk}) # Only allow duration during bulk update
+    else
+    {    # Assume 'user'
+        if (  !$self->column->validate($value)
+            && $options{bulk})    # Only allow duration during bulk update
         {
             # See if it's a duration and return that instead if so
-            if (my $duration = DateTime::Format::DateManip->parse_duration($value))
+            if (my $duration =
+                DateTime::Format::DateManip->parse_duration($value))
             {
-                if (@{$self->values})
+                if (@{ $self->values })
                 {
                     my @return;
-                    foreach my $value (@{$self->values})
+                    foreach my $value (@{ $self->values })
                     {
                         push @return, $value->clone->add_duration($duration);
                     }
                     return @return;
                 }
-                else {
-                    return; # Don't bork as we might be bulk updating, with some blank values
+                else
+                {
+                    return
+                        ; # Don't bork as we might be bulk updating, with some blank values
                 }
             }
-            else {
+            else
+            {
                 # Will bork below
             }
         }
@@ -169,7 +182,7 @@ has text_all => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        [ map { $self->_as_string($_) } @{$self->values} ];
+        [ map { $self->_as_string($_) } @{ $self->values } ];
     },
 );
 
@@ -184,7 +197,7 @@ sub _as_string
 
 sub as_string
 {   my $self = shift;
-    join ', ', @{$self->text_all};
+    join ', ', @{ $self->text_all };
 }
 
 has html_form => (
@@ -194,7 +207,7 @@ has html_form => (
 
 sub _build_html_form
 {   my $self = shift;
-    [ map { $self->_as_string($_) } @{$self->values} ];
+    [ map { $self->_as_string($_) } @{ $self->values } ];
 }
 
 sub _build_for_code
@@ -202,9 +215,7 @@ sub _build_for_code
 
     return undef if !$self->column->multivalue && $self->blank;
 
-    my @return = map {
-        $self->date_for_code($_)
-    } @{$self->values};
+    my @return = map { $self->date_for_code($_) } @{ $self->values };
 
     $self->column->multivalue || @return > 1 ? \@return : $return[0];
 }

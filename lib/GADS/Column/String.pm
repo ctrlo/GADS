@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -35,18 +36,14 @@ has textbox => (
 );
 
 has force_regex => (
-    is      => 'rw',
-    isa     => Maybe[Str],
-    lazy    => 1,
+    is   => 'rw',
+    isa  => Maybe [Str],
+    lazy => 1,
 );
 
-has '+can_multivalue' => (
-    default => 1,
-);
+has '+can_multivalue' => (default => 1,);
 
-has '+has_multivalue_plus' => (
-    default => 1,
-);
+has '+has_multivalue_plus' => (default => 1,);
 
 after 'build_values' => sub {
     my ($self, $original) = @_;
@@ -73,30 +70,38 @@ sub write_special
     });
 
     return ();
-};
+}
 
 sub cleanup
 {   my ($class, $schema, $id) = @_;
-    $schema->resultset('String')->search({ layout_id => $id })->delete
+    $schema->resultset('String')->search({ layout_id => $id })->delete;
 }
 
 sub resultset_for_values
 {   my $self = shift;
-    return $self->schema->resultset('String')->search({
-        layout_id => $self->id,
-    },{
-        group_by => 'me.value',
-    });
+    return $self->schema->resultset('String')->search(
+        {
+            layout_id => $self->id,
+        },
+        {
+            group_by => 'me.value',
+        },
+    );
 }
 
 before import_hash => sub {
     my ($self, $values, %options) = @_;
     my $report = $options{report_only} && $self->id;
-    notice __x"Update: textbox from {old} to {new}", old => $self->textbox, new => $values->{textbox}
+    notice __x "Update: textbox from {old} to {new}",
+        old => $self->textbox,
+        new => $values->{textbox}
         if $report && $self->textbox != $values->{textbox};
     $self->textbox($values->{textbox});
-    notice __x"Update: force_regex from {old} to {new}", old => $self->force_regex, new => $values->{force_regex}
-        if $report && ($self->force_regex || '') ne ($values->{force_regex} || '');
+    notice __x "Update: force_regex from {old} to {new}",
+        old => $self->force_regex,
+        new => $values->{force_regex}
+        if $report
+        && ($self->force_regex || '') ne ($values->{force_regex} || '');
     $self->force_regex($values->{force_regex});
 };
 

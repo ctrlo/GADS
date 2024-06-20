@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -123,12 +124,13 @@ has _rset_code => (
     clearer => 1,
 );
 
-sub _build_has_browser_code {
-    my $self = shift;
+sub _build_has_browser_code
+{   my $self = shift;
     return 1 if $self->show_in_edit;
-    return 1 if $self->schema->resultset('DisplayField')->search({
-        display_field_id => $self->id
-    })->next;
+    return 1
+        if $self->schema->resultset('DisplayField')->search({
+            display_field_id => $self->id
+        })->next;
     return 0;
 }
 
@@ -159,15 +161,11 @@ has write_cache => (
     default => 1,
 );
 
-has '+userinput' => (
-    default => 0,
-);
+has '+userinput' => (default => 0,);
 
-has '+has_cache' => (
-    default => 1,
-);
+has '+has_cache' => (default => 1,);
 
-sub table_unique {}
+sub table_unique { }
 
 sub params
 {   my $self = shift;
@@ -176,19 +174,23 @@ sub params
 
 sub params_b64
 {   my $self = shift;
-    encode_base64(encode_json([$self->params]), '');
+    encode_base64(encode_json([ $self->params ]), '');
 }
 
 sub param_columns
 {   my ($self, %options) = @_;
-    grep {
-        $_
-    } map {
+    grep { $_ } map {
         my $col = $self->layout->column_by_name_short($_)
-            or $options{is_fatal} && error __x"Unknown short column name \"{name}\" in calculation", name => $_;
+            or $options{is_fatal}
+            && error __x "Unknown short column name \"{name}\" in calculation",
+            name => $_;
         $col->instance_id == $self->instance_id
-            or $options{is_fatal} && error __x"It is only possible to use fields from the same table ({table1}). \"{name}\" is from {table2}.",
-                name => $_, table1 => $self->layout->name, table2 => $col->layout->name;
+            or $options{is_fatal}
+            && error __x
+"It is only possible to use fields from the same table ({table1}). \"{name}\" is from {table2}.",
+            name   => $_,
+            table1 => $self->layout->name,
+            table2 => $col->layout->name;
         $col;
     } $self->params;
 }
@@ -203,8 +205,9 @@ sub update_cached
     # warns as such, so undefine to prevent the warning
     undef $@;
 
-    $self->clear; # Refresh calc for updated calculation
+    $self->clear;    # Refresh calc for updated calculation
     my $layout = $self->layout;
+
     # Need to clear layout so that GADS::Records below uses the new parameters
     # for this column (such as if the return type has changed)
     $layout->clear;
@@ -215,21 +218,23 @@ sub update_cached
         user                    => undef,
         layout                  => $layout,
         schema                  => $self->schema,
-        columns                 => [@{$self->depends_on},$self->id],
+        columns                 => [ @{ $self->depends_on }, $self->id ],
         ignore_view_limit_extra => 1,
-        include_children        => 1, # Update all child records regardless
+        include_children        => 1,    # Update all child records regardless
     );
 
     my @changed;
     while (my $record = $records->single)
     {
-        my $datum = $record->fields->{$self->id};
+        my $datum = $record->fields->{ $self->id };
         $datum->re_evaluate(no_errors => 1);
         $datum->write_value;
         push @changed, $record->current_id if $datum->changed;
     }
 
-    return if $options{no_alert_send}; # E.g. new column, don't want to alert on all
+    return
+        if $options{no_alert_send}
+        ;    # E.g. new column, don't want to alert on all
 
     # Send any alerts
     my $alert_send = GADS::AlertSend->new(
@@ -237,10 +242,10 @@ sub update_cached
         schema      => $self->schema,
         user        => $self->user,
         current_ids => \@changed,
-        columns     => [$self->id],
+        columns     => [ $self->id ],
     );
     $alert_send->process;
-};
+}
 
 sub _params_from_code
 {   my ($self, $code) = @_;
@@ -250,10 +255,12 @@ sub _params_from_code
 
 sub _parse_code
 {   my ($self, $code) = @_;
-    !$code || $code =~ /^\s*function\s+evaluate\s*\(([A-Za-z0-9_,\s]+)\)(.*?)end\s*$/s
+    !$code
+        || $code =~
+        /^\s*function\s+evaluate\s*\(([A-Za-z0-9_,\s]+)\)(.*?)end\s*$/s
         or error "Invalid code definition: must contain function evaluate(...)";
     my @params;
-    @params   = split /[,\s]+/, $1
+    @params = split /[,\s]+/, $1
         if $1;
     my $run_code = $2;
     +{
@@ -269,23 +276,25 @@ sub working_days_diff
 {   my ($start_epoch, $end_epoch, $country, $region) = @_;
 
     @_ == 4
-        or error "Parameters for working_days_diff need to be: start, end, country, region";
+        or error
+"Parameters for working_days_diff need to be: start, end, country, region";
 
     $country eq 'GB' or error "Only country GB is currently supported";
 
     $start_epoch or error "Start date missing for working_days_diff";
-    $end_epoch or error "End date missing for working_days_diff";
+    $end_epoch   or error "End date missing for working_days_diff";
 
     my $start = DateTime->from_epoch(epoch => $start_epoch);
-    my $end = DateTime->from_epoch(epoch => $end_epoch);
+    my $end   = DateTime->from_epoch(epoch => $end_epoch);
 
     # Check that we have the holidays for the years requested
     my $min = $start < $end ? $start->year : $end->year;
-    my $max = $end > $start ? $end->year : $start->year;
-    foreach my $year ($min..$max)
+    my $max = $end > $start ? $end->year   : $start->year;
+    foreach my $year ($min .. $max)
     {
-        error __x"No bank holiday information available for year {year}", year => $year
-            if !%{gb_holidays(year => $year, regions => [$region])};
+        error __x "No bank holiday information available for year {year}",
+            year => $year
+            if !%{ gb_holidays(year => $year, regions => [$region]) };
     }
 
     my $days = 0;
@@ -297,24 +306,35 @@ sub working_days_diff
         while ($marker <= $end)
         {
             if (!is_gb_holiday(
-                    year    => $marker->year, month => $marker->month, day => $marker->day,
-                    regions => [$region] )
-            ) {
-                $days++ unless $marker->day_of_week == 6 || $marker->day_of_week == 7;
+                year    => $marker->year,
+                month   => $marker->month,
+                day     => $marker->day,
+                regions => [$region],
+            ))
+            {
+                $days++
+                    unless $marker->day_of_week == 6
+                    || $marker->day_of_week == 7;
             }
             $marker->add(days => 1);
         }
     }
-    else {
+    else
+    {
         my $marker = $start->clone->subtract(days => 1);
 
         while ($marker >= $end)
         {
             if (!is_gb_holiday(
-                    year => $marker->year, month => $marker->month, day => $marker->day,
-                    regions => [$region] )
-            ) {
-                $days-- unless $marker->day_of_week == 6 || $marker->day_of_week == 7;
+                year    => $marker->year,
+                month   => $marker->month,
+                day     => $marker->day,
+                regions => [$region],
+            ))
+            {
+                $days--
+                    unless $marker->day_of_week == 6
+                    || $marker->day_of_week == 7;
             }
             $marker->subtract(days => 1);
         }
@@ -327,25 +347,30 @@ sub working_days_add
 {   my ($start_epoch, $days, $country, $region) = @_;
 
     @_ == 4
-        or error "Parameters for working_days_add need to be: start, end, country, region";
+        or error
+"Parameters for working_days_add need to be: start, end, country, region";
 
     $country eq 'GB' or error "Only country GB is currently supported";
-    $start_epoch or error "Date missing for working_days_add";
+    $start_epoch     or error "Date missing for working_days_add";
 
     my $start = DateTime->from_epoch(epoch => $start_epoch);
 
-    error __x"No bank holiday information available for year {year}", year => $start->year
-        if !%{gb_holidays(year => $start->year, regions => [$region])};
+    error __x "No bank holiday information available for year {year}",
+        year => $start->year
+        if !%{ gb_holidays(year => $start->year, regions => [$region]) };
 
     while ($days)
     {
         $start->add(days => 1);
-	if (!is_gb_holiday(
-		year => $start->year, month => $start->month, day => $start->day,
-		regions => [$region] )
-	) {
-	    $days-- unless $start->day_of_week == 6 || $start->day_of_week == 7;
-	}
+        if (!is_gb_holiday(
+            year    => $start->year,
+            month   => $start->month,
+            day     => $start->day,
+            regions => [$region],
+        ))
+        {
+            $days-- unless $start->day_of_week == 6 || $start->day_of_week == 7;
+        }
     }
 
     return $start->epoch;
@@ -354,38 +379,42 @@ sub working_days_add
 # Flatten daterange return value
 sub _flatten
 {   my ($self, $val) = @_;
-    return if ! defined $val;
+    return if !defined $val;
     return +{
         from => "$val->{from}",
         to   => "$val->{to}",
-    } if $self->return_type eq 'daterange';
+        }
+        if $self->return_type eq 'daterange';
     return "$val";
 }
 
 sub eval
 {   my ($self, $code, $vars) = @_;
     my $run_code = $self->_parse_code($code)->{code};
-    my $mapping = '';
+    my $mapping  = '';
     $mapping .= qq($_ = vars["$_"]\n) foreach keys %$vars;
-    $run_code = $mapping.$run_code;
-    my $return = lua_run($run_code, $vars, \&working_days_diff, \&working_days_add);
+    $run_code = $mapping . $run_code;
+    my $return =
+        lua_run($run_code, $vars, \&working_days_diff, \&working_days_add);
+
     # Make sure we're not returning anything funky (e.g. code refs)
     my $ret = $return->{return};
     if ($self->multivalue && ref $ret eq 'ARRAY')
     {
         $ret = [ map { $self->_flatten($_) } @$ret ];
     }
-    elsif (defined $ret) {
+    elsif (defined $ret)
+    {
         $ret = $self->_flatten($ret);
     }
-    my $err = $return->{error} && ''.$return->{error};
+    my $err = $return->{error} && '' . $return->{error};
     no warnings "uninitialized";
     trace "Return value from Lua: $ret, error: $err";
     +{
         return => $ret,
         error  => $err,
         code   => $run_code,
-    }
+    };
 }
 
 sub write_special
@@ -404,18 +433,26 @@ sub write_special
     # Lua error about invalid char values. Instead, let's disallow all extended
     # characters, and give the user a sensible error.
     $self->code =~ /(.....[^\x00-\x7F]+.....)/
-        and error __x"Extended characters are not supported in calculated fields (found here: {here})",
-            here => $1;
+        and error __x
+"Extended characters are not supported in calculated fields (found here: {here})",
+        here => $1;
 
     my %return_options;
-    my $changed = $self->write_code($id, %options); # Returns true if anything relevant changed
-    my $update_deps = exists $options{update_dependents} ? $options{update_dependents} : $changed;
+    my $changed = $self->write_code($id, %options)
+        ;    # Returns true if anything relevant changed
+    my $update_deps =
+        exists $options{update_dependents}
+        ? $options{update_dependents}
+        : $changed;
     if ($update_deps)
     {
         $return_options{no_alerts} = 1 if $new;
 
         # Stop duplicates
-        my %depends_on = map { $_->id => 1 } grep { !$_->internal } $self->param_columns(is_fatal => $options{override} ? 0 : 1);
+        my %depends_on =
+            map  { $_->id => 1 }
+            grep { !$_->internal }
+            $self->param_columns(is_fatal => $options{override} ? 0 : 1);
         my @depends_on = keys %depends_on;
 
         $self->schema->resultset('LayoutDepend')->search({
@@ -431,7 +468,8 @@ sub write_special
         $self->clear_depends_on;
 
     }
-    else {
+    else
+    {
         # If nothing has changed then do not update all values. That is, unless
         # no_cache_update has been explicitly specified (as it would be for a
         # user update of the field in manage fields) in which case keep that
@@ -442,7 +480,7 @@ sub write_special
             unless exists $options{no_cache_update};
     }
     return %return_options;
-};
+}
 
 # We don't really want to do this within a transaction as it can take a
 # significantly long time, so do once the transaction has completed

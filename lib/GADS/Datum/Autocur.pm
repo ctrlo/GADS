@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2017 Ctrl O Ltd
@@ -33,14 +34,14 @@ sub _transform_value
     {
         # Do nothing
     }
-    elsif (!ref $value && defined $value) # Just ID
+    elsif (!ref $value && defined $value)    # Just ID
     {
         $id = $value;
     }
     elsif ($value->{value} && ref $value->{value} eq 'GADS::Record')
     {
         $record = $value->{value};
-        $id = $record->current_id;
+        $id     = $record->current_id;
     }
     elsif (my $r = $value->{record})
     {
@@ -55,7 +56,8 @@ sub _transform_value
         );
         $id = $r->{current_id};
     }
-    else {
+    else
+    {
         panic "Unexpected value: $value";
     }
     ($record, $id);

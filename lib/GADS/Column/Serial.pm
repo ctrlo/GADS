@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2019 Ctrl O Ltd
@@ -24,25 +25,15 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
-has '+numeric' => (
-    default => 1,
-);
+has '+numeric' => (default => 1,);
 
-has '+addable' => (
-    default => 1,
-);
+has '+addable' => (default => 1,);
 
-has '+internal' => (
-    default => 1,
-);
+has '+internal' => (default => 1,);
 
-has '+userinput' => (
-    default => 0,
-);
+has '+userinput' => (default => 0,);
 
-has '+return_type' => (
-    builder => sub { 'integer' },
-);
+has '+return_type' => (builder => sub { 'integer' },);
 
 sub _build_sprefix
 {   my $self = shift;
@@ -54,16 +45,14 @@ sub _build_table
     'Current';
 }
 
-has '+value_field' => (
-    default => 'serial',
-);
+has '+value_field' => (default => 'serial',);
 
-sub tjoin {}
+sub tjoin { }
 
 sub validate_search
 {   my ($self, $value) = @_;
     $value =~ /^[0-9]+$/
-        or error __x"Invalid serial value: {val}", val => $value;
+        or error __x "Invalid serial value: {val}", val => $value;
 }
 
 1;

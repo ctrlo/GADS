@@ -2,8 +2,8 @@ package GADS::Role::Presentation::Datum::File;
 
 use Moo::Role;
 
-sub presentation {
-    my $self = shift;
+sub presentation
+{   my $self = shift;
 
     my $base = $self->presentation_base;
 

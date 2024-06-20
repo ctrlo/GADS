@@ -17,7 +17,7 @@ sub BUILDARGS { $_[2] || {} }
 =back
 =cut
 
-__PACKAGE__->load_components( "InflateColumn::DateTime", "+GADS::DBIC" );
+__PACKAGE__->load_components("InflateColumn::DateTime", "+GADS::DBIC");
 
 =head1 TABLE: C<report_instance>
 =cut
@@ -70,8 +70,12 @@ Related object: L<GADS::Schema::Result::Report>
 __PACKAGE__->belongs_to(
     "report",
     "GADS::Schema::Result::Report",
-    { id            => "report_id" },
-    { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+    { id => "report_id" },
+    {
+        is_deferrable => 1,
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION"
+    },
 );
 
 =head2 view
@@ -82,8 +86,12 @@ Related object: L<GADS::Schema::Result::Layout>
 __PACKAGE__->belongs_to(
     "layout",
     "GADS::Schema::Result::Layout",
-    { id            => "layout_id" },
-    { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+    { id => "layout_id" },
+    {
+        is_deferrable => 1,
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION"
+    },
 );
 
 1;

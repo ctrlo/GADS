@@ -1,4 +1,5 @@
 use utf8;
+
 package GADS::Schema::Result::UserLastrecord;
 
 # Created by DBIx::Class::Schema::Loader
@@ -62,14 +63,14 @@ __PACKAGE__->table("user_lastrecord");
 =cut
 
 __PACKAGE__->add_columns(
-  "id",
-  { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
-  "record_id",
-  { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
-  "instance_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "user_id",
-  { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
+    "id",
+    { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
+    "record_id",
+    { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
+    "instance_id",
+    { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+    "user_id",
+    { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -95,10 +96,14 @@ Related object: L<GADS::Schema::Result::Instance>
 =cut
 
 __PACKAGE__->belongs_to(
-  "instance",
-  "GADS::Schema::Result::Instance",
-  { id => "instance_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+    "instance",
+    "GADS::Schema::Result::Instance",
+    { id => "instance_id" },
+    {
+        is_deferrable => 1,
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION"
+    },
 );
 
 =head2 record
@@ -110,10 +115,14 @@ Related object: L<GADS::Schema::Result::Record>
 =cut
 
 __PACKAGE__->belongs_to(
-  "record",
-  "GADS::Schema::Result::Record",
-  { id => "record_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+    "record",
+    "GADS::Schema::Result::Record",
+    { id => "record_id" },
+    {
+        is_deferrable => 1,
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION"
+    },
 );
 
 =head2 user
@@ -125,16 +134,18 @@ Related object: L<GADS::Schema::Result::User>
 =cut
 
 __PACKAGE__->belongs_to(
-  "user",
-  "GADS::Schema::Result::User",
-  { id => "user_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+    "user",
+    "GADS::Schema::Result::User",
+    { id => "user_id" },
+    {
+        is_deferrable => 1,
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION"
+    },
 );
-
 
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2016-03-07 16:32:42
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:X9JQYMQft1qCEuTuCFkeOQ
-
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2019 Ctrl O Ltd
@@ -24,9 +25,7 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column::Person';
 
-has '+value_field' => (
-    default => 'deletedby',
-);
+has '+value_field' => (default => 'deletedby',);
 
 sub _build_table
 {   my $self = shift;
@@ -38,17 +37,11 @@ sub _build_sprefix
     'current';
 }
 
-has '+internal' => (
-    default => 1,
-);
+has '+internal' => (default => 1,);
 
-has '+userinput' => (
-    default => 0,
-);
+has '+userinput' => (default => 0,);
 
-has '+hidden' => (
-    default => 1,
-);
+has '+hidden' => (default => 1,);
 
 sub tjoin
 {   my $self = shift;

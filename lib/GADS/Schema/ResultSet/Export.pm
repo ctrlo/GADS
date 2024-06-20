@@ -10,11 +10,14 @@ use Log::Report 'linkspace';
 sub user
 {   my ($self, $user_id) = @_;
 
-    $self->search_rs({
-        'me.user_id' => $user_id,
-    },{
-        order_by => { -desc => 'me.completed' },
-    });
+    $self->search_rs(
+        {
+            'me.user_id' => $user_id,
+        },
+        {
+            order_by => { -desc => 'me.completed' },
+        },
+    );
 }
 
 1;

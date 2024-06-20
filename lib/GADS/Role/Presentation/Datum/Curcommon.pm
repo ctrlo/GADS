@@ -2,30 +2,31 @@ package GADS::Role::Presentation::Datum::Curcommon;
 
 use Moo::Role;
 
-sub _presentation_details {
-    my ($self, %options) = @_;
+sub _presentation_details
+{   my ($self, %options) = @_;
 
     #return [] unless $self->as_string;
 
     my $rti = $self->column->refers_to_instance_id;
 
-    my @values = $options{values} ? @{$options{values}} : @{$self->values};
+    my @values = $options{values} ? @{ $options{values} } : @{ $self->values };
 
     my @links = map +{
         id                    => $_->{id},
         href                  => $_->{value},
         refers_to_instance_id => $rti,
         values                => $_->{values},
-        presentation          => $_->{record}->presentation(curval_fields => $self->column->curval_fields),
-        status                => $_->{status}, # For chronological view
-        version_id            => $_->{version_id}, # For chronological view
+        presentation          => $_->{record}
+            ->presentation(curval_fields => $self->column->curval_fields),
+        status     => $_->{status},        # For chronological view
+        version_id => $_->{version_id},    # For chronological view
     }, @values;
 
     return \@links;
 }
 
-sub presentation {
-    my ($self, %options) = @_;
+sub presentation
+{   my ($self, %options) = @_;
 
     my $multivalue = $self->column->multivalue;
 
@@ -43,31 +44,34 @@ sub presentation {
         # the ID. The query will only exist if it's a draft record
         if ($self->column->show_add)
         {
-            if (my $q = $self->html_form->[0] && $self->html_form->[0]->{as_query})
+            if (my $q =
+                $self->html_form->[0] && $self->html_form->[0]->{as_query})
             {
                 $base->{autocomplete_value} = $q;
             }
-            else {
+            else
+            {
                 $base->{autocomplete_value} = $self->id;
             }
         }
-        else {
+        else
+        {
             $base->{autocomplete_value} = $self->id;
         }
     }
 
-    # Function to return the values for the drop-down selector, but only the
-    # selected ones. This makes rendering the edit page quicker, as in the case of
-    # a filtered drop-down, the values will be fetched each time it gets the
-    # focus anyway
-    $base->{selected_values} = [
-        map { $self->column->_format_row($_->{record}) } @{$self->values}
-    ];
+  # Function to return the values for the drop-down selector, but only the
+  # selected ones. This makes rendering the edit page quicker, as in the case of
+  # a filtered drop-down, the values will be fetched each time it gets the
+  # focus anyway
+    $base->{selected_values} =
+        [ map { $self->column->_format_row($_->{record}) } @{ $self->values } ];
 
     # The name used in the URL to access the parent table
-    $base->{parent_layout_identifier} = $self->column->layout_parent->identifier,
+    $base->{parent_layout_identifier} =
+        $self->column->layout_parent->identifier,
 
-    return $base;
+        return $base;
 }
 
 1;

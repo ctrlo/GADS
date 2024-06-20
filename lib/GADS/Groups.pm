@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -27,23 +28,24 @@ has schema => (
     required => 1,
 );
 
-has all => (
-    is      => 'lazy',
-);
+has all => (is => 'lazy',);
 
 sub _build_all
 {   my $self = shift;
 
-    my @all_rs = $self->schema->resultset('Group')->search({},{
-        order_by => 'me.name',
-    })->all;
+    my @all_rs = $self->schema->resultset('Group')->search(
+        {},
+        {
+            order_by => 'me.name',
+        },
+    )->all;
     my @groups;
     foreach my $grs (@all_rs)
     {
         my $group = GADS::Group->new(
             id     => $grs->id,
             name   => $grs->name,
-            schema => $self->schema
+            schema => $self->schema,
         );
         push @groups, $group;
     }
@@ -52,13 +54,13 @@ sub _build_all
 
 sub group
 {   my ($self, $id) = @_;
-    my ($group) = grep { $_->id == $id } @{$self->all};
+    my ($group) = grep { $_->id == $id } @{ $self->all };
     $group;
 }
 
 sub purge
 {   my $self = shift;
-    foreach my $group (@{$self->all})
+    foreach my $group (@{ $self->all })
     {
         $group->delete;
     }

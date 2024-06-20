@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -19,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package GADS::Graph::Data;
 
 use HTML::Entities;
-use JSON qw(decode_json encode_json);
-use List::Util qw(sum);
+use JSON        qw(decode_json encode_json);
+use List::Util  qw(sum);
 use Math::Round qw(round);
 use Text::CSV::Encoded;
 use Scalar::Util qw(looks_like_number);
@@ -34,9 +35,7 @@ has records => (
     required => 1,
 );
 
-has view => (
-    is => 'ro',
-);
+has view => (is => 'ro',);
 
 has xlabels => (
     is      => 'rw',
@@ -54,8 +53,9 @@ has labels_encoded => (
     is      => 'rw',
     lazy    => 1,
     builder => sub {
-        my @labels = @{$_[0]->_data->{labels}};
-        @labels = map { $_->{label} = encode_entities $_->{label}; $_ } @labels;
+        my @labels = @{ $_[0]->_data->{labels} };
+        @labels =
+            map { $_->{label} = encode_entities $_->{label}; $_ } @labels;
         \@labels;
     },
 );
@@ -79,18 +79,16 @@ has _data => (
     builder => sub { $_[0]->_build_data },
 );
 
-has csv => (
-    is => 'lazy',
-);
+has csv => (is => 'lazy',);
 
 # Define specific colours to match rag fields
-my $red    = 'D9534F';
-my $amber  = 'F0AD4E';
-my $yellow = 'FCFC4B';
-my $green  = '5CB85C';
-my $grey   = '8C8C8C';
-my $purple = '4B0F44';
-my $blue   = '3B3AF2';
+my $red       = 'D9534F';
+my $amber     = 'F0AD4E';
+my $yellow    = 'FCFC4B';
+my $green     = '5CB85C';
+my $grey      = '8C8C8C';
+my $purple    = '4B0F44';
+my $blue      = '3B3AF2';
 my $attention = $red;
 
 has _colors => (
@@ -126,6 +124,7 @@ has _colors => (
             $blue      => 1,
             $attention => 1,
         },
+        ;
     },
 );
 
@@ -136,47 +135,48 @@ has _colors_in_use => (
 
 sub _build_csv
 {   my $self = shift;
-    my $csv = Text::CSV::Encoded->new({ encoding  => undef });
+    my $csv  = Text::CSV::Encoded->new({ encoding => undef });
 
     my $csvout = "";
     my $rows;
     if ($self->type eq "pie" || $self->type eq "donut")
     {
-        foreach my $ring (@{$self->points})
+        foreach my $ring (@{ $self->points })
         {
             my $count = 0;
             foreach my $segment (@{$ring})
             {
                 my $name = $segment->[0];
                 $rows->[$count] ||= [$name];
-                push @{$rows->[$count]}, $segment->[1];
+                push @{ $rows->[$count] }, $segment->[1];
                 $count++;
             }
         }
     }
-    else {
-        foreach my $series (@{$self->points})
+    else
+    {
+        foreach my $series (@{ $self->points })
         {
             my $count = 0;
-            foreach my $x (@{$self->xlabels})
+            foreach my $x (@{ $self->xlabels })
             {
                 $rows->[$count] ||= [$x];
                 my $value = shift @$series;
-                push @{$rows->[$count]}, $value;
+                push @{ $rows->[$count] }, $value;
                 $count++;
             }
         }
     }
     if ($self->group_by)
     {
-        my @row = map {$_->{label}} @{$self->labels};
+        my @row = map { $_->{label} } @{ $self->labels };
         $csv->combine("", @row);
-        $csvout .= $csv->string."\n";
+        $csvout .= $csv->string . "\n";
     }
     foreach my $row (@$rows)
     {
         $csv->combine(@$row);
-        $csvout .= $csv->string."\n";
+        $csvout .= $csv->string . "\n";
     }
     $csvout;
 }
@@ -187,9 +187,9 @@ sub get_color
     # Make sure value doesn't exceed the length of the name column,
     # otherwise we won't match when trying to find it.
     my $gc_rs = $self->schema->resultset('GraphColor');
-    my $size = $gc_rs->result_source->column_info('name')->{size};
+    my $size  = $gc_rs->result_source->column_info('name')->{size};
     $value = substr $value, 0, $size - 1;
-    return "#".$self->_colors_in_use->{$value}
+    return "#" . $self->_colors_in_use->{$value}
         if exists $self->_colors_in_use->{$value};
 
     # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
@@ -198,36 +198,34 @@ sub get_color
     undef $@;
     my $guard = $self->schema->txn_scope_guard;
 
-    my $existing = $self->schema->resultset('GraphColor')->find($value, { key => 'ux_graph_color_name' });
+    my $existing = $self->schema->resultset('GraphColor')
+        ->find($value, { key => 'ux_graph_color_name' });
     my $color;
-    if ($existing && $self->_colors->{$existing->color})
+    if ($existing && $self->_colors->{ $existing->color })
     {
         $color = $existing->color;
     }
-    else {
-        $color = $value eq 'a_grey'
-               ? $grey
-               : $value eq 'b_red'
-               ? $red
-               : $value eq 'c_amber'
-               ? $amber
-               : $value eq 'c_yellow'
-               ? $yellow
-               : $value eq 'd_green'
-               ? $green
-               : $value eq 'e_purple'
-               ? $purple
-               : $value eq 'd_blue'
-               ? $blue
-               : $value eq 'b_attention'
-               ? $attention
-               : (keys %{$self->_colors})[0];
-        $self->schema->resultset('GraphColor')->update_or_create({
-            name  => $value,
-            color => $color,
-        }, {
-            key => 'ux_graph_color_name'
-        }) if $color; # May have run out of colours
+    else
+    {
+        $color =
+              $value eq 'a_grey'      ? $grey
+            : $value eq 'b_red'       ? $red
+            : $value eq 'c_amber'     ? $amber
+            : $value eq 'c_yellow'    ? $yellow
+            : $value eq 'd_green'     ? $green
+            : $value eq 'e_purple'    ? $purple
+            : $value eq 'd_blue'      ? $blue
+            : $value eq 'b_attention' ? $attention
+            :                           (keys %{ $self->_colors })[0];
+        $self->schema->resultset('GraphColor')->update_or_create(
+            {
+                name  => $value,
+                color => $color,
+            },
+            {
+                key => 'ux_graph_color_name'
+            },
+        ) if $color;    # May have run out of colours
     }
     $guard->commit;
     if ($color)
@@ -265,23 +263,24 @@ sub x_axis_grouping_calculated
 
     # Only try grouping by date for valid date column
     return undef if !$self->x_axis;
-    return undef if !$self->trend
-            && $self->x_axis_col->return_type ne 'date' && $self->x_axis_col->return_type ne 'daterange';
+    return undef
+        if !$self->trend
+        && $self->x_axis_col->return_type ne 'date'
+        && $self->x_axis_col->return_type ne 'daterange';
 
     return $self->x_axis_grouping
         if ($self->x_axis_range && $self->x_axis_range eq 'custom')
-            || (!$self->trend && $self->x_axis_grouping);
+        || (!$self->trend && $self->x_axis_grouping);
 
     return undef
         if !$self->from && !$self->to && !$self->x_axis_range;
 
     # Work out suitable intervals: short range: day, medium: month, long: year
     my $amount = $self->trend_range_amount;
-    return $amount == 1
-        ? 'day'
-        : $amount <= 24
-        ? 'month'
-        : 'year';
+    return
+          $amount == 1  ? 'day'
+        : $amount <= 24 ? 'month'
+        :                 'year';
 }
 
 sub from_calculated
@@ -346,42 +345,47 @@ sub trend_range_amount
 sub _build_data
 {   my $self = shift;
 
-    # Columns is either the x-axis, or if not defined, all the columns in the view
-    my @columns = $self->x_axis
-        ? ($self->x_axis)
-        : $self->view
-        ? @{$self->view->columns}
-        : (map $_->id, $self->records->layout->all(user_can_read => 1));
+  # Columns is either the x-axis, or if not defined, all the columns in the view
+    my @columns =
+          $self->x_axis ? ($self->x_axis)
+        : $self->view   ? @{ $self->view->columns }
+        :   (map $_->id, $self->records->layout->all(user_can_read => 1));
 
     @columns = map {
         +{
             id        => $_,
             operator  => 'max',
-            parent_id => ($self->x_axis && $_ == $self->x_axis && $self->x_axis_link)
+            parent_id =>
+                ($self->x_axis && $_ == $self->x_axis && $self->x_axis_link),
         }
     } @columns;
 
-    my $layout      = $self->records->layout;
-    my $x_axis      = $self->x_axis_col;
+    my $layout = $self->records->layout;
+    my $x_axis = $self->x_axis_col;
+
     # Whether the x-axis is a daterange data type. If so, we need to treat it
     # specially and span values from single records across dates.
     my $x_daterange = $x_axis && $x_axis->return_type eq 'daterange';
 
     my $group_by_db = [];
     push @columns, {
-        id        => $self->x_axis,
-        group     => 1,
-        pluck     => $self->x_axis_grouping_calculated, # Whether to group x-axis dates
-        parent_id => $self->x_axis_link, # What the parent curval is, if we're picking a field from within a curval
+        id    => $self->x_axis,
+        group => 1,
+        pluck =>
+            $self->x_axis_grouping_calculated,   # Whether to group x-axis dates
+        parent_id => $self->x_axis_link
+        , # What the parent curval is, if we're picking a field from within a curval
     } if !$x_daterange && $self->x_axis;
 
-    push @columns, {
-        id    => $self->group_by,
-        group => 1,
-    } if $self->group_by_col;
+    push @columns,
+        {
+            id    => $self->group_by,
+            group => 1,
+        }
+        if $self->group_by_col;
 
     my $records = $self->records;
-    if (!$self->trend) # If a trend, the from and to will be set later
+    if (!$self->trend)    # If a trend, the from and to will be set later
     {
         $records->from($self->from_calculated);
         $records->to($self->to_calculated);
@@ -389,7 +393,8 @@ sub _build_data
 
     # If the x-axis field is one from a curval, make sure we are also
     # retrieving the parent curval field (called the link)
-    my $link = $self->x_axis_link && $self->records->layout->column($self->x_axis_link);
+    my $link = $self->x_axis_link
+        && $self->records->layout->column($self->x_axis_link);
 
     if ($x_daterange)
     {
@@ -400,21 +405,23 @@ sub _build_data
     }
 
     $records->view($self->view);
-    push @columns, +{
-        id       => $self->y_axis,
-        operator => $self->y_axis_stack,
-    } if $self->y_axis;
+    push @columns,
+        +{
+            id       => $self->y_axis,
+            operator => $self->y_axis_stack,
+        }
+        if $self->y_axis;
 
     $records->columns(\@columns);
 
-    $self->records->results # Do now so as to populate dr_from and dr_to
+    $self->records->results    # Do now so as to populate dr_from and dr_to
         if $x_daterange;
 
     # The view of this graph
     my $view = $self->records->view;
 
-    # All the sources of the x values. May only be one column, may be several columns,
-    # or may be lots of dates.
+# All the sources of the x values. May only be one column, may be several columns,
+# or may be lots of dates.
     my @x;
     if ($x_daterange)
     {
@@ -428,14 +435,14 @@ sub _build_data
             while ($pointer->epoch <= $records->dr_to->epoch)
             {
                 push @x, $pointer->clone;
-                $pointer->add($self->x_axis_grouping_calculated.'s' => 1);
+                $pointer->add($self->x_axis_grouping_calculated . 's' => 1);
             }
         }
     }
     elsif ($self->x_axis_range && $self->x_axis_grouping_calculated)
     {
         my $interval = $self->x_axis_grouping_calculated;
-        my %add = ($interval.'s' => 1);
+        my %add      = ($interval . 's' => 1);
 
         # Produce a set of dates spanning the required range
         my $pointer = $self->from_calculated->clone;
@@ -451,21 +458,22 @@ sub _build_data
     }
     elsif ($view)
     {
-        push @x, @{$self->records->columns_render};
+        push @x, @{ $self->records->columns_render };
     }
-    else {
+    else
+    {
         push @x, $layout->all(user_can_read => 1);
     }
 
-    # Now go into each of the retrieved database results, and create a more
-    # useful hash with all the series on, which we can use to create the
-    # graphs. At this point, we do not know what the x-axis values will be,
-    # so we need to wait until we've retrieved them all first (we know the
-    # source of the values, but not the value or quantity of them).
-    #
-    # $results - overall results hash
-    # $series_keys - the names of all of the series for the graph. May only be one
-    # $datemin and $datemax - for x-axis dates, min and max retrieved
+  # Now go into each of the retrieved database results, and create a more
+  # useful hash with all the series on, which we can use to create the
+  # graphs. At this point, we do not know what the x-axis values will be,
+  # so we need to wait until we've retrieved them all first (we know the
+  # source of the values, but not the value or quantity of them).
+  #
+  # $results - overall results hash
+  # $series_keys - the names of all of the series for the graph. May only be one
+  # $datemin and $datemax - for x-axis dates, min and max retrieved
 
     my @xlabels;
     my ($results, $series_keys, $datemin, $datemax);
@@ -476,37 +484,46 @@ sub _build_data
         # be used
         $records->generate_cid_query;
 
-        my $search = $records->search; # Retain quick search across historical queries
+        my $search =
+            $records->search;    # Retain quick search across historical queries
 
         foreach my $x (@x)
         {
-            $records->clear(retain_current_ids => 1); # Retain record IDs across results
+            $records->clear(retain_current_ids => 1)
+                ;                # Retain record IDs across results
             $records->search($search);
 
             # The period to retrieve ($x) will be at the beginning of the
             # period. Move to the end of the period, by adding on one unit
             # (e.g. month) and then moving into the previous day by a second
-            my $rewind = $x->clone->add($self->x_axis_grouping_calculated.'s' => 1)->subtract(seconds => 1);
+            my $rewind =
+                $x->clone->add($self->x_axis_grouping_calculated . 's' => 1)
+                ->subtract(seconds => 1);
             $records->rewind($rewind);
-            my $this_results; my $this_series_keys;
-            ($this_results, $this_series_keys, $datemin, $datemax) = $self->_records_to_results($records,
-                x_daterange => $x_daterange,
-                x           => [$self->x_axis_col],
-                values_only => 1,
-            );
-            my $df = $dgf->{$self->x_axis_grouping_calculated};
+            my $this_results;
+            my $this_series_keys;
+            ($this_results, $this_series_keys, $datemin, $datemax) =
+                $self->_records_to_results(
+                    $records,
+                    x_daterange => $x_daterange,
+                    x           => [ $self->x_axis_col ],
+                    values_only => 1,
+                );
+            my $df    = $dgf->{ $self->x_axis_grouping_calculated };
             my $label = $x->strftime($df);
             push @xlabels, $label;
             $results->{$label} = $this_results;
-            $series_keys->{$_} = 1
-                foreach keys %$this_series_keys;
+            $series_keys->{$_} = 1 foreach keys %$this_series_keys;
         }
     }
-    else {
-        ($results, $series_keys, $datemin, $datemax) = $self->_records_to_results($records,
-            x_daterange => $x_daterange,
-            x           => \@x,
-        );
+    else
+    {
+        ($results, $series_keys, $datemin, $datemax) =
+            $self->_records_to_results(
+                $records,
+                x_daterange => $x_daterange,
+                x           => \@x,
+            );
     }
 
     # Work out the labels for the x-axis. We now know this having processed
@@ -515,15 +532,15 @@ sub _build_data
     {
         @xlabels = ();
         my $inc = $datemin->clone;
-        my $add = $self->x_axis_grouping_calculated.'s';
+        my $add = $self->x_axis_grouping_calculated . 's';
         while ($inc->epoch <= $datemax->epoch)
         {
-            my $df = $dgf->{$self->x_axis_grouping_calculated};
+            my $df = $dgf->{ $self->x_axis_grouping_calculated };
             push @xlabels, $inc->strftime($df);
-            $inc->add( $add => 1 );
+            $inc->add($add => 1);
         }
     }
-    elsif (!$self->x_axis) # Multiple columns, use column name
+    elsif (!$self->x_axis)    # Multiple columns, use column name
     {
         @xlabels = map { $_->name } @x;
     }
@@ -531,7 +548,8 @@ sub _build_data
     {
         # Do nothing, already added
     }
-    else {
+    else
+    {
         @xlabels = sort keys %$results;
     }
 
@@ -544,12 +562,13 @@ sub _build_data
         foreach my $x (@xloop)
         {
             my $x_val = $self->x_axis ? $x : $x->name;
+
             # May be a zero y-value for a grouped graph, but the
             # series still needs a zero written, even for a line graph.
             no warnings 'numeric', 'uninitialized';
             my $y = int $results->{$x_val}->{$serial};
             $y = 0 if !$self->x_axis && !$x->numeric;
-            push @{$series->{$serial}->{data}}, $y;
+            push @{ $series->{$serial}->{data} }, $y;
         }
     }
 
@@ -558,17 +577,22 @@ sub _build_data
         if ($self->group_by_col)
         {
             my ($random) = keys %$series;
-            my $count = @{$series->{$random}->{data}}; # Number of data points for each series
-            for my $i (0..$count-1)
+            my $count = @{ $series->{$random}->{data} }
+                ;    # Number of data points for each series
+            for my $i (0 .. $count - 1)
             {
-                my $sum = _sum( map { $series->{$_}->{data}->[$i] } keys %$series );
-                $series->{$_}->{data}->[$i] = _to_percent($sum, $series->{$_}->{data}->[$i])
+                my $sum =
+                    _sum(map { $series->{$_}->{data}->[$i] } keys %$series);
+                $series->{$_}->{data}->[$i] =
+                    _to_percent($sum, $series->{$_}->{data}->[$i])
                     foreach keys %$series;
             }
         }
-        else {
-            my $sum = _sum( @{$series->{1}->{data}} );
-            $series->{1}->{data} = [ map { _to_percent($sum, $_) } @{$series->{1}->{data}} ];
+        else
+        {
+            my $sum = _sum(@{ $series->{1}->{data} });
+            $series->{1}->{data} =
+                [ map { _to_percent($sum, $_) } @{ $series->{1}->{data} } ];
         }
     }
 
@@ -586,56 +610,60 @@ sub _build_data
         foreach my $metric (@metrics)
         {
             my $y_axis_grouping_value = $metric->y_axis_grouping_value || 1;
-            $metrics->{lc $y_axis_grouping_value}->{lc $metric->x_axis_value} = $metric->target;
+            $metrics->{ lc $y_axis_grouping_value }
+                ->{ lc $metric->x_axis_value } = $metric->target;
         }
 
         # Now go into each data item and recalculate against the metric
         foreach my $line (keys %$series)
         {
-            my @data = @{$series->{$line}->{data}};
+            my @data = @{ $series->{$line}->{data} };
             for my $i (0 .. $#data)
             {
-                my $x = $xlabels[$i];
-                my $target = $metrics->{lc $line}->{lc $x};
-                my $val    = $target ? int ($data[$i] * 100 / $target ) : 0;
+                my $x      = $xlabels[$i];
+                my $target = $metrics->{ lc $line }->{ lc $x };
+                my $val    = $target ? int($data[$i] * 100 / $target) : 0;
                 $series->{$line}->{data}->[$i] = $val;
                 $metric_max = $val if !$metric_max || $val > $metric_max;
             }
         }
     }
 
-    my $markeroptions = $self->type eq "scatter"
-                      ? '{ size: 7, style:"x" }'
-                      : '{ show: false }';
+    my $markeroptions =
+        $self->type eq "scatter"
+        ? '{ size: 7, style:"x" }'
+        : '{ show: false }';
 
-    my @points; my @labels;
+    my @points;
+    my @labels;
     if ($self->type eq "pie" || $self->type eq "donut")
     {
         foreach my $k (keys %$series)
         {
             my @ps;
-            my @data = @{$series->{$k}->{data}};
-            my $idx = 0;
+            my @data = @{ $series->{$k}->{data} };
+            my $idx  = 0;
             if ($self->as_percent)
             {
                 my $sum = _sum(@data);
                 @data = map { _to_percent($sum, $_) } @data;
             }
-            push @ps, [
-                encode_entities($_), ($data[$idx++]||0),
-            ] foreach @xlabels;
+            push @ps, [ encode_entities($_), ($data[ $idx++ ] || 0), ]
+                foreach @xlabels;
             push @points, \@ps;
         }
+
         # XXX jqplot doesn't like smaller ring segmant quantities first.
         # Sorting fixes this, but should probably be fixed in jqplot.
         @points = sort { scalar @$b <=> scalar @$a } @points;
     }
-    else {
+    else
+    {
         # Work out the required jqplot labels for each series.
         foreach my $k (keys %$series)
         {
             my $showlabel = 'true';
-            my $color = $self->get_color($k);
+            my $color     = $self->get_color($k);
             $series->{$k}->{label} = {
                 color         => $color,
                 showlabel     => $showlabel,
@@ -649,13 +677,13 @@ sub _build_data
         # graph. For some reason, they need to be in reverse order to
         # appear correctly in jqplot.
         my @all_series = map { $series->{$_} } reverse sort keys %$series;
-        @points        = map { $_->{data} } @all_series;
-        @labels        = map { $_->{label} } @all_series;
+        @points = map { $_->{data} } @all_series;
+        @labels = map { $_->{label} } @all_series;
     }
 
     my $options = {};
     $options->{y_max}     = 100 if defined $metric_max && $metric_max < 100;
-    $options->{is_metric} = 1 if defined $metric_max;
+    $options->{is_metric} = 1   if defined $metric_max;
 
     # If we had a curval as a link, then we need to reset its retrieved fields,
     # otherwise anything else using the field after this procedure will be
@@ -667,11 +695,11 @@ sub _build_data
     }
 
     +{
-        xlabels => \@xlabels, # Populated, but not used for donut or pie
+        xlabels => \@xlabels,    # Populated, but not used for donut or pie
         points  => \@points,
-        labels  => \@labels, # Not used for pie/donut
+        labels  => \@labels,     # Not used for pie/donut
         options => $options,
-    }
+    };
 }
 
 sub _records_to_results
@@ -684,19 +712,23 @@ sub _records_to_results
 
     my $records_results = $self->records->results;
 
-    my $df = $self->x_axis_grouping_calculated && $dgf->{$self->x_axis_grouping_calculated};
+    my $df = $self->x_axis_grouping_calculated
+        && $dgf->{ $self->x_axis_grouping_calculated };
 
     # If we have a specified x-axis range but only a date field, then we need
     # to pre-populate the range of x values. This is not needed with a
     # daterange, as when results are retrieved for a daterange it includes each
     # x-axis value in each row retrieved (dates only include the single value)
-    if (!$self->trend && $self->x_axis_range && $self->x_axis_col->type eq 'date')
+    if (  !$self->trend
+        && $self->x_axis_range
+        && $self->x_axis_col->type eq 'date')
     {
         foreach my $x (@$x)
         {
             my $x_value = $self->_group_date($x);
-            $datemin = $x_value if !defined $datemin; # First loop
-            $datemax = $x_value if !defined $datemax || $datemax->epoch < $x_value->epoch;
+            $datemin = $x_value if !defined $datemin;    # First loop
+            $datemax = $x_value
+                if !defined $datemax || $datemax->epoch < $x_value->epoch;
             $x_value = $x_value->strftime($df);
             $results->{$x_value} = {};
         }
@@ -711,7 +743,8 @@ sub _records_to_results
         # a specified date range, we have already interpolated the points
         # (above) and we just need to get each individual value, not every
         # x-axis point (which will not be available in the results)
-        my @for = $self->x_axis_range && $self->x_axis_col->type eq 'date' ? $self->x_axis_col : @$x;
+        my @for = $self->x_axis_range
+            && $self->x_axis_col->type eq 'date' ? $self->x_axis_col : @$x;
         foreach my $x (@for)
         {
             my $col     = $x_daterange ? $x->epoch : $x->field;
@@ -724,18 +757,24 @@ sub _records_to_results
                 $x_value = $self->_format_curcommon($x, $line);
             }
 
-            if (!$self->trend && $self->x_axis_grouping_calculated) # Group by date, round to required interval
+            if (  !$self->trend
+                && $self->x_axis_grouping_calculated
+                )    # Group by date, round to required interval
             {
                 !$x_value and next;
-                my $x_dt = $x_daterange
-                         ? $x
-                         : $self->schema->storage->datetime_parser->parse_date($x_value);
+                my $x_dt =
+                      $x_daterange
+                    ? $x
+                    : $self->schema->storage->datetime_parser->parse_date(
+                        $x_value);
                 $x_value = $self->_group_date($x_dt);
-                $datemin = $x_value if !defined $datemin || $datemin->epoch > $x_value->epoch;
-                $datemax = $x_value if !defined $datemax || $datemax->epoch < $x_value->epoch;
+                $datemin = $x_value
+                    if !defined $datemin || $datemin->epoch > $x_value->epoch;
+                $datemax = $x_value
+                    if !defined $datemax || $datemax->epoch < $x_value->epoch;
                 $x_value = $x_value->strftime($df) if $x_value;
             }
-            elsif (!$self->x_axis) # Multiple column x-axis
+            elsif (!$self->x_axis)    # Multiple column x-axis
             {
                 $x_value = $x->name;
             }
@@ -743,38 +782,43 @@ sub _records_to_results
             $x_value ||= '<no value>';
 
             # The column name to retrieve from SQL record
-            my $fname = $x_daterange
-                      ? $x->epoch
-                      : !$self->x_axis
-                      ? $x->field
-                      : $self->y_axis_stack eq 'count'
-                      ? 'id_count' # Don't use field count as NULLs are not counted
-                      : $self->y_axis_col->field."_".$self->y_axis_stack;
+            my $fname =
+                  $x_daterange   ? $x->epoch
+                : !$self->x_axis ? $x->field
+                : $self->y_axis_stack eq 'count'
+                ? 'id_count'    # Don't use field count as NULLs are not counted
+                : $self->y_axis_col->field . "_" . $self->y_axis_stack;
             my $val = $line->get_column($fname);
 
             # Add on the linked column from another datasheet, if applicable
-            my $include_linked = !$self->x_axis && (!$x->numeric || !$x->link_parent); # Multi x-axis
-            my $val_linked     = $self->y_axis_stack eq 'sum' && $self->y_axis_col->link_parent
+            my $include_linked = !$self->x_axis
+                && (!$x->numeric || !$x->link_parent);    # Multi x-axis
+            my $val_linked =
+                   $self->y_axis_stack eq 'sum'
+                && $self->y_axis_col->link_parent
                 && $line->get_column("${fname}_link");
 
             no warnings 'numeric', 'uninitialized';
-            if ($params{values_only}) {
+            if ($params{values_only})
+            {
                 $series_keys->{$x_value} = 1;
                 $results->{$x_value} += $val + $val_linked;
             }
-            else {
+            else
+            {
                 # The key for this series. May only be one (use "1")
-                my $k = $self->group_by_col && $self->group_by_col->is_curcommon
-                      ? $self->_format_curcommon($self->group_by_col, $line)
-                      : $self->group_by_col
-                      ? $line->get_column($self->group_by_col->field)
-                      : 1;
-                $k ||= $line->get_column($self->group_by_col->field."_link")
-                      if $self->group_by_col && $self->group_by_col->link_parent;
+                my $k =
+                      $self->group_by_col && $self->group_by_col->is_curcommon
+                    ? $self->_format_curcommon($self->group_by_col, $line)
+                    : $self->group_by_col
+                    ? $line->get_column($self->group_by_col->field)
+                    : 1;
+                $k ||= $line->get_column($self->group_by_col->field . "_link")
+                    if $self->group_by_col && $self->group_by_col->link_parent;
                 $k ||= '<blank value>';
 
-                $series_keys->{$k} = 1; # Hash to kill duplicate values
-                # Store all the results for each x value together, by series
+                $series_keys->{$k} = 1;    # Hash to kill duplicate values
+                    # Store all the results for each x value together, by series
                 $results->{$x_value} ||= {};
                 $results->{$x_value}->{$k} += $val + $val_linked;
             }
@@ -783,32 +827,39 @@ sub _records_to_results
 
     return ($results, $series_keys, $datemin, $datemax);
 }
+
 # Take a date and round it down according to the grouping
 sub _group_date
 {   my ($self, $val) = @_;
     $val or return;
     my $grouping = $self->x_axis_grouping_calculated;
-    $val = $grouping eq 'year'
-         ? DateTime->new(year => $val->year)
-         : $grouping eq 'month'
-         ? DateTime->new(year => $val->year, month => $val->month)
-         : $grouping eq 'day'
-         ? DateTime->new(year => $val->year, month => $val->month, day => $val->day)
-         : $val
+    $val =
+          $grouping eq 'year' ? DateTime->new(year => $val->year)
+        : $grouping eq 'month'
+        ? DateTime->new(year => $val->year, month => $val->month)
+        : $grouping eq 'day' ? DateTime->new(
+            year  => $val->year,
+            month => $val->month,
+            day   => $val->day
+        )
+        : $val;
 }
 
 sub _format_curcommon
 {   my ($self, $column, $line) = @_;
     $line->get_column($column->field) or return;
-    $column->format_value(map { $line->get_column($_->field) } @{$column->curval_fields});
+    $column->format_value(map { $line->get_column($_->field) }
+            @{ $column->curval_fields });
 }
 
 sub _to_percent
 {   my ($sum, $value) = @_;
-    round(($value / $sum) * 100 ) + 0;
+    round(($value / $sum) * 100) + 0;
 }
 
-sub _sum { sum(map {$_ || 0} @_) }
+sub _sum
+{   sum(map { $_ || 0 } @_);
+}
 
 1;
 

@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -29,29 +30,23 @@ use Moo;
 
 with 'MooX::Singleton';
 
-has message_prefix => (
-    is => 'lazy',
-);
+has message_prefix => (is => 'lazy',);
 
 sub _build_message_prefix
-{   my $self = shift;
+{   my $self   = shift;
     my $prefix = $self->config->gads->{message_prefix} || "";
     $prefix .= "\n" if $prefix;
     $prefix;
 }
 
-has config => (
-    is => 'lazy',
-);
+has config => (is => 'lazy',);
 
 sub _build_config
 {   my $self = shift;
     GADS::Config->instance;
 }
 
-has email_from => (
-    is => 'lazy',
-);
+has email_from => (is => 'lazy',);
 
 sub _build_email_from
 {   my $self = shift;
@@ -61,23 +56,28 @@ sub _build_email_from
 sub send
 {   my ($self, $args) = @_;
 
-    my $emails   = $args->{emails} or error __"Please specify some recipients to send an email to";
-    my $subject  = $args->{subject} or error __"Please enter a subject for the email";
+    my $emails = $args->{emails}
+        or error __ "Please specify some recipients to send an email to";
+    my $subject = $args->{subject}
+        or error __ "Please enter a subject for the email";
     my $reply_to = $args->{reply_to};
 
     my @parts;
 
-    push @parts, Mail::Message::Body::String->new(
-        mime_type   => 'text/plain',
-        disposition => 'inline',
-        data        => autoformat($args->{text}, {all => 1, break=>break_wrap}),
-    ) if $args->{text};
+    push @parts,
+        Mail::Message::Body::String->new(
+            mime_type   => 'text/plain',
+            disposition => 'inline',
+            data        =>
+            autoformat($args->{text}, { all => 1, break => break_wrap }),
+        ) if $args->{text};
 
-    push @parts, Mail::Message::Body::String->new(
-        mime_type   => 'text/html',
-        disposition => 'inline',
-        data        => $args->{html},
-    ) if $args->{html};
+    push @parts,
+        Mail::Message::Body::String->new(
+            mime_type   => 'text/html',
+            disposition => 'inline',
+            data        => $args->{html},
+        ) if $args->{html};
 
     @parts or panic "No plain or HTML email text supplied";
 
@@ -93,13 +93,12 @@ sub send
 
     # Start a mailer
     my $mailer = Mail::Transport::Sendmail->new(
-        sendmail_options => [-f => $self->email_from],
-    );
+        sendmail_options => [ -f => $self->email_from ],);
 
     my %done;
     foreach my $email (@$emails)
     {
-        next if $done{$email}; # Stop duplicate emails
+        next if $done{$email};    # Stop duplicate emails
         $done{$email} = 1;
         $msg->head->set(to => $email);
         $mailer->send($msg);
@@ -113,20 +112,24 @@ sub message
 
     if ($args->{records} && $args->{col_id})
     {
-        foreach my $record (@{$args->{records}->results})
+        foreach my $record (@{ $args->{records}->results })
         {
-            my $email = $record->fields->{$args->{col_id}}->email;
+            my $email = $record->fields->{ $args->{col_id} }->email;
             push @emails, $email if $email;
         }
     }
 
-    push @emails, @{$args->{emails}} if $args->{emails};
+    push @emails, @{ $args->{emails} } if $args->{emails};
 
     @emails or return;
 
     (my $text = $args->{text}) =~ s/\s+$//;
-    $text = $self->message_prefix.$text
-             ."\n\nMessage sent by: ".($user->value||"")." (".$user->email.")\n";
+    $text =
+          $self->message_prefix
+        . $text
+        . "\n\nMessage sent by: "
+        . ($user->value || "") . " ("
+        . $user->email . ")\n";
 
     my $email = {
         subject  => $args->{subject},

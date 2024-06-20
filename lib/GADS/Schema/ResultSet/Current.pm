@@ -7,12 +7,13 @@ use parent 'DBIx::Class::ResultSet';
 
 use Log::Report 'linkspace';
 
-__PACKAGE__->load_components(qw/
-    Helper::ResultSet::DateMethods1
-    +GADS::Helper::Concat
-    Helper::ResultSet::CorrelateRelationship
-    Helper::ResultSet::Random
-    /
+__PACKAGE__->load_components(
+    qw/
+        Helper::ResultSet::DateMethods1
+        +GADS::Helper::Concat
+        Helper::ResultSet::CorrelateRelationship
+        Helper::ResultSet::Random
+        /
 );
 
 sub active_rs
@@ -31,14 +32,16 @@ sub import_hash
         instance_id => $params{instance}->id,
         serial      => $record->{serial},
         deleted     => $record->{deleted},
-        deletedby   => $record->{deletedby} && $params{user_mapping}->{$record->{deletedby}},
+        deletedby   => $record->{deletedby}
+            && $params{user_mapping}->{ $record->{deletedby} },
     });
 
-    foreach my $r (@{$record->{records}})
+    foreach my $r (@{ $record->{records} })
     {
-        error __"Import of record_id value not yet support"
+        error __ "Import of record_id value not yet support"
             if $r->{record_id};
-        my $rec = $schema->resultset('Record')->import_hash($r, current => $current, %params);
+        my $rec = $schema->resultset('Record')
+            ->import_hash($r, current => $current, %params);
     }
 
     return $current;

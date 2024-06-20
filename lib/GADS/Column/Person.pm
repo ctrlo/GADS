@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -27,7 +28,8 @@ extends 'GADS::Column';
 
 with 'GADS::Role::Presentation::Column::Person';
 
-our @person_properties = qw/id email username firstname surname freetext1 freetext2 organisation department_id team_id title value/;
+our @person_properties =
+    qw/id email username firstname surname freetext1 freetext2 organisation department_id team_id title value/;
 
 # Convert based on whether ID or full name provided
 sub value_field_as_index
@@ -41,28 +43,27 @@ sub value_field_as_index
         {
             $type = 'id';
         }
-        else {
+        else
+        {
             $type = $self->value_field;
         }
     }
     return $type;
 }
 
-has '+has_filter_typeahead' => (
-    default => 1,
-);
+has '+has_filter_typeahead' => (default => 1,);
 
-has '+fixedvals' => (
-    default => 1,
-);
+has '+fixedvals' => (default => 1,);
 
 has '+option_names' => (
-    default => sub { [qw/default_to_login notify_on_selection notify_on_selection_message notify_on_selection_subject/] },
+    default => sub {
+        [
+            qw/default_to_login notify_on_selection notify_on_selection_message notify_on_selection_subject/
+        ]
+    },
 );
 
-has '+can_multivalue' => (
-    default => 1,
-);
+has '+can_multivalue' => (default => 1,);
 
 sub _build_retrieve_fields
 {   my $self = shift;
@@ -71,7 +72,7 @@ sub _build_retrieve_fields
 
 sub values_for_timeline
 {   my $self = shift;
-    map $_->value, @{$self->people};
+    map $_->value, @{ $self->people };
 }
 
 has default_to_login => (
@@ -122,7 +123,7 @@ has notify_on_selection_message => (
     trigger => sub { $_[0]->reset_options },
 );
 
-sub _build_sprefix { 'value' };
+sub _build_sprefix { 'value' }
 
 has people => (
     is      => 'rw',
@@ -139,8 +140,8 @@ has people_hash => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        my @all = @{$self->people};
-        my %all = map { $_->id => $_ } @all;
+        my @all  = @{ $self->people };
+        my %all  = map { $_->id => $_ } @all;
         \%all;
     },
 );
@@ -165,13 +166,13 @@ after build_values => sub {
 
 sub tjoin
 {   my $self = shift;
-    +{$self->field => 'value'};
+    +{ $self->field => 'value' };
 }
 
 sub random
 {   my $self = shift;
-    my %hash = %{$self->people_hash};
-    $hash{(keys %hash)[rand keys %hash]}->value;
+    my %hash = %{ $self->people_hash };
+    $hash{ (keys %hash)[ rand keys %hash ] }->value;
 }
 
 sub resultset_for_values

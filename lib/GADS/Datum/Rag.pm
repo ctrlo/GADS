@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -34,19 +35,18 @@ my %mapping = (
     c_yellow    => 'advisory',
     d_green     => 'success',
     d_blue      => 'complete',
-    e_purple    => 'unexpected'
+    e_purple    => 'unexpected',
 );
-
 
 sub convert_value
 {   my ($self, $in) = @_;
 
     my $value = $in->{return};
-    trace __x"Value into convert_value is: {value}", value => $value;
+    trace __x "Value into convert_value is: {value}", value => $value;
 
     my $return;
 
-    if ($in->{error}) # Will have already been reported
+    if ($in->{error})    # Will have already been reported
     {
         $return = 'e_purple';
     }
@@ -82,7 +82,8 @@ sub convert_value
     {
         $return = 'd_blue';
     }
-    else {
+    else
+    {
         # Not expected
         $return = 'e_purple';
     }
@@ -99,15 +100,15 @@ sub write_value
 # Convert the array ref from the generic ::Code to a single scalar. Not lazy,
 # otherwise its value needs clearing each time the code is re-evaluated
 sub _value_single
-{   my $self = shift;
-    my @values = @{$self->value}
+{   my $self   = shift;
+    my @values = @{ $self->value }
         or return undef;
     pop @values;
 }
 
 sub html
-{   my $self = shift;
-    my $config = GADS::Config->instance;
+{   my $self     = shift;
+    my $config   = GADS::Config->instance;
     my $template = Template->new(INCLUDE_PATH => $config->template_location);
     my $output;
     my $t = $template->process('rag.tt', { rag => $self }, \$output)
@@ -120,34 +121,26 @@ sub html
 sub grade { shift->as_grade }
 
 sub as_grade
-{
-    my $self = shift;
+{   my $self = shift;
     return $mapping{ $self->_value_single };
 }
 
 # XXX Why is this needed? Error when creating new record otherwise
 sub as_integer
-{   my $self = shift;
+{   my $self  = shift;
     my $value = $self->_value_single;
-    !$value
-        ? 0
-        : $value eq 'a_grey'
-        ? 1
-        : $value eq 'b_red'
-        ? 2
-        : $value eq 'c_amber'
-        ? 3
-        : $value eq 'c_yellow'
-        ? 4
-        : $value eq 'd_green'
-        ? 5
-        : $value eq 'e_purple'
-        ? -1
-        : -2;
+         !$value               ? 0
+        : $value eq 'a_grey'   ? 1
+        : $value eq 'b_red'    ? 2
+        : $value eq 'c_amber'  ? 3
+        : $value eq 'c_yellow' ? 4
+        : $value eq 'd_green'  ? 5
+        : $value eq 'e_purple' ? -1
+        :                        -2;
 }
 
 sub for_table
-{   my $self = shift;
+{   my $self   = shift;
     my $return = $self->for_table_template;
     $return->{values} = $self->value;
     $return;
@@ -160,6 +153,7 @@ sub as_string
 
 sub equal
 {   my ($self, $a, $b) = @_;
+
     # values can be multiple in ::Code but will only be single for RAG
     ($a) = @$a if ref $a eq 'ARRAY';
     ($b) = @$b if ref $b eq 'ARRAY';
@@ -169,7 +163,7 @@ sub equal
     $a eq $b;
 }
 
-sub _build_blank { 0 } # Will always have value, even if it's an invalid one
+sub _build_blank { 0 }    # Will always have value, even if it's an invalid one
 
 1;
 

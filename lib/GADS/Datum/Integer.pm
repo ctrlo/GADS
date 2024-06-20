@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -27,23 +28,28 @@ extends 'GADS::Datum';
 after set_value => sub {
     my ($self, $value) = @_;
 
-
-    $value = [$value] if ref $value ne 'ARRAY'; # Allow legacy single values as scalar
+    $value = [$value]
+        if ref $value ne 'ARRAY';    # Allow legacy single values as scalar
     $value ||= [];
-    my @values = sort grep {defined $_} @$value; # Take a copy first
-    my $clone = $self->clone;
-    my @old_ints = sort grep defined $_, @{$self->values};
+    my @values   = sort grep { defined $_ } @$value;    # Take a copy first
+    my $clone    = $self->clone;
+    my @old_ints = sort grep defined $_, @{ $self->values };
 
     my @values2;
     foreach my $value (@values)
     {
-        $value = undef if defined $value && !$value && $value !~ /^0+$/; # Can be empty string, generating warnings
+        $value = undef
+            if defined $value
+            && !$value
+            && $value !~ /^0+$/;    # Can be empty string, generating warnings
         if ($value && $value =~ m!^\h*\(\h*([\*\+\-/])\h*([0-9]+)\h*\)\h*$!)
         {
             # Arithmatic, assume bulk update with only one input value
-            my $op = $1; my $amount = $2;
+            my $op     = $1;
+            my $amount = $2;
+
             # Still count as valid written if currently blank
-            foreach my $v (@{$self->values})
+            foreach my $v (@{ $self->values })
             {
                 if (defined $v)
                 {
@@ -51,14 +57,16 @@ after set_value => sub {
                 }
             }
         }
-        else {
+        else
+        {
             $self->column->validate($value, fatal => 1);
             push @values2, $value
                 if defined $value;
         }
     }
 
-    my $changed = (@values2 || @old_ints) && (@values2 != @old_ints || "@values2" ne "@old_ints");
+    my $changed = (@values2 || @old_ints)
+        && (@values2 != @old_ints || "@values2" ne "@old_ints");
     $self->changed($changed);
 
     if ($changed)
@@ -72,13 +80,14 @@ after set_value => sub {
 };
 
 has values => (
-    is        => 'rwp',
-    isa       => ArrayRef,
-    lazy      => 1,
-    builder   => sub {
+    is      => 'rwp',
+    isa     => ArrayRef,
+    lazy    => 1,
+    builder => sub {
         my $self = shift;
         $self->has_init_value or return [];
-        my @values = map { ref $_ eq 'HASH' ? $_->{value} : $_ } @{$self->init_value};
+        my @values =
+            map { ref $_ eq 'HASH' ? $_->{value} : $_ } @{ $self->init_value };
         $self->has_value(!!@values);
         $self->has_value(1) if @values || $self->init_no_value;
         [@values];
@@ -91,16 +100,17 @@ has html_form => (
 );
 
 sub _build_html_form
-{   my $self = shift;
-    my @values = @{$self->values};
+{   my $self   = shift;
+    my @values = @{ $self->values };
+
     # Ensure at least one value for the form
     @values = (undef) if !@values;
     [ map { defined($_) ? $_ : '' } @values ];
 }
 
-sub _build_blank {
-    my $self = shift;
-    ! grep { length $_ } @{$self->values};
+sub _build_blank
+{   my $self = shift;
+    !grep { length $_ } @{ $self->values };
 }
 
 around 'clone' => sub {
@@ -110,15 +120,15 @@ around 'clone' => sub {
 };
 
 sub for_table
-{   my $self = shift;
+{   my $self   = shift;
     my $return = $self->for_table_template;
     $return->{values} = $self->values;
     $return;
 }
 
 sub as_string
-{   my $self = shift;
-    my @values = grep defined $_, @{$self->values};
+{   my $self   = shift;
+    my @values = grep defined $_, @{ $self->values };
     return '' if !@values;
     join ', ', @values;
 }
@@ -127,7 +137,7 @@ sub as_integer { panic "No longer implemented" }
 
 sub _build_for_code
 {   my ($self, %options) = @_;
-    my @values = map int $_, grep defined $_, @{$self->values};
+    my @values = map int $_, grep defined $_, @{ $self->values };
     @values = (undef) if !@values;
     $self->column->multivalue || @values > 1 ? \@values : $values[0];
 }

@@ -13,13 +13,8 @@ sub dashboards_json
 
     $self->_all_user(%params);
     return encode_json [
-        map {
-            +{
-                id   => $_->id,
-                url  => $_->url,
-                name => $_->name,
-            }
-        } $self->_all_user(%params)
+        map { +{ id => $_->id, url => $_->url, name => $_->name, } }
+            $self->_all_user(%params)
     ];
 }
 
@@ -35,7 +30,7 @@ sub _all_user
     # dashboard.
 
     my $schema = $self->result_source->schema;
-    my $guard = $schema->txn_scope_guard;
+    my $guard  = $schema->txn_scope_guard;
 
     my @dashboards;
     my $dash;
@@ -44,7 +39,8 @@ sub _all_user
     if ($layout)
     {
         $dash = $self->shared_dashboard(%params);
-        push @dashboards, $dash if !$dash->is_empty || $layout->user_can('layout');
+        push @dashboards, $dash
+            if !$dash->is_empty || $layout->user_can('layout');
 
         $dash = $self->search({
             'me.instance_id' => $layout->instance_id,
@@ -58,14 +54,19 @@ sub _all_user
     {
         # Site shared, only show if populated or superadmin
         $dash = $self->shared_dashboard(%params, layout => undef);
-        push @dashboards, $dash if !$dash->is_empty || $user->permission->{superadmin};
+        push @dashboards, $dash
+            if !$dash->is_empty || $user->permission->{superadmin};
 
         # Site personal
         $dash = $self->search({
             'me.instance_id' => undef,
             'me.user_id'     => $user->id,
         })->next;
-        $dash ||= $self->create_dashboard(%params, layout => undef, type => 'personal');
+        $dash ||= $self->create_dashboard(
+            %params,
+            layout => undef,
+            type   => 'personal'
+        );
         push @dashboards, $dash;
     }
 
@@ -97,12 +98,15 @@ sub dashboard
     my $user   = $params{user};
     my $layout = $params{layout};
 
-    my $dashboard_rs = $self->search({
-        'me.id'      => $id,
-        'me.user_id' => [undef, $user->id],
-    },{
-        prefetch => 'widgets',
-    });
+    my $dashboard_rs = $self->search(
+        {
+            'me.id'      => $id,
+            'me.user_id' => [ undef, $user->id ],
+        },
+        {
+            prefetch => 'widgets',
+        },
+    );
 
     if ($dashboard_rs->count)
     {
@@ -111,7 +115,7 @@ sub dashboard
         return $dashboard;
     }
 
-    error __x"Dashboard {id} not found for this user", id => $id;
+    error __x "Dashboard {id} not found for this user", id => $id;
 }
 
 sub create_dashboard
@@ -123,7 +127,7 @@ sub create_dashboard
     my $site   = $params{site};
 
     my $schema = $self->result_source->schema;
-    my $guard = $schema->txn_scope_guard;
+    my $guard  = $schema->txn_scope_guard;
 
     my $dashboard;
 
@@ -135,33 +139,42 @@ sub create_dashboard
             instance_id => $layout && $layout->instance_id,
         });
 
-        my $homepage_text  = $layout ? $layout->homepage_text  : $site->homepage_text;
-        my $homepage_text2 = $layout ? $layout->homepage_text2 : $site->homepage_text2;
+        my $homepage_text =
+            $layout ? $layout->homepage_text : $site->homepage_text;
+        my $homepage_text2 =
+            $layout ? $layout->homepage_text2 : $site->homepage_text2;
 
-        if ($homepage_text2) # Assume 2 columns of homepage
+        if ($homepage_text2)    # Assume 2 columns of homepage
         {
-            $dashboard->create_related('widgets', {
-                type    => 'notice',
-                h       => 6,
-                w       => 6,
-                x       => 6,
-                y       => 0,
-                content => $homepage_text2,
-            });
+            $dashboard->create_related(
+                'widgets',
+                {
+                    type    => 'notice',
+                    h       => 6,
+                    w       => 6,
+                    x       => 6,
+                    y       => 0,
+                    content => $homepage_text2,
+                },
+            );
         }
+
         # Ensure empty dashboard if no existing homepages. This allows an empty
         # dashboard to be detected and different dashboards rendered
         # accordingly
         if ($homepage_text)
         {
-            $dashboard->create_related('widgets', {
-                type    => 'notice',
-                h       => 6,
-                w       => $homepage_text2 ? 6 : 12,
-                x       => 0,
-                y       => 0,
-                content => $homepage_text,
-            });
+            $dashboard->create_related(
+                'widgets',
+                {
+                    type    => 'notice',
+                    h       => 6,
+                    w       => $homepage_text2 ? 6 : 12,
+                    x       => 0,
+                    y       => 0,
+                    content => $homepage_text,
+                },
+            );
         }
     }
     elsif ($type eq 'personal')
@@ -175,16 +188,20 @@ sub create_dashboard
             <p>Create widgets using the Add Widget menu. Edit widgets using their
             edit button (including this one). Drag and resize widgets as required.</p>";
 
-        $dashboard->create_related('widgets', {
-            type    => 'notice',
-            h       => 6,
-            w       => 6,
-            x       => 0,
-            y       => 0,
-            content => $content,
-        });
+        $dashboard->create_related(
+            'widgets',
+            {
+                type    => 'notice',
+                h       => 6,
+                w       => 6,
+                x       => 0,
+                y       => 0,
+                content => $content,
+            },
+        );
     }
-    else {
+    else
+    {
         panic "Unexpected dashboard type: $type";
     }
 

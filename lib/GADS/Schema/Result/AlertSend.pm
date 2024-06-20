@@ -1,4 +1,5 @@
 use utf8;
+
 package GADS::Schema::Result::AlertSend;
 
 # Created by DBIx::Class::Schema::Loader
@@ -68,16 +69,16 @@ __PACKAGE__->table("alert_send");
 =cut
 
 __PACKAGE__->add_columns(
-  "id",
-  { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
-  "layout_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "alert_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-  "current_id",
-  { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
-  "status",
-  { data_type => "char", is_nullable => 1, size => 7 },
+    "id",
+    { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
+    "layout_id",
+    { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+    "alert_id",
+    { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
+    "current_id",
+    { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
+    "status",
+    { data_type => "char", is_nullable => 1, size => 7 },
 );
 
 =head1 PRIMARY KEY
@@ -110,9 +111,8 @@ __PACKAGE__->set_primary_key("id");
 
 =cut
 
-__PACKAGE__->add_unique_constraint(
-  "alert_send_all",
-  ["layout_id", "alert_id", "current_id", "status"],
+__PACKAGE__->add_unique_constraint("alert_send_all",
+    [ "layout_id", "alert_id", "current_id", "status" ],
 );
 
 =head1 RELATIONS
@@ -126,10 +126,14 @@ Related object: L<GADS::Schema::Result::Alert>
 =cut
 
 __PACKAGE__->belongs_to(
-  "alert",
-  "GADS::Schema::Result::Alert",
-  { id => "alert_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+    "alert",
+    "GADS::Schema::Result::Alert",
+    { id => "alert_id" },
+    {
+        is_deferrable => 1,
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION"
+    },
 );
 
 =head2 current
@@ -141,10 +145,14 @@ Related object: L<GADS::Schema::Result::Current>
 =cut
 
 __PACKAGE__->belongs_to(
-  "current",
-  "GADS::Schema::Result::Current",
-  { id => "current_id" },
-  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+    "current",
+    "GADS::Schema::Result::Current",
+    { id => "current_id" },
+    {
+        is_deferrable => 1,
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION"
+    },
 );
 
 =head2 layout
@@ -156,21 +164,19 @@ Related object: L<GADS::Schema::Result::Layout>
 =cut
 
 __PACKAGE__->belongs_to(
-  "layout",
-  "GADS::Schema::Result::Layout",
-  { id => "layout_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
+    "layout",
+    "GADS::Schema::Result::Layout",
+    { id => "layout_id" },
+    {
+        is_deferrable => 1,
+        join_type     => "LEFT",
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION",
+    },
 );
-
 
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:Q4ReVy5iw3JxILK0sxlGTA
-
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

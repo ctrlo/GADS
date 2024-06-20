@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -27,9 +28,7 @@ extends 'GADS::Column::Code';
 
 with 'GADS::Role::Presentation::Column::Rag';
 
-has '+type' => (
-    default => 'rag',
-);
+has '+type' => (default => 'rag',);
 
 sub _build__rset_code
 {   my $self = shift;
@@ -47,13 +46,9 @@ has unique_key => (
     default => 'ragval_ux_record_layout',
 );
 
-has '+table' => (
-    default => 'Ragval',
-);
+has '+table' => (default => 'Ragval',);
 
-has '+fixedvals' => (
-    default => 1,
-);
+has '+fixedvals' => (default => 1,);
 
 sub cleanup
 {   my ($class, $schema, $id) = @_;
@@ -64,7 +59,7 @@ sub cleanup
 # Returns whether an update is needed
 sub write_code
 {   my ($self, $layout_id) = @_;
-    my $rset = $self->_rset_code;
+    my $rset        = $self->_rset_code;
     my $need_update = !$rset->in_storage
         || $self->_rset_code->code ne $self->code;
     $rset->layout_id($layout_id);
@@ -76,9 +71,9 @@ sub write_code
 before import_hash => sub {
     my ($self, $values, %options) = @_;
     my $report = $options{report_only} && $self->id;
-    notice __x"Update: RAG code has changed for {name}",
+    notice __x "Update: RAG code has changed for {name}",
         name => $self->name
-            if $report && $self->code ne $values->{code};
+        if $report && $self->code ne $values->{code};
     $self->code($values->{code});
 };
 

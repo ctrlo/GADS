@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -36,13 +37,9 @@ has config => (
     },
 );
 
-has app_location => (
-    is => 'ro',
-);
+has app_location => (is => 'ro',);
 
-has template_location => (
-    is => 'lazy',
-);
+has template_location => (is => 'lazy',);
 
 sub _build_template_location
 {   my $self = shift;
@@ -69,9 +66,9 @@ has url => (
     clearer => 1,
     builder => sub {
         my $self = shift;
-        my $url = ref $self->gads eq 'HASH' && $self->gads->{url}
+        my $url  = ref $self->gads eq 'HASH' && $self->gads->{url}
             or panic "URL not configured";
-        $url =~ s!/$!!; # Remove trailing slash
+        $url =~ s!/$!!;    # Remove trailing slash
         $url;
     },
 );
@@ -82,7 +79,8 @@ has dateformat => (
     clearer => 1,
     builder => sub {
         my $self = shift;
-        ref $self->gads eq 'HASH' && $self->gads->{dateformat} || 'yyyy-MM-dd';
+        ref $self->gads eq 'HASH' && $self->gads->{dateformat}
+            || 'yyyy-MM-dd';
     },
 );
 
@@ -91,21 +89,25 @@ has dateformat_datepicker => (
     lazy    => 1,
     clearer => 1,
     builder => sub {
-        my $self = shift;
+        my $self       = shift;
         my $dateformat = $self->dateformat;
-        # Convert CLDR to datepicker.
-        # Datepicker accepts:
-        # d, dd: Numeric date, no leading zero and leading zero, respectively. Eg, 5, 05.
-        # - No change required
-        # D, DD: Abbreviated and full weekday names, respectively. Eg, Mon, Monday.
+
+# Convert CLDR to datepicker.
+# Datepicker accepts:
+# d, dd: Numeric date, no leading zero and leading zero, respectively. Eg, 5, 05.
+# - No change required
+# D, DD: Abbreviated and full weekday names, respectively. Eg, Mon, Monday.
         $dateformat =~ s/eeee/DD/;
         $dateformat =~ s/eee/D/;
-        # m, mm: Numeric month, no leading zero and leading zero, respectively. Eg, 7, 07.
+
+# m, mm: Numeric month, no leading zero and leading zero, respectively. Eg, 7, 07.
         $dateformat =~ s/MM(?!M)/mm/;
         $dateformat =~ s/M(?!M)/m/;
-        # M, MM: Abbreviated and full month names, respectively. Eg, Jan, January
+
+       # M, MM: Abbreviated and full month names, respectively. Eg, Jan, January
         $dateformat =~ s/MMMM/MM/;
         $dateformat =~ s/MMM/M/;
+
         # yy, yyyy: 2- and 4-digit years, respectively. Eg, 12, 2012.
         # - No change required
 

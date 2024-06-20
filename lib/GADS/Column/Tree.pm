@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -39,19 +40,13 @@ sub value_field_as_index
 {   return 'id';
 }
 
-has '+has_filter_typeahead' => (
-    default => 1,
-);
+has '+has_filter_typeahead' => (default => 1,);
 
-has '+fixedvals' => (
-    default => 1,
-);
+has '+fixedvals' => (default => 1,);
 
-has '+can_multivalue' => (
-    default => 1,
-);
+has '+can_multivalue' => (default => 1,);
 
-sub _build_sprefix { 'value' };
+sub _build_sprefix { 'value' }
 
 sub _build_retrieve_fields
 {   my $self = shift;
@@ -93,12 +88,15 @@ has enumvals => (
 );
 
 sub _build_enumvals
-{   my $self = shift;
-    my $enumrs = $self->schema->resultset('Enumval')->search({
-        layout_id => $self->id,
-    },{
-        order_by => 'me.value',
-    });
+{   my $self   = shift;
+    my $enumrs = $self->schema->resultset('Enumval')->search(
+        {
+            layout_id => $self->id,
+        },
+        {
+            order_by => 'me.value',
+        },
+    );
     $enumrs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my @enumvals = $enumrs->all;
     \@enumvals;
@@ -113,8 +111,8 @@ has _enumvals_index => (
 );
 
 sub _build__enumvals_index
-{   my $self = shift;
-    my %enumvals = map {$_->{id} => $_} @{$self->enumvals};
+{   my $self     = shift;
+    my %enumvals = map { $_->{id} => $_ } @{ $self->enumvals };
     \%enumvals;
 }
 
@@ -125,16 +123,20 @@ sub string_as_id
         deleted   => 0,
         value     => $value,
     });
-    error __x"More than one value for {value} in field {name}", value => $value, name => $self->name
+    error __x "More than one value for {value} in field {name}",
+        value => $value,
+        name  => $self->name
         if $rs->count > 1;
-    error __x"Value {value} not found in field {name}", value => $value, name => $self->name
+    error __x "Value {value} not found in field {name}",
+        value => $value,
+        name  => $self->name
         if $rs->count == 0;
     return $rs->next->id;
 }
 
 sub tjoin
 {   my $self = shift;
-    +{$self->field => 'value'};
+    +{ $self->field => 'value' };
 }
 
 # The whole tree, constructed here so that it only
@@ -148,9 +150,7 @@ has _tree => (
 );
 
 # The original values hash
-has original => (
-    is => 'rw',
-);
+has original => (is => 'rw',);
 
 after build_values => sub {
     my ($self, $original) = @_;
@@ -170,12 +170,13 @@ sub write_special
         end_node_only => $self->end_node_only,
     });
     return ();
-};
+}
 
 sub cleanup
 {   my ($class, $schema, $id) = @_;
     $schema->resultset('Enum')->search({ layout_id => $id })->delete;
-    $schema->resultset('Enumval')->search({ layout_id => $id })->update({parent => undef});
+    $schema->resultset('Enumval')->search({ layout_id => $id })
+        ->update({ parent => undef });
     $schema->resultset('Enumval')->search({ layout_id => $id })->delete;
 }
 
@@ -200,32 +201,33 @@ sub validate
     if (!$self->node($value))
     {
         return 0 unless $options{fatal};
-        error __x"'{int}' is not a valid tree node ID for '{col}'",
-            int => $value, col => $self->name;
+        error __x "'{int}' is not a valid tree node ID for '{col}'",
+            int => $value,
+            col => $self->name;
     }
     if ($self->node($value)->{node}->{attributes}->{deleted})
     {
         return 0 unless $options{fatal};
-        error __x"Node '{int}' has been deleted and can therefore not be used"
-            , int => $value;
+        error __x "Node '{int}' has been deleted and can therefore not be used",
+            int => $value;
     }
     1;
 }
 
-sub validate_search {1} # Anything is valid as a search value
+sub validate_search { 1 }    # Anything is valid as a search value
 
 # Get a single node value
 sub node
 {   my ($self, $id) = @_;
 
-    $id or return;
+    $id                  or return;
     $self->_nodes->{$id} or return;
 
     {
         id    => $id,
         node  => $self->_nodes->{$id},
         value => $self->_enumvals_index->{$id}->{value},
-    }
+    };
 }
 
 sub _build__tree
@@ -234,26 +236,29 @@ sub _build__tree
     my $enumvals;
     my $tree = {};
     my @order;
-    my @enumvals = @{$self->enumvals};
+    my @enumvals = @{ $self->enumvals };
     foreach my $enumval (@enumvals)
     {
         # If a node is deleted then still add to the tree, in case it is still
         # in use and needed for things like code evaluation. However, don't add
         # it in the tree with a parent, just have it "loose"
-        my $parent = !$enumval->{deleted} && $enumval->{parent}; # && $enum->parent->id;
+        my $parent =
+            !$enumval->{deleted} && $enumval->{parent};  # && $enum->parent->id;
         my $node = Tree::DAG_Node->new();
         $node->name($enumval->{id});
-        $tree->{$enumval->{id}} = {
+        $tree->{ $enumval->{id} } = {
             node       => $node,
             parent     => $parent,
             attributes => {
                 deleted => $enumval->{deleted},
             },
         };
+
         # Keep order in a list
         push @order, $enumval->{id};
+
         # Store the entire value for retrieval later
-        $enumvals->{$enumval->{id}} = $enumval;
+        $enumvals->{ $enumval->{id} } = $enumval;
     }
 
     my $root = Tree::DAG_Node->new();
@@ -266,7 +271,8 @@ sub _build__tree
         {
             $tree->{$parent}->{node}->add_daughter($node->{node});
         }
-        else {
+        else
+        {
             $root->add_daughter($node->{node});
         }
     }
@@ -275,7 +281,7 @@ sub _build__tree
         nodes    => $tree,
         root     => $root,
         enumvals => $enumvals,
-    }
+    };
 }
 
 sub json
@@ -290,32 +296,33 @@ sub json
         },
     };
     my $root = $self->_root;
-    return [] unless $root->depth_under; # No nodes
-    $root->walk_down
-    ({
-        callback => sub
-        {
-                my($node, $options) = @_;
-                my $depth = $options->{_depth};
-                if ($depth == 0)
-                {
-                    # Starting out at root
-                    $options->{stash}->{last_node}->{$depth} = $stash->{tree};
-                }
-                elsif (!$self->_enumvals_index->{$node->name}->{deleted}) # Ignore deleted nodes
-                {
-                    my $parent = $options->{stash}->{last_node}->{$depth-1};
-                    my $text = $self->_enumvals_index->{$node->name}->{value};
-                    $parent->{children} = [] unless $parent->{children};
-                    my $leaf = {
-                        text => $text,
-                        id   => $node->name,
-                    };
-                    $leaf->{state} = {selected => \1} if $selected{$node->name};
-                    push @{$parent->{children}}, $leaf;
-                    $options->{stash}->{last_node}->{$depth} = $parent->{children}->[-1];
-                }
-                return 1; # Keep walking.
+    return [] unless $root->depth_under;    # No nodes
+    $root->walk_down({
+        callback => sub {
+            my ($node, $options) = @_;
+            my $depth = $options->{_depth};
+            if ($depth == 0)
+            {
+                # Starting out at root
+                $options->{stash}->{last_node}->{$depth} = $stash->{tree};
+            }
+            elsif (!$self->_enumvals_index->{ $node->name }->{deleted}
+                )    # Ignore deleted nodes
+            {
+                my $parent = $options->{stash}->{last_node}->{ $depth - 1 };
+                my $text   = $self->_enumvals_index->{ $node->name }->{value};
+                $parent->{children} = [] unless $parent->{children};
+                my $leaf = {
+                    text => $text,
+                    id   => $node->name,
+                };
+                $leaf->{state} = { selected => \1 }
+                    if $selected{ $node->name };
+                push @{ $parent->{children} }, $leaf;
+                $options->{stash}->{last_node}->{$depth} =
+                    $parent->{children}->[-1];
+            }
+            return 1;    # Keep walking.
         },
         _depth => 0,
         stash  => $stash,
@@ -337,21 +344,23 @@ sub _delete_unused_nodes
     my @top = grep { !$_->{parent} } @all_nodes;
 
     sub _flat
-    {
-        my ($self, $start, $flat, $level, @all_nodes) = @_;
-        push @$flat, {
-            id      => $start->{id},
-            level   => $level,
-            deleted => $start->{deleted},
-            parent  => $start->{parent},
-        };
+    {   my ($self, $start, $flat, $level, @all_nodes) = @_;
+        push @$flat,
+            {
+                id      => $start->{id},
+                level   => $level,
+                deleted => $start->{deleted},
+                parent  => $start->{parent},
+            };
+
         # See if it has any children
-        my @children = grep { $_->{parent} && $_->{parent} == $start->{id} } @all_nodes;
+        my @children =
+            grep { $_->{parent} && $_->{parent} == $start->{id} } @all_nodes;
         foreach my $child (@children)
         {
             _flat($self, $child, $flat, $level + 1, @all_nodes);
         }
-    };
+    }
 
     # Now collect all the nodes in a flat structure. We can only delete
     # from the children up, otherwise there are relationship constraints.
@@ -367,35 +376,42 @@ sub _delete_unused_nodes
     # Do the actual deletion if they don't exist
     foreach my $node (@flat)
     {
-        next if $node->{deleted}; # Already deleted
-        if ($self->_enumvals_index->{$node->{id}})
+        next if $node->{deleted};    # Already deleted
+        if ($self->_enumvals_index->{ $node->{id} })
         {
             # Node in use somewhere
-            if ($node->{parent}
-                && (!$self->_enumvals_index->{$node->{parent}} || $self->_enumvals_index->{$node->{parent}}->{deleted})
-            )
+            if (
+                $node->{parent}
+                && (  !$self->_enumvals_index->{ $node->{parent} }
+                    || $self->_enumvals_index->{ $node->{parent} }
+                    ->{deleted})
+                )
             {
                 # Current node still exists, but its parent doesn't
                 # Move current node to the top by undefing the parent
-                $self->schema->resultset('Enumval')->find($node->{id})->update({
-                    parent => undef
-                });
+                $self->schema->resultset('Enumval')->find($node->{id})
+                    ->update({
+                        parent => undef
+                    });
             }
         }
         else
         {
             my $count = $self->schema->resultset('Enum')->search({
                 layout_id => $self->id,
-                value     => $node->{id}
-            })->count; # In use somewhere
-            my $haschild = grep {$_->{parent} && $node->{id} == $_->{parent}} @flat; # Has (deleted) children
+                value     => $node->{id},
+            })->count;    # In use somewhere
+            my $haschild = grep { $_->{parent} && $node->{id} == $_->{parent} }
+                @flat;    # Has (deleted) children
             if ($count || $haschild)
             {
-                $self->schema->resultset('Enumval')->find($node->{id})->update({
-                    deleted => 1
-                });
+                $self->schema->resultset('Enumval')->find($node->{id})
+                    ->update({
+                        deleted => 1
+                    });
             }
-            else {
+            else
+            {
                 $self->schema->resultset('Enumval')->find($node->{id})->delete;
             }
         }
@@ -404,11 +420,11 @@ sub _delete_unused_nodes
 
 sub random
 {   my $self = shift;
-    my %hash = %{$self->_enumvals_index};
+    my %hash = %{ $self->_enumvals_index };
     my $value;
     while (!$value)
     {
-        my $node = $hash{(keys %hash)[rand keys %hash]};
+        my $node = $hash{ (keys %hash)[ rand keys %hash ] };
         $value = $node->{value} unless $node->{deleted};
     }
     $value;
@@ -437,7 +453,7 @@ sub _update
 {   my ($self, $t, $new_tree, %params) = @_;
 
     my $parent = $t->{parent} || '#';
-    $parent = undef if $parent eq '#'; # Hash is top of tree (no parent)
+    $parent = undef if $parent eq '#';    # Hash is top of tree (no parent)
 
     my $enum_mapping = $params{enum_mapping};
     my $source_id    = delete $t->{source_id};
@@ -446,7 +462,7 @@ sub _update
     if ($t->{id} && $t->{id} =~ /^[0-9]+$/)
     {
         # existing entry
-        $dbt = $self->_enumvals_index->{$t->{id}};
+        $dbt = $self->_enumvals_index->{ $t->{id} };
     }
     if ($dbt)
     {
@@ -460,9 +476,10 @@ sub _update
             $enum_mapping->{$source_id} = $t->{id}
                 if $enum_mapping;
         }
-        $new_tree->{$dbt->{id}} = $dbt;
+        $new_tree->{ $dbt->{id} } = $dbt;
     }
-    else {
+    else
+    {
         # new entry
         $dbt = {
             layout_id => $self->id,
@@ -471,33 +488,39 @@ sub _update
         };
         my $id = $self->schema->resultset('Enumval')->create($dbt)->id;
         $dbt->{id} = $id;
+
         # Add to existing cache.
-        $new_tree->{$id} = $dbt;
+        $new_tree->{$id}            = $dbt;
         $enum_mapping->{$source_id} = $id
+
             # source_id not set when more new values than old values
             if $enum_mapping && $source_id;
     }
 
-    foreach my $child (@{$t->{children}})
+    foreach my $child (@{ $t->{children} })
     {
         $child->{parent} = $dbt->{id};
         $self->_update($child, $new_tree, %params);
     }
-};
+}
 
 sub resultset_for_values
 {   my $self = shift;
     if ($self->end_node_only)
     {
-        $self->schema->resultset('Enumval')->search({
-            'me.layout_id' => $self->id,
-            'me.deleted'   => 0,
-            'enumvals.id'  => undef,
-        },{
-            join => 'enumvals',
-        });
+        $self->schema->resultset('Enumval')->search(
+            {
+                'me.layout_id' => $self->id,
+                'me.deleted'   => 0,
+                'enumvals.id'  => undef,
+            },
+            {
+                join => 'enumvals',
+            },
+        );
     }
-    else {
+    else
+    {
         $self->schema->resultset('Enumval')->search({
             layout_id => $self->id,
             deleted   => 0,
@@ -508,40 +531,46 @@ sub resultset_for_values
 sub _import_branch
 {   my ($self, $old_in, $new_in, %options) = @_;
     my $report = $options{report_only};
-    my @old = sort { $a->{text} cmp $b->{text} } @$old_in;
-    my @new = sort { $a->{text} cmp $b->{text} } @$new_in;
+    my @old    = sort { $a->{text} cmp $b->{text} } @$old_in;
+    my @new    = sort { $a->{text} cmp $b->{text} } @$new_in;
     my @to_write;
     while (@old)
     {
         my $old = shift @old;
         my $new = shift @new;
+
         # If it's the same, easy, onto the next one
         if ($old->{text} && $new->{text} && $old->{text} eq $new->{text})
         {
-            trace __x"No change for tree value {value}", value => $old->{text}
+            trace __x "No change for tree value {value}", value => $old->{text}
                 if $report;
             $new->{source_id} = $new->{id};
-            $new->{id} = $old->{id};
+            $new->{id}        = $old->{id};
             push @to_write, $new;
         }
+
         # Different. Is the next one the same?
         elsif ($old[0] && $new[0] && $old[0]->{text} eq $new[0]->{text})
         {
             # Yes, assume the previous is a value change
-            notice __x"Changing tree value {old} to {new}", old => $old->{text}, new => $new->{text}
+            notice __x "Changing tree value {old} to {new}",
+                old => $old->{text},
+                new => $new->{text}
                 if $report;
             $new->{source_id} = $new->{id};
-            $new->{id} = $old->{id};
+            $new->{id}        = $old->{id};
             push @to_write, $new;
         }
+
         # Is the next new one the same as the current old one?
         elsif ($new[0] && $old->{text} eq $new[0]->{text})
         {
             # Yes, assume new value
-            notice __x"Adding tree value {new}", new => $new->{text}
+            notice __x "Adding tree value {new}", new => $new->{text}
                 if $report;
             $new->{source_id} = delete $new->{id};
             push @to_write, $new;
+
             # Add old one back onto stack for processing next loop
             unshift @old, $old;
         }
@@ -549,33 +578,53 @@ sub _import_branch
         {
             if ($new->{text})
             {
-                notice __x"Unknown treeval update {value}, forcing as requested", value => $new->{text};
+                notice __x
+                    "Unknown treeval update {value}, forcing as requested",
+                    value => $new->{text};
                 $new->{source_id} = delete $new->{id};
                 push @to_write, $new;
             }
-            else {
-                notice __x"Treeval {value} appears to no longer exist, force removing as requested", value => $old->{text};
+            else
+            {
+                notice __x
+"Treeval {value} appears to no longer exist, force removing as requested",
+                    value => $old->{text};
             }
         }
-        else {
+        else
+        {
             # Different, don't know what to do, require manual intervention
             if ($report)
             {
-                notice __x"Error: don't know how to handle tree updates for {name}, manual intervention required."
-                    ." (failed at old {old} new {new})", name => $self->name, old => $old->{text}, new => $new->{text};
+                notice __x
+"Error: don't know how to handle tree updates for {name}, manual intervention required."
+                    . " (failed at old {old} new {new})",
+                    name => $self->name,
+                    old  => $old->{text},
+                    new  => $new->{text};
                 return;
             }
-            else {
-                error __x"Error: don't know how to handle tree updates for {name}, manual intervention required"
-                    ." (failed at old {old} new {new}, column {column})", name => $self->name, old => $old->{text}, new => $new->{text},
+            else
+            {
+                error __x
+"Error: don't know how to handle tree updates for {name}, manual intervention required"
+                    . " (failed at old {old} new {new}, column {column})",
+                    name   => $self->name,
+                    old    => $old->{text},
+                    new    => $new->{text},
                     column => $self->name;
             }
         }
-        if ($new->{children} && @{$new->{children}})
+        if ($new->{children} && @{ $new->{children} })
         {
-            $new->{children} = [$self->_import_branch($old->{children}, $new->{children}, %options)];
+            $new->{children} = [
+                $self->_import_branch(
+                    $old->{children}, $new->{children}, %options
+                )
+            ];
         }
     }
+
     # Add any remaining new ones
     delete $_->{id} foreach @new;
     push @to_write, @new;
@@ -584,23 +633,26 @@ sub _import_branch
 
 sub import_after_write
 {   my ($self, $values, %options) = @_;
-    my @new = @{$values->{tree}};
+    my @new = @{ $values->{tree} };
 
     my @to_write;
+
     # Same as enumval: We have no unqiue identifier with which to match, so we
     # have to compare the new and the old lists to try and work out what's
     # changed. Simple changes are handled automatically, more complicated ones
     # will require manual intervention
-    if (my @old = @{$self->json})
+    if (my @old = @{ $self->json })
     {
         @to_write = $self->_import_branch(\@old, \@new, %options);
     }
-    else {
-        sub _to_source {
-            foreach (@_)
+    else
+    {
+
+        sub _to_source
+        {   foreach (@_)
             {
                 $_->{source_id} = delete $_->{id};
-                _to_source(@{$_->{children}})
+                _to_source(@{ $_->{children} })
                     if $_->{children};
             }
         }
@@ -614,7 +666,9 @@ sub import_after_write
 before import_hash => sub {
     my ($self, $values, %options) = @_;
     my $report = $options{report_only} && $self->id;
-    notice __x"Update: end_node_only from {old} to {new}", old => $self->end_node_only, new => $values->{end_node_only}
+    notice __x "Update: end_node_only from {old} to {new}",
+        old => $self->end_node_only,
+        new => $values->{end_node_only}
         if $report && $self->end_node_only != $values->{end_node_only};
     $self->end_node_only($values->{end_node_only});
 };
@@ -624,7 +678,7 @@ around export_hash => sub {
     my ($self, $values) = @_;
     my $hash = $orig->(@_);
     $hash->{end_node_only} = $self->end_node_only;
-    $hash->{tree}          = $self->json; # Not actually JSON
+    $hash->{tree}          = $self->json;            # Not actually JSON
     return $hash;
 };
 

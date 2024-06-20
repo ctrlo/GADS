@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -30,17 +31,22 @@ with 'GADS::Role::Presentation::Datum::Enum';
 
 after set_value => sub {
     my ($self, $value) = @_;
-    my $clone = $self->clone; # Copy before changing text
-    my @values = sort grep {$_} ref $value eq 'ARRAY' ? @$value : ($value);
-    my @old    = sort ref $self->id eq 'ARRAY' ? @{$self->id} : $self->id ? $self->id : ();
+    my $clone = $self->clone;    # Copy before changing text
+    my @values =
+        sort grep { $_ } ref $value eq 'ARRAY' ? @$value : ($value);
+    my @old =
+          sort ref $self->id eq 'ARRAY' ? @{ $self->id }
+        : $self->id                     ? $self->id
+        :                                 ();
     my $changed = "@values" ne "@old";
     if ($changed)
     {
-        my @text; my @deleted;
+        my @text;
+        my @deleted;
         foreach (@values)
         {
             $self->column->validate($_, fatal => 1);
-            push @text, $self->column->enumval($_)->{value};
+            push @text,    $self->column->enumval($_)->{value};
             push @deleted, $self->column->enumval($_)->{deleted};
         }
         $self->clear_text;
@@ -62,7 +68,7 @@ has text => (
     clearer => 1,
     builder => sub {
         my $self = shift;
-        join ', ', @{$self->text_all};
+        join ', ', @{ $self->text_all };
     },
 );
 
@@ -74,26 +80,25 @@ has text_all => (
     clearer => 1,
     builder => sub {
         $_[0]->value_hash->{text} || [];
-    }
+    },
 );
 
 sub for_table
-{   my $self = shift;
+{   my $self   = shift;
     my $return = $self->for_table_template;
     $return->{values} = $self->text_all;
     $return;
 }
 
 has id => (
-    is      => 'rw',
-    isa     => sub {
+    is  => 'rw',
+    isa => sub {
         my $value = shift;
         !defined $value and return;
         ref $value ne 'ARRAY' && $value =~ /^[0-9]+/ and return;
         my @values = @$value;
-        my @remain = grep {
-            !defined $_ || $_ !~ /^[0-9]+$/;
-        } @values and panic "Invalid value for ID";
+        my @remain = grep { !defined $_ || $_ !~ /^[0-9]+$/; } @values
+            and panic "Invalid value for ID";
     },
     lazy    => 1,
     trigger => sub {
@@ -103,13 +108,13 @@ has id => (
     builder => sub {
         my $self = shift;
         $self->column->multivalue
-            ? [ grep { defined $_ } @{$self->value_hash->{ids}} ]
+            ? [ grep { defined $_ } @{ $self->value_hash->{ids} } ]
             : $self->value_hash->{ids}->[0];
     },
 );
 
-sub ids {
-    my $self = shift;
+sub ids
+{   my $self = shift;
     $self->column->multivalue ? $self->id : [ $self->id ];
 }
 
@@ -117,9 +122,10 @@ sub _build_blank
 {   my $self = shift;
     if ($self->column->multivalue)
     {
-        @{$self->id} == 0 ? 1 : 0;
+        @{ $self->id } == 0 ? 1 : 0;
     }
-    else {
+    else
+    {
         defined $self->id ? 0 : 1;
     }
 }
@@ -129,32 +135,41 @@ has value_hash => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        # XXX - messy to account for different initial values. Can be tidied once
-        # we are no longer pre-fetching multiple records
-        my @init_value = $self->has_init_value ? @{$self->init_value} : ();
-        my @values     = map { ref $_ eq 'HASH' && exists $_->{record_id} ? $_->{value} : $_ } @init_value;
+
+       # XXX - messy to account for different initial values. Can be tidied once
+       # we are no longer pre-fetching multiple records
+        my @init_value =
+            $self->has_init_value ? @{ $self->init_value } : ();
+        my @values = map {
+            ref $_ eq 'HASH' && exists $_->{record_id}
+                ? $_->{value}
+                : $_
+        } @init_value;
         my (@ids, @texts, @deleted);
         foreach (@values)
         {
             if (ref $_ eq 'HASH')
             {
-                push @ids, $_->{id};
-                push @texts, $_->{value} || '';
+                push @ids,     $_->{id};
+                push @texts,   $_->{value} || '';
                 push @deleted, $_->{deleted};
             }
-            else {
+            else
+            {
                 my $e = $self->column->enumval($_)
                     or next;
-                push @ids, $e && $e->{id};
-                push @texts, $e && $e->{value};
+                push @ids,     $e && $e->{id};
+                push @texts,   $e && $e->{value};
                 push @deleted, $e && $e->{deleted};
             }
         }
-        $self->has_id(1) if (grep { defined $_ } @ids) || $self->init_no_value;
+        $self->has_id(1)
+            if (grep { defined $_ } @ids) || $self->init_no_value;
         +{
             ids     => \@ids,
             text    => \@texts,
-            deleted => \@deleted, # Whether it is a value that has since been deleted
+            deleted =>
+                \@deleted,   # Whether it is a value that has since been deleted
         };
     },
 );
@@ -172,8 +187,8 @@ has id_hash => (
 sub _build_id_hash
 {   my $self = shift;
     return $self->id ? { $self->id => 1 } : {} if !$self->column->multivalue;
-    return {} if !$self->id;
-    +{ map { $_ => 1 } @{$self->id} };
+    return {}                                  if !$self->id;
+    +{ map { $_ => 1 } @{ $self->id } };
 }
 
 has deleted_values => (
@@ -182,10 +197,10 @@ has deleted_values => (
 );
 
 sub _build_deleted_values
-{   my $self = shift;
-    my @ids     = @{$self->value_hash->{ids}};
-    my @deleted = @{$self->value_hash->{deleted}};
-    my @text    = @{$self->value_hash->{text}};
+{   my $self    = shift;
+    my @ids     = @{ $self->value_hash->{ids} };
+    my @deleted = @{ $self->value_hash->{deleted} };
+    my @text    = @{ $self->value_hash->{text} };
     my @return;
     foreach my $id (@ids)
     {
@@ -209,18 +224,24 @@ sub has_value { $_[0]->has_id }
 
 sub html_form
 {   my $self = shift;
-    [ map { $_ || '' } $self->column->multivalue ? @{$self->id} : $self->id ];
+    [ map { $_ || '' } $self->column->multivalue ? @{ $self->id } : $self->id ];
 }
 
 around 'clone' => sub {
-    my $orig = shift;
-    my $self = shift;
-    my %value_hash = ( # Ensure true copy
-        ids     => [@{$self->value_hash->{ids}}],
-        text    => [@{$self->value_hash->{text}}],
-        deleted => [@{$self->value_hash->{deleted}}],
+    my $orig       = shift;
+    my $self       = shift;
+    my %value_hash = (        # Ensure true copy
+        ids     => [ @{ $self->value_hash->{ids} } ],
+        text    => [ @{ $self->value_hash->{text} } ],
+        deleted => [ @{ $self->value_hash->{deleted} } ],
     );
-    $orig->($self, id => $self->id, text => $self->text, value_hash => \%value_hash, @_);
+    $orig->(
+        $self,
+        id         => $self->id,
+        text       => $self->text,
+        value_hash => \%value_hash,
+        @_
+    );
 };
 
 sub as_string
@@ -238,16 +259,17 @@ sub as_integer
 sub _build_for_code
 {   my ($self, %options) = @_;
 
-    my @ids   = @{$self->value_hash->{ids}};
-    my @texts = @{$self->value_hash->{text}};
+    my @ids   = @{ $self->value_hash->{ids} };
+    my @texts = @{ $self->value_hash->{text} };
 
     my @values;
     foreach my $id (@ids)
     {
-        push @values, {
-            id    => $id,
-            value => pop @texts,
-        };
+        push @values,
+            {
+                id    => $id,
+                value => pop @texts,
+            };
     }
 
     if (!$self->column->multivalue && @values <= 1)

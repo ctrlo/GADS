@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -21,12 +22,10 @@ package GADS::Type::Permissions;
 use GADS::Type::Permission;
 
 sub all
-{
-    map { GADS::Type::Permission->new(short => $_) }
-        qw(
-            read write_new write_existing approve_new approve_existing
-            write_new_no_approval write_existing_no_approval
-        );
+{   map { GADS::Type::Permission->new(short => $_) } qw(
+        read write_new write_existing approve_new approve_existing
+        write_new_no_approval write_existing_no_approval
+    );
 }
 
 sub permission

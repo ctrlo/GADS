@@ -1,4 +1,5 @@
 use utf8;
+
 package GADS::Schema::Result::Current;
 
 =head1 NAME
@@ -82,26 +83,26 @@ __PACKAGE__->table("current");
 =cut
 
 __PACKAGE__->add_columns(
-  "id",
-  { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
-  "serial",
-  { data_type => "bigint", is_nullable => 1 },
-  "parent_id",
-  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
-  "instance_id",
-  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
-  "linked_id",
-  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
-  "deleted",
-  {
-    data_type => "datetime",
-    datetime_undef_if_invalid => 1,
-    is_nullable => 1,
-  },
-  "deletedby",
-  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
-  "draftuser_id",
-  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
+    "id",
+    { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
+    "serial",
+    { data_type => "bigint", is_nullable => 1 },
+    "parent_id",
+    { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
+    "instance_id",
+    { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+    "linked_id",
+    { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
+    "deleted",
+    {
+        data_type                 => "datetime",
+        datetime_undef_if_invalid => 1,
+        is_nullable               => 1,
+    },
+    "deletedby",
+    { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
+    "draftuser_id",
+    { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -116,7 +117,8 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
-__PACKAGE__->add_unique_constraint("current_ux_instance_serial", ["instance_id", "serial"]);
+__PACKAGE__->add_unique_constraint("current_ux_instance_serial",
+    [ "instance_id", "serial" ]);
 
 =head1 RELATIONS
 
@@ -129,10 +131,10 @@ Related object: L<GADS::Schema::Result::AlertCache>
 =cut
 
 __PACKAGE__->has_many(
-  "alert_caches",
-  "GADS::Schema::Result::AlertCache",
-  { "foreign.current_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "alert_caches",
+    "GADS::Schema::Result::AlertCache",
+    { "foreign.current_id" => "self.id" },
+    { cascade_copy         => 0, cascade_delete => 0 },
 );
 
 =head2 alerts_send
@@ -144,10 +146,10 @@ Related object: L<GADS::Schema::Result::AlertSend>
 =cut
 
 __PACKAGE__->has_many(
-  "alerts_send",
-  "GADS::Schema::Result::AlertSend",
-  { "foreign.current_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "alerts_send",
+    "GADS::Schema::Result::AlertSend",
+    { "foreign.current_id" => "self.id" },
+    { cascade_copy         => 0, cascade_delete => 0 },
 );
 
 =head2 currents
@@ -159,10 +161,10 @@ Related object: L<GADS::Schema::Result::Current>
 =cut
 
 __PACKAGE__->has_many(
-  "currents",
-  "GADS::Schema::Result::Current",
-  { "foreign.parent_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "currents",
+    "GADS::Schema::Result::Current",
+    { "foreign.parent_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 currents_linked
@@ -174,10 +176,10 @@ Related object: L<GADS::Schema::Result::Current>
 =cut
 
 __PACKAGE__->has_many(
-  "currents_linked",
-  "GADS::Schema::Result::Current",
-  { "foreign.linked_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "currents_linked",
+    "GADS::Schema::Result::Current",
+    { "foreign.linked_id" => "self.id" },
+    { cascade_copy        => 0, cascade_delete => 0 },
 );
 
 =head2 curvals
@@ -189,10 +191,10 @@ Related object: L<GADS::Schema::Result::Curval>
 =cut
 
 __PACKAGE__->has_many(
-  "curvals",
-  "GADS::Schema::Result::Curval",
-  { "foreign.value" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "curvals",
+    "GADS::Schema::Result::Curval",
+    { "foreign.value" => "self.id" },
+    { cascade_copy    => 0, cascade_delete => 0 },
 );
 
 =head2 instance
@@ -204,15 +206,15 @@ Related object: L<GADS::Schema::Result::Instance>
 =cut
 
 __PACKAGE__->belongs_to(
-  "instance",
-  "GADS::Schema::Result::Instance",
-  { id => "instance_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
+    "instance",
+    "GADS::Schema::Result::Instance",
+    { id => "instance_id" },
+    {
+        is_deferrable => 1,
+        join_type     => "LEFT",
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION",
+    },
 );
 
 =head2 linked
@@ -224,15 +226,15 @@ Related object: L<GADS::Schema::Result::Current>
 =cut
 
 __PACKAGE__->belongs_to(
-  "linked",
-  "GADS::Schema::Result::Current",
-  { id => "linked_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
+    "linked",
+    "GADS::Schema::Result::Current",
+    { id => "linked_id" },
+    {
+        is_deferrable => 1,
+        join_type     => "LEFT",
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION",
+    },
 );
 
 =head2 parent
@@ -244,15 +246,15 @@ Related object: L<GADS::Schema::Result::Current>
 =cut
 
 __PACKAGE__->belongs_to(
-  "parent",
-  "GADS::Schema::Result::Current",
-  { id => "parent_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
+    "parent",
+    "GADS::Schema::Result::Current",
+    { id => "parent_id" },
+    {
+        is_deferrable => 1,
+        join_type     => "LEFT",
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION",
+    },
 );
 
 =head2 deletedby
@@ -264,15 +266,15 @@ Related object: L<GADS::Schema::Result::User>
 =cut
 
 __PACKAGE__->belongs_to(
-  "deletedby",
-  "GADS::Schema::Result::User",
-  { id => "deletedby" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
+    "deletedby",
+    "GADS::Schema::Result::User",
+    { id => "deletedby" },
+    {
+        is_deferrable => 1,
+        join_type     => "LEFT",
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION",
+    },
 );
 
 =head2 records
@@ -288,15 +290,15 @@ Related object: L<GADS::Schema::Result::User>
 =cut
 
 __PACKAGE__->belongs_to(
-  "draftuser_id",
-  "GADS::Schema::Result::User",
-  { id => "draftuser_id" },
-  {
-    is_deferrable => 1,
-    join_type     => "LEFT",
-    on_delete     => "NO ACTION",
-    on_update     => "NO ACTION",
-  },
+    "draftuser_id",
+    "GADS::Schema::Result::User",
+    { id => "draftuser_id" },
+    {
+        is_deferrable => 1,
+        join_type     => "LEFT",
+        on_delete     => "NO ACTION",
+        on_update     => "NO ACTION",
+    },
 );
 
 =head2 records
@@ -308,30 +310,29 @@ Related object: L<GADS::Schema::Result::Record>
 =cut
 
 __PACKAGE__->has_many(
-  "records",
-  "GADS::Schema::Result::Record",
-  { "foreign.current_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "records",
+    "GADS::Schema::Result::Record",
+    { "foreign.current_id" => "self.id" },
+    { cascade_copy         => 0, cascade_delete => 0 },
 );
-
 
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:rxAxdyOBz/25FzoaWbC+Bg
 
 __PACKAGE__->might_have(
-  "record_single",
-  "GADS::Schema::Result::Record",
-  { "foreign.current_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "record_single",
+    "GADS::Schema::Result::Record",
+    { "foreign.current_id" => "self.id" },
+    { cascade_copy         => 0, cascade_delete => 0 },
 );
 
 # Same join but with different names, when needing to differentiate (e.g.
 # correlated queries where the main record needs to be referred to)
 __PACKAGE__->might_have(
-  "record_single_alternative",
-  "GADS::Schema::Result::Record",
-  { "foreign.current_id" => "self.id" },
-  { cascade_copy => 0, cascade_delete => 0 },
+    "record_single_alternative",
+    "GADS::Schema::Result::Record",
+    { "foreign.current_id" => "self.id" },
+    { cascade_copy         => 0, cascade_delete => 0 },
 );
 
 sub export_hash
@@ -342,7 +343,7 @@ sub export_hash
         serial    => $self->serial,
         parent_id => $self->parent_id,
         linked_id => $self->linked_id,
-        deleted   => $self->deleted && $self->deleted->datetime,
+        deleted   => $self->deleted   && $self->deleted->datetime,
         deletedby => $self->deletedby && $self->deletedby->id,
     };
 
@@ -351,32 +352,25 @@ sub export_hash
     {
         my @values;
 
-        push @values, $_->export_hash
-            foreach $rec->curvals;
-        push @values, $_->export_hash
-            foreach $rec->dates;
-        push @values, $_->export_hash
-            foreach $rec->dateranges;
-        push @values, $_->export_hash
-            foreach $rec->enums;
-        push @values, $_->export_hash
-            foreach $rec->intgrs;
-        push @values, $_->export_hash
-            foreach $rec->people;
-        push @values, $_->export_hash
-            foreach $rec->strings;
-        push @values, $_->export_hash
-            foreach $rec->files;
+        push @values, $_->export_hash foreach $rec->curvals;
+        push @values, $_->export_hash foreach $rec->dates;
+        push @values, $_->export_hash foreach $rec->dateranges;
+        push @values, $_->export_hash foreach $rec->enums;
+        push @values, $_->export_hash foreach $rec->intgrs;
+        push @values, $_->export_hash foreach $rec->people;
+        push @values, $_->export_hash foreach $rec->strings;
+        push @values, $_->export_hash foreach $rec->files;
 
-        push @records, {
-            created    => $rec->created->datetime,
-            createdby  => $rec->createdby && $rec->createdby->id,
-            approvedby => $rec->approvedby && $rec->approvedby->id,
-            record_id  => $rec->record_id,
-            approval   => $rec->approval,
-            values     => \@values,
-        };
-    };
+        push @records,
+            {
+                created    => $rec->created->datetime,
+                createdby  => $rec->createdby  && $rec->createdby->id,
+                approvedby => $rec->approvedby && $rec->approvedby->id,
+                record_id  => $rec->record_id,
+                approval   => $rec->approval,
+                values     => \@values,
+            };
+    }
     $current->{records} = \@records;
 
     return $current;

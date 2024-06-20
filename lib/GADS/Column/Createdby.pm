@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2019 Ctrl O Ltd
@@ -26,9 +27,7 @@ extends 'GADS::Column::Person';
 
 with 'GADS::Role::Presentation::Column::Createdby';
 
-has '+value_field' => (
-    default => 'value',
-);
+has '+value_field' => (default => 'value',);
 
 sub _build_table
 {   my $self = shift;
@@ -40,16 +39,13 @@ sub _build_sprefix
     'createdby';
 }
 
-has '+internal' => (
-    default => 1,
-);
+has '+internal' => (default => 1,);
 
-has '+userinput' => (
-    default => 0,
-);
+has '+userinput' => (default => 0,);
 
 sub tjoin
 {   my $self = shift;
+
     # If this is the column for the person that created the initial record
     # rather than the current version, then do not return a join. This is
     # because the join will be used to join to the current version record, and
@@ -65,10 +61,10 @@ sub tjoin
 sub fetch_multivalues
 {   my ($self, $user_ids) = @_;
 
-    my %user_ids = map { $_ => 1 } grep { $_ } @$user_ids; # De-duplicate
+    my %user_ids = map { $_ => 1 } grep { $_ } @$user_ids;    # De-duplicate
 
     my $m_rs = $self->schema->resultset('User')->search({
-        'me.id' => [keys %user_ids],
+        'me.id' => [ keys %user_ids ],
     });
     $m_rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my %users = map { $_->{id} => $_ } $m_rs->all;

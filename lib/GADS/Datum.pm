@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -26,12 +27,19 @@ use namespace::clean;
 
 with 'GADS::Role::Presentation::Datum';
 
-use overload 'bool' => sub { 1 }, '""'  => 'as_string', '0+' => 'as_integer', fallback => 1;
+use overload
+    'bool'   => sub { 1 },
+    '""'     => 'as_string',
+    '0+'     => 'as_integer',
+    fallback => 1;
 
 sub set_value
 {   my ($self, $value, %options) = @_;
-    error __"Cannot set this value as it is a parent value"
-        if !$options{is_parent_value} && !$self->column->can_child && $self->record && $self->record->parent_id;
+    error __ "Cannot set this value as it is a parent value"
+        if !$options{is_parent_value}
+        && !$self->column->can_child
+        && $self->record
+        && $self->record->parent_id;
     $self->clear_for_code;
 }
 
@@ -40,17 +48,11 @@ has record => (
     weak_ref => 1,
 );
 
-has record_id => (
-    is => 'rw',
-);
+has record_id => (is => 'rw',);
 
-has current_id => (
-    is => 'rw',
-);
+has current_id => (is => 'rw',);
 
-has column => (
-    is => 'rw',
-);
+has column => (is => 'rw',);
 
 has changed => (
     is      => 'rw',
@@ -66,7 +68,8 @@ has child_unique => (
     trigger => sub {
         my ($self, $value) = @_;
         $self->changed(1)
-            if $self->_has_child_unique_old && $value != $self->_child_unique_old;
+            if $self->_has_child_unique_old
+            && $value != $self->_child_unique_old;
         $self->_child_unique_old($value);
     },
 );
@@ -101,18 +104,16 @@ has init_no_value => (
     isa => Bool,
 );
 
-has oldvalue => (
-    is => 'rw',
-);
+has oldvalue => (is => 'rw',);
 
-has has_value => (
-    is => 'rw',
-);
+has has_value => (is => 'rw',);
 
 sub values
 {   my $self = shift;
     panic "values() is now deprecated";
-    my @values = ref $self->value eq 'ARRAY' ? @{$self->value} : ($self->value);
+    my @values =
+        ref $self->value eq 'ARRAY' ? @{ $self->value } : ($self->value);
+
     # If a normal array is used (not array ref) then TT does not iterate over
     # the values properly if the only value is a "0"
     [@values];
@@ -143,7 +144,7 @@ sub for_table_template
 
 sub text_all
 {   my $self = shift;
-    [$self->as_string];
+    [ $self->as_string ];
 }
 
 sub html
@@ -186,7 +187,7 @@ sub dependent_not_shown
     # column (e.g. audit logs)
     return 0 if !$self->column;
 
-    my @filters = @{$self->column->display_fields->filters}
+    my @filters = @{ $self->column->display_fields->filters }
         or return 0;
 
     my $display_condition = $self->column->display_condition;
@@ -194,10 +195,10 @@ sub dependent_not_shown
     my $shown = 0;
 
     my $fields = $self->record->fields;
-    foreach my $filter (@{$self->column->display_fields->filters})
+    foreach my $filter (@{ $self->column->display_fields->filters })
     {
         my $display_field_id = $filter->{column_id};
-        my $display_regex = $filter->{value};
+        my $display_regex    = $filter->{value};
 
         if (!$fields->{$display_field_id})
         {
@@ -206,12 +207,14 @@ sub dependent_not_shown
         }
 
         my $matchtype = $filter->{operator};
-        $display_regex = '^'.$display_regex.'$'
+        $display_regex = '^' . $display_regex . '$'
             if $matchtype =~ /equal/;
         my $value_datum = $fields->{$display_field_id};
         $value_datum = $value_datum->oldvalue
             if $options{oldvalue} && $value_datum->changed;
-        my $values = $value_datum->value_regex_test(submission_token => $options{submission_token});
+        my $values = $value_datum->value_regex_test(
+            submission_token => $options{submission_token});
+
         # If the user cannot read the value that is depended on, make it blank
         # (this is how the form works)
         my $form_column = $value_datum->column;
@@ -223,9 +226,12 @@ sub dependent_not_shown
         $values = [''] if !@$values;
         foreach my $value (@$values)
         {
-            if ($matchtype =~ /not/) {
+            if ($matchtype =~ /not/)
+            {
                 $this_not_shown = 1 if $value =~ /$display_regex/i;
-            } else {
+            }
+            else
+            {
                 $this_not_shown = 0 if $value =~ /$display_regex/i;
             }
         }
@@ -238,9 +244,10 @@ sub dependent_not_shown
             {
                 last if $shown;
             }
-            else {
+            else
+            {
                 $shown = 0 if $this_not_shown;
-                last if !$shown;
+                last       if !$shown;
             }
         }
     }
@@ -250,15 +257,16 @@ sub dependent_not_shown
 
 sub clone
 {   my ($self, @extra) = @_;
+
     # This will be called from a child class, in which case @extra can specify
     # additional attributes specific to that class
     ref($self)->new(
-        record         => $self->record,
-        column         => $self->column,
-        record_id      => $self->record_id,
-        current_id     => $self->current_id,
-        blank          => $self->blank,
-        @extra
+        record     => $self->record,
+        column     => $self->column,
+        record_id  => $self->record_id,
+        current_id => $self->current_id,
+        blank      => $self->blank,
+        @extra,
     );
 }
 
@@ -274,7 +282,7 @@ has _read_for_code => (
 
 sub _build_for_code
 {   my $self = shift;
-    $self->as_string; # Default
+    $self->as_string;    # Default
 }
 
 sub date_for_code

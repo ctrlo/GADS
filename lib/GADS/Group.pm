@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -92,7 +93,8 @@ sub _build__rset
     {
         $rset = $self->schema->resultset('Group')->find($self->id);
     }
-    else {
+    else
+    {
         $rset = $self->schema->resultset('Group')->create({ name => undef });
         $self->_set_id($rset->id);
     }
@@ -100,17 +102,16 @@ sub _build__rset
 }
 
 sub _build_columns
-{   my $self = shift;
+{   my $self  = shift;
     my @perms = $self->schema->resultset('LayoutGroup')->search({
         group_id => $self->id,
     })->all;
     my %columns;
     foreach my $perm (@perms)
     {
-        $columns{$perm->layout_id} ||= [];
-        push @{$columns{$perm->layout_id}}, GADS::Type::Permission->new(
-            short => $perm->permission,
-        );
+        $columns{ $perm->layout_id } ||= [];
+        push @{ $columns{ $perm->layout_id } },
+            GADS::Type::Permission->new(short => $perm->permission,);
     }
     \%columns;
 }
@@ -128,7 +129,7 @@ sub from_id
     $self->name($group->name);
     foreach my $perm (GADS::Type::Permissions->all)
     {
-        my $name = "default_".$perm->short;
+        my $name = "default_" . $perm->short;
         $self->$name($group->$name);
     }
     $self->_set_id($id);
@@ -138,9 +139,12 @@ sub delete
 {   my $self = shift;
 
     my $schema = $self->schema;
-    $self->schema->resultset('LayoutGroup')->search({ group_id => $self->id })->delete;
-    $self->schema->resultset('InstanceGroup')->search({ group_id => $self->id })->delete;
-    $self->schema->resultset('UserGroup')->search({ group_id => $self->id })->delete;
+    $self->schema->resultset('LayoutGroup')->search({ group_id => $self->id })
+        ->delete;
+    $self->schema->resultset('InstanceGroup')
+        ->search({ group_id => $self->id })->delete;
+    $self->schema->resultset('UserGroup')->search({ group_id => $self->id })
+        ->delete;
     $self->_rset->delete;
 }
 
@@ -148,15 +152,14 @@ sub delete
 sub write
 {   my $self = shift;
     my $newgroup;
-    $newgroup->{name} = $self->name or error __"Please enter a name";
+    $newgroup->{name} = $self->name or error __ "Please enter a name";
     foreach my $perm (GADS::Type::Permissions->all)
     {
-        my $name = "default_".$perm->short;
+        my $name = "default_" . $perm->short;
         $newgroup->{$name} = $self->$name;
     }
     $self->_rset->update($newgroup);
 }
 
 1;
-
 

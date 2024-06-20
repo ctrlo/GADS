@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2018 Ctrl O Ltd
@@ -20,14 +21,14 @@ package GADS::Timeline;
 
 use DateTime;
 use HTML::Entities qw/encode_entities/;
-use JSON qw(encode_json);
+use JSON           qw(encode_json);
 use GADS::Graph::Data;
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base     qw(:all);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
-use List::Util  qw(min max);
-use Scalar::Util qw/blessed/;
+use List::Util                       qw(min max);
+use Scalar::Util                     qw/blessed/;
 
 use constant {
     AT_BIGBANG  => DateTime::Infinite::Past->new,
@@ -39,30 +40,20 @@ has type => (
     required => 1,
 );
 
-has label_col_id => (
-    is => 'ro',
-);
+has label_col_id => (is => 'ro',);
 
-has group_col_id => (
-    is => 'ro',
-);
+has group_col_id => (is => 'ro',);
 
-has color_col_id => (
-    is => 'ro',
-);
+has color_col_id => (is => 'ro',);
 
-has all_group_values => (
-    is => 'ro',
-);
+has all_group_values => (is => 'ro',);
 
 has _used_color_keys => (
     is      => 'ro',
     default => sub { +{} },
 );
 
-has colors => (
-    is => 'lazy',
-);
+has colors => (is => 'lazy',);
 
 sub _build_colors
 {   my $self = shift;
@@ -89,23 +80,23 @@ has _group_count => (
 # This will also take into account long date ranges, where we only want to show
 # part of the range.
 has display_from => (
-    is      => 'rwp',
-    isa     => Maybe[DateAndTime],
+    is  => 'rwp',
+    isa => Maybe [DateAndTime],
+
     # Do not set to an infinite value, should be undef instead
-    coerce  => sub { return undef if ref($_[0]) =~ /Infinite/; $_[0] },
+    coerce => sub { return undef if ref($_[0]) =~ /Infinite/; $_[0] },
 );
 
 # Same as above
 has display_to => (
-    is      => 'rwp',
-    isa     => Maybe[DateAndTime],
+    is  => 'rwp',
+    isa => Maybe [DateAndTime],
+
     # Do not set to an infinite value, should be undef instead
-    coerce  => sub { return undef if ref($_[0]) =~ /Infinite/; $_[0] },
+    coerce => sub { return undef if ref($_[0]) =~ /Infinite/; $_[0] },
 );
 
-has records => (
-    is      => 'ro',
-);
+has records => (is => 'ro',);
 
 sub clear
 {   my $self = shift;
@@ -130,9 +121,7 @@ has items => (
     clearer => 1,
 );
 
-has graph => (
-    is      => 'lazy',
-);
+has graph => (is => 'lazy',);
 
 # from DateTime to miliseconds
 sub _tick($) { shift->epoch * 1000 }
@@ -159,33 +148,36 @@ sub _build_items
     my $label_col_id = $self->label_col_id;
 
     # Add on any extra required columns for labelling etc
-    my @extra = map { $_ && $layout->column($_) ? +{ id => $_ } : () }
-        $label_col_id, $group_col_id, $color_col_id;
+    my @extra =
+        map { $_ && $layout->column($_) ? +{ id => $_ } : () } $label_col_id,
+        $group_col_id, $color_col_id;
 
     $records->columns_extra(\@extra);
 
-    my $from_min =  $from && !$to ? $from->clone->truncate(to => 'day') : undef;
-    my $to_max   = !$from &&  $to ? $to->clone->truncate(to => 'day')->add(days => 1) : undef;
+    my $from_min = $from && !$to ? $from->clone->truncate(to => 'day') : undef;
+    my $to_max   = !$from
+        && $to ? $to->clone->truncate(to => 'day')->add(days => 1) : undef;
 
     # Don't show the ID by default on the timeline as it clutters each item. It
     # can be added as a field if required
-    my @columns  = grep $_->type ne 'id', @{$records->columns_render};
+    my @columns = grep $_->type ne 'id', @{ $records->columns_render };
 
     my $date_column_count = 0;
     foreach my $column (@columns)
     {
         my @cols = $column;
-        push @cols, @{$column->curval_fields}
+        push @cols, @{ $column->curval_fields }
             if $column->is_curcommon;
 
         foreach my $col (@cols)
-        {   my $rt = $col->return_type;
+        {
+            my $rt = $col->return_type;
             $date_column_count++
                 if $rt eq 'daterange' || $rt eq 'date';
         }
     }
 
-    my $group_col  = $group_col_id ? $layout->column($group_col_id) : undef;
+    my $group_col = $group_col_id ? $layout->column($group_col_id) : undef;
 
     if ($self->all_group_values && $group_col && $group_col->fixedvals)
     {
@@ -197,11 +189,12 @@ sub _build_items
     }
 
     my @items;
-    while (my $record  = $records->single)
-    {   my $fields     = $record->fields;
+    while (my $record = $records->single)
+    {
+        my $fields = $record->fields;
 
         my @groups_to_add;
-        @groups_to_add = @{$fields->{$group_col_id}->text_all}
+        @groups_to_add = @{ $fields->{$group_col_id}->text_all }
             if $group_col && $group_col->user_can('read');
 
         @groups_to_add
@@ -224,33 +217,37 @@ sub _build_items
             my (@dates, @values);
 
             foreach my $column (@columns)
-            {   my @d = $fields->{$column->id};
+            {
+                my @d = $fields->{ $column->id };
 
                 if ($column->is_curcommon)
                 {   # We need the main value (for the pop-up) and also any dates
-                    # within it to add to the timeline separately.
-                    # First all date columns in this curcommon:
-                    my @date_cols = grep $_->return_type eq 'date' || $_->return_type eq 'daterange',
-                        @{$column->curval_fields};
+                     # within it to add to the timeline separately.
+                     # First all date columns in this curcommon:
+                    my @date_cols =
+                        grep $_->return_type eq 'date'
+                        || $_->return_type eq 'daterange',
+                        @{ $column->curval_fields };
+
                     # Now get those values from all records within
-                    foreach my $rec (map $_->{record}, $fields->{$column->id}->all_records)
+                    foreach my $rec (map $_->{record},
+                        $fields->{ $column->id }->all_records)
                     {
-                        push @d, $rec->fields->{$_->id}
-                            foreach @date_cols;
+                        push @d, $rec->fields->{ $_->id } foreach @date_cols;
                     }
                 }
 
-         DATUM: foreach my $d (grep defined, @d)
+            DATUM: foreach my $d (grep defined, @d)
                 {
                     # Only show unique items of children, otherwise will be
                     # a lot of repeated entries.
                     next DATUM if $record->parent_id && !$d->child_unique;
 
                     my $column_datum = $d->column;
-                    my $rt = $column_datum->return_type;
-                    unless($rt eq 'daterange' || $rt eq 'date')
-                    {   # Not a date value, push onto labels.
-                        # Don't want full HTML, which includes hyperlinks etc
+                    my $rt           = $column_datum->return_type;
+                    unless ($rt eq 'daterange' || $rt eq 'date')
+                    {    # Not a date value, push onto labels.
+                         # Don't want full HTML, which includes hyperlinks etc
                         push @values, +{ col => $column_datum, value => $d }
                             if $d->as_string;
 
@@ -259,23 +256,27 @@ sub _build_items
 
                     # Create colour if need be
                     my $color;
-                    if($self->type eq 'calendar' || ( !$color_col_id && $date_column_count > 1 ))
-                    {   $color = $self->graph->get_color($column->name);
-                        $self->_used_color_keys->{$column->name} = 1;
+                    if ($self->type eq 'calendar'
+                        || (!$color_col_id && $date_column_count > 1))
+                    {
+                        $color = $self->graph->get_color($column->name);
+                        $self->_used_color_keys->{ $column->name } = 1;
                     }
 
                     my (@spans, $is_range);
-                    if($column_datum->return_type eq 'daterange')
-                    {   @spans    = map +[ $_->start, $_->end ], @{$d->values};
+                    if ($column_datum->return_type eq 'daterange')
+                    {
+                        @spans = map +[ $_->start, $_->end ], @{ $d->values };
                         $is_range = 1;
                     }
                     else
-                    {   @spans    = map +[ $_, $_ ],
-                            @{$d->values};
+                    {
+                        @spans = map +[ $_, $_ ], @{ $d->values };
                     }
 
                     foreach my $span (@spans)
-                    {   my ($start, $end) = @$span;
+                    {
+                        my ($start, $end) = @$span;
 
                         # Timespan must overlap to select.
                         # For dates without times, we need to truncate to just
@@ -289,66 +290,79 @@ sub _build_items
                         # discarded at this point, as the from time of 14:53 is
                         # after the midnight time of the retrieved record.
                         my $from_check = $from && $from->clone;
-                        $from_check->truncate(to => 'day') if $from_check && !$column->has_time;
+                        $from_check->truncate(to => 'day')
+                            if $from_check && !$column->has_time;
 
-                        my $from_test = $self->records->exclusive_of_from
+                        my $from_test =
+                            $self->records->exclusive_of_from
                             ? (!$from_check || $end > $from_check)
                             : (!$from_check || $end >= $from_check);
-                        my $to_test = $self->records->exclusive_of_to
+                        my $to_test =
+                            $self->records->exclusive_of_to
                             ? (!$to || $start < $to)
                             : (!$to || $start <= $to);
                         $from_test && $to_test
-                             or next;
+                            or next;
 
-                        push @dates, +{
-                            from       => $start,
-                            to         => $end,
-                            color      => $color,
-                            column     => $column_datum->id,
-                            count      => ++$seqnr,
-                            daterange  => $is_range,
-                            has_time   => $column->has_time,
-                            current_id => $d->record->current_id,
-                        };
+                        push @dates,
+                            +{
+                                from       => $start,
+                                to         => $end,
+                                color      => $color,
+                                column     => $column_datum->id,
+                                count      => ++$seqnr,
+                                daterange  => $is_range,
+                                has_time   => $column->has_time,
+                                current_id => $d->record->current_id,
+                            };
                     }
                 }
             }
 
             $oldest = min $oldest, map $_->{from}, @dates;
-            $newest = max $newest, map $_->{to}, @dates;
+            $newest = max $newest, map $_->{to},   @dates;
 
             my @titles;
-            if(!$label_col_id)
-            {   push @titles, grep {
-                       # RAG colours are not much use on a label
-                       $_->{col}->type ne "rag"
+            if (!$label_col_id)
+            {
+                push @titles, grep {
 
-                       # Don't add grouping text to title
-                    && ($group_col_id ||0) != $_->{col}->id
-                    && ($color_col_id ||0) != $_->{col}->id
+                    # RAG colours are not much use on a label
+                    $_->{col}->type ne "rag"
+
+                        # Don't add grouping text to title
+                        && ($group_col_id || 0) != $_->{col}->id
+                        && ($color_col_id || 0) != $_->{col}->id
                 } @values;
             }
-            elsif(my $label = $fields->{$label_col_id})
-            {   push @titles, +{
-                    col   => $layout->column($label_col_id),
-                    value => $label,
-                } if $label->as_string;
+            elsif (my $label = $fields->{$label_col_id})
+            {
+                push @titles,
+                    +{
+                        col   => $layout->column($label_col_id),
+                        value => $label,
+                    }
+                    if $label->as_string;
             }
 
             # If a specific field is set to colour-code by, then use that and
             # override any previous colours set for multiple date fields
             my ($item_color, $color_key) = (undef, '');
-            if($color_col_id && (my $c = $fields->{$color_col_id}))
-            {   if($color_key = $c->as_string)
-                {   $item_color = $self->graph->get_color($color_key);
+            if ($color_col_id && (my $c = $fields->{$color_col_id}))
+            {
+                if ($color_key = $c->as_string)
+                {
+                    $item_color = $self->graph->get_color($color_key);
                     $self->_used_color_keys->{$color_key} = 1;
                 }
             }
 
             my $item_group;
-            if($group_to_add)
-            {   unless($item_group = $self->groups->{$group_to_add})
-                {   $item_group = $self->_group_count($self->_group_count + 1);
+            if ($group_to_add)
+            {
+                unless ($item_group = $self->groups->{$group_to_add})
+                {
+                    $item_group = $self->_group_count($self->_group_count + 1);
                     $self->groups->{$group_to_add} = $item_group;
                 }
             }
@@ -357,40 +371,48 @@ sub _build_items
             my $title = join ' - ', map $_->{value}->as_string,
                 grep $_->{col}->type ne 'file', @titles;
 
-            my $title_abr = length $title > 50 ? substr($title, 0, 45).'...' : $title;
+            my $title_abr =
+                length $title > 50 ? substr($title, 0, 45) . '...' : $title;
 
-      DATE: foreach my $d (@dates)
-            {   my $add = $date_column_count > 1
-                  ? ' ('.$layout->column($d->{column})->name.')' : '';
+        DATE: foreach my $d (@dates)
+            {
+                my $add =
+                    $date_column_count > 1
+                    ? ' (' . $layout->column($d->{column})->name . ')'
+                    : '';
 
                 my $cid = $d->{current_id} || $record->current_id;
 
                 if ($self->type eq 'calendar')
-                {   push @items, +{
-                        url   => "/record/$cid",
-                        color => $d->{color},
-                        title => "$title_abr$add",
-                        id    => $record->current_id,
-                        start => _tick $d->{from},
-                        end   => _tick $d->{to},
-                    };
+                {
+                    push @items,
+                        +{
+                            url   => "/record/$cid",
+                            color => $d->{color},
+                            title => "$title_abr$add",
+                            id    => $record->current_id,
+                            start => _tick $d->{from},
+                            end   => _tick $d->{to},
+                        };
                     next DATE;
                 }
 
                 # Additional items for the same record and field can appear at
                 # any time, in particular if grouped by the field. Ensure that
                 # exactly the same items is not added twice.
-                my $uid  = join '+', $cid, $d->{column};
-                $uid  = join '+', $uid, $group_to_add if $group_to_add;
-                ! $self->_all_items_index->{$uid}
+                my $uid = join '+', $cid, $d->{column};
+                $uid = join '+', $uid, $group_to_add if $group_to_add;
+                !$self->_all_items_index->{$uid}
                     or next DATE;
                 $self->_all_items_index->{$uid} = 1;
 
-                # Exclude ID for pop-up values as it's included in the pop-up title
+             # Exclude ID for pop-up values as it's included in the pop-up title
                 my @popup_values = map +{
                     name  => encode_entities($_->{col}->name),
                     value => $_->{value}->html,
-                }, grep !$_->{col}->name_short || $_->{col}->name_short ne '_id', @values;
+                    },
+                    grep !$_->{col}->name_short
+                    || $_->{col}->name_short ne '_id', @values;
 
                 my %item = (
                     content    => "$title$add",
@@ -411,15 +433,16 @@ sub _build_items
                 $item{style} = qq(background-color: $item_color)
                     if $item_color;
 
-                if($d->{daterange})
-                {   # Add one day, otherwise ends at 00:00:00, looking like day is not included
+                if ($d->{daterange})
+                { # Add one day, otherwise ends at 00:00:00, looking like day is not included
                     my $v = $d->{to}->clone;
                     $v->add(days => 1) unless $d->{has_time};
-                    $item{end}    = _tick $v;
+                    $item{end}      = _tick $v;
                     $item{has_time} = $d->{has_time};
                 }
                 else
-                {   $item{single} = _tick $d->{from};
+                {
+                    $item{single} = _tick $d->{from};
                 }
 
                 push @items, \%item;
@@ -433,10 +456,10 @@ sub _build_items
             if $oldest > ($self->display_to || AT_BIGBANG);
     }
 
-    if(!@items)
-    {   # XXX Results in multiple warnings when this routine is called more
-        # than once per page
-        mistake __"There are no date fields in this view to display"
+    if (!@items)
+    {    # XXX Results in multiple warnings when this routine is called more
+         # than once per page
+        mistake __ "There are no date fields in this view to display"
             if !$date_column_count;
     }
 

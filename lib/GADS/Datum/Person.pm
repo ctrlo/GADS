@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -33,11 +34,12 @@ with 'GADS::Role::Presentation::Datum::Person';
 after set_value => sub {
     my ($self, $value, %options) = @_;
 
-    $value = [$value] if ref $value ne 'ARRAY'; # Allow legacy single values as scalar
+    $value = [$value]
+        if ref $value ne 'ARRAY';    # Allow legacy single values as scalar
     $value ||= [];
-    my @values = sort grep $_, @$value; # Take a copy first
-    my $clone = $self->clone;
-    my @old = sort @{$self->ids};
+    my @values = sort grep $_, @$value;    # Take a copy first
+    my $clone  = $self->clone;
+    my @old    = sort @{ $self->ids };
 
     my @values2;
     foreach my $value (@values)
@@ -48,11 +50,14 @@ after set_value => sub {
             # Used in tests to create user at same time.
             if ($value->{email})
             {
-                $id = $self->schema->resultset('User')->find_or_create($value)->id;
+                $id =
+                    $self->schema->resultset('User')->find_or_create($value)
+                    ->id;
                 $self->column->clear_people;
             }
         }
-        else {
+        else
+        {
             # User input.
             # First check if a textual value has been provided (e.g. import)
             if ($value && $value !~ /^[0-9]+$/)
@@ -60,23 +65,28 @@ after set_value => sub {
                 # Swap surname/forename if no comma
                 my $orig = $value;
                 $value =~ s/(.*)\h+(.*)/$2, $1/ if $value !~ /,/;
+
                 # Try and find in users
-                (my $p) = grep {$value eq $_->value} @{$self->column->people};
-                error __x"Invalid name '{name}'", name => $orig if !$p;
+                (my $p) =
+                    grep { $value eq $_->value } @{ $self->column->people };
+                error __x "Invalid name '{name}'", name => $orig if !$p;
                 $id = $p->id if $p;
             }
-            else {
+            else
+            {
                 $id = $value;
             }
-            !$id || $options{no_validation} || (grep {$id == $_->id} @{$self->column->people}) || $self->has_id($id) # Unchanged deleted user
-                or error __x"'{int}' is not a valid person ID"
-                    , int => $id;
+                  !$id
+                || $options{no_validation}
+                || (grep { $id == $_->id } @{ $self->column->people })
+                || $self->has_id($id)    # Unchanged deleted user
+                or error __x "'{int}' is not a valid person ID", int => $id;
         }
         push @values2, $id;
     }
 
-
-    my $changed = (@values2 || @old) && (@values2 != @old || "@values2" ne "@old");
+    my $changed =
+        (@values2 || @old) && (@values2 != @old || "@values2" ne "@old");
     if ($changed)
     {
         $self->changed(1);
@@ -99,9 +109,9 @@ sub _org_to_hash
     $type =~ /^(organisation|department|team)$/
         or panic "Invalid type $type";
 
-    my $type_id = $type eq 'organisation' ? 'organisation' : $type.'_id';
-    my $org = $value_hash && ref $value_hash->{$type} eq 'HASH'
-        ? $value_hash->{$type}
+    my $type_id = $type eq 'organisation' ? 'organisation' : $type . '_id';
+    my $org =
+        $value_hash && ref $value_hash->{$type} eq 'HASH' ? $value_hash->{$type}
         : $value_hash && $value_hash->{$type_id}
         ? $self->schema->resultset(ucfirst $type)->find($value_hash->{$type_id})
         : undef;
@@ -120,6 +130,7 @@ has value_hash => (
     clearer => 1,
     builder => sub {
         my $self = shift;
+
         # May or may not be multiple values, depending on source. Could have
         # come from a record value (multiple possible) or from a record
         # property such as created_by
@@ -128,7 +139,8 @@ has value_hash => (
         {
             my $init_value = $self->init_value;
 
-            $values = ref $init_value eq 'ARRAY'
+            $values =
+                ref $init_value eq 'ARRAY'
                 ? $init_value
                 : [$init_value];
         }
@@ -136,7 +148,8 @@ has value_hash => (
         {
             $values = $self->ids;
         }
-        else {
+        else
+        {
             return [];
         }
         my @transformed;
@@ -144,9 +157,10 @@ has value_hash => (
         {
             if (ref $value eq 'HASH')
             {
-                # XXX - messy to account for different initial values. Can be tidied once
-                # we are no longer pre-fetching multiple records
+       # XXX - messy to account for different initial values. Can be tidied once
+       # we are no longer pre-fetching multiple records
                 $value = $value->{value} if exists $value->{record_id};
+
                 # If only the value has been retrieved for the database query
                 # (rather than the joined user as well) then retrieve the full
                 # value
@@ -154,28 +168,32 @@ has value_hash => (
                     or $value = $self->column->id_to_hash($value);
                 my $id = $value->{id}
                     or next;
-                push @transformed, +{
-                    id            => $id,
-                    email         => $value->{email},
-                    username      => $value->{username},
-                    firstname     => $value->{firstname},
-                    surname       => $value->{surname},
-                    freetext1     => $value->{freetext1},
-                    freetext2     => $value->{freetext2},
-                    organisation  => $self->_org_to_hash('organisation', $value),
-                    department    => $self->_org_to_hash('department', $value),
-                    department_id => $value->{department_id},
-                    team          => $self->_org_to_hash('team', $value),
-                    team_id       => $value->{team_id},
-                    title         => $value->{title},
-                    value         => $value->{value},
-                };
+                push @transformed,
+                    +{
+                        id           => $id,
+                        email        => $value->{email},
+                        username     => $value->{username},
+                        firstname    => $value->{firstname},
+                        surname      => $value->{surname},
+                        freetext1    => $value->{freetext1},
+                        freetext2    => $value->{freetext2},
+                        organisation =>
+                        $self->_org_to_hash('organisation', $value),
+                        department => $self->_org_to_hash('department', $value),
+                        department_id => $value->{department_id},
+                        team          => $self->_org_to_hash('team', $value),
+                        team_id       => $value->{team_id},
+                        title         => $value->{title},
+                        value         => $value->{value},
+                    };
             }
-            elsif ($value) {
+            elsif ($value)
+            {
                 my $v = $self->column->id_to_hash($value);
-                $v->{organisation} = $self->_org_to_hash('organisation', $v);
+                $v->{organisation} =
+                    $self->_org_to_hash('organisation', $v);
                 $v->{department} = $self->_org_to_hash('department', $v);
-                $v->{team} = $self->_org_to_hash('team', $v);
+                $v->{team}       = $self->_org_to_hash('team',       $v);
                 push @transformed, $v;
             }
         }
@@ -184,9 +202,7 @@ has value_hash => (
 );
 
 # Whether to allow deleted users to be set
-has allow_deleted => (
-    is => 'rw',
-);
+has allow_deleted => (is => 'rw',);
 
 sub search_values_unique
 {   shift->text_all;
@@ -198,10 +214,12 @@ has text_all => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
+
         # By default we return empty strings. These make their way to grouped
         # display as the value to filter for, so this ensures that something
         # like "undef" doesn't display
-        [ sort map { defined $_->{value} ? $_->{value} : '' } @{$self->value_hash} ];
+        [ sort map { defined $_->{value} ? $_->{value} : '' }
+                @{ $self->value_hash } ];
     },
 );
 
@@ -216,7 +234,7 @@ sub id
 sub has_id
 {   my ($self, $id) = @_;
     $id or return;
-    !! grep $id == $_, @{$self->ids};
+    !!grep $id == $_, @{ $self->ids };
 }
 
 has ids => (
@@ -225,8 +243,8 @@ has ids => (
     predicate => 1,
     builder   => sub {
         my $self = shift;
-        [map $_->{id}, @{$self->value_hash}];
-    }
+        [ map $_->{id}, @{ $self->value_hash } ];
+    },
 );
 
 sub html_form
@@ -236,7 +254,7 @@ sub html_form
     $vals;
 }
 
-sub _build_blank { @{$_[0]->ids} ? 0 : 1 }
+sub _build_blank { @{ $_[0]->ids } ? 0 : 1 }
 
 # Make up for missing predicated value property
 sub has_value { !shift->blank }
@@ -250,11 +268,12 @@ sub send_notify
     my $replace = sub {
         my $var  = shift;
         my $name = $var =~ s/^\$//r;
-        my $col  = $self->record->layout->column_by_name_short($name) or return $var;
-        $self->record->fields->{$col->id}->as_string;
+        my $col  = $self->record->layout->column_by_name_short($name)
+            or return $var;
+        $self->record->fields->{ $col->id }->as_string;
     };
     $subject =~ s/(\$[a-z0-9_]+)\b/$replace->($1)/ge;
-    $text =~ s/(\$[a-z0-9_]+)\b/$replace->($1)/ge;
+    $text    =~ s/(\$[a-z0-9_]+)\b/$replace->($1)/ge;
     my $html = text2html(
         $text,
         lines     => 1,
@@ -271,20 +290,22 @@ sub send_notify
         return $link;
     };
     $subject =~ s/(\$_link)\b/$replace_links->($1)/ge;
-    $text =~ s/(\$_link)\b/$replace_links->($1)/ge;
-    $html =~ s/(\$_link)\b/$replace_links->($1, 1)/ge;
+    $text    =~ s/(\$_link)\b/$replace_links->($1)/ge;
+    $html    =~ s/(\$_link)\b/$replace_links->($1, 1)/ge;
     $email->send({
         subject => $subject,
-        emails  => [$_->{email}],
+        emails  => [ $_->{email} ],
         text    => $text,
         html    => $html,
-    }) foreach @{$self->value_hash};
+    })
+        foreach @{ $self->value_hash };
 }
 
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;
-    $orig->($self,
+    $orig->(
+        $self,
         value_hash => [
             map {
                 +{
@@ -303,7 +324,7 @@ around 'clone' => sub {
                     title         => $_->{title},
                     value         => $_->{value},
                 },
-            } @{$self->value_hash}
+            } @{ $self->value_hash }
         ],
         schema => $self->schema,
         @_,
@@ -317,32 +338,33 @@ sub for_table
 
     if (!$self->blank)
     {
-        foreach my $v (@{$self->value_hash})
+        foreach my $v (@{ $self->value_hash })
         {
-            my $val = {
-                text => $v->{value},
-            };
+            my $val  = { text => $v->{value}, };
             my $site = $self->column->layout->site;
             my @details;
             if (my $email = $v->{email})
             {
-                push @details, {
-                    value => $v->{email},
-                    type  => 'email'
-                };
+                push @details,
+                    {
+                        value => $v->{email},
+                        type  => 'email',
+                    };
             }
 
             for (
-                [$v->{freetext1}, $site->register_freetext1_name],
-                [$v->{freetext2}, $site->register_freetext2_name]
-            ) {
+                [ $v->{freetext1}, $site->register_freetext1_name ],
+                [ $v->{freetext2}, $site->register_freetext2_name ],
+                )
+            {
                 next unless $_->[0];
 
-                push @details, {
-                    definition => $_->[1],
-                    value      => $_->[0],
-                    type       => 'text'
-                };
+                push @details,
+                    {
+                        definition => $_->[1],
+                        value      => $_->[0],
+                        type       => 'text',
+                    };
             }
             $val->{details} = \@details;
             push @vals, $val;
@@ -356,7 +378,7 @@ sub for_table
 
 sub as_string
 {   my $self = shift;
-    join ', ', @{$self->text_all} or '';
+    join ', ', @{ $self->text_all } or '';
 }
 
 sub as_integer { panic "Not implemented" }
@@ -378,7 +400,7 @@ sub _build_for_code
             title        => $_->{title},
             text         => $_->{value},
         }
-    } @{$self->value_hash};
+    } @{ $self->value_hash };
 
     $self->column->multivalue || @values > 1 ? \@values : $values[0];
 }

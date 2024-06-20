@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2015 Ctrl O Ltd
@@ -35,36 +36,33 @@ has instance_id => (
     required => 1,
 );
 
-has id => (
-    is => 'rwp',
-);
+has id => (is => 'rwp',);
 
-has metrics => (
-    is  => 'lazy',
-);
+has metrics => (is => 'lazy',);
 
 has _rset => (
     is      => 'ro',
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        my $id = $self->id;
+        my $id   = $self->id;
         $id or return;
         $id =~ /^[0-9]+$/
-            or error __x"Invalid ID format {id}", id => $id;
+            or error __x "Invalid ID format {id}", id => $id;
         my $mg = $self->schema->resultset('MetricGroup')->find({
-            id          => $id,
+            id => $id,
+
             # instance_id isn't strictly needed as id is the primary key
             instance_id => $self->instance_id,
         });
-        $mg or error __x"Metric Group ID {id} not found", id => $id;
+        $mg or error __x "Metric Group ID {id} not found", id => $id;
         $mg;
     },
 );
 
 has name => (
     is      => 'rw',
-    isa     => Maybe[Str],
+    isa     => Maybe [Str],
     lazy    => 1,
     builder => sub {
         my $self = shift;
@@ -78,21 +76,25 @@ sub _build_metrics
 
     my @metrics;
 
-    my @all = $self->schema->resultset('Metric')->search({
-        metric_group => $self->id,
-        instance_id  => $self->instance_id, # Safety check
-    },{
-        join     => 'metric_group',
-        order_by => [qw/x_axis_value y_axis_grouping_value/],
-    });
+    my @all = $self->schema->resultset('Metric')->search(
+        {
+            metric_group => $self->id,
+            instance_id  => $self->instance_id,    # Safety check
+        },
+        {
+            join     => 'metric_group',
+            order_by => [qw/x_axis_value y_axis_grouping_value/],
+        },
+    );
     foreach my $metric (@all)
     {
-        push @metrics, GADS::Metric->new(
-            id                    => $metric->id,
-            x_axis_value          => $metric->x_axis_value,
-            target                => $metric->target,
-            y_axis_grouping_value => $metric->y_axis_grouping_value,
-        );
+        push @metrics,
+            GADS::Metric->new(
+                id                    => $metric->id,
+                x_axis_value          => $metric->x_axis_value,
+                target                => $metric->target,
+                y_axis_grouping_value => $metric->y_axis_grouping_value,
+            );
     }
 
     \@metrics;
@@ -102,7 +104,7 @@ sub write
 {   my $self = shift;
 
     my $name = $self->name
-        or error __"Please enter a name for the metric";
+        or error __ "Please enter a name for the metric";
 
     if ($self->id)
     {
@@ -110,7 +112,8 @@ sub write
             name => $name,
         });
     }
-    else {
+    else
+    {
         my $rset = $self->schema->resultset('MetricGroup')->create({
             name        => $name,
             instance_id => $self->instance_id,
@@ -130,7 +133,9 @@ sub delete
     {
         my @names = map { $_->title } @graphs;
         my $names = join ', ', @names;
-        error __x"The metric is being used in the following graphs: {names}. Please remove it first.", names => $names;
+        error __x
+"The metric is being used in the following graphs: {names}. Please remove it first.",
+            names => $names;
     }
 
     $self->schema->resultset('Metric')->search({
@@ -157,14 +162,15 @@ sub export_hash
         name    => $self->name,
         metrics => [],
     };
-    foreach my $metric (@{$self->metrics})
+    foreach my $metric (@{ $self->metrics })
     {
-        push @{$json->{metrics}}, {
-            id                    => $metric->id,
-            x_axis_value          => $metric->x_axis_value,
-            target                => $metric->target,
-            y_axis_grouping_value => $metric->y_axis_grouping_value,
-        };
+        push @{ $json->{metrics} },
+            {
+                id                    => $metric->id,
+                x_axis_value          => $metric->x_axis_value,
+                target                => $metric->target,
+                y_axis_grouping_value => $metric->y_axis_grouping_value,
+            };
     }
     $json;
 }
@@ -178,24 +184,24 @@ sub import_hash
             target                => $_->target,
             y_axis_grouping_value => $_->y_axis_grouping_value,
         }
-    } @{$self->metrics};
+    } @{ $self->metrics };
 
-    delete $_->{id} foreach @{$values->{metrics}};
+    delete $_->{id} foreach @{ $values->{metrics} };
 
     my $same = Compare \@existing, $values->{metrics};
 
     if ($same)
     {
-        trace __x"Metrics identical for {name}", name => $self->name;
+        trace __x "Metrics identical for {name}", name => $self->name;
         return;
     }
 
-    notice __x"Metrics are different for {name}. Will delete and recreate.",
+    notice __x "Metrics are different for {name}. Will delete and recreate.",
         name => $self->name;
 
-    $self->delete_metric($_->id) foreach @{$self->metrics};
+    $self->delete_metric($_->id) foreach @{ $self->metrics };
 
-    foreach my $metric (@{$values->{metrics}})
+    foreach my $metric (@{ $values->{metrics} })
     {
         GADS::Metric->new(
             target                => $metric->{target},
@@ -209,5 +215,4 @@ sub import_hash
 }
 
 1;
-
 

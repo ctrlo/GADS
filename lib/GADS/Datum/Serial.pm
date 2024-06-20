@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -26,7 +27,7 @@ extends 'GADS::Datum';
 
 has value => (
     is  => 'lazy',
-    isa => Maybe[Int],
+    isa => Maybe [Int],
 );
 
 sub _build_value
@@ -34,15 +35,15 @@ sub _build_value
     $self->record->serial;
 }
 
-sub _build_blank {
-    my $self = shift;
-    ! $self->value;
+sub _build_blank
+{   my $self = shift;
+    !$self->value;
 }
 
 sub for_table
-{   my $self = shift;
+{   my $self   = shift;
     my $return = $self->for_table_template;
-    $return->{values} = [$self->as_string];
+    $return->{values} = [ $self->as_string ];
     $return;
 }
 

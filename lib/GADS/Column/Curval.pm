@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -30,18 +31,27 @@ extends 'GADS::Column::Curcommon';
 with 'GADS::Role::Curcommon::CurvalMulti';
 
 has '+option_names' => (
-    default => sub { [qw/override_permissions value_selector show_add delete_not_used limit_rows/] },
+    default => sub {
+        [
+            qw/override_permissions value_selector show_add delete_not_used limit_rows/
+        ]
+    },
 );
 
 has value_selector => (
-    is      => 'rw',
-    isa     => sub { $_[0] =~ /^(typeahead|dropdown|noshow)$/ or panic "Invalid value_selector: $_[0]" },
+    is  => 'rw',
+    isa => sub {
+        $_[0] =~ /^(typeahead|dropdown|noshow)$/
+            or panic "Invalid value_selector: $_[0]";
+    },
     lazy    => 1,
-    coerce => sub { $_[0] || 'dropdown' },
+    coerce  => sub { $_[0] || 'dropdown' },
     builder => sub {
         my $self = shift;
         return 'dropdown' unless $self->has_options;
-        exists $self->options->{value_selector} ? $self->options->{value_selector} : 'dropdown';
+        exists $self->options->{value_selector}
+            ? $self->options->{value_selector}
+            : 'dropdown';
     },
     trigger => sub { $_[0]->reset_options },
 );
@@ -85,9 +95,10 @@ has '+filter' => (
     builder => sub {
         my $self = shift;
         GADS::Filter->new(
-            as_json => $self->set_filter || ($self->_rset && $self->_rset->filter),
-            layout  => $self->layout_parent,
-        )
+            as_json => $self->set_filter
+                || ($self->_rset && $self->_rset->filter),
+            layout => $self->layout_parent,
+        );
     },
 );
 
@@ -122,6 +133,7 @@ sub _build_view
         schema      => $self->schema,
         user        => undef,
     );
+
     # Replace any "special" $short_name values with their actual value from the
     # record. If sub_values fails (due to record not being ready yet), then the
     # view is not built
@@ -139,7 +151,7 @@ has has_subvals => (
 
 sub _build_has_subvals
 {   my $self = shift;
-    !! @{$self->filter->columns_in_subs};
+    !!@{ $self->filter->columns_in_subs };
 }
 
 # The fields that we need input by the user for this filtered set of values
@@ -151,24 +163,27 @@ has subvals_input_required => (
 sub _build_subvals_input_required
 {   my $self = shift;
 
-    my %deps; # Used to track dependencies so that we can check recursive conditions
-    my @cols = @{$self->filter->columns_in_subs};
+    my %deps
+        ; # Used to track dependencies so that we can check recursive conditions
+    my @cols = @{ $self->filter->columns_in_subs };
     foreach my $col (@cols)
     {
-        $deps{$self->id} ||= {};
-        $deps{$self->id}->{$col->id} = 1;
-        foreach my $cc (@{$col->depends_on})
+        $deps{ $self->id } ||= {};
+        $deps{ $self->id }->{ $col->id } = 1;
+        foreach my $cc (@{ $col->depends_on })
         {
-            $deps{$col->id} ||= {};
-            $deps{$col->id}->{$cc} = 1;
+            $deps{ $col->id } ||= {};
+            $deps{ $col->id }->{$cc} = 1;
             push @cols, $self->layout->column($cc);
         }
-        foreach my $disp ($self->schema->resultset('DisplayField')->search({
-            layout_id => $col->id
-        })->all)
+        foreach my $disp (
+            $self->schema->resultset('DisplayField')->search({
+                layout_id => $col->id
+            })->all
+            )
         {
-            $deps{$col->id} ||= {};
-            $deps{$col->id}->{$disp->display_field_id} = 1;
+            $deps{ $col->id } ||= {};
+            $deps{ $col->id }->{ $disp->display_field_id } = 1;
             push @cols, $self->layout->column($disp->display_field_id);
         }
     }
@@ -177,15 +192,19 @@ sub _build_subvals_input_required
     foreach my $key (keys %deps)
     {
         my $ret = $self->layout->check_recursive(\%deps, $key);
-        error __x"Unable to produce list of fields required for filtered field \"{field}\": calculated value or display condition recursive dependencies: {path}",
-            field => $self->name, path => $ret if $ret;
+        error __x
+"Unable to produce list of fields required for filtered field \"{field}\": calculated value or display condition recursive dependencies: {path}",
+            field => $self->name,
+            path  => $ret
+            if $ret;
     }
 
     # Calc values do not need written to by user
     @cols = grep { $_->userinput } @cols;
+
     # Remove duplicates
     my %needed;
-    $needed{$_->id} = $_ foreach @cols;
+    $needed{ $_->id } = $_ foreach @cols;
     @cols = values %needed;
     return \@cols;
 }
@@ -199,21 +218,22 @@ has data_filter_fields => (
 );
 
 sub _build_data_filter_fields
-{   my $self = shift;
-    my @fields = @{$self->subvals_input_required};
+{   my $self   = shift;
+    my @fields = @{ $self->subvals_input_required };
     grep { $_->instance_id != $self->instance_id } @fields
-        and warning "The filter refers to values of fields that are not in this table";
-    '[' . (join ', ', map { '"'.$_->field.'"' } @fields) . ']';
+        and warning
+        "The filter refers to values of fields that are not in this table";
+    '[' . (join ', ', map { '"' . $_->field . '"' } @fields) . ']';
 }
 
 sub _build_refers_to_instance_id
 {   my $self = shift;
-    if (@{$self->curval_field_ids})
+    if (@{ $self->curval_field_ids })
     {
         # Pick a random field from the selected display fields to work out the
         # parent layout
         my $random_id = $self->curval_field_ids->[0];
-        my $random = $self->layout->column($random_id);
+        my $random    = $self->layout->column($random_id);
         return $random->instance_id if $random;
     }
     return undef;
@@ -226,7 +246,7 @@ sub make_join
     +{
         $self->field => {
             value => {
-                record_single => ['record_later', @joins],
+                record_single => [ 'record_later', @joins ],
             }
         }
     };
@@ -255,11 +275,12 @@ has filval_fields => (
 sub _build_filval_fields
 {   my $self = shift;
     [
-        map $self->layout->column($_), $self->schema->resultset('Layout')->search({
+        map $self->layout->column($_),
+        $self->schema->resultset('Layout')->search({
             type          => 'filval',
             related_field => $self->id,
-        })->get_column('id')->all
-    ]
+        })->get_column('id')->all,
+    ];
 }
 
 sub write_special
@@ -271,17 +292,18 @@ sub write_special
     unless ($options{override})
     {
         my $layout_parent = $self->layout_parent
-            or error __"Please select a table to link to";
+            or error __ "Please select a table to link to";
         $self->_update_curvals(%options);
     }
 
     # Update typeahead option
     $rset->update({
-        typeahead   => 0, # No longer used, replaced with value_selector
+        typeahead => 0,    # No longer used, replaced with value_selector
     });
 
     # Clear what may be cached values that should be updated after write
     $self->clear;
+
     # Re-add the layout - will be missing as a result of the clear
     $self->filter->layout($self->layout);
 
@@ -289,7 +311,7 @@ sub write_special
     $self->data_filter_fields unless $options{override};
 
     return ();
-};
+}
 
 sub validate
 {   my ($self, $value, %options) = @_;
@@ -298,19 +320,24 @@ sub validate
     if ($value !~ /^[0-9]+$/)
     {
         return 0 if !$fatal;
-        error __x"Value for {column} must be an integer", column => $self->name;
+        error __x "Value for {column} must be an integer",
+            column => $self->name;
     }
-    if (!$self->schema->resultset('Current')->search({ instance_id => $self->refers_to_instance_id, id => $value })->next)
+    if (!$self->schema->resultset('Current')
+        ->search({ instance_id => $self->refers_to_instance_id, id => $value })
+        ->next)
     {
         return 0 if !$fatal;
-        error __x"{id} is not a valid record ID for {column}", id => $value, column => $self->name;
+        error __x "{id} is not a valid record ID for {column}",
+            id     => $value,
+            column => $self->name;
     }
     1;
 }
 
 sub random
 {   my $self = shift;
-    $self->all_ids->[rand @{$self->all_ids}];
+    $self->all_ids->[ rand @{ $self->all_ids } ];
 }
 
 sub import_value

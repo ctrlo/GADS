@@ -1,3 +1,4 @@
+
 =pod
 GADS - Globally Accessible Data Store
 Copyright (C) 2014 Ctrl O Ltd
@@ -22,19 +23,15 @@ use Log::Report 'linkspace';
 
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
-use Scalar::Util qw(looks_like_number);
+use Scalar::Util                 qw(looks_like_number);
 
 extends 'GADS::Column::Code';
 
 with 'GADS::DateTime';
 
-has '+type' => (
-    default => 'calc',
-);
+has '+type' => (default => 'calc',);
 
-has '+option_names' => (
-    default => sub { [qw/show_in_edit/] },
-);
+has '+option_names' => (default => sub { [qw/show_in_edit/] },);
 
 has show_in_edit => (
     is      => 'rw',
@@ -48,9 +45,7 @@ has show_in_edit => (
     trigger => sub { $_[0]->reset_options },
 );
 
-has 'has_filter_typeahead' => (
-    is      => 'lazy',
-);
+has 'has_filter_typeahead' => (is => 'lazy',);
 
 sub _build_sort_field
 {   my $self = shift;
@@ -60,7 +55,7 @@ sub _build_sort_field
 
 # The from and to fields from the database table when used as a daterange
 sub from_field { 'value_date_from' }
-sub to_field { 'value_date_to' }
+sub to_field   { 'value_date_to' }
 
 sub has_time
 {   my $self = shift;
@@ -93,15 +88,11 @@ after build_values => sub {
 # Convert return format to database column field
 sub _format_to_field
 {   my $return_type = shift;
-    $return_type eq 'date'
-    ? 'value_date'
-    : $return_type eq 'daterange'
-    ? 'value_text'
-    : $return_type eq 'integer'
-    ? 'value_int'
-    : $return_type eq 'numeric'
-    ? 'value_numeric'
-    : 'value_text' # includes globe data type
+          $return_type eq 'date'      ? 'value_date'
+        : $return_type eq 'daterange' ? 'value_text'
+        : $return_type eq 'integer'   ? 'value_int'
+        : $return_type eq 'numeric'   ? 'value_numeric'
+        : 'value_text'    # includes globe data type
 }
 
 has unique_key => (
@@ -109,14 +100,12 @@ has unique_key => (
     default => 'calcval_ux_record_layout',
 );
 
-has '+can_multivalue' => (
-    default => 1,
-);
+has '+can_multivalue' => (default => 1,);
 
 # Used to provide a blank template for row insertion
 # (to blank existing values)
 has '+blank_row' => (
-    lazy => 1,
+    lazy    => 1,
     builder => sub {
         {
             value_date      => undef,
@@ -129,9 +118,7 @@ has '+blank_row' => (
     },
 );
 
-has '+table' => (
-    default => 'Calcval',
-);
+has '+table' => (default => 'Calcval',);
 
 sub table_unique { "CalcUnique" }
 
@@ -139,7 +126,7 @@ has '+return_type' => (
     isa => sub {
         return unless $_[0];
         $_[0] =~ /(string|date|integer|numeric|globe|error|daterange)/
-            or error __x"Bad return type {type}", type => $_[0];
+            or error __x "Bad return type {type}", type => $_[0];
     },
     lazy    => 1,
     coerce  => sub { return $_[0] || 'string' },
@@ -152,7 +139,7 @@ has '+return_type' => (
 
 has decimal_places => (
     is      => 'rw',
-    isa     => Maybe[Int],
+    isa     => Maybe [Int],
     lazy    => 1,
     builder => sub {
         my $self = shift;
@@ -160,13 +147,10 @@ has decimal_places => (
     },
 );
 
-has '+value_field' => (
-    default => sub {_format_to_field shift->return_type},
-);
+has '+value_field' => (default => sub { _format_to_field shift->return_type },);
 
-has '+string_storage' => (
-    default => sub {shift->value_field eq 'value_text'},
-);
+has '+string_storage' =>
+    (default => sub { shift->value_field eq 'value_text' },);
 
 has '+numeric' => (
     default => sub {
@@ -186,7 +170,8 @@ sub cleanup
 sub write_code
 {   my ($self, $layout_id, %options) = @_;
     my $rset = $self->_rset_code;
-    my $need_update = !$rset->in_storage
+    my $need_update =
+          !$rset->in_storage
         || $self->_rset_code->code ne $self->code
         || $self->_rset_code->return_format ne $self->return_type
         || $options{old_rset}->{multivalue} != $self->multivalue;
@@ -200,11 +185,14 @@ sub write_code
 
 sub resultset_for_values
 {   my $self = shift;
-    return $self->schema->resultset('CalcUnique')->search({
-        layout_id => $self->id,
-    },{
-        group_by  => 'me.'.$self->value_field,
-    }) if $self->value_field eq 'value_text';
+    return $self->schema->resultset('CalcUnique')->search(
+        {
+            layout_id => $self->id,
+        },
+        {
+            group_by => 'me.' . $self->value_field,
+        },
+    ) if $self->value_field eq 'value_text';
 }
 
 sub validate_search
@@ -239,18 +227,29 @@ sub validate
 before import_hash => sub {
     my ($self, $values, %options) = @_;
     my $report = $options{report_only} && $self->id;
-    notice __x"Update: code has been changed for field {name}", name => $self->name
+    notice __x "Update: code has been changed for field {name}",
+        name => $self->name
         if $report && $self->code ne $values->{code};
     $self->code($values->{code});
-    notice __x"Update: return_type from {old} to {new} for field {name}",
-        old => $self->return_type, new => $values->{return_type}, name => $self->name
+    notice __x "Update: return_type from {old} to {new} for field {name}",
+        old  => $self->return_type,
+        new  => $values->{return_type},
+        name => $self->name
         if $report && $self->return_type ne $values->{return_type};
     $self->return_type($values->{return_type});
-    notice __x"Update: decimal_places from {old} to {new} for field {name}",
-        old => $self->decimal_places, new => $values->{decimal_places}, name => $self->name
-        if $report && $self->return_type eq 'numeric' && (
-            (defined $self->decimal_places xor defined $values->{decimal_places})
-            || (defined $self->decimal_places && defined $values->{decimal_places} && $self->decimal_places != $values->{decimal_places})
+    notice __x
+        "Update: decimal_places from {old} to {new} for field {name}",
+        old  => $self->decimal_places,
+        new  => $values->{decimal_places},
+        name => $self->name
+        if $report
+        && $self->return_type eq 'numeric'
+        && (
+            (defined $self->decimal_places
+                xor defined $values->{decimal_places})
+            || (   defined $self->decimal_places
+                && defined $values->{decimal_places}
+                && $self->decimal_places != $values->{decimal_places})
         );
     $self->decimal_places($values->{decimal_places});
 };
@@ -522,7 +521,7 @@ my @regexes = qw/
     zambia|northern.?rhodesia
     zanzibar
     zimbabwe|^(?!.*northern).*rhodesia'
-/;
+    /;
 
 sub check_country
 {   my ($self, $country) = @_;
