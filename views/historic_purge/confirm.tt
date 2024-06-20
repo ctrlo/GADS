@@ -25,7 +25,7 @@
                             filter      = "html",
                         },{
                             type = "text",
-                            label = "column.value",
+                            label = column.value,
                             filter = "html",
                         }],
                 });

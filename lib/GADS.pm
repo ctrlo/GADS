@@ -3057,21 +3057,28 @@ prefix '/:layout_name' => sub {
             while (my $record = $records->single) {
                 foreach my $column (@{$record->columns_render}) {
                     next if $column->internal;
+
+                    my $clone = $record->clone;
+                    my $count;
+                    my $current_id = $record->current_id;
+                    $clone->find_chronology_id($current_id);
+                    foreach my $cron (@{$clone->chronology}) {
+                        $count = scalar(grep {$_->{name} eq $column->name}  @{$cron->{changed}}) + 1;
+                    }
+                    
+                    my @pmc= $record->presentation_map_columns(columns=> [$column]);
                     push @record_data, {
                         col_id => $column->id,
                         name => $column->name,
                         id => $record->record->{id},
-                        value => '', # THIS SHOULD BE THE VALUE OF THE GIVEN RECORD/COLUMN
+                        value => $pmc[0]->{data}->{value}, # THIS SHOULD BE THE VALUE OF THE GIVEN RECORD/COLUMN
+                        count => $count || 0,
                     };
                 }
             }
         }
 
         if(param 'submit') {
-            foreach my $r (@record_data) {
-                print STDERR "Value: " . $r->{value} . "\n";
-            }
-
             $params->{records} = \@record_data;
             my @mapped_ids = map {$_->{col_id}} @record_data;
             my @mapped_records = uniq map {$_->{id}} @record_data;
@@ -3092,21 +3099,11 @@ prefix '/:layout_name' => sub {
             forwardHome({ success => "$total records have now been purged" }, $layout->identifier) if $total;
             forwardHome({ danger => "No records were purged" }, $layout->identifier) unless $total;
         } else {
-            my $result = [];
-            my $seen = {};
+            my @result;
             foreach my $val (@record_data) {
-                if($seen->{$val->{name}}) {
-                    foreach my $d (@$result) {
-                        next unless $d->{name} eq $val->{name};
-                        $d->{count}++;
-                    }
-                }
-                else {
-                    $seen->{$val->{name}} = 1;
-                    push @$result, {id=>$val->{col_id}, name => $val->{name}, count => 1};
-                }
+                push @result, {id=>$val->{col_id}, name => $val->{name}, count => $val->{count}};
             }
-            $params->{columns} = $result;
+            $params->{columns} = \@result;
             return template 'historic_purge/initial' => $params;
         }
     };
