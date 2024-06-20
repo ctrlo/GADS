@@ -4794,4 +4794,16 @@ sub _process_edit
 
 }
 
+Sub::Install::install_sub({
+    code => sub {
+        my $self= shift;
+        my $clone = $self->clone;
+        $clone->time_zone->is_floating && $clone->set_time_zone('UTC');
+        $clone->set_time_zone('Europe/London');
+        $clone->strftime('%e %b %Y %H:%M:%S');
+    },
+    into => 'DateTime',
+    as => 'gads_time',
+});
+
 true;

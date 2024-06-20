@@ -35,7 +35,7 @@
         label = log.id
       },{
         type   = "text"
-        label  = log.user.text
+        label  = log.user.value
         filter = "html"
       },{
         type   = "text"
