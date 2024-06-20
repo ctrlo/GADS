@@ -4796,7 +4796,7 @@ Sub::Install::install_sub({
         my $clone = $self->clone;
         $clone->time_zone->is_floating && $clone->set_time_zone('UTC');
         $clone->set_time_zone('Europe/London');
-        $clone->strftime('%e %b %Y %H:%M');
+        $clone->strftime('%e %b %Y %H:%M:%S');
     },
     into => 'DateTime',
     as => 'gads_time',
