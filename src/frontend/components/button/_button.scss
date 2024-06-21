@@ -393,6 +393,15 @@ $btn-border-radius: 23px;
   }
 }
 
+.btn-help {
+  &::before {
+    @extend %icon-font;
+    transition: all 0.2s ease;
+
+    content: "\E816";
+  }
+}
+
 .btn-plain {
   border: 0;
   color: $gray-extra-dark;
