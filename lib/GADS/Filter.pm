@@ -129,20 +129,18 @@ sub base64
     # Then clear the JSON version so that we can rebuild it
     $self->clear_as_json;
     # Next update the filters
-    if(@{$self->filters}) {
-        foreach my $filter (@{$self->filters}) {
-            $self->layout or panic "layout has not been set in filter";
-            my $col = $self->layout->column($filter->{column_id})
-                or next; # Ignore invalid - possibly since deleted - this borks the people filtering!!
-            # Next update the filters
-            if ($col->has_filter_typeahead) {
-                $filter->{data} = {
-                    text => $col->filter_value_to_text($filter->{value}),
-                };
-            }
-            if ($col->type eq 'filval') {
-                $filter->{filtered} = $col->related_field_id,
-            }
+    foreach my $filter (@{$self->filters}) {
+        $self->layout or panic "layout has not been set in filter";
+        my $col = $self->layout->column($filter->{column_id})
+            or next; # Ignore invalid - possibly since deleted - this borks the people filtering!!
+        # Next update the filters
+        if ($col->has_filter_typeahead) {
+            $filter->{data} = {
+                text => $col->filter_value_to_text($filter->{value}),
+            };
+        }
+        if ($col->type eq 'filval') {
+            $filter->{filtered} = $col->related_field_id,
         }
     }
     # Now the JSON version will be built with the inserted data values
