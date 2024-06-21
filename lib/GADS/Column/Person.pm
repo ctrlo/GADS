@@ -29,6 +29,22 @@ with 'GADS::Role::Presentation::Column::Person';
 
 our @person_properties = qw/id email username firstname surname freetext1 freetext2 organisation department_id team_id title value/;
 
+has set_filter => (
+    is      => 'rw',
+    clearer => 1,
+);
+
+has '+filter' => (
+    builder => sub {
+        my $self=shift;
+        GADS::Filter->new(
+            as_json       => $self->set_filter || ($self->_rset && $self->_rset->filter),
+            layout        => $self->layout,
+            people_filter => 1
+        );
+    }
+);
+
 # Convert based on whether ID or full name provided
 sub value_field_as_index
 {   my ($self, $value) = @_;
@@ -130,7 +146,7 @@ has people => (
     clearer => 1,
     builder => sub {
         my $self = shift;
-        GADS::Users->new(schema => $self->schema)->all;
+        GADS::Users->new( schema => $self->schema, filter => $self->filter )->all;
     },
 );
 
@@ -174,9 +190,10 @@ sub random
     $hash{(keys %hash)[rand keys %hash]}->value;
 }
 
-sub resultset_for_values
-{   my $self = shift;
-    return $self->schema->resultset('User')->active;
+sub resultset_for_values {
+    my $self = shift;
+    return $self->schema->resultset('User')
+      ->active->search( {}, { prefetch => ['organisation','department','team','title'] } );
 }
 
 sub cleanup
@@ -195,5 +212,28 @@ sub import_value
     });
 }
 
-1;
+sub values_beginning_with {
+    my ($self, $match_string, %options) = @_;
 
+    my @value;
+    my $filter       = $self->filter;
+    my $value_field = 'me.' . $self->value_field;
+    my $match_result = $self->match_result($match_string, %options);
+    
+    if($match_result) {
+        @value = map {
+            {
+                id    => $_->get_column('id'),
+                label => $_->get_column( $self->value_field ),
+            }
+        } $match_result->search(
+            {},
+            {
+                select => [$value_field],
+            }
+        )->search($filter)->all;
+    }
+    return @value;
+}
+
+1;
