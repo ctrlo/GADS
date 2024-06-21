@@ -36,7 +36,12 @@
     [% FOREACH d IN data %]
       data-[% d.key %]="[% d.value %]"
     [% END %]
-  [%END %]>
+  [%END %]
+  [% IF help %]
+    [%FOREACH h IN help%]
+      data-help-[% h.key %]="[% h.value %]"
+    [% END %]
+  [% END %]>
     [%
       IF label;
         INCLUDE fields/sub/label_input.tt;

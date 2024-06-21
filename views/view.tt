@@ -26,10 +26,10 @@
                           filter = "html"
                           type = "text"
                           input_class = "help-view"
-                          data = {
-                            "help-text" => "The name of the view is used to identify it in the list of views."
-                            "help-target" => "help__card"
-                            "help-title" => "Name of the view"
+                          help = {
+                            "text" => "The name of the view is used to identify it in the list of views."
+                            "target" => "help__card"
+                            "title" => "Name of the view"
                           }
                       %]
                     </div>
