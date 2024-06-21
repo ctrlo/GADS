@@ -13,7 +13,7 @@ export default class HelpView extends Component {
      * @constructor Create a new HelpView component.
      * @param element The Element to attach the component to.
      */
-    constructor(element:HTMLElement) {
+    constructor(element: HTMLElement) {
         super(element);
         this.initHelp(element);
     }
@@ -23,25 +23,25 @@ export default class HelpView extends Component {
      * @description Initialize the help view.
      * @param element The element to attach the help view to.
      */
-    initHelp(element:HTMLElement) {
+    initHelp(element: HTMLElement) {
         const $el = $(element);
-        const $label = $el.find('label').parent();
+        const $label = $el.find("label").parent();
         // Yes, I know it's not a button, but $a just didn't feel right!
-        const $button = $(document.createElement('a'));
-        if($label && $label.length > 0) {
-            $button.addClass("btn").addClass("btn-plain").attr("role", "button").attr("type","button");
+        const $button = $(document.createElement("a"));
+        if ($label && $label.length > 0) {
+            $button.addClass("btn").addClass("btn-plain").addClass("btn-help").attr("role", "button").attr("type", "button");
             $label.first().append($button);
         }
         this.$button = $button;
-        const helpText = $el.data('help-text');
-        if (!helpText) throw new Error('help-text is required');
-        const helpTitle = $el.data('help-title');
-        const helpTarget = $el.data('help-target');
-        if (!helpTarget) throw new Error('help-target is required');
+        const helpText = $el.data("help-text");
+        if (!helpText) throw new Error("help-text is required");
+        const helpTitle = $el.data("help-title");
+        const helpTarget = $el.data("help-target");
+        if (!helpTarget) throw new Error("help-target is required");
         const target = document.getElementById(helpTarget);
-        if(!target) throw new Error(`Could not find help target with id: ${helpTarget}`);
-        $button.on('click', () => {
-            target.innerHTML = MarkDown`${helpTitle ? `### ${helpTitle}`:""}\n${helpText}`;
+        if (!target) throw new Error(`Could not find help target with id: ${helpTarget}`);
+        $button.on("click", () => {
+            target.innerHTML = MarkDown`${helpTitle ? `### ${helpTitle}` : ""}\n${helpText}`;
         });
     }
 }

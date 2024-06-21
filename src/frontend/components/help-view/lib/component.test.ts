@@ -9,7 +9,7 @@ declare global {
 
 window.$ = require("jquery");
 
-export {}
+export {};
 
 class TestHelpView extends HelpView {
     public get button() {
@@ -35,7 +35,7 @@ describe("help view tests", ()=> {
         const helpTarget = "help-target";
         element.setAttribute("data-help-target", helpTarget);
         expect(()=>new HelpView(element)).toThrow(`Could not find help target with id: ${helpTarget}`);
-    })
+    });
 
     it("links the help text to the help target", ()=>{
         const element = document.createElement("div");
