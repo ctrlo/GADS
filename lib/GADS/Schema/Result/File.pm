@@ -13,7 +13,13 @@ GADS::Schema::Result::File
 use strict;
 use warnings;
 
-use base 'DBIx::Class::Core';
+use Moo;
+
+extends 'DBIx::Class::Core';
+sub BUILDARGS { $_[2] || {} }
+
+with 'GADS::Role::Purgable';
+
 use MIME::Base64;
 
 =head1 COMPONENTS LOADED
@@ -183,6 +189,23 @@ sub export_hash
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:266q8eJmPiCjcNhwddaUkw
 
+sub _build_valuefield { undef; }
+
+# I've done this to override the role - I don't know how else to best implement this!
+sub purge {
+    my $self = shift;
+
+    my $source = $self->recordsource or error __"No recordsource defined";
+    my $schema = $self->result_source->schema;
+
+    $schema->txn_do(sub {
+      $self->update({
+          name=>'purged',
+          mimetype=>'text/plain',
+          content=>encode('utf-8', 'purged'),
+      });
+    });
+}
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

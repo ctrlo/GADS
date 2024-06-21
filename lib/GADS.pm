@@ -79,6 +79,7 @@ $huge = 'overflow';
 use Tie::Cache;
 use URI;
 use URI::Escape qw/uri_escape_utf8 uri_unescape/;
+use List::Util qw/uniq/;
 
 use Log::Log4perl qw(:easy); # Just for WWW::Mechanize::Chrome
 use WWW::Mechanize::Chrome;
@@ -3026,6 +3027,77 @@ prefix '/:layout_name' => sub {
         content_type 'application/json';
         encode_json($json);
 
+    };
+
+    any ['get', 'post'] => '/historic_purge/' => require_login sub {
+        my $layout = var('layout') or pass;
+
+        forwardHome({ danger => "You do not have permission to manage deleted records"}, '')
+            unless $layout->user_can("purge");
+
+        my $user        = logged_in_user;
+        my $view        = current_view($user, $layout);
+
+        my $records = GADS::Records->new(
+            user                => $user,
+            layout              => $layout,
+            schema              => schema,
+            include_children    => 1,
+            view                => $view,
+        );
+
+        my $params = +{};
+        my @record_data;
+
+        if(param 'submit') {
+            my @columns = body_parameters->get_all('column_id');
+            $records->columns(\@columns);
+        } elsif(param 'purge') {
+            my @columns = body_parameters->get_all('column_id');
+            $records->columns(\@columns);
+        }
+
+        unless(param 'purge') {
+            while (my $record = $records->single) {
+                foreach my $column (@{$record->columns_render}) {
+                    next if $column->internal;
+                    my $count = $column->versions; # It is known that this will not update when the record is purged, but it more efficient than any known alternative
+                    my @pmc= $record->presentation_map_columns(columns=> [$column]);
+                    push @record_data, {
+                        col_id => $column->id,
+                        name => $column->name,
+                        id => $record->record->{id},
+                        value => $pmc[0]->{data}->{value},
+                        count => $count || 0,
+                    };
+                }
+            }
+        }
+
+        if(param 'submit') {
+            $params->{records} = \@record_data;
+            return template 'historic_purge/confirm' => $params;
+        } elsif(param 'purge') {
+            my @layouts = body_parameters->get_all('layout') or error __"Unable to get layouts";
+            my @rids = body_parameters->get_all('record_id') or error __"Unable to get record_ids";
+            my $total = 0;
+            foreach my $r (@rids) {
+                my $record = schema->resultset('Record')->find($r);
+                my $current_id = $record->current_id; # Can this be obtained from elsewhere?
+                my $current = schema->resultset('Current')->find($current_id);
+                $current->historic_purge(@columns);
+                $total++;
+            }
+            forwardHome({ success => "$total records have now been purged" }, $layout->identifier) if $total;
+            forwardHome({ danger => "No records were purged" }, $layout->identifier) unless $total;
+        } else {
+            my @result;
+            foreach my $val (@record_data) {
+                push @result, {id=>$val->{col_id}, name => $val->{name}, count => $val->{count}};
+            }
+            $params->{columns} = \@result;
+            return template 'historic_purge/initial' => $params;
+        }
     };
 
     any ['get', 'post'] => '/purge/?' => require_login sub {

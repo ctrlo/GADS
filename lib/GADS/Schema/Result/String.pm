@@ -10,7 +10,12 @@ GADS::Schema::Result::String
 use strict;
 use warnings;
 
-use base 'DBIx::Class::Core';
+use Moo;
+
+extends 'DBIx::Class::Core';
+sub BUILDARGS { $_[2] || {} }
+
+with 'GADS::Role::Purgable';
 
 =head1 COMPONENTS LOADED
 
@@ -143,5 +148,7 @@ sub export_hash
         value_index  => $self->value_index,
     };
 }
+
+sub _build_recordsource { 'String'; }
 
 1;

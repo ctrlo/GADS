@@ -13,7 +13,12 @@ GADS::Schema::Result::Enum
 use strict;
 use warnings;
 
-use base 'DBIx::Class::Core';
+use Moo;
+
+extends 'DBIx::Class::Core';
+sub BUILDARGS { $_[2] || {} }
+
+with 'GADS::Role::Purgable';
 
 =head1 COMPONENTS LOADED
 
@@ -178,6 +183,8 @@ sub export_hash
         value        => $self->value && $self->value->id,
     };
 }
+
+sub _build_valuefield { ('value'); }
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

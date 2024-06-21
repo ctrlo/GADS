@@ -79,6 +79,15 @@
     });
   END;
 
+  IF viewtype == "table" AND count AND layout_obj.user_can("purge");
+    bulk_action_groups.0.items.push({
+      id     = "",
+      class  = "",
+      target = url.page _ "/" _ layout_obj.identifier _ "/historic_purge/",
+      label  = "Historic purge for " _ layout.record_name_plural
+    });
+  END;
+
   IF bulk_action_groups.0.items.size;
     INCLUDE snippets/dropdown.tt
       id             = "bulk_actions"

@@ -13,7 +13,10 @@ GADS::Schema::Result::Date
 use strict;
 use warnings;
 
-use base 'DBIx::Class::Core';
+use Moo;
+
+extends 'DBIx::Class::Core';
+sub BUILDARGS { $_[2] || {} }
 
 =head1 COMPONENTS LOADED
 
