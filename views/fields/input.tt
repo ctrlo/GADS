@@ -38,9 +38,9 @@
     [% END %]
   [%END %]
   [% IF help %]
-    [%FOREACH h IN help%]
-      data-help-[% h.key %]="[% h.value %]"
-    [% END %]
+    data-help-text="[% help.text %]"[% IF help.title %]
+    data-help-title="[% help.title %]"
+    [% END %]data-help-target="[% help.target %]"
   [% END %]>
     [%
       IF label;
