@@ -28,15 +28,15 @@
                 label       = ""
                 sub_field   = "fields/sub/checkbox.tt"
                 sub_params  = {
-                id => "dt_checkbox_" _ current_name
-                name => "column_id"
-                label => current_name
-                checked => 0
-                is_required => 0
-                autofocus => 0
-                input_class => ""
-                label_in_span => 1
-                value => current_id
+                    id => "dt_checkbox_" _ current_name
+                    name => "column_id"
+                    label => current_name
+                    checked => 0
+                    is_required => 0
+                    autofocus => 0
+                    input_class => ""
+                    label_in_span => 1
+                    value => current_id
                 }
             },{
                 type = "text",
@@ -50,18 +50,18 @@
         [% INCLUDE navigation/button_bar.tt
             row_class="row mt-5"
             columns = [{
-                class = "col-sm-auto mb-3 mb-sm-0"
-                buttons = [{
-                type = "link",
-                class = "btn btn-secondary",
-                label = "Cancel",
-                target = url.page _ "/" _ layout.identifier _ "/data",
+                    class = "col-sm-auto mb-3 mb-sm-0"
+                    buttons = [{
+                    type = "link",
+                    class = "btn btn-secondary",
+                    label = "Cancel",
+                    target = url.page _ "/" _ layout.identifier _ "/data",
                 },{
-                type = "submit",
-                class = "btn btn-danger",
-                label = "Purge",
-                value = "submit",
-                name = "submit"
+                    type = "submit",
+                    class = "btn btn-danger",
+                    label = "Purge",
+                    value = "submit",
+                    name = "submit"
                 }]
             }] %]
     </form>

@@ -3057,21 +3057,13 @@ prefix '/:layout_name' => sub {
             while (my $record = $records->single) {
                 foreach my $column (@{$record->columns_render}) {
                     next if $column->internal;
-
-                    my $clone = $record->clone;
-                    my $count;
-                    my $current_id = $record->current_id;
-                    $clone->find_chronology_id($current_id);
-                    foreach my $cron (@{$clone->chronology}) {
-                        $count = scalar(grep {$_->{name} eq $column->name}  @{$cron->{changed}}) + 1;
-                    }
-                    
+                    my $count = $column->versions; # It is known that this will not update when the record is purged, but it more efficient than any known alternative
                     my @pmc= $record->presentation_map_columns(columns=> [$column]);
                     push @record_data, {
                         col_id => $column->id,
                         name => $column->name,
                         id => $record->record->{id},
-                        value => $pmc[0]->{data}->{value}, # THIS SHOULD BE THE VALUE OF THE GIVEN RECORD/COLUMN
+                        value => $pmc[0]->{data}->{value},
                         count => $count || 0,
                     };
                 }
@@ -3080,18 +3072,14 @@ prefix '/:layout_name' => sub {
 
         if(param 'submit') {
             $params->{records} = \@record_data;
-            my @mapped_ids = map {$_->{col_id}} @record_data;
-            my @mapped_records = uniq map {$_->{id}} @record_data;
-            $params->{column_list} = \@mapped_ids;
-            $params->{record_list} = \@mapped_records;
             return template 'historic_purge/confirm' => $params;
         } elsif(param 'purge') {
-            my @columns = body_parameters->get_all('columns') or error __"Unable to get columns";
-            my @rids = body_parameters->get_all('column_id') or error __"Unable to get records";
+            my @layouts = body_parameters->get_all('layout') or error __"Unable to get layouts";
+            my @rids = body_parameters->get_all('record_id') or error __"Unable to get record_ids";
             my $total = 0;
             foreach my $r (@rids) {
                 my $record = schema->resultset('Record')->find($r);
-                my $current_id = $record->current_id;
+                my $current_id = $record->current_id; # Can this be obtained from elsewhere?
                 my $current = schema->resultset('Current')->find($current_id);
                 $current->historic_purge(@columns);
                 $total++;

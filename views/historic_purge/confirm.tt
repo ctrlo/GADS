@@ -33,16 +33,16 @@
         
         INCLUDE tables/basic_table.tt;
         
-        FOREACH column IN column_list;
+        FOREACH record IN records;
           INCLUDE fields/hidden.tt
-              name = 'columns'
-              value = column;
+              name = 'layout'
+              value = record.col_id; # I know it says column_id, but it is actually the layout_id in this case
         END;
         
-        FOREACH record IN record_list;
+        FOREACH record IN records;
           INCLUDE fields/hidden.tt
-              name = 'column_id'
-              value = record;
+              name = 'record_id'
+              value = record.id;
         END;
         
         INCLUDE navigation/button_bar.tt

@@ -189,7 +189,6 @@ sub export_hash
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:266q8eJmPiCjcNhwddaUkw
 
-sub _build_recordsource { 'File'; }
 sub _build_valuefield { undef; }
 
 # I've done this to override the role - I don't know how else to best implement this!
@@ -200,9 +199,7 @@ sub purge {
     my $schema = $self->result_source->schema;
 
     $schema->txn_do(sub {
-      my $file = $schema->resultset($source)->search({},{prefetch=>'value'})->find($self->id);
-      my $value = $file->value;
-      $value->update({
+      $self->update({
           name=>'purged',
           mimetype=>'text/plain',
           content=>encode('utf-8', 'purged'),

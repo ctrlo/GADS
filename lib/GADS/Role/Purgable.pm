@@ -5,11 +5,6 @@ use warnings;
 
 use Moo::Role;
 
-has recordsource => (
-    is      => 'lazy',
-    builder => sub { undef; }
-);
-
 has valuefield => (
     is      => 'lazy',
     builder => sub { ('value'); }
