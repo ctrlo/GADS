@@ -414,6 +414,8 @@
                                   </div>
                                 </fieldset>
                               </div>
+                            </div>
+                            <div class="row">
                               [%
                                 fields_available = [];
                                 fields_selected  = [];

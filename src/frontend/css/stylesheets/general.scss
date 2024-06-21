@@ -1,84 +1,93 @@
-// Variables
-@import 'definitions/variables';
-
 //Bootstrap v4.6
-@import '~bootstrap/scss/bootstrap';
-
-// Datatables styling for bootstrap 4
-@import '~datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css';
-@import '~datatables.net-rowreorder-bs4/css/rowReorder.bootstrap4.min.css';
+@import "~bootstrap/scss/bootstrap",
+        "~datatables.net-bs4/css/dataTables.bootstrap4.min.css",
+        "~datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css",
+        "~datatables.net-rowreorder-bs4/css/rowReorder.bootstrap4.min.css";
 
 // React-grid-layout
-@import 'external/react-grid-layout/styles.min.css';
-@import '~react-resizable/css/styles.css';
+@import "~react-resizable/css/styles.css",
+        "external/react-grid-layout/styles.min.css";
 
-// Definitions
-@import 'definitions/fonts';
-@import 'definitions/mixins';
+@import "definitions/variables", "definitions/fonts", "definitions/mixins";
 
 // Base settings
-@import 'base/global';
+@import "base/global";
 
 // Components
-@import 'alert/alert';
-@import 'attention/attention';
-@import 'breadcrumbs/breadcrumbs';
-@import 'button/button';
-@import 'calculator/calculator';
-@import 'card/card';
-@import 'card/card-expandable';
-@import 'collapsible/collapsible-dropdown';
-@import 'content-block/content-block';
-@import 'content-block/content-block-footer/content-block-footer';
-@import 'dashboard/dashboard';
-@import 'dashboard/lib/react/app';
-@import 'dashboard/lib/react/footer';
-@import 'dashboard/lib/react/header';
-@import 'dashboard/lib/react/index';
-@import 'data-table/data-table';
-@import 'data-table/data-table-toggle';
-@import 'data-table/table-modal';
-@import 'data-table/data-table-row';
-@import 'dropdown/dropdown';
-@import 'dropdown/dropdown-group';
-@import 'form-group/checkbox/checkbox';
-@import 'form-group/checkbox/checkbox-reveal';
-@import 'form-group/date-range/date-range';
-@import 'form-group/query-builder/query-builder';
-@import 'form-group/fieldset';
-@import 'form-group/filter/filter';
-@import 'form-group/form-group';
-@import 'form-group/input/input';
-@import 'form-group/input/datepicker';
-@import 'form-group/multiple-select/multiple-select';
-@import 'form-group/radio-group/radio-group';
-@import 'form-group/select/select';
-@import 'form-group/select/select-reveal';
-@import 'form-group/tree/tree';
-@import 'form-group/select-widget/select-widget';
-@import 'form-group/switch/switch';
-@import 'form-group/textarea/textarea';
-@import 'graph/graph';
-@import 'link/link';
-@import 'list/list';
-@import 'login/login';
-@import 'modal/modal';
-@import 'modal/modal-frame';
-@import 'more-less/more-less';
-@import 'page-header/page-header';
-@import 'popover/popover';
-@import 'rag-legend/rag/rag';
-@import 'rag-legend/rag-legend';
-@import 'readonly/readonly';
-@import 'sidebar/sidebar';
-@import 'skip-links/skip-links';
-@import 'sortable/sortable';
-@import 'summernote/summernote';
-@import 'table-header/table-header';
-@import 'timeline/timeline';
-@import 'user/user';
-@import 'markdown/markdown';
-@import 'filedrag/filedrag';
-@import 'typeahead/typeahead';
-@import 'form-group/input-group/input-group';
-@import 'help-view/help-view';
+@import "alert/alert";
+@import "attention/attention";
+@import "breadcrumbs/breadcrumbs";
+@import "button/button";
+@import "calculator/calculator";
+
+// card
+@import "card/card", "card/card-expandable";
+
+@import "collapsible/collapsible-dropdown";
+
+// content block
+@import "content-block/content-block",
+        "content-block/content-block-footer/content-block-footer";
+
+// dashboard
+@import "dashboard/dashboard",
+        "dashboard/lib/react/app",
+        "dashboard/lib/react/footer",
+        "dashboard/lib/react/header",
+        "dashboard/lib/react/index";
+
+// data-table
+@import "data-table/data-table",
+        "data-table/data-table-toggle",
+        "data-table/table-modal",
+        "data-table/data-table-row";
+
+// dropdown
+@import "dropdown/dropdown", "dropdown/dropdown-group";
+
+// form group
+@import "form-group/checkbox/checkbox",
+        "form-group/checkbox/checkbox-reveal",
+        "form-group/date-range/date-range",
+        "form-group/query-builder/query-builder",
+        "form-group/fieldset",
+        "form-group/filter/filter",
+        "form-group/form-group",
+        "form-group/input/input",
+        "form-group/input/datepicker",
+        "form-group/multiple-select/multiple-select",
+        "form-group/radio-group/radio-group",
+        "form-group/select/select",
+        "form-group/select/select-reveal",
+        "form-group/tree/tree",
+        "form-group/select-widget/select-widget",
+        "form-group/switch/switch",
+        "form-group/textarea/textarea",
+        "form-group/input-group/input-group";
+
+@import "graph/graph";
+@import "link/link";
+@import "list/list";
+@import "login/login";
+
+// modal
+@import "modal/modal", "modal/modal-frame";
+
+@import "more-less/more-less";
+@import "page-header/page-header";
+@import "popover/popover";
+
+// rag
+@import "rag-legend/rag/rag", "rag-legend/rag-legend";
+
+@import "readonly/readonly";
+@import "sidebar/sidebar";
+@import "skip-links/skip-links";
+@import "sortable/sortable";
+@import "summernote/summernote";
+@import "table-header/table-header";
+@import "timeline/timeline";
+@import "user/user";
+@import "markdown/markdown";
+@import "filedrag/filedrag";
+@import "typeahead/typeahead";

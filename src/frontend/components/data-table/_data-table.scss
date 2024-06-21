@@ -23,7 +23,8 @@
       color: $brand-secundary;
     }
 
-    &.data-table__header--invisible span {
+    &.data-table__header--invisible span,
+    &.dt__header--inivisible span {
       @include visually-hidden;
     }
   }
@@ -72,10 +73,10 @@ table.dataTable thead .sorting_disabled {
   .row--main {
     margin-bottom: $padding-base-vertical;
   }
+}
 
-  .row--fiv-header {
-    margin-bottom: 63px; // Used for "fields in view" table to compensate missing search bar
-  }
+.row--fiv-header {
+  margin-top: 1.9rem;
 }
 
 .dataTables_toggle_full_width {
@@ -198,25 +199,26 @@ table.dataTable thead .sorting_disabled {
   }
 }
 
-.dataTables_scrollHead .table--bordered {
+.dataTables_scrollHead .table--bordered,
+.dt-scroll-head .table--bordered {
   box-sizing: border-box;
-  border-top: 1px solid $gray;
-  border-right: 1px solid $gray;
-  border-left: 1px solid $gray;
+  border: 1px solid $gray;
+  border-bottom: 0;
   border-top-left-radius: $table-border-radius;
   border-top-right-radius: $table-border-radius;
 
   thead {
+    // Why is this not in the variables file?? Or even more important, why is this a variable?
     $table-bordered-head-color: #585858;
 
     color: $table-bordered-head-color;
   }
 }
 
-.dataTables_scrollBody:has(.table--bordered) {
-  border-right: 1px solid $gray;
-  border-bottom: 1px solid $gray;
-  border-left: 1px solid $gray;
+.dataTables_scrollBody:has(.table--bordered),
+.dt-scroll-body:has(.table--bordered) {
+  border: 1px solid $gray;
+  border-top: 0;
   border-bottom-left-radius: $table-border-radius;
   border-bottom-right-radius: $table-border-radius;
 
@@ -225,7 +227,8 @@ table.dataTable thead .sorting_disabled {
   }
 }
 
-.dataTables_scrollFoot .table-striped.table--bordered {
+.dataTables_scrollFoot .table-striped.table--bordered,
+.dt-scroll-foot .table-striped.table--bordered {
   border: 0;
 }
 
@@ -340,4 +343,9 @@ div.dataTables_wrapper div.dataTables_filter input.form-control {
 
 div.dataTables_wrapper div.dataTables_processing {
   top: 10rem;
+}
+
+button.btn-remove,
+button.btn-add {
+  margin: $padding-base-vertical 0;
 }

@@ -1380,6 +1380,10 @@ any ['get', 'post'] => '/settings/audit/?' => require_role audit => sub {
             to     => param('to'),
         }
     }
+    elsif (defined(param('clear')))
+    {
+        session 'audit_filtering' => undef;
+    }
 
     $audit->filtering(session 'audit_filtering')
         if session 'audit_filtering';
@@ -4648,7 +4652,7 @@ sub _process_edit
                     }
                 }
                 else {
-                    $failed = !process( sub { $datum->set_value($newv) } ) || $failed;
+                    $failed = !process( sub { $datum->set_value($newv, draft => defined(param 'draft')) } ) || $failed;
                 }
             }
         }
@@ -4789,5 +4793,17 @@ sub _process_edit
     return ($params, $options);
 
 }
+
+Sub::Install::install_sub({
+    code => sub {
+        my $self= shift;
+        my $clone = $self->clone;
+        $clone->time_zone->is_floating && $clone->set_time_zone('UTC');
+        $clone->set_time_zone('Europe/London');
+        $clone->strftime('%e %b %Y %H:%M:%S');
+    },
+    into => 'DateTime',
+    as => 'gads_time',
+});
 
 true;
