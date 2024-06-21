@@ -96,7 +96,8 @@ use Inline 'Lua' => q{
             insert = table.insert,
             maxn = table.maxn,
             remove = table.remove,
-            sort = table.sort
+            sort = table.sort,
+            concat = table.concat
         }
         env["tonumber"] = tonumber
         env["tostring"] = tostring
