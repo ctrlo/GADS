@@ -3077,11 +3077,11 @@ prefix '/:layout_name' => sub {
             my @layouts = body_parameters->get_all('layout') or error __"Unable to get layouts";
             my @rids = body_parameters->get_all('record_id') or error __"Unable to get record_ids";
             my $total = 0;
-            foreach my $r (@rids) {
+            foreach my $r (uniq @rids) { # Uniq to ensure we aren't trying to get data from a record that has already been purged in this loop
                 my $record = schema->resultset('Record')->find($r);
-                my $current_id = $record->current_id; # Can this be obtained from elsewhere?
+                my $current_id = $record->current_id; # Can this be obtained from elsewhere? If it can, then a chunk of this is no longer required (i.e. getting @rids for a start)
                 my $current = schema->resultset('Current')->find($current_id);
-                $current->historic_purge(@columns);
+                $current->historic_purge(@layouts);
                 $total++;
             }
             forwardHome({ success => "$total records have now been purged" }, $layout->identifier) if $total;
