@@ -1,5 +1,8 @@
 [% IF columns.size %]
     <form role="form" method="post">
+        <h3>Purge [% count %] records from the current view</h3>
+        <p>Are you sure you want to purge data from the selected records?</p>
+        <p class="text-danger">WARNING: This is a destructive action and cannot be undone</p>
         <input type="hidden" name="csrf_token" value="[% csrf_token %]">
         [%
         # prepare table config
@@ -10,38 +13,34 @@
         };
         table_show_all_records = 1;
         table_unresponsive     = 0;
-        table_caption          = "Table to show records to purge";
+        table_caption          = "Purge on " _ count _ " records";
         rows                   = [];
         table_columns          = [{
-            name      = "Column",
+            name      = "Select Columns",
             data = "check",
             class = "check",
             orderable = 0,
-        }, {name = "Count"}];
+        }];
 
         FOR column IN columns;
-            current_name = column.name;
-            current_id = column.id;
+            column_name = column.name;
+            column_id = column.id;
             rows.push({
             fields = [{
                 type        = "text"
                 label       = ""
                 sub_field   = "fields/sub/checkbox.tt"
                 sub_params  = {
-                    id => "dt_checkbox_" _ current_name
+                    id => "dt_checkbox_" _ column_name
                     name => "column_id"
-                    label => current_name
+                    label => column_name
                     checked => 0
                     is_required => 0
                     autofocus => 0
                     input_class => ""
                     label_in_span => 1
-                    value => current_id
+                    value => column_id
                 }
-            },{
-                type = "text",
-                label = column.count,
-                filter = "html",
             }],
             });
         END;

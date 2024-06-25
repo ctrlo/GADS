@@ -1,6 +1,24 @@
-[% IF records; %]
+[% IF columns; %]
     <form role="form" method="post">
+        <h3>Confirm Purge</h3>
+        <p>Below is a list of the columns and their values you have chosen to purge. Please confirm that you wish to proceed.</p>
+        <p class="text-danger">WARNING: This is a destructive action and cannot be undone once actioned.</p>
         <input type="hidden" name="csrf_token" value="[% csrf_token %]">
+                
+        [%
+            FOREACH column IN columns;
+            INCLUDE fields/hidden.tt
+                name = 'layout'
+                value = column.id;
+            END;
+            
+            FOREACH column IN columns;
+            INCLUDE fields/hidden.tt
+                name = 'current_id'
+                value = column.current_id;
+            END;
+        %]
+
         [%
         # prepare table config
         table_class            = 'table-striped table-selectable';
@@ -12,14 +30,12 @@
         table_unresponsive     = 0;
         table_caption          = "Table to show records to purge";
         rows                   = [];
-        table_columns          = [{name = "ID"}, {name = "Column"}, {name = "Data"}];
+        table_columns          = [{name = "Column Name"}, {name = "Current Value"}];
 
-        FOR column IN records;
+        FOR column IN columns;
             rows.push({
-                    fields = [{
-                            type        = "text"
-                            label       = column.id,
-                        },{
+                    fields = [
+                        {
                             type        = "text"
                             label       = column.name,
                             filter      = "html",
@@ -27,23 +43,12 @@
                             type = "text",
                             label = column.value,
                             filter = "html",
-                        }],
+                        }
+                    ],
                 });
         END;
         
         INCLUDE tables/basic_table.tt;
-        
-        FOREACH record IN records;
-          INCLUDE fields/hidden.tt
-              name = 'layout'
-              value = record.col_id; # I know it says column_id, but it is actually the layout_id in this case
-        END;
-        
-        FOREACH record IN records;
-          INCLUDE fields/hidden.tt
-              name = 'record_id'
-              value = record.id;
-        END;
         
         INCLUDE navigation/button_bar.tt
             row_class="row mt-5"
