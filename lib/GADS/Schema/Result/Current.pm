@@ -386,7 +386,7 @@ sub export_hash
 }
 
 sub historic_purge {
-    my ($self, @layouts) = @_;
+    my ($self, $user, @layouts) = @_;
 
     my @records = $self->records->all;
     my @values;
@@ -403,6 +403,8 @@ sub historic_purge {
     }
 
     $_->purge foreach @values;
+
+    $_->mark_purged($user) foreach @records;
 }
 
 1;

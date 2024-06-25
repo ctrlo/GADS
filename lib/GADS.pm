@@ -3025,74 +3025,68 @@ prefix '/:layout_name' => sub {
 
     };
 
-    any ['get', 'post'] => '/historic_purge/' => require_login sub {
+    any [ 'get', 'post' ] => '/historic_purge/' => require_login sub {
         my $layout = var('layout') or pass;
 
-        forwardHome({ danger => "You do not have permission to manage deleted records"}, '')
-            unless $layout->user_can("purge");
+        forwardHome({ danger => 'You do not have permission to access this page.' })
+            unless $layout->user_can('purge');
 
-        my $user        = logged_in_user;
-        my $view        = current_view($user, $layout);
+        my $user = logged_in_user;
+        my $view = current_view($user, $layout);
 
-        my $records = GADS::Records->new(
-            user                => $user,
-            layout              => $layout,
-            schema              => schema,
-            include_children    => 1,
-            view                => $view,
+        my %params = (
+            user   => $user,
+            layout => $layout,
+            schema => schema,
+            view   => $view,
         );
 
-        my $params = +{};
-        my @record_data;
+        if (defined param('submit'))
+        {
+            $params{columns} = [ body_parameters->get_all('column_id') ];
 
-        if(param 'submit') {
-            my @columns = body_parameters->get_all('column_id');
-            $records->columns(\@columns);
-        } elsif(param 'purge') {
-            my @columns = body_parameters->get_all('column_id');
-            $records->columns(\@columns);
-        }
+            my $records = GADS::Records->new(%params);
 
-        unless(param 'purge') {
-            while (my $record = $records->single) {
-                foreach my $column (@{$record->columns_render}) {
-                    next if $column->internal;
-                    my $count = $column->versions; # It is known that this will not update when the record is purged, but it more efficient than any known alternative
-                    my @pmc= $record->presentation_map_columns(columns=> [$column]);
-                    push @record_data, {
-                        col_id => $column->id,
-                        name => $column->name,
-                        id => $record->record->{id},
-                        value => $pmc[0]->{data}->{value},
-                        count => $count || 0,
-                    };
+            my @column_data;
+
+            while (my $record = $records->single)
+            {
+                my @columns = grep { !$_->internal } @{ $records->columns_render };
+                my @mapped_columns = $record->presentation_map_columns(columns => \@columns);
+
+                foreach my $column (@mapped_columns)
+                {
+                    push(@column_data,
+                        +{
+                            name       => $column->{name},
+                            value      => $column->{data}->{value},
+                            current_id => $record->current_id,
+                            id         => $column->{id},
+                        },
+                    );
                 }
             }
-        }
 
-        if(param 'submit') {
-            $params->{records} = \@record_data;
-            return template 'historic_purge/confirm' => $params;
-        } elsif(param 'purge') {
-            my @layouts = body_parameters->get_all('layout') or error __"Unable to get layouts";
-            my @rids = body_parameters->get_all('record_id') or error __"Unable to get record_ids";
-            my $total = 0;
-            foreach my $r (uniq @rids) { # Uniq to ensure we aren't trying to get data from a record that has already been purged in this loop
-                my $record = schema->resultset('Record')->find($r);
-                my $current_id = $record->current_id; # Can this be obtained from elsewhere? If it can, then a chunk of this is no longer required (i.e. getting @rids for a start)
-                my $current = schema->resultset('Current')->find($current_id);
-                $current->historic_purge(@layouts);
-                $total++;
-            }
-            forwardHome({ success => "$total records have now been purged" }, $layout->identifier) if $total;
-            forwardHome({ danger => "No records were purged" }, $layout->identifier) unless $total;
-        } else {
-            my @result;
-            foreach my $val (@record_data) {
-                push @result, {id=>$val->{col_id}, name => $val->{name}, count => $val->{count}};
-            }
-            $params->{columns} = \@result;
-            return template 'historic_purge/initial' => $params;
+            return template "historic_purge/confirm" => { columns => \@column_data };
+        }
+        elsif (defined param('purge'))
+        {
+            my @current_ids = uniq body_parameters->get_all('current_id')
+                or forwardHome({danger => "Please select some records before clicking an action"}, $layout->identifier . '/data');
+            my @layouts = body_parameters->get_all('layout')
+                or forwardHome({danger => "Please select some records before clicking an action"},$layout->identifier . '/data');
+            
+            schema->resultset('Current')->find($_)->historic_purge($user,@layouts) foreach @current_ids;
+
+            return forwardHome({success => "Records have now been purged"}, $layout->identifier . '/data');
+        }
+        else
+        {
+            my $records = GADS::Records->new(%params);
+
+            my @columns = grep { !$_->internal } @{ $records->columns_render };
+
+            return template "historic_purge/initial" => { columns => \@columns, count => $records->count };
         }
     };
 

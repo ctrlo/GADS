@@ -75,6 +75,18 @@ __PACKAGE__->table("record");
   default_value: 0
   is_nullable: 0
 
+=head2 purged_on
+
+  data_type: 'datetime'
+  datetime_undef_if_invalid: 1
+  is_nullable: 1
+
+=head2 purged_by
+  
+    data_type: 'bigint'
+    is_foreign_key: 1
+    is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -101,6 +113,10 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "approval",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "purged_on",
+  { data_type => "datetime", datetime_undef_if_invalid => 1, is_nullable => 1, },
+  "purged_by",
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -406,6 +422,26 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+=head2 purged_by
+
+Type: purged_by
+
+Related object: L<GADS::Schema::Result::User>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "purged_by",
+  "GADS::Schema::Result::User",
+  { id => "purged_by" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
 
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
@@ -494,5 +530,14 @@ __PACKAGE__->might_have(
         return $return;
     }
 );
+
+sub mark_purged {
+  my ($self, $user) = @_;
+
+  $self->update({
+    purged_on => DateTime->now,
+    purged_by => $user->id,
+  });
+}
 
 1;
