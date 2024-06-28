@@ -3046,37 +3046,33 @@ prefix '/:layout_name' => sub {
             $params{columns} = [ body_parameters->get_all('column_id') ];
 
             my $records = GADS::Records->new(%params);
+            my @columns = grep { !$_->internal } @{ $records->columns_render };
 
-            my @column_data;
+            my $table_data;
+            my $ids = [];
 
             while (my $record = $records->single)
             {
-                my @columns = grep { !$_->internal } @{ $records->columns_render };
                 my @mapped_columns = $record->presentation_map_columns(columns => \@columns);
 
                 foreach my $column (@mapped_columns)
                 {
-                    push(@column_data,
-                        +{
-                            name       => $column->{name},
-                            value      => $column->{data}->{value},
-                            current_id => $record->current_id,
-                            id         => $column->{id},
-                        },
-                    );
+                    push @$ids, $column->{id};
+                    $table_data->{ $record->current_id }->{ $column->{name} } = $column->{data}->{value} || "No value";
                 }
             }
 
-            return template "historic_purge/confirm" => { columns => \@column_data };
+            return template "historic_purge/confirm" => { table_data => $table_data, ids => $ids };
         }
         elsif (defined param('purge'))
         {
-            my @current_ids = uniq body_parameters->get_all('current_id')
-                or forwardHome({danger => "Please select some records before clicking an action"}, $layout->identifier . '/data');
-            my @layouts = body_parameters->get_all('layout')
+            my @current_ids = body_parameters->get_all('current_id')
                 or forwardHome({danger => "Please select some records before clicking an action"},$layout->identifier . '/data');
-            
-            schema->resultset('Current')->find($_)->historic_purge($user,@layouts) foreach @current_ids;
+            my @layouts = body_parameters->get_all('layout')
+                or forwardHome({danger => "Please select some records before clicking an action"}, $layout->identifier . '/data');
+
+            schema->resultset('Current')->find($_)->historic_purge($user, @layouts)
+                foreach @current_ids;
 
             return forwardHome({success => "Records have now been purged"}, $layout->identifier . '/data');
         }

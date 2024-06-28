@@ -1,27 +1,30 @@
-[% IF columns; %]
+[% IF table_data; %]
     <form role="form" method="post">
         <h3>Confirm Purge</h3>
         <p>Below is a list of the columns and their values you have chosen to purge. Please confirm that you wish to proceed.</p>
         <p class="text-danger">WARNING: This is a destructive action and cannot be undone once actioned.</p>
         <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-                
-        [%
-            FOREACH column IN columns;
-            INCLUDE fields/hidden.tt
-                name = 'layout'
-                value = column.id;
-            END;
-            
-            FOREACH column IN columns;
-            INCLUDE fields/hidden.tt
-                name = 'current_id'
-                value = column.current_id;
-            END;
-        %]
 
+        <ul>
+        
         [%
+        first = 1;
+        currents = [];
+
+        FOR id IN table_data.ids;
+            INCLUDE fields/hidden
+                name  = "layout",
+                value = id;
+        END;
+
+        FOR k IN column.keys;
+            INCLUDE fields/hidden
+                name  = "current_id",
+                value = k;
+        END;
+
         # prepare table config
-        table_class            = 'table-striped table-selectable';
+        table_class            = 'table table-striped';
         table_dom              = 't';
         table_language         = {
             emptyTable => "There are records in this view.",
@@ -30,26 +33,31 @@
         table_unresponsive     = 0;
         table_caption          = "Table to show records to purge";
         rows                   = [];
-        table_columns          = [{name = "Column Name"}, {name = "Current Value"}];
+        table_columns          = [{name = 'current id'}];
 
-        FOR column IN columns;
-            rows.push({
-                    fields = [
-                        {
-                            type        = "text"
-                            label       = column.name,
-                            filter      = "html",
-                        },{
-                            type = "text",
-                            label = column.value,
-                            filter = "html",
-                        }
-                    ],
+        FOREACH k IN table_data.keys;
+            row = [];
+            row.push({
+                type   = "string",
+                label  = k,
+                filter = "html"
+            });
+            FOREACH v IN table_data.$k.keys;
+                IF first;
+                    table_columns.push({name = v});
+                END;
+                row.push({
+                    type   = "string",
+                    label  = table_data.$k.$v,
+                    filter = "html",
                 });
+            END;
+            rows.push({fields = row});
+            first=0;
         END;
-        
+
         INCLUDE tables/basic_table.tt;
-        
+
         INCLUDE navigation/button_bar.tt
             row_class="row mt-5"
             columns = [{
