@@ -24,7 +24,7 @@
         END;
 
         # prepare table config
-        table_class            = 'table table-striped';
+        table_class            = 'table table-striped table-purge';
         table_dom              = 't';
         table_language         = {
             emptyTable => "There are records in this view.",
