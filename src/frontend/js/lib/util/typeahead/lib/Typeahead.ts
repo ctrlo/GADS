@@ -30,11 +30,11 @@ export class Typeahead {
             queryTokenizer: Bloodhound.tokenizers.whitespace,
             remote: {
                 url: ajaxSource + (appendQuery ?  "%QUERY" : ""),
-                wildcard: '%QUERY',
-                transform: (response) => {
+                wildcard: "%QUERY",
+                transform: (response: any) => {
                     return mapper(response);
                 },
-                rateLimitBy: 'debounce',
+                rateLimitBy: "debounce",
                 rateLimitWait: 300,
                 cache: false,
             }
@@ -47,22 +47,22 @@ export class Typeahead {
         }, {
             name: name,
             source: bloodhound,
-            display: 'name',
+            display: "name",
             limit: 20,
             templates: {
                 suggestion: (item: MappedResponse) => {
                     return `<div>${item.name}</div>`;
                 },
                 pending: () => {
-                    return `<div>Loading...</div>`;
+                    return "<div>Loading...</div>";
                 },
                 notFound: () => {
-                    return `<div>No results found</div>`;
+                    return "<div>No results found</div>";
                 }
             },
         });
 
-        this.$input.on('typeahead:select', (ev: any, suggestion: MappedResponse) => {
+        this.$input.on("typeahead:select", (ev: any, suggestion: MappedResponse) => {
             this.callback(suggestion);
         });
 

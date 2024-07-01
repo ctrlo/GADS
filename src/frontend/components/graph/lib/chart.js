@@ -1,7 +1,7 @@
 const do_plot = (plotData, options_in) => {
-  const ticks = plotData.xlabels
-  let plotOptions = {}
-  const showmarker = options_in.type == 'line' ? true : false
+  const ticks = plotData.xlabels;
+  let plotOptions = {};
+  const showmarker = options_in.type == "line" ? true : false;
 
   plotOptions.highlighter = {
     showMarker: showmarker,
@@ -9,15 +9,15 @@ const do_plot = (plotData, options_in) => {
       plot._plotData[pointIndex][index][1]
   };
 
-  const seriesDefaults = makeSeriesDefaults()
+  const seriesDefaults = makeSeriesDefaults();
   if (options_in.type in seriesDefaults) {
-    plotOptions.seriesDefaults = seriesDefaults[options_in.type]
+    plotOptions.seriesDefaults = seriesDefaults[options_in.type];
   } else {
-    plotOptions.seriesDefaults = seriesDefaults.default
+    plotOptions.seriesDefaults = seriesDefaults.default;
   }
 
-  if (options_in.type != 'donut' && options_in.type != 'pie') {
-    plotOptions.series = plotData.labels
+  if (options_in.type != "donut" && options_in.type != "pie") {
+    plotOptions.series = plotData.labels;
     plotOptions.axes = {
       xaxis: {
         renderer: $.jqplot.CategoryAxisRenderer,
@@ -29,7 +29,7 @@ const do_plot = (plotData, options_in) => {
         label: options_in.y_axis_label,
         labelRenderer: $.jqplot.CanvasAxisLabelRenderer
       }
-    }
+    };
 
     if (plotData.options.y_max) {
       plotOptions.axes.yaxis.max = plotData.options.y_max;
@@ -37,39 +37,39 @@ const do_plot = (plotData, options_in) => {
 
     if (plotData.options.is_metric) {
       plotOptions.axes.yaxis.tickOptions = {
-        formatString: '%d%'
-      }
+        formatString: "%d%"
+      };
     }
 
     plotOptions.axesDefaults = {
       tickRenderer: $.jqplot.CanvasAxisTickRenderer,
       tickOptions: {
         angle: -30,
-        fontSize: '8pt'
+        fontSize: "8pt"
       }
-    }
+    };
   }
-  plotOptions.stackSeries = options_in.stackseries
+  plotOptions.stackSeries = options_in.stackseries;
   plotOptions.legend = {
     renderer: $.jqplot.EnhancedLegendRenderer,
     show: options_in.showlegend,
-    location: 'ne',
-    placement: 'inside'
-  }
+    location: "ne",
+    placement: "inside"
+  };
   plotOptions.grid = {
-    background: '#ffffff',
+    background: "#ffffff",
     shadow: false
-  }
-  $(`[data-chart-id=${options_in.id}]`).jqplot(plotData.points, plotOptions)
-}
+  };
+  $(`[data-chart-id=${options_in.id}]`).jqplot(plotData.points, plotOptions);
+};
 
 // At the moment, do_plot_json needs to be exported globally, as it is used by
 // Phantomjs to produce PNG versions of the graphs. Once jqplot has been
 // replaced by a more modern graphing library, the PNG/Phantomjs functionality
 // will probably unneccessary if that functionality is built into the library.
 const do_plot_json = (window.do_plot_json = function(plotData, options_in) {
-  plotData = JSON.parse(atob(plotData))
-  options_in = JSON.parse(atob(options_in))
+  plotData = JSON.parse(atob(plotData));
+  options_in = JSON.parse(atob(options_in));
   do_plot(plotData, options_in);
 });
 
@@ -109,6 +109,6 @@ const makeSeriesDefaults = () => ({
       show: false
     }
   }
-})
+});
 
-export { do_plot_json }
+export { do_plot_json };

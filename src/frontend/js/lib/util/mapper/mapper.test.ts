@@ -1,7 +1,7 @@
 import { map } from "./mapper";
 
-describe('mapper', () => {
-    it('should map from ScriptResponse to name/id pair', () => {
+describe("mapper", () => {
+    it("should map from ScriptResponse to name/id pair", () => {
         const scriptResponse = {
             error: 0,
             records: [
@@ -29,7 +29,7 @@ describe('mapper', () => {
         expect(actual).toEqual(expected);
     });
 
-    it('should map from a string to name/id pair', () => {
+    it("should map from a string to name/id pair", () => {
         const response = { error: 0, records: ["test", "test2"] };
         const expected = [
             {

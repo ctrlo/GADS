@@ -1,14 +1,5 @@
-import ButtonComponent from './component';
-
-declare global {
-    interface Window {
-        $: JQueryStatic;
-    }
-}
-
-export {}
-
-window.$ = require('jquery');
+import initGlobals from "../../../testing/globals.definitions";
+import ButtonComponent from "./component";
 
 describe("Button Component", () => {
     const buttonDefinitions = [
@@ -25,23 +16,27 @@ describe("Button Component", () => {
         {name: "remove unload", class: "btn-js-remove-unload"}
     ];
 
+    beforeEach(() => {
+        initGlobals();
+    });
+
     it("should not create a button with an invalid type", () => {
-        const buttonElement = document.createElement('button');
-        buttonElement.classList.add('btn');
+        const buttonElement = document.createElement("button");
+        buttonElement.classList.add("btn");
         const button = new ButtonComponent(buttonElement);
         expect(button.linkedClasses).toStrictEqual([]);
     });
 
     it("should not create a button with an invalid type but with valid class prefix", () => {
-        const buttonElement = document.createElement('button');
-        buttonElement.classList.add('btn-js-nope');
+        const buttonElement = document.createElement("button");
+        buttonElement.classList.add("btn-js-nope");
         const button = new ButtonComponent(buttonElement);
         expect(button.linkedClasses).toStrictEqual([]);
     });
 
     for(const buttonDefinition of buttonDefinitions) {
         it(`Should create a ${buttonDefinition.name} button`, () => {
-            const buttonElement = document.createElement('button');
+            const buttonElement = document.createElement("button");
             buttonElement.classList.add(buttonDefinition.class);
             const button = new ButtonComponent(buttonElement);
             expect(button.linkedClasses.includes(buttonDefinition.class)).toBeTruthy();
@@ -49,11 +44,11 @@ describe("Button Component", () => {
     }
 
     it("Should create a composite button", () => {
-        const buttonElement = document.createElement('button');
-        buttonElement.classList.add('btn-js-report');
-        buttonElement.classList.add('btn-js-remove-unload');
+        const buttonElement = document.createElement("button");
+        buttonElement.classList.add("btn-js-report");
+        buttonElement.classList.add("btn-js-remove-unload");
         const button = new ButtonComponent(buttonElement);
-        expect(button.linkedClasses.includes('btn-js-report')).toBeTruthy();
-        expect(button.linkedClasses.includes('btn-js-remove-unload')).toBeTruthy();
+        expect(button.linkedClasses.includes("btn-js-report")).toBeTruthy();
+        expect(button.linkedClasses.includes("btn-js-remove-unload")).toBeTruthy();
     });
 });

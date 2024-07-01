@@ -1,6 +1,6 @@
 import "jstree";
 import "datatables.net";
-import "@lol768/jquery-querybuilder-no-eval"
+import "@lol768/jquery-querybuilder-no-eval";
 
 // TODO: This probably need refactoring
 
@@ -15,28 +15,28 @@ export default class SubmitFieldButton {
      * @param element The submit button element
      */
     constructor(element:JQuery<HTMLElement>) {
-        element.on('click', (ev) => {
+        element.on("click", (ev) => {
 
-            const $jstreeContainer = $('#field_type_tree');
-            const $jstreeEl = $('#tree-config .tree-widget-container');
-            const $calcCode = $('#calcfield_card_header');
+            const $jstreeContainer = $("#field_type_tree");
+            const $jstreeEl = $("#tree-config .tree-widget-container");
+            const $calcCode = $("#calcfield_card_header");
 
-            const $displayConditionsBuilderEl = $('#displayConditionsBuilder');
+            const $displayConditionsBuilderEl = $("#displayConditionsBuilder");
             //Bit of typecasting here, purely because the queryBuilder plugin doesn't have types
-            const res = $displayConditionsBuilderEl.length && (<any>$displayConditionsBuilderEl).queryBuilder('getRules');
-            const $displayConditionsField = $('#displayConditions');
+            const res = $displayConditionsBuilderEl.length && (<any>$displayConditionsBuilderEl).queryBuilder("getRules");
+            const $displayConditionsField = $("#displayConditions");
 
-            const $instanceIDField = $('#refers_to_instance_id');
+            const $instanceIDField = $("#refers_to_instance_id");
             const $filterEl = $instanceIDField.length && $(`[data-builder-id='${$instanceIDField.val()}']`);
 
-            const $permissionTable = $('#default_field_permissions_table');
+            const $permissionTable = $("#default_field_permissions_table");
 
             let bUpdateTree = false;
             let bUpdateFilter = false;
             let bUpdateDisplayConditions = false;
 
-            const $showInEdit = $("#show_in_edit")
-            if (($calcCode.length && $calcCode.is(':visible')) && !$showInEdit.val()) {
+            const $showInEdit = $("#show_in_edit");
+            if (($calcCode.length && $calcCode.is(":visible")) && !$showInEdit.val()) {
                 if (!this.errored) {
                     const error = document.createElement("div");
                     error.classList.add("form-text", "form-text--error");
@@ -48,11 +48,11 @@ export default class SubmitFieldButton {
                 ev.preventDefault();
             }
 
-            if (($jstreeContainer.length && $jstreeContainer.is(':visible') && $jstreeEl.length) || (!$jstreeContainer.length && $jstreeEl.length)) {
+            if (($jstreeContainer.length && $jstreeContainer.is(":visible") && $jstreeEl.length) || (!$jstreeContainer.length && $jstreeEl.length)) {
                 bUpdateTree = true;
             }
 
-            if ($instanceIDField.length && !$instanceIDField.prop('disabled') && $filterEl.length) {
+            if ($instanceIDField.length && !$instanceIDField.prop("disabled") && $filterEl.length) {
                 bUpdateFilter = true;
             }
 
@@ -62,18 +62,18 @@ export default class SubmitFieldButton {
 
             if (bUpdateTree) {
                 //Bit of typecasting here, purely because the jstree plugin doesn't have types
-                const v = (<any>$jstreeEl).jstree(true).get_json('#', {flat: false});
+                const v = (<any>$jstreeEl).jstree(true).get_json("#", {flat: false});
                 const mytext = JSON.stringify(v);
                 const data = $jstreeEl.data();
 
                 $.ajax({
                     async: false,
-                    type: 'POST',
+                    type: "POST",
                     url: this.getURL(data),
                     data: {data: mytext, csrf_token: data.csrfToken}
                 }).done(() => {
                     // eslint-disable-next-line no-alert
-                    alert('Tree has been updated')
+                    alert("Tree has been updated");
                 });
             }
 
@@ -91,9 +91,9 @@ export default class SubmitFieldButton {
              * permission checkboxes on other pages will not be submitted and will
              * therefore be cleared. This code gets all the inputs in the datatable
              * and appends them to the form manually */
-            const $inputs = $permissionTable.DataTable().$('input,select,textarea');
+            const $inputs = $permissionTable.DataTable().$("input,select,textarea");
             $inputs.hide(); // Stop them appearing to the user in a strange format
-            const $form = $(ev.currentTarget).closest('form');
+            const $form = $(ev.currentTarget).closest("form");
             $permissionTable.remove();
             $form.append($inputs);
         });
@@ -109,6 +109,6 @@ export default class SubmitFieldButton {
 
         const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi;
 
-        return devEndpoint ? devEndpoint : `/${data.layoutIdentifier}/tree/${data.columnId}`
+        return devEndpoint ? devEndpoint : `/${data.layoutIdentifier}/tree/${data.columnId}`;
     }
 }

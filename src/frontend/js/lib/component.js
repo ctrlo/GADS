@@ -1,7 +1,7 @@
 /**
  * Base attribute name that's set on a component that's initialized
  */
-const componentInitializedAttr = 'data-component-initialized'
+const componentInitializedAttr = "data-component-initialized";
 
 /**
  * The actual attribute name that's set on a component that's initialized.
@@ -10,14 +10,14 @@ const componentInitializedAttr = 'data-component-initialized'
  */
 const componentInitializedAttrName = (component_name) => {
   return componentInitializedAttr + "-" + component_name;
-}
+};
 
 /**
  * Establish whether a component has already been initialized on an element
  */
 const componentIsInitialized = (element, name) => {
-  return element.getAttribute(componentInitializedAttrName(name)) ? true : false
-}
+  return element.getAttribute(componentInitializedAttrName(name)) ? true : false;
+};
 
 /**
  * Default component class.
@@ -30,25 +30,25 @@ class Component {
   // once. For components that set this to true, they must cleanly handle
   // such a reinitialization (returning the object but not resetting up HTML
   // elements etc)
-  static get allowReinitialization() { return false }
+  static get allowReinitialization() { return false; }
 
   constructor(element) {
     if (!(element instanceof HTMLElement)) {
       throw new Error(
-        'Components can only be initialized with an HTMLElement as argument to the constructor',
-      )
+        "Components can only be initialized with an HTMLElement as argument to the constructor",
+      );
     }
 
-    this.element = element
-    this.wasInitialized = componentIsInitialized(this.element, this.constructor.name)
-    this.element.setAttribute(componentInitializedAttrName(this.constructor.name), true)
+    this.element = element;
+    this.wasInitialized = componentIsInitialized(this.element, this.constructor.name);
+    this.element.setAttribute(componentInitializedAttrName(this.constructor.name), true);
   }
 }
 
 /**
  * All registered component
  */
-const registeredComponents = []
+const registeredComponents = [];
 
 /**
  * Register a component that can be initialized
@@ -57,8 +57,8 @@ const registeredComponents = []
  * @param { Function } componentInitializer Function that will be called when component initializes
  */
 const registerComponent = (componentInitializer) => {
-  registeredComponents.push(componentInitializer)
-}
+  registeredComponents.push(componentInitializer);
+};
 
 /**
  * Initialize all registered components in the defined scope
@@ -69,9 +69,9 @@ const registerComponent = (componentInitializer) => {
  */
 const initializeRegisteredComponents = (scope) => {
   registeredComponents.forEach((componentInitializer) => {
-    componentInitializer(scope)
-  })
-}
+    componentInitializer(scope);
+  });
+};
 
 /**
  * Get an Array of elements matching `selector` within `scope`
@@ -82,13 +82,13 @@ const initializeRegisteredComponents = (scope) => {
  * @returns {Array[HTMLElement]} An array of elements
  */
 const getComponentElements = (scope, selector) => {
-  const elements = scope.querySelectorAll(selector)
+  const elements = scope.querySelectorAll(selector);
   if (!elements.length) {
-    return []
+    return [];
   }
 
-  return Array.from(elements)
-}
+  return Array.from(elements);
+};
 
 /**
  * Initialize component `Component` on all elements matching `selector` within `scope`
@@ -103,18 +103,18 @@ const getComponentElements = (scope, selector) => {
 const initializeComponent = (scope, selector, ComponentClass) => {
   if (!(ComponentClass.prototype instanceof Component)) {
     throw new Error(
-      'Components can only be initialized when they inherit the basecomponent',
-    )
+      "Components can only be initialized when they inherit the basecomponent",
+    );
   }
 
-  const scopes = (scope instanceof jQuery) ? scope.get() : [scope]
+  const scopes = (scope instanceof jQuery) ? scope.get() : [scope];
 
   const elements = scopes.flatMap(
-      (scope) => typeof(selector) === 'function' ? selector(scope) : getComponentElements(scope, selector)
-  )
+      (scope) => typeof(selector) === "function" ? selector(scope) : getComponentElements(scope, selector)
+  );
 
   if (!elements.length) {
-    return []
+    return [];
   }
 
   return elements
@@ -123,9 +123,9 @@ const initializeComponent = (scope, selector, ComponentClass) => {
             ComponentClass.allowReinitialization
             // See comments for allowReinitialization()
             || !componentIsInitialized(el, ComponentClass.name)
-        )
-    }).map((el) => new ComponentClass(el))
-}
+        );
+    }).map((el) => new ComponentClass(el));
+};
 
 export {
   Component,
@@ -133,4 +133,4 @@ export {
   initializeRegisteredComponents,
   getComponentElements,
   registerComponent,
-}
+};

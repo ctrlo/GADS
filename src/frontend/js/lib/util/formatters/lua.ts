@@ -15,7 +15,7 @@ type stringLike = { toString(): string };
  * @returns A string of LUA code
  */
 function LUA(strings: TemplateStringsArray, ...values: (stringLike | string | number | LUACode)[]): LUACode {
-    let str = '';
+    let str = "";
     for (let i = 0; i < strings.length; i++) {
         str += strings[i];
         if (i < values.length) {

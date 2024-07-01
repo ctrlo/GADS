@@ -1,4 +1,3 @@
-/// <reference types="jest" />
 import { LUA } from "./lua";
 
 describe("LUA tests", ()=>{
@@ -34,5 +33,5 @@ describe("LUA tests", ()=>{
 
     it("Should return string with value", ()=>{
         expect(LUA`${new TestObject()}`).toBe("test");        
-    })
+    });
 });
