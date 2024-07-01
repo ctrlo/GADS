@@ -20,7 +20,7 @@ export default function initGlobals() {
                 callback();
             }
         };
-    })
+    });
     // @ts-expect-error I don't care enough to fix this
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     $.fn.jstree = jest.fn().mockImplementation((arg: boolean) => {
@@ -29,5 +29,5 @@ export default function initGlobals() {
                 return {};
             }
         };
-    })
+    });
 }

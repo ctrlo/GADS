@@ -5,6 +5,6 @@ export default (scope) => {
 
   import(/* webpackChunkName: "markdown" */ "./lib/component")
     .then(({ default: MarkdownComponent }) => {
-      initializeComponent(scope, ".js-markdown-section", MarkdownComponent)
+      initializeComponent(scope, ".js-markdown-section", MarkdownComponent);
     });
-}
+};

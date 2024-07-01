@@ -1,60 +1,60 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
-import { Component } from 'component'
-import { initValidationOnField, validateCheckboxGroup } from 'validation'
-import initDateField from 'components/datepicker/lib/helper'
-import 'blueimp-file-upload'
-import { stopPropagation, fromJson, hideElement, showElement } from 'util/common'
+import { Component } from "component";
+import { initValidationOnField, validateCheckboxGroup } from "validation";
+import initDateField from "components/datepicker/lib/helper";
+import "blueimp-file-upload";
+import { stopPropagation, fromJson, hideElement, showElement } from "util/common";
 
 class InputComponent extends Component {
     constructor(element)  {
-      super(element)
-      this.el = $(this.element)
+      super(element);
+      this.el = $(this.element);
 
-      if (this.el.hasClass('input--password')) {
-        this.btnReveal = this.el.find('.input__reveal-password')
-        this.input = this.el.find('.form-control')
-        this.initInputPassword()
-      } else if (this.el.hasClass('input--logo')) {
-        this.logoDisplay = this.el.parent().find('img');
-        this.fileInput = this.el.find('.form-control-file')
+      if (this.el.hasClass("input--password")) {
+        this.btnReveal = this.el.find(".input__reveal-password");
+        this.input = this.el.find(".form-control");
+        this.initInputPassword();
+      } else if (this.el.hasClass("input--logo")) {
+        this.logoDisplay = this.el.parent().find("img");
+        this.fileInput = this.el.find(".form-control-file");
         this.initInputLogo();
-      } else if (this.el.hasClass('input--document')) {
-        this.fileInput = this.el.find('.form-control-file')
-        this.initInputDocument()
-      } else if (this.el.hasClass('input--file')) {
-        this.fileInput = this.el.find('.form-control-file')
-        this.fileName = this.el.find('.file__name')
-        this.fileDelete = this.el.find('.file__delete')
-        this.inputFileLabel = this.el.find('.input__file-label')
-        this.initInputFile()
-      } else if (this.el.hasClass('input--datepicker')) {
-        this.input = this.el.find('.form-control')
-        this.initInputDate()
-      } else if (this.el.hasClass('input--autocomplete')) {
-        this.input = this.el.find('.form-control')
-        this.initInputAutocomplete()
+      } else if (this.el.hasClass("input--document")) {
+        this.fileInput = this.el.find(".form-control-file");
+        this.initInputDocument();
+      } else if (this.el.hasClass("input--file")) {
+        this.fileInput = this.el.find(".form-control-file");
+        this.fileName = this.el.find(".file__name");
+        this.fileDelete = this.el.find(".file__delete");
+        this.inputFileLabel = this.el.find(".input__file-label");
+        this.initInputFile();
+      } else if (this.el.hasClass("input--datepicker")) {
+        this.input = this.el.find(".form-control");
+        this.initInputDate();
+      } else if (this.el.hasClass("input--autocomplete")) {
+        this.input = this.el.find(".form-control");
+        this.initInputAutocomplete();
       }
 
       if (this.el.hasClass("input--required")) {
-        initValidationOnField(this.el)
+        initValidationOnField(this.el);
       }
     }
 
     initInputLogo() {
-      if(this.logoDisplay.attr('src') == '#') this.logoDisplay.hide();
+      if(this.logoDisplay.attr("src") == "#") this.logoDisplay.hide();
 
-      this.el.find('.file').hide();
+      this.el.find(".file").hide();
 
-      this.fileInput.on('change', (ev) => {
+      this.fileInput.on("change", (ev) => {
         stopPropagation(ev);
-        const url = this.el.data("fileupload-url")
+        const url = this.el.data("fileupload-url");
 
         const formData = new FormData();
-        formData.append('file', this.el.find('input[type="file"]')[0].files[0]);
-        formData.append('csrf_token', $('body').data('csrf'));
+        formData.append("file", this.el.find("input[type=\"file\"]")[0].files[0]);
+        formData.append("csrf_token", $("body").data("csrf"));
 
         fetch(url,{
-          method: 'POST',
+          method: "POST",
           body: formData,
         }).then((response) => {
           if (response.ok) {
@@ -63,14 +63,14 @@ class InputComponent extends Component {
           throw new Error(`Error: ${response.status} ${response.statusText}`);
         }).then((data) => {
           if (data && !data.error) {
-            const version = this.logoDisplay.attr('src').split('?')[1];
+            const version = this.logoDisplay.attr("src").split("?")[1];
             const newVersion = version? parseInt(version) + 1 : 1;
-            this.logoDisplay.attr('src', data.url+'?'+newVersion);
+            this.logoDisplay.attr("src", data.url+"?"+newVersion);
             this.logoDisplay.show();
           } else if (data.error) {
             throw new Error(`Error: ${data.text}`);
           }else{
-            throw new Error(`Error: No data returned`);
+            throw new Error("Error: No data returned");
           }
         }).catch((error) => {
           console.error(error);
@@ -80,21 +80,21 @@ class InputComponent extends Component {
 
     // Self is used here due to XMLHttpRequest's scope issues
     initInputDocument() {
-      const url = this.el.data("fileupload-url")
-      const $progressBarContainer = this.el.find(".progress-bar__container")
-      const $progressBarProgress = this.el.find(".progress-bar__progress")
-      const $progressBarPercentage = this.el.find(".progress-bar__percentage")
-      let self = this
+      const url = this.el.data("fileupload-url");
+      const $progressBarContainer = this.el.find(".progress-bar__container");
+      const $progressBarProgress = this.el.find(".progress-bar__progress");
+      const $progressBarPercentage = this.el.find(".progress-bar__percentage");
+      let self = this;
 
-      const tokenField = this.el.closest('form').find('input[name="csrf_token"]');
+      const tokenField = this.el.closest("form").find("input[name=\"csrf_token\"]");
       const token = tokenField.val();
-      const dropTarget = this.el.closest('.file-upload');
+      const dropTarget = this.el.closest(".file-upload");
       if (dropTarget) {
         const dragOptions = { allowMultiple: false };
-        dropTarget.filedrag(dragOptions).on('onFileDrop', (ev, file) => {
+        dropTarget.filedrag(dragOptions).on("onFileDrop", (ev, file) => {
           this.handleAjaxUpload(url, token, file);
         });
-        this.error = dropTarget.parent().find('.upload__error');
+        this.error = dropTarget.parent().find(".upload__error");
       } else throw new Error("Could not find file-upload element");
 
       this.el.fileupload({
@@ -109,7 +109,7 @@ class InputComponent extends Component {
           $progressBarContainer.css("display", "block");
           $progressBarPercentage.html("0%");
           $progressBarProgress.css("width", "0%");
-          $progressBarContainer.removeClass('progress-bar__container--fail');
+          $progressBarContainer.removeClass("progress-bar__container--fail");
         },
         progress: function(e, data) {
           if (!self.el.data("multivalue")) {
@@ -128,12 +128,12 @@ class InputComponent extends Component {
           }
         },
         done: function(e, data) {
-          self.addFileToField({ id: data.result.id, name: data.result.filename })
+          self.addFileToField({ id: data.result.id, name: data.result.filename });
         },
         fail: function(e, data) {
           const ret = data.jqXHR.responseJSON;
           $progressBarProgress.css("width", "100%");
-          $progressBarContainer.addClass('progress-bar__container--fail');
+          $progressBarContainer.addClass("progress-bar__container--fail");
           if (ret.message) {
               $progressBarPercentage.html("Error: " + ret.message);
           } else {
@@ -145,10 +145,10 @@ class InputComponent extends Component {
 
     initInputAutocomplete() {
       const suggestionCallback = (suggestion) => {
-        $(this.el).find('input[type="hidden"]').val(suggestion.id)
-      }
+        $(this.el).find("input[type=\"hidden\"]").val(suggestion.id);
+      };
 
-      import(/* webpackChunkName: "typeahead" */ 'util/typeahead')
+      import(/* webpackChunkName: "typeahead" */ "util/typeahead")
         .then(({ default: TypeaheadBuilder }) => {
           const builder = new TypeaheadBuilder();
           builder
@@ -156,33 +156,33 @@ class InputComponent extends Component {
             .withCallback(suggestionCallback)
             .withAjaxSource(this.getURL())
             .withAppendQuery()
-            .withName('users')
-            .build()
+            .withName("users")
+            .build();
         });
     }
 
     getURL() {
-      const devEndpoint = window.siteConfig && window.siteConfig.urls.autocompleteApi
-      const layout_identifier = $('body').data('layout-identifier')
+      const devEndpoint = window.siteConfig && window.siteConfig.urls.autocompleteApi;
+      const layout_identifier = $("body").data("layout-identifier");
 
       if (devEndpoint) {
-        return devEndpoint
+        return devEndpoint;
       } else {
-        return layout_identifier ? '/' + layout_identifier + '/match/user/?q=' : '/match/user/?q='
+        return layout_identifier ? "/" + layout_identifier + "/match/user/?q=" : "/match/user/?q=";
       }
     }
 
     initInputDate() {
-      initDateField(this.input)
+      initDateField(this.input);
     }
 
     initInputPassword() {
       if (!this.btnReveal) {
-        return
+        return;
       }
 
-      this.btnReveal.removeClass("show")
-      this.btnReveal.click( (ev) => { this.handleClickReveal(ev) } )
+      this.btnReveal.removeClass("show");
+      this.btnReveal.click( (ev) => { this.handleClickReveal(ev); } );
     }
 
     // As previous
@@ -222,14 +222,14 @@ class InputComponent extends Component {
 
     handleFormUpload(file) {
         if (!file) throw new Error("No file provided");
-        const form = this.el.closest('form');
-        const action = form.attr('action') ? window.location.href + form.attr('action') : window.location.href;
-        const method = form.attr('method') || 'GET';
-        const tokenField = form.find('input[name="csrf_token"]');
+        const form = this.el.closest("form");
+        const action = form.attr("action") ? window.location.href + form.attr("action") : window.location.href;
+        const method = form.attr("method") || "GET";
+        const tokenField = form.find("input[name=\"csrf_token\"]");
         const token = tokenField.val();
         const formData = new FormData();
-        formData.append('file', file);
-        if (method.toUpperCase() == 'POST') {
+        formData.append("file", file);
+        if (method.toUpperCase() == "POST") {
             const request = new XMLHttpRequest();
             const formData = new FormData();
             request.open(method, action, true);
@@ -238,8 +238,8 @@ class InputComponent extends Component {
                     location.reload();
                 }
             };
-            formData.append('file', file);
-            formData.append('csrf_token', token);
+            formData.append("file", file);
+            formData.append("csrf_token", token);
             request.send(formData);
         } else {
             throw new Error("Method not supported");
@@ -247,19 +247,19 @@ class InputComponent extends Component {
     }
 
     initInputFile() {
-        const dropTarget = this.el.closest('.file-upload');
+        const dropTarget = this.el.closest(".file-upload");
         if (dropTarget) {
             const dragOptions = { allowMultiple: false };
-            dropTarget.filedrag(dragOptions).on('onFileDrop', (ev, file) => {
+            dropTarget.filedrag(dragOptions).on("onFileDrop", (ev, file) => {
                 this.handleFormUpload(file);
             });
         } else throw new Error("Could not find file-upload element");
 
-      this.fileInput.change( (ev) => { this.changeFile(ev) } )
-      this.inputFileLabel.bind( 'keyup', (ev) => { this.uploadFile(ev)} )
+      this.fileInput.change( (ev) => { this.changeFile(ev); } );
+      this.inputFileLabel.bind( "keyup", (ev) => { this.uploadFile(ev);} );
 
       this.fileDelete.addClass("hidden");
-      this.fileDelete.click( (ev) => { this.deleteFile(ev) } )
+      this.fileDelete.click( (ev) => { this.deleteFile(ev); } );
     }
 
     handleClickReveal() {
@@ -274,33 +274,33 @@ class InputComponent extends Component {
 
     uploadFile(ev) {
       if ((ev.which === 32 || ev.which === 13)) {
-        $('.form-control-file').click()
+        $(".form-control-file").click();
       }
     }
 
     changeFile(ev) {
-      const [file] = ev.target.files
-      const { name: fileName } = file
+      const [file] = ev.target.files;
+      const { name: fileName } = file;
 
-      this.fileName.text(`${fileName}`)
-      this.fileName.attr('title', `${fileName}`)
-      this.fileDelete.removeClass("hidden")
+      this.fileName.text(`${fileName}`);
+      this.fileName.attr("title", `${fileName}`);
+      this.fileDelete.removeClass("hidden");
     }
 
     deleteFile() {
-      this.fileName.text("No file chosen")
-      this.fileName.attr('title', '')
-      this.fileInput[0].value = '';
+      this.fileName.text("No file chosen");
+      this.fileName.attr("title", "");
+      this.fileInput[0].value = "";
       this.fileDelete.addClass("hidden");
       // TO DO: set fo us back to input__file-label 9without triggering keyup event on it)
     }
 
     addFileToField(file) {
-      const $fieldset = this.el.closest('.fieldset');
-      const $ul = $fieldset.find(".fileupload__files")
-      const fileId = file.id
-      const fileName = file.name
-      const field = $fieldset.find('.input--file').data("field")
+      const $fieldset = this.el.closest(".fieldset");
+      const $ul = $fieldset.find(".fileupload__files");
+      const fileId = file.id;
+      const fileName = file.name;
+      const field = $fieldset.find(".input--file").data("field");
       if (!this.el.data("multivalue")) {
         $ul.empty();
       }
@@ -318,15 +318,15 @@ class InputComponent extends Component {
       // Change event will alreayd have been triggered with initial file
       // selection (XXX ideally remove this first trigger?). Trigger
       // change again now that the full element has been recreated.
-      $ul.closest('.linkspace-field').trigger('change')
+      $ul.closest(".linkspace-field").trigger("change");
       // .list class contains the checkboxes to be validated
-      validateCheckboxGroup($fieldset.find('.list'))
+      validateCheckboxGroup($fieldset.find(".list"));
       // Once a file has been uploaded, it will appear as a checkbox and
       // the file input will still be empty. Remove the HTML required
       // attribute so that the form can be submitted
-      $fieldset.find('input[type="file"]').removeAttr('required');
+      $fieldset.find("input[type=\"file\"]").removeAttr("required");
     }
 
 }
 
-export default InputComponent
+export default InputComponent;

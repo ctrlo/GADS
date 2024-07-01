@@ -1,19 +1,13 @@
-import {validateRequiredFields} from 'validation';
+import { validateRequiredFields } from "validation";
 import CreateReportButtonComponent from "./create-report-button";
+import initGlobals from "../../../testing/globals.definitions";
 
-window.$ = window.jQuery = require('jquery');
+describe("create-report-button", () => {
+    beforeEach(() => {
+        initGlobals();
+    });
 
-declare global {
-    interface Window {
-        $: JQueryStatic;
-        jQuery: JQueryStatic;
-    }
-}
-
-export {}
-
-describe('create-report-button', () => {
-    it('does not submit form if no checkboxes are checked', () => {
+    it("does not submit form if no checkboxes are checked", () => {
         document.body.innerHTML = `
       <form id="myform">
         <input class="form-control " id="report_name" name="report_name" value="Something" data-restore-value="" required="" aria-required="true">
@@ -32,18 +26,18 @@ describe('create-report-button', () => {
       </form>
     `;
 
-        const $submit = $('#submit');
+        const $submit = $("#submit");
         new CreateReportButtonComponent($submit);
         const submitSpy = jest.fn((ev) => {
             ev.preventDefault();
             ev.stopPropagation();
         });
-        $('#myform').on('submit', submitSpy);
-        $submit.trigger('click');
+        $("#myform").on("submit", submitSpy);
+        $submit.trigger("click");
         expect(submitSpy).not.toHaveBeenCalled();
     });
 
-    it('does not submit on required values missing', () => {
+    it("does not submit on required values missing", () => {
         document.body.innerHTML = `
       <form id="myform">
         <div class="input--required">
@@ -64,20 +58,20 @@ describe('create-report-button', () => {
       </form>
     `;
 
-        let $submit = $('#submit');
+        const $submit = $("#submit");
         new CreateReportButtonComponent($submit);
         const submitSpy = jest.fn((ev) => {
             ev.preventDefault();
             ev.stopPropagation();
         });
 
-        $('#myform').on('submit', submitSpy);
-        $submit.trigger('click');
+        $("#myform").on("submit", submitSpy);
+        $submit.trigger("click");
 
         expect(submitSpy).not.toHaveBeenCalled();
     });
 
-    it('does submit fully on required values present', () => {
+    it("does submit fully on required values present", () => {
         document.body.innerHTML = `
       <form id="myform">
         <div class="input--required">
@@ -98,18 +92,18 @@ describe('create-report-button', () => {
       </form>
     `;
 
-        const $submit = $('#submit');
+        const $submit = $("#submit");
         new CreateReportButtonComponent($submit);
         const formSpyFn = jest.fn((ev) => {
             ev.preventDefault();
             ev.stopPropagation();
         });
-        $('#myform').on('submit', formSpyFn);
-        $submit.trigger('click');
+        $("#myform").on("submit", formSpyFn);
+        $submit.trigger("click");
         expect(formSpyFn).toHaveBeenCalled();
     });
 
-    it('Validates checkboxes correctly', () => {
+    it("Validates checkboxes correctly", () => {
         document.body.innerHTML = `
       <form>
         <fieldset class="fieldset fieldset--required checkbox-fieldset--required">
@@ -175,14 +169,14 @@ describe('create-report-button', () => {
       </form>
     `;
 
-        const $form = $('form');
-        const fieldSet = $form.find('.checkbox-fieldset--required');
+        const $form = $("form");
+        const fieldSet = $form.find(".checkbox-fieldset--required");
 
         expect(fieldSet.length).toBe(1);
 
-        fieldSet.find('input').each((index, input) => {
+        fieldSet.find("input").each((index, input) => {
             expect(input.checked).toBe(false);
-            expect($(input).has(':checked').length).toBe(0);
+            expect($(input).has(":checked").length).toBe(0);
         });
 
         expect(validateRequiredFields($form)).toBe(false);

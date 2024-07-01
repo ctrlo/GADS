@@ -47,4 +47,4 @@ export const refreshSelects = (el)=>{
         $(operatorSelect).selectpicker("refresh");
       }
     });
-}
+};

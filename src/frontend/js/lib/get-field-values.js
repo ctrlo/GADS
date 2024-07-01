@@ -34,10 +34,10 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
   let values = [];
   let $f;
   if (type === "enum" || type === "curval" || type === "person") {
-    if ($depends.data('value-selector') == "noshow") {
-      $depends.find('.table-curval-group').find('input').each(function(){
+    if ($depends.data("value-selector") == "noshow") {
+      $depends.find(".table-curval-group").find("input").each(function(){
         const item = $(this);
-        values.push(item)
+        values.push(item);
       });
     } else if (filtered) {
       // Field is type "filval". Therefore the values are any visible value in
@@ -59,7 +59,7 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
       });
     }
     if (for_code) {
-      if ($depends.data('is-multivalue')) {
+      if ($depends.data("is-multivalue")) {
         // multivalue
         const vals = $.map(values, function(item) {
           return {
@@ -71,7 +71,7 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
           return item.value;
         });
         return {
-          text: plain.join(', '),
+          text: plain.join(", "),
           values: vals
         };
       } else {
@@ -102,7 +102,7 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
       });
     }
   } else if (type === "tree") {
-    const jstree = $depends.find('.jstree').jstree(true);
+    const jstree = $depends.find(".jstree").jstree(true);
     $depends.find(".selected-tree-value").each(function() {
       const $node = $(this);
       if (form_value) {
@@ -114,9 +114,9 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
           const node   = jstree.get_node($node.val());
           const ps     = node.parents;
           let parents = {};
-          ps.filter(id => id !== '#').reverse().forEach(function(id, index) {
+          ps.filter(id => id !== "#").reverse().forEach(function(id, index) {
             parents["parent"+(index+1)] = jstree.get_node(id).text;
-          })
+          });
           values.push({
             value: node.text,
             parents: parents
@@ -162,10 +162,10 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
         return {
           from:  format_date(from),
           to:    format_date(to),
-          value: dr.from.val() + ' to ' + dr.to.val(),
+          value: dr.from.val() + " to " + dr.to.val(),
         };
       });
-      if ($depends.data('is-multivalue')) {
+      if ($depends.data("is-multivalue")) {
         return codevals;
       } else {
         return codevals[0];
@@ -175,17 +175,17 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
         return {
             from: dr.from.val(),
             to: dr.to.val()
-        }
-      })
+        };
+      });
     } else {
       values = dateranges.map(function(dr) {
-        return dr.from.val() + ' to ' + dr.to.val();
-      })
+        return dr.from.val() + " to " + dr.to.val();
+      });
     }
 
   } else if (type === "date") {
 
-    if ($depends.data('is-multivalue')) {
+    if ($depends.data("is-multivalue")) {
       values = $depends.find(".form-control").map(function(){
         const $df = $(this);
         return for_code ? format_date($df.datepicker("getDate")) : $df.val();
@@ -208,10 +208,10 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
       if (form_value) {
         return {
             id: $(this).val(),
-            filename: $(this).data('filename')
-        }
+            filename: $(this).data("filename")
+        };
       } else {
-        return $(this).data('filename')
+        return $(this).data("filename");
       }
     }).get();
 
@@ -223,7 +223,7 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
         values.push($df.val().length ? $df.val() : undefined);
     });
     // Provide consistency with backend: single value is returned as scalar
-    if (for_code && !$depends.data('is-multivalue')) {
+    if (for_code && !$depends.data("is-multivalue")) {
         values = values.shift();
     }
   }

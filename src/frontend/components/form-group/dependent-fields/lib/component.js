@@ -1,10 +1,10 @@
-import { Component } from 'component'
-import { getFieldValues } from "get-field-values"
+import { Component } from "component";
+import { getFieldValues } from "get-field-values";
 
 class DependentFieldsComponent extends Component {
   constructor(element)  {
-    super(element)
-    this.initDependentFields()
+    super(element);
+    this.initDependentFields();
   }
 
   initDependentFields() {
@@ -89,7 +89,7 @@ class DependentFieldsComponent extends Component {
           // Blank values are returned as undefined for consistency with
           // backend calc code. Convert to empty string, otherwise they will
           // be rendered as the string "undefined" in a regex
-          if (value === undefined) value = '';
+          if (value === undefined) value = "";
           if (is_negative) {
             if (regexp.test(value)) this_not_shown = 1;
           } else {
@@ -136,9 +136,9 @@ class DependentFieldsComponent extends Component {
           });
           const $collapsibleElm = $expandableCard.find(".collapse");
           if (none_shown) {
-            $collapsibleElm.closest('.card').hide();
+            $collapsibleElm.closest(".card").hide();
           } else {
-            $collapsibleElm.closest('.card').show();
+            $collapsibleElm.closest(".card").show();
           }
         }
 
@@ -146,7 +146,7 @@ class DependentFieldsComponent extends Component {
         // if this one is now hidden then that will change its value to
         // blank. Don't do this if the dependent field is the same as the field
         // with the display condition.
-        if ($field.data('column-id') != $depends.data('column-id'))
+        if ($field.data("column-id") != $depends.data("column-id"))
             $field.trigger("change");
       };
 
@@ -165,4 +165,4 @@ class DependentFieldsComponent extends Component {
   }
 }
 
-export default DependentFieldsComponent
+export default DependentFieldsComponent;

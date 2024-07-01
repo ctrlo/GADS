@@ -3,21 +3,21 @@
  * @param element {JQuery<HTMLElement>} - The element to function as a remove curval button
  */
 export default function createRemoveCurvalButton(element: JQuery<HTMLElement>) {
-    element.on('click', (ev: JQuery.ClickEvent) => {
+    element.on("click", (ev: JQuery.ClickEvent) => {
         const $btn = $(ev.target);
 
-        if ($btn.closest('.table-curval-group').length) {
+        if ($btn.closest(".table-curval-group").length) {
             if (confirm("Are you sure want to permanently remove this item?")) {
                 const curvalItem = $btn.closest(".table-curval-item");
                 const parent = curvalItem.parent();
                 curvalItem.remove();
                 if (parent && parent.children().length === 1) {
-                    parent.children('.odd').children('.dataTables_empty').show();
+                    parent.children(".odd").children(".dataTables_empty").show();
                 }
             } else {
                 ev.preventDefault();
             }
-        } else if ($btn.closest('.select-widget').length) {
+        } else if ($btn.closest(".select-widget").length) {
             const fieldId = $btn.closest(".answer").find("input").prop("id");
             const $current = $btn.closest(".select-widget").find(".current");
 

@@ -8,7 +8,7 @@ class MarkdownComponent extends Component {
   }
 
   renderMarkdown(md) {
-    const mdEncoded = $('<span>').text(md).html()
+    const mdEncoded = $("<span>").text(md).html();
     return marked(mdEncoded);
   }
 
@@ -26,7 +26,7 @@ class MarkdownComponent extends Component {
     $textArea.keyup(() => {
       const markdownText = $textArea.val();
       if (!markdownText || markdownText === "") {
-        $preview.html('<p class="text-info">Nothing to preview!</p>');
+        $preview.html("<p class=\"text-info\">Nothing to preview!</p>");
       } else {
         const htmlText = this.renderMarkdown(markdownText);
         $preview.html(htmlText);
