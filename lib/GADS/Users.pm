@@ -24,9 +24,14 @@ use Log::Report 'linkspace';
 use POSIX ();
 use Scope::Guard qw(guard);
 use Text::CSV;
+use GADS::Helper::ConditionBuilder;
 
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
+
+has filter => (
+    is => 'ro',
+);
 
 has schema => (
     is       => 'ro',
@@ -101,8 +106,8 @@ sub user_summary_rs
 
 sub _build_all
 {   my $self = shift;
-    my @users = $self->user_summary_rs->all;
-    \@users;
+    my $users = $self->user_summary_rs->with_filter($self->filter);
+    [$users->all];
 }
 
 sub user_exists
