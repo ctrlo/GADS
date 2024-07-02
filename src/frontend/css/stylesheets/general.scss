@@ -1,14 +1,16 @@
-//Bootstrap v4.6
+@import "definitions/variables";
+
+// Bootstrap 4.6
 @import "~bootstrap/scss/bootstrap",
         "~datatables.net-bs4/css/dataTables.bootstrap4.min.css",
         "~datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css",
         "~datatables.net-rowreorder-bs4/css/rowReorder.bootstrap4.min.css";
 
+@import "definitions/fonts", "definitions/mixins";
+
 // React-grid-layout
 @import "~react-resizable/css/styles.css",
         "external/react-grid-layout/styles.min.css";
-
-@import "definitions/variables", "definitions/fonts", "definitions/mixins";
 
 // Base settings
 @import "base/global";
