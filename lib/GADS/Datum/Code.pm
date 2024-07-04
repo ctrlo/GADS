@@ -136,7 +136,8 @@ sub _write_unique
         }
         elsif ($@) {
             $@->reportAll;
-        } else{
+        }
+        else {
             $schema->storage->svp_release("sp_uq_calc");
         }
     }
