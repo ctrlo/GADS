@@ -16,10 +16,14 @@ sub purge {
     my @field = $self->valuefield or error __"No valuefield defined";
     my $schema = $self->result_source->schema;
 
-    $schema->txn_do(sub {
-        $self->update({ $_ => undef }) foreach @field;
-        $self->update({ purged_by => $user, purged_on => DateTime->now() });
-    });
+    my $purge_needed = grep { $self->$_ } @field;
+    if($purge_needed) {
+        $schema->txn_do(sub {
+            my %fields = { purged_by => $user, purged_on => DateTime->now() };
+            $fields{$_} = undef foreach @field;
+            $self->update(\%fields);
+        });
+    }
 }
 
 1;
