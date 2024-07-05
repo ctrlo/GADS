@@ -1082,6 +1082,19 @@ schema:
         - deferrable: 1
           expression: ''
           fields:
+            - purged_by
+          match_type: ''
+          name: calcval_fk_purged_by
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
             - record_id
           match_type: ''
           name: calcval_fk_record_id
@@ -1112,6 +1125,26 @@ schema:
           is_unique: 0
           name: layout_id
           order: 3
+          size:
+            - 0
+        purged_by:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_by
+          order: 10
+          size:
+            - 0
+        purged_on:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_on
+          order: 11
           size:
             - 0
         record_id:
@@ -1189,6 +1222,11 @@ schema:
         - fields:
             - layout_id
           name: calcval_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - purged_by
+          name: calcval_idx_purged_by
           options: []
           type: NORMAL
         - fields:
@@ -1453,6 +1491,19 @@ schema:
         - deferrable: 1
           expression: ''
           fields:
+            - purged_by
+          match_type: ''
+          name: curval_fk_purged_by
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
             - record_id
           match_type: ''
           name: curval_fk_record_id
@@ -1508,6 +1559,26 @@ schema:
           order: 3
           size:
             - 0
+        purged_by:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_by
+          order: 6
+          size:
+            - 0
+        purged_on:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_on
+          order: 7
+          size:
+            - 0
         record_id:
           data_type: bigint
           default_value: ~
@@ -1532,6 +1603,11 @@ schema:
         - fields:
             - layout_id
           name: curval_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - purged_by
+          name: curval_idx_purged_by
           options: []
           type: NORMAL
         - fields:
@@ -1888,6 +1964,19 @@ schema:
         - deferrable: 1
           expression: ''
           fields:
+            - purged_by
+          match_type: ''
+          name: daterange_fk_purged_by
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
             - record_id
           match_type: ''
           name: daterange_fk_record_id
@@ -1940,6 +2029,26 @@ schema:
           order: 3
           size:
             - 0
+        purged_by:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_by
+          order: 8
+          size:
+            - 0
+        purged_on:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_on
+          order: 9
+          size:
+            - 0
         record_id:
           data_type: bigint
           default_value: ~
@@ -1974,6 +2083,11 @@ schema:
         - fields:
             - layout_id
           name: daterange_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - purged_by
+          name: daterange_idx_purged_by
           options: []
           type: NORMAL
         - fields:
@@ -2213,6 +2327,19 @@ schema:
         - deferrable: 1
           expression: ''
           fields:
+            - purged_by
+          match_type: ''
+          name: enum_fk_purged_by
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
             - record_id
           match_type: ''
           name: enum_fk_record_id
@@ -2268,6 +2395,26 @@ schema:
           order: 3
           size:
             - 0
+        purged_by:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_by
+          order: 6
+          size:
+            - 0
+        purged_on:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_on
+          order: 7
+          size:
+            - 0
         record_id:
           data_type: bigint
           default_value: ~
@@ -2292,6 +2439,11 @@ schema:
         - fields:
             - layout_id
           name: enum_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - purged_by
+          name: enum_idx_purged_by
           options: []
           type: NORMAL
         - fields:
@@ -2615,6 +2767,19 @@ schema:
         - deferrable: 1
           expression: ''
           fields:
+            - purged_by
+          match_type: ''
+          name: file_fk_purged_by
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
             - record_id
           match_type: ''
           name: file_fk_record_id
@@ -2670,6 +2835,26 @@ schema:
           order: 3
           size:
             - 0
+        purged_by:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_by
+          order: 6
+          size:
+            - 0
+        purged_on:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_on
+          order: 7
+          size:
+            - 0
         record_id:
           data_type: bigint
           default_value: ~
@@ -2694,6 +2879,11 @@ schema:
         - fields:
             - layout_id
           name: file_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - purged_by
+          name: file_idx_purged_by
           options: []
           type: NORMAL
         - fields:
@@ -4522,6 +4712,19 @@ schema:
         - deferrable: 1
           expression: ''
           fields:
+            - purged_by
+          match_type: ''
+          name: intgr_fk_purged_by
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
             - record_id
           match_type: ''
           name: intgr_fk_record_id
@@ -4564,6 +4767,26 @@ schema:
           order: 3
           size:
             - 0
+        purged_by:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_by
+          order: 6
+          size:
+            - 0
+        purged_on:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_on
+          order: 7
+          size:
+            - 0
         record_id:
           data_type: bigint
           default_value: ~
@@ -4588,6 +4811,11 @@ schema:
         - fields:
             - layout_id
           name: intgr_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - purged_by
+          name: intgr_idx_purged_by
           options: []
           type: NORMAL
         - fields:
@@ -5766,6 +5994,19 @@ schema:
         - deferrable: 1
           expression: ''
           fields:
+            - purged_by
+          match_type: ''
+          name: person_fk_purged_by
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
             - record_id
           match_type: ''
           name: person_fk_record_id
@@ -5821,6 +6062,26 @@ schema:
           order: 3
           size:
             - 0
+        purged_by:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_by
+          order: 6
+          size:
+            - 0
+        purged_on:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_on
+          order: 7
+          size:
+            - 0
         record_id:
           data_type: bigint
           default_value: ~
@@ -5845,6 +6106,11 @@ schema:
         - fields:
             - layout_id
           name: person_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - purged_by
+          name: person_idx_purged_by
           options: []
           type: NORMAL
         - fields:
@@ -6001,6 +6267,19 @@ schema:
         - deferrable: 1
           expression: ''
           fields:
+            - purged_by
+          match_type: ''
+          name: ragval_fk_purged_by
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
             - record_id
           match_type: ''
           name: ragval_fk_record_id
@@ -6033,6 +6312,26 @@ schema:
           order: 3
           size:
             - 0
+        purged_by:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_by
+          order: 5
+          size:
+            - 0
+        purged_on:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_on
+          order: 6
+          size:
+            - 0
         record_id:
           data_type: bigint
           default_value: ~
@@ -6057,6 +6356,11 @@ schema:
         - fields:
             - layout_id
           name: ragval_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - purged_by
+          name: ragval_idx_purged_by
           options: []
           type: NORMAL
         - fields:
@@ -6124,19 +6428,6 @@ schema:
           reference_fields:
             - id
           reference_table: current
-          type: FOREIGN KEY
-        - deferrable: 1
-          expression: ''
-          fields:
-            - purged_by
-          match_type: ''
-          name: record_fk_purged_by
-          on_delete: NO ACTION
-          on_update: NO ACTION
-          options: []
-          reference_fields:
-            - id
-          reference_table: user
           type: FOREIGN KEY
         - deferrable: 1
           expression: ''
@@ -6213,26 +6504,6 @@ schema:
           order: 1
           size:
             - 0
-        purged_by:
-          data_type: bigint
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: purged_by
-          order: 9
-          size:
-            - 0
-        purged_on:
-          data_type: datetime
-          default_value: ~
-          is_nullable: 1
-          is_primary_key: 0
-          is_unique: 0
-          name: purged_on
-          order: 8
-          size:
-            - 0
         record_id:
           data_type: bigint
           default_value: ~
@@ -6257,11 +6528,6 @@ schema:
         - fields:
             - current_id
           name: record_idx_current_id
-          options: []
-          type: NORMAL
-        - fields:
-            - purged_by
-          name: record_idx_purged_by
           options: []
           type: NORMAL
         - fields:
@@ -7151,6 +7417,19 @@ schema:
         - deferrable: 1
           expression: ''
           fields:
+            - purged_by
+          match_type: ''
+          name: string_fk_purged_by
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
             - record_id
           match_type: ''
           name: string_fk_record_id
@@ -7193,6 +7472,26 @@ schema:
           order: 3
           size:
             - 0
+        purged_by:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_by
+          order: 7
+          size:
+            - 0
+        purged_on:
+          data_type: datetime
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_on
+          order: 8
+          size:
+            - 0
         record_id:
           data_type: bigint
           default_value: ~
@@ -7227,6 +7526,11 @@ schema:
         - fields:
             - layout_id
           name: string_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - purged_by
+          name: string_idx_purged_by
           options: []
           type: NORMAL
         - fields:

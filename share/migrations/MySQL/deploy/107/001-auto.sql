@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Tue Jun 25 15:56:03 2024
+-- Created on Fri Jul  5 16:50:35 2024
 --
 ;
 SET foreign_key_checks=0;
@@ -156,7 +156,10 @@ CREATE TABLE `calcval` (
   `value_numeric` decimal(20, 5) NULL,
   `value_date_from` datetime NULL,
   `value_date_to` datetime NULL,
+  `purged_by` bigint NULL,
+  `purged_on` datetime NULL,
   INDEX `calcval_idx_layout_id` (`layout_id`),
+  INDEX `calcval_idx_purged_by` (`purged_by`),
   INDEX `calcval_idx_record_id` (`record_id`),
   INDEX `calcval_idx_value_text` (`value_text`(64)),
   INDEX `calcval_idx_value_numeric` (`value_numeric`),
@@ -164,6 +167,7 @@ CREATE TABLE `calcval` (
   INDEX `calcval_idx_value_date` (`value_date`),
   PRIMARY KEY (`id`),
   CONSTRAINT `calcval_fk_layout_id` FOREIGN KEY (`layout_id`) REFERENCES `layout` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `calcval_fk_purged_by` FOREIGN KEY (`purged_by`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `calcval_fk_record_id` FOREIGN KEY (`record_id`) REFERENCES `record` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB;
 --
@@ -200,11 +204,15 @@ CREATE TABLE `curval` (
   `layout_id` integer NULL,
   `child_unique` smallint NOT NULL DEFAULT 0,
   `value` bigint NULL,
+  `purged_by` bigint NULL,
+  `purged_on` datetime NULL,
   INDEX `curval_idx_layout_id` (`layout_id`),
+  INDEX `curval_idx_purged_by` (`purged_by`),
   INDEX `curval_idx_record_id` (`record_id`),
   INDEX `curval_idx_value` (`value`),
   PRIMARY KEY (`id`),
   CONSTRAINT `curval_fk_layout_id` FOREIGN KEY (`layout_id`) REFERENCES `layout` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `curval_fk_purged_by` FOREIGN KEY (`purged_by`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `curval_fk_record_id` FOREIGN KEY (`record_id`) REFERENCES `record` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `curval_fk_value` FOREIGN KEY (`value`) REFERENCES `current` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB;
@@ -264,13 +272,17 @@ CREATE TABLE `daterange` (
   `to` date NULL,
   `child_unique` smallint NOT NULL DEFAULT 0,
   `value` varchar(45) NULL,
+  `purged_by` bigint NULL,
+  `purged_on` datetime NULL,
   INDEX `daterange_idx_layout_id` (`layout_id`),
+  INDEX `daterange_idx_purged_by` (`purged_by`),
   INDEX `daterange_idx_record_id` (`record_id`),
   INDEX `daterange_idx_from` (`from`),
   INDEX `daterange_idx_to` (`to`),
   INDEX `daterange_idx_value` (`value`),
   PRIMARY KEY (`id`),
   CONSTRAINT `daterange_fk_layout_id` FOREIGN KEY (`layout_id`) REFERENCES `layout` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `daterange_fk_purged_by` FOREIGN KEY (`purged_by`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `daterange_fk_record_id` FOREIGN KEY (`record_id`) REFERENCES `record` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB;
 --
@@ -309,11 +321,15 @@ CREATE TABLE `enum` (
   `layout_id` integer NULL,
   `child_unique` smallint NOT NULL DEFAULT 0,
   `value` integer NULL,
+  `purged_by` bigint NULL,
+  `purged_on` datetime NULL,
   INDEX `enum_idx_layout_id` (`layout_id`),
+  INDEX `enum_idx_purged_by` (`purged_by`),
   INDEX `enum_idx_record_id` (`record_id`),
   INDEX `enum_idx_value` (`value`),
   PRIMARY KEY (`id`),
   CONSTRAINT `enum_fk_layout_id` FOREIGN KEY (`layout_id`) REFERENCES `layout` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `enum_fk_purged_by` FOREIGN KEY (`purged_by`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `enum_fk_record_id` FOREIGN KEY (`record_id`) REFERENCES `record` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `enum_fk_value` FOREIGN KEY (`value`) REFERENCES `enumval` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB;
@@ -363,11 +379,15 @@ CREATE TABLE `file` (
   `layout_id` integer NULL,
   `child_unique` smallint NOT NULL DEFAULT 0,
   `value` bigint NULL,
+  `purged_by` bigint NULL,
+  `purged_on` datetime NULL,
   INDEX `file_idx_layout_id` (`layout_id`),
+  INDEX `file_idx_purged_by` (`purged_by`),
   INDEX `file_idx_record_id` (`record_id`),
   INDEX `file_idx_value` (`value`),
   PRIMARY KEY (`id`),
   CONSTRAINT `file_fk_layout_id` FOREIGN KEY (`layout_id`) REFERENCES `layout` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `file_fk_purged_by` FOREIGN KEY (`purged_by`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `file_fk_record_id` FOREIGN KEY (`record_id`) REFERENCES `record` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `file_fk_value` FOREIGN KEY (`value`) REFERENCES `fileval` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB;
@@ -611,11 +631,15 @@ CREATE TABLE `intgr` (
   `layout_id` integer NOT NULL,
   `child_unique` smallint NOT NULL DEFAULT 0,
   `value` bigint NULL,
+  `purged_by` bigint NULL,
+  `purged_on` datetime NULL,
   INDEX `intgr_idx_layout_id` (`layout_id`),
+  INDEX `intgr_idx_purged_by` (`purged_by`),
   INDEX `intgr_idx_record_id` (`record_id`),
   INDEX `intgr_idx_value` (`value`),
   PRIMARY KEY (`id`),
   CONSTRAINT `intgr_fk_layout_id` FOREIGN KEY (`layout_id`) REFERENCES `layout` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `intgr_fk_purged_by` FOREIGN KEY (`purged_by`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `intgr_fk_record_id` FOREIGN KEY (`record_id`) REFERENCES `record` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB;
 --
@@ -779,11 +803,15 @@ CREATE TABLE `person` (
   `layout_id` integer NULL,
   `child_unique` smallint NOT NULL DEFAULT 0,
   `value` bigint NULL,
+  `purged_by` bigint NULL,
+  `purged_on` datetime NULL,
   INDEX `person_idx_layout_id` (`layout_id`),
+  INDEX `person_idx_purged_by` (`purged_by`),
   INDEX `person_idx_record_id` (`record_id`),
   INDEX `person_idx_value` (`value`),
   PRIMARY KEY (`id`),
   CONSTRAINT `person_fk_layout_id` FOREIGN KEY (`layout_id`) REFERENCES `layout` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `person_fk_purged_by` FOREIGN KEY (`purged_by`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `person_fk_record_id` FOREIGN KEY (`record_id`) REFERENCES `record` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `person_fk_value` FOREIGN KEY (`value`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB;
@@ -809,12 +837,16 @@ CREATE TABLE `ragval` (
   `record_id` bigint NOT NULL,
   `layout_id` integer NOT NULL,
   `value` varchar(16) NULL,
+  `purged_by` bigint NULL,
+  `purged_on` datetime NULL,
   INDEX `ragval_idx_layout_id` (`layout_id`),
+  INDEX `ragval_idx_purged_by` (`purged_by`),
   INDEX `ragval_idx_record_id` (`record_id`),
   INDEX `ragval_idx_value` (`value`),
   PRIMARY KEY (`id`),
   UNIQUE `ragval_ux_record_layout` (`record_id`, `layout_id`),
   CONSTRAINT `ragval_fk_layout_id` FOREIGN KEY (`layout_id`) REFERENCES `layout` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `ragval_fk_purged_by` FOREIGN KEY (`purged_by`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `ragval_fk_record_id` FOREIGN KEY (`record_id`) REFERENCES `record` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB;
 --
@@ -828,19 +860,15 @@ CREATE TABLE `record` (
   `approvedby` bigint NULL,
   `record_id` bigint NULL,
   `approval` smallint NOT NULL DEFAULT 0,
-  `purged_on` datetime NULL,
-  `purged_by` bigint NULL,
   INDEX `record_idx_approvedby` (`approvedby`),
   INDEX `record_idx_createdby` (`createdby`),
   INDEX `record_idx_current_id` (`current_id`),
-  INDEX `record_idx_purged_by` (`purged_by`),
   INDEX `record_idx_record_id` (`record_id`),
   INDEX `record_idx_approval` (`approval`),
   PRIMARY KEY (`id`),
   CONSTRAINT `record_fk_approvedby` FOREIGN KEY (`approvedby`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `record_fk_createdby` FOREIGN KEY (`createdby`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `record_fk_current_id` FOREIGN KEY (`current_id`) REFERENCES `current` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  CONSTRAINT `record_fk_purged_by` FOREIGN KEY (`purged_by`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `record_fk_record_id` FOREIGN KEY (`record_id`) REFERENCES `record` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB;
 --
@@ -955,11 +983,15 @@ CREATE TABLE `string` (
   `child_unique` smallint NOT NULL DEFAULT 0,
   `value` text NULL,
   `value_index` varchar(128) NULL,
+  `purged_by` bigint NULL,
+  `purged_on` datetime NULL,
   INDEX `string_idx_layout_id` (`layout_id`),
+  INDEX `string_idx_purged_by` (`purged_by`),
   INDEX `string_idx_record_id` (`record_id`),
   INDEX `string_idx_value_index` (`value_index`),
   PRIMARY KEY (`id`),
   CONSTRAINT `string_fk_layout_id` FOREIGN KEY (`layout_id`) REFERENCES `layout` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `string_fk_purged_by` FOREIGN KEY (`purged_by`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `string_fk_record_id` FOREIGN KEY (`record_id`) REFERENCES `record` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB;
 --

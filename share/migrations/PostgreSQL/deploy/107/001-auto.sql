@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Tue Jun 25 15:56:03 2024
+-- Created on Fri Jul  5 16:50:38 2024
 --
 ;
 --
@@ -154,9 +154,12 @@ CREATE TABLE "calcval" (
   "value_numeric" numeric(20,5),
   "value_date_from" timestamp,
   "value_date_to" timestamp,
+  "purged_by" bigint,
+  "purged_on" timestamp,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "calcval_idx_layout_id" on "calcval" ("layout_id");
+CREATE INDEX "calcval_idx_purged_by" on "calcval" ("purged_by");
 CREATE INDEX "calcval_idx_record_id" on "calcval" ("record_id");
 CREATE INDEX "calcval_idx_value_text" on "calcval" ("value_text");
 CREATE INDEX "calcval_idx_value_numeric" on "calcval" ("value_numeric");
@@ -195,9 +198,12 @@ CREATE TABLE "curval" (
   "layout_id" integer,
   "child_unique" smallint DEFAULT 0 NOT NULL,
   "value" bigint,
+  "purged_by" bigint,
+  "purged_on" timestamp,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "curval_idx_layout_id" on "curval" ("layout_id");
+CREATE INDEX "curval_idx_purged_by" on "curval" ("purged_by");
 CREATE INDEX "curval_idx_record_id" on "curval" ("record_id");
 CREATE INDEX "curval_idx_value" on "curval" ("value");
 
@@ -257,9 +263,12 @@ CREATE TABLE "daterange" (
   "to" date,
   "child_unique" smallint DEFAULT 0 NOT NULL,
   "value" citext,
+  "purged_by" bigint,
+  "purged_on" timestamp,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "daterange_idx_layout_id" on "daterange" ("layout_id");
+CREATE INDEX "daterange_idx_purged_by" on "daterange" ("purged_by");
 CREATE INDEX "daterange_idx_record_id" on "daterange" ("record_id");
 CREATE INDEX "daterange_idx_from" on "daterange" ("from");
 CREATE INDEX "daterange_idx_to" on "daterange" ("to");
@@ -303,9 +312,12 @@ CREATE TABLE "enum" (
   "layout_id" integer,
   "child_unique" smallint DEFAULT 0 NOT NULL,
   "value" integer,
+  "purged_by" bigint,
+  "purged_on" timestamp,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "enum_idx_layout_id" on "enum" ("layout_id");
+CREATE INDEX "enum_idx_purged_by" on "enum" ("purged_by");
 CREATE INDEX "enum_idx_record_id" on "enum" ("record_id");
 CREATE INDEX "enum_idx_value" on "enum" ("value");
 
@@ -356,9 +368,12 @@ CREATE TABLE "file" (
   "layout_id" integer,
   "child_unique" smallint DEFAULT 0 NOT NULL,
   "value" bigint,
+  "purged_by" bigint,
+  "purged_on" timestamp,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "file_idx_layout_id" on "file" ("layout_id");
+CREATE INDEX "file_idx_purged_by" on "file" ("purged_by");
 CREATE INDEX "file_idx_record_id" on "file" ("record_id");
 CREATE INDEX "file_idx_value" on "file" ("value");
 
@@ -599,9 +614,12 @@ CREATE TABLE "intgr" (
   "layout_id" integer NOT NULL,
   "child_unique" smallint DEFAULT 0 NOT NULL,
   "value" bigint,
+  "purged_by" bigint,
+  "purged_on" timestamp,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "intgr_idx_layout_id" on "intgr" ("layout_id");
+CREATE INDEX "intgr_idx_purged_by" on "intgr" ("purged_by");
 CREATE INDEX "intgr_idx_record_id" on "intgr" ("record_id");
 CREATE INDEX "intgr_idx_value" on "intgr" ("value");
 
@@ -742,7 +760,7 @@ CREATE INDEX "oauthtoken_idx_user_id" on "oauthtoken" ("user_id");
 --
 CREATE TABLE "organisation" (
   "id" serial NOT NULL,
-  "name" citext,
+  "name" character varying(128),
   "site_id" integer,
   "deleted" smallint DEFAULT 0 NOT NULL,
   PRIMARY KEY ("id")
@@ -771,9 +789,12 @@ CREATE TABLE "person" (
   "layout_id" integer,
   "child_unique" smallint DEFAULT 0 NOT NULL,
   "value" bigint,
+  "purged_by" bigint,
+  "purged_on" timestamp,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "person_idx_layout_id" on "person" ("layout_id");
+CREATE INDEX "person_idx_purged_by" on "person" ("purged_by");
 CREATE INDEX "person_idx_record_id" on "person" ("record_id");
 CREATE INDEX "person_idx_value" on "person" ("value");
 
@@ -801,10 +822,13 @@ CREATE TABLE "ragval" (
   "record_id" bigint NOT NULL,
   "layout_id" integer NOT NULL,
   "value" character varying(16),
+  "purged_by" bigint,
+  "purged_on" timestamp,
   PRIMARY KEY ("id"),
   CONSTRAINT "ragval_ux_record_layout" UNIQUE ("record_id", "layout_id")
 );
 CREATE INDEX "ragval_idx_layout_id" on "ragval" ("layout_id");
+CREATE INDEX "ragval_idx_purged_by" on "ragval" ("purged_by");
 CREATE INDEX "ragval_idx_record_id" on "ragval" ("record_id");
 CREATE INDEX "ragval_idx_value" on "ragval" ("value");
 
@@ -820,14 +844,11 @@ CREATE TABLE "record" (
   "approvedby" bigint,
   "record_id" bigint,
   "approval" smallint DEFAULT 0 NOT NULL,
-  "purged_on" timestamp,
-  "purged_by" bigint,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "record_idx_approvedby" on "record" ("approvedby");
 CREATE INDEX "record_idx_createdby" on "record" ("createdby");
 CREATE INDEX "record_idx_current_id" on "record" ("current_id");
-CREATE INDEX "record_idx_purged_by" on "record" ("purged_by");
 CREATE INDEX "record_idx_record_id" on "record" ("record_id");
 CREATE INDEX "record_idx_approval" on "record" ("approval");
 
@@ -944,9 +965,12 @@ CREATE TABLE "string" (
   "child_unique" smallint DEFAULT 0 NOT NULL,
   "value" citext,
   "value_index" character varying(128),
+  "purged_by" bigint,
+  "purged_on" timestamp,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "string_idx_layout_id" on "string" ("layout_id");
+CREATE INDEX "string_idx_purged_by" on "string" ("purged_by");
 CREATE INDEX "string_idx_record_id" on "string" ("record_id");
 CREATE INDEX "string_idx_value_index" on "string" ("value_index");
 
@@ -1281,6 +1305,10 @@ ALTER TABLE "calcval" ADD CONSTRAINT "calcval_fk_layout_id" FOREIGN KEY ("layout
   REFERENCES "layout" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
+ALTER TABLE "calcval" ADD CONSTRAINT "calcval_fk_purged_by" FOREIGN KEY ("purged_by")
+  REFERENCES "user" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
+
+;
 ALTER TABLE "calcval" ADD CONSTRAINT "calcval_fk_record_id" FOREIGN KEY ("record_id")
   REFERENCES "record" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
@@ -1307,6 +1335,10 @@ ALTER TABLE "current" ADD CONSTRAINT "current_fk_parent_id" FOREIGN KEY ("parent
 ;
 ALTER TABLE "curval" ADD CONSTRAINT "curval_fk_layout_id" FOREIGN KEY ("layout_id")
   REFERENCES "layout" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
+
+;
+ALTER TABLE "curval" ADD CONSTRAINT "curval_fk_purged_by" FOREIGN KEY ("purged_by")
+  REFERENCES "user" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
 ALTER TABLE "curval" ADD CONSTRAINT "curval_fk_record_id" FOREIGN KEY ("record_id")
@@ -1349,6 +1381,10 @@ ALTER TABLE "daterange" ADD CONSTRAINT "daterange_fk_layout_id" FOREIGN KEY ("la
   REFERENCES "layout" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
+ALTER TABLE "daterange" ADD CONSTRAINT "daterange_fk_purged_by" FOREIGN KEY ("purged_by")
+  REFERENCES "user" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
+
+;
 ALTER TABLE "daterange" ADD CONSTRAINT "daterange_fk_record_id" FOREIGN KEY ("record_id")
   REFERENCES "record" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
@@ -1367,6 +1403,10 @@ ALTER TABLE "display_field" ADD CONSTRAINT "display_field_fk_layout_id" FOREIGN 
 ;
 ALTER TABLE "enum" ADD CONSTRAINT "enum_fk_layout_id" FOREIGN KEY ("layout_id")
   REFERENCES "layout" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
+
+;
+ALTER TABLE "enum" ADD CONSTRAINT "enum_fk_purged_by" FOREIGN KEY ("purged_by")
+  REFERENCES "user" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
 ALTER TABLE "enum" ADD CONSTRAINT "enum_fk_record_id" FOREIGN KEY ("record_id")
@@ -1395,6 +1435,10 @@ ALTER TABLE "export" ADD CONSTRAINT "export_fk_user_id" FOREIGN KEY ("user_id")
 ;
 ALTER TABLE "file" ADD CONSTRAINT "file_fk_layout_id" FOREIGN KEY ("layout_id")
   REFERENCES "layout" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
+
+;
+ALTER TABLE "file" ADD CONSTRAINT "file_fk_purged_by" FOREIGN KEY ("purged_by")
+  REFERENCES "user" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
 ALTER TABLE "file" ADD CONSTRAINT "file_fk_record_id" FOREIGN KEY ("record_id")
@@ -1521,6 +1565,10 @@ ALTER TABLE "intgr" ADD CONSTRAINT "intgr_fk_layout_id" FOREIGN KEY ("layout_id"
   REFERENCES "layout" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
+ALTER TABLE "intgr" ADD CONSTRAINT "intgr_fk_purged_by" FOREIGN KEY ("purged_by")
+  REFERENCES "user" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
+
+;
 ALTER TABLE "intgr" ADD CONSTRAINT "intgr_fk_record_id" FOREIGN KEY ("record_id")
   REFERENCES "record" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
@@ -1585,6 +1633,10 @@ ALTER TABLE "person" ADD CONSTRAINT "person_fk_layout_id" FOREIGN KEY ("layout_i
   REFERENCES "layout" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
+ALTER TABLE "person" ADD CONSTRAINT "person_fk_purged_by" FOREIGN KEY ("purged_by")
+  REFERENCES "user" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
+
+;
 ALTER TABLE "person" ADD CONSTRAINT "person_fk_record_id" FOREIGN KEY ("record_id")
   REFERENCES "record" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
@@ -1601,6 +1653,10 @@ ALTER TABLE "ragval" ADD CONSTRAINT "ragval_fk_layout_id" FOREIGN KEY ("layout_i
   REFERENCES "layout" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
+ALTER TABLE "ragval" ADD CONSTRAINT "ragval_fk_purged_by" FOREIGN KEY ("purged_by")
+  REFERENCES "user" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
+
+;
 ALTER TABLE "ragval" ADD CONSTRAINT "ragval_fk_record_id" FOREIGN KEY ("record_id")
   REFERENCES "record" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
@@ -1615,10 +1671,6 @@ ALTER TABLE "record" ADD CONSTRAINT "record_fk_createdby" FOREIGN KEY ("createdb
 ;
 ALTER TABLE "record" ADD CONSTRAINT "record_fk_current_id" FOREIGN KEY ("current_id")
   REFERENCES "current" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
-
-;
-ALTER TABLE "record" ADD CONSTRAINT "record_fk_purged_by" FOREIGN KEY ("purged_by")
-  REFERENCES "user" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
 ALTER TABLE "record" ADD CONSTRAINT "record_fk_record_id" FOREIGN KEY ("record_id")
@@ -1659,6 +1711,10 @@ ALTER TABLE "sort" ADD CONSTRAINT "sort_fk_view_id" FOREIGN KEY ("view_id")
 ;
 ALTER TABLE "string" ADD CONSTRAINT "string_fk_layout_id" FOREIGN KEY ("layout_id")
   REFERENCES "layout" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
+
+;
+ALTER TABLE "string" ADD CONSTRAINT "string_fk_purged_by" FOREIGN KEY ("purged_by")
+  REFERENCES "user" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
 ALTER TABLE "string" ADD CONSTRAINT "string_fk_record_id" FOREIGN KEY ("record_id")

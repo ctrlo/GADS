@@ -402,12 +402,7 @@ sub historic_purge {
         push @values, $_->strings->search({ layout_id => $layout })->all foreach @records;
     }
 
-    $_->purge foreach @values;
-
-    $_->update({ 
-        purged_on => DateTime->now,
-        purged_by => $user->id,
-    }) foreach @records;
+    $_->purge($user) foreach @values;
 }
 
 1;
