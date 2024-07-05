@@ -607,13 +607,13 @@ class DataTableComponent extends Component {
       })
     }
 
+    const self = this;
+
     conf['initComplete'] = (settings, json) => {
       const tableElement = this.el
       const dataTable = tableElement.DataTable()
 
       this.json = json || undefined
-
-      const self = this
 
       if (this.initializingTable) {
         dataTable.columns().every(function(index) {

@@ -329,7 +329,7 @@
           [%
               END;
             END;
-            IF ! column.id OR column.type == 'daterang';
+            IF ! column.id OR column.type == 'daterange';
               IF ! column.id;
           %]
           <div class="select-reveal__instance" id="field_type_daterange">
@@ -679,6 +679,17 @@
                                 rows          = 5;
                             %]
                           </div>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col">
+                          [% INCLUDE fields/hidden.tt
+                              id = 'people-display'
+                              name = 'people-display'
+                              value = '{}'
+                              data_attributes = [{ name = 'filter_base64',value = column.filter.base64 }];
+                          %]
+                          <div class="people-filter" data-filters="[% people_fields %]"></div>
                         </div>
                       </div>
                     </div>

@@ -15,7 +15,14 @@ use Log::Report;
 use Session::Token;
 use Text::CSV;
 
-use base qw(DBIx::Class::ResultSet);
+use Moo;
+use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
+
+extends 'DBIx::Class::ResultSet';
+with 'GADS::Helper::ConditionBuilder';
+
+sub BUILDARGS { $_[2] || {} }
 
 __PACKAGE__->load_components(qw(Helper::ResultSet::CorrelateRelationship));
 
@@ -36,6 +43,40 @@ sub active_and_requests
         'me.deleted'    => undef,
         %search,
     });
+}
+
+has valid_fields => (
+    is => 'lazy',
+);
+
+sub _build_valid_fields
+{   my $self = shift;
+    my $site = $self->result_source->schema->resultset('Site')->next;
+    my %fields = map { $_->{name} => 1 } $site->user_fields;
+    \%fields;
+}
+
+sub rule_to_condition
+{   my ($self, $rule) = @_;
+
+    my ($field, $operator, $value) = ($rule->{field}, $rule->{operator}, $rule->{value});
+
+    # Check valid value
+    $self->valid_fields->{$field}
+        or error __x"Invalid user field {field}", field => $field;
+
+    my $mappedOperator = $self->field_map->{$operator};
+    my $mappedValue    = $self->get_filter_value($operator, $value);
+
+    return (
+        $field => { $mappedOperator => $mappedValue },
+    );
+}
+
+sub with_filter
+{   my ($self, $filter) = @_;
+    $filter or return $self;
+    $self->search_rs($self->map_rules($filter->as_hash));
 }
 
 sub create_user

@@ -28,6 +28,11 @@ use MIME::Base64;
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
 
+has is_people_filter => (
+    is  => 'ro',
+    isa => Bool,
+);
+
 has as_json => (
     is      => 'rw',
     isa     => sub {
@@ -122,22 +127,23 @@ sub base64
     # First make sure we have the hash version
     $self->as_hash;
     # Then clear the JSON version so that we can rebuild it
-    $self->clear_as_json;
     # Next update the filters
-    foreach my $filter (@{$self->filters})
+    if (!$self->is_people_filter)
     {
-        $self->layout or panic "layout has not been set in filter";
-        my $col = $self->layout->column($filter->{column_id})
-            or next; # Ignore invalid - possibly since deleted
-        if ($col->has_filter_typeahead)
-        {
-            $filter->{data} = {
-                text => $col->filter_value_to_text($filter->{value}),
-            };
-        }
-        if ($col->type eq 'filval')
-        {
-            $filter->{filtered} = $col->related_field_id,
+        $self->clear_as_json;
+        foreach my $filter (@{$self->filters}) {
+            $self->layout or panic "layout has not been set in filter";
+            my $col = $self->layout->column($filter->{column_id})
+                or next; # Ignore invalid - possibly since deleted - this borks the people filtering!!
+            # Next update the filters
+            if ($col->has_filter_typeahead) {
+                $filter->{data} = {
+                    text => $col->filter_value_to_text($filter->{value}),
+                };
+            }
+            if ($col->type eq 'filval') {
+                $filter->{filtered} = $col->related_field_id,
+            }
         }
     }
     # Now the JSON version will be built with the inserted data values

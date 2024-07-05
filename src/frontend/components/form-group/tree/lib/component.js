@@ -47,7 +47,27 @@ class TreeComponent extends Component {
       this.$treeContainer.on('changed.jstree', (e, data) => this.handleChange(e, data))
     }
 
-    this.$treeContainer.on('select_node.jstree', (e, data) => this.handleSelect(e, data))
+    //Deselect Fix - 26.04.24 - DR
+    //Unless you have a click event, the select_node event doesn't trigger when you click on the same node - I don't know why this is, 
+    //all I know is, it gave me a headache! Either way, it appears to work now, so I'm happy!!
+    let node;
+
+    this.$treeContainer.on('click', '.jstree-clicked', () => {
+      if (!node) throw 'Not a node!';
+      this.$treeContainer.jstree(true).deselect_node(node);
+    });
+
+    this.$treeContainer.on('select_node.jstree', (e, data) => {
+      if (node && data.node.id == node.id) {
+        this.$treeContainer.jstree(true).deselect_node(data.node);
+        node = null;
+      } else {
+        node = data.node;
+        this.handleSelect(e, data)
+      }
+    })
+    //Endfix
+    
     this.$treeContainer.on('ready.jstree', () => {
         initValidationOnField(this.el)
         this.initialized = true

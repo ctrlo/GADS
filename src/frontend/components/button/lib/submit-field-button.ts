@@ -24,6 +24,8 @@ export default class SubmitFieldButton {
             const $displayConditionsBuilderEl = $('#displayConditionsBuilder');
             //Bit of typecasting here, purely because the queryBuilder plugin doesn't have types
             const res = $displayConditionsBuilderEl.length && (<any>$displayConditionsBuilderEl).queryBuilder('getRules');
+            const peopleConditionsFieldEl = $('.people-filter');
+            const $peopleConditionsFieldRes = peopleConditionsFieldEl.length && (<any>peopleConditionsFieldEl).queryBuilder('getRules');
             const $displayConditionsField = $('#displayConditions');
 
             const $instanceIDField = $('#refers_to_instance_id');
@@ -34,6 +36,7 @@ export default class SubmitFieldButton {
             let bUpdateTree = false;
             let bUpdateFilter = false;
             let bUpdateDisplayConditions = false;
+            let bUpdatePeopleFilter = false;
 
             const $showInEdit = $("#show_in_edit")
             if (($calcCode.length && $calcCode.is(':visible')) && !$showInEdit.val()) {
@@ -60,6 +63,10 @@ export default class SubmitFieldButton {
                 bUpdateDisplayConditions = true;
             }
 
+            if(peopleConditionsFieldEl.length && $peopleConditionsFieldRes) {
+                bUpdatePeopleFilter = true;
+            }
+
             if (bUpdateTree) {
                 //Bit of typecasting here, purely because the jstree plugin doesn't have types
                 const v = (<any>$jstreeEl).jstree(true).get_json('#', {flat: false});
@@ -81,6 +88,10 @@ export default class SubmitFieldButton {
             if (bUpdateFilter && window.UpdateFilter) {
                 // @ts-expect-error - This is a global function
                 window.UpdateFilter($filterEl, ev);
+            }
+
+            if(bUpdatePeopleFilter && window.UpdatePeopleFilter) {
+                window.UpdatePeopleFilter(peopleConditionsFieldEl, ev);
             }
 
             if (bUpdateDisplayConditions) {
