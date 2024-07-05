@@ -58,9 +58,9 @@
                 },{
                     type = "submit",
                     class = "btn btn-danger",
-                    label = "Purge",
-                    value = "submit",
-                    name = "submit"
+                    label = "Continue",
+                    value = "stage1",
+                    name = "stage1"
                 }]
             }] %]
     </form>

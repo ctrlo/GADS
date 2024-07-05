@@ -5,20 +5,18 @@
         <p class="text-danger">WARNING: This is a destructive action and cannot be undone once actioned.</p>
         <input type="hidden" name="csrf_token" value="[% csrf_token %]">
 
-        <ul>
-        
         [%
         first = 1;
         currents = [];
 
-        FOR id IN table_data.ids;
-            INCLUDE fields/hidden
+        FOR id IN ids;
+            INCLUDE fields/hidden.tt
                 name  = "layout",
                 value = id;
         END;
 
-        FOR k IN column.keys;
-            INCLUDE fields/hidden
+        FOR k IN table_data.keys;
+            INCLUDE fields/hidden.tt
                 name  = "current_id",
                 value = k;
         END;

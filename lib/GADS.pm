@@ -79,7 +79,6 @@ $huge = 'overflow';
 use Tie::Cache;
 use URI;
 use URI::Escape qw/uri_escape_utf8 uri_unescape/;
-use List::Util qw/uniq/;
 
 use Log::Log4perl qw(:easy); # Just for WWW::Mechanize::Chrome
 use WWW::Mechanize::Chrome;
@@ -3041,7 +3040,7 @@ prefix '/:layout_name' => sub {
             view   => $view,
         );
 
-        if (defined param('submit'))
+        if (defined param('stage1'))
         {
             $params{columns} = [ body_parameters->get_all('column_id') ];
 
@@ -3053,7 +3052,7 @@ prefix '/:layout_name' => sub {
 
             while (my $record = $records->single)
             {
-                my @mapped_columns = $record->presentation_map_columns(columns => \@columns);
+                my @mapped_columns =$record->presentation_map_columns(columns => \@columns);
 
                 foreach my $column (@mapped_columns)
                 {
@@ -3066,24 +3065,19 @@ prefix '/:layout_name' => sub {
         }
         elsif (defined param('purge'))
         {
-            my @current_ids = body_parameters->get_all('current_id')
-                or forwardHome({danger => "Please select some records before clicking an action"},$layout->identifier . '/data');
-            my @layouts = body_parameters->get_all('layout')
-                or forwardHome({danger => "Please select some records before clicking an action"}, $layout->identifier . '/data');
+            my $current_ids = [body_parameters->get_all('current_id')];
+            my $layouts     = [body_parameters->get_all('layout')];
 
-            schema->resultset('Current')->find($_)->historic_purge($user, @layouts)
-                foreach @current_ids;
-
-            return forwardHome({success => "Records have now been purged"}, $layout->identifier . '/data');
+            if ( process( sub { schema->resultset('Current')->historic_purge($user, $current_ids, $layouts) } ) )
+            {
+                return forwardHome({ success => "Records have now been purged" }, $layout->identifier . '/data');
+            }
         }
-        else
-        {
-            my $records = GADS::Records->new(%params);
 
-            my @columns = grep { !$_->internal } @{ $records->columns_render };
+        my $records = GADS::Records->new(%params);
+        my @columns = grep { !$_->internal } @{ $records->columns_render };
 
-            return template "historic_purge/initial" => { columns => \@columns, count => $records->count };
-        }
+        return template "historic_purge/initial" => { columns => \@columns, count => $records->count };
     };
 
     any ['get', 'post'] => '/purge/?' => require_login sub {
