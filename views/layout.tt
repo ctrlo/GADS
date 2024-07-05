@@ -329,7 +329,7 @@
           [%
               END;
             END;
-            IF ! column.id OR column.type == 'daterang';
+            IF ! column.id OR column.type == 'daterange';
               IF ! column.id;
           %]
           <div class="select-reveal__instance" id="field_type_daterange">
