@@ -5,58 +5,68 @@ use warnings;
 
 use feature 'say';
 
-task 'libs', sub {
+use YAML;
+
+task psql => sub {
+    pkg "postgresql", ensure => "present";
+    service postgresql => "ensure", "started";
+    service postgresql => "ensure", "enabled";
+    my $config = YAML::LoadFile('rex/config/gads-config.yml')->{config}
+      or die("No config found");
+    my $cmd =
+        run 'su -c "psql -c \"CREATE USER '
+      . $config->{db_user}
+      . ' WITH PASSWORD \''
+      . $config->{db_pass}
+      . '\'\"" postgres';
+    say $cmd;
+    $cmd =
+        run 'su -c "psql -c \"CREATE DATABASE '
+      . $config->{db_name}
+      . ' OWNER '
+      . $config->{db_user}
+      . '\"" postgres';
+    say $cmd;
+    $cmd = run
+'su -c "psql linkspace -c \"CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;\"" postgres';
+    say $cmd;
+};
+
+task libs => sub {
     update_package_db;
-    pkg "git", ensure => "present";
-    pkg $_, ensure => "present"
+    pkg $_, ensure => present
       foreach
-      qw/cpanminus liblua5.3-dev gcc g++ libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl libmagic-dev postgresql-client libpng-dev libssl-dev libpq-dev libjson-perl libsession-token-perl libnet-oauth2-authorizationserver-perl libtext-csv-encoded-perl libcrypt-urandom-perl libhtml-scrubber-perl libtext-markdown-perl libwww-form-urlencoded-xs-perl libstring-camelcase-perl libmail-transport-perl liblog-log4perl-perl libplack-perl libdbd-pg-perl libmail-message-perl libmath-random-isaac-xs-perl libdbix-class-helpers-perl libtree-dagnode-perl libmath-round-perl libdatetime-format-dateparse-perl libwww-mechanize-perl libdatetime-format-iso8601-perl libmoox-types-mooselike-perl libmoox-singleton-perl libdancer2-perl liblist-compare-perl liburl-encode-perl libtie-cache-perl libhtml-fromtext-perl libdata-compare-perl libfile-bom-perl libalgorithm-dependency-perl libdancer-plugin-auth-extensible-perl libfile-libmagic-perl postfix perl/;
+      qw/cpanminus liblua5.3-dev gcc g++ libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl libmagic-dev postgresql-client libpng-dev libssl-dev libpq-dev libjson-perl libsession-token-perl libnet-oauth2-authorizationserver-perl libtext-csv-encoded-perl libcrypt-urandom-perl libhtml-scrubber-perl libtext-markdown-perl libwww-form-urlencoded-xs-perl libstring-camelcase-perl libmail-transport-perl liblog-log4perl-perl libplack-perl libdbd-pg-perl libmail-message-perl libmath-random-isaac-xs-perl libdbix-class-helpers-perl libtree-dagnode-perl libmath-round-perl libdatetime-format-dateparse-perl libwww-mechanize-perl libdatetime-format-iso8601-perl libmoox-types-mooselike-perl libmoox-singleton-perl liblist-compare-perl liburl-encode-perl libtie-cache-perl libhtml-fromtext-perl libdata-compare-perl libfile-bom-perl libalgorithm-dependency-perl libdancer-plugin-auth-extensible-perl libfile-libmagic-perl postfix perl libconvert-asn1-perl libmodule-runtime-perl libcrypt-openssl-random-perl libdancer2-perl libinline-perl libdatetime-perl libdatetime-format-strptime-perl liblist-moreutils-perl liblog-report-perl libpdf-table-perl libtest-mocktime-perl libtext-autoformat-perl libyaml-perl libnamespace-clean-perl make nano libaws-signature4-perl libdata-validate-ip-perl libdevel-caller-perl libhash-merge-perl libio-string-perl libsort-naturally-perl libterm-readkey-perl libtext-glob-perl liburi-perl libxml-simple-perl libversion-perl libfile-sharedir-install-perl libio-pty-perl libdigest-hmac-perl libnet-sftp-foreign-perl libnet-openssh-perl libjson-maybexs-perl libcpanel-json-xs-perl/;
 };
 
-task 'cypress', sub {
-    pkg $_, ensure => "present"
-      foreach
-      qw/libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb/;
-};
-
-task 'clone', sub {
-    chdir '/srv';
-    run "git clone https://github.com/ctrlo/gads";
-};
-
-task 'cpan', sub {
-    chdir '/srv/gads';
+task cpan => sub {
     run "perl ./bin/output_cpanfile > cpanfile";
     run "cpanm --installdeps . --notest --cpanfile ./cpanfile";
 };
 
-task 'nvm', sub {
-    pkg "curl", ensure => 'present';
-    run "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash";
-    run "source ~/.bashrc";
-    run "nvm install --lts";
-    run 'npm install -g npm@latest yarn';
+task dbconfig => sub {
+    say "Loading config from config/gads-config.yml";
+    my $config = YAML::LoadFile('rex/config/gads-config.yml')->{config}
+      or die("No config found");
+    run "psql "
+      . $config->{db_name} . " -h "
+      . $config->{db_host} . " -U "
+      . $config->{db_user}
+      . " -c \"CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;\"";
+    run "./bin/seed-database.pl --initial_username="
+      . $config->{gads_user}
+      . " --instance_name="
+      . $config->{gads_instance}
+      . " --site="
+      . $config->{gads_site};
 };
 
-task 'config', sub {
-    my $db_host = $ENV{DB_HOST} || 'db';
-    file "/etc/timezone",
-      content => "Europe/London",
-      owner   => "root",
-      group   => "root",
-      mode    => 644;
-    append_or_amend_line "/srv/gads/webdriver/config.yml",
-      line   => "dbi:Pg:database=$db_host;host=localhost;port=5432",
-      regexp => qr/dbi:Pg:database=linkspace;host=localhost;port=5432/,
-      on_change => sub {
-        say "Changed db connection string";
-      };
-    append_or_amend_line "/srv/gads/bin/setup_database",
-      line => ': ${PSQL_HOSTNAME:=' . $db_host . '}',
-      regexp => qr/PSQL_HOSTNAME:=localhost/,
-      on_change => sub {
-        say "Changed db hostname";
-      };
+task config => sub {
+    say "Loading config from config/gads-config.yml";
+    my $config = YAML::LoadFile('rex/config/gads-config.yml')
+      or die("No config found");
+    file "./config.yml",
+      content => template( "files/config.yml.tpl", $config );
 };
 
-batch 'setup', 'libs', 'cypress', 'nvm', 'clone', 'cpan', 'config';
+batch setup => 'libs', 'psql', 'cpan', 'config', 'dbconfig';
