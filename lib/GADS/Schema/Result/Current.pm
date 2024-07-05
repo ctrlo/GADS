@@ -404,7 +404,10 @@ sub historic_purge {
 
     $_->purge foreach @values;
 
-    $_->mark_purged($user) foreach @records;
+    $_->update({ 
+        purged_on => DateTime->now,
+        purged_by => $user->id,
+    }) foreach @records;
 }
 
 1;

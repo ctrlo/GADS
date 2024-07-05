@@ -531,13 +531,4 @@ __PACKAGE__->might_have(
     }
 );
 
-sub mark_purged {
-  my ($self, $user) = @_;
-
-  $self->update({
-    purged_on => DateTime->now,
-    purged_by => $user->id,
-  });
-}
-
 1;
