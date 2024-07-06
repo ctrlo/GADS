@@ -2370,7 +2370,7 @@ sub rule_to_condition
 
         foreach (@original_values)
         {
-            $_ = $self->get_filter_value($filter_operator, $_, !$column->string_storage);
+            $_ = $self->get_filter_value($filter_operator, $_, $column->return_type ne 'string');
 
             # This shouldn't normally happen, but sometimes we can end up with an
             # invalid search value, such as if the date format has changed and the
