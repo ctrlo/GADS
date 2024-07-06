@@ -1351,7 +1351,7 @@ any ['get', 'post'] => '/api/users' => require_any_role [qw/useradmin superadmin
     my $start  = $params->get('start') || 0;
     my $length = $params->get('length') || 10;
 
-    my $users     = GADS::Users->new(schema => schema)->user_summary_rs;
+    my $users     = schema->resultset('User')->summary;
     my $total     = $users->count;
     my $col_order = $params->get('order[0][column]');
     my $sort_by   = defined $col_order && $params->get("columns[${col_order}][name]");

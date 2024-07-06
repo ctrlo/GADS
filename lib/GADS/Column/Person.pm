@@ -192,7 +192,7 @@ sub random
 
 sub resultset_for_values
 {   my $self = shift;
-    $self->schema->resultset('User')->active->with_filter($self->filter);
+    $self->schema->resultset('User')->summary->with_filter($self->filter);
 }
 
 sub cleanup

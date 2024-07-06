@@ -87,26 +87,9 @@ sub user_rs
     $self->schema->resultset('User')->active;
 }
 
-sub user_summary_rs
-{   my $self = shift;
-    $self->user_rs->search_rs({},{
-        columns => [
-            'me.id', 'me.surname', 'me.firstname', 'title.name', 'me.email',
-            'organisation.name', 'department.name', 'team.name', 'me.created',
-            'me.freetext1', 'me.freetext2',
-            'me.lastlogin', 'me.value',
-        ],
-        join     => [
-            'organisation', 'department', 'team', 'title',
-        ],
-        order_by => 'surname',
-        collapse => 1,
-    });
-}
-
 sub _build_all
 {   my $self = shift;
-    my $users = $self->user_summary_rs->with_filter($self->filter);
+    my $users = $self->user_rs->summary->with_filter($self->filter);
     [$users->all];
 }
 
