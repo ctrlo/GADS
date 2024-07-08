@@ -1,4 +1,6 @@
- #!/bin/bash
+#!/bin/bash
+
+#THIS SCRIPT IS NOT SUITABLE FOR PRODUCTION OR REMOTE DEPLOYMENT - IT IS INTENDED FOR EASE OF DEVELOPMENT AND TESTING ONLY.
 
 apt-get update
 apt-get install -y cpanminus gcc g++ make nano libaws-signature4-perl libdata-validate-ip-perl libdevel-caller-perl libhash-merge-perl 
