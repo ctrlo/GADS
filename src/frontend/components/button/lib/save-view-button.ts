@@ -12,10 +12,10 @@ export default function createSaveViewButtonComponent(el: JQuery<HTMLElement>) {
         const $input = $form.find('input[type=hidden][name=group_id]');
         if ((ev.target as HTMLInputElement)?.checked) {
             $input.attr('required', 'required');
-            if ($dropdown.attr("placeholder").match(/All [Uu]sers/)) $dropdown.addClass('select--required');
+            if ($dropdown && $dropdown.attr && $dropdown.attr("placeholder") && $dropdown.attr("placeholder").match(/All [Uu]sers/)) $dropdown.addClass('select--required');
         } else {
             $input.removeAttr('required');
-            if ($dropdown.attr("placeholder").match(/All [Uu]sers/)) $dropdown.removeClass('select--required');
+            if ($dropdown && $dropdown.attr && $dropdown.attr("placeholder") && $dropdown.attr("placeholder").match(/All [Uu]sers/)) $dropdown.removeClass('select--required');
         }
     });
     el.on('click', (ev) => {
