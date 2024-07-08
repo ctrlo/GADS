@@ -6,6 +6,19 @@ use warnings;
 use feature 'say';
 
 use YAML;
+use Rex::Commands::SCM;
+
+my $remote = 0;
+
+if($remote) {
+  set repository => "gads",
+    url => "https://github.com/ctrlo/GADS";
+
+  task clone => sub {
+      checkout "gads",
+        path=>"/srv/GADS";
+  };
+}
 
 task psql => sub {
     pkg "postgresql", ensure => "present";
@@ -40,11 +53,17 @@ task libs => sub {
 };
 
 task cpan => sub {
-    run "perl ./bin/output_cpanfile > cpanfile";
-    run "cpanm --installdeps . --notest --cpanfile ./cpanfile";
+  foreach(qw/Algorithm::Dependency::Ordered CGI::Deurl::XS Crypt::URandom CtrlO::Crypt::XkcdPassword CtrlO::PDF DBD::Pg DBIx::Class::Helper::ResultSet::DateMethods1 DBIx::Class::Migration DBIx::Class::ResultClass::HashRefInflator Dancer2 Dancer2::Plugin::Auth::Extensible Dancer2::Plugin::Auth::Extensible::Provider::DBIC Dancer2::Plugin::DBIC Dancer2::Plugin::LogReport Data::Compare Date::Holidays::GB DateTime DateTime::Event::Random DateTime::Format::CLDR DateTime::Format::DateManip DateTime::Format::ISO8601 DateTime::Format::SQLite DateTime::Format::Strptime DateTime::Span File::BOM File::LibMagic HTML::FromText HTML::Scrubber Inline::Lua List::Compare List::MoreUtils List::Util Log::Log4perl Log::Report Mail::Message Mail::Transport::Sendmail Math::Random::ISAAC::XS Math::Round MooX::Singleton MooX::Types::MooseLike::DateTime Net::OAuth2::AuthorizationServer::PasswordGrant Net::SAML2 PDF::Table Plack Session::Token Starman String::CamelCase Test::MockTime Test::More Text::Autoformat Text::CSV::Encoded Text::Markdown Tie::Cache Tree::DAG_Node URL::Encode WWW::Form::UrlEncoded::XS WWW::Mechanize::Chrome YAML namespace::clean/) {
+    my $install = run "cpanm --notest --sudo $_";
+    say $install;
+  }
 };
 
 task dbconfig => sub {
+    my $prefix=".";
+    if ($remote) {
+        $prefix = "/srv/GADS";
+    }
     say "Loading config from config/gads-config.yml";
     my $config = YAML::LoadFile('rex/config/gads-config.yml')->{config}
       or die("No config found");
@@ -53,20 +72,24 @@ task dbconfig => sub {
       . $config->{db_host} . " -U "
       . $config->{db_user}
       . " -c \"CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;\"";
-    run "./bin/seed-database.pl --initial_username="
+    my $result = run "$prefix/bin/seed-database.pl --initial_username="
       . $config->{gads_user}
       . " --instance_name="
       . $config->{gads_instance}
       . " --site="
       . $config->{gads_site};
+    say $result;
 };
 
 task config => sub {
+    my $prefix = ".";
+    if ($remote) {
+        $prefix = "/srv/GADS";
+    }
     say "Loading config from config/gads-config.yml";
     my $config = YAML::LoadFile('rex/config/gads-config.yml')
       or die("No config found");
-    file "./config.yml",
-      content => template( "files/config.yml.tpl", $config );
+    file "$prefix/config.yml", content => template( "files/config.yml.tpl", $config );
 };
 
 batch setup => 'libs', 'psql', 'cpan', 'config', 'dbconfig';
