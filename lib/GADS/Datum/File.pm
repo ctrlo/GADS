@@ -153,9 +153,26 @@ sub _build_files
     elsif ($self->has_ids) {
         @return = $self->_ids_to_files(@{$self->ids});
     }
+    
+    return [+{
+        id => -1,
+        name => 'Purged',
+        mimetype => 'text/plain',
+    }] if $self->_is_purged;
 
     return \@return;
 }
+
+has _is_purged => (
+    is=>'lazy',
+    builder => sub {
+        my $self = shift;
+        my $id = $self->record_id;
+        my $datum = $self->schema->resultset('File')->find($id) if $id;
+        return $datum->purged_on ? 1 : 0 if $datum;
+        0;
+    }
+);
 
 sub _ids_to_files
 {   my ($self, @ids) = @_;

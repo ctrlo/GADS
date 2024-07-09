@@ -30,6 +30,19 @@ ALTER TABLE curval ADD CONSTRAINT curval_fk_purged_by FOREIGN KEY (purged_by)
   REFERENCES "user" (id) ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
+ALTER TABLE date ADD COLUMN purged_by bigint;
+
+;
+ALTER TABLE date ADD COLUMN purged_on timestamp;
+
+;
+CREATE INDEX date_idx_purged_by on date (purged_by);
+
+;
+ALTER TABLE date ADD CONSTRAINT date_fk_purged_by FOREIGN KEY (purged_by)
+  REFERENCES "user" (id) ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
+
+;
 ALTER TABLE daterange ADD COLUMN purged_by bigint;
 
 ;

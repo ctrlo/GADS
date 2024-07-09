@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Fri Jul  5 16:50:35 2024
+-- Created on Mon Jul  8 16:04:44 2024
 --
 ;
 SET foreign_key_checks=0;
@@ -254,11 +254,15 @@ CREATE TABLE `date` (
   `layout_id` integer NOT NULL,
   `child_unique` smallint NOT NULL DEFAULT 0,
   `value` date NULL,
+  `purged_by` bigint NULL,
+  `purged_on` timestamp NULL,
   INDEX `date_idx_layout_id` (`layout_id`),
+  INDEX `date_idx_purged_by` (`purged_by`),
   INDEX `date_idx_record_id` (`record_id`),
   INDEX `date_idx_value` (`value`),
   PRIMARY KEY (`id`),
   CONSTRAINT `date_fk_layout_id` FOREIGN KEY (`layout_id`) REFERENCES `layout` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  CONSTRAINT `date_fk_purged_by` FOREIGN KEY (`purged_by`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   CONSTRAINT `date_fk_record_id` FOREIGN KEY (`record_id`) REFERENCES `record` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB;
 --

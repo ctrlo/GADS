@@ -219,23 +219,23 @@ sub export_hash
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:266q8eJmPiCjcNhwddaUkw
 
-sub _build_valuefield { undef; }
-
-# I've done this to override the role - I don't know how else to best implement this!
-sub purge {
+before purge => sub {
     my $self = shift;
 
-    my $source = $self->recordsource or error __"No recordsource defined";
-    my $schema = $self->result_source->schema;
+    print STDERR "Before purge...\n";
 
-    $schema->txn_do(sub {
-      $self->update({
-          name=>'purged',
-          mimetype=>'text/plain',
-          content=>encode('utf-8', 'purged'),
-      });
+    my $field = $self->value_fields->[0];
+
+    print STDERR "Get field: $field\n";
+
+    my $val = $self->$field;
+
+    print STDERR "Get value: $val\n";
+    $self->result_source->schema->txn_do(sub {
+      $self->update({$field=>undef}) if $self->$field;
+      $val->delete if $val;
     });
-}
+};
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
 1;

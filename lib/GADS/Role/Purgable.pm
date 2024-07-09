@@ -3,27 +3,28 @@ package GADS::Role::Purgable;
 use strict;
 use warnings;
 
+use MooX::Types::MooseLike::Base qw(ArrayRef);
+
 use Moo::Role;
 
-has valuefield => (
+has value_fields => (
     is      => 'lazy',
-    builder => sub { ('value'); }
+    isa     => ArrayRef,
+    builder => sub { ['value']; }
 );
 
 sub purge {
     my ($self,$user) = @_;
     
-    my @field = $self->valuefield or error __"No valuefield defined";
+    my @field = @{$self->value_fields} or panic __"No valuefield defined";
     my $schema = $self->result_source->schema;
 
     my $purge_needed = grep { $self->$_ } @field;
-    if($purge_needed) {
-        $schema->txn_do(sub {
-            my %fields = { purged_by => $user, purged_on => DateTime->now() };
-            $fields{$_} = undef foreach @field;
-            $self->update(\%fields);
-        });
-    }
+    $purge_needed = 1 if ref($self) eq "Gads::Schema::Result::File";
+    $schema->txn_do(sub {
+        $self->update({ purged_by => $user, purged_on => DateTime->now() });
+        $self->update({$_ => undef}) foreach @field;
+    }) if $purge_needed;
 }
 
 1;

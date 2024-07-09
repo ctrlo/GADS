@@ -1853,6 +1853,19 @@ schema:
         - deferrable: 1
           expression: ''
           fields:
+            - purged_by
+          match_type: ''
+          name: date_fk_purged_by
+          on_delete: NO ACTION
+          on_update: NO ACTION
+          options: []
+          reference_fields:
+            - id
+          reference_table: user
+          type: FOREIGN KEY
+        - deferrable: 1
+          expression: ''
+          fields:
             - record_id
           match_type: ''
           name: date_fk_record_id
@@ -1895,6 +1908,26 @@ schema:
           order: 3
           size:
             - 0
+        purged_by:
+          data_type: bigint
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_by
+          order: 6
+          size:
+            - 0
+        purged_on:
+          data_type: timestamp
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: purged_on
+          order: 7
+          size:
+            - 0
         record_id:
           data_type: bigint
           default_value: ~
@@ -1919,6 +1952,11 @@ schema:
         - fields:
             - layout_id
           name: date_idx_layout_id
+          options: []
+          type: NORMAL
+        - fields:
+            - purged_by
+          name: date_idx_purged_by
           options: []
           type: NORMAL
         - fields:

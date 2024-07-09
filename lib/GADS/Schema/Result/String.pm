@@ -178,6 +178,4 @@ sub export_hash
     };
 }
 
-sub _build_recordsource { 'String'; }
-
 1;

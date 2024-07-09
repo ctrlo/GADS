@@ -28,6 +28,18 @@ ALTER TABLE curval DROP COLUMN purged_by;
 ALTER TABLE curval DROP COLUMN purged_on;
 
 ;
+ALTER TABLE date DROP CONSTRAINT date_fk_purged_by;
+
+;
+DROP INDEX date_idx_purged_by;
+
+;
+ALTER TABLE date DROP COLUMN purged_by;
+
+;
+ALTER TABLE date DROP COLUMN purged_on;
+
+;
 ALTER TABLE daterange DROP CONSTRAINT daterange_fk_purged_by;
 
 ;

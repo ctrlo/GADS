@@ -40,15 +40,17 @@
                 label  = k,
                 filter = "html"
             });
-            FOREACH v IN table_data.$k.keys;
-                IF first;
-                    table_columns.push({name = v});
+            FOREACH c IN table_data.$k.keys;
+                FOREACH v IN table_data.$k.$c.keys;
+                    IF first;
+                        table_columns.push({name = v});
+                    END;
+                    row.push({
+                        type   = "string",
+                        label  = table_data.$k.$c.$v,
+                        filter = "html",
+                    });
                 END;
-                row.push({
-                    type   = "string",
-                    label  = table_data.$k.$v,
-                    filter = "html",
-                });
             END;
             rows.push({fields = row});
             first=0;

@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Fri Jul  5 16:50:38 2024
+-- Created on Mon Jul  8 16:04:44 2024
 --
 ;
 --
@@ -245,9 +245,12 @@ CREATE TABLE "date" (
   "layout_id" integer NOT NULL,
   "child_unique" smallint DEFAULT 0 NOT NULL,
   "value" date,
+  "purged_by" bigint,
+  "purged_on" timestamp,
   PRIMARY KEY ("id")
 );
 CREATE INDEX "date_idx_layout_id" on "date" ("layout_id");
+CREATE INDEX "date_idx_purged_by" on "date" ("purged_by");
 CREATE INDEX "date_idx_record_id" on "date" ("record_id");
 CREATE INDEX "date_idx_value" on "date" ("value");
 
@@ -1371,6 +1374,10 @@ ALTER TABLE "dashboard" ADD CONSTRAINT "dashboard_fk_user_id" FOREIGN KEY ("user
 ;
 ALTER TABLE "date" ADD CONSTRAINT "date_fk_layout_id" FOREIGN KEY ("layout_id")
   REFERENCES "layout" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
+
+;
+ALTER TABLE "date" ADD CONSTRAINT "date_fk_purged_by" FOREIGN KEY ("purged_by")
+  REFERENCES "user" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION DEFERRABLE;
 
 ;
 ALTER TABLE "date" ADD CONSTRAINT "date_fk_record_id" FOREIGN KEY ("record_id")

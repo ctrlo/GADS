@@ -83,6 +83,8 @@ use URI::Escape qw/uri_escape_utf8 uri_unescape/;
 use Log::Log4perl qw(:easy); # Just for WWW::Mechanize::Chrome
 use WWW::Mechanize::Chrome;
 
+use Encode qw/encode/;
+
 use Dancer2; # Last to stop Moo generating conflicting namespace
 use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::Auth::Extensible;
@@ -1699,6 +1701,8 @@ any ['get', 'post'] => '/file/:id?' => require_login sub {
     # ID will either be in the route URL or as a delete parameter
     my $id = route_parameters->get('id') || body_parameters->get('delete')
         or error "File ID missing";
+    
+    return send_file( \encode("UTF-8","Purged File"), content_type => "text/plain", filename => "purged" ) if $id eq "-1";
 
     # Need to get file details first, to be able to populate
     # column details of applicable.
@@ -3057,7 +3061,7 @@ prefix '/:layout_name' => sub {
                 foreach my $column (@mapped_columns)
                 {
                     push @$ids, $column->{id};
-                    $table_data->{ $record->current_id }->{ $column->{name} } = $column->{data}->{value} || "No value";
+                    $table_data->{ $record->current_id }->{ $column->{id} }->{ $column->{name} } = $column->{data}->{value} || "No value";
                 }
             }
 

@@ -16,6 +16,12 @@ ALTER TABLE curval DROP FOREIGN KEY curval_fk_purged_by,
                    DROP COLUMN purged_on;
 
 ;
+ALTER TABLE date DROP FOREIGN KEY date_fk_purged_by,
+                 DROP INDEX date_idx_purged_by,
+                 DROP COLUMN purged_by,
+                 DROP COLUMN purged_on;
+
+;
 ALTER TABLE daterange DROP FOREIGN KEY daterange_fk_purged_by,
                       DROP INDEX daterange_idx_purged_by,
                       DROP COLUMN purged_by,
