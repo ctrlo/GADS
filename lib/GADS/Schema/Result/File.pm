@@ -219,7 +219,8 @@ sub export_hash
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:266q8eJmPiCjcNhwddaUkw
 
-before purge => sub {
+around purge => sub {
+    my $orig = shift;
     my $self = shift;
 
     print STDERR "Before purge...\n";
@@ -231,10 +232,12 @@ before purge => sub {
     my $val = $self->$field;
 
     print STDERR "Get value: $val\n";
-    $self->result_source->schema->txn_do(sub {
-      $self->update({$field=>undef}) if $self->$field;
-      $val->delete if $val;
-    });
+    $self->result_source->schema->txn_do(
+        sub {
+            $orig->( $self, @_ );
+            $val->delete if $val;
+        }
+    );
 };
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration
