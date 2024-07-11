@@ -311,11 +311,30 @@ sub _build_security_marking {
 
 sub _build_reports
 {   my $self = shift;
-    my $reports_rs = $self->schema->resultset('Report')->search({
-        instance_id => $self->instance_id,
-        deleted => undef
-    });
-    return [$reports_rs->all];
+    
+    my $user = $self->user;
+    my @groups = $user->groups;
+    my @group_ids = map { $_->id } @groups;
+
+    my $reports_rs;
+    
+    if ($user->permission->{superadmin} || $self->layout->user_can('layout')) {
+        $reports_rs = $self->schema->resultset('Report')->search({
+            instance_id => $self->instance_id,
+            deleted => undef
+        });
+    } else {
+        $reports_rs = $self->schema->resultset('Report')->search({
+            instance_id => $self->instance_id,
+            deleted => undef,
+        },{prefetch => 'report_groups'})->search({
+            'report_groups.group_id' => { -in => \@group_ids },
+        });
+    }
+
+    my $result = [$reports_rs->all];
+
+    return $result;
 }
 
 sub _build__user_permissions_columns
