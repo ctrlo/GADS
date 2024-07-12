@@ -222,22 +222,15 @@ sub export_hash
 around purge => sub {
     my $orig = shift;
     my $self = shift;
-
-    print STDERR "Before purge...\n";
+    my $user = shift;
 
     my $field = $self->value_fields->[0];
 
-    print STDERR "Get field: $field\n";
-
     my $val = $self->$field;
 
-    print STDERR "Get value: $val\n";
-    $self->result_source->schema->txn_do(
-        sub {
-            $orig->( $self, @_ );
-            $val->delete if $val;
-        }
-    );
+    $orig->($self, @_);
+
+    $self->delete_related($field) if $val;
 };
 
 # You can replace this text with custom code or comments, and it will be preserved on regeneration

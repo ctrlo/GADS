@@ -16,6 +16,7 @@ use warnings;
 use Moo;
 
 extends 'DBIx::Class::Core';
+with 'GADS::Role::Purgable';
 sub BUILDARGS { $_[2] || {} }
 
 =head1 COMPONENTS LOADED

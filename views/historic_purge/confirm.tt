@@ -6,26 +6,23 @@
         <input type="hidden" name="csrf_token" value="[% csrf_token %]">
 
         [%
-        first = 1;
-        currents = [];
-
-        FOR id IN ids;
+        FOR id IN columns.keys;
             INCLUDE fields/hidden.tt
                 name  = "layout",
                 value = id;
         END;
 
-        FOR k IN table_data.keys;
+        FOR k IN table_data;
             INCLUDE fields/hidden.tt
                 name  = "current_id",
-                value = k;
+                value = k.current_id;
         END;
 
         # prepare table config
         table_class            = 'table table-striped table-purge';
         table_dom              = 't';
         table_language         = {
-            emptyTable => "There are records in this view.",
+            emptyTable => "There are no records in this view.",
         };
         table_show_all_records = 1;
         table_unresponsive     = 0;
@@ -33,27 +30,25 @@
         rows                   = [];
         table_columns          = [{name = 'current id'}];
 
-        FOREACH k IN table_data.keys;
-            row = [];
+        FOREACH col IN columns.values;
+            table_columns.push({name = col});
+        END;
+
+        FOREACH data IN table_data;
+            row=[];
             row.push({
                 type   = "string",
-                label  = k,
+                label  = data.current_id,
                 filter = "html"
             });
-            FOREACH c IN table_data.$k.keys;
-                FOREACH v IN table_data.$k.$c.keys;
-                    IF first;
-                        table_columns.push({name = v});
-                    END;
-                    row.push({
-                        type   = "string",
-                        label  = table_data.$k.$c.$v,
-                        filter = "html",
-                    });
-                END;
+            FOREACH item IN data.values;
+                row.push({
+                    type  = "string",
+                    label  = item.value,
+                    filter = "html"
+                }); 
             END;
-            rows.push({fields = row});
-            first=0;
+            rows.push({fields=row});
         END;
 
         INCLUDE tables/basic_table.tt;

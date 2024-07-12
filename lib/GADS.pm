@@ -83,8 +83,6 @@ use URI::Escape qw/uri_escape_utf8 uri_unescape/;
 use Log::Log4perl qw(:easy); # Just for WWW::Mechanize::Chrome
 use WWW::Mechanize::Chrome;
 
-use Encode qw/encode/;
-
 use Dancer2; # Last to stop Moo generating conflicting namespace
 use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::Auth::Extensible;
@@ -1702,7 +1700,7 @@ any ['get', 'post'] => '/file/:id?' => require_login sub {
     my $id = route_parameters->get('id') || body_parameters->get('delete')
         or error "File ID missing";
     
-    return send_file( \encode("UTF-8","Purged File"), content_type => "text/plain", filename => "purged" ) if $id eq "-1";
+    return send_file( "Purged File", content_type => "text/plain", filename => "purged" ) if $id == -1;
 
     # Need to get file details first, to be able to populate
     # column details of applicable.
@@ -3051,21 +3049,28 @@ prefix '/:layout_name' => sub {
             my $records = GADS::Records->new(%params);
             my @columns = grep { !$_->internal } @{ $records->columns_render };
 
-            my $table_data;
-            my $ids = [];
+            my $table_data = [];
+            my $columns = {};
 
             while (my $record = $records->single)
             {
                 my @mapped_columns =$record->presentation_map_columns(columns => \@columns);
+                
+                my $values = {};
 
                 foreach my $column (@mapped_columns)
                 {
-                    push @$ids, $column->{id};
-                    $table_data->{ $record->current_id }->{ $column->{id} }->{ $column->{name} } = $column->{data}->{value} || "No value";
+                    $columns->{$column->{id}} = $column->{name};
+                    $values->{$column->{id}} = $column->{data}->{value} || "No value";
                 }
+
+                push @$table_data, {
+                    current_id => $record->current_id,
+                    values  => $values
+                };
             }
 
-            return template "historic_purge/confirm" => { table_data => $table_data, ids => $ids };
+            return template "historic_purge/confirm" => { table_data => $table_data, columns => $columns };
         }
         elsif (defined param('purge'))
         {

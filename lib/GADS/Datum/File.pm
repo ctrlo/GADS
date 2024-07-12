@@ -158,21 +158,24 @@ sub _build_files
         id => -1,
         name => 'Purged',
         mimetype => 'text/plain',
-    }] if $self->_is_purged;
+    }] if $self->is_purged;
 
     return \@return;
 }
 
-has _is_purged => (
-    is=>'lazy',
-    builder => sub {
-        my $self = shift;
-        my $id = $self->record_id;
-        my $datum = $self->schema->resultset('File')->find($id) if $id;
-        return $datum->purged_on ? 1 : 0 if $datum;
-        0;
-    }
-);
+sub _datums
+{   my $self = shift;
+    [$self->schema->resultset('File')->search({
+        record_id => $self->record_id,
+        layout_id => $self->column->id,
+    })->all];
+}
+
+sub is_purged {
+    my $self = shift;
+    my @datums = @{$self->_datums};
+    return grep { $_->purged_on } @datums;
+}
 
 sub _ids_to_files
 {   my ($self, @ids) = @_;

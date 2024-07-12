@@ -13,18 +13,25 @@ has value_fields => (
     builder => sub { ['value']; }
 );
 
+sub is_purged {
+    my $self = shift;
+    return $self->purged_on && $self->purged_by ? 1 : 0;
+}
+
 sub purge {
     my ($self,$user) = @_;
-    
-    my @field = @{$self->value_fields} or panic __"No valuefield defined";
+
+    my @fields = @{$self->value_fields} or panic __"No valuefield defined";
     my $schema = $self->result_source->schema;
 
-    my $purge_needed = grep { $self->$_ } @field;
-    $purge_needed = 1 if ref($self) eq "Gads::Schema::Result::File";
-    $schema->txn_do(sub {
+    my $guard = $schema->txn_scope_guard;
+
+    if(!$self->is_purged) {
         $self->update({ purged_by => $user, purged_on => DateTime->now() });
-        $self->update({$_ => undef}) foreach @field;
-    }) if $purge_needed;
+        $self->update({$_ => undef}) foreach @fields;
+    }
+
+    $guard->commit;
 }
 
 1;
