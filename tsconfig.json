@@ -35,5 +35,6 @@
     "node_modules",
     "dist",
     "src/**/*.test.ts",
+    "src/**/*.definitions.ts"
   ]
 }

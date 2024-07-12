@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunklinkspace=self.webpackChunklinkspace||[]).push([[915],{7131:(n,e,c)=>{c.r(e),c.d(e,{default:()=>u});var f=c(19755);function u(n){n.on("click",(function(){f(window).off("beforeunload")}))}}}]);

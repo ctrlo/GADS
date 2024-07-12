@@ -914,6 +914,7 @@ sub clear
     $self->clear_permissions;
     $self->_clear_mycols;
     $self->clear_cached_records;
+    $self->clear_cached_records_autocur;
     $self->clear_all_short_names;
 }
 
@@ -1133,6 +1134,15 @@ sub all_user_read
 # columns in this layout. As the layout is (currently) rebuilt each request, we
 # can afford to do this
 has cached_records => (
+    is      => 'lazy',
+    builder => sub { +{} },
+    clearer => 1,
+);
+
+# The same for autocur fields. In theory this could be the same cache as above,
+# but this results in test failures as the ordering in calc fields is then
+# different. Possible further investigation needed.
+has cached_records_autocur => (
     is      => 'lazy',
     builder => sub { +{} },
     clearer => 1,

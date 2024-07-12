@@ -276,6 +276,7 @@ const validateCheckboxGroup = (field) => {
 const validateTree = (field) => {
   const $inputEl = field.find('input[type="hidden"]')
   const $fieldSet = field.closest('.fieldset--required')
+  if(!$fieldSet || !$fieldSet.length) return;
   const strFieldName = $fieldSet.find('.fieldset__legend legend').text() || ''
   const strID = field.attr('id') || ''
 

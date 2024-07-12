@@ -3,6 +3,7 @@ import { Component } from 'component'
 import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
 import 'bootstrap-select/dist/js/bootstrap-select'
 import { logging } from 'logging'
+import TypeaheadBuilder from 'util/typeahead'
 import { refreshSelects } from 'components/form-group/common/bootstrap-select'
 
 class FilterComponent extends Component {
@@ -88,7 +89,7 @@ class FilterComponent extends Component {
   }
 
   initFilter() {
-    const self = this;
+    const self = this
     const $builderEl = this.el
     const builderID = $(this.el).data('builder-id')
     const $builderJSON = $(`#builder_json_${builderID}`)
@@ -163,23 +164,20 @@ class FilterComponent extends Component {
       // This is required to ensure that the correct query is sent each time
       const buildQuery = () => {return {q:$ruleInputText.val(), oi:filterConfig.instanceId}}
 
-      import(/* webpackChunkName: "typeahead" */ 'util/typeahead')
-        .then(({ default: TypeaheadBuilder }) => {
-          const builder = new TypeaheadBuilder();
-          builder
-            .withInput($ruleInputText)
-            .withAjaxSource(self.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
-            .withDataBuilder(buildQuery)
-            .withDefaultMapper()
-            .withName('rule')
-            .withAppendQuery()
-            .withCallback(filterCallback)
-            .build()
-        });
+      const builder = new TypeaheadBuilder();
+      builder
+        .withInput($ruleInputText)
+        .withAjaxSource(self.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
+        .withDataBuilder(buildQuery)
+        .withDefaultMapper()
+        .withName('rule')
+        .withAppendQuery()
+        .withCallback(filterCallback)
+        .build()
     })
 
     if(filterBase) {
-      const data = atob(filterBase)
+      const data = atob(filterBase, 'base64')
       try {
         const obj = JSON.parse(data);
         if (obj.rules && obj.rules.length) {
