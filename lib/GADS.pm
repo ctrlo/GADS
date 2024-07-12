@@ -1380,6 +1380,10 @@ any ['get', 'post'] => '/settings/audit/?' => require_role audit => sub {
             to     => param('to'),
         }
     }
+    elsif (defined(param('clear')))
+    {
+        session 'audit_filtering' => undef;
+    }
 
     $audit->filtering(session 'audit_filtering')
         if session 'audit_filtering';
@@ -3740,6 +3744,10 @@ prefix '/:layout_name' => sub {
                     my @curval_field_ids = body_parameters->get_all('curval_field_ids');
                     $column->curval_field_ids([@curval_field_ids]);
                 }
+                elsif ($column->type eq "person")
+                {
+                    $column->filter->as_json(param 'people-display');
+                }
                 elsif ($column->type eq "autocur")
                 {
                     my @curval_field_ids = body_parameters->get_all('autocur_field_ids');
@@ -3794,7 +3802,17 @@ prefix '/:layout_name' => sub {
             $header_type = 'table_tabs';
         }
 
+        my $site = var 'site';
 
+        # Populate filters for people fields
+        my @user_fields = map {
+            +{
+                id    => $_->{name},
+                label => $_->{description},
+                type  => 'string',
+            },
+        } $site->user_fields;
+        $params->{people_fields}                = encode_base64(encode_json(\@user_fields));
         $params->{groups}                       = GADS::Groups->new(schema => schema);
         $params->{permissions}                  = [GADS::Type::Permissions->all];
         $params->{permission_mapping}           = GADS::Type::Permissions->permission_mapping;
@@ -4713,7 +4731,7 @@ sub _process_edit
                     }
                 }
                 else {
-                    $failed = !process( sub { $datum->set_value($newv) } ) || $failed;
+                    $failed = !process( sub { $datum->set_value($newv, draft => defined(param 'draft')) } ) || $failed;
                 }
             }
         }
@@ -4854,5 +4872,17 @@ sub _process_edit
     return ($params, $options);
 
 }
+
+Sub::Install::install_sub({
+    code => sub {
+        my $self= shift;
+        my $clone = $self->clone;
+        $clone->time_zone->is_floating && $clone->set_time_zone('UTC');
+        $clone->set_time_zone('Europe/London');
+        $clone->strftime('%e %b %Y %H:%M:%S');
+    },
+    into => 'DateTime',
+    as => 'gads_time',
+});
 
 true;

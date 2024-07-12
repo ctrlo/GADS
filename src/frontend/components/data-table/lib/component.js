@@ -1,28 +1,29 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 
-import { Component, initializeRegisteredComponents } from "component";
-import "datatables.net";
-import "datatables.net-buttons";
-import "datatables.net-bs4";
-import "datatables.net-responsive";
-import "datatables.net-responsive-bs4";
-import "datatables.net-rowreorder-bs4";
-import { setupDisclosureWidgets, onDisclosureClick } from "components/more-less/lib/disclosure-widgets";
-import { moreLess } from "components/more-less/lib/more-less";
-import { transferRowToTable } from "./helper";
+import { Component, initializeRegisteredComponents } from 'component'
+import 'datatables.net'
+import 'datatables.net-buttons'
+import 'datatables.net-bs4'
+import 'datatables.net-responsive'
+import 'datatables.net-responsive-bs4'
+import 'datatables.net-rowreorder-bs4'
+import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets'
+import { moreLess } from 'components/more-less/lib/more-less'
+import { bindToggleTableClickHandlers } from './toggle-table'
 
-const MORE_LESS_TRESHOLD = 50;
+const MORE_LESS_TRESHOLD = 50
 
 class DataTableComponent extends Component {
   constructor(element)  {
-    super(element);
-    this.el = $(this.element);
-    this.hasCheckboxes = this.el.hasClass("table-selectable");
-    this.hasClearState = this.el.hasClass("table-clear-state");
-    this.forceButtons = this.el.hasClass("table-force-buttons");
-    this.searchParams = new URLSearchParams(window.location.search);
-    this.base_url = this.el.data("href") ? this.el.data("href") : undefined;
-    this.initTable();
+    super(element)
+    this.el = $(this.element)
+    this.hasCheckboxes = this.el.hasClass('table-selectable')
+    this.hasClearState = this.el.hasClass('table-clear-state')
+    this.forceButtons = this.el.hasClass('table-force-buttons')
+    this.searchParams = new URLSearchParams(window.location.search)
+    this.base_url = this.el.data('href') ? this.el.data('href') : undefined
+    this.isFullScreen = false
+    this.initTable()
   }
 
   initTable() {
@@ -37,11 +38,11 @@ class DataTableComponent extends Component {
       return;
     }
 
-    const conf = this.getConf();
-    const {columns} = conf;
-    this.columns = columns;
-    this.el.DataTable(conf);
-    this.initializingTable = true;
+    const conf = this.getConf()
+    const {columns} = conf
+    this.columns = columns
+    this.el.DataTable(conf)
+    this.initializingTable = true
 
     if (this.hasCheckboxes) {
       this.addSelectAllCheckbox();
@@ -55,7 +56,7 @@ class DataTableComponent extends Component {
       });
     }
 
-    this.bindTransferTableClickHandlers();
+    bindToggleTableClickHandlers(this.el)
 
     // Bind events to disclosure buttons and record-popup links on opening of child row
     $(this.el).on("childRow.dt", (e, show, row) => {
@@ -97,12 +98,12 @@ class DataTableComponent extends Component {
   initClickableTable() {
     const links = this.el.find("tbody td .link");
     // Remove all existing click events to prevent multiple bindings
-    links.off("click");
-    links.off("focus");
-    links.off("blur");
-    links.on("click", (ev) => { this.handleClick(ev); });
-    links.on("focus", (ev) => { this.toggleFocus(ev, true); });
-    links.on("blur", (ev) => { this.toggleFocus(ev, false); });
+    links.off('click')
+    links.off('focus')
+    links.off('blur')
+    links.on('click', (ev) => { this.handleClick(ev) })
+    links.on('focus', (ev) => { this.toggleFocus(ev, true) })
+    links.on('blur', (ev) => { this.toggleFocus(ev, false) })
   }
 
   toggleFocus(ev, hasFocus) {
@@ -285,10 +286,10 @@ class DataTableComponent extends Component {
      * to store the ID. If we already have a stored search value for the
      * column, then if it's an ID we will need to look up the textual value for
      * insertion into the visible input */
-    const $searchInput = $(`<input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>`);
-    $searchInput.appendTo($(".input", $searchElement));
-    if (col.typeahead_use_id) {
-      $searchInput.after("<input type=\"hidden\" class=\"search\">");
+    const $searchInput = $(`<input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>`)
+    $searchInput.appendTo($('.input', $searchElement))
+    if (col.typeahead_use_id && searchValue) {
+      $searchInput.after(`<input type="hidden" class="search">`)
       $.ajax({
         type: "GET",
         url: this.getApiEndpoint(columnId) + searchValue + "&use_id=1",
@@ -584,16 +585,20 @@ class DataTableComponent extends Component {
     return this.renderDataType(data);
   }
 
-  // DO NOT REMOVE THE SELF REFERENCE IN THE FUNCTION
-  getConf() {
-    const confData = this.el.data("config");
-    let conf = {};
-    const self = this;
+  getConf(overrides = undefined) {
+    const confData = this.el.data('config')
+    let conf = {}
 
     if (typeof confData === "string") {
       conf = JSON.parse(atob(confData));
     } else if (typeof confData === "object") {
       conf = confData;
+    }
+
+    if(overrides) {
+      for(const key in overrides) {
+        conf[key] = overrides[key]
+      }
     }
 
     if (conf.serverSide) {
@@ -602,9 +607,11 @@ class DataTableComponent extends Component {
       });
     }
 
-    conf["initComplete"] = (settings, json) => {
-      const tableElement = this.el;
-      const dataTable = tableElement.DataTable();
+    const self = this;
+
+    conf['initComplete'] = (settings, json) => {
+      const tableElement = this.el
+      const dataTable = tableElement.DataTable()
 
       this.json = json || undefined;
 
@@ -674,7 +681,7 @@ class DataTableComponent extends Component {
       this.el.DataTable().button(0).enable();
 
       this.bindClickHandlersAfterDraw(conf);
-    };
+    }
 
     conf["buttons"] = [
       {
@@ -700,12 +707,12 @@ class DataTableComponent extends Component {
   */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toggleFullScreenMode(buttonElement) {
-    const fullScreenButton = document.querySelector("#full-screen-btn");
-    if (!fullScreenButton) console.warn("Missing full screen button.");
-    const currentTable = document.querySelector(".dataTables_wrapper");
-    if (!currentTable) console.warn("Failed to toggle full screen; missing data table.");
-    const isFullScreen = fullScreenButton.classList.contains("btn-toggle");
-    if (!isFullScreen) {
+    const table = document.querySelector("table.data-table");
+    const currentTable = $(table);
+    if(currentTable && $.fn.dataTable.isDataTable(currentTable)) {
+      currentTable.DataTable().destroy();
+    }
+    if (!this.isFullScreen) {
       // Create new modal
       const newModal = document.createElement("div");
       newModal.id = "table-modal";
@@ -713,7 +720,10 @@ class DataTableComponent extends Component {
       newModal.classList.add("data-table__container--scrollable");
 
       // Move data table into new modal
-      newModal.append(currentTable);
+      newModal.append(table);
+      if(currentTable && !($.fn.dataTable.isDataTable(currentTable))) {
+        currentTable.DataTable(this.getConf({responsive: false}));
+      }
       document.body.appendChild(newModal);
 
       $(document).on("keyup", (ev)=>{
@@ -729,8 +739,10 @@ class DataTableComponent extends Component {
         return;
       }
 
-      mainContent.appendChild(currentTable);
-
+      mainContent.appendChild(table);
+      if(currentTable && !($.fn.dataTable.isDataTable(currentTable))) {
+        currentTable.DataTable(this.getConf());
+      }
       // Remove the modal
       document.querySelector("#table-modal").remove();
 
@@ -738,7 +750,9 @@ class DataTableComponent extends Component {
     }
 
     // Toggle the full screen button
-    $(fullScreenButton).toggleClass(["btn-toggle", "btn-toggle-off"]);
+    this.isFullScreen = !this.isFullScreen;
+    $("#full-screen-btn").removeClass(this.isFullScreen ? 'btn-toggle-off': 'btn-toggle');
+    $("#full-screen-btn").addClass(this.isFullScreen ? 'btn-toggle': 'btn-toggle-off');
   }
 
   bindClickHandlersAfterDraw(conf) {
@@ -774,31 +788,7 @@ class DataTableComponent extends Component {
 
       initializeRegisteredComponents(this.element);
     }
-
-   this.bindTransferTableClickHandlers();
   }
-
-  bindTransferTableClickHandlers() {
-    const tableElement = this.el;
-
-    if (tableElement.hasClass("table-transfer")) {
-      const fields = this.el.find("tbody tr");
-      fields.off("click", this.transferRow);
-      fields.on("click", this.transferRow);
-
-      const buttons = this.el.find("tbody btn");
-      buttons.off("click", this.transferRow);
-      buttons.on("click", this.transferRow);
-    }
-  }
-
-  transferRow = (ev) => {
-    ev.preventDefault();
-    const sourceTableID = "#" + this.el.attr("id");
-    const destinationTableID = this.el.data("transferDestination");
-    const rowClicked = $(ev.target).closest("tr");
-    transferRowToTable(rowClicked, sourceTableID, destinationTableID);
-  };
 }
 
 export default DataTableComponent;

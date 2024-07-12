@@ -63,10 +63,10 @@ class ButtonComponent extends Component {
                     new SubmitFieldButtonComponent(el);
                 });
         });
-        map.set('btn-js-add-all-fields', (el) => {
-            import(/* webpackChunkName: "add-all-fields-button" */ './add-all-fields-button')
-                .then(({default: createAddAllFieldsButton}) => {
-                    createAddAllFieldsButton(el);
+        map.set('btn-js-toggle-all-fields', (el) => {
+            import(/* webpackChunkName: "toggle-all-fields-button" */ './toggle-all-fields-button')
+                .then(({default: createToggleAllFieldsButton}) => {
+                    createToggleAllFieldsButton(el);
                 });
         });
         map.set('btn-js-submit-draft-record', (el) => {

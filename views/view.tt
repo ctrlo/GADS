@@ -24,7 +24,13 @@
                           value = view_edit.name
                           placeholder = ""
                           filter = "html"
-                          type = "text";
+                          type = "text"
+                          input_class = "help-view"
+                          help = {
+                            "text" => "The name of the view is used to identify it in the list of views."
+                            "target" => "help__card"
+                            "title" => "Name of the view"
+                          }
                       %]
                     </div>
                   </div>
@@ -34,6 +40,14 @@
                   <div class="row">
                     <div class="col">
                       <div class="form-group">
+                        <div class="row">
+                          <div class="col help-view"
+                            data-help-text="***Personal*** - available to all users and only visible to the user that creates them. **Note**: Administrators can manage other user's personal views.\n***Shared*** - users with permission to create shared views can check the shared view box and then select which groups to share the view with.\n***Administration*** - these views are only visible to Administrative users, and primarily for controlling user access to records."
+                            data-help-title="View Type"
+                            data-help-target="help__card">
+                            <label>View type</label>
+                          </div>
+                        </div>
                         <div class="row">
                           <div class="col-lg-3">
                             [%
@@ -112,12 +126,13 @@
                           <div class="card__content">
                             <div class="row mb-3">
                               <div class="col">
-                                <div class="form-group">
+                                <div class="form-group help-view"
+                                  data-help-text='Use filters to select the records that you want to include in your view.\n#### How they Work\nFilters are created by adding rules and selecting the fields and the corresponding values that will return the records you require. Using the fundamental concept of **"AND"** and **"OR"** logic, rules can be combined to help you refine your filters based on multiple criteria.\nThis logical approach means that your views will return records where the filter rule or combination of rules and/or groups are "TRUE" statements.\n#### Examples\n***"AND":***   If you search for "Apples AND Oranges," you are looking for results that include both apples and oranges together.\n***"OR":***   If you search for "Apples OR Oranges," you are looking for results that include either apples, oranges, or both.'
+                                  data-help-title="Filters"
+                                  data-help-target="help__card">
                                   <fieldset class="fieldset" >
-                                    <div class="fieldset__legend ">
-                                      <legend >
-                                        Filter
-                                      </legend>
+                                    <div>
+                                      <label>Filter</label>
                                     </div>
 
 
@@ -174,12 +189,13 @@
                           <div class="card__content">
                             <div class="row mb-3">
                               <div class="col">
-                                <div class="form-group">
+                                <div class="form-group help-view"
+                                  data-help-title = "Filters and Grouping"
+                                  data-help-text = 'Filters and Groups allow you to construct sophisticated filters by defining specific conditions (rules) and combining them into logical groupings (groups) to precisely control which records are displayed\n#### Rules\nThese are three part statements comprised of a data field, an operator and a value.\n- ***Field*** - a drop down selector for all of the fields on your table.\n- ***Operator*** - symbols or key words to determine how the field and value interact.\n- ***Value*** - the value that is being searched for in the selected field.\n#### Groups\nThese are combinations of rules that result in a "**TRUE**" or "**FALSE**" outcome and can be combined with other rules or groups.'
+                                  data-help-target = "help__card">
                                   <fieldset class="fieldset">
-                                    <div class="fieldset__legend">
-                                      <legend >
-                                        Field to sort the records in your view by
-                                      </legend>
+                                    <div>
+                                      <label>Field to sort the records in your view by</label>
                                     </div>
                                     <div class="form-group">
                                       <div class="multiple-select">
@@ -392,13 +408,18 @@
                               <div class="col-sm-12">
                                 <fieldset class="fieldset" >
                                   <div class="fieldset__legend fieldset__legend--standalone">
-                                    <legend>Add fields to your view by selecting them from available fields.</legend>
+                                    <label>
+                                      <strong>Add fields to your view by selecting them from available fields.</strong>
+                                    </label>
                                   </div>
                                 </fieldset>
                               </div>
+                            </div>
+                            <div class="row">
                               [%
                                 fields_available = [];
                                 fields_selected  = [];
+
                                 row_height = 50;
 
                                 # Calculate height needed for the table
@@ -416,7 +437,18 @@
                                   id = column.id;
                                   is_selected = view_edit.columns.grep("^$id\$").size;
 
-                                  field = {
+                                  selected_field_row = {
+                                    id = "selected-field-" _ column.id
+                                    data_attributes = [{
+                                      name => 'toggle-field-id-selector'
+                                      value => '#available-field-'
+                                    }, {
+                                      name => 'toggle-field-id'
+                                      value => column.id
+                                    }, {
+                                      name => 'field-is-toggled',
+                                      value => is_selected ? 'true' : 'false'
+                                    }]
                                     fields = [{
                                       type   = "text"
                                       label  = column.name
@@ -425,7 +457,6 @@
                                         autofocus     => 0
                                         checked       => is_selected ? 1 : 0
                                         filter        => "html"
-                                        id            => "dt_checkbox_" _ column.id
                                         input_class   => "invisible"
                                         is_required   => 0
                                         label         => column.name
@@ -437,11 +468,26 @@
                                     }]
                                   };
 
-                                  IF is_selected;
-                                    fields_selected.push(field);
-                                  ELSE;
-                                    fields_available.push(field);
-                                  END;
+                                  available_field_row = {
+                                    id = "available-field-" _ column.id
+                                    data_attributes = [{
+                                      name => 'toggle-field-id-selector'
+                                      value => '#selected-field-'
+                                    }, {
+                                      name => 'toggle-field-id'
+                                      value => column.id
+                                    }, {
+                                      name => 'field-is-toggled',
+                                      value => is_selected ? 'false' : 'true'
+                                    }]
+                                    fields = [{
+                                      type  = "text"
+                                      label = column.name
+                                    }]
+                                  };
+
+                                  fields_selected.push(selected_field_row);
+                                  fields_available.push(available_field_row);
                                 END;
                               %]
 
@@ -452,7 +498,7 @@
 
                                   # Table configuration
                                   table_id = "table-view-fields-selected"
-                                  table_class = 'table-striped table--bordered table-hover table-transfer table-transfer--remove'
+                                  table_class = 'table--bordered table-hover table-toggle table-toggle--remove'
                                   table_dom = '<"row row--fiv-header"><"row row--main"<"col-sm-12"tr>>'
                                   table_buttons = [{
                                     button_class = "btn"
@@ -472,10 +518,17 @@
                                   table_paging = 0
                                   table_scroll_y = table_height
                                   table_show_all_records = 1
-                                  table_transfer_destination = "#table-view-fields-available"
+                                  table_destination = "#table-view-fields-available"
                                   table_unresponsive = 1
                                   rows = fields_selected
                                 %]
+
+                                <button
+                                  class="btn btn-default btn-small btn-remove btn-js-toggle-all-fields"
+                                  data-toggle-source="#table-view-fields-selected"
+                                  data-toggle-destination="#table-view-fields-available">
+                                    Remove all fields
+                                </button>
                               </div>
 
                               <!-- Available fields -->
@@ -485,7 +538,7 @@
 
                                   # Table configuration
                                   table_id = "table-view-fields-available"
-                                  table_class = 'table-striped table--bordered table-hover table-transfer table-transfer--add table-search'
+                                  table_class = 'table--bordered table-hover table-toggle table-toggle--add table-search'
                                   table_dom = '<"row row--header"<"col"' _ (session.rewind ? '' : 'f') _ '>><"row row--main"<"col-sm-12"tr>>'
                                   table_buttons = [{
                                     button_class = "btn"
@@ -507,16 +560,15 @@
                                   table_paging = 0
                                   table_scroll_y = table_height
                                   table_show_all_records = 1
-                                  table_transfer_destination = "#table-view-fields-selected"
+                                  table_destination = "#table-view-fields-selected"
                                   table_unresponsive = 1
                                   rows = fields_available
                                 %]
-
                                 <button
-                                  class="btn btn-default btn-small btn-add btn-js-add-all-fields"
-                                  data-transfer-source="#table-view-fields-available"
-                                  data-transfer-destination="#table-view-fields-selected">
-                                    All fields
+                                  class="btn btn-default btn-small btn-add btn-js-toggle-all-fields"
+                                  data-toggle-source="#table-view-fields-available"
+                                  data-toggle-destination="#table-view-fields-selected">
+                                    Select all fields
                                 </button>
                               </div>
 
@@ -538,7 +590,7 @@
               </h4>
 
               <div class="card__body row">
-                <div class="card__content">
+                <div id="help__card" class="card__content">
                   <dl>
                     <dt>General</dt>
                     <dd>

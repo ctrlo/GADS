@@ -41,7 +41,7 @@ use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 
-with 'GADS::RecordsJoin', 'GADS::Role::Presentation::Records';
+with 'GADS::RecordsJoin', 'GADS::Role::Presentation::Records', 'GADS::Helper::ConditionBuilder';
 
 # Preferably this is passed in to prevent extra
 # DB reads, but loads it if it isn't
@@ -231,7 +231,7 @@ sub _view_limits_search
                 # Ignore any permissions on this view, as otherwise an
                 # administrator-defined limited view of records may not take
                 # effect
-                push @search, $self->_search_construct($decoded, $self->layout, %options, ignore_perms => 1);
+                push @search, $self->_search_construct($decoded, %options, ignore_perms => 1);
             }
         }
     }
@@ -242,7 +242,7 @@ sub _view_limits_search
         my $decoded = $filter->as_hash;
         if (keys %$decoded)
         {
-            my @s = $self->_search_construct($decoded, $self->layout, %options, ignore_perms => 1);
+            my @s = $self->_search_construct($decoded, %options, ignore_perms => 1);
             # Get the user search criteria. As above we do not let permissions
             # affect these admin-defined views.
             @limit = @limit ? (
@@ -611,8 +611,8 @@ sub search_view
             });
             push @searches, $self->record_later_search(linked => 1, search => 1);
             # Perform search construct twice, to ensure all value joins are consistent numbers
-            $self->_search_construct($decoded, $self->layout, ignore_perms => 1, user => $user);
-            push @searches, $self->_search_construct($decoded, $self->layout, ignore_perms => 1, user => $user);
+            $self->_search_construct($decoded, ignore_perms => 1, user => $user);
+            push @searches, $self->_search_construct($decoded, ignore_perms => 1, user => $user);
             my $i = 0; my @ids;
             while ($i < @$current_ids)
             {
@@ -1891,7 +1891,7 @@ sub _query_params
         # Add any date ranges to the search from above
         if (@$search_date)
         {
-            my @res = ($self->_search_construct({condition => 'OR', rules => $search_date}, $layout, %options));
+            my @res = ($self->_search_construct({condition => 'OR', rules => $search_date}, %options));
             push @search, @res if @res;
         }
 
@@ -1907,7 +1907,7 @@ sub _query_params
                 value       => $additional->{value},
                 value_field => !$additional->{is_text} && $col->value_field_as_index($additional->{value}),
             };
-            push @search, $self->_search_construct($f, $layout, %options);
+            push @search, $self->_search_construct($f, %options);
         }
 
         # Now add all the filters as joins (we don't need to prefetch this data). However,
@@ -1922,7 +1922,7 @@ sub _query_params
                 if (keys %$decoded)
                 {
                     # Get the user search criteria
-                    push @search, $self->_search_construct($decoded, $layout, %options);
+                    push @search, $self->_search_construct($decoded, %options);
                 }
             }
         }
@@ -2176,71 +2176,55 @@ sub order_by
     \@order_by;
 }
 
+sub filter_hook
+{   my ($self, $filter) = @_;
+    # Previous values for a group. This allows previous values to be
+    # searched only for a whole group (e.g. to include previous values only
+    # between certain edit dates). Construct the whole group as a
+    # GADS::Records and return that as a query
+    if ($filter->{rules} && $filter->{previous_values})
+    {
+        my $encoded = GADS::Filter->new(
+            as_hash => {%$filter, previous_values => 0}
+        );
+
+        my $records = GADS::Records->new(
+            schema       => $self->schema,
+            user         => $self->user,
+            layout       => $self->layout,
+            _view_limits => [], # Don't limit by view this as well, otherwise recursive loop happens
+            previous_values => 1,
+            view  => GADS::View->new(
+                filter      => $encoded,
+                instance_id => $self->layout->instance_id,
+                layout      => $self->layout,
+                schema      => $self->schema,
+                user        => $self->user,
+            ),
+        );
+
+        my $match = $filter->{previous_values} eq 'negative' ? '-not_in' : '-in';
+        return +{ 'me.id' => { $match => $records->_current_ids_rs->as_query } };
+    }
+}
+
 # $ignore_perms means to ignore any permissions on the column being
 # processed. For example, if the current user is updating a record,
 # we want to process columns that the user doesn't have access to
 # for things like alerts, but not for their normal viewing.
 sub _search_construct
-{   my ($self, $filter, $layout, %options) = @_;
+{   my ($self, $filter, %options) = @_;
+
+    $self->map_rules($filter, %options);
+}
+
+sub rule_to_condition
+{   my ($self, $filter, %options) = @_;
 
     my $ignore_perms = $options{ignore_perms}
         || $GADS::Schema::IGNORE_PERMISSIONS_SEARCH || $GADS::Schema::IGNORE_PERMISSIONS;
 
-    if (my $rules = $filter->{rules})
-    {
-        # Previous values for a group. This allows previous values to be
-        # searched only for a whole group (e.g. to include previous values only
-        # between certain edit dates). Construct the whole group as a
-        # GADS::Records and return that as a query
-        if ($filter->{previous_values})
-        {
-            my $encoded = GADS::Filter->new(
-                as_hash => {%$filter, previous_values => 0}
-            );
-
-            my $records = GADS::Records->new(
-                schema       => $self->schema,
-                user         => $self->user,
-                layout       => $self->layout,
-                _view_limits => [], # Don't limit by view this as well, otherwise recursive loop happens
-                previous_values => 1,
-                view  => GADS::View->new(
-                    filter      => $encoded,
-                    instance_id => $self->layout->instance_id,
-                    layout      => $self->layout,
-                    schema      => $self->schema,
-                    user        => $self->user,
-                ),
-            );
-
-            my $match = $filter->{previous_values} eq 'negative' ? '-not_in' : '-in';
-            return +{ 'me.id' => { $match => $records->_current_ids_rs->as_query } };
-        }
-        # Filter has other nested filters
-        my @final;
-        foreach my $rule (@$rules)
-        {
-            my @res = $self->_search_construct($rule, $layout, %options);
-            push @final, @res if @res;
-        }
-        my $condition = $filter->{condition} && $filter->{condition} eq 'OR' ? '-or' : '-and';
-        return @final ? ($condition => \@final) : ();
-    }
-
-    my %ops = (
-        equal            => '=',
-        greater          => '>',
-        greater_or_equal => '>=',
-        less             => '<',
-        less_or_equal    => '<=',
-        contains         => '-like',
-        not_contains     => '-not_like',
-        begins_with      => '-like',
-        not_begins_with  => '-not_like',
-        not_equal        => '!=',
-        is_empty         => '=',
-        is_not_empty     => '!=',
-    );
+    my $layout = $self->layout;
 
     my %permission = $ignore_perms ? () : (permission => 'read');
     my ($parent_column, $column);
@@ -2310,7 +2294,7 @@ sub _search_construct
     $filter_operator = 'contains'
         if $reverse && $filter_operator eq 'not_contains';
 
-    my $operator = $ops{$filter_operator}
+    my $operator = $self->field_map->{$filter_operator}
         or error __x"Invalid operator {filter}", filter => $filter_operator;
 
     my @conditions; my $gate = 'and';
@@ -2375,14 +2359,6 @@ sub _search_construct
         };
     }
 
-    my $vprefix = ''; my $vsuffix = '';
-    if ($operator eq '-like' || $operator eq '-not_like') # Do not apply to "contains" for daterange
-    {
-        $vprefix = '%'
-            if $filter_operator eq 'contains' || $filter_operator eq 'not_contains';
-        $vsuffix = '%';
-    }
-
     my @values;
 
     if ($filter_operator eq 'is_empty' || $filter_operator eq 'is_not_empty')
@@ -2394,7 +2370,7 @@ sub _search_construct
 
         foreach (@original_values)
         {
-            $_ = $vprefix.$_.$vsuffix;
+            $_ = $self->get_filter_value($filter_operator, $_, $column->return_type ne 'string');
 
             # This shouldn't normally happen, but sometimes we can end up with an
             # invalid search value, such as if the date format has changed and the

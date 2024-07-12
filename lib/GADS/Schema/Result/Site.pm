@@ -297,24 +297,32 @@ sub user_fields
         description => 'Title',
         type        => 'dropdown',
         placeholder => 'Select title',
+        table       => 'title',
+        field       => 'name',
     } if $self->register_show_title;
     push @fields, {
         name        => 'organisation',
         description => $self->organisation_name,
         type        => 'dropdown',
         placeholder => 'Select ' . $self->organisation_name,
+        table       => 'organisation',
+        field       => 'name',
     } if $self->register_show_organisation;
     push @fields, {
         name        => 'department_id',
         description => $self->department_name,
         type        => 'dropdown',
         placeholder => 'Select ' . $self->department_name,
+        table       => 'department',
+        field       => 'name',
     } if $self->register_show_department;
     push @fields, {
         name        => 'team_id',
         description => $self->team_name,
         type        => 'dropdown',
         placeholder => 'Select ' . $self->team_name,
+        table       => 'team',
+        field       => 'name',
     } if $self->register_show_team;
     push @fields, {
         name        => 'freetext1',
