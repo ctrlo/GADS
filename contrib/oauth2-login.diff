@@ -1,0 +1,105 @@
+diff --git a/lib/GADS.pm b/lib/GADS.pm
+index 56ae1af0..5d897c37 100644
+--- a/lib/GADS.pm
++++ b/lib/GADS.pm
+@@ -82,6 +82,8 @@ use URI::Escape qw/uri_escape_utf8 uri_unescape/;
+ use Log::Log4perl qw(:easy); # Just for WWW::Mechanize::Chrome
+ use WWW::Mechanize::Chrome;
+ 
++use Net::OAuth2::Profile::WebServer;
++
+ use Dancer2; # Last to stop Moo generating conflicting namespace
+ use Dancer2::Plugin::DBIC;
+ use Dancer2::Plugin::Auth::Extensible;
+@@ -466,6 +468,53 @@ get '/login/denied' => sub {
+     forwardHome({ danger => "You do not have permission to access this page" });
+ };
+ 
++any '/oauth' => sub {
++    my $code = param('code');
++
++    my $auth = Net::OAuth2::Profile::WebServer->new
++  ( name           => 'Yahoo'
++  , client_id      => 'xxx'
++  , client_secret  => 'xxx'
++  , site           => 'https://api.login.yahoo.com/oauth2/request_auth'
++  , scope          => 'openid email'
++  , authorize_path    => '/oauth2/request_auth'
++  , access_token_path => '/oauth2/get_token'
++  , redirect_uri => 'https://andy.linkspace.uk/oauth'
++  , protected_resource_url =>  'https://www.google.com/m8/feeds/contacts/default/full'
++  );
++
++  my $access_token  = $auth->get_access_token($code);
++
++  use Crypt::JWT qw(decode_jwt encode_jwt);
++
++
++  use LWP::UserAgent ();
++  my $ua = LWP::UserAgent->new(timeout => 10, agent => 'test');
++  my $response = $ua->get('https://api.login.yahoo.com/openid/v1/certs');
++
++  use JSON qw/decode_json/;
++  my $keys;
++  if ($response->is_success) {
++      $keys = decode_json $response->decoded_content;
++  }
++  else {
++      die "failed";
++  }
++
++  my $payload = decode_jwt(token => $access_token->attribute('id_token'), kid_keys => $keys);
++  my $username = $payload->{email};
++  my $user       = schema->resultset('User')->active->search({ username => $username })->next
++      or error "failed";
++  session logged_in_user => $username;
++  session logged_in_user_realm => 'dbic';
++            my $session_settings;
++            try { $session_settings = decode_json $user->session_settings };
++            session 'persistent' => ($session_settings || {});
++  redirect '/';
++
++    return 1;
++};
++
+ any ['get', 'post'] => '/login' => sub {
+ 
+     my $audit = GADS::Audit->new(schema => schema);
+@@ -554,7 +603,24 @@ any ['get', 'post'] => '/login' => sub {
+         }
+     }
+ 
+-    if (param('signin'))
++    if (param('oauth'))
++    {
++        my $auth = Net::OAuth2::Profile::WebServer->new
++          ( name           => 'Yahoo'
++          , client_id      => 'xxx'
++          , client_secret  => 'xxx'
++          , site           => 'https://api.login.yahoo.com/oauth2/request_auth'
++          , scope          => 'openid email'
++          , authorize_path    => '/oauth2/request_auth'
++          , access_token_path => '/oauth2/get_token'
++          , redirect_uri => 'https://andy.linkspace.uk/oauth'
++          , protected_resource_url =>  'https://www.google.com/m8/feeds/contacts/default/full'
++          );
++
++        # Let user ask for a grant from the resource owner
++        return redirect $auth->authorize;
++    }
++    elsif (param('signin'))
+     {
+         my $username  = param('username');
+         my $lastfail  = DateTime->now->subtract(minutes => 15);
+diff --git a/views/login.tt b/views/login.tt
+index fd704f23..87b5fc30 100755
+--- a/views/login.tt
++++ b/views/login.tt
+@@ -77,6 +77,7 @@
+                             </span>
+                             <hr>
+                             <input tabindex="4" type="submit" name="signin" class="btn btn-lg btn-success btn-block" value="Sign In">
++                            <input tabindex="4" type="submit" name="oauth" class="btn btn-lg  btn-block" value="Login with Yahoo">
+                         </div>
+                     </div>
+             </form>
