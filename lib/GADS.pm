@@ -91,6 +91,11 @@ use Dancer2::Plugin::LogReport 'linkspace';
 
 use GADS::API; # API routes
 
+# YAML needs to save and load blessed objects for the sessio serializer (for
+# the notification messages). Since YAML 1.25 this is disabled by default, so
+# turn it on
+$YAML::LoadBlessed = 1;
+
 # Uncomment for DBIC traces
 #schema->storage->debugobj(new GADS::DBICProfiler);
 #schema->storage->debug(1);
