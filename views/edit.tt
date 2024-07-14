@@ -312,9 +312,11 @@
 </div>
 [% END %]
 
-[% INCLUDE wizard/curval.tt modalId="curvalModal"; %]
-[% INCLUDE wizard/record_details.tt modalId="detailsModal"; %]
-[% INCLUDE wizard/read_more.tt modalId = "readMore"; %]
+[% UNLESS edit_modal %]
+    [% INCLUDE wizard/curval.tt modalId="curvalModal"; %]
+    [% INCLUDE wizard/record_details.tt modalId="detailsModal"; %]
+    [% INCLUDE wizard/read_more.tt modalId = "readMore"; %]
+[% END %]
 
 [%
   IF record.user_can_delete;
@@ -335,6 +337,21 @@
     INCLUDE wizard/delete.tt
       modalId     = "deleteModal"
       label       = "Delete - record"
+      description = modal_description;
+  END;
+
+%]
+
+[%
+  IF editable AND NOT edit_modal;
+    modal_description = "There are unsaved values from the last time you edited
+    " _ layout.record_name_with_article _ ". Would you like to restore the
+    values into this " _ layout.record_name _ "? The values will not be saved
+    until you submit this " _ layout.record_name _ ".";
+
+    INCLUDE wizard/restore_values.tt
+      modalId     = "restoreValuesModal"
+      label       = "Restore unsaved record values"
       description = modal_description;
   END;
 
@@ -502,6 +519,9 @@
       data-column-id="[% col.id %]"
       data-column-type="[% col.type %]"
       data-value-selector="[% col.value_selector %]"
+      data-show-add="[% col.show_add %]"
+      data-modal-field-ids="[% col.modal_field_ids %]"
+      data-curval-instance-name="[% col.layout_parent.identifier %]"
       data-name="[% col.name | html %]"
       data-name-short="[% col.name_short %]"
         [% col.lookup_endpoint && 'data-lookup-endpoint="' _ col.lookup_endpoint _ '"' %]
@@ -861,7 +881,11 @@
                   label   = "Include file."
                   value   = file.id
                   checked = 1
-                  filter  = "html";
+                  filter  = "html"
+                  data_attributes = [{
+                    name  = "filename"
+                    value = file.name
+                  }];
           
               '</span>';
               '<span class="list__value">';
@@ -1086,8 +1110,6 @@
     class="btn btn-js-curval-modal btn-add-link"
     data-toggle="modal"
     data-target=#curvalModal
-    data-layout-id="[% col.id %]"
-    data-instance-name="[% col.layout_parent.identifier %]"
   >
     <span class="btn__title">Add</span>
   </button>
@@ -1136,6 +1158,16 @@
             id    = "curval-current-id-" _ val.id
             name  = field
             value = val.as_query OR val.id
+            data_attributes = [{
+                name  = "restore_value"
+                value = val.as_query OR val.id
+            },{
+                name  = "list-id"
+                value = val.id
+            },{
+                name  = "list-text"
+                value = val.value
+            }]
           }
         }
         modal = {

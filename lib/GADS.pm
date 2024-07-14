@@ -4675,7 +4675,13 @@ sub _process_edit
         {
             # The "source" parameter is user input, make sure still valid
             my $source_curval = $layout->column(param('source'), permission => 'read');
-            try { $record->write(dry_run => 1, parent_curval => $source_curval) };
+            my %options = (dry_run => 1, parent_curval => $source_curval);
+            # If this is being submitted as part of an autosave recovery, allow
+            # mandatory values to be empty. This is because a field may have
+            # since been made mandatory, and we don't want this to cause the
+            # autosave recovery to fail
+            $options{force_mandatory} = 1 if param 'autosave';
+            try { $record->write(%options) };
             if (my $e = $@->wasFatal)
             {
                 push @validation_errors, $e->reason eq 'PANIC' ? 'An unexpected error occurred' : $e->message;

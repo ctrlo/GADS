@@ -14,7 +14,7 @@ const format_date = function(date) {
 };
 
 // get the value from a field, depending on its type
-const getFieldValues = function($depends, filtered, for_code, form_value) {
+const getFieldValues = function($depends, filtered, for_code, for_autosave) {
   const type = $depends.data("column-type");
 
   // If a field is not shown then treat it as a blank value (e.g. if fields
@@ -82,12 +82,12 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
           return undefined;
         }
       }
-    } else if (form_value) {
+    } else if (for_autosave) {
       values = $.map(values, function(item) {
         if (item) {
           // If this is a newly added item, return the form data instead of the
           // ID (which won't be saved yet)
-          return item.data("list-id") || item.data("form-data");
+          return item.data("list-id") || item.data("guid");
         } else {
           return null;
         }
@@ -105,7 +105,7 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
     const jstree = $depends.find('.jstree').jstree(true);
     $depends.find(".selected-tree-value").each(function() {
       const $node = $(this);
-      if (form_value) {
+      if (for_autosave) {
         values.push($node.val());
       } else if (for_code) {
         // Replicate backend format.
@@ -170,7 +170,7 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
       } else {
         return codevals[0];
       }
-    } else if (form_value) {
+    } else if (for_autosave) {
       values = dateranges.map(function(dr) {
         return {
             from: dr.from.val(),
@@ -190,12 +190,12 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
         const $df = $(this);
         return for_code ? format_date($df.datepicker("getDate")) : $df.val();
       }).get();
-      if (for_code || form_value) {
+      if (for_code || for_autosave) {
         return values;
       }
     } else {
       const $df = $depends.find(".form-control");
-      if (for_code || form_value) {
+      if (for_code || for_autosave) {
         return format_date($df.datepicker("getDate"));
       } else {
         values = [$df.val()];
@@ -205,7 +205,7 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
   } else if (type === "file") {
 
     values = $depends.find("input:checkbox:checked").map(function(){
-      if (form_value) {
+      if (for_autosave) {
         return {
             id: $(this).val(),
             filename: $(this).data('filename')

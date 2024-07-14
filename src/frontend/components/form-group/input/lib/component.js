@@ -6,6 +6,9 @@ import 'blueimp-file-upload'
 import { stopPropagation, fromJson, hideElement, showElement } from 'util/common'
 
 class InputComponent extends Component {
+
+    static get allowReinitialization() { return true }
+
     constructor(element)  {
       super(element)
       this.el = $(this.element)
@@ -13,26 +16,26 @@ class InputComponent extends Component {
       if (this.el.hasClass('input--password')) {
         this.btnReveal = this.el.find('.input__reveal-password')
         this.input = this.el.find('.form-control')
-        this.initInputPassword()
+        if (!this.wasInitialized) this.initInputPassword()
       } else if (this.el.hasClass('input--logo')) {
         this.logoDisplay = this.el.parent().find('img');
         this.fileInput = this.el.find('.form-control-file')
-        this.initInputLogo();
+        if (!this.wasInitialized) this.initInputLogo();
       } else if (this.el.hasClass('input--document')) {
         this.fileInput = this.el.find('.form-control-file')
-        this.initInputDocument()
+        if (!this.wasInitialized) this.initInputDocument()
       } else if (this.el.hasClass('input--file')) {
         this.fileInput = this.el.find('.form-control-file')
         this.fileName = this.el.find('.file__name')
         this.fileDelete = this.el.find('.file__delete')
         this.inputFileLabel = this.el.find('.input__file-label')
-        this.initInputFile()
+        if (!this.wasInitialized) this.initInputFile()
       } else if (this.el.hasClass('input--datepicker')) {
         this.input = this.el.find('.form-control')
-        this.initInputDate()
+        if (!this.wasInitialized) this.initInputDate()
       } else if (this.el.hasClass('input--autocomplete')) {
         this.input = this.el.find('.form-control')
-        this.initInputAutocomplete()
+        if (!this.wasInitialized) this.initInputAutocomplete()
       }
 
       if (this.el.hasClass("input--required")) {

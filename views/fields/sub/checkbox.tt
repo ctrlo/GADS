@@ -11,6 +11,7 @@
     [%- IF is_disabled -%]disabled[%- END -%]
     aria-labelledby="[% id %]-label"
     data-value="[% INCLUDE fields/sub/filter.tt value=label; %]"
+    [% INCLUDE fields/sub/data_attributes.tt %]
   >
   <label for="[%- id -%]" id="[% id %]-label" class="checkbox-label">
     [% IF label_in_span %]<span>[% END %][% INCLUDE fields/sub/filter.tt value=label; %][% IF label_in_span %]</span>[% END %]

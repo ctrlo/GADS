@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import ModalComponent from '../../../lib/component'
 import { getFieldValues } from "get-field-values"
+import { setFieldValues } from "set-field-values"
 import { guid as Guid } from "guid"
 import { initializeRegisteredComponents } from 'component'
 import { validateRadioGroup, validateCheckboxGroup } from 'validation'
@@ -20,39 +21,92 @@ class CurvalModalComponent extends ModalComponent {
     this.setupModal()
     this.setupSubmit()
   }
-  
+
+  // Set the value of a curval. In order to ensure consistent data, this
+  // function opens a modal edit for each curval, makes the changes, and then
+  // submits. It does this synchronously so that the modal is only processing
+  // one curval value at a time
+  setValue($target, rows) {
+    const layout_id = $target.data("column-id")
+    const $m = this.el
+
+    let index = 0;
+    const self = this;
+    autosaveLoadValue()
+    // Submit a single value for processing, and then once completed call the
+    // next one
+    function autosaveLoadValue() {
+
+      if (index >= rows.length) return // Finished?
+
+      let current_id = rows[index].identifier
+      let values = rows[index].values
+
+      // New records will have a GUID rather than record ID
+      let guid;
+      if (!/^\d+$/.test(current_id)) {
+          guid = current_id
+          current_id = null
+      }
+      const instance_name = $target.data("curval-instance-name")
+      // Load the modal and load each value into its fields
+      $m.find(".modal-body").load(self.getURL(current_id, instance_name, layout_id), function(){
+        initializeRegisteredComponents($m.get(0))
+        $m.find('.linkspace-field').each(function(){
+          const $field = $(this)
+          const key = `linkspace-column-${$field.data('column-id')}`
+          const vals = values[key]
+          if (vals) {
+            setFieldValues($field, vals)
+          }
+        })
+        let $form = $m.find('.curval-edit-form')
+        $form.data("guid", guid)
+        ++index
+        $form.trigger('submit', autosaveLoadValue)
+      })
+    }
+  }
+
   curvalModalValidationSucceeded(form, values) {
     const form_data = form.serialize()
     const modal_field_ids = form.data("modal-field-ids")
     const col_id = form.data("curval-id")
     const instance_name = form.data("instance-name")
     let guid = form.data("guid")
-    const hidden_input = $("<input>").attr({
-      type: "hidden",
-      name: "field" + col_id,
-      value: form_data
-    })
     const $formGroup = $("div[data-column-id=" + col_id + "]")
     const valueSelector = $formGroup.data("value-selector")
-    
+    const self=this;
+    const $field = $(`#curval_list_${col_id}`).closest('.linkspace-field')
+    const current_id = form.data('current-id')
+
+    const textValue = jQuery
+      .map(modal_field_ids, function(element) {
+        const value = values["field" + element]
+        return $("<div />")
+          .text(value)
+          .html()
+      })
+      .join(", ")
+
     if (valueSelector === "noshow") {
-      const self=this;
+
       // No strict requirement for alias here, but it is needed below, so for the sake of consistency
       const row_cells = $('<tr class="table-curval-item">', self.context)
 
-      jQuery.map(modal_field_ids, function(element) {
-        const control = form.find('[data-column-id="' + element + '"]')
-        let value = getFieldValues(control)
-        value = values["field" + element]
-        value = $("<div />", self.context).text(value).html()
+      jQuery.map($field.data("modal-field-ids"), function(element) {
+        let value = values["field" + element]
+        value = $("<div />").text(value).html()
         row_cells.append(
-          $('<td class="curval-inner-text">', self.context).append(value)
+          $('<td class="curval-inner-text">').append(value)
         )
       })
 
+      const col_id = $field.data("column-id")
+      const instance_name = $field.data("curval-instance-name")
       const editButton = $(
         `<td>
-          <button type="button" class="btn btn-small btn-link btn-js-curval-modal" data-toggle="modal" data-target="#curvalModal" data-layout-id="${col_id}" data-instance-name="${instance_name}">
+          <button type="button" class="btn btn-small btn-link btn-js-curval-modal" data-toggle="modal" data-target="#curvalModal" data-layout-id="${col_id}" data-instance-name="${instance_name}" data-current-id="${current_id}">
             <span class="btn__title">Edit</span>
           </button>
           </td>`,
@@ -68,17 +122,35 @@ class CurvalModalComponent extends ModalComponent {
         this.context
       )
 
+      // We may have a guid (new value) but the row may already exist in the
+      // underlying form. Reuse it if so, so that it matches any existing
+      // guids in the autosave
+      let is_new_row
+      if (!guid && !current_id) {
+          guid = Guid()
+          is_new_row = true
+      }
+      const hidden_input = $("<input>").attr({
+        type: "hidden",
+        name: "field" + col_id,
+        value: form_data,
+        "data-guid": guid,
+      })
       row_cells.append(editButton.append(hidden_input)).append(removeButton)
 
       /* Activate remove button in new row */
       initializeRegisteredComponents(row_cells[0])
 
-      if (guid) {
-        const hidden = $('input[data-guid="' + guid + '"]', this.context).val(form_data)
+      const hidden = $('input[data-guid="' + guid + '"]', $field).val(form_data)
+      if (is_new_row || !hidden.length) {
+        $field.find("tbody").prepend(row_cells)
+        $field.find(".dataTables_empty").hide()
+      } else if (guid) {
         hidden.closest(".table-curval-item").replaceWith(row_cells)
       } else {
-        $(`#curval_list_${col_id}`).find("tbody").prepend(row_cells)
-        $(`#curval_list_${col_id}`).find(".dataTables_empty").hide();
+        // Only current_id available, happens when reloading values from autosave
+        const $btn = $field.find(`.btn-js-curval-modal[data-current-id="${current_id}"]`)
+        $btn.closest(".table-curval-item").replaceWith(row_cells)
       }
     } else {
       const $widget = $formGroup.find(".select-widget").first()
@@ -96,23 +168,14 @@ class CurvalModalComponent extends ModalComponent {
         $answersList.find("li input").prop("checked", false)
       }
 
-      const textValue = jQuery
-        .map(modal_field_ids, function(element) {
-          const value = values["field" + element]
-          return $("<div />")
-            .text(value)
-            .html()
-        })
-        .join(", ")
-
-      guid = Guid()
+      guid ||= Guid()
       const id = `field${col_id}_${guid}`
       const deleteButton = multi
         ? '<button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>'
         : ""
       
         $search.before(
-        `<li data-list-item="${id}"><span class="widget-value__value">${textValue}</span>${deleteButton}</li>`
+        `<li data-list-item="${id}" data-list-text="${textValue}" data-form-data="${form_data}" data-guid="${guid}"><span class="widget-value__value">${textValue}</span>${deleteButton}</li>`
       ).before(' ') // Ensure space between elements in widget
 
       const inputType = multi ? "checkbox" : "radio"
@@ -146,7 +209,31 @@ class CurvalModalComponent extends ModalComponent {
         });
     }
 
+    // Update autosave values for all changes in this edit
+    const parent_key = `linkspace-column-${col_id}`
+    let existing = localStorage.getItem(parent_key) ? (JSON.parse(localStorage.getItem(parent_key))) : []
+    const identifier = current_id || guid
+    // "existing" is the existing values for this curval
+    // Pull out the current record if it exists
+    let existing_row = existing.filter((item) => item.identifier == identifier)[0] || {identifier: identifier}
+    // And then remove it from the array so that we can re-add it in a moment
+    existing = existing.filter((item) => Number.isInteger(item) || item.identifier != identifier)
+    // Retrieve all the changes from the modal record form
+    let changes = form.data('autosave-changes')
+    // Changes will not exist if this update is being triggered by the restore of a previous autosave
+    if (changes) {
+      // Add them into the saved values for the single curval field
+      existing_row.values ||= {}
+      for (let [column_key, values] of Object.entries(changes)) {
+        existing_row.values[column_key] = values
+      }
+      existing.push(existing_row)
+      // Store as array for consistency with other field types
+      localStorage.setItem(parent_key, JSON.stringify(existing))
+    }
+
     $(this.element).modal('hide')
+    $formGroup.trigger("change", true)
   }
 
   updateWidgetState($widget, multi, required) {
@@ -179,23 +266,26 @@ class CurvalModalComponent extends ModalComponent {
   setupModal() {
     this.el.on('show.bs.modal', (ev) => { 
       const button = ev.relatedTarget
-      const layout_id = $(button).data("layout-id")
-      const instance_name = $(button).data("instance-name")
+      const $field = $(button).closest('.linkspace-field')
+      const layout_id = $field.data("column-id")
+      const instance_name = $field.data("curval-instance-name")
       const current_id = $(button).data("current-id")
       const hidden = $(button)
         .closest(".table-curval-item")
         .find(`input[name=field${layout_id}]`)
       const form_data = hidden.val()
       const mode = hidden.length ? "edit" : "add"
-      const $formGroup = $(button).closest('.form-group')
       let guid
 
-      if ($formGroup.find('.table-curval-group').length) {
-        this.context = $formGroup.find('.table-curval-group')
-      } else if ($formGroup.find('.select-widget').length) {
-        this.context = $formGroup.find('.select-widget')
+      if ($field.find('.table-curval-group').length) {
+        this.context = $field.find('.table-curval-group')
+      } else if ($field.find('.select-widget').length) {
+        this.context = $field.find('.select-widget')
       }
 
+      // For edits, write a guid to the row now (if it hasn't already been
+      // written), which will be matched on submission.
+      // For new records, a guid is written on submission
       if (mode === "edit") {
         guid = hidden.data("guid")
         if (!guid) {
@@ -208,12 +298,8 @@ class CurvalModalComponent extends ModalComponent {
       const self = this;
       $m.find(".modal-body").text("Loading...")
 
-      const url = current_id
-        ? `/record/${current_id}`
-        : `/${instance_name}/record/`
-
       $m.find(".modal-body").load(
-        this.getURL(url, layout_id, form_data, $formGroup),
+        this.getURL(current_id, instance_name, layout_id, form_data),
         function() {
           if (mode === "edit") {
             $m.find("form").data("guid", guid);
@@ -237,24 +323,21 @@ class CurvalModalComponent extends ModalComponent {
 
   }
 
-  getURL(url, layout_id, form_data, $formGroup) {
-    const devURLs = window.siteConfig && window.siteConfig.urls.curvalTableForm && window.siteConfig.urls.curvalSelectWidgetForm
+  getURL(current_id, instance_name, layout_id, form_data) {
 
-    if (devURLs) {
-      if ($formGroup.data('value-selector') === 'noshow') {
-        return window.siteConfig.urls.curvalTableForm
-      } else {
-        return window.siteConfig.urls.curvalSelectWidgetForm
-      }
-    } else {
-      return `${url}?include_draft&modal=${layout_id}&${form_data}`
-    }
+    let url = current_id
+      ? `/record/${current_id}`
+      : `/${instance_name}/record/`
+
+    url = `${url}?include_draft&modal=${layout_id}`
+    if (form_data) url = url + `&${form_data}`
+    return url
   }
 
   setupSubmit() {
     const self = this;
 
-    $(this.element).on("submit", ".curval-edit-form", function(e) {
+    $(this.element).on("submit", ".curval-edit-form", function(e, autosaveLoadValue) {
       // Don't show close warning when user clicks submit button
       self.el.off('hide.bs.modal')
 
@@ -270,8 +353,10 @@ class CurvalModalComponent extends ModalComponent {
       if (devData) {
         self.curvalModalValidationSucceeded($form, devData.values)
       } else {
+        let url = $form.attr("action") + "?validate&include_draft&source=" + $form.data("curval-id")
+        if (autosaveLoadValue) url = url + '&autosave=1'
         $.post(
-          $form.attr("action") + "?validate&include_draft&source=" + $form.data("curval-id"),
+          url,
           form_data,
           function(data) {
             if (data.error === 0) {
@@ -290,6 +375,7 @@ class CurvalModalComponent extends ModalComponent {
         })
         .always(function() {
           $form.removeClass("edit-form--validating")
+          if (autosaveLoadValue) autosaveLoadValue()
         });
       }
     });

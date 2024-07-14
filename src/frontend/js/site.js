@@ -6,6 +6,7 @@ import 'util/filedrag'
 
 // Components
 import AddTableModalComponent from 'components/modal/modals/new-table'
+import AutosaveComponent from 'components/form-group/autosave'
 import CalcFieldsComponent from 'components/form-group/calc-fields'
 import CalculatorComponent from 'components/calculator'
 import CheckboxComponent from 'components/form-group/checkbox'
@@ -79,6 +80,7 @@ registerComponent(MarkdownComponent)
 registerComponent(SelectAllComponent)
 registerComponent(HelpView)
 registerComponent(PeopleFilterComponent)
+registerComponent(AutosaveComponent)
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body)
