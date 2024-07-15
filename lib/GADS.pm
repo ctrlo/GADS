@@ -1704,7 +1704,7 @@ any ['get', 'post'] => '/file/:id?' => require_login sub {
     my $id = route_parameters->get('id') || body_parameters->get('delete')
         or error "File ID missing";
     
-    return send_file( "Purged File", content_type => "text/plain", filename => "purged" ) if $id == -1;
+    return send_file( \"Purged File", content_type => "text/plain", filename => "purged" ) if $id == -1;
 
     # Need to get file details first, to be able to populate
     # column details of applicable.
@@ -3046,12 +3046,12 @@ prefix '/:layout_name' => sub {
             view   => $view,
         );
 
+        my $records = GADS::Records->new(%params);
+        my @columns = grep { !$_->internal } @{ $records->columns_render };
+
         if (defined param('stage1'))
         {
             $params{columns} = [ body_parameters->get_all('column_id') ];
-
-            my $records = GADS::Records->new(%params);
-            my @columns = grep { !$_->internal } @{ $records->columns_render };
 
             my $table_data = [];
             my $columns = {};
@@ -3086,9 +3086,6 @@ prefix '/:layout_name' => sub {
                 return forwardHome({ success => "Records have now been purged" }, $layout->identifier . '/data');
             }
         }
-
-        my $records = GADS::Records->new(%params);
-        my @columns = grep { !$_->internal } @{ $records->columns_render };
 
         return template "historic_purge/initial" => { columns => \@columns, count => $records->count };
     };

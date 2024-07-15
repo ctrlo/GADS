@@ -131,6 +131,12 @@ has files => (
 sub _build_files
 {   my $self = shift;
 
+    return [+{
+        id => -1,
+        name => 'Purged',
+        mimetype => 'text/plain',
+    }] if $self->is_purged;
+
     my @return;
 
     if ($self->has_init_value)
@@ -153,12 +159,6 @@ sub _build_files
     elsif ($self->has_ids) {
         @return = $self->_ids_to_files(@{$self->ids});
     }
-    
-    return [+{
-        id => -1,
-        name => 'Purged',
-        mimetype => 'text/plain',
-    }] if $self->is_purged;
 
     return \@return;
 }
@@ -174,7 +174,7 @@ sub _datums
 sub is_purged {
     my $self = shift;
     my @datums = @{$self->_datums};
-    return grep { $_->purged_on } @datums;
+    return grep { $_->is_purged } @datums;
 }
 
 sub _ids_to_files
