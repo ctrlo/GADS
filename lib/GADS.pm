@@ -3054,8 +3054,7 @@ prefix '/:layout_name' => sub {
             $params{columns} = [ body_parameters->get_all('column_id') ];
 
             my $table_data = [];
-            my $columns = {};
-
+            
             while (my $record = $records->single)
             {
                 my @mapped_columns =$record->presentation_map_columns(columns => \@columns);
@@ -3064,7 +3063,6 @@ prefix '/:layout_name' => sub {
 
                 foreach my $column (@mapped_columns)
                 {
-                    $columns->{$column->{id}} = $column->{name};
                     $values->{$column->{id}} = $column->{data}->{value} || "No value";
                 }
 
@@ -3074,7 +3072,7 @@ prefix '/:layout_name' => sub {
                 };
             }
 
-            return template "historic_purge/confirm" => { table_data => $table_data, columns => $columns };
+            return template "historic_purge/confirm" => { table_data => $table_data, columns => \@columns };
         }
         elsif (defined param('purge'))
         {

@@ -6,10 +6,10 @@
         <input type="hidden" name="csrf_token" value="[% csrf_token %]">
 
         [%
-        FOR id IN columns.keys;
+        FOR col IN columns;
             INCLUDE fields/hidden.tt
                 name  = "layout",
-                value = id;
+                value = col.id;
         END;
 
         FOR k IN table_data;
@@ -30,8 +30,8 @@
         rows                   = [];
         table_columns          = [{name = 'current id'}];
 
-        FOREACH col IN columns.values;
-            table_columns.push({name = col});
+        FOREACH col IN columns;
+            table_columns.push({name = col.name});
         END;
 
         FOREACH data IN table_data;

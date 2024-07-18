@@ -9,6 +9,8 @@ use GADS::Record;
 use lib 't/lib';
 use Test::GADS::DataSheet;
 
+use Test::Simple tests => 126;
+
 my $sheet = Test::GADS::DataSheet->new(
     data => [ {
         string1    => 'Foo',
