@@ -3048,10 +3048,11 @@ prefix '/:layout_name' => sub {
 
         my $records = GADS::Records->new(%params);
         my @columns = grep { !$_->internal } @{ $records->columns_render };
+        my $columns_selected = +{};
 
         if (defined param('stage1'))
         {
-            $params{columns} = [ body_parameters->get_all('column_id') ];
+            $records->columns([ body_parameters->get_all('column_id') ]);
 
             my $table_data = [];
             
@@ -3076,16 +3077,22 @@ prefix '/:layout_name' => sub {
         }
         elsif (defined param('purge'))
         {
-            my $current_ids = [body_parameters->get_all('current_id')];
-            my $layouts     = [body_parameters->get_all('layout')];
-
-            if ( process( sub { schema->resultset('Current')->historic_purge($user, $current_ids, $layouts) } ) )
+            my @current_ids = body_parameters->get_all('current_id');
+            my @columns_purge = body_parameters->get_all('columns_selected');
+            
+            $columns_selected->{$_} = 1 for @columns_purge;
+            
+            if ( process( sub { schema->resultset('Current')->historic_purge($user, \@current_ids, \@columns_purge) } ) )
             {
                 return forwardHome({ success => "Records have now been purged" }, $layout->identifier . '/data');
             }
         }
 
-        return template "historic_purge/initial" => { columns => \@columns, count => $records->count };
+        return template "historic_purge/initial" => { 
+            columns_view => \@columns, 
+            count => $records->count, 
+            columns_selected => $columns_selected 
+        };
     };
 
     any ['get', 'post'] => '/purge/?' => require_login sub {

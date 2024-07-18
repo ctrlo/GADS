@@ -163,7 +163,7 @@ sub _build_files
     return \@return;
 }
 
-sub _datums
+sub _files_rs
 {   my $self = shift;
     [$self->schema->resultset('File')->search({
         record_id => $self->record_id,
@@ -173,8 +173,8 @@ sub _datums
 
 sub is_purged {
     my $self = shift;
-    my @datums = @{$self->_datums};
-    return grep { $_->is_purged } @datums;
+    my @files = @{$self->_files_rs};
+    return grep { $_->is_purged } @files;
 }
 
 sub _ids_to_files

@@ -9,7 +9,7 @@ use GADS::Record;
 use lib 't/lib';
 use Test::GADS::DataSheet;
 
-use Test::Simple tests => 126;
+use Test::Simple tests => 231;
 
 my $sheet = Test::GADS::DataSheet->new(
     data => [ {
@@ -130,6 +130,9 @@ foreach my $col (@cols)
             layout_id => $string_col->id,
         })->next;
         ok(!$datum->value, "Datum is now blank");
+        ok($datum->purged_by, "Purged by is set");
+        ok($datum->purged_on, "Purged on is set");
+        ok($datum->is_purged, "Is purged is set");
     }
 }
 

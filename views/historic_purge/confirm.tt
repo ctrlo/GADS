@@ -8,7 +8,7 @@
         [%
         FOR col IN columns;
             INCLUDE fields/hidden.tt
-                name  = "layout",
+                name  = "columns_selected",
                 value = col.id;
         END;
 

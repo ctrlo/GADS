@@ -222,7 +222,6 @@ sub export_hash
 around purge => sub {
     my $orig = shift;
     my $self = shift;
-    my $user = shift;
 
     my $field = $self->value_fields->[0];
 
