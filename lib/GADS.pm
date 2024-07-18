@@ -26,6 +26,7 @@ use File::Temp qw/ tempfile /;
 use GADS::Alert;
 use GADS::Approval;
 use GADS::Audit;
+use GADS::Layout;
 use GADS::Column;
 use GADS::Column::Autocur;
 use GADS::Column::Calc;
@@ -53,7 +54,6 @@ use GADS::Group;
 use GADS::Groups;
 use GADS::Import;
 use GADS::Instances;
-use GADS::Layout;
 use GADS::MetricGroup;
 use GADS::MetricGroups;
 use GADS::Record;
@@ -1685,7 +1685,21 @@ get '/file/?' => require_login sub {
     };
 };
 
-any ['get', 'post'] => '/file/:id?' => require_login sub {
+get '/file/:id?' => require_login sub {
+
+    my $id = route_parameters->get('id')
+        or error "File ID missing";
+
+    my $file = $id =~ /^[0-9]+$/
+        && schema->resultset('Fileval')->find_with_permission($id, logged_in_user)
+            or error __x"File ID {id} cannot be found", id => $id;
+
+    # Call content from the Datum::File object, which will ensure the user has
+    # access to this file.
+    send_file( \($file->single_content), content_type => $file->single_mimetype, filename => $file->single_name );
+};
+
+post '/file/:id?' => require_login sub {
 
     # File upload through the "manage files" interface
     if (my $upload = upload('file'))
@@ -1705,52 +1719,20 @@ any ['get', 'post'] => '/file/:id?' => require_login sub {
         }
     }
 
-    # ID will either be in the route URL or as a delete parameter
-    my $id = route_parameters->get('id') || body_parameters->get('delete')
-        or error "File ID missing";
+    # Otherwise assume delete
+    error __"You do not have permission to delete files"
+        unless logged_in_user->permission->{superadmin};
+    my $id = body_parameters->get('delete')
+        or error "File ID missing for deletion request";
 
-    # Need to get file details first, to be able to populate
-    # column details of applicable.
+    # Assume no access control needed for superadmin
     my $fileval = $id =~ /^[0-9]+$/ && schema->resultset('Fileval')->find($id)
         or error __x"File ID {id} cannot be found", id => $id;
 
-    # Attached to a record value?
-    my ($file_rs) = $fileval->files; # In theory can be more than one, but not in practice (yet)
-    my $file = GADS::Datum::File->new(ids => $id);
-    # Get appropriate column, if applicable (could be unattached document)
-    # This will control access to the file
-    if ($file_rs && $file_rs->layout_id)
+    if (process( sub { $fileval->delete }))
     {
-        my $layout = var('instances')->layout($file_rs->layout->instance_id);
-        $file->column($layout->column($file_rs->layout_id));
+        return forwardHome( { success => "File has been deleted successsfully" }, 'file/' );
     }
-    elsif (!$fileval->is_independent)
-    {
-        # If the file has been uploaded via a record edit and it hasn't been
-        # attached to a record yet (or the record edit was cancelled) then do
-        # not allow access
-        error __"Access to this file is not allowed"
-            unless $fileval->edit_user_id && $fileval->edit_user_id == logged_in_user->id;
-        $file->schema(schema);
-    }
-    else {
-        $file->schema(schema);
-    }
-
-    if (body_parameters->get('delete'))
-    {
-        error __"You do not have permission to delete files"
-            unless logged_in_user->permission->{superadmin};
-        if (process( sub { $fileval->delete }))
-        {
-            return forwardHome( { success => "File has been deleted successsfully" }, 'file/' );
-        }
-    }
-
-    # Call content from the Datum::File object, which will ensure the user has
-    # access to this file. The other parameters are taken straight from the
-    # database resultset
-    send_file( \($file->content), content_type => $fileval->mimetype, filename => $fileval->name );
 };
 
 # Use api route to ensure errors are returned as JSON
