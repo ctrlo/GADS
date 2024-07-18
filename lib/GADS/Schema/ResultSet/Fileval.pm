@@ -39,7 +39,19 @@ sub find_with_permission
         );
         # GADS::Datum::File will check for access to this field
         $file->column($layout->column($file_rs->layout_id));
+        # Need to call this now to check for access to column. layout() is a
+        # weak accessor in GADS::Column so will have gone out of scope if
+        # called later
         $file->single_content;
+        # Also check that user has access to the actual record
+        my $record = GADS::Record->new(
+            user    => $user,
+            schema  => $self->result_source->schema,
+            layout  => $layout,
+            columns => [],
+        );
+        # Will error if no access
+        $record->find_current_id($file_rs->record->current_id);
     }
     elsif (!$fileval->is_independent)
     {
