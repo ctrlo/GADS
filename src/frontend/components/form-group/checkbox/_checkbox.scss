@@ -9,6 +9,10 @@
   margin-bottom: 0;
 }
 
+.checkbox-confirm {
+  margin-top: $padding-large-vertical;
+}
+
 .checkbox--hide-label {
   input[type=checkbox]:checked + label::after {
     left: 5px;

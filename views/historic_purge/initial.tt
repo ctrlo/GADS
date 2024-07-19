@@ -1,69 +1,65 @@
-[% IF columns_view.size %]
-    <form role="form" method="post">
-        <h3>Purge [% count %] records from the current view</h3>
-        <p>Are you sure you want to purge data from the selected records?</p>
-        <p class="text-danger">WARNING: This is a destructive action and cannot be undone</p>
-        <input type="hidden" name="csrf_token" value="[% csrf_token %]">
-        [%
-        # prepare table config
-        table_class            = 'table-striped table-selectable';
-        table_dom              = 't';
-        table_language         = {
-            emptyTable => "There are no records in this view.",
-        };
-        table_show_all_records = 1;
-        table_unresponsive     = 0;
-        table_caption          = "Purge on " _ count _ " records";
-        rows                   = [];
-        table_columns          = [{
-            name      = "Select Columns",
-            data = "check",
-            class = "check",
-            orderable = 0,
-        }];
+<form role="form" method="post">
+    <h3>Purge field values from records in the current view</h3>
+    <p>Select fields to purge within this view.</p>
+    <p class="text-danger">WARNING: This is a destructive action and cannot be undone. This will remove all field values from all current and historical versions of the records, and chronology in the selected fields from the current view.</p>
+    <input type="hidden" name="csrf_token" value="[% csrf_token %]">
+    [%
+    # prepare table config
+    table_class            = 'table-striped table-selectable';
+    table_dom              = 't';
+    table_language         = {
+        emptyTable => "There are no records in this view.",
+    };
+    table_show_all_records = 1;
+    table_unresponsive     = 0;
+    table_caption          = "Purge on " _ count _ " records";
+    rows                   = [];
+    table_columns          = [{
+        name      = "Select Fields to Purge",
+        data = "check",
+        class = "check",
+        orderable = 0,
+    }];
 
-        FOR column IN columns_view;
-            column_name = column.name;
-            column_id = column.id;
-            rows.push({
-            fields = [{
-                type        = "text"
-                label       = ""
-                sub_field   = "fields/sub/checkbox.tt"
-                sub_params  = {
-                    id => "dt_checkbox_" _ column_name
-                    name => "column_id"
-                    label => column_name
-                    checked => columns_selected.$column_id
-                    is_required => 0
-                    autofocus => 0
-                    input_class => ""
-                    label_in_span => 1
-                    value => column_id
-                }
-            }],
-            });
-        END;
-        %]
-        [% INCLUDE tables/basic_table.tt; %]
-        [% INCLUDE navigation/button_bar.tt
-            row_class="row mt-5"
-            columns = [{
-                    class = "col-sm-auto mb-3 mb-sm-0"
-                    buttons = [{
-                    type = "link",
-                    class = "btn btn-secondary",
-                    label = "Cancel",
-                    target = url.page _ "/" _ layout.identifier _ "/data",
-                },{
-                    type = "submit",
-                    class = "btn btn-danger",
-                    label = "Continue",
-                    value = "stage1",
-                    name = "stage1"
-                }]
-            }] %]
-    </form>
-[% ELSE %]
-    <div role="alert" class="alert alert-info">There are no records in this view</div>
-[% END %]
+    FOR column IN columns_view;
+        column_name = column.name;
+        column_id = column.id;
+        rows.push({
+        fields = [{
+            type        = "text"
+            label       = ""
+            sub_field   = "fields/sub/checkbox.tt"
+            sub_params  = {
+                id => "dt_checkbox_" _ column_name
+                name => "column_id"
+                label => column_name
+                checked => columns_selected.$column_id
+                is_required => 0
+                autofocus => 0
+                input_class => ""
+                label_in_span => 1
+                value => column_id
+            }
+        }],
+        });
+    END;
+    %]
+    [% INCLUDE tables/basic_table.tt; %]
+    [% INCLUDE navigation/button_bar.tt
+        row_class="row mt-5"
+        columns = [{
+                class = "col-sm-auto mb-3 mb-sm-0"
+                buttons = [{
+                type = "link",
+                class = "btn btn-secondary",
+                label = "Cancel",
+                target = url.page _ "/" _ layout.identifier _ "/data",
+            },{
+                type = "submit",
+                class = "btn btn-danger",
+                label = "Continue",
+                value = "stage1",
+                name = "stage1"
+            }]
+        }] %]
+</form>

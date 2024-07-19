@@ -3053,17 +3053,17 @@ prefix '/:layout_name' => sub {
         if (defined param('stage1'))
         {
             my $cols = {};
-            
+
             $cols->{$_} = 1 foreach body_parameters->get_all('column_id');
 
             @columns = grep { $cols->{$_->{id}} } @columns;
 
             my $table_data = [];
-            
+
             while (my $record = $records->single)
             {
                 my @mapped_columns =$record->presentation_map_columns(columns => \@columns);
-                
+
                 my $values = {};
 
                 foreach my $column (@mapped_columns)
@@ -3081,14 +3081,17 @@ prefix '/:layout_name' => sub {
         }
         elsif (defined param('purge'))
         {
-            my @current_ids = body_parameters->get_all('current_id');
-            my @columns_purge = body_parameters->get_all('columns_selected');
-            
-            $columns_selected->{$_} = 1 for @columns_purge;
-            
-            if ( process( sub { schema->resultset('Current')->historic_purge($user, \@current_ids, \@columns_purge) } ) )
-            {
-                return forwardHome({ success => "Records have now been purged" }, $layout->identifier . '/data');
+            if(body_parameters->get('confirm_purge')) {
+
+                my @current_ids = body_parameters->get_all('current_id');
+                my @columns_purge = body_parameters->get_all('columns_selected');
+
+                $columns_selected->{$_} = 1 for @columns_purge;
+
+                if ( process( sub { schema->resultset('Current')->historic_purge($user, \@current_ids, \@columns_purge) } ) )
+                {
+                    return forwardHome({ success => "Records have now been purged" }, $layout->identifier . '/data');
+                }
             }
         }
 

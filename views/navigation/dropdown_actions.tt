@@ -84,7 +84,7 @@
       id     = "",
       class  = "",
       target = url.page _ "/" _ layout_obj.identifier _ "/historic_purge/",
-      label  = "Historic purge for " _ layout.record_name_plural
+      label  = "Field Data Purge"
     });
   END;
 
