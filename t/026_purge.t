@@ -24,7 +24,6 @@ my $sheet = Test::GADS::DataSheet->new(
             mimetype => 'text/plain',
             content  => 'Text file1',
         },
-        tree1        => 'j1_1',
     } ],
 );
 my $schema  = $sheet->schema;
@@ -83,9 +82,6 @@ my @cols = (
         as_string => "file2.txt",
     },
 );
-
-$record->fields-> {$columns->{ 'tree1' }->id} ->set_value(1);
-$record->write(no_alerts => 1);
 
 foreach my $col (@cols)
 {
