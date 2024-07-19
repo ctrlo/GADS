@@ -56,7 +56,7 @@
         id             = "confirm_purge"
         name           = id
         value          = 1
-        required       = 1
+        is_required    = 1
         label          = "I confirm this action and am aware my user details will be logged, and wish to proceed with purging the above values completely from the system."
         input_class    = "checkbox-confirm";
 
