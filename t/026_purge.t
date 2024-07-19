@@ -9,21 +9,22 @@ use GADS::Record;
 use lib 't/lib';
 use Test::GADS::DataSheet;
 
-use Test::Simple tests => 231;
+# use Test::Simple tests => 231;
 
 my $sheet = Test::GADS::DataSheet->new(
     data => [ {
-        string1    => 'Foo',
-        integer1   => 50,
-        date1      => '2014-10-10',
-        enum1      => 1,
-        daterange1 => [ '2012-02-10', '2013-06-15' ],
-        person1    => 1,
-        file1      => {
+        string1      => 'Foo',
+        integer1     => 50,
+        date1        => '2014-10-10',
+        enum1        => 1,
+        daterange1   => [ '2012-02-10', '2013-06-15' ],
+        person1      => 1,
+        file1        => {
             name     => 'file1.txt',
             mimetype => 'text/plain',
             content  => 'Text file1',
         },
+        tree1        => 'j1_1',
     } ],
 );
 my $schema  = $sheet->schema;
@@ -83,20 +84,23 @@ my @cols = (
     },
 );
 
+$record->fields-> {$columns->{ 'tree1' }->id} ->set_value(1);
+$record->write(no_alerts => 1);
+
 foreach my $col (@cols)
 {
-    my $string_col = $columns->{ $col->{name} };
-    ok($string_col, "Column found");
+    my $test_col = $columns->{ $col->{name} };
+    ok($test_col, "Column found");
 
     $record->find_current_id(1);
 
-    $record->fields->{ $string_col->id }->set_value($col->{new});
+    $record->fields->{ $test_col->id }->set_value($col->{new});
     $record->write(no_alerts => 1);
 
     my $newval = $col->{as_string} || $col->{new};
 
     is(
-        $record->fields->{ $string_col->id }->as_string,
+        $record->fields->{ $test_col->id }->as_string,
         $newval, "Intial value correct",
     );
 
@@ -106,20 +110,20 @@ foreach my $col (@cols)
     {
         my $datum = $schema->resultset($col->{type})->search({
             record_id => $rec_rs->id,
-            layout_id => $string_col->id,
+            layout_id => $test_col->id,
         })->next;
         ok($datum,        "Datum found");
         ok($datum->value, "Datum is not blank to begin");
     }
 
-    $current->historic_purge($sheet->user, ($string_col->id));
+    $current->historic_purge($sheet->user, ($test_col->id));
 
     $record->find_current_id(1);
 
-    ok(!$record->fields->{ $string_col->id }->as_string, "Value now blanked")
+    ok(!$record->fields->{ $test_col->id }->as_string, "Value now blanked")
         unless $col->{type} eq 'File';
     is(
-        $record->fields->{ $string_col->id }->as_string,
+        $record->fields->{ $test_col->id }->as_string,
         'Purged', "Value now blanked",
     ) if $col->{type} eq 'File';
 
@@ -127,7 +131,7 @@ foreach my $col (@cols)
     {
         my $datum = $schema->resultset($col->{type})->search({
             record_id => $rec_rs->id,
-            layout_id => $string_col->id,
+            layout_id => $test_col->id,
         })->next;
         ok(!$datum->value, "Datum is now blank");
         ok($datum->purged_by, "Purged by is set");
