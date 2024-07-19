@@ -3052,7 +3052,11 @@ prefix '/:layout_name' => sub {
 
         if (defined param('stage1'))
         {
-            $records->columns([ body_parameters->get_all('column_id') ]);
+            my $cols = {};
+            
+            $cols->{$_} = 1 foreach body_parameters->get_all('column_id');
+
+            @columns = grep { $cols->{$_->{id}} } @columns;
 
             my $table_data = [];
             
