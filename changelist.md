@@ -3,7 +3,7 @@
 -------
 
 **Version**: 2.4.0
-**Released**: TBC
+**Released**: 22-07-2024
 
 -------
 
