@@ -1687,6 +1687,8 @@ get '/file/?' => require_login sub {
 
 get '/file/:id?' => require_login sub {
 
+    return send_file( \"Purged File", content_type => "text/plain", filename => "purged" ) if $id == -1;
+
     my $id = route_parameters->get('id')
         or error "File ID missing";
 
@@ -3013,6 +3015,76 @@ prefix '/:layout_name' => sub {
         content_type 'application/json';
         encode_json($json);
 
+    };
+
+    any [ 'get', 'post' ] => '/historic_purge/' => require_login sub {
+        my $layout = var('layout') or pass;
+
+        forwardHome({ danger => 'You do not have permission to access this page.' })
+            unless $layout->user_can('purge');
+
+        my $user = logged_in_user;
+        my $view = current_view($user, $layout);
+
+        my %params = (
+            user   => $user,
+            layout => $layout,
+            schema => schema,
+            view   => $view,
+        );
+
+        my $records = GADS::Records->new(%params);
+        my @columns = grep { !$_->internal } @{ $records->columns_render };
+        my $columns_selected = +{};
+
+        if (defined param('stage1'))
+        {
+            $columns_selected->{$_} = 1 foreach body_parameters->get_all('column_id');
+
+            @columns = grep { $colums_selected->{$_->{id}} } @columns;
+
+            my $table_data = [];
+
+            while (my $record = $records->single)
+            {
+                my @mapped_columns =$record->presentation_map_columns(columns => \@columns);
+
+                my $values = {};
+
+                foreach my $column (@mapped_columns)
+                {
+                    $values->{$column->{id}} = $column->{data}->{value} || "No value";
+                }
+
+                push @$table_data, {
+                    current_id => $record->current_id,
+                    values  => $values
+                };
+            }
+
+            return template "historic_purge/confirm" => { table_data => $table_data, columns => \@columns };
+        }
+        elsif (defined param('purge'))
+        {
+            if(body_parameters->get('confirm_purge')) {
+
+                my @current_ids = body_parameters->get_all('current_id');
+                my @columns_purge = body_parameters->get_all('columns_selected');
+
+                $columns_selected->{$_} = 1 for @columns_purge;
+
+                if ( process( sub { schema->resultset('Current')->historic_purge($user, \@current_ids, \@columns_purge) } ) )
+                {
+                    return forwardHome({ success => "Records have now been purged" }, $layout->identifier . '/data');
+                }
+            }
+        }
+
+        return template "historic_purge/initial" => { 
+            columns_view => \@columns, 
+            count => $records->count, 
+            columns_selected => $columns_selected 
+        };
     };
 
     any ['get', 'post'] => '/purge/?' => require_login sub {

@@ -13,7 +13,11 @@ GADS::Schema::Result::Date
 use strict;
 use warnings;
 
-use base 'DBIx::Class::Core';
+use Moo;
+
+extends 'DBIx::Class::Core';
+with 'GADS::Role::Purgable';
+sub BUILDARGS { $_[2] || {} }
 
 =head1 COMPONENTS LOADED
 
@@ -65,6 +69,18 @@ __PACKAGE__->table("date");
   datetime_undef_if_invalid: 1
   is_nullable: 1
 
+=head2 purged_by
+
+  data_type: 'bigint'
+  is_nullable: 1
+  is_foreign_key: 1
+
+=head2 purged_on
+
+  data_type: 'timestamp'
+  datetime_undef_if_invalid: 1,
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -78,6 +94,10 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "value",
   { data_type => "date", datetime_undef_if_invalid => 1, is_nullable => 1 },
+  "purged_by",
+  { data_type => "bigint", is_nullable => 1, is_foreign_key => 1 },
+  "purged_on",
+  { data_type => "timestamp", datetime_undef_if_invalid => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -124,6 +144,20 @@ __PACKAGE__->belongs_to(
   { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
+=head2 purged_by
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::User>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "purged_by",
+  "GADS::Schema::Result::User",
+  { id => "purged_by" },
+  { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
+);
 
 # Created by DBIx::Class::Schema::Loader v0.07043 @ 2015-11-13 16:02:57
 # DO NOT MODIFY THIS OR ANYTHING ABOVE! md5sum:siHwSELbzQPrb4K2EMUPMw
