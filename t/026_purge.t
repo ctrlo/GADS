@@ -9,11 +9,15 @@ use GADS::Record;
 use lib 't/lib';
 use Test::GADS::DataSheet;
 
-# use Test::Simple tests => 231;
+use Test::Simple tests => 371;
 
 my $sheet = Test::GADS::DataSheet->new(
+    column_count => {
+        string => 2,
+    },
     data => [ {
         string1      => 'Foo',
+        string2      => 'Keep',
         integer1     => 50,
         date1        => '2014-10-10',
         enum1        => 1,
@@ -133,6 +137,15 @@ foreach my $col (@cols)
         ok($datum->purged_by, "Purged by is set");
         ok($datum->purged_on, "Purged on is set");
         ok($datum->is_purged, "Is purged is set");
+
+        $datum=$schema->resultset('String')->search({
+            record_id => $rec_rs->id,
+            layout_id => $columns->{string2}->id,
+        })->next;
+        ok($datum->value, "String2 is not blank");
+        ok(!$datum->purged_by, "String2 purged by is not set");
+        ok(!$datum->purged_on, "String2 purged on is not set");
+        ok(!$datum->is_purged, "String2 is purged is not set");
     }
 }
 
