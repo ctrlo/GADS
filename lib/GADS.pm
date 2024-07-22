@@ -1686,11 +1686,10 @@ get '/file/?' => require_login sub {
 };
 
 get '/file/:id?' => require_login sub {
-
-    return send_file( \"Purged File", content_type => "text/plain", filename => "purged" ) if $id == -1;
-
     my $id = route_parameters->get('id')
         or error "File ID missing";
+
+    return send_file( \"Purged File", content_type => "text/plain", filename => "purged" ) if $id == -1;
 
     my $file = $id =~ /^[0-9]+$/
         && schema->resultset('Fileval')->find_with_permission($id, logged_in_user)
@@ -3041,7 +3040,7 @@ prefix '/:layout_name' => sub {
         {
             $columns_selected->{$_} = 1 foreach body_parameters->get_all('column_id');
 
-            @columns = grep { $colums_selected->{$_->{id}} } @columns;
+            @columns = grep { $columns_selected->{$_->{id}} } @columns;
 
             my $table_data = [];
 
