@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: 'Check out the GADS repository'
-        uses: 'actions/checkout@v3'
+        uses: 'actions/checkout@v4'
       - name: 'Install Non-CPAN dependencies'
         run: |
           sudo apt-get install cpanminus liblua5.3-dev
@@ -70,7 +70,7 @@ jobs:
 
     steps:
       - name: 'Check out the GADS code'
-        uses: 'actions/checkout@v3'
+        uses: 'actions/checkout@v4'
       - name: 'Install Non-CPAN dependencies'
         run: |
           sudo apt-get install cpanminus liblua5.3-dev
@@ -131,7 +131,7 @@ jobs:
 
     steps:
       - name: 'Check out the GADS code'
-        uses: 'actions/checkout@v3'
+        uses: 'actions/checkout@v4'
       - name: 'Install Non-CPAN dependencies'
         run: |
           sudo apt-get install cpanminus liblua5.3-dev gcc g++ libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl
@@ -170,7 +170,7 @@ jobs:
         run: |
           ./bin/setup_database
           perl bin/app.pl &
-      - name: 'Run the Webdriver tests'
+      - name: 'Run the Cypress tests'
         run: yarn cypress run --browser ${{ matrix.browser.name }}
               
   js_tests:
@@ -182,9 +182,9 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'yarn'
