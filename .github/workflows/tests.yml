@@ -170,7 +170,7 @@ jobs:
         run: |
           ./bin/setup_database
           perl bin/app.pl &
-      - name: 'Run the Webdriver tests'
+      - name: 'Run the Cypress tests'
         run: yarn cypress run --browser ${{ matrix.browser.name }}
               
   js_tests:
