@@ -15,6 +15,18 @@ __PACKAGE__->load_components(qw/
     /
 );
 
+sub historic_purge {
+    my ($self, $user, $current_ids, $layouts) = @_;
+
+    error __"Please select some values to delete" if !$current_ids || !@$current_ids;
+    error __"Please select some layouts to delete" if !$layouts || !@$layouts;
+
+    my @result = $self->search({id=>$current_ids})->all;
+
+    $_->historic_purge($user, $layouts)
+        foreach @result;
+}
+
 sub active_rs
 {   shift->search({
         'me.deleted'      => undef,

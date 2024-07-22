@@ -26,6 +26,7 @@ use File::Temp qw/ tempfile /;
 use GADS::Alert;
 use GADS::Approval;
 use GADS::Audit;
+use GADS::Layout;
 use GADS::Column;
 use GADS::Column::Autocur;
 use GADS::Column::Calc;
@@ -53,7 +54,6 @@ use GADS::Group;
 use GADS::Groups;
 use GADS::Import;
 use GADS::Instances;
-use GADS::Layout;
 use GADS::MetricGroup;
 use GADS::MetricGroups;
 use GADS::Record;
@@ -90,6 +90,11 @@ use Dancer2::Plugin::Auth::Extensible::Provider::DBIC 0.623;
 use Dancer2::Plugin::LogReport 'linkspace';
 
 use GADS::API; # API routes
+
+# YAML needs to save and load blessed objects for the sessio serializer (for
+# the notification messages). Since YAML 1.25 this is disabled by default, so
+# turn it on
+$YAML::LoadBlessed = 1;
 
 # Uncomment for DBIC traces
 #schema->storage->debugobj(new GADS::DBICProfiler);
@@ -1680,7 +1685,22 @@ get '/file/?' => require_login sub {
     };
 };
 
-any ['get', 'post'] => '/file/:id?' => require_login sub {
+get '/file/:id?' => require_login sub {
+    my $id = route_parameters->get('id')
+        or error "File ID missing";
+
+    return send_file( \"Purged File", content_type => "text/plain", filename => "purged" ) if $id == -1;
+
+    my $file = $id =~ /^[0-9]+$/
+        && schema->resultset('Fileval')->find_with_permission($id, logged_in_user)
+            or error __x"File ID {id} cannot be found", id => $id;
+
+    # Call content from the Datum::File object, which will ensure the user has
+    # access to this file.
+    send_file( \($file->single_content), content_type => $file->single_mimetype, filename => $file->single_name );
+};
+
+post '/file/:id?' => require_login sub {
 
     # File upload through the "manage files" interface
     if (my $upload = upload('file'))
@@ -1700,52 +1720,20 @@ any ['get', 'post'] => '/file/:id?' => require_login sub {
         }
     }
 
-    # ID will either be in the route URL or as a delete parameter
-    my $id = route_parameters->get('id') || body_parameters->get('delete')
-        or error "File ID missing";
+    # Otherwise assume delete
+    error __"You do not have permission to delete files"
+        unless logged_in_user->permission->{superadmin};
+    my $id = body_parameters->get('delete')
+        or error "File ID missing for deletion request";
 
-    # Need to get file details first, to be able to populate
-    # column details of applicable.
+    # Assume no access control needed for superadmin
     my $fileval = $id =~ /^[0-9]+$/ && schema->resultset('Fileval')->find($id)
         or error __x"File ID {id} cannot be found", id => $id;
 
-    # Attached to a record value?
-    my ($file_rs) = $fileval->files; # In theory can be more than one, but not in practice (yet)
-    my $file = GADS::Datum::File->new(ids => $id);
-    # Get appropriate column, if applicable (could be unattached document)
-    # This will control access to the file
-    if ($file_rs && $file_rs->layout_id)
+    if (process( sub { $fileval->delete }))
     {
-        my $layout = var('instances')->layout($file_rs->layout->instance_id);
-        $file->column($layout->column($file_rs->layout_id));
+        return forwardHome( { success => "File has been deleted successsfully" }, 'file/' );
     }
-    elsif (!$fileval->is_independent)
-    {
-        # If the file has been uploaded via a record edit and it hasn't been
-        # attached to a record yet (or the record edit was cancelled) then do
-        # not allow access
-        error __"Access to this file is not allowed"
-            unless $fileval->edit_user_id && $fileval->edit_user_id == logged_in_user->id;
-        $file->schema(schema);
-    }
-    else {
-        $file->schema(schema);
-    }
-
-    if (body_parameters->get('delete'))
-    {
-        error __"You do not have permission to delete files"
-            unless logged_in_user->permission->{superadmin};
-        if (process( sub { $fileval->delete }))
-        {
-            return forwardHome( { success => "File has been deleted successsfully" }, 'file/' );
-        }
-    }
-
-    # Call content from the Datum::File object, which will ensure the user has
-    # access to this file. The other parameters are taken straight from the
-    # database resultset
-    send_file( \($file->content), content_type => $fileval->mimetype, filename => $fileval->name );
 };
 
 # Use api route to ensure errors are returned as JSON
@@ -3033,6 +3021,76 @@ prefix '/:layout_name' => sub {
         content_type 'application/json';
         encode_json($json);
 
+    };
+
+    any [ 'get', 'post' ] => '/historic_purge/' => require_login sub {
+        my $layout = var('layout') or pass;
+
+        forwardHome({ danger => 'You do not have permission to access this page.' })
+            unless $layout->user_can('purge');
+
+        my $user = logged_in_user;
+        my $view = current_view($user, $layout);
+
+        my %params = (
+            user   => $user,
+            layout => $layout,
+            schema => schema,
+            view   => $view,
+        );
+
+        my $records = GADS::Records->new(%params);
+        my @columns = grep { !$_->internal } @{ $records->columns_render };
+        my $columns_selected = +{};
+
+        if (defined param('stage1'))
+        {
+            $columns_selected->{$_} = 1 foreach body_parameters->get_all('column_id');
+
+            @columns = grep { $columns_selected->{$_->{id}} } @columns;
+
+            my $table_data = [];
+
+            while (my $record = $records->single)
+            {
+                my @mapped_columns =$record->presentation_map_columns(columns => \@columns);
+
+                my $values = {};
+
+                foreach my $column (@mapped_columns)
+                {
+                    $values->{$column->{id}} = $column->{data}->{value} || "No value";
+                }
+
+                push @$table_data, {
+                    current_id => $record->current_id,
+                    values  => $values
+                };
+            }
+
+            return template "historic_purge/confirm" => { table_data => $table_data, columns => \@columns };
+        }
+        elsif (defined param('purge'))
+        {
+            if(body_parameters->get('confirm_purge')) {
+
+                my @current_ids = body_parameters->get_all('current_id');
+                my @columns_purge = body_parameters->get_all('columns_selected');
+
+                $columns_selected->{$_} = 1 for @columns_purge;
+
+                if ( process( sub { schema->resultset('Current')->historic_purge($user, \@current_ids, \@columns_purge) } ) )
+                {
+                    return forwardHome({ success => "Records have now been purged" }, $layout->identifier . '/data');
+                }
+            }
+        }
+
+        return template "historic_purge/initial" => { 
+            columns_view => \@columns, 
+            count => $records->count, 
+            columns_selected => $columns_selected 
+        };
     };
 
     any ['get', 'post'] => '/purge/?' => require_login sub {
