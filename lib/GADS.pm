@@ -3065,17 +3065,14 @@ prefix '/:layout_name' => sub {
         }
         elsif (defined param('purge'))
         {
-            if(body_parameters->get('confirm_purge')) {
+            my @current_ids = body_parameters->get_all('current_id');
+            my @columns_purge = body_parameters->get_all('columns_selected');
 
-                my @current_ids = body_parameters->get_all('current_id');
-                my @columns_purge = body_parameters->get_all('columns_selected');
+            $columns_selected->{$_} = 1 for @columns_purge;
 
-                $columns_selected->{$_} = 1 for @columns_purge;
-
-                if ( process( sub { schema->resultset('Current')->historic_purge($user, \@current_ids, \@columns_purge) } ) )
-                {
-                    return forwardHome({ success => "Records have now been purged" }, $layout->identifier . '/data');
-                }
+            if ( process( sub { schema->resultset('Current')->historic_purge($user, \@current_ids, \@columns_purge) } ) )
+            {
+                return forwardHome({ success => "Records have now been purged" }, $layout->identifier . '/data');
             }
         }
 
