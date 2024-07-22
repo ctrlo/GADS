@@ -501,7 +501,7 @@ sub assert_on_manage_tables_page {
     $self->_assert_on_page(
         $name,
         { selector => 'h1', text => 'Tables' },
-        { selector => 'th.sorting', match => '\A(?i)Table\s+\z' },
+        { selector => '.nav__link--active', text => 'Tables' },
     );
 
     $test->release;
