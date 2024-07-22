@@ -318,16 +318,13 @@ sub _build_reports
 
     my $reports_rs;
     
-    if ($user->permission->{superadmin} || $self->layout->user_can('layout')) {
-        $reports_rs = $self->schema->resultset('Report')->search({
-            instance_id => $self->instance_id,
-            deleted => undef
-        });
-    } else {
-        $reports_rs = $self->schema->resultset('Report')->search({
-            instance_id => $self->instance_id,
-            deleted => undef,
-        },{prefetch => 'report_groups'})->search({
+    $reports_rs = $self->schema->resultset('Report')->search({
+        instance_id => $self->instance_id,
+        deleted => undef
+    },{prefetch => 'report_groups'});
+    
+    unless ($user->permission->{superadmin} || $self->layout->user_can('layout')) {
+        $reports_rs = $reports_rs->search({
             'report_groups.group_id' => { -in => \@group_ids },
         });
     }

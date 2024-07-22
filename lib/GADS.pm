@@ -2879,7 +2879,7 @@ prefix '/:layout_name' => sub {
                 my $checkbox_fields    = [body_parameters->get_all('checkboxes')];
                 my $security_marking   = body_parameters->get('security_marking');
                 my $instance           = $layout->instance_id;
-                my $groups             = body_parameters->get_all('groups');
+                my $groups             = [body_parameters->get_all('groups')];
 
                 my $report = schema->resultset('Report')->create_report(
                     {
@@ -2940,7 +2940,7 @@ prefix '/:layout_name' => sub {
                 my $checkboxes         = [body_parameters->get_all('checkboxes')];
                 my $security_marking   = body_parameters->get('security_marking');
                 my $instance           = $layout->instance_id;
-                my $groups             = body_parameters->get_all('groups');
+                my $groups             = [body_parameters->get_all('groups')];
 
                 my $report_id = param('id');
 
