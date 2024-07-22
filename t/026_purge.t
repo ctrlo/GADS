@@ -9,7 +9,7 @@ use GADS::Record;
 use lib 't/lib';
 use Test::GADS::DataSheet;
 
-use Test::Simple tests => 371;
+use Test::Simple tests => 384;
 
 my $sheet = Test::GADS::DataSheet->new(
     column_count => {
@@ -23,6 +23,7 @@ my $sheet = Test::GADS::DataSheet->new(
         enum1        => 1,
         daterange1   => [ '2012-02-10', '2013-06-15' ],
         person1      => 1,
+        tree1        => 'tree1',
         file1        => {
             name     => 'file1.txt',
             mimetype => 'text/plain',
@@ -42,6 +43,12 @@ my $record = GADS::Record->new(
 );
 
 my @cols = (
+    {
+        name      => "tree1",
+        type      => "Enum",
+        new       => undef,
+        as_string => 'tree1'
+    },
     {
         name => "string1",
         type => "String",
@@ -94,8 +101,11 @@ foreach my $col (@cols)
 
     $record->find_current_id(1);
 
-    $record->fields->{ $test_col->id }->set_value($col->{new});
-    $record->write(no_alerts => 1);
+    
+    if($col->{new}) {
+        $record->fields->{ $test_col->id }->set_value($col->{new});
+        $record->write(no_alerts => 1);
+    }
 
     my $newval = $col->{as_string} || $col->{new};
 
