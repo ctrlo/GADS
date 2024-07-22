@@ -223,7 +223,23 @@ sub _build__rset
     $self->schema->resultset('Fileval')->find($id);
 }
 
-has content => (
+has single_name => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->_rset && $_[0]->_rset->name;
+    },
+);
+
+has single_mimetype => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->_rset && $_[0]->_rset->mimetype;
+    },
+);
+
+has single_content => (
     is      => 'rw',
     lazy    => 1,
     builder => sub {

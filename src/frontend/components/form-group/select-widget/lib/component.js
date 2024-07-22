@@ -250,11 +250,11 @@ class SelectWidgetComponent extends Component {
   }
 
   connectMulti() {
+    const self = this
     return function() {
       const $item = $(this)
       const itemId = $item.data("list-item")
       const $associated = $("#" + itemId)
-      const self = this
 
       $associated.unbind("change")
       $associated.on("change", (e) => {
