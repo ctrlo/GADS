@@ -24,6 +24,12 @@ perl bin/seed-database.pl \
 perl -Ilib -MDancer2 -MDancer2::Plugin::Auth::Extensible -wE \
     "user_password username => '${GADS_USERNAME}', new_password => '${GADS_PASSWORD}'"
 
+# This user is present for Cypress testing - admittedly, as in the ./seed_database.pl script, this should be dependent on a flag
+if [ x"${TEST}" != x ]; then
+    perl -Ilib -MDancer2 -MDancer2::Plugin::Auth::Extensible -wE \
+        "user_password username => 'basic@example.com', new_password => 'abc123'"
+fi
+
 echo "
     UPDATE public.site SET host = '${GADS_HOSTNAME}';
     UPDATE public.user SET account_request = 0, pwchanged = NOW(), created = NOW();
