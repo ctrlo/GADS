@@ -30,7 +30,7 @@
             label       = ""
             sub_field   = "fields/sub/checkbox.tt"
             sub_params  = {
-                id => "dt_checkbox_" _ column_name
+                id => "dt_checkbox_" _ column_id
                 name => "column_id"
                 label => column_name
                 checked => columns_selected.$column_id
