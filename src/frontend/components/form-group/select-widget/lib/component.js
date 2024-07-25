@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component'
 import { logging } from 'logging'
 import { initValidationOnField } from 'validation'
-import { MoreInfoButton } from '../../../button/lib/more-info-button'
 
   /*
    * A SelectWidget is a custom disclosure widget
@@ -104,16 +104,7 @@ class SelectWidgetComponent extends Component {
   }
 
   handleDocumentClick(e) {
-    const clickedOutside =
-      !this.el.is(e.target) && this.el.has(e.target).length === 0
-    // clickInDialog was introduced in commit
-    // 8a233a0b4c2d5ad123bcd864363fa9dc641a9d47 with the comment "Don't close
-    // select widget when exiting a dialog". I am not sure why this is
-    // desirable, and indeed it means that the select-widget behaves
-    // differently in a modal than a normal page (it doesn't collapse when
-    // clicking somewhere else in the modal). I am removing it for the
-    // timebeing but documenting as such in case it needs reinstating
-    const clickedInDialog = $(e.target).closest(".modal").length !== 0
+    const clickedOutside = !this.el.is(e.target) && this.el.has(e.target).length === 0
     if (clickedOutside) {
       this.collapse(this.$widget, this.$trigger, this.$target)
     }
@@ -123,6 +114,7 @@ class SelectWidgetComponent extends Component {
     const searchValue = $(e.target)
     .val()
     .toLowerCase()
+    const self = this
 
     this.$fakeInput =
       this.$fakeInput ||
@@ -134,7 +126,6 @@ class SelectWidgetComponent extends Component {
     this.$fakeInput.detach()
 
     if (this.$selectWidget.data("value-selector") == "typeahead") {
-      const self = this
       const url = `/${this.$selectWidget.data(
         "layout-id"
       )}/match/layout/${this.$selectWidget.data("typeahead-id")}`
@@ -184,34 +175,38 @@ class SelectWidgetComponent extends Component {
     switch (key) {
       case 38: // UP
       case 40: // DOWN
-        const items = this.$available.find(".answer:not([hidden]) input")
-        let nextItem
+        {
+          const items = this.$available.find(".answer:not([hidden]) input")
+          let nextItem
 
-        e.preventDefault()
+          e.preventDefault()
 
-        if (key === 38) {
-          nextItem = items[items.length - 1]
-        } else {
-          nextItem = items[0]
+          if (key === 38) {
+            nextItem = items[items.length - 1]
+          } else {
+            nextItem = items[0]
+          }
+
+          if (nextItem) {
+            $(nextItem).focus()
+          }
+
+          break
         }
-
-        if (nextItem) {
-          $(nextItem).focus()
-        }
-
-        break
       case 13: // ENTER
-        e.preventDefault()
+        {
+          e.preventDefault()
 
-        // Select the first (visible) item
-        const firstItem = this.$available.find(".answer:not([hidden]) input").get(0)
-        if (firstItem) {
-          $(firstItem)
-            .parent()
-            .trigger("click")
+          // Select the first (visible) item
+          const firstItem = this.$available.find(".answer:not([hidden]) input").get(0)
+          if (firstItem) {
+            $(firstItem)
+              .parent()
+              .trigger("click")
+          }
+
+          break
         }
-
-        break
     }
   }
 
@@ -220,7 +215,7 @@ class SelectWidgetComponent extends Component {
     this.expand(this.$widget, this.$trigger, this.$target)
   }
 
-  collapse($widget, $trigger, $target) {
+  collapse($widget, $trigger) {
     this.$selectWidget.removeClass("select-widget--open")
     $trigger.attr("aria-expanded", false)
 
@@ -278,49 +273,52 @@ class SelectWidgetComponent extends Component {
         switch (key) {
           case 38: // UP
           case 40: // DOWN
-            const answers = self.$available.find(".answer:not([hidden])")
-            const currentIndex = self.$answers.index($associated.closest(".answer"))
-            let nextItem
+            {
+              const currentIndex = self.$answers.index($associated.closest(".answer"))
+              let nextItem
 
-            e.preventDefault()
+              e.preventDefault()
 
-            if (key === 38) {
-              nextItem = self.$answers[currentIndex - 1]
-            } else {
-              nextItem = self.$answers[currentIndex + 1]
+              if (key === 38) {
+                nextItem = self.$answers[currentIndex - 1]
+              } else {
+                nextItem = self.$answers[currentIndex + 1]
+              }
+
+              if (nextItem) {
+                $(nextItem)
+                  .find("input")
+                  .focus()
+              }
+
+              break
             }
-
-            if (nextItem) {
-              $(nextItem)
-                .find("input")
-                .focus()
-            }
-
-            break
           case 13:
-            e.preventDefault()
-            $(this).trigger("click")
-            break
+            {
+              e.preventDefault()
+              $(this).trigger("click")
+              break
+            }
         }
       })
     }
   }
 
   connectSingle() {
-    const self = this
+    const self = this;
 
     this.$currentItems.each((_, item) => {
       const $item = $(item)
       const itemId = $item.data("list-item")
       const $associated = $("#" + itemId)
 
-      $associated.unbind("click");
+      $associated.off("click");
       $associated.on("click", function(e) {
         e.stopPropagation();
       });
 
-      $associated.unbind("change");
-      $associated.on("change", function(e) {
+      $associated.off("change");
+      $associated.on("change", function() {
         // First hide all items in the drop-down display
         self.$currentItems.each((_, currentItem) => {
           $(currentItem).attr("hidden", "")
@@ -343,19 +341,18 @@ class SelectWidgetComponent extends Component {
         }
       })
 
-      $associated.parent().unbind("click")
-      $associated.parent().on("click", (e) => {
+      $associated.parent().off("click")
+      $associated.parent().on("click", () => {
         // Need to collapse on click (not change) otherwise drop-down will
         // collapse when changing using the keyboard
-        self.collapse(self.$widget, self.$trigger, self.$target)
+        this.collapse(this.$widget, this.$trigger, this.$target)
       })
     })
   }
 
   connect() {
     if (this.multi) {
-      const self = this
-      this.$currentItems.each(self.connectMulti())
+      this.$currentItems.each(this.connectMulti())
     } else {
       this.connectSingle()
     }
@@ -446,11 +443,12 @@ class SelectWidgetComponent extends Component {
     return $li
   }
 
+  //Some odd scoping issues here - but it works
   updateJson(url, typeahead) {
-    const self = this
-    self.loadCounter++
-    const myLoad = self.loadCounter // ID of this process
-    self.$available.find(".spinner").removeAttr("hidden")
+    this.loadCounter++
+    const self = this;
+    const myLoad = this.loadCounter // ID of this process
+    this.$available.find(".spinner").removeAttr("hidden")
     const currentValues = this.$available
       .find("input:checked")
       .map(function() {
@@ -460,68 +458,70 @@ class SelectWidgetComponent extends Component {
 
     // Remove existing items if needed, now that we have found out which ones are selected
     if (!typeahead) {
-      self.$available.find(".answer").remove()
+      this.$available.find(".answer").remove()
     }
 
-    const field = self.$selectWidget.data("field")
+    const field = this.$selectWidget.data("field")
     // If we cancel this particular loop, then we don't want to remove the
     // spinner if another one has since started running
     let hideSpinner = true
-    $.getJSON(url, function(data) {
+    $.getJSON(url, (data) => {
       if (data.error === 0) {
-        if (myLoad != self.loadCounter) { // A new one has started running
+        if (myLoad != this.loadCounter) { // A new one has started running
           hideSpinner = false // Don't remove the spinner on completion
           return
         }
 
         if (typeahead) {
           // Need to keep currently selected item
-          self.$currentItems.filter(':hidden').remove()
+          this.$currentItems.filter(':hidden').remove()
         } else {
-          self.$currentItems.remove()
+          this.$currentItems.remove()
         }
         
         const checked = currentValues.includes(NaN)
-        if (self.multi) {
-          self.$search
+        if (this.multi) {
+          this.$search
             .parent()
             .prevAll(".none-selected")
             .remove() // Prevent duplicate blank entries
-            self.$search
+            this.$search
             .parent()
-            .before(self.currentLi(self.multi, field, null, "", "blank", checked))
-            self.$available.append(self.availableLi(self.multi, field, null, "", "blank", checked))
+            .before(this.currentLi(this.multi, field, null, "", "blank", checked))
+            this.$available.append(this.availableLi(this.multi, field, null, "", "blank", checked))
         }
 
         $.each(data.records, (recordIndex, record) => {
           const checked = currentValues.includes(record.id)
           if (!typeahead || (typeahead && !checked)) {
-            self.$search
+            this.$search
               .parent()
               .before(
-                self.currentLi(self.multi, field, record.id, record.label, record.html, checked)
+                this.currentLi(this.multi, field, record.id, record.label, record.html, checked)
               ).before(' ') // Ensure space between elements
-              self.$available.append(
-                self.availableLi(self.multi, field, record.id, record.label, record.html, checked)
+              this.$available.append(
+                this.availableLi(this.multi, field, record.id, record.label, record.html, checked)
             )
           }
         })
 
-        self.$currentItems = self.$current.find("[data-list-item]")
-        self.$available = self.$selectWidget.find(".available")
-        self.$availableItems = self.$selectWidget.find(".available .answer input")
-        self.$moreInfoButtons = self.$selectWidget.find(
+        this.$currentItems = this.$current.find("[data-list-item]")
+        this.$available = this.$selectWidget.find(".available")
+        this.$availableItems = this.$selectWidget.find(".available .answer input")
+        this.$moreInfoButtons = this.$selectWidget.find(
           ".available .answer .btn-js-more-info"
         )
-        self.$answers = self.$selectWidget.find(".answer")
+        this.$answers = this.$selectWidget.find(".answer")
 
-        self.updateState()
-        self.connect()
+        this.updateState()
+        this.connect()
 
-        self.$availableItems.on("blur", (e) => { self.possibleCloseWidget(e) })
-        self.$moreInfoButtons.on("blur", (e) => { self.possibleCloseWidget(e) })
-        self.$moreInfoButtons.each((_, button) => {
-          const moreInfoButton = new MoreInfoButton(button)
+        this.$availableItems.on("blur", (e) => { this.possibleCloseWidget(e) })
+        this.$moreInfoButtons.on("blur", (e) => { this.possibleCloseWidget(e) })
+        this.$moreInfoButtons.each((_, button) => {
+          import(/* webpackChunkName: "more-info-button" */ '../../../button/lib/more-info-button')
+            .then(({ default: MoreInfoButton }) => { new MoreInfoButton(button); }
+            );
         })
 
       } else {
@@ -532,7 +532,7 @@ class SelectWidgetComponent extends Component {
             errorMessage +
             "</label></span></li>"
         )
-        self.$available.append(errorLi)
+        this.$available.append(errorLi)
       }
     })
       .fail(function(jqXHR, textStatus, textError) {
@@ -560,13 +560,11 @@ class SelectWidgetComponent extends Component {
   }
 
   fetchOptions() {
-    const field = this.$selectWidget.data("field")
-    const multi = this.$selectWidget.hasClass("multi")
     const filterEndpoint = this.$selectWidget.data("filter-endpoint")
     const filterFields = this.$selectWidget.data("filter-fields")
     const submissionToken = this.$selectWidget.data("submission-token")
 
-    if (!$.isArray(filterFields)) {
+    if (!Array.isArray(filterFields)) {
       throw 'Invalid data-filter-fields found. It should be a proper JSON array of fields.'
     }
 

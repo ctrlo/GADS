@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
+
 import { Component, initializeRegisteredComponents } from 'component'
 import 'datatables.net'
 import 'datatables.net-buttons'
@@ -6,9 +8,8 @@ import 'datatables.net-responsive'
 import 'datatables.net-responsive-bs4'
 import 'datatables.net-rowreorder-bs4'
 import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets'
-import RecordPopupComponent from 'components/record-popup/lib/component'
 import { moreLess } from 'components/more-less/lib/more-less'
-import TypeaheadBuilder from 'util/typeahead'
+import { bindToggleTableClickHandlers } from './toggle-table'
 
 const MORE_LESS_TRESHOLD = 50
 
@@ -38,21 +39,24 @@ class DataTableComponent extends Component {
     }
 
     const conf = this.getConf()
-    const {columns} = conf;
-    this.columns = columns;
+    const {columns} = conf
+    this.columns = columns
     this.el.DataTable(conf)
     this.initializingTable = true
 
     if (this.hasCheckboxes) {
       this.addSelectAllCheckbox()
     }
+
     if (this.el.hasClass('table-account-requests')) {
       this.modal = $.find('#userModal')
       this.initClickableTable()
       this.el.on('draw.dt', ()=> {
-        this.initClickableTable();
+        this.initClickableTable()
       })
     }
+
+    bindToggleTableClickHandlers(this.el)
 
     // Bind events to disclosure buttons and record-popup links on opening of child row
     $(this.el).on('childRow.dt', (e, show, row) => {
@@ -61,9 +65,13 @@ class DataTableComponent extends Component {
 
       setupDisclosureWidgets($childRow)
 
-      recordPopupElements.each((i, el) => {
-        const recordPopupComp = new RecordPopupComponent(el)
-      })
+      if (recordPopupElements) {
+        import(/* webpackChunkName: "record-popup" */ 'components/record-popup/lib/component').then(({ default: RecordPopupComponent }) => {
+          recordPopupElements.each((i, el) => {
+            new RecordPopupComponent(el)
+          });
+        });
+      }
     })
   }
 
@@ -90,9 +98,9 @@ class DataTableComponent extends Component {
   initClickableTable() {
     const links = this.el.find('tbody td .link')
     // Remove all existing click events to prevent multiple bindings
-    links.off('click');
-    links.off('focus');
-    links.off('blur');
+    links.off('click')
+    links.off('focus')
+    links.off('blur')
     links.on('click', (ev) => { this.handleClick(ev) })
     links.on('focus', (ev) => { this.toggleFocus(ev, true) })
     links.on('blur', (ev) => { this.toggleFocus(ev, false) })
@@ -165,7 +173,7 @@ class DataTableComponent extends Component {
     // Check if all checkboxes are checked and the 'select all' checkbox needs to be checked
     this.checkSelectAll($checkBoxes, $selectAllElm.find('input'))
 
-    $checkBoxes.on('click', (ev) => {
+    $checkBoxes.on('click', () => {
       this.checkSelectAll($checkBoxes, $selectAllElm.find('input'))
     })
 
@@ -234,6 +242,7 @@ class DataTableComponent extends Component {
     }
   }
 
+  // Self reference included due to scoping
   addSearchDropdown(column, id, index) {
     const $header = $(column.header())
     const title = $header.text().trim()
@@ -300,26 +309,21 @@ class DataTableComponent extends Component {
     this.toggleFilter(column)
 
     if (col && col.typeahead) {
-      const builder = new TypeaheadBuilder();
-      builder
-        .withAjaxSource(this.getApiEndpoint(columnId))
-        .withInput($('input[type=text]', $header))
-        .withAppendQuery()
-        .withDefaultMapper()
-        .withName(columnId.replace(/\s+/g, '') + 'Search')
-        .withCallback((data) => {
-          let $text_input = $('input[type=text]', $header);
-          $text_input.val(data.name);
-          if (col.typeahead_use_id) {
-            // Update hidden input with actual ID value and search on that
-            let $id_input = $('input[type=hidden]', $header);
-            $id_input.val(data.id);
-            $id_input.trigger('change');
-          } else {
-            $text_input.trigger('change');
-          }
-        })
-        .build();
+      import(/* webpackChunkName: "typeaheadbuilder" */ 'util/typeahead')
+        .then(({ default: TypeaheadBuilder }) => {
+          const builder = new TypeaheadBuilder();
+          builder
+            .withAjaxSource(this.getApiEndpoint(columnId))
+            .withInput($('input', $header))
+            .withAppendQuery()
+            .withDefaultMapper()
+            .withName(columnId.replace(/\s+/g, '') + 'Search')
+            .withCallback((data) => {
+              $('input', $header).val(data.name);
+              $('input', $header).trigger('change');
+            })
+            .build();
+        });
     }
 
     // Apply the search
@@ -424,9 +428,7 @@ class DataTableComponent extends Component {
       return strHTML
     }
 
-    const value = data.values[0] // There's always only one person
-
-    data.values.forEach((value, i) => {
+    data.values.forEach((value) => {
       if (value.details.length) {
         let thisHTML = `<div>`
         value.details.forEach((detail) => {
@@ -586,10 +588,9 @@ class DataTableComponent extends Component {
   getConf(overrides = undefined) {
     const confData = this.el.data('config')
     let conf = {}
-    const self = this
 
     if (typeof confData === 'string') {
-      conf = JSON.parse(Buffer.from(confData, 'base64'))
+      conf = JSON.parse(atob(confData))
     } else if (typeof confData === 'object') {
       conf = confData
     }
@@ -606,10 +607,11 @@ class DataTableComponent extends Component {
       })
     }
 
+    const self = this;
+
     conf['initComplete'] = (settings, json) => {
       const tableElement = this.el
       const dataTable = tableElement.DataTable()
-      const self = this
 
       this.json = json || undefined
 
@@ -650,12 +652,12 @@ class DataTableComponent extends Component {
       }
     }
 
-    conf['footerCallback'] = function( tfoot, data, start, end, display ) {
-      var api = this.api()
+    conf['footerCallback'] = function() {
+      const api = this.api();
       // Add aggregate values to table if configured
-      var agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate
+      const agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate;
       if (agg) {
-        var cols = api.settings()[0].oAjaxData.columns
+        const cols = api.settings()[0].oAjaxData.columns;
         api.columns().every( function () {
           const idx = this.index()
           const {name} = cols[idx]
@@ -669,7 +671,7 @@ class DataTableComponent extends Component {
       }
     }
 
-    conf['drawCallback'] = (settings) => {
+    conf['drawCallback'] = () => {
 
       //Re-initialize more-less components after initialisation is complete
       moreLess.reinitialize()
@@ -678,7 +680,7 @@ class DataTableComponent extends Component {
       // any drawing to prevent it being clicked multiple times during a draw
       this.el.DataTable().button(0).enable();
 
-      this.bindClickHandlersAfterDraw(conf)
+      this.bindClickHandlersAfterDraw(conf);
     }
 
     conf['buttons'] = [
@@ -689,8 +691,8 @@ class DataTableComponent extends Component {
           id: 'full-screen-btn'
         },
         className: 'btn btn-small btn-toggle-off',
-        action: function ( e, dt, node, config ) {
-          self.toggleFullScreenMode(e)
+        action: ( e ) => {
+          this.toggleFullScreenMode(e)
         }
       }
     ]
@@ -703,6 +705,7 @@ class DataTableComponent extends Component {
     I have tried manually changing the DOM, as well as the methods already present in the code, and I currently believe there is a bug within the DataTables button
     code that is meaning that this won't change (although I am open to the fact that I am being a little slow and missing something glaringly obvious).
   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toggleFullScreenMode(buttonElement) {
     const table = document.querySelector("table.data-table");
     const currentTable = $(table);
@@ -722,6 +725,12 @@ class DataTableComponent extends Component {
         currentTable.DataTable(this.getConf({responsive: false}));
       }
       document.body.appendChild(newModal);
+
+      $(document).on("keyup", (ev)=>{
+        if(ev.key === "Escape") {
+          this.toggleFullScreenMode(buttonElement)
+        }
+      });
     } else {
       // Move data table back to original page
       const mainContent = document.querySelector('.content-block__main-content');
@@ -736,36 +745,14 @@ class DataTableComponent extends Component {
       }
       // Remove the modal
       document.querySelector('#table-modal').remove();
+
+      $(document).off("keyup");
     }
 
     // Toggle the full screen button
     this.isFullScreen = !this.isFullScreen;
     $("#full-screen-btn").removeClass(this.isFullScreen ? 'btn-toggle-off': 'btn-toggle');
     $("#full-screen-btn").addClass(this.isFullScreen ? 'btn-toggle': 'btn-toggle-off');
-  }
-
-  exitFullScreenMode(conf) {
-    conf.responsive = this.originalResponsiveObj
-    this.el.DataTable().destroy();
-    this.el.DataTable(conf)
-    this.initializingTable = true
-    // See comments above regarding preventing multiple clicks
-    if(!this.forceButtons)
-      this.el.DataTable().button(0).disable();
-  }
-
-  setFullscreenTableContainerHeight() {
-    const $dataTableContainer = this.el.parent()
-    const $dataTableWrapper = $dataTableContainer.closest('.dataTables_wrapper')
-    const tableWrapperHeight = $dataTableWrapper.innerHeight()
-    const tableHeaderHeight = $dataTableWrapper.find('.row--header') ? $dataTableWrapper.find('.row--header').innerHeight() : 0
-    const tableFooterHeight = $dataTableWrapper.find('.row--footer') ? $dataTableWrapper.find('.row--footer').innerHeight() : 0
-    const viewportHeight = window.innerHeight
-    const margins = 128
-
-    if (tableWrapperHeight > viewportHeight) {
-      $dataTableContainer.height(viewportHeight - tableHeaderHeight - tableFooterHeight - margins);
-    }
   }
 
   bindClickHandlersAfterDraw(conf) {

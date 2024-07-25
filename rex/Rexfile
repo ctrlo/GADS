@@ -1,0 +1,93 @@
+
+=pod
+
+GADS - Globally Accessible Data Store
+Copyright (C) 2015 Ctrl O Ltd
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+=head2 WARNING
+
+THIS SCRIPT IS NOT SUITABLE FOR PRODUCTION OR REMOTE DEPLOYMENT - IT IS
+INTENDED FOR EASE OF DEVELOPMENT AND TESTING ONLY.
+
+=cut
+
+use Rex -feature => [1.4];
+
+use strict;
+use warnings;
+
+use feature 'say';
+
+use YAML;
+
+task psql => sub {
+    pkg "postgresql", ensure => "present";
+    service postgresql => "ensure", "started";
+    service postgresql => "ensure", "enabled";
+    my $config = YAML::LoadFile('rex/config/gads-config.yml')->{config}
+      or die("No config found");
+    run 'su -c "psql -c \"CREATE USER '
+      . $config->{db_user}
+      . ' WITH PASSWORD \''
+      . $config->{db_pass}
+      . '\'\"" postgres';
+    run 'su -c "psql -c \"CREATE DATABASE '
+      . $config->{db_name}
+      . ' OWNER '
+      . $config->{db_user}
+      . '\"" postgres';
+    run 'su -c "psql linkspace -c \"CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;\"" postgres';
+};
+
+task libs => sub {
+    update_package_db;
+    pkg [
+        qw/cpanminus liblua5.3-dev gcc g++ libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl libmagic-dev postgresql-client libpng-dev libssl-dev libpq-dev libjson-perl libsession-token-perl libnet-oauth2-authorizationserver-perl libtext-csv-encoded-perl libcrypt-urandom-perl libhtml-scrubber-perl libtext-markdown-perl libwww-form-urlencoded-xs-perl libstring-camelcase-perl libmail-transport-perl liblog-log4perl-perl libplack-perl libdbd-pg-perl libmail-message-perl libmath-random-isaac-xs-perl libdbix-class-helpers-perl libtree-dagnode-perl libmath-round-perl libdatetime-format-dateparse-perl libwww-mechanize-perl libdatetime-format-iso8601-perl libmoox-types-mooselike-perl libmoox-singleton-perl liblist-compare-perl liburl-encode-perl libtie-cache-perl libhtml-fromtext-perl libdata-compare-perl libfile-bom-perl libalgorithm-dependency-perl libdancer-plugin-auth-extensible-perl libfile-libmagic-perl postfix perl libconvert-asn1-perl libmodule-runtime-perl libcrypt-openssl-random-perl libdancer2-perl libinline-perl libdatetime-perl libdatetime-format-strptime-perl liblist-moreutils-perl liblog-report-perl libpdf-table-perl libtest-mocktime-perl libtext-autoformat-perl libyaml-perl libnamespace-clean-perl make nano libaws-signature4-perl libdata-validate-ip-perl libdevel-caller-perl libhash-merge-perl libio-string-perl libsort-naturally-perl libterm-readkey-perl libtext-glob-perl liburi-perl libxml-simple-perl libversion-perl libfile-sharedir-install-perl libio-pty-perl libdigest-hmac-perl libnet-sftp-foreign-perl libnet-openssh-perl libjson-maybexs-perl libcpanel-json-xs-perl/
+    ], ensure => present;
+};
+
+task cpan => sub {
+    update_package_db;
+    pkg [ "gcc", "g++", "make", "cpanminus" ], ensure => "present";
+    run "perl ./bin/output_cpanfile.pl > cpanfile";
+    run "cpanm --installdeps . --cpanfile cpanfile --notest";
+};
+
+task dbconfig => sub {
+    say "Loading config from config/gads-config.yml";
+    my $config = YAML::LoadFile('rex/config/gads-config.yml')->{config}
+      or die("No config found");
+    run "psql "
+      . $config->{db_name} . " -h "
+      . $config->{db_host} . " -U "
+      . $config->{db_user}
+      . " -c \"CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;\"";
+    run "./bin/seed-database.pl --initial_username="
+      . $config->{gads_user}
+      . " --instance_name="
+      . $config->{gads_instance}
+      . " --site="
+      . $config->{gads_site};
+};
+
+task config => sub {
+    say "Loading config from config/gads-config.yml";
+    my $config = YAML::LoadFile('rex/config/gads-config.yml')
+      or die("No config found");
+    file "./config.yml", content => template( "files/config.yml.tpl", $config );
+};
+
+batch setup => 'libs', 'psql', 'cpan', 'config', 'dbconfig';

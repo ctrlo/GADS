@@ -15,7 +15,14 @@ use Log::Report;
 use Session::Token;
 use Text::CSV;
 
-use base qw(DBIx::Class::ResultSet);
+use Moo;
+use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
+
+extends 'DBIx::Class::ResultSet';
+with 'GADS::Helper::ConditionBuilder';
+
+sub BUILDARGS { $_[2] || {} }
 
 __PACKAGE__->load_components(qw(Helper::ResultSet::CorrelateRelationship));
 
@@ -29,6 +36,23 @@ sub active
     });
 }
 
+sub summary
+{   my $self = shift;
+    $self->active->search_rs({},{
+        columns => [
+            'me.id', 'me.surname', 'me.firstname', 'title.name', 'me.email',
+            'organisation.name', 'department.name', 'team.name', 'me.created',
+            'me.freetext1', 'me.freetext2',
+            'me.lastlogin', 'me.value',
+        ],
+        join     => [
+            'organisation', 'department', 'team', 'title',
+        ],
+        order_by => 'surname',
+        collapse => 1,
+    });
+}
+
 sub active_and_requests
 {   my ($self, %search) = @_;
 
@@ -36,6 +60,40 @@ sub active_and_requests
         'me.deleted'    => undef,
         %search,
     });
+}
+
+has valid_fields => (
+    is => 'lazy',
+);
+
+sub _build_valid_fields
+{   my $self = shift;
+    my $site = $self->result_source->schema->resultset('Site')->next;
+    my %fields = map { $_->{name} => $_ } $site->user_fields;
+    \%fields;
+}
+
+sub rule_to_condition
+{   my ($self, $rule) = @_;
+
+    my ($field_name, $operator, $value) = ($rule->{field}, $rule->{operator}, $rule->{value});
+
+    # Check valid value
+    my $field = $self->valid_fields->{$field_name}
+        or error __x"Invalid user field {field}", field => $field_name;
+
+    my $mappedOperator = $self->field_map->{$operator};
+    my $mappedValue    = $self->get_filter_value($operator, $value);
+
+    return (
+        $field->{table} ? "$field->{table}.$field->{field}" : $field->{name} => { $mappedOperator => $mappedValue },
+    );
+}
+
+sub with_filter
+{   my ($self, $filter) = @_;
+    $filter or return $self;
+    $self->search_rs({$self->map_rules($filter->as_hash)});
 }
 
 sub create_user

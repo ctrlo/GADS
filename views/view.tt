@@ -5,14 +5,15 @@
       <div class="fieldset__legend fieldset__legend--hidden">
         <legend>Legend</legend>
       </div>
-      
+
       <div class="content-block__main-content">
         <div class="row">
           <div class='col-md-6 col-lg-8 mb-4 mb-lg-0'>
             <div class="card card--secundary">
               <div class="card__body row">
                 <div class="card__content">
-                  
+
+                  <!-- Name of the view -->
                   <div class="row">
                     <div class='col'>
                       [%
@@ -23,17 +24,31 @@
                           value = view_edit.name
                           placeholder = ""
                           filter = "html"
-                          type = "text";
+                          type = "text"
+                          input_class = "help-view"
+                          help = {
+                            "text" => "The name of the view is used to identify it in the list of views."
+                            "target" => "help__card"
+                            "title" => "Name of the view"
+                          }
                       %]
                     </div>
                   </div>
-                  
+
                   [% IF layout.user_can("layout") OR layout.user_can("view_group") %]
+                  <!-- Shared / Administration view -->
                   <div class="row">
                     <div class="col">
                       <div class="form-group">
                         <div class="row">
-                        [% IF layout.user_can("view_group") OR layout.user_can("layout") %]
+                          <div class="col help-view"
+                            data-help-text="***Personal*** - available to all users and only visible to the user that creates them. **Note**: Administrators can manage other user's personal views.\n***Shared*** - users with permission to create shared views can check the shared view box and then select which groups to share the view with.\n***Administration*** - these views are only visible to Administrative users, and primarily for controlling user access to records."
+                            data-help-title="View Type"
+                            data-help-target="help__card">
+                            <label>View type</label>
+                          </div>
+                        </div>
+                        <div class="row">
                           <div class="col-lg-3">
                             [%
                               INCLUDE fields/sub/checkbox.tt
@@ -45,8 +60,7 @@
                                 input_class = "mb-lg-0 checkbox--reveal";
                             %]
                           </div>
-                        [% END %]
-                        [% IF layout.user_can("layout") %]
+
                           <div class="col-lg-9">
                             [%
                               INCLUDE fields/sub/checkbox.tt
@@ -57,26 +71,24 @@
                                 checked     = view_edit.is_admin ? 1 : 0
                                 input_class = "mb-lg-0";
                             %]
-                        [% END %]
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  
                   <div class="row">
                     <div class="col">
-                      
+
                       <div class="checkbox-reveal" id="global-reveal">
                         [%
-                          group_id_items = layout.user_can("layout") ? [{id="allusers", name="<All users>"}] : [];
-                        
+                          group_id_items = layout.user_can("layout") ? [{id="", name="<All users>"}] : [];
+
                           IF layout.user_can("view_group");
                             FOREACH group IN user.groups;
                               group_id_items.push({id=group.id, name=group.name});
                             END;
                           END;
-                        
+
                           INCLUDE fields/select.tt
                             id           = "group_id"
                             name         = "group_id"
@@ -86,332 +98,499 @@
                             select_class = "select--select"
                             filter       = "html"
                             hide_group   = 0
-                            items        = group_id_items,
-                            is_required  = 1;
+                            items        = group_id_items;
                         %]
                       </div>
-                    
+
                     </div>
                   </div>
                   [% END %]
-                  
-                  
-                  
-                  <div class="row">
-                    <div class="col">
-                      [%
-                        # prepare table config
-                        table_class            = 'table-striped table-selectable';
-                        table_dom              = 't';
-                        table_reorder_rows     = 1;
-                        table_reordering       = 0;
-                        table_language         = {
-                          emptyTable => "No fields have been created.",
-                          lengthMenu => "Rows per page _MENU_",
-                          paginate   => {
-                            next     => "Next page",
-                            previous => "Previous page"
-                          },
-                          search            => "<span class=\"sr-only\">Search in table:</span>",
-                          searchPlaceholder => "Search in this table"
-                        };
-                        table_show_all_records = 1;
-                        table_unresponsive     = 0;
-                        table_caption          = "Table to select fields in view";
-                        rows                   = [];
-                        table_columns          = [{
-                          name      = "Select",
-                          orderable = 0,
-                          data      = "check",
-                          class     = "check"
-                        }];
 
-                        FOR column IN layout.all_user_read;
-                          id = column.id;
-                      
-                          rows.push({
-                            fields = [{
-                              type        = "text"
-                              label       = ""
-                              sub_field   = "fields/sub/checkbox.tt"
-                              sub_params  = {
-                                id => "dt_checkbox_" _ column.id
-                                name => "column"
-                                label => column.name
-                                checked => view_edit.columns.grep("^$id\$").size ? 1 : 0
-                                filter => "html"
-                                is_required => 0
-                                autofocus => 0
-                                input_class => ""
-                                label_in_span => 1
-                                value => column.id
-                              }
-                            }]
-                          });
-                        END;
-                      %]
-                      <fieldset class="fieldset" >
-                        <div class="fieldset__legend">
-                          <legend >
-                            Select the fields you want to include in your view. Drag and drop the fields to determine the display order
-                          </legend>
-                        
+                  <!-- Filter section -->
+                  <div class="row mb-3">
+                    <div class="col">
+                      <div class="card card--expandable">
+                        <div class="card__header">
+                          <button class="card__header-left" type="button" data-toggle="collapse" data-target="#filter_1" aria-expanded="false" aria-controls="filter_1">
+                            <span class="card__title">
+                              Filter
+                            </span>
+                          </button>
+                          <div class="card__header-right">
+                            <button class="card__toggle" type="button" data-toggle="collapse" data-target="#filter_1" aria-expanded="false" aria-controls="filter_1">
+                              <span>Toggle collapsible</span>
+                            </button>
+                          </div>
                         </div>
-  
-                        <div class="form-group">
-                          [% INCLUDE tables/basic_table.tt; %]
+                        <div class="collapse" id="filter_1">
+                          <div class="card__content">
+                            <div class="row mb-3">
+                              <div class="col">
+                                <div class="form-group help-view"
+                                  data-help-text='Use filters to select the records that you want to include in your view.\n#### How they Work\nFilters are created by adding rules and selecting the fields and the corresponding values that will return the records you require. Using the fundamental concept of **"AND"** and **"OR"** logic, rules can be combined to help you refine your filters based on multiple criteria.\nThis logical approach means that your views will return records where the filter rule or combination of rules and/or groups are "TRUE" statements.\n#### Examples\n***"AND":***   If you search for "Apples AND Oranges," you are looking for results that include both apples and oranges together.\n***"OR":***   If you search for "Apples OR Oranges," you are looking for results that include either apples, oranges, or both.'
+                                  data-help-title="Filters"
+                                  data-help-target="help__card">
+                                  <fieldset class="fieldset" >
+                                    <div>
+                                      <label>Filter</label>
+                                    </div>
+
+
+
+                                    <div class="form-group ">
+                                      [%
+                                        INCLUDE fields/hidden.tt id="refers_to_instance_id" value="10";
+
+                                        INCLUDE builder.tt
+                                          builder_id = 10
+                                          builder_layout = layout
+                                          filter_normal = view_edit.filter
+                                          filter_base64 = view_edit.filter.base64
+                                          include_previous = 1;
+                                      %]
+
+                                      <div
+                                        class="filter"
+                                        id="builder10"
+                                        data-builder-id="10"
+                                        data-filter-base='[% view_edit.filter.base64 %]'
+                                        data-use-json='[% view_edit.filter.as_json AND NOT view_edit.filter.as_json.match('^[{}\s]*$') %]'
+                                      >
+                                      </div>
+                                      <input id="filter" type="hidden" name="filter" value="[% view_edit.filter.as_json | html_entity %]">
+                                    </div>
+                                  </fieldset>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      </fieldset>
-                    
+                      </div>
                     </div>
                   </div>
-                  <div class="row">
+
+                  <!-- Sort/Group section -->
+                  <div class="row mb-3">
                     <div class="col">
-                      <fieldset class="fieldset">
-                        <div class="fieldset__legend">
-                          <legend >
-                            Field to sort the records in your view by
-                          </legend>
+                      <div class="card card--expandable">
+                        <div class="card__header">
+                          <button class="card__header-left" type="button" data-toggle="collapse" data-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1">
+                            <span class="card__title">
+                              Sort/Group
+                            </span>
+                          </button>
+                          <div class="card__header-right">
+                            <button class="card__toggle" type="button" data-toggle="collapse" data-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1">
+                              <span>Toggle collapsible</span>
+                            </button>
+                          </div>
                         </div>
-                        <div class="form-group">
-                          <div class="multiple-select">
-                            <div class="multiple-select__list">
-                              [%-
-                                view_counter = 1;
-                                clear_sorts  = 0;
-                              
-                                # add a virtual object to display empty sorting and direction fields
-                                IF ! view_edit.sorts.size;
-                                  view_edit.sorts.push({});
-                                  clear_sorts = 1;
-                                END;
-                              
-                                FOREACH sort IN view_edit.sorts;
-                                  view_row_id = view_counter > 1 ? ' id="sort-row-' _ view_counter _ '"' : '';
-                                  order_rows  = [{id="", name="Select a field"}];
-                                  type_rows   = [];
-      
-                                  FOR column IN layout.columns_for_filter;
-                                    order_rows.push(id=column.filter_id, name=column.filter_name);
-                                  END;
-      
-                                  FOREACH st IN sort_types;
-                                    type_rows.push(id=st.name, name=st.description);
-                                  END;
-                              -%]
-                              <div class="multiple-select__row"[% view_row_id %]>
-                                <fieldset class="fieldset">
-                                  <div class="fieldset__legend fieldset__legend--hidden">
-                                    <legend>
-                                      Field to sort the records in your view by
-                                    </legend>
-                                  </div>
-                                  <div class="form-group ">
-                                    <div class="row">
-                                      <div class="col">
-                                        [%
-                                          INCLUDE fields/select.tt
-                                            id = "sortfield"
-                                            name = "sortfield"
-                                            value = sort.filter_id
-                                            label = "Field"
-                                            placeholder = "Select a field"
-                                            help_text = ""
-                                            items = order_rows
-                                            select_class = ""
-                                            popover_body=""
-                                            is_required = 0
-                                            hide_group = 1
-                                            filter = "html"
-                                            sub_field = ""
-                                            sub_params = {};
-                                        %]
-                                      </div>
-                                      <div class="col">
-                                        [%
-                                          INCLUDE fields/select.tt
-                                            id = "sorttype"
-                                            name = "sorttype"
-                                            value = sort.type || "asc"
-                                            label = "Order"
-                                            placeholder = "Select order"
-                                            help_text = ""
-                                            items = type_rows
-                                            select_class = ""
-                                            popover_body=""
-                                            is_required = 0
-                                            hide_group = 1
-                                            filter = "html"
-                                            sub_field = ""
-                                            sub_params = {};
-                                        %]
+                        <div class="collapse" id="sort_group_1">
+                          <div class="card__content">
+                            <div class="row mb-3">
+                              <div class="col">
+                                <div class="form-group help-view"
+                                  data-help-title = "Filters and Grouping"
+                                  data-help-text = 'Filters and Groups allow you to construct sophisticated filters by defining specific conditions (rules) and combining them into logical groupings (groups) to precisely control which records are displayed\n#### Rules\nThese are three part statements comprised of a data field, an operator and a value.\n- ***Field*** - a drop down selector for all of the fields on your table.\n- ***Operator*** - symbols or key words to determine how the field and value interact.\n- ***Value*** - the value that is being searched for in the selected field.\n#### Groups\nThese are combinations of rules that result in a "**TRUE**" or "**FALSE**" outcome and can be combined with other rules or groups.'
+                                  data-help-target = "help__card">
+                                  <fieldset class="fieldset">
+                                    <div>
+                                      <label>Field to sort the records in your view by</label>
+                                    </div>
+                                    <div class="form-group">
+                                      <div class="multiple-select">
+                                        <div class="multiple-select__list">
+                                          [%-
+                                            view_counter = 1;
+                                            clear_sorts  = 0;
+
+                                            # add a virtual object to display empty sorting and direction fields
+                                            IF ! view_edit.sorts.size;
+                                              view_edit.sorts.push({});
+                                              clear_sorts = 1;
+                                            END;
+
+                                            FOREACH sort IN view_edit.sorts;
+                                              view_row_id = view_counter > 1 ? ' id="sort-row-' _ view_counter _ '"' : '';
+                                              order_rows  = [{id="", name="Select a field"}];
+                                              type_rows   = [];
+
+                                              FOR column IN layout.columns_for_filter;
+                                                order_rows.push(id=column.filter_id, name=column.filter_name);
+                                              END;
+
+                                              FOREACH st IN sort_types;
+                                                type_rows.push(id=st.name, name=st.description);
+                                              END;
+                                          -%]
+                                          <div class="multiple-select__row"[% view_row_id %]>
+                                            <fieldset class="fieldset">
+                                              <div class="fieldset__legend fieldset__legend--hidden">
+                                                <legend>
+                                                  Field to sort the records in your view by
+                                                </legend>
+                                              </div>
+                                              <div class="form-group ">
+                                                <div class="row">
+                                                  <div class="col">
+                                                    [%
+                                                      INCLUDE fields/select.tt
+                                                        id = "sortfield"
+                                                        name = "sortfield"
+                                                        value = sort.filter_id
+                                                        label = "Field"
+                                                        placeholder = "Select a field"
+                                                        help_text = ""
+                                                        items = order_rows
+                                                        select_class = ""
+                                                        popover_body=""
+                                                        is_required = 0
+                                                        hide_group = 1
+                                                        filter = "html"
+                                                        sub_field = ""
+                                                        sub_params = {};
+                                                    %]
+                                                  </div>
+                                                  <div class="col">
+                                                    [%
+                                                      INCLUDE fields/select.tt
+                                                        id = "sorttype"
+                                                        name = "sorttype"
+                                                        value = sort.type || "asc"
+                                                        label = "Order"
+                                                        placeholder = "Select order"
+                                                        help_text = ""
+                                                        items = type_rows
+                                                        select_class = ""
+                                                        popover_body=""
+                                                        is_required = 0
+                                                        hide_group = 1
+                                                        filter = "html"
+                                                        sub_field = ""
+                                                        sub_params = {};
+                                                    %]
+                                                  </div>
+                                                </div>
+                                              </div>
+                                              <button
+                                                type="button"
+                                                class="btn btn-delete"
+                                              >
+                                                <span class="btn__title">Delete</span>
+                                              </button>
+                                            </fieldset>
+                                          </div>
+                                          [%
+                                            view_counter = view_counter + 1;
+                                          END;
+
+                                          IF clear_sorts;
+                                            temp = view_edit.sorts.shift();
+                                          END;
+                                          %]
+                                        </div>
+
+                                        <button type="button" class="btn btn-add-link">
+                                          <span class="btn__title">Add new sort</span>
+                                        </button>
                                       </div>
                                     </div>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    class="btn btn-delete"
-                                  >
-                                    <span class="btn__title">Delete</span>
-                                  </button>
-                                </fieldset>
+                                  </fieldset>
+                                </div>
+                                <div class="form-group">
+                                  <fieldset class="fieldset">
+                                    <div class="fieldset__legend">
+                                      <legend>Group the records in your view by</legend>
+                                    </div>
+
+                                    <div class="form-group">
+                                      <div class="multiple-select">
+                                        <div class="multiple-select__list">
+                                          [%
+                                            group_counter = 1;
+                                            clear_groups  = 0;
+
+                                            # add a virtual object to display empty grouping field
+                                            IF ! view_edit.groups.size;
+                                              view_edit.groups.push({});
+                                              clear_groups = 1;
+                                            END;
+
+                                            FOREACH group IN view_edit.groups;
+                                              view_row_id = group_counter > 1 ? ' id="group-row-' _ group_counter _ '"' : '';
+                                              group_rows  = [{id="", name="Select a field"}];
+
+                                              FOR column IN layout.columns_for_filter;
+                                                group_rows.push(id=column.filter_id, name=column.filter_name);
+                                              END;
+                                          %]
+                                          <div class="multiple-select__row">
+                                            <fieldset class="fieldset" >
+                                              <div class="fieldset__legend fieldset__legend--hidden">
+                                                <legend >
+                                                  Field to order the records in your view by
+                                                </legend>
+                                              </div>
+
+                                              [%-
+                                                INCLUDE fields/select.tt
+                                                  id = "groupfield"
+                                                  name = "groupfield"
+                                                  value = group.filter_id
+                                                  label = "Field"
+                                                  placeholder = "Select a field"
+                                                  help_text = ""
+                                                  items = group_rows
+                                                  select_class = ""
+                                                  popover_body=""
+                                                  is_required = 0
+                                                  hide_group = 0
+                                                  filter = "html"
+                                                  sub_field = ""
+                                                  sub_params = {};
+                                              -%]
+
+                                              <button
+                                                type="button"
+                                                class="btn btn-delete"
+                                              >
+                                                <span class="btn__title">Delete</span>
+                                              </button>
+                                            </fieldset>
+                                          </div>
+                                          [%
+                                              group_counter = group_counter + 1;
+                                            END;
+
+                                            IF clear_groups;
+                                              temp = view_edit.groups.shift();
+                                            END;
+                                          %]
+                                        </div>
+
+                                        <button
+                                          type="button"
+                                          class="btn btn-add-link"
+                                        >
+                                          <span class="btn__title">Add new grouping</span>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </fieldset>
+                                </div>
                               </div>
-                              [%
-                                    view_counter = view_counter + 1;
-                                  END;
-                              
-                                  IF clear_sorts;
-                                    temp = view_edit.sorts.shift();
-                                  END;
-                              %]
                             </div>
-                            
-                            <button
-                              type="button"
-                              class="btn btn-add-link"
-                            >
-                              <span class="btn__title">Add new sort</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Fields section -->
+                  <div class="row mb-3">
+                    <div class="col">
+                      <div class="card card--expandable">
+                        <div class="card__header">
+                          <button class="card__header-left" type="button" data-toggle="collapse" data-target="#fields_1" aria-expanded="false" aria-controls="fields_1">
+                            <span class="card__title">
+                              Fields
+                            </span>
+                          </button>
+                          <div class="card__header-right">
+                            <button class="card__toggle" type="button" data-toggle="collapse" data-target="#fields_1" aria-expanded="false" aria-controls="fields_1">
+                              <span>Toggle collapsible</span>
                             </button>
                           </div>
                         </div>
-                      </fieldset>
-                    </div>
-                  </div>
-                  
-                  <div class="row">
-                    <div class="col">
-                      <fieldset class="fieldset">
-                        <div class="fieldset__legend">
-                          <legend >
-                            Group the records in your view by
-                          </legend>
-                        </div>
-                        
-                        <div class="form-group">
-                          <div class="multiple-select">
-                            <div class="multiple-select__list">
-                              [%
-                                group_counter = 1;
-                                clear_groups  = 0;
-                              
-                                # add a virtual object to display empty grouping field
-                                IF ! view_edit.groups.size;
-                                  view_edit.groups.push({});
-                                  clear_groups = 1;
-                                END;
-                              
-                                FOREACH group IN view_edit.groups;
-                                  view_row_id = group_counter > 1 ? ' id="group-row-' _ group_counter _ '"' : '';
-                                  group_rows  = [{id="", name="Select a field"}];
-      
-                                  FOR column IN layout.columns_for_filter;
-                                    group_rows.push(id=column.filter_id, name=column.filter_name);
-                                  END;
-                              %]
-                              <div class="multiple-select__row">
+                        <div class="collapse" id="fields_1">
+                          <div class="card__content">
+                            <div class="row">
+                              <div class="col-sm-12">
                                 <fieldset class="fieldset" >
-                                  <div class="fieldset__legend fieldset__legend--hidden">
-                                    <legend >
-                                      Field to order the records in your view by
-                                    </legend>
+                                  <div class="fieldset__legend fieldset__legend--standalone">
+                                    <label>
+                                      <strong>Add fields to your view by selecting them from available fields.</strong>
+                                    </label>
                                   </div>
-                                  
-                                  [%-
-                                    INCLUDE fields/select.tt
-                                      id = "groupfield"
-                                      name = "groupfield"
-                                      value = group.filter_id
-                                      label = "Field"
-                                      placeholder = "Select a field"
-                                      help_text = ""
-                                      items = group_rows
-                                      select_class = ""
-                                      popover_body=""
-                                      is_required = 0
-                                      hide_group = 0
-                                      filter = "html"
-                                      sub_field = ""
-                                      sub_params = {};
-                                  -%]
-                                  
-                                  <button
-                                    type="button"
-                                    class="btn btn-delete"
-                                  >
-                                    <span class="btn__title">Delete</span>
-                                  </button>
                                 </fieldset>
                               </div>
+                            </div>
+                            <div class="row">
                               [%
-                                  group_counter = group_counter + 1;
+                                fields_available = [];
+                                fields_selected  = [];
+
+                                row_height = 50;
+
+                                # Calculate height needed for the table
+                                table_height = layout.all_user_read.size * row_height;
+
+                                # Height of each table should be max 10 rows
+                                IF table_height > 10 * row_height;
+                                table_height = 10 * row_height;
                                 END;
-                              
-                                IF clear_groups;
-                                  temp = view_edit.groups.shift();
+
+                                # Compensate 1px border to prevent scroll bar from appearing
+                                table_height = table_height + 1;
+
+                                FOREACH column IN layout.all_user_read;
+                                  id = column.id;
+                                  is_selected = view_edit.columns.grep("^$id\$").size;
+
+                                  selected_field_row = {
+                                    id = "selected-field-" _ column.id
+                                    data_attributes = [{
+                                      name => 'toggle-field-id-selector'
+                                      value => '#available-field-'
+                                    }, {
+                                      name => 'toggle-field-id'
+                                      value => column.id
+                                    }, {
+                                      name => 'field-is-toggled',
+                                      value => is_selected ? 'true' : 'false'
+                                    }]
+                                    fields = [{
+                                      type   = "text"
+                                      label  = column.name
+                                      sub_field       = "fields/sub/checkbox.tt"
+                                      sub_params      = {
+                                        autofocus     => 0
+                                        checked       => is_selected ? 1 : 0
+                                        filter        => "html"
+                                        input_class   => "invisible"
+                                        is_required   => 0
+                                        label         => column.name
+                                        label_in_span => 1
+                                        name          => "column"
+                                        order         => loop.index()
+                                        value         => column.id
+                                      }
+                                    }]
+                                  };
+
+                                  available_field_row = {
+                                    id = "available-field-" _ column.id
+                                    data_attributes = [{
+                                      name => 'toggle-field-id-selector'
+                                      value => '#selected-field-'
+                                    }, {
+                                      name => 'toggle-field-id'
+                                      value => column.id
+                                    }, {
+                                      name => 'field-is-toggled',
+                                      value => is_selected ? 'false' : 'true'
+                                    }]
+                                    fields = [{
+                                      type  = "text"
+                                      label = column.name
+                                    }]
+                                  };
+
+                                  fields_selected.push(selected_field_row);
+                                  fields_available.push(available_field_row);
                                 END;
                               %]
+
+                              <!-- Selected fields -->
+                              <div class="col-sm-12 col-lg-6">
+                                [%
+                                  INCLUDE tables/basic_table.tt
+
+                                  # Table configuration
+                                  table_id = "table-view-fields-selected"
+                                  table_class = 'table--bordered table-hover table-toggle table-toggle--remove'
+                                  table_dom = '<"row row--fiv-header"><"row row--main"<"col-sm-12"tr>>'
+                                  table_buttons = [{
+                                    button_class = "btn"
+                                  }]
+                                  table_caption = "Table with selected fields in view"
+                                  table_columns = [{
+                                    name = "Fields in view",
+                                    orderable = 0,
+                                    data = "string",
+                                    class = "check"
+                                  }]
+                                  table_info = 0
+                                  table_language = {
+                                    emptyTable => "Please add fields here...",
+                                  }
+                                  table_ordering = 0
+                                  table_paging = 0
+                                  table_scroll_y = table_height
+                                  table_show_all_records = 1
+                                  table_destination = "#table-view-fields-available"
+                                  table_unresponsive = 1
+                                  rows = fields_selected
+                                %]
+
+                                <button
+                                  class="btn btn-default btn-small btn-remove btn-js-toggle-all-fields"
+                                  data-toggle-source="#table-view-fields-selected"
+                                  data-toggle-destination="#table-view-fields-available">
+                                    Remove all fields
+                                </button>
+                              </div>
+
+                              <!-- Available fields -->
+                              <div class="col-sm-12 col-lg-6">
+                                [%
+                                  INCLUDE tables/basic_table.tt
+
+                                  # Table configuration
+                                  table_id = "table-view-fields-available"
+                                  table_class = 'table--bordered table-hover table-toggle table-toggle--add table-search'
+                                  table_dom = '<"row row--header"<"col"' _ (session.rewind ? '' : 'f') _ '>><"row row--main"<"col-sm-12"tr>>'
+                                  table_buttons = [{
+                                    button_class = "btn"
+                                  }]
+                                  table_caption = "Table to select fields in view"
+                                  table_columns = [{
+                                    name = "Available fields",
+                                    orderable = 0,
+                                    data = "string",
+                                    class = "check"
+                                  }]
+                                  table_info = 0
+                                  table_language = {
+                                    emptyTable => "No available fields",
+                                    search => "<span class=\"sr-only\">Search available fields:</span>",
+                                    searchPlaceholder => "Search available fields"
+                                  }
+                                  table_ordering = 0
+                                  table_paging = 0
+                                  table_scroll_y = table_height
+                                  table_show_all_records = 1
+                                  table_destination = "#table-view-fields-selected"
+                                  table_unresponsive = 1
+                                  rows = fields_available
+                                %]
+                                <button
+                                  class="btn btn-default btn-small btn-add btn-js-toggle-all-fields"
+                                  data-toggle-source="#table-view-fields-available"
+                                  data-toggle-destination="#table-view-fields-selected">
+                                    Select all fields
+                                </button>
+                              </div>
+
                             </div>
-                            
-                            <button
-                              type="button"
-                              class="btn btn-add-link"
-                            >
-                              <span class="btn__title">Add new grouping</span>
-                            </button>
                           </div>
                         </div>
-                      </fieldset>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col">
-                      <fieldset class="fieldset" >
-                        <div class="fieldset__legend ">
-                          <legend >
-                            Filter
-                          </legend>
-                        </div>
-                        
-                        
-                        
-                        <div class="form-group ">
-                          [%
-                            INCLUDE fields/hidden.tt id="refers_to_instance_id" value="10";
-                          
-                            INCLUDE builder.tt
-                              builder_id = 10
-                              builder_layout = layout
-                              filter_normal = view_edit.filter
-                              filter_base64 = view_edit.filter.base64
-                              include_previous = 1;
-                          %]
-                          
-                          <div
-                            class="filter"
-                            id="builder10"
-                            data-builder-id="10"
-                            data-filter-base='[% view_edit.filter.base64 %]'
-                            data-use-json='[% view_edit.filter.as_json AND NOT view_edit.filter.as_json.match('^[{}\s]*$') %]'
-                          >
-                          </div>
-                          <input id="filter" type="hidden" name="filter" value="[% view_edit.filter.as_json | html_entity %]">
-                        </div>
-                      </fieldset>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          
+
           </div>
           <div class='col-md-6 col-lg-4'>
             <div class="card card--secundary card--help">
               <h4 class="card__title">
                 <span> View help </span>
               </h4>
-              
+
               <div class="card__body row">
-                <div class="card__content">
+                <div id="help__card" class="card__content">
                   <dl>
                     <dt>General</dt>
                     <dd>
@@ -438,12 +617,12 @@
           </div>
         </div>
       </div>
-      
+
       <footer class="content-block__footer">
         <div class="content-block__footer-container">
           [%
             right_buttons = [];
-  
+
             IF view_edit.id AND NOT clone;
               right_buttons.push({
                 type      = "modal_button",
@@ -454,7 +633,7 @@
                 label     = "Delete view"
               });
             END;
-          
+
             right_buttons.push({
               type  = "button",
               class = "btn btn-default btn-js-save-view"
@@ -463,7 +642,7 @@
               value = "update"
               label = "Save"
             });
-          
+
             INCLUDE navigation/button_bar.tt
               row_class = "row"
               columns   = [{

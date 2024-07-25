@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component'
 import { setupDisclosureWidgets } from "./disclosure-widgets";
 import { moreLess } from './more-less';
-import RecordPopupComponent from '../../record-popup/lib/component'
 
 const MAX_HEIGHT = 50
 
@@ -40,7 +40,6 @@ class MoreLessComponent extends Component {
   // (https://github.com/dreamerslab/jquery.actual) but its performance was slow
   // when a page had many more-less divs
   getActualHeight($elem) {
-    const self = this
     if ($elem.attr('data-actual-height')) {
       // cached heights from previous runs
       return $elem.attr('data-actual-height')
@@ -66,6 +65,7 @@ class MoreLessComponent extends Component {
     // Add a unique identifier to each more-less class, before cloning. Once we
     // measure the height on the cloned elements, we can apply the height as a
     // data value to its real equivalent element using this unique class.
+    const self = this
     $parent.find('.more-less').each(function() {
       const $e = $(this)
       $e.addClass('more-less-id-' + self.uuid())
@@ -171,10 +171,13 @@ class MoreLessComponent extends Component {
     setupDisclosureWidgets($ml)
 
     // Set up the record-popup modal for any curvals in this more-less
-    const recordPopupElements = $ml.find('.record-popup')
-    recordPopupElements.each((i, el) => {
-      const recordPopupComp = new RecordPopupComponent(el)
-    })
+    import(/* webpackChunkName: "record-popup" */ '../../record-popup/lib/component')
+      .then(({ default: RecordPopupComponent }) => {
+        const recordPopupElements = $ml.find('.record-popup')
+        recordPopupElements.each((i, el) => {
+          new RecordPopupComponent(el)
+        });
+      });
 
     // Process any more-less divs within this. These won't be done by the
     // original find, as the original ones will have been obliterated by

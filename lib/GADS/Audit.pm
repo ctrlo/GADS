@@ -160,14 +160,21 @@ sub logs
             -desc => 'datetime',
         },
     });
-    $rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+    
     my @logs = $rs->all;
     my $site = $self->schema->resultset('Site')->next;
-    $_->{user} = GADS::Datum::Person->new(
-        schema     => $self->schema,
-        init_value => $_->{user},
-    )->presentation(type => 'person', site => $site) foreach @logs;
-    \@logs;
+    
+    my @result = map {
+        +{
+            id          => $_->id,
+            type        => $_->type,
+            datetime    => $_->datetime->gads_time,
+            description => $_->description,
+            user        => $_->user,
+        }
+    } @logs;
+
+    \@result;
 }
 
 sub csv
@@ -191,5 +198,3 @@ sub csv
 }
 
 1;
-
-

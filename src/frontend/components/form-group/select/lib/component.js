@@ -93,14 +93,13 @@ class SelectComponent extends Component {
     // Handles a change event of the (hidden) input
     handleChange(ev) {
       const value = $(ev.target).val()
-      const self = this
-
+      
       if (value === '') {
-        self.resetSelect()
+        this.resetSelect()
       } else {
         this.options.each((i, option) => {
           if ($(option).data('value').toString() === value) {
-            self.updateChecked($(option))
+            this.updateChecked($(option))
             if (this.isSelectReveal) {
               this.revealInstance($(option))
             }
@@ -197,7 +196,6 @@ class SelectComponent extends Component {
     supportKeyboardNavigation(ev) {
        // press down -> go next
       if (ev.keyCode === 40 && this.optionHoveredIndex < this.optionsCount - 1) {
-        let index = this.optionHoveredIndex
         ev.preventDefault() // prevent page scrolling
         this.updateHovered(this.optionHoveredIndex + 1)
       }

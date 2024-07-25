@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component'
 import { initValidationOnField, validateCheckboxGroup } from 'validation'
 import initDateField from 'components/datepicker/lib/helper'
 import 'blueimp-file-upload'
-import TypeaheadBuilder from 'util/typeahead'
 import { stopPropagation, fromJson, hideElement, showElement } from 'util/common'
 
 class InputComponent extends Component {
@@ -78,12 +78,13 @@ class InputComponent extends Component {
       });
     }
 
+    // Self is used here due to XMLHttpRequest's scope issues
     initInputDocument() {
       const url = this.el.data("fileupload-url")
       const $progressBarContainer = this.el.find(".progress-bar__container")
       const $progressBarProgress = this.el.find(".progress-bar__progress")
       const $progressBarPercentage = this.el.find(".progress-bar__percentage")
-      const self = this
+      let self = this
 
       const tokenField = this.el.closest('form').find('input[name="csrf_token"]');
       const token = tokenField.val();
@@ -127,7 +128,7 @@ class InputComponent extends Component {
           }
         },
         done: function(e, data) {
-          var $li = self.addFileToField({ id: data.result.id, name: data.result.filename })
+          self.addFileToField({ id: data.result.id, name: data.result.filename })
         },
         fail: function(e, data) {
           const ret = data.jqXHR.responseJSON;
@@ -143,10 +144,8 @@ class InputComponent extends Component {
     }
 
     initInputAutocomplete() {
-      const self = this
-
       const suggestionCallback = (suggestion) => {
-        $(self.el).find('input[type="hidden"]').val(suggestion.id)
+        $(this.el).find('input[type="hidden"]').val(suggestion.id)
       }
 
       import(/* webpackChunkName: "typeahead" */ 'util/typeahead')
@@ -186,13 +185,12 @@ class InputComponent extends Component {
       this.btnReveal.click( (ev) => { this.handleClickReveal(ev) } )
     }
 
+    // As previous
     handleAjaxUpload(uri, csrf_token, file) {
       try{
         hideElement(this.error);
         if (!file) throw new Error("No file provided");
-        const self = this;
-        const field = this.el.data("field")
-
+        
         const fileData = new FormData();
         fileData.append("file", file);
         fileData.append("csrf_token", csrf_token);
@@ -201,15 +199,15 @@ class InputComponent extends Component {
         request.onreadystatechange = () => {
             if (request.readyState === 4 && request.status === 200) {
                 const data = JSON.parse(request.responseText);
-                self.addFileToField({ id: data.id, name: data.filename });
+                this.addFileToField({ id: data.id, name: data.filename });
             } else if(request.readyState === 4 && request.status >= 400){
                 const response = fromJson(request.responseText);
-                if(response.is_error && response.message) self.showException(response.message);
-                else self.showException("An unexpected error occurred");
+                if(response.is_error && response.message) this.showException(response.message);
+                else this.showException("An unexpected error occurred");
             }
         };
         request.onerror=()=>{
-            self.showException("An unexpected error occurred");
+            this.showException("An unexpected error occurred");
         };
         request.send(fileData);
       }catch(e){
@@ -264,9 +262,7 @@ class InputComponent extends Component {
       this.fileDelete.click( (ev) => { this.deleteFile(ev) } )
     }
 
-    handleClickReveal(ev) {
-        const target = $(ev.target)
-
+    handleClickReveal() {
         this.btnReveal.toggleClass("show");
 
         if (this.input.attr("type") == "password") {
@@ -302,7 +298,6 @@ class InputComponent extends Component {
     addFileToField(file) {
       const $fieldset = this.el.closest('.fieldset');
       const $ul = $fieldset.find(".fileupload__files")
-      const $field = this.el
       const fileId = file.id
       const fileName = file.name
       const field = $fieldset.find('.input--file').data("field")

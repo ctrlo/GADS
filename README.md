@@ -1,20 +1,82 @@
-Globally Accessible Data Store (GADS)
-=====================================
+# Globally Accessable Datastore (GADS)
 
-GADS is designed as an online replacement for spreadsheets being used to store lists of data.
+## What is GADS?
 
-GADS provides a much more user-friendly interface and makes the data easier to maintain. Its features include:
+GADS is the Globally Accessable Data Store - it is designed for a powerful online replacement of Spreadsheets and other (semi) flat data stores with the power to perform tasks that don't quite require a fully-fledged database, but a spreadsheet can't quite meet.
+
+GADS provides a much more user-friendly interface and makes the data easier to maintain; it's features include:
 
 - Allow multiple users to view and update data simultaneously
 - Customise data views by user
 - Easy version control
 - Approval process for updating data fields
-- Basic graph functionality
+- Basic graph functionality[^1]
 - Red/Amber/Green calculated status indicators for values
+- Complex calculated values
 
-# Installation
+## What is this document?
 
-```
+This document explains how to set up GADS V2+ on your local system for development or usage within your environment
+
+## At whom is this document aimed?
+
+This document is aimed at technical professionals who require a solution for multi-user spreadsheet access, or engineers who wish to help improve the system.
+
+## Languages used
+
+GADS as a system uses a number of languages in it's implementation, these include (but are not limited to):
+
+- Perl
+- JavaScript
+- TypeScript
+- SCSS
+
+## Contributing
+
+Contributing to this project can be achieved through opening pull requests to the dev branch. The following requirements are to be met before a pull request is even considered:
+
+- All code and exernal libraries are to be fully [ISO:27001](https://www.iso.org/standard/27001) compliant
+- All pull requests and commit messages are to have explicit titles, as well as comprehensive descriptions as far as is possible
+- All code is to either use "Really Obvious Code" or comment your code so that the maintainers (and possibly you, further down the line) can ascertain the purpose easily
+- All code is to pass all tests included within the suite - custom code is to include unit tests where possible, but changes to current unit tests are only to be performed with _full_ justification. These tests include:
+  - Perl unit tests
+  - Jest JS/TS tests
+  - Cypress E2E tests[^2]
+
+### Development Requirements
+
+To develop for this project the following is required as a minimum:
+
+- Git
+- Perl
+- Yarn
+
+#### Frontend workflow
+
+This section describes the front-end flow: CSS and JS.
+To get started install all required dependencies by running `yarn install`.
+
+To build the JS/CSS (only required if you change anything) use `yarn build` for "release" and `yarn build:dev` for development
+
+To run JEST tests, run `yarn test`, to watch any tests and run them according to any code changes run `yarn test:dev`
+
+## Installation
+
+### The easy way - (R)?ex
+
+Probably the quickest and easiest way to set up GADS within your environment is using [(R)?ex](http://rexify.org). Set up Rex on your system (the script `./rex/setup.sh` can be used to set this up for you), and then run `rex -f ./rex/Rexfile -b setup` within the gads root (obviously clone using `git clone https://github.com/ctrlo/GADS -b dev` first and chdir into the GADS directory) to set up a basic GADS environment on your system. If you wish to change any of the configuration before you run the Rexfile, update `./rex/config/gads-config.yml` with your desired configuration.
+
+### The container way (Docker)
+
+From the root folder, run the following command `docker compose up`
+This will automatically run the seed script as well.
+Access the application on http://localhost:3000 and login with `admin@localhost` and password `qwedsa`
+
+### Manual package installation
+
+GADS is complicated, there are a _lot_ of packages required - to install GADS locally you need to install GCC, G++, Make, Perl, and CPAN, then:
+
+```bash
 # Clone
 git clone https://github.com/ctrlo/GADS.git
 
@@ -44,109 +106,24 @@ cpan .
 bin/seed-database.pl
 ```
 
-# Manually seeding database
+### Running the application
 
-Only run this step if the database has not already been seeded with one of the
-supplied scripts (such as ```seed-database.pl```)
+To run the application, once you've got the hard stuff out of the way (see above), you just need to run `./bin/app.pl` and use the password reset function to retrieve a password for your created user!
 
-```
-# Deploy database (MySQL)
-DBIC_MIGRATION_USERNAME=gads DBIC_MIGRATION_PASSWORD=mysecret \
-    dbic-migration -Ilib --schema_class='GADS::Schema' \
-    --dsn='dbi:mysql:database=gads' --dbic_connect_attrs \
-    quote_names=1 install
+## DB usage
 
-# Insert permission fixtures (MySQL)
-DBIC_MIGRATION_USERNAME=gads DBIC_MIGRATION_PASSWORD=mysecret \
-    dbic-migration -Ilib --schema_class='GADS::Schema' \
-    --dsn='dbi:mysql:database=gads' --dbic_connect_attrs \
-    quote_names=1 populate --fixture_set permissions
+### Upgrading
 
+If there is a change to the DB schema, by yourself, or on a release of a new version, you just need to run `perl ./bin/migrate-db.pl --upgrade`
 
-# Deploy database (PostgreSQL)
-DBIC_MIGRATION_USERNAME=gads DBIC_MIGRATION_PASSWORD=mysecret \
-    dbic-migration -Ilib --schema_class='GADS::Schema' \
-    --dsn='dbi:Pg:database=gads' --dbic_connect_attrs \
-    quote_names=1 install
+### Useful DB commands
 
-# Insert permission fixtures (PostgreSQL)
-DBIC_MIGRATION_USERNAME=gads DBIC_MIGRATION_PASSWORD=mysecret \
-    dbic-migration -Ilib --schema_class='GADS::Schema' \
-    --dsn='dbi:Pg:database=gads' --dbic_connect_attrs \
-    quote_names=1 populate --fixture_set permissions
+There are also a number of useful DB commands, these are:
 
+- `perl ./bin/migrate-db.pl --status` - Print DB version information
+- `perl ./bin/migrate-db.pl --fixtures=export` - Dump all data to fixtures
+- `perl ./bin/migrate-db.pl --fixtures=import` - Load all fixture data
 
-# Insert user into user table.
-# Insert instance into instance table.
-```
+[^1]: This functionality is currenty undergoing significant changes and improvements
 
-# Finally
-
-```
-# Spin up application
-$ bin/app.pl
-
-# Use password reset functionality to set initial login!
-# - Add your user to all permissions (Admin -> Manage Users)
-# - Create user groups (Admin -> Manage Groups)
-# - Add your user to a group
-# - Create fields (Admin -> Data Layout)
-# - Add groups to the field
-# - Add data!
-```
-
-## Managing the deployed database
-
-### Upgrade the deployed database to the latest version
-
-Run this after updating the code:
-
-`perl bin/migrate-db.pl --upgrade`
-
-### Other useful database migration commands
-
-```
-# Print database version information
-perl bin/migrate-db.pl --status
-
-# Dump all data to fixtures
-perl bin/migrate-db.pl --fixtures=export
-
-# Load all fixture data
-perl bin/migrate-db.pl --fixtures=import
-```
-
-## Data
-```
-bin/generate.pl # Generate random data
-bin/onboard.pl --take-first-enum new.csv # Import random data
-```
-
-## Front-end workflow
-This section describes the front-end flow: CSS and JS.
-To get started install all required dependencies by running `yarn install`.
-### Docker
-When you're using `docker` to spin up this application, the CSS and JS
-will automatically be compiled and saved in the `public` folder.
-The container `frontend` defined in `docker-compose.yml` has the command
-to run `webpack` and watch the files.
-
-### Manual
-To build the frontend yourself, run the command `yarn run build`.
-This will run the command defined in the `package.json`:
-```
-    "roger": "NODE_ENV=production node node_modules/.bin/webpack --watch --progress --output-path public/",
-```
-To not build files minified, change to ```minimize: false``` in webpack.config.js
-
-### CSS
-CSS is written in SCSS, and compiled.
-The main SCSS files live in `src/frontend/css/stylesheets`.
-There are two main-entries: `general.scss` and `external.scss`.
-Both will compile to their own CSS file. The components that
-are included in those files are defined in `src/frontend/components/**/_*.scss`.
-
-### Javascript
-There is one javascript build present. The main-entry file is `src/frontend/js/site.js`.
-The components that are included in this file is defined in `src/frontend/components/**/index.js`
-and `src/frontend/components/**/lib/*.js`.
+[^2]: The implementation of this is underway, but not yet included in this version

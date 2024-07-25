@@ -19,6 +19,16 @@
           <span class="btn__title">[% button.label || button.name | html %]</span>
         </button>
       </form>
+      [% ELSIF button.type == 'submit' %]
+      <button
+          type="submit"[% IF button.id %]
+          id="[% button.id %]"[% END %]
+          class="[% button.class %]"
+          name="[% button.name %]"
+          value="[% button.value || button.name %]"[% IF button.style %]
+          style="[% button.style %]"[% END %]>
+          <span class="btn__title">[% button.label || button.name | html %]</span>
+        </button>
       [% ELSIF button.type == "link" %]
       <a href="[% button.target %]"[% IF button.id %] id="[% button.id %]"[% END %] class="[% button.class %]"[% IF button.style %] style="[% button.style %]"[% END %]>
         [% IF button.label_in_span; %]<span>[% END %]
@@ -82,8 +92,9 @@
                     target="_blank">
                       [% item.label || item.name | html %]
                   </a>
-                [% END %]
               </li>
+              [% END %]
+              [% INCLUDE extension/record_edit_extra.tt %]
             </ul>
           </div>
         </div>

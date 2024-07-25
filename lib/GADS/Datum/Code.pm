@@ -122,7 +122,7 @@ sub _write_unique
     my $schema = $self->schema;
     if (my $table = $self->column->table_unique)
     {
-        my $svp = $schema->storage->svp_begin;
+        $schema->storage->svp_begin("sp_uq_calc");
         try {
             $schema->resultset($table)->create({
                 layout_id => $self->column->id,
@@ -131,13 +131,14 @@ sub _write_unique
         };
         if ($@ =~ /(duplicate|unique constraint failed)/i) # Pg: duplicate key, Mysql: Dupiicate entry, Sqlite: UNIQUE constraint failed
         {
-                $schema->storage->svp_rollback;
+            $schema->storage->svp_rollback("sp_uq_calc");
+            $schema->storage->svp_release("sp_uq_calc");
         }
         elsif ($@) {
             $@->reportAll;
         }
         else {
-            $schema->storage->svp_release;
+            $schema->storage->svp_release("sp_uq_calc");
         }
     }
 }

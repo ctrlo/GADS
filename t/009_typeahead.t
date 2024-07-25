@@ -17,6 +17,7 @@ my $data = [
         string1    => 'Foo',
         curval1    => 2,
         daterange1 => ['2012-02-10', '2013-06-15'],
+        person1    => 1,
     },
     {
         string1    => 'Bar',
@@ -25,7 +26,7 @@ my $data = [
     },
 ];
 
-my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2);
+my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, site_id => 1);
 $curval_sheet->create_records;
 my $schema  = $curval_sheet->schema;
 my $sheet   = Test::GADS::DataSheet->new(data => $data, schema => $schema, curval => 2);
@@ -42,6 +43,33 @@ is (scalar @values, 1, "Typeahead returned correct number of results");
 is ("@values", "foo1", "Typeahead returned correct values");
 @values = $column->values_beginning_with('');
 is (scalar @values, 3, "Typeahead returns all results for blank string");
+
+# Person typeahead
+$column = $columns->{person1};
+@values = map $_->{label}, $column->values_beginning_with('User1');
+is (scalar @values, 1, "Person typeahead returned correct number of results");
+is ("@values", "User1, User1", "Typeahead returned correct values");
+# Test for person field with filter
+# Add new org
+my $org = $schema->resultset('Organisation')->create({
+    name => 'Another Organisation',
+});
+# Set single user to new org
+$schema->resultset('User')->find(2)->update({ organisation => $org->id });
+$column->filter(GADS::Filter->new(
+    as_hash => {
+        rules     => [{
+            field    => 'organisation',
+            type     => 'string',
+            value    => 'Another Organisation',
+            operator => 'equal',
+        }],
+    },
+));
+$column->write;
+@values = map $_->{label}, $column->values_beginning_with('User');
+is (scalar @values, 1, "Person typeahead returned correct number of results");
+is ("@values", "User2, User2", "Typeahead returned correct values");
 
 $column = $columns->{curval1};
 $column->value_selector('typeahead');

@@ -1,5 +1,18 @@
 name: 'GADS Tests'
-on: [ 'push', 'pull_request' ]
+on: 
+  push:
+    branches:
+      - master
+      - dev
+      - hotfix
+  pull_request:
+    branches:
+      - master
+      - dev
+      - hotfix
+    paths-ignore:
+      - '*.md'
+      - VERSION
 
 jobs:
   unit_tests:
@@ -9,7 +22,7 @@ jobs:
 
     steps:
       - name: 'Check out the GADS repository'
-        uses: 'actions/checkout@v3'
+        uses: 'actions/checkout@v4'
       - name: 'Install Non-CPAN dependencies'
         run: |
           sudo apt-get install cpanminus liblua5.3-dev
@@ -57,7 +70,7 @@ jobs:
 
     steps:
       - name: 'Check out the GADS code'
-        uses: 'actions/checkout@v3'
+        uses: 'actions/checkout@v4'
       - name: 'Install Non-CPAN dependencies'
         run: |
           sudo apt-get install cpanminus liblua5.3-dev
@@ -88,10 +101,78 @@ jobs:
       - name: 'Run the Webdriver implementation'
         run: '${{ matrix.browser.command }}'
       - name: 'Run the Webdriver tests'
-        # TODO: Delete the line below and uncomment the line beneath that
-        run: prove -lmrsv webdriver/t/login.t
-        #run: prove -lmrsv webdriver/t
+        run: prove -lmrsv webdriver/t
+  
+  cypress_tests:
+    name: 'Cypress Tests for ${{ matrix.browser.name }}'
+    runs-on: '${{ matrix.browser.os }}'
+    timeout-minutes: 30
 
+    strategy:
+      fail-fast: false
+      matrix:
+        browser:
+          - name: 'chrome'
+            os: 'ubuntu-22.04'
+          
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+
+    env:
+      GADS_USERNAME: 'test@example.com'
+      GADS_PASSWORD: 'xyz123'
+
+    steps:
+      - name: 'Check out the GADS code'
+        uses: 'actions/checkout@v4'
+      - name: 'Install Non-CPAN dependencies'
+        run: |
+          sudo apt-get install cpanminus liblua5.3-dev gcc g++ libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl
+          sudo apt-get install libdbix-class-schema-loader-perl libmagic-dev postgresql-client libpng-dev libssl-dev libpq-dev
+          sudo apt-get install libjson-perl libsession-token-perl libnet-oauth2-authorizationserver-perl libtext-csv-encoded-perl
+          sudo apt-get install libcrypt-urandom-perl libhtml-scrubber-perl libtext-markdown-perl libwww-form-urlencoded-xs-perl
+          sudo apt-get install libstring-camelcase-perl libmail-transport-perl liblog-log4perl-perl libplack-perl libdbd-pg-perl
+          sudo apt-get install libmail-message-perl libmath-random-isaac-xs-perl libdbix-class-helpers-perl libtree-dagnode-perl
+          sudo apt-get install libmath-round-perl libdatetime-format-dateparse-perl libwww-mechanize-perl libdatetime-format-iso8601-perl
+          sudo apt-get install libmoox-types-mooselike-perl libmoox-singleton-perl libdancer2-perl liblist-compare-perl
+          sudo apt-get install liburl-encode-perl libtie-cache-perl libhtml-fromtext-perl libdata-compare-perl libfile-bom-perl
+          sudo apt-get install libalgorithm-dependency-perl libdancer-plugin-auth-extensible-perl libfile-libmagic-perl postfix
+      - name: 'Build cpanfile'
+        run: |
+          perl bin/output_cpanfile > cpanfile
+      - name: 'Install CPAN dependencies'
+        uses: 'perl-actions/install-with-cpanm@v1'
+        with:
+          cpanfile: 'cpanfile'
+      - name: 'Set up credentials for psql'
+        # See https://wiki.postgresql.org/wiki/Pgpass
+        run: |
+          echo '*:*:*:postgres:postgrespassword' > ~/.pgpass
+          chmod 600 ~/.pgpass
+      - name: 'Install YARN dependencies'
+        run: |
+          sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+          yarn
+      - name: 'Start the application'
+        env:
+          DANCER_CONFDIR: 'webdriver'
+          PGDATABASE: 'postgres'
+          PGHOST: 'localhost'
+          PGUSER: 'postgres'
+          TEST: '1'
+        run: |
+          ./bin/setup_database
+          perl bin/app.pl &
+      - name: 'Run the Cypress tests'
+        run: yarn cypress run --browser ${{ matrix.browser.name }}
+              
   js_tests:
     runs-on: ubuntu-latest
 
@@ -101,9 +182,9 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'yarn'

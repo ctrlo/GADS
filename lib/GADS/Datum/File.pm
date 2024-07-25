@@ -131,6 +131,12 @@ has files => (
 sub _build_files
 {   my $self = shift;
 
+    return [+{
+        id => -1,
+        name => 'Purged',
+        mimetype => 'text/plain',
+    }] if $self->is_purged;
+
     my @return;
 
     if ($self->has_init_value)
@@ -155,6 +161,20 @@ sub _build_files
     }
 
     return \@return;
+}
+
+sub _files_rs
+{   my $self = shift;
+    [$self->schema->resultset('File')->search({
+        record_id => $self->record_id,
+        layout_id => $self->column->id,
+    })->all];
+}
+
+sub is_purged {
+    my $self = shift;
+    my @files = @{$self->_files_rs};
+    return grep { $_->is_purged } @files;
 }
 
 sub _ids_to_files
@@ -203,7 +223,23 @@ sub _build__rset
     $self->schema->resultset('Fileval')->find($id);
 }
 
-has content => (
+has single_name => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->_rset && $_[0]->_rset->name;
+    },
+);
+
+has single_mimetype => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->_rset && $_[0]->_rset->mimetype;
+    },
+);
+
+has single_content => (
     is      => 'rw',
     lazy    => 1,
     builder => sub {

@@ -1,0 +1,11 @@
+config:
+  email: 'user@example.com'
+  url: 'http://example.com'
+  db_name: 'linkspace'
+  db_user: 'linkspace'
+  db_pass: 'linkspace'
+  db_host: 'localhost'
+  gads_user: 'test@example.com'
+  gads_instance: 'test'
+  gads_site: 'localhost'
+  

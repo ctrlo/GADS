@@ -45,12 +45,12 @@ module.exports = (env) => {
       rules: [
         {
           test: /\.js$/,
-          exclude: [/node_modules/, /\.test\.js$/, /test/],
+          exclude: [/node_modules/, /\.test\.js$/, /test/, /definitions/],
           use: ['babel-loader']
         },
         {
           test: /\.tsx?$/,
-          exclude: [/node_modules/, /\.test\.tsx?$/, /test/],
+          exclude: [/node_modules/, /\.test\.tsx?$/, /test/, /definitions/],
           use: ['babel-loader', 'ts-loader']
         },
         {

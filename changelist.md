@@ -2,14 +2,84 @@
 
 -------
 
-**Version**: 2.3.2
-**Released**: 30th April 2024
+**Version**: 2.4.0
+**Released**: 22-07-2024
+
+-------
+
+## New Features
+
+- Contextual help integrated into new view interface
+- Filters now added to `Person` fields allowing to filter by
+  - Department
+  - Title
+  - Organisation
+  - Team
+- Purging of records from view now possible - please note **this is a destructive action and should be the exception for deletion, not the rule**
+- Added Cypress for integration testing with
+  - Login tests
+  - Homepage Tests
+  - Settings Test
+  - User Group Tests
+  - File Upload Tests
+  - Table Wizard Tests
+  - Basic Layout Tests
+
+## QoL Changes
+
+- New interface for building views
+- Calc cache optimisation
+- Port on launch via `./bin/app.pl` can be set by using the environment variable `PORT` - defaults to 3000
+- Buttons seperated into different files
+  - Started unit test implementation for buttons where possible now implementations are cleaner
+- Show-in-edit for `Calc` fields means they can be used for on edit calcs whilst still being hidden
+- Made download options clearer within menus for use with extensions
+- Added browserlists to `package.json`
+- Can exit fullscreen using escape key
+- Higher use of chunks in order to limit size of `site.js` on webpack
+
+## Fixes
+
+- Bug in QueryBuilder with dynamic typeahead no longer causes QueryBuilder to not load correctly
+- View filtering typeahead was not saving when no text was entered and an option was selected - menu now only shows when 1+ character is typed
+- Popover arrow now displays correctly
+- Fix for scoping issues in some AJAX requests and other areas
+- Fixed Webdriver Tests
+- Fix for bug in admin and shared view creation
+- Fullscreen now works correctly when clicking label
+- Audit now uses local timezone on display
+- Fixed error when building webpack in timeline code
+
+## Other
+
+- Re-written readme.md as this was out of date
+- Added (very basic) Rex deployment for testing environments
+  - This will probably need modification for specific systems but is, at worst, a good starting point
+
+-------
+
+**Version**: 2.3.3
+**Released**: 09th May 2024
 
 -------
 
 ## Hotfix
 
-- Fix for edit views of another user not filtering correctly
+- Fix for extra request on curval fields
+
+-------
+
+**Version**: 2.3.2
+**Released**: 09th May 2024
+
+-------
+
+## Hotfix
+
+- Fix for typeahead issues
+  - Increased efficiency of typeahead response times
+  - Fixed bug causing locking issues with PSQL
+  - Fix for searching for people where results were not displaying correctly
 
 -------
 

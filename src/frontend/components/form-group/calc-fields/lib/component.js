@@ -15,25 +15,24 @@ class CalcFieldsComponent extends Component {
   getFieldCalc() {
 
       const dependency = $(this.element).data("calc-depends-on")
-      const depends_on_ids = JSON.parse(Buffer.from(dependency, 'base64'))
+      const depends_on_ids = JSON.parse(atob(dependency))
       const depends_on = jQuery.map(depends_on_ids, function(id) {
         return $('[data-column-id="' + id + '"]')
       });
 
       return {
         field: $(this.element),
-        code: Buffer.from($(this.element).data("code"), 'base64').toString(),
-        params: JSON.parse(Buffer.from($(this.element).data("code-params"), 'base64')),
+        code: atob($(this.element).data("code")).toString(),
+        params: JSON.parse(atob($(this.element).data("code-params"))),
         depends_on: depends_on
       };
 
   }
 
   setupCalcField(field) {
-    let code = field.code
-    const depends_on = field.depends_on
+    let {code} = field
+    const {depends_on,params} = field
     const $field = field.field
-    const params = field.params
 
     // Change standard backend code format to a format that works for
     // evaluating in the browser
@@ -55,6 +54,7 @@ class CalcFieldsComponent extends Component {
         });
 
         // Evaluate the code with the values
+        // eslint-disable-next-line no-undef
         var func = fengari.load(code)()
         var first = vars.shift()
         // Use apply() to be able to pass the params as a single array. The

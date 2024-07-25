@@ -10,6 +10,7 @@
 
     width: auto;
     margin-bottom: 0.25rem;
+    font-size: 0.875rem; // 14px
   }
 }
 
@@ -19,6 +20,10 @@
 
 .fieldset__legend--hidden {
   @include visually-hidden;
+}
+
+.fieldset__legend--standalone {
+  margin-bottom: 1rem;
 }
 
 .fieldset__legend + .form-group {

@@ -43,7 +43,7 @@ export class Typeahead {
         this.$input.typeahead({
             hint: false,
             highlight: false,
-            minLength: 0
+            minLength: 1
         }, {
             name: name,
             source: bloodhound,
@@ -80,4 +80,4 @@ export class Typeahead {
             });
         }
     }
-};
+}

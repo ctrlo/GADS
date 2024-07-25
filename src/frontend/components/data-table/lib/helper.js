@@ -1,4 +1,5 @@
 const addRow = (rowData, table) => {
+  // Insert row at bottom of table
   table.DataTable().row.add(rowData).draw()
 }
 
@@ -15,4 +16,16 @@ const clearTable = (table) => {
   table.DataTable().clear().draw()
 }
 
-export { addRow, updateRow, clearTable }
+const getRowOrder = (row) => {
+  try {
+    const orderValue = $(row.node()).find('input').first().data('order')
+    if (typeof orderValue === "undefined") {
+      return -1
+    }
+    return parseInt(orderValue)
+  } catch {
+    return -1
+  }
+}
+
+export { addRow, updateRow, clearTable, getRowOrder }

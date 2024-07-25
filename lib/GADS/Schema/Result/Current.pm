@@ -10,7 +10,10 @@ GADS::Schema::Result::Current
 use strict;
 use warnings;
 
-use base 'DBIx::Class::Core';
+use Moo;
+
+extends 'DBIx::Class::Core';
+sub BUILDARGS { $_[2] || {} }
 
 =head1 COMPONENTS LOADED
 
@@ -380,6 +383,26 @@ sub export_hash
     $current->{records} = \@records;
 
     return $current;
+}
+
+sub historic_purge {
+    my ($self, $user, @layouts) = @_;
+
+    my @records = $self->records->all;
+    my @values;
+    foreach my $layout (@layouts) {
+        push @values, $_->calcvals->search({ layout_id => $layout })->all foreach @records;
+        push @values, $_->dateranges->search({ layout_id => $layout })->all foreach @records;
+        push @values, $_->dates->search({ layout_id => $layout })->all foreach @records;
+        push @values, $_->enums->search({ layout_id => $layout })->all foreach @records;
+        push @values, $_->files->search({ layout_id => $layout })->all foreach @records;
+        push @values, $_->intgrs->search({ layout_id => $layout })->all foreach @records;
+        push @values, $_->people->search({ layout_id => $layout })->all foreach @records;
+        push @values, $_->ragvals->search({ layout_id => $layout })->all foreach @records;
+        push @values, $_->strings->search({ layout_id => $layout })->all foreach @records;
+    }
+
+    $_->purge($user) foreach @values;
 }
 
 1;

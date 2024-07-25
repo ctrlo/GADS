@@ -23,7 +23,8 @@
       color: $brand-secundary;
     }
 
-    &.data-table__header--invisible span {
+    &.data-table__header--invisible span,
+    &.dt__header--inivisible span {
       @include visually-hidden;
     }
   }
@@ -47,6 +48,7 @@
 /* Necessary to overrule default styling */
 table.dataTable thead .sorting,
 table.dataTable thead .sorting_disabled {
+
   /* stylelint-disable declaration-no-important */
   // Remove the sorting arrows from the sorting element, important needed to overrule default styling
   &::before,
@@ -74,7 +76,12 @@ table.dataTable thead .sorting_disabled {
   }
 }
 
+.row--fiv-header {
+  margin-top: 1.9rem;
+}
+
 .dataTables_toggle_full_width {
+
   .btn-toggle,
   .btn-toggle-off {
     padding-top: 7px;
@@ -194,6 +201,39 @@ table.dataTable thead .sorting_disabled {
   }
 }
 
+.dataTables_scrollHead .table--bordered,
+.dt-scroll-head .table--bordered {
+  box-sizing: border-box;
+  border: 1px solid $gray;
+  border-bottom: 0;
+  border-top-left-radius: $table-border-radius;
+  border-top-right-radius: $table-border-radius;
+
+  thead {
+    // Why is this not in the variables file?? Or even more important, why is this a variable?
+    $table-bordered-head-color: #585858;
+
+    color: $table-bordered-head-color;
+  }
+}
+
+.dataTables_scrollBody:has(.table--bordered),
+.dt-scroll-body:has(.table--bordered) {
+  border: 1px solid $gray;
+  border-top: 0;
+  border-bottom-left-radius: $table-border-radius;
+  border-bottom-right-radius: $table-border-radius;
+
+  .table-striped {
+    border-bottom: 0;
+  }
+}
+
+.dataTables_scrollFoot .table-striped.table--bordered,
+.dt-scroll-foot .table-striped.table--bordered {
+  border: 0;
+}
+
 .data-table__header-wrapper {
   display: flex;
   position: relative;
@@ -305,4 +345,25 @@ div.dataTables_wrapper div.dataTables_filter input.form-control {
 
 div.dataTables_wrapper div.dataTables_processing {
   top: 10rem;
+}
+
+table.table-purge {
+
+  thead tr th,
+  tbody tr td {
+    text-align: center !important; // For some reason, this doesn't override unless I do !important
+  }
+  tbody tr td {
+    border: 1px solid $gray;
+    border-top: 0;
+  }
+  thead tr th {
+    background-color: $brand-secundary;
+    color: $white;
+  }
+}
+
+button.btn-remove,
+button.btn-add {
+  margin: $padding-base-vertical 0;
 }

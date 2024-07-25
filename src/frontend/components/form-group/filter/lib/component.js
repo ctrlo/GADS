@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component'
 import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
 import 'bootstrap-select/dist/js/bootstrap-select'
@@ -176,7 +177,7 @@ class FilterComponent extends Component {
     })
 
     if(filterBase) {
-      const data = Buffer.from(filterBase, 'base64')
+      const data = atob(filterBase, 'base64')
       try {
         const obj = JSON.parse(data);
         if (obj.rules && obj.rules.length) {
@@ -201,7 +202,7 @@ class FilterComponent extends Component {
     }
   }
 
-  makeUpdateFilter(builder) {
+  makeUpdateFilter() {
     window.UpdateFilter = (builder, ev) => {
       if (!builder.queryBuilder('validate')) ev.preventDefault();
       const res = builder.queryBuilder('getRules')
@@ -244,7 +245,7 @@ class FilterComponent extends Component {
     return operators
   }
 
-  typeaheadProperties = (urlSuffix, layoutId, instanceId, useIdInFilter) => ({
+  typeaheadProperties = () => ({
     input: (container, input_name) => {
       return (
         `<div class='tt__container'>
