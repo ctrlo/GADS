@@ -1,49 +1,22 @@
-export type EventOrJQueryEvent = Event | JQuery.Event;
-export type TOrJQuery<T> = T | JQuery<T>;
-export type ElementOrJQueryElement = TOrJQuery<HTMLElement>;
+import {ElementLike} from "../../../testing/globals.definitions";
+// Instanceof is used throughout, this is because we need to ensure ElementLike is not overwritten by JQuery (else we could use `$el=$(element)`)
 
-export const stopPropagation = (e: EventOrJQueryEvent) => {
-    try {
-        e.stopPropagation();
-        e.preventDefault();
-    } catch (e) {
-        //ignore - this is because unit tests are failing - there will be a "better" fix incoming in the future
-    }
-}
-
-export const hasClass = (element: ElementOrJQueryElement, className: string) => {
+export const hideElement = (element: HTMLElement | ElementLike | JQuery<HTMLElement>) => {
     const $el = element instanceof HTMLElement ? $(element) : element;
-    return $el.hasClass(className);
-};
-
-export const hideElement = (element: ElementOrJQueryElement) => {
-    const $el = element instanceof HTMLElement ? $(element) : element;
-    if(hasClass($el, 'hidden')) return;
+    if($el.hasClass('hidden')) return;
     $el.addClass('hidden');
     $el.attr('aria-hidden', 'true');
     $el.css('display', 'none');
     $el.css('visibility', 'hidden');
 };
 
-export const showElement = (element: ElementOrJQueryElement) => {
-    const $el = element instanceof HTMLElement ? $(element) : element;
-    if (!hasClass($el, 'hidden')) return;
-    removeClass($el, 'hidden');
+export const showElement = (element: HTMLElement | ElementLike |JQuery<HTMLElement>) => {
+    const $el = element instanceof HTMLElement? $(element) : element;
+    if (!$el.hasClass('hidden')) return;
+    $el.removeClass('hidden');
     $el.removeAttr('aria-hidden');
     $el.removeAttr('style');
 };
-
-export const addClass = (element: ElementOrJQueryElement, className: string) => {
-    const $el = element instanceof HTMLElement ? $(element) : element;
-    if (hasClass($el, className)) return;
-    $el.addClass(className);
-}
-
-export const removeClass = (element: ElementOrJQueryElement, className: string) => {
-    const $el = element instanceof HTMLElement ? $(element) : element;
-    if (!hasClass($el, className)) return;
-    $el.removeClass(className);
-}
 
 export const fromJson = (json: String | object) => {
     try {
