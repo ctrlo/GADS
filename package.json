@@ -18,7 +18,6 @@
   "dependencies": {
     "@egjs/hammerjs": "^2.0.0",
     "@lol768/jquery-querybuilder-no-eval": "^2.6.0",
-    "blueimp-file-upload": "^10.32.0",
     "bootstrap": "4.6",
     "bootstrap-datepicker": "^1.9.0",
     "bootstrap-html5sortable": "^1.0.0",
