@@ -83,13 +83,11 @@ class DocumentComponent {
         }
 
         const $li = $(`
-            <li class="help-block">
-                <div class="checkbox">
+            <li class="list__item">
+                <span class="list__key">
                     <input type="checkbox" id="file-${fileId}" name="${field}" value="${fileId}" aria-label="${fileName}" data-filename="${fileName}" checked>
-                    <label for="file-${fileId}">
-                        <span>Include file. Current file name: <a class="link" href="/file/${fileId}">${fileName}</a>.</span>
-                    </label>
-                </div>
+                </span>
+                <span class="list__value">Include file. Current file name:<a class="link link--plain" href="/file/${fileId}">${fileName}</a>.</span>
             </li>
         `);
 
