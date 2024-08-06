@@ -53,3 +53,21 @@ export class MockXhr implements XmlHttpRequestLike {
     status: number = 200;
     responseText: string = JSON.stringify({error: 0});
 }
+
+export interface ElementLike {
+    hasClass: (className: string) => boolean;
+    addClass: (className: string) => void;
+    attr: (attr: string, value: string) => void;
+    css: (attr: string, value: string) => void;
+    removeClass: (className: string) => void;
+    removeAttr: (attr: string) => void;
+}
+
+export class DefaultElementLike implements ElementLike {
+    hasClass: (className: string) => boolean = jest.fn().mockReturnValue(false);
+    addClass: (className: string) => void = jest.fn();
+    attr: (attr: string, value: string) => void = jest.fn();
+    css: (attr: string, value: string) => void = jest.fn();
+    removeClass: (className: string) => void = jest.fn();
+    removeAttr: (attr: string) => void = jest.fn();
+}
