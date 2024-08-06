@@ -2,8 +2,9 @@
 import { Component } from 'component'
 import { initValidationOnField, validateCheckboxGroup } from 'validation'
 import initDateField from 'components/datepicker/lib/helper'
-import 'blueimp-file-upload'
-import { stopPropagation, fromJson, hideElement, showElement } from 'util/common'
+import { stopPropagation, hideElement, showElement } from 'util/common'
+import { formdataMapper } from 'util/mapper/formdataMapper'
+import { upload } from 'util/upload/UploadControl'
 
 class InputComponent extends Component {
     constructor(element)  {
@@ -53,15 +54,7 @@ class InputComponent extends Component {
         formData.append('file', this.el.find('input[type="file"]')[0].files[0]);
         formData.append('csrf_token', $('body').data('csrf'));
 
-        fetch(url,{
-          method: 'POST',
-          body: formData,
-        }).then((response) => {
-          if (response.ok) {
-            return response.json();
-          }
-          throw new Error(`Error: ${response.status} ${response.statusText}`);
-        }).then((data) => {
+        upload(url, formData, 'POST').then((data) => {
           if (data && !data.error) {
             const version = this.logoDisplay.attr('src').split('?')[1];
             const newVersion = version? parseInt(version) + 1 : 1;
@@ -70,76 +63,60 @@ class InputComponent extends Component {
           } else if (data.error) {
             throw new Error(`Error: ${data.text}`);
           }else{
-            throw new Error(`Error: No data returned`);
+            throw new Error('Error: No data returned');
           }
         }).catch((error) => {
-          console.error(error);
+          console.error(error instanceof Error ? error.message : error);
         });
       });
     }
 
     // Self is used here due to XMLHttpRequest's scope issues
     initInputDocument() {
-      const url = this.el.data("fileupload-url")
-      const $progressBarContainer = this.el.find(".progress-bar__container")
-      const $progressBarProgress = this.el.find(".progress-bar__progress")
-      const $progressBarPercentage = this.el.find(".progress-bar__percentage")
-      let self = this
+        const url = this.el.data("fileupload-url")
+        const $progressBarContainer = this.el.find(".progress-bar__container")
+        const $progressBarProgress = this.el.find(".progress-bar__progress")
+        const $progressBarPercentage = this.el.find(".progress-bar__percentage")
+        let self = this
 
-      const tokenField = this.el.closest('form').find('input[name="csrf_token"]');
-      const token = tokenField.val();
-      const dropTarget = this.el.closest('.file-upload');
-      if (dropTarget) {
-        const dragOptions = { allowMultiple: false };
-        dropTarget.filedrag(dragOptions).on('onFileDrop', (ev, file) => {
-          this.handleAjaxUpload(url, token, file);
-        });
-        this.error = dropTarget.parent().find('.upload__error');
-      } else throw new Error("Could not find file-upload element");
+        const tokenField = this.el.closest('form').find('input[name="csrf_token"]');
+        const csrf_token = tokenField.val();
+        const dropTarget = this.el.closest('.file-upload');
+        if (dropTarget) {
+          const dragOptions = { allowMultiple: false };
+          dropTarget.filedrag(dragOptions).on('onFileDrop', (ev, file) => {
+            this.handleAjaxUpload(url, csrf_token, file);
+          });
+          this.error = dropTarget.parent().find('.upload__error');
+        } else throw new Error("Could not find file-upload element");
 
-      this.el.fileupload({
-        dataType: "json",
-        url: url,
-        paramName: "file",
-        options: {
-          dropTarget: undefined
-        },
-
-        submit: function() {
-          $progressBarContainer.css("display", "block");
-          $progressBarPercentage.html("0%");
-          $progressBarProgress.css("width", "0%");
-          $progressBarContainer.removeClass('progress-bar__container--fail');
-        },
-        progress: function(e, data) {
-          if (!self.el.data("multivalue")) {
-            var $uploadProgression =
-              Math.round((data.loaded / data.total) * 10000) / 100 + "%";
-            $progressBarPercentage.html($uploadProgression);
-            $progressBarProgress.css("width", $uploadProgression);
+        $('input[type="file"][name="file"]').on("change", (ev) => {
+          stopPropagation(ev);
+          const target = ev.target;
+          const file = target.files[0];
+          const formData = formdataMapper({
+            file,
+            csrf_token
+          });
+          upload(url, formData, 'POST', (loaded, total) => {
+            if (!self.el.data('multivalue')) {
+              var $uploadProgression = Math.round((loaded / total) * 10000) / 100 + '%';
+              $progressBarPercentage.html($uploadProgression);
+              $progressBarProgress.css('width', $uploadProgression);
           }
-        },
-        progressall: function(e, data) {
-          if (self.el.data("multivalue")) {
-            var $uploadProgression =
-              Math.round((data.loaded / data.total) * 10000) / 100 + "%";
-            $progressBarPercentage.html($uploadProgression);
-            $progressBarProgress.css("width", $uploadProgression);
-          }
-        },
-        done: function(e, data) {
-          self.addFileToField({ id: data.result.id, name: data.result.filename })
-        },
-        fail: function(e, data) {
-          const ret = data.jqXHR.responseJSON;
-          $progressBarProgress.css("width", "100%");
+      }).then((data) => {
+          self.addFileToField({ id: data.id, name: data.filename });
+      }).catch((error) => {
+          $progressBarProgress.css('width', '100%');
           $progressBarContainer.addClass('progress-bar__container--fail');
-          if (ret.message) {
-              $progressBarPercentage.html("Error: " + ret.message);
+          if (error instanceof Error && error.message) {
+              $progressBarPercentage.html('Error: ' + error.message);
+          } else if (error) {
+              $progressBarPercentage.html('Error: ' + error);
           } else {
-              $progressBarPercentage.html("An unexpected error occurred");
+              $progressBarPercentage.html('An unexpected error occurred');
           }
-        }
+        });
       });
     }
 
@@ -187,32 +164,15 @@ class InputComponent extends Component {
 
     // As previous
     handleAjaxUpload(uri, csrf_token, file) {
-      try{
-        hideElement(this.error);
-        if (!file) throw new Error("No file provided");
-        
-        const fileData = new FormData();
-        fileData.append("file", file);
-        fileData.append("csrf_token", csrf_token);
-        const request = new XMLHttpRequest();
-        request.open("POST", uri, true);
-        request.onreadystatechange = () => {
-            if (request.readyState === 4 && request.status === 200) {
-                const data = JSON.parse(request.responseText);
-                this.addFileToField({ id: data.id, name: data.filename });
-            } else if(request.readyState === 4 && request.status >= 400){
-                const response = fromJson(request.responseText);
-                if(response.is_error && response.message) this.showException(response.message);
-                else this.showException("An unexpected error occurred");
-            }
-        };
-        request.onerror=()=>{
-            this.showException("An unexpected error occurred");
-        };
-        request.send(fileData);
-      }catch(e){
-        this.showException(e);
-      }
+      hideElement(this.error);
+      if (!file) throw new Error("No file provided");
+      
+      const fileData = formdataMapper( {file, csrf_token} );
+      upload(uri, fileData, 'POST').then((data) => {
+        this.addFileToField({ id: data.id, name: data.filename });
+      }).catch((error) => {
+        this.showException(error instanceof Error ? error.message : error || 'An unexpected error occurred');
+      });
     }
     
     showException(e) {
@@ -226,23 +186,21 @@ class InputComponent extends Component {
         const action = form.attr('action') ? window.location.href + form.attr('action') : window.location.href;
         const method = form.attr('method') || 'GET';
         const tokenField = form.find('input[name="csrf_token"]');
-        const token = tokenField.val();
-        const formData = new FormData();
-        formData.append('file', file);
+        const csrf_token = tokenField.val();
         if (method.toUpperCase() == 'POST') {
-            const request = new XMLHttpRequest();
-            const formData = new FormData();
-            request.open(method, action, true);
-            request.onreadystatechange = () => {
-                if (request.readyState === 4 && request.status === 200) {
-                    location.reload();
-                }
-            };
-            formData.append('file', file);
-            formData.append('csrf_token', token);
-            request.send(formData);
+            const formData = formdataMapper({ file, csrf_token });
+            upload(action,formData, method).then(()=>{
+              location.reload();
+            }).catch((error) => {
+              let myError = error instanceof Error ? error.message : error;
+              if(/^Unexpected token/.test(myError)) {
+                location.reload();
+              }else{
+                console.error(myError);
+              }
+            });
         } else {
-            throw new Error("Method not supported");
+            throw new Error(`Method not supported ${method}`);
         }
     }
 

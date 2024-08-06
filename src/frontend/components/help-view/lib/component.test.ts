@@ -1,15 +1,5 @@
+import "../../../testing/globals.definitions";
 import HelpView from "./component";
-
-declare global {
-    interface Window {
-        $: JQueryStatic;
-        alert: (message?: any)=>void;
-    }
-}
-
-window.$ = require("jquery");
-
-export {};
 
 class TestHelpView extends HelpView {
     public get button() {

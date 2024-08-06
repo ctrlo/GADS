@@ -1,5 +1,5 @@
+import { initGlobals } from "../../../testing/globals.definitions";
 import SubmitFieldButtonComponent from "./submit-field-button";
-import initGlobals from "../../../testing/globals.definitions";
 
 describe("Submit field button tests", () => {
     beforeEach(()=>{

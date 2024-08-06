@@ -1,12 +1,5 @@
+import "../../../../../testing/globals.definitions";
 import FileDrag from './filedrag';
-
-declare global {
-    interface Window {
-        $: any;
-    }
-}
-
-window.$ = require('jquery');
 
 class FileDragTest extends FileDrag {
     constructor(element, onDrop?: (files: FileList | File) => void) {
