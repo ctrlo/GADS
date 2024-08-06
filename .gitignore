@@ -33,3 +33,5 @@ webdriver/MYMETA.*
 yarn-error.log
 
 webpack.config.development.js
+
+cypress/downloads/downloads.html
