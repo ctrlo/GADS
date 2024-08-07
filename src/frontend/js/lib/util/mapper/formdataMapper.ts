@@ -1,5 +1,4 @@
 export const formdataMapper = <T>(data: FormData | T) => {
-    console.log("DATA: ", data);
     if (data instanceof FormData) {
         let hasData = false;
         data.forEach(() => {
