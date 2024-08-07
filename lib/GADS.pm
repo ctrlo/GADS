@@ -1739,9 +1739,9 @@ post '/file/:id?' => require_login sub {
 # Use api route to ensure errors are returned as JSON
 post '/api/file/?' => require_login sub {
 
-    if(my rename_id=param('rename')) {
+    if(my $rename_id=param('rename')) {
         my $file = schema->resultset('Fileval')->find($rename_id);
-        $file->update({name=>param('name')});
+        $file->update({name=>param('filename')});
         return encode_json({
             id => $file->id,
             name => $file->name,
