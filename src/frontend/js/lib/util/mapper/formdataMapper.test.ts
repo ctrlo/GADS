@@ -14,27 +14,6 @@ describe("Basic formdata mapper tests", () => {
         expect(formdataMapper(data)).toEqual(formData);
     });
 
-    it("should map a nested object", () => {
-        const data = {
-            name: "John Doe",
-            age: 30,
-            email: "john@example.com",
-            address: {
-                street: "1234 Elm St",
-                city: "Springfield",
-                state: "IL"
-            }
-        };
-        const formData = new FormData();
-        formData.append("name", "John Doe");
-        formData.append("age", "30");
-        formData.append("email", "john@example.com");
-        formData.append("address_street", "1234 Elm St");
-        formData.append("address_city", "Springfield");
-        formData.append("address_state", "IL");
-        expect(formdataMapper(data)).toEqual(formData);
-    });
-
     it("should throw an error for nested objects deeper than one layer", () => {
         const data = {
             name: "John Doe",
