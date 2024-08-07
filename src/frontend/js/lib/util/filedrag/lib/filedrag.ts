@@ -1,6 +1,6 @@
 import { hideElement, showElement } from "util/common";
 
-interface FileDragOptions {
+export interface FileDragOptions {
     allowMultiple?: boolean;
     debug?: boolean;
 }
