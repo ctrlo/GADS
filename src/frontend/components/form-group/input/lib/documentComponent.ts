@@ -22,6 +22,11 @@ class DocumentComponent {
 
     constructor(el: JQuery<HTMLElement> | HTMLElement) {
         this.el = $(el);
+        const btns = $('button[id*=rename]');
+        btns.each((_i, btn) => {
+            const $btn = $(btn);
+            $btn.on('click', () => this.renameFile($btn, $('body').data('csrf')));
+        });
         this.fileInput = this.el.find<HTMLInputElement>('.form-control-file');
         this.error = this.el.find('.upload__error');
     }
@@ -124,24 +129,24 @@ class DocumentComponent {
         $fieldset.find('input[type="file"]').removeAttr('required');
         const button = `#rename-${fileId}`;
         const $button = $(button);
-        console.log(`Adding click to ${button}`);
-
-        $(button).on('click', () => this.handleRename($button, csrf_token));
+        $(button).on('click', () => this.renameFile($button, csrf_token, true));
     }
 
-    private handleRename($button: JQuery<HTMLElement>, csrf_token: string) { // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why, so I've used the button itself
+    private renameFile($button: JQuery<HTMLElement>, csrf_token: string, is_new: boolean = false) { // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why, so I've used the button itself
         const fileId = $button.data('file-id');
         const originalName = $button.data('original-name');
         const ext = "." + originalName.split('.').pop();
         const newName = $(`#file-rename-${fileId}`).val() as string;
         if ((newName.endsWith(ext) ? newName : newName + ext) === originalName) return;
-        const url = `/api/file`;
-        const data = formdataMapper({ csrf_token, rename: fileId, filename: newName.endsWith(ext) ? newName : newName + ext });
-        upload<RenameResponse>(url, data, 'POST').then((data) => {
-            console.log("renamed", data);
-            console.log("BUTTON", $button)
-            $button.data('original-name', data.name);
-            $(`#current-${fileId}`).text(data.name);
+        const url = `/api/file/${fileId}`;
+        const filename = newName.endsWith(ext) ? newName : newName + ext
+        const data = formdataMapper({ csrf_token, filename, is_new: is_new ? 1 : 0 });
+        upload<RenameResponse>(url, data, 'PUT').then((data) => {
+            if (is_new) {
+                $(`#current-${fileId}`).text(data.name);
+            } else {
+                this.addFileToField({ id: data.id, name: data.name });
+            }
         }).catch((error) => {
             this.showException(error);
         });

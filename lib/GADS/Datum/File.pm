@@ -65,10 +65,13 @@ after set_value => sub {
         # single files.
         if (@values == 1 && @old == 1)
         {
-            my $old_content = $self->schema->resultset('Fileval')->find($old[0])->content;
+            my $old_value   = $self->schema->resultset('Fileval')->find($old[0]); # Only do one fetch here
+            my $old_content = $old_value->content;
+            my $old_name    = $old_value->name;
             $changed = 0 if $self->schema->resultset('Fileval')->search({
                 id      => $values[0],
                 content => $old_content,
+                name    => $old_name
             })->count;
         }
     }
