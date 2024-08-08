@@ -1758,7 +1758,7 @@ put '/api/file/:id' => require_login sub {
         });
     } else {
         my $newFile = rset('Fileval')->create({
-            name           => $name,
+            name           => $newname,
             mimetype       => $file->mimetype,
             content        => $file->content,
             is_independent => $file->is_independent,
