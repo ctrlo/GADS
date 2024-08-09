@@ -615,7 +615,7 @@ class DataTableComponent extends Component {
 
       this.json = json || undefined
 
-      if (this.initializingTable) {
+      if (this.initializingTable || conf.reinitialize) {
         dataTable.columns().every(function(index) {
           const column = this
           const $header = $(column.header())
@@ -721,10 +721,10 @@ class DataTableComponent extends Component {
 
       // Move data table into new modal
       newModal.append(table);
-      if(currentTable && !($.fn.dataTable.isDataTable(currentTable))) {
-        currentTable.DataTable(this.getConf({responsive: false}));
-      }
       document.body.appendChild(newModal);
+      if(currentTable && !($.fn.dataTable.isDataTable(currentTable))) {
+        currentTable.DataTable(this.getConf({responsive: false, reinitialize: true}));
+      }
 
       $(document).on("keyup", (ev)=>{
         if(ev.key === "Escape") {
@@ -741,7 +741,7 @@ class DataTableComponent extends Component {
 
       mainContent.appendChild(table);
       if(currentTable && !($.fn.dataTable.isDataTable(currentTable))) {
-        currentTable.DataTable(this.getConf());
+        currentTable.DataTable(this.getConf({reinitialize: true}));
       }
       // Remove the modal
       document.querySelector('#table-modal').remove();
