@@ -98,4 +98,15 @@ sub create_report
     return $report;
 }
 
+sub find_with_permission {
+    my ($self, $id, $user) = @_;
+
+    my $schema = $self->result_source->schema;
+
+    my $result = $self->find({ id => $id, deleted => undef, 'report_groups.group_id' => { -in => [ map { $_->id } $user->groups ]}},
+        { prefetch => ['report_groups', 'report_layouts'] });
+
+    return $result;
+}
+
 1;
