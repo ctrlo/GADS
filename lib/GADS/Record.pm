@@ -2711,9 +2711,10 @@ sub pdf
 sub get_report
 {   my ($self, $report_id, $user) = @_;
 
-    my $report = $self->schema->resultset('Report')->find($report_id)
+    my $report = $self->schema->resultset('Report')->find_with_permission($report_id, $user)
         or error __x"Report ID {id} not found", id => $report_id;
 
+    # Shouldn't happen, but I'm paranoid!
     error __x"Report ID {id} not found", id => $report_id
         if $report->deleted;
 

@@ -1,6 +1,6 @@
 use utf8;
 
-package GADS::Schema::Result::ReportLayout;
+package GADS::Schema::Result::ReportGroup;
 
 =head1 NAME
 GADS::Schema::Result::ReportLayout
@@ -11,18 +11,10 @@ use Moo;
 extends 'DBIx::Class::Core';
 sub BUILDARGS { $_[2] || {} }
 
-=head1 COMPONENTS LOADED
-=over 4
-=item * L<DBIx::Class::InflateColumn::DateTime>
-=back
+=head1 TABLE: C<report_group>
 =cut
 
-__PACKAGE__->load_components("InflateColumn::DateTime", "+GADS::DBIC");
-
-=head1 TABLE: C<report_instance>
-=cut
-
-__PACKAGE__->table("report_layout");
+__PACKAGE__->table("report_group");
 
 =head1 ACCESSORS
 =head2 id
@@ -33,13 +25,10 @@ __PACKAGE__->table("report_layout");
   data_type: 'integer'
   is_foreign_key: 1
   is_nullable: 0
-=head2 layout_id
-  data_type: 'bigint'
+=head2 group_id
+  data_type: 'integer'
   is_foreign_key: 1
   is_nullable: 0
-=head2 order
-  data_type: 'integer'
-  is_nullable: 1
 =cut
 
 __PACKAGE__->add_columns(
@@ -47,10 +36,8 @@ __PACKAGE__->add_columns(
     { data_type => "integer", is_auto_increment => 1, is_nullable => 0 },
     "report_id",
     { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
-    "layout_id",
-    { data_type => "bigint", is_foreign_key => 1, is_nullable => 0 },
-    "order",
-    { data_type => "integer", is_nullable => 1 },
+    "group_id",
+    { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
 );
 
 =head1 PRIMARY KEY
@@ -62,7 +49,7 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 =head1 RELATIONS
-=head2 layout
+=head2 report
 Type: belongs_to
 Related object: L<GADS::Schema::Result::Report>
 =cut
@@ -74,15 +61,15 @@ __PACKAGE__->belongs_to(
     { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 
-=head2 view
+=head2 group
 Type: belongs_to
-Related object: L<GADS::Schema::Result::Layout>
+Related object: L<GADS::Schema::Result::Group>
 =cut
 
 __PACKAGE__->belongs_to(
-    "layout",
-    "GADS::Schema::Result::Layout",
-    { id            => "layout_id" },
+    "group",
+    "GADS::Schema::Result::Group",
+    { id            => "group_id" },
     { is_deferrable => 1, on_delete => "NO ACTION", on_update => "NO ACTION" },
 );
 

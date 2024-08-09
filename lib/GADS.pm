@@ -2814,8 +2814,7 @@ prefix '/:layout_name' => sub {
             my $user   = logged_in_user;
             my $layout = var('layout') or pass;
 
-            return forwardHome(
-                { danger => 'You do not have permission to edit reports' } )
+            return forwardHome( { danger => 'You do not have permission to edit reports' } )
               unless $layout->user_can("layout");
 
             my $base_url = request->base;
@@ -2880,6 +2879,7 @@ prefix '/:layout_name' => sub {
                 my $checkbox_fields    = [body_parameters->get_all('checkboxes')];
                 my $security_marking   = body_parameters->get('security_marking');
                 my $instance           = $layout->instance_id;
+                my $groups             = [body_parameters->get_all('groups')];
 
                 my $report = schema->resultset('Report')->create_report(
                     {
@@ -2891,25 +2891,27 @@ prefix '/:layout_name' => sub {
                         createdby        => $user,
                         layouts          => $checkbox_fields,
                         security_marking => $security_marking,
+                        groups           => $groups,
                     }
                 );
 
                 my $lo = param 'layout_name';
-                return forwardHome( { success => "Report created" },
-                    "$lo/report" );
+                return forwardHome( { success => "Report created" }, "$lo/report" );
             }
 
             my $records = [ $layout->all( user_can_read => 1 ) ];
 
             my $base_url = request->base;
+            my $groups = [ $user->groups_viewable ];
 
             my $params = {
-                header_type       => 'table_tabs',
+                header_type     => 'table_tabs',
                 layout_obj      => $layout,
                 layout          => $layout,
                 header_back_url => "${base_url}table",
                 viewtype        => 'add',
                 fields          => $records,
+                groups          => $groups,
                 breadcrumbs     => [
                     Crumb( $base_url . "table/", "Tables" ),
                     Crumb( "",                   "Table: " . $layout->name )
@@ -2938,6 +2940,7 @@ prefix '/:layout_name' => sub {
                 my $checkboxes         = [body_parameters->get_all('checkboxes')];
                 my $security_marking   = body_parameters->get('security_marking');
                 my $instance           = $layout->instance_id;
+                my $groups             = [body_parameters->get_all('groups')];
 
                 my $report_id = param('id');
 
@@ -2951,6 +2954,7 @@ prefix '/:layout_name' => sub {
                         description      => $report_description,
                         layouts          => $checkboxes,
                         security_marking => $security_marking,
+                        groups           => $groups,
                     }
                 );
 
@@ -2967,6 +2971,8 @@ prefix '/:layout_name' => sub {
 
             my $fields = $result->fields_for_render($layout);
 
+            my $groups = [ $user->groups_viewable ];
+
             my $params = {
                 header_type     => 'table_tabs',
                 layout_obj      => $layout,
@@ -2975,6 +2981,7 @@ prefix '/:layout_name' => sub {
                 report          => $result,
                 fields          => $fields,
                 viewtype        => 'edit',
+                groups          => $groups,
                 breadcrumbs     => [
                     Crumb( $base_url . "table/", "Tables" ),
                     Crumb( "",                   "Table: " . $layout->name )

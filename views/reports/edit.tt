@@ -38,14 +38,28 @@
                 input_class = "input"
                 is_required = 0;
               INCLUDE fields/input.tt
-                id = "security_marking"
-                name = "security_marking"
-                value = report.security_marking || ""
-                label = "Security Marking"
-                placeholder = "New Security Marking"
-                input_class = "input"
-                is_required = 0
+                id           = "security_marking"
+                name         = "security_marking"
+                value        = report.security_marking || ""
+                label        = "Security Marking"
+                placeholder  = "New Security Marking"
+                input_class  = "input"
+                is_required  = 0
                 popover_body = "The security marking for this report. This is used to determine who can view the report. If it is not set the admin setting is used.";
+              group_items = [];
+              FOREACH item IN groups;
+                group_items.push({
+                  value       = item.id,
+                  label_plain = item.name
+                });
+              END;
+              INCLUDE fields/select_multiple.tt
+                id          = "groups"
+                name        = "groups"
+                values      = report.group_ids
+                label       = "Groups with Access"
+                items       = group_items
+                is_required = 1;
             %]
             <div class="hidden alert__no__select" aria-hidden="true">
               <p class="alert__message">Please select at least one item to add to the report!</p>

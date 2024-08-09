@@ -1,0 +1,28 @@
+{
+   "has_many" : {
+      "fetch" : 0
+   },
+   "might_have" : {
+      "fetch" : 0
+   },
+   "belongs_to" : {
+      "fetch" : 0
+   },
+   "sets" : [
+      {
+         "class" : "View",
+         "quantity" : "all",
+         "cond": { "global": 1 },
+         "fetch": [
+            {
+               "rel": "view_layouts",
+               "quantity": "all"
+            },
+            {
+               "rel": "sorts",
+               "quantity": "all"
+            }
+         ]
+      }
+   ]
+}
