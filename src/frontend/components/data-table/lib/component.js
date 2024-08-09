@@ -244,7 +244,6 @@ class DataTableComponent extends Component {
 
   // Self reference included due to scoping
   addSearchDropdown(column, id, index) {
-    console.log("Adding search dropdown");
     const $header = $(column.header())
     const title = $header.text().trim()
     const searchValue = column.search()
