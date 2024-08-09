@@ -1736,6 +1736,48 @@ post '/file/:id?' => require_login sub {
     }
 };
 
+put '/api/file/:id' => require_login sub {
+    my $id     = route_parameters->get('id');
+    my $is_new = param('is_new');
+
+    my $file = schema->resultset('Fileval')->find_with_permission($id, logged_in_user)
+        or error __x"File ID {id} cannot be found", id => $id;
+
+    my $newname = param('filename')
+        or error __"Filename is required";
+
+    if ($is_new || $file->files->count > 0)
+    {
+        $file->update({ name => $newname });
+
+        content_type 'application/json';
+
+        return encode_json({
+            id    => $file->id,
+            name  => $file->name,
+            is_ok => 1,
+        });
+    }
+    else
+    {
+        my $newFile = rset('Fileval')->create({
+            name           => $newname,
+            mimetype       => $file->mimetype,
+            content        => $file->content,
+            is_independent => $file->is_independent,
+            edit_user_id   => logged_in_user->id,
+        });
+
+        content_type 'application/json';
+
+        return encode_json({
+            id    => $newFile->id,
+            name  => $newFile->name,
+            is_ok => 1,
+        });
+    }
+};
+
 # Use api route to ensure errors are returned as JSON
 post '/api/file/?' => require_login sub {
 

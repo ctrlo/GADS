@@ -854,6 +854,25 @@
           '<ul class="list__items fileupload__files">';
             FOREACH file IN editvalue.files;
             '<li class="list__item">';
+                '<span class="list__value">';
+                  '<span class="row">';
+                    '<span class="col-10">';
+                      INCLUDE fields/input.tt
+                        id             = "file-rename-" _ file.id
+                        name           = "file-rename-" _ file.id
+                        label          = "Rename file"
+                        placeholder    = "No file chosen"
+                        value          = file.name
+                        custom_classes = ""
+                        input_class    = "input--text form-control";
+                    '</span>';
+                    '<span class="col-2">';
+                      '<button id="rename-' _ file.id _ '" class="btn btn-default" data-file-id="' _ file.id _'" data-original-name="' _ file.name _ '" type="button">Rename</button>';
+                    '</span>';
+                  '</span>';
+                '</span>';
+            '</li>';
+            '<li class="list__item">';
               '<span class="list__key">';
                 INCLUDE fields/sub/checkbox.tt
                   id      = "file_checkbox_" _ col.id _ "_" _ file.id

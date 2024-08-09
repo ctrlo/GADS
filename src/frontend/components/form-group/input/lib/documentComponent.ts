@@ -8,22 +8,31 @@ interface FileData {
     filename: string;
 }
 
+interface RenameResponse {
+    id: number | string;
+    name: string;
+    is_ok: boolean;
+}
+
 class DocumentComponent {
     readonly type = 'document';
-    el: JQuery<HTMLElement>;
+    readonly el: JQuery<HTMLElement>;
     fileInput: JQuery<HTMLInputElement>;
     error: JQuery<HTMLElement>;
 
     constructor(el: JQuery<HTMLElement> | HTMLElement) {
-        this.el = el instanceof HTMLElement ? $(el) : el;
+        this.el = $(el);
+        const btns = $('button[id*=rename]');
+        btns.each((_i, btn) => {
+            const $btn = $(btn);
+            $btn.on('click', () => this.renameFile($btn, $('body').data('csrf')));
+        });
         this.fileInput = this.el.find<HTMLInputElement>('.form-control-file');
         this.error = this.el.find('.upload__error');
     }
 
     init() {
         const url = this.el.data('fileupload-url');
-        const $progressBarContainer = this.el.find('.progress-bar__container');
-        const $progressBarProgress = this.el.find('.progress-bar__progress');
 
         const tokenField = this.el.closest('form').find('input[name="csrf_token"]');
         const csrf_token = tokenField.val() as string;
@@ -31,7 +40,7 @@ class DocumentComponent {
 
         if (dropTarget) {
             const dragOptions = { allowMultiple: false };
-            (<any>dropTarget).filedrag(dragOptions).on('onFileDrop', (_ev: JQuery.DropEvent, file: File) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+            dropTarget.filedrag(dragOptions).on('onFileDrop', (_ev: JQuery.DropEvent, file: File) => {
                 this.handleAjaxUpload(url, csrf_token, file);
             });
         } else {
@@ -46,12 +55,17 @@ class DocumentComponent {
             const file = ev.target.files![0];
             const formData = formdataMapper({ file, csrf_token });
 
-            upload<FileData>(url, formData, 'POST', this.updateProgress).then((data) => {
+            upload<FileData>(url, formData, 'POST', (loaded, total) => {
+                if (!this.el.data('multivalue')) {
+                    const uploadProgression = Math.round((loaded / total) * 10000) / 100 + '%';
+                    this.el.find('.progress-bar__percentage').html(uploadProgression);
+                    this.el.find('.progress-bar__progress').css('width', uploadProgression);
+                }
+            }).then((data) => {
                 this.addFileToField({ id: data.id, name: data.filename });
             }).catch((error) => {
-                $progressBarProgress.css('width', '100%');
-                $progressBarContainer.addClass('progress-bar__container--fail');
                 this.showException(error);
+                return;
             });
         });
     }
@@ -62,13 +76,17 @@ class DocumentComponent {
 
         const fileData = formdataMapper({ file, csrf_token });
 
-        upload<FileData>(uri, fileData, 'POST', this.updateProgress)
-            .then((data) => {
-                this.addFileToField({ id: data.id, name: data.filename });
-            })
-            .catch((e) => {
-                this.showException(e);
-            });
+        upload<FileData>(uri, fileData, 'POST', (loaded, total) => {
+            if (!this.el.data('multivalue')) {
+                const uploadProgression = Math.round((loaded / total) * 10000) / 100 + '%';
+                this.el.find('.progress-bar__percentage').html(uploadProgression);
+                this.el.find('.progress-bar__progress').css('width', uploadProgression);
+            }
+        }).then((data) => {
+            this.addFileToField({ id: data.id, name: data.filename });
+        }).catch((e) => {
+            this.showException(e);
+        });
     }
 
     addFileToField(file: { id: number | string; name: string }) {
@@ -77,17 +95,31 @@ class DocumentComponent {
         const fileId = file.id;
         const fileName = file.name;
         const field = $fieldset.find('.input--file').data('field');
+        const csrf_token = $('body').data('csrf');
 
-        if (!this.el.data('multivalue')) {
-            $ul.empty();
-        }
+        if (!this.el || !this.el.length || !this.el.data('multivalue')) $ul.empty();
 
         const $li = $(`
+            <li class="list__item">
+                <span class="list__key sr-only">
+                    <label for="file-rename-${fileId}">Rename file</label>
+                </span>
+                <span class="list__value">
+                    <span class="row">
+                        <span class="col-10">                
+                            <input type="text" id="file-rename-${fileId}" name="file-rename-${fileId}" value="${fileName}" class="input input--text form-control">
+                        </span>
+                        <span class="col-2">
+                            <button id="rename-${fileId}" class="btn btn-default" data-file-id="${fileId}" data-original-name="${fileName}" type="button">Rename</button>
+                        </span>
+                    </span>
+                </span>
+            </li>
             <li class="list__item">
                 <span class="list__key">
                     <input type="checkbox" id="file-${fileId}" name="${field}" value="${fileId}" aria-label="${fileName}" data-filename="${fileName}" checked>
                 </span>
-                <span class="list__value">Include file. Current file name:<a class="link link--plain" href="/file/${fileId}">${fileName}</a>.</span>
+                <span class="list__value">Include File. Current file name: <a id="current-${fileId}" class="link link--plain" href="/file/${fileId}">${fileName}</a>.</span>
             </li>
         `);
 
@@ -95,19 +127,36 @@ class DocumentComponent {
         $ul.closest('.linkspace-field').trigger('change');
         validateCheckboxGroup($fieldset.find('.list'));
         $fieldset.find('input[type="file"]').removeAttr('required');
+        const button = `#rename-${fileId}`;
+        const $button = $(button);
+        $(button).on('click', () => this.renameFile($button, csrf_token, true));
+    }
+
+    private renameFile($button: JQuery<HTMLElement>, csrf_token: string, is_new: boolean = false) { // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why, so I've used the button itself
+        const fileId = $button.data('file-id');
+        const originalName = $button.data('original-name');
+        const ext = "." + originalName.split('.').pop();
+        const newName = $(`#file-rename-${fileId}`).val() as string;
+        if ((newName.endsWith(ext) ? newName : newName + ext) === originalName) return;
+        const url = `/api/file/${fileId}`;
+        const filename = newName.endsWith(ext) ? newName : newName + ext
+        const data = formdataMapper({ csrf_token, filename, is_new: is_new ? 1 : 0 });
+        upload<RenameResponse>(url, data, 'PUT').then((data) => {
+            if (is_new) {
+                $(`#current-${fileId}`).text(data.name);
+            } else {
+                this.addFileToField({ id: data.id, name: data.name });
+            }
+        }).catch((error) => {
+            this.showException(error);
+        });
     }
 
     showException(e: string | Error) {
+        this.el.find('.progress-bar__container').css('width', '100%');
+        this.el.find('.progress-bar__progress').addClass('progress-bar__container--fail');
         this.error.html(e instanceof Error ? e.message : e);
         showElement(this.error);
-    }
-
-    private updateProgress(loaded: number, total: number) {
-        if (!this.el.data('multivalue')) {
-            const uploadProgression = Math.round((loaded / total) * 10000) / 100 + '%';
-            this.el.find('.progress-bar__percentage').html(uploadProgression);
-            this.el.find('.progress-bar__progress').css('width', uploadProgression);
-        }
     }
 }
 
