@@ -274,18 +274,11 @@ hook before => sub {
         # CSP
         response_header "Content-Security-Policy" => "script-src 'self';";
 
-        # Make sure we have suitable persistent hash to update. All these options are
-        # used as hashrefs themselves, so prevent trying to access non-existent hash.
         my $persistent = session 'persistent';
 
         if (my $instance_id = param('instance'))
         {
             session 'search' => undef;
-        }
-        elsif (!$persistent->{instance_id})
-        {
-            $persistent->{instance_id} = var('instances')->all->[0]->instance_id
-                if @{var('instances')->all};
         }
 
         if (var 'layout') {
@@ -333,9 +326,7 @@ hook before_template => sub {
         $tokens->{instance_name} = var('layout')->name if var('layout');
         $tokens->{user}          = $user;
         $tokens->{search}        = session 'search';
-        # Somehow this sets the instance_id session if no persistent session exists
-        $tokens->{instance_id}   = session('persistent')->{instance_id}
-            if session 'persistent';
+        $tokens->{instance_id}   = session('persistent')->{instance_id};
         $tokens->{user_can_edit}   = $layout && $layout->user_can('write_existing');
         $tokens->{user_can_create} = $layout && $layout->user_can('write_new');
         $tokens->{show_link}       = rset('Current')->next ? 1 : 0;
