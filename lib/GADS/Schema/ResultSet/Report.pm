@@ -15,6 +15,17 @@ sub extant
     });
 }
 
+sub by_user
+{   my ($self, $user) = @_;
+    $self->extant->search({
+        'report_groups.group_id' => {
+            -in => [ map { $_->id } $user->groups ]
+        }
+    },{
+        join => 'report_groups',
+    });
+}
+
 =head1 Package functions
 =head2 Load
 Function to load a report for a given id - it requires the report id, and record id to be passed in and will return a report object
@@ -96,14 +107,9 @@ sub create_report
 sub find_with_permission {
     my ($self, $id, $user) = @_;
 
-    $self->extant->search({
-        'me.id'                  => $id,
-        'report_groups.group_id' => {
-            -in => [ map { $_->id } $user->groups ]
-        }
-    },{
-        prefetch => ['report_groups', 'report_layouts']
-    })->next;
+    $self->by_user($user)->find($id, {
+        prefetch => 'report_layouts',
+    });
 }
 
 1;

@@ -312,22 +312,13 @@ sub _build_security_marking {
 sub _build_reports
 {   my $self = shift;
     
-    my $reports_rs = $self->schema->resultset('Report')->search({
-        instance_id => $self->instance_id,
-        deleted     => undef
-    },{
-        prefetch => 'report_groups',
-    });
-    
     my $user = $self->user;
-    # Restrict list of reports to only the ones the user is allowed to see
-    unless ($user->permission->{superadmin} || $self->layout->user_can('layout'))
-    {
-        my @user_group_ids = $user->groups->get_column('id')->all;
-        $reports_rs = $reports_rs->search({
-            'report_groups.group_id' => { -in => \@user_group_ids },
-        });
-    }
+
+    # Even if a user is a super-admin or layout admin, only show them relevant
+    # reports
+    my $reports_rs = $self->schema->resultset('Report')->by_user($user)->search({
+        instance_id => $self->instance_id,
+    });
 
     [$reports_rs->all];
 }
