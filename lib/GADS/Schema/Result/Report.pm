@@ -259,7 +259,7 @@ sub update_report
 
     $search_groups->{group_id} = { '!=' => [ -and => @$groups ] }
         if @$groups;
-    $self->search_related('report_layouts',$search)->delete;
+    $self->search_related('report_groups', $search_groups)->delete;
 
     $guard->commit;
 
