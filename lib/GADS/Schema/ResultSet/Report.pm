@@ -7,6 +7,14 @@ use Log::Report 'linkspace';
 
 use parent 'DBIx::Class::ResultSet';
 
+# All reports not deleted
+sub extant
+{   my $self = shift;
+    $self->search({
+        'me.deleted' => undef,
+    });
+}
+
 =head1 Package functions
 =head2 Load
 Function to load a report for a given id - it requires the report id, and record id to be passed in and will return a report object
@@ -30,14 +38,9 @@ Function to load a report for a given id - it requires the report id to be passe
 sub load_for_edit
 {   my ($self, $id) = @_;
 
-    my $schema = $self->result_source->schema;
-
-    my $result = $self->find({ id => $id, deleted => undef },
-        { prefetch => 'report_layouts' })
-            or error __ "No report found for id $id";
-
-    return $result unless $result->deleted;
-    return undef;
+    $self->extant->find($id, {
+        prefetch => 'report_layouts',
+    }) or error __x"No report found for id {id}", id => $id;
 }
 
 =head2
@@ -45,21 +48,13 @@ Function to load all reports for a given instance - it requires the instance id 
 =cut
 
 sub load_all_reports
-{
+{   my ($self, $instance_id) = @_;
 
-    my ($self, $instance_id) = @_;
-
-    my $schema = $self->result_source->schema;
-
-    my $items = $self->search(
-        {
-            instance_id => $instance_id,
-            deleted     => undef,
-        },
-        {
-            prefetch => 'report_layouts',
-        },
-    );
+    my $items = $self->extant->search({
+        instance_id => $instance_id,
+    }, {
+        prefetch => 'report_layouts',
+    });
 
     return [ $items->all ];
 }
@@ -101,12 +96,14 @@ sub create_report
 sub find_with_permission {
     my ($self, $id, $user) = @_;
 
-    my $schema = $self->result_source->schema;
-
-    my $result = $self->find({ id => $id, deleted => undef, 'report_groups.group_id' => { -in => [ map { $_->id } $user->groups ]}},
-        { prefetch => ['report_groups', 'report_layouts'] });
-
-    return $result;
+    $self->extant->find({
+        'me.id'                  => $id,
+        'report_groups.group_id' => {
+            -in => [ map { $_->id } $user->groups ]
+        }
+    },{
+        prefetch => ['report_groups', 'report_layouts']
+    });
 }
 
 1;

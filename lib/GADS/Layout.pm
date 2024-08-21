@@ -312,26 +312,24 @@ sub _build_security_marking {
 sub _build_reports
 {   my $self = shift;
     
-    my $user = $self->user;
-    my @groups = $user->groups;
-    my @group_ids = map { $_->id } @groups;
-
-    my $reports_rs;
-    
-    $reports_rs = $self->schema->resultset('Report')->search({
+    my $reports_rs = $self->schema->resultset('Report')->search({
         instance_id => $self->instance_id,
-        deleted => undef
-    },{prefetch => 'report_groups'});
+        deleted     => undef
+    },{
+        prefetch => 'report_groups',
+    });
     
-    unless ($user->permission->{superadmin} || $self->layout->user_can('layout')) {
+    my $user = $self->user;
+    # Restrict list of reports to only the ones the user is allowed to see
+    unless ($user->permission->{superadmin} || $self->layout->user_can('layout'))
+    {
+        my @user_group_ids = $user->groups->get_column('id')->all;
         $reports_rs = $reports_rs->search({
-            'report_groups.group_id' => { -in => \@group_ids },
+            'report_groups.group_id' => { -in => \@user_group_ids },
         });
     }
 
-    my $result = [$reports_rs->all];
-
-    return $result;
+    [$reports_rs->all];
 }
 
 sub _build__user_permissions_columns
