@@ -96,14 +96,14 @@ sub create_report
 sub find_with_permission {
     my ($self, $id, $user) = @_;
 
-    $self->extant->find({
+    $self->extant->search({
         'me.id'                  => $id,
         'report_groups.group_id' => {
             -in => [ map { $_->id } $user->groups ]
         }
     },{
         prefetch => ['report_groups', 'report_layouts']
-    });
+    })->next;
 }
 
 1;
