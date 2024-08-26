@@ -398,7 +398,7 @@ sub create_pdf
     my $format = GADS::Config->instance->dateformat;
     $pdf->text(
         'Last edited by '
-            . $self->createdby->value . ' on '
+            . $self->edited_user->value . ' on '
             . $record->created->format_cldr($format) . ' at '
             . $record->created->hms,
         size => 10

@@ -574,10 +574,10 @@ $datum->set_value(1); # Same ID has existing one
 ok( !$datum->changed, "Update with same file ID has not changed" );
 
 # Test other blank values work whilst we're here
-ok( !$record->fields->{$layout->column_id->id}->blank, "ID is not blank for existing records" );
-ok( !$record->fields->{$layout->column_by_name_short('_version_datetime')->id}->blank, "Version time is not blank for existing records" );
-ok( !$record->fields->{$layout->column_by_name_short('_version_user')->id}->blank, "Version user is not blank for existing records" );
-ok( !$record->fields->{$layout->column_by_name_short('_created')->id}->blank, "Created is not blank for existing records" );
-ok( !$record->fields->{$layout->column_by_name_short('_serial')->id}->blank, "Serial is not blank for existing records" );
+ok( !$record->get_field_value($layout->column_id)->blank, "ID is not blank for existing records" );
+ok( !$record->get_field_value($layout->column_by_name_short('_version_datetime'))->blank, "Version time is not blank for existing records" );
+ok( !$record->get_field_value($layout->column_by_name_short('_version_user'))->blank, "Version user is not blank for existing records" );
+ok( !$record->get_field_value($layout->column_by_name_short('_created'))->blank, "Created is not blank for existing records" );
+ok( !$record->get_field_value($layout->column_by_name_short('_serial'))->blank, "Serial is not blank for existing records" );
 
 done_testing();

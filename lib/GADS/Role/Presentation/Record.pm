@@ -126,16 +126,16 @@ sub presentation {
     if (!$self->new_entry && $options{edit}) # Expensive, only do if necessary
     {
         $return->{version_user} = $self->layout->column_by_name_short('_version_user')->presentation(
-            datum_presentation => $self->createdby->presentation, %options
+            datum_presentation => $self->edited_user->presentation, %options
         );
         $return->{version_datetime} = $version_datetime_col->presentation(
-            datum_presentation => $self->fields->{$version_datetime_col->id}->presentation, %options
+            datum_presentation => $self->edited_time->presentation, %options
         );
         $return->{created_user} = $created_user_col->presentation(
-            datum_presentation => $self->fields->{$created_user_col->id}->presentation, %options
+            datum_presentation => $self->created_user->presentation, %options
         );
         $return->{created_datetime} = $created_datetime_col->presentation(
-            datum_presentation => $self->fields->{$created_datetime_col->id}->presentation, %options
+            datum_presentation => $self->created_time->presentation, %options
         );
     }
 
