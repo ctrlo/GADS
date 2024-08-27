@@ -2,6 +2,7 @@ import { Component } from 'component'
 import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
 import 'bootstrap-select/dist/js/bootstrap-select'
 import { refreshSelects } from 'components/form-group/common/bootstrap-select'
+import { fromJson } from 'util/common'
 
 class DisplayConditionsComponent extends Component {
   constructor(element)  {
@@ -30,7 +31,7 @@ class DisplayConditionsComponent extends Component {
 
     if (builderData.filterBase) {
       const data = JSON.parse(atob(builderData.filterBase))
-      this.el.queryBuilder('setRules', JSON.parse(data))
+      this.el.queryBuilder('setRules', data)
     }
   }
 }
