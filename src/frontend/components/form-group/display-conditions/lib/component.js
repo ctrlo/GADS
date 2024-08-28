@@ -30,7 +30,7 @@ class DisplayConditionsComponent extends Component {
 
     if (builderData.filterBase) {
       const data = JSON.parse(atob(builderData.filterBase))
-      this.el.queryBuilder('setRules', JSON.parse(data))
+      this.el.queryBuilder('setRules', data)
     }
   }
 }
