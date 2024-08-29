@@ -622,3 +622,8 @@ $btn-border-radius: 23px;
   content: "\E807";
   color: $brand-danger;
 }
+
+.rename::before {
+  @extend %icon-font;
+  content: "\E80b";
+}

@@ -1,7 +1,9 @@
+import '../../../button/lib/rename-button';
 import { upload } from 'util/upload/UploadControl';
 import { validateCheckboxGroup } from 'validation';
 import { hideElement, showElement } from 'util/common';
 import { formdataMapper } from 'util/mapper/formdataMapper';
+import { RenameEvent } from '../../../button/lib/rename-button';
 
 interface FileData {
     id: number | string;
@@ -22,14 +24,17 @@ class DocumentComponent {
 
     constructor(el: JQuery<HTMLElement> | HTMLElement) {
         this.el = $(el);
-        const btns = $('button[id*=rename]');
-        btns.each((_i, btn) => {
-            const $btn = $(btn);
-            $btn.on('click', () => this.renameFile($btn, $('body').data('csrf')));
+        // @ts-expect-error Event handling is a bit weird
+        $('.rename').renameButton().on('rename', (ev: RenameEvent)=>{
+            if(this.debug || window.test) console.log('rename', ev);
+            const $target = $(ev.target);
+            this.renameFile($target.data('field-id'), ev.newName, $('body').data('csrf'));
         });
         this.fileInput = this.el.find<HTMLInputElement>('.form-control-file');
         this.error = this.el.find('.upload__error');
     }
+
+    debug = location.hostname === 'localhost';
 
     init() {
         const url = this.el.data('fileupload-url');
@@ -101,25 +106,20 @@ class DocumentComponent {
 
         const $li = $(`
             <li class="list__item">
-                <span class="list__key sr-only">
-                    <label for="file-rename-${fileId}">Rename file</label>
-                </span>
-                <span class="list__value">
-                    <span class="row">
-                        <span class="col-10">                
-                            <input type="text" id="file-rename-${fileId}" name="file-rename-${fileId}" value="${fileName}" class="input input--text form-control">
-                        </span>
-                        <span class="col-2">
-                            <button id="rename-${fileId}" class="btn btn-default" data-file-id="${fileId}" data-original-name="${fileName}" type="button">Rename</button>
-                        </span>
-                    </span>
-                </span>
-            </li>
-            <li class="list__item">
-                <span class="list__key">
-                    <input type="checkbox" id="file-${fileId}" name="${field}" value="${fileId}" aria-label="${fileName}" data-filename="${fileName}" checked>
-                </span>
-                <span class="list__value">Include File. Current file name: <a id="current-${fileId}" class="link link--plain" href="/file/${fileId}">${fileName}</a>.</span>
+                <div class="row w-full">
+                    <div class="col-auto">
+                        <input type="checkbox" id="file-${fileId}" name="${field}" value="${fileId}"
+                            aria-label="${fileName}" data-filename="${fileName}" checked="">
+                        <label for="file-${fileId}">Include File. Current file name:</label>
+                        <a id="current-${fileId}" class="link link--plain"
+                            href="/file/${fileId}">${fileName}</a>
+                        <button data-field-id="${fileId}" class="rename btn btn-plain"
+                            title="Rename file" type="button"></button>
+                    </div>
+                    <div class="col">
+                        <input type="text" id="file-rename-${fileId}" name="file-rename-${fileId}" value="${fileName}" class="input input--text form-control" aria-hidden="true">
+                    </div>
+                </div>
             </li>
         `);
 
@@ -127,21 +127,21 @@ class DocumentComponent {
         $ul.closest('.linkspace-field').trigger('change');
         validateCheckboxGroup($fieldset.find('.list'));
         $fieldset.find('input[type="file"]').removeAttr('required');
-        const button = `#rename-${fileId}`;
+        const button = `.rename[data-field-id="${file.id}"]`;
         const $button = $(button);
-        $(button).on('click', () => this.renameFile($button, csrf_token, true));
+        // @ts-expect-error Event handling is a bit weird
+        $button.renameButton().on('rename', (ev: RenameEvent)=>{
+            if(this.debug || window.test) console.log('rename', ev);
+            this.renameFile(fileId as number ?? parseInt(fileId.toString()), ev.newName, csrf_token, true);
+        });
     }
 
-    private renameFile($button: JQuery<HTMLElement>, csrf_token: string, is_new: boolean = false) { // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why, so I've used the button itself
-        const fileId = $button.data('file-id');
-        const originalName = $button.data('original-name');
-        const ext = "." + originalName.split('.').pop();
-        const newName = $(`#file-rename-${fileId}`).val() as string;
-        if ((newName.endsWith(ext) ? newName : newName + ext) === originalName) return;
+    private renameFile(fileId:number, newName:string, csrf_token: string, is_new: boolean = false) { // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why, so I've used the button itself
+        if(this.debug || window.test) console.log('renameFile', fileId, newName, csrf_token, is_new);
         const url = `/api/file/${fileId}`;
-        const filename = newName.endsWith(ext) ? newName : newName + ext
-        const data = formdataMapper({ csrf_token, filename, is_new: is_new ? 1 : 0 });
+        const data = formdataMapper({ csrf_token, filename: newName, is_new: is_new ? 1 : 0 });
         upload<RenameResponse>(url, data, 'PUT').then((data) => {
+            if(this.debug || window.test) console.log('renameFile', data);
             if (is_new) {
                 $(`#current-${fileId}`).text(data.name);
             } else {
@@ -160,6 +160,10 @@ class DocumentComponent {
     }
 }
 
+/**
+ * Create a new document component
+ * @param {JQuery<HTMLElement> | HTMLElement} el The element to attach the document component to
+ */
 export default function documentComponent(el: JQuery<HTMLElement> | HTMLElement) {
     new DocumentComponent(el).init();
 }

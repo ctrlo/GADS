@@ -102,3 +102,8 @@ table.table-bordered {
     margin: 0 auto;
   }
 }
+
+[aria-hidden='true'] {
+  display: none;
+  visibility: hidden;
+}
