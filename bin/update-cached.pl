@@ -120,6 +120,7 @@ foreach my $site (schema->resultset('Site')->all)
                 push @{$changed{$column->id}}, $record->current_id
                     if $datum->changed;
             }
+            $layout->clear_cached_records;
         }
 
         # Send any alerts
