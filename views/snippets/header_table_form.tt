@@ -36,19 +36,23 @@
               });
             END;
 
+            links = [];
+
             UNLESS layout.no_download_pdf;
-              links = [{
+              links.push({
                   name   = "Default PDF",
                   target = "?pdf",
-                }];
-
-              FOREACH report IN reports;
-                links.push({
-                  name     = report.name,
-                  target   = "?report=" _ report.id,
                 });
-              END;
+            END;
 
+            FOREACH report IN reports;
+              links.push({
+                name     = report.name,
+                target   = "?report=" _ report.id,
+              });
+            END;
+
+            IF(links);
               record_edit_buttons.push({
                 type          = "button_list",
                 class         = "link link--plain dropdown-toggle",
