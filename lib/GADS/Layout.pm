@@ -311,11 +311,16 @@ sub _build_security_marking {
 
 sub _build_reports
 {   my $self = shift;
-    my $reports_rs = $self->schema->resultset('Report')->search({
+    
+    my $user = $self->user;
+
+    # Even if a user is a super-admin or layout admin, only show them relevant
+    # reports
+    my $reports_rs = $self->schema->resultset('Report')->by_user($user)->search({
         instance_id => $self->instance_id,
-        deleted => undef
     });
-    return [$reports_rs->all];
+
+    [$reports_rs->all];
 }
 
 sub _build__user_permissions_columns

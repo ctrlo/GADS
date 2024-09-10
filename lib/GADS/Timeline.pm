@@ -154,13 +154,13 @@ sub _build_items
     my $from    = $records->from;
     my $layout  = $records->layout;
 
-    my $group_col_id = $self->group_col_id;
-    my $color_col_id = $self->color_col_id;
-    my $label_col_id = $self->label_col_id;
+    my $group_col = $layout->column($self->group_col_id);
+    my $color_col = $layout->column($self->color_col_id);
+    my $label_col = $layout->column($self->label_col_id);
 
     # Add on any extra required columns for labelling etc
-    my @extra = map { $_ && $layout->column($_) ? +{ id => $_ } : () }
-        $label_col_id, $group_col_id, $color_col_id;
+    my @extra = map { $_ ? +{ id => $_->id } : () }
+        $label_col, $group_col, $color_col;
 
     $records->columns_extra(\@extra);
 
@@ -185,8 +185,6 @@ sub _build_items
         }
     }
 
-    my $group_col  = $group_col_id ? $layout->column($group_col_id) : undef;
-
     if ($self->all_group_values && $group_col && $group_col->fixedvals)
     {
         foreach my $val ($group_col->values_for_timeline)
@@ -198,10 +196,9 @@ sub _build_items
 
     my @items;
     while (my $record  = $records->single)
-    {   my $fields     = $record->fields;
-
+    {
         my @groups_to_add;
-        @groups_to_add = @{$fields->{$group_col_id}->text_all}
+        @groups_to_add = @{$record->get_field_value($group_col)->text_all}
             if $group_col && $group_col->user_can('read');
 
         @groups_to_add
@@ -224,7 +221,7 @@ sub _build_items
             my (@dates, @values);
 
             foreach my $column (@columns)
-            {   my @d = $fields->{$column->id};
+            {   my @d = $record->get_field_value($column);
 
                 if ($column->is_curcommon)
                 {   # We need the main value (for the pop-up) and also any dates
@@ -233,9 +230,9 @@ sub _build_items
                     my @date_cols = grep $_->return_type eq 'date' || $_->return_type eq 'daterange',
                         @{$column->curval_fields};
                     # Now get those values from all records within
-                    foreach my $rec (map $_->{record}, $fields->{$column->id}->all_records)
+                    foreach my $rec (map $_->{record}, $record->get_field_value($column)->all_records)
                     {
-                        push @d, $rec->fields->{$_->id}
+                        push @d, $rec->get_field_value($_)
                             foreach @date_cols;
                     }
                 }
@@ -259,7 +256,7 @@ sub _build_items
 
                     # Create colour if need be
                     my $color;
-                    if($self->type eq 'calendar' || ( !$color_col_id && $date_column_count > 1 ))
+                    if($self->type eq 'calendar' || ( !$color_col && $date_column_count > 1 ))
                     {   $color = $self->graph->get_color($column->name);
                         $self->_used_color_keys->{$column->name} = 1;
                     }
@@ -318,19 +315,19 @@ sub _build_items
             $newest = max $newest, map $_->{to}, @dates;
 
             my @titles;
-            if(!$label_col_id)
+            if(!$label_col)
             {   push @titles, grep {
                        # RAG colours are not much use on a label
                        $_->{col}->type ne "rag"
 
                        # Don't add grouping text to title
-                    && ($group_col_id ||0) != $_->{col}->id
-                    && ($color_col_id ||0) != $_->{col}->id
+                    && ($group_col ? $group_col->id : 0) != $_->{col}->id
+                    && ($color_col ? $color_col->id : 0) != $_->{col}->id
                 } @values;
             }
-            elsif(my $label = $fields->{$label_col_id})
+            elsif(my $label = $record->get_field_value($label_col))
             {   push @titles, +{
-                    col   => $layout->column($label_col_id),
+                    col   => $layout->column($label_col->id),
                     value => $label,
                 } if $label->as_string;
             }
@@ -338,7 +335,7 @@ sub _build_items
             # If a specific field is set to colour-code by, then use that and
             # override any previous colours set for multiple date fields
             my ($item_color, $color_key) = (undef, '');
-            if($color_col_id && (my $c = $fields->{$color_col_id}))
+            if($color_col && (my $c = $record->get_field_value($color_col)))
             {   if($color_key = $c->as_string)
                 {   $item_color = $self->graph->get_color($color_key);
                     $self->_used_color_keys->{$color_key} = 1;

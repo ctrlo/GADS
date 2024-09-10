@@ -50,7 +50,16 @@ class CalcFieldsComponent extends Component {
         // All the values
         var vars = params.map(function(value) {
           var $depends = $('.linkspace-field[data-name-short="'+value+'"]')
-          return getFieldValues($depends, false, true)
+          let ret = getFieldValues($depends, false, true)
+          // If an array is passed in as-is, then its first element will be at
+          // array index 0, which ipairs will not recognise. Therefore,
+          // offset all the elements into an object starting at index 1
+          if (Array.isArray(ret)) {
+              let ret2 = []
+              ret.forEach((element, index) => ret2[index + 1] = element)
+              ret = ret2
+          }
+          return ret
         });
 
         // Evaluate the code with the values

@@ -1,12 +1,5 @@
+import "../../../../../testing/globals.definitions";
 import FileDrag from './filedrag';
-
-declare global {
-    interface Window {
-        $: any;
-    }
-}
-
-window.$ = require('jquery');
 
 class FileDragTest extends FileDrag {
     constructor(element, onDrop?: (files: FileList | File) => void) {
@@ -88,6 +81,7 @@ describe('FileDrag class tests', () => {
         $(document).trigger(e);
         const e2 = $.Event('dragleave');
         (<any>e2).originalEvent = { pageX: 0, pageY: 0 };
+        (<any>e2).stopPropagation = jest.fn();
         $(document).trigger(e2);
         expect(child.style.display).toBe('');
         expect(child.style.visibility).toBe('');
@@ -130,6 +124,7 @@ describe('FileDrag class tests', () => {
                 ],
             },
         };
+        (<any>e).stopPropagation = jest.fn();
         $(dropZone!).trigger(e);
         expect(dropFunction).toHaveBeenCalled();
     });

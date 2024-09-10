@@ -1,14 +1,5 @@
+import "../../../testing/globals.definitions";
 import ButtonComponent from './component';
-
-declare global {
-    interface Window {
-        $: JQueryStatic;
-    }
-}
-
-export {}
-
-window.$ = require('jquery');
 
 describe("Button Component", () => {
     const buttonDefinitions = [

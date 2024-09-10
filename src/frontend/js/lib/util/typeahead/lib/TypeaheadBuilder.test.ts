@@ -1,12 +1,5 @@
+import "../../../../../testing/globals.definitions";
 import { TypeaheadBuilder } from './TypeaheadBuilder';
-
-declare global {
-    interface Window {
-        $: any;
-    }
-}
-
-window.$ = require('jquery');
 
 describe('builder', () => {
     it('should error on the typeahead input not being set', () => {

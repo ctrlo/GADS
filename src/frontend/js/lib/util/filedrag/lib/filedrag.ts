@@ -1,19 +1,19 @@
-import { ElementOrJQueryElement, addClass, hideElement, removeClass, showElement, stopPropagation } from "util/common";
+import { hideElement, showElement } from "util/common";
 
 interface FileDragOptions {
     allowMultiple?: boolean;
     debug?: boolean;
 }
 
-class FileDrag {
-    private el: JQuery<HTMLElement>;
+class FileDrag<T extends HTMLElement = HTMLElement> {
+    private el: JQuery<T>;
     private dropZone: JQuery<HTMLElement>;
     // for testing
     protected dragging: boolean = false;
 
-    constructor(private element: ElementOrJQueryElement, private options: FileDragOptions = {}, private onDrop?: (files: FileList | File) => void) {
+    constructor(private element: T, private options: FileDragOptions = {}, private onDrop?: (files: FileList | File) => void) {
         if (options.debug) console.log('FileDrag', element, options);
-        this.el = element instanceof HTMLElement ? $(element) : element;
+        this.el = $(element);
         this.initElements()
         this.initDocumentEvents();
         this.initElementEvents();
@@ -23,18 +23,18 @@ class FileDrag {
         if (this.options.debug) console.log('initElementEvents');
         this.dropZone.on('dragenter', (e) => {
             if (!this.dragging) return;
-            addClass(this.dropZone, 'dragging');
-            stopPropagation(e);
+            if(!this.dropZone.hasClass('dragging')) this.dropZone.addClass('dragging');
+            e.stopPropagation();
         });
         this.dropZone.on('dragleave', (e) => {
             if (!this.dragging) return;
-            removeClass(this.dropZone, 'dragging');
-            stopPropagation(e);
+            if(this.dropZone.hasClass('dragging')) this.dropZone.removeClass('dragging');
+            e.stopPropagation();
         });
         this.dropZone.on('drop', (e) => {
             if (!this.dragging) return;
             this.dragging = false;
-            removeClass(this.el, 'dragging');
+            if(this.el.hasClass('dragging')) this.el.removeClass('dragging');
             hideElement($('.drop-zone'));
             showElement($('[data-draggable="true"]'));
             if (this.options.debug) console.log(e.originalEvent.dataTransfer.files);
@@ -46,7 +46,7 @@ class FileDrag {
                 this.onDrop(e.originalEvent.dataTransfer.files[0]);
             }
             $(document).trigger('drop');
-            stopPropagation(e);
+            e.stopPropagation();
         });
     }
 
@@ -72,11 +72,11 @@ class FileDrag {
             this.dragging = false;
             hideElement(this.dropZone);
             showElement(this.el);
-            stopPropagation(e);
+            e.stopPropagation();
         })
         $(document).on('dragover', (e) => {
             if (!this.dragging) return;
-            stopPropagation(e);
+            e.stopPropagation();
         });
     }
 

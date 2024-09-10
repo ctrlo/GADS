@@ -100,13 +100,12 @@ foreach my $site (schema->resultset('Site')->all)
         }
 
         my $records = GADS::Records->new(
-            user                 => undef,
-            view                 => $from_record_id && $view,
-            layout               => $layout,
-            schema               => schema,
-            columns              => !$from_record_id && $cols,
-            curcommon_all_fields => 1, # Code might contain curcommon fields not in normal display
-            include_children     => 1, # Update all child records regardless
+            user             => undef,
+            view             => $from_record_id && $view,
+            layout           => $layout,
+            schema           => schema,
+            columns          => !$from_record_id && $cols,
+            include_children => 1, # Update all child records regardless
         );
 
         my %changed;
@@ -121,6 +120,7 @@ foreach my $site (schema->resultset('Site')->all)
                 push @{$changed{$column->id}}, $record->current_id
                     if $datum->changed;
             }
+            $layout->clear_cached_records;
         }
 
         # Send any alerts
