@@ -1,19 +1,6 @@
 module.exports = {
   "presets": [
-    [
-      "@babel/preset-env",
-      {
-        "useBuiltIns": "usage",
-        "corejs": "3.8",
-        "targets": {
-          "edge": "17",
-          "firefox": "60",
-          "chrome": "67",
-          "safari": "11.1",
-          "ie": "11"
-        }
-      }
-    ],
+    "@babel/preset-env",
     "@babel/preset-typescript",
     "@babel/preset-react"
   ],

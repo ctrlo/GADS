@@ -1,9 +1,14 @@
-import '../../../button/lib/rename-button';
+import 'components/button/lib/rename-button';
 import { upload } from 'util/upload/UploadControl';
 import { validateCheckboxGroup } from 'validation';
 import { hideElement, showElement } from 'util/common';
 import { formdataMapper } from 'util/mapper/formdataMapper';
-import { RenameEvent } from '../../../button/lib/rename-button';
+import { logging } from 'logging';
+
+interface RenameEvent extends JQuery.Event {
+    target: HTMLButtonElement;
+    newName: string;
+}
 
 interface FileData {
     id: number | string;
@@ -24,19 +29,17 @@ class DocumentComponent {
 
     constructor(el: JQuery<HTMLElement> | HTMLElement) {
         this.el = $(el);
-        // @ts-expect-error Event handling is a bit weird
-        $('.rename').renameButton().on('rename', (ev: RenameEvent)=>{
-            if(this.debug || window.test) console.log('rename', ev);
+        $('.rename').renameButton().on('rename', async (ev: RenameEvent) => {
+            logging.log('rename', ev);
+            if (!ev) throw new Error("e is not a RenameEvent - this shouldn't happen!")
             const $target = $(ev.target);
-            this.renameFile($target.data('field-id'), ev.newName, $('body').data('csrf'));
+            await this.renameFile($target.data('field-id'), ev.newName, $('body').data('csrf'));
         });
         this.fileInput = this.el.find<HTMLInputElement>('.form-control-file');
         this.error = this.el.find('.upload__error');
     }
 
-    debug = location.hostname === 'localhost';
-
-    init() {
+    async init() {
         const url = this.el.data('fileupload-url');
 
         const tokenField = this.el.closest('form').find('input[name="csrf_token"]');
@@ -45,53 +48,56 @@ class DocumentComponent {
 
         if (dropTarget) {
             const dragOptions = { allowMultiple: false };
-            dropTarget.filedrag(dragOptions).on('onFileDrop', (_ev: JQuery.DropEvent, file: File) => {
-                this.handleAjaxUpload(url, csrf_token, file);
+            dropTarget.filedrag(dragOptions).on('onFileDrop', async (_: JQuery.DropEvent, file: File) => {
+                await this.handleAjaxUpload(url, csrf_token, file);
             });
         } else {
             throw new Error('Could not find file-upload element');
         }
 
-        $('[name="file"]').on('change', (ev) => {
+        $('[name="file"]').on('change', async (ev) => {
             if (!(ev.target instanceof HTMLInputElement)) {
                 throw new Error('Could not find file-upload element');
             }
 
-            const file = ev.target.files![0];
-            const formData = formdataMapper({ file, csrf_token });
+            try {
+                const file = ev.target.files![0];
+                if (!file || file === undefined || !file.name) return;
+                const formData = formdataMapper({ file, csrf_token });
 
-            upload<FileData>(url, formData, 'POST', (loaded, total) => {
+                const data = await upload<FileData>(url, formData, 'POST', (loaded, total) => {
+                    if (!this.el.data('multivalue')) {
+                        const uploadProgression = Math.round((loaded / total) * 10000) / 100 + '%';
+                        this.el.find('.progress-bar__percentage').html(uploadProgression);
+                        this.el.find('.progress-bar__progress').css('width', uploadProgression);
+                    }
+                });
+                this.addFileToField({ id: data.id, name: data.filename });
+            } catch (error) {
+                this.showException(error);
+                return;
+            }
+        });
+    }
+
+    async handleAjaxUpload(uri: string, csrf_token: string, file: File) {
+        try {
+            hideElement(this.error);
+            if (!file) throw this.showException('No file provided');
+
+            const fileData = formdataMapper({ file, csrf_token });
+
+            const data = await upload<FileData>(uri, fileData, 'POST', (loaded, total) => {
                 if (!this.el.data('multivalue')) {
                     const uploadProgression = Math.round((loaded / total) * 10000) / 100 + '%';
                     this.el.find('.progress-bar__percentage').html(uploadProgression);
                     this.el.find('.progress-bar__progress').css('width', uploadProgression);
                 }
-            }).then((data) => {
-                this.addFileToField({ id: data.id, name: data.filename });
-            }).catch((error) => {
-                this.showException(error);
-                return;
-            });
-        });
-    }
-
-    handleAjaxUpload(uri: string, csrf_token: string, file: File) {
-        hideElement(this.error);
-        if (!file) throw this.showException('No file provided');
-
-        const fileData = formdataMapper({ file, csrf_token });
-
-        upload<FileData>(uri, fileData, 'POST', (loaded, total) => {
-            if (!this.el.data('multivalue')) {
-                const uploadProgression = Math.round((loaded / total) * 10000) / 100 + '%';
-                this.el.find('.progress-bar__percentage').html(uploadProgression);
-                this.el.find('.progress-bar__progress').css('width', uploadProgression);
-            }
-        }).then((data) => {
+            })
             this.addFileToField({ id: data.id, name: data.filename });
-        }).catch((e) => {
-            this.showException(e);
-        });
+        } catch (e) {
+            this.showException(e instanceof Error ? e.message : e as string ?? e.toString());
+        };
     }
 
     addFileToField(file: { id: number | string; name: string }) {
@@ -116,9 +122,6 @@ class DocumentComponent {
                         <button data-field-id="${fileId}" class="rename btn btn-plain"
                             title="Rename file" type="button"></button>
                     </div>
-                    <div class="col">
-                        <input type="text" id="file-rename-${fileId}" name="file-rename-${fileId}" value="${fileName}" class="input input--text form-control" aria-hidden="true">
-                    </div>
                 </div>
             </li>
         `);
@@ -129,27 +132,28 @@ class DocumentComponent {
         $fieldset.find('input[type="file"]').removeAttr('required');
         const button = `.rename[data-field-id="${file.id}"]`;
         const $button = $(button);
-        // @ts-expect-error Event handling is a bit weird
-        $button.renameButton().on('rename', (ev: RenameEvent)=>{
-            if(this.debug || window.test) console.log('rename', ev);
-            this.renameFile(fileId as number ?? parseInt(fileId.toString()), ev.newName, csrf_token, true);
+        $button.renameButton().on('rename', async (ev: RenameEvent) => {
+            logging.log('rename', ev);
+            await this.renameFile(fileId as number ?? parseInt(fileId.toString()), ev.newName, csrf_token, true);
         });
     }
 
-    private renameFile(fileId:number, newName:string, csrf_token: string, is_new: boolean = false) { // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why, so I've used the button itself
-        if(this.debug || window.test) console.log('renameFile', fileId, newName, csrf_token, is_new);
-        const url = `/api/file/${fileId}`;
-        const data = formdataMapper({ csrf_token, filename: newName, is_new: is_new ? 1 : 0 });
-        upload<RenameResponse>(url, data, 'PUT').then((data) => {
-            if(this.debug || window.test) console.log('renameFile', data);
+    private async renameFile(fileId: number, newName: string, csrf_token: string, is_new: boolean = false) { // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why, so I've used the button itself
+        try {
+            const url = `/api/file/${fileId}`;
+            const mappedData = formdataMapper({ csrf_token, filename: newName, is_new: is_new ? 1 : 0 });
+            const data = await upload<RenameResponse>(url, mappedData, 'PUT')
+            logging.log('renameFile', data);
             if (is_new) {
                 $(`#current-${fileId}`).text(data.name);
             } else {
-                this.addFileToField({ id: data.id, name: data.name });
+                $(`#current-${fileId}`).closest('li').remove();
+                const {id, name} = data;
+                this.addFileToField({ id, name });
             }
-        }).catch((error) => {
+        } catch (error) {
             this.showException(error);
-        });
+        }
     }
 
     showException(e: string | Error) {
