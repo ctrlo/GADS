@@ -61,29 +61,33 @@ class RenameButton {
         if (!button || button.length < 1) throw new Error("Button element is null or empty")
         const fileId = id as number ?? parseInt(id.toString());
         if (!fileId) throw new Error("Invalid file id!");
-        const parent = button.closest(".row");
-        const col = createElement('div', {classList: ['col']});
-        const input = createElement("input", {
-            type: 'text',
-            id: `file-rename-${fileId}`,
-            name: `file-rename-${fileId}`,
-            classList: ['input', 'input--text', 'form-control'],
-            ariaHidden: 'true'
-        });
-        const col2 = createElement('div', {classList: ['col']});
-        const confirm = createElement("button", {
-            id: `rename-confirm-${fileId}`,
-            type: 'button',
-            textContent: 'Rename',
-            ariaHidden: 'true',
-            classList: ['btn', 'btn-primary']
-        }).on('click',(ev: JQuery.ClickEvent)=>{
-            ev.preventDefault();
-            this.renameClick(typeof(id) === 'string' ? parseInt(id) : id, ev);
-        });
-        col.append(input);
-        col2.append(confirm);
-        parent.append(col).append(col2);
+        button.closest(".row")
+            .append(
+                createElement('div', { classList: ['col'] })
+                    .append(
+                        createElement("input", {
+                            type: 'text',
+                            id: `file-rename-${fileId}`,
+                            name: `file-rename-${fileId}`,
+                            classList: ['input', 'input--text', 'form-control'],
+                            ariaHidden: 'true'
+                        })
+                    )
+            ).append(
+                createElement('div', { classList: ['col'] })
+                    .append(
+                        createElement("button", {
+                            id: `rename-confirm-${fileId}`,
+                            type: 'button',
+                            textContent: 'Rename',
+                            ariaHidden: 'true',
+                            classList: ['btn', 'btn-primary']
+                        }).on('click', (ev: JQuery.ClickEvent) => {
+                            ev.preventDefault();
+                            this.renameClick(typeof (id) === 'string' ? parseInt(id) : id, ev);
+                        })
+                    )
+            );
     }
 
     /**
@@ -106,15 +110,15 @@ class RenameButton {
             .attr('aria-hidden', null)
             .trigger('focus')
             .val(original)
-            .on('keydown', (e)=>this.renameKeydown(id,$(ev.target),e))
-            .on('blur', (e)=> {
+            .on('keydown', (e) => this.renameKeydown(id, $(ev.target), e))
+            .on('blur', (e) => {
                 this.value = (e.target as HTMLInputElement)?.value;
             })
         $(`#rename-confirm-${id}`)
             .removeClass('hidden')
             .attr('aria-hidden', null)
-            .on('click', (e)=> {
-                this.triggerRename(id,ev.target,e)
+            .on('click', (e) => {
+                this.triggerRename(id, ev.target, e)
             });
         $(ev.target).addClass('hidden').attr('aria-hidden', 'true');
     }
@@ -138,7 +142,7 @@ class RenameButton {
                 .off('blur');
             $(`#rename-confirm-${id}`)
                 .addClass('hidden')
-                .attr('aria-hidden','true')
+                .attr('aria-hidden', 'true')
                 .off('click');
             $(button).removeClass('hidden').attr('aria-hidden', 'false');
         }
@@ -151,8 +155,7 @@ class RenameButton {
      * @param {JQuery.BlurEvent} ev The blur event
      */
     private triggerRename(id: number, button: JQuery<HTMLButtonElement>, ev: JQuery.ClickEvent) {
-        try 
-        {
+        try {
             const previousValue = $(`#current-${id}`).text();
             const extension = '.' + previousValue.split('.').pop();
             const newName = this.value.endsWith(extension) ? this.value : this.value + extension;
@@ -168,7 +171,7 @@ class RenameButton {
                 .off('blur');
             $(`#rename-confirm-${id}`)
                 .addClass('hidden')
-                .attr('aria-hidden','true')
+                .attr('aria-hidden', 'true')
             $(button).removeClass('hidden').attr('aria-hidden', 'false');
         }
     }
