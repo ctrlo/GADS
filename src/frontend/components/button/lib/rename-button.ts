@@ -1,4 +1,3 @@
-import { logging } from "logging";
 import { createElement } from "util/domutils";
 
 /**
@@ -81,10 +80,17 @@ class RenameButton {
                             type: 'button',
                             textContent: 'Rename',
                             ariaHidden: 'true',
-                            classList: ['btn', 'btn-primary']
+                            classList: ['btn', 'btn-small', 'btn-default']
                         }).on('click', (ev: JQuery.ClickEvent) => {
                             ev.preventDefault();
                             this.renameClick(typeof (id) === 'string' ? parseInt(id) : id, ev);
+                        }),
+                        createElement("button", {
+                            id: `rename-cancel-${fileId}`,
+                            type: 'button',
+                            textContent: 'Cancel',
+                            ariaHidden: 'true',
+                            classList: ['btn', 'btn-small', 'btn-danger']
                         })
                     )
             );
@@ -97,14 +103,14 @@ class RenameButton {
      */
     private renameClick(id: number, ev: JQuery.ClickEvent) {
         ev.preventDefault();
-        $(`#current-${id}`)
-            .addClass('hidden')
-            .attr('aria-hidden', 'true');
         const original = $(`#current-${id}`)
             .text()
             .split('.')
             .slice(0, -1)
-            .join('.')
+            .join('.');
+        $(`#current-${id}`)
+            .addClass('hidden')
+            .attr('aria-hidden', 'true');
         $(`#file-rename-${id}`)
             .removeClass('hidden')
             .attr('aria-hidden', null)
@@ -120,6 +126,13 @@ class RenameButton {
             .on('click', (e) => {
                 this.triggerRename(id, ev.target, e)
             });
+        $(`#rename-cancel-${id}`)
+            .removeClass('hidden')
+            .attr('aria-hidden', null)
+            .on('click', () => {
+                const e = $.Event('keydown', { key: 'Escape', code: 27 });
+                $(`#file-rename-${id}`).trigger(e);
+            })
         $(ev.target).addClass('hidden').attr('aria-hidden', 'true');
     }
 
@@ -132,19 +145,7 @@ class RenameButton {
     private renameKeydown(id: number, button: JQuery<HTMLButtonElement>, ev: JQuery.KeyDownEvent) {
         if (ev.key === 'Escape') {
             ev.preventDefault();
-            $(`#current-${id}`)
-                .removeClass('hidden')
-                .attr('aria-hidden', null);
-            $(`#file-rename-${id}`)
-                .addClass('hidden')
-                .attr('aria-hidden', 'true')
-                .off('keydown')
-                .off('blur');
-            $(`#rename-confirm-${id}`)
-                .addClass('hidden')
-                .attr('aria-hidden', 'true')
-                .off('click');
-            $(button).removeClass('hidden').attr('aria-hidden', 'false');
+            this.hideRenameControls(id, button);
         }
     }
 
@@ -164,16 +165,25 @@ class RenameButton {
             const event = $.Event('rename', { newName, target: button });
             $(button).trigger(event);
         } finally {
-            $(`#current-${id}`).removeClass('hidden').attr('aria-hidden', 'false');
-            $(`#file-rename-${id}`)
-                .addClass('hidden')
-                .attr('aria-hidden', 'true')
-                .off('blur');
-            $(`#rename-confirm-${id}`)
-                .addClass('hidden')
-                .attr('aria-hidden', 'true')
-            $(button).removeClass('hidden').attr('aria-hidden', 'false');
+            this.hideRenameControls(id, button);
         }
+    }
+
+    private hideRenameControls(id: number, button: JQuery<HTMLButtonElement>) {
+        $(`#current-${id}`).removeClass('hidden').attr('aria-hidden', 'false');
+        $(`#file-rename-${id}`)
+            .addClass('hidden')
+            .attr('aria-hidden', 'true')
+            .off('blur');
+        $(`#rename-confirm-${id}`)
+            .addClass('hidden')
+            .attr('aria-hidden', 'true')
+            .off('click');
+        $(`#rename-cancel-${id}`)
+            .addClass('hidden')
+            .attr('aria-hidden', null)
+            .off('click');
+        $(button).removeClass('hidden').attr('aria-hidden', 'false');
     }
 }
 
