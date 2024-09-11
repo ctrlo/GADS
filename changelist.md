@@ -2,6 +2,18 @@
 
 -------
 
+**Version**: 2.5.1
+**Released**: 11-09-2024
+
+-------
+
+## Fixes
+
+- Fix PDF downloads of records
+- Bump JS version
+
+-------
+
 **Version**: 2.5.0
 **Released**: 03-09-2024
 
