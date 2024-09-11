@@ -2685,6 +2685,10 @@ sub get_field_value
         # Ensure no memory leaks - tree needs to be destroyed
         $already_seen->delete_tree;
     }
+    elsif ($column->name_short && $column->name_short eq '_serial')
+    {
+        $raw = $self->serial;
+    }
     else {
         my $result = $self->schema->resultset($column->table)->search({
             record_id => $record_id,
@@ -2716,7 +2720,7 @@ sub pdf
     my $now = DateTime->now;
     $now->set_time_zone('Europe/London');
     my $now_formatted = $now->format_cldr($dateformat)." at ".$now->hms;
-    my $updated = $self->created->format_cldr($dateformat)." at ".$self->created->hms;
+    my $updated = $self->edited_time->as_string;
 
     my $config = GADS::Config->instance;
     my $header = $config && $config->gads && $config->gads->{header};
@@ -2735,7 +2739,7 @@ sub pdf
     my $max_fields;
     foreach my $col ($self->layout->all_user_read)
     {
-        my $datum = $self->fields->{$col->id};
+        my $datum = $self->get_field_value($col);
         next if $datum->dependent_not_shown;
         if ($col->is_curcommon)
         {
