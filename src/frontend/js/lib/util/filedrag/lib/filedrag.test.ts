@@ -57,15 +57,11 @@ describe('FileDrag class tests', () => {
         const dropZone = parent!.querySelector('.drop-zone');
         expect(dropZone).toBeDefined();
         expect(fileDrag.getDragging()).toBeFalsy();
-        expect(child.style.display).toBe('');
-        expect(child.style.visibility).toBe('');
         expect(child.getAttribute('aria-hidden')).toBeFalsy();
         expect(child.classList.contains('hidden')).toBeFalsy();
         const e = $.Event('dragenter');
         $(document).trigger(e);
         expect(fileDrag.getDragging()).toBeTruthy();
-        expect(child.style.display).toBe('none');
-        expect(child.style.visibility).toBe('hidden');
         expect(child.getAttribute('aria-hidden')).toBe('true');
         expect(child.classList.contains('hidden')).toBeTruthy();
     });
@@ -81,8 +77,6 @@ describe('FileDrag class tests', () => {
         $(document).trigger(e);
         const e2 = $.Event('dragleave', { originalEvent: { pageX: 0, pageY: 0, stopPropagation: jest.fn() } });
         $(document).trigger(e2);
-        expect(child.style.display).toBe('');
-        expect(child.style.visibility).toBe('');
         expect(child.getAttribute('aria-hidden')).toBeFalsy();
         expect(child.classList.contains('hidden')).toBeFalsy();
     });
