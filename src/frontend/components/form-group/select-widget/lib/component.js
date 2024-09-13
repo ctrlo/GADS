@@ -518,11 +518,12 @@ class SelectWidgetComponent extends Component {
 
         this.$availableItems.on("blur", (e) => { this.possibleCloseWidget(e) })
         this.$moreInfoButtons.on("blur", (e) => { this.possibleCloseWidget(e) })
-        this.$moreInfoButtons.each((_, button) => {
-          import(/* webpackChunkName: "more-info-button" */ '../../../button/lib/more-info-button')
-            .then(({ default: MoreInfoButton }) => { new MoreInfoButton(button); }
-            );
-        })
+        import(/* webpackChunkName: "more-info-button" */ '../../../button/lib/more-info-button')
+          .then(({ default: MoreInfoButton }) => {
+            this.$moreInfoButtons.each((_, button) => {
+              new MoreInfoButton(button);
+            });
+          })
 
       } else {
         const errorMessage =

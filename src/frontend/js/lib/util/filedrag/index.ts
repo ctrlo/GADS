@@ -1,4 +1,10 @@
-import FileDrag from "./lib/filedrag";
+import {FileDrag, FileDragOptions} from "./lib/filedrag";
+
+declare global {
+    interface JQuery<TElement = HTMLElement> {
+        filedrag(options?: FileDragOptions): JQuery<TElement>;
+    }
+}
 
 (function ($) {
     $.fn.filedrag = function (options) {

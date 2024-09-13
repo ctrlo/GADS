@@ -4,6 +4,7 @@ declare global {
     interface Window {
         $: JQueryStatic;
         alert: (message?: any)=>void;
+        test: any;
     }
 }
 

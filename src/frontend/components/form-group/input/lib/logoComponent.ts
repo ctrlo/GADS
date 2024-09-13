@@ -23,7 +23,7 @@ class LogoComponent {
         this.fileInput.on('change', this.handleFileChange);
     }
 
-    handleFileChange = (ev: JQuery.ChangeEvent<HTMLInputElement>) => {
+    handleFileChange = async (ev: JQuery.ChangeEvent<HTMLInputElement>) => {
         ev.preventDefault();
         const url = this.el.data('fileupload-url');
         const file = this.fileInput[0].files?.[0];
@@ -32,11 +32,10 @@ class LogoComponent {
         if (file) {
             const formData = formdataMapper({ file, csrf_token });
 
-            upload<{ url: string }>(url, formData, 'POST').then((data) => {
+            const data = await upload<{ url: string }>(url, formData, 'POST')
                 const version = this.logoDisplay.attr('src')!.split('?')[1];
                 const newVersion = version ? parseInt(version, 10) + 1 : 1;
                 this.logoDisplay.attr('src', `${data.url}?${newVersion}`).show();
-            });
         }
     };
 }

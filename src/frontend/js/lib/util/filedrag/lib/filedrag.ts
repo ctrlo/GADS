@@ -1,17 +1,17 @@
 import { hideElement, showElement } from "util/common";
 
-interface FileDragOptions {
+export interface FileDragOptions {
     allowMultiple?: boolean;
     debug?: boolean;
 }
 
-class FileDrag<T extends HTMLElement = HTMLElement> {
+export class FileDrag<T extends HTMLElement = HTMLElement> {
     private el: JQuery<T>;
     private dropZone: JQuery<HTMLElement>;
     // for testing
     protected dragging: boolean = false;
 
-    constructor(private element: T, private options: FileDragOptions = {}, private onDrop?: (files: FileList | File) => void) {
+    constructor(element: T, private options: FileDragOptions = {}, private onDrop?: (files: FileList | File) => void) {
         if (options.debug) console.log('FileDrag', element, options);
         this.el = $(element);
         this.initElements()
@@ -92,5 +92,3 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
         hideElement(this.dropZone);
     }
 }
-
-export default FileDrag;

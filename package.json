@@ -99,7 +99,6 @@
   "browserslist": [
     "last 2 versions",
     "Firefox ESR",
-    "not dead",
-    "IE 11"
+    "not dead"
   ]
 }

@@ -54,7 +54,7 @@ describe('create-report-button', () => {
       </form>
     `;
 
-        let $submit = $('#submit');
+        const $submit = $('#submit');
         new CreateReportButtonComponent($submit);
         const submitSpy = jest.fn((ev) => {
             ev.preventDefault();

@@ -31,14 +31,14 @@ class DocumentComponent {
 
         if (dropTarget) {
             const dragOptions = { allowMultiple: false };
-            (<any>dropTarget).filedrag(dragOptions).on('onFileDrop', (_ev: JQuery.DropEvent, file: File) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-                this.handleAjaxUpload(url, csrf_token, file);
+            dropTarget.filedrag(dragOptions).on('onFileDrop', async (_ev: JQuery.DropEvent, file: File) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+                await this.handleAjaxUpload(url, csrf_token, file);
             });
         } else {
             throw new Error('Could not find file-upload element');
         }
 
-        $('[name="file"]').on('change', (ev) => {
+        $('[name="file"]').on('change', async (ev) => {
             if (!(ev.target instanceof HTMLInputElement)) {
                 throw new Error('Could not find file-upload element');
             }
@@ -46,29 +46,29 @@ class DocumentComponent {
             const file = ev.target.files![0];
             const formData = formdataMapper({ file, csrf_token });
 
-            upload<FileData>(url, formData, 'POST', this.updateProgress).then((data) => {
+            try {
+                const data = await upload<FileData>(url, formData, 'POST', this.updateProgress)
                 this.addFileToField({ id: data.id, name: data.filename });
-            }).catch((error) => {
+            } catch (error) {
                 $progressBarProgress.css('width', '100%');
                 $progressBarContainer.addClass('progress-bar__container--fail');
                 this.showException(error);
-            });
+            }
         });
     }
 
-    handleAjaxUpload(uri: string, csrf_token: string, file: File) {
+    async handleAjaxUpload(uri: string, csrf_token: string, file: File) {
         hideElement(this.error);
         if (!file) throw this.showException('No file provided');
 
         const fileData = formdataMapper({ file, csrf_token });
 
-        upload<FileData>(uri, fileData, 'POST', this.updateProgress)
-            .then((data) => {
-                this.addFileToField({ id: data.id, name: data.filename });
-            })
-            .catch((e) => {
-                this.showException(e);
-            });
+        try {
+            const data = await upload<FileData>(uri, fileData, 'POST', this.updateProgress)
+            this.addFileToField({ id: data.id, name: data.filename });
+        } catch(e) {
+            this.showException(e);
+        }
     }
 
     addFileToField(file: { id: number | string; name: string }) {
