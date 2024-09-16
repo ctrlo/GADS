@@ -2695,7 +2695,7 @@ sub csv_line
     my @columns = @{$self->columns_render};
     my @items;
     push @items, $line->parent_id if $self->has_children;
-    push @items, map { $line->fields->{$_->id} } @columns;
+    push @items, map { $line->get_field_value($_) } @columns;
     my $csv = $self->_csv;
     $csv->combine(@items)
         or error __x"An error occurred producing a line of CSV: {err} {items}",
