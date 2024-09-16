@@ -2021,7 +2021,7 @@ sub write_values
         # Prevent warnings when writing incomplete calc values on draft
         next if $options{draft} && !$column->userinput;
 
-        next if $column->name_short eq '_serial';
+        next if $column->name_short && $column->name_short eq '_serial';
         my $datum = $self->get_field_value($column);
         next if $self->linked_id && $column->link_parent; # Don't write all values if this is a linked record
 
