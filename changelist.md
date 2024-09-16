@@ -2,6 +2,18 @@
 
 -------
 
+**Version**: 2.5.2
+**Released**: 16-09-2024
+
+-------
+
+## Fixes
+
+- Fix version date/time in chronology
+- Fix metadata in CSV downloads
+
+-------
+
 **Version**: 2.5.1
 **Released**: 11-09-2024
 
