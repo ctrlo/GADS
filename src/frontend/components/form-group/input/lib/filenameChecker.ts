@@ -12,9 +12,8 @@ export function checkFilename(filename: string) {
     if (parts[max].length == 0) throw new Error('Invalid file name - no extension found');
     if (parts[max].match(pattern)) throw new Error('Invalid file name - invalid characters in extension');
     let result = '';
-    for(let i = 0; i < max; i++) {
+    for(let i = 0; i < max; i++)
         result = result + parts[i].replace(pattern, '');
-    }
     if(result.length == 0) throw new Error('Invalid file name - no file name found');
     return result + '.' + parts[max];
 }

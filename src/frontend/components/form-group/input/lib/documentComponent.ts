@@ -140,9 +140,9 @@ class DocumentComponent {
 
     private async renameFile(fileId: number, newName: string, csrf_token: string, is_new: boolean = false) { // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why, so I've used the button itself
         try {
-            checkFilename(newName);
+            const filename = checkFilename(newName);
             const url = `/api/file/${fileId}`;
-            const mappedData = formdataMapper({ csrf_token, filename: newName, is_new: is_new ? 1 : 0 });
+            const mappedData = formdataMapper({ csrf_token, filename, is_new: is_new ? 1 : 0 });
             const data = await upload<RenameResponse>(url, mappedData, 'PUT')
             logging.log('renameFile', data);
             if (is_new) {
