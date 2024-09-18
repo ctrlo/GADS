@@ -1746,6 +1746,14 @@ put '/api/file/:id' => require_login sub {
     my $newname = param('filename')
         or error __"Filename is required";
 
+    if($newname =~ m/[^a-zA-Z0-9\._-]/)
+    {
+        return encode_json({
+            is_ok => 0,
+            error => "Filename contains invalid characters",
+        });
+    }
+
     if ($is_new)
     {
         $file->update({ name => $newname });
@@ -1797,9 +1805,13 @@ post '/api/file/?' => require_login sub {
     if (my $upload = upload('file'))
     {
         my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
+        my $filename = $upload->filename;
+
+        $filename =~ s/[^a-zA-Z0-9\._-]//g;
+
         my $file;
         if (process( sub { $file = rset('Fileval')->create({
-            name           => $upload->filename,
+            name           => $filename,
             mimetype       => $mimetype,
             content        => $upload->content,
             is_independent => 0,
@@ -1808,7 +1820,7 @@ post '/api/file/?' => require_login sub {
         {
             return encode_json({
                 id       => $file->id,
-                filename => $upload->filename,
+                filename => $filename,
                 url      => "/file/".$file->id,
                 is_ok    => 1,
             });

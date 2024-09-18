@@ -3,6 +3,7 @@ import { upload } from 'util/upload/UploadControl';
 import { validateCheckboxGroup } from 'validation';
 import { formdataMapper } from 'util/mapper/formdataMapper';
 import { logging } from 'logging';
+import { checkFilename } from './filenameChecker';
 
 interface RenameEvent extends JQuery.Event {
     target: HTMLButtonElement;
@@ -23,8 +24,8 @@ interface RenameResponse {
 class DocumentComponent {
     readonly type = 'document';
     readonly el: JQuery<HTMLElement>;
-    fileInput: JQuery<HTMLInputElement>;
-    error: JQuery<HTMLElement>;
+    readonly fileInput: JQuery<HTMLInputElement>;
+    readonly error: JQuery<HTMLElement>;
 
     constructor(el: JQuery<HTMLElement> | HTMLElement) {
         this.el = $(el);
@@ -67,7 +68,7 @@ class DocumentComponent {
                 this.showContainer();
                 const data = await upload<FileData>(url, formData, 'POST', (loaded, total) => {
                     let uploadProgression = Math.round((loaded / total) * 10000) / 100;
-                    if(uploadProgression == Infinity) uploadProgression=100;
+                    if (uploadProgression == Infinity) uploadProgression = 100;
                     this.el.find('.progress-bar__percentage').html(uploadProgression === 100 ? 'complete' : `${uploadProgression}%`);
                     this.el.find('.progress-bar__progress').css('width', `${uploadProgression}%`);
                 });
@@ -96,7 +97,7 @@ class DocumentComponent {
             this.addFileToField({ id: data.id, name: data.filename });
         } catch (e) {
             this.showException(e instanceof Error ? e.message : e as string ?? e.toString());
-        };
+        }
     }
 
     addFileToField(file: { id: number | string; name: string }) {
@@ -139,6 +140,7 @@ class DocumentComponent {
 
     private async renameFile(fileId: number, newName: string, csrf_token: string, is_new: boolean = false) { // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why, so I've used the button itself
         try {
+            checkFilename(newName);
             const url = `/api/file/${fileId}`;
             const mappedData = formdataMapper({ csrf_token, filename: newName, is_new: is_new ? 1 : 0 });
             const data = await upload<RenameResponse>(url, mappedData, 'PUT')
@@ -164,7 +166,7 @@ class DocumentComponent {
         this.showContainer();
         this.el.find('.progress-bar__container').css('width', '100%');
         this.el.find('.progress-bar__progress').addClass('progress-bar__container--fail');
-        this.error.html(e instanceof Error ? e.message : e);
+        this.error.html(e instanceof Error ? e.message ? e.message : e.toString() : e);
         $(this.error).show();
     }
 }
