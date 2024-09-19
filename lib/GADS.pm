@@ -274,18 +274,11 @@ hook before => sub {
         # CSP
         response_header "Content-Security-Policy" => "script-src 'self';";
 
-        # Make sure we have suitable persistent hash to update. All these options are
-        # used as hashrefs themselves, so prevent trying to access non-existent hash.
         my $persistent = session 'persistent';
 
         if (my $instance_id = param('instance'))
         {
             session 'search' => undef;
-        }
-        elsif (!$persistent->{instance_id})
-        {
-            $persistent->{instance_id} = var('instances')->all->[0]->instance_id
-                if @{var('instances')->all};
         }
 
         if (var 'layout') {
@@ -333,9 +326,7 @@ hook before_template => sub {
         $tokens->{instance_name} = var('layout')->name if var('layout');
         $tokens->{user}          = $user;
         $tokens->{search}        = session 'search';
-        # Somehow this sets the instance_id session if no persistent session exists
-        $tokens->{instance_id}   = session('persistent')->{instance_id}
-            if session 'persistent';
+        $tokens->{instance_id}   = session('persistent')->{instance_id};
         $tokens->{user_can_edit}   = $layout && $layout->user_can('write_existing');
         $tokens->{user_can_create} = $layout && $layout->user_can('write_new');
         $tokens->{show_link}       = rset('Current')->next ? 1 : 0;
@@ -1942,7 +1933,7 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
         return send_file(\$pdf, content_type => 'application/pdf', filename => "Record-".$record->current_id.".pdf" );
     }
 
-    if (query_parameters->get('report') && !$record->layout->no_download_pdf)
+    if (query_parameters->get('report'))
     {
         my $report_id = query_parameters->get('report');
         my $pdf = $record->get_report($report_id, $user)->content;
@@ -2868,8 +2859,7 @@ prefix '/:layout_name' => sub {
             my $user   = logged_in_user;
             my $layout = var('layout') or pass;
 
-            return forwardHome(
-                { danger => 'You do not have permission to edit reports' } )
+            return forwardHome( { danger => 'You do not have permission to edit reports' } )
               unless $layout->user_can("layout");
 
             my $base_url = request->base;
@@ -2934,6 +2924,7 @@ prefix '/:layout_name' => sub {
                 my $checkbox_fields    = [body_parameters->get_all('checkboxes')];
                 my $security_marking   = body_parameters->get('security_marking');
                 my $instance           = $layout->instance_id;
+                my $groups             = [body_parameters->get_all('groups')];
 
                 my $report = schema->resultset('Report')->create_report(
                     {
@@ -2945,25 +2936,27 @@ prefix '/:layout_name' => sub {
                         createdby        => $user,
                         layouts          => $checkbox_fields,
                         security_marking => $security_marking,
+                        groups           => $groups,
                     }
                 );
 
                 my $lo = param 'layout_name';
-                return forwardHome( { success => "Report created" },
-                    "$lo/report" );
+                return forwardHome( { success => "Report created" }, "$lo/report" );
             }
 
             my $records = [ $layout->all( user_can_read => 1 ) ];
 
             my $base_url = request->base;
+            my $groups = [ $user->groups_viewable ];
 
             my $params = {
-                header_type       => 'table_tabs',
+                header_type     => 'table_tabs',
                 layout_obj      => $layout,
                 layout          => $layout,
                 header_back_url => "${base_url}table",
                 viewtype        => 'add',
                 fields          => $records,
+                groups          => $groups,
                 breadcrumbs     => [
                     Crumb( $base_url . "table/", "Tables" ),
                     Crumb( "",                   "Table: " . $layout->name )
@@ -2992,6 +2985,7 @@ prefix '/:layout_name' => sub {
                 my $checkboxes         = [body_parameters->get_all('checkboxes')];
                 my $security_marking   = body_parameters->get('security_marking');
                 my $instance           = $layout->instance_id;
+                my $groups             = [body_parameters->get_all('groups')];
 
                 my $report_id = param('id');
 
@@ -3005,6 +2999,7 @@ prefix '/:layout_name' => sub {
                         description      => $report_description,
                         layouts          => $checkboxes,
                         security_marking => $security_marking,
+                        groups           => $groups,
                     }
                 );
 
@@ -3021,6 +3016,8 @@ prefix '/:layout_name' => sub {
 
             my $fields = $result->fields_for_render($layout);
 
+            my $groups = [ $user->groups_viewable ];
+
             my $params = {
                 header_type     => 'table_tabs',
                 layout_obj      => $layout,
@@ -3029,6 +3026,7 @@ prefix '/:layout_name' => sub {
                 report          => $result,
                 fields          => $fields,
                 viewtype        => 'edit',
+                groups          => $groups,
                 breadcrumbs     => [
                     Crumb( $base_url . "table/", "Tables" ),
                     Crumb( "",                   "Table: " . $layout->name )

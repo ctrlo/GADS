@@ -144,8 +144,9 @@ has set_record_created => (
 );
 
 has set_record_created_user => (
-    is      => 'rw',
-    clearer => 1,
+    is        => 'rw',
+    clearer   => 1,
+    predicate => 1,
 );
 
 # Should be set true if we are processing an approval
@@ -420,22 +421,130 @@ has fields => (
     },
 );
 
-has createdby => (
+has first_record_rs => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_first_record_rs
+{   my $self = shift;
+    my $min_id = $self->schema->resultset('Record')->search({
+        current_id => $self->current_id,
+    },{
+        rows     => 1,
+        order_by => { -asc => 'me.created' },
+    })->next->id;
+    $self->schema->resultset('Record')->find($min_id);
+}
+
+# Consistent time for created and edited fields of new record
+has _now => (
+    is => 'lazy',
+);
+
+sub _build__now
+{   my $self = shift;
+    DateTime->now;
+}
+
+has created_user => (
     is      => 'rw',
     lazy    => 1,
     clearer => 1,
     builder => sub {
         my $self = shift;
+
+        # Not yet defined for new record
         return undef if $self->new_entry;
-        my $createdby_col = $self->layout->column_by_name_short('_version_user');
-        if (!$self->record)
+
+        my $column = $self->layout->column_by_name_short('_created_user');
+
+        # Has it been retrieved as part of sql query?
+        if ($self->record && exists $self->record->{record_created_user})
         {
-            my $user_id = $self->schema->resultset('Record')->find(
-                $self->record_id
-            )->createdby->id;
-            return $self->_person({ id => $user_id }, $createdby_col);
+            return $self->_person($self->record->{record_created_user}, $column);
         }
-        $self->fields->{$createdby_col->id};
+
+        my $user = $self->first_record_rs->createdby;
+        return $self->_person($user && $user->id, $column);
+    },
+);
+
+has created_time => (
+    is      => 'rw',
+    lazy    => 1,
+    clearer => 1,
+    builder => sub {
+        my $self = shift;
+
+        my $column = $self->layout->column_by_name_short('_created');
+
+        # Not yet defined for new record
+        return $self->_date($self->_now, $column)
+            if $self->new_entry;
+
+        # Has it been retrieved as part of sql query?
+        my $value = $self->record && exists $self->record->{record_created_date}
+            ? $self->record->{record_created_date}
+            : $self->first_record_rs->created;
+
+        $self->_date($value, $column);
+    },
+);
+
+has record_rs => (
+    is => 'lazy',
+);
+
+sub _build_record_rs
+{   my $self = shift;
+    $self->schema->resultset('Record')->find(
+        $self->record_id
+    );
+}
+
+has edited_user => (
+    is      => 'rw',
+    lazy    => 1,
+    clearer => 1,
+    builder => sub {
+        my $self = shift;
+
+        # Not yet defined for new record
+        return undef if $self->new_entry;
+
+        my $column = $self->layout->column_by_name_short('_version_user');
+
+        # Has it been retrieved as part of sql query?
+        if ($self->record && exists $self->record->{createdby})
+        {
+            return $self->_person($self->record->{createdby}, $column);
+        }
+
+        my $user = $self->record_rs->createdby;
+        return $self->_person($user && $user->id, $column);
+    },
+);
+
+has edited_time => (
+    is      => 'rw',
+    lazy    => 1,
+    clearer => 1,
+    builder => sub {
+        my $self = shift;
+
+        my $column = $self->layout->column_by_name_short('_version_datetime');
+
+        # Not yet defined for new record
+        return $self->_date($self->_now, $column)
+            if $self->new_entry;
+
+        # Has it been retrieved as part of sql query?
+        my $value = $self->record && exists $self->record->{created}
+            ? $self->record->{created}
+            : $self->record_rs->created;
+
+        $self->_date($value, $column);
     },
 );
 
@@ -460,38 +569,41 @@ has deletedby => (
             my $user = $self->schema->resultset('Record')->find(
                 $self->record_id
             )->deletedby or return undef;
-            return $self->_person({ id => $user->id }, $deletedby_col);
+            return $self->_person($user->id, $deletedby_col);
         }
         my $value = $self->set_deletedby or return undef;
         return $self->_person($value, $self->layout->column($deletedby_col->id));
     },
 );
 
-sub _person
+sub _date
 {   my ($self, $value, $column) = @_;
-    GADS::Datum::Person->new(
+    GADS::Datum::Date->new(
         record           => $self,
         record_id        => $self->record_id,
         current_id       => $self->current_id,
         column           => $column,
         schema           => $self->schema,
         layout           => $self->layout,
-        init_value       => $value,
+        init_value       => [$value],
     );
 }
 
-has created => (
-    is      => 'lazy',
-    isa     => DateAndTime,
-    clearer => 1,
-);
-
-sub _build_created
-{   my $self = shift;
-    return $self->schema->storage->datetime_parser->parse_datetime(
-        $self->record->{created}
-    ) if $self->record && exists $self->record->{created};
-    return $self->schema->resultset('Record')->find($self->record_id)->created;
+sub _person
+{   my ($self, $value, $column) = @_;
+    my %params = (
+        record           => $self,
+        record_id        => $self->record_id,
+        current_id       => $self->current_id,
+        column           => $column,
+        schema           => $self->schema,
+        layout           => $self->layout,
+    );
+    $params{init_value} = $value
+        if ref $value eq 'HASH';
+    $params{ids} = [$value]
+        if $value && ! ref $value;
+    GADS::Datum::Person->new(%params);
 }
 
 has set_deleted => (
@@ -563,7 +675,9 @@ sub remove_id
     $self->linked_id(undef);
     $self->clear_new_entry;
     my $created_col = $self->layout->column_by_name_short('_created');
-    $self->fields->{$created_col->id}->set_value(DateTime->now);
+    my $created = $self->get_field_value($created_col)
+        or return;
+    $created->set_value(DateTime->now);
 }
 
 sub find_record_id
@@ -677,6 +791,7 @@ sub find_unique
 sub clear
 {   my $self = shift;
     $self->clear_record;
+    $self->clear_first_record_rs;
     $self->clear_current_id;
     $self->clear_record_id;
     $self->clear_linked_id;
@@ -685,10 +800,12 @@ sub clear
     $self->clear_child_record_ids;
     $self->clear_approval_of_new;
     $self->clear_fields;
-    $self->clear_createdby;
-    $self->clear_created;
-    $self->clear_set_record_created,
-    $self->clear_set_record_created_user,
+    $self->clear_set_record_created;
+    $self->clear_set_record_created_user;
+    $self->clear_edited_user;
+    $self->clear_edited_time;
+    $self->clear_created_user,
+    $self->clear_created_time,
     $self->clear_is_historic;
     $self->clear_new_entry;
     $self->clear_layout;
@@ -870,16 +987,6 @@ sub _find
 
     $self->clear_is_draft;
 
-    # Find the user that created this record. XXX Ideally this would be done as
-    # part of the original query, as it is for GADS::Records. See comment above
-    # about this function
-    my $first = $self->schema->resultset('Record')->search({
-        current_id => $current_id,
-    })->get_column('id')->min;
-    my $user = $self->schema->resultset('Record')->find($first)->createdby;
-    $self->set_record_created_user({$user->get_columns})
-        if $user;
-
     # Fetch and add multi-values
     my @record_objects;
     if ($find{chronology})
@@ -933,7 +1040,7 @@ sub _find
         my @chronology; my $last_record;
         foreach my $record (@record_objects)
         {
-            $records->rewind($record->created);
+            $records->rewind($record->edited_time->values->[0]);
             $records->fetch_multivalues(
                 record_ids   => [$record->record_id],
                 retrieved    => [$record->{$record->record_id}],
@@ -1000,8 +1107,8 @@ sub _find
 
             }
             push @chronology, {
-                editor   => $record->createdby,
-                datetime => $record->created,
+                editor   => $record->edited_user,
+                datetime => $record->edited_time,
                 changed  => \@changed,
             } if @changed; # There may have been changes, but not ones the user has access to
             $last_record = $record;
@@ -1217,59 +1324,7 @@ sub _transform_values
         schema           => $self->schema,
         layout           => $self->layout,
     );
-    my $created = $self->layout->column_by_name_short('_version_datetime');
-    $fields->{$created->id} = GADS::Datum::Date->new(
-        record           => $self,
-        record_id        => $self->record_id,
-        current_id       => $self->current_id,
-        column           => $created,
-        schema           => $self->schema,
-        layout           => $self->layout,
-        init_value       => [ { value => $original->{created} } ],
-    );
 
-    my $version_user_col = $self->layout->column_by_name_short('_version_user');
-    my $version_user_val = $original->{createdby} || $original->{$version_user_col->field};
-    $fields->{$version_user_col->id} = $self->_person($version_user_val, $version_user_col);
-
-    my $createdby_col = $self->layout->column_by_name_short('_created_user');
-    my $created_val = $self->set_record_created_user;
-    if (!$created_val) # Single record retrieval does not set this
-    {
-        my $created_val_id = $self->schema->resultset('Record')->search({
-            current_id => $self->current_id,
-        })->get_column('created')->min;
-    }
-    $fields->{$createdby_col->id} = $self->_person($created_val, $createdby_col);
-
-    my $record_created_col = $self->layout->column_by_name_short('_created');
-    my $record_created = $self->set_record_created;
-    if (!$record_created) # Single record retrieval does not set this
-    {
-        $record_created = $self->schema->resultset('Record')->search({
-            current_id => $self->current_id,
-        })->get_column('created')->min;
-    }
-    $fields->{$record_created_col->id} = GADS::Datum::Date->new(
-        record           => $self,
-        record_id        => $self->record_id,
-        current_id       => $self->current_id,
-        column           => $record_created_col,
-        schema           => $self->schema,
-        layout           => $self->layout,
-        init_value       => [ { value => $record_created } ],
-    );
-
-    my $serial_col = $self->layout->column_by_name_short('_serial');
-    $fields->{$serial_col->id} = GADS::Datum::Serial->new(
-        record           => $self,
-        value            => $self->serial,
-        record_id        => $self->record_id,
-        current_id       => $self->current_id,
-        column           => $serial_col,
-        schema           => $self->schema,
-        layout           => $self->layout,
-    );
     $fields;
 }
 
@@ -1281,11 +1336,11 @@ sub values_by_shortname
             my $linked = $self->linked_id && $_->link_parent;
             my $datum = $self->get_field_value($_)
                 or panic __x"Value for column {name} missing. Possibly missing entry in layout_depend?", name => $_->name;
-            my $d = $self->fields->{$_->id}->is_awaiting_approval # waiting approval, use old value
-                ? $self->fields->{$_->id}->oldvalue
-                : $linked && $self->fields->{$_->id}->oldvalue # linked, and linked value has been overwritten
-                ? $self->fields->{$_->id}->oldvalue
-                : $self->fields->{$_->id};
+            my $d = $datum->is_awaiting_approval # waiting approval, use old value
+                ? $datum->oldvalue
+                : $linked && $datum->oldvalue # linked, and linked value has been overwritten
+                ? $datum->oldvalue
+                : $datum;
             # Retain and provide recurse-prevention information.
             $_->name_short => $d->for_code(fields => $params{all_possible_names}, already_seen_code => $params{already_seen_code});
         } grep {
@@ -1328,7 +1383,7 @@ sub initialise_field
     }
     else {
         my $record = $options{record} || $self;
-        my $f = $column->class->new(
+        $column->class->new(
             record           => $record,
             record_id        => $record->record_id,
             column           => $column,
@@ -1336,11 +1391,6 @@ sub initialise_field
             layout           => $record->layout,
             datetime_parser  => $record->schema->storage->datetime_parser,
         );
-        # Unlike other fields this has a default value, so set it now.
-        # XXX Probably need to do created_by field as well.
-        $f->set_value(DateTime->now, is_parent_value => 1)
-            if $column->name_short && $column->name_short eq '_created';
-        return $f;
     }
 }
 
@@ -1739,8 +1789,6 @@ sub write
     # record.
     my $created_date = $options{version_datetime}
         ? $options{version_datetime}
-        : $self->new_entry
-        ? $self->fields->{$self->layout->column_by_name_short('_created')->id}->values->[0]
         : DateTime->now;
 
     my $user_id = $self->user ? $self->user->id : undef;
@@ -1751,16 +1799,30 @@ sub write
         # Keep original record values when only updating the record, except
         # when the update_only is happening for forgetting version history, in
         # which case we want to record these details
-        my $created = $self->layout->column_by_name_short('_version_datetime');
-        $self->fields->{$created->id}->set_value($created_date, is_parent_value => 1);
+        my $version_time_col = $self->layout->column_by_name_short('_version_datetime');
+        if (my $edited_time = $self->edited_time)
+        {
+            $edited_time->set_value($created_date, is_parent_value => 1);
+        }
+        else {
+            $self->edited_time($self->_date($created_date, $version_time_col));
+        }
         my $versionby_col = $self->layout->column_by_name_short('_version_user');
-        $self->fields->{$versionby_col->id}->set_value($createdby, no_validation => 1, is_parent_value => 1);
+        if (my $edited_user = $self->edited_user)
+        {
+            $edited_user->set_value($createdby, no_validation => 1, is_parent_value => 1);
+        }
+        else {
+            $self->edited_user($self->_person($createdby, $versionby_col));
+        }
     }
 
     if ($self->new_entry)
     {
         my $createdby_col = $self->layout->column_by_name_short('_created_user');
-        $self->fields->{$createdby_col->id}->set_value($createdby, no_validation => 1, is_parent_value => 1);
+        $self->created_user($self->_person($createdby, $createdby_col));
+        my $created_col = $self->layout->column_by_name_short('_created');
+        $self->created_time($self->_date($created_date, $created_col));
     }
 
     # Test duplicate unique calc values
@@ -1959,7 +2021,8 @@ sub write_values
         # Prevent warnings when writing incomplete calc values on draft
         next if $options{draft} && !$column->userinput;
 
-        my $datum = $self->get_field_value($column); #$self->fields->{$column->id};
+        next if $column->name_short && $column->name_short eq '_serial';
+        my $datum = $self->get_field_value($column);
         next if $self->linked_id && $column->link_parent; # Don't write all values if this is a linked record
 
         if ($column->internal)
@@ -2309,7 +2372,7 @@ sub _field_write
                     foreach my $record (@{$datum_write->values_as_query_records})
                     {
                         my $created_col = $self->layout->column_by_name_short('_version_datetime');
-                        my $created = $self->fields->{$created_col->id}->values->[0];
+                        my $created = $self->get_field_value($created_col)->values->[0];
                         $record->write(%options,
                             no_draft_delete  => 1,
                             no_write_values  => 1,
@@ -2591,6 +2654,24 @@ sub as_query
 
 sub get_field_value
 {   my ($self, $column) = @_;
+
+    if ($column->name_short && $column->name_short eq '_version_datetime')
+    {
+        return $self->edited_time;
+    }
+    elsif ($column->name_short && $column->name_short eq '_version_user')
+    {
+        return $self->edited_user;
+    }
+    elsif ($column->name_short && $column->name_short eq '_created')
+    {
+        return $self->created_time;
+    }
+    elsif ($column->name_short && $column->name_short eq '_created_user')
+    {
+        return $self->created_user;
+    }
+
     return $self->fields->{$column->id}
         if $self->fields->{$column->id};
 
@@ -2603,6 +2684,10 @@ sub get_field_value
         $raw = [$column->fetch_multivalues([$record_id], already_seen => $already_seen)];
         # Ensure no memory leaks - tree needs to be destroyed
         $already_seen->delete_tree;
+    }
+    elsif ($column->name_short && $column->name_short eq '_serial')
+    {
+        $raw = $self->serial;
     }
     else {
         my $result = $self->schema->resultset($column->table)->search({
@@ -2635,7 +2720,7 @@ sub pdf
     my $now = DateTime->now;
     $now->set_time_zone('Europe/London');
     my $now_formatted = $now->format_cldr($dateformat)." at ".$now->hms;
-    my $updated = $self->created->format_cldr($dateformat)." at ".$self->created->hms;
+    my $updated = $self->edited_time->as_string;
 
     my $config = GADS::Config->instance;
     my $header = $config && $config->gads && $config->gads->{header};
@@ -2646,7 +2731,7 @@ sub pdf
 
     $pdf->add_page;
     $pdf->heading('Record '.$self->current_id);
-    $pdf->heading('Last updated by '.$self->createdby->as_string." on $updated", size => 12);
+    $pdf->heading('Last updated by '.$self->edited_user->as_string." on $updated", size => 12);
 
     my $data =[
         ['Field', 'Value'],
@@ -2654,7 +2739,7 @@ sub pdf
     my $max_fields;
     foreach my $col ($self->layout->all_user_read)
     {
-        my $datum = $self->fields->{$col->id};
+        my $datum = $self->get_field_value($col);
         next if $datum->dependent_not_shown;
         if ($col->is_curcommon)
         {
@@ -2711,11 +2796,8 @@ sub pdf
 sub get_report
 {   my ($self, $report_id, $user) = @_;
 
-    my $report = $self->schema->resultset('Report')->find($report_id)
+    my $report = $self->schema->resultset('Report')->find_with_permission($report_id, $user)
         or error __x"Report ID {id} not found", id => $report_id;
-
-    error __x"Report ID {id} not found", id => $report_id
-        if $report->deleted;
 
     $report->create_pdf($self,$user);
 }
@@ -2771,8 +2853,8 @@ sub purge_current
     })->all;
 
     # Get creation details for logging at end
-    my $createdby = $self->createdby;
-    my $created   = $self->created;
+    my $createdby = $self->created_user;
+    my $created   = $self->created_time;
 
     # Start transaction.
     # $@ may be the result of a previous Log::Report::Dispatcher::Try block (as
@@ -2837,7 +2919,7 @@ sub presentation_map_columns {
     # using the data key
     my $mapping_done;
     my @mapped = map {
-        my $pres = $mapping_done->{$_->id} = $self->fields->{$_->id}->presentation;
+        my $pres = $mapping_done->{$_->id} = $self->get_field_value($_)->presentation;
         $_->presentation(datum_presentation => $pres, data => $mapping_done, %options);
     } @columns;
 

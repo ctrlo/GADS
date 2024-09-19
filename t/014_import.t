@@ -48,8 +48,8 @@ $ENV{GADS_NO_FORK} = 1; # Prevent forking during import process
         schema => $schema,
     );
     $record->find_current_id(1);
-    is($record->createdby->id, $user2->id, "Record created by correct ID");
-    is($record->created, '2014-10-10T12:00:00', "Record created datetime correct");
+    is($record->edited_user->id, $user2->id, "Record created by correct ID");
+    is($record->edited_time->values->[0], '2014-10-10T12:00:00', "Record created datetime correct");
 }
 
 # Deleted version of live enumval and tree

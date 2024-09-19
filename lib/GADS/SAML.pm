@@ -5,6 +5,7 @@ use Log::Report 'linkspace';
 use Moo;
 
 use Net::SAML2::Binding::POST;
+use Net::SAML2::Binding::Redirect;
 use Net::SAML2::IdP;
 use Net::SAML2::Protocol::Assertion;
 use Net::SAML2::Protocol::AuthnRequest;
@@ -78,7 +79,7 @@ sub initiate
         xml => $self->authentication->xml,
     );
 
-    my $sso_url = URI->new($idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'));
+    my $sso_url = $idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
 
     my $authnreq = Net::SAML2::Protocol::AuthnRequest->new(
         issuer      => $self->sso_xml,
@@ -88,13 +89,14 @@ sub initiate
     $self->request_id($authnreq->id);
     my $x = $authnreq->as_xml;
 
+    my $redirect = Net::SAML2::Binding::Redirect->new(
+          url      => $sso_url,
+          param    => 'SAMLRequest',
+          insecure => 1,
+    );
 
-    my $processed_logout;
-    rawdeflate \$x => \$processed_logout;
-    $processed_logout = encode_base64 $processed_logout;
-
-    $sso_url->query_param(SAMLRequest => $processed_logout);
-    $self->redirect("$sso_url");
+    my $url = $redirect->get_redirect_uri($x);
+    $self->redirect("$url");
 };
 
 1;

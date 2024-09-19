@@ -933,44 +933,33 @@ sub _me_created_date
     })->get_column('created')->as_query;
 }
 
-# Additional columns that will be added to a query as +select. As these refer
-# to earlier records than those being retrieved, these need to be performed as
-# correlated subqueries
-sub _created_plus_select
+sub _me_created_user
 {   my $self = shift;
-    [
-        {
-            ""  => $self->_me_created_date,
-            -as => 'record_created_date',
+    $self->schema->resultset('Record')->search({
+        'me_created.id' => {
+            -in => $self->schema->resultset('Current')
+                ->correlate('records')
+                ->get_column('id')
+                ->min_rs->as_query,
         },
-        {
-            "" => $self->schema->resultset('Record')->search({
-                'me_created.id' => {
-                    -in => $self->schema->resultset('Current')
-                        ->correlate('records')
-                        ->get_column('id')
-                        ->min_rs->as_query,
-                },
-            },{
-                alias => 'me_created',
-            })->get_column('createdby')->as_query,
-            -as => 'record_created_user',
+    },{
+        alias => 'me_created',
+    })->get_column('createdby')->as_query;
+}
+
+sub _me_created_value
+{   my $self = shift;
+    $self->schema->resultset('Record')->search({
+        'me_created_value.id' => {
+            -in => $self->schema->resultset('Current')
+                ->correlate('records')
+                ->get_column('id')
+                ->min_rs->as_query,
         },
-        {
-            "" => $self->schema->resultset('Record')->search({
-                'me_created_value.id' => {
-                    -in => $self->schema->resultset('Current')
-                        ->correlate('records')
-                        ->get_column('id')
-                        ->min_rs->as_query,
-                },
-            },{
-                alias => 'me_created_value',
-                join  => 'createdby',
-            })->get_column('createdby.value')->as_query,
-            -as => 'record_created_value',
-        }
-    ];
+    },{
+        alias => 'me_created_value',
+        join  => 'createdby',
+    })->get_column('createdby.value')->as_query;
 }
 
 # Produce a standard set of results without grouping
@@ -1005,11 +994,26 @@ sub _current_ids_rs
         select => [
             'me.id',
         ],
-        '+select' => $self->_created_plus_select,
+        '+select' => [
+            $self->has_created_time(search => 1, sort => 1, %limit) ? {
+                ""  => $self->_me_created_date,
+                -as => 'record_created_date',
+            } : (),
+            $self->has_created_user(search => 1, sort => 1, %limit) ? {
+                ""  => $self->_me_created_user,
+                -as => 'record_created_user',
+            } : (),
+            $self->has_created_user(search => 1, sort => 1, %limit) ? {
+                ""  => $self->_me_created_value,
+                -as => 'record_created_value',
+            } : (),
+        ],
         '+as' => [
-            'record_created_date',
-            'record_created_user',
-            'record_created_value',
+            $self->has_created_time(search => 1, sort => 1, %limit) ? 'record_created_date' : (),
+            $self->has_created_user(search => 1, sort => 1, %limit) ? (
+                'record_created_user',
+                'record_created_value',
+            ) : (),
         ],
         as => [
             'id',
@@ -1144,6 +1148,7 @@ sub _build_standard_results
         push @columns_fetch, {draftuser_id => "me.draftuser_id"};
         push @columns_fetch, {current_id => "$base.current_id"};
         push @columns_fetch, {created => "$base.created"};
+        push @columns_fetch, {createdby => "$base.createdby"};
         push @columns_fetch, {serial => "me.serial"};
         push @columns_fetch, {parent_id => "me.parent_id"};
         push @columns_fetch, "deletedby.$_" foreach @GADS::Column::Person::person_properties;
@@ -1153,7 +1158,27 @@ sub _build_standard_results
             {
                 join      => [@prefetches],
                 columns   => \@columns_fetch,
-                '+select' => $self->_created_plus_select,
+                '+select' => [
+                    $self->has_created_time(prefetch => 1, sort => 1, limit => $limit, page => $page) ? {
+                        ""  => $self->_me_created_date,
+                        -as => 'record_created_date',
+                    } : (),
+                    $self->has_created_user(prefetch => 1, sort => 1, limit => $limit, page => $page) ? {
+                        ""  => $self->_me_created_user,
+                        -as => 'record_created_user',
+                    } : (),
+                    $self->has_created_user(prefetch => 1, sort => 1, limit => $limit, page => $page) ? {
+                        ""  => $self->_me_created_value,
+                        -as => 'record_created_value',
+                    } : (),
+                ],
+                '+as' => [
+                    $self->has_created_time(prefetch => 1, sort => 1, limit => $limit, page => $page) ? 'record_created_date' : (),
+                    $self->has_created_user(prefetch => 1, sort => 1, limit => $limit, page => $page) ? (
+                        'record_created_user',
+                        'record_created_value',
+                    ) : (),
+                ],
                 order_by  => $self->order_by(prefetch => 1, limit => $limit, page => $page, retain_join_order => 1),
             },
         );
@@ -1228,7 +1253,7 @@ sub _build_standard_results
         my $rec = $records->{$index_id};
         my @children = map { $_->{id} } @{$rec->{currents}};
         # XXX Need to retrieve and set approval information if applicable
-        push @all, GADS::Record->new(
+        my $record = GADS::Record->new(
             schema                  => $self->schema,
             record                  => $rec,
             rewind                  => $self->rewind,
@@ -1247,8 +1272,10 @@ sub _build_standard_results
             set_deleted             => $rec->{deleted},
             set_deletedby           => $rec->{deletedby},
             set_record_created      => $rec->{record_created_date},
-            set_record_created_user => $rec->{record_created_user},
         );
+        $record->set_record_created_user($rec->{record_created_user})
+            if exists $rec->{record_creted_user};
+        push @all, $record;
         push @created_ids, $rec->{record_created_user};
         push @record_ids, $rec->{id};
     }
@@ -1260,17 +1287,6 @@ sub _build_standard_results
         records      => \@all,
         already_seen => $self->already_seen,
     );
-
-    # Fetch and add created users (unable to retrieve during initial query)
-    my $created_column = $self->layout->column_by_name_short('_created_user');
-    my $created_users  = $created_column->fetch_multivalues(\@created_ids);
-    foreach my $rec (@all)
-    {
-        my $original = $rec->set_record_created_user
-            or next;
-        my $user     = $created_users->{$original};
-        $rec->set_record_created_user($user);
-    }
 
     \@all;
 }
@@ -2679,7 +2695,7 @@ sub csv_line
     my @columns = @{$self->columns_render};
     my @items;
     push @items, $line->parent_id if $self->has_children;
-    push @items, map { $line->fields->{$_->id} } @columns;
+    push @items, map { $line->get_field_value($_) } @columns;
     my $csv = $self->_csv;
     $csv->combine(@items)
         or error __x"An error occurred producing a line of CSV: {err} {items}",

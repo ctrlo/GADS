@@ -17,7 +17,7 @@ sub BUILDARGS { $_[2] || {} }
 =back
 =cut
 
-__PACKAGE__->load_components( "InflateColumn::DateTime", "+GADS::DBIC" );
+__PACKAGE__->load_components("InflateColumn::DateTime", "+GADS::DBIC");
 
 =head1 TABLE: C<report_instance>
 =cut

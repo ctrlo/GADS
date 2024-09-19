@@ -249,7 +249,7 @@ foreach my $update (@update2)
         schema => $schema,
     );
     $record->find_current_id(3);
-    like($record->created, qr/2014/, "Record version is old date");
+    like($record->edited_time, qr/2014/, "Record version is old date");
     $record->fields->{$columns->{string1}->id}->set_value("Foobar");
     # Write with a new date that we can check
     set_fixed_time('10/10/2015 01:00:00', '%m/%d/%Y %H:%M:%S');
@@ -258,7 +258,7 @@ foreach my $update (@update2)
     is($versions_after, $versions_before, "No new versions written");
     $record->clear;
     $record->find_current_id(3);
-    like($record->created, qr/2015/, "Record version is new date");
+    like($record->edited_time, qr/2015/, "Record version is new date");
 
     # Make sure version history still written for other sheet
     my $record_curval = GADS::Record->new(

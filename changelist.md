@@ -2,6 +2,58 @@
 
 -------
 
+**Version**: 2.5.2
+**Released**: 16-09-2024
+
+-------
+
+## Fixes
+
+- Fix version date/time in chronology
+- Fix metadata in CSV downloads
+
+-------
+
+**Version**: 2.5.1
+**Released**: 11-09-2024
+
+-------
+
+## Fixes
+
+- Fix PDF downloads of records
+- Bump JS version
+
+-------
+
+**Version**: 2.5.0
+**Released**: 03-09-2024
+
+-------
+
+## New Features
+
+- Groups will now be used to control permissions to view/download reports
+
+## QoL Changes
+
+- New version of `Net::SAML2`
+- Removed extra requests when pulling data to improve efficiency
+- Improved upload controls
+- Input components now separated into different files
+- Code in common.ts cleaned up and unnecessary code removed
+- Added Jest test mocks
+- Updated GitHub Actions for CI/CD
+
+## Fixes
+
+- Full screen datatables now allows filtering and sorting
+- ipairs now no longer misses first element in front-end calcs
+- Fix incorrect forward after first login
+- DataTables search bar is now correct width
+
+-------
+
 **Version**: 2.4.0
 **Released**: 22-07-2024
 

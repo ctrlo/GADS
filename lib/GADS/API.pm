@@ -155,7 +155,7 @@ sub _update_record
     {
         my $col = $record->layout->column_by_name_short($field)
             or error __x"Column not found: {name}", name => $field;
-        $record->fields->{$col->id}->set_value($request->{$field});
+        $record->get_field_value($col)->set_value($request->{$field});
     }
     $record->write; # borks on error
 };
@@ -441,7 +441,7 @@ prefix '/:layout_name' => sub {
             foreach my $col (@{$curval->subvals_input_required})
             {
                 my @vals = grep { defined $_ } query_parameters->get_all($col->field);
-                my $datum = $record->fields->{$col->id};
+                my $datum = $record->get_field_value($col);
                 $datum->set_value(\@vals);
             }
             $record->write(
@@ -1190,7 +1190,8 @@ sub _get_records {
             my @filters;
             foreach my $group_col_id (@{$records->group_col_ids})
             {
-                my $filter_value = $rec->fields->{$group_col_id}->filter_value || '';
+                my $group_col = $layout->column($group_col_id);
+                my $filter_value = $rec->get_field_value($group_col)->filter_value || '';
                 push @filters, "$group_col_id=".uri_escape_utf8($filter_value);
             }
             my $desc = $rec->id_count == 1 ? 'record' : 'records';
@@ -1204,7 +1205,7 @@ sub _get_records {
         else {
             $data->{_id} = $rec->current_id;
         };
-        $data->{$_->id} = $rec->fields->{$_->id}->for_table
+        $data->{$_->id} = $rec->get_field_value($_)->for_table
             foreach @{$records->columns_render};
 
         push @{$return->{data}}, $data;
@@ -1224,7 +1225,7 @@ sub _get_records {
     if (my $agg = $records->aggregate_results)
     {
         my $data;
-        $data->{$_->id} = $agg->fields->{$_->id}->for_table
+        $data->{$_->id} = $agg->get_field_value($_)->for_table
             foreach @{$records->columns_render};
         $return->{aggregate} = $data;
     }

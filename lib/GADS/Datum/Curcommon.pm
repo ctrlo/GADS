@@ -420,7 +420,7 @@ sub _build_values_as_query_records
             # encodes in utf-8. Therefore decode before passing into datums.
             my @newv = ref $newv eq 'ARRAY' ? @$newv : ($newv);
             $_ && utf8::decode($_) foreach @newv;
-            $record->fields->{$col->id}->set_value(\@newv)
+            $record->get_field_value($col)->set_value(\@newv)
                 if defined $params->{$col->field} && $col->userinput && defined $newv;
         }
         push @records, $record;
@@ -474,7 +474,7 @@ sub for_table
             version_id => $val->{version_id},
             fields     => [],
         };
-        push @{$ret->{fields}}, $val->{record}->fields->{$_->id}->for_table
+        push @{$ret->{fields}}, $val->{record}->get_field_value($_)->for_table
             foreach @{$self->column->curval_fields};
         push @{$return->{values}}, $ret;
     }

@@ -132,6 +132,11 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
         values.push($(this).data("text-value"));
       }
     });
+    // Provide consistency with backend: single value of non-multi field is
+    // returned as scalar
+    if (for_code && !$depends.data('is-multivalue') && values.length == 1) {
+        values = values.shift();
+    }
   } else if (type === "daterange") {
 
     $f = $depends.find(".form-control");
@@ -222,8 +227,9 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
         var $df = $(this);
         values.push($df.val().length ? $df.val() : undefined);
     });
-    // Provide consistency with backend: single value is returned as scalar
-    if (for_code && !$depends.data('is-multivalue')) {
+    // Provide consistency with backend: single value of non-multi field is
+    // returned as scalar
+    if (for_code && !$depends.data('is-multivalue') && values.length == 1) {
         values = values.shift();
     }
   }

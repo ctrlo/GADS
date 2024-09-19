@@ -37,8 +37,8 @@ $records = GADS::Records->new(
 
 $record = $records->single;
 my $current_id = $record->current_id;
-is($record->createdby->as_string, "User4, User4", "Record retrieved as group has correct version editor");
-is($record->fields->{$created_col->id}->as_string, "User1, User1", "Record retrieved as group has correct createdby");
+is($record->edited_user->as_string, "User4, User4", "Record retrieved as group has correct version editor");
+is($record->get_field_value($created_col)->as_string, "User1, User1", "Record retrieved as group has correct createdby");
 
 $record = GADS::Record->new(
     layout => $layout,
@@ -46,8 +46,8 @@ $record = GADS::Record->new(
     schema => $schema,
 );
 $record->find_current_id($current_id);
-is($record->createdby->as_string, "User4, User4", "Record retrieved as single has correct version editor");
-is($record->fields->{$created_col->id}->as_string, "User1, User1", "Record retrieved as group has correct createdby");
+is($record->edited_user->as_string, "User4, User4", "Record retrieved as single has correct version editor");
+is($record->get_field_value($created_col)->as_string, "User1, User1", "Record retrieved as group has correct createdby");
 
 # Add another record and check that sorting by created field works
 {
@@ -141,8 +141,8 @@ is($record->fields->{$created_col->id}->as_string, "User1, User1", "Record retri
 
     $record = $records->single;
     my $current_id = $record->current_id;
-    is($record->createdby->as_string, "", "Record retrieved as group has blank version editor");
-    is($record->fields->{$created_col->id}->as_string, "", "Record retrieved as group has blank createdby");
+    is($record->edited_user->as_string, "", "Record retrieved as group has blank version editor");
+    is($record->get_field_value($created_col)->as_string, "", "Record retrieved as group has blank createdby");
 
     $record = GADS::Record->new(
         layout => $layout,
@@ -150,8 +150,8 @@ is($record->fields->{$created_col->id}->as_string, "User1, User1", "Record retri
         schema => $schema,
     );
     $record->find_current_id($current_id);
-    is($record->createdby->as_string, "", "Record retrieved as single has blank version editor");
-    is($record->fields->{$created_col->id}->as_string, "", "Record retrieved as group has blank createdby");
+    is($record->edited_user->as_string, "", "Record retrieved as single has blank version editor");
+    is($record->get_field_value($created_col)->as_string, "", "Record retrieved as group has blank createdby");
 }
 
 done_testing();

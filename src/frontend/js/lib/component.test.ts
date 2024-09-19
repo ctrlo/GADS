@@ -1,32 +1,30 @@
-import '../../testing/globals.definitions';
-import {describe, it, expect} from '@jest/globals';
-import {Component, initializeComponent} from './component';
+import "../../testing/globals.definitions";
+import { it, expect, describe } from '@jest/globals';
+import { Component, initializeComponent } from './component';
 
-class BasicComponent extends Component {
-    elementAsJQuery = $(this.element);
-
+class TestComponent extends Component {
     constructor(element: HTMLElement) {
         super(element);
-        this.init();
-    }
-
-    init() {
-        this.element.innerText = 'This is a simple component!';
+        element.innerText = 'I have this text now!';
     }
 }
 
-describe('Component base class tests', () => {
-    it('Can create a basic Component', ()=>{
+function testComponentInitializer(scope: HTMLElement) {
+    return initializeComponent(scope, '.test-component', TestComponent);
+}
+
+describe('Component Tests', ()=>{
+    it('should be created', ()=>{
         const div = document.createElement('div');
-        const span = document.createElement('span')
-        span.classList.add('test');
-        span.innerText = 'Hello, World!';
+        const span = document.createElement('span');
+        span.classList.add('test-component');
+        span.innerText = 'I shouldn\'t have this text when initialized';
         div.appendChild(span);
-        const result =  initializeComponent(div, '.test', BasicComponent);
-        expect(result.length).toBe(1);
-        expect(result[0].element).toBe(span);
-        expect(result[0] instanceof BasicComponent).toBe(true);
-        expect(result[0].element.innerText).toBe('This is a simple component!');
-        expect(result[0].elementAsJQuery.data("component-initialized-BasicComponent")).toBe("true");
+        document.body.appendChild(div);
+        const component = testComponentInitializer(document.body);
+        expect(component.length).toBe(1);
+        expect(component[0]).toBeInstanceOf(TestComponent);
+        expect(component[0].element.innerText).toBe('I have this text now!');
     });
 });
+
