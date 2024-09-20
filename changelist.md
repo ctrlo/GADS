@@ -2,6 +2,17 @@
 
 -------
 
+**Version**: 2.5.3
+**Released**: 20-09-2024
+
+-------
+
+## Fixes
+
+- Fix render of metadata values in curval
+
+-------
+
 **Version**: 2.5.2
 **Released**: 16-09-2024
 
