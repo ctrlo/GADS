@@ -9,6 +9,10 @@ interface RenameEvent extends JQuery.Event {
      */
     target: HTMLButtonElement;
     /**
+     * The old file name
+     */
+    oldName: string;
+    /**
      * The new file name
      */
     newName: string;
@@ -162,7 +166,7 @@ class RenameButton {
             const newName = this.value.endsWith(extension) ? this.value : this.value + extension;
             if (newName === '' || newName === previousValue) return;
             $(`#current-${id}`).text(newName);
-            const event = $.Event('rename', { newName, target: button });
+            const event = $.Event('rename', {oldName: previousValue , newName, target: button });
             $(button).trigger(event);
         } finally {
             this.hideRenameControls(id, button);
@@ -195,4 +199,4 @@ class RenameButton {
     };
 })(jQuery);
 
-export { };
+export { RenameEvent };

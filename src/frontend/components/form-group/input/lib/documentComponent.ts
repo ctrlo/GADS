@@ -4,11 +4,8 @@ import { validateCheckboxGroup } from 'validation';
 import { formdataMapper } from 'util/mapper/formdataMapper';
 import { logging } from 'logging';
 import { checkFilename } from './filenameChecker';
-
-interface RenameEvent extends JQuery.Event {
-    target: HTMLButtonElement;
-    newName: string;
-}
+import { RenameEvent } from 'components/button/lib/rename-button';
+import { fromJson } from 'util/common';
 
 interface FileData {
     id: number | string;
@@ -25,18 +22,17 @@ class DocumentComponent {
     readonly type = 'document';
     readonly el: JQuery<HTMLElement>;
     readonly fileInput: JQuery<HTMLInputElement>;
-    readonly error: JQuery<HTMLElement>;
 
     constructor(el: JQuery<HTMLElement> | HTMLElement) {
         this.el = $(el);
-        $('.rename').renameButton().on('rename', async (ev: RenameEvent) => {
+        logging.log(this.el);
+        this.el.closest('.fieldset').find('.rename').renameButton().on('rename', async (ev: RenameEvent) => {
             logging.log('rename', ev);
             if (!ev) throw new Error("e is not a RenameEvent - this shouldn't happen!")
             const $target = $(ev.target);
-            await this.renameFile($target.data('field-id'), ev.newName, $('body').data('csrf'));
+            await this.renameFile($target.data('field-id'), ev.oldName, ev.newName, $('body').data('csrf'));
         });
         this.fileInput = this.el.find<HTMLInputElement>('.form-control-file');
-        this.error = this.el.find('.upload__error');
     }
 
     async init() {
@@ -55,7 +51,7 @@ class DocumentComponent {
             throw new Error('Could not find file-upload element');
         }
 
-        $('[name="file"]').on('change', async (ev) => {
+        this.fileInput.on('change', async (ev) => {
             if (!(ev.target instanceof HTMLInputElement)) {
                 throw new Error('Could not find file-upload element');
             }
@@ -64,14 +60,8 @@ class DocumentComponent {
                 const file = ev.target.files![0];
                 if (!file || file === undefined || !file.name) return;
                 const formData = formdataMapper({ file, csrf_token });
-
                 this.showContainer();
-                const data = await upload<FileData>(url, formData, 'POST', (loaded, total) => {
-                    let uploadProgression = Math.round((loaded / total) * 10000) / 100;
-                    if (uploadProgression == Infinity) uploadProgression = 100;
-                    this.el.find('.progress-bar__percentage').html(uploadProgression === 100 ? 'complete' : `${uploadProgression}%`);
-                    this.el.find('.progress-bar__progress').css('width', `${uploadProgression}%`);
-                });
+                const data = await upload<FileData>(url, formData, 'POST', this.showProgress.bind(this));
                 this.addFileToField({ id: data.id, name: data.filename });
             } catch (error) {
                 this.showException(error);
@@ -80,20 +70,28 @@ class DocumentComponent {
         });
     }
 
+    showProgress(loaded, total) {
+        logging.info('showProgress', loaded, total, loaded / total, (loaded / total) * 100);
+        let uploadProgression = (loaded / total) * 100;
+        if (uploadProgression == Infinity) {
+            // This will occur when there is an error uploading the file or the file is empty
+            uploadProgression = 100;
+        }
+        this.el.find('.progress-bar__container')
+            .css('width', undefined)
+            .removeClass('progress-bar__container--fail');
+        this.el.find('.progress-bar__percentage').html(uploadProgression === 100 ? 'complete' : `${uploadProgression}%`);
+        this.el.find('.progress-bar__progress').css('width', `${uploadProgression}%`);
+    }
+
     async handleAjaxUpload(uri: string, csrf_token: string, file: File) {
         try {
-            this.error.hide();
-            if (!file) throw this.showException('No file provided');
+            if (!file) throw this.showException(new Error('No file provided'));
 
             const fileData = formdataMapper({ file, csrf_token });
 
             this.showContainer();
-            const data = await upload<FileData>(uri, fileData, 'POST', (loaded, total) => {
-                let uploadProgression = Math.round((loaded / total) * 10000) / 100;
-                if (uploadProgression == Infinity) uploadProgression = 100;
-                this.el.find('.progress-bar__percentage').html(`${uploadProgression}%`);
-                this.el.find('.progress-bar__progress').css('width', `${uploadProgression}%`);
-            })
+            const data = await upload<FileData>(uri, fileData, 'POST', this.showProgress.bind(this));
             this.addFileToField({ id: data.id, name: data.filename });
         } catch (e) {
             this.showException(e instanceof Error ? e.message : e as string ?? e.toString());
@@ -134,12 +132,13 @@ class DocumentComponent {
         const $button = $(button);
         $button.renameButton().on('rename', async (ev: RenameEvent) => {
             logging.log('rename', ev);
-            await this.renameFile(fileId as number ?? parseInt(fileId.toString()), ev.newName, csrf_token, true);
+            await this.renameFile(fileId as number ?? parseInt(fileId.toString()), ev.oldName, ev.newName, csrf_token, true);
         });
     }
 
-    private async renameFile(fileId: number, newName: string, csrf_token: string, is_new: boolean = false) { // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why, so I've used the button itself
+    private async renameFile(fileId: number, oldName: string, newName: string, csrf_token: string, is_new: boolean = false) { // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why, so I've used the button itself
         try {
+            this.hideException();
             const filename = checkFilename(newName);
             const url = `/api/file/${fileId}`;
             const mappedData = formdataMapper({ csrf_token, filename, is_new: is_new ? 1 : 0 });
@@ -154,6 +153,8 @@ class DocumentComponent {
             }
         } catch (error) {
             this.showException(error);
+            const current = $(`#current-${fileId}`);
+            current.text(oldName);
         }
     }
 
@@ -162,12 +163,21 @@ class DocumentComponent {
         container.show()
     }
 
-    showException(e: string | Error) {
+    showException(e: any) {
         this.showContainer();
-        this.el.find('.progress-bar__container').css('width', '100%');
-        this.el.find('.progress-bar__progress').addClass('progress-bar__container--fail');
-        this.error.html(e instanceof Error ? e.message ? e.message : e.toString() : e);
-        $(this.error).show();
+        logging.info('Error uploading file', e);
+        const error = (fromJson(e) as Error).message;
+        this.el.find('.progress-bar__container')
+            .css('width', '100%')
+            .addClass('progress-bar__container--fail');
+        this.el.find('.progress-bar__percentage').html(error);
+    }
+
+    hideException() {
+        this.el.find('.progress-bar__container')
+            .css('width', undefined)
+            .removeClass('progress-bar__container--fail')
+            .hide();
     }
 }
 
