@@ -22,7 +22,8 @@ sub by_user
             -in => [ map { $_->id } $user->groups ]
         }
     },{
-        join => 'report_groups',
+        join     => 'report_groups',
+        collapse => 1,
     });
 }
 
