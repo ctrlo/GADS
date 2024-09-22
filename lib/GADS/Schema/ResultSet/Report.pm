@@ -84,7 +84,7 @@ sub create_report
 
     my @user_groups = $args->{user}->groups;
 
-    my $groups  = [ map { { group_id  => $_->id } } @{ $args->{user_groups} } ];
+    my $groups  = [ map { { group_id  => $_ } } @{ $args->{groups} } ];
     my $layouts = [ map { { layout_id => $_ } } @{ $args->{layouts} } ];
 
     my $report = $self->create({
