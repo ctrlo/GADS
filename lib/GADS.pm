@@ -2810,7 +2810,7 @@ prefix '/:layout_name' => sub {
 
             my $base_url = request->base;
 
-            my $reports = $layout->reports;
+            my $reports = $layout->reports(all => 1);
 
             if (my $report_id = body_parameters->get('delete'))
             {

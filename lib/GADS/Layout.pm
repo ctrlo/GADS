@@ -295,11 +295,6 @@ has _user_permissions_columns => (
     clearer => 1,
 );
 
-has reports=> (
-    is      => 'lazy',
-    isa     => ArrayRef,
-);
-
 has security_marking => (
     is => 'lazy',
 );
@@ -309,16 +304,17 @@ sub _build_security_marking {
     $self->_rset->read_security_marking;
 }
 
-sub _build_reports
-{   my $self = shift;
+sub reports
+{   my ($self, %options) = @_;
     
     my $user = $self->user;
 
-    # Even if a user is a super-admin or layout admin, only show them relevant
-    # reports
-    my $reports_rs = $self->schema->resultset('Report')->by_user($user)->search({
+    # By default only show a user their own reports, unless this is an admin
+    # request to manage all reports
+    my $reports_rs = $self->schema->resultset('Report');
+    $reports_rs = $reports_rs->by_user($user)->search({
         instance_id => $self->instance_id,
-    });
+    }) unless $options{all} && $self->user_can("layout");
 
     [$reports_rs->all];
 }
