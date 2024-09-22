@@ -2,6 +2,20 @@
 
 -------
 
+**Version**: 2.5.4
+**Released**: 22-09-2024
+
+-------
+
+## Fixes
+
+- Fix saving of report groups on initial report creation
+- Fix download of reports
+- Fix same report showing multiple times
+- Fix exception when loading metadata for some records
+
+-------
+
 **Version**: 2.5.3
 **Released**: 20-09-2024
 
