@@ -25,9 +25,7 @@ class DocumentComponent {
 
     constructor(el: JQuery<HTMLElement> | HTMLElement) {
         this.el = $(el);
-        logging.log(this.el);
         this.el.closest('.fieldset').find('.rename').renameButton().on('rename', async (ev: RenameEvent) => {
-            logging.log('rename', ev);
             if (!ev) throw new Error("e is not a RenameEvent - this shouldn't happen!")
             const $target = $(ev.target);
             await this.renameFile($target.data('field-id'), ev.oldName, ev.newName, $('body').data('csrf'));
@@ -45,6 +43,7 @@ class DocumentComponent {
         if (dropTarget) {
             const dragOptions = { allowMultiple: false };
             dropTarget.filedrag(dragOptions).on('onFileDrop', async (_: JQuery.DropEvent, file: File) => {
+                logging.info('File dropped', file);
                 await this.handleAjaxUpload(url, csrf_token, file);
             });
         } else {
@@ -71,7 +70,6 @@ class DocumentComponent {
     }
 
     showProgress(loaded, total) {
-        logging.info('showProgress', loaded, total, loaded / total, (loaded / total) * 100);
         let uploadProgression = (loaded / total) * 100;
         if (uploadProgression == Infinity) {
             // This will occur when there is an error uploading the file or the file is empty
@@ -131,7 +129,6 @@ class DocumentComponent {
         const button = `.rename[data-field-id="${file.id}"]`;
         const $button = $(button);
         $button.renameButton().on('rename', async (ev: RenameEvent) => {
-            logging.log('rename', ev);
             await this.renameFile(fileId as number ?? parseInt(fileId.toString()), ev.oldName, ev.newName, csrf_token, true);
         });
     }
@@ -143,7 +140,6 @@ class DocumentComponent {
             const url = `/api/file/${fileId}`;
             const mappedData = formdataMapper({ csrf_token, filename, is_new: is_new ? 1 : 0 });
             const data = await upload<RenameResponse>(url, mappedData, 'PUT')
-            logging.log('renameFile', data);
             if (is_new) {
                 $(`#current-${fileId}`).text(data.name);
             } else {
@@ -166,7 +162,7 @@ class DocumentComponent {
     showException(e: any) {
         this.showContainer();
         logging.info('Error uploading file', e);
-        const error = (fromJson(e) as Error).message;
+        const error = typeof e == 'string' ? (fromJson(e) as Error).message : e.message;
         this.el.find('.progress-bar__container')
             .css('width', '100%')
             .addClass('progress-bar__container--fail');
