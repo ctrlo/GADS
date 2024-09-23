@@ -54,7 +54,7 @@ sub check_file
     # As recommended at https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload
     error __x"The filename {name} is not allowed. Filenames can only contain alphanumeric characters and a single dot",
         name => $upload->filename
-            unless $upload->filename =~ /[-+_ a-zA-Z0-9]{1,200}\.[a-zA-Z0-9]{1,10}/;
+            unless $upload->filename =~ /[-+_ a-zA-Z0-9\(\)]{1,200}\.[a-zA-Z0-9]{1,10}/;
 
     error __"Maximum file size is 5 MB"
         if $upload->size > 5 * 1024 * 1024;
