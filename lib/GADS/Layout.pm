@@ -311,10 +311,11 @@ sub reports
 
     # By default only show a user their own reports, unless this is an admin
     # request to manage all reports
-    my $reports_rs = $self->schema->resultset('Report');
-    $reports_rs = $reports_rs->by_user($user)->search({
+    my $reports_rs = $self->schema->resultset('Report')->search({
         instance_id => $self->instance_id,
-    }) unless $options{all} && $self->user_can("layout");
+    });
+    $reports_rs = $reports_rs->by_user($user)
+        unless $options{all} && $self->user_can("layout");
 
     [$reports_rs->all];
 }
