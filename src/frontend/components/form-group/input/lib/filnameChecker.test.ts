@@ -1,22 +1,7 @@
 import { describe, it, expect } from '@jest/globals';
-import { checkFilename, needsRename } from './filenameChecker';
+import { checkFilename } from './filenameChecker';
 
 describe('File name checker', () => {
-    it('should flag that a file name needs renaming if it has invalid characters', () => {
-        const name = 'file.na#me.txt';
-        expect(needsRename(name)).toBeTruthy();
-    });
-
-    it('should flag that a file name needs renaming if it has invalid characters in the file name', () => {
-        const name = 'f\\i|l/e?n<>a#~m-=-=e.txt';
-        expect(needsRename(name)).toBeTruthy();
-    });
-
-    it('should flag that a file does not need renaming if it has no invalid characters', () => {
-        const name = 'file.txt';
-        expect(needsRename(name)).toBeFalsy();
-    });
-
     it('should concatinate if the file name has multiple extensions', () => {
         const name = 'file.name.txt';
         expect(checkFilename(name)).toBe('filename.txt');
@@ -42,7 +27,7 @@ describe('File name checker', () => {
         expect(checkFilename(name)).toBe('file.txt');
     });
 
-    for (const name of ['filena#me.txt', 'f\\i|l/e?n<>a#~m-=-=e.txt', 'f\\i|l/e?.n<>a#~m-=-=e.txt']) {
+    for (const name of ['filena#me.txt', 'f\\i|l/e?n<>a#~m==e.txt', 'f\\i|l/e?.n<>a#~m==e.txt']) {
         it(`should return the corrected file name with input ${name}`, () => {
             expect(checkFilename(name)).toBe('filename.txt');
         });

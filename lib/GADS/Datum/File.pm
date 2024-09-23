@@ -40,6 +40,7 @@ after set_value => sub {
         # hashref for tests etc
         if (ref $val eq 'HASH')
         {
+            $val->{name} =~ s/[^a-zA-Z0-9_\-]+\.//;
             my $file = $self->schema->resultset('Fileval')->create({
                 name     => $val->{name},
                 mimetype => $val->{mimetype},
