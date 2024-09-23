@@ -19,7 +19,7 @@ class InputComponent extends Component {
         'input--autocomplete': autocompleteComponent
     };
 
-    constructor(element: HTMLElement | JQuery<HTMLElement>) {
+    constructor(element: HTMLElement) {
         super(element);
         this.initializeComponent();
         this.initializeValidation();
