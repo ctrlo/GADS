@@ -1994,7 +1994,7 @@ sub write
     # the commit
     if (!$self->is_draft)
     {
-        $self->fields->{$_->id}->send_notify
+        $self->get_field_value($_)->send_notify
             foreach $self->layout->all_people_notify;
     }
 }
