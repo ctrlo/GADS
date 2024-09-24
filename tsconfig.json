@@ -14,6 +14,9 @@
       "js/*": [
         "src/frontend/js/*"
       ],
+      "components/*": [
+        "src/frontend/components/*"
+      ],
       "util/*" : [
         "js/lib/util/*"
       ],
@@ -25,9 +28,6 @@
       ],
       "logging": [
         "js/lib/logging"
-      ],
-      "components/*": [
-        "src/frontend/components/*"
       ],
     }
   },

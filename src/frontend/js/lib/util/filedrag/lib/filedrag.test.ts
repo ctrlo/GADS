@@ -1,4 +1,3 @@
-import { preventDefault } from "vis-util";
 import "../../../../../testing/globals.definitions";
 import FileDrag from './filedrag';
 

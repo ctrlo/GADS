@@ -13,7 +13,7 @@ class AutocompleteComponent {
             this.el.find('input[type="hidden"]').val(suggestion.id);
         };
 
-        import('util/typeahead')
+        import(/* webpackChunkName: "typeahead" */ 'util/typeahead')
             .then(({ default: TypeaheadBuilder }) => {
                 const builder = new TypeaheadBuilder();
                 builder
