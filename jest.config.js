@@ -94,6 +94,7 @@ const config = {
     "^validation$": "<rootDir>/src/frontend/js/lib/validation",
     "^logging$": "<rootDir>/src/frontend/js/lib/logging",
     "^util/(.*)$": "<rootDir>/src/frontend/js/lib/util/$1",
+    "^testing$": "<rootDir>/src/frontend/testing/globals.definitions.ts",
   },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader

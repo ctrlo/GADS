@@ -26,6 +26,9 @@
       "validation": [
         "js/lib/validation"
       ],
+      "testing": [
+        "js/lib/testing/globals.definitions.ts"
+      ]
     }
   },
   "include": [
