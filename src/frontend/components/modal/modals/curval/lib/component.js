@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import ModalComponent from '../../../lib/component'
 import { getFieldValues } from "get-field-values"
-import { guid as Guid } from "guid"
 import { initializeRegisteredComponents } from 'component'
 import { validateRadioGroup, validateCheckboxGroup } from 'validation'
 
@@ -105,7 +104,7 @@ class CurvalModalComponent extends ModalComponent {
         })
         .join(", ")
 
-      guid = Guid()
+      guid = Crypto.randomUUID()
       const id = `field${col_id}_${guid}`
       const deleteButton = multi
         ? '<button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>'
