@@ -1,9 +1,5 @@
 import { hideElement, showElement } from "util/common";
-
-interface FileDragOptions {
-    allowMultiple?: boolean;
-    debug?: boolean;
-}
+import { FileDragOptions } from "..";
 
 class FileDrag<T extends HTMLElement = HTMLElement> {
     private el: JQuery<T>;

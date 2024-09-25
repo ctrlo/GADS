@@ -1,4 +1,4 @@
-import "../../../../../testing/globals.definitions";
+import "testing";
 import { TypeaheadBuilder } from './TypeaheadBuilder';
 
 describe('builder', () => {

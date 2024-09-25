@@ -1,5 +1,15 @@
+type DateType = {
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  second: number,
+  epoch: number,
+}
+
 // General function to format date as per backend
-const format_date = function(date) {
+const format_date = function(date:Date):DateType | undefined {
   if (!date) return undefined;
   return {
     year:   date.getFullYear(),
@@ -14,7 +24,7 @@ const format_date = function(date) {
 };
 
 // get the value from a field, depending on its type
-const getFieldValues = function($depends, filtered, for_code, form_value) {
+function getFieldValues($depends:JQuery, filtered:boolean, for_code:boolean, form_value:boolean) {
   const type = $depends.data("column-type");
 
   // If a field is not shown then treat it as a blank value (e.g. if fields
@@ -32,42 +42,42 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
   }
 
   let values = [];
-  let $f;
+  let $f: JQuery;
   if (type === "enum" || type === "curval" || type === "person") {
     if ($depends.data('value-selector') == "noshow") {
-      $depends.find('.table-curval-group').find('input').each(function(){
-        const item = $(this);
+      $depends.find('.table-curval-group').find('input').each((_,element) => {
+        const item = $(element);
         values.push(item)
       });
     } else if (filtered) {
       // Field is type "filval". Therefore the values are any visible value in
       // the associated filtered drop-down
-      let $visible = $depends.find(".select-widget .available .answer");
-      $visible.each(function() {
-        const item = $(this);
+      const $visible = $depends.find(".select-widget .available .answer");
+      $visible.each((_,element) => {
+        const item = $(element);
         values.push(item);
       });
     } else {
-      let $visible = $depends.find(
+      const $visible = $depends.find(
         ".select-widget .current [data-list-item]:not([hidden])"
       );
-      $visible.each(function() {
-        const item = $(this).hasClass("current__blank")
+      $visible.each((_,element) => {
+        const item = $(element).hasClass("current__blank")
           ? undefined
-          : $(this);
+          : $(element);
         values.push(item);
       });
     }
     if (for_code) {
       if ($depends.data('is-multivalue')) {
         // multivalue
-        const vals = $.map(values, function(item) {
+        const vals = $.map(values, (item) => {
           return {
             id:    item.data("list-id"),
             value: item.data("list-text")
           };
         });
-        const plain = $.map(vals, function(item) {
+        const plain = $.map(vals, (item) => {
           return item.value;
         });
         return {
@@ -83,7 +93,7 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
         }
       }
     } else if (form_value) {
-      values = $.map(values, function(item) {
+      values = $.map(values, (item) => {
         if (item) {
           // If this is a newly added item, return the form data instead of the
           // ID (which won't be saved yet)
@@ -93,7 +103,7 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
         }
       });
     } else {
-      values = $.map(values, function(item) {
+      values = $.map(values, (item) => {
         if (item) {
           return item.data("list-text");
         } else {
@@ -103,8 +113,8 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
     }
   } else if (type === "tree") {
     const jstree = $depends.find('.jstree').jstree(true);
-    $depends.find(".selected-tree-value").each(function() {
-      const $node = $(this);
+    $depends.find(".selected-tree-value").each((_,element) => {
+      const $node = $(element);
       if (form_value) {
         values.push($node.val());
       } else if (for_code) {
@@ -113,8 +123,8 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
         if ($node.val()) {
           const node   = jstree.get_node($node.val());
           const ps     = node.parents;
-          let parents = {};
-          ps.filter(id => id !== '#').reverse().forEach(function(id, index) {
+          const parents = {};
+          ps.filter((id: string) => id !== '#').reverse().forEach((id: any, index: number) => {
             parents["parent"+(index+1)] = jstree.get_node(id).text;
           })
           values.push({
@@ -129,7 +139,7 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
         }
       } else {
         // get the hidden fields of the control - their textual value is located in a data field
-        values.push($(this).data("text-value"));
+        values.push($(element).data("text-value"));
       }
     });
     // Provide consistency with backend: single value of non-multi field is
@@ -142,23 +152,23 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
     $f = $depends.find(".form-control");
 
     // Dateranges from the form are in pairs. Convert to single objects:
-    let dateranges = [];
-    let from_date;
-    $f.each(function(index){
-      if (index % 2 == 0) {
+    const dateranges = [];
+    let from_date: JQuery<HTMLElement, HTMLElement>;
+    $f.each((index, element)=>{
+      if ((index & 1) === 0) {
         // from date
-        from_date = $(this);
+        from_date = $(element);
       } else {
         // to date
         dateranges.push({
           from: from_date,
-          to:   $(this)
+          to:   $(element)
         });
       }
     });
 
     if (for_code) {
-      const codevals = dateranges.map(function(dr) {
+      const codevals = dateranges.map((dr) => {
         const from = dr.from.datepicker("getDate");
         const to   = dr.to.datepicker("getDate");
         if (!from || !to) {
@@ -176,14 +186,14 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
         return codevals[0];
       }
     } else if (form_value) {
-      values = dateranges.map(function(dr) {
+      values = dateranges.map((dr) => {
         return {
             from: dr.from.val(),
             to: dr.to.val()
         }
       })
     } else {
-      values = dateranges.map(function(dr) {
+      values = dateranges.map((dr) => {
         return dr.from.val() + ' to ' + dr.to.val();
       })
     }
@@ -191,8 +201,8 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
   } else if (type === "date") {
 
     if ($depends.data('is-multivalue')) {
-      values = $depends.find(".form-control").map(function(){
-        const $df = $(this);
+      values = $depends.find(".form-control").map((_, element)=>{
+        const $df = $(element);
         return for_code ? format_date($df.datepicker("getDate")) : $df.val();
       }).get();
       if (for_code || form_value) {
@@ -209,23 +219,23 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
 
   } else if (type === "file") {
 
-    values = $depends.find("input:checkbox:checked").map(function(){
+    values = $depends.find("input:checkbox:checked").map((_,element)=>{
       if (form_value) {
         return {
-            id: $(this).val(),
-            filename: $(this).data('filename')
+            id: $(element).val(),
+            filename: $(element).data('filename')
         }
       } else {
-        return $(this).data('filename')
+        return $(element).data('filename')
       }
     }).get();
 
   } else {
     // Can't use map as an undefined return value is skipped
     values = [];
-    $depends.find(".form-control").each(function(){
-        var $df = $(this);
-        values.push($df.val().length ? $df.val() : undefined);
+    $depends.find(".form-control").each((_,element)=>{
+        const $df = $(element);
+        values.push($df.val().toString().length ? $df.val() : undefined);
     });
     // Provide consistency with backend: single value of non-multi field is
     // returned as scalar

@@ -42,21 +42,21 @@ const setFieldValues = function($field, values) {
   } else if (type === "daterange") {
 
     values.forEach(function(value, index){
-      let $single = prepare_multi($field, index)
+      const $single = prepare_multi($field, index)
       set_daterange($single, value)
     })
 
   } else if (type === "date") {
 
     values.forEach(function(value, index){
-      let $single = prepare_multi($field, index)
+      const $single = prepare_multi($field, index)
       set_date($single, value)
     })
 
   } else if (type === "string" || type === "intgr") {
 
     values.forEach(function(value, index){
-      let $single = prepare_multi($field, index)
+      const $single = prepare_multi($field, index)
       set_string($single, value)
     })
 
@@ -71,8 +71,8 @@ const setFieldValues = function($field, values) {
 // many inputs as required
 const prepare_multi = function($field, index) {
   if ($field.data("is-multivalue")) {
-    let $multi_container = $field.find(".multiple-select__list")
-    let existing_count = $multi_container.children().length
+    const $multi_container = $field.find(".multiple-select__list")
+    const existing_count = $multi_container.children().length
     if (index >= existing_count) {
       $field.find(".btn-add-link").trigger("click")
     }
@@ -101,7 +101,7 @@ const set_enum_single = function($element, values) {
     if ($option.length) {
       $option.trigger("click")
     } else {
-      let name = $element.data("name")
+      const name = $element.data("name")
       console.log(`Unknown value ${val} for ${name}`)
     }
   })
@@ -126,14 +126,14 @@ const set_enum_multi = function($element, values) {
   // Iterate each available checkbox, and select or deselect as required to
   // match values
   $element.find('.checkbox').each(function(){
-    let $check = $(this).find('input')
+    const $check = $(this).find('input')
     // Mark an option checked if either the id or text value match the
     // submitted values
     if (id_hash.hasOwnProperty($check.val()) || text_hash.hasOwnProperty($check.data("value"))) {
       if (!$check.is(":checked")) {
         $check.trigger("click")
       }
-      if (id_hash.hasOwnProperty($check.val())) id_hash[$check.val] = true
+      if (id_hash.hasOwnProperty($check.val())) id_hash[$check.val()] = true
       if (text_hash.hasOwnProperty($check.data("value"))) text_hash[$check.data("value")] = true
     } else {
       if ($check.is(":checked")) {
@@ -143,7 +143,7 @@ const set_enum_multi = function($element, values) {
   });
 
   // Report any values that weren't used
-  let name = $element.data("name")
+  const name = $element.data("name")
   for (const [value, used] of Object.entries(id_hash)) {
     if (!used) {
       console.log(`Unmatched value ${value} for ${name}`)
@@ -171,8 +171,8 @@ const set_string = function($element, value) {
 
 const set_tree = function($field, values) {
 
-  let $jstree = $field.find('.jstree').jstree(true);
-  let nodes = $jstree.get_json('#', { flat: true })
+  const $jstree = $field.find('.jstree').jstree(true);
+  const nodes = $jstree.get_json('#', { flat: true })
 
   // Create a hash to map all the text values to ids, in case value is supplied
   // by text

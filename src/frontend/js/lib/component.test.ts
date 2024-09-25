@@ -1,4 +1,4 @@
-import "../../testing/globals.definitions";
+import "testing";
 import { it, expect, describe } from '@jest/globals';
 import { Component, initializeComponent } from './component';
 

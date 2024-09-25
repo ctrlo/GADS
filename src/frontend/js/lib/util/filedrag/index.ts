@@ -1,5 +1,19 @@
 import FileDrag from "./lib/filedrag";
 
+export interface FileDragOptions {
+    allowMultiple?: boolean;
+    debug?: boolean;
+}
+
+declare global {
+    interface JQuery<TElement = HTMLElement, T extends HTMLElement = HTMLElement> {
+        filedrag(options: {
+            allowMultiple: boolean,
+            debug: boolean
+        }): JQuery<TElement,T>;
+    }
+}
+
 (function ($) {
     $.fn.filedrag = function (options) {
         options = $.extend({

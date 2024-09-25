@@ -1,6 +1,9 @@
 class Logging {
+  allowLogging: boolean
+
   constructor()  {
       this.allowLogging =
+          !!window.test ||
           location.hostname === 'localhost' ||
           location.hostname === '127.0.0.1' ||
           location.hostname.endsWith('.peek.digitpaint.nl')
