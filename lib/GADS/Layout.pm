@@ -313,6 +313,7 @@ sub reports
     # request to manage all reports
     my $reports_rs = $self->schema->resultset('Report')->search({
         instance_id => $self->instance_id,
+        deleted => undef,
     });
     $reports_rs = $reports_rs->by_user($user)
         unless $options{all} && $self->user_can("layout");
