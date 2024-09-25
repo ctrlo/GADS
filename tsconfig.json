@@ -12,10 +12,10 @@
     "esModuleInterop": true,
     "paths": {
       "js/*": [
-        "src/frontend/js/*"
+        "js/*"
       ],
       "components/*": [
-        "src/frontend/components/*"
+        "components/*"
       ],
       "util/*" : [
         "js/lib/util/*"
@@ -27,8 +27,11 @@
         "js/lib/validation"
       ],
       "testing": [
-        "js/lib/testing/globals.definitions.ts"
-      ]
+        "js/lib/testing/globals.definitions"
+      ],
+      "logging": [
+        "js/lib/logging"
+      ],
     }
   },
   "include": [
