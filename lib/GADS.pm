@@ -4740,7 +4740,7 @@ sub _process_edit
                 message => $message,
                 # Send values back to browser to display on main record. Only
                 # include ones that user has access to
-                values  => +{ map { $_->field => $record->fields->{$_->id}->as_string } @{$source_curval->curval_fields} },
+                values  => +{ map { $_->field => $record->get_field_value($_)->as_string } @{$source_curval->curval_fields} },
             });
             return ($return, undef, 1);
         }
