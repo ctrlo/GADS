@@ -151,8 +151,8 @@ table.dataTable thead .sorting_disabled {
   &:hover,
   &:active,
   &:focus,
-  .sorting_asc &,
-  .sorting_desc & {
+  .dt-ordering-asc &,
+  .dt-ordering-desc & {
     color: $brand-secundary;
 
     .btn-sort {
