@@ -311,7 +311,7 @@ sub reports
 
     # By default only show a user their own reports, unless this is an admin
     # request to manage all reports
-    my $reports_rs = $self->schema->resultset('Report')->search({
+    my $reports_rs = $self->schema->resultset('Report')->extant->search({
         instance_id => $self->instance_id,
     });
     $reports_rs = $reports_rs->by_user($user)
