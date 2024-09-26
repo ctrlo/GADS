@@ -12,10 +12,7 @@ import { bindToggleTableClickHandlers } from './toggle-table'
 const MORE_LESS_TRESHOLD = 50
 
 //TODO: It is worth noting that there are significant changes between DataTables.net v1 and v2 (hence the major version increase)
-//      The current implementation is based on v1, and will need to be updated to v2 at some point in the future.
-//      For example, there is use of the `dom` property in the DataTables.net configuration, which is deprecated in v2, as well as various styling changes.
-//      Unfortunately, as wel use datatables.net throughout our codebase, it is almost impossible to update to v2 without a significant amount of work.
-//      As such, it is worth noting that this component will need to be updated at some point in the future.
+//      We are currently using v2 in this component, but with various deprecated features in use that may need to be updated in the future
 class DataTableComponent extends Component {
   constructor(element)  {
     super(element)
@@ -46,7 +43,7 @@ class DataTableComponent extends Component {
     this.columns = columns
     this.el.DataTable(conf)
     this.initializingTable = true
-    $('.dt-column-order').hide() //datatables.net adds it's own ordering class - we remove it because it's easier than rewriting basically everywhere we use datatables
+    $('.dt-column-order').remove() //datatables.net adds it's own ordering class - we remove it because it's easier than rewriting basically everywhere we use datatables
 
     if (this.hasCheckboxes) {
       this.addSelectAllCheckbox()
