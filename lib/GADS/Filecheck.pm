@@ -52,6 +52,7 @@ sub check_file
         unless $ext =~ /^(doc|docx|pdf|jpeg|jpg|png|wav|rtf|xls|xlsx|ods|ppt|pptx|odf|odg|odt|ott|sda|sdc|sdd|sdw|sxc|sxw|odp|sdp|csv|txt|msg|tif|svg)$/i;
 
     # As recommended at https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload
+    # Brackets have been added to this - above recommendations do not explicitly state that brackets are not allowed - Ticket #1695
     error __x"The filename {name} is not allowed. Filenames can only contain alphanumeric characters and a single dot",
         name => $upload->filename
             unless $upload->filename =~ /[-+_ a-zA-Z0-9\(\)]{1,200}\.[a-zA-Z0-9]{1,10}/;
