@@ -255,6 +255,7 @@ $btn-border-radius: 23px;
   border-bottom: 1px solid transparent;
   border-radius: 0;
   color: $brand-secundary;
+  background: $transparent;
 
   &::before {
     @extend %icon-font;
@@ -262,6 +263,7 @@ $btn-border-radius: 23px;
     content: "\E80a";
     margin-right: 0.75rem;
     color: $brand-secundary;
+    background: $transparent;
   }
 
   &:hover,
@@ -271,6 +273,7 @@ $btn-border-radius: 23px;
     box-shadow: none;
     color: $brand-secundary;
     text-decoration: none;
+    background: $transparent;
   }
 }
 

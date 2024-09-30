@@ -151,8 +151,8 @@ table.dataTable thead .sorting_disabled {
   &:hover,
   &:active,
   &:focus,
-  .sorting_asc &,
-  .sorting_desc & {
+  .dt-ordering-asc &,
+  .dt-ordering-desc & {
     color: $brand-secundary;
 
     .btn-sort {
@@ -374,4 +374,9 @@ table.table-purge {
 button.btn-remove,
 button.btn-add {
   margin: $padding-base-vertical 0;
+}
+
+.dt-column-order {
+  display: none;
+  visibility: collapse;
 }

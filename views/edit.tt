@@ -865,9 +865,6 @@
                         <button data-field-id="[% file.id %]" class="rename btn btn-plain"
                             title="Rename file" type="button"></button>
                     </div>
-                    <div class="col">
-                        <input type="text" id="file-rename-[% file.id %]" name="file-rename-[% file.id %]" value="[% file.name %]" class="input input--text form-control" aria-hidden="true">
-                    </div>
                 </div>
               </li>
             [%

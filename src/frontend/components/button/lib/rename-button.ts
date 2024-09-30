@@ -72,7 +72,7 @@ class RenameButton {
                             type: 'text',
                             id: `file-rename-${fileId}`,
                             name: `file-rename-${fileId}`,
-                            classList: ['input', 'input--text', 'form-control'],
+                            classList: ['input', 'input--text', 'form-control', 'hidden'],
                             ariaHidden: 'true'
                         })
                     )
@@ -84,7 +84,7 @@ class RenameButton {
                             type: 'button',
                             textContent: 'Rename',
                             ariaHidden: 'true',
-                            classList: ['btn', 'btn-small', 'btn-default']
+                            classList: ['btn', 'btn-small', 'btn-default', 'hidden']
                         }).on('click', (ev: JQuery.ClickEvent) => {
                             ev.preventDefault();
                             this.renameClick(typeof (id) === 'string' ? parseInt(id) : id, ev);
@@ -94,7 +94,7 @@ class RenameButton {
                             type: 'button',
                             textContent: 'Cancel',
                             ariaHidden: 'true',
-                            classList: ['btn', 'btn-small', 'btn-danger']
+                            classList: ['btn', 'btn-small', 'btn-danger', 'hidden']
                         })
                     )
             );
