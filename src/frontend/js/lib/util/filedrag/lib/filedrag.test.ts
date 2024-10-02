@@ -42,8 +42,7 @@ describe('FileDrag class tests', () => {
         const fileDrag = new FileDragTest(document.createElement('div'));
         fileDrag.setDragging(true);
         expect(fileDrag.getDragging()).toBeTruthy();
-        const e = $.Event('dragleave');
-        (<any>e).originalEvent = { pageX: 0, pageY: 0 };
+        const e = $.Event('dragleave', { originalEvent: { pageX: 0, pageY: 0 } });
         $(document).trigger(e);
         expect(fileDrag.getDragging()).toBeFalsy();
     });
@@ -79,9 +78,7 @@ describe('FileDrag class tests', () => {
         expect(dropZone).toBeDefined();
         const e = $.Event('dragenter');
         $(document).trigger(e);
-        const e2 = $.Event('dragleave');
-        (<any>e2).originalEvent = { pageX: 0, pageY: 0 };
-        (<any>e2).stopPropagation = jest.fn();
+        const e2 = $.Event('dragleave', { originalEvent: { pageX: 0, pageY: 0 }, preventDefault: jest.fn() });
         $(document).trigger(e2);
         expect(child.style.display).toBe('');
         expect(child.style.visibility).toBe('');
@@ -103,28 +100,28 @@ describe('FileDrag class tests', () => {
 
     it('triggers the event as expected when a file is dropped', () => {
         const child = createBaseDOM();
-        const dropFunction = jest.fn((files)=>{
+        const dropFunction = jest.fn((files) => {
             const myFile = files;
             expect(myFile).toBeDefined();
             expect(myFile.name).toBe('test.txt');
         });
-        const fileDrag = new FileDragTest(child, (file)=>dropFunction(file));
+        const fileDrag = new FileDragTest(child, (file) => dropFunction(file));
         fileDrag.setDragging(true);
         const parent = child.parentElement;
         expect(parent).toBeDefined();
         const dropZone = parent!.querySelector('.drop-zone');
         expect(dropZone).toBeDefined();
-        const e = $.Event('drop');
-        (<any>e).originalEvent = {
-            dataTransfer: {
-                files: [
-                    {
-                        name: 'test.txt',
-                    },
-                ],
-            },
-        };
-        (<any>e).stopPropagation = jest.fn();
+        const e = $.Event('drop', {
+            originalEvent: {
+                dataTransfer: {
+                    files: [
+                        {
+                            name: 'test.txt',
+                        },
+                    ],
+                },
+            }, preventDefault: jest.fn()
+        });
         $(dropZone!).trigger(e);
         expect(dropFunction).toHaveBeenCalled();
     });

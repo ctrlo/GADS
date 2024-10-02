@@ -853,27 +853,26 @@
         '<div class="list list--vertical list--key-value list--no-borders">';
           '<ul class="list__items fileupload__files">';
             FOREACH file IN editvalue.files;
-            '<li class="list__item">';
-              '<span class="list__key">';
-                INCLUDE fields/sub/checkbox.tt
-                  id      = "file_checkbox_" _ col.id _ "_" _ file.id
-                  name    = field
-                  label   = "Include file."
-                  value   = file.id
-                  checked = 1
-                  filter  = "html";
-          
-              '</span>';
-              '<span class="list__value">';
-                'Current file name: ';
-                '<a class="link link--plain" href="' _ url.page _ '/file/' _ file.id _'">';
-                  file.name | html;
-                '</a>.';
-              '</span>';
-            '</li>';
+        %]
+              <li class="list__item">
+                <div class="row">
+                    <div class="col-auto align-content-center">
+                        <input type="checkbox" id="file-[% file.id %]" name="[% field %]" value="[% file.id %]"
+                            aria-label="[% file.name %]" data-filename="[% file.name %]" checked="">
+                        <label for="file-[% file.id %]">Include File. Current file name:</label>
+                        <a id="current-[% file.id %]" class="link link--plain"
+                            href="/file/[% file.id %]">[% file.name %]</a>
+                        <button data-field-id="[% file.id %]" class="rename btn btn-plain btn-small btn-sm py-0"
+                            title="Rename file" type="button"></button>
+                    </div>
+                </div>
+              </li>
+            [%
             END;
+             '</li>';
           '</ul>';
        '</div>';
+       
        '<div class="file-upload">';
         INCLUDE fields/file.tt
           id               = col.id

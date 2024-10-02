@@ -1,6 +1,6 @@
 import { hideElement, showElement } from "util/common";
 
-interface FileDragOptions {
+export interface FileDragOptions {
     allowMultiple?: boolean;
     debug?: boolean;
 }
@@ -11,7 +11,7 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
     // for testing
     protected dragging: boolean = false;
 
-    constructor(private element: T, private options: FileDragOptions = {}, private onDrop?: (files: FileList | File) => void) {
+    constructor(element: T, private options: FileDragOptions = {}, private onDrop?: (files: FileList | File) => void) {
         if (options.debug) console.log('FileDrag', element, options);
         this.el = $(element);
         this.initElements()
@@ -24,14 +24,15 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
         this.dropZone.on('dragenter', (e) => {
             if (!this.dragging) return;
             if(!this.dropZone.hasClass('dragging')) this.dropZone.addClass('dragging');
-            e.stopPropagation();
+            e.preventDefault();
         });
         this.dropZone.on('dragleave', (e) => {
             if (!this.dragging) return;
             if(this.dropZone.hasClass('dragging')) this.dropZone.removeClass('dragging');
-            e.stopPropagation();
+            e.preventDefault();
         });
         this.dropZone.on('drop', (e) => {
+            e.preventDefault();
             if (!this.dragging) return;
             this.dragging = false;
             if(this.el.hasClass('dragging')) this.el.removeClass('dragging');
@@ -46,7 +47,6 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
                 this.onDrop(e.originalEvent.dataTransfer.files[0]);
             }
             $(document).trigger('drop');
-            e.stopPropagation();
         });
     }
 
@@ -68,15 +68,15 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
             showElement(this.el);
         });
         $(document).on('drop', (e) => {
+            e.preventDefault();
             if (!this.dragging) return;
             this.dragging = false;
             hideElement(this.dropZone);
             showElement(this.el);
-            e.stopPropagation();
         })
         $(document).on('dragover', (e) => {
             if (!this.dragging) return;
-            e.stopPropagation();
+            e.preventDefault();
         });
     }
 

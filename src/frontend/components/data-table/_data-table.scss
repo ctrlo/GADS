@@ -375,3 +375,8 @@ button.btn-remove,
 button.btn-add {
   margin: $padding-base-vertical 0;
 }
+
+.dt-column-order {
+  display: none;
+  visibility: collapse;
+}
