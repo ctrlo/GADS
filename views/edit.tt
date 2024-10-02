@@ -855,14 +855,14 @@
             FOREACH file IN editvalue.files;
         %]
               <li class="list__item">
-                <div class="row w-100 rename-file">
+                <div class="row">
                     <div class="col-auto align-content-center">
                         <input type="checkbox" id="file-[% file.id %]" name="[% field %]" value="[% file.id %]"
                             aria-label="[% file.name %]" data-filename="[% file.name %]" checked="">
                         <label for="file-[% file.id %]">Include File. Current file name:</label>
                         <a id="current-[% file.id %]" class="link link--plain"
                             href="/file/[% file.id %]">[% file.name %]</a>
-                        <button data-field-id="[% file.id %]" class="rename btn btn-plain"
+                        <button data-field-id="[% file.id %]" class="rename btn btn-plain btn-small btn-sm py-0"
                             title="Rename file" type="button"></button>
                     </div>
                 </div>

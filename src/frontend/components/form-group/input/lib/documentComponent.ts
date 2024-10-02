@@ -108,14 +108,14 @@ class DocumentComponent {
 
         const $li = $(`
             <li class="list__item">
-                <div class="row w-100 rename-file">
+                <div class="row">
                     <div class="col-auto align-content-center">
                         <input type="checkbox" id="file-${fileId}" name="${field}" value="${fileId}"
                             aria-label="${fileName}" data-filename="${fileName}" checked="">
                         <label for="file-${fileId}">Include File. Current file name:</label>
                         <a id="current-${fileId}" class="link link--plain"
                             href="/file/${fileId}">${fileName}</a>
-                        <button data-field-id="${fileId}" class="rename btn btn-plain"
+                        <button data-field-id="${fileId}" class="rename btn btn-plain btn-small btn-sm py-0"
                             title="Rename file" type="button"></button>
                     </div>
                 </div>
