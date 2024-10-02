@@ -3,7 +3,6 @@ import { upload } from 'util/upload/UploadControl';
 import { validateCheckboxGroup } from 'validation';
 import { formdataMapper } from 'util/mapper/formdataMapper';
 import { logging } from 'logging';
-import { checkFilename } from './filenameChecker';
 import { RenameEvent } from 'components/button/lib/rename-button';
 import { fromJson } from 'util/common';
 
@@ -136,7 +135,7 @@ class DocumentComponent {
     private async renameFile(fileId: number, oldName: string, newName: string, csrf_token: string, is_new: boolean = false) { // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why, so I've used the button itself
         try {
             this.hideException();
-            const filename = checkFilename(newName);
+            const filename = newName;
             const url = `/api/file/${fileId}`;
             const mappedData = formdataMapper({ csrf_token, filename, is_new: is_new ? 1 : 0 });
             const data = await upload<RenameResponse>(url, mappedData, 'PUT')

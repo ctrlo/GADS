@@ -159,18 +159,15 @@ class RenameButton {
      * @param {JQuery<HTMLButtonElement>} button The button that was clicked
      * @param {JQuery.BlurEvent} ev The blur event
      */
-    private triggerRename(id: number, button: JQuery<HTMLButtonElement>, ev: JQuery.ClickEvent) {
-        try {
-            const previousValue = $(`#current-${id}`).text();
-            const extension = '.' + previousValue.split('.').pop();
-            const newName = this.value.endsWith(extension) ? this.value : this.value + extension;
-            if (newName === '' || newName === previousValue) return;
-            $(`#current-${id}`).text(newName);
-            const event = $.Event('rename', {oldName: previousValue , newName, target: button });
-            $(button).trigger(event);
-        } finally {
-            this.hideRenameControls(id, button);
-        }
+    private triggerRename(id: number, button: JQuery<HTMLButtonElement>, e: JQuery.Event) {
+        const previousValue = $(`#current-${id}`).text();
+        const extension = '.' + previousValue.split('.').pop();
+        const newName = this.value.endsWith(extension) ? this.value : this.value + extension;
+        if (newName === '' || newName === previousValue) return;
+        $(`#current-${id}`).text(newName);
+        const event = $.Event('rename', { oldName: previousValue, newName, target: button });
+        $(button).trigger(event);
+        this.hideRenameControls(id, button);
     }
 
     private hideRenameControls(id: number, button: JQuery<HTMLButtonElement>) {

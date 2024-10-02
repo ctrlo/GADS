@@ -1737,13 +1737,7 @@ put '/api/file/:id' => require_login sub {
     my $newname = param('filename')
         or error __"Filename is required";
 
-    if($newname =~ m/[^a-zA-Z0-9\._-]/)
-    {
-        return encode_json({
-            is_ok => 0,
-            error => "Filename contains invalid characters",
-        });
-    }
+    $newname =~ s/[^a-zA-Z0-9\._\-\(\)]//g;
 
     if ($is_new)
     {
