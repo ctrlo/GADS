@@ -250,6 +250,22 @@ has single_content => (
     },
 );
 
+has single_id => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->_rset && $_[0]->_rset->id;
+    },
+);
+
+has single_rset => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub {
+        $_[0]->_rset;
+    },
+);
+
 around 'clone' => sub {
     my $orig = shift;
     my $self = shift;

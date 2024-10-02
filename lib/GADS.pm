@@ -1731,9 +1731,6 @@ put '/api/file/:id' => require_login sub {
     my $id     = route_parameters->get('id');
     my $is_new = param('is_new');
 
-    my $file = schema->resultset('Fileval')->find($id)
-        or error __x"File ID {id} cannot be found", id => $id;
-
     my $newname = param('filename')
         or error __"Filename is required";
 
@@ -1744,23 +1741,30 @@ put '/api/file/:id' => require_login sub {
 
     if ($is_new)
     {
-        $file->update({ name => $newname });
+        my $file = schema->resultset('Fileval')->find_with_permission($id, logged_in_user, new_file_only => 1)
+            or error __x"File ID {id} cannot be found", id => $id;
+
+        $file->single_rset->update({ name => $newname });
 
         content_type 'application/json';
 
         return encode_json({
-            id    => $file->id,
-            name  => $file->name,
+            id    => $file->single_id,
+            name  => $file->single_name,
             is_ok => 1,
         });
     }
     else
     {
+        my $file = schema->resultset('Fileval')->find_with_permission($id, logged_in_user, 
+            rename_existing => 1)
+                or error __x"File ID {id} cannot be found", id => $id;
+
         my $newFile = rset('Fileval')->create({
             name           => $newname,
-            mimetype       => $file->mimetype,
-            content        => $file->content,
-            is_independent => $file->is_independent,
+            mimetype       => $file->single_mimetype,
+            content        => $file->single_content,
+            is_independent => 0,
             edit_user_id   => logged_in_user->id,
         });
 
