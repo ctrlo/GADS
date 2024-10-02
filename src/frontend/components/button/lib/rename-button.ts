@@ -66,7 +66,7 @@ class RenameButton {
         if (!fileId) throw new Error("Invalid file id!");
         button.closest(".row")
             .append(
-                createElement('div', { classList: ['col'] })
+                createElement('div', { classList: ['col', 'align-content-center'] })
                     .append(
                         createElement("input", {
                             type: 'text',
@@ -77,7 +77,7 @@ class RenameButton {
                         })
                     )
             ).append(
-                createElement('div', { classList: ['col'] })
+                createElement('div', { classList: ['col', 'align-content-center'] })
                     .append(
                         createElement("button", {
                             id: `rename-confirm-${fileId}`,

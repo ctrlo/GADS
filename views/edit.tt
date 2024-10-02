@@ -855,8 +855,8 @@
             FOREACH file IN editvalue.files;
         %]
               <li class="list__item">
-                <div class="row w-full">
-                    <div class="col-auto">
+                <div class="row w-100 rename-file">
+                    <div class="col-auto align-content-center">
                         <input type="checkbox" id="file-[% file.id %]" name="[% field %]" value="[% file.id %]"
                             aria-label="[% file.name %]" data-filename="[% file.name %]" checked="">
                         <label for="file-[% file.id %]">Include File. Current file name:</label>

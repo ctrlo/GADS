@@ -229,29 +229,3 @@
     }
   }
 }
-
-.w-full {
-  width: 100%;
-  
-  div {
-      height: auto;
-      padding: 0.5rem;
-      font-size: 1rem;
-      line-height: 1.35;
-      align-content: center;
-
-      input[type="text"] {
-          width: auto;
-          min-width: 95%;
-          max-width: 98%;
-      }
-  }
-
-  label {
-      font-weight: 400;
-  }
-
-  a {
-      font-weight: 600;
-  }
-}

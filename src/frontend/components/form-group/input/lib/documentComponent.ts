@@ -108,8 +108,8 @@ class DocumentComponent {
 
         const $li = $(`
             <li class="list__item">
-                <div class="row w-full">
-                    <div class="col-auto">
+                <div class="row w-100 rename-file">
+                    <div class="col-auto align-content-center">
                         <input type="checkbox" id="file-${fileId}" name="${field}" value="${fileId}"
                             aria-label="${fileName}" data-filename="${fileName}" checked="">
                         <label for="file-${fileId}">Include File. Current file name:</label>
