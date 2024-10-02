@@ -1696,6 +1696,7 @@ post '/file/:id?' => require_login sub {
     # File upload through the "manage files" interface
     if (my $upload = upload('file'))
     {
+        $upload->filename =~ s/[^a-zA-Z0-9\._\-\(\)]//g;
         my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
         my $file;
         if (process( sub { $file = rset('Fileval')->create({
@@ -1734,10 +1735,7 @@ put '/api/file/:id' => require_login sub {
     my $newname = param('filename')
         or error __"Filename is required";
 
-    # Remove any invalid characters from the new name - this will possibly be changed to an error going forward
-    # Due to dragging allowing (almost) any character it is decided that this would be best so users can input what
-    # they want, and the text be stripped on rename server-side
-    $newname =~ s/[^a-zA-Z0-9\._\-\(\)]//g;
+    $filecheck->check_name($upload);
 
     if ($is_new)
     {
