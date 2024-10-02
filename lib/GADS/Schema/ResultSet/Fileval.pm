@@ -36,7 +36,6 @@ sub find_with_permission
     # This will control access to the file
     if ($file_rs && $file_rs->layout_id)
     {
-        print STDERR "File is attached to a record\n";
         error __"Access to this file is not allowed as it is not a new file"
             if $new_file_only;
         
@@ -66,13 +65,11 @@ sub find_with_permission
         # If the file has been uploaded via a record edit and it hasn't been
         # attached to a record yet (or the record edit was cancelled) then do
         # not allow access
-        print STDERR "File is attached to a record but not to a layout\n";
         error __"Access to this file is not allowed"
             unless $fileval->edit_user_id && $fileval->edit_user_id == $user->id;
         $file->schema($self->result_source->schema);
     }
     else {
-        print STDERR "File is independent\n";
         error __"Access to this file is not allowed"
             if $new_file_only || $rename_existing;
         $file->schema($self->result_source->schema);
