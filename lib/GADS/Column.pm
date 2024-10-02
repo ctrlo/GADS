@@ -645,7 +645,7 @@ has value_field => (
 
 has retrieve_fields => (
     is  => 'lazy',
-    isa => ArrayRef,
+    isa => Maybe[ArrayRef],
 );
 
 sub _build_retrieve_fields
@@ -962,7 +962,7 @@ sub fetch_multivalues
         order_by => "me.".$self->value_field,
     };
 
-    my @cols = (@{$self->retrieve_fields}, 'id');
+    my @cols = $self->retrieve_fields ? (@{$self->retrieve_fields}, 'id') : ();
     my @cols_mapped = ('me.layout_id', 'me.record_id');
     if (ref $self->tjoin)
     {
