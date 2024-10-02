@@ -26,7 +26,9 @@ sub is_image
 }
 
 sub check_file
-{   my ($self, $upload) = @_;
+{   my ($self, $upload, %options) = @_;
+
+    my $check_name = $options{check_name} // 1;
 
     my $info = $magic->info_from_filename($upload->tempname);
 
@@ -53,7 +55,8 @@ sub check_file
 
     # As recommended at https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload
     # Brackets have been added to this - above recommendations do not explicitly state that brackets are not allowed - Ticket #1695
-    $self->check_name($upload->filename);
+    $self->check_name($upload->filename)
+        if($check_name);
 
     error __"Maximum file size is 5 MB"
         if $upload->size > 5 * 1024 * 1024;
