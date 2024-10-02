@@ -68,7 +68,7 @@ sub check_name {
     my ($self, $filename) = @_;
     error __x"The filename {name} is not allowed. Filenames can only contain alphanumeric characters and a single dot",
         name => $filename
-            unless $filename =~ /[-+_ a-zA-Z0-9\(\)]{1,200}\.[a-zA-Z0-9]{1,10}/;
+            unless $filename =~ /^[-+_ a-zA-Z0-9\(\)]{1,200}\.[a-zA-Z0-9]{1,10}$/;
 }
 
 1;
