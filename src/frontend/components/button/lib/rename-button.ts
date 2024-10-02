@@ -71,7 +71,6 @@ class RenameButton {
                         createElement("input", {
                             type: 'text',
                             id: `file-rename-${fileId}`,
-                            name: `file-rename-${fileId}`,
                             classList: ['input', 'input--text', 'form-control', 'hidden'],
                             ariaHidden: 'true'
                         })
