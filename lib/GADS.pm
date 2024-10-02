@@ -1799,7 +1799,8 @@ post '/api/file/?' => require_login sub {
         # Remove any invalid characters from the new name - this will possibly be changed to an error going forward
         # Due to dragging allowing (almost) any character it is decided that this would be best so users can input what
         # they want, and the text be stripped on rename server-side
-        $filename =~ s/[^a-zA-Z0-9\._\-\(\)]//g;
+        # Note: This regex should mirror the regex in GADS::Filecheck::check_name()
+        $filename =~ s/[^a-zA-Z0-9\._\-\(\) ]//g;
 
         my $file;
         if (process( sub { $file = rset('Fileval')->create({
