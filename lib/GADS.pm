@@ -1734,7 +1734,7 @@ put '/api/file/:id' => require_login sub {
     my $newname = param('filename')
         or error __"Filename is required";
 
-    $filecheck->check_name($upload);
+    $filecheck->check_name($newname);
 
     if ($is_new)
     {
