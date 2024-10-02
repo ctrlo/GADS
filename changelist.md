@@ -2,6 +2,25 @@
 
 -------
 
+**Version**: 2.5.5
+**Released**: 02-10-2024
+
+-------
+
+## New features
+
+- Added renaming to document uploads
+
+## Fixes
+
+- Fixed error when sending notification emails
+- Fixed global report visibility
+- Fixed curval edits
+- Fixed deleted reports visibility
+- Fixed display for datatables
+
+-------
+
 **Version**: 2.5.4
 **Released**: 22-09-2024
 
