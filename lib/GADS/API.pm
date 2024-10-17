@@ -1225,8 +1225,9 @@ sub _get_records {
     if (my $agg = $records->aggregate_results)
     {
         my $data;
-        $data->{$_->id} = $agg->get_field_value($_)->for_table
-            foreach @{$records->columns_render};
+        foreach (grep {$_->aggregate} (@{$records->columns_render})) {
+            $data->{$_->id} = $agg->get_field_value($_)->for_table;
+        }
         $return->{aggregate} = $data;
     }
 
