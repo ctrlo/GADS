@@ -2,6 +2,17 @@
 
 -------
 
+**Version**: 2.5.6
+**Released**: 17-10-2024
+
+-------
+
+## Fixes
+
+- Fixed error in aggregate function causing created by and updated by to error
+
+-------
+
 **Version**: 2.5.5
 **Released**: 02-10-2024
 

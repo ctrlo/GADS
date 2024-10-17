@@ -3,13 +3,11 @@
   <head>
     <meta charset="utf-8">
     <title>[% page %] | Linkspace</title>
-    <meta name="author" content="Digitpaint">
     <meta name="description" content="">
     <meta name="author" content="">
-    <meta name="generator" content="Roger" />
     <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1">
-    <link rel="stylesheet" href="[% url.css %]/external.css?v=5">
-    <link rel="stylesheet" href="[% url.css %]/general.css?v=5">
+    <link rel="stylesheet" href="[% url.css %]/external.css?v=6">
+    <link rel="stylesheet" href="[% url.css %]/general.css?v=6">
   </head>
   <body class="[% body_class || 'page' %]"[% IF csrf_token %] data-csrf="[%- csrf_token -%]"[% END; IF layout OR layout_obj; %] data-layout-identifier="[% layout.identifier || layout_obj.identifier %]"[% END %]>
     <div class="[% container_class || 'container-fluid' %]">
@@ -24,6 +22,6 @@
       %]
     </div>
     <script type="text/javascript" src="[% url.js %]/fengari-web.js"></script>
-    <script type="text/javascript" src="[% url.js %]/site.js?v=28"></script>
+    <script type="text/javascript" src="[% url.js %]/site.js?v=29"></script>
   </body>
 </html>
