@@ -1274,7 +1274,7 @@ sub _build_standard_results
             set_record_created      => $rec->{record_created_date},
         );
         $record->set_record_created_user($rec->{record_created_user})
-            if exists $rec->{record_creted_user};
+            if exists $rec->{record_created_user};
         push @all, $record;
         push @created_ids, $rec->{record_created_user};
         push @record_ids, $rec->{id};
@@ -1287,6 +1287,17 @@ sub _build_standard_results
         records      => \@all,
         already_seen => $self->already_seen,
     );
+
+    # Fetch and add created users (unable to retrieve during initial query)
+    my $created_column = $self->layout->column_by_name_short('_created_user');
+    my $created_users  = $created_column->fetch_multivalues(\@created_ids);
+    foreach my $rec (@all)
+    {
+        my $original = $rec->set_record_created_user
+            or next;
+        my $user     = $created_users->{$original};
+        $rec->set_record_created_user($user);
+    }
 
     \@all;
 }

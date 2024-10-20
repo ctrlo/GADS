@@ -459,10 +459,12 @@ has created_user => (
 
         my $column = $self->layout->column_by_name_short('_created_user');
 
+        my $value = $self->set_record_created_user || $self->record->{record_created_user};
+
         # Has it been retrieved as part of sql query?
-        if ($self->record && exists $self->record->{record_created_user})
+        if ($value)
         {
-            return $self->_person($self->record->{record_created_user}, $column);
+            return $self->_person($value, $column);
         }
 
         my $user = $self->first_record_rs->createdby;
@@ -518,7 +520,7 @@ has edited_user => (
         # Has it been retrieved as part of sql query?
         if ($self->record && exists $self->record->{createdby})
         {
-            return $self->_person($self->record->{createdby}, $column);
+            return $self->_person($self->record->{$column->field}, $column);
         }
 
         my $user = $self->record_rs->createdby;
