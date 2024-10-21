@@ -2,6 +2,17 @@
 
 -------
 
+**Version**: 2.5.7
+**Released**: 21-10-2024
+
+-------
+
+## Fixes
+
+- Fixed regression in performance for CSV downloads
+
+-------
+
 **Version**: 2.5.6
 **Released**: 17-10-2024
 
