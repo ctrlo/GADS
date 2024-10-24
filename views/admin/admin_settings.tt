@@ -132,7 +132,23 @@
 
     </div>
     
+    <div class="col-md-4 col-sm-6 mb-3">
+      <a href="[% url.page %]/authentication_providers/" class="card card--settings">
+        <h4 class="card__title">
+          <div class="card__title-icon card__title-icon--report"></div>
+          <span>Authentication Providers</span>
+        </h4>
+
+        <div class="card__body row">
+          <div class="card__content">
+            <p>Create and modify authentication providers</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
   </div>
+
   [% END %]
   
   [% IF user.permission.audit %]
