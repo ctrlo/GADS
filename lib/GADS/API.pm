@@ -1328,6 +1328,102 @@ sub _error
     error __x $msg;
 }
 
+any ['get', 'post'] => '/api/providers' => require_any_role [qw/useradmin superadmin/] => sub {
+
+    # Allow parameters to be passed by URL query or in the body. Flatten into
+    # one parameters object
+    my $params = Hash::MultiValue->new(query_parameters->flatten, body_parameters->flatten);
+
+    my $site = var 'site';
+    if ($params->get('cols'))
+    {
+        # Get columns to be shown in the users table summary
+        my @cols = qw/site_id type name xml saml2_firstname saml2_surname enabled error_messages/;
+        #push @cols, 'title' if $site->register_show_title;
+        #push @cols, 'email';
+        #push @cols, 'organisation' if $site->register_show_organisation;
+        #push @cols, 'department' if $site->register_show_department;
+        #push @cols, 'team' if $site->register_show_team;
+        #push @cols, 'freetext1' if $site->register_freetext1_name;
+        #push @cols, qw/created lastlogin/;
+        my @return = map { { name => $_, data => $_ } } @cols;
+        content_type 'application/json; charset=UTF-8';
+        return encode_json \@return;
+    }
+
+    my $start  = $params->get('start') || 0;
+    my $length = $params->get('length') || 10;
+
+    my $auth      = GADS::Authentication->new(schema => schema)->authentication_summary_rs;
+
+    my $total     = $auth->count;
+    my $col_order = $params->get('order[0][column]');
+    use Data::Dumper;
+    my $sort_by   = defined $col_order && $params->get("columns[${col_order}][name]");
+    my $dir       = $params->get('order[0][dir]');
+    my $search    = $params->get('search[value]');
+
+    if (my $sort_field = $site->user_field_by_description($sort_by))
+    {
+        $sort_by = $sort_field->{name} eq 'site_id'
+            ? 'me.site_id'
+            : $sort_field->{name} eq 'type'
+            ? 'me.type'
+            : $sort_field->{name} eq 'name'
+            ? 'me.name'
+            : $sort_field->{name} eq 'enabled'
+            ? 'me.enabled'
+            : $sort_field->{name} eq 'error_messages'
+            ? 'me.error_messages'
+            : 'me.id';
+    }
+    elsif ($sort_by && $sort_by eq 'ID')
+    {
+        $sort_by = 'me.id';
+    }
+    else {
+        $sort_by = 'me.name';
+    }
+
+    my @sr;
+    foreach my $s (split /\s+/, $search)
+    {
+        $s or next;
+        $s =~ s/\_/\\\_/g; # Escape special like char
+        push @sr, [
+            'me.id'             => $s =~ /^[0-9]+$/ ? $s : undef,
+            # surname and firstname are case sensitive in database
+            'me.site_id'        => { -like => "%$s%" },
+            'me.type'           => { -like => "%$s%" },
+            'me.name'           => { -like => "%$s%" },
+            'me.saml2_firstname' => { -like => "%$s%" },
+            'me.saml2_surname'  => { -like => "%$s%" },
+            'me.enabled'   => { -like => "%$s%" },
+        ];
+    }
+
+    $auth = $auth->search({
+        -and => \@sr,
+    },{
+        order_by => { $dir && $dir eq 'asc' ? -asc : -desc => $sort_by },
+    });
+    my $filtered_count = $auth->count;
+    my $auth_render = $auth->search({},{
+        offset   => $start,
+        rows     => $length,
+    });
+
+    my $return = {
+        draw            => $params->get('draw'),
+        recordsTotal    => $total,
+        recordsFiltered => $filtered_count,
+        data            => [map $_->for_data_table(site => $site), $auth_render->all],
+    };
+
+    content_type 'application/json; charset=UTF-8';
+    return encode_json $return;
+};
+
 any ['get', 'post'] => '/api/users' => require_any_role [qw/useradmin superadmin/] => sub {
     # Allow parameters to be passed by URL query or in the body. Flatten into
     # one parameters object

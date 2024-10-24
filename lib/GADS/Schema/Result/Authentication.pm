@@ -24,10 +24,20 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "xml",
   { data_type => "text", is_nullable => 1 },
+  "cacert",
+  { data_type => "text", is_nullable => 1 },
+  "sp_cert",
+  { data_type => "text", is_nullable => 1 },
+  "sp_key",
+  { data_type => "text", is_nullable => 1 },
   "saml2_firstname",
   { data_type => "text", is_nullable => 1 },
   "saml2_surname",
   { data_type => "text", is_nullable => 1 },
+  "saml2_groupname",
+  { data_type => "text", is_nullable => 1 },
+  "saml2_relaystate",
+  { data_type => "varchar", is_nullable => 1, size => 80 },
   "enabled",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "error_messages",
@@ -35,6 +45,8 @@ __PACKAGE__->add_columns(
 );
 
 __PACKAGE__->set_primary_key("id");
+
+__PACKAGE__->add_unique_constraint("authentication_ux_saml2_relaystate", ["saml2_relaystate"]);
 
 __PACKAGE__->belongs_to(
   "site",
@@ -47,6 +59,41 @@ __PACKAGE__->belongs_to(
     on_update     => "NO ACTION",
   },
 );
+
+sub for_data_table
+{   my ($self, %params) = @_;
+    my $site = $params{site};
+    my $return = {
+        _id => $self->id,
+        ID => {
+            type   => 'id',
+            name   => 'ID',
+            values => [$self->id]
+        },
+        "Site ID" => {
+            type   => 'string',
+            name   => 'Site ID',
+            values => [$self->site_id],
+        },
+        Type => {
+            type   => 'string',
+            name   => 'Type',
+            values => [$self->type],
+        },
+        Name => {
+            type   => 'string',
+            name   => 'Name',
+            values => [$self->name],
+        },
+        enabled => {
+            type   => 'string',
+            name   => 'enabled',
+            values => [$self->enabled ? "Enabled" : "Disabled"],
+        },
+    };
+
+    $return;
+}
 
 sub error_messages_decoded
 {   my $self = shift;

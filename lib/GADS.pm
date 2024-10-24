@@ -26,6 +26,7 @@ use File::Temp qw/ tempfile /;
 use GADS::Alert;
 use GADS::Approval;
 use GADS::Audit;
+use GADS::Authentication;
 use GADS::Layout;
 use GADS::Column;
 use GADS::Column::Autocur;
@@ -477,18 +478,23 @@ get '/saml' => sub {
 
 post '/saml' => sub {
 
-    my $saml = GADS::SAML->new(
-        request_id => session('request_id'),
-        base_url   => request->base,
-    );
-    my $callback = $saml->callback(
-        saml_response => body_parameters->get('SAMLResponse'),
-    );
-
     my $authentication = schema->resultset('Authentication')->find(session 'authentication_id')
         or error "Error finding authentication provider";
 
-    my $username = $callback->{nameid};
+    my $saml = GADS::SAML->new(
+        authentication => $authentication,
+        request_id => session('request_id'),
+        base_url   => request->base,
+    );
+
+    my $callback = $saml->callback(
+        saml_response => body_parameters->get('SAMLResponse'),
+        cacert        => $authentication->cacert,
+    );
+
+    my $username = $callback->{nameid}
+        or error __"Missing nameid in SAML response";
+
     my $user = schema->resultset('User')->active->search({ username => $username })->next;
 
     if (!$user)
@@ -496,6 +502,8 @@ post '/saml' => sub {
         my $msg = $authentication->user_not_found_error;
         return forwardHome({ danger => __x($msg, username => $username) }, 'login?password=1' );
     }
+
+    # TIM FIXME add in the group attributes here
 
     $user->update_attributes($callback->{attributes});
     $user->update({ lastlogin => DateTime->now });
@@ -1501,6 +1509,26 @@ any ['get', 'post'] => '/user_export/?' => require_any_role [qw/useradmin supera
     template 'user/user_export' => {
         exports         => schema->resultset('Export')->user(logged_in_user->id),
         page            => 'user',
+    };
+};
+
+any ['get', 'post'] => '/authentication_providers/' => require_any_role [qw/useradmin superadmin/] => sub {
+
+    my $auth = GADS::Authentication->new(schema => schema);
+    template 'authentication/providers' => {
+            values          => {
+            site_id         => "site_id", #$auth->site_id,
+            type            => "type", #$auth->type,
+            name            => "name",  #$auth->name,
+            xml             => "xm;", #$auth->xml,
+            saml2_firstname => "first", #$auth->saml2_firstname,
+            saml2_surname   => "surname", #$auth->saml2_surname,
+            enabled         => "enabled", #$auth->enabled,
+            error_messages  => "error_message", #$auth->error_messages,
+
+            },
+            permissions     => "permisission", #$auth->permissions,
+            page            => 'system_settings',
     };
 };
 
