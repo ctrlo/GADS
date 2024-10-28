@@ -454,10 +454,11 @@ has created_user => (
     builder => sub {
         my $self = shift;
 
-        # Not yet defined for new record
-        return undef if $self->new_entry;
-
         my $column = $self->layout->column_by_name_short('_created_user');
+
+        # Default to current user drafting record if new record
+        return $self->_person($self->user->id, $column)
+            if $self->new_entry;
 
         my $value = $self->set_record_created_user || $self->record->{record_created_user};
 
@@ -512,10 +513,11 @@ has edited_user => (
     builder => sub {
         my $self = shift;
 
-        # Not yet defined for new record
-        return undef if $self->new_entry;
-
         my $column = $self->layout->column_by_name_short('_version_user');
+
+        # Default to current user drafting record if new record
+        return $self->_person($self->user->id, $column)
+            if $self->new_entry;
 
         # Has it been retrieved as part of sql query?
         if ($self->record && exists $self->record->{createdby})
