@@ -445,10 +445,23 @@ prefix '/:layout_name' => sub {
                 $datum->set_value(\@vals);
             }
             $record->write(
-                dry_run           => 1,
-                missing_not_fatal => 1,
-                submitted_fields  => $curval->subvals_input_required,
-                submission_token  => $submission_token,
+                dry_run            => 1,
+                missing_not_fatal  => 1,
+                # XXX It is possible that the record initiating this function
+                # already has a value in a read-only field. This field, despite
+                # being read-only, should still affect the filtered drop-down.
+                # However, because this temporary record is new, it won't allow
+                # the value to be written. Ideally we would load the existing
+                # record at this point, but this would take too long with the
+                # current code. Therefore, allow the read-only value to be
+                # written to. This technically enables the user to submit a
+                # different value and therefore produce a different shortlist,
+                # so longer-term the submitted values from a filtered-curval
+                # should be validated (which should happen anyway, as they
+                # could technically be forced)
+                force_readonly_new => 1,
+                submitted_fields   => $curval->subvals_input_required,
+                submission_token   => $submission_token,
             );
         } # Missing values are reporting as non-fatal errors, and would therefore
           # not be caught by the try block and would be reported as normal (including

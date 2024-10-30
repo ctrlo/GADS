@@ -1520,6 +1520,7 @@ sub _build_selector_id
 # new version. This allows updates that aren't recorded in the history, and
 # allows the correcting of previous versions that have since been changed.
 # - force_mandatory: allow blank mandatory values
+# - force_readonly_new: allow read-only values in new records to be written to
 # - no_change_unless_blank: bork on updates to existing values unless blank
 # - dry_run: do not actually perform any writes, test only
 # - no_alerts: do not send any alerts for changed values
@@ -1693,7 +1694,7 @@ sub write
         elsif ($self->new_entry)
         {
             error __x"You do not have permission to add data to field {name}", name => $column->name
-                if !$datum->blank && !$column->user_can('write_new');
+                if !$datum->blank && !$column->user_can('write_new') && !$options{force_readonly_new};
         }
         elsif ($datum->changed && !$column->user_can('write_existing'))
         {
