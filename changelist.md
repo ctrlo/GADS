@@ -2,6 +2,28 @@
 
 -------
 
+**Version**: 2.5.9
+**Released**: 30-10-2024
+
+-------
+
+## Fixes
+
+- Allow read-only fields to be used in filtered curvals
+
+-------
+
+**Version**: 2.5.8
+**Released**: 28-10-2024
+
+-------
+
+## Fixes
+
+- Fixed unable to clone records containing curvals with user metadata
+
+-------
+
 **Version**: 2.5.7
 **Released**: 21-10-2024
 
