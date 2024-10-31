@@ -6,6 +6,8 @@ export default function createRemoveCurvalButton(element: JQuery<HTMLElement>) {
     element.on('click', (ev: JQuery.ClickEvent) => {
         const $btn = $(ev.target);
 
+        // Capture fieldset now before button removal
+        const $fieldset = $btn.closest('fieldset')
         if ($btn.closest('.table-curval-group').length) {
             if (confirm("Are you sure want to permanently remove this item?")) {
                 const curvalItem = $btn.closest(".table-curval-item");
@@ -27,5 +29,6 @@ export default function createRemoveCurvalButton(element: JQuery<HTMLElement>) {
             const $visible = $current.children("[data-list-item]:not([hidden])");
             $current.toggleClass("empty", $visible.length === 0);
         }
+        $fieldset.trigger("change")
     });
 }

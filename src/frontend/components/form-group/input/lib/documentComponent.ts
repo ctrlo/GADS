@@ -112,5 +112,7 @@ class DocumentComponent {
 }
 
 export default function documentComponent(el: JQuery<HTMLElement> | HTMLElement) {
-    new DocumentComponent(el).init();
+    const component = new DocumentComponent(el);
+    component.init();
+    return component;
 }

@@ -1,3 +1,6 @@
+import CurvalModalComponent from 'components/modal/modals/curval'
+import documentComponent from 'components/form-group/input/lib/documentComponent';
+
 /*
   Set the value of a field, depending on its type.
 
@@ -60,6 +63,32 @@ const setFieldValues = function($field, values) {
       set_string($single, value)
     })
 
+  } else if (type === "file") {
+
+    $field.find(".fileupload__files").empty()
+    // Component needs to be set up above .input--document div but below the
+    // fieldset div. The latter also has a .input class but it should be the
+    // former that becomes the component
+    let filecomp = (documentComponent($field.find('.file-upload')))
+    values.forEach(function(value, index){
+      filecomp.addFileToField({ id: value.id, name: value.filename })
+    })
+
+  } else if (type === "curval") {
+
+    // Curval values can be either integers (existing record IDs) or completely
+    // new draft records
+    let ids = values.filter((item) => Number.isInteger(item))
+    // For IDs, set them as normal enums
+    if ($field.data("is-multivalue")) {
+      set_enum_multi($field, ids)
+    } else {
+      set_enum_single($field, ids)
+    }
+    // For draft records, resubmit them through the modal
+    let records = values.filter((item) => !Number.isInteger(item))
+    let curval = (new CurvalModalComponent($field.closest('.content-block')))[0]
+    const row_cells = curval.setValue($field, records)
   } else {
 
     console.error(`Unable to set value for field ${name}: ${type}`)
@@ -89,14 +118,16 @@ const set_enum_single = function($element, values) {
   values.forEach(function(value){
     let $option
     let val
-    if (value.hasOwnProperty('id')) {
+    if (/^\d+$/.test(value)) { // Value could be a stringified integer
+      $option = $element.find(`input[value='${value}']`)
+    } else if (value.hasOwnProperty('id')) {
       val = value['id']
       $option = $element.find(`input[value='${val}']`)
     } else if (value.hasOwnProperty('text')) {
       val = value['text']
       $option = $element.find(`input[data-value='${val}']`)
     } else {
-      console.error("Unknown key for single enum")
+      console.error("Unknown value or key for single enum")
     }
     if ($option.length) {
       $option.trigger("click")
@@ -114,12 +145,14 @@ const set_enum_multi = function($element, values) {
   const text_hash = {}
 
   values.forEach((elem) => {
-    if (elem.hasOwnProperty('id')) {
+    if (/^\d+$/.test(elem)) { // Value could be a stringified integer
+      id_hash[elem] = false
+    } else if (elem.hasOwnProperty('id')) {
       id_hash[elem.id] = false
     } else if (elem.hasOwnProperty('text')) {
       text_hash[elem.text] = false
     } else {
-      console.error("Unknown key for multi enum")
+      console.error("Unknown value or key for multi enum")
     }
   })
 
@@ -133,7 +166,7 @@ const set_enum_multi = function($element, values) {
       if (!$check.is(":checked")) {
         $check.trigger("click")
       }
-      if (id_hash.hasOwnProperty($check.val())) id_hash[$check.val] = true
+      if (id_hash.hasOwnProperty($check.val())) id_hash[$check.val()] = true
       if (text_hash.hasOwnProperty($check.data("value"))) text_hash[$check.data("value")] = true
     } else {
       if ($check.is(":checked")) {
@@ -157,7 +190,14 @@ const set_enum_multi = function($element, values) {
 }
 
 const set_date = function($element, value) {
-  $element.find('input').datepicker('update', new Date(value * 1000));
+  const $input = $element.find('input')
+  if (/^\d+$/.test(value)) {
+    // Assume epoch
+    $input.datepicker('update', new Date(value * 1000));
+  } else {
+    // Otherwise assume string
+    $input.datepicker('update', value);
+  }
 }
 
 const set_daterange = function($element, value) {
@@ -166,7 +206,7 @@ const set_daterange = function($element, value) {
 }
 
 const set_string = function($element, value) {
-  $element.find('input').val(value)
+  $element.find('input').val(value).trigger("change")
 }
 
 const set_tree = function($field, values) {
@@ -183,7 +223,9 @@ const set_tree = function($field, values) {
   $jstree.deselect_all()
   values.forEach(function(value){
     let id;
-    if (value.hasOwnProperty('id')) {
+    if (/^\d+$/.test(value)) { // Value could be a stringified integer
+      id = value
+    } else if (value.hasOwnProperty('id')) {
       id = value['id']
     } else if (value.hasOwnProperty('text')) {
       if (nodes_hash.hasOwnProperty(value['text'])) {
