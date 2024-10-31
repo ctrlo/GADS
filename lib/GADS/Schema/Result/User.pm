@@ -16,6 +16,9 @@ use GADS::Config;
 use GADS::Email;
 use HTML::Entities qw/encode_entities/;
 use Log::Report;
+use MIME::Base64 qw/encode_base64url/;
+use Digest::SHA qw/hmac_sha256 sha256/;
+use JSON qw(encode_json);
 use Moo;
 
 extends 'DBIx::Class::Core';
@@ -1224,6 +1227,36 @@ sub export_hash
         groups                => [map $_->id, $self->groups],
         permissions           => [map $_->permission->name, $self->user_permissions],
     };
+}
+
+has jwt_token => (
+    is      => 'lazy',
+);
+
+sub _build_jwt_token {
+  my $self = shift;
+  my $site = $self->result_source->schema->resultset('Site')->next;
+
+  panic __"No site defined" unless $site;
+
+  my $header = {
+    typ => 'JWT',
+    alg => 'HS256',
+  };
+
+  my $payload = {
+    sub => $self->id,
+    user => $self->username
+  };
+
+  my $header_b64 = encode_base64url(encode_json($header));
+  my $payload_b64 = encode_base64url(encode_json($payload));
+  my $input = "$header_b64.$payload_b64";
+  my $secret = sha256($site->host);
+  my $sig = hmac_sha256($input, $secret);
+  my $sig_b64 = encode_base64url($sig);
+
+  return "$input.$sig_b64";
 }
 
 1;
