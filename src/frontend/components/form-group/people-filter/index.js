@@ -1,4 +1,4 @@
-import { getComponentElements, initializeComponent } from "component"
+import { getComponentElements, initializeComponent } from "component";
 
 export default (scope) => {
     if(!getComponentElements(scope,".people-filter").length) return;
@@ -6,4 +6,4 @@ export default (scope) => {
     import(/* webpackChunkName: "people-filter" */ "./lib/component").then(({default: component}) => {
         initializeComponent(scope, ".people-filter", component);
     });
-}
+};

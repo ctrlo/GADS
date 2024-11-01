@@ -1,29 +1,29 @@
-import { Component } from 'component'
-import '../../../js/lib/jqplot/jquery.jqplot.min'
-import '../../../js/lib/jqplot/jqplot.barRenderer'
-import '../../../js/lib/jqplot/jqplot.pieRenderer'
-import '../../../js/lib/jqplot/jqplot.donutRenderer'
-import '../../../js/lib/jqplot/jqplot.canvasTextRenderer'
-import '../../../js/lib/jqplot/jqplot.categoryAxisRenderer'
-import '../../../js/lib/jqplot/jqplot.canvasAxisLabelRenderer'
-import '../../../js/lib/jqplot/jqplot.canvasAxisTickRenderer'
-import '../../../js/lib/jqplot/jqplot.highlighter'
+import { Component } from 'component';
+import '../../../js/lib/jqplot/jquery.jqplot.min';
+import '../../../js/lib/jqplot/jqplot.barRenderer';
+import '../../../js/lib/jqplot/jqplot.pieRenderer';
+import '../../../js/lib/jqplot/jqplot.donutRenderer';
+import '../../../js/lib/jqplot/jqplot.canvasTextRenderer';
+import '../../../js/lib/jqplot/jqplot.categoryAxisRenderer';
+import '../../../js/lib/jqplot/jqplot.canvasAxisLabelRenderer';
+import '../../../js/lib/jqplot/jqplot.canvasAxisTickRenderer';
+import '../../../js/lib/jqplot/jqplot.highlighter';
 
 class GraphComponent extends Component {
   constructor(element) {
-    super(element)
-    this.graphContainer = $(this.element).find('.graph__container')
+    super(element);
+    this.graphContainer = $(this.element).find('.graph__container');
 
     if (this.graphContainer.length) {
-      this.initGraph()
+      this.initGraph();
     }
   }
 
   initGraph() {
-    $.jqplot.config.enablePlugins = true
-    const data = this.graphContainer.data()
-    const jsonurl = this.getURL(data)
-    const plotData = this.ajaxDataRenderer(jsonurl)
+    $.jqplot.config.enablePlugins = true;
+    const data = this.graphContainer.data();
+    const jsonurl = this.getURL(data);
+    const plotData = this.ajaxDataRenderer(jsonurl);
     const options_in = {
       type: data.graphType,
       x_axis_name: data.xAxisName,
@@ -31,45 +31,45 @@ class GraphComponent extends Component {
       stackseries: data.stackseries,
       showlegend: data.showlegend,
       id: data.graphId
-    }
-    this.do_plot(plotData, options_in)
+    };
+    this.do_plot(plotData, options_in);
   }
 
   getURL(data) {
-    let devEndpoint
+    let devEndpoint;
 
     if (['bar', 'line', 'scatter'].indexOf(data.graphType) > -1) {
-      devEndpoint = window.siteConfig && window.siteConfig.urls.barApi
+      devEndpoint = window.siteConfig && window.siteConfig.urls.barApi;
     } else if (['donut', 'pie'].indexOf(data.graphType) > -1) {
-      devEndpoint = window.siteConfig && window.siteConfig.urls.pieApi
+      devEndpoint = window.siteConfig && window.siteConfig.urls.pieApi;
     }
 
     if (devEndpoint) {
-      return devEndpoint
+      return devEndpoint;
     } else {
-      const time = new Date().getTime()
-      return `/${data.layoutId}/data_graph/${data.graphId}/${time}`
+      const time = new Date().getTime();
+      return `/${data.layoutId}/data_graph/${data.graphId}/${time}`;
     }
   }
 
   ajaxDataRenderer(url) {
-    let ret = null
+    let ret = null;
 
     $.ajax({
       async: false,
       url: url,
       dataType: 'json',
       success: function(data) {
-        ret = data
+        ret = data;
       }
-    })
-    return ret
+    });
+    return ret;
   }
 
   do_plot(plotData, options_in) {
-    const ticks = plotData.xlabels
-    let plotOptions = {}
-    const showmarker = options_in.type == 'line' ? true : false
+    const ticks = plotData.xlabels;
+    let plotOptions = {};
+    const showmarker = options_in.type == 'line' ? true : false;
 
     plotOptions.highlighter = {
       showMarker: showmarker,
@@ -77,15 +77,15 @@ class GraphComponent extends Component {
         plot._plotData[pointIndex][index][1]
     };
 
-    const seriesDefaults = this.makeSeriesDefaults()
+    const seriesDefaults = this.makeSeriesDefaults();
     if (options_in.type in seriesDefaults) {
-      plotOptions.seriesDefaults = seriesDefaults[options_in.type]
+      plotOptions.seriesDefaults = seriesDefaults[options_in.type];
     } else {
-      plotOptions.seriesDefaults = seriesDefaults.default
+      plotOptions.seriesDefaults = seriesDefaults.default;
     }
 
     if (options_in.type != 'donut' && options_in.type != 'pie') {
-      plotOptions.series = plotData.labels
+      plotOptions.series = plotData.labels;
       plotOptions.axes = {
         xaxis: {
           renderer: $.jqplot.CategoryAxisRenderer,
@@ -97,7 +97,7 @@ class GraphComponent extends Component {
           label: options_in.y_axis_label,
           labelRenderer: $.jqplot.CanvasAxisLabelRenderer
         }
-      }
+      };
 
       if (plotData.options.y_max) {
         plotOptions.axes.yaxis.max = plotData.options.y_max;
@@ -106,7 +106,7 @@ class GraphComponent extends Component {
       if (plotData.options.is_metric) {
         plotOptions.axes.yaxis.tickOptions = {
           formatString: '%d%'
-        }
+        };
       }
 
       plotOptions.axesDefaults = {
@@ -115,20 +115,20 @@ class GraphComponent extends Component {
           angle: -30,
           fontSize: '8pt'
         }
-      }
+      };
     }
-    plotOptions.stackSeries = options_in.stackseries
+    plotOptions.stackSeries = options_in.stackseries;
     plotOptions.legend = {
       renderer: $.jqplot.EnhancedLegendRenderer,
       show: options_in.showlegend,
       location: 'ne',
       placement: 'inside'
-    }
+    };
     plotOptions.grid = {
       background: '#ffffff',
       shadow: false
-    }
-    $(`[data-chart-id=${options_in.id}]`).jqplot(plotData.points, plotOptions)
+    };
+    $(`[data-chart-id=${options_in.id}]`).jqplot(plotData.points, plotOptions);
   }
 
   makeSeriesDefaults = () => ({
@@ -167,7 +167,7 @@ class GraphComponent extends Component {
         show: false
       }
     }
-  })
+  });
 }
 
-export default GraphComponent
+export default GraphComponent;

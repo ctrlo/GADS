@@ -12,7 +12,7 @@ export default function createCancelButton(el: HTMLElement|JQuery<HTMLElement>) 
             const field_id = $(el).data("column-id");
             console.log("Field ID:",field_id);
             ls.getItem(`linkspace-column-${field_id}`) && ls.removeItem(`linkspace-column-${field_id}`);
-        })
+        });
         if (href)
             window.location.href = href;
         else

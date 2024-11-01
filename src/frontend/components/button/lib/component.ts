@@ -1,4 +1,4 @@
-import {Component} from 'component'
+import {Component} from 'component';
 
 /**
  * Button component
@@ -30,8 +30,8 @@ class ButtonComponent extends Component {
      * @param element {HTMLElement} The button element
      */
     constructor(element: HTMLElement) {
-        super(element)
-        this.initButton(element)
+        super(element);
+        this.initButton(element);
     }
 
     /**
@@ -42,13 +42,13 @@ class ButtonComponent extends Component {
         map.set('btn-js-report', (el) => {
             import(/* webpackChunkName: "create-report-button" */ './create-report-button')
                 .then(({default: CreateReportButtonComponent}) => {
-                    new CreateReportButtonComponent(el)
+                    new CreateReportButtonComponent(el);
                 });
         });
         map.set('btn-js-more-info', (el) => {
             import(/* webpackChunkName: "more-info-button" */ './more-info-button')
                 .then(({default: createMoreInfoButton}) => {
-                    createMoreInfoButton(el)
+                    createMoreInfoButton(el);
                 });
         });
         map.set('btn-js-delete', (el) => {
@@ -119,7 +119,7 @@ class ButtonComponent extends Component {
      * @param element {HTMLElement} The button element
      */
     private initButton(element: HTMLElement) {
-        const el: JQuery<HTMLElement> = $(element)
+        const el: JQuery<HTMLElement> = $(element);
         element.classList.forEach((className) => {
             if(!className.startsWith('btn-js-')) return;
             if (!this.buttonsMap) throw "Buttons map is not initialized";
@@ -130,4 +130,4 @@ class ButtonComponent extends Component {
     }
 }
 
-export default ButtonComponent
+export default ButtonComponent;

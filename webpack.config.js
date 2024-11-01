@@ -11,7 +11,6 @@ const plugins = [
   new webpack.ProvidePlugin({
     $: 'jquery',
     jQuery: 'jquery',
-    Buffer: ['buffer', 'Buffer'],
   }),
   new MiniCssExtractPlugin({
     filename: '[name].css',

@@ -1,8 +1,8 @@
 //import { getComponentElements, initializeComponent } from 'component'
-import { initializeComponent } from 'component'
-import CurvalModalComponent from './lib/component'
+import { initializeComponent } from 'component';
+import CurvalModalComponent from './lib/component';
 
-export default (scope) => initializeComponent(scope, '.modal--curval', CurvalModalComponent)
+export default (scope) => initializeComponent(scope, '.modal--curval', CurvalModalComponent);
 
 //export default (scope) => {
 //    if (!getComponentElements(scope, '.modal--curval').length) return;

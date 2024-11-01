@@ -31,7 +31,7 @@ class DocumentComponent {
 
         if (dropTarget) {
             const dragOptions = { allowMultiple: false };
-            (<any>dropTarget).filedrag(dragOptions).on('onFileDrop', (_ev: JQuery.DropEvent, file: File) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+            (<any>dropTarget).filedrag(dragOptions).on('onFileDrop', (_ev: JQuery.DropEvent, file: File) => {
                 this.handleAjaxUpload(url, csrf_token, file);
             });
         } else {

@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
-import { Component } from 'component'
-import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
-import 'bootstrap-select/dist/js/bootstrap-select'
-import { logging } from 'logging'
-import TypeaheadBuilder from 'util/typeahead'
-import { refreshSelects } from 'components/form-group/common/bootstrap-select'
+import { Component } from 'component';
+import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min';
+import 'bootstrap-select/dist/js/bootstrap-select';
+import { logging } from 'logging';
+import TypeaheadBuilder from 'util/typeahead';
+import { refreshSelects } from 'components/form-group/common/bootstrap-select';
 
 class FilterComponent extends Component {
   constructor(element)  {
-    super(element)
-    this.el = $(this.element)
+    super(element);
+    this.el = $(this.element);
     this.operators = [
       {
         type: 'equal',
@@ -70,7 +70,7 @@ class FilterComponent extends Component {
         multiple: false,
         apply_to: ['string', 'number', 'datetime']
       }
-    ]
+    ];
     this.ragProperties = {
       input: 'select',
       values: {
@@ -83,24 +83,24 @@ class FilterComponent extends Component {
         d_blue: 'Blue',
         b_attention: 'Red (Attention)'
       }
-    }
+    };
 
-    this.initFilter()
+    this.initFilter();
   }
 
   initFilter() {
-    const self = this
-    const $builderEl = this.el
-    const builderID = $(this.el).data('builder-id')
-    const $builderJSON = $(`#builder_json_${builderID}`)
+    const self = this;
+    const $builderEl = this.el;
+    const builderID = $(this.el).data('builder-id');
+    const $builderJSON = $(`#builder_json_${builderID}`);
 
-    if (!$builderJSON.length) return
+    if (!$builderJSON.length) return;
 
-    const builderConfig = JSON.parse($builderJSON.html())
-    const filterBase = $builderEl.data('filter-base')
+    const builderConfig = JSON.parse($builderJSON.html());
+    const filterBase = $builderEl.data('filter-base');
 
-    if (!builderConfig.filters.length) return
-    if (builderConfig.filterNotDone) this.makeUpdateFilter()
+    if (!builderConfig.filters.length) return;
+    if (builderConfig.filterNotDone) this.makeUpdateFilter();
 
     refreshSelects(this.el);
 
@@ -116,7 +116,7 @@ class FilterComponent extends Component {
           changed_after: 'changed on or after'
         }
       }
-    })
+    });
 
     $builderEl.on('validationError.queryBuilder', function(e, node, error, value) {
       logging.log(error);
@@ -126,43 +126,43 @@ class FilterComponent extends Component {
     });
 
     $builderEl.on('afterCreateRuleInput.queryBuilder', function(e, rule) {
-      let filterConfig
+      let filterConfig;
 
       builderConfig.filters.forEach(function(value) {
         if (value.filterId === rule.filter.id) {
-          filterConfig = value
-          return false
+          filterConfig = value;
+          return false;
         }
-      })
+      });
 
       if (!filterConfig || filterConfig.type === 'rag' || !filterConfig.hasFilterTypeahead) {
-        return
+        return;
       }
 
       const $ruleInputText = $(
         `#${rule.id} .rule-value-container input[type='text']`
-      )
+      );
 
       const $ruleInputHidden = $(
         `#${rule.id} .rule-value-container input[type='hidden']`
-      )
+      );
 
-      $ruleInputText.attr('autocomplete', 'off')
+      $ruleInputText.attr('autocomplete', 'off');
 
       $ruleInputText.on('keyup', () => {
-        $ruleInputHidden.val($ruleInputText.val())
-      })
+        $ruleInputHidden.val($ruleInputText.val());
+      });
 
       const filterCallback = (suggestion) => {
         if(filterConfig.useIdInFilter) {
-          $ruleInputHidden.val(suggestion.id)
+          $ruleInputHidden.val(suggestion.id);
         }else {
-          $ruleInputHidden.val(suggestion.name)
+          $ruleInputHidden.val(suggestion.name);
         }
-      }
+      };
 
       // This is required to ensure that the correct query is sent each time
-      const buildQuery = () => {return {q:$ruleInputText.val(), oi:filterConfig.instanceId}}
+      const buildQuery = () => {return {q:$ruleInputText.val(), oi:filterConfig.instanceId};};
 
       const builder = new TypeaheadBuilder();
       builder
@@ -173,41 +173,41 @@ class FilterComponent extends Component {
         .withName('rule')
         .withAppendQuery()
         .withCallback(filterCallback)
-        .build()
-    })
+        .build();
+    });
 
     if(filterBase) {
-      const data = atob(filterBase, 'base64')
+      const data = atob(filterBase, 'base64');
       try {
         const obj = JSON.parse(data);
         if (obj.rules && obj.rules.length) {
-          $builderEl.queryBuilder('setRules', obj)
+          $builderEl.queryBuilder('setRules', obj);
         } else {
           // Ensure that no blank rules by default, otherwise view cannot be submitted
-          $builderEl.queryBuilder('setRules', {rules:[]})
+          $builderEl.queryBuilder('setRules', {rules:[]});
         }
-      } catch (error) {
-        logging.log('Incorrect data object passed to queryBuilder')
+      } catch {
+        logging.log('Incorrect data object passed to queryBuilder');
       }
     }
   }
 
   getURL(layoutId, urlSuffix) {
-    const devEndpoint = window.siteConfig && window.siteConfig.urls.filterApi
+    const devEndpoint = window.siteConfig && window.siteConfig.urls.filterApi;
 
     if (devEndpoint) {
-      return devEndpoint
+      return devEndpoint;
     } else {
-      return `/${layoutId}/match/layout/${urlSuffix}?q=`
+      return `/${layoutId}/match/layout/${urlSuffix}?q=`;
     }
   }
 
   makeUpdateFilter() {
     window.UpdateFilter = (builder, ev) => {
       if (!builder.queryBuilder('validate')) ev.preventDefault();
-      const res = builder.queryBuilder('getRules')
-      $('#filter').val(JSON.stringify(res, null, 2))
-    }
+      const res = builder.queryBuilder('getRules');
+      $('#filter').val(JSON.stringify(res, null, 2));
+    };
   }
 
   buildFilter = (builderConfig, col) => {
@@ -226,11 +226,11 @@ class FilterComponent extends Component {
           col.useIdInFilter
         )
       : {})
-  })
-}
+  });
+};
 
   buildFilterOperators(type) {
-    if (!['date', 'daterange'].includes(type)) return undefined
+    if (!['date', 'daterange'].includes(type)) return undefined;
     const operators = [
       'equal',
       'not_equal',
@@ -240,9 +240,9 @@ class FilterComponent extends Component {
       'greater_or_equal',
       'is_empty',
       'is_not_empty'
-    ]
-    type === 'daterange' && operators.push('contain')
-    return operators
+    ];
+    type === 'daterange' && operators.push('contain');
+    return operators;
   }
 
   typeaheadProperties = () => ({
@@ -252,18 +252,18 @@ class FilterComponent extends Component {
           <input class='form-control typeahead_text' type='text' name='${input_name}_text'/>
           <input class='form-control typeahead_hidden' type='hidden' name='${input_name}'/>
         </div>`
-      )
+      );
     },
     valueSetter: (rule, value) => {
-      rule.$el.find('.typeahead_hidden').val(value)
-      const typeahead = rule.$el.find('.typeahead_text')
-      typeahead.typeahead('val',rule.data.text)
-      typeahead.val(rule.data.text)
+      rule.$el.find('.typeahead_hidden').val(value);
+      const typeahead = rule.$el.find('.typeahead_text');
+      typeahead.typeahead('val',rule.data.text);
+      typeahead.val(rule.data.text);
     },
     validation: {
-      callback: () => {return true}
+      callback: () => {return true;}
     }
-  })
+  });
 
   getRecords = (layoutId, urlSuffix, instanceId, query) => {
     return (
@@ -274,8 +274,8 @@ class FilterComponent extends Component {
         dataType: 'json',
         path: 'records'
       })
-    )
-  }
+    );
+  };
 }
 
-export default FilterComponent
+export default FilterComponent;

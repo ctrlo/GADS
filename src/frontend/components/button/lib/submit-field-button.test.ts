@@ -4,7 +4,7 @@ import SubmitFieldButtonComponent from "./submit-field-button";
 describe("Submit field button tests", () => {
     beforeEach(()=>{
         initGlobals();
-    })
+    });
 
     async function loadSubmitFieldButtonComponent(element: HTMLElement) {
         const {default: SubmitFieldButtonComponent} = await import("./submit-field-button");
@@ -21,7 +21,7 @@ describe("Submit field button tests", () => {
     });
 
     it("should perform changes to tree component when one is present", async () => {
-        const treeConfig = document.createElement("div")
+        const treeConfig = document.createElement("div");
         treeConfig.id = "tree-config";
         const treeElement = document.createElement("div");
         treeElement.classList.add("tree-widget-container");

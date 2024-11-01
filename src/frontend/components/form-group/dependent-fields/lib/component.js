@@ -1,10 +1,10 @@
-import { Component } from 'component'
-import { getFieldValues } from "get-field-values"
+import { Component } from 'component';
+import { getFieldValues } from "get-field-values";
 
 class DependentFieldsComponent extends Component {
   constructor(element)  {
-    super(element)
-    this.initDependentFields()
+    super(element);
+    this.initDependentFields();
   }
 
   initDependentFields() {
@@ -165,4 +165,4 @@ class DependentFieldsComponent extends Component {
   }
 }
 
-export default DependentFieldsComponent
+export default DependentFieldsComponent;

@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
-import { Component } from 'component'
-import 'summernote/dist/summernote-bs4'
-import { logging } from 'logging'
+import { Component } from 'component';
+import 'summernote/dist/summernote-bs4';
+import { logging } from 'logging';
 
 class SummerNoteComponent extends Component {
     constructor(element)  {
-      super(element)
-      this.initSummerNote()
+      super(element);
+      this.initSummerNote();
     }
 
     initSummerNote() {
@@ -28,33 +28,33 @@ class SummerNoteComponent extends Component {
           // Load initial content
           onInit: function() {
             const $sum_div = $(this);
-            const $sum_input = $sum_div.siblings('input[type=hidden].summernote_content')
-            $(this).summernote('code', $sum_input.val())
+            const $sum_input = $sum_div.siblings('input[type=hidden].summernote_content');
+            $(this).summernote('code', $sum_input.val());
           },
           onImageUpload: function(files) {
             for (var i = 0; i < files.length; i++) {
-              self.handleHtmlEditorFileUpload(files[i], this)
+              self.handleHtmlEditorFileUpload(files[i], this);
             }
           },
           onChange: function(contents) {
-            const $sum_div = $(this).closest('.summernote')
+            const $sum_div = $(this).closest('.summernote');
             // Ensure submitted content is empty string if blank content
             // (easier checking for blank values)
             if ($sum_div.summernote('isEmpty')) {
-              contents = ''
+              contents = '';
             }
-            var $sum_input = $sum_div.siblings('input[type=hidden].summernote_content')
-            $sum_input.val(contents)
+            var $sum_input = $sum_div.siblings('input[type=hidden].summernote_content');
+            $sum_input.val(contents);
           }
         }
-      })
+      });
     }
 
     handleHtmlEditorFileUpload(file, el) {
       if (file.type.includes('image')) {
-        const data = new FormData()
-        data.append('file', file)
-        data.append('csrf_token', $('body').data('csrf'))
+        const data = new FormData();
+        data.append('file', file);
+        data.append('csrf_token', $('body').data('csrf'));
         $.ajax({
           url: '/file?ajax&is_independent',
           type: 'POST',
@@ -65,18 +65,18 @@ class SummerNoteComponent extends Component {
           data: data,
           success: function(response) {
             if (response.is_ok) {
-              $(el).summernote('editor.insertImage', response.url)
+              $(el).summernote('editor.insertImage', response.url);
             } else {
-              logging.error(response.error)
+              logging.error(response.error);
             }
           }
         }).fail(function(e) {
-          logging.error(e)
-        })
+          logging.error(e);
+        });
       } else {
-        logging.error('The type of file uploaded was not an image')
+        logging.error('The type of file uploaded was not an image');
       }
     }
 }
 
-export default SummerNoteComponent
+export default SummerNoteComponent;

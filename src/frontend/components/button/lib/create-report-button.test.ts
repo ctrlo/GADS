@@ -1,5 +1,6 @@
 import "../../../testing/globals.definitions";
 import {validateRequiredFields} from 'validation';
+import { it, describe, expect } from "@jest/globals";
 import CreateReportButtonComponent from "./create-report-button";
 
 describe('create-report-button', () => {
@@ -54,7 +55,7 @@ describe('create-report-button', () => {
       </form>
     `;
 
-        let $submit = $('#submit');
+        const $submit = $('#submit');
         new CreateReportButtonComponent($submit);
         const submitSpy = jest.fn((ev) => {
             ev.preventDefault();

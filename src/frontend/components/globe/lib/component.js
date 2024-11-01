@@ -1,20 +1,20 @@
-import { Component } from 'component'
-import * as Plotly from 'plotly/plotly-geo-2.26.0'
+import { Component } from 'component';
+import * as Plotly from 'plotly/plotly-geo-2.26.0';
 // Use following line once patches merged upstream
 // import Plotly from 'plotly.js-geo-dist'
 
 class GlobeComponent extends Component {
   constructor(element)  {
-    super(element)
-    this.initGlobe()
+    super(element);
+    this.initGlobe();
   }
 
   initGlobe() {
-    Plotly.setPlotConfig({ locale: "en-GB" })
+    Plotly.setPlotConfig({ locale: "en-GB" });
 
-    const globeBase = $(this.element).data("globe-data")
-    const globe_data = JSON.parse(atob(globeBase))
-    const data = globe_data.data
+    const globeBase = $(this.element).data("globe-data");
+    const globe_data = JSON.parse(atob(globeBase));
+    const data = globe_data.data;
 
     const layout = {
       margin: {
@@ -29,14 +29,14 @@ class GlobeComponent extends Component {
         countrycolor: "grey",
         resolution: 110
       }
-    }
+    };
 
     const options = {
       showLink: false,
       displaylogo: false,
       modeBarButtonsToRemove: ["sendDataToCloud"],
       topojsonURL: $(this.element).data("topojsonurl")
-    }
+    };
 
     Plotly.newPlot(this.element, data, layout, options).then(function(gd) {
       // Set up handler to show records of country when country is clicked
@@ -69,9 +69,9 @@ class GlobeComponent extends Component {
           url = url + "&extra=" + params.default_view_limit_extra_id;
         }
         location.href = url;
-      })
-    })
+      });
+    });
   }
 }
 
-export default GlobeComponent
+export default GlobeComponent;

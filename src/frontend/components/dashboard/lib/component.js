@@ -1,4 +1,4 @@
-import { Component } from 'component'
+import { Component } from 'component';
 import "react-app-polyfill/stable";
 
 import "core-js/es/array/is-array";
@@ -17,8 +17,8 @@ import ApiClient from "./react/api";
 
 class DashboardComponent extends Component {
   constructor(element)  {
-    super(element)
-    this.el = $(this.element)
+    super(element);
+    this.el = $(this.element);
     
     this.gridConfig = {
       cols: 2,
@@ -27,7 +27,7 @@ class DashboardComponent extends Component {
       rowHeight: 80,
     };
 
-    this.initDashboard()
+    this.initDashboard();
   }
 
   initDashboard() {
@@ -57,4 +57,4 @@ class DashboardComponent extends Component {
   }
 }
 
-export default DashboardComponent
+export default DashboardComponent;

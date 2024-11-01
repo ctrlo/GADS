@@ -37,7 +37,7 @@ const getFieldValues = function($depends, filtered, for_code, for_autosave) {
     if ($depends.data('value-selector') == "noshow") {
       $depends.find('.table-curval-group').find('input').each(function(){
         const item = $(this);
-        values.push(item)
+        values.push(item);
       });
     } else if (filtered) {
       // Field is type "filval". Therefore the values are any visible value in
@@ -116,7 +116,7 @@ const getFieldValues = function($depends, filtered, for_code, for_autosave) {
           let parents = {};
           ps.filter(id => id !== '#').reverse().forEach(function(id, index) {
             parents["parent"+(index+1)] = jstree.get_node(id).text;
-          })
+          });
           values.push({
             value: node.text,
             parents: parents
@@ -180,12 +180,12 @@ const getFieldValues = function($depends, filtered, for_code, for_autosave) {
         return {
             from: dr.from.val(),
             to: dr.to.val()
-        }
-      })
+        };
+      });
     } else {
       values = dateranges.map(function(dr) {
         return dr.from.val() + ' to ' + dr.to.val();
-      })
+      });
     }
 
   } else if (type === "date") {
@@ -214,9 +214,9 @@ const getFieldValues = function($depends, filtered, for_code, for_autosave) {
         return {
             id: $(this).val(),
             filename: $(this).data('filename')
-        }
+        };
       } else {
-        return $(this).data('filename')
+        return $(this).data('filename');
       }
     }).get();
 

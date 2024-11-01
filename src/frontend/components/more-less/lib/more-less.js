@@ -1,28 +1,28 @@
 class MoreLess {
   // A list of observers
   constructor() {
-    this.observers = []
+    this.observers = [];
   }
 
   // Method for subscribing to, or "observing" observable
   addSubscriber(subscriber) {
-    this.observers.push(subscriber)
+    this.observers.push(subscriber);
   }
 
   // Method for unsubscribing from observable
   unsubscribe(subscriber) {
-    var index = this.observers.indexOf(subscriber)
-    this.observers.splice(index, 1)
+    var index = this.observers.indexOf(subscriber);
+    this.observers.splice(index, 1);
   }
 
   // Reinitialize
   reinitialize() {
-    this.observers.forEach(item => item.reInitMoreLess?.())
+    this.observers.forEach(item => item.reInitMoreLess?.());
   }
 }
 
-const moreLess = new MoreLess
+const moreLess = new MoreLess;
 
-export { moreLess }
+export { moreLess };
 
 

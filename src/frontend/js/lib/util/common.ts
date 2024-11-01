@@ -18,14 +18,14 @@ export const showElement = (element: HTMLElement | ElementLike |JQuery<HTMLEleme
     $el.removeAttr('style');
 };
 
-export const fromJson = (json: String | object) => {
+export const fromJson = (json: string | object) => {
     try {
         if (!json || json === '') return {};
         if (typeof json === 'string') {
             return JSON.parse(json);
         }
         return json;
-    } catch (e) {
+    } catch {
         return {};
     }
-}
+};

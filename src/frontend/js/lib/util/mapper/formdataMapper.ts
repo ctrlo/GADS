@@ -14,4 +14,4 @@ export const formdataMapper = <T>(data: FormData | T) => {
         formData.append(key, value);
     });
     return formData;
-}
+};
