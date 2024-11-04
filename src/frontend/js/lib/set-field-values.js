@@ -18,8 +18,7 @@ const setFieldValues = function($field, values) {
   const name = $field.data("name");
 
   if (!Array.isArray(values)) {
-    console.error(`Attempt to set value for ${name} without array`);
-    return;
+    throw new Error(`Attempt to set value for ${name} without array`);
   }
 
   if (type === "enum") {
@@ -87,12 +86,10 @@ const setFieldValues = function($field, values) {
     }
     // For draft records, resubmit them through the modal
     let records = values.filter((item) => !Number.isInteger(item));
-    let curval = (new CurvalModalComponent($field.closest('.content-block')))[0];
+    let curval = (CurvalModalComponent($field.closest('.content-block')))[0];
     curval.setValue($field, records);
   } else {
-
-    console.error(`Unable to set value for field ${name}: ${type}`);
-
+    throw new Error(`Unable to set value for field ${name}: ${type}`);
   }
 };
 
@@ -127,7 +124,7 @@ const set_enum_single = function($element, values) {
       val = value['text'];
       $option = $element.find(`input[data-value='${val}']`);
     } else {
-      console.error("Unknown value or key for single enum");
+      throw new Error("Unknown value or key for single enum");
     }
     if ($option.length) {
       $option.trigger("click");
@@ -152,7 +149,7 @@ const set_enum_multi = function($element, values) {
     } else if (Object.prototype.hasOwnProperty.call(elem, 'text')) {
       text_hash[elem.text] = false;
     } else {
-      console.error("Unknown value or key for multi enum");
+      throw new Error("Unknown value or key for multi enum");
     }
   });
 
@@ -234,7 +231,7 @@ const set_tree = function($field, values) {
         console.debug("Unknown text value for tree: " + value['text']);
       }
     } else {
-        console.error("Unknown value key for tree");
+        throw new Error("Unknown value key for tree");
     }
     $jstree.select_node(id);
   });

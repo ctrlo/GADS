@@ -1,3 +1,5 @@
+import { clearSavedFormValues } from "./common";
+
 /**
  * Create a submit draft record button
  * @param element {JQuery<HTMLElement>} The button element
@@ -9,5 +11,6 @@ export default function createSubmitDraftRecordButton(element: JQuery<HTMLElemen
 
         // Remove the required attribute from hidden required dependent fields
         $form.find(".form-group *[aria-required]").removeAttr('required');
+        clearSavedFormValues(ev.target.closest("form"));
     });
 }

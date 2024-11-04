@@ -39,8 +39,10 @@ class AutosaveModal extends Component {
     const item = await gadsStorage.getItem(this.table_key, 'local');
     console.log('item', item);
 
-    if (item)
+    if (item){
       $modal.modal('show');
+      $modal.find('.btn-js-delete-values').attr('disabled', 'disabled').hide();
+    }
   }
 
 }
