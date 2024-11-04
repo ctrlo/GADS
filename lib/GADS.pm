@@ -4421,14 +4421,14 @@ prefix '/:layout_name' => sub {
 
 };
 
-get '/get_jwt' => require_login sub {
+get '/get_key' => require_login sub {
     my $user = logged_in_user;
 
-    my $token = $user->jwt_token;
+    my $key = $user->encryption_key;
 
     return to_json {
         error => 0,
-        token => $token
+        key   => $key
     }
 };
 
