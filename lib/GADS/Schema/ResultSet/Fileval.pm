@@ -19,7 +19,11 @@ sub independent
 }
 
 sub find_with_permission
-{   my ($self, $id, $user) = @_;
+{   my ($self, $id, $user, %options) = @_;
+
+    # Checks for whether the file is new or not, and therefore whether access is allowed
+    my $new_file_only = delete $options{new_file_only};
+    my $rename_existing = delete $options{rename_existing};
 
     my $fileval = $self->find($id) or return;
 
@@ -32,6 +36,9 @@ sub find_with_permission
     # This will control access to the file
     if ($file_rs && $file_rs->layout_id)
     {
+        error __"Access to this file is not allowed as it is not a new file"
+            if $new_file_only;
+        
         my $layout = GADS::Layout->new(
             user        => $user,
             schema      => $self->result_source->schema,
@@ -63,6 +70,8 @@ sub find_with_permission
         $file->schema($self->result_source->schema);
     }
     else {
+        error __"Access to this file is not allowed"
+            if $new_file_only || $rename_existing;
         $file->schema($self->result_source->schema);
     }
 

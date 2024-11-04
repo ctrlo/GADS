@@ -900,8 +900,10 @@
               '</span>';
             '</li>';
             END;
+             '</li>';
           '</ul>';
        '</div>';
+       
        '<div class="file-upload">';
         INCLUDE fields/file.tt
           id               = col.id

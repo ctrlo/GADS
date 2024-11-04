@@ -255,6 +255,7 @@ $btn-border-radius: 23px;
   border-bottom: 1px solid transparent;
   border-radius: 0;
   color: $brand-secundary;
+  background: $transparent;
 
   &::before {
     @extend %icon-font;
@@ -262,6 +263,8 @@ $btn-border-radius: 23px;
     content: "\E80a";
     margin-right: 0.75rem;
     color: $brand-secundary;
+    background: $transparent;
+    transition: all 0.2s ease;
   }
 
   &:hover,
@@ -271,6 +274,7 @@ $btn-border-radius: 23px;
     box-shadow: none;
     color: $brand-secundary;
     text-decoration: none;
+    background: $transparent;
   }
 }
 
@@ -497,11 +501,11 @@ $btn-border-radius: 23px;
   }
 }
 
-.sorting_asc .btn-sort::before {
+.dt-ordering-asc .btn-sort::before {
   transform: rotate(-90deg);
 }
 
-.sorting_desc .btn-sort::before {
+.dt-ordering-desc .btn-sort::before {
   transform: rotate(90deg);
 }
 
@@ -621,4 +625,9 @@ $btn-border-radius: 23px;
   @extend %icon-font;
   content: "\E807";
   color: $brand-danger;
+}
+
+.rename::before {
+  @extend %icon-font;
+  content: "\E80b";
 }

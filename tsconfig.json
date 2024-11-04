@@ -26,6 +26,9 @@
       "validation": [
         "js/lib/validation"
       ],
+      "logging": [
+        "js/lib/logging"
+      ],
     }
   },
   "include": [

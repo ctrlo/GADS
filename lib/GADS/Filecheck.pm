@@ -26,7 +26,9 @@ sub is_image
 }
 
 sub check_file
-{   my ($self, $upload) = @_;
+{   my ($self, $upload, %options) = @_;
+
+    my $check_name = $options{check_name} // 1;
 
     my $info = $magic->info_from_filename($upload->tempname);
 
@@ -52,14 +54,21 @@ sub check_file
         unless $ext =~ /^(doc|docx|pdf|jpeg|jpg|png|wav|rtf|xls|xlsx|ods|ppt|pptx|odf|odg|odt|ott|sda|sdc|sdd|sdw|sxc|sxw|odp|sdp|csv|txt|msg|tif|svg)$/i;
 
     # As recommended at https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload
-    error __x"The filename {name} is not allowed. Filenames can only contain alphanumeric characters and a single dot",
-        name => $upload->filename
-            unless $upload->filename =~ /[-+_ a-zA-Z0-9]{1,200}\.[a-zA-Z0-9]{1,10}/;
+    # Brackets have been added to this - above recommendations do not explicitly state that brackets are not allowed - Ticket #1695
+    $self->check_name($upload->filename)
+        if($check_name);
 
     error __"Maximum file size is 5 MB"
         if $upload->size > 5 * 1024 * 1024;
 
     return $info->{mime_type};
+}
+
+sub check_name {
+    my ($self, $filename) = @_;
+    error __x"The filename {name} is not allowed. Filenames can only contain alphanumeric characters and a single dot",
+        name => $filename
+            unless $filename =~ /^[-+_ a-zA-Z0-9\(\)]{1,200}\.[a-zA-Z0-9]{1,10}$/;
 }
 
 1;

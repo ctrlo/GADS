@@ -1727,6 +1727,54 @@ post '/file/:id?' => require_login sub {
     }
 };
 
+put '/api/file/:id' => require_login sub {
+    my $id     = route_parameters->get('id');
+    my $is_new = param('is_new');
+
+    my $newname = param('filename')
+        or error __"Filename is required";
+
+    $filecheck->check_name($newname);
+
+    if ($is_new)
+    {
+        my $file = schema->resultset('Fileval')->find_with_permission($id, logged_in_user, new_file_only => 1)
+            or error __x"File ID {id} cannot be found", id => $id;
+
+        $file->single_rset->update({ name => $newname });
+
+        content_type 'application/json';
+
+        return encode_json({
+            id    => $file->single_id,
+            name  => $file->single_name,
+            is_ok => 1,
+        });
+    }
+    else
+    {
+        my $file = schema->resultset('Fileval')->find_with_permission($id, logged_in_user, 
+            rename_existing => 1)
+                or error __x"File ID {id} cannot be found", id => $id;
+
+        my $newFile = rset('Fileval')->create({
+            name           => $newname,
+            mimetype       => $file->single_mimetype,
+            content        => $file->single_content,
+            is_independent => 0,
+            edit_user_id   => logged_in_user->id,
+        });
+
+        content_type 'application/json';
+
+        return encode_json({
+            id    => $newFile->id,
+            name  => $newFile->name,
+            is_ok => 1,
+        });
+    }
+};
+
 # Use api route to ensure errors are returned as JSON
 post '/api/file/?' => require_login sub {
 
@@ -1745,10 +1793,18 @@ post '/api/file/?' => require_login sub {
 
     if (my $upload = upload('file'))
     {
-        my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
+        my $mimetype = $filecheck->check_file($upload, check_name => 0); # Borks on invalid file type
+        my $filename = $upload->filename;
+
+        # Remove any invalid characters from the new name - this will possibly be changed to an error going forward
+        # Due to dragging allowing (almost) any character it is decided that this would be best so users can input what
+        # they want, and the text be stripped on rename server-side
+        # Note: This regex should mirror the regex in GADS::Filecheck::check_name()
+        $filename =~ s/[^a-zA-Z0-9\._\-\(\) ]//g;
+
         my $file;
         if (process( sub { $file = rset('Fileval')->create({
-            name           => $upload->filename,
+            name           => $filename,
             mimetype       => $mimetype,
             content        => $upload->content,
             is_independent => 0,
@@ -1757,7 +1813,7 @@ post '/api/file/?' => require_login sub {
         {
             return encode_json({
                 id       => $file->id,
-                filename => $upload->filename,
+                filename => $filename,
                 url      => "/file/".$file->id,
                 is_ok    => 1,
             });
@@ -2810,7 +2866,7 @@ prefix '/:layout_name' => sub {
 
             my $base_url = request->base;
 
-            my $reports = $layout->reports;
+            my $reports = $layout->reports(all => 1);
 
             if (my $report_id = body_parameters->get('delete'))
             {
@@ -4757,7 +4813,7 @@ sub _process_edit
                 message => $message,
                 # Send values back to browser to display on main record. Only
                 # include ones that user has access to
-                values  => +{ map { $_->field => $record->fields->{$_->id}->as_string } @{$source_curval->curval_fields} },
+                values  => +{ map { $_->field => $record->get_field_value($_)->as_string } @{$source_curval->curval_fields} },
             });
             return ($return, undef, 1);
         }

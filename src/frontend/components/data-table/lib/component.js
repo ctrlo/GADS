@@ -13,6 +13,8 @@ import { bindToggleTableClickHandlers } from './toggle-table';
 
 const MORE_LESS_TRESHOLD = 50;
 
+//TODO: It is worth noting that there are significant changes between DataTables.net v1 and v2 (hence the major version increase)
+//      We are currently using v2 in this component, but with various deprecated features in use that may need to be updated in the future
 class DataTableComponent extends Component {
   constructor(element)  {
     super(element);
@@ -43,6 +45,7 @@ class DataTableComponent extends Component {
     this.columns = columns;
     this.el.DataTable(conf);
     this.initializingTable = true;
+    $('.dt-column-order').remove(); //datatables.net adds it's own ordering class - we remove it because it's easier than rewriting basically everywhere we use datatables
 
     if (this.hasCheckboxes) {
       this.addSelectAllCheckbox();
@@ -601,6 +604,10 @@ class DataTableComponent extends Component {
       }
     }
 
+    conf.columns.forEach((column) => {
+      column.orderable = column.orderable === 1;
+    });
+
     if (conf.serverSide) {
       conf.columns.forEach((column) => {
         column.render = (data, type, row, meta) => this.renderData(type, row, meta);
@@ -624,7 +631,7 @@ class DataTableComponent extends Component {
           $header.html(`<div class='data-table__header-wrapper position-relative ${column.search() ? 'filter' : ''}' data-ddl='ddl_${index}'>${headerContent}</div>`);
 
           // Add sort button to column header
-          if ($header.hasClass('sorting')) {
+          if ($header.hasClass('dt-orderable-asc') || $header.hasClass('dt-orderable-desc')) {
             self.addSortButton(dataTable, column, headerContent);
           }
 

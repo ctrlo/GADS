@@ -454,15 +454,18 @@ has created_user => (
     builder => sub {
         my $self = shift;
 
-        # Not yet defined for new record
-        return undef if $self->new_entry;
-
         my $column = $self->layout->column_by_name_short('_created_user');
 
+        # Default to current user drafting record if new record
+        return $self->_person($self->user->id, $column)
+            if $self->new_entry;
+
+        my $value = $self->set_record_created_user || $self->record->{record_created_user};
+
         # Has it been retrieved as part of sql query?
-        if ($self->record && exists $self->record->{record_created_user})
+        if ($value)
         {
-            return $self->_person($self->record->{record_created_user}, $column);
+            return $self->_person($value, $column);
         }
 
         my $user = $self->first_record_rs->createdby;
@@ -510,15 +513,16 @@ has edited_user => (
     builder => sub {
         my $self = shift;
 
-        # Not yet defined for new record
-        return undef if $self->new_entry;
-
         my $column = $self->layout->column_by_name_short('_version_user');
+
+        # Default to current user drafting record if new record
+        return $self->_person($self->user->id, $column)
+            if $self->new_entry;
 
         # Has it been retrieved as part of sql query?
         if ($self->record && exists $self->record->{createdby})
         {
-            return $self->_person($self->record->{createdby}, $column);
+            return $self->_person($self->record->{$column->field}, $column);
         }
 
         my $user = $self->record_rs->createdby;
@@ -1516,6 +1520,7 @@ sub _build_selector_id
 # new version. This allows updates that aren't recorded in the history, and
 # allows the correcting of previous versions that have since been changed.
 # - force_mandatory: allow blank mandatory values
+# - force_readonly_new: allow read-only values in new records to be written to
 # - no_change_unless_blank: bork on updates to existing values unless blank
 # - dry_run: do not actually perform any writes, test only
 # - no_alerts: do not send any alerts for changed values
@@ -1689,7 +1694,7 @@ sub write
         elsif ($self->new_entry)
         {
             error __x"You do not have permission to add data to field {name}", name => $column->name
-                if !$datum->blank && !$column->user_can('write_new');
+                if !$datum->blank && !$column->user_can('write_new') && !$options{force_readonly_new};
         }
         elsif ($datum->changed && !$column->user_can('write_existing'))
         {
@@ -1994,7 +1999,7 @@ sub write
     # the commit
     if (!$self->is_draft)
     {
-        $self->fields->{$_->id}->send_notify
+        $self->get_field_value($_)->send_notify
             foreach $self->layout->all_people_notify;
     }
 }
@@ -2021,7 +2026,7 @@ sub write_values
         # Prevent warnings when writing incomplete calc values on draft
         next if $options{draft} && !$column->userinput;
 
-        next if $column->name_short eq '_serial';
+        next if $column->name_short && $column->name_short eq '_serial';
         my $datum = $self->get_field_value($column);
         next if $self->linked_id && $column->link_parent; # Don't write all values if this is a linked record
 
@@ -2685,6 +2690,10 @@ sub get_field_value
         # Ensure no memory leaks - tree needs to be destroyed
         $already_seen->delete_tree;
     }
+    elsif ($column->name_short && $column->name_short eq '_serial')
+    {
+        $raw = $self->serial;
+    }
     else {
         my $result = $self->schema->resultset($column->table)->search({
             record_id => $record_id,
@@ -2716,7 +2725,7 @@ sub pdf
     my $now = DateTime->now;
     $now->set_time_zone('Europe/London');
     my $now_formatted = $now->format_cldr($dateformat)." at ".$now->hms;
-    my $updated = $self->created->format_cldr($dateformat)." at ".$self->created->hms;
+    my $updated = $self->edited_time->as_string;
 
     my $config = GADS::Config->instance;
     my $header = $config && $config->gads && $config->gads->{header};
@@ -2735,7 +2744,7 @@ sub pdf
     my $max_fields;
     foreach my $col ($self->layout->all_user_read)
     {
-        my $datum = $self->fields->{$col->id};
+        my $datum = $self->get_field_value($col);
         next if $datum->dependent_not_shown;
         if ($col->is_curcommon)
         {

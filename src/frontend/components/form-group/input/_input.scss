@@ -204,6 +204,8 @@
     border-radius: $input-border-radius;
     background-color: rgba($brand-success, 0.2);
     color: $brand-success;
+    text-align: center;
+    vertical-align: middle;
   }
 
   .progress-bar__container--fail {

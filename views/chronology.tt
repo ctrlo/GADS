@@ -11,7 +11,7 @@
     [%
       FOREACH version IN record.chronology;
         initial         = loop.first ? 1 : 0;
-        action_datetime = version.datetime.format_cldr(config.dateformat) _ " " _ version.datetime.hms;
+        action_datetime = version.datetime.as_string;
         action_type     = initial ? 'created' : 'updated';
         action_by       = version.editor.id ? " by " _ version.editor.as_string : '';
     

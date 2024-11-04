@@ -2,6 +2,118 @@
 
 -------
 
+**Version**: 2.5.9
+**Released**: 30-10-2024
+
+-------
+
+## Fixes
+
+- Allow read-only fields to be used in filtered curvals
+
+-------
+
+**Version**: 2.5.8
+**Released**: 28-10-2024
+
+-------
+
+## Fixes
+
+- Fixed unable to clone records containing curvals with user metadata
+
+-------
+
+**Version**: 2.5.7
+**Released**: 21-10-2024
+
+-------
+
+## Fixes
+
+- Fixed regression in performance for CSV downloads
+
+-------
+
+**Version**: 2.5.6
+**Released**: 17-10-2024
+
+-------
+
+## Fixes
+
+- Fixed error in aggregate function causing created by and updated by to error
+
+-------
+
+**Version**: 2.5.5
+**Released**: 02-10-2024
+
+-------
+
+## New features
+
+- Added renaming to document uploads
+
+## Fixes
+
+- Fixed error when sending notification emails
+- Fixed global report visibility
+- Fixed curval edits
+- Fixed deleted reports visibility
+- Fixed display for datatables
+
+-------
+
+**Version**: 2.5.4
+**Released**: 22-09-2024
+
+-------
+
+## Fixes
+
+- Fix saving of report groups on initial report creation
+- Fix download of reports
+- Fix same report showing multiple times
+- Fix exception when loading metadata for some records
+
+-------
+
+**Version**: 2.5.3
+**Released**: 20-09-2024
+
+-------
+
+## Fixes
+
+- Fix render of metadata values in curval
+
+-------
+
+**Version**: 2.5.2
+**Released**: 16-09-2024
+
+-------
+
+## Fixes
+
+- Fix version date/time in chronology
+- Fix metadata in CSV downloads
+
+-------
+
+**Version**: 2.5.1
+**Released**: 11-09-2024
+
+-------
+
+## Fixes
+
+- Fix PDF downloads of records
+- Bump JS version
+
+-------
+
 **Version**: 2.5.0
 **Released**: 03-09-2024
 

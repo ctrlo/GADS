@@ -22,7 +22,8 @@ sub by_user
             -in => [ map { $_->id } $user->groups ]
         }
     },{
-        join => 'report_groups',
+        join     => 'report_groups',
+        collapse => 1,
     });
 }
 
@@ -83,7 +84,7 @@ sub create_report
 
     my @user_groups = $args->{user}->groups;
 
-    my $groups  = [ map { { group_id  => $_->id } } @{ $args->{user_groups} } ];
+    my $groups  = [ map { { group_id  => $_ } } @{ $args->{groups} } ];
     my $layouts = [ map { { layout_id => $_ } } @{ $args->{layouts} } ];
 
     my $report = $self->create({
