@@ -1,5 +1,6 @@
 import { Component } from 'component';
 import { setFieldValues } from "set-field-values";
+import gadsStorage from 'util/gadsStorage';
 
 class AutosaveModal extends Component {
   constructor(element) {
@@ -8,9 +9,9 @@ class AutosaveModal extends Component {
     this.initAutosaveModal();
   }
 
-  initAutosaveModal() {
+  async initAutosaveModal() {
     const $modal = $(this.element);
-
+    
     $modal.find('.btn-js-restore-values').on('click', function (e) {
       e.preventDefault();
       const $form = $('.form-edit');
@@ -18,9 +19,9 @@ class AutosaveModal extends Component {
       let $list = $("<ul></ul>");
       const $body = $modal.find(".modal-body");
       $body.html("<p>Restoring values...</p>").append($list);
-      $form.find('.linkspace-field').each(function(){
+      $form.find('.linkspace-field').each(async function(){
         const $field = $(this);
-        const json = localStorage.getItem(`linkspace-column-${$field.data('column-id')}`);
+        const json = await gadsStorage.getItem(`linkspace-column-${$field.data('column-id')}`, 'local');
         if (json) {
           const values = JSON.parse(json);
           if (Array.isArray(values))
@@ -35,7 +36,10 @@ class AutosaveModal extends Component {
       $modal.find(".modal-footer").find(".btn-cancel").text("Close");
     });
 
-    if (localStorage.getItem(this.table_key))
+    const item = await gadsStorage.getItem(this.table_key, 'local');
+    console.log('item', item);
+
+    if (item)
       $modal.modal('show');
   }
 

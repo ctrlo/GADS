@@ -1,18 +1,19 @@
-export default function createCancelButton(el: HTMLElement|JQuery<HTMLElement>) {
+import gadsStorage from "util/gadsStorage";
+
+export default function createCancelButton(el: HTMLElement | JQuery<HTMLElement>) {
     const $el = $(el);
-    if($el[0].tagName !== 'BUTTON') return;
+    if ($el[0].tagName !== 'BUTTON') return;
     $el.data('cancel-button', "true");
 
-    $el.on('click', () => {
+    $el.on('click', async () => {
         const href = $el.data('href');
-        const ls = window.localStorage;
         const layout = $("body").data("layout-identifier");
-        ls.getItem(`linkspace-record-change-${layout}`) && ls.removeItem(`linkspace-record-change-${layout}`);
-        $(".linkspace-field").each((_,el) =>{
+        await gadsStorage.getItem(`linkspace-record-change-${layout}`) && gadsStorage.removeItem(`linkspace-record-change-${layout}`);
+        await Promise.all($(".linkspace-field").map(async (_, el) => {
             const field_id = $(el).data("column-id");
-            console.log("Field ID:",field_id);
-            ls.getItem(`linkspace-column-${field_id}`) && ls.removeItem(`linkspace-column-${field_id}`);
-        });
+            console.log("Field ID:", field_id);
+            await gadsStorage.getItem(`linkspace-column-${field_id}`) && gadsStorage.removeItem(`linkspace-column-${field_id}`);
+        }));
         if (href)
             window.location.href = href;
         else
