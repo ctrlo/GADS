@@ -1,5 +1,7 @@
 import { createElement } from "util/domutils";
 
+// This is how buttons _should_ be created
+
 /**
  * Event fired when the file is renamed
  */
@@ -61,7 +63,7 @@ class RenameButton {
      */
     private createElements(button: JQuery<HTMLButtonElement>, id: string | number) {
         if (!id) throw new Error("File ID is null or empty");
-        if (!button || button.length < 1) throw new Error("Button element is null or empty")
+        if (!button || button.length < 1) throw new Error("Button element is null or empty");
         const fileId = id as number ?? parseInt(id.toString());
         if (!fileId) throw new Error("Invalid file id!");
         button.closest(".row")
@@ -122,12 +124,12 @@ class RenameButton {
             .on('keydown', (e) => this.renameKeydown(id, $(ev.target), e))
             .on('blur', (e) => {
                 this.value = (e.target as HTMLInputElement)?.value;
-            })
+            });
         $(`#rename-confirm-${id}`)
             .removeClass('hidden')
             .attr('aria-hidden', null)
             .on('click', (e) => {
-                this.triggerRename(id, ev.target, e)
+                this.triggerRename(id, ev.target, e);
             });
         $(`#rename-cancel-${id}`)
             .removeClass('hidden')
@@ -135,7 +137,7 @@ class RenameButton {
             .on('click', () => {
                 const e = $.Event('keydown', { key: 'Escape', code: 27 });
                 $(`#file-rename-${id}`).trigger(e);
-            })
+            });
         $(ev.target).addClass('hidden').attr('aria-hidden', 'true');
     }
 
@@ -155,16 +157,15 @@ class RenameButton {
     /**
      * Rename blur event
      * @param {number} id The id of the field
-     * @param {JQuery<HTMLButtonElement>} button The button that was clicked
-     * @param {JQuery.BlurEvent} ev The blur event
+     * @param {JQuery<HTMLButtonElement>} button The button that was clicked     
      */
-    private triggerRename(id: number, button: JQuery<HTMLButtonElement>, e: JQuery.Event) {
+    private triggerRename(id: number, button: JQuery<HTMLButtonElement>, ev: JQuery.ClickEvent) {
         const previousValue = $(`#current-${id}`).text();
         const extension = '.' + previousValue.split('.').pop();
         const newName = this.value.endsWith(extension) ? this.value : this.value + extension;
         if (newName === '' || newName === previousValue) return;
         $(`#current-${id}`).text(newName);
-        const event = $.Event('rename', { oldName: previousValue, newName, target: button });
+        const event = $.Event('rename', { oldName: previousValue, newName, target: button, triggeredEvent: ev });
         $(button).trigger(event);
         this.hideRenameControls(id, button);
     }

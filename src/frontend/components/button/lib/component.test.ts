@@ -16,7 +16,7 @@ describe("Button Component", () => {
         {name: "remove unload", class: "btn-js-remove-unload"}
     ];
 
-    it("should not create a button with an invalid type", () => {
+    it("should not create a button with an invalid type", async () => {
         const buttonElement = document.createElement('button');
         buttonElement.classList.add('btn');
         const button = new ButtonComponent(buttonElement);

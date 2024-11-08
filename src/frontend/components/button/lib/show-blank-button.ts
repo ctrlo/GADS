@@ -1,9 +1,8 @@
-/**
- * Create a button that toggles the visibility of blank fields.
- * @param element {JQuery<HTMLElement>} The element to attach the button to.
- */
-export default function createShowBlankButton(element: JQuery<HTMLElement>) {
-    element.on('click', (ev) => {
+import { BaseButton } from "./base-button";
+
+class ShowBlankButton extends BaseButton {
+    type="btn-js-show-blank";
+    click(ev: JQuery.ClickEvent): void {
         const $button = $(ev.target).closest('.btn-js-show-blank');
         const $buttonTitle = $button.find('.btn__title')[0];
         const showBlankFields = $buttonTitle.innerHTML === "Show blank values";
@@ -13,5 +12,9 @@ export default function createShowBlankButton(element: JQuery<HTMLElement>) {
         $buttonTitle.innerHTML = showBlankFields
             ? "Hide blank values"
             : "Show blank values";
-    });
+    }
+}
+
+export default function createShowBlankButton(element: HTMLElement | JQuery<HTMLElement>) {
+    return new ShowBlankButton($(element));
 }

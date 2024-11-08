@@ -1,9 +1,9 @@
-/**
- * Create remove curval button
- * @param element {JQuery<HTMLElement>} - The element to function as a remove curval button
- */
-export default function createRemoveCurvalButton(element: JQuery<HTMLElement>) {
-    element.on('click', (ev: JQuery.ClickEvent) => {
+import { BaseButton } from "./base-button";
+
+class RemoveCurvalButton extends BaseButton {
+    type = "btn-js-remove-curval";
+
+    click(ev: JQuery.ClickEvent): void {
         const $btn = $(ev.target);
 
         if ($btn.closest('.table-curval-group').length) {
@@ -27,5 +27,9 @@ export default function createRemoveCurvalButton(element: JQuery<HTMLElement>) {
             const $visible = $current.children("[data-list-item]:not([hidden])");
             $current.toggleClass("empty", $visible.length === 0);
         }
-    });
+    }
+}
+
+export default function createRemoveCurvalButton(element: HTMLElement | JQuery<HTMLElement>) {
+    return new RemoveCurvalButton($(element));
 }

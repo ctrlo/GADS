@@ -1,9 +1,9 @@
-/**
- * Create a more info button that will load the record body into a modal.
- * @param {HTMLElement | JQuery<HTMLElement>} element The button element to attach the event to.
- */
-export default function createMoreInfoButton(element:HTMLElement | JQuery<HTMLElement>) {
-    $(element).on("click", (ev) => {
+import { BaseButton } from "./base-button";
+
+class MoreInfoButton extends BaseButton {
+    type = "btn-js-more-info";
+
+    click(ev: JQuery.ClickEvent): void {
         const $button = $(ev.target).closest('.btn');
         const record_id = $button.data('record-id');
         const modal_id = $button.data('target');
@@ -26,5 +26,9 @@ export default function createMoreInfoButton(element:HTMLElement | JQuery<HTMLEl
         $modal.one("keyup", (ev) => {
             if (ev.key === "Escape") ev.stopPropagation();
         });
-    });
+    }
+}
+
+export default function createMoreInfoButton(element: HTMLElement | JQuery<HTMLElement>) {
+    return new MoreInfoButton($(element));
 }
