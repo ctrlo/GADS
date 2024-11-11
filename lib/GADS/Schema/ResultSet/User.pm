@@ -48,7 +48,7 @@ sub summary
         join     => [
             'organisation', 'department', 'team', 'title',
         ],
-        order_by => 'surname',
+        order_by => 'me.value',
         collapse => 1,
     });
 }
