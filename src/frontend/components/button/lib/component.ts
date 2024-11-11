@@ -1,5 +1,9 @@
 import { Component } from 'component';
-import { BaseButton } from './base-button';
+
+interface ButtonDefinition {
+    className: string;
+    importPath: string;
+}
 
 /**
  * Button component
@@ -11,8 +15,6 @@ class ButtonComponent extends Component {
      * @type {string[]}
      */
     linkedClasses: string[] = [];
-
-    private _button: BaseButton;
 
     /**
      * Map of button components
@@ -37,15 +39,27 @@ class ButtonComponent extends Component {
         this.initButton(element);
     }
 
+    addDefinition(definition: ButtonDefinition);
+    addDefinition({className, importPath}:ButtonDefinition) {
+        if(!this.buttonsMap) ButtonComponent.initMap();
+        if(this.buttonsMap.has(className)) throw Error(`Button definition for ${className} already exists`);
+        this.buttonsMap.set(className, (el) => {
+            import(/* webpackChunkName: className */ importPath)
+                .then(({ default: createButton }) => {
+                    createButton(el);
+                });
+        });
+    };
+
     /**
      * Initialize the map of button components
      */
     private static initMap() {
-        const buttonsMap: { className: string, importPath: string }[] = [
+        const definitions: ButtonDefinition[] = [
             { className: 'btn-js-report', importPath: './create-report-button' },
             { className: 'btn-js-more-info', importPath: './more-info-button' },
             { className: 'btn-js-delete', importPath: './delete-button' },
-            { className: 'btn-js-submit-field', importPath: "./submit-field-button" },
+            { className: 'btn-js-submit-field', importPath: './submit-field-button' },
             { className: 'btn-js-toggle-all-fields', importPath: './toggle-all-fields-button' },
             { className: 'btn-js-submit-draft-record', importPath: './submit-draft-record-button' },
             { className: 'btn-js-submit-record', importPath: './submit-record-button' },
@@ -57,17 +71,14 @@ class ButtonComponent extends Component {
 
         const map = new Map<string, (element: JQuery<HTMLElement>) => void>();
 
-        buttonsMap.forEach(({ className, importPath }) => {
-            map.set(
-                className,
-                (el) => {
-                    import(/* webpackChunkName: "[request]" */ `${importPath}`)
-                        .then(({ default: createButtonComponent }) => {
-                            createButtonComponent(el);
-                        });
-                }
-            );
-        });
+        for (const { className, importPath } of definitions) {
+            map.set(className, (el) => {
+                import(/* webpackChunkName: className */ importPath)
+                    .then(({ default: createButton }) => {
+                        createButton(el);
+                    });
+            });
+        }
 
         ButtonComponent.staticButtonsMap = map;
     }
@@ -76,14 +87,14 @@ class ButtonComponent extends Component {
      * Initialize the button
      * @param element {HTMLElement} The button element
      */
-    private async initButton(element: HTMLElement) {
+    private initButton(element: HTMLElement) {
         const el: JQuery<HTMLElement> = $(element);
-        element.classList.forEach(async (className) => {
+        element.classList.forEach((className) => {
             if (!className.startsWith('btn-js-')) return;
-            if (!this.buttonsMap) throw new Error("Buttons map is not initialized");
+            if (!this.buttonsMap) throw "Buttons map is not initialized";
             if (!this.buttonsMap.has(className)) return;
             this.linkedClasses.push(className);
-            return this.buttonsMap.get(className)(el);
+            this.buttonsMap.get(className)(el);
         });
     }
 }
