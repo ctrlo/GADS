@@ -3,11 +3,12 @@ import { XmlHttpRequestLike } from "../js/lib/util/upload/UploadControl";
 declare global {
     interface Window {
         $: JQueryStatic;
+        jQuery: JQueryStatic;
         alert: (message?: any)=>void;
     }
 }
 
-window.$ = require("jquery"); // eslint-disable-line @typescript-eslint/no-require-imports
+window.$ = window.jQuery = require("jquery"); // eslint-disable-line @typescript-eslint/no-require-imports
 window.alert = jest.fn();
 
 export function mockJQueryAjax() {
