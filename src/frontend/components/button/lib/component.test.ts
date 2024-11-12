@@ -16,20 +16,6 @@ describe("Button Component", () => {
         { name: "remove unload", class: "btn-js-remove-unload" }
     ];
 
-    it("should add a button definition", () => {
-        const buttonElement = document.createElement('button');
-        buttonElement.classList.add('btn-js-dynamic');
-        const button = new ButtonComponent(buttonElement);
-        expect(() => button.addDefinition({ className: 'btn-js-dynamic', importPath: './dynamic-button' })).not.toThrow();
-    });
-
-    it("should not add a button definition that already exists", () => {
-        const buttonElement = document.createElement('button');
-        buttonElement.classList.add('btn-js-dynamic');
-        const button = new ButtonComponent(buttonElement);
-        expect(() => button.addDefinition({ importPath: "./remove-unload-button.ts", className: "btn-js-remove-unload" })).toThrow(`Button definition for btn-js-remove-unload already exists`);
-    });
-
     it("should not create a button with an invalid type", async () => {
         const buttonElement = document.createElement('button');
         buttonElement.classList.add('btn');

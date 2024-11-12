@@ -140,7 +140,7 @@
                 dismiss = "modal"
               }]
               right_buttons = [{
-                type    = "submit"
+                type    = "button"
                 class   = "btn-danger btn-js-reject-request"
                 name    = "delete"
                 value   = user.id
@@ -230,7 +230,7 @@
                 label   = "Back"
               }]
               right_buttons = [{
-                type    = "submit"
+                type    = "buttons"
                 class   = "btn-danger btn-js-reject-request"
                 name    = "delete"
                 value   = user.id
@@ -281,7 +281,7 @@
                 label   = "Back"
               }]
               right_buttons = [{
-                type    = "submit"
+                type    = "button"
                 class   = "btn-danger btn-js-reject-request"
                 name    = "delete"
                 value   = user.id
@@ -289,6 +289,82 @@
               }, {
                 class = "btn-default btn-js-save"
                 label = "Create account"
+              }];
+          -%]
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal modal--wizzard modal--user"
+     data-config='{"url":"[% endpoint %]"}'
+     tabindex="-1"
+     role="dialog"
+     aria-labelledby="rejectModalLabel"
+     aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document" id="rejectReason">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-header__content">
+          <h3 class="modal-title" id="rejectModalLabel">
+            <span class='js-reject-account'>Enter reject reason</span>
+          </h3>
+
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true" class="hidden">Close</span>
+          </button>
+      </div>
+
+      <form method="post">
+        [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+
+          <div class="modal-body">
+            <div class="container-fluid">
+              <div class="row">
+                <div class="col">
+                  <div class="alert alert-danger alert-js-reject-details" role="alert" id="modal-alert-reject">
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mb-4">
+                <div class="col">
+                  <p class="js-reject-account">In this window you can add a reason for the account request rejection.</p>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-lg-12">
+                  [%-
+                    INCLUDE fields/textarea.tt
+                      id = "reject_reason"
+                      name = "reject_reason"
+                      label = "Reject reason"
+                      placeholder = "Enter reject reason"
+                      filter = "html"
+                      is_required = 1
+                      rows = 2;
+                  -%]
+                </div>
+
+            </div> <!-- container end -->
+          </div> <!-- modal body end -->
+
+          [%-
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel"
+                label   = "Cancel"
+                dismiss = "modal"
+              }]
+              right_buttons = [{
+                type    = "button"
+                class   = "btn-danger btn-js-reject-request"
+                name    = "delete"
+                value   = user.id
+                label   = "Reject request"
               }];
           -%]
         </div>

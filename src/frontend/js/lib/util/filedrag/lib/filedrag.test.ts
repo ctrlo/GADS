@@ -16,6 +16,8 @@ class FileDragTest extends FileDrag {
 }
 
 describe('FileDrag class tests', () => {
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+
     function createBaseDOM() {
         const div = document.createElement('div');
         const child = document.createElement('div');

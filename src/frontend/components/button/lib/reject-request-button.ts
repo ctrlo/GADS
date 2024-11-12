@@ -1,4 +1,5 @@
 import { BaseButton } from "./base-button";
+import 'bootstrap';
 
 declare global {
     interface JQuery<TElement = HTMLElement> {
@@ -9,7 +10,7 @@ declare global {
 class RejectRequestButton extends BaseButton {
     type = "btn-js-reject-request";
 
-    constructor(element) {
+    constructor(element: JQuery<HTMLElement>) {
         super(element);
     }
 
@@ -17,8 +18,12 @@ class RejectRequestButton extends BaseButton {
         console.log('RejectRequestButton initialized');
     }
 
-    click(ev : JQuery.ClickEvent) {
-        console.log(ev.target.id + ' clicked');
+    click(ev? : JQuery.ClickEvent) {
+        const currentWizard = ev.target.closest('.modal');
+        const reason = $('#rejectReason');
+        console.log('#rejectReason', reason);
+        $(currentWizard).modal('toggle');
+        reason.modal('toggle');
     }
 }
 

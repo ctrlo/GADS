@@ -1551,13 +1551,17 @@ any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin super
 
     if (my $delete_id = param('delete'))
     {
+        my $user = logged_in_user;
+
         return forwardHome(
             { danger => "Cannot delete current logged-in User" } )
                 if logged_in_user->id == $delete_id;
 
         my $usero = rset('User')->find($delete_id);
-
-        if (process( sub { $usero->retire(send_reject_email => 1) }))
+        # This is (currently) to test field substitution in the email
+        my $email_reject_text = '{firstname} {surname} ({email}) has been rejected - {notes} is an invalid reason!';
+        
+        if (process( sub { $usero->retire(send_reject_email => 1, email_reject_text=>$email_reject_text) }))
         {
             $audit->login_change("User ID $delete_id deleted");
             return forwardHome(

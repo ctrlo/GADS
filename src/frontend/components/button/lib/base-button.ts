@@ -1,6 +1,6 @@
 export abstract class BaseButton {
     abstract get type(): string;
-    abstract click(ev:JQuery.ClickEvent): void;
+    abstract click(ev?:JQuery.ClickEvent): void;
     
     init(): void {
         // noop

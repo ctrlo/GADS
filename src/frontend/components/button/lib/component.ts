@@ -39,18 +39,6 @@ class ButtonComponent extends Component {
         this.initButton(element);
     }
 
-    addDefinition(definition: ButtonDefinition);
-    addDefinition({className, importPath}:ButtonDefinition) {
-        if(!this.buttonsMap) ButtonComponent.initMap();
-        if(this.buttonsMap.has(className)) throw Error(`Button definition for ${className} already exists`);
-        this.buttonsMap.set(className, (el) => {
-            import(/* webpackChunkName: className */ importPath)
-                .then(({ default: createButton }) => {
-                    createButton(el);
-                });
-        });
-    };
-
     /**
      * Initialize the map of button components
      */
@@ -73,7 +61,7 @@ class ButtonComponent extends Component {
 
         for (const { className, importPath } of definitions) {
             map.set(className, (el) => {
-                import(/* webpackChunkName: className */ importPath)
+                import(importPath)
                     .then(({ default: createButton }) => {
                         createButton(el);
                     });
