@@ -24,8 +24,11 @@ class AutosaveModal extends Component {
         const json = await gadsStorage.getItem(`linkspace-column-${$field.data('column-id')}`, 'local');
         if (json) {
           const values = JSON.parse(json);
+          const $editButton = $field.closest('.card--topic').find('.btn-js-edit');
+          if($editButton && $editButton.length) $editButton.trigger('click');
           if (Array.isArray(values))
             setFieldValues($field, values);
+            $field.addClass("field--changed");
             const name = $field.data("name");
             let $li = $(`<li>Restored ${name}</li>`);
             $list.append($li);

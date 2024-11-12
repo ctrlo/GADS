@@ -16,6 +16,7 @@ class AutosaveComponent extends Component {
 
     // For each field, when it changes save the value to the local storage
     $field.on('change', async function () {
+      if($field.hasClass('field--changed')) $field.removeClass('field--changed');
       let values = getFieldValues($field, false, false, true)
         .filter(function (element) {
           return !!element;
