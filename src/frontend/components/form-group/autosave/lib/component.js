@@ -11,7 +11,6 @@ class AutosaveComponent extends AutosaveBase {
     $field.on('change', async function () {
       if ($field.hasClass('field--changed')) $field.removeClass('field--changed');
       let values = getFieldValues($field, false, false, true);
-      console.log('values', values);
       values = (Array.isArray(values) ? values : [values]).filter(function (element) {
         return !!element;
       });

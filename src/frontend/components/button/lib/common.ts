@@ -7,11 +7,9 @@ export async function clearSavedFormValues($form: JQuery<HTMLElement>) {
     const ls = storage();
     let item = await ls.getItem(table_key());
 
-    console.log('item', item);
     if (item) await ls.removeItem(`linkspace-record-change-${layout}-${record}`);
     await Promise.all($form.find(".linkspace-field").map(async (_, el) => {
         const field_id = $(el).data("column-id");
-        console.log('key', `linkspace-column-${field_id}-${layout}-${record}`);
         item = await ls.getItem(`linkspace-column-${field_id}-${layout}-${record}`);
         if (item) gadsStorage.removeItem(`linkspace-column-${field_id}-${layout}-${record}`);
     }));

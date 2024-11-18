@@ -21,7 +21,6 @@ class AutosaveModal extends AutosaveBase {
           const $editButton = $field.closest('.card--topic').find('.btn-js-edit');
           if($editButton && $editButton.length) $editButton.trigger('click');
           if (Array.isArray(values))
-            console.log('values', values);
             setFieldValues($field, values);
             $field.addClass("field--changed");
             const name = $field.data("name");
@@ -35,8 +34,7 @@ class AutosaveModal extends AutosaveBase {
     });
 
     const item = await self.storage.getItem(this.table_key);
-    console.log('item', item);
-
+    
     if (item){
       $modal.modal('show');
       $modal.find('.btn-js-delete-values').attr('disabled', 'disabled').hide();
