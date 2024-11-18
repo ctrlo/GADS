@@ -1,3 +1,5 @@
+import 'jstree';
+
 // General function to format date as per backend
 const format_date = function(date) {
   if (!date) return undefined;
