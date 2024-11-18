@@ -11,6 +11,10 @@ export default abstract class AutosaveBase extends Component {
        this.initAutosave();
     }
 
+    get isClone() {
+        return location.search.includes('from');
+    }
+
     get layoutId() {
         return $('body').data('layout-identifier');
     }
