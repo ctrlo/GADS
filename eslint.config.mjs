@@ -45,6 +45,7 @@ export default [
       "@typescript-eslint/no-unused-expressions": "off",
       "react/prop-types": "off",
       "@stylistic/semi": ["error", "always"],
+      "@typescript-eslint/no-this-alias": "off",
     }
   }
 ];
