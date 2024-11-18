@@ -193,7 +193,11 @@ const set_date = function($element, value) {
     $input.datepicker('update', new Date(value * 1000));
   } else {
     // Otherwise assume string
-    $input.datepicker('update', value);
+    if (typeof value === 'object'){
+      $input.datepicker('update', `${value.year}-${value.month}-${value.day}`);
+    } else {
+      $input.datepicker('update', value);
+    }
   }
 };
 

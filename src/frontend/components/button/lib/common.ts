@@ -1,14 +1,34 @@
 import gadsStorage from "util/gadsStorage";
 
-export function clearSavedFormValues($form: JQuery<HTMLElement>) {
-    if(!$form || $form.length === 0) return;
-    const layout = $("body").data("layout-identifier");
-    gadsStorage.getItem(`linkspace-record-change-${layout}`)
-        .then((item) => { if (item) gadsStorage.removeItem(`linkspace-record-change-${layout}`); })
-        .then(() => Promise.all($form.find(".linkspace-field").map((_, el) => {
-            const field_id = $(el).data("column-id");
-            console.log("Field ID:", field_id);
-            gadsStorage.getItem(`linkspace-column-${field_id}`)
-                .then((item) => { if (item) gadsStorage.removeItem(`linkspace-column-${field_id}`); });
-        })));
+export async function clearSavedFormValues($form: JQuery<HTMLElement>) {
+    if (!$form || $form.length === 0) return;
+    const layout = layoutId();
+    const record = recordId();
+    const ls = storage();
+    let item = await ls.getItem(table_key());
+
+    console.log('item', item);
+    if (item) await ls.removeItem(`linkspace-record-change-${layout}-${record}`);
+    await Promise.all($form.find(".linkspace-field").map(async (_, el) => {
+        const field_id = $(el).data("column-id");
+        console.log('key', `linkspace-column-${field_id}-${layout}-${record}`);
+        item = await ls.getItem(`linkspace-column-${field_id}-${layout}-${record}`);
+        if (item) gadsStorage.removeItem(`linkspace-column-${field_id}-${layout}-${record}`);
+    }));
+}
+
+export function layoutId() {
+    return $('body').data('layout-identifier');
+}
+
+export function recordId() {
+    return isNaN(parseInt(location.pathname.split('/').pop())) ? 0 : parseInt(location.pathname.split('/').pop());
+}
+
+export function table_key() {
+    return `linkspace-record-change-${layoutId()}-${recordId()}`;
+}
+
+export function storage() {
+    return location.hostname === 'localhost' || window.test ? localStorage : gadsStorage;
 }

@@ -1,16 +1,10 @@
-import { Component } from 'component';
 import { setFieldValues } from "set-field-values";
-import gadsStorage from 'util/gadsStorage';
+import AutosaveBase from './autosaveBase';
 
-class AutosaveModal extends Component {
-  constructor(element) {
-    super(element);
-    this.table_key = `linkspace-record-change-${$('body').data('layout-identifier')}`;
-    this.initAutosaveModal();
-  }
-
-  async initAutosaveModal() {
+class AutosaveModal extends AutosaveBase {
+  async initAutosave() {
     const $modal = $(this.element);
+    const self = this;
     
     $modal.find('.btn-js-restore-values').on('click', function (e) {
       e.preventDefault();
@@ -21,12 +15,13 @@ class AutosaveModal extends Component {
       $body.html("<p>Restoring values...</p>").append($list);
       $form.find('.linkspace-field').each(async function(){
         const $field = $(this);
-        const json = await gadsStorage.getItem(`linkspace-column-${$field.data('column-id')}`, 'local');
+        const json = await self.storage.getItem(self.columnKey($field));
         if (json) {
           const values = JSON.parse(json);
           const $editButton = $field.closest('.card--topic').find('.btn-js-edit');
           if($editButton && $editButton.length) $editButton.trigger('click');
           if (Array.isArray(values))
+            console.log('values', values);
             setFieldValues($field, values);
             $field.addClass("field--changed");
             const name = $field.data("name");
@@ -39,7 +34,7 @@ class AutosaveModal extends Component {
       $modal.find(".modal-footer").find(".btn-cancel").text("Close");
     });
 
-    const item = await gadsStorage.getItem(this.table_key, 'local');
+    const item = await self.storage.getItem(this.table_key);
     console.log('item', item);
 
     if (item){

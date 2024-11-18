@@ -1,28 +1,22 @@
-import { Component } from 'component';
 import { getFieldValues } from "get-field-values";
-import gadsStorage from 'util/gadsStorage';
-class AutosaveComponent extends Component {
-  constructor(element) {
-    super(element);
-    this.table_key = `linkspace-record-change-${$('body').data('layout-identifier')}`;
-    this.initAutosaveFields();
-  }
+import AutosaveBase from './autosaveBase';
 
-  initAutosaveFields() {
+class AutosaveComponent extends AutosaveBase {
+  async initAutosave() {
     const $field = $(this.element);
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     if ($field.data('is-readonly')) return;
 
     // For each field, when it changes save the value to the local storage
     $field.on('change', async function () {
-      if($field.hasClass('field--changed')) $field.removeClass('field--changed');
-      let values = getFieldValues($field, false, false, true)
-        .filter(function (element) {
-          return !!element;
-        });
+      if ($field.hasClass('field--changed')) $field.removeClass('field--changed');
+      let values = getFieldValues($field, false, false, true);
+      console.log('values', values);
+      values = (Array.isArray(values) ? values : [values]).filter(function (element) {
+        return !!element;
+      });
 
-      const column_key = `linkspace-column-${$field.data('column-id')}`;
+      const column_key = self.columnKey($field);
 
       const $form = $field.closest('form');
       if ($form.hasClass('curval-edit-form')) {
@@ -37,27 +31,27 @@ class AutosaveComponent extends Component {
         // any values that have been added (and will already be in storage)
         // are retained. These will be returned from getFieldValues() as guids,
         // but we need to retain all the associated values
-        if ($field.data('show-add') && await gadsStorage.getItem(column_key)) {
+        if ($field.data('show-add') && await self.storage.getItem(column_key)) {
           // Get all existing values for this curval
-          let existing = JSON.parse(await gadsStorage.getItem(column_key));
+          let existing = JSON.parse(await self.storage.getItem(column_key));
           // Map them into an index
           let indexed = existing.filter((item) => !Number.isInteger(item)).reduce((a, v) => ({ ...a, [v.identifier]: v }), {});
           // For each value, if it's not an ID then get the full set of values
           // that were previously retrieved from local storage
           values = values.map((item) => Number.isInteger(item) ? item : indexed[item]);
         }
-        await gadsStorage.setItem(column_key, JSON.stringify(values), "local");
-        await gadsStorage.setItem(self.table_key, true, "local");
+        await self.storage.setItem(column_key, JSON.stringify(values));
+        await self.storage.setItem(self.table_key, true);
       } else {
         // Delete any values now deleted
-        let existing = await gadsStorage.getItem(column_key, 'local') ? JSON.parse(await gadsStorage.getItem(column_key, 'local')) : [];
+        let existing = await self.storage.getItem(column_key) ? JSON.parse(await self.storage.getItem(column_key)) : [];
         existing = existing.filter((item) => values.includes(item.identifier));
-        await gadsStorage.setItem(column_key, JSON.stringify(existing), "local");
+        await self.storage.setItem(column_key, JSON.stringify(existing));
         // And flag that something has changed (even if nothing has been
         // deleted, this will need setting if the change was triggered as a
         // result of a modal submit for a curval add - everything else will
         // have already been saved)
-        await gadsStorage.setItem(self.table_key, true, "local");
+        await self.storage.setItem(self.table_key, true);
       }
     });
   }
