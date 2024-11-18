@@ -1,5 +1,5 @@
 .field--changed {
-    input, .tree, .form-control {
+    input, .jstree-container-ul, .form-control {
         background-color: $field-highlight;
         border-radius: $input-border-radius;
     }
