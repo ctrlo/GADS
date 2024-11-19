@@ -2,7 +2,18 @@ import "jstree";
 import "datatables.net";
 import "@lol768/jquery-querybuilder-no-eval"
 
-// TODO: This probably need refactoring
+declare global {
+    interface Window {
+        siteConfig: {
+            urls: {
+                treeApi: string;
+            }
+        }
+    }
+    interface JQuery<TElement = HTMLElement> {
+        queryBuilder(operation: string): JQuery<TElement>;
+    }
+}
 
 /**
  * This class is responsible for handling the submit button on the field
@@ -23,9 +34,9 @@ export default class SubmitFieldButton {
 
             const $displayConditionsBuilderEl = $('#displayConditionsBuilder');
             //Bit of typecasting here, purely because the queryBuilder plugin doesn't have types
-            const res = $displayConditionsBuilderEl.length && (<any>$displayConditionsBuilderEl).queryBuilder('getRules');
+            const res = $displayConditionsBuilderEl.length && $displayConditionsBuilderEl.queryBuilder('getRules');
             const peopleConditionsFieldEl = $('.people-filter');
-            const $peopleConditionsFieldRes = peopleConditionsFieldEl.length && (<any>peopleConditionsFieldEl).queryBuilder('getRules');
+            const $peopleConditionsFieldRes = peopleConditionsFieldEl.length && peopleConditionsFieldEl.queryBuilder('getRules');
             const $displayConditionsField = $('#displayConditions');
 
             const $instanceIDField = $('#refers_to_instance_id');
@@ -69,7 +80,7 @@ export default class SubmitFieldButton {
 
             if (bUpdateTree) {
                 //Bit of typecasting here, purely because the jstree plugin doesn't have types
-                const v = (<any>$jstreeEl).jstree(true).get_json('#', {flat: false});
+                const v = $jstreeEl.jstree(true).get_json('#', {flat: false});
                 const mytext = JSON.stringify(v);
                 const data = $jstreeEl.data();
 
