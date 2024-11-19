@@ -11,7 +11,7 @@
     <span>[% INCLUDE fields/sub/filter.tt value=label; %]</span>
   </button>
   
-  <div class="dropdown-menu dropdown__menu[% IF menu_right %] dropdown-menu-right[% END %]">
+  <div class="dropdown-menu dropdown__menu[% IF menu_right %] dropdown-menu--right[% END %]">
     [% FOREACH group IN groups %]
     <div class="dropdown__group">
       [% IF group.label %]

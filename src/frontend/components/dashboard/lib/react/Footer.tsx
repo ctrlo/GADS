@@ -7,7 +7,7 @@ const Footer = ({ addWidget, widgetTypes, currentDashboard, readOnly, noDownload
         <button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
           Download <span className="caret"></span>
         </button>
-        <div className="dropdown-menu dropdown__menu dropdown-menu-right scrollable-menu" role="menu">
+        <div className="dropdown-menu dropdown__menu dropdown-menu--right scrollable-menu" role="menu">
           <ul id="menu_view" className="dropdown__list">
             <li className="dropdown__item">
               <a className="link link--plain" href={ currentDashboard.download_url }>As PDF</a>
@@ -20,7 +20,7 @@ const Footer = ({ addWidget, widgetTypes, currentDashboard, readOnly, noDownload
         <button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
           Add Widget
         </button>
-        <div className="dropdown-menu dropdown__menu dropdown-menu-right scrollable-menu" role="menu">
+        <div className="dropdown-menu dropdown__menu dropdown-menu--right scrollable-menu" role="menu">
           <ul id="menu_view" className="dropdown__list">
             {widgetTypes.map(type => (
               <li key={type} className="dropdown__item">
