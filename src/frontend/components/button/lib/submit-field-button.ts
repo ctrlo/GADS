@@ -36,7 +36,7 @@ export default class SubmitFieldButton {
             //Bit of typecasting here, purely because the queryBuilder plugin doesn't have types
             const res = $displayConditionsBuilderEl.length && $displayConditionsBuilderEl.queryBuilder('getRules');
             const peopleConditionsFieldEl = $('.people-filter');
-            const $peopleConditionsFieldRes = peopleConditionsFieldEl.length && peopleConditionsFieldEl.queryBuilder('getRules');
+            const $peopleConditionsFieldRes = peopleConditionsFieldEl.length && $('#field_type').val() == 'person' && peopleConditionsFieldEl.queryBuilder('getRules');
             const $displayConditionsField = $('#displayConditions');
 
             const $instanceIDField = $('#refers_to_instance_id');
