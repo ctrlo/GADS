@@ -2775,7 +2775,7 @@ prefix '/:layout_name' => sub {
 
             my @columns = @{$records->columns_render};
             $params->{user_can_edit}        = $layout->user_can('write_existing');
-            $params->{sort}                 = $records->sort_first;
+            $params->{sort}                 = $records->sort;
             $params->{subset}               = $subset;
             $params->{aggregate}            = $records->aggregate_presentation;
             $params->{count}                = $records->count;
