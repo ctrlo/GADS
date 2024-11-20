@@ -1,0 +1,37 @@
+<div class="modal"  id="[% modalId %]" tabindex="-1" role="dialog" aria-labelledby="[% modalId %]]Label" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered " role="document">
+    <div class="modal-content">
+      [% INCLUDE wizard/sub/modal_header.tt; %]
+      <form role="form" method="post">
+        [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+        <div class="modal-frame" >
+          <div class="modal-body">
+            <p>[% description | html %]</p>
+          </div>
+
+          [%-
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel"
+                dismiss = "modal"
+                label   = "Cancel"
+              }]
+              right_buttons = [{
+                type  = "submit"
+                class = "btn-danger btn-js-delete-values"
+                name  = "delete"
+                value = "delete"
+                label = "Delete"
+              },{
+                type  = "submit"
+                class = "btn-default btn-js-restore-values"
+                name  = "restore"
+                value = "restore"
+                label = "Restore"
+              }];
+          -%]
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
