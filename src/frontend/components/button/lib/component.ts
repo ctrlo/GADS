@@ -105,6 +105,12 @@ class ButtonComponent extends Component {
                     createRemoveUnloadButton(el);
                 });
         });
+        map.set('btn-js-cancel', (el) => {
+            import(/* webpackChunkName: "cancel-button" */ './cancel-button')
+                .then(({default: createCancelButton}) => {
+                    createCancelButton(el);
+                });
+        });
         ButtonComponent.staticButtonsMap = map;
     }
 

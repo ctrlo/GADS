@@ -48,7 +48,8 @@
 @import "dropdown/dropdown", "dropdown/dropdown-group";
 
 // form group
-@import "form-group/checkbox/checkbox",
+@import "form-group/autosave/autosave",
+        "form-group/checkbox/checkbox",
         "form-group/checkbox/checkbox-reveal",
         "form-group/date-range/date-range",
         "form-group/query-builder/query-builder",

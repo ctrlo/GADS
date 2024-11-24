@@ -1,0 +1,6 @@
+.field--changed {
+    input, .jstree-container-ul, .form-control {
+        background-color: $field-highlight;
+        border-radius: $input-border-radius;
+    }
+}

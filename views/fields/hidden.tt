@@ -11,8 +11,7 @@
 -%]
 <input type="hidden"
        name="[% name %]"
-       value="[% INCLUDE fields/sub/filter.tt; %]"
-       data-restore-value="[% INCLUDE fields/sub/filter.tt; %]"[% IF id %]
+       value="[% INCLUDE fields/sub/filter.tt; %]"[% IF id %]
        id="[% id %]"[% END %][% IF input_class %]
        class="[% input_class %]"[% END %][% IF data_attributes %]
        [% INCLUDE fields/sub/data_attributes.tt %]
