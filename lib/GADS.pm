@@ -2901,8 +2901,9 @@ prefix '/:layout_name' => sub {
                 header_back_url => "${base_url}table",
                 reports         => $reports,
                 breadcrumbs     => [
-                    Crumb( $base_url . "table/", "Tables" ),
-                    Crumb( "",                   "Table: " . $layout->name )
+                    Crumb($base_url."table/", "Tables"),
+                    Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                    Crumb("", "Reports")
                 ],
                 security_marking => $security_marking,
             };
@@ -2960,8 +2961,10 @@ prefix '/:layout_name' => sub {
                 fields          => $records,
                 groups          => $groups,
                 breadcrumbs     => [
-                    Crumb( $base_url . "table/", "Tables" ),
-                    Crumb( "",                   "Table: " . $layout->name )
+                    Crumb($base_url."table/", "Tables"),
+                    Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                    Crumb($base_url . $layout->identifier . '/report', "Reports"),
+                    Crumb("", "Add Report"),
                 ],
             };
 
@@ -3030,8 +3033,10 @@ prefix '/:layout_name' => sub {
                 viewtype        => 'edit',
                 groups          => $groups,
                 breadcrumbs     => [
-                    Crumb( $base_url . "table/", "Tables" ),
-                    Crumb( "",                   "Table: " . $layout->name )
+                    Crumb($base_url."table/", "Tables"),
+                    Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                    Crumb($base_url . $layout->identifier . '/report', "Reports"),
+                    Crumb("", "Edit Report"),
                 ],
             };
 
@@ -3184,9 +3189,16 @@ prefix '/:layout_name' => sub {
             view_limit_extra_id => undef, # Override any value that may be set
         );
 
+        my $base_url = request->base;
+
         my $params = {
             page    => 'purge',
             records => $records->presentation(purge => 1),
+            breadcrumbs     => [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("", "Purge records")
+            ],
         };
 
         template 'purge' => $params;
