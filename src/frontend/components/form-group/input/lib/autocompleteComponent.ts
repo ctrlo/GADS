@@ -27,7 +27,7 @@ class AutocompleteComponent {
     }
 
     getURL(): string {
-        //@ts-expect-error "Bloody JS api being a pain."
+        //@ts-expect-error "Testing code used by Digitpaint."
         const devEndpoint = window.siteConfig?.urls?.autocompleteApi;
         const layoutIdentifier = $('body').data('layout-identifier');
 
