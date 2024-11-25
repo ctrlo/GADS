@@ -290,7 +290,6 @@ class DataTableComponent extends Component {
     const $searchInput = $(`<input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>`)
     $searchInput.appendTo($('.input', $searchElement))
     if (col.typeahead_use_id && searchValue) {
-      console.log("searchInput: ", $searchInput)
       $searchInput.after(`<input type="hidden" class="search">`)
       const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1')
       const data = await response.json()
