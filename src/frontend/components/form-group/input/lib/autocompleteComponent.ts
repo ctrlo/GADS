@@ -27,6 +27,7 @@ class AutocompleteComponent {
     }
 
     getURL(): string {
+        //@ts-expect-error "Bloody JS api being a pain."
         const devEndpoint = window.siteConfig?.urls?.autocompleteApi;
         const layoutIdentifier = $('body').data('layout-identifier');
 
