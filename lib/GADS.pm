@@ -1612,7 +1612,7 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
             view_limits           => [body_parameters->get_all('view_limits')],
             groups                => [body_parameters->get_all('groups')],
         );
-        $values{permissions} = [body_parameters->get_all('permission')]
+        $values{permissions} = [body_parameters->get_all('permissions')]
             if logged_in_user->permission->{superadmin};
 
         if (process sub {
