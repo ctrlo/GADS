@@ -1,5 +1,6 @@
 import CurvalModalComponent from 'components/modal/modals/curval'
 import documentComponent from 'components/form-group/input/lib/documentComponent'
+import "jstree";
 
 /*
   Set the value of a field, depending on its type.

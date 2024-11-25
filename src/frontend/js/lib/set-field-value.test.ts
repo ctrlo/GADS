@@ -1,11 +1,11 @@
+import "../../testing/globals.definitions";
+import "components/button/lib/rename-button";
 import inputComponent from "../../components/form-group/input";
 import buttonComponent from "../../components/button";
 import multipleSelectComponent from "../../components/form-group/multiple-select";
 import selectWidgetComponent from "../../components/form-group/select-widget";
 import { describe, it, expect } from '@jest/globals';
 import { setFieldValues } from "./set-field-values";
-import "../../testing/globals.definitions";
-import "components/button/lib/rename-button";
 
 declare global {
     interface JQuery<TElement = HTMLElement> {
@@ -537,119 +537,11 @@ const multiFileDom = `
 </div>
 `;
 
-const treeDom = `
-<div class="form-group linkspace-field" data-column-id="26" data-column-type="tree" data-value-selector=""
-    data-show-add="" data-modal-field-ids="" data-curval-instance-name="" data-name="Tree" data-name-short=""
-    data-dependent-not-shown="0" style="margin-left:0px">
-    <fieldset class="fieldset input fieldset--required">
-        <div class="fieldset__legend">
-            <legend id="26-label">Tree</legend>
-        </div>
-        <div class="tree " id="tree-config" data-no-initial-data="false">
-            <div class="list list--horizontal list--buttons">
-                <ul class="list__items">
-                    <li class="list__item">
-                        <button type="button" name="" value="" class="btn btn-small btn-link btn-js-tree-expand">
-                            <span class="btn__title">Expand all</span>
-                        </button>
-                    </li>
-                    <li class="list__item">
-                        <button type="button" name="" value="" class="btn btn-small btn-link btn-js-tree-collapse">
-                            <span class="btn__title">Collapse all</span>
-                        </button>
-                    </li>
-                    <li class="list__item">
-                        <button type="button" name="" value="" class="btn btn-small btn-link btn-js-tree-reload">
-                            <span class="btn__title">Reload</span>
-                        </button>
-                    </li>
-                </ul>
-            </div>
-            <div class="tree-widget-container jstree jstree-1 jstree-default" id="jstree26" data-field="field26"
-                data-layout-identifier="table2" data-column-id="26" data-csrf-token="Cv3SXv22aTEGUU16OsNZt7G0Nwak0rXX"
-                role="tree" tabindex="0" aria-activedescendant="9" aria-busy="false">
-                <ul class="jstree-container-ul jstree-children" role="presentation">
-                    <li role="none" id="9" class="jstree-node  jstree-closed">
-                        <i class="jstree-icon jstree-ocl" role="presentation">
-                        </i>
-                        <a class="jstree-anchor" href="#" tabindex="-1" role="treeitem" aria-selected="false"
-                            aria-level="1" aria-expanded="false" id="9_anchor">
-                            <i class="jstree-icon jstree-themeicon" role="presentation">
-                            </i>one</a>
-                    </li>
-                    <li role="none" id="12" class="jstree-node  jstree-closed jstree-last">
-                        <i class="jstree-icon jstree-ocl" role="presentation">
-                        </i>
-                        <a class="jstree-anchor" href="#" tabindex="-1" role="treeitem" aria-selected="false"
-                            aria-level="1" aria-expanded="false" id="12_anchor">
-                            <i class="jstree-icon jstree-themeicon" role="presentation">
-                            </i>two</a>
-                    </li>
-                </ul>
-            </div>
-            <input type="hidden" name="field26" value="" class="selected-tree-value">
-        </div>
-    </fieldset>
-</div>
-`;
-
-const multiTreeDom = `
-<div class="form-group linkspace-field" data-column-id="26" data-column-type="tree" data-value-selector=""
-    data-show-add="" data-modal-field-ids="" data-curval-instance-name="" data-name="Tree" data-name-short=""
-    data-dependent-not-shown="0" style="margin-left:0px">
-    <fieldset class="fieldset input fieldset--required">
-        <div class="fieldset__legend">
-            <legend id="26-label">Tree</legend>
-        </div>
-        <div class="tree " id="tree-config" data-no-initial-data="false">
-            <div class="list list--horizontal list--buttons">
-                <ul class="list__items">
-                    <li class="list__item">
-                        <button type="button" name="" value="" class="btn btn-small btn-link btn-js-tree-expand">
-                            <span class="btn__title">Expand all</span>
-                        </button>
-                    </li>
-                    <li class="list__item">
-                        <button type="button" name="" value="" class="btn btn-small btn-link btn-js-tree-collapse">
-                            <span class="btn__title">Collapse all</span>
-                        </button>
-                    </li>
-                    <li class="list__item">
-                        <button type="button" name="" value="" class="btn btn-small btn-link btn-js-tree-reload">
-                            <span class="btn__title">Reload</span>
-                        </button>
-                    </li>
-                </ul>
-            </div>
-            <div class="tree-widget-container jstree jstree-1 jstree-default" id="jstree26" data-field="field26"
-                data-layout-identifier="table2" data-column-id="26" data-csrf-token="Cv3SXv22aTEGUU16OsNZt7G0Nwak0rXX"
-                role="tree" tabindex="0" aria-activedescendant="9" aria-busy="false">
-                <ul class="jstree-container-ul jstree-children" role="presentation">
-                    <li role="none" id="9" class="jstree-node  jstree-closed">
-                        <i class="jstree-icon jstree-ocl" role="presentation">
-                        </i>
-                        <a class="jstree-anchor" href="#" tabindex="-1" role="treeitem" aria-selected="false"
-                            aria-level="1" aria-expanded="false" id="9_anchor">
-                            <i class="jstree-icon jstree-themeicon" role="presentation">
-                            </i>one</a>
-                    </li>
-                    <li role="none" id="12" class="jstree-node  jstree-closed jstree-last">
-                        <i class="jstree-icon jstree-ocl" role="presentation">
-                        </i>
-                        <a class="jstree-anchor" href="#" tabindex="-1" role="treeitem" aria-selected="false"
-                            aria-level="1" aria-expanded="false" id="12_anchor">
-                            <i class="jstree-icon jstree-themeicon" role="presentation">
-                            </i>two</a>
-                    </li>
-                </ul>
-            </div>
-            <input type="hidden" name="field26" value="" class="selected-tree-value">
-        </div>
-    </fieldset>
-</div>
-`;
-
 describe('setFieldValue', () => {
+    beforeEach(() => {
+        document.body.innerHTML = '';
+    });
+
     it('Should error if passed in value is not an array?', () => {
         const dom = $(stringDom)[0];
         document.body.appendChild(dom);
@@ -659,7 +551,6 @@ describe('setFieldValue', () => {
 
     describe('String field', () => {
         it('Should set the value of a string field', () => {
-            document.body.innerHTML = '';
             const dom = $(stringDom)[0];
             inputComponent(dom);
             buttonComponent(dom);
@@ -671,7 +562,6 @@ describe('setFieldValue', () => {
         });
 
         it('Should set the value of a multi string field', () => {
-            document.body.innerHTML = '';
             const dom = $(multiStringDom)[0];
             inputComponent(dom);
             buttonComponent(dom);
@@ -690,7 +580,6 @@ describe('setFieldValue', () => {
 
     describe('Enum field', () => {
         it('Sets an enum field', () => {
-            document.body.innerHTML = '';
             const dom = $(enumField)[0];
             inputComponent(dom);
             buttonComponent(dom);
@@ -711,7 +600,6 @@ describe('setFieldValue', () => {
         });
 
         it('Sets a multi enum field', () => {
-            document.body.innerHTML = '';
             const dom = $(multiEnumField)[0];
             inputComponent(dom);
             buttonComponent(dom);
@@ -734,7 +622,6 @@ describe('setFieldValue', () => {
 
     describe('Person field', () => {
         it('Sets a person field', () => {
-            document.body.innerHTML = '';
             const dom = $(personField)[0];
             inputComponent(dom);
             buttonComponent(dom);
@@ -755,7 +642,6 @@ describe('setFieldValue', () => {
         });
 
         it('Sets a multi person field', () => {
-            document.body.innerHTML = '';
             const dom = $(multiPersonField)[0];
             inputComponent(dom);
             buttonComponent(dom);
@@ -778,7 +664,6 @@ describe('setFieldValue', () => {
 
     describe('dateRange', () => {
         it('Sets a date range field', () => {
-            document.body.innerHTML = '';
             const dom = $(dateRangeField)[0];
             inputComponent(dom);
             buttonComponent(dom);
@@ -795,7 +680,6 @@ describe('setFieldValue', () => {
         });
 
         it('Sets a multi date range field', () => {
-            document.body.innerHTML = '';
             const dom = $(dateRangeMultiField)[0];
             inputComponent(dom);
             buttonComponent(dom);
@@ -821,7 +705,6 @@ describe('setFieldValue', () => {
 
     describe('Date', () => {
         it('Sets a date field', () => {
-            document.body.innerHTML = '';
             const dom = $(dateField)[0];
             inputComponent(dom);
             buttonComponent(dom);
@@ -836,7 +719,6 @@ describe('setFieldValue', () => {
         });
 
         it('Sets a multi date field', () => {
-            document.body.innerHTML = '';
             const dom = $(multiDateField)[0];
             inputComponent(dom);
             buttonComponent(dom);
@@ -857,7 +739,6 @@ describe('setFieldValue', () => {
 
     describe('Intgr', () => {
         it('Sets an integer field', () => {
-            document.body.innerHTML = '';
             const dom = $(intgrField)[0];
             inputComponent(dom);
             buttonComponent(dom);
@@ -872,7 +753,6 @@ describe('setFieldValue', () => {
         });
 
         it('Sets a multi integer field', () => {
-            document.body.innerHTML = '';
             const dom = $(multiIntgrField)[0];
             inputComponent(dom);
             buttonComponent(dom);
@@ -893,7 +773,6 @@ describe('setFieldValue', () => {
 
     describe('File', () => {
         it('Should set a file field', () => {
-            document.body.innerHTML = '';
             const dom = $(fileDom)[0];
             inputComponent(dom);
             buttonComponent(dom);
@@ -911,7 +790,6 @@ describe('setFieldValue', () => {
         });
 
         it('Should set a multi file field', () => {
-            document.body.innerHTML = '';
             const dom = $(multiFileDom)[0];
             inputComponent(dom);
             buttonComponent(dom);
