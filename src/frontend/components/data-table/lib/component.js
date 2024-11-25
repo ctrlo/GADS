@@ -244,7 +244,7 @@ class DataTableComponent extends Component {
   }
 
   // Self reference included due to scoping
-  addSearchDropdown(column, id, index) {
+  async addSearchDropdown(column, id, index) {
     const $header = $(column.header())
     const title = $header.text().trim()
     const searchValue = column.search()
@@ -291,19 +291,18 @@ class DataTableComponent extends Component {
     $searchInput.appendTo($('.input', $searchElement))
     if (col.typeahead_use_id && searchValue) {
       $searchInput.after(`<input type="hidden" class="search">`)
-      $.ajax({
-        type: 'GET',
-        url: this.getApiEndpoint(columnId) + searchValue + '&use_id=1',
-        dataType: 'json'
-      }).done(function(data) {
-        if (!data.error) {
+      const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1')
+      const data = await response.json()
+      if (!data.error) {
+        if(data.records.length != 0) {
           $searchInput.val(data.records[0].label)
+          $('input.search', $searchElement).val(data.records[0].id)
+          $('input.search', $searchElement).trigger('change')
         }
-      })
+      }
     } else {
       $('input', $searchElement).addClass('search')
     }
-
 
     $header.find('.data-table__header-wrapper').prepend($searchElement)
 
@@ -321,7 +320,8 @@ class DataTableComponent extends Component {
             .withName(columnId.replace(/\s+/g, '') + 'Search')
             .withCallback((data) => {
               $('input', $header).val(data.name);
-              $('input', $header).trigger('change');
+              $('input.search', $header).val(data.id);
+              $('input.search', $header).trigger('change');
             })
             .build();
         });
