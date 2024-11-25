@@ -1,31 +1,31 @@
 import { EncryptedStorage } from "util/encryptedStorage";
 
 class GadsStorage {
-    private storage: EncryptedStorage;
+    private storage: EncryptedStorage | Storage;
     private storageKey: string;
 
     constructor() {
-        this.storage = EncryptedStorage.instance();
+        this.storage = location.hostname == "localhost" ? localStorage : EncryptedStorage.instance();
     }
 
     private async getStorageKey() {
         const fetchResult = await fetch("/get_key");
         const data = await fetchResult.json();
-        if(data.error !== 0) {
+        if (data.error !== 0) {
             throw new Error("Failed to get storage key");
         }
         this.storageKey = data.key;
     }
 
     async setItem(key: string, value: string) {
-        if(!this.storageKey) {
+        if (!this.storageKey) {
             await this.getStorageKey();
         }
         await this.storage.setItem(key, value, this.storageKey);
     }
 
     async getItem(key: string) {
-        if(!this.storageKey) {
+        if (!this.storageKey) {
             await this.getStorageKey();
         }
         return await this.storage.getItem(key, this.storageKey);

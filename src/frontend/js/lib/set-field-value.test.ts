@@ -753,6 +753,20 @@ describe('setFieldValue', () => {
             });
             expect(inputs.length).toBe(3);
         });
+
+        it('sets a date field using an object', ()=>{
+            const dom = $(dateField)[0];
+            inputComponent(dom);
+            buttonComponent(dom);
+            multipleSelectComponent(dom);
+            selectWidgetComponent(dom);
+            document.body.appendChild(dom);
+            const field = $(dom);
+            const values = [{"year":2024,"month":11,"day":12,"hour":0,"minute":0,"second":0,"epoch":1731369600}];
+            setFieldValues(field, values);
+            const input = field.find<HTMLInputElement>('input');
+            expect(input.val()).toBe('2024-11-12');
+        })
     });
 
     describe('Intgr', () => {

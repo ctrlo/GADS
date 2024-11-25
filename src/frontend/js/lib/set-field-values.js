@@ -195,7 +195,7 @@ const set_date = function($element, value) {
   } else {
     // Otherwise assume string
     if (typeof value === 'object'){
-      $input.datepicker('update', `${value.year}-${value.month}-${value.day}`)
+      $input.datepicker('update', `${value.epoch}`)
     } else {
       $input.datepicker('update', value)
     }
