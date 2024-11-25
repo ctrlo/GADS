@@ -2,6 +2,23 @@
 
 -------
 
+**Version**: 2.5.10
+**Released**: 25-11-2024
+
+-------
+
+## Fixes
+
+- Fix exceptions when using person field typeahead
+- View all always visible on curvals
+- Added and updated breadcrumbs
+- Fixed sorting for multiple columns
+- Fix user permission save not working in wizard
+- Fix problem saving display conditions
+- Fix filter on curval column in table
+
+-------
+
 **Version**: 2.5.9
 **Released**: 30-10-2024
 
