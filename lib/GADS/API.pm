@@ -541,6 +541,10 @@ post '/api/table_request' => require_login sub {
     _post_table_request();
 };
 
+post '/api/authentication_providers/?:id?' => require_login sub {
+    _post_add_authentication_providers();
+};
+
 # AJAX record browse
 any ['get', 'post'] => '/api/:sheet/records' => require_login sub {
     _get_records();
@@ -752,6 +756,46 @@ sub _post_add_user_account
         : schema->resultset('User')->create_user(%values, current_user => $logged_in_user, request_base => request->base);
 
     my $msg = __x"User {type} successfully", type => $id ? 'updated' : 'created';
+    return _success("$msg");
+}
+
+sub _post_add_authentication_providers
+{   my $body = _decode_json_body();
+
+    my $logged_in_user = logged_in_user;
+
+    my $id = route_parameters->get('id');
+    my $update_provider;
+    if ($id)
+    {
+        $update_provider = schema->resultset('Authentication')->find($id)
+            or error __x"Authentication id {id} not found", id => $id;
+    }
+
+    error __"Unauthorised access"
+        unless $logged_in_user->permission->{superadmin} || $logged_in_user->permission->{useradmin};
+
+    my %values = (
+        name                  => $body->{name},
+        type                  => $body->{type},
+        saml2_firstname       => $body->{saml2_firstname},
+        saml2_surname         => $body->{saml2_surname},
+        xml                   => $body->{xml},
+        cacert                => $body->{cacert},
+        sp_cert               => $body->{sp_cert},
+        sp_key                => $body->{sp_key},
+        saml2_relaystate      => $body->{saml2_relaystate},
+        saml2_groupname       => $body->{saml2_groupname},
+    );
+
+    $values{permissions} = $body->{permissions}
+        if $logged_in_user->permission->{superadmin};
+
+    # Any exceptions/errors generated here will be automatically sent back as JSON error
+    $id ? $update_provider->update_provider(%values, current_user => $logged_in_user)
+        : schema->resultset('Authentication')->create_provider(%values, current_user => $logged_in_user, request_base => request->base);
+
+    my $msg = __x"Authentication Provider {type} successfully", type => $id ? 'updated' : 'created';
     return _success("$msg");
 }
 
@@ -1338,7 +1382,7 @@ any ['get', 'post'] => '/api/providers' => require_any_role [qw/useradmin supera
     if ($params->get('cols'))
     {
         # Get columns to be shown in the users table summary
-        my @cols = qw/site_id type name xml saml2_firstname saml2_surname enabled error_messages/;
+        my @cols = qw/site_id type name xml saml2_firstname saml2_surname cacert sp_cert sp_key enabled error_messages/;
         #push @cols, 'title' if $site->register_show_title;
         #push @cols, 'email';
         #push @cols, 'organisation' if $site->register_show_organisation;
@@ -1358,7 +1402,6 @@ any ['get', 'post'] => '/api/providers' => require_any_role [qw/useradmin supera
 
     my $total     = $auth->count;
     my $col_order = $params->get('order[0][column]');
-    use Data::Dumper;
     my $sort_by   = defined $col_order && $params->get("columns[${col_order}][name]");
     my $dir       = $params->get('order[0][dir]');
     my $search    = $params->get('search[value]');

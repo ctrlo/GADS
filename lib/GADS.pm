@@ -1516,17 +1516,7 @@ any ['get', 'post'] => '/authentication_providers/' => require_any_role [qw/user
 
     my $auth = GADS::Authentication->new(schema => schema);
     template 'authentication/providers' => {
-            values          => {
-            site_id         => "site_id", #$auth->site_id,
-            type            => "type", #$auth->type,
-            name            => "name",  #$auth->name,
-            xml             => "xm;", #$auth->xml,
-            saml2_firstname => "first", #$auth->saml2_firstname,
-            saml2_surname   => "surname", #$auth->saml2_surname,
-            enabled         => "enabled", #$auth->enabled,
-            error_messages  => "error_message", #$auth->error_messages,
-
-            },
+            providers       => $auth,
             permissions     => "permisission", #$auth->permissions,
             page            => 'system_settings',
     };
@@ -1605,6 +1595,81 @@ any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin super
         permissions     => $userso->permissions,
         page            => 'user'
     };
+};
+
+any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $user   = logged_in_user;
+    my $userso = GADS::Users->new(schema => schema);
+    my $auth   = GADS::Authentication->new(schema => schema);
+    my $id     = route_parameters->get('id');
+    my $audit  = GADS::Audit->new(schema => schema, user => $user);
+
+    if (!$id) {
+        error __x"User id not available";
+    }
+
+    my $editProvider = rset('Authentication')->providers->search({id => $id})->next
+        or error __x"Authentication provider id {id} not found", id => $id;
+
+    # The submit button will still be triggered on a new org/title creation,
+    # if the user has pressed enter, in which case ignore it
+    if (param('submit'))
+    {
+        my %values = (
+            name                  => param('name'),
+            type                  => param('type'),
+            saml2_firstname       => param('saml2_firstname'),
+            saml2_surname         => param('saml2_surname'),
+            xml                   => param('xml'),
+            cacert                => param('cacert'),
+            sp_cert               => param('sp_cert'),
+            sp_key                => param('sp_key'),
+            saml2_relaystate      => param('saml2_relaystate'),
+            saml2_groupname       => param('saml2_groupname'),
+        );
+        $values{permissions} = [body_parameters->get_all('permission')]
+            if logged_in_user->permission->{superadmin};
+
+        if (process sub {
+            # Don't use DBIC update directly, so that permissions etc are updated properly
+            $editProvider->update_provider(current_user => logged_in_user, %values);
+        })
+        {
+            return forwardHome(
+                { success => "Authentication Provider has been updated successfully" }, 'authentication_providers/' );
+        }
+    }
+    elsif (my $delete_id = param('delete'))
+    {
+        return forwardHome(
+            { danger => "You do not have permission to delete an authentication provider" } )
+            if !logged_in_user->permission->{superadmin};
+        my $usero = rset('Authentication')->find($delete_id);
+        return forwardHome(
+            { danger => "Cannot delete currently active authentication provider" } )
+            if $usero->enabled;
+        if (process( sub { $usero->retire(current_user => logged_in_user) }))
+        {
+            #FIXME: fix audit
+            $audit->login_change("Authentication Provider ID $delete_id deleted");
+            return forwardHome(
+                { success => "Authentication Provider has been updated successfully" }, 'authentication_providers/' );
+        }
+    }
+
+    my $output = template 'authentication/provider_edit' => {
+        editprovider => $editProvider,
+        groups   => GADS::Groups->new(schema => schema)->all,
+        values   => {
+            title         => $userso->titles,
+            organisation  => $userso->organisations,
+            department_id => $userso->departments,
+            team_id       => $userso->teams,
+        },
+        permissions => $userso->permissions,
+        page        => 'admin',
+    };
+    $output;
 };
 
 any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/] => sub {

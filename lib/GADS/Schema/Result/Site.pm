@@ -261,6 +261,100 @@ sub user_field_by_description
     $field;
 }
 
+sub provider_fields
+{   my $self = shift;
+
+    my @fields = (
+        {
+            name        => 'name',
+            description => 'Provider Name',
+            type        => 'freetext',
+            placeholder => 'Provider Name',
+            is_required => 1,
+        },
+        {
+            name        => 'type',
+            description => 'Type',
+            type        => 'dropdown',
+            placeholder => 'SAML2',
+            is_required => 1,
+        },
+        {
+          name          => 'enabled',
+          description   => 'Enabled',
+          type          => 'freetext',
+          placeholder   => '',
+        },
+        {
+          name          => 'entity_id',
+          description   => 'Entity ID',
+          type          => 'freetext',
+          placeholder   => 'Entity ID',
+        },
+        {
+          name          => 'sso_url',
+          description   => 'Reply URL / SSO URL / ACS URL',
+          type          => 'freetext',
+          placeholder   => '',
+        },
+        {
+          name          => 'saml2_firstname',
+          description   => 'User attribute for first name (optional)',
+          type          => 'freetext',
+          placeholder   => 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname',
+        },
+        {
+          name          => 'saml2_surname',
+          description   => 'User attribute for surname (optional)',
+          type          => 'freetext',
+          placeholder   => 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname',
+        },
+        {
+          name          => 'saml2_groupname',
+          description   => 'Attribute for groupname (optional)',
+          type          => 'freetext',
+          placeholder   => 'http://schemas.xmlsoap.org/claims/Group',
+        },
+        {
+          name          => 'xml',
+          description   => 'Identity Provider Metadata XML',
+          type          => 'textarea',
+          placeholder   => '',
+        },
+        {
+          name          => 'cacert',
+          description   => 'Identity provider Signing/Encryption Certificate',
+          type          => 'textarea',
+          placeholder   => '',
+        },
+        {
+          name          => 'sp_key',
+          description   => 'GADS Authentication Provider Key',
+          type          => 'textarea',
+          placeholder   => '',
+        },
+        {
+          name          => 'sp_cert',
+          description   => 'GADS Authentication Provider Certificate',
+          type          => 'textarea',
+          placeholder   => '',
+        },
+        {
+          name          => 'saml2_relaystate',
+          description   => 'RelayState',
+          type          => 'freetext',
+          placeholder   => '',
+        },
+    );
+
+    my $user_editable = decode_json($self->user_editable_fields || '{}');
+
+    $_->{editable} = $user_editable->{$_->{name}} // 1 # Default to editable
+        foreach @fields;
+
+    return @fields;
+}
+
 sub user_fields
 {   my $self = shift;
 

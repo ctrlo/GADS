@@ -44,7 +44,7 @@
     description   = "This is an overview of all the authentication providers within your Linkspace system."
     aside_buttons = ! user.permission.useradmin ? [] : [{
       type    = "modal_button"
-      modalId = "userModal"
+      modalId = "providerModal"
       class   = "btn btn-add"
       label   = "Add an authentication provider"
     }];
@@ -68,6 +68,6 @@
 </div>
 
 [%-
-  INCLUDE wizard/user_add.tt endpoint="/api/user_account" modalId="userModal";
+  INCLUDE wizard/provider_add.tt endpoint="/api/authentication_providers" modalId="providerModal";
   INCLUDE wizard/user_email.tt modalId="emailUsersModal";
 -%]
