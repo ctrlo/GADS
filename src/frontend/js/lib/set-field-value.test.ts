@@ -4,6 +4,7 @@ import inputComponent from "../../components/form-group/input";
 import buttonComponent from "../../components/button";
 import multipleSelectComponent from "../../components/form-group/multiple-select";
 import selectWidgetComponent from "../../components/form-group/select-widget";
+import textAreaComponent from "../../components/form-group/textarea";
 import { describe, it, expect } from '@jest/globals';
 import { setFieldValues } from "./set-field-values";
 
@@ -537,6 +538,23 @@ const multiFileDom = `
 </div>
 `;
 
+const textAreaDom = `
+<div class="form-group linkspace-field field--changed" data-column-id="87" data-column-type="string"
+  data-value-selector="" data-show-add="" data-modal-field-ids="" data-curval-instance-name="" data-name="Text area"
+  data-name-short="" data-dependent-not-shown="0" style="margin-left:0px"
+  data-component-initialized-autosavecomponent="true">
+  <div class="textarea textarea--required">
+    <div class="textarea__label">
+      <label for="87">Text area</label>
+    </div>
+    <div class="input__field w-100">
+      <textarea class="form-control " id="87" name="field87" rows="10" placeholder="" required="" aria-required="true"
+        aria-invalid="true"></textarea>
+    </div>
+  </div>
+</div>
+`;
+
 describe('setFieldValue', () => {
     beforeEach(() => {
         document.body.innerHTML = '';
@@ -805,6 +823,23 @@ describe('setFieldValue', () => {
                 expect(Number.parseInt($(input).val() as string)).toBe(i++);
             });
             expect(inputs.length).toBe(2);
+        });
+    });
+
+    describe('Text area', ()=> {
+        it('Should set a text area field', () => {
+            const dom = $(textAreaDom)[0];
+            inputComponent(dom);
+            buttonComponent(dom);
+            multipleSelectComponent(dom);
+            selectWidgetComponent(dom);
+            textAreaComponent(dom);
+            document.body.appendChild(dom);
+            const $field = $(dom);
+            const values = ['test'];
+            setFieldValues($field, values);
+            const input = $field.find('textarea');
+            expect(input.val()).toBe('test');
         });
     });
 });

@@ -208,7 +208,8 @@ const set_daterange = function($element, value) {
 }
 
 const set_string = function($element, value) {
-  $element.find('input').val(value).trigger("change")
+  const $input = $element.find('input').length? $element.find('input') : $element.find('textarea');
+  $input.val(value).trigger("change")
 }
 
 const set_tree = function($field, values) {
