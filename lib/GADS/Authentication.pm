@@ -46,7 +46,8 @@ sub authentication_summary_rs
 {   my $self = shift;
     my $summary = $self->authentication_rs->search_rs({},{
         columns => [
-		'me.id', 'me.site_id', 'me.type', 'me.name', 'me.enabled', 'me.error_messages',
+                'me.id', 'me.site_id', 'me.type', 'me.name', 'me.enabled', 'me.error_messages',
+                'me.xml', 'me.sp_key',
         ],
         order_by => 'name',
         collapse => 1,

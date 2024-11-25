@@ -1,0 +1,321 @@
+[%-
+  firstFrameFields = [];
+  secondFrameFields = [];
+  thirdFrameFields = [];
+
+  FOREACH field IN site.provider_fields;
+    IF field.name == "name" OR field.name == "type";
+      firstFrameFields.push(field);
+    ELSIF field.name == "entity_id" OR field.name == "sso_url" OR field.name == "saml2_firstname" OR
+      field.name == "saml2_lastname" OR field.name == "saml2_groupname";
+      secondFrameFields.push(field);
+    ELSE;
+      thirdFrameFields.push(field);
+    END;
+  END;
+-%]
+<div class="modal modal--wizzard modal--user"
+     data-config='{"url":"[% endpoint %]"}'
+     id="[% modalId %]"
+     tabindex="-1"
+     role="dialog"
+     aria-labelledby="providerModalLabel"
+     aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-header__content">
+          <h3 class="modal-title" id="providerModalLabel">
+            <span class='js-add-user'>Add an Authentication Provider</span>
+            <span class='js-approve-account'>Approve requested account</span>
+          </h3>
+
+          <ol class="modal__steps">
+            <li class="modal__step modal__step--active" data-step="1">
+                  <span>
+                    Authentication provider details
+                  </span>
+            </li>
+            <li class="modal__step " data-step="2">
+              <span>
+                Provider Attributes
+              </span>
+            </li>
+            <li class="modal__step " data-step="3">
+              <span>
+                Certificates and Keys
+              </span>
+            </li>
+          </ol>
+        </div>
+
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true" class="hidden">Close</span>
+        </button>
+      </div>
+
+      <form method="post">
+        [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+
+        <div class="modal-frame" data-config='{"step":1,"frame":1,"item":null,"count":null}'>
+          <div class="modal-body">
+            <div class="container-fluid">
+              <div class="row">
+                <div class="col">
+                  <div class="alert alert-danger alert-js-user-details" role="alert" id="modal-alert">
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mb-4">
+                <div class="col">
+                  <p class="js-add-user">In this window you can add an authentication provider in the system.</p>
+                  <p class="js-approve-account">In this window you can approve this account request.</p>
+                </div>
+              </div>
+
+              [%- field_counter = 0 -%]
+              <div class="row">
+              [%- FOREACH field in firstFrameFields -%]
+                [%- IF field_counter > 0 AND field_counter % 2 == 0 -%]
+              </div>
+              <div class="row">
+                [%- END -%]
+                <div class="col-lg-6">
+                  [%-
+                    IF field.name == "email";
+                      field_type = "email";
+                      sub_field  = "";
+                      sub_params = {};
+                    ELSE;
+                      field_type = "text";
+                      sub_field  = "";
+                      sub_params = {};
+                    END;
+
+                    IF field.type == "freetext";
+                      INCLUDE fields/input.tt
+                        id = field.name
+                        name = field.name
+                        label = field.description
+                        placeholder = field.placeholder
+                        type = field_type
+                        filter = "html"
+                        is_required = field.is_required
+                        sub_field = sub_field
+                        sub_params = sub_params;
+
+                    ELSIF field.type == "dropdown";
+                      INCLUDE fields/select.tt
+                        id = field.name
+                        name = field.name
+                        label = field.description
+                        placeholder = field.placeholder
+                        items = values.${field.name}
+                        filter = "html"
+                        sub_field = sub_field
+                        sub_params = sub_params;
+                    ELSIF field.type == "textarea";
+                      INCLUDE fields/textarea.tt
+                        id = field.name
+                        name = field.name
+                        label = field.description
+                        placeholder = field.placeholder
+                        filter = "html"
+                        is_required = field.is_required
+                        sub_field = sub_field
+                        sub_params = sub_params
+                        rows = 2;
+                    END;
+                  -%]
+                </div>
+                [%- field_counter = field_counter + 1; -%]
+              [%- END -%]
+              </div>
+            </div> <!-- container end -->
+          </div> <!-- modal body end -->
+
+          [%-
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel"
+                label   = "Cancel"
+                dismiss = "modal"
+              }]
+              right_buttons = [{
+                type    = "submit"
+                class   = "btn-danger btn-js-reject-request"
+                name    = "delete"
+                value   = user.id
+                label   = "Reject request"
+              }, {
+                class = "btn-default btn-disabled btn-js-next"
+                label = "Next"
+              }];
+          -%]
+        </div>
+
+        <div class="modal-frame" data-config='{"step":2,"frame":2,"item":null,"count":null}'>
+          <div class="modal-body">
+            <div class="container-fluid">
+              <div class="row mb-4">
+                <div class="col">
+                  <p>Specify the attributes for the provider: "<span class="js-email">provider.name</span>"</p>
+                </div>
+              </div>
+
+              [%- field_counter = 0 -%]
+              <div class="row mt-4">
+                [%- FOREACH field in secondFrameFields -%]
+                  [%- IF field_counter > 0 AND field_counter % 2 == 0 -%]
+              </div>
+              <div class="row mt-4">
+                  [%- END -%]
+                  [%- coll_end_class = field_counter % 2 == 1 ? ' align-self-end' : ''; -%]
+                <div class="col-lg-6[%- coll_end_class -%]">
+                  [%-
+                    IF field.type == "freetext";
+                      INCLUDE fields/input.tt
+                        id = field.name
+                        name = field.name
+                        label = field.description
+                        placeholder = field.placeholder
+                        type = field_type
+                        filter = "html"
+                        sub_field = sub_field
+                        sub_params = sub_params;
+
+                    ELSIF field.type == "dropdown";
+                      INCLUDE fields/select_single.tt
+                        id = field.name
+                        name = field.name
+                        label = field.description
+                        placeholder = field.placeholder
+                        items = values.${field.name}
+                        sub_field = sub_field
+                        sub_params = sub_params;
+
+                    ELSIF field.type == "textarea";
+                      INCLUDE fields/textarea.tt
+                        id=field.name
+                        name=field.name
+                        label=field.description
+                        placeholder=field.placeholder
+                        filter="html"
+                        sub_field=sub_field
+                        sub_params=sub_params;
+                    END;
+                  -%]
+                </div>
+                [%- field_counter = field_counter + 1; -%]
+              [%- END -%]
+              </div>
+            </div> <!-- container end -->
+          </div> <!-- modal body end -->
+
+          [%-
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel btn-js-back"
+                label   = "Back"
+              }]
+              right_buttons = [{
+                type    = "submit"
+                class   = "btn-danger btn-js-reject-request"
+                name    = "delete"
+                value   = user.id
+                label   = "Reject request"
+              }, {
+                class = "btn-default btn-js-next"
+                label = "Next"
+              }];
+          -%]
+        </div>
+
+        <div class="modal-frame" data-config='{"step":3,"frame":3,"item":null,"count":null}'>
+          <div class="modal-body">
+            <div class="container-fluid">
+              <div class="row">
+                <div class="col">
+                  <div class="alert alert-danger alert-js-user-permissions" role="alert">
+                  </div>
+                </div>
+              </div>
+              <div class="row mb-4">
+                <div class="col">
+                  <p>Private keys and certificates: "<span class="js-email">USER</span>":</p>
+                </div>
+              </div>
+
+              [%- field_counter = 0 -%]
+              <div class="row mt-4">
+                [%- FOREACH field in thirdFrameFields -%]
+                  [%- IF field_counter > 0 AND field_counter % 2 == 0 -%]
+              </div>
+              <div class="row mt-4">
+                  [%- END -%]
+                  [%- coll_end_class = field_counter % 2 == 1 ? ' align-self-end' : ''; -%]
+                <div class="col-lg-6[%- coll_end_class -%]">
+                  [%-
+                    IF field.type == "freetext";
+                      INCLUDE fields/input.tt
+                        id = field.name
+                        name = field.name
+                        label = field.description
+                        placeholder = field.placeholder
+                        type = field_type
+                        filter = "html"
+                        sub_field = sub_field
+                        sub_params = sub_params;
+
+                    ELSIF field.type == "dropdown";
+                      INCLUDE fields/select_single.tt
+                        id = field.name
+                        name = field.name
+                        label = field.description
+                        placeholder = field.placeholder
+                        items = values.${field.name}
+                        sub_field = sub_field
+                        sub_params = sub_params;
+
+                    ELSIF field.type == "textarea";
+                      INCLUDE fields/textarea.tt
+                        id=field.name
+                        name=field.name
+                        label=field.description
+                        placeholder=field.placeholder
+                        filter="html"
+                        sub_field=sub_field
+                        sub_params=sub_params;
+                    END;
+                  -%]
+                </div>
+                [%- field_counter = field_counter + 1; -%]
+              [%- END -%]
+              </div>
+            </div> <!-- container end -->
+          </div> <!-- modal body end -->
+
+          [%-
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel btn-js-back"
+                label   = "Back"
+              }]
+              right_buttons = [{
+                type    = "submit"
+                class   = "btn-danger btn-js-reject-request"
+                name    = "delete"
+                value   = user.id
+                label   = "Reject request"
+              }, {
+                class = "btn-default btn-js-save"
+                label = "Create provider"
+              }];
+          -%]
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

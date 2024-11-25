@@ -1,0 +1,120 @@
+[%-
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title       = "Edit provider: " _ editprovider.name
+    description = "In this window you can edit an authentication provider in the system."
+    back_button = { url = url.page _ "/authentication_providers/" };
+-%]
+<div class="content-block__main">
+  <form method="post" action="">
+    <fieldset class="fieldset">
+      <legend class="fieldset__legend fieldset__legend--hidden">My details</legend>
+      [%-
+        INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
+        INCLUDE fields/hidden.tt name="page" value=page;
+        INCLUDE fields/hidden.tt name="username" value=user.username filter="html_entity";
+        INCLUDE fields/hidden.tt name="id" value=editprovider.id;
+
+        field_counter = 0;
+
+        IF site.provider_fields.size > 0;
+      -%]
+      <div class="row">
+        [% END %]
+        [% FOREACH field IN site.provider_fields %]
+          [% IF field_counter > 0 AND field_counter % 2 == 0 %]
+      </div>
+      <div class="row">
+          [% END %]
+        <div class="col-lg-5">
+          [%
+            IF field.type == "freetext";
+              INCLUDE fields/input.tt
+                id = field.name
+                name = field.name
+                value = editprovider.${field.name}
+                label = field.description
+                placeholder = field.placeholder
+                type = "text"
+                filter = "html"
+                sub_field = ""
+                sub_params = {};
+
+            ELSIF field.type == "dropdown";
+              INCLUDE fields/select_single.tt
+                id = field.name
+                name = field.name
+                value = editprovider.get_column(field.name)
+                label = field.description
+                placeholder = field.placeholder
+                items = values.${field.name}
+                sub_field = ""
+                sub_params = {};
+
+            ELSIF field.type == "textarea";
+              INCLUDE fields/textarea.tt
+                id = field.name
+                name = field.name
+                value = editprovider.${field.name}
+                label = field.description
+                rows = 10
+                placeholder = field.placeholder
+                filter = "html"
+                sub_field = ""
+                sub_params = {};
+
+            END;
+          %]
+        </div>
+        [%
+            IF field.name == "email";
+              field_counter = field_counter + 2;
+            ELSE;
+              field_counter = field_counter + 1;
+            END;
+          END;
+        %]
+      [% IF site.provider_fields.size > 0 %]
+      </div>
+      [% END %]
+
+    </fieldset>
+
+    [%
+      INCLUDE navigation/button_bar.tt
+        row_class = "row mt-5"
+        columns = [{
+          class = "col-sm-auto mb-3 mb-sm-0",
+          buttons = [{
+            type = "link",
+            class = "btn btn-cancel",
+            target = url.page _ "/authentication_providers/",
+            label = "Cancel"
+          }]
+        }, {
+          class = "col-sm-auto",
+          buttons = [{
+            type      = "modal_button",
+            modalId   = "deleteModal",
+            dataTitle = editprovider.name,
+            dataId    = editprovider.id,
+            class     = "btn btn-danger btn-js-delete",
+            label     = "Delete provider"
+          }, {
+            type  = "button",
+            name  = "submit",
+            value = "submit",
+            class = "btn btn-default",
+            label = "Save changes"
+          }]
+        }];
+    %]
+  </form>
+</div>
+
+[%
+  INCLUDE wizard/delete.tt
+    modalId     = "deleteModal"
+    label       = "Delete " _ editprovider.name
+    description = "Are you sure you want to delete this provider? You cannot undo this step.";
+%]
