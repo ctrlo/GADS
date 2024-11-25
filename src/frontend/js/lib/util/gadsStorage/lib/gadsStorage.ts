@@ -1,3 +1,4 @@
+import { fromJson } from "util/common";
 import { EncryptedStorage } from "util/encryptedStorage";
 
 class GadsStorage {
@@ -18,6 +19,7 @@ class GadsStorage {
     }
 
     async setItem(key: string, value: string) {
+        if(!value || (Array.isArray(fromJson(value)) && value.length === 0)) return; 
         if (!this.storageKey) {
             await this.getStorageKey();
         }
