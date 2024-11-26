@@ -5,7 +5,7 @@
       <form role="form" method="post">
         [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
         <div class="modal-frame" >
-          <div class="modal-body">
+          <div class="modal-body modal-autosave">
             <p>[% description | html %]</p>
           </div>
           
