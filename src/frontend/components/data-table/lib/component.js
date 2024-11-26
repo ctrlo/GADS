@@ -293,16 +293,16 @@ class DataTableComponent extends Component {
     if (col.typeahead_use_id) {
       $searchInput.after(`<input type="hidden" class="search">`)
       if(searchValue) {
-      const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1')
-      const data = await response.json()
-      if (!data.error) {
-        if(data.records.length != 0) {
-          $searchInput.val(data.records[0].label)
-          $('input.search', $searchElement).val(data.records[0].id).trigger('change')
+        const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1')
+        const data = await response.json()
+        if (!data.error) {
+          if(data.records.length != 0) {
+            $searchInput.val(data.records[0].label)
+            $('input.search', $searchElement).val(data.records[0].id).trigger('change')
+          }
         }
       }
-    }
-  } else {
+    } else {
       $('input', $searchElement).addClass('search')
     }
 
