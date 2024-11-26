@@ -2200,7 +2200,9 @@ sub order_by
         }
     }
 
-    \@order_by;
+    [grep {
+        !grep { index($_, 'created') != -1 } values %$_
+    } @order_by];
 }
 
 sub filter_hook
