@@ -1,12 +1,16 @@
-import { fromJson } from "util/common";
 import { EncryptedStorage } from "util/encryptedStorage";
 
 class GadsStorage {
+    private get test() {
+        return location.hostname==="localhost";
+    }
+
     private storage: EncryptedStorage | Storage;
     private storageKey: string;
 
     constructor() {
-        this.storage = location.hostname == "localhost" ? localStorage : EncryptedStorage.instance();
+        this.test && console.log("Using localStorage");
+        this.storage = this.test ? localStorage : EncryptedStorage.instance();
     }
 
     private async getStorageKey() {
@@ -19,7 +23,12 @@ class GadsStorage {
     }
 
     async setItem(key: string, value: string) {
-        if(!value || (Array.isArray(fromJson(value)) && value.length === 0)) return; 
+        if(!value || value === "[]") {
+            if(await this.getItem(key)) {
+                this.removeItem(key);
+            }
+            return;
+        }
         if (!this.storageKey) {
             await this.getStorageKey();
         }

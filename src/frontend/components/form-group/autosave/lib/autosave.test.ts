@@ -21,11 +21,6 @@ describe('AutosaveBase', () => {
         document.body.innerHTML = '';
     });
 
-    it('should return test', () => {
-        const autosave = new TestAutosave(document.getElementById('test')!);
-        expect(autosave.test).toBe(true);
-    });
-
     it('should return layoutId', () => {
         const autosave = new TestAutosave(document.getElementById('test')!);
         expect(autosave.layoutId).toBe(1);
@@ -34,15 +29,5 @@ describe('AutosaveBase', () => {
     it('should return recordId', () => {
         const autosave = new TestAutosave(document.getElementById('test')!);
         expect(autosave.recordId).toBe(0);
-    });
-
-    it('should return table_key', () => {
-        const autosave = new TestAutosave(document.getElementById('test')!);
-        expect(autosave.table_key).toBe('linkspace-record-change-1-0');
-    });
-
-    it('should return storage', () => {
-        const autosave = new TestAutosave(document.getElementById('test')!);
-        expect(autosave.storage).toBe(localStorage);
     });
 });

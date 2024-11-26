@@ -4,3 +4,23 @@
         border-radius: $input-border-radius;
     }
 }
+
+li.li-success {
+    list-style: none;
+    &::before {
+        content: '\2713';
+        color: green;
+        font-size: 1.5em;
+        margin-right: 0.5em;
+    }
+}
+
+li.li-error {
+    list-style: none;
+    &::before {
+        content: '\2717';
+        color: red;
+        font-size: 1.5em;
+        margin-right: 0.5em;
+    }
+}

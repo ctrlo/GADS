@@ -229,7 +229,7 @@ class CurvalModalComponent extends ModalComponent {
       }
       existing.push(existing_row)
       // Store as array for consistency with other field types
-      await gadsStorage.setItem(parent_key, JSON.stringify(existing), 'local')
+      await gadsStorage.setItem(parent_key, JSON.stringify(existing))
     }
 
     $(this.element).modal('hide')

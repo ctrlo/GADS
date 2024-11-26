@@ -26,7 +26,7 @@ class EncryptedStorage {
         if (!encryptedValue) {
             return null;
         }
-        return this.decrypt(encryptedValue, encryptionKey);
+        return await this.decrypt(encryptedValue, encryptionKey);
     }
 
     removeItem(key: string) {

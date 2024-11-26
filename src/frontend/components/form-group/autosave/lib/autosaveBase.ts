@@ -2,10 +2,6 @@ import { Component } from "component";
 import gadsStorage from "util/gadsStorage";
 
 export default abstract class AutosaveBase extends Component {
-    get test() {
-        return location.hostname === 'localhost' || window.test;
-    }
-
     constructor(element: HTMLElement) {
        super(element);
        this.initAutosave();
@@ -24,12 +20,8 @@ export default abstract class AutosaveBase extends Component {
         return isNaN(parseInt(id)) ? 0 : id;
     }
 
-    get table_key() {
-        return `linkspace-record-change-${this.layoutId}-${this.recordId}`;
-    }
-
     get storage() {
-        return this.test ? localStorage: gadsStorage;
+        return gadsStorage;
     }
 
     columnKey($field:JQuery) {

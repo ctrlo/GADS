@@ -40,7 +40,7 @@ class AutosaveComponent extends AutosaveBase {
           values = values.map((item) => Number.isInteger(item) ? item : indexed[item]);
         }
         await self.storage.setItem(column_key, JSON.stringify(values));
-        await self.storage.setItem(self.table_key, true);
+        // await self.storage.setItem(self.table_key, true);
       } else {
         // Delete any values now deleted
         let existing = await self.storage.getItem(column_key) ? JSON.parse(await self.storage.getItem(column_key)) : [];
@@ -50,7 +50,7 @@ class AutosaveComponent extends AutosaveBase {
         // deleted, this will need setting if the change was triggered as a
         // result of a modal submit for a curval add - everything else will
         // have already been saved)
-        await self.storage.setItem(self.table_key, true);
+        // await self.storage.setItem(self.table_key, true);
       }
     });
 
