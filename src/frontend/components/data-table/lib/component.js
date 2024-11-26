@@ -8,6 +8,7 @@ import 'datatables.net-rowreorder-bs4'
 import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets'
 import { moreLess } from 'components/more-less/lib/more-less'
 import { bindToggleTableClickHandlers } from './toggle-table'
+import TypeaheadBuilder from 'util/typeahead'
 
 const MORE_LESS_TRESHOLD = 50
 
@@ -289,18 +290,19 @@ class DataTableComponent extends Component {
      * insertion into the visible input */
     const $searchInput = $(`<input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>`)
     $searchInput.appendTo($('.input', $searchElement))
-    if (col.typeahead_use_id && searchValue) {
+    if (col.typeahead_use_id) {
       $searchInput.after(`<input type="hidden" class="search">`)
+      if(searchValue) {
       const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1')
       const data = await response.json()
       if (!data.error) {
         if(data.records.length != 0) {
           $searchInput.val(data.records[0].label)
-          $('input.search', $searchElement).val(data.records[0].id)
-          $('input.search', $searchElement).trigger('change')
+          $('input.search', $searchElement).val(data.records[0].id).trigger('change')
         }
       }
-    } else {
+    }
+  } else {
       $('input', $searchElement).addClass('search')
     }
 
@@ -309,8 +311,8 @@ class DataTableComponent extends Component {
     this.toggleFilter(column)
 
     if (col && col.typeahead) {
-      import(/* webpackChunkName: "typeaheadbuilder" */ 'util/typeahead')
-        .then(({ default: TypeaheadBuilder }) => {
+      import(/*webpackChunkName: "typeahead" */ "util/typeahead")
+        .then(({default: TypeaheadBuilder})=>{
           const builder = new TypeaheadBuilder();
           builder
             .withAjaxSource(this.getApiEndpoint(columnId))
@@ -319,12 +321,15 @@ class DataTableComponent extends Component {
             .withDefaultMapper()
             .withName(columnId.replace(/\s+/g, '') + 'Search')
             .withCallback((data) => {
-              $('input', $header).val(data.name);
-              $('input.search', $header).val(data.id);
-              $('input.search', $header).trigger('change');
+              if(col.typeahead_use_id) {
+                $searchInput.val(data.name);
+                $('input.search',$searchElement).val(data.id).trigger('change');
+              }else{
+                $('input', $searchElement).addClass('search').val(data.name).trigger('change');
+              }
             })
             .build();
-        });
+      });
     }
 
     // Apply the search
