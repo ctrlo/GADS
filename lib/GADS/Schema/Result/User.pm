@@ -1092,6 +1092,7 @@ sub has_draft
 sub update_attributes
 {   my ($self, $attributes) = @_;
     my $authentication = $self->result_source->schema->resultset('Authentication')->saml2_provider;
+    my $site = $self->result_source->schema->resultset('Site')->next;
     if (my $at = $authentication->saml2_firstname)
     {
         $self->update({ firstname => $attributes->{$at}->[0] });
@@ -1099,6 +1100,30 @@ sub update_attributes
     if (my $at = $authentication->saml2_surname)
     {
         $self->update({ surname => $attributes->{$at}->[0] });
+    }
+    if (my $at = $authentication->saml2_groupname)
+    {
+        my %permission_map = (
+                'GADS-SuperAdmin' => 'superadmin',
+                'GADS-UserAdmin'  => 'useradmin',
+                'GADS-Audit'      => 'audit',
+                );
+
+        my @permissions;
+        for my $group (@{$attributes->{$at}}) {
+            push @permissions, $permission_map{$group} if defined $permission_map{$group} and $group =~ /^GADS-/;
+        }
+        if (@permissions)
+        {
+            error __"You do not have permission to set global user permissions"
+                if !$self->permission->{superadmin};
+            $self->permissions(@permissions);
+            # Clear and rebuild permissions, in case of form submission failure. We
+            # need to rebuild now, otherwise the transaction may have rolled-back
+            # to the old version by the time it is built in the template
+            $self->clear_permission;
+            $self->permission;
+        }
     }
     my $value = _user_value({firstname => $self->firstname, surname => $self->surname});
     $self->update({ value => $value });

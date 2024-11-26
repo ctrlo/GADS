@@ -489,7 +489,8 @@ post '/saml' => sub {
 
     my $callback = $saml->callback(
         saml_response => body_parameters->get('SAMLResponse'),
-        cacert        => $authentication->cacert,
+        defined $authentication->cacert ?
+        (cacert       => $authentication->cacert) : (),
     );
 
     my $username = $callback->{nameid}
@@ -502,8 +503,6 @@ post '/saml' => sub {
         my $msg = $authentication->user_not_found_error;
         return forwardHome({ danger => __x($msg, username => $username) }, 'login?password=1' );
     }
-
-    # TIM FIXME add in the group attributes here
 
     $user->update_attributes($callback->{attributes});
     $user->update({ lastlogin => DateTime->now });
