@@ -2,6 +2,18 @@
 
 -------
 
+**Version**: 2.5.11
+**Released**: 26-11-2024
+
+-------
+
+## Fixes
+
+- Updated fix for filter on curval column in table
+- Fix permissions being blanked when editing user
+
+-------
+
 **Version**: 2.5.10
 **Released**: 25-11-2024
 
