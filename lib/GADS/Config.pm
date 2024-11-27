@@ -56,6 +56,12 @@ has gads => (
     builder => sub { ref $_[0]->config eq 'HASH' && $_[0]->config->{gads} },
 );
 
+has view_all_default => (
+    is =>'ro',
+    lazy => 1,
+    builder => sub { ref $_[0]->config eq 'HASH' && $_[0]->gads->{show_view_all_default} || 0 },
+);
+
 has login_instance => (
     is      => 'ro',
     lazy    => 1,

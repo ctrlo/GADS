@@ -18,6 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package GADS;
 
+use Data::Dump qw/pp/;
+
+use feature 'say';
+
 use CtrlO::Crypt::XkcdPassword;
 use Crypt::URandom; # Make Dancer session generation cryptographically secure
 use Data::Dumper;
@@ -1950,6 +1954,7 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
     return $return if $is_raw;
     $return->{is_history} = $action eq 'history';
     $return->{reports} = $layout->reports();
+    $return->{view_all_default} = GADS::Config->instance->view_all_default;
     template 'edit' => $return, $options;
 };
 

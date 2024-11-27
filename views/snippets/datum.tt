@@ -30,9 +30,16 @@
         [% END %]
       </table>
     [% END %]
-        <p>
-            <a href="/[% curval.parent_layout_identifier %]/data?curval_record_id=[% curval.record_id %]&curval_layout_id=[% curval.column_id %]" target="_blank">view all</a>
-        </p>
+    [% IF NOT view_all_default %]
+      [% IF col.limit_rows AND curval.links.size >= col.limit_rows %]
+          <p><em>(showing maximum [% col.limit_rows %] rows.
+              <a href="/[% curval.parent_layout_identifier %]/data?curval_record_id=[% curval.record_id %]&curval_layout_id=[% curval.column_id %]" target="_blank">view all</a>)</em></p>
+      [% END %]
+    [% ELSE %]
+      <p>
+        <a href="/[% curval.parent_layout_identifier %]/data?curval_record_id=[% curval.record_id %]&curval_layout_id=[% curval.column_id %]" target="_blank">view all</a>
+      </p>
+    [% END %]
 [% END %]
 
 [% MACRO render_curcommon_datum(is_multivalue, curval, header, full_content) BLOCK %]

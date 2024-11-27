@@ -49,6 +49,7 @@ gads:
   user_status_message: |
     You must accept that you will treat this system with
     respect. And be gentle please.
+  show_view_all_default: 0 # Whether to show view all by default in curvals
 
 plugins:
   LogReport:
