@@ -762,11 +762,11 @@ describe('setFieldValue', () => {
             selectWidgetComponent(dom);
             document.body.appendChild(dom);
             const field = $(dom);
-            const values = [{"year":2024,"month":11,"day":26,"hour":0,"minute":0,"second":0,"epoch":1731369600}];
+            const values = [{"year":2024,"month":11,"day":12,"hour":0,"minute":0,"second":0,"epoch":1731369600}];
             setFieldValues(field, values);
             const input = field.find<HTMLInputElement>('input');
-            expect(input.val()).toBe('2024-11-26');
-        })
+            expect(input.val()).toBe(`${values[0].year}-${values[0].month}-${values[0].day}`);
+        });
     });
 
     describe('Intgr', () => {
