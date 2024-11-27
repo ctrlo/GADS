@@ -796,6 +796,7 @@ sub update_attributes
     }
     if (my $at = $authentication->saml2_groupname)
     {
+        #FIXME - Move this to the UI and allow users to map
         my %permission_map = (
                 'GADS-SuperAdmin' => 'superadmin',
                 'GADS-UserAdmin'  => 'useradmin',
@@ -803,8 +804,8 @@ sub update_attributes
                 );
 
         my @permissions;
-        for my $group (@{$attributes->{$at}}) {
-            push @permissions, $permission_map{$group} if defined $permission_map{$group} and $group =~ /^GADS-/;
+        for my $permission (@{$attributes->{$at}}) {
+            push @permissions, $permission_map{$permission} if defined $permission_map{$permission} and $permission =~ /^GADS-/;
         }
         if (@permissions)
         {
@@ -816,6 +817,22 @@ sub update_attributes
             # to the old version by the time it is built in the template
             $self->clear_permission;
             $self->permission;
+        }
+
+        my $schema = $self->result_source->schema;
+
+        my @groups;
+        for my $group (@{$attributes->{$at}}) {
+            next if defined $permission_map{$group};
+            #FIXME: There is likely a much better way to do this
+            my @groups1 = $schema->resultset('Group')->search({name => $group}, {order_by => 'me.name'})->first;
+            push @groups, $groups1[0]->id if $groups1[0]->name eq $group;
+        }
+        if (@groups)
+        {
+            $self->groups($self, \@groups);
+            $self->clear_has_group;
+            $self->has_group;
         }
     }
     my $value = _user_value({firstname => $self->firstname, surname => $self->surname});
