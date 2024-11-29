@@ -38,6 +38,9 @@ class CurvalModalComponent extends ModalComponent {
     function autosaveLoadValue() {
 
       if (index >= rows.length) return // Finished?
+      
+      const id = location.pathname.split("/").pop()
+      const record_id = isNaN(parseInt(id)) ? 0 : parseInt(id)
 
       let current_id = rows[index].identifier
       let values = rows[index].values
@@ -54,7 +57,7 @@ class CurvalModalComponent extends ModalComponent {
         initializeRegisteredComponents($m.get(0))
         $m.find('.linkspace-field').each(function(){
           const $field = $(this)
-          const key = `linkspace-column-${$field.data('column-id')}`
+          const key = `linkspace-column-${$field.data('column-id')}-${$('body').data('layout-identifier')}-${record_id}`
           const vals = values[key]
           if (vals) {
             setFieldValues($field, vals)
@@ -210,7 +213,9 @@ class CurvalModalComponent extends ModalComponent {
     }
 
     // Update autosave values for all changes in this edit
-    const parent_key = `linkspace-column-${col_id}`
+    const id = location.pathname.split("/").pop()
+    const record_id = isNaN(parseInt(id)) ? 0 : parseInt(id)
+    const parent_key = `linkspace-column-${col_id}-${$('body').data('layout-identifier')}-${record_id}`;
     let existing = await gadsStorage.getItem(parent_key) ? (JSON.parse(await gadsStorage.getItem(parent_key))) : []
     const identifier = current_id || guid
     // "existing" is the existing values for this curval

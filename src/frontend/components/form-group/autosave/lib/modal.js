@@ -4,24 +4,23 @@ import AutosaveBase from './autosaveBase';
 class AutosaveModal extends AutosaveBase {
   async initAutosave() {
     const $modal = $(this.element);
-    const self = this;
     const $form = $('.form-edit');
     
-    $modal.find('.btn-js-restore-values').on('click', async function (e) {
+    $modal.find('.btn-js-restore-values').on('click', async (e) => {
       e.preventDefault();
 
       let $list = $("<ul></ul>");
       const $body = $modal.find(".modal-body");
       $body.html("<p>Restoring values...</p>").append($list);
-      await Promise.all($form.find('.linkspace-field').map(async function () {
-        const $field = $(this);
-        await self.storage.getItem(self.columnKey($field)).then(json => {
+      await Promise.all($form.find('.linkspace-field').map(async (_,field) => {
+        const $field = $(field);
+        await this.storage.getItem(this.columnKey($field)).then(json => {
           let values = json ? JSON.parse(json) : undefined;
-          return values && Array.isArray(values) && values.length ? values : undefined;
+          return values && Array.isArray(values) ? values : undefined;
         }).then(values => {
           const $editButton = $field.closest('.card--topic').find('.btn-js-edit');
           if ($editButton && $editButton.length) $editButton.trigger('click');
-          if (Array.isArray(values) && values.length) {
+          if (Array.isArray(values)) {
             setFieldValues($field, values);
             $field.addClass("field--changed");
             const name = $field.data("name");
@@ -44,12 +43,7 @@ class AutosaveModal extends AutosaveBase {
       });
     });
 
-    const item = (await Promise.all($form.find('.linkspace-field').map(async (_,field)=> {
-      if(await self.storage.getItem(self.columnKey($(field)))) {
-        return true;
-      }
-      return false;
-    }))).includes(true)
+    const item = await this.storage.getItem(this.table_key);
 
     if (item){
       $modal.modal('show');

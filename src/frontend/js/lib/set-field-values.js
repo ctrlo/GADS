@@ -58,6 +58,7 @@ const setFieldValues = function($field, values) {
 
   } else if (type === "string" || type === "intgr") {
 
+    if(values.length===0) set_string($field, "")
     values.forEach(function(value, index){
       let $single = prepare_multi($field, index)
       set_string($single, value)

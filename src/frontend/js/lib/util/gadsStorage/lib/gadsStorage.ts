@@ -23,12 +23,6 @@ class GadsStorage {
     }
 
     async setItem(key: string, value: string) {
-        if(!value || value === "[]") {
-            if(await this.getItem(key)) {
-                this.removeItem(key);
-            }
-            return;
-        }
         if (!this.storageKey) {
             await this.getStorageKey();
         }

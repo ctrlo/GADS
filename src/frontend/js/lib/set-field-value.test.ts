@@ -594,6 +594,17 @@ describe('setFieldValue', () => {
             });
             expect(inputs.length).toBe(3);
         });
+
+        it('Should set the value of a string field to an empty string', () => {
+            const dom = $(stringDom)[0];
+            inputComponent(dom);
+            buttonComponent(dom);
+            multipleSelectComponent(dom);
+            document.body.appendChild(dom);
+            const field = $(dom);
+            setFieldValues(field, []);
+            expect(field.find('input').val()).toBe('');
+        });
     });
 
     describe('Enum field', () => {

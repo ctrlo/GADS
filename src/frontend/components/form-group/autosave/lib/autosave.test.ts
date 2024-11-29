@@ -30,4 +30,9 @@ describe('AutosaveBase', () => {
         const autosave = new TestAutosave(document.getElementById('test')!);
         expect(autosave.recordId).toBe(0);
     });
+
+    it('should return table_key', () => {
+        const autosave = new TestAutosave(document.getElementById('test')!);
+        expect(autosave.table_key).toBe('linkspace-record-change-1-0');
+    });
 });
