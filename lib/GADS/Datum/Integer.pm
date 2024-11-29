@@ -123,7 +123,14 @@ sub as_string
     join ', ', @values;
 }
 
-sub as_integer { panic "No longer implemented" }
+sub as_integer {
+    my $self   = shift;
+    my @values = grep { defined } @{ $self->values };
+    return 0 if !@values;
+    my @ints = map { $_ + 0 } grep { /^\d+$/ } @values if @values;
+    return 0 if !@ints;
+    \@ints;
+}
 
 sub _build_for_code
 {   my ($self, %options) = @_;
