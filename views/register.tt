@@ -42,7 +42,8 @@
           label = "Email address"
           placeholder = "name@example.com"
           type = "email"
-          help_text = site.register_email_help;
+          help_text = site.register_email_help
+          is_required = 1;
         
         IF site.register_show_title;
           INCLUDE fields/select_single.tt
@@ -83,7 +84,8 @@
             label = site.register_organisation_name
             placeholder = "Select organisation"
             help_text = site.register_organisation_help
-            items = organisations;
+            items = organisations
+            is_required = site.register_organisation_mandatory;
         END;
         
         IF site.register_show_department;
@@ -94,7 +96,8 @@
             placeholder = "Select " _ site.department_name
             help_text = site.register_department_help
             items = departments
-            filter = "html";
+            filter = "html"
+            is_required = site.register_department_mandatory;
         END;
         
         IF site.register_show_team;
@@ -105,7 +108,8 @@
             placeholder = "Select " _ site.team_name
             help_text = site.register_team_help
             items = teams
-            filter = "html";
+            filter = "html"
+            is_required = site.register_team_mandatory;
         END;
         
         INCLUDE fields/textarea.tt
