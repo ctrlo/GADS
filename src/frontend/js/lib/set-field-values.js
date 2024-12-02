@@ -13,6 +13,15 @@ import "jstree";
   "id" key or a "text" key, with the required value
 */
 
+export class CurvalError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "CurvalError";
+  }
+
+  field;
+}
+
 const setFieldValues = function($field, values) {
 
   const type = $field.data("column-type")
@@ -176,14 +185,21 @@ const set_enum_multi = function($element, values) {
 
   // Report any values that weren't used
   let name = $element.data("name")
+  let type = $element.data("column-type")
   for (const [value, used] of Object.entries(id_hash)) {
-    if (!used) {
-      console.log(`Unmatched value ${value} for ${name}`)
+    if (!used && type !== "curval") {
+      throw new CurvalError(`Unable to set value for ${name} - the data may have been changed or removed`)
+    } else if (!used) {
+      throw new Error(`Unmatched value ${value} for ${name}`)
     }
   }
   for (const [value, used] of Object.entries(text_hash)) {
     if (!used) {
-      console.log(`Unmatched value ${value} for ${name}`)
+      if (!used && type !== "curval") {
+        throw new CurvalError(`Unable to set value for ${name} - the data may have been changed or removed`)
+      } else if (!used) {
+        throw new Error(`Unmatched value ${value} for ${name}`)
+      }
     }
   }
 }

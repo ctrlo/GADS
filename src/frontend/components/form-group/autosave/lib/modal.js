@@ -1,4 +1,4 @@
-import { setFieldValues } from "set-field-values";
+import { setFieldValues, CurvalError } from "set-field-values";
 import AutosaveBase from './autosaveBase';
 
 class AutosaveModal extends AutosaveBase {
@@ -29,7 +29,13 @@ class AutosaveModal extends AutosaveBase {
           }
         }).catch(e => {
           const name = $field.data("name");
-          let $li = $(`<li class="li-error">Failed to restore ${name}</li>`);
+          let $li;
+          if(e instanceof CurvalError) {
+            const $liText = `<li class="li-error">Failed to restore ${name}<ul><li class="warning">${e.message}</li></ul></li>`;
+            $li = $($liText);
+          } else {
+            $li = $(`<li class="li-error">Failed to restore ${name}</li>`);
+          }
           console.error(e);
           $list.append($li);
         });
