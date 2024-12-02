@@ -752,7 +752,7 @@ sub _post_add_user_account
         department_id         => $body->{department_id},
         team_id               => $body->{team_id},
         account_request       => 0,
-        account_request_notes => $body->{notes},
+        account_request_notes => $body->{notes} || $body->{account_request_notes},
         view_limits           => $body->{view_limits},
         groups                => $body->{groups},
     );

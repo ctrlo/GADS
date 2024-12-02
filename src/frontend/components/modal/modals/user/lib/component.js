@@ -62,8 +62,8 @@ class UserModalComponent extends ModalComponent {
             data[$(field).attr('name')] = fieldValue
           }
         }
-      } else if ($(field).val() !== '') {
-        const fieldValue = $(field).val()
+      } else if ($(field).val()|| $(field).value) {
+        const fieldValue = $(field).val() || $(field).value
         const fieldParsedValue = isNaN(fieldValue) ? this.parseValue(fieldValue) : parseInt(fieldValue)
         if (Array.isArray(data[$(field).attr('name')])) {
           data[$(field).attr('name')].push(fieldParsedValue)
