@@ -12,6 +12,7 @@ import { sidebarObservable } from '../../../sidebar/lib/sidebarObservable';
 declare global {
   interface Window {
     Linkspace : any,
+    // @ts-expect-error "Typings clash with JSTree"
     siteConfig: any
   }
 }

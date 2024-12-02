@@ -3,7 +3,18 @@ import "datatables.net";
 import "@lol768/jquery-querybuilder-no-eval";
 import { BaseButton } from "./base-button";
 
-// TODO: This probably need refactoring
+declare global {
+    interface Window {
+        siteConfig: {
+            urls: {
+                treeApi: string;
+            }
+        }
+    }
+    interface JQuery<TElement = HTMLElement> {
+        queryBuilder(operation: string): JQuery<TElement>;
+    }
+}
 
 /**
  * This class is responsible for handling the submit button on the field
@@ -63,11 +74,11 @@ class SubmitFieldButton extends BaseButton {
             bUpdatePeopleFilter = true;
         }
 
-        if (bUpdateTree) {
-            //Bit of typecasting here, purely because the jstree plugin doesn't have types
-            const v = (<any>$jstreeEl).jstree(true).get_json('#', { flat: false });
-            const mytext = JSON.stringify(v);
-            const data = $jstreeEl.data();
+            if (bUpdateTree) {
+                //Bit of typecasting here, purely because the jstree plugin doesn't have types
+                const v = $jstreeEl.jstree(true).get_json('#', {flat: false});
+                const mytext = JSON.stringify(v);
+                const data = $jstreeEl.data();
 
             $.ajax({
                 async: false,
