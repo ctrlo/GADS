@@ -1558,8 +1558,9 @@ any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin super
                 if logged_in_user->id == $delete_id;
 
         my $usero = rset('User')->find($delete_id);
-        # This is (currently) to test field substitution in the email
-        my $email_reject_text = '{firstname} {surname} ({email}) has been rejected - {notes} is an invalid reason!';
+        my $email_reject_text = param('reject_reason') || "Your account request has been rejected";
+
+        print STDERR "Rejecting user $delete_id with reason $email_reject_text\n";
         
         if (process( sub { $usero->retire(send_reject_email => 1, email_reject_text=>$email_reject_text) }))
         {

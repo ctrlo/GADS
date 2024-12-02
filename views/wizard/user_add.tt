@@ -29,9 +29,9 @@
 
           <ol class="modal__steps">
             <li class="modal__step modal__step--active" data-step="1">
-                  <span>
-                    User details
-                  </span>
+              <span>
+                User details
+              </span>
             </li>
             <li class="modal__step " data-step="2">
               <span>
@@ -131,7 +131,6 @@
               </div>
             </div> <!-- container end -->
           </div> <!-- modal body end -->
-
           [%-
             INCLUDE wizard/sub/modal_footer.tt
               left_buttons = [{
@@ -143,7 +142,6 @@
                 type    = "button"
                 class   = "btn-danger btn-js-reject-request"
                 name    = "delete"
-                value   = user.id
                 label   = "Reject request"
               }, {
                 class = "btn-default btn-disabled btn-js-next"
@@ -230,10 +228,9 @@
                 label   = "Back"
               }]
               right_buttons = [{
-                type    = "buttons"
+                type    = "button"
                 class   = "btn-danger btn-js-reject-request"
                 name    = "delete"
-                value   = user.id
                 label   = "Reject request"
               }, {
                 class = "btn-default btn-js-next"
@@ -284,7 +281,6 @@
                 type    = "button"
                 class   = "btn-danger btn-js-reject-request"
                 name    = "delete"
-                value   = user.id
                 label   = "Reject request"
               }, {
                 class = "btn-default btn-js-save"
@@ -292,34 +288,7 @@
               }];
           -%]
         </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<div class="modal modal--wizzard modal--user"
-     data-config='{"url":"[% endpoint %]"}'
-     tabindex="-1"
-     role="dialog"
-     aria-labelledby="rejectModalLabel"
-     aria-hidden="true"
->
-  <div class="modal-dialog modal-dialog-centered modal-lg" role="document" id="rejectReason">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div class="modal-header__content">
-          <h3 class="modal-title" id="rejectModalLabel">
-            <span class='js-reject-account'>Enter reject reason</span>
-          </h3>
-
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true" class="hidden">Close</span>
-          </button>
-      </div>
-
-      <form method="post">
-        [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
-
+        <div class="modal-frame" data-config='{"step":4,"frame":4,"item":null,"count":null}'>
           <div class="modal-body">
             <div class="container-fluid">
               <div class="row">
@@ -344,14 +313,12 @@
                       label = "Reject reason"
                       placeholder = "Enter reject reason"
                       filter = "html"
-                      is_required = 1
                       rows = 2;
                   -%]
                 </div>
 
             </div> <!-- container end -->
           </div> <!-- modal body end -->
-
           [%-
             INCLUDE wizard/sub/modal_footer.tt
               left_buttons = [{
@@ -360,8 +327,8 @@
                 dismiss = "modal"
               }]
               right_buttons = [{
-                type    = "button"
-                class   = "btn-danger btn-js-reject-request"
+                type    = "submit"
+                class   = "btn-danger btn-js-reject-request-send"
                 name    = "delete"
                 value   = user.id
                 label   = "Reject request"

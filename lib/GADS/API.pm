@@ -755,6 +755,7 @@ sub _post_add_user_account
         account_request_notes => $body->{notes},
         view_limits           => $body->{view_limits},
         groups                => $body->{groups},
+        reject_reason         => $body->{reject_reason},
     );
 
     $values{permissions} = $body->{permissions}

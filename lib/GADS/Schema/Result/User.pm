@@ -1020,13 +1020,13 @@ sub map_fields {
 
   if($text) {
     foreach my $field (@fields) {
-      my $value = $self->$field;
+      my $value = $self->$field || '';
       $text =~ s/\{$field\}/$value/g;
     }
   }
 
   if($text) {
-    my $notes = $self->account_request_notes;
+    my $notes = $self->account_request_notes || '';
     $text =~ s/\{notes\}/$notes/g;
   }
 
@@ -1042,7 +1042,6 @@ sub retire
     # Properly delete if account request - no record needed
     if ($self->account_request)
     {
-      return;
       unless($options{send_reject_email}) {
         $self->delete;
         return;

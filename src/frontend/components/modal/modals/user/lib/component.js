@@ -1,6 +1,5 @@
 import { modal } from '../../../lib/modal';
 import ModalComponent from '../../../lib/component';
-import "components/button/lib/reject-request-button";
 
 class UserModalComponent extends ModalComponent {
   constructor(element)  {
@@ -34,7 +33,9 @@ class UserModalComponent extends ModalComponent {
     } else {
       this.el.find('.js-add-user').hide();
       this.el.find('.js-approve-account').show();
-      this.el.find('.btn-js-reject-request').show().rejectRequestButton();
+      this.el.find('.btn-js-reject-request').show().on("click", ()=> {
+        this.activateFrame(4);
+      }); 
       this.el.find('.btn-js-save .btn__title').html('Approve account');
       this.el.find('input[name="approve-account"]').val('true');
     }
