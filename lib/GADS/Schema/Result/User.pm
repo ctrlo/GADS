@@ -1014,6 +1014,25 @@ sub permissions
     }
 }
 
+sub _map_fields {
+  my ($self, $text) = @_;
+  my @fields = ('firstname', 'surname', 'email', 'title', 'organisation', 'department', 'team');
+  
+  if($text) {
+    foreach my $field (@fields) {
+      my $value = $self->$field || '';
+      $text =~ s/\{$field\}/$value/g;
+    }
+  }
+
+  if($text) {
+    my $notes = $self->account_request_notes || '';
+    $text =~ s/\{notes\}/$notes/g;
+  }
+
+  return $text;
+}
+
 sub retire
 {   my ($self, %options) = @_;
 
@@ -1023,16 +1042,20 @@ sub retire
     # Properly delete if account request - no record needed
     if ($self->account_request)
     {
-        $self->delete;
-        return unless $options{send_reject_email};
+      if($options{send_reject_email}) {
+        my $email_body = $options{email_reject_text} || $site->email_reject_text || "Your account request has been rejected";
+        $email_body = $self->_map_fields($email_body);
+
         my $email = GADS::Email->instance;
         $email->send({
-            subject => $site->email_reject_subject || "Account request rejected",
-            emails  => [$self->email],
-            text    => $site->email_reject_text || "Your account request has been rejected",
+          subject => $site->email_reject_subject || "Account request rejected",
+          emails  => [$self->email],
+          text    => $email_body,
         });
+      }
+      $self->delete;
 
-        return;
+      return;
     }
     else {
         $self->search_related('user_graphs', {})->delete;
