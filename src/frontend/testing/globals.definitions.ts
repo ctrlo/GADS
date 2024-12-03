@@ -1,4 +1,5 @@
 import { XmlHttpRequestLike } from "../js/lib/util/upload/UploadControl";
+import {expect, jest} from '@jest/globals';
 
 declare global {
     interface Window {
@@ -11,6 +12,7 @@ window.$ = require("jquery");
 window.alert = jest.fn();
 
 export function mockJQueryAjax() {
+    // @ts-expect-error - This is a global function
     $.ajax = jest.fn().mockImplementation(() => {
         return {
             done: (callback: () => void) => {
@@ -31,8 +33,8 @@ export function initGlobals() {
 }
     
 export function mockJSTree() {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    $.fn.jstree = jest.fn().mockImplementation((arg: boolean) => {
+    // @ts-expect-error - This is a global function
+    $.fn.jstree = jest.fn().mockImplementation(() => {
         return {
             get_json: () => {
                 return {};
@@ -64,6 +66,7 @@ export interface ElementLike {
 }
 
 export class DefaultElementLike implements ElementLike {
+    // @ts-expect-error - This is a global function
     hasClass: (className: string) => boolean = jest.fn().mockReturnValue(false);
     addClass: (className: string) => void = jest.fn();
     attr: (attr: string, value: string) => void = jest.fn();

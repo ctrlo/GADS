@@ -9,6 +9,7 @@ declare global {
                 treeApi: string;
             }
         }
+        test: boolean;
     }
     interface JQuery<TElement = HTMLElement> {
         queryBuilder(operation: string): JQuery<TElement>;

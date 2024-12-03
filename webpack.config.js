@@ -1,135 +1,130 @@
 const path = require('path')
-const webpack = require('webpack')
+const { ProvidePlugin } = require('webpack')
 const autoprefixer = require('autoprefixer')
-const sass = require('sass')
 const TerserPlugin = require('terser-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 
+const stdExclusions = [/node_modules/, /test.[tj]sx?$/, /definitions\.[tj]sx?$/]
+
 const plugins = [
-  new webpack.ProvidePlugin({
-    $: 'jquery',
-    jQuery: 'jquery',
-    Buffer: ['buffer', 'Buffer'],
-  }),
-  new MiniCssExtractPlugin({
-    filename: '[name].css',
-  }),
-  new CleanWebpackPlugin(),
-  new CopyWebpackPlugin({
-    patterns: [
-      {
-        from: 'node_modules/summernote/dist/font',
-        to: '../css/font'
-      },
-      {
-        from: '*.json',
-        context: path.resolve(__dirname, "src", "frontend", "js", "lib", "plotly"),
-      }
-    ]
-  }),
-]
+    new ProvidePlugin({
+        $: 'jquery',
+        jQuery: 'jquery',
+    }),
+    new MiniCssExtractPlugin({
+        filename: '[name].css',
+    }),
+    new CleanWebpackPlugin(),
+    new CopyWebpackPlugin({
+        patterns: [
+            {
+                from: 'node_modules/summernote/dist/font',
+                to: '../css/font'
+            },
+            {
+                from: "*.json",
+                context: path.resolve(__dirname, 'src', 'frontend', 'js', 'lib', 'plotly')
+            }
+        ]
+    }),
+];
 
 module.exports = (env) => {
-  return {
-    mode: env.development ? 'development' : 'production',
-    devtool: env.development ? 'source-map' : false,
-    entry: {
-      site: path.resolve(__dirname, './src/frontend/js/site.js'),
-      '../css/general': path.resolve(__dirname, './src/frontend/css/stylesheets/general.scss'),
-      '../css/external': path.resolve(__dirname, './src/frontend/css/stylesheets/external.scss'),
-    },
-
-    module: {
-      rules: [
-        {
-          test: /\.js$/,
-          exclude: [/node_modules/, /\.test\.js$/, /test/, /definitions/],
-          use: ['babel-loader']
+    return {
+        mode: env.development ? 'development' : 'production',
+        devtool: env.development ? 'source-map' : false,
+        entry: {
+            site: path.resolve(__dirname, 'src', 'frontend', 'js', 'site.js'),
+            '../css/general': path.resolve(__dirname, 'src', 'frontend', 'css', 'stylesheets', 'general.scss'),
+            '../css/external': path.resolve(__dirname, 'src', 'frontend', 'css', 'stylesheets', 'external.scss'),
         },
-        {
-          test: /\.tsx?$/,
-          exclude: [/node_modules/, /\.test\.tsx?$/, /test/, /definitions/],
-          use: ['babel-loader', 'ts-loader']
-        },
-        {
-          test: /\.(gif|jpg|png|svg|eot|ttf|woff|woff2)$/,
-          type: 'asset',
-        },
-        {
-          test: /\.(scss|css)$/,
-          use: [
-            {
-              loader: MiniCssExtractPlugin.loader,
-            },
-            {
-              loader: 'css-loader',
-              options: {
-                importLoaders: 2,
-                sourceMap: false,
-                modules: false,
-              },
-            },
-            {
-              loader: 'postcss-loader',
-              options: {
-                plugins: [autoprefixer],
-              },
-            },
-            {
-              loader: 'sass-loader',
-              options: {
-                implementation: sass,
-                sassOptions: {
-                  includePaths: ['src/frontend/components'],
+        module: {
+            rules: [
+                {
+                    test: /\.js$/i,
+                    exclude: stdExclusions,
+                    use: ['babel-loader']
                 },
-              },
-            },
-          ],
+                {
+                    test: /\.tsx?$/,
+                    exclude: stdExclusions,
+                    use: ['babel-loader', 'ts-loader']
+                },
+                {
+                    test: /\.(scss|css)$/,
+                    use: [
+                        {
+                            loader: MiniCssExtractPlugin.loader,
+                        },
+                        {
+                            loader: 'css-loader',
+                            options: {
+                                importLoaders: 2,
+                                sourceMap: false,
+                                modules: false,
+                            },
+                        },
+                        {
+                            loader: 'postcss-loader',
+                            options: {
+                                postcssOptions: {
+                                    plugins: [
+                                        autoprefixer()
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            loader: 'sass-loader',
+                            options: {
+                                implementation: 'sass',
+                                sassOptions: {
+                                    loadPaths: ['src/frontend/components']
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    test: /\.(eot|svg|ttf|woff|woff2|png|jpg|gif)$/i,
+                    type: 'asset',
+                },
+
+                // Add your rules for custom modules here
+                // Learn more about loaders from https://webpack.js.org/loaders/
+            ],
         },
-      ],
-    },
-
-    optimization: {
-      minimize: env.development ? false : true,
-      minimizer: [
-        new TerserPlugin({
-          terserOptions: {
-            format: {
-              comments: false,
+        plugins,
+        optimization: {
+            minimize: !env.development,
+            minimizer: [
+                new TerserPlugin({
+                    terserOptions: {
+                        format: {
+                            comments: env.development ? 'all' : false,
+                        },
+                    },
+                    extractComments: false,
+                })
+            ],
+        },
+        output: {
+            filename: '[name].js',
+            path: path.resolve(__dirname, 'public', 'js'),
+            chunkFilename: '[name].[chunkhash].js',
+        },
+        resolve: {
+            alias: {
+                components: path.resolve(__dirname, 'src', 'frontend', 'components'),
+                jQuery: path.resolve(__dirname, 'node_modules', 'jquery', 'dist', 'jquery.js'),
             },
-          },
-          extractComments: false,
-        }),
-      ],
-    },
-
-    output: {
-      filename: '[name].js',
-      path: path.resolve(__dirname, 'public/js'),
-      chunkFilename: '[name].[chunkhash].js',
-    },
-
-    plugins,
-
-    resolve: {
-      alias: {
-        components: path.resolve(__dirname, 'src/frontend/components'),
-        jQuery: path.resolve(__dirname, 'node_modules/jquery/dist/jquery.js'),
-        'jquery-ui/ui/widget': 'blueimp-file-upload/js/vendor/jquery.ui.widget.js',
-      },
-      extensions: ['.tsx', '.ts', '.jsx', '.js'],
-      fallback: {
-        'fs': false,
-        'buffer': require.resolve('buffer'),
-      },
-      modules: [
-        path.resolve(__dirname, 'src/frontend/js/lib'),
-        path.resolve(__dirname, 'node_modules'),
-      ],
-    },
-
-    target: 'web',
-  }
+            extensions: ['.tsx', '.ts', '.jsx', '.js'],
+            modules: [
+                path.resolve(__dirname, 'src', 'frontend', 'js', 'lib'),
+                path.resolve(__dirname, 'node_modules')
+            ]
+        },
+    }
 };
