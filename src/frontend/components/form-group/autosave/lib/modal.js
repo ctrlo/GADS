@@ -29,13 +29,7 @@ class AutosaveModal extends AutosaveBase {
           }
         }).catch(e => {
           const name = $field.data("name");
-          let $li;
-          if(e instanceof CurvalError) {
-            const $liText = `<li class="li-error">Failed to restore ${name}<ul><li class="warning">${e.message}</li></ul></li>`;
-            $li = $($liText);
-          } else {
-            $li = $(`<li class="li-error">Failed to restore ${name}</li>`);
-          }
+          const $li = $($`<li class="li-error">Failed to restore ${name}<ul><li class="warning">${e.message}</li></ul></li>`);
           console.error(e);
           $list.append($li);
         });

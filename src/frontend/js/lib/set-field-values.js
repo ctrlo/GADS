@@ -121,6 +121,7 @@ const prepare_multi = function($field, index) {
 
 const set_enum_single = function($element, values) {
 
+  const type = $element.data("column-type")
   // Accept ID or text value, specified depending on the key of the value
   // object
   values.forEach(function(value){
@@ -141,7 +142,11 @@ const set_enum_single = function($element, values) {
       $option.trigger("click")
     } else {
       let name = $element.data("name")
-      console.log(`Unknown value ${val} for ${name}`)
+      if(type === 'curval') {
+        throw new CurvalError(`Unable to set value for ${name} - the data may have been changed or removed`)
+      }else{
+        throw new Error(`Unknown value ${val} for ${name}`)
+      }
     }
   })
 
