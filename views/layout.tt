@@ -1047,6 +1047,28 @@
                       </div>
                       <div class="row">
                         <div class="col">
+                          <fieldset class="fieldset" >
+                            <div class="fieldset__legend ">
+                              <legend >
+                                Show View All:
+                              </legend>
+                            </div>
+
+                            <div class="form-group ">
+                              [%
+                                INCLUDE fields/sub/checkbox.tt
+                                  id      = "show_view_all"
+                                  name    = "show_view_all"
+                                  label   = "Always show view all option"
+                                  value   = 1
+                                  checked = column.type == "curval" AND column.show_view_all ? 1 : 0;
+                              %]
+                            </div>
+                          </fieldset>
+                        </div>
+                      </div>
+                      <div class="row">
+                        <div class="col">
                           [%
                             refers_items = NOT rti ? [{id = "", name = ""}] : [];
 
