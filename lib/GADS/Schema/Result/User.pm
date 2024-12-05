@@ -1015,22 +1015,19 @@ sub permissions
 }
 
 sub _map_fields {
-  my ($self, $text) = @_;
-  my @fields = ('firstname', 'surname', 'email', 'title', 'organisation', 'department', 'team');
+    my ($self, $text) = @_;
+    my @fields = ('firstname', 'surname', 'email', 'title', 'organisation', 'department', 'team');
   
-  if($text) {
-    foreach my $field (@fields) {
-      my $value = $self->$field || '';
-      $text =~ s/\{$field\}/$value/g;
+    if($text) {
+        foreach my $field (@fields) {
+            my $value = $self->$field || '';
+            $text =~ s/\{$field\}/$value/g;
+        }
+        my $notes = $self->account_request_notes || '';
+        $text =~ s/\{notes\}/$notes/g;
     }
-  }
 
-  if($text) {
-    my $notes = $self->account_request_notes || '';
-    $text =~ s/\{notes\}/$notes/g;
-  }
-
-  return $text;
+    return $text;
 }
 
 sub retire
@@ -1040,22 +1037,21 @@ sub retire
     my $site   = $schema->resultset('Site')->next;
 
     # Properly delete if account request - no record needed
-    if ($self->account_request)
-    {
-      if($options{send_reject_email}) {
-        my $email_body = $options{email_reject_text} || $site->email_reject_text || "Your account request has been rejected";
-        $email_body = $self->_map_fields($email_body);
+    if ($self->account_request) {
+        if($options{send_reject_email}) {
+            my $email_body = $options{email_reject_text} || $site->email_reject_text || "Your account request has been rejected";
+            $email_body = $self->_map_fields($email_body);
 
-        my $email = GADS::Email->instance;
-        $email->send({
-          subject => $site->email_reject_subject || "Account request rejected",
-          emails  => [$self->email],
-          text    => $email_body,
-        });
-      }
-      $self->delete;
+            my $email = GADS::Email->instance;
+            $email->send({
+                subject => $site->email_reject_subject || "Account request rejected",
+                emails  => [$self->email],
+                text    => $email_body,
+            });
+        }
+        $self->delete;
 
-      return;
+        return;
     }
     else {
         $self->search_related('user_graphs', {})->delete;
