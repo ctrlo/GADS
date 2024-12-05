@@ -351,7 +351,8 @@ div.dataTables_wrapper div.dataTables_filter input.form-control {
   }
 }
 
-div.dataTables_wrapper div.dataTables_processing {
+div.dataTables_wrapper div.dataTables_processing,
+div.td-container div.dt-processing {
   top: 10rem;
 }
 
