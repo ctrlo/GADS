@@ -29,7 +29,7 @@ class AutosaveModal extends AutosaveBase {
           }
         }).catch(e => {
           const name = $field.data("name");
-          const $li = $($`<li class="li-error">Failed to restore ${name}<ul><li class="warning">${e.message}</li></ul></li>`);
+          const $li = $(`<li class="li-error">Failed to restore ${name}<ul><li class="warning">${e.message}</li></ul></li>`);
           console.error(e);
           $list.append($li);
         });
