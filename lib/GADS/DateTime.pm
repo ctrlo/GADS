@@ -25,12 +25,6 @@ use Log::Report 'linkspace';
 use Moo::Role;
 use MooX::Types::MooseLike::Base qw(:all);
 
-sub date_as_epoch {
-    my ($self, $value) = @_;
-    my $date = GADS::DateTime::parse_datetime($value);
-    return $date && $date->epoch;
-}
-
 sub parse_datetime
 {   my $value = shift;
     return undef if !$value;
