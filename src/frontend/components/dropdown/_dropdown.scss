@@ -58,3 +58,19 @@
     max-width: 50vw;
   }
 }
+
+.dropdown-menu--right {
+  position: relative;
+}
+
+@include media-breakpoint-up(xl) {
+  .dropdown-menu--right {
+    right: 0;
+  }
+}
+
+@media (max-width: 1024px) {
+  .dropdown-menu--right {
+    left: auto;
+  }
+}
