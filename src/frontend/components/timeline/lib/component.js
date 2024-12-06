@@ -17,13 +17,13 @@ class TimelineComponent extends Component {
     initTimeline() {
       const $container = $(this.element).find('.timeline__visualization')
       const records_base64 = $container.data('records')
-      const json = Buffer.from(records_base64, 'base64')
+      const json = atob(records_base64)
       const dataset = JSON.parse(json)
       this.injectContrastingColor(dataset)
 
       const items = new DataSet(dataset)
       let groups = $container.data('groups')
-      const json_group = Buffer.from(groups, 'base64')
+      const json_group = atob(groups)
       groups = JSON.parse(json_group)
       const is_dashboard = !!$container.data('dashboard')
       const layout_identifier = $('body').data('layout-identifier')
