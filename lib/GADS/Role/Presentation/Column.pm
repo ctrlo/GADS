@@ -59,6 +59,7 @@ sub presentation {
         return_type         => $self->return_type,
         show_in_edit        => $self->show_in_edit,
         has_typeahead       => $self->has_filter_typeahead,
+        show_view_all       => $self->has_options && $self->options->{show_view_all},
     };
 
     if (my $sort = $options{sort})

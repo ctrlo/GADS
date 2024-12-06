@@ -30,7 +30,20 @@ extends 'GADS::Column::Curcommon';
 with 'GADS::Role::Curcommon::CurvalMulti';
 
 has '+option_names' => (
-    default => sub { [qw/override_permissions value_selector show_add delete_not_used limit_rows/] },
+    default => sub { [qw/override_permissions value_selector show_add delete_not_used limit_rows show_view_all/] },
+);
+
+has show_view_all => (
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    builder => sub {
+        my $self = shift;
+        return 0 unless $self->has_options;
+        $self->options->{show_view_all};
+    },
+    trigger => sub { $_[0]->reset_options },
 );
 
 has value_selector => (
