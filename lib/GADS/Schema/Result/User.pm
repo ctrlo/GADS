@@ -16,6 +16,8 @@ use GADS::Config;
 use GADS::Email;
 use HTML::Entities qw/encode_entities/;
 use Log::Report;
+use MIME::Base64 qw/encode_base64url/;
+use Digest::SHA  qw/hmac_sha256 sha256/;
 use Moo;
 
 extends 'DBIx::Class::Core';
@@ -1224,6 +1226,25 @@ sub export_hash
         groups                => [map $_->id, $self->groups],
         permissions           => [map $_->permission->name, $self->user_permissions],
     };
+}
+
+has encryption_key => (
+    is      => 'lazy',
+);
+
+sub _build_encryption_key {
+    my $self = shift;
+    
+    my $header_json  = '{"typ":"JWT","alg":"HS256"}';
+    # This is a string because encode_json created the JSON string in an arbitrary order and we need the same key _every time_!
+    my $payload_json = '{"sub":"' . $self->id . '","user":"' . $self->username . '"}';
+    my $header_b64   = encode_base64url($header_json);
+    my $payload_b64  = encode_base64url($payload_json);
+    my $input        = "$header_b64.$payload_b64";
+    my $secret       = sha256($self->password);
+    my $sig          = encode_base64url(hmac_sha256($input, $secret));
+    
+    return encode_base64url(sha256("$input.$sig"));
 }
 
 1;

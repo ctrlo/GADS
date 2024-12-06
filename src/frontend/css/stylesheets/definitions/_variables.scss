@@ -11,6 +11,8 @@ $brand-success: #18856B;
 $brand-success-light: #26D2A9;
 $brand-info-light: #ABA9EB;
 
+$field-highlight: lighten($brand-warning, 40%);
+
 $warning: $brand-warning;
 
 $brand-secundary-hover: $brand-primary;
