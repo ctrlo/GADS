@@ -9,6 +9,8 @@ class AutosaveModal extends AutosaveBase {
     $modal.find('.btn-js-restore-values').on('click', async (e) => {
       e.preventDefault();
 
+      let errored = false;
+
       let $list = $("<ul></ul>");
       const $body = $modal.find(".modal-body");
       $body.html("<p>Restoring values...</p>").append($list);
@@ -32,9 +34,10 @@ class AutosaveModal extends AutosaveBase {
           const $li = $(`<li class="li-error">Failed to restore ${name}<ul><li class="warning">${e.message}</li></ul></li>`);
           console.error(e);
           $list.append($li);
+          errored = true;
         });
       })).then(() => {
-        $body.append("<p>All values restored.</p>");
+        $body.append(`<p>${errored ? "Values restored with errors." : "All values restored."} Please check that all field values are as expected.</p>`);
       }).catch(e => {
         $body.append(`<div class="alert alert-danger"><h4>Critical error restoring values</h4><p>${e}</p></div>`);
       }).finally(() => {
