@@ -271,6 +271,7 @@ class ModalComponent extends Component {
 
   // Validate the required fields of the frame
   validateFrame() {
+    if(!this.frame) return;
     this.frame.isValid = true
 
     this.frame.requiredFields.each((i, field) => {

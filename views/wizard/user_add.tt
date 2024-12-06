@@ -29,9 +29,9 @@
 
           <ol class="modal__steps">
             <li class="modal__step modal__step--active" data-step="1">
-                  <span>
-                    User details
-                  </span>
+              <span>
+                User details
+              </span>
             </li>
             <li class="modal__step " data-step="2">
               <span>
@@ -140,7 +140,7 @@
                 dismiss = "modal"
               }]
               right_buttons = [{
-                type    = "submit"
+                type    = "button"
                 class   = "btn-danger btn-js-reject-request"
                 name    = "delete"
                 value   = user.id
@@ -230,7 +230,7 @@
                 label   = "Back"
               }]
               right_buttons = [{
-                type    = "submit"
+                type    = "button"
                 class   = "btn-danger btn-js-reject-request"
                 name    = "delete"
                 value   = user.id
@@ -281,7 +281,7 @@
                 label   = "Back"
               }]
               right_buttons = [{
-                type    = "submit"
+                type    = "button"
                 class   = "btn-danger btn-js-reject-request"
                 name    = "delete"
                 value   = user.id
@@ -289,6 +289,53 @@
               }, {
                 class = "btn-default btn-js-save"
                 label = "Create account"
+              }];
+          -%]
+        </div>
+        <div class="modal-frame" data-config='{"step":4,"frame":4,"item":null,"count":null}'>
+          <div class="modal-body">
+            <div class="container-fluid">
+              <div class="row">
+                <div class="col">
+                  <div class="alert alert-danger alert-js-reject-details" role="alert" id="modal-alert-reject">
+                  </div>
+                </div>
+              </div>
+
+              <div class="row mb-4">
+                <div class="col">
+                  <p class="js-reject-account">In this window you can add a reason for the account request rejection.</p>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-lg-12">
+                  [%-
+                    INCLUDE fields/textarea.tt
+                      id = "reject_reason"
+                      name = "reject_reason"
+                      label = "Reject reason"
+                      placeholder = "Enter reject reason"
+                      filter = "html"
+                      rows = 2;
+                  -%]
+                </div>
+
+            </div> <!-- container end -->
+          </div> <!-- modal body end -->
+          [%-
+            INCLUDE wizard/sub/modal_footer.tt
+              left_buttons = [{
+                class   = "btn-cancel"
+                label   = "Cancel"
+                dismiss = "modal"
+              }]
+              right_buttons = [{
+                type    = "submit"
+                class   = "btn-danger btn-js-reject-request-send"
+                name    = "delete"
+                value   = user.id
+                label   = "Reject request"
               }];
           -%]
         </div>

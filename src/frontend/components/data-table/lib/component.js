@@ -8,7 +8,6 @@ import 'datatables.net-rowreorder-bs4'
 import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets'
 import { moreLess } from 'components/more-less/lib/more-less'
 import { bindToggleTableClickHandlers } from './toggle-table'
-import TypeaheadBuilder from 'util/typeahead'
 
 const MORE_LESS_TRESHOLD = 50
 
@@ -126,7 +125,7 @@ class DataTableComponent extends Component {
 
   fillModalData(row) {
     const fields = $(this.modal).find('input, textarea')
-    const btnReject = $(this.modal).find('.btn-js-reject-request')
+    const btnReject = $(this.modal).find('.btn-js-reject-request-send')
     const id = parseInt($(row).find(`td[data-id]`).data('id'), 10)
 
     if (id) $(this.modal).data('config').id = id

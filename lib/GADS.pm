@@ -1556,8 +1556,9 @@ any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin super
                 if logged_in_user->id == $delete_id;
 
         my $usero = rset('User')->find($delete_id);
+        my $email_reject_text = param('reject_reason');
 
-        if (process( sub { $usero->retire(send_reject_email => 1) }))
+        if (process( sub { $usero->retire(send_reject_email => 1, email_reject_text => $email_reject_text) }))
         {
             $audit->login_change("User ID $delete_id deleted");
             return forwardHome(
