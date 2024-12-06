@@ -30,14 +30,12 @@
         [% END %]
       </table>
     [% END %]
-    [% IF col.limit_rows AND curval.links.size >= col.limit_rows %]
-        <p><em>(showing maximum [% col.limit_rows %] row[%IF curval.links.size != 1%]s[%END%].
-            <a href="/[% curval.parent_layout_identifier %]/data?curval_record_id=[% curval.record_id %]&curval_layout_id=[% curval.column_id %]" target="_blank">view all</a>)</em>
-    [% ELSIF col.show_view_all %]
-        <p><em>(showing [% curval.links.size %] row[%IF curval.links.size != 1%]s[%END%].
-            <a href="/[% curval.parent_layout_identifier %]/data?curval_record_id=[% curval.record_id %]&curval_layout_id=[% curval.column_id %]" target="_blank">view all</a>)</p>
+      [% IF (col.limit_rows AND curval.links.size >= col.limit_rows) OR col.show_view_all%]
+        <p><em>(showing[% IF col.limit_rows AND curval.links.size >= col.limit_rows %] maximum [% col.limit_rows %] 
+        [% ELSE %] [% curval.links.size %] [% END %]row[%IF curval.links.size != 1%]s[%END%].</em>
+          <a href="/[% curval.parent_layout_identifier %]/data?curval_record_id=[% curval.record_id %]&curval_layout_id=[% curval.column_id %]" target="_blank">view all</a>)</p>
+      [% END %]
     [% END %]
-[% END %]
 
 [% MACRO render_curcommon_datum(is_multivalue, curval, header, full_content) BLOCK %]
     [% IF curval.text.length > MORE_LESS_TRESHOLD AND NOT full_content %]
