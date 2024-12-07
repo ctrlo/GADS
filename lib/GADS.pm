@@ -1604,13 +1604,14 @@ any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/u
     my $audit  = GADS::Audit->new(schema => schema, user => $user);
 
     if (!$id) {
-        error __x"User id not available";
+        error __x"Authentication proovider not available";
     }
 
     my $editProvider = rset('Authentication')->providers->search({id => $id})->next
         or error __x"Authentication provider id {id} not found", id => $id;
 
-    # The submit button will still be triggered on a new org/title creation,
+    # FIXME: Is this true in the case of a provider
+    # The submit button will still be triggered on a REPLACE_THIS creation,
     # if the user has pressed enter, in which case ignore it
     if (param('submit'))
     {
@@ -1626,10 +1627,13 @@ any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/u
             saml2_relaystate      => param('saml2_relaystate'),
             saml2_groupname       => param('saml2_groupname'),
         );
+        # FIXME: Remove permissions below
         $values{permissions} = [body_parameters->get_all('permission')]
             if logged_in_user->permission->{superadmin};
+        # FIXME: Remove above
 
         if (process sub {
+            # FIXME: permissions note
             # Don't use DBIC update directly, so that permissions etc are updated properly
             $editProvider->update_provider(current_user => logged_in_user, %values);
         })
@@ -1644,8 +1648,10 @@ any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/u
             { danger => "You do not have permission to delete an authentication provider" } )
             if !logged_in_user->permission->{superadmin};
         my $usero = rset('Authentication')->find($delete_id);
+        
+        # FIXME: Should change this so cannot delete enabled provider for current user
         return forwardHome(
-            { danger => "Cannot delete currently active authentication provider" } )
+            { danger => "Cannot delete currently an enabled authentication provider" } )
             if $usero->enabled;
         if (process( sub { $usero->retire(current_user => logged_in_user) }))
         {
@@ -1656,14 +1662,15 @@ any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/u
         }
     }
 
+    # FIXME need to revise what is passed to the template
     my $output = template 'authentication/provider_edit' => {
         editprovider => $editProvider,
         groups   => GADS::Groups->new(schema => schema)->all,
         values   => {
-            title         => $userso->titles,
-            organisation  => $userso->organisations,
-            department_id => $userso->departments,
-            team_id       => $userso->teams,
+            title         => $userso->titles, # FIXME delete
+            organisation  => $userso->organisations, # FIXME delete
+            department_id => $userso->departments, # FIXME delete
+            team_id       => $userso->teams, # FIXME delete
         },
         permissions => $userso->permissions,
         page        => 'admin',

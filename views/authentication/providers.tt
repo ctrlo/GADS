@@ -69,5 +69,4 @@
 
 [%-
   INCLUDE wizard/provider_add.tt endpoint="/api/authentication_providers" modalId="providerModal";
-  INCLUDE wizard/user_email.tt modalId="emailUsersModal";
 -%]

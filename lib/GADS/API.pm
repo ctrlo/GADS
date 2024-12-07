@@ -760,7 +760,8 @@ sub _post_add_user_account
 }
 
 sub _post_add_authentication_providers
-{   my $body = _decode_json_body();
+{   
+    my $body = _decode_json_body();
 
     my $logged_in_user = logged_in_user;
 
@@ -788,6 +789,7 @@ sub _post_add_authentication_providers
         saml2_groupname       => $body->{saml2_groupname},
     );
 
+    # FIXME remove permissions?
     $values{permissions} = $body->{permissions}
         if $logged_in_user->permission->{superadmin};
 
@@ -1383,13 +1385,6 @@ any ['get', 'post'] => '/api/providers' => require_any_role [qw/useradmin supera
     {
         # Get columns to be shown in the users table summary
         my @cols = qw/site_id type name xml saml2_firstname saml2_surname cacert sp_cert sp_key enabled error_messages/;
-        #push @cols, 'title' if $site->register_show_title;
-        #push @cols, 'email';
-        #push @cols, 'organisation' if $site->register_show_organisation;
-        #push @cols, 'department' if $site->register_show_department;
-        #push @cols, 'team' if $site->register_show_team;
-        #push @cols, 'freetext1' if $site->register_freetext1_name;
-        #push @cols, qw/created lastlogin/;
         my @return = map { { name => $_, data => $_ } } @cols;
         content_type 'application/json; charset=UTF-8';
         return encode_json \@return;
@@ -1406,6 +1401,7 @@ any ['get', 'post'] => '/api/providers' => require_any_role [qw/useradmin supera
     my $dir       = $params->get('order[0][dir]');
     my $search    = $params->get('search[value]');
 
+    # FIXME possibly need to revise this
     if (my $sort_field = $site->user_field_by_description($sort_by))
     {
         $sort_by = $sort_field->{name} eq 'site_id'
@@ -1434,14 +1430,14 @@ any ['get', 'post'] => '/api/providers' => require_any_role [qw/useradmin supera
         $s or next;
         $s =~ s/\_/\\\_/g; # Escape special like char
         push @sr, [
-            'me.id'             => $s =~ /^[0-9]+$/ ? $s : undef,
-            # surname and firstname are case sensitive in database
-            'me.site_id'        => { -like => "%$s%" },
-            'me.type'           => { -like => "%$s%" },
-            'me.name'           => { -like => "%$s%" },
+            'me.id'              => $s =~ /^[0-9]+$/ ? $s : undef,
+            # FIXME should some of these be case sensitive in database
+            'me.site_id'         => { -like => "%$s%" },
+            'me.type'            => { -like => "%$s%" },
+            'me.name'            => { -like => "%$s%" },
             'me.saml2_firstname' => { -like => "%$s%" },
-            'me.saml2_surname'  => { -like => "%$s%" },
-            'me.enabled'   => { -like => "%$s%" },
+            'me.saml2_surname'   => { -like => "%$s%" },
+            'me.enabled'         => { -like => "%$s%" },
         ];
     }
 

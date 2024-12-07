@@ -275,7 +275,7 @@ sub provider_fields
         {
             name        => 'type',
             description => 'Type',
-	    #FIXME - timlegge type        => 'dropdown',
+	        #FIXME - timlegge type        => 'dropdown',
             type        => 'freetext',
             placeholder => 'saml2',
             is_required => 1,

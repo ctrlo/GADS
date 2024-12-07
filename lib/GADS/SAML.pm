@@ -120,13 +120,14 @@ sub initiate
         $cacert_fh ? (cacert => $cacert_fh->filename) : (),
     );
 
+    unlink $cacert_fh->filename;
     my $sso_url = $idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
 
     my $authnreq = Net::SAML2::Protocol::AuthnRequest->new(
         issuer      => $self->sso_xml,
         destination => $sso_url,
         nameid_format => $idp->format('emailAddress') || undef,
-        # assertion_url => "https://$www/app/saml",
+        # FIXME assertion_url => "https://$www/app/saml",
     );
 
     $self->request_id($authnreq->id);

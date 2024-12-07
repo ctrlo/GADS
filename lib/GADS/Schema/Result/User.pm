@@ -1095,6 +1095,10 @@ sub update_attributes
 {   my ($self, $attributes) = @_;
     my $authentication = $self->result_source->schema->resultset('Authentication')->saml2_provider;
     my $site = $self->result_source->schema->resultset('Site')->next;
+
+    # Automatically update the firstname and surname if the
+    # SAML provider has the proper attributes set
+    # How do we know if this provider is used for this user???
     if (my $at = $authentication->saml2_firstname)
     {
         $self->update({ firstname => $attributes->{$at}->[0] });
@@ -1103,6 +1107,7 @@ sub update_attributes
     {
         $self->update({ surname => $attributes->{$at}->[0] });
     }
+    # Automatically update the groups and permissions for the user from the SAML2 attributes
     if (my $at = $authentication->saml2_groupname)
     {
         #FIXME - Move this to the UI and allow users to map
@@ -1114,6 +1119,7 @@ sub update_attributes
 
         my @permissions;
         for my $permission (@{$attributes->{$at}}) {
+            # FIXME: hard coded permission?
             push @permissions, $permission_map{$permission} if defined $permission_map{$permission} and $permission =~ /^GADS-/;
         }
         if (@permissions)
@@ -1132,6 +1138,7 @@ sub update_attributes
         my $schema = $self->result_source->schema;
 
         my @groups;
+        # Automatically update the groups for the user from the SAML2 attributes
         for my $group (@{$attributes->{$at}}) {
             next if defined $permission_map{$group};
             #FIXME: There is likely a much better way to do this
