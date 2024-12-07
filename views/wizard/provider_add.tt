@@ -28,7 +28,6 @@
         <div class="modal-header__content">
           <h3 class="modal-title" id="providerModalLabel">
             <span class='js-add-user'>Add an Authentication Provider</span>
-            <span class='js-approve-account'>Approve requested account</span>
           </h3>
 
           <ol class="modal__steps">
@@ -71,7 +70,6 @@
               <div class="row mb-4">
                 <div class="col">
                   <p class="js-add-user">In this window you can add an authentication provider in the system.</p>
-                  <p class="js-approve-account">In this window you can approve this account request.</p>
                 </div>
               </div>
 

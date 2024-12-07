@@ -114,21 +114,19 @@ sub update_provider
 
     my $guard = $self->result_source->schema->txn_scope_guard;
 
-    # This was originally a delete call, does this now create an issue as it's required for the internal "update" call within `create user`
+    # FIXME: Is this comment required
+    # This was originally a delete call, does this now create an issue as
+    # it's required for the internal "update" call within `create user`
     my $current_user = $params{current_user};
 
     my $site = $self->result_source->schema->resultset('Site')->next;
 
+    # FIXME: may need this for provider
     # Set null values where required for database insertions
     #delete $params{title} if !$params{title} && !$site->user_field_is_editable('title');
 
     my $values;
 
-    if(defined $params{account_request}) {
-	#FIXME: Remove
-        $values->{account_request} = $params{account_request};
-        $request = 1 if $self->account_request && !$params{account_request};
-    }
     if($request) {
 	#FIXME: Remove
       $self->result_source->schema->resultset('Authentication')->create_provider(%params);
@@ -152,18 +150,12 @@ sub update_provider
       $audit->auth_provider_change("Provider $original_name (id ".$self->id.") being changed to ".$self->name)
           if $original_name && $self->is_column_changed('name');
 
-      $self->update($values);
-
       error __"You do not have permission to update an authentication provider"
               if !$current_user->permission->{superadmin};
 
+      $self->update($values);
+
       my $required = 0;
-
-      error __x"Please select a {name} for the user", name => $site->team_name
-          if !$params{team_id} && $required;
-
-      error __x"Please select a {name} for the user", name => $site->department_name
-          if !$params{department_id} && $required;
 
       length $params{name} <= 128
           or error __"Name must be less than 128 characters";
@@ -194,7 +186,7 @@ sub retire
     my $schema = $self->result_source->schema;
     my $current_user = $options{current_user};
 
-    error __"You do not have permission to update an authentication provider"
+    error __"You do not have permission to delete an authentication provider"
         if !$current_user->permission->{superadmin};
 
     my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $current_user);

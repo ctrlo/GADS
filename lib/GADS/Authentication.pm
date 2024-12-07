@@ -1,6 +1,6 @@
 =pod
 GADS - Globally Accessible Data Store
-Copyright (C) 2014 Ctrl O Ltd
+Copyright (C) 2024 Ctrl O Ltd
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
@@ -47,7 +47,7 @@ sub authentication_summary_rs
     my $summary = $self->authentication_rs->search_rs({},{
         columns => [
                 'me.id', 'me.site_id', 'me.type', 'me.name', 'me.enabled', 'me.error_messages',
-                'me.xml', 'me.sp_key',
+                #FIXME remove 'me.xml', 'me.sp_key',
         ],
         order_by => 'name',
         collapse => 1,
