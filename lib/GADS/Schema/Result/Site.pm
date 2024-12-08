@@ -87,6 +87,8 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "register_show_title",
   { data_type => "smallint", default_value => 1, is_nullable => 0 },
+  "register_show_provider",
+  { data_type => "smallint", default_value => 1, is_nullable => 0 },
   "hide_account_request",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "remember_user_location",
@@ -175,6 +177,13 @@ __PACKAGE__->has_many(
 __PACKAGE__->has_many(
   "dashboards",
   "GADS::Schema::Result::Dashboard",
+  { "foreign.site_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
+__PACKAGE__->has_many(
+  "providers",
+  "GADS::Schema::Result::Authentication",
   { "foreign.site_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
 );
@@ -403,6 +412,12 @@ sub user_fields
         table       => 'organisation',
         field       => 'name',
     } if $self->register_show_organisation;
+    push @fields, {
+        name        => 'provider',
+        description => 'Authentication Provider',
+        type        => 'dropdown',
+        placeholder => 'Select provider',
+    } if $self->register_show_provider;
     push @fields, {
         name        => 'department_id',
         description => $self->department_name,

@@ -10,7 +10,7 @@
       previous => "Previous page"
     },
     search            => "<span class=\"sr-only\">Search in authentication providers:</span>",
-    searchPlaceholder => "Search through your users"
+    searchPlaceholder => "Search through your providers"
   }
   table_ajax         = url.page _ "/api/providers?csrf-token=" _ csrf_token;
   table_ajax_target  = url.page _ "/authentication_providers"; # will be appended with /{id} by JS

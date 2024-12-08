@@ -66,6 +66,10 @@
             END;
           %]
         </div>
+        [%
+            field_counter = field_counter + 1;
+          END;
+        %]
       [% IF site.provider_fields.size > 0 %]
       </div>
       [% END %]

@@ -206,6 +206,7 @@ sub upload
     my %organisations = map { lc $_->name => $_->id } $schema->resultset('Organisation')->ordered->all;
     my %departments   = map { lc $_->name => $_->id } $schema->resultset('Department')->ordered->all;
     my %teams         = map { lc $_->name => $_->id } $schema->resultset('Team')->ordered->all;
+    my %providers     = map { lc $_->name => $_->id } $schema->resultset('Authentication')->ordered->all;
 
     $count = 0; my @errors;
     my @welcome_emails;
@@ -251,6 +252,16 @@ sub upload
                 error => qq(Title "$name" not found),
             } if !$title_id;
         }
+        my $provider_id;
+        if (defined $user_mapping{provider})
+        {
+            my $name  = $row->[$user_mapping{provider}];
+            $provider_id = $providers{lc $name};
+            push @errors, {
+                row   => join (',', @$row),
+                error => qq(Authentication provider "$name" not found),
+            } if !$provider_id;
+        }
         my %values = (
             firstname             => defined $user_mapping{forename} ? $row->[$user_mapping{forename}] : '',
             surname               => defined $user_mapping{surname} ? $row->[$user_mapping{surname}] : '',
@@ -264,6 +275,7 @@ sub upload
             view_limits           => $options{view_limits},
             groups                => $options{groups},
             permissions           => $options{permissions},
+	    provider              => $provider_id,
         );
         $values{value} = _user_value(\%values);
 

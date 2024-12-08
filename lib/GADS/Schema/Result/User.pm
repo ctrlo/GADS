@@ -213,6 +213,12 @@ __PACKAGE__->table("user");
   default_value: 0
   is_nullable: 1
 
+=head2 provider
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -300,6 +306,8 @@ __PACKAGE__->add_columns(
   },
   "debug_login",
   { data_type => "smallint", default_value => 0, is_nullable => 1 },
+  "provider",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -603,6 +611,26 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 provider
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Authentication>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "provider",
+  "GADS::Schema::Result::Authentication",
+  { "id" => "provider" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
 =head2 user_graphs
 
 Type: has_many
@@ -859,6 +887,7 @@ sub update_user
     delete $params{department_id} if !$params{department_id} && !$site->user_field_is_editable('department_id');
     delete $params{team_id} if !$params{team_id} && !$site->user_field_is_editable('team_id');
     delete $params{title} if !$params{title} && !$site->user_field_is_editable('title');
+    delete $params{provider} if !$params{provider} && !$site->user_field_is_editable('provider');
 
     my $values = {
         account_request_notes => $params{account_request_notes},
@@ -1226,6 +1255,11 @@ sub for_data_table
         name   => $site->register_freetext1_name,
         values => [$self->freetext1],
     } if $site->register_freetext1_name;
+    $return->{Authentication} = {
+        type   => 'string',
+        name   => 'Authentication Provider',
+        values => [$self->provider && $self->provider->name],
+    } if $site->register_show_provider;
 
     $return;
 }
