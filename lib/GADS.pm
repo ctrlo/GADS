@@ -676,6 +676,7 @@ any ['get', 'post'] => '/login' => sub {
         organisations   => $users->organisations,
         departments     => $users->departments,
         teams           => $users->teams,
+        providers       => $users->providers,
         register_text   => var('site')->register_text,
         page            => 'login',
         body_class      => 'p-0',
@@ -745,6 +746,7 @@ any ['get', 'post'] => '/register' => sub {
         organisations   => $users->organisations,
         departments     => $users->departments,
         teams           => $users->teams,
+        providers       => $users->providers,
         register_text   => var('site')->register_text,
         page            => 'register',
         body_class      => 'p-0',
@@ -804,6 +806,7 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
             organisation  => $users->organisations,
             department_id => $users->departments,
             team_id       => $users->teams,
+            provider      => $users->providers,
         },
     };
 };
@@ -1634,6 +1637,7 @@ any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/u
             sp_key                => param('sp_key'),
             saml2_relaystate      => param('saml2_relaystate'),
             saml2_groupname       => param('saml2_groupname'),
+            enabled               => param('enabled'),
         );
         # FIXME: Remove permissions below
         $values{permissions} = [body_parameters->get_all('permission')]
@@ -1716,6 +1720,7 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
             team_id               => param('team_id') || undef,
             account_request       => param('account_request'),
             account_request_notes => param('account_request_notes'),
+            provider              => param('provider') || undef,
             view_limits           => [body_parameters->get_all('view_limits')],
             groups                => [body_parameters->get_all('groups')],
         );
@@ -1753,6 +1758,7 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
             organisation  => $userso->organisations,
             department_id => $userso->departments,
             team_id       => $userso->teams,
+            provider      => $userso->providers,
         },
         permissions => $userso->permissions,
         page        => 'user',

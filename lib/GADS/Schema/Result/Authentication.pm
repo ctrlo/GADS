@@ -48,6 +48,13 @@ __PACKAGE__->set_primary_key("id");
 
 __PACKAGE__->add_unique_constraint("authentication_ux_saml2_relaystate", ["saml2_relaystate"]);
 
+__PACKAGE__->has_many(
+  "users",
+  "GADS::Schema::Result::User",
+  { "foreign.provider" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 __PACKAGE__->belongs_to(
   "site",
   "GADS::Schema::Result::Site",

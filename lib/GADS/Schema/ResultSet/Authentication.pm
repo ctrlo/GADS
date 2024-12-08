@@ -34,6 +34,13 @@ sub saml2_provider
     })->next;
 }
 
+sub ordered
+{   shift->search({
+		},{
+        order_by => 'me.name',
+    });
+}
+
 sub create_provider
 {   my ($self, %params) = @_;
 
