@@ -491,6 +491,8 @@ post '/saml' => sub {
         saml_response => body_parameters->get('SAMLResponse'),
         defined $authentication->cacert ?
         (cacert       => $authentication->cacert) : (),
+        defined $authentication->sp_key ?
+        (sp_key       => $authentication->sp_key) : (),
     );
 
     my $username = $callback->{nameid}
