@@ -498,6 +498,12 @@ post '/saml' => sub {
 
     my $user = schema->resultset('User')->active->search({ username => $username })->next;
 
+    if ($user->provider->id ne $authentication->id) {
+        my $msg = $authentication->user_not_found_error;
+	$user = undef;
+        return forwardHome({ danger => __x($msg, username => $username) }, 'login?password=1' )
+    }
+
     if (!$user)
     {
         my $msg = $authentication->user_not_found_error;
@@ -578,7 +584,7 @@ any ['get', 'post'] => '/login' => sub {
     # Get authentication provider
     my $enabled = schema->resultset('Authentication')->enabled;
 
-    if ($enabled->count == 1 && !query_parameters->get('password'))
+    if ($enabled->count ge 1 && !query_parameters->get('password'))
     {
         my $auth = $enabled->next;
         if ($auth->type eq 'saml2')
@@ -779,6 +785,8 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
         my %update;
         foreach my $field (var('site')->user_fields)
         {
+            # FIXME The user should not be able to change their own authentication provider
+            next if $field->{name} eq 'provider' && not logged_in_user->permission->{superadmin};
             next if !$field->{editable};
             $update{$field->{name}} = param($field->{name}) || undef;
         }
