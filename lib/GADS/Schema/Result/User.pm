@@ -915,8 +915,10 @@ sub update_user
 
       if ($params{permissions} && ref $params{permissions} eq 'ARRAY')
       {
-          error __"You do not have permission to set global user permissions"
-              if !$current_user->permission->{superadmin};
+          # FIXME: SAML should be able to set groups
+          # error __"You do not have permission to set global user permissions"
+          #    if !$current_user->permission->{superadmin};
+          #
           $self->permissions(@{$params{permissions}});
           # Clear and rebuild permissions, in case of form submission failure. We
           # need to rebuild now, otherwise the transaction may have rolled-back
@@ -1116,8 +1118,9 @@ sub update_attributes
         }
         if (@permissions)
         {
-            error __"You do not have permission to set global user permissions"
-                if !$self->permission->{superadmin};
+            # FIXME: SAML should be able to set groups
+            # error __"You do not have permission to set global user permissions"
+            #    if !$self->permission->{superadmin};
             $self->permissions(@permissions);
             # Clear and rebuild permissions, in case of form submission failure. We
             # need to rebuild now, otherwise the transaction may have rolled-back
