@@ -499,7 +499,7 @@ post '/saml' => sub {
     my $user = schema->resultset('User')->active->search({ username => $username })->next;
 
     if ($user->provider->id ne $authentication->id) {
-        my $msg = $authentication->user_not_found_error;
+        my $msg = $authentication->saml_provider_match_error;
 	$user = undef;
         return forwardHome({ danger => __x($msg, username => $username) }, 'login?password=1' )
     }

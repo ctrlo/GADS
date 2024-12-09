@@ -115,6 +115,12 @@ sub user_not_found_error
         || "Username {username} not found";
 }
 
+sub saml_provider_match_error
+{   my $self = shift;
+    $self->error_messages_decoded->{saml_provider_match}
+        || "SAML provider does not match the authentication provider for {username}";
+}
+
 sub update_provider
 {   my ($self, %params) = @_;
     my $request = 0;
