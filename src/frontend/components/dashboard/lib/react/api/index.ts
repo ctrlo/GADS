@@ -1,3 +1,4 @@
+// I wonder if this could be used as a "better" version of the UploadClient class with only minor modifications
 export default class ApiClient {
   private baseUrl;
   private headers;
@@ -48,6 +49,7 @@ export default class ApiClient {
   saveLayout = (id, layout) => {
     if (!this.isDev) {
       const strippedLayout = layout.map(widget => ({ ...widget, moved: undefined }));
+      console.log("Save Layout", strippedLayout);
       return this.PUT(`/dashboard/${id}`, strippedLayout);
     }
   }

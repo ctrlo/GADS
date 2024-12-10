@@ -1,17 +1,21 @@
-import React from "react";
+'use client';
+
+import React, { useEffect, useRef } from "react";
 import serialize from "form-serialize";
 
 import Modal from "react-modal";
 import RGL, { WidthProvider } from "react-grid-layout";
 
 import Header from "./Header";
-import Widget from './Widget';
 import Footer from "./Footer";
 import { sidebarObservable } from '../../../sidebar/lib/sidebarObservable';
+import { AppState, Widget } from "./interfaces/interfaces";
+import { compare } from "util/common";
+import Dashboard from "./Dashboard";
 
 declare global {
   interface Window {
-    Linkspace : any,
+    Linkspace: any,
     // @ts-expect-error "Typings clash with JSTree"
     siteConfig: any
   }
@@ -19,7 +23,7 @@ declare global {
 
 const ReactGridLayout = WidthProvider(RGL);
 
-const modalStyle = {
+const modalStyle: Modal.Styles = {
   content: {
     minWidth: "350px",
     maxWidth: "80vw",
@@ -39,116 +43,124 @@ const modalStyle = {
   }
 };
 
-class App extends React.Component<any, any> {
-  private formRef;
+export default function App(state: AppState) {
+  const formRef = useRef<HTMLDivElement>();
+  const api = state.api;
 
-  constructor(props) {
-    super(props);
-    Modal.setAppElement("#ld-app");
-
-    const layout = props.widgets.map(widget => widget.config);
-    this.formRef = React.createRef();
-    sidebarObservable.addSubscriber(this);
-
-    this.state = {
-      widgets: props.widgets,
-      layout,
-      editModalOpen: false,
-      activeItem: 0,
-      editHtml: "",
-      editError: null,
-      loading: false,
-      loadingEditHtml: true,
-    };
+  const config = {
+    cols: 2,
+    margin: [32, 32],
+    containerPadding: [0, 10],
+    rowHeight: 80,
   }
 
-  componentDidMount = () => {
-    this.initializeGlobeComponents();
-  }
+  Modal.setAppElement("#ld-app");
 
-  componentDidUpdate = (prevProps, prevState) => {
-    window.requestAnimationFrame(this.overWriteSubmitEventListener);
+  const [widgets, setWidgets] = React.useState<Widget[]>(state.widgets);
+  const [loadingEditHtml, setLoadingEditHtml] = React.useState(false);
+  const [editError] = React.useState<string>("");
+  const [editHtml, setEditHtml] = React.useState<string>("");
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [activeItem, setActiveItem] = React.useState<string>("");
+  // eslint-disable-next-line
+  const [loading, setLoading] = React.useState(false);
+  // eslint-disable-next-line
 
-    if (this.state.editModalOpen && prevState.loadingEditHtml && !this.state.loadingEditHtml && this.formRef) {
-      this.initializeSummernoteComponent();
-    }
-
-    if (!this.state.editModalOpen && !prevState.loadingEditHtml && !this.state.loadingEditHtml) {
-      this.initializeGlobeComponents();
-    }
-  }
-
-  initializeSummernoteComponent = () => {
-    const summernoteEl = this.formRef.current.querySelector('.summernote');
-    if (summernoteEl) {
-      import(/* WebpackChunkName: "summernote" */ "../../../summernote/lib/component")
-        .then(({ default: SummerNoteComponent }) => {
-          new SummerNoteComponent(summernoteEl)
-        });
-    }
-  }
-
-  initializeGlobeComponents = () => {
+  const initializeGlobeComponents = () => {
     const arrGlobe = document.querySelectorAll(".globe");
-    import('../../../globe/lib/component').then(({default: GlobeComponent}) => {
+    import('../../../globe/lib/component').then(({ default: GlobeComponent }) => {
       arrGlobe.forEach((globe) => {
         new GlobeComponent(globe)
       });
     });
   }
 
-  updateWidgetHtml = async (id) => {
-    const newHtml = await this.props.api.getWidgetHtml(id);
-    const newWidgets = this.state.widgets.map(widget => {
+  const initializeSummernoteComponent = () => {
+    const summernoteEl = formRef.current.querySelector('.summernote');
+    if (summernoteEl) {
+      import(/* WebpackChunkName: "summernote" */ "../../../summernote/lib/component")
+        .then(({ default: SummerNoteComponent }) => new SummerNoteComponent(summernoteEl));
+    }
+  };
+
+  const handleSideBarChange = () => {
+    window.dispatchEvent(new Event('resize'));
+  };
+
+  useEffect(() => {
+    sidebarObservable.addSubscriber({ handleSideBarChange });
+    initializeGlobeComponents();
+  }, [])
+
+  useEffect(() => {
+    if (modalOpen && !loadingEditHtml && formRef.current) {
+      initializeSummernoteComponent();
+    } else if (!modalOpen && !loadingEditHtml) {
+      initializeGlobeComponents();
+    }
+  }, [modalOpen, loadingEditHtml]);
+
+  useEffect(() => {
+    console.log("Widgets", widgets);
+  }, [widgets]);
+
+  const updateWidgetHtml = async (id:string) => {
+    console.log("Updating widget", id);
+    const newHtml = await api.getWidgetHtml(id);
+    const newWidgets = widgets.map((widget:Widget) => {
       if (widget.config.i === id) {
         return {
-          ...widget,
+          config: widget.config,
           html: newHtml,
         };
       }
       return widget;
     });
-    this.setState({ widgets: newWidgets });
-  }
+    setWidgets(newWidgets);
+  };
 
-  fetchEditForm = async (id) => {
-    const editFormHtml = await this.props.api.getEditForm(id);
+  const fetchEditForm = async (id:string) => {
+    console.log("Fetching edit form", id);
+    const editFormHtml = await api.getEditForm(id);
     if (editFormHtml.is_error) {
-      this.setState({ loadingEditHtml: false, editError: editFormHtml.message });
+      setLoadingEditHtml(false);
       return;
     }
-    this.setState({ loadingEditHtml: false, editError: false, editHtml: editFormHtml.content });
-  }
+    setLoadingEditHtml(false);
+    setEditHtml(editFormHtml.content);
+  };
 
-  onEditClick = id => (event) => {
+  const onEditClick = (id:string) => (event:React.MouseEvent) => {
+    console.log("Edit click", id);
     event.preventDefault();
-    this.showEditForm(id);
-  }
+    showEditForm(id);
+  };
 
-  showEditForm = (id) => {
-    this.setState({ editModalOpen: true, loadingEditHtml: true, activeItem: id });
-    this.fetchEditForm(id);
-  }
+  const showEditForm = (id:string) => {
+    console.log("Showing edit form", id);
+    setModalOpen(true);
+    setLoadingEditHtml(true);
+    setActiveItem(id);
+    fetchEditForm(id);
+  };
 
-  closeModal = () => {
-    this.setState({ editModalOpen: false });
-  }
+  const closeModal = () => setModalOpen(false);
 
-  deleteActiveWidget = () => {
+  const deleteActiveWidget = () => {
+    console.log("Deleting widget", activeItem);
     // eslint-disable-next-line no-alert
     if (!window.confirm("Deleting a widget is permanent! Are you sure?"))
       return
 
-    this.setState({
-      widgets: this.state.widgets.filter(item => item.config.i !== this.state.activeItem),
-      editModalOpen: false,
-    });
-    this.props.api.deleteWidget(this.state.activeItem);
+    setWidgets(widgets.filter(item => item.config.i !== activeItem));
+    setModalOpen(false);
+    api.deleteWidget(activeItem);
   }
 
-  saveActiveWidget = async (event) => {
+  const saveActiveWidget = async (event) => {
+    console.log("Saving widget", activeItem);
     event.preventDefault();
-    const formEl = this.formRef.current.querySelector("form");
+    const formEl = formRef.current.querySelector("form");
     if (!formEl) {
       // eslint-disable-next-line no-console
       console.error("No form element was found!");
@@ -156,34 +168,36 @@ class App extends React.Component<any, any> {
     }
 
     const form = serialize(formEl, { hash: true });
-    const result = await this.props.api.saveWidget(formEl.getAttribute("action"), form);
+    const result = await api.saveWidget(formEl.getAttribute("action"), form);
     if (result.is_error) {
-      this.setState({ editError: result.message });
+      // eslint-disable-next-line no-console
+      console.error(result.message);
       return;
     }
-    this.updateWidgetHtml(this.state.activeItem);
-    this.closeModal();
+
+    updateWidgetHtml(activeItem);
+    closeModal();
   }
 
-  isGridConflict = (x, y, w, h) => {
+  const isGridConflict = (x: number, y: number, w: number, h: number): boolean => {
+    console.log("Checking grid conflict", x, y, w, h);
     const ulc = { x, y };
     const drc = { x: x + w, y: y + h };
-    return this.state.layout.some((widget) => {
-      if (ulc.x >= (widget.x + widget.w) || widget.x >= drc.x) {
+
+    return widgets.some((widget: any) => {
+      if (ulc.x >= (widget.x + widget.h) || widget.x >= drc.x) {
         return false;
       }
-      if (ulc.y >= (widget.y + widget.h) || widget.y >= drc.y) {
-        return false;
-      }
-      return true;
-    });
+      return !(ulc.y >= (widget.y + widget.h) || widget.y >= drc.y);
+    })
   }
 
-  firstAvailableSpot = (w, h) => {
+  const firstAvailableSpot = (w: number, h: number) => {
+    console.log("Finding first available spot", w, h);
     let x = 0;
     let y = 0;
-    while (this.isGridConflict(x, y, w, h)) {
-      if ((x + w) < this.props.gridConfig.cols) {
+    while (isGridConflict(x, y, w, h)) {
+      if ((x + w) < config.cols) {
         x += 1;
       } else {
         x = 0;
@@ -194,156 +208,92 @@ class App extends React.Component<any, any> {
     return { x, y };
   }
 
-  // eslint-disable-next-line no-unused-vars
-  addWidget = async (type) => {
-    this.setState({loading: true});
-    const result = await this.props.api.createWidget(type)
+  const addWidget = async (type: string) => {
+    console.log("Adding widget", type);
+    setLoading(true);
+    const result = await api.createWidget(type)
     if (result.error) {
-      this.setState({loading: false});
+      setLoading(false);
       alert(result.message);
       return;
     }
+
     const id = result.message;
-    const { x, y } = this.firstAvailableSpot(1, 1);
-    const widgetLayout = {
-      i: id,
-      x,
-      y,
-      w: 1,
-      h: 1,
+    const { x, y } = firstAvailableSpot(1, 1);
+    const widgetLayout: Widget = {
+      config: {
+        i: id,
+        x,
+        y,
+        w: 1,
+        h: 1
+      },
+      html: "<p>Loading...</p>",
     };
-    const newLayout = this.state.layout.concat(widgetLayout);
-    this.setState({
-      widgets: this.state.widgets.concat({
-        config: widgetLayout,
-        html: "Loading...",
-      }),
-      layout: newLayout,
-      loading: false,
-    }, () => this.updateWidgetHtml(id));
-    this.props.api.saveLayout(this.props.dashboardId, newLayout);
-    this.showEditForm(id);
+
+    const newLayout = widgets.concat(widgetLayout);
+    setWidgets(newLayout);
+    setLoading(false);
+    updateWidgetHtml(id);
+    await api.saveLayout(state.dashboardId, newLayout);
+    showEditForm(id);
   }
 
-  generateDOM = () => (
-    this.state.widgets.map(widget => (
-      <div key={widget.config.i} className={`ld-widget-container ${this.props.readOnly || widget.config.static ? "" : "ld-widget-container--editable"}`}>
-        <Widget key={widget.config.i} widget={widget} readOnly={this.props.readOnly || widget.config.static} onEditClick={this.onEditClick(widget.config.i)} />
-      </div>
-    ))
-  )
-
-  onLayoutChange = (layout) => {
-    if (this.shouldSaveLayout(this.state.layout, layout)) {
-      this.props.api.saveLayout(this.props.dashboardId, layout);
+  const onLayoutChange = (layout:RGL.Layout[]) => {
+    console.log("Layout change", layout);
+    if (shouldSaveLayout(widgets.map(widget=>widget.config), layout)) {
+      api.saveLayout(state.dashboardId, layout);
     }
-    this.setState({ layout });
-  }
+    setWidgets(widgets.map((widget, index) => {
+      return {
+        config: layout[index],
+        html: widget.html,
+      }
+    }));
+  };
 
-  shouldSaveLayout = (prevLayout, newLayout) => {
+  const shouldSaveLayout = (prevLayout: RGL.Layout[], newLayout: RGL.Layout[]): boolean => {
+    console.log("Checking if layout should be saved", prevLayout, newLayout);
     if (prevLayout.length !== newLayout.length) {
-      return true;
+      return true
     }
-    for (let i = 0; i < prevLayout.length; i += 1) {
-      const entriesNew = Object.entries(newLayout[i]);
-      const isDifferent = entriesNew.some((keypair) => {
-        const [key, value] = keypair;
-        if (key === "moved" || key === "static") return false;
-        if (value !== prevLayout[i][key]) return true;
-        return false;
-      });
-      if (isDifferent) return true;
+    for (let i = 0; i < prevLayout.length; i++) {
+      if (prevLayout[i] && newLayout[i] && !compare(prevLayout[i], newLayout[i])) {
+        return true;
+      }
     }
     return false;
-  }
+  };
 
-  renderModal = () => (
-    <Modal
-      isOpen={this.state.editModalOpen}
-      onRequestClose={this.closeModal}
-      style={modalStyle}
-      shouldCloseOnOverlayClick={true}
-      contentLabel="Edit Modal"
-    >
-      <div className='modal-header'>
-        <div className='modal-header__content'>
-          <h3 className='modal-title'>Edit widget</h3>
-        </div>
-        <button className='close' onClick={this.closeModal}><span aria-hidden='true' className='hidden'>Close</span></button>
-      </div>
-      <div className="modal-body">
-        {this.state.editError
-          ? <p className="alert alert-danger">{this.state.editError}</p> : null}
-        {this.state.loadingEditHtml
-          ? <span className='ld-modal__loading'>Loading...</span> : <div ref={this.formRef} dangerouslySetInnerHTML={{ __html: this.state.editHtml }} />}
-      </div>
-      <div className='modal-footer'>
-        <div className='modal-footer__left'>
-          <button className="btn btn-cancel" onClick={this.deleteActiveWidget}>Delete</button>
-        </div>
-        <div className='modal-footer__right'>
-          <button className="btn btn-default" onClick={this.saveActiveWidget}>Save</button>
-        </div>
-      </div>
-    </Modal>
-  )
-
-  overWriteSubmitEventListener = () => {
-    const formContainer = document.getElementById("ld-form-container");
-    if (!formContainer)
-      return
-
-    const form = formContainer.querySelector("form");
-    if (!form)
-      return
-
-    form.addEventListener("submit", this.saveActiveWidget);
-    const submitButton = document.createElement("input");
-    submitButton.setAttribute("type", "submit");
-    submitButton.setAttribute("style", "visibility: hidden");
-    form.appendChild(submitButton);
-  }
-
-  handleSideBarChange = () => {
-    window.dispatchEvent(new Event('resize'));
-  }
-
-  render() {
-    return (
-      <div className="content-block">
-        {this.props.hideMenu ? null : <Header
-          hMargin={this.props.gridConfig.containerPadding[0]}
-          dashboards={this.props.dashboards}
-          currentDashboard={this.props.currentDashboard}
-          loading={this.state.loading}
-          includeH1={this.props.includeH1}
-        />}
-        {this.renderModal()}
-        <div className="content-block__main">
-          <ReactGridLayout
-            className={`content-block__main-content ${this.props.readOnly ? "" : "react-grid-layout--editable"}`}
-            isDraggable={!this.props.readOnly}
-            isResizable={!this.props.readOnly}
-            draggableHandle=".ld-draggable-handle"
-            useCSSTransforms={false}
-            layout={this.state.layout}
-            onLayoutChange={this.onLayoutChange}
-            items={this.state.layout.length}
-            {...this.props.gridConfig}
-          >
-            {this.generateDOM()}
-          </ReactGridLayout>
-        </div>
-        {this.props.hideMenu ? null : <Footer
-          addWidget={this.addWidget}
-          widgetTypes={this.props.widgetTypes}
-          currentDashboard={this.props.currentDashboard}
-          noDownload={this.props.noDownload}
-          readOnly={this.props.readOnly}
-        />}
-      </div>
-    );
-  }
+  return (
+    <div className="content-block">
+      {!state.hideMenu && (<Header
+        currentDashboard={state.currentDashboard}
+        dashboards={state.dashboards}
+        hMargin={config.containerPadding[0]}
+        includeH1={true}
+        loading={loading} />)}
+      <Dashboard
+        widgets={widgets}
+        config={config}
+        modalOpen={modalOpen}
+        closeModal={closeModal}
+        editError={editError}
+        loadingEditHtml={loadingEditHtml}
+        editHtml={editHtml}
+        deleteActiveWidget={deleteActiveWidget}
+        saveActiveWidget={saveActiveWidget}
+        readOnly={state.readOnly}
+        layoutChange={onLayoutChange}
+        />
+      {!state.hideMenu && (<Footer
+        addWidget={addWidget}
+        widgetTypes={state.widgetTypes}
+        currentDashboard={state.currentDashboard} // I'm going to modify this so it's dynamic to switch I think?
+        noDownload={state.noDownload}
+        readOnly={state.readOnly}
+        />
+      )}
+    </div>
+  );
 }
-
-export default App;

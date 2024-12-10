@@ -1,6 +1,21 @@
+'use client';
+
 import React from "react";
 
-const Header = ({ hMargin, dashboards, currentDashboard, loading, includeH1 }) => {
+interface DashboardDefinition {
+  name?: string;
+  url?: string;
+}
+
+interface HeaderProps {
+  hMargin: number;
+  dashboards: DashboardDefinition[];
+  currentDashboard: DashboardDefinition;
+  loading: boolean;
+  includeH1: boolean;
+}
+
+const Header = ({ hMargin, dashboards, currentDashboard, loading, includeH1 }: HeaderProps) => {
   const renderMenuItem = (dashboard) => {
     if (dashboard.name === currentDashboard.name) {
       if (includeH1) {

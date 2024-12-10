@@ -1,3 +1,5 @@
+'use client'
+
 import { Component } from 'component'
 import "react-app-polyfill/stable";
 
@@ -11,9 +13,11 @@ import "core-js/es/object/set-prototype-of";
 import "./react/polyfills/classlist";
 
 import React from "react";
-import ReactDOM from "react-dom";
+import {createRoot} from "react-dom/client";
 import App from "./react/app";
 import ApiClient from "./react/api";
+import { fromJson } from 'util/common';
+import {Layout} from "react-grid-layout";
 
 class DashboardComponent extends Component {
   constructor(element)  {
@@ -35,24 +39,22 @@ class DashboardComponent extends Component {
     const widgetsEls = Array.prototype.slice.call(document.querySelectorAll("#ld-app > div"));
     const widgets = widgetsEls.map(el => ({
       html: el.innerHTML,
-      config: JSON.parse(el.getAttribute("data-grid")),
+      config: fromJson(el.getAttribute("data-grid")),
     }));
     const api = new ApiClient(this.element.getAttribute("data-dashboard-endpoint") || "");
 
-    ReactDOM.render(
+    createRoot(this.element).render(
       <App
-        widgets={widgets}
-        dashboardId={this.element.getAttribute("data-dashboard-id")}
-        currentDashboard={JSON.parse(this.element.getAttribute("data-current-dashboard") || "{}")}
-        readOnly={this.element.getAttribute("data-dashboard-read-only") === "true"}
-        hideMenu={this.element.getAttribute("data-dashboard-hide-menu") === "true"}
-        includeH1={this.element.getAttribute("data-dashboard-include-h1") === "true"}
-        noDownload={this.element.getAttribute("data-dashboard-no-download") === "true"}
         api={api}
-        widgetTypes={JSON.parse(this.element.getAttribute("data-widget-types") || "[]")}
-        dashboards={JSON.parse(this.element.getAttribute("data-dashboards") || "[]" )}
-        gridConfig={this.gridConfig} />,
-      this.element,
+        currentDashboard={fromJson(this.element.getAttribute("data-dashboard"))}
+        dashboards={fromJson(this.element.getAttribute("data-dashboards"))}
+        hideMenu={this.element.getAttribute("data-hide-menu") === "true"}
+        noDownload={this.element.getAttribute("data-no-download") === "true"}
+        readOnly={this.element.getAttribute("data-read-only") === "true"}
+        widgetTypes={fromJson(this.element.getAttribute("data-widget-types"))}
+        widgets={widgets}
+        key={this.element.getAttribute("data-dashboard")}
+        dashboardId={this.element.getAttribute("data-dashboard-id")} />
     );
   }
 }
