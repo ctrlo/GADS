@@ -28,6 +28,15 @@ sub enabled
     });
 }
 
+sub by_id
+{
+    my $self = shift;
+    my $id = shift;
+    $self->search({
+        'me.id' => $id,
+    });
+}
+
 sub saml2_provider
 {   my $self = shift;
     $self->enabled->search({
