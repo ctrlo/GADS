@@ -574,6 +574,32 @@ sub _successful_login
     }
 }
 
+any ['get', 'post'] => '/saml_login' => sub {
+
+    my $audit = GADS::Audit->new(schema => schema);
+    my $user  = logged_in_user;
+
+    # Don't allow login page to be displayed when logged-in, to prevent
+    # user thinking they are logged out when they are not
+    return forwardHome() if $user;
+
+    my $users = GADS::Users->new(schema => schema, config => config);
+    my $output  = template 'login_saml' => {
+        username        => cookie('remember_me'),
+	titles          => $users->titles,
+	organisations   => $users->organisations,
+	departments     => $users->departments,
+	teams           => $users->teams,
+	providers       => $users->providers,
+        register_text   => var('site')->register_text,
+        page            => 'login',
+        body_class      => 'p-0',
+        container_class => 'login container-fluid',
+        main_class      => 'login__main row',
+    };
+    $output;
+};
+
 any ['get', 'post'] => '/login' => sub {
 
     my $audit = GADS::Audit->new(schema => schema);
@@ -583,10 +609,21 @@ any ['get', 'post'] => '/login' => sub {
     # user thinking they are logged out when they are not
     return forwardHome() if $user;
 
-    # Get authentication provider
-    my $enabled = schema->resultset('Authentication')->enabled;
+    my $enabled;
+    if ((my $saml_user = param('username')) && !query_parameters->get('password')) {
+        my $users = GADS::Users->new(schema => schema, config => config);
+        my $user_search = $users->user_rs->search({
+            username  => $saml_user,
+        });
+	my $user = $user_search->next;
+        $enabled = schema->resultset('Authentication')->by_id($user->provider->id) if defined $user;
+    }
+    else {
+        # Get authentication provider
+        $enabled = schema->resultset('Authentication')->enabled;
+    }
 
-    if ($enabled->count ge 1 && !query_parameters->get('password'))
+    if (defined $enabled && $enabled->count ge 1 && !query_parameters->get('password'))
     {
         my $auth = $enabled->next;
         if ($auth->type eq 'saml2')

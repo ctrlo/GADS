@@ -88,7 +88,7 @@ __PACKAGE__->add_columns(
   "register_show_title",
   { data_type => "smallint", default_value => 1, is_nullable => 0 },
   "register_show_provider",
-  { data_type => "smallint", default_value => 1, is_nullable => 0 },
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "hide_account_request",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "remember_user_location",
