@@ -1699,7 +1699,10 @@ any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/u
             { danger => "You do not have permission to delete an authentication provider" } )
             if !logged_in_user->permission->{superadmin};
         my $usero = rset('Authentication')->find($delete_id);
-        
+        return forwardHome(
+            { danger => "Cannot delete the built in authentication provider" } )
+            if $usero->type eq 'builtin';
+
         # FIXME: Should change this so cannot delete enabled provider for current user
         return forwardHome(
             { danger => "Cannot delete currently an enabled authentication provider" } )
