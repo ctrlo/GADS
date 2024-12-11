@@ -1,3 +1,4 @@
+// We're using the 'client' side of React, not server, nor native.
 'use client'
 
 import { Component } from 'component'
@@ -14,22 +15,14 @@ import "./react/polyfills/classlist";
 
 import React from "react";
 import {createRoot} from "react-dom/client";
-import App from "./react/app";
+import App from "./react/App";
 import ApiClient from "./react/api";
 import { fromJson } from 'util/common';
-import {Layout} from "react-grid-layout";
+import {DashboardDefinition} from "./react/interfaces/interfaces";
 
 class DashboardComponent extends Component {
-  constructor(element)  {
+  constructor(element: HTMLElement)  {
     super(element)
-    this.el = $(this.element)
-    
-    this.gridConfig = {
-      cols: 2,
-      margin: [32, 32],
-      containerPadding: [0, 10],
-      rowHeight: 80,
-    };
 
     this.initDashboard()
   }
@@ -37,7 +30,7 @@ class DashboardComponent extends Component {
   initDashboard() {
     this.element.className = "";
     const widgetsEls = Array.prototype.slice.call(document.querySelectorAll("#ld-app > div"));
-    const widgets = widgetsEls.map(el => ({
+    const widgets = widgetsEls.map((el:HTMLElement) => ({
       html: el.innerHTML,
       config: fromJson(el.getAttribute("data-grid")),
     }));
@@ -47,14 +40,14 @@ class DashboardComponent extends Component {
       <App
         api={api}
         currentDashboard={fromJson(this.element.getAttribute("data-dashboard"))}
-        dashboards={fromJson(this.element.getAttribute("data-dashboards"))}
+        dashboards={fromJson(this.element.getAttribute("data-dashboards")) as DashboardDefinition[]}
         hideMenu={this.element.getAttribute("data-hide-menu") === "true"}
         noDownload={this.element.getAttribute("data-no-download") === "true"}
         readOnly={this.element.getAttribute("data-read-only") === "true"}
-        widgetTypes={fromJson(this.element.getAttribute("data-widget-types"))}
+        widgetTypes={fromJson(this.element.getAttribute("data-widget-types")) as string[]}
         widgets={widgets}
         key={this.element.getAttribute("data-dashboard")}
-        dashboardId={this.element.getAttribute("data-dashboard-id")} />
+        dashboardId={parseInt(this.element.getAttribute("data-dashboard-id"))} />
     );
   }
 }

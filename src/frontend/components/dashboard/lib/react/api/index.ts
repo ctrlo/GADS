@@ -1,8 +1,11 @@
 // I wonder if this could be used as a "better" version of the UploadClient class with only minor modifications
+import {Layout} from "react-grid-layout";
+import {WidgetData} from "../interfaces/interfaces";
+
 export default class ApiClient {
-  private baseUrl;
-  private headers;
-  private isDev;
+  private readonly baseUrl: string;
+  private readonly headers: object;
+  private readonly isDev: boolean;
 
   constructor(baseUrl = "") {
     this.baseUrl = baseUrl;
@@ -11,7 +14,7 @@ export default class ApiClient {
     this.isDev = window.siteConfig && window.siteConfig.isDev
   }
 
-  async _fetch(route, method, body) {
+  async _fetch(route: string, method: "POST" | "GET" | "PATCH" | "DELETE" | "PUT", body: any) {
     if (!route) throw new Error("Route is undefined");
 
     let csrfParam = "";
@@ -25,7 +28,7 @@ export default class ApiClient {
 
     const fullRoute = `${this.baseUrl}${route}${csrfParam}`;
 
-    const opts : any = {
+    const opts: any = {
       method,
       headers: Object.assign(this.headers),
       credentials: 'same-origin', // Needed for older versions of Firefox, otherwise cookies not sent
@@ -36,42 +39,48 @@ export default class ApiClient {
     return fetch(fullRoute, opts);
   }
 
-  GET(route) { return this._fetch(route, "GET", null); }
+  private GET(route: string) {
+    return this._fetch(route, "GET", null);
+  }
 
-  POST(route, body) { return this._fetch(route, "POST", body); }
+  private POST(route: string, body: any) {
+    return this._fetch(route, "POST", body);
+  }
 
-  PUT(route, body) { return this._fetch(route, "PUT", body); }
+  private PUT(route: string, body: any) {
+    return this._fetch(route, "PUT", body);
+  }
 
-  PATCH(route, body) { return this._fetch(route, "PATCH", body); }
+  private DELETE(route: string) {
+    return this._fetch(route, "DELETE", null);
+  }
 
-  DELETE(route) { return this._fetch(route, "DELETE", null); }
-
-  saveLayout = (id, layout) => {
+  saveLayout = (id: string|number, layout: Layout[]) => {
     if (!this.isDev) {
-      const strippedLayout = layout.map(widget => ({ ...widget, moved: undefined }));
-      console.log("Save Layout", strippedLayout);
+      const strippedLayout = layout.map(widget => ({...widget, moved: undefined}));
       return this.PUT(`/dashboard/${id}`, strippedLayout);
     }
   }
 
-  createWidget = async type => {
+  createWidget = async (type: string) => {
+    console.log("Creating widget of type", type);
     const response = this.isDev ? await this.GET(`/widget/create.json?type=${type}`) : await this.POST(`/widget?type=${type}`, null)
     return await response.json()
   }
 
-  getWidgetHtml = async id => {
+  getWidgetHtml = async (id: string) => {
     const html = this.isDev ? await this.GET(`/widget/${id}/create`) : await this.GET(`/widget/${id}`)
     return html.text();
   }
 
-  deleteWidget = id => !this.isDev && this.DELETE(`/widget/${id}`)
+  deleteWidget = (id: string) => !this.isDev && this.DELETE(`/widget/${id}`)
 
-  getEditForm = async id => {
+  getEditForm = async (id: string) => {
     const response = await this.GET(`/widget/${id}/edit`);
     return response.json();
   }
 
-  saveWidget = async (url, params) => {
+  saveWidget = async (url: string, params: any) => {
     const result = this.isDev ? await this.GET(`/widget/update.json`) : await this.PUT(`${url}`, params);
     return await result.json();
   }
