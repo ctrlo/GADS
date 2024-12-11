@@ -9,14 +9,14 @@ export default (scope) => {
   import(
     /* webpackChunkName: "dashboard" */
     './lib/component'
-  ).then(({ default: Component }) => {
-    initializeComponent(scope, '.dashboard', Component)
+  ).then(({ default: DashboardComponent }) => {
+    initializeComponent(scope, '.dashboard', DashboardComponent)
   }).then(() => {
     import(
       /* webpackChunkName: "dashboardgraph" */
       './dashboard-graph/lib/component'
-    ).then(({ default: Component }) => {
-      initializeComponent(scope, '.dashboard-graph', Component)
+    ).then(({ default: DashboardGraphComponent }) => {
+      initializeComponent(scope, '.dashboard-graph', DashboardGraphComponent)
     })
   });
 

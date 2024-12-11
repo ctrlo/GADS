@@ -18,14 +18,26 @@ export const showElement = (element: HTMLElement | ElementLike |JQuery<HTMLEleme
     $el.removeAttr('style');
 };
 
-export const fromJson = (json: String | object) => {
+export const fromJson = <T> (json: string | object): T | object => {
     try {
         if (!json || json === '') return {};
         if (typeof json === 'string') {
-            return JSON.parse(json);
+            const result = JSON.parse(json);
+            return result as T ?? result;
         }
-        return json;
-    } catch (e) {
+        return json as T ?? json;
+    } catch {
         return {};
     }
+}
+
+export const compare = <T>(a: T, b: T): boolean => {
+    for(const key in a) {
+        if(typeof a[key] === 'object' && typeof b[key] === 'object') {
+            if(!compare(a[key], b[key])) return false;
+        }else if(a[key] !== b[key]) {
+            return false;
+        }
+    }
+    return true;
 }
