@@ -787,6 +787,7 @@ sub _post_add_authentication_providers
         sp_key                => $body->{sp_key},
         saml2_relaystate      => $body->{saml2_relaystate},
         saml2_groupname       => $body->{saml2_groupname},
+        saml2_unique_id       => $body->{saml2_unique_id},
         enabled               => $body->{enabled},
     );
 

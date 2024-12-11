@@ -5,6 +5,7 @@
     description = "In this window you can edit an authentication provider in the system."
     back_button = { url = url.page _ "/authentication_providers/" };
 -%]
+  <a href='[% url.page %]/metadata/[% editprovider.id %]' class='link link--plain link--active'><span>Download Metadata</span></a>
 <div class="content-block__main">
   <form method="post" action="">
     <fieldset class="fieldset">
@@ -14,6 +15,7 @@
         INCLUDE fields/hidden.tt name="page" value=page;
         INCLUDE fields/hidden.tt name="username" value=user.username filter="html_entity";
         INCLUDE fields/hidden.tt name="id" value=editprovider.id;
+        INCLUDE fields/hidden.tt name="unique_saml_id" value=editprovider.get_saml2_unique_id;
 
         field_counter = 0;
 

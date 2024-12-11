@@ -476,10 +476,18 @@ get '/saml' => sub {
     redirect '/';
 };
 
-post '/saml' => sub {
+post '/saml' => \&saml_post;
+
+post '/:unique_id/saml' => \&saml_post;
+
+sub saml_post {
+
+    my $unique_id = route_parameters->get('unique_id');
 
     my $authentication = schema->resultset('Authentication')->find(session 'authentication_id')
         or error "Error finding authentication provider";
+
+    error __"Invalid unique_id in POST request" if $authentication->saml2_unique_id ne $unique_id;
 
     my $saml = GADS::SAML->new(
         authentication => $authentication,
@@ -1644,6 +1652,26 @@ any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin super
         permissions     => $userso->permissions,
         page            => 'user'
     };
+};
+
+any ['get'] => '/metadata/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $id     = route_parameters->get('id');
+
+    my $provider = rset('Authentication')->providers->search({id => $id})->next
+        or error __x"Authentication provider id {id} not found", id => $id;
+
+    if (defined $provider)
+    {
+	if ($provider->type eq 'saml2')
+	{
+	    my $saml = GADS::SAML->new(
+	        authentication => $provider,
+	        base_url       => request->base,
+	    );
+                response_header 'Content-Disposition' => "attachment; filename=\"saml.xml\"";
+                return send_file(\$saml->metadata, content_type => 'application/xml');
+	}
+    }
 };
 
 any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/useradmin superadmin/] => sub {

@@ -296,7 +296,7 @@ sub provider_fields
           placeholder   => '',
         },
         {
-          name          => 'entity_id',
+          name          => 'sso_xml',
           description   => 'Entity ID',
           type          => 'freetext',
           placeholder   => 'Entity ID',

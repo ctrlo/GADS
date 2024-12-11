@@ -8,8 +8,11 @@ use Net::SAML2 0.67;
 use Net::SAML2::Binding::POST;
 use Net::SAML2::Binding::Redirect;
 use Net::SAML2::IdP;
+use Net::SAML2::SP;
 use Net::SAML2::Protocol::Assertion;
 use Net::SAML2::Protocol::AuthnRequest;
+use URN::OASIS::SAML2 qw(:bindings :urn);
+
 use MIME::Base64;
 
 use IO::Compress::RawDeflate qw/rawdeflate/;
@@ -39,6 +42,30 @@ sub _build_sso_url
 has sso_xml => (
     is => 'lazy',
 );
+
+has sp_key => (
+    is => 'lazy',
+);
+
+sub _build_sp_key
+{   my $self = shift;
+    my $key_fh = File::Temp->new;
+    print $key_fh $self->authentication->sp_key;
+    $key_fh->close;
+    $key_fh;
+}
+
+has sp_cert => (
+    is => 'lazy',
+);
+
+sub _build_sp_cert
+{   my $self = shift;
+    my $cert_fh = File::Temp->new;
+    print $cert_fh $self->authentication->sp_cert;
+    $cert_fh->close;
+    $cert_fh;
+}
 
 sub _build_sso_xml
 {   my $self = shift;
@@ -83,7 +110,7 @@ sub callback
             request_id => $self->request_id,
             status => $assertion->response_status,
             substatus => $assertion->response_substatus
-                if !$assertion->valid($self->sso_xml, $self->request_id);
+                if !$assertion->valid($self->authentication->sso_xml, $self->request_id);
         return {
             nameid     => $assertion->nameid,
             attributes => $assertion->attributes,
@@ -124,7 +151,7 @@ sub initiate
     my $sso_url = $idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
 
     my $authnreq = Net::SAML2::Protocol::AuthnRequest->new(
-        issuer      => $self->sso_xml,
+        issuer      => $self->authentication->sso_xml,
         destination => $sso_url,
         nameid_format => $idp->format('emailAddress') || undef,
         # FIXME assertion_url => "https://$www/app/saml",
@@ -153,5 +180,72 @@ sub initiate
     my $url = $redirect->get_redirect_uri($x);
     $self->redirect("$url");
 };
+
+sub metadata
+{   my $self = shift;
+    my $sign = shift;
+
+    my $sp = $self->_sp;
+
+    $sp->{sign_metadata} = $sign;
+    # Appears to be a Net::SAML2 bug.  I would likely wrap this in a version check
+    my $version = $Net::SAML2::VERSION;
+    my $metadata;
+    if ($version gt "0.69" ) {
+        $metadata = $sp->metadata;
+    } else {
+        $metadata = $sign ? '' : '<?xml version="1.0"?>' . "\n";
+        $metadata .= $sp->metadata;
+    }
+
+    return $metadata;
+}
+
+sub _sp
+{   my $self = shift;
+    my $url = "https://sandbox.linkspace.uk";
+
+    my $key_fh = $self->sp_key;
+    my $cert_fh = $self->sp_cert;
+
+    my $sp = Net::SAML2::SP->new(
+        id             => $self->authentication->sso_xml,
+        url            => $url,
+        $cert_fh ? (cert => $cert_fh->filename) : (),
+        encryption_key => $cert_fh->filename,
+        $key_fh ? (key => $key_fh->filename) : (),
+        #cacert         => "XXX",
+        single_logout_service => [
+        {
+            Binding   => BINDING_HTTP_REDIRECT,
+            Location  => $self->authentication->sso_url,
+            isDefault => 'true',
+            index     => 1,
+        },
+        {
+            Binding   => BINDING_HTTP_POST,
+            Location  => $self->authentication->sso_url,
+            isDefault => 'false',
+            index     => 2,
+        }],
+        assertion_consumer_service => [
+        {
+            Binding   => BINDING_HTTP_POST,
+            Location  => $self->authentication->sso_url,
+            isDefault => 'true',
+            # optionally
+            index     => 1,
+        }],
+        error_url => "$url/support",
+
+        # FIXME
+        org_name	 => "Simplelists.com",
+        org_display_name => "Simplelists.com",
+        org_contact	 => 'timlegge@gmail.com',
+        authnreq_signed  => 1,
+    );
+
+    $sp;
+}
 
 1;
