@@ -284,15 +284,14 @@ sub provider_fields
         {
             name        => 'type',
             description => 'Type',
-	        #FIXME - timlegge type        => 'dropdown',
-            type        => 'freetext',
+            type        => 'dropdown',
             placeholder => 'saml2',
             is_required => 1,
         },
         {
           name          => 'enabled',
           description   => 'Enabled',
-          type          => 'freetext',
+          type          => 'radio',
           placeholder   => '',
         },
         {
@@ -339,13 +338,13 @@ sub provider_fields
         },
         {
           name          => 'sp_key',
-          description   => 'GADS Authentication Provider Key',
+          description   => 'LinkSpace Encryption/Signing Key',
           type          => 'textarea',
           placeholder   => '',
         },
         {
           name          => 'sp_cert',
-          description   => 'GADS Authentication Provider Certificate',
+          description   => 'LinkSpace Encryption/Signing Certificate',
           type          => 'textarea',
           placeholder   => '',
         },

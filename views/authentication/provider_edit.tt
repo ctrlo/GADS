@@ -64,6 +64,16 @@
                 filter = "html"
                 sub_field = ""
                 sub_params = {};
+            ELSIF field.type == "radio";
+              INCLUDE fields/radio.tt
+                id    = field.name
+                name  = field.name
+                label = field.description
+                value = editprovider.${field.name}
+                items = [
+                  {id = "1", name = "Enable Authentication Provider"},
+                  {id = "0", name = "Disable Authentication Provider"}
+                ];
 
             END;
           %]
