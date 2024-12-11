@@ -76,6 +76,7 @@ sub create_provider
         cacert                => $params{cacert},
         sp_cert               => $params{sp_cert},
         sp_key                => $params{sp_key},
+        saml2_unique_id       => $params{saml2_unique_id},
         saml2_relaystate      => $params{saml2_relaystate},
         saml2_groupname       => $params{saml2_groupname},
     });

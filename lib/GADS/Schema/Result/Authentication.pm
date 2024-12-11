@@ -40,6 +40,8 @@ __PACKAGE__->add_columns(
   { data_type => "varchar", is_nullable => 1, size => 80 },
   "enabled",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "saml2_unique_id",
+  { data_type => "varchar", is_nullable => 1, size => 80 },
   "error_messages",
   { data_type => "text", is_nullable => 1 },
 );
@@ -47,6 +49,7 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key("id");
 
 __PACKAGE__->add_unique_constraint("authentication_ux_saml2_relaystate", ["saml2_relaystate"]);
+__PACKAGE__->add_unique_constraint("authentication_ux_saml2_unique_id", ["saml2_unique_id"]);
 
 __PACKAGE__->has_many(
   "users",
@@ -66,6 +69,53 @@ __PACKAGE__->belongs_to(
     on_update     => "NO ACTION",
   },
 );
+
+# FIXME
+my $www     = 'sandbox.linkspace.uk';
+
+sub sso_unique_url
+{   my $self = shift;
+    my $id   = $self->saml2_unique_id;
+    "https://$www/$id/saml";
+}
+
+sub sso_url
+{   my $self = shift;
+    my $id   = $self->saml2_unique_id;
+    return $self->sso_unique_url; # if $self->saml2_use_unique_id;
+    #return $self->sso_standard_url;
+}
+
+sub sso_unique_xml
+{   my $self = shift;
+    my $id   = $self->saml2_unique_id;
+    "https://$www/$id/saml/xml";
+}
+
+sub sso_xml
+{   my $self = shift;
+    my $id   = $self->saml2_unique_id;
+    return $self->sso_unique_xml; # if $self->saml2_use_unique_id;
+    #return $self->sso_standard_xml;
+}
+
+sub get_saml2_unique_id
+{   my $self = shift;
+    return $self->saml2_unique_id
+        if $self->saml2_unique_id;
+    my $code = Session::Token->new(length => 32)->get;
+    {
+        local $SL::Schema::NO_USERID = 1;
+        while ($self->result_source->resultset->search({ saml2_unique_id => $code })->next)
+        {
+            $code = Session::Token->new(length => 32)->get;
+        }
+    }
+
+    $self->update({
+        saml2_unique_id => $code,
+    });
+}
 
 sub for_data_table
 {   my ($self, %params) = @_;
