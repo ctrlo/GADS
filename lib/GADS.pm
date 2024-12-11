@@ -1752,6 +1752,11 @@ any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/u
         }
     }
 
+    my @types = (
+            { 'label_plain' => 'saml2', value => 'saml2' },
+            { 'label_plain' => 'builtin', value => 'builtin'},
+    );
+
     # FIXME need to revise what is passed to the template
     my $output = template 'authentication/provider_edit' => {
         editprovider => $editProvider,
@@ -1761,6 +1766,7 @@ any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/u
             organisation  => $userso->organisations, # FIXME delete
             department_id => $userso->departments, # FIXME delete
             team_id       => $userso->teams, # FIXME delete
+            type	  => \@types,
         },
         permissions => $userso->permissions,
         page        => 'admin',
