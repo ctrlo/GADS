@@ -40,10 +40,8 @@ export default function App(state: AppState) {
   const [editHtml, setEditHtml] = React.useState<string>("");
   const [modalOpen, setModalOpen] = React.useState(false);
   const [activeItem, setActiveItem] = React.useState<string>("");
-  // eslint-disable-next-line
   const [loading, setLoading] = React.useState(false);
-  // eslint-disable-next-line
-
+  
   useEffect(() => {
     sidebarObservable.addSubscriber(()=> {
       window.dispatchEvent(new Event('resize'));

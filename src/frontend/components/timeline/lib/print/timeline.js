@@ -514,13 +514,13 @@ const injectContrastingColor = function(dataset) {
 
 const setupTimeline = function(container, options_in) {
   const records_base64 = container.data("records");
-  const json = base64.decode(records_base64);
+  const json = atob(records_base64);
   const dataset = JSON.parse(json);
   injectContrastingColor(dataset);
 
   const items = new vis.DataSet(dataset);
   let groups = container.data("groups");
-  const json_group = base64.decode(groups);
+  const json_group = atob(groups);
   groups = JSON.parse(json_group);
   const is_dashboard = !!container.data("dashboard");
   const layout_identifier = $("body").data("layout-identifier");

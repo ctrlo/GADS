@@ -1,6 +1,5 @@
 import "../../../testing/globals.definitions";
 import { describe, beforeEach, afterEach, jest, it, expect } from "@jest/globals";
-import { DefaultElementLike, ElementLike } from "../../../testing/globals.definitions";
 import { compare, fromJson, hideElement, showElement } from "./common";
 
 describe('common functions', () => {

@@ -14,7 +14,7 @@ function MarkDown(strings: TemplateStringsArray, ...values:(stringLike| string|n
         }
     }
     str = str.replace(/\\n/g, '\n\n');
-    return (marked(str) as String).trim();
+    return (marked(str) as string).trim();
 }
 
 export {MarkdownCode, MarkDown};

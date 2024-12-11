@@ -91,7 +91,6 @@ export default class SubmitFieldButton {
                     url: this.getURL(data),
                     data: {data: mytext, csrf_token: data.csrfToken}
                 }).done(() => {
-                    // eslint-disable-next-line no-alert
                     alert('Tree has been updated')
                 });
             }

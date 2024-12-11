@@ -18,7 +18,7 @@ export const showElement = (element: HTMLElement | ElementLike |JQuery<HTMLEleme
     $el.removeAttr('style');
 };
 
-export const fromJson = <T> (json: String | object): T | object => {
+export const fromJson = <T> (json: string | object): T | object => {
     try {
         if (!json || json === '') return {};
         if (typeof json === 'string') {
@@ -26,7 +26,7 @@ export const fromJson = <T> (json: String | object): T | object => {
             return result as T ?? result;
         }
         return json as T ?? json;
-    } catch (e) {
+    } catch {
         return {};
     }
 }

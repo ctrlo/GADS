@@ -1,6 +1,4 @@
-// I wonder if this could be used as a "better" version of the UploadClient class with only minor modifications
 import {Layout} from "react-grid-layout";
-import {WidgetData} from "../interfaces/interfaces";
 
 export default class ApiClient {
   private readonly baseUrl: string;

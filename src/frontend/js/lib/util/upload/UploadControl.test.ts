@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { Uploader, XmlHttpRequestLike } from './UploadControl';
 import { initGlobals, MockXhr } from '../../../../testing/globals.definitions';
 
@@ -11,12 +10,12 @@ describe('UploadControl', () => {
         initGlobals();
 
         mockXhr = new MockXhr();
-        oldXMLHttpRequest = <any>window.XMLHttpRequest; // eslint-disable-line @typescript-eslint/no-explicit-any
-        window.XMLHttpRequest = <any>(jest.fn(() => mockXhr)); // eslint-disable-line @typescript-eslint/no-explicit-any
+        oldXMLHttpRequest = <any>window.XMLHttpRequest;
+        window.XMLHttpRequest = <any>(jest.fn(() => mockXhr));
     });
 
     afterEach(() => {
-        window.XMLHttpRequest = <any>oldXMLHttpRequest; // eslint-disable-line @typescript-eslint/no-explicit-any
+        window.XMLHttpRequest = <any>oldXMLHttpRequest;
         mockXhr = null;
     });
 
@@ -73,7 +72,7 @@ describe('UploadControl', () => {
         const ev: ProgressEvent = {
             loaded: 1,
             total: 2,
-        } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+        } as any;
         setTimeout(() => {
             localMock.onprogress && localMock.onprogress(ev);
         }, 500);
