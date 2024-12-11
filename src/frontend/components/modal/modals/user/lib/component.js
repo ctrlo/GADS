@@ -23,7 +23,8 @@ class UserModalComponent extends ModalComponent {
 
   // Toggle the right content (add user or approve account)
   toggleContent(ev) {
-    if ($(ev.relatedTarget).hasClass('btn-add')) {
+    this.target = $(ev.relatedTarget)
+    if (this.target.hasClass('btn-add')) {
       modal.clear()
       this.el.find('.js-approve-account').hide()
       this.el.find('.js-add-user').show()
@@ -91,6 +92,22 @@ class UserModalComponent extends ModalComponent {
   handleClose() {
     super.handleClose()
     this.emailText.html("USER")
+  }
+
+  handleBack() {
+    super.handleBack()
+    if(this.target.hasClass('btn-add')) return;
+    this.el.find('.btn-js-reject-request').off().on("click", ()=>{
+      this.activateFrame(4);
+    });
+  }
+
+  handleNext() {
+    super.handleNext()
+    if(this.target.hasClass('btn-add')) return;
+    this.el.find('.btn-js-reject-request').off().on("click", ()=>{
+      this.activateFrame(4);
+    });
   }
 }
 
