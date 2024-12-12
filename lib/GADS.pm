@@ -154,6 +154,13 @@ sub _update_csrf_token
 {   session csrf_token => Session::Token->new(length => 32)->get;
 }
 
+sub get_and_clear_session_value {
+    my $id = shift;
+    my $value = session $id;
+    session $id => undef;
+    return $value;
+}
+
 hook before => sub {
     schema->site_id(undef);
 
@@ -483,15 +490,26 @@ post '/:unique_id/saml' => \&saml_post;
 sub saml_post {
 
     my $unique_id = route_parameters->get('unique_id');
+    my $relaystate = body_parameters->get('RelayState');
 
-    my $authentication = schema->resultset('Authentication')->find(session 'authentication_id')
-        or error "Error finding authentication provider";
+    my $authentication = schema->resultset('Authentication')->find({saml2_unique_id => $unique_id})
+        or warn "Error finding authentication provider from unique_id" if defined $unique_id;
+
+    $authentication = schema->resultset('Authentication')->find(session 'authentication_id')
+        or error "Error finding authentication provider" if !defined $authentication;
 
     error __"Invalid unique_id in POST request" if $authentication->saml2_unique_id ne $unique_id;
 
+    my $request_id;
+    # If the relaystates match this should be an IdP initiated login
+    # otherwise get the AuthnReq request id from the session
+    if ($authentication->saml2_relaystate ne $relaystate) {
+        $request_id = get_and_clear_session_value('request_id');
+    }
+
     my $saml = GADS::SAML->new(
         authentication => $authentication,
-        request_id => session('request_id'),
+        request_id => $request_id,
         base_url   => request->base,
     );
 
@@ -501,10 +519,15 @@ sub saml_post {
         (cacert       => $authentication->cacert) : (),
         defined $authentication->sp_key ?
         (sp_key       => $authentication->sp_key) : (),
+	defined $relaystate ? (relaystate => $relaystate) : (),
     );
 
-    my $username = $callback->{nameid}
-        or error __"Missing nameid in SAML response";
+    my $username;
+    if (! defined ($username = $callback->{nameid})) {
+        error __"Missing nameid in SAML response";
+        my $msg = $authentication->saml_provider_match_error;
+        return forwardHome({ danger => __x($msg, username => $username) }, 'login?password=1' )
+    }
 
     my $user = schema->resultset('User')->active->search({ username => $username })->next;
 

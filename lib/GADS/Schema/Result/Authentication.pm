@@ -171,6 +171,12 @@ sub saml_provider_match_error
         || "SAML provider does not match the authentication provider for {username}";
 }
 
+sub saml_assertion_invalid_error
+{   my $self = shift;
+    $self->error_messages_decoded->{saml_assertion_invalid}
+        || "SAML assertion is invalid for:\nRequest: {saml_request_id}\nStatus: {status}\nSubstatus: {substatus}";
+}
+
 sub update_provider
 {   my ($self, %params) = @_;
     my $request = 0;
