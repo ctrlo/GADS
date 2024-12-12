@@ -76,6 +76,7 @@ sub callback
 {   my ($self, %params) = @_;
 
     my $cacert_fh;
+    my $relaystate = $params{relaystate} if defined $params{relaystate};
 
     # Save CA cert locally if configured
     if (my $cacert = $params{cacert})
@@ -106,11 +107,17 @@ sub callback
                 $cacert_fh ? (cacert => $cacert_fh->filename) : (),
         );
 
-        error __x"Invalid SSO assertion received. Expected request ID {request_id} Status: {status} SubStatus: {substatus}",
-            request_id => $self->request_id,
-            status => $assertion->response_status,
-            substatus => $assertion->response_substatus
-                if !$assertion->valid($self->authentication->sso_xml, $self->request_id);
+        if (!$assertion->valid($self->authentication->sso_xml, $self->request_id)) {
+            my $auth = $self->authentication;
+
+            my $msg = $auth->saml_assertion_invalid_error;
+            GADS::forwardHome(
+                { danger => __x($msg,
+                                saml_request_id => $self->request_id,
+                                status          => $assertion->response_status,
+                                substatus       => $assertion->response_substatus,
+                            ) }, 'login?password=1' );
+        }
         return {
             nameid     => $assertion->nameid,
             attributes => $assertion->attributes,
@@ -239,9 +246,9 @@ sub _sp
         error_url => "$url/support",
 
         # FIXME
-        org_name	 => "Simplelists.com",
+        org_name         => "Simplelists.com",
         org_display_name => "Simplelists.com",
-        org_contact	 => 'timlegge@gmail.com',
+        org_contact      => 'timlegge@gmail.com',
         authnreq_signed  => 1,
     );
 
