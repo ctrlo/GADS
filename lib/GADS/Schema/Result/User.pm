@@ -1014,12 +1014,14 @@ sub permissions
     }
 }
 
-sub _map_fields {
-    my ($self, $text) = @_;
+sub _map_fields 
+{   my ($self, $text) = @_;
     my @fields = ('firstname', 'surname', 'email', 'title', 'organisation', 'department', 'team');
   
-    if($text) {
-        foreach my $field (@fields) {
+    if($text) 
+    {
+        foreach my $field (@fields) 
+        {
             my $value = $self->$field || '';
             $text =~ s/\{$field\}/$value/g;
         }
@@ -1037,8 +1039,10 @@ sub retire
     my $site   = $schema->resultset('Site')->next;
 
     # Properly delete if account request - no record needed
-    if ($self->account_request) {
-        if($options{send_reject_email}) {
+    if ($self->account_request)
+    {
+        if ($options{send_reject_email})
+        {
             my $email_body = $options{email_reject_text} || $site->email_reject_text || "Your account request has been rejected";
             $email_body = $self->_map_fields($email_body);
 
