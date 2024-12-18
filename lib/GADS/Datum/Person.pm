@@ -29,6 +29,7 @@ use namespace::clean;
 extends 'GADS::Datum';
 
 with 'GADS::Role::Presentation::Datum::Person';
+with 'GADS::DateTime';
 
 after set_value => sub {
     my ($self, $value, %options) = @_;
@@ -169,6 +170,7 @@ has value_hash => (
                     team_id       => $value->{team_id},
                     title         => $value->{title},
                     value         => $value->{value},
+                    deleted       => $value->{deleted},
                 };
             }
             elsif ($value) {
@@ -377,6 +379,7 @@ sub _build_for_code
             team         => $_->{team},
             title        => $_->{title},
             text         => $_->{value},
+            deleted      => GADS::DateTime::parse_datetime($_->{deleted})->epoch,
         }
     } @{$self->value_hash};
 
@@ -384,4 +387,3 @@ sub _build_for_code
 }
 
 1;
-
