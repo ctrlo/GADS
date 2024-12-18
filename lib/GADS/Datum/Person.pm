@@ -25,11 +25,11 @@ use Log::Report 'linkspace';
 use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 use namespace::clean;
+use GADS::DateTime;
 
 extends 'GADS::Datum';
 
 with 'GADS::Role::Presentation::Datum::Person';
-with 'GADS::DateTime';
 
 after set_value => sub {
     my ($self, $value, %options) = @_;
@@ -379,7 +379,7 @@ sub _build_for_code
             team         => $_->{team},
             title        => $_->{title},
             text         => $_->{value},
-            deleted      => GADS::DateTime::parse_datetime($_->{deleted})->epoch,
+            deleted      => GADS::DateTime::parse_datetime($_->{deleted}) ? GADS::DateTime::parse_datetime($_->{deleted})->epoch : undef,
         }
     } @{$self->value_hash};
 
