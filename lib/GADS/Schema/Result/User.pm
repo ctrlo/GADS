@@ -1018,7 +1018,7 @@ sub _map_fields
 {   my ($self, $text) = @_;
     my @fields = ('firstname', 'surname', 'email', 'title', 'organisation', 'department', 'team');
   
-    if($text) 
+    if ($text) 
     {
         foreach my $field (@fields) 
         {
