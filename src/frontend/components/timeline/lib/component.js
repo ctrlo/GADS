@@ -12,6 +12,7 @@ class TimelineComponent extends Component {
         this.el = $(this.element)
 
         this.initTimeline()
+        this.tl_request = undefined
     }
 
     initTimeline() {
@@ -257,12 +258,13 @@ class TimelineComponent extends Component {
         if (is_dashboard) {
           url = url + '&dashboard=1&view=' + $container.data('view')
         }
-        $.ajax({
-          async: false,
+        if(self.tl_request) self.tl_request.abort()
+        self.tl_request = $.ajax({
           url: url,
           dataType: 'json',
           success: function(data) {
             items.add(data)
+            self.tl_request = undefined
           }
         })
       }

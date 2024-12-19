@@ -428,6 +428,11 @@ sub _build_items
 
         $self->_set_display_to($oldest)
             if $oldest > ($self->display_to || AT_BIGBANG);
+
+        if(scalar(@items) > 1000) # XXX Arbitrary limit
+        {   warning __"Too many items to display on the timeline - showing first 1000 results";
+            last;
+        }
     }
 
     if(!@items)
