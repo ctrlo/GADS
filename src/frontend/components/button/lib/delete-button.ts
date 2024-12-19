@@ -1,5 +1,3 @@
-// noinspection ExceptionCaughtLocallyJS
-
 import {logging} from "logging";
 
 /**

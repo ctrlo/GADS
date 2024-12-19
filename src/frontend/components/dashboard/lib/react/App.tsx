@@ -133,7 +133,6 @@ export default function App(state: AppState) {
     setModalOpen(true);
     setLoadingEditHtml(true);
     setActiveItem(id);
-    // noinspection JSIgnoredPromiseFromCall
     fetchEditForm(id);
   };
 
@@ -145,7 +144,6 @@ export default function App(state: AppState) {
 
     setWidgets(widgets.filter(item => item.config.i !== activeItem));
     setModalOpen(false);
-    // noinspection JSIgnoredPromiseFromCall
     api.deleteWidget(activeItem);
   }
 
