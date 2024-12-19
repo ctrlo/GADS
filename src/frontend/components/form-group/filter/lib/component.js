@@ -186,7 +186,7 @@ class FilterComponent extends Component {
           // Ensure that no blank rules by default, otherwise view cannot be submitted
           $builderEl.queryBuilder('setRules', {rules:[]})
         }
-      } catch (error) {
+      } catch {
         logging.log('Incorrect data object passed to queryBuilder')
       }
     }

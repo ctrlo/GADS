@@ -1,14 +1,19 @@
 class SidebarObservable {
-  constructor() {
-    this.observers = []
-  }
-
+  /**
+   * Add a subscriber to the observable
+   * @param {*} subscriber The subscriber to add
+   */
   addSubscriber(subscriber) {
+    // Lazy initialization
+    if(!this.observers) this.observers = []
     this.observers.push(subscriber)
   }
 
+  /**
+   * Emit the side bar change event
+   */
   sideBarChange() {
-    this.observers.forEach(item => item.handleSideBarChange?.())
+    this.observers && this.observers.forEach(item => item.handleSideBarChange?.())
   }
 }
 

@@ -1,7 +1,10 @@
-import React from "react";
+'use client';
 
-const Header = ({ hMargin, dashboards, currentDashboard, loading, includeH1 }) => {
-  const renderMenuItem = (dashboard) => {
+import React from "react";
+import {DashboardDefinition, HeaderProps} from "./interfaces/interfaces";
+
+const Header = ({ hMargin, dashboards, currentDashboard, loading, includeH1 }: HeaderProps) => {
+  const renderMenuItem = (dashboard: DashboardDefinition) => {
     if (dashboard.name === currentDashboard.name) {
       if (includeH1) {
         return <h1><span className="link link--primary link--active">{dashboard.name}</span></h1>
@@ -13,7 +16,7 @@ const Header = ({ hMargin, dashboards, currentDashboard, loading, includeH1 }) =
     }
   }
   return (
-    <div className="content-block__navigation" style={{marginLeft: hMargin, marginRight: hMargin}}>
+    <div className="content-block__navigation" style={{ marginLeft: hMargin, marginRight: hMargin }}>
       <div className="content-block__navigation-left">
         {loading ? <p className="spinner"><i className="fa fa-spinner fa-spin"></i></p> : null}
         <div className="list list--horizontal list--no-borders">
@@ -22,7 +25,7 @@ const Header = ({ hMargin, dashboards, currentDashboard, loading, includeH1 }) =
               <li className="list__item" key={index}>
                 {renderMenuItem(dashboard)}
               </li>
-              ))}
+            ))}
           </ul>
         </div>
       </div>
