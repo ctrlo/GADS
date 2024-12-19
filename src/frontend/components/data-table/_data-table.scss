@@ -206,7 +206,7 @@ table.dataTable thead .sorting_disabled {
     input[type="search"] { // The styling has to be _very_ specific, if I leave out the `.col` field, it won't work.
       width: 98%; // I'm not sure where the bug this solves came from - I think it may be because of the DT upgrade (and just wasn't spotted) - if I use 100% it causes the other elements to be pushed down (I'm not keen on using percentiles, either).
     }
-  } 
+  }
 }
 
 .dataTables_scrollHead .table--bordered,
@@ -361,10 +361,12 @@ table.table-purge {
   tbody tr td {
     text-align: center !important; // For some reason, this doesn't override unless I do !important
   }
+
   tbody tr td {
     border: 1px solid $gray;
     border-top: 0;
   }
+
   thead tr th {
     background-color: $brand-secundary;
     color: $white;

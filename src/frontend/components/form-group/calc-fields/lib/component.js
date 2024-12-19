@@ -1,8 +1,8 @@
-import { Component } from 'component'
-import { getFieldValues } from "get-field-values"
+import {Component} from 'component'
+import {getFieldValues} from "get-field-values"
 
 class CalcFieldsComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.initCalcFields()
   }
@@ -14,61 +14,61 @@ class CalcFieldsComponent extends Component {
 
   getFieldCalc() {
 
-      const dependency = $(this.element).data("calc-depends-on")
-      const depends_on_ids = JSON.parse(atob(dependency))
-      const depends_on = jQuery.map(depends_on_ids, function(id) {
-        return $('[data-column-id="' + id + '"]')
-      });
+    const dependency = $(this.element).data("calc-depends-on")
+    const depends_on_ids = JSON.parse(atob(dependency))
+    const depends_on = jQuery.map(depends_on_ids, function (id) {
+      return $('[data-column-id="' + id + '"]')
+    });
 
-      return {
-        field: $(this.element),
-        code: atob($(this.element).data("code")).toString(),
-        params: JSON.parse(atob($(this.element).data("code-params"))),
-        depends_on: depends_on
-      };
+    return {
+      field: $(this.element),
+      code: atob($(this.element).data("code")).toString(),
+      params: JSON.parse(atob($(this.element).data("code-params"))),
+      depends_on: depends_on
+    };
 
   }
 
   setupCalcField(field) {
     let {code} = field
-    const {depends_on,params} = field
+    const {depends_on, params} = field
     const $field = field.field
 
     // Change standard backend code format to a format that works for
     // evaluating in the browser
-    var re = /^function\s+evaluate\s+/gi
+    const re = /^function\s+evaluate\s+/gi;
     code = code.replace(re, "function ")
     code = "return " + code
 
-    depends_on.forEach(function($depend_on) {
+    depends_on.forEach(function ($depend_on) {
 
       // Standard change of visible form field that this calc depends on.  When
       // it changes get all the values this code depends on and evaluate the
       // code
-      $depend_on.on("change", function() {
+      $depend_on.on("change", function () {
 
         // All the values
-        var vars = params.map(function(value) {
-          var $depends = $('.linkspace-field[data-name-short="'+value+'"]')
+        const vars = params.map(function (value) {
+          const $depends = $('.linkspace-field[data-name-short="' + value + '"]');
           let ret = getFieldValues($depends, false, true)
           // If an array is passed in as-is, then its first element will be at
-          // array index 0, which ipairs will not recognise. Therefore,
+          // array index 0, which ipairs will not recognize. Therefore,
           // offset all the elements into an object starting at index 1
           if (Array.isArray(ret)) {
-              let ret2 = []
-              ret.forEach((element, index) => ret2[index + 1] = element)
-              ret = ret2
+            let ret2 = []
+            ret.forEach((element, index) => ret2[index + 1] = element)
+            ret = ret2
           }
           return ret
         });
 
         // Evaluate the code with the values
         // eslint-disable-next-line no-undef
-        var func = fengari.load(code)()
-        var first = vars.shift()
+        const func = fengari.load(code)();
+        const first = vars.shift();
         // Use apply() to be able to pass the params as a single array. The
         // first needs to be passed separately so shift it off and do so
-        var returnval = func.apply(first, vars)
+        const returnval = func.apply(first, vars);
 
         // Update the field holding the code's value
         $field.find('textarea').val(returnval)

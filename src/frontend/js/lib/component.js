@@ -16,7 +16,7 @@ const componentInitializedAttrName = (component_name) => {
  * Establish whether a component has already been initialized on an element
  */
 const componentIsInitialized = (element, name) => {
-  return element.getAttribute(componentInitializedAttrName(name)) ? true : false
+  return !!element.getAttribute(componentInitializedAttrName(name))
 }
 
 /**
@@ -30,7 +30,9 @@ class Component {
   // once. For components that set this to true, they must cleanly handle
   // such a reinitialization (returning the object but not resetting up HTML
   // elements etc)
-  static get allowReinitialization() { return false }
+  static get allowReinitialization() {
+    return false
+  }
 
   constructor(element) {
     if (!(element instanceof HTMLElement)) {
@@ -110,7 +112,7 @@ const initializeComponent = (scope, selector, ComponentClass) => {
   const scopes = (scope instanceof jQuery) ? scope.get() : [scope]
 
   const elements = scopes.flatMap(
-      (scope) => typeof(selector) === 'function' ? selector(scope) : getComponentElements(scope, selector)
+    (scope) => typeof (selector) === 'function' ? selector(scope) : getComponentElements(scope, selector)
   )
 
   if (!elements.length) {
@@ -119,11 +121,11 @@ const initializeComponent = (scope, selector, ComponentClass) => {
 
   return elements
     .filter((el) => {
-        return (
-            ComponentClass.allowReinitialization
-            // See comments for allowReinitialization()
-            || !componentIsInitialized(el, ComponentClass.name)
-        )
+      return (
+        ComponentClass.allowReinitialization
+        // See comments for allowReinitialization()
+        || !componentIsInitialized(el, ComponentClass.name)
+      )
     }).map((el) => new ComponentClass(el))
 }
 

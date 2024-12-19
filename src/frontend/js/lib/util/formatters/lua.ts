@@ -15,14 +15,14 @@ type stringLike = { toString(): string };
  * @returns A string of LUA code
  */
 function LUA(strings: TemplateStringsArray, ...values: (stringLike | string | number | LUACode)[]): LUACode {
-    let str = '';
-    for (let i = 0; i < strings.length; i++) {
-        str += strings[i];
-        if (i < values.length) {
-            str += values[i] as string ? values[i] : values[i] as LUACode ? values[i] : values[i] as stringLike ? values[i].toString() : String(values[i]);
-        }
+  let str = '';
+  for (let i = 0; i < strings.length; i++) {
+    str += strings[i];
+    if (i < values.length) {
+      str += values[i] as string ? values[i] : values[i] as LUACode ? values[i] : values[i] as stringLike ? values[i].toString() : String(values[i]);
     }
-    return str;
+  }
+  return str;
 }
 
 export {LUACode, LUA};

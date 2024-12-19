@@ -1,10 +1,10 @@
 import ModalComponent from 'components/modal/lib/component'
 import * as DataTableHelper from 'components/data-table/lib/helper'
-import { modal } from 'components/modal/lib/modal'
+import {modal} from 'components/modal/lib/modal'
 import SelectComponent from 'components/form-group/select/lib/component'
 
 class AddTableModalComponent extends ModalComponent {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.json = {}
@@ -25,8 +25,12 @@ class AddTableModalComponent extends ModalComponent {
     const btnCreateTopic = this.el.find('.modal-body .btn-js-create-topic')
     const btnCreateField = this.el.find('.modal-body .btn-js-create-field')
 
-    btnCreateTopic.on("click", () => { modal.activate(4, true) } )
-    btnCreateField.on("click", () => { modal.activate(7, true) } )
+    btnCreateTopic.on("click", () => {
+      modal.activate(4, true)
+    })
+    btnCreateField.on("click", () => {
+      modal.activate(7, true)
+    })
     this.fieldOptions.addClass('hidden')
     this.setupDataObject()
   }
@@ -40,14 +44,10 @@ class AddTableModalComponent extends ModalComponent {
   }
 
   addFieldsToObject($fields, obj) {
-    $fields.each((i, field) => {
+    $fields.each((_, field) => {
       if ($(field).val()) {
-        if ($(field).prop('type') == "checkbox") {
-          if ($(field).prop('checked')) {
-            obj[$(field).attr('name')] = true
-          } else {
-            obj[$(field).attr('name')] = false
-          }
+        if ($(field).prop('type') === "checkbox") {
+          obj[$(field).attr('name')] = !!$(field).prop('checked');
         } else if ($(field).attr('name') === 'topic_tempid') {
           obj[$(field).attr('name')] = parseInt($(field).val())
         } else {
@@ -95,7 +95,7 @@ class AddTableModalComponent extends ModalComponent {
       // Update existing topic in json
       const currentTopic = this.json.topics.find(x => x.tempId === this.currentTopicObject.tempId)
 
-      $fields.each((i, field) => {
+      $fields.each((_, field) => {
         if ($(field).val()) {
           currentTopic[$(field).attr('name')] = $(field).val()
         }
@@ -146,7 +146,7 @@ class AddTableModalComponent extends ModalComponent {
   editField(field, frame) {
     this.currentFieldObject = field
     // Also clear frame 8 (field type settings) and 9 (custom field permissions)
-    modal.clear([8,9])
+    modal.clear([8, 9])
 
     // Fill the fields
     this.fillFields($(frame), field)
@@ -183,9 +183,11 @@ class AddTableModalComponent extends ModalComponent {
 
     const frameNumber = strType === 'topic' ? 4 : 7
 
-    $btnEditItem.each((i, btn) => {
+    $btnEditItem.each((_, btn) => {
       const tempId = $(btn).data('tempid')
-      $(btn).on('click', () => { modal.activate(frameNumber, true, tempId) } )
+      $(btn).on('click', () => {
+        modal.activate(frameNumber, true, tempId)
+      })
     })
   }
 
@@ -230,7 +232,7 @@ class AddTableModalComponent extends ModalComponent {
       // Update existing field in json
       const currentField = this.json.fields.find(x => x.tempId === this.currentFieldObject.tempId)
 
-      $fields.each((i, field) => {
+      $fields.each((_, field) => {
         if ($(field).val()) {
           currentField[$(field).attr('name')] = $(field).val()
         }
@@ -257,78 +259,72 @@ class AddTableModalComponent extends ModalComponent {
     const currentField = this.json.fields.find(x => x.tempId === this.currentFieldObject.tempId)
 
     switch ($fieldTypeContainer.attr('id')) {
-      case 'field_type_enum':
-        {
-          const $orderField = $fieldTypeContainer.find('input[name="ordering"]')
-          const $sortableFields = $fieldTypeContainer.find('.sortable input')
+      case 'field_type_enum': {
+        const $orderField = $fieldTypeContainer.find('input[name="ordering"]')
+        const $sortableFields = $fieldTypeContainer.find('.sortable input')
 
-          let enumSettingsObject = {
-            dropdown_values: [],
-            ordering: $orderField.val()
-          }
-
-          $sortableFields.each((i, field) => {
-            let fieldObj = {}
-            fieldObj[$(field).attr('name')] = $(field).val()
-            enumSettingsObject.dropdown_values.push(fieldObj)
-          })
-
-          currentField.field_type_settings = enumSettingsObject
-
-          break
+        let enumSettingsObject = {
+          dropdown_values: [],
+          ordering: $orderField.val()
         }
-      case 'field_type_tree':
-        {
-          const $jstreeEl = $fieldTypeContainer.find('.tree-widget-container')
 
-          let treeSettingsObject = {
-            data: {},
-            dataJson: {}
-          }
+        $sortableFields.each((_, field) => {
+          let fieldObj = {}
+          fieldObj[$(field).attr('name')] = $(field).val()
+          enumSettingsObject.dropdown_values.push(fieldObj)
+        })
 
-          if ($jstreeEl.length) {
-            const v = $jstreeEl.jstree(true).get_json('#', { flat: false })
-            //Not entirely sure what this is - I'm going to leave it in for now
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const mytext = JSON.stringify(v)
-            const data = $jstreeEl.data().jstree._model.data
+        currentField.field_type_settings = enumSettingsObject
 
-            treeSettingsObject.data = data
-            treeSettingsObject.dataJson = v
-          }
+        break
+      }
+      case 'field_type_tree': {
+        const $jstreeEl = $fieldTypeContainer.find('.tree-widget-container')
 
-          treeSettingsObject = this.addFieldsToObject($fields, treeSettingsObject)
-          currentField.field_type_settings = treeSettingsObject
-
-          break
+        let treeSettingsObject = {
+          data: {},
+          dataJson: {}
         }
-      case 'field_type_curval':
-        {
-          const $curvalFieldIds = $fieldTypeContainer.find('input[name="curval_field_ids"]:visible')
-          const $otherFields = $fieldTypeContainer.find('input:not([name="curval_field_ids"]), textarea')
 
-          let curvalSettingsObject = {
-            curval_field_ids: []
+        if ($jstreeEl.length) {
+          const v = $jstreeEl.jstree(true).get_json('#', {flat: false})
+          //Not entirely sure what this is - I'm going to leave it in for now
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const mytext = JSON.stringify(v)
+          treeSettingsObject.data = $jstreeEl.data().jstree._model.data
+          treeSettingsObject.dataJson = v
+        }
+
+        treeSettingsObject = this.addFieldsToObject($fields, treeSettingsObject)
+        currentField.field_type_settings = treeSettingsObject
+
+        break
+      }
+      case 'field_type_curval': {
+        const $curvalFieldIds = $fieldTypeContainer.find('input[name="curval_field_ids"]:visible')
+        const $otherFields = $fieldTypeContainer.find('input:not([name="curval_field_ids"]), textarea')
+
+        let curvalSettingsObject = {
+          curval_field_ids: []
+        }
+
+        $curvalFieldIds.each((_, field) => {
+          if ($(field).val()) {
+            curvalSettingsObject.curval_field_ids.push($(field).val())
           }
+        })
 
-          $curvalFieldIds.each((i, field) => {
-            if ($(field).val()) {
-              curvalSettingsObject.curval_field_ids.push($(field).val())
-            }
-          })
+        curvalSettingsObject = this.addFieldsToObject($otherFields, curvalSettingsObject)
+        currentField.field_type_settings = curvalSettingsObject
 
-          curvalSettingsObject = this.addFieldsToObject($otherFields, curvalSettingsObject)
-          currentField.field_type_settings = curvalSettingsObject
+        break
+      }
+      default: {
+        let fieldTypeSettingsObject = {}
 
-          break
-        }
-      default:
-        {
-          let fieldTypeSettingsObject = {}
-
-          fieldTypeSettingsObject = this.addFieldsToObject($fields, fieldTypeSettingsObject)
-          currentField.field_type_settings = fieldTypeSettingsObject
-        }
+        fieldTypeSettingsObject = this.addFieldsToObject($fields, fieldTypeSettingsObject)
+        currentField.field_type_settings = fieldTypeSettingsObject
+      }
     }
   }
 
@@ -336,8 +332,8 @@ class AddTableModalComponent extends ModalComponent {
   addTable(frame) {
     const $fields = frame.find('input, textarea')
     const $modalTitle = this.el.find('.modal-title')
-    
-    $fields.each((i, field) => {
+
+    $fields.each((_, field) => {
       if ($(field).val()) {
         this.json[$(field).attr('name')] = $(field).val()
       }
@@ -357,7 +353,7 @@ class AddTableModalComponent extends ModalComponent {
     // Clear custom field permissions in json
     currentField.custom_field_permissions = []
 
-    $groups.every(() =>  {
+    $groups.every(() => {
       const group = this.nodes()[0]
       const iGroupId = group.dataset.groupId
       const strGroupName = $(group).find('td')[0].innerHTML.trim()
@@ -381,8 +377,8 @@ class AddTableModalComponent extends ModalComponent {
   // Add table_permissions to the json
   addTablePermissions(frame) {
     const $groups = frame.find('.card--expandable')
-    
-    $groups.each((i, group) => {
+
+    $groups.each((_, group) => {
       const $groupRow = $(group).closest('.permission-group')
       const iGroupId = ($groupRow && typeof $groupRow.data('group-id') !== 'undefined') ? $groupRow.data('group-id') : ''
       const strGroupName = $(group).find('.card__subtitle')[0].innerHTML.trim()
@@ -397,7 +393,7 @@ class AddTableModalComponent extends ModalComponent {
         fields: {}
       }
 
-      $fieldSets.each((i, fieldSet) => {
+      $fieldSets.each((_, fieldSet) => {
         const strName = $(fieldSet).data('name')
         const $fields = $(fieldSet).find('input')
 
@@ -434,11 +430,10 @@ class AddTableModalComponent extends ModalComponent {
       case 'table permissions':
         this.addTablePermissions(frame)
         break
-      default:
-        {
-          const $fields = frame.find('input, textarea')
-          this.addFieldsToObject($fields, this.json)
-        }
+      default: {
+        const $fields = frame.find('input, textarea')
+        this.addFieldsToObject($fields, this.json)
+      }
     }
   }
 
@@ -480,9 +475,9 @@ class AddTableModalComponent extends ModalComponent {
       this.currentFieldObject = {}
 
       // Also clear frame 8 (field type settings) and 9 (custom field permissions)
-      modal.clear([8,9])
+      modal.clear([8, 9])
 
-    } else if((frameNumber === 4) && id) { // Edit topic
+    } else if ((frameNumber === 4) && id) { // Edit topic
       const frame = super.getFrameByNumber(frameNumber)
       const topic = this.json.topics.find(e => e.tempId === id)
 
@@ -505,7 +500,7 @@ class AddTableModalComponent extends ModalComponent {
     this.fieldsTable && DataTableHelper.clearTable(this.fieldsTable)
 
     // Remove the topics from the topic dropdown
-    this.selectTopicComponent.options.each((i, option) => {
+    this.selectTopicComponent.options.each((_, option) => {
       this.selectTopicComponent.removeOption(parseInt(option.dataset.value))
     })
 

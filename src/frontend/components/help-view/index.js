@@ -1,6 +1,6 @@
-import { initializeComponent } from "component";
+import {initializeComponent} from "component";
 import HelpView from "./lib/component";
 
-export default (scope) =>{
-    initializeComponent(scope, ".help-view", HelpView);
+export default (scope) => {
+  initializeComponent(scope, ".help-view", HelpView);
 };

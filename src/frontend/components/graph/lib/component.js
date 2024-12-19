@@ -1,4 +1,4 @@
-import { Component } from 'component'
+import {Component} from 'component'
 import '../../../js/lib/jqplot/jquery.jqplot.min'
 import '../../../js/lib/jqplot/jqplot.barRenderer'
 import '../../../js/lib/jqplot/jqplot.pieRenderer'
@@ -59,7 +59,7 @@ class GraphComponent extends Component {
       async: false,
       url: url,
       dataType: 'json',
-      success: function(data) {
+      success: function (data) {
         ret = data
       }
     })
@@ -69,11 +69,11 @@ class GraphComponent extends Component {
   do_plot(plotData, options_in) {
     const ticks = plotData.xlabels
     let plotOptions = {}
-    const showmarker = options_in.type == 'line' ? true : false
+    const showmarker = options_in.type === 'line'
 
     plotOptions.highlighter = {
       showMarker: showmarker,
-      tooltipContentEditor: (str, pointIndex, index, plot) =>
+      tooltipContentEditor: (_, pointIndex, index, plot) =>
         plot._plotData[pointIndex][index][1]
     };
 
@@ -84,7 +84,7 @@ class GraphComponent extends Component {
       plotOptions.seriesDefaults = seriesDefaults.default
     }
 
-    if (options_in.type != 'donut' && options_in.type != 'pie') {
+    if (options_in.type !== 'donut' && options_in.type !== 'pie') {
       plotOptions.series = plotData.labels
       plotOptions.axes = {
         xaxis: {

@@ -5,7 +5,7 @@ class SidebarObservable {
    */
   addSubscriber(subscriber) {
     // Lazy initialization
-    if(!this.observers) this.observers = []
+    if (!this.observers) this.observers = []
     this.observers.push(subscriber)
   }
 
@@ -19,7 +19,7 @@ class SidebarObservable {
 
 const sidebarObservable = new SidebarObservable
 
-export { 
+export {
   SidebarObservable,
   sidebarObservable
 }

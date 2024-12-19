@@ -10,78 +10,112 @@ const initValidationOnField = (field) => {
       const $checkBoxes = $checkboxGroup.find('input[type="checkbox"]')
       const $inputEl = field.find('.form-control-file')
 
-      $fileButton.on('blur', () => { validateCheckboxGroup($checkboxGroup) })
-      $inputEl.on('change', () => { validateCheckboxGroup($checkboxGroup) })
-      $checkBoxes.on('blur change', () => { validateCheckboxGroup($checkboxGroup) })
+      $fileButton.on('blur', () => {
+        validateCheckboxGroup($checkboxGroup)
+      })
+      $inputEl.on('change', () => {
+        validateCheckboxGroup($checkboxGroup)
+      })
+      $checkBoxes.on('blur change', () => {
+        validateCheckboxGroup($checkboxGroup)
+      })
 
-    // Other input types
+      // Other input types
     } else {
       const $inputEl = field.find('input[required]')
       const $fileButton = field.find('.input__file-label')
 
-      $inputEl.on('blur change', () => { setTimeout(() => { validateInput(field) }, 300)})
-      $fileButton.on('blur', () => { validateInput(field) } )
+      $inputEl.on('blur change', () => {
+        setTimeout(() => {
+          validateInput(field)
+        }, 300)
+      })
+      $fileButton.on('blur', () => {
+        validateInput(field)
+      })
     }
 
-  // Textarea
+    // Textarea
   } else if (field.hasClass('textarea--required')) {
     const $textareaEl = field.find('textarea[required]')
-    $textareaEl.on('blur change', () => { setTimeout(() => { validateInput(field) }, 300)})
+    $textareaEl.on('blur change', () => {
+      setTimeout(() => {
+        validateInput(field)
+      }, 300)
+    })
 
-  // Select
+    // Select
   } else if (field.hasClass('select--required')) {
     const $button = field.find('button')
     const $inputEl = field.find('input[required]')
 
-    $button.on('blur', () => { setTimeout(() => { validateInput(field) }, 300)})
-    $inputEl.on('change', () => { validateInput(field) } )
+    $button.on('blur', () => {
+      setTimeout(() => {
+        validateInput(field)
+      }, 300)
+    })
+    $inputEl.on('change', () => {
+      validateInput(field)
+    })
 
-  // Radio-group
+    // Radio-group
   } else if (field.hasClass('radio-group--required')) {
     const $radioButtons = field.find('input[required]')
-    $radioButtons.on('blur change', () => { setTimeout(() => { validateRadioGroup(field) }, 300)} )
+    $radioButtons.on('blur change', () => {
+      setTimeout(() => {
+        validateRadioGroup(field)
+      }, 300)
+    })
 
-  // Select-widget
+    // Select-widget
   } else if (field.hasClass('select-widget--required')) {
-      // Single select-widget
-      if (!field.hasClass('multi')) {
-        const $inputSearch = field.find('.form-control-search')
-        const $radioButtons = field.find('input[required]')
-        let inputBlurTimer
+    // Single select-widget
+    if (!field.hasClass('multi')) {
+      const $inputSearch = field.find('.form-control-search')
+      const $radioButtons = field.find('input[required]')
+      let inputBlurTimer
 
-        $radioButtons.on('blur change', () => {
-          inputBlurTimer = setTimeout(() => {
-            validateRadioGroup(field)
-          }, 300)} )
+      $radioButtons.on('blur change', () => {
+        inputBlurTimer = setTimeout(() => {
+          validateRadioGroup(field)
+        }, 300)
+      })
 
-        $inputSearch.on('blur', () => {
-          inputBlurTimer = setTimeout(() => {
-            validateRadioGroup(field)
-          }, 300)} )
+      $inputSearch.on('blur', () => {
+        inputBlurTimer = setTimeout(() => {
+          validateRadioGroup(field)
+        }, 300)
+      })
 
-        $radioButtons.on('focus', () => { clearTimeout(inputBlurTimer) } )
+      $radioButtons.on('focus', () => {
+        clearTimeout(inputBlurTimer)
+      })
 
       // Multi select-widget
-      } else {
-        const $inputSearch = field.find('.form-control-search')
-        const $checkBoxes = field.find('input[type="checkbox"]')
-        let inputBlurTimer
+    } else {
+      const $inputSearch = field.find('.form-control-search')
+      const $checkBoxes = field.find('input[type="checkbox"]')
+      let inputBlurTimer
 
-        $checkBoxes.on('blur change', () => {
-          inputBlurTimer = setTimeout(() => {
-            validateCheckboxGroup(field)
-          }, 300)} )
+      $checkBoxes.on('blur change', () => {
+        inputBlurTimer = setTimeout(() => {
+          validateCheckboxGroup(field)
+        }, 300)
+      })
 
-        $inputSearch.on('blur', () => {
-          inputBlurTimer = setTimeout(() => {
-            validateCheckboxGroup(field)
-          }, 300)} )
+      $inputSearch.on('blur', () => {
+        inputBlurTimer = setTimeout(() => {
+          validateCheckboxGroup(field)
+        }, 300)
+      })
 
-        $checkBoxes.on('focus', () => { clearTimeout(inputBlurTimer) } )
+      $checkBoxes.on('focus', () => {
+        clearTimeout(inputBlurTimer)
+      })
 
-      }
+    }
 
-  // Tree
+    // Tree
   } else if (field.hasClass('tree--required')) {
     const $jsTreeAnchors = field.find('.jstree-anchor')
     let anchorBlurTimer
@@ -89,9 +123,12 @@ const initValidationOnField = (field) => {
     $jsTreeAnchors.on('blur change', () => {
       anchorBlurTimer = setTimeout(() => {
         validateTree(field)
-      }, 300)} )
+      }, 300)
+    })
 
-    $jsTreeAnchors.on('focus', () => { clearTimeout(anchorBlurTimer) } )
+    $jsTreeAnchors.on('focus', () => {
+      clearTimeout(anchorBlurTimer)
+    })
 
   }
 }
@@ -100,28 +137,28 @@ const initValidationOnField = (field) => {
 const validateRequiredFields = (form) => {
   let isValidForm = true
 
-  form.find(".input--required:not(.input--document), .textarea--required, .select--required").each((i, field) => {
+  form.find(".input--required:not(.input--document), .textarea--required, .select--required").each((_, field) => {
     if (!validateInput($(field))) {
       expandCardValidate(field)
       isValidForm = false
     }
   })
 
-  form.find(".input--document.input--required").each((i, field) => {
+  form.find(".input--document.input--required").each((_, field) => {
     if (!validateCheckboxGroup($(field).closest('.fieldset').find('.list'))) {
       expandCardValidate(field)
       isValidForm = false
     }
   })
 
-  form.find(".radio-group--required").each((i, field) => {
+  form.find(".radio-group--required").each((_, field) => {
     if (!validateRadioGroup($(field))) {
       expandCardValidate(field)
       isValidForm = false
     }
   })
 
-  form.find(".select-widget--required").each((i, field) => {
+  form.find(".select-widget--required").each((_, field) => {
     if (!$(field).hasClass('multi')) {
       if (!validateRadioGroup($(field))) {
         expandCardValidate(field)
@@ -136,7 +173,7 @@ const validateRequiredFields = (form) => {
 
   })
 
-  form.find(".tree--required").each((i, field) => {
+  form.find(".tree--required").each((_, field) => {
     if (!validateTree($(field))) {
       $(field).closest('.card--expandable').find('.collapse').collapse('show')
       isValidForm = false
@@ -144,7 +181,7 @@ const validateRequiredFields = (form) => {
   })
 
 
-  form.find(".checkbox-fieldset--required").each((i, field) => {
+  form.find(".checkbox-fieldset--required").each((_, field) => {
     if (!validateRequiredFieldsetCheckboxes($(field))) {
       addErrorMessage($(field), $(field).find(".fieldset__legend legend").text(), $(field).attr("id"));
       $(field).addClass("invalid");
@@ -158,7 +195,7 @@ const validateRequiredFields = (form) => {
 
 const validateRequiredFieldsetCheckboxes = (fieldset) => {
   let isValid = false;
-  fieldset.find("input[type=checkbox]").each((i, field) => {
+  fieldset.find("input[type=checkbox]").each((_, field) => {
     if (field.isChecked || $(field).is(":checked")) {
       isValid = true;
       return true;
@@ -218,7 +255,7 @@ const validateRadioGroup = (field) => {
 
   removeErrorMessage($(field))
 
-  $radioButtons.each((i, radioButton) => {
+  $radioButtons.each((_, radioButton) => {
     if ($(radioButton).is(":checked")) {
       isChecked = true
     }
@@ -251,7 +288,7 @@ const validateCheckboxGroup = (field) => {
 
   removeErrorMessage($(field))
 
-  $checkBoxes.each((i, checkBox) => {
+  $checkBoxes.each((_, checkBox) => {
     if ($(checkBox).is(":checked")) {
       isChecked = true
     }
@@ -276,7 +313,7 @@ const validateCheckboxGroup = (field) => {
 const validateTree = (field) => {
   const $inputEl = field.find('input[type="hidden"]')
   const $fieldSet = field.closest('.fieldset--required')
-  if(!$fieldSet || !$fieldSet.length) return;
+  if (!$fieldSet || !$fieldSet.length) return;
   const strFieldName = $fieldSet.find('.fieldset__legend legend').text() || ''
   const strID = field.attr('id') || ''
 
@@ -302,18 +339,18 @@ const validateTree = (field) => {
 // Expand the card with a certain field and scroll it into view
 const expandCardValidate = (field) => {
   const $collapse = $(field).closest('.card--expandable').find('.collapse')
-  if(!$collapse || !$collapse.collapse) return;
+  if (!$collapse || !$collapse.collapse) return;
   const $label = $(field).closest('.form-group').find('legend, label')
   // Turn into edit mode if the topic is now in view mode
   $collapse.prev().find('.btn-edit:visible').trigger('click')
   // If the card is already expanded then just scroll straight to the field
   if ($collapse.hasClass('show')) {
-      $label[0].scrollIntoView()
+    $label[0].scrollIntoView()
   } else {
     // Otherwise add an event handler to scroll to the field, but only once the
     // card has finished expanding (otherwise the scroll will happen before
     // the card has finished expanding and it won't work)
-    $collapse.on('shown.bs.collapse.foobar', function(){
+    $collapse.on('shown.bs.collapse.foobar', function () {
       $label[0].scrollIntoView()
       $(this).off('shown.bs.collapse.foobar');
     })
@@ -321,4 +358,4 @@ const expandCardValidate = (field) => {
   }
 }
 
-export { initValidationOnField, validateTree, validateRadioGroup, validateCheckboxGroup, validateRequiredFields };
+export {initValidationOnField, validateTree, validateRadioGroup, validateCheckboxGroup, validateRequiredFields};

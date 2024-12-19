@@ -53,7 +53,7 @@ export default class ApiClient {
     return this._fetch(route, "DELETE", null);
   }
 
-  saveLayout = (id: string|number, layout: Layout[]) => {
+  saveLayout = (id: string | number, layout: Layout[]) => {
     if (!this.isDev) {
       const strippedLayout = layout.map(widget => ({...widget, moved: undefined}));
       return this.PUT(`/dashboard/${id}`, strippedLayout);

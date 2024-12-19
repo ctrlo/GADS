@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
-import { Component } from 'component'
+import {Component} from 'component'
 import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
 import 'bootstrap-select/dist/js/bootstrap-select'
-import { logging } from 'logging'
+import {logging} from 'logging'
 import TypeaheadBuilder from 'util/typeahead'
-import { refreshSelects } from 'components/form-group/common/bootstrap-select'
+import {refreshSelects} from 'components/form-group/common/bootstrap-select'
 
 class FilterComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.operators = [
@@ -51,8 +51,8 @@ class FilterComponent extends Component {
         accept_values: true,
         apply_to: ['datetime', 'string']
       },
-      { type: 'begins_with', accept_values: true, apply_to: ['string'] },
-      { type: 'not_begins_with', accept_values: true, apply_to: ['string'] },
+      {type: 'begins_with', accept_values: true, apply_to: ['string']},
+      {type: 'not_begins_with', accept_values: true, apply_to: ['string']},
       {
         type: 'is_empty',
         accept_values: false,
@@ -118,17 +118,17 @@ class FilterComponent extends Component {
       }
     })
 
-    $builderEl.on('validationError.queryBuilder', function(e, node, error, value) {
+    $builderEl.on('validationError.queryBuilder', function (e, node, error, value) {
       logging.log(error);
       logging.log(value);
       logging.log(e);
       logging.log(node);
     });
 
-    $builderEl.on('afterCreateRuleInput.queryBuilder', function(e, rule) {
+    $builderEl.on('afterCreateRuleInput.queryBuilder', function (_, rule) {
       let filterConfig
 
-      builderConfig.filters.forEach(function(value) {
+      builderConfig.filters.forEach(function (value) {
         if (value.filterId === rule.filter.id) {
           filterConfig = value
           return false
@@ -154,15 +154,17 @@ class FilterComponent extends Component {
       })
 
       const filterCallback = (suggestion) => {
-        if(filterConfig.useIdInFilter) {
+        if (filterConfig.useIdInFilter) {
           $ruleInputHidden.val(suggestion.id)
-        }else {
+        } else {
           $ruleInputHidden.val(suggestion.name)
         }
       }
 
       // This is required to ensure that the correct query is sent each time
-      const buildQuery = () => {return {q:$ruleInputText.val(), oi:filterConfig.instanceId}}
+      const buildQuery = () => {
+        return {q: $ruleInputText.val(), oi: filterConfig.instanceId}
+      }
 
       const builder = new TypeaheadBuilder();
       builder
@@ -176,7 +178,7 @@ class FilterComponent extends Component {
         .build()
     })
 
-    if(filterBase) {
+    if (filterBase) {
       const data = atob(filterBase, 'base64')
       try {
         const obj = JSON.parse(data);
@@ -184,7 +186,7 @@ class FilterComponent extends Component {
           $builderEl.queryBuilder('setRules', obj)
         } else {
           // Ensure that no blank rules by default, otherwise view cannot be submitted
-          $builderEl.queryBuilder('setRules', {rules:[]})
+          $builderEl.queryBuilder('setRules', {rules: []})
         }
       } catch {
         logging.log('Incorrect data object passed to queryBuilder')
@@ -212,22 +214,22 @@ class FilterComponent extends Component {
 
   buildFilter = (builderConfig, col) => {
     return ({
-    id: col.filterId,
-    label: col.label,
-    type: 'string',
-    operators: this.buildFilterOperators(col.type),
-    ...(col.type === 'rag'
-      ? this.ragProperties
-      : col.hasFilterTypeahead
-      ? this.typeaheadProperties(
-          col.urlSuffix,
-          builderConfig.layoutId,
-          col.instanceId,
-          col.useIdInFilter
-        )
-      : {})
-  })
-}
+      id: col.filterId,
+      label: col.label,
+      type: 'string',
+      operators: this.buildFilterOperators(col.type),
+      ...(col.type === 'rag'
+        ? this.ragProperties
+        : col.hasFilterTypeahead
+          ? this.typeaheadProperties(
+            col.urlSuffix,
+            builderConfig.layoutId,
+            col.instanceId,
+            col.useIdInFilter
+          )
+          : {})
+    })
+  }
 
   buildFilterOperators(type) {
     if (!['date', 'daterange'].includes(type)) return undefined
@@ -246,7 +248,7 @@ class FilterComponent extends Component {
   }
 
   typeaheadProperties = () => ({
-    input: (container, input_name) => {
+    input: (_, input_name) => {
       return (
         `<div class='tt__container'>
           <input class='form-control typeahead_text' type='text' name='${input_name}_text'/>
@@ -257,20 +259,21 @@ class FilterComponent extends Component {
     valueSetter: (rule, value) => {
       rule.$el.find('.typeahead_hidden').val(value)
       const typeahead = rule.$el.find('.typeahead_text')
-      typeahead.typeahead('val',rule.data.text)
+      typeahead.typeahead('val', rule.data.text)
       typeahead.val(rule.data.text)
     },
     validation: {
-      callback: () => {return true}
+      callback: () => {
+        return true
+      }
     }
   })
-
   getRecords = (layoutId, urlSuffix, instanceId, query) => {
     return (
       $.ajax({
         type: 'GET',
         url: this.getURL(layoutId, urlSuffix),
-        data: { q: query, oi: instanceId },
+        data: {q: query, oi: instanceId},
         dataType: 'json',
         path: 'records'
       })

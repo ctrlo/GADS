@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
-import { Component } from 'component'
-import { setupDisclosureWidgets } from "./disclosure-widgets";
-import { moreLess } from './more-less';
+import {Component} from 'component'
+import {setupDisclosureWidgets} from "./disclosure-widgets";
+import {moreLess} from './more-less';
 
 const MAX_HEIGHT = 50
 
 class MoreLessComponent extends Component {
 
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.clearMoreLess()
@@ -15,9 +15,9 @@ class MoreLessComponent extends Component {
   }
 
   uuid() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
       const r = (Math.random() * 16) | 0,
-        v = c == 'x' ? r : (r & 0x3) | 0x8
+        v = c === 'x' ? r : (r & 0x3) | 0x8
       return v.toString(16)
     })
   }
@@ -30,7 +30,7 @@ class MoreLessComponent extends Component {
     if (!$parent || !$parent.length) {
       return undefined
     }
-    if ($elem.css('display') == 'none') {
+    if ($elem.css('display') === 'none') {
       return $elem
     }
     return this.parentHidden($parent)
@@ -46,7 +46,7 @@ class MoreLessComponent extends Component {
     }
 
     // If the element is blank then it will have 0 height
-    if ($elem.text().trim().length == 0) {
+    if ($elem.text().trim().length === 0) {
       return 0;
     }
 
@@ -66,7 +66,7 @@ class MoreLessComponent extends Component {
     // measure the height on the cloned elements, we can apply the height as a
     // data value to its real equivalent element using this unique class.
     const self = this
-    $parent.find('.more-less').each(function() {
+    $parent.find('.more-less').each(function () {
       const $e = $(this)
       $e.addClass('more-less-id-' + self.uuid())
     })
@@ -75,15 +75,15 @@ class MoreLessComponent extends Component {
     const $clone = $parent
       .clone()
       .attr('id', false)
-      .css({ visibility: 'hidden', display: 'block', position: 'absolute' })
+      .css({visibility: 'hidden', display: 'block', position: 'absolute'})
     $('body').append($clone)
 
     // The cloned element could contain many other hidden more-less divs, so do
     // them all at the same time to improve performance
-    $clone.find('.more-less').each(function() {
+    $clone.find('.more-less').each(function () {
       const $ml = $(this)
       const classList = $ml.attr('class').split(/\s+/)
-      $.each(classList, function(index, item) {
+      $.each(classList, function (_, item) {
         if (item.indexOf('more-less-id') >= 0) {
           const $toset = $parent.find('.' + item)
           // Can't use data() as it can't be re-read
@@ -114,7 +114,7 @@ class MoreLessComponent extends Component {
     }
   }
 
-  initMoreLess() {    
+  initMoreLess() {
     const $ml = $(this.el)
     const column = $ml.data('column')
     const content = $ml.html()
@@ -147,7 +147,7 @@ class MoreLessComponent extends Component {
       'data-label-collapsed': toggleLabel
     })
 
-    $expandToggle.on('toggle', function(e, state) {
+    $expandToggle.on('toggle', function (_, state) {
       const windowWidth = $(window).width()
       const leftOffset = $expandable.offset().left
       const minWidth = 400
@@ -172,9 +172,9 @@ class MoreLessComponent extends Component {
 
     // Set up the record-popup modal for any curvals in this more-less
     import(/* webpackChunkName: "record-popup" */ '../../record-popup/lib/component')
-      .then(({ default: RecordPopupComponent }) => {
+      .then(({default: RecordPopupComponent}) => {
         const recordPopupElements = $ml.find('.record-popup')
-        recordPopupElements.each((i, el) => {
+        recordPopupElements.each((_, el) => {
           new RecordPopupComponent(el)
         });
       });

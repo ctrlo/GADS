@@ -1,8 +1,8 @@
-import { do_plot_json } from '../../../graph/lib/chart'
+import {do_plot_json} from '../../../graph/lib/chart'
 import GraphComponent from '../../../graph/lib/component'
 
 class DashboardGraphComponent extends GraphComponent {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.initDashboardGraph()
   }

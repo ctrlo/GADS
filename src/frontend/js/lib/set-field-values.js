@@ -9,7 +9,7 @@
   "id" key or a "text" key, with the required value
 */
 
-const setFieldValues = function($field, values) {
+const setFieldValues = function ($field, values) {
 
   const type = $field.data("column-type")
   const name = $field.data("name")
@@ -41,21 +41,21 @@ const setFieldValues = function($field, values) {
 
   } else if (type === "daterange") {
 
-    values.forEach(function(value, index){
+    values.forEach(function (value, index) {
       let $single = prepare_multi($field, index)
       set_daterange($single, value)
     })
 
   } else if (type === "date") {
 
-    values.forEach(function(value, index){
+    values.forEach(function (value, index) {
       let $single = prepare_multi($field, index)
       set_date($single, value)
     })
 
   } else if (type === "string" || type === "intgr") {
 
-    values.forEach(function(value, index){
+    values.forEach(function (value, index) {
       let $single = prepare_multi($field, index)
       set_string($single, value)
     })
@@ -69,7 +69,7 @@ const setFieldValues = function($field, values) {
 
 // Deal with either single value field or field with multiple inputs. Create as
 // many inputs as required
-const prepare_multi = function($field, index) {
+const prepare_multi = function ($field, index) {
   if ($field.data("is-multivalue")) {
     let $multi_container = $field.find(".multiple-select__list")
     let existing_count = $multi_container.children().length
@@ -82,11 +82,11 @@ const prepare_multi = function($field, index) {
   }
 }
 
-const set_enum_single = function($element, values) {
+const set_enum_single = function ($element, values) {
 
   // Accept ID or text value, specified depending on the key of the value
   // object
-  values.forEach(function(value){
+  values.forEach(function (value) {
     let $option
     let val
     if (value.hasOwnProperty('id')) {
@@ -108,7 +108,7 @@ const set_enum_single = function($element, values) {
 
 }
 
-const set_enum_multi = function($element, values) {
+const set_enum_multi = function ($element, values) {
 
   const id_hash = {}
   const text_hash = {}
@@ -125,7 +125,7 @@ const set_enum_multi = function($element, values) {
 
   // Iterate each available checkbox, and select or deselect as required to
   // match values
-  $element.find('.checkbox').each(function(){
+  $element.find('.checkbox').each(function () {
     let $check = $(this).find('input')
     // Mark an option checked if either the id or text value match the
     // submitted values
@@ -156,23 +156,23 @@ const set_enum_multi = function($element, values) {
   }
 }
 
-const set_date = function($element, value) {
+const set_date = function ($element, value) {
   $element.find('input').datepicker('update', new Date(value * 1000));
 }
 
-const set_daterange = function($element, value) {
+const set_daterange = function ($element, value) {
   set_date($element.find('.input--from'), value.from)
   set_date($element.find('.input--to'), value.to)
 }
 
-const set_string = function($element, value) {
+const set_string = function ($element, value) {
   $element.find('input').val(value)
 }
 
-const set_tree = function($field, values) {
+const set_tree = function ($field, values) {
 
   let $jstree = $field.find('.jstree').jstree(true);
-  let nodes = $jstree.get_json('#', { flat: true })
+  let nodes = $jstree.get_json('#', {flat: true})
 
   // Create a hash to map all the text values to ids, in case value is supplied
   // by text
@@ -181,7 +181,7 @@ const set_tree = function($field, values) {
     nodes_hash[node.text] = node.id
   })
   $jstree.deselect_all()
-  values.forEach(function(value){
+  values.forEach(function (value) {
     let id;
     if (value.hasOwnProperty('id')) {
       id = value['id']
@@ -192,10 +192,10 @@ const set_tree = function($field, values) {
         console.debug("Unknown text value for tree: " + value['text'])
       }
     } else {
-        console.error("Unknown value key for tree")
+      console.error("Unknown value key for tree")
     }
     $jstree.select_node(id)
   })
 }
 
-export { setFieldValues };
+export {setFieldValues};

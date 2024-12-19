@@ -1,15 +1,17 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import ModalComponent from '../../../lib/component'
-import { getFieldValues } from "get-field-values"
-import { guid as Guid } from "guid"
-import { initializeRegisteredComponents } from 'component'
-import { validateRadioGroup, validateCheckboxGroup } from 'validation'
+import {getFieldValues} from "get-field-values"
+import {guid as Guid} from "guid"
+import {initializeRegisteredComponents} from 'component'
+import {validateRadioGroup, validateCheckboxGroup} from 'validation'
 
 class CurvalModalComponent extends ModalComponent {
 
-  static get allowReinitialization() { return true }
+  static get allowReinitialization() {
+    return true
+  }
 
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.context = undefined // Populated on modal show
     if (!this.wasInitialized) this.initCurvalModal()
@@ -20,7 +22,7 @@ class CurvalModalComponent extends ModalComponent {
     this.setupModal()
     this.setupSubmit()
   }
-  
+
   curvalModalValidationSucceeded(form, values) {
     const form_data = form.serialize()
     const modal_field_ids = form.data("modal-field-ids")
@@ -35,13 +37,13 @@ class CurvalModalComponent extends ModalComponent {
     })
     const $formGroup = $("div[data-column-id=" + col_id + "]")
     const valueSelector = $formGroup.data("value-selector")
-    
+
     if (valueSelector === "noshow") {
-      const self=this;
+      const self = this;
       // No strict requirement for alias here, but it is needed below, so for the sake of consistency
       const row_cells = $('<tr class="table-curval-item">', self.context)
 
-      jQuery.map(modal_field_ids, function(element) {
+      jQuery.map(modal_field_ids, function (element) {
         const control = form.find('[data-column-id="' + element + '"]')
         let value = getFieldValues(control)
         value = values["field" + element]
@@ -79,8 +81,9 @@ class CurvalModalComponent extends ModalComponent {
         const hidden = $('input[data-guid="' + guid + '"]', this.context).val(form_data)
         hidden.closest(".table-curval-item").replaceWith(row_cells)
       } else {
-        $(`#curval_list_${col_id}`).find("tbody").prepend(row_cells)
-        $(`#curval_list_${col_id}`).find(".dataTables_empty").hide();
+        let $curval = $(`#curval_list_${col_id}`);
+        $curval.find("tbody").prepend(row_cells)
+        $curval.find(".dataTables_empty").hide();
       }
     } else {
       const $widget = $formGroup.find(".select-widget").first()
@@ -99,7 +102,7 @@ class CurvalModalComponent extends ModalComponent {
       }
 
       const textValue = jQuery
-        .map(modal_field_ids, function(element) {
+        .map(modal_field_ids, function (element) {
           const value = values["field" + element]
           return $("<div />")
             .text(value)
@@ -112,21 +115,21 @@ class CurvalModalComponent extends ModalComponent {
       const deleteButton = multi
         ? '<button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times;</button>'
         : ""
-      
-        $search.before(
+
+      $search.before(
         `<li data-list-item="${id}"><span class="widget-value__value">${textValue}</span>${deleteButton}</li>`
       ).before(' ') // Ensure space between elements in widget
 
       const inputType = multi ? "checkbox" : "radio"
       const strRequired = required ?
-          `required="required" aria-required="true" aria-errormessage="${$widget.attr('id')}-err"` :
-          ``
+        `required="required" aria-required="true" aria-errormessage="${$widget.attr('id')}-err"` :
+        ``
 
       $answersList.append(`<li class="answer" role="option">
         <div class="control">
-          <div class="${ multi ? "checkbox" : "radio-group__option" }">
-            <input ${strRequired} id="${id}" name="field${col_id}" type="${inputType}" value="${form_data}" class="${ multi ? "" : "radio-group__input" }" checked aria-labelledby="${id}_label">
-            <label id="${id}_label" for="${id}" class="${ multi ? "" : "radio-group__label" }">
+          <div class="${multi ? "checkbox" : "radio-group__option"}">
+            <input ${strRequired} id="${id}" name="field${col_id}" type="${inputType}" value="${form_data}" class="${multi ? "" : "radio-group__input"}" checked aria-labelledby="${id}_label">
+            <label id="${id}_label" for="${id}" class="${multi ? "" : "radio-group__label"}">
               <span>${textValue}</span>
             </label>
           </div>
@@ -143,7 +146,7 @@ class CurvalModalComponent extends ModalComponent {
       /* Reinitialize widget */
       initializeRegisteredComponents($formGroup[0])
       import(/* webpackChunkName: "select-widget" */ '../../../../form-group/select-widget/lib/component')
-        .then(({ default: SelectWidgetComponent }) => {
+        .then(({default: SelectWidgetComponent}) => {
           new SelectWidgetComponent($widget[0])
         });
     }
@@ -179,7 +182,7 @@ class CurvalModalComponent extends ModalComponent {
   }
 
   setupModal() {
-    this.el.on('show.bs.modal', (ev) => { 
+    this.el.on('show.bs.modal', (ev) => {
       const button = ev.relatedTarget
       const layout_id = $(button).data("layout-id")
       const instance_name = $(button).data("instance-name")
@@ -216,7 +219,7 @@ class CurvalModalComponent extends ModalComponent {
 
       $m.find(".modal-body").load(
         this.getURL(url, layout_id, form_data, $formGroup),
-        function() {
+        function () {
           if (mode === "edit") {
             $m.find("form").data("guid", guid);
           }
@@ -224,7 +227,7 @@ class CurvalModalComponent extends ModalComponent {
         }
       )
 
-      $m.on("focus", ".datepicker", function() {
+      $m.on("focus", ".datepicker", function () {
         $(this).datepicker({
           format: $m.attr("data-dateformat-datepicker"),
           autoclose: true
@@ -233,8 +236,8 @@ class CurvalModalComponent extends ModalComponent {
 
       $m.off('hide.bs.modal')
         .on('hide.bs.modal', () => {
-        return confirm("Closing this dialogue will cancel any work. Are you sure you want to do so?")
-      })
+          return confirm("Closing this dialogue will cancel any work. Are you sure you want to do so?")
+        })
     })
 
   }
@@ -256,7 +259,7 @@ class CurvalModalComponent extends ModalComponent {
   setupSubmit() {
     const self = this;
 
-    $(this.element).on("submit", ".curval-edit-form", function(e) {
+    $(this.element).on("submit", ".curval-edit-form", function (e) {
       // Don't show close warning when user clicks submit button
       self.el.off('hide.bs.modal')
 
@@ -275,7 +278,7 @@ class CurvalModalComponent extends ModalComponent {
         $.post(
           $form.attr("action") + "?validate&include_draft&source=" + $form.data("curval-id"),
           form_data,
-          function(data) {
+          function (data) {
             if (data.error === 0) {
               self.curvalModalValidationSucceeded($form, data.values)
             } else {
@@ -286,13 +289,13 @@ class CurvalModalComponent extends ModalComponent {
           },
           "json"
         )
-        .fail(function(jqXHR, textstatus, errorthrown) {
-          const errorMessage = `Oops! Something went wrong: ${textstatus}: ${errorthrown}`
-          self.curvalModalValidationFailed($form, errorMessage);
-        })
-        .always(function() {
-          $form.removeClass("edit-form--validating")
-        });
+          .fail(function (_, textstatus, errorthrown) {
+            const errorMessage = `Oops! Something went wrong: ${textstatus}: ${errorthrown}`
+            self.curvalModalValidationFailed($form, errorMessage);
+          })
+          .always(function () {
+            $form.removeClass("edit-form--validating")
+          });
       }
     });
   }

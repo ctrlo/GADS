@@ -1,16 +1,16 @@
 .input-group {
-    .form-control {
-      border-radius: $input-border-radius;
+  .form-control {
+    border-radius: $input-border-radius;
+  }
+
+  @include media-breakpoint-up(sm) {
+    .btn {
+      border-radius: 0 $input-border-radius $input-border-radius 0;
+      border-left: 0;
+      padding: 0 20px;
     }
-  
-    @include media-breakpoint-up (sm) {
-      .btn {
-        border-radius: 0 $input-border-radius $input-border-radius 0;
-        border-left: 0;
-        padding: 0 20px;
-      }
-      .form-control {
-        border-radius: $input-border-radius 0 0 $input-border-radius;
-      }
+    .form-control {
+      border-radius: $input-border-radius 0 0 $input-border-radius;
     }
   }
+}

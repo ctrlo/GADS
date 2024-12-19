@@ -1,4 +1,4 @@
-import { initializeComponent, getComponentElements } from 'component'
+import {initializeComponent, getComponentElements} from 'component'
 
 export default (scope) => {
   if (!getComponentElements(scope, '.modal--new-table').length) {
@@ -8,7 +8,7 @@ export default (scope) => {
   import(
     /* webpackChunkName: "modal" */
     './lib/component'
-  ).then(({ default: Component }) => {
+    ).then(({default: Component}) => {
     initializeComponent(scope, '.modal--new-table', Component)
   });
 }

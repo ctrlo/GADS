@@ -1,3 +1,5 @@
+import moment from "moment";
+
 /**
  * This function takes a color (hex) as the argument, calculates the color’s HSP value, and uses that
  * to determine whether the color is light or dark.
@@ -41,7 +43,7 @@ function getCssPxValue(node, property = 'height') {
   try {
     const value = node.css(property);
     return value ? parseFloat(parseFloat(value.replace('px')).toFixed(4)) : 0;
-  } catch(e) {
+  } catch (e) {
     console.error('fatal error', e);
     return 0;
   }
@@ -57,9 +59,9 @@ function getVisGroupLabelNode(groupTop) {
   const labels = $(".vis-label:visible");
   let label = null;
 
-  labels.each(function() {
+  labels.each(function () {
     let top = $(this).offset().top;
-    top = top ===0 ? getCssTransformCoordinates($(this)).y : top;
+    top = top === 0 ? getCssTransformCoordinates($(this)).y : top;
 
     if (Math.floor(top) === groupTop) {
       label = $(this);
@@ -69,13 +71,13 @@ function getVisGroupLabelNode(groupTop) {
   return !label
     ? null
     : {
-        node: label,
-        text:
-          label
-            .find(".vis-inner")
-            .first()
-            .html() || ""
-      };
+      node: label,
+      text:
+        label
+          .find(".vis-inner")
+          .first()
+          .html() || ""
+    };
 }
 
 /**
@@ -85,14 +87,14 @@ function getVisGroupLabelNode(groupTop) {
  */
 function getCssTransformCoordinates(obj) {
   const transformMatrix = obj.css("-webkit-transform") ||
-      obj.css("-moz-transform")    ||
-      obj.css("-ms-transform")     ||
-      obj.css("-o-transform")      ||
-      obj.css("transform");
+    obj.css("-moz-transform") ||
+    obj.css("-ms-transform") ||
+    obj.css("-o-transform") ||
+    obj.css("transform");
 
   const matrix = transformMatrix.replace(/[^0-9\-.,]/g, '').split(',');
-  const x      = matrix[12] || matrix[4]; //translate x
-  const y      = matrix[13] || matrix[5]; //translate y
+  const x = matrix[12] || matrix[4]; //translate x
+  const y = matrix[13] || matrix[5]; //translate y
 
   return {x: parseFloat(x), y: parseFloat(y)};
 }
@@ -105,17 +107,17 @@ function getCssTransformCoordinates(obj) {
  * @returns {*}
  */
 function getVisItemRowsInGroup(group) {
-  let itemRows  = [];
+  let itemRows = [];
   let itemCache = {};
-  let topCache  = [];
-  const items  = group.find(".vis-item:visible");
+  let topCache = [];
+  const items = group.find(".vis-item:visible");
 
-  items.each(function() {
-    let top           = getCssPxValue($(this), "top");
+  items.each(function () {
+    let top = getCssPxValue($(this), "top");
     const coordinates = getCssTransformCoordinates($(this));
-    top               = top === 0 ? coordinates.y : top;
+    top = top === 0 ? coordinates.y : top;
 
-    if($.inArray(top, topCache) === -1) {
+    if ($.inArray(top, topCache) === -1) {
       topCache.push(top);
     }
 
@@ -135,8 +137,10 @@ function getVisItemRowsInGroup(group) {
     });
   });
 
-  topCache.sort(function(a, b) { return a > b ? 1 : -1 });
-  $.each(topCache, function(index, top) {
+  topCache.sort(function (a, b) {
+    return a > b ? 1 : -1
+  });
+  $.each(topCache, function (_, top) {
     itemRows.push(itemCache[top]);
   });
 
@@ -153,8 +157,8 @@ function getVisItemRowsInGroup(group) {
  * @returns {{backgroundGroup: *, node, itemRows: *, top, label: *, height: (number|number)}}
  */
 function getVisGroup(group) {
-  let top        = Math.floor(group.offset().top);
-  const height   = getCssPxValue(group, "height");
+  let top = Math.floor(group.offset().top);
+  const height = getCssPxValue(group, "height");
   const itemRows = getVisItemRowsInGroup(group);
 
   top = top === 0 ? getCssTransformCoordinates(group).y : top;
@@ -174,14 +178,14 @@ function getVisGroup(group) {
  * @returns {*}
  */
 function getVisGroups() {
-  const groups    = $(".vis-foreground .vis-group:visible");
+  const groups = $(".vis-foreground .vis-group:visible");
   const visGroups = {};
 
   if (!groups || groups.length === 0) {
     return visGroups;
   }
 
-  groups.each(function() {
+  groups.each(function () {
     if ($(this).html()) {
       const group = getVisGroup($(this));
 
@@ -201,13 +205,13 @@ function getVisGroups() {
  * see: https://brass.ctrlo.com/issue/805
  */
 function parseTimelineForPdfPrinting() {
-    // timeline item positions (.vis-item) are calculated per group (.vis-group),
-    // positioned absolute from the top of the group. The group is dynamic in height.
-    const visGroups = getVisGroups();
+  // timeline item positions (.vis-item) are calculated per group (.vis-group),
+  // positioned absolute from the top of the group. The group is dynamic in height.
+  const visGroups = getVisGroups();
 
-    if (Object.keys(visGroups).length !== 0) {
-      parseVisGroups(visGroups);
-    }
+  if (Object.keys(visGroups).length !== 0) {
+    parseVisGroups(visGroups);
+  }
 }
 
 /**
@@ -236,17 +240,17 @@ function getFirst(obj) {
 function renderGroupRowItemsJson(itemRow) {
   let itemsJson = '';
 
-  $.each(itemRow, function(index, item) {
+  $.each(itemRow, function (_, item) {
     itemsJson +=
-        (itemsJson === '' ? '' : ',') +
-        '{' +
-          'x: ' + item.x + ', ' +
-          'width: ' + item.width + ', ' +
-          'text: "' + item.label.trim() + '", ' +
-          'top: ' + item.top + ', ' +
-          'textColor: "' + item.textColor + '", ' +
-          'backgroundColor: "' + item.backgroundColor + '"' +
-        ' }'
+      (itemsJson === '' ? '' : ',') +
+      '{' +
+      'x: ' + item.x + ', ' +
+      'width: ' + item.width + ', ' +
+      'text: "' + item.label.trim() + '", ' +
+      'top: ' + item.top + ', ' +
+      'textColor: "' + item.textColor + '", ' +
+      'backgroundColor: "' + item.backgroundColor + '"' +
+      ' }'
   });
 
   return itemsJson;
@@ -260,10 +264,10 @@ function renderGroupRowItemsJson(itemRow) {
 function renderGroupRowsJson(itemRows) {
   let itemRowsJson = '';
 
-  $.each(itemRows, function(index, itemRow) {
+  $.each(itemRows, function (_, itemRow) {
     itemRowsJson +=
-        (itemRowsJson === '' ? '' : ',') +
-        '{items: [' + renderGroupRowItemsJson(itemRow) + ']}'
+      (itemRowsJson === '' ? '' : ',') +
+      '{items: [' + renderGroupRowItemsJson(itemRow) + ']}'
   });
 
   return itemRowsJson;
@@ -277,10 +281,10 @@ function renderGroupRowsJson(itemRows) {
 function renderGroupsJson(visGroups) {
   let groupsJson = '';
 
-  $.each(visGroups, function(index, visGroup) {
+  $.each(visGroups, function (_, visGroup) {
     groupsJson +=
-        (groupsJson === '' ? '' : ',') +
-        '{label: "'+ visGroup.label.text +'", rows: [' + renderGroupRowsJson(visGroup.itemRows)+ ']}';
+      (groupsJson === '' ? '' : ',') +
+      '{label: "' + visGroup.label.text + '", rows: [' + renderGroupRowsJson(visGroup.itemRows) + ']}';
   });
 
   return 'groups: [' + groupsJson + ']';
@@ -298,35 +302,34 @@ function renderGroupsJson(visGroups) {
  * @returns {string}
  */
 function renderXAxisMinorsJson(xAxis, fromX = false, toX = false, firstMajor = true) {
-  const minorObjects   = xAxis.find('.vis-text.vis-minor:not(.vis-measure)');
+  const minorObjects = xAxis.find('.vis-text.vis-minor:not(.vis-measure)');
   let minorsObjectJson = '';
 
-  if(toX !== false) {
+  if (toX !== false) {
     toX = toX - 1;
   }
 
-  $.each(minorObjects, function() {
-    const minor       = $(this);
+  $.each(minorObjects, function () {
+    const minor = $(this);
     const coordinates = getCssTransformCoordinates(minor);
 
     // skip minor labels that do not belong to the current major label when the start and end X position of the major
     // label is provided
-    if(fromX !== false) {
+    if (fromX !== false) {
       // first major label can have a partial first minor label that is on a lower X position than the major label
-      if(firstMajor && toX !== false && coordinates.x >= toX) {
+      if (firstMajor && toX !== false && coordinates.x >= toX) {
         return true;
-      }
-      else if(! firstMajor && (coordinates.x < fromX || (toX !== false && coordinates.x >= toX))) {
+      } else if (!firstMajor && (coordinates.x < fromX || (toX !== false && coordinates.x >= toX))) {
         return true;
       }
     }
 
     const minorWidth = getCssPxValue(minor, 'width');
-    const minorText  = minor.html();
+    const minorText = minor.html();
 
-    minorsObjectJson  +=
-        (minorsObjectJson === '' ? '' : ',') +
-        '{x: '+ coordinates.x +', width: ' + minorWidth + ', text: "' + minorText + '"}';
+    minorsObjectJson +=
+      (minorsObjectJson === '' ? '' : ',') +
+      '{x: ' + coordinates.x + ', width: ' + minorWidth + ', text: "' + minorText + '"}';
   });
 
   return '[' + minorsObjectJson + ']';
@@ -342,7 +345,7 @@ function getOrderedMajors(xAxis) {
   const majorObjects = xAxis.find('.vis-text.vis-major:not(.vis-measure)');
   let orderedObjects = [];
 
-  majorObjects.each(function(){
+  majorObjects.each(function () {
     orderedObjects.push({
       node: $(this),
       x: getCssTransformCoordinates($(this)).x,
@@ -350,12 +353,14 @@ function getOrderedMajors(xAxis) {
     });
   });
 
-  orderedObjects.sort(function(a, b) { return a.x > b.x ? 1 : -1 });
+  orderedObjects.sort(function (a, b) {
+    return a.x > b.x ? 1 : -1
+  });
   orderedObjects.reverse();
 
   let prevX = false;
 
-  $(orderedObjects).each(function(index, value) {
+  $(orderedObjects).each(function (index) {
     orderedObjects[index].x_end = prevX;
     prevX = orderedObjects[index].x;
   });
@@ -371,19 +376,18 @@ function getOrderedMajors(xAxis) {
  * @returns {string}
  */
 function renderXAxisMajorsJson(xAxis) {
-  const majorObjects   = getOrderedMajors(xAxis);
+  const majorObjects = getOrderedMajors(xAxis);
   let majorsObjectJson = '';
 
-  if(majorObjects && majorObjects.length) {
-    $.each(majorObjects, function(index, majorObject) {
-      const majorText  = majorObject.node.find('div').first().html();
+  if (majorObjects && majorObjects.length) {
+    $.each(majorObjects, function (index, majorObject) {
+      const majorText = majorObject.node.find('div').first().html();
       const minorsJson = renderXAxisMinorsJson(xAxis, majorObject.x, majorObject.x_end, index === 0);
       majorsObjectJson +=
-          (majorsObjectJson === '' ? '' : ',') +
-          '{text: "'+majorText+'", x: ' + majorObject.x + ', minor: ' + minorsJson + '}';
+        (majorsObjectJson === '' ? '' : ',') +
+        '{text: "' + majorText + '", x: ' + majorObject.x + ', minor: ' + minorsJson + '}';
     });
-  }
-  else {
+  } else {
     majorsObjectJson += '{text: "", x: ' + majorObject.x + ', minor: ' + renderXAxisMinorsJson(xAxis) + '}';
   }
 
@@ -396,48 +400,48 @@ function renderXAxisMajorsJson(xAxis) {
  * @returns {string}
  */
 function renderXAxisJson(xAxis) {
-  const firstXAxisMinor      = xAxis.find('.vis-text.vis-minor:not(.vis-measure)').first();
+  const firstXAxisMinor = xAxis.find('.vis-text.vis-minor:not(.vis-measure)').first();
   const firstXAxisCorrection = getCssTransformCoordinates(firstXAxisMinor).x;
 
   return 'xAxis: {' +
-      'height: tableXAxisBarHeight,' +
-      'x: '+firstXAxisCorrection+',' +
-      'major: ' + renderXAxisMajorsJson(xAxis) +
+    'height: tableXAxisBarHeight,' +
+    'x: ' + firstXAxisCorrection + ',' +
+    'major: ' + renderXAxisMajorsJson(xAxis) +
     '}';
 }
 
 function parseVisGroups(visGroups) {
-  const targetField      = $('#html').first();
-  const timeline         = $('.vis-timeline').first();
-  const xAxis            = $(".vis-time-axis.vis-foreground").first();
-  const yAxis            = $(".vis-panel.vis-left").first();
-  const firstXAxisMinor  = xAxis.find('.vis-text.vis-minor:not(.vis-measure)').first();
-  const firstGroup       = getFirst(visGroups) || false;
-  const firstRow         = firstGroup ? getFirst(firstGroup.itemRows) : false;
-  const firstItem        = firstRow && firstRow[0] && firstRow[0].node ? firstRow[0].node : false;
+  const targetField = $('#html').first();
+  const timeline = $('.vis-timeline').first();
+  const xAxis = $(".vis-time-axis.vis-foreground").first();
+  const yAxis = $(".vis-panel.vis-left").first();
+  const firstXAxisMinor = xAxis.find('.vis-text.vis-minor:not(.vis-measure)').first();
+  const firstGroup = getFirst(visGroups) || false;
+  const firstRow = firstGroup ? getFirst(firstGroup.itemRows) : false;
+  const firstItem = firstRow && firstRow[0] && firstRow[0].node ? firstRow[0].node : false;
   const firstItemContent = firstItem ? firstItem.find('.vis-item-content').first() : false;
-  const firstYAxisLabel  = $(".vis-label:visible").first();
-  const currentTime      = $(".vis-current-time");
-  const showYAxisBar     = getCssPxValue(firstYAxisLabel, 'width') > 0 ? 'true' : 'false';
-  const canvasWidth      = getCssPxValue(timeline, 'width');
-  const fitToPageWidth   = $('#fit_to_page_width').prop('checked');
-  const zoomLevel        = parseInt($('#pdf_zoom').val(), 10);
+  const firstYAxisLabel = $(".vis-label:visible").first();
+  const currentTime = $(".vis-current-time");
+  const showYAxisBar = getCssPxValue(firstYAxisLabel, 'width') > 0 ? 'true' : 'false';
+  const canvasWidth = getCssPxValue(timeline, 'width');
+  const fitToPageWidth = $('#fit_to_page_width').prop('checked');
+  const zoomLevel = parseInt($('#pdf_zoom').val(), 10);
 
-  const urlJS                = targetField.data('url-js');
-  const urlCSS               = targetField.data('url-css');
-  const pageWidth            = 1550; // A3 width
-  const zoomFactor           = zoomLevel / 100 > 0 ? zoomLevel / 100 : 1;
-  const pageWidthFactor      = fitToPageWidth && pageWidth / canvasWidth > 0 ? pageWidth / canvasWidth : 1;
-  const pageScaleFactor      = fitToPageWidth ? pageWidthFactor : zoomFactor;
-  const fontSize             = getCssPxValue(firstItem, 'font-size');
-  const lineHeight           = getCssPxValue(firstItem, 'line-height');
-  const tableXAxisBarHeight  = getCssPxValue(xAxis, "height");
-  const tableYAxisBarWidth   = getCssPxValue(yAxis, "width");
-  const borderSize           = getCssPxValue(firstItem, 'border-top-width');
-  const padding              = getCssPxValue(firstItemContent, 'padding-top');
-  const xAxisPadding         = getCssPxValue(firstXAxisMinor, 'padding-top');
-  const currentTimeX         = currentTime.length ? getCssTransformCoordinates(currentTime.first()).x : -1;
-  const pageData             = '{' + renderXAxisJson(xAxis) + ',' + renderGroupsJson(visGroups) + '}';
+  const urlJS = targetField.data('url-js');
+  const urlCSS = targetField.data('url-css');
+  const pageWidth = 1550; // A3 width
+  const zoomFactor = zoomLevel / 100 > 0 ? zoomLevel / 100 : 1;
+  const pageWidthFactor = fitToPageWidth && pageWidth / canvasWidth > 0 ? pageWidth / canvasWidth : 1;
+  const pageScaleFactor = fitToPageWidth ? pageWidthFactor : zoomFactor;
+  const fontSize = getCssPxValue(firstItem, 'font-size');
+  const lineHeight = getCssPxValue(firstItem, 'line-height');
+  const tableXAxisBarHeight = getCssPxValue(xAxis, "height");
+  const tableYAxisBarWidth = getCssPxValue(yAxis, "width");
+  const borderSize = getCssPxValue(firstItem, 'border-top-width');
+  const padding = getCssPxValue(firstItemContent, 'padding-top');
+  const xAxisPadding = getCssPxValue(firstXAxisMinor, 'padding-top');
+  const currentTimeX = currentTime.length ? getCssTransformCoordinates(currentTime.first()).x : -1;
+  const pageData = '{' + renderXAxisJson(xAxis) + ',' + renderGroupsJson(visGroups) + '}';
 
   $('input#html').val(`<!DOCTYPE html>
 <html lang="en">
@@ -484,8 +488,8 @@ function parseVisGroups(visGroups) {
 }
 
 // If the perceived background color is dark, switch the font color to white.
-const injectContrastingColor = function(dataset) {
-  dataset.forEach(function(entry) {
+const injectContrastingColor = function (dataset) {
+  dataset.forEach(function (entry) {
     if (entry.style && typeof entry.style === "string") {
       const backgroundColorMatch = entry.style.match(
         /background-color:\s(#[0-9A-Fa-f]{6})/
@@ -512,7 +516,7 @@ const injectContrastingColor = function(dataset) {
   });
 };
 
-const setupTimeline = function(container, options_in) {
+const setupTimeline = function (container, options_in) {
   const records_base64 = container.data("records");
   const json = atob(records_base64);
   const dataset = JSON.parse(json);
@@ -523,7 +527,8 @@ const setupTimeline = function(container, options_in) {
   const json_group = atob(groups);
   groups = JSON.parse(json_group);
   const is_dashboard = !!container.data("dashboard");
-  const layout_identifier = $("body").data("layout-identifier");
+  let $body = $("body");
+  const layout_identifier = $body.data("layout-identifier");
 
   // See http://visjs.org/docs/timeline/#Editing_Items
   const options = {
@@ -532,13 +537,13 @@ const setupTimeline = function(container, options_in) {
         horizontal: -1
       }
     },
-    moment: function(date) {
+    moment: function (date) {
       return moment(date).utc();
     },
     clickToUse: is_dashboard,
     zoomFriction: 10,
     template: Handlebars.templates.timelineitem,
-    orientation: { axis: "both" }
+    orientation: {axis: "both"}
   };
 
   // Merge any additional options supplied
@@ -578,7 +583,7 @@ const setupTimeline = function(container, options_in) {
   // functionality to add new items on range change
   let persistent_max;
   let persistent_min;
-  tl.on("rangechanged", function(props) {
+  tl.on("rangechanged", function (props) {
     if (!props.byUser) {
       if (!persistent_min) {
         persistent_min = props.start.getTime();
@@ -682,7 +687,8 @@ const setupTimeline = function(container, options_in) {
     // leave to end in case of problems rendering this range
     update_range_session(props);
   });
-  const csrf_token = $("body").data("csrf-token");
+  const csrf_token = $body.data("csrf-token");
+
   /**
    * @param {object} props
    * @returns {void}
@@ -730,14 +736,14 @@ const setupTimeline = function(container, options_in) {
       async: false,
       url: url,
       dataType: "json",
-      success: function(data) {
+      success: function (data) {
         items.add(data);
       }
     });
   }
 
   $("#tl_group")
-    .on("change", function() {
+    .on("change", function () {
       const fixedvals = $(this)
         .find(":selected")
         .data("fixedvals");
@@ -753,34 +759,34 @@ const setupTimeline = function(container, options_in) {
 };
 
 // timeline PDF printer actions
-$(document).ready(function() {
+$(document).on("ready", function () {
   const printModal = $("#modal_pdf");
 
   if (printModal.length) {
     const printForm = printModal.find('form').first();
     const fitToPageField = $('#fit_to_page_width').first();
-    const zoomField      = $('#pdf_zoom').first();
+    const zoomField = $('#pdf_zoom').first();
 
     // add toggle settings for zoom and fit to page functions. You can either zoom, or make the timeline fit to the
     // width of the page, but not both at the same time.
-    fitToPageField.change(function() {
-      if($(this).is(":checked")) {
+    fitToPageField.on("change", function () {
+      if ($(this).is(":checked")) {
         zoomField.data('original-value', zoomField.val());
         zoomField.val(100);
         zoomField.prop('disabled', true);
       } else {
-        const originalFieldValue =  parseInt(zoomField.data('original-value'), 10);
+        const originalFieldValue = parseInt(zoomField.data('original-value'), 10);
         zoomField.val(originalFieldValue > 0 ? originalFieldValue : 100);
         zoomField.prop('disabled', false);
       }
     });
 
     // when the printing modal is submitted, scan the current timeline's structure, to send it to the PDF printer
-    printForm.submit(function() {
+    printForm.on("submit", function () {
       parseTimelineForPdfPrinting();
       return true;
     });
   }
 });
 
-export { setupTimeline };
+export {setupTimeline};

@@ -1,19 +1,18 @@
-.help-view
-{
-    a::after {
-        @extend %icon-font;
-        display: block;
-        font-size: 1.125rem;
-        color: $brand-secundary;
-        max-width: 1.125rem;
-        content: "\E816";
-    }
+.help-view {
+  a::after {
+    @extend %icon-font;
+    display: block;
+    font-size: 1.125rem;
+    color: $brand-secundary;
+    max-width: 1.125rem;
+    content: "\E816";
+  }
 
-    label {
-        font-weight: bold;
+  label {
+    font-weight: bold;
 
-        &.checkbox-label {
-            font-weight: normal;
-        }
+    &.checkbox-label {
+      font-weight: normal;
     }
+  }
 }

@@ -1,1 +1,1 @@
-export { createElement } from './lib/elementFactory';
+export {createElement} from './lib/elementFactory';

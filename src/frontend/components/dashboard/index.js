@@ -1,4 +1,4 @@
-import { initializeComponent, getComponentElements } from 'component'
+import {initializeComponent, getComponentElements} from 'component'
 
 export default (scope) => {
 
@@ -9,13 +9,13 @@ export default (scope) => {
   import(
     /* webpackChunkName: "dashboard" */
     './lib/component'
-  ).then(({ default: DashboardComponent }) => {
+    ).then(({default: DashboardComponent}) => {
     initializeComponent(scope, '.dashboard', DashboardComponent)
   }).then(() => {
     import(
       /* webpackChunkName: "dashboardgraph" */
       './dashboard-graph/lib/component'
-    ).then(({ default: DashboardGraphComponent }) => {
+      ).then(({default: DashboardGraphComponent}) => {
       initializeComponent(scope, '.dashboard-graph', DashboardGraphComponent)
     })
   });

@@ -1,14 +1,14 @@
-import { initializeComponent, getComponentElements } from 'component'
+import {initializeComponent, getComponentElements} from 'component'
 
 export default (scope) => {
-if (!getComponentElements(scope, '.graph').length) {
+  if (!getComponentElements(scope, '.graph').length) {
     return;
-}
+  }
 
-import(
+  import(
     /* webpackChunkName: "graph" */
-    './lib/component' 
-).then(({ default: Component }) => {
+    './lib/component'
+    ).then(({default: Component}) => {
     initializeComponent(scope, '.graph', Component)
-});
+  });
 }

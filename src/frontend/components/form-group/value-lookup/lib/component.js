@@ -1,12 +1,12 @@
-import { Component } from 'component'
-import { getFieldValues } from "get-field-values"
-import { setFieldValues } from "set-field-values"
+import {Component} from 'component'
+import {getFieldValues} from "get-field-values"
+import {setFieldValues} from "set-field-values"
 
 /* Used to lookup a value at an external endpoint
  * and prefill other fields from the response */
 
 class ValueLookupComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.initLookupComponent()
   }
@@ -29,19 +29,21 @@ class ValueLookupComponent extends Component {
   setupValueLookup(field) {
     const endpoint = field.endpoint;
     const $field = field.field;
-    $field.on("change", function() {
+    $field.on("change", function () {
       const all_fields = []
       const data = {}
-      let has_values = field.fields.every(function(name_short){
-        const $f = $('.linkspace-field[data-name-short="'+name_short+'"]')
+      let has_values = field.fields.every(function (name_short) {
+        const $f = $('.linkspace-field[data-name-short="' + name_short + '"]')
         all_fields.push($f.data('name'))
         const values = getFieldValues($f)
         data[name_short] = values
-        return values.filter(function(value) { return value !== undefined }).length ? true : false
+        return !!values.filter(function (value) {
+          return value !== undefined
+        }).length
       });
       // If one of the values in this group is blank then do not perform lookup
       if (!has_values) return false
-      const formatter = new Intl.ListFormat('en-GB', { style: 'long', type: 'conjunction' })
+      const formatter = new Intl.ListFormat('en-GB', {style: 'long', type: 'conjunction'})
       const all_names = formatter.format(all_fields)
       // Remove any existing status messages on the whole record
       $('.lookup-status').addClass("d-none")
@@ -53,30 +55,30 @@ class ValueLookupComponent extends Component {
         data: data,
         traditional: true, // Don't put stupid [] after the parameter keys
         dataType: 'json',
-      }).done(function(data){
+      }).done(function (data) {
         if (data.is_error || !data.result) {
           let error = data.message ? data.message : 'Unknown error'
           addStatusMessage($field, error, false, true)
         } else {
           for (const [name, value] of Object.entries(data.result)) {
-            var $f = $('.linkspace-field[data-name-short="'+name+'"]')
+            const $f = $('.linkspace-field[data-name-short="' + name + '"]');
             setFieldValues($f, value)
           }
           removeStatusMessage($field)
         }
       })
-      .fail(function(jqXHR, textStatus) {
-        // Use error in JSON from endpoint if available, otherwise try and
-        // interpret error response appropriately
-        const err_message = textStatus == "timeout"
-          ? `Failed to look up ${all_names}: request timed out`
-          : textStatus == "parsererror" // result not in JSON
-          ? `Failed to look up ${all_names}: unexpected response format from server`
-          : (jqXHR.responseJSON && jqXHR.responseJSON.message)
-          ? jqXHR.responseJSON.message
-          : `Failed to look up ${all_names}: ${jqXHR.statusText}`
-        addStatusMessage($field, err_message, false, true)
-      });
+        .fail(function (jqXHR, textStatus) {
+          // Use error in JSON from endpoint if available, otherwise try and
+          // interpret error response appropriately
+          const err_message = textStatus === "timeout"
+            ? `Failed to look up ${all_names}: request timed out`
+            : textStatus === "parsererror" // result not in JSON
+              ? `Failed to look up ${all_names}: unexpected response format from server`
+              : (jqXHR.responseJSON && jqXHR.responseJSON.message)
+                ? jqXHR.responseJSON.message
+                : `Failed to look up ${all_names}: ${jqXHR.statusText}`
+          addStatusMessage($field, err_message, false, true)
+        });
     });
   }
 }

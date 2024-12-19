@@ -89,8 +89,9 @@ h3 {
 
 table.table-bordered {
   border: solid 1px $gray;
-  thead>tr>th,
-  tbody>tr>td {
+
+  thead > tr > th,
+  tbody > tr > td {
     border: solid 1px $gray;
   }
 }

@@ -11,7 +11,7 @@ class Modal {
 
   // Method for unsubscribing from observable
   unsubscribe(subscriber) {
-    var index = this.observers.indexOf(subscriber)
+    const index = this.observers.indexOf(subscriber);
     this.observers.splice(index, 1)
   }
 
@@ -78,7 +78,7 @@ class Modal {
 
 const modal = new Modal
 
-export { 
+export {
   Modal,
   modal
 }

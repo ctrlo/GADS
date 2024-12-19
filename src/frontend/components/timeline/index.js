@@ -1,4 +1,4 @@
-import { initializeComponent, getComponentElements } from 'component'
+import {initializeComponent, getComponentElements} from 'component'
 
 export default (scope) => {
   if (!getComponentElements(scope, '.timeline').length) {
@@ -8,7 +8,7 @@ export default (scope) => {
   import(
     /* webpackChunkName: "timeline" */
     './lib/component'
-  ).then(({ default: Component }) => {
+    ).then(({default: Component}) => {
     initializeComponent(scope, '.timeline', Component)
   });
 }

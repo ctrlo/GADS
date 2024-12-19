@@ -1,11 +1,11 @@
 const do_plot = (plotData, options_in) => {
   const ticks = plotData.xlabels
   let plotOptions = {}
-  const showmarker = options_in.type == 'line' ? true : false
+  const showmarker = options_in.type === 'line'
 
   plotOptions.highlighter = {
     showMarker: showmarker,
-    tooltipContentEditor: (str, pointIndex, index, plot) =>
+    tooltipContentEditor: (_, pointIndex, index, plot) =>
       plot._plotData[pointIndex][index][1]
   };
 
@@ -16,7 +16,7 @@ const do_plot = (plotData, options_in) => {
     plotOptions.seriesDefaults = seriesDefaults.default
   }
 
-  if (options_in.type != 'donut' && options_in.type != 'pie') {
+  if (options_in.type !== 'donut' && options_in.type !== 'pie') {
     plotOptions.series = plotData.labels
     plotOptions.axes = {
       xaxis: {
@@ -67,7 +67,7 @@ const do_plot = (plotData, options_in) => {
 // Phantomjs to produce PNG versions of the graphs. Once jqplot has been
 // replaced by a more modern graphing library, the PNG/Phantomjs functionality
 // will probably unneccessary if that functionality is built into the library.
-const do_plot_json = (window.do_plot_json = function(plotData, options_in) {
+const do_plot_json = (window.do_plot_json = function (plotData, options_in) {
   plotData = JSON.parse(atob(plotData))
   options_in = JSON.parse(atob(options_in))
   do_plot(plotData, options_in);
@@ -111,4 +111,4 @@ const makeSeriesDefaults = () => ({
   }
 })
 
-export { do_plot_json }
+export {do_plot_json}

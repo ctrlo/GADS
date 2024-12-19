@@ -20,4 +20,4 @@ class Frame {
   }
 }
 
-export { Frame }
+export {Frame}

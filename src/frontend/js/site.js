@@ -1,5 +1,5 @@
 import "regenerator-runtime/runtime.js"
-import { initializeRegisteredComponents, registerComponent } from 'component'
+import {initializeRegisteredComponents, registerComponent} from 'component'
 import 'bootstrap'
 import 'components/graph/lib/chart'
 import 'util/filedrag'

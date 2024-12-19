@@ -1,5 +1,5 @@
-import { marked } from "marked";
-import { Component } from "component";
+import {marked} from "marked";
+import {Component} from "component";
 
 class MarkdownComponent extends Component {
   constructor(element) {
@@ -9,11 +9,11 @@ class MarkdownComponent extends Component {
 
   renderMarkdown(md) {
     const mdEncoded = $('<span>').text(md).html()
-    return marked(mdEncoded);
+    return marked(mdEncoded, {async: false});
   }
 
   initMarkdownEditor() {
-    marked.use({ breaks: true });
+    marked.use({breaks: true, async: false});
 
     const $textArea = $(this.element).find(".js-markdown-input");
     const $preview = $(this.element).find(".js-markdown-preview");
@@ -23,7 +23,7 @@ class MarkdownComponent extends Component {
         $preview.html(htmlText);
       }
     });
-    $textArea.keyup(() => {
+    $textArea.on("keyup", () => {
       const markdownText = $textArea.val();
       if (!markdownText || markdownText === "") {
         $preview.html('<p class="text-info">Nothing to preview!</p>');

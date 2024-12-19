@@ -1,7 +1,7 @@
 // We're using the 'client' side of React, not server, nor native.
 'use client'
 
-import { Component } from 'component'
+import {Component} from 'component'
 import "react-app-polyfill/stable";
 
 import "core-js/es/array/is-array";
@@ -17,11 +17,11 @@ import React from "react";
 import {createRoot} from "react-dom/client";
 import App from "./react/App";
 import ApiClient from "./react/api";
-import { fromJson } from 'util/common';
+import {fromJson} from 'util/common';
 import {DashboardDefinition} from "./react/interfaces/interfaces";
 
 class DashboardComponent extends Component {
-  constructor(element: HTMLElement)  {
+  constructor(element: HTMLElement) {
     super(element)
 
     this.initDashboard()
@@ -30,7 +30,7 @@ class DashboardComponent extends Component {
   initDashboard() {
     this.element.className = "";
     const widgetsEls = Array.prototype.slice.call(document.querySelectorAll("#ld-app > div"));
-    const widgets = widgetsEls.map((el:HTMLElement) => ({
+    const widgets = widgetsEls.map((el: HTMLElement) => ({
       html: el.innerHTML,
       config: fromJson(el.getAttribute("data-grid")),
     }));
@@ -47,7 +47,7 @@ class DashboardComponent extends Component {
         widgetTypes={fromJson(this.element.getAttribute("data-widget-types")) as string[]}
         widgets={widgets}
         key={this.element.getAttribute("data-dashboard")}
-        dashboardId={parseInt(this.element.getAttribute("data-dashboard-id"))} />
+        dashboardId={parseInt(this.element.getAttribute("data-dashboard-id"))}/>
     );
   }
 }

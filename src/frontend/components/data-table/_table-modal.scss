@@ -1,16 +1,16 @@
 .table-modal {
-    position: fixed;
-    z-index: 1020;
-    /* Make sure this modal is above the nav bar */
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    padding: 1rem;
-    background: white;
+  position: fixed;
+  z-index: 1020;
+  /* Make sure this modal is above the nav bar */
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 1rem;
+  background: white;
 
-    .row {
-        margin-right: 0;
-        margin-left: 0;
-    }
+  .row {
+    margin-right: 0;
+    margin-left: 0;
+  }
 }

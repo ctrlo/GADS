@@ -1,7 +1,7 @@
-import { Component } from 'component'
+import {Component} from 'component'
 
 class CalculatorComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
 
@@ -12,7 +12,7 @@ class CalculatorComponent extends Component {
     const selector = this.el.find('input:not([type="checkbox"])')
     const $nodes = this.el.find('label:not(.checkbox-label)')
 
-    $nodes.each((i, node) => {
+    $nodes.each((_, node) => {
       const $el = $(node);
       const calculator_id = 'calculator_div'
       const calculator_elem = $(`<div class="calculator-dropdown dropdown-menu" id="${calculator_id}"></div>`)
@@ -28,15 +28,15 @@ class CalculatorComponent extends Component {
 
       calculator_elem.append(
         '<form class="form-inline">' +
-          '    <div class="form-group"><div class="radio-group radio-group--buttons" data-toggle="buttons"></div></div>' +
-          '    <div class="form-group"><div class="input"><input type="text" placeholder="Number" class="form-control"></input></div></div>' +
-          '    <div class="form-group">' +
-          '        <input type="submit" value="Calculate" class="btn btn-default"></input>' +
-          "    </div>" +
-          "</form>"
+        '    <div class="form-group"><div class="radio-group radio-group--buttons" data-toggle="buttons"></div></div>' +
+        '    <div class="form-group"><div class="input"><input type="text" placeholder="Number" class="form-control" /></div></div>' +
+        '    <div class="form-group">' +
+        '        <input type="submit" value="Calculate" class="btn btn-default" />' +
+        "    </div>" +
+        "</form>"
       )
 
-      $(document).on('mouseup',(e) => {
+      $(document).on('mouseup', (e) => {
         if (
           !calculator_elem.is(e.target) &&
           calculator_elem.has(e.target).length === 0
@@ -53,7 +53,7 @@ class CalculatorComponent extends Component {
           action: 'add',
           label: '+',
           keypress: ['+'],
-          operation: function(a, b) {
+          operation: function (a, b) {
             return a + b
           }
         },
@@ -61,7 +61,7 @@ class CalculatorComponent extends Component {
           action: 'subtract',
           label: '-',
           keypress: ['-'],
-          operation: function(a, b) {
+          operation: function (a, b) {
             return a - b
           }
         },
@@ -69,7 +69,7 @@ class CalculatorComponent extends Component {
           action: 'multiply',
           label: '×',
           keypress: ['*', 'X', 'x', '×'],
-          operation: function(a, b) {
+          operation: function (a, b) {
             return a * b
           }
         },
@@ -77,7 +77,7 @@ class CalculatorComponent extends Component {
           action: 'divide',
           label: '÷',
           keypress: ['/', '÷'],
-          operation: function(a, b) {
+          operation: function (a, b) {
             return a / b
           }
         }
@@ -89,8 +89,8 @@ class CalculatorComponent extends Component {
         const btn = calculator_button[i]
         const button_elem = $(
           `<div class="radio-group__option">` +
-            `<input type="radio" name="op" id="op_${btn.action}" class="radio-group__input btn_label_${btn.action}">` +
-            `<label class="radio-group__label" for="op_${btn.action}">${btn.label}</label>` +
+          `<input type="radio" name="op" id="op_${btn.action}" class="radio-group__input btn_label_${btn.action}">` +
+          `<label class="radio-group__label" for="op_${btn.action}">${btn.label}</label>` +
           `</div>`
         )
 
@@ -99,7 +99,7 @@ class CalculatorComponent extends Component {
         $(button_elem).find('.radio-group__label').on('click', () => {
           $(button_elem).find('.radio-group__input').prop("checked", true)
           calculator_operation = btn.operation
-          calculator_elem.find(':text').focus()
+          calculator_elem.find(':text').trigger('focus')
         })
 
         for (const j in btn.keypress) {

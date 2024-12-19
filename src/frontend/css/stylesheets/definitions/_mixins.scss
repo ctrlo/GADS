@@ -219,9 +219,7 @@
   label {
     @if $type == "checkbox" {
       @include custom-checkbox;
-    }
-
-    @else {
+    } @else {
       @include custom-radio;
     }
 
@@ -237,9 +235,7 @@
   input[type=#{$type}]:checked + label {
     @if $type == "checkbox" {
       @include custom-checkbox-checked;
-    }
-
-    @else {
+    } @else {
       &::after {
         content: '';
         display: inline-block;
@@ -268,9 +264,7 @@
         border-color: $gray;
         background-color: $gray;
       }
-    }
-
-    @else {
+    } @else {
       &::after {
         background-color: $gray;
       }
@@ -324,9 +318,7 @@
         left: 0.75rem;
       }
     }
-  }
-
-  @else {
+  } @else {
     padding-right: 1.5rem;
 
     &::after {

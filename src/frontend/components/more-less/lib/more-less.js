@@ -11,7 +11,7 @@ class MoreLess {
 
   // Method for unsubscribing from observable
   unsubscribe(subscriber) {
-    var index = this.observers.indexOf(subscriber)
+    const index = this.observers.indexOf(subscriber);
     this.observers.splice(index, 1)
   }
 
@@ -23,6 +23,6 @@ class MoreLess {
 
 const moreLess = new MoreLess
 
-export { moreLess }
+export {moreLess}
 
 

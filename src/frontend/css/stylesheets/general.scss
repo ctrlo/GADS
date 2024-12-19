@@ -2,15 +2,15 @@
 
 // Bootstrap 4.6
 @import "~bootstrap/scss/bootstrap",
-        "~datatables.net-bs4/css/dataTables.bootstrap4.min.css",
-        "~datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css",
-        "~datatables.net-rowreorder-bs4/css/rowReorder.bootstrap4.min.css";
+"~datatables.net-bs4/css/dataTables.bootstrap4.min.css",
+"~datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css",
+"~datatables.net-rowreorder-bs4/css/rowReorder.bootstrap4.min.css";
 
 @import "definitions/fonts", "definitions/mixins";
 
 // React-grid-layout
 @import "~react-resizable/css/styles.css",
-        "external/react-grid-layout/styles.min.css";
+"external/react-grid-layout/styles.min.css";
 
 // Base settings
 @import "base/global";
@@ -29,43 +29,43 @@
 
 // content block
 @import "content-block/content-block",
-        "content-block/content-block-footer/content-block-footer";
+"content-block/content-block-footer/content-block-footer";
 
 // dashboard
 @import "dashboard/dashboard",
-        "dashboard/lib/react/app",
-        "dashboard/lib/react/footer",
-        "dashboard/lib/react/header",
-        "dashboard/lib/react/index";
+"dashboard/lib/react/app",
+"dashboard/lib/react/footer",
+"dashboard/lib/react/header",
+"dashboard/lib/react/index";
 
 // data-table
 @import "data-table/data-table",
-        "data-table/data-table-toggle",
-        "data-table/table-modal",
-        "data-table/data-table-row";
+"data-table/data-table-toggle",
+"data-table/table-modal",
+"data-table/data-table-row";
 
 // dropdown
 @import "dropdown/dropdown", "dropdown/dropdown-group";
 
 // form group
 @import "form-group/checkbox/checkbox",
-        "form-group/checkbox/checkbox-reveal",
-        "form-group/date-range/date-range",
-        "form-group/query-builder/query-builder",
-        "form-group/fieldset",
-        "form-group/filter/filter",
-        "form-group/form-group",
-        "form-group/input/input",
-        "form-group/input/datepicker",
-        "form-group/multiple-select/multiple-select",
-        "form-group/radio-group/radio-group",
-        "form-group/select/select",
-        "form-group/select/select-reveal",
-        "form-group/tree/tree",
-        "form-group/select-widget/select-widget",
-        "form-group/switch/switch",
-        "form-group/textarea/textarea",
-        "form-group/input-group/input-group";
+"form-group/checkbox/checkbox-reveal",
+"form-group/date-range/date-range",
+"form-group/query-builder/query-builder",
+"form-group/fieldset",
+"form-group/filter/filter",
+"form-group/form-group",
+"form-group/input/input",
+"form-group/input/datepicker",
+"form-group/multiple-select/multiple-select",
+"form-group/radio-group/radio-group",
+"form-group/select/select",
+"form-group/select/select-reveal",
+"form-group/tree/tree",
+"form-group/select-widget/select-widget",
+"form-group/switch/switch",
+"form-group/textarea/textarea",
+"form-group/input-group/input-group";
 
 @import "graph/graph";
 @import "link/link";

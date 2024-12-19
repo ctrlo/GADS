@@ -1,10 +1,10 @@
-import { Component } from 'component'
+import {Component} from 'component'
 
 class ExpandableCardComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.$el = $(this.element)
-    this.$contentBlock = this.$el.closest('.content-block') 
+    this.$contentBlock = this.$el.closest('.content-block')
 
     this.initExpandableCard()
 
@@ -56,9 +56,9 @@ class ExpandableCardComponent extends Component {
       }
     })
 
-    $recordPopup.each((i, el) => {
+    $recordPopup.each((_, el) => {
       import(/* webpackChunkName: "record-popup" */ '../../record-popup/lib/component')
-        .then(({ default: RecordPopupComponent }) =>
+        .then(({default: RecordPopupComponent}) =>
           new RecordPopupComponent(el)
         );
     })
@@ -75,20 +75,19 @@ class ExpandableCardComponent extends Component {
     // and also check .table-fields as historical view will not include any
     // of the linkspace-field fields
     if (!this.$el.find('.list--fields').find('ul li').filter(function () {
-      return $(this).css("display") != "none";
+      return $(this).css("display") !== "none";
     }).length && !this.$el.find('.linkspace-field').filter(function () {
-      return $(this).css("display") != "none";
+      return $(this).css("display") !== "none";
     }).length) {
       this.$el.hide();
     }
   }
 
   canRemoveEditClass() {
-    return ! this.$contentBlock.find('.card--edit').length
+    return !this.$contentBlock.find('.card--edit').length
   }
 
-  confirmOnPageExit = function(ev) {
-    ev = ev || window.event
+  confirmOnPageExit = function (ev) {
     const message = "Please note that any changes will be lost."
     if (ev) {
       ev.returnValue = message

@@ -1,23 +1,25 @@
-import { modal } from '../../../lib/modal'
+import {modal} from '../../../lib/modal'
 import ModalComponent from '../../../lib/component'
 
 class UserModalComponent extends ModalComponent {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.emailField = this.el.find('input[name="email"]')
     this.emailText = this.el.find('.js-email')
-    
+
     this.initUserModal()
   }
 
   // Initialize the modal
   initUserModal() {
-    this.el.on('show.bs.modal', (ev) => { 
+    this.el.on('show.bs.modal', (ev) => {
       this.toggleContent(ev)
-      modal.validate() 
+      modal.validate()
       this.updateEmail()
-      this.emailField.keyup( () => { this.updateEmail() })
+      this.emailField.on("keyup", () => {
+        this.updateEmail()
+      })
     })
   }
 
@@ -52,7 +54,7 @@ class UserModalComponent extends ModalComponent {
       groups: []
     }
 
-    this.el.find('input, textarea').each((i, field) => {
+    this.el.find('input, textarea').each((_, field) => {
       if (($(field).prop('type') === 'radio' || $(field).prop('type') === 'checkbox')) {
         if ($(field).prop('checked')) {
           const fieldValue = isNaN($(field).val()) ? $(field).val() : parseInt($(field).val())
@@ -77,7 +79,7 @@ class UserModalComponent extends ModalComponent {
   }
 
   parseValue(val) {
-    return val === 'true' ? true : val === 'false' ? false : val 
+    return val === 'true' ? true : val === 'false' ? false : val
   }
 
   // Handle save

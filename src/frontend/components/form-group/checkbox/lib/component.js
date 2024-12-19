@@ -1,7 +1,7 @@
-import { Component } from 'component'
+import {Component} from 'component'
 
 class CheckboxComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
 

@@ -45,7 +45,7 @@ const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceChec
   const toggleFieldID = clickedRow.dataset.toggleFieldIdSelector + clickedRow.dataset.toggleFieldId;
   const destinationRow = destinationTable.DataTable().row(toggleFieldID)
 
-  if (destinationRow.length == 0) {
+  if (destinationRow.length === 0) {
     console.error(`Failed to toggle row; missing row ${toggleFieldID} in table ${destinationTableID}`)
     return
   }
@@ -59,7 +59,7 @@ const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceChec
       sourceRowCheckbox.checked = !forceCheck
     } else {
       // Toggle the checkbox
-      sourceRowCheckbox.checked ^= 1
+      sourceRowCheckbox.checked ^= true
     }
   }
 
@@ -83,7 +83,7 @@ const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceChec
       destinationRow.node().dataset.fieldIsToggled = forceCheck.toString()
     } else {
       // Toggle the attribute
-      destinationRow.node().dataset.fieldIsToggled = destinationRowDataAttribute == 'true' ? 'false' : 'true'
+      destinationRow.node().dataset.fieldIsToggled = destinationRowDataAttribute === 'true' ? 'false' : 'true'
     }
 
   }
@@ -93,12 +93,12 @@ const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceChec
   if (typeof sourceRowDataAttribute != "undefined") {
     if (typeof forceCheck == "boolean") {
       // Set the attribute
-      clickedRow.dataset.fieldIsToggled = !forceCheck.toString()
+      clickedRow.dataset.fieldIsToggled = (!forceCheck).toString()
     } else {
       // Toggle the attribute
-      clickedRow.dataset.fieldIsToggled = sourceRowDataAttribute == 'true' ? 'false' : 'true'
+      clickedRow.dataset.fieldIsToggled = sourceRowDataAttribute === 'true' ? 'false' : 'true'
     }
   }
 }
 
-export { bindToggleTableClickHandlers, toggleRow, toggleRowInTable }
+export {bindToggleTableClickHandlers, toggleRow, toggleRowInTable}

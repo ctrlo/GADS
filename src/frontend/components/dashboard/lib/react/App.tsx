@@ -41,9 +41,9 @@ export default function App(state: AppState) {
   const [modalOpen, setModalOpen] = React.useState(false);
   const [activeItem, setActiveItem] = React.useState<string>("");
   const [loading, setLoading] = React.useState(false);
-  
+
   useEffect(() => {
-    sidebarObservable.addSubscriber(()=> {
+    sidebarObservable.addSubscriber(() => {
       window.dispatchEvent(new Event('resize'));
     });
     initializeGlobeComponents();

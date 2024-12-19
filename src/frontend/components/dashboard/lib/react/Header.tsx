@@ -3,7 +3,7 @@
 import React from "react";
 import {DashboardDefinition, HeaderProps} from "./interfaces/interfaces";
 
-const Header = ({ hMargin, dashboards, currentDashboard, loading, includeH1 }: HeaderProps) => {
+const Header = ({hMargin, dashboards, currentDashboard, loading, includeH1}: HeaderProps) => {
   const renderMenuItem = (dashboard: DashboardDefinition) => {
     if (dashboard.name === currentDashboard.name) {
       if (includeH1) {
@@ -16,7 +16,7 @@ const Header = ({ hMargin, dashboards, currentDashboard, loading, includeH1 }: H
     }
   }
   return (
-    <div className="content-block__navigation" style={{ marginLeft: hMargin, marginRight: hMargin }}>
+    <div className="content-block__navigation" style={{marginLeft: hMargin, marginRight: hMargin}}>
       <div className="content-block__navigation-left">
         {loading ? <p className="spinner"><i className="fa fa-spinner fa-spin"></i></p> : null}
         <div className="list list--horizontal list--no-borders">
