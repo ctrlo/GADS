@@ -379,7 +379,7 @@ sub _build_for_code
             team         => $_->{team},
             title        => $_->{title},
             text         => $_->{value},
-            deleted      => GADS::DateTime::parse_datetime($_->{deleted}) ? GADS::DateTime::parse_datetime($_->{deleted})->epoch : undef,
+            deleted      => $_->{deleted} ? GADS::DateTime::parse_datetime($_->{deleted})->epoch : undef,
         }
     } @{$self->value_hash};
 
