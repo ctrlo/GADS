@@ -1,3 +1,5 @@
+import 'jstree';
+
 // General function to format date as per backend
 const format_date = function(date) {
   if (!date) return undefined;
@@ -14,7 +16,7 @@ const format_date = function(date) {
 };
 
 // get the value from a field, depending on its type
-const getFieldValues = function($depends, filtered, for_code, form_value) {
+const getFieldValues = function($depends, filtered, for_code, for_autosave) {
   const type = $depends.data("column-type");
 
   // If a field is not shown then treat it as a blank value (e.g. if fields
@@ -37,7 +39,7 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
     if ($depends.data('value-selector') == "noshow") {
       $depends.find('.table-curval-group').find('input').each(function(){
         const item = $(this);
-        values.push(item)
+        values.push(item);
       });
     } else if (filtered) {
       // Field is type "filval". Therefore the values are any visible value in
@@ -82,12 +84,12 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
           return undefined;
         }
       }
-    } else if (form_value) {
+    } else if (for_autosave) {
       values = $.map(values, function(item) {
         if (item) {
           // If this is a newly added item, return the form data instead of the
           // ID (which won't be saved yet)
-          return item.data("list-id") || item.data("form-data");
+          return item.data("list-id") || item.data("guid");
         } else {
           return null;
         }
@@ -105,7 +107,7 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
     const jstree = $depends.find('.jstree').jstree(true);
     $depends.find(".selected-tree-value").each(function() {
       const $node = $(this);
-      if (form_value) {
+      if (for_autosave) {
         values.push($node.val());
       } else if (for_code) {
         // Replicate backend format.
@@ -116,7 +118,7 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
           let parents = {};
           ps.filter(id => id !== '#').reverse().forEach(function(id, index) {
             parents["parent"+(index+1)] = jstree.get_node(id).text;
-          })
+          });
           values.push({
             value: node.text,
             parents: parents
@@ -175,17 +177,17 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
       } else {
         return codevals[0];
       }
-    } else if (form_value) {
+    } else if (for_autosave) {
       values = dateranges.map(function(dr) {
         return {
             from: dr.from.val(),
             to: dr.to.val()
-        }
-      })
+        };
+      });
     } else {
       values = dateranges.map(function(dr) {
         return dr.from.val() + ' to ' + dr.to.val();
-      })
+      });
     }
 
   } else if (type === "date") {
@@ -195,12 +197,12 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
         const $df = $(this);
         return for_code ? format_date($df.datepicker("getDate")) : $df.val();
       }).get();
-      if (for_code || form_value) {
+      if (for_code || for_autosave) {
         return values;
       }
     } else {
       const $df = $depends.find(".form-control");
-      if (for_code || form_value) {
+      if (for_code || for_autosave) {
         return format_date($df.datepicker("getDate"));
       } else {
         values = [$df.val()];
@@ -210,13 +212,13 @@ const getFieldValues = function($depends, filtered, for_code, form_value) {
   } else if (type === "file") {
 
     values = $depends.find("input:checkbox:checked").map(function(){
-      if (form_value) {
+      if (for_autosave) {
         return {
             id: $(this).val(),
             filename: $(this).data('filename')
-        }
+        };
       } else {
-        return $(this).data('filename')
+        return $(this).data('filename');
       }
     }).get();
 

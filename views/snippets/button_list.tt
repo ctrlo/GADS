@@ -42,7 +42,8 @@
         name="[% button.name %]"
         value="[% button.value || button.name %]"
         class="[% button.class %]"[% IF button.style %]
-        style="[% button.style %]"[% END %]
+        style="[% button.style %]"[% END %][% IF button.data_attributes %]
+        [% INCLUDE fields/sub/data_attributes.tt data_attributes = button.data_attributes %][% END %]
       >
         <span class="btn__title">[% button.label || button.name | html %]</span>
       </button>
