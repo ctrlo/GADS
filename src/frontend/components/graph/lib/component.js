@@ -1,13 +1,13 @@
 import {Component} from 'component'
-import '../../../js/lib/jqplot/jquery.jqplot.min'
-import '../../../js/lib/jqplot/jqplot.barRenderer'
-import '../../../js/lib/jqplot/jqplot.pieRenderer'
-import '../../../js/lib/jqplot/jqplot.donutRenderer'
-import '../../../js/lib/jqplot/jqplot.canvasTextRenderer'
-import '../../../js/lib/jqplot/jqplot.categoryAxisRenderer'
-import '../../../js/lib/jqplot/jqplot.canvasAxisLabelRenderer'
-import '../../../js/lib/jqplot/jqplot.canvasAxisTickRenderer'
-import '../../../js/lib/jqplot/jqplot.highlighter'
+import 'js/lib/jqplot/jquery.jqplot.min'
+import 'js/lib/jqplot/jqplot.barRenderer'
+import 'js/lib/jqplot/jqplot.pieRenderer'
+import 'js/lib/jqplot/jqplot.donutRenderer'
+import 'js/lib/jqplot/jqplot.canvasTextRenderer'
+import 'js/lib/jqplot/jqplot.categoryAxisRenderer'
+import 'js/lib/jqplot/jqplot.canvasAxisLabelRenderer'
+import 'js/lib/jqplot/jqplot.canvasAxisTickRenderer'
+import 'js/lib/jqplot/jqplot.highlighter'
 
 class GraphComponent extends Component {
   constructor(element) {

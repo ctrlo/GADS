@@ -1,4 +1,4 @@
-import '../../../../../testing/globals.definitions';
+import 'testing/globals.definitions';
 import {createElement} from "./elementFactory";
 import {describe, it, expect} from "@jest/globals"
 

@@ -1,4 +1,4 @@
-import "../../../../../testing/globals.definitions";
+import "testing/globals.definitions";
 import FileDrag from './filedrag';
 import {describe, it, expect, jest} from "@jest/globals";
 

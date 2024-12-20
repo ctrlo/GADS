@@ -1,4 +1,4 @@
-import {initGlobals} from "../../../testing/globals.definitions";
+import {initGlobals} from "testing/globals.definitions";
 import SubmitFieldButtonComponent from "./submit-field-button";
 import {describe, beforeEach, expect, it} from "@jest/globals";
 

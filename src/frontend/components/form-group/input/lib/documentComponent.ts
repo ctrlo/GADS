@@ -1,9 +1,9 @@
-import '../../../button/lib/rename-button';
+import 'components/button/lib/rename-button';
 import {upload} from 'util/upload/UploadControl';
 import {validateCheckboxGroup} from 'validation';
 import {formdataMapper} from 'util/mapper/formdataMapper';
 import {logging} from 'logging';
-import {RenameEvent} from '../../../button/lib/rename-button';
+import {RenameEvent} from 'components/button/lib/rename-button';
 import {fromJson} from 'util/common';
 
 interface FileData {

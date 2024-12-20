@@ -8,7 +8,7 @@ import RGL from "react-grid-layout";
 
 import Header from "./Header";
 import Footer from "./Footer";
-import {sidebarObservable} from '../../../sidebar/lib/sidebarObservable';
+import {sidebarObservable} from 'components/sidebar/lib/sidebarObservable';
 import {AppState, WidgetData} from "./interfaces/interfaces";
 import {compare} from "util/common";
 import Dashboard from "./Dashboard";

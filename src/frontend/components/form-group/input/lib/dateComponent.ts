@@ -1,4 +1,4 @@
-import initDateField from "../../../datepicker/lib/helper";
+import initDateField from "components/datepicker/lib/helper";
 
 class DateComponent {
   readonly type = 'date';
