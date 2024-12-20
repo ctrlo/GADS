@@ -1,6 +1,6 @@
 import "testing/globals.definitions";
 import {logging} from "logging";
-import {describe, beforeEach, afterEach, jest, it, expect} from "@jest/globals";
+import {describe, jest, it, expect} from "@jest/globals";
 
 const dom = `
 <div>
