@@ -63,8 +63,8 @@ class RenameButton {
    */
   private createElements(button: JQuery<HTMLButtonElement>, id: string | number) {
     if (!id) throw new Error("File ID is null or empty");
-    if (!button || button.length < 1) throw new Error("Button element is null or empty")
-    const fileId = id as number ?? parseInt(id.toString());
+    if (!button || button.length < 1) throw new Error("Button element is null or empty") // This line will not throw because the plugin checks for null on load
+    const fileId = typeof id === "number" ? id: isNaN(parseInt(id)) ? null : parseInt(id);
     if (!fileId) throw new Error("Invalid file id!");
     button.closest(".row")
       .append(
