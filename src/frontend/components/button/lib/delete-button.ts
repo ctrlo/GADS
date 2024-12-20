@@ -22,11 +22,11 @@ export default function createDeleteButton(element: JQuery<HTMLElement>) {
       }
     } catch (e) {
       logging.error(e)
-      this.el.on('click', function (e: JQuery.ClickEvent) {
-        e.stopPropagation()
-      });
+      ev.stopPropagation()
+      return;
     }
 
+    console.error($deleteModal.find('.modal-title').length === 0? 'No title' : 'Title exists');
     $deleteModal.find('.modal-title').text(modalTitle)
     $deleteModal.find('button[type=submit]').val(id)
   });
