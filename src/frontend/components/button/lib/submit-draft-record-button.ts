@@ -2,7 +2,7 @@
  * Create a submit draft record button
  * @param element {JQuery<HTMLElement>} The button element
  */
-export default function createSubmitDraftRecordButton(element: JQuery<HTMLElement>) {
+const createSubmitDraftRecordButton = (element: JQuery<HTMLElement>) => {
   element.on("click", (ev: JQuery.ClickEvent) => {
     const $button = $(ev.target).closest('button');
     const $form = $button.closest("form");
@@ -11,3 +11,5 @@ export default function createSubmitDraftRecordButton(element: JQuery<HTMLElemen
     $form.find(".form-group *[aria-required]").removeAttr('required');
   });
 }
+
+export default createSubmitDraftRecordButton;

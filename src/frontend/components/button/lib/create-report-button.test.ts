@@ -1,6 +1,6 @@
 import "../../../testing/globals.definitions";
 import {validateRequiredFields} from 'validation';
-import CreateReportButtonComponent from "./create-report-button";
+import createReportButtonComponent from "./create-report-button";
 import {describe, it, jest, expect} from "@jest/globals";
 
 describe('create-report-button', () => {
@@ -24,7 +24,7 @@ describe('create-report-button', () => {
     `;
 
     const $submit = $('#submit');
-    new CreateReportButtonComponent($submit);
+    createReportButtonComponent($submit);
     const submitSpy = jest.fn((ev: JQuery.Event) => {
       ev.preventDefault();
       ev.stopPropagation();
@@ -56,7 +56,7 @@ describe('create-report-button', () => {
     `;
 
     const $submit = $('#submit');
-    new CreateReportButtonComponent($submit);
+    createReportButtonComponent($submit);
     const submitSpy = jest.fn((ev: JQuery.Event) => {
       ev.preventDefault();
       ev.stopPropagation();
@@ -90,7 +90,7 @@ describe('create-report-button', () => {
     `;
 
     const $submit = $('#submit');
-    new CreateReportButtonComponent($submit);
+    createReportButtonComponent($submit);
     const formSpyFn = jest.fn((ev: JQuery.Event) => {
       ev.preventDefault();
       ev.stopPropagation();

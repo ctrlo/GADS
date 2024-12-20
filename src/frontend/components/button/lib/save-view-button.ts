@@ -4,7 +4,7 @@ import "@lol768/jquery-querybuilder-no-eval";
 /**
  * SaveViewButtonComponent
  */
-export default function createSaveViewButtonComponent(el: JQuery<HTMLElement>) {
+const createSaveViewButtonComponent = (el: JQuery<HTMLElement>) => {
   const $form = el.closest('form');
   const $global = $form.find('#global');
   const $dropdown = $form.find(".select.dropdown")
@@ -34,3 +34,5 @@ export default function createSaveViewButtonComponent(el: JQuery<HTMLElement>) {
     })
   });
 }
+
+export default createSaveViewButtonComponent;

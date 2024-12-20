@@ -3,7 +3,7 @@ import {validateRequiredFields} from "validation";
 /**
  * Button to submit records
  */
-export default class SubmitRecordButton {
+class SubmitRecordButton {
   private requiredHiddenRecordDependentFieldsCleared: boolean = false;
   private canSubmitRecordForm: boolean = false;
   private disableButton: boolean = false;
@@ -56,3 +56,7 @@ export default class SubmitRecordButton {
     });
   }
 }
+
+const createSubmitRecordButton = (el: JQuery<HTMLElement>) => new SubmitRecordButton(el);
+
+export default createSubmitRecordButton;

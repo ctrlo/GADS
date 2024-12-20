@@ -41,8 +41,8 @@ class ButtonComponent extends Component {
     const map = new Map<string, (element: JQuery<HTMLElement>) => void>();
     map.set('btn-js-report', (el) => {
       import(/* webpackChunkName: "create-report-button" */ './create-report-button')
-        .then(({default: CreateReportButtonComponent}) => {
-          new CreateReportButtonComponent(el)
+        .then(({default: createReportButtonComponent}) => {
+          createReportButtonComponent(el)
         });
     });
     map.set('btn-js-more-info', (el) => {
@@ -77,8 +77,8 @@ class ButtonComponent extends Component {
     });
     map.set('btn-js-submit-record', (el) => {
       import(/* webpackChunkName: "submit-record-button" */ './submit-record-button')
-        .then(({default: SubmitRecordButtonComponent}) => {
-          new SubmitRecordButtonComponent(el);
+        .then(({default: submitRecordButtonComponent}) => {
+          submitRecordButtonComponent(el);
         });
     });
     map.set('btn-js-save-view', (el) => {

@@ -3,7 +3,7 @@ import {validateRequiredFields} from "validation";
 /**
  * CreateReportButtonComponent class to create a report submission button component
  */
-export default class CreateReportButtonComponent {
+class CreateReportButtonComponent {
   private canSubmitRecordForm: boolean = false;
 
   /**
@@ -37,3 +37,9 @@ export default class CreateReportButtonComponent {
     $button.prop("disabled", true);
   }
 }
+
+const createReportButtonComponent = (element: JQuery<HTMLElement>) => {
+    new CreateReportButtonComponent(element);
+};
+
+export default createReportButtonComponent;

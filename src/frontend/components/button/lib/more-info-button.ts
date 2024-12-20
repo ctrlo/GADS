@@ -2,7 +2,7 @@
  * Create a more info button that will load the record body into a modal.
  * @param {HTMLElement | JQuery<HTMLElement>} element The button element to attach the event to.
  */
-export default function createMoreInfoButton(element: HTMLElement | JQuery<HTMLElement>) {
+const createMoreInfoButton = (element: HTMLElement | JQuery<HTMLElement>) => {
   $(element).on("click", (ev) => {
     const $button = $(ev.target).closest('.btn');
     const record_id = $button.data('record-id');
@@ -28,3 +28,5 @@ export default function createMoreInfoButton(element: HTMLElement | JQuery<HTMLE
     });
   });
 }
+
+export default createMoreInfoButton;
