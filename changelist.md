@@ -2,6 +2,26 @@
 
 -------
 
+**Version**: 2.6.0
+**Released**: TBC
+
+-------
+
+## New features
+
+- Added autorecover functionality
+- Added option to add a reason for account rejection
+- Added mandatory fields to account requests
+
+## Fixes
+
+- Webdriver test fix to triage current issue
+- Removed deprecated buffer code
+- Moved loading graphic on tables back to top
+- User notes now persist when approving user account requests
+
+-------
+
 **Version**: 2.5.11
 **Released**: 26-11-2024
 
