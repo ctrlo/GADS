@@ -1,13 +1,8 @@
-class AutocompleteComponent {
+import InputBase from './inputBase';
+
+class AutocompleteComponent extends InputBase {
   readonly type = 'autocomplete';
-  input: JQuery<HTMLInputElement>;
-  el: JQuery<HTMLElement>;
-
-  constructor(el: HTMLElement | JQuery<HTMLElement>) {
-    this.el = $(el);
-    this.input = this.el.find<HTMLInputElement>('.form-control');
-  }
-
+  
   init() {
     const suggestionCallback = (suggestion: { id: number, name: string }) => {
       this.el.find('input[type="hidden"]').val(suggestion.id);
@@ -35,6 +30,10 @@ class AutocompleteComponent {
   }
 }
 
-export default function autocompleteComponent(el: HTMLElement | JQuery<HTMLElement>) {
-  new AutocompleteComponent(el).init();
+const autocompleteComponent = (el: HTMLElement | JQuery<HTMLElement>) => {
+  const component = new AutocompleteComponent(el);
+  component.init();
+  return component;
 }
+
+export default autocompleteComponent;

@@ -6,10 +6,14 @@ import fileComponent from "./fileComponent";
 import dateComponent from "./dateComponent";
 import autocompleteComponent from "./autocompleteComponent";
 import {initValidationOnField} from "validation";
+import InputBase from "./inputBase";
 
-type ComponentInitializer = (element: JQuery<HTMLElement> | HTMLElement) => void;
+type ComponentInitializer = (element: JQuery<HTMLElement> | HTMLElement) => InputBase;
 
 class InputComponent extends Component {
+  linkedComponent: InputBase | null = null;
+  isValidatationEnabled: boolean = false;
+
   private static componentMap: { [key: string]: ComponentInitializer } = {
     'input--password': passwordComponent,
     'input--logo': logoComponent,
@@ -28,12 +32,8 @@ class InputComponent extends Component {
   private initializeComponent() {
     const $el = $(this.element);
 
-    for (const [className, initializer] of Object.entries(InputComponent.componentMap)) {
-      if ($el.hasClass(className)) {
-        initializer(this.element);
-        break; // Assuming only one component type per element
-      }
-    }
+    this.linkedComponent = Object.entries(InputComponent.componentMap)
+      .find(([className]) => $el.hasClass(className))?.[1](this.element);
   }
 
   private initializeValidation() {
@@ -41,6 +41,7 @@ class InputComponent extends Component {
 
     if ($el.hasClass('input--required')) {
       initValidationOnField($el);
+      this.isValidatationEnabled = true;
     }
   }
 }

@@ -1,15 +1,13 @@
-class PasswordComponent {
-  // For testing purposes
-  protected readonly type = 'password';
+import InputBase from "./inputBase";
 
-  el: JQuery<HTMLElement>;
+class PasswordComponent extends InputBase {
+  readonly type = 'password';
+
   btnReveal: JQuery<HTMLElement>;
-  input: JQuery<HTMLInputElement>;
-
+  
   constructor(el: JQuery<HTMLElement> | HTMLElement) {
-    this.el = $(el);
+    super(el);
     this.btnReveal = this.el.find('.input__reveal-password');
-    this.input = this.el.find('.form-control') as JQuery<HTMLInputElement>;
   }
 
   init() {
@@ -25,6 +23,10 @@ class PasswordComponent {
   };
 }
 
-export default function passwordComponent(el: JQuery<HTMLElement> | HTMLElement) {
-  new PasswordComponent(el).init();
+const passwordComponent = (el: JQuery<HTMLElement> | HTMLElement) => {
+  const component = new PasswordComponent(el)
+  component.init();
+  return component;
 }
+
+export default passwordComponent;

@@ -1,10 +1,12 @@
 import 'components/button/lib/rename-button';
+import 'util/filedrag';
 import {upload} from 'util/upload/UploadControl';
 import {validateCheckboxGroup} from 'validation';
 import {formdataMapper} from 'util/mapper/formdataMapper';
 import {logging} from 'logging';
 import {RenameEvent} from 'components/button/lib/rename-button';
 import {fromJson} from 'util/common';
+import InputBase from './inputBase';
 
 interface FileData {
   id: number | string;
@@ -17,19 +19,16 @@ interface RenameResponse {
   is_ok: boolean;
 }
 
-class DocumentComponent {
+class DocumentComponent extends InputBase {
   readonly type = 'document';
-  readonly el: JQuery<HTMLElement>;
-  readonly fileInput: JQuery<HTMLInputElement>;
-
+  
   constructor(el: JQuery<HTMLElement> | HTMLElement) {
-    this.el = $(el);
+    super(el, '.form-control-file');
     this.el.closest('.fieldset').find('.rename').renameButton().on('rename', async (ev: RenameEvent) => {
       if (!ev) throw new Error("e is not a RenameEvent - this shouldn't happen!")
       const $target = $(ev.target);
       await this.renameFile($target.data('field-id'), ev.oldName, ev.newName, $('body').data('csrf'));
     });
-    this.fileInput = this.el.find<HTMLInputElement>('.form-control-file');
   }
 
   async init() {
@@ -49,7 +48,7 @@ class DocumentComponent {
       throw new Error('Could not find file-upload element');
     }
 
-    this.fileInput.on('change', async (ev) => {
+    this.input.on('change', async (ev) => {
       if (!(ev.target instanceof HTMLInputElement)) {
         throw new Error('Could not find file-upload element');
       }
@@ -180,6 +179,10 @@ class DocumentComponent {
  * Create a new document component
  * @param {JQuery<HTMLElement> | HTMLElement} el The element to attach the document component to
  */
-export default function documentComponent(el: JQuery<HTMLElement> | HTMLElement) {
-  Promise.all([(new DocumentComponent(el)).init()]);
-}
+const documentComponent = (el: JQuery<HTMLElement> | HTMLElement)  => {
+  const component =  new DocumentComponent(el)
+  component.init();
+  return component;
+};
+
+export default documentComponent;

@@ -1,18 +1,16 @@
 import {formdataMapper} from 'util/mapper/formdataMapper';
 import {upload} from 'util/upload/UploadControl';
+import InputBase from './inputBase';
 
-class FileComponent {
-  el: JQuery<HTMLElement>;
-  fileInput: JQuery<HTMLInputElement>;
+class FileComponent extends InputBase {
   fileName: JQuery<HTMLElement>;
   fileDelete: JQuery<HTMLElement>;
   inputFileLabel: JQuery<HTMLElement>;
 
-  protected readonly type = 'file';
+  readonly type = 'file';
 
   constructor(el: HTMLElement | JQuery<HTMLElement>) {
-    this.el = el instanceof HTMLElement ? $(el) : el;
-    this.fileInput = this.el.find('.form-control-file') as JQuery<HTMLInputElement>;
+    super(el, '.form-control-file');
     this.fileName = this.el.find('.file__name');
     this.fileDelete = this.el.find('.file__delete');
     this.inputFileLabel = this.el.find('.input__file-label');
@@ -29,7 +27,7 @@ class FileComponent {
       throw new Error('Could not find file-upload element');
     }
 
-    this.fileInput.on('change', this.changeFile);
+    this.input.on('change', this.changeFile);
     this.inputFileLabel.on('keyup', this.uploadFile);
     this.fileDelete.addClass('hidden');
     this.fileDelete.on('click', this.deleteFile);
@@ -64,20 +62,23 @@ class FileComponent {
 
   uploadFile = (ev: JQuery.KeyUpEvent) => {
     if (ev.which === 32 || ev.which === 13) {
-      this.fileInput.trigger('click');
+      this.input.trigger('click');
     }
   };
 
   deleteFile = () => {
     this.fileName.text('No file chosen');
     this.fileName.attr('title', '');
-    this.fileInput.val('');
+    this.input.val('');
     this.fileDelete.addClass('hidden');
     // TO DO: set focus back to input__file-label without triggering keyup event on it
   };
 }
 
-export default function fileComponent(el: HTMLElement | JQuery<HTMLElement>) {
+const fileComponent = (el: HTMLElement | JQuery<HTMLElement>) => {
   const component = new FileComponent(el);
   component.init();
+  return component;
 }
+
+export default fileComponent;

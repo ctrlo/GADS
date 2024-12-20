@@ -1,16 +1,14 @@
 import {formdataMapper} from 'util/mapper/formdataMapper';
 import {upload} from 'util/upload/UploadControl';
+import InputBase from './inputBase';
 
-class LogoComponent {
-  el: JQuery<HTMLElement>;
+class LogoComponent extends InputBase {
   logoDisplay: JQuery<HTMLImageElement>;
-  fileInput: JQuery<HTMLInputElement>;
-  protected readonly type = 'logo';
+  readonly type = 'logo';
 
   constructor(el: JQuery<HTMLElement> | HTMLElement) {
-    this.el = $(el);
+    super(el, '.form-control-file');
     this.logoDisplay = this.el.parent().find('img');
-    this.fileInput = this.el.find('.form-control-file') as JQuery<HTMLInputElement>;
   }
 
   init() {
@@ -20,13 +18,13 @@ class LogoComponent {
 
     this.el.find('.file').hide();
 
-    this.fileInput.on('change', this.handleFileChange);
+    this.input.on('change', this.handleFileChange);
   }
 
   handleFileChange = (ev: JQuery.ChangeEvent<HTMLInputElement>) => {
     ev.preventDefault();
     const url = this.el.data('fileupload-url');
-    const file = this.fileInput[0].files?.[0];
+    const file = this.input[0].files?.[0];
     const csrf_token = $('body').data('csrf');
 
     if (file) {
@@ -41,7 +39,10 @@ class LogoComponent {
   };
 }
 
-export default function logoComponent(el: JQuery<HTMLElement> | HTMLElement) {
+const logoComponent = (el: JQuery<HTMLElement> | HTMLElement) => {
   const component = new LogoComponent(el);
   component.init();
+  return component;
 }
+
+export default logoComponent;
