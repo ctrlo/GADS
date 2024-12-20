@@ -93,7 +93,10 @@ const config = {
     "^component$": "<rootDir>/src/frontend/js/lib/component",
     "^validation$": "<rootDir>/src/frontend/js/lib/validation",
     "^logging$": "<rootDir>/src/frontend/js/lib/logging",
-    "^util/(.*)$": "<rootDir>/src/frontend/js/lib/util/$1",
+    "^util/(.*)": "<rootDir>/src/frontend/js/lib/util/$1",
+    "^js/(.*)": "<rootDir>src/frontend/js/$1",
+    "^components/(.*)": "<rootDir>src/frontend/components/$1",
+    "^testing/(.*)": "<rootDir>/src/frontend/testing/$1"
   },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
