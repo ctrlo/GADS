@@ -4489,17 +4489,6 @@ prefix '/:layout_name' => sub {
 
 };
 
-get '/get_key' => require_login sub {
-    my $user = logged_in_user;
-
-    my $key = $user->encryption_key;
-
-    return to_json {
-        error => 0,
-        key   => $key
-    }
-};
-
 sub reset_text {
     my ($dsl, %options) = @_;
     my $site = var 'site';
