@@ -3,8 +3,8 @@ import gadsStorage from "util/gadsStorage";
 
 export default abstract class AutosaveBase extends Component {
     constructor(element: HTMLElement) {
-       super(element);
-       this.initAutosave();
+        super(element);
+        this.initAutosave();
     }
 
     get isClone() {
@@ -16,8 +16,7 @@ export default abstract class AutosaveBase extends Component {
     }
 
     get recordId() {
-        const id = location.pathname.split('/').pop();
-        return isNaN(parseInt(id)) ? 0 : id;
+        return $('body').find('.form-edit').data('current-id') || 0;
     }
 
     get storage() {
@@ -28,7 +27,7 @@ export default abstract class AutosaveBase extends Component {
         return `linkspace-record-change-${this.layoutId}-${this.recordId}`;
     }
 
-    columnKey($field:JQuery) {
+    columnKey($field: JQuery) {
         return `linkspace-column-${$field.data('column-id')}-${this.layoutId}-${this.recordId}`;
     }
 

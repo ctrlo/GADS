@@ -14,7 +14,7 @@ class GadsStorage {
     }
 
     private async getStorageKey() {
-        const fetchResult = await fetch("/get_key");
+        const fetchResult = await fetch("/api/get_key");
         const data = await fetchResult.json();
         if (data.error !== 0) {
             throw new Error("Failed to get storage key");
