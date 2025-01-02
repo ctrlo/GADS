@@ -12,6 +12,7 @@
 - Added autorecover functionality
 - Added option to add a reason for account rejection
 - Added mandatory fields to account requests
+- View All can be turned on for all curvals
 
 ## Fixes
 
