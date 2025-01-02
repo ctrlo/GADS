@@ -14,7 +14,7 @@
     END;
   END;
 -%]
-<div class="modal modal--wizzard modal--user"
+<div class="modal modal--wizzard modal--provider"
      data-config='{"url":"[% endpoint %]"}'
      id="[% modalId %]"
      tabindex="-1"
@@ -27,7 +27,7 @@
       <div class="modal-header">
         <div class="modal-header__content">
           <h3 class="modal-title" id="providerModalLabel">
-            <span class='js-add-user'>Add an Authentication Provider</span>
+            <span class='js-add-provider'>Add an Authentication Provider</span>
           </h3>
 
           <ol class="modal__steps">
@@ -69,7 +69,7 @@
 
               <div class="row mb-4">
                 <div class="col">
-                  <p class="js-add-user">In this window you can add an authentication provider in the system.</p>
+                  <p class="js-add-provider">In this window you can add an authentication provider in the system.</p>
                 </div>
               </div>
 
@@ -159,7 +159,7 @@
             <div class="container-fluid">
               <div class="row mb-4">
                 <div class="col">
-                  <p>Specify the attributes for the provider: "<span class="js-email">provider.name</span>"</p>
+                  <p>Specify the attributes for the provider: "<span class="js-provider">PROVIDER</span>"</p>
                 </div>
               </div>
 
@@ -242,7 +242,7 @@
               </div>
               <div class="row mb-4">
                 <div class="col">
-                  <p>Private keys and certificates: "<span class="js-email">USER</span>":</p>
+                  <p>Private keys and certificates for: "<span class="js-provider">PROVIDER</span>"</p>
                 </div>
               </div>
 
