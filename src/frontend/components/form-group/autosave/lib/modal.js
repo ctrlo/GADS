@@ -27,8 +27,13 @@ class AutosaveModal extends AutosaveBase {
             const type = $field.data("column-type");
             if (type === "curval") {
               $field.off("validationFailed");
+              $field.off("validationPassed");
               $field.on("validationFailed", (e) => {
                 const $li = $(`<li class="li-error">Error restoring ${name}, please check these values before submission<ul><li class="warning">${e.message}</li></ul></li>`);
+                $list.append($li);
+              });
+              $field.on("validationPassed", () => {
+                const $li = $(`<li class="li-success">Restored ${name}</li>`);
                 $list.append($li);
               });
             }

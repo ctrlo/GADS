@@ -363,12 +363,14 @@ class CurvalModalComponent extends ModalComponent {
           url,
           form_data,
           function(data) {
+            const fieldId = $form.data("curval-id");
+            const $field = $(`[data-column-type="curval"][data-column-id="${fieldId}"]`);
             if (data.error === 0) {
+              const e = $.Event("validationPassed");
+              $field.trigger(e);
               self.curvalModalValidationSucceeded($form, data.values)
             } else {
               if(autosaveLoadValue) {
-                const fieldId = $form.data("curval-id");
-                const $field = $(`[data-column-type="curval"][data-column-id="${fieldId}"]`);
                 const e = $.Event("validationFailed", { message: data.message || "Something went wrong!" });
                 $field.trigger(e);
                 // We still allow the form to submit as if it was correct
