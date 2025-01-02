@@ -96,7 +96,7 @@
             type  = "button",
             name  = "submit",
             value = "submit",
-            class = "btn btn-default",
+            class = "btn btn-default btn-js-save",
             label = "Save changes"
           }]
         }];

@@ -41,6 +41,7 @@ import ButtonComponent from "components/button"
 import SelectAllComponent from "components/select-all"
 import HelpView from "components/help-view"
 import PeopleFilterComponent from "components/form-group/people-filter"
+import ProviderModalComponent from 'components/modal/modals/provider'
 
 // Register them
 registerComponent(AddTableModalComponent)
@@ -79,6 +80,7 @@ registerComponent(MarkdownComponent)
 registerComponent(SelectAllComponent)
 registerComponent(HelpView)
 registerComponent(PeopleFilterComponent)
+registerComponent(ProviderModalComponent)
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body)
