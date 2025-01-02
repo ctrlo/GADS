@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-this-alias */
 
 import { Component, initializeRegisteredComponents } from 'component'
 import 'datatables.net-bs4'
@@ -714,7 +713,6 @@ class DataTableComponent extends Component {
     I have tried manually changing the DOM, as well as the methods already present in the code, and I currently believe there is a bug within the DataTables button
     code that is meaning that this won't change (although I am open to the fact that I am being a little slow and missing something glaringly obvious).
   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toggleFullScreenMode(buttonElement) {
     const table = document.querySelector("table.data-table");
     const currentTable = $(table);

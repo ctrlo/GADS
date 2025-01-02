@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component'
 import { modal } from './modal'
 import { Frame } from './frame'

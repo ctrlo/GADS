@@ -83,7 +83,10 @@ class DocumentComponent {
 
     async handleAjaxUpload(uri: string, csrf_token: string, file: File) {
         try {
-            if (!file) throw this.showException(new Error('No file provided'));
+            if (!file) {
+                this.showException(new Error('No file provided'));
+                return;
+            }
 
             const fileData = formdataMapper({ file, csrf_token });
 

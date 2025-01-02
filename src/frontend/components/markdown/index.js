@@ -1,4 +1,4 @@
-import { getComponentElements, initializeComponent } from "../../js/lib/component";
+import { getComponentElements, initializeComponent } from "component";
 
 export default (scope) => {
   if (getComponentElements(scope, ".js-markdown-section").length === 0) return;

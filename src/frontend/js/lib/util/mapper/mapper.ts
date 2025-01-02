@@ -1,5 +1,5 @@
 export type MappedResponse = { name: string, id: number };
-export type MapperFunction = (any) => MappedResponse[];
+export type MapperFunction = (params: any) => MappedResponse[];
 
 /**
  * ScriptResponse interface for Typeahead class script responses

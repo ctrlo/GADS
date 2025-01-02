@@ -1,5 +1,5 @@
-import { modal } from '../../../lib/modal'
-import ModalComponent from '../../../lib/component'
+import { modal } from 'components/modal/lib/modal'
+import ModalComponent from 'components/modal/lib/component'
 
 class UserModalComponent extends ModalComponent {
   constructor(element)  {

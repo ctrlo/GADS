@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-this-alias */
-import ModalComponent from '../../../lib/component'
+import ModalComponent from 'components/modal/lib/component'
 import { getFieldValues } from "get-field-values"
 import { guid as Guid } from "guid"
 import { initializeRegisteredComponents } from 'component'

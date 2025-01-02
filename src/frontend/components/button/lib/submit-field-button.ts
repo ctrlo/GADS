@@ -90,7 +90,6 @@ export default class SubmitFieldButton {
                     url: this.getURL(data),
                     data: {data: mytext, csrf_token: data.csrfToken}
                 }).done(() => {
-                    // eslint-disable-next-line no-alert
                     alert('Tree has been updated')
                 });
             }
@@ -127,6 +126,7 @@ export default class SubmitFieldButton {
      * @returns The URL for the tree API
      */
     private getURL(data:JQuery.PlainObject):string {
+        // @ts-expect-error - This is a global variable
         if (window.test) return "";
 
         const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi;

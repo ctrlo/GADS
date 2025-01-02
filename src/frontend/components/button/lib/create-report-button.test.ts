@@ -1,6 +1,7 @@
-import "../../../testing/globals.definitions";
+import "testing/globals.definitions";
 import {validateRequiredFields} from 'validation';
 import CreateReportButtonComponent from "./create-report-button";
+import {describe, expect, it, jest} from "@jest/globals";
 
 describe('create-report-button', () => {
     it('does not submit form if no checkboxes are checked', () => {
@@ -24,7 +25,7 @@ describe('create-report-button', () => {
 
         const $submit = $('#submit');
         new CreateReportButtonComponent($submit);
-        const submitSpy = jest.fn((ev) => {
+        const submitSpy = jest.fn((ev: Event) => {
             ev.preventDefault();
             ev.stopPropagation();
         });
@@ -56,7 +57,7 @@ describe('create-report-button', () => {
 
         let $submit = $('#submit');
         new CreateReportButtonComponent($submit);
-        const submitSpy = jest.fn((ev) => {
+        const submitSpy = jest.fn((ev:Event) => {
             ev.preventDefault();
             ev.stopPropagation();
         });
@@ -90,7 +91,7 @@ describe('create-report-button', () => {
 
         const $submit = $('#submit');
         new CreateReportButtonComponent($submit);
-        const formSpyFn = jest.fn((ev) => {
+        const formSpyFn = jest.fn((ev:Event) => {
             ev.preventDefault();
             ev.stopPropagation();
         });

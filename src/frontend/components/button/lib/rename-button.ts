@@ -26,6 +26,7 @@ declare global {
         renameButton(): JQuery<TElement>;
         /**
          * Handle the rename event
+         * @template TElement The element type
          * @param { RenameEvent } events The event name
          * @param { 'rename' } handler The event handler
          * @returns {JQuery<TElement>} the JQuery element
@@ -102,16 +103,17 @@ class RenameButton {
     /**
      * Perform click event
      * @param {number} id The id of the field
-     * @param {JQuery.ClickEvent} ev The event object 
+     * @param {JQuery.ClickEvent} ev The event object
      */
     private renameClick(id: number, ev: JQuery.ClickEvent) {
         ev.preventDefault();
-        const original = $(`#current-${id}`)
+        let $current = $(`#current-${id}`);
+        const original = $current
             .text()
             .split('.')
             .slice(0, -1)
             .join('.');
-        $(`#current-${id}`)
+        $current
             .addClass('hidden')
             .attr('aria-hidden', 'true');
         $(`#file-rename-${id}`)
@@ -127,7 +129,7 @@ class RenameButton {
             .removeClass('hidden')
             .attr('aria-hidden', null)
             .on('click', (e) => {
-                this.triggerRename(id, ev.target, e)
+                this.triggerRename(id, ev.target, <any>e)
             });
         $(`#rename-cancel-${id}`)
             .removeClass('hidden')
@@ -158,12 +160,13 @@ class RenameButton {
      * @param {JQuery<HTMLButtonElement>} button The button that was clicked
      * @param {JQuery.BlurEvent} ev The blur event
      */
-    private triggerRename(id: number, button: JQuery<HTMLButtonElement>, e: JQuery.Event) {
-        const previousValue = $(`#current-${id}`).text();
+    private triggerRename(id: number, button: JQuery<HTMLButtonElement>, ev: JQuery.BlurEvent) {
+        let $current = $(`#current-${id}`);
+        const previousValue = $current.text();
         const extension = '.' + previousValue.split('.').pop();
         const newName = this.value.endsWith(extension) ? this.value : this.value + extension;
         if (newName === '' || newName === previousValue) return;
-        $(`#current-${id}`).text(newName);
+        $current.text(newName);
         const event = $.Event('rename', { oldName: previousValue, newName, target: button });
         $(button).trigger(event);
         this.hideRenameControls(id, button);

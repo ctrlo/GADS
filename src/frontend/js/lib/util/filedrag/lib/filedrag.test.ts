@@ -1,5 +1,6 @@
-import "../../../../../testing/globals.definitions";
+import "testing/globals.definitions";
 import FileDrag from './filedrag';
+import {describe, expect, it, jest} from "@jest/globals";
 
 class FileDragTest extends FileDrag {
     constructor(element, onDrop?: (files: FileList | File) => void) {
@@ -99,11 +100,12 @@ describe('FileDrag class tests', () => {
     });
 
     it('triggers the event as expected when a file is dropped', () => {
+        expect.assertions(5);
         const child = createBaseDOM();
         const dropFunction = jest.fn((files) => {
             const myFile = files;
             expect(myFile).toBeDefined();
-            expect(myFile.name).toBe('test.txt');
+            expect((<any>myFile).name).toBe('test.txt');
         });
         const fileDrag = new FileDragTest(child, (file) => dropFunction(file));
         fileDrag.setDragging(true);

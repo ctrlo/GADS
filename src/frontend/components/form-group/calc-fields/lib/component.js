@@ -63,7 +63,6 @@ class CalcFieldsComponent extends Component {
         });
 
         // Evaluate the code with the values
-        // eslint-disable-next-line no-undef
         var func = fengari.load(code)()
         var first = vars.shift()
         // Use apply() to be able to pass the params as a single array. The

@@ -1,4 +1,5 @@
-import { initGlobals } from "../../../testing/globals.definitions";
+import {describe, beforeEach, it, expect} from "@jest/globals";
+import { initGlobals } from "testing/globals.definitions";
 import SubmitFieldButtonComponent from "./submit-field-button";
 
 describe("Submit field button tests", () => {

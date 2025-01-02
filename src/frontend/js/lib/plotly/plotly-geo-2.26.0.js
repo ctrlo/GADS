@@ -26995,7 +26995,6 @@ module.exports = function localize(gd, s) {
 "use strict";
 
 
-/* eslint-disable no-console */
 var dfltConfig = (__webpack_require__(2919).dfltConfig);
 var notifier = __webpack_require__(4545);
 var loggers = module.exports = {};
@@ -85359,9 +85358,9 @@ function newInterval(floori, offseti, count, field) {
     }, function(date, step) {
       if (date >= date) {
         if (step < 0) while (++step <= 0) {
-          while (offseti(date, -1), !test(date)) {} // eslint-disable-line no-empty
+          while (offseti(date, -1), !test(date)) {}
         } else while (--step >= 0) {
-          while (offseti(date, +1), !test(date)) {} // eslint-disable-line no-empty
+          while (offseti(date, +1), !test(date)) {}
         }
       }
     });
@@ -85817,7 +85816,6 @@ function _addListener(target, type, listener, prepend) {
     if (m > 0 && existing.length > m && !existing.warned) {
       existing.warned = true;
       // No error code for this since it is a Warning
-      // eslint-disable-next-line no-restricted-syntax
       var w = new Error('Possible EventEmitter memory leak detected. ' +
                           existing.length + ' ' + String(type) + ' listeners ' +
                           'added. Use emitter.setMaxListeners() to ' +
@@ -88042,7 +88040,6 @@ object-assign
 */
 
 
-/* eslint-disable no-unused-vars */
 var getOwnPropertySymbols = Object.getOwnPropertySymbols;
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 var propIsEnumerable = Object.prototype.propertyIsEnumerable;
@@ -88064,7 +88061,7 @@ function shouldUseNative() {
 		// Detect buggy property enumeration order in older V8 versions.
 
 		// https://bugs.chromium.org/p/v8/issues/detail?id=4118
-		var test1 = new String('abc');  // eslint-disable-line no-new-wrappers
+		var test1 = new String('abc');
 		test1[5] = 'de';
 		if (Object.getOwnPropertyNames(test1)[0] === '5') {
 			return false;

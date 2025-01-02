@@ -289,7 +289,6 @@ class AddTableModalComponent extends ModalComponent {
           if ($jstreeEl.length) {
             const v = $jstreeEl.jstree(true).get_json('#', { flat: false })
             //Not entirely sure what this is - I'm going to leave it in for now
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const mytext = JSON.stringify(v)
             const data = $jstreeEl.data().jstree._model.data
 

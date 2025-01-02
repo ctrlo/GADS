@@ -1,4 +1,5 @@
-import { XmlHttpRequestLike } from "../js/lib/util/upload/UploadControl";
+import { XmlHttpRequestLike } from "js/lib/util/upload/UploadControl";
+import { jest } from "@jest/globals";
 
 declare global {
     interface Window {
@@ -11,6 +12,7 @@ window.$ = require("jquery");
 window.alert = jest.fn();
 
 export function mockJQueryAjax() {
+    // @ts-expect-error - jest fn
     $.ajax = jest.fn().mockImplementation(() => {
         return {
             done: (callback: () => void) => {
@@ -31,7 +33,7 @@ export function initGlobals() {
 }
     
 export function mockJSTree() {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // @ts-expect-error - jest fn
     $.fn.jstree = jest.fn().mockImplementation((arg: boolean) => {
         return {
             get_json: () => {
@@ -52,22 +54,4 @@ export class MockXhr implements XmlHttpRequestLike {
     readyState: number = 4;
     status: number = 200;
     responseText: string = JSON.stringify({error: 0});
-}
-
-export interface ElementLike {
-    hasClass: (className: string) => boolean;
-    addClass: (className: string) => void;
-    attr: (attr: string, value: string) => void;
-    css: (attr: string, value: string) => void;
-    removeClass: (className: string) => void;
-    removeAttr: (attr: string) => void;
-}
-
-export class DefaultElementLike implements ElementLike {
-    hasClass: (className: string) => boolean = jest.fn().mockReturnValue(false);
-    addClass: (className: string) => void = jest.fn();
-    attr: (attr: string, value: string) => void = jest.fn();
-    css: (attr: string, value: string) => void = jest.fn();
-    removeClass: (className: string) => void = jest.fn();
-    removeAttr: (attr: string) => void = jest.fn();
 }

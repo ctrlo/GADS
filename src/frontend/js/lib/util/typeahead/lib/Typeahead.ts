@@ -65,19 +65,5 @@ export class Typeahead {
         this.$input.on('typeahead:select', (ev: any, suggestion: MappedResponse) => {
             this.callback(suggestion);
         });
-
-        if(window.test) {
-            this.$input.on("typeahead:asyncrequest", () => {
-                console.log("Typeahead async request");
-            });
-
-            this.$input.on("typeahead:asyncreceive", () => {
-                console.log("Typeahead async receive");
-            });
-
-            this.$input.on("typeahead:asynccancel", () => {
-                console.log("Typeahead async cancel");
-            });
-        }
     }
 }

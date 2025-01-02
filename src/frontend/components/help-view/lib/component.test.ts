@@ -1,5 +1,6 @@
-import "../../../testing/globals.definitions";
+import "testing/globals.definitions";
 import HelpView from "./component";
+import {describe, expect, it} from "@jest/globals";
 
 class TestHelpView extends HelpView {
     public get button() {

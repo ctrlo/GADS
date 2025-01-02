@@ -1,5 +1,5 @@
-/// <reference types="jest" />
 import { LUA } from "./lua";
+import {describe, expect, it} from "@jest/globals";
 
 describe("LUA tests", ()=>{
     class TestObject {
