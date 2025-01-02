@@ -359,7 +359,6 @@ class CurvalModalComponent extends ModalComponent {
         self.curvalModalValidationSucceeded($form, devData.values)
       } else {
         let url = $form.attr("action") + "?validate&include_draft&source=" + $form.data("curval-id")
-        if (autosaveLoadValue) url = url + '&autosave=1'
         $.post(
           url,
           form_data,
@@ -367,9 +366,18 @@ class CurvalModalComponent extends ModalComponent {
             if (data.error === 0) {
               self.curvalModalValidationSucceeded($form, data.values)
             } else {
-              const errorMessage =
+              if(autosaveLoadValue) {
+                const fieldId = $form.data("curval-id");
+                const $field = $(`[data-column-type="curval"][data-column-id="${fieldId}"]`);
+                const e = $.Event("validationFailed", { message: data.message || "Something went wrong!" });
+                $field.trigger(e);
+                // We still allow the form to submit as if it was correct
+                self.curvalModalValidationSucceeded($form, data.values);
+              } else {
+                const errorMessage =
                 data.error === 1 ? data.message : "Oops! Something went wrong."
-              self.curvalModalValidationFailed($form, errorMessage)
+                self.curvalModalValidationFailed($form, errorMessage)
+              }
             }
           },
           "json"
