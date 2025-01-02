@@ -257,9 +257,8 @@ class App extends React.Component<any, any> {
     return false;
   }
 
-  renderModal = () =>{
-    // @ts-expect-error "Modal is not a valid component"
-    return (<Modal
+  renderModal = () =>(
+    <Modal
       isOpen={this.state.editModalOpen}
       onRequestClose={this.closeModal}
       style={modalStyle}
@@ -287,7 +286,7 @@ class App extends React.Component<any, any> {
         </div>
       </div>
     </Modal>
-  )}
+  )
 
   overWriteSubmitEventListener = () => {
     const formContainer = document.getElementById("ld-form-container");
@@ -321,7 +320,6 @@ class App extends React.Component<any, any> {
         />}
         {this.renderModal()}
         <div className="content-block__main">
-          {// @ts-expect-error "ReactGridLayout is not a valid JSX element"
           <ReactGridLayout
             className={`content-block__main-content ${this.props.readOnly ? "" : "react-grid-layout--editable"}`}
             isDraggable={!this.props.readOnly}
@@ -334,7 +332,7 @@ class App extends React.Component<any, any> {
             {...this.props.gridConfig}
           >
             {this.generateDOM()}
-          </ReactGridLayout>}
+          </ReactGridLayout>
         </div>
         {this.props.hideMenu ? null : <Footer
           addWidget={this.addWidget}
