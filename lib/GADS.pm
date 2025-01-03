@@ -657,7 +657,7 @@ any ['get', 'post'] => '/login' => sub {
     if (defined $enabled && $enabled->count ge 1 && !query_parameters->get('password'))
     {
         my $auth = $enabled->next;
-        if ($auth->type eq 'saml2')
+        if ($auth->type == 1)
         {
             my $saml = GADS::SAML->new(
                 authentication => $auth,
@@ -1685,7 +1685,7 @@ any ['get'] => '/metadata/:id' => require_any_role [qw/useradmin superadmin/] =>
 
     if (defined $provider)
     {
-	if ($provider->type eq 'saml2')
+	if ($provider->type == 1)
 	{
 	    my $saml = GADS::SAML->new(
 	        authentication => $provider,
@@ -1752,7 +1752,7 @@ any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/u
         my $usero = rset('Authentication')->find($delete_id);
         return forwardHome(
             { danger => "Cannot delete the built in authentication provider" } )
-            if $usero->type eq 'builtin';
+            if $usero->type == 0;
 
         # FIXME: Should change this so cannot delete enabled provider for current user
         return forwardHome(
