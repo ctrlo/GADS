@@ -1723,8 +1723,11 @@ any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/u
             saml2_surname         => param('saml2_surname'),
             xml                   => param('xml'),
             cacert                => param('cacert'),
-            sp_cert               => param('sp_cert'),
-            sp_key                => param('sp_key'),
+	    # updating sp_cert or sp_key independantly will cause issues
+            (defined param('sp_cert') and defined param('sp_key')) ? (
+            sp_cert       => param('sp_cert'),
+            sp_key        => param('sp_key'),
+            ) : (),
             saml2_relaystate      => param('saml2_relaystate'),
             saml2_groupname       => param('saml2_groupname'),
             enabled               => param('enabled'),
