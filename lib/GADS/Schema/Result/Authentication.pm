@@ -23,7 +23,7 @@ __PACKAGE__->add_columns(
   "site_id",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "type",
-  { data_type => "varchar", is_nullable => 1, size => 32 },
+  { data_type => "smallint", default_value => 1, is_nullable => 0 },
   "name",
   { data_type => "text", is_nullable => 1 },
   "xml",
@@ -106,7 +106,7 @@ sub sso_xml
 sub saml2_relaystate
 {   my $self = shift;
     return $self->saml2_relaystate
-        if $self->saml2_relaystate ne 'saml2';
+        if $self->saml2_relaystate != 1;
     my $code = Session::Token->new(length => 32)->get;
     {
         local $SL::Schema::NO_USERID = 1;
@@ -157,7 +157,7 @@ sub for_data_table
         Type => {
             type   => 'string',
             name   => 'Type',
-            values => [$self->type],
+            values => [$self->type ? "SAML2" : "Built In"],
         },
         Name => {
             type   => 'string',
@@ -283,8 +283,7 @@ sub after_create
 {   my $self = shift;
 
     # Create service provider key and cert if this is SAML2
-    #return unless $self->type eq 'saml2';
-    # FIXME
+    return unless $self->type == 1;
 
     my $schema = $self->result_source->schema;
     my ($stdout, $stderr);

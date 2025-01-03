@@ -286,8 +286,7 @@ sub provider_fields
         {
             name        => 'type',
             description => 'Type',
-            type        => 'dropdown',
-            placeholder => 'saml2',
+            type        => 'radio',
             is_required => 1,
         },
         {

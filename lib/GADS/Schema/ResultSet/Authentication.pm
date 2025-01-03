@@ -24,7 +24,7 @@ sub providers
 sub enabled
 {   shift->search({
         'me.enabled' => 1,
-        'me.type'    => 'saml2',
+        'me.type'    => 1,
     });
 }
 
@@ -40,7 +40,7 @@ sub by_id
 sub saml2_provider
 {   my $self = shift;
     $self->enabled->search({
-        'me.type' => 'saml2',
+        'me.type' => 1,
     })->next;
 }
 

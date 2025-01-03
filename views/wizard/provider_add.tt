@@ -56,6 +56,7 @@
 
       <form method="post">
         [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
+        [% INCLUDE fields/hidden.tt name="type" value=1; %]
 
         <div class="modal-frame" data-config='{"step":1,"frame":1,"item":null,"count":null}'>
           <div class="modal-body">
@@ -104,16 +105,6 @@
                         sub_field = sub_field
                         sub_params = sub_params;
 
-                    ELSIF field.type == "dropdown";
-                      INCLUDE fields/select.tt
-                        id = field.name
-                        name = field.name
-                        label = field.description
-                        placeholder = field.placeholder
-                        items = values.${field.name}
-                        filter = "html"
-                        sub_field = sub_field
-                        sub_params = sub_params;
                     ELSIF field.type == "textarea";
                       INCLUDE fields/textarea.tt
                         id = field.name
@@ -142,12 +133,6 @@
                 dismiss = "modal"
               }]
               right_buttons = [{
-                type    = "submit"
-                class   = "btn-danger btn-js-reject-request"
-                name    = "delete"
-                value   = user.id
-                label   = "Reject request"
-              }, {
                 class = "btn-default btn-disabled btn-js-next"
                 label = "Next"
               }];
@@ -219,12 +204,6 @@
                 label   = "Back"
               }]
               right_buttons = [{
-                type    = "submit"
-                class   = "btn-danger btn-js-reject-request"
-                name    = "delete"
-                value   = user.id
-                label   = "Reject request"
-              }, {
                 class = "btn-default btn-js-next"
                 label = "Next"
               }];
@@ -302,12 +281,6 @@
                 label   = "Back"
               }]
               right_buttons = [{
-                type    = "submit"
-                class   = "btn-danger btn-js-reject-request"
-                name    = "delete"
-                value   = user.id
-                label   = "Reject request"
-              }, {
                 class = "btn-default btn-js-save"
                 label = "Create provider"
               }];
