@@ -8,8 +8,12 @@ use base 'DBIx::Class::Core';
 
 use JSON qw(decode_json);
 use Log::Report 'linkspace';
+use File::Slurper qw/read_text/;
+use IPC::Run qw/run/;
 
-__PACKAGE__->load_components("InflateColumn::DateTime");
+__PACKAGE__->load_components("+GADS::DBIC");
+
+#__PACKAGE__->load_components("InflateColumn::DateTime");
 
 __PACKAGE__->table("authentication");
 
@@ -99,6 +103,24 @@ sub sso_xml
     #return $self->sso_standard_xml;
 }
 
+sub saml2_relaystate
+{   my $self = shift;
+    return $self->saml2_relaystate
+        if $self->saml2_relaystate ne 'saml2';
+    my $code = Session::Token->new(length => 32)->get;
+    {
+        local $SL::Schema::NO_USERID = 1;
+        while ($self->result_source->resultset->search({ saml2_relaystate => $code })->next)
+        {
+            $code = Session::Token->new(length => 32)->get;
+        }
+    }
+
+    $self->update({
+        saml2_relaystate => $code,
+    });
+}
+
 sub get_saml2_unique_id
 {   my $self = shift;
     return $self->saml2_unique_id
@@ -179,7 +201,6 @@ sub saml_assertion_invalid_error
 
 sub update_provider
 {   my ($self, %params) = @_;
-    my $request = 0;
 
     my $guard = $self->result_source->schema->txn_scope_guard;
 
@@ -196,57 +217,48 @@ sub update_provider
 
     my $values;
 
-    if($request) {
-	#FIXME: Remove
-      $self->result_source->schema->resultset('Authentication')->create_provider(%params);
-      #$self->result_source->schema->resultset('Authentication')->find($self->id)->delete;
 
-      $guard->commit;
+    my $original_name = $self->name;
 
-    } else {
-
-      my $original_name = $self->name;
-
-      foreach my $field ($site->provider_fields)
-      {
-          next if !exists $params{$field->{name}};
-          my $fname = $field->{name};
-          $self->$fname($params{$fname});
-      }
-
-      my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $current_user);
-
-      $audit->auth_provider_change("Provider $original_name (id ".$self->id.") being changed to ".$self->name)
-          if $original_name && $self->is_column_changed('name');
-
-      error __"You do not have permission to update an authentication provider"
-              if !$current_user->permission->{superadmin};
-
-      $self->update($values);
-
-      my $required = 0;
-
-      length $params{name} <= 128
-          or error __"Name must be less than 128 characters";
-      length $params{saml2_surname} <= 128
-          or error __"Surname attribute must be less than 128 characters"
-          if defined $params{saml2_surname};
-      length $params{saml2_firstname} <= 128
-          or error __"Firstname attribute must be less than 128 characters"
-          if defined $params{saml2_firstname};
-      length $params{saml2_groupname} <= 128
-          or error __"Groupname attribute must be less than 128 characters"
-          if defined $params{saml2_groupname};
-      !defined $params{organisation} || $params{organisation} =~ /^[0-9]+$/
-          or error __x"Invalid organisation {id}", id => $params{organisation};
-
-      my $msg = __x"Authentication Provider updated: ID {id}, name: {name}",
-          id => $self->id, name => $params{name};
-
-      $audit->auth_provider_change(description => $msg);
-
-      $guard->commit;
+    foreach my $field ($site->provider_fields)
+    {
+        next if !exists $params{$field->{name}};
+        my $fname = $field->{name};
+        $self->$fname($params{$fname});
     }
+
+    my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $current_user);
+
+    $audit->auth_provider_change("Provider $original_name (id ".$self->id.") being changed to ".$self->name)
+        if $original_name && $self->is_column_changed('name');
+
+    error __"You do not have permission to update an authentication provider"
+            if !$current_user->permission->{superadmin};
+
+    $self->update($values);
+
+    my $required = 0;
+
+    length $params{name} <= 128
+        or error __"Name must be less than 128 characters";
+    length $params{saml2_surname} <= 128
+        or error __"Surname attribute must be less than 128 characters"
+        if defined $params{saml2_surname};
+    length $params{saml2_firstname} <= 128
+        or error __"Firstname attribute must be less than 128 characters"
+        if defined $params{saml2_firstname};
+    length $params{saml2_groupname} <= 128
+        or error __"Groupname attribute must be less than 128 characters"
+        if defined $params{saml2_groupname};
+    !defined $params{organisation} || $params{organisation} =~ /^[0-9]+$/
+        or error __x"Invalid organisation {id}", id => $params{organisation};
+
+    my $msg = __x"Authentication Provider updated: ID {id}, name: {name}",
+        id => $self->id, name => $params{name};
+
+    $audit->auth_provider_change(description => $msg);
+
+    $guard->commit;
 }
 
 sub retire
@@ -265,6 +277,33 @@ sub retire
     $audit->auth_provider_change(description => $msg);
 
     $self->delete();
+}
+
+sub after_create
+{   my $self = shift;
+
+    # Create service provider key and cert if this is SAML2
+    #return unless $self->type eq 'saml2';
+    # FIXME
+
+    my $schema = $self->result_source->schema;
+    my ($stdout, $stderr);
+    my $key_file = File::Temp->new;
+    my $cert_file = File::Temp->new;
+
+    #FIXME: DNS Names
+    my @command = ('/usr/bin/openssl', 'req', '-x509', '-newkey', 'rsa:4096', '-sha256', '-days', '720', '-nodes',
+        '-keyout', $key_file->filename, '-out', $cert_file->filename, '-subj', '/CN=simplelists.com', '-addext',
+        'subjectAltName=DNS:simplelists.com'
+    );
+
+    my $rcode = run [ @command ], '>', \$stdout, '2>', \$stderr;
+
+    $self->update({
+        sp_key  => read_text($key_file->filename),
+        sp_cert => read_text($cert_file->filename),
+	}
+    );
 }
 
 1;
