@@ -783,8 +783,11 @@ sub _post_add_authentication_providers
         saml2_surname         => $body->{saml2_surname},
         xml                   => $body->{xml},
         cacert                => $body->{cacert},
-        sp_cert               => $body->{sp_cert},
-        sp_key                => $body->{sp_key},
+	# FIXME: probably should not allw these to be over written anyway but
+	# if these are enabled it seems to ovewrite them with nulls on create
+	# should not happen timlegge - implies a race of some type or that this is called twice
+	#sp_cert               => $body->{sp_cert},
+	#sp_key                => $body->{sp_key},
         saml2_relaystate      => $body->{saml2_relaystate},
         saml2_groupname       => $body->{saml2_groupname},
         saml2_unique_id       => $body->{saml2_unique_id},
