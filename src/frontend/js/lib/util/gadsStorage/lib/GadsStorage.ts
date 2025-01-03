@@ -1,6 +1,9 @@
 import { EncryptedStorage } from "util/encryptedStorage";
 import { AppStorage } from "./AppStorage";
 
+/**
+ * A storage provider that encrypts data before storing it in the browser.
+ */
 export class GadsStorage implements AppStorage {
     test = false; //location.hostname==="localhost"; // Set to true to use localStorage instead of EncryptedStorage
 
