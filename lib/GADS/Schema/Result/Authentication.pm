@@ -103,10 +103,10 @@ sub sso_xml
     #return $self->sso_standard_xml;
 }
 
-sub saml2_relaystate
+sub get_saml2_relaystate
 {   my $self = shift;
     return $self->saml2_relaystate
-        if $self->saml2_relaystate != 1;
+        if defined $self->saml2_relaystate;
     my $code = Session::Token->new(length => 32)->get;
     {
         local $SL::Schema::NO_USERID = 1;
@@ -116,9 +116,10 @@ sub saml2_relaystate
         }
     }
 
-    $self->update({
-        saml2_relaystate => $code,
-    });
+    return $code;
+    #$self->update({
+    #    saml2_relaystate => $code,
+    #});
 }
 
 sub get_saml2_unique_id
@@ -299,8 +300,9 @@ sub after_create
     my $rcode = run [ @command ], '>', \$stdout, '2>', \$stderr;
 
     $self->update({
-        sp_key  => read_text($key_file->filename),
-        sp_cert => read_text($cert_file->filename),
+        saml2_relaystate  => $self->get_saml2_relaystate();
+        sp_key            => read_text($key_file->filename),
+        sp_cert           => read_text($cert_file->filename),
 	}
     );
 }
