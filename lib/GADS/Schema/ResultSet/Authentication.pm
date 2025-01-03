@@ -88,8 +88,6 @@ sub create_provider
             id => $provider->id, provider => $params{name}
     );
 
-    $provider->update_provider(%params);
-
     $guard->commit;
 
     return $provider;
