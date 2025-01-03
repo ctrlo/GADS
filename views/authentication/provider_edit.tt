@@ -53,7 +53,7 @@
                 sub_field = ""
                 sub_params = {};
 
-            ELSIF field.type == "textarea";
+            ELSIF field.type == "textarea" and field.name != 'sp_key';
               INCLUDE fields/textarea.tt
                 id = field.name
                 name = field.name
