@@ -1,4 +1,7 @@
 import { XmlHttpRequestLike } from "../js/lib/util/upload/UploadControl";
+import {TextEncoder, TextDecoder} from "util";
+
+Object.assign(global, {TextEncoder, TextDecoder});
 
 declare global {
     interface Window {
@@ -71,4 +74,20 @@ export class DefaultElementLike implements ElementLike {
     css: (attr: string, value: string) => void = jest.fn();
     removeClass: (className: string) => void = jest.fn();
     removeAttr: (attr: string) => void = jest.fn();
+}
+
+export function setupCrypto() {
+    const crypto = {
+        subtle: {
+            importKey: jest.fn(),
+            exportKey: jest.fn(),
+            encrypt: jest.fn(),
+            decrypt: jest.fn().mockReturnValue(new TextEncoder().encode("value")), // We mock the return on this one purely to make sure we're calling as expected
+            deriveKey: jest.fn(),
+        },
+        getRandomValues: jest.fn().mockReturnValue(new Uint8Array(12)),
+    };
+    Object.defineProperty(window, "crypto", {
+        value: crypto
+    });
 }

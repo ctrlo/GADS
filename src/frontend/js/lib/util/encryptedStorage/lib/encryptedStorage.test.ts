@@ -1,3 +1,4 @@
+import { setupCrypto } from '../../../../../testing/globals.definitions';
 import { EncryptedStorage } from './encryptedStorage';
 
 class TestStorage implements Storage {
@@ -38,10 +39,25 @@ class TestStorage implements Storage {
     }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const encryptedStorageMock = new EncryptedStorage((data: string, key: string) => Promise.resolve(data), (data: string, key: string) => Promise.resolve(data), new TestStorage());
-
 describe('EncryptedStorage', () => {
+    let encryptedStorageMock: EncryptedStorage;
+
+    beforeAll(() => {
+        // @ts-expect-error This is a unit test, so this is not readonly
+        window.crypto && window.crypto.subtle && delete window.crypto.subtle; // We want to make sure the mock implementation of crypto is used
+    })
+
+    beforeEach(() => {
+        setupCrypto();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        encryptedStorageMock = new EncryptedStorage((data: string, key: string) => Promise.resolve(data), (data: string, key: string) => Promise.resolve(data), new TestStorage());
+    });
+
+    afterEach(() => {
+        // @ts-expect-error This is a unit test, so this is not readonly
+        window.crypto && window.crypto.subtle && delete window.crypto.subtle; // We want to also clear the mock implementation of crypto
+    });
+
     it('should set and get an item', async () => {
         const key = 'key';
         const value = 'value';

@@ -1,5 +1,5 @@
-import { GadsStorage } from "./lib/gadsStorage";
+import { AppStorage } from "./lib/AppStorage";
 
-const gadsStorage = new GadsStorage();
+const gadsStorage = AppStorage.CreateStorageInstance();
 
 export default gadsStorage;

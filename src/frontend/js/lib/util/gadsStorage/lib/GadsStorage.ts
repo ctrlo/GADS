@@ -1,9 +1,10 @@
 import { EncryptedStorage } from "util/encryptedStorage";
+import { AppStorage } from "./AppStorage";
 
-class GadsStorage {
-    private get test() {
-        return location.hostname==="localhost";
-    }
+export class GadsStorage implements AppStorage {
+    test = false; //location.hostname==="localhost"; // Set to true to use localStorage instead of EncryptedStorage
+
+    enabled: boolean = true;
 
     private storage: EncryptedStorage | Storage;
     private storageKey: string;
@@ -14,6 +15,10 @@ class GadsStorage {
     }
 
     private async getStorageKey() {
+        if (window.test) { 
+            this.storageKey = "test";
+            return;
+        }
         const fetchResult = await fetch("/api/get_key");
         const data = await fetchResult.json();
         if (data.error !== 0) {
@@ -52,5 +57,3 @@ class GadsStorage {
         return this.storage.length;
     }
 }
-
-export { GadsStorage };
