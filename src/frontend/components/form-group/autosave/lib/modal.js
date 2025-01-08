@@ -33,7 +33,7 @@ class AutosaveModal extends AutosaveBase {
                 $list.append($li);
               });
               $field.on("validationPassed", () => {
-                const $li = $(`<li class="li-success">Restored ${name}</li>`);
+                const $li = $(`<li class="li-success">Restored ${name}, please check these values before submission</li>`);
                 $list.append($li);
               });
             }
