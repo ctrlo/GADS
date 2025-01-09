@@ -9,6 +9,8 @@ class AutosaveComponent extends AutosaveBase {
 
     // For each field, when it changes save the value to the local storage
     $field.on('change', async function () {
+      const recovering = await self.storage.getItem('recovering');
+      if(recovering) return;
       if ($field.hasClass('field--changed')) $field.removeClass('field--changed');
       let values = getFieldValues($field, false, false, true);
       values = (Array.isArray(values) ? values : [values]).filter(function (element) {

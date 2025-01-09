@@ -7,6 +7,7 @@ class AutosaveModal extends AutosaveBase {
     const $form = $('.form-edit');
     
     $modal.find('.btn-js-restore-values').on('click', async (e) => {
+      this.storage.setItem('recovering', true);
       e.preventDefault();
 
       let errored = false;
@@ -58,6 +59,7 @@ class AutosaveModal extends AutosaveBase {
       }).finally(() => {
         $modal.find(".modal-footer").find("button:not(.btn-cancel)").hide();
         $modal.find(".modal-footer").find(".btn-cancel").text("Close");
+        this.storage.removeItem('recovering');
       });
     });
 

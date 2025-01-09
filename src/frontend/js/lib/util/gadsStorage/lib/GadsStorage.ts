@@ -31,6 +31,8 @@ export class GadsStorage implements AppStorage {
     }
 
     async setItem(key: string, value: string) {
+        if(await this.getItem('recovering')) return;
+        if(await this.getItem(key) === value) return;
         if (!this.storageKey) {
             await this.getStorageKey();
         }
