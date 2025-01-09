@@ -55,10 +55,6 @@ class AutosaveComponent extends AutosaveBase {
         if(!(await self.storage.getItem(self.table_key))) await self.storage.setItem(self.table_key, true);
       }
     });
-
-    if(this.isClone) {
-      $field.trigger('change');
-    }
   }
 }
 
