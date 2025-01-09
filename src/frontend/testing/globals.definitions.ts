@@ -1,15 +1,4 @@
 import { XmlHttpRequestLike } from "js/lib/util/upload/UploadControl";
-import { jest } from "@jest/globals";
-
-declare global {
-    interface Window {
-        $: JQueryStatic;
-        alert: (message?: any)=>void;
-    }
-}
-
-window.$ = require("jquery");
-window.alert = jest.fn();
 
 export function mockJQueryAjax() {
     // @ts-expect-error - jest fn

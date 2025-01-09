@@ -1,4 +1,3 @@
-import "testing/globals.definitions";
 import { TypeaheadBuilder } from './TypeaheadBuilder';
 import {describe, expect, it} from "@jest/globals";
 

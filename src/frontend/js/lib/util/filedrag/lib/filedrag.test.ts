@@ -1,4 +1,3 @@
-import "testing/globals.definitions";
 import FileDrag from './filedrag';
 import {describe, expect, it, jest} from "@jest/globals";
 
