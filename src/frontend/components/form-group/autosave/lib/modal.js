@@ -8,6 +8,8 @@ class AutosaveModal extends AutosaveBase {
     
     $modal.find('.btn-js-restore-values').on('click', async (e) => {
       this.storage.setItem('recovering', true);
+      let curvalCount = $form.find('.linkspace-field[data-column-type="curval"]').length;
+      
       e.preventDefault();
 
       let errored = false;
@@ -30,12 +32,16 @@ class AutosaveModal extends AutosaveBase {
               $field.off("validationFailed");
               $field.off("validationPassed");
               $field.on("validationFailed", (e) => {
+                curvalCount--;
                 const $li = $(`<li class="li-error">Error restoring ${name}, please check these values before submission<ul><li class="warning">${e.message}</li></ul></li>`);
                 $list.append($li);
+                if(!curvalCount) this.storage.removeItem('recovering');
               });
               $field.on("validationPassed", () => {
+                curvalCount--;
                 const $li = $(`<li class="li-success">Restored ${name}</li>`);
                 $list.append($li);
+                if(!curvalCount) this.storage.removeItem('recovering');
               });
             }
             setFieldValues($field, values);
@@ -59,7 +65,7 @@ class AutosaveModal extends AutosaveBase {
       }).finally(() => {
         $modal.find(".modal-footer").find("button:not(.btn-cancel)").hide();
         $modal.find(".modal-footer").find(".btn-cancel").text("Close");
-        this.storage.removeItem('recovering');
+        if(!curvalCount) this.storage.removeItem('recovering');
       });
     });
 

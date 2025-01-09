@@ -91,3 +91,15 @@ export function setupCrypto() {
         value: crypto
     });
 }
+
+export async function setupNoMockCrypto() {
+    const crypto = await import("crypto");
+    Object.defineProperty(window, "crypto", {
+        value: crypto
+    });
+}
+
+export function killNoMockCrypto() {
+    // @ts-expect-error This is a unit test, so this is not readonly
+    delete window.crypto;
+}
