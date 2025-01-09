@@ -1,8 +1,17 @@
 import React from "react";
-import { HeaderProps } from "./types";
-import MenuItem from "./Menu/MenuItem";
 
-const Header = ({ hMargin, dashboards, currentDashboard, loading, includeH1 }: HeaderProps) => {
+const Header = ({ hMargin, dashboards, currentDashboard, loading, includeH1 }) => {
+  const renderMenuItem = (dashboard) => {
+    if (dashboard.name === currentDashboard.name) {
+      if (includeH1) {
+        return <h1><span className="link link--primary link--active">{dashboard.name}</span></h1>
+      } else {
+        return <span className="link link--primary link--active">{dashboard.name}</span>
+      }
+    } else {
+      return <a className="link link--primary" href={dashboard.url}><span>{dashboard.name}</span></a>
+    }
+  }
   return (
     <div className="content-block__navigation" style={{marginLeft: hMargin, marginRight: hMargin}}>
       <div className="content-block__navigation-left">
@@ -11,7 +20,7 @@ const Header = ({ hMargin, dashboards, currentDashboard, loading, includeH1 }: H
           <ul id="menu_view" className="list__items" role="menu">
             {dashboards.map((dashboard, index) => (
               <li className="list__item" key={index}>
-                <MenuItem dashboard={dashboard} currentDashboard={currentDashboard} includeH1={includeH1} />
+                {renderMenuItem(dashboard)}
               </li>
               ))}
           </ul>

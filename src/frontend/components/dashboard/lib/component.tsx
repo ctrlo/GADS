@@ -1,16 +1,26 @@
 import { Component } from 'component'
+import "react-app-polyfill/stable";
+
+import "core-js/es/array/is-array";
+import "core-js/es/map";
+import "core-js/es/set";
+import "core-js/es/object/define-property";
+import "core-js/es/object/keys";
+import "core-js/es/object/set-prototype-of";
+
+import "./react/polyfills/classlist";
 
 import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./react/App";
+import {createRoot} from "react-dom/client";
+import App from "./react/app";
 import ApiClient from "./react/api";
 import { ReactGridLayoutProps } from 'react-grid-layout';
 
 class DashboardComponent extends Component {
   el: JQuery<HTMLElement>;
   gridConfig: ReactGridLayoutProps;
-
-  constructor(element:HTMLElement)  {
+  
+  constructor(element)  {
     super(element)
     this.el = $(this.element)
     
@@ -27,13 +37,13 @@ class DashboardComponent extends Component {
   initDashboard() {
     this.element.className = "";
     const widgetsEls = Array.prototype.slice.call(document.querySelectorAll("#ld-app > div"));
-    const widgets = widgetsEls.map((el: HTMLElement) => ({
+    const widgets = widgetsEls.map(el => ({
       html: el.innerHTML,
       config: JSON.parse(el.getAttribute("data-grid")),
     }));
     const api = new ApiClient(this.element.getAttribute("data-dashboard-endpoint") || "");
 
-    const root = ReactDOM.createRoot(this.element);
+    const root = createRoot(this.element)
 
     root.render(
       <App
@@ -47,7 +57,7 @@ class DashboardComponent extends Component {
         api={api}
         widgetTypes={JSON.parse(this.element.getAttribute("data-widget-types") || "[]")}
         dashboards={JSON.parse(this.element.getAttribute("data-dashboards") || "[]" )}
-        gridConfig={this.gridConfig} />
+        gridConfig={this.gridConfig} />,
     );
   }
 }
