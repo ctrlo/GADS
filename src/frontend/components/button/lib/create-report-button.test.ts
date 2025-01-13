@@ -1,4 +1,3 @@
-import "testing/globals.definitions";
 import {validateRequiredFields} from 'validation';
 import CreateReportButtonComponent from "./create-report-button";
 import {describe, expect, it, jest} from "@jest/globals";

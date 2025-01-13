@@ -1,5 +1,4 @@
 import { describe, it, expect} from "@jest/globals";
-import "testing/globals.definitions";
 import ButtonComponent from './component';
 
 describe("Button Component", () => {

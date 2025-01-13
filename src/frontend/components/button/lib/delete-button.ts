@@ -23,7 +23,11 @@ export default function createDeleteButton(element: JQuery<HTMLElement>) {
                 throw `There is no modal with id: ${target}`
             }
         } catch (e) {
-            logging.error(e)
+            //@ts-expect-error - test is a global variable
+            if(window.test)
+                throw e;
+            else
+                logging.error(e)
             this.el.on('click', function (e: JQuery.ClickEvent) {
                 e.stopPropagation()
             });

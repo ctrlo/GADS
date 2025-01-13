@@ -7,3 +7,4 @@ export default function createRemoveUnloadButton(element: JQuery<HTMLElement>) {
         $(window).off('beforeunload');
     });
 }
+// No unit test required here as it's so simple
