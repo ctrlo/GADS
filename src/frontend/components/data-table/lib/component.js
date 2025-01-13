@@ -1,9 +1,8 @@
-
 import { Component, initializeRegisteredComponents } from 'component'
-import 'datatables.net-bs4'
-import 'datatables.net-buttons-bs4'
-import 'datatables.net-responsive-bs4'
-import 'datatables.net-rowreorder-bs4'
+import 'datatables.net-bs5'
+import 'datatables.net-buttons-bs5'
+import 'datatables.net-responsive-bs5'
+import 'datatables.net-rowreorder-bs5'
 import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets'
 import { moreLess } from 'components/more-less/lib/more-less'
 import { bindToggleTableClickHandlers } from './toggle-table'

@@ -1,3 +1,6 @@
+import "bootstrap";
+import "bootstrap-select";
+
 export const refreshSelects = (el)=>{
     const ruleFilterSelects=[];
     const operatorSelects=[];
