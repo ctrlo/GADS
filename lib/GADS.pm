@@ -2740,46 +2740,10 @@ prefix '/:layout_name' => sub {
                };
             }
 
-            my $pages = $records->pages;
-
-            my $subset = {
-                rows  => session('rows'),
-                pages => $pages,
-                page  => $page,
-            };
-            if ($pages > 50)
-            {
-                my @pnumbers = (1..5);
-                if ($page-5 > 6)
-                {
-                    push @pnumbers, '...';
-                    my $max = $page + 5 > $pages ? $pages : $page + 5;
-                    push @pnumbers, ($page-5..$max);
-                }
-                else {
-                    push @pnumbers, (6..15);
-                }
-                if ($pages-5 > $page+5)
-                {
-                    push @pnumbers, '...';
-                    push @pnumbers, ($pages-4..$pages);
-                }
-                elsif ($pnumbers[-1] < $pages)
-                {
-                    push @pnumbers, ($pnumbers[-1]+1..$pages);
-                }
-                $subset->{pnumbers} = [@pnumbers];
-            }
-            else {
-                $subset->{pnumbers} = [1..$pages];
-            }
-
             my @columns = @{$records->columns_render};
             $params->{user_can_edit}        = $layout->user_can('write_existing');
             $params->{sort}                 = $records->sort;
-            $params->{subset}               = $subset;
             $params->{aggregate}            = $records->aggregate_presentation;
-            $params->{count}                = $records->count;
             $params->{columns}              = [ map $_->presentation(
                 group            => $records->is_group,
                 group_col_ids    => $records->group_col_ids,
