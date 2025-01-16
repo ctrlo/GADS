@@ -10,9 +10,9 @@ export default (scope) => {
             initializeComponent(scope, '#restoreValuesModal', AutosaveModal);
         } catch(e) {
             console.error(e);
-            $('.content-block__main-content').prepend('<div class="alert alert-danger">Autorecover failed to initialize. ' + e.message ? e.message : e + '</div>');
+            $('.content-block__main-content').prepend('<div class="alert alert-danger">Auto-recover failed to initialize. ' + e.message ? e.message : e + '</div>');
         }
     } else {
-        $('.content-block__main-content').prepend('<div class="alert alert-warning">Autorecover is disabled as your browser does not support encryption</div>');
+        $('.content-block__main-content').prepend('<div class="alert alert-warning">Auto-recover is disabled as your browser does not support encryption</div>');
     }
 };
