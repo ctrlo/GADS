@@ -13,7 +13,7 @@
     data-value="[% INCLUDE fields/sub/filter.tt value=label; %]"
     [%- IF is_required -%]required="required"[%- END -%]
   >
-  <label for="[%- id -%]" id="[% id %]-label" class="checkbox-label">
+  <label for="[%- id -%]" id="[% id %]-label" class="checkbox-label form-label">
     [% IF label_in_span %]<span>[% END %][% INCLUDE fields/sub/filter.tt value=label; %][% IF label_in_span %]</span>[% END %]
   </label>
   [% IF popover_body; INCLUDE fields/sub/popover.tt popover_id=id popover_body=popover_body; END; %]

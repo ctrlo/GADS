@@ -4,7 +4,7 @@ const Footer = ({ addWidget, widgetTypes, currentDashboard, readOnly, noDownload
   return (
     <div className='ld-footer-container'>
       {noDownload ? null : <div className="btn-group mb-3 mb-md-0 mr-md-4">
-        <button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
+        <button type="button" className="btn btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
           Download <span className="caret"></span>
         </button>
         <div className="dropdown-menu dropdown__menu dropdown-menu-right scrollable-menu" role="menu">
@@ -17,7 +17,7 @@ const Footer = ({ addWidget, widgetTypes, currentDashboard, readOnly, noDownload
       </div>}
 
       {readOnly ? null : <div className="btn-group">
-        <button type="button" className="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
+        <button type="button" className="btn btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
           Add Widget
         </button>
         <div className="dropdown-menu dropdown__menu dropdown-menu-right scrollable-menu" role="menu">

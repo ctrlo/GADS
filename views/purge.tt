@@ -1,4 +1,4 @@
-<header class="row no-gutters purge--header">
+<header class="row g-0 purge--header">
   <div class="table-header__meta">
     [% INCLUDE navigation/breadcrumbs.tt %]
     <h1 class="table-header__title">Purge Records</h1>

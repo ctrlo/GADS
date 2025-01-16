@@ -260,12 +260,12 @@
 
               [%- IF user.permission.superadmin -%]
               <div class="row">
-                [% INCLUDE snippets/user_column_permissions.tt list_class="list--no-borders list--checkboxes form-group"; %]
+                [% INCLUDE snippets/user_column_permissions.tt list_class="list--no-borders list--checkboxes form-group mb-4"; %]
               </div>
               [%- END -%]
 
               <div class="row">
-                [% INCLUDE snippets/user_column_groups.tt list_class="list--no-borders list--checkboxes form-group"; %]
+                [% INCLUDE snippets/user_column_groups.tt list_class="list--no-borders list--checkboxes form-group mb-4"; %]
               </div>
 
               <div class="row">

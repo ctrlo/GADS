@@ -52,7 +52,7 @@ class CurvalModalComponent extends ModalComponent {
 
       const editButton = $(
         `<td>
-          <button type="button" class="btn btn-small btn-link btn-js-curval-modal" data-toggle="modal" data-target="#curvalModal" data-layout-id="${col_id}"
+          <button type="button" class="btn btn-small btn-link btn-js-curval-modal" data-toggle="modal" data-bs-target="#curvalModal" data-layout-id="${col_id}"
                 data-instance-name="${instance_name}" data-current-id="${current_id}">
             <span class="btn__title">Edit</span>
           </button>

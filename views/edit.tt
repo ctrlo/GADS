@@ -155,7 +155,7 @@
                             END;
                           END;
                         %]
-                        <button class="collapsible__toggle" type="button" data-toggle="collapse" data-target="#dropdown" aria-expanded="false" aria-controls="collapseExample">
+                        <button class="collapsible__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#dropdown" aria-expanded="false" aria-controls="collapseExample">
                           <span> [% dropdown_title %] </span>
                         </button>
                         <div class="collapse" id="dropdown">
@@ -304,7 +304,7 @@
 </div>
 
 [% IF view_modal %]
-<div class="modal-footer modal-footer_sticky mt-1 pb-0 pr-0 pl-0">
+<div class="modal-footer modal-footer_sticky mt-1 pb-0 pe-0 ps-0">
   <div class="modal-footer__left"></div>
   <div class="modal-footer__right">
     <a class="btn btn-default" href="[% url.page %]/record/[% record.current_id %]" target="_blank">Open full record</a>
@@ -349,7 +349,7 @@
   <div class="[% panel_class %]">
     <div class="card card--expandable card--topic">
       <div class="card__header">
-        <button class="card__header-left" type="button" data-toggle="collapse" data-target="#topic[% block_topic.id; widget_id_modifier; %]" aria-expanded="false" aria-controls="topic[% block_topic.id; widget_id_modifier; %]">
+        <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#topic[% block_topic.id; widget_id_modifier; %]" aria-expanded="false" aria-controls="topic[% block_topic.id; widget_id_modifier; %]">
           <span class="card__title">
             [% block_topic.name OR 'Other' | html %]
           </span>
@@ -374,8 +374,8 @@
           <button
             class="card__toggle"
             type="button"
-            data-toggle="collapse"
-            data-target="#topic[% block_topic.id; widget_id_modifier; %]"
+            data-bs-toggle="collapse"
+            data-bs-target="#topic[% block_topic.id; widget_id_modifier; %]"
             aria-expanded="[% open %]"
             aria-controls="topic[% block_topic.id; widget_id_modifier; %]"
           >
@@ -497,7 +497,7 @@
 
 [% BLOCK print_field; %]
   <div
-      class="[% IF col.show_in_edit %]form-group [% END %]linkspace-field[% IF col.show_in_edit==2 %] hidden[% END %]"
+      class="[% IF col.show_in_edit %]form-group mb-4 [% END %]linkspace-field[% IF col.show_in_edit==2 %] hidden[% END %]"
       [% IF col.show_in_edit==2 %]aria-hidden="true"[% END %]
       data-column-id="[% col.id %]"
       data-column-type="[% col.type %]"
@@ -747,7 +747,7 @@
           filter       = "html"
           popover_body = col.helptext_html;
       IF readonly;
-        '<div class="form-group">';
+        '<div class="form-group mb-4">';
             render_datum(col);
         '</div>';
         # Send values back, otherwise controller will think blank values submitted
@@ -859,7 +859,7 @@
                     <div class="col-auto align-content-center">
                         <input type="checkbox" id="file-[% file.id %]" name="[% field %]" value="[% file.id %]"
                             aria-label="[% file.name %]" data-filename="[% file.name %]" checked="">
-                        <label for="file-[% file.id %]">Include File. Current file name:</label>
+                        <label class="form-label" for="file-[% file.id %]">Include File. Current file name:</label>
                         <a id="current-[% file.id %]" class="link link--plain"
                             href="/file/[% file.id %]">[% file.name %]</a>
                         <button data-field-id="[% file.id %]" class="rename btn btn-plain btn-small btn-sm py-0"
@@ -1071,7 +1071,7 @@
   [% IF col.lookup_endpoint %]
     <div class="lookup-status d-none">
       <div class="d-flex align-items-center p-2">
-        <div class="spinner-border spinner-border-sm text-info mr-3" role="status" aria-hidden="true"></div>
+        <div class="spinner-border spinner-border-sm text-info me-3" role="status" aria-hidden="true"></div>
         <div class="text-info status-text"></div>
       </div>
     </div>
@@ -1083,8 +1083,8 @@
   <button
     type="button"
     class="btn btn-js-curval-modal btn-add-link"
-    data-toggle="modal"
-    data-target=#curvalModal
+    data-bs-toggle="modal"
+    data-bs-target=#curvalModal
     data-layout-id="[% col.id %]"
     data-instance-name="[% col.layout_parent.identifier %]"
   >

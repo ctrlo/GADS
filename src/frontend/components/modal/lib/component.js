@@ -85,7 +85,7 @@ class ModalComponent extends Component {
   // Prevent the modal to open
   preventModalToOpen() {
     const modalId = this.el.attr('id') || ""
-    $(`.btn[data-target="#${modalId}"]`).on('click', function(e) {
+    $(`.btn[data-bs-target="#${modalId}"]`).on('click', function(e) {
       e.stopPropagation()
     });
   }

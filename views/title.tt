@@ -8,8 +8,8 @@
                 [% IF title.id %]
                     <input type="hidden" name="id" value="[% title.id %]">
                 [% END %]
-                <div class="form-group">
-                    <label for="name">Title name:</label>
+                <div class="form-group mb-4">
+                    <label class="form-label" for="name">Title name:</label>
                     <input type="text" name="name" class="form-control" value="[% title.name | html_entity %]">
                 </div>
             </div>
@@ -17,7 +17,7 @@
         <p></p>
         <button type="submit" id="submit" name="submit" value="submit" class="btn btn-primary">Save</button>
         [% IF title.id %]
-            <a href="" class="btn btn-default" data-toggle="modal" data-target="#myModal">Delete</a>
+            <a href="" class="btn btn-default" data-bs-toggle="modal" data-bs-target="#myModal">Delete</a>
         [% END %]
     </form>
 <p></p>
@@ -31,7 +31,7 @@
                 <a href="/title/0" class="btn btn-default" role="button">Add Title</a>
             </p>
             <table class="table table-striped">
-                <caption class="sr-only">Table for titles</caption>
+                <caption class="visually-hidden">Table for titles</caption>
                 <tr>
                     <th></th>
                     <th>Name</th>

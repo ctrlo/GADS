@@ -39,13 +39,13 @@
                   <!-- Shared / Administration view -->
                   <div class="row">
                     <div class="col">
-                      <div class="form-group">
+                      <div class="form-group mb-4">
                         <div class="row">
                           <div class="col help-view"
                             data-help-text="***Personal*** - available to all users and only visible to the user that creates them. **Note**: Administrators can manage other user's personal views.\n***Shared*** - users with permission to create shared views can check the shared view box and then select which groups to share the view with.\n***Administration*** - these views are only visible to Administrative users, and primarily for controlling user access to records."
                             data-help-title="View Type"
                             data-help-target="help__card">
-                            <label>View type</label>
+                            <label class="form-label">View type</label>
                           </div>
                         </div>
                         <div class="row">
@@ -111,13 +111,13 @@
                     <div class="col">
                       <div class="card card--expandable">
                         <div class="card__header">
-                          <button class="card__header-left" type="button" data-toggle="collapse" data-target="#filter_1" aria-expanded="false" aria-controls="filter_1">
+                          <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#filter_1" aria-expanded="false" aria-controls="filter_1">
                             <span class="card__title">
                               Filter
                             </span>
                           </button>
                           <div class="card__header-right">
-                            <button class="card__toggle" type="button" data-toggle="collapse" data-target="#filter_1" aria-expanded="false" aria-controls="filter_1">
+                            <button class="card__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#filter_1" aria-expanded="false" aria-controls="filter_1">
                               <span>Toggle collapsible</span>
                             </button>
                           </div>
@@ -126,18 +126,18 @@
                           <div class="card__content">
                             <div class="row mb-3">
                               <div class="col">
-                                <div class="form-group help-view"
+                                <div class="form-group mb-4 help-view"
                                   data-help-text='Use filters to select the records that you want to include in your view.\n#### How they Work\nFilters are created by adding rules and selecting the fields and the corresponding values that will return the records you require. Using the fundamental concept of **"AND"** and **"OR"** logic, rules can be combined to help you refine your filters based on multiple criteria.\nThis logical approach means that your views will return records where the filter rule or combination of rules and/or groups are "TRUE" statements.\n#### Examples\n***"AND":***   If you search for "Apples AND Oranges," you are looking for results that include both apples and oranges together.\n***"OR":***   If you search for "Apples OR Oranges," you are looking for results that include either apples, oranges, or both.'
                                   data-help-title="Filters"
                                   data-help-target="help__card">
                                   <fieldset class="fieldset" >
                                     <div>
-                                      <label>Filter</label>
+                                      <label class="form-label">Filter</label>
                                     </div>
 
 
 
-                                    <div class="form-group ">
+                                    <div class="form-group mb-4 ">
                                       [%
                                         INCLUDE fields/hidden.tt id="refers_to_instance_id" value="10";
 
@@ -174,13 +174,13 @@
                     <div class="col">
                       <div class="card card--expandable">
                         <div class="card__header">
-                          <button class="card__header-left" type="button" data-toggle="collapse" data-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1">
+                          <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1">
                             <span class="card__title">
                               Sort/Group
                             </span>
                           </button>
                           <div class="card__header-right">
-                            <button class="card__toggle" type="button" data-toggle="collapse" data-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1">
+                            <button class="card__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1">
                               <span>Toggle collapsible</span>
                             </button>
                           </div>
@@ -189,15 +189,15 @@
                           <div class="card__content">
                             <div class="row mb-3">
                               <div class="col">
-                                <div class="form-group help-view"
+                                <div class="form-group mb-4 help-view"
                                   data-help-title = "Filters and Grouping"
                                   data-help-text = 'Filters and Groups allow you to construct sophisticated filters by defining specific conditions (rules) and combining them into logical groupings (groups) to precisely control which records are displayed\n#### Rules\nThese are three part statements comprised of a data field, an operator and a value.\n- ***Field*** - a drop down selector for all of the fields on your table.\n- ***Operator*** - symbols or key words to determine how the field and value interact.\n- ***Value*** - the value that is being searched for in the selected field.\n#### Groups\nThese are combinations of rules that result in a "**TRUE**" or "**FALSE**" outcome and can be combined with other rules or groups.'
                                   data-help-target = "help__card">
                                   <fieldset class="fieldset">
                                     <div>
-                                      <label>Field to sort the records in your view by</label>
+                                      <label class="form-label">Field to sort the records in your view by</label>
                                     </div>
-                                    <div class="form-group">
+                                    <div class="form-group mb-4">
                                       <div class="multiple-select">
                                         <div class="multiple-select__list">
                                           [%-
@@ -230,7 +230,7 @@
                                                   Field to sort the records in your view by
                                                 </legend>
                                               </div>
-                                              <div class="form-group ">
+                                              <div class="form-group mb-4 ">
                                                 <div class="row">
                                                   <div class="col">
                                                     [%
@@ -297,13 +297,13 @@
                                     </div>
                                   </fieldset>
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group mb-4">
                                   <fieldset class="fieldset">
                                     <div class="fieldset__legend">
                                       <legend>Group the records in your view by</legend>
                                     </div>
 
-                                    <div class="form-group">
+                                    <div class="form-group mb-4">
                                       <div class="multiple-select">
                                         <div class="multiple-select__list">
                                           [%
@@ -391,13 +391,13 @@
                     <div class="col">
                       <div class="card card--expandable">
                         <div class="card__header">
-                          <button class="card__header-left" type="button" data-toggle="collapse" data-target="#fields_1" aria-expanded="false" aria-controls="fields_1">
+                          <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#fields_1" aria-expanded="false" aria-controls="fields_1">
                             <span class="card__title">
                               Fields
                             </span>
                           </button>
                           <div class="card__header-right">
-                            <button class="card__toggle" type="button" data-toggle="collapse" data-target="#fields_1" aria-expanded="false" aria-controls="fields_1">
+                            <button class="card__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#fields_1" aria-expanded="false" aria-controls="fields_1">
                               <span>Toggle collapsible</span>
                             </button>
                           </div>
@@ -408,7 +408,7 @@
                               <div class="col-sm-12">
                                 <fieldset class="fieldset" >
                                   <div class="fieldset__legend fieldset__legend--standalone">
-                                    <label>
+                                    <label class="form-label">
                                       <strong>Add fields to your view by selecting them from available fields.</strong>
                                     </label>
                                   </div>
@@ -525,8 +525,8 @@
 
                                 <button
                                   class="btn btn-default btn-small btn-remove btn-js-toggle-all-fields"
-                                  data-toggle-source="#table-view-fields-selected"
-                                  data-toggle-destination="#table-view-fields-available">
+                                  data-bs-toggle-source="#table-view-fields-selected"
+                                  data-bs-toggle-destination="#table-view-fields-available">
                                     Remove all fields
                                 </button>
                               </div>
@@ -553,7 +553,7 @@
                                   table_info = 0
                                   table_language = {
                                     emptyTable => "No available fields",
-                                    search => "<span class=\"sr-only\">Search available fields:</span>",
+                                    search => "<span class=\"visually-hidden\">Search available fields:</span>",
                                     searchPlaceholder => "Search available fields"
                                   }
                                   table_ordering = 0
@@ -566,8 +566,8 @@
                                 %]
                                 <button
                                   class="btn btn-default btn-small btn-add btn-js-toggle-all-fields"
-                                  data-toggle-source="#table-view-fields-available"
-                                  data-toggle-destination="#table-view-fields-selected">
+                                  data-bs-toggle-source="#table-view-fields-available"
+                                  data-bs-toggle-destination="#table-view-fields-selected">
                                     Select all fields
                                 </button>
                               </div>

@@ -24,7 +24,7 @@
                 <div class="col">
                   <div class="card card--expandable">
                     <div class="card__header">
-                      <button class="card__header-left" type="button" data-toggle="collapse" data-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
+                      <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
                         <span class="card__title">
                           Group
                           <span class="card__subtitle">
@@ -33,7 +33,7 @@
                         </span>
                       </button>
                       <div class="card__header-right">
-                        <button class="card__toggle" type="button" data-toggle="collapse" data-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
+                        <button class="card__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
                           <span>Toggle collapsible</span>
                         </button>
                       </div>

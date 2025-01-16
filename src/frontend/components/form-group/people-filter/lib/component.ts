@@ -1,5 +1,5 @@
 import { Component } from "component";
-import "@lol768/jquery-querybuilder-no-eval";
+import "jQuery-QueryBuilder";
 
 declare global {
     interface Window {

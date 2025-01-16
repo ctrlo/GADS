@@ -31,7 +31,7 @@
 %]
 
 [% IF ! hide_group %]
-<div class="form-group">
+<div class="form-group mb-4">
 [% END %]
   <div class="select dropdown [% select_class %]">
     [% INCLUDE fields/sub/label_input.tt label_type="select"; %]
@@ -41,7 +41,7 @@
       class="select__toggle dropdown-toggle form-control"
       [% IF is_disabled %]disabled[% END %]
       [% IF is_readonly %]readonly[% END %]
-      data-toggle="dropdown"
+      data-bs-toggle="dropdown"
       aria-haspopup="listbox"
       aria-expanded="false"
       [% IF is_disabled %]aria-disabled="true"[% END %]

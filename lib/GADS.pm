@@ -412,7 +412,7 @@ get '/' => require_login sub {
         dashboards_json                     => schema->resultset('Dashboard')->dashboards_json(%params),
         page                                => 'index',
         'content_block_main_custom_classes' => 'pt-0',
-        'content_block_custom_classes'      => 'pl-0'
+        'content_block_custom_classes'      => 'ps-0'
     };
 
     if (my $download = param('download'))
@@ -2127,7 +2127,7 @@ prefix '/:layout_name' => sub {
             dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
             page            => 'table_index',
             header_type     => "table_tabs",
-            content_block_custom_classes => "pl-0",
+            content_block_custom_classes => "ps-0",
             content_block_main_custom_classes => "pt-0",
             header_back_url => "${base_url}table",
             layout_obj      => $layout,

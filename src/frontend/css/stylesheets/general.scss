@@ -13,7 +13,7 @@
         "external/react-grid-layout/styles.min.css";
 
 // Base settings
-@import "base/global";
+@import "./base/global", "./base/bootstrap5";
 
 // Components
 @import "alert/alert";

@@ -11,8 +11,8 @@ export default function createDeleteButton(element: JQuery<HTMLElement>) {
         const $button = $(ev.target).closest('button')
         const title = $button.attr('data-title')
         const id = $button.attr('data-id')
-        const target = $button.attr('data-target')
-        const toggle = $button.attr('data-toggle')
+        const target = $button.attr('data-bs-target')
+        const toggle = $button.attr('data-bs-toggle')
         const modalTitle = title ? `Delete - ${title}` : 'Delete'
         const $deleteModal = $(document).find(`.modal--delete${target}`)
 

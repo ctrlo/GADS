@@ -28,9 +28,9 @@ class CalculatorComponent extends Component {
 
       calculator_elem.append(
         '<form class="form-inline">' +
-          '    <div class="form-group"><div class="radio-group radio-group--buttons" data-toggle="buttons"></div></div>' +
-          '    <div class="form-group"><div class="input"><input type="text" placeholder="Number" class="form-control"></input></div></div>' +
-          '    <div class="form-group">' +
+          '    <div class="form-group mb-4"><div class="radio-group radio-group--buttons" data-bs-toggle="buttons"></div></div>' +
+          '    <div class="form-group mb-4"><div class="input"><input type="text" placeholder="Number" class="form-control"></input></div></div>' +
+          '    <div class="form-group mb-4">' +
           '        <input type="submit" value="Calculate" class="btn btn-default"></input>' +
           "    </div>" +
           "</form>"
@@ -90,7 +90,7 @@ class CalculatorComponent extends Component {
         const button_elem = $(
           `<div class="radio-group__option">` +
             `<input type="radio" name="op" id="op_${btn.action}" class="radio-group__input btn_label_${btn.action}">` +
-            `<label class="radio-group__label" for="op_${btn.action}">${btn.label}</label>` +
+            `<label class="radio-group__label form-label" for="op_${btn.action}">${btn.label}</label>` +
           `</div>`
         )
 

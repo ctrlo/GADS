@@ -156,7 +156,7 @@ class DataTableComponent extends Component {
     return (
       `<div class='checkbox'>` +
         `<input id='dt_checkbox_${id}' type='checkbox' />` +
-        `<label for='dt_checkbox_${id}'><span>${label}</span></label>` +
+        `<label class="form-label" for='dt_checkbox_${id}'><span>${label}</span></label>` +
       '</div>'
       )
   }
@@ -259,17 +259,17 @@ class DataTableComponent extends Component {
           class='btn btn-search dropdown-toggle'
           id='search-toggle-${index}'
           type='button'
-          data-toggle='dropdown'
+          data-bs-toggle='dropdown'
           aria-expanded='false'
           data-boundary='viewport'
           data-reference='parent'
-          data-target="[data-ddl='ddl_${index}']"
+          data-bs-target="[data-ddl='ddl_${index}']"
           data-focus="[data-ddl='ddl_${index}']"
         >
           <span>Search in ${title}</span>
         </button>
         <div class='dropdown-menu p-2' aria-labelledby='search-toggle-${index}'>
-          <label>
+          <label class="form-label">
             <div class='input'>
             </div>
           </label>

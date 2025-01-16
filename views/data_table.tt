@@ -38,7 +38,7 @@
           next     => "Next page",
           previous => "Previous page"
         },
-        search            => "<span class=\"sr-only\">Search in table:</span>",
+        search            => "<span class=\"visually-hidden\">Search in table:</span>",
         searchPlaceholder => "Search in this table",
       };
       table_page_length  = 50;

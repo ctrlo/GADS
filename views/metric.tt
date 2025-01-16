@@ -52,18 +52,18 @@
                       <div class="row">
                         <div class="col">
                           <p>
-                            <a class="btn btn-add" href="" data-toggle="modal"
-                               data-target="#modal_metric"
+                            <a class="btn btn-add" href="" data-bs-toggle="modal"
+                               data-bs-target="#modal_metric"
                                data-metric_id=""
                                data-x_axis_field=""
                                data-y_axis_value=""
                                data-target_value=""
                             >Add item
                             </a>
-                            <a href="" class="btn btn-danger" data-toggle="modal" data-target="#modal_delete">Delete group</a>
+                            <a href="" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modal_delete">Delete group</a>
                           </p>
                           <table class="table table-striped">
-                            <caption class="sr-only">Table for metric groups</caption>
+                            <caption class="visually-hidden">Table for metric groups</caption>
                             <tr>
                               <th></th>
                               <th>X-axis value</th>
@@ -72,8 +72,8 @@
                             </tr>
                             [% FOREACH metric IN metricgroup.metrics %]
                             <tr>
-                              <td><a href="" data-toggle="modal"
-                                     data-target="#modal_metric"
+                              <td><a href="" data-bs-toggle="modal"
+                                     data-bs-target="#modal_metric"
                                      data-metric_id="[% metric.id %]"
                                      data-x_axis_value="[% metric.x_axis_value %]"
                                      data-y_axis_grouping_value="[% metric.y_axis_grouping_value %]"
@@ -180,16 +180,16 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" name="metric_id" id="metric_id" value="">
-                <div class="form-group">
-                    <label for="x_axis_value">X-axis value:</label>
+                <div class="form-group mb-4">
+                    <label class="form-label" for="x_axis_value">X-axis value:</label>
                     <input type="text" name="x_axis_value" class="form-control" id="x_axis_value" value="">
                 </div>
-                <div class="form-group">
-                    <label for="y_axis_grouping_value">Y-axis grouping value:</label>
+                <div class="form-group mb-4">
+                    <label class="form-label" for="y_axis_grouping_value">Y-axis grouping value:</label>
                     <input type="text" name="y_axis_grouping_value" class="form-control" id="y_axis_grouping_value" value="">
                 </div>
-                <div class="form-group">
-                    <label for="target_value">Target value:</label>
+                <div class="form-group mb-4">
+                    <label class="form-label" for="target_value">Target value:</label>
                     <input type="text" name="target" class="form-control" id="target_value" value="">
                 </div>
             </div>

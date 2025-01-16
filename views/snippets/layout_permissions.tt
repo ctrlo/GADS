@@ -1,10 +1,10 @@
 
 [% BLOCK _permissions_for_group %]
     [% MACRO permission_input(name, label, group, nested) BLOCK %]
-        <div class="form-group">
+        <div class="form-group mb-4">
             <input data-permission-class="[% name.replace('_','-') %]" type="checkbox" id="permission_[% name %]_[% group.id %]" 
                 name="permission_[% name %]_[% group.id %]" [% column.group_has(group.id, name) ? 'checked' : '' %]>
-            <label for="permission_[% name %]_[% group.id %]">[% label | html %]</label>
+            <label class="form-label" for="permission_[% name %]_[% group.id %]">[% label | html %]</label>
             [% nested %]
         </div>
     [% END %]
@@ -55,8 +55,8 @@
     [% IF groups.all.size %]
         <div class="permission-rule">
             <div class="row">
-                <div class="form-group col-md-3">
-                    <label for="select-permission-group">
+                <div class="form-group mb-4 col-md-3">
+                    <label class="form-label" for="select-permission-group">
                         Group:
                     </label>
                     <select id="select-permission-group" class="form-control">

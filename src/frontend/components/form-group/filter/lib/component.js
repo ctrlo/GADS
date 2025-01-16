@@ -1,5 +1,5 @@
 import { Component } from 'component'
-import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
+import 'jQuery-QueryBuilder'
 import { logging } from 'logging'
 import TypeaheadBuilder from 'util/typeahead'
 import { refreshSelects } from 'components/form-group/common/bootstrap-select'

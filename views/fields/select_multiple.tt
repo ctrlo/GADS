@@ -3,7 +3,7 @@
   select_widget_class = is_required ? ' select-widget--required' : '';
 %]
 [% IF ! hide_group %]
-<div class="form-group [% formgroup_class %]">
+<div class="form-group mb-4 [% formgroup_class %]">
 [% END %]
   <fieldset class="fieldset [% fieldset_class %]">
     [% INCLUDE fields/sub/label_fieldset.tt; %]
@@ -65,7 +65,7 @@
           [% IF has_subvals OR has_typeahead %]
             <li class="spinner">
               <div class="spinner-border" role="status">
-                <span class="sr-only">Loading...</span>
+                <span class="visually-hidden">Loading...</span>
               </div>
             </li>
           [% END %]
@@ -104,8 +104,8 @@
               <button
                 type="button"
                 class="btn btn-small btn-default btn-js-more-info"
-                data-toggle="modal"
-                data-target=#detailsModal
+                data-bs-toggle="modal"
+                data-bs-target=#detailsModal
                 data-record-id="[% item.value %]"
                 aria-described-by="lbl-single-details-0"
               >

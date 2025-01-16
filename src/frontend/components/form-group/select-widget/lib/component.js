@@ -396,8 +396,8 @@ class SelectWidgetComponent extends Component {
       ' <div class="details">' +
       '<button type="button" class="btn btn-small btn-default btn-js-more-info" data-record-id="' + value_id +
       '" aria-describedby="lbl-' + valueId +
-      '" data-target="' + this.el.data('details-modal') + // TODO: get id of modal
-      '" data-toggle="modal">' +
+      '" data-bs-target="' + this.el.data('details-modal') + // TODO: get id of modal
+      '" data-bs-toggle="modal">' +
       "Details" +
       "</button>" +
       "</div>"
@@ -426,7 +426,7 @@ class SelectWidgetComponent extends Component {
         '" aria-labelledby="lbl-' +
         valueId +
         '"> ' + // Add space to keep spacing consistent with templates
-        '<label id="lbl-' +
+        '<label class="form-label" id="lbl-' +
         valueId +
         '" for="' +
         valueId +
@@ -527,7 +527,7 @@ class SelectWidgetComponent extends Component {
         const errorMessage =
           data.error === 1 ? data.message : "Oops! Something went wrong."
         const errorLi = $(
-          '<li class="answer answer--blank alert alert-danger d-flex flex-row justify-content-start"><span class="control"><label>' +
+          '<li class="answer answer--blank alert alert-danger d-flex flex-row justify-content-start"><span class="control"><label class="form-label">' +
             errorMessage +
             "</label></span></li>"
         )
@@ -545,7 +545,7 @@ class SelectWidgetComponent extends Component {
             textError
         )
         const errorLi = $(
-          '<li class="answer answer--blank alert alert-danger"><span class="control"><label>' +
+          '<li class="answer answer--blank alert alert-danger"><span class="control"><label class="form-label">' +
             errorMessage +
             "</label></span></li>"
         )

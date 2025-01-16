@@ -14240,7 +14240,7 @@ proto.createButton = function (config) {
       _this.updateActiveButton(ev.currentTarget);
     });
   }
-  button.setAttribute('data-toggle', config.toggle || false);
+  button.setAttribute('data-bs-toggle', config.toggle || false);
   if (config.toggle) d3.select(button).classed('active', true);
   var icon = config.icon;
   if (typeof icon === 'function') {
@@ -14298,10 +14298,10 @@ proto.updateActiveButton = function (buttonClicked) {
   this.buttonElements.forEach(function (button) {
     var thisval = button.getAttribute('data-val') || true;
     var dataAttr = button.getAttribute('data-attr');
-    var isToggleButton = button.getAttribute('data-toggle') === 'true';
+    var isToggleButton = button.getAttribute('data-bs-toggle') === 'true';
     var button3 = d3.select(button);
 
-    // Use 'data-toggle' and 'buttonClicked' to toggle buttons
+    // Use 'data-bs-toggle' and 'buttonClicked' to toggle buttons
     // that have no one-to-one equivalent in fullLayout
     if (isToggleButton) {
       if (dataAttr === dataAttrClicked) {

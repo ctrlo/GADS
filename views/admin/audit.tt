@@ -75,7 +75,7 @@
               <button
                 type="button"
                 class="btn btn-filter"
-                data-toggle="modal" data-target=#filterAuditLogs
+                data-bs-toggle="modal" data-bs-target=#filterAuditLogs
               >
                 <span class="btn__title">Filter</span>
               </button>
