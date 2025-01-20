@@ -26,3 +26,14 @@ export const fromJson = (json: String | object) => {
         return {};
     }
 }
+
+export const initJquery = () => {
+    if (window.jQuery && window.$) {
+        console.log('jQuery already loaded');
+    } else {
+        (($) => {
+            if (!window.jQuery) window.jQuery = $;
+            if (!window.$) window.$ = $;
+        })(jQuery);
+    }
+};

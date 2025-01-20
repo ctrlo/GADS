@@ -41,6 +41,7 @@ import ButtonComponent from "components/button"
 import SelectAllComponent from "components/select-all"
 import HelpView from "components/help-view"
 import PeopleFilterComponent from "components/form-group/people-filter"
+import { initJquery } from "./lib/util/common"
 
 // Register them
 registerComponent(AddTableModalComponent)
@@ -78,7 +79,10 @@ registerComponent(ValueLookupComponent)
 registerComponent(MarkdownComponent)
 registerComponent(SelectAllComponent)
 registerComponent(HelpView)
-registerComponent(PeopleFilterComponent)
+registerComponent(PeopleFilterComponent);
+
+// Initialize jQuery (Bootstrap 5 doesn't work as expected unless we do this)
+initJquery();
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body)

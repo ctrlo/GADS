@@ -1,9 +1,13 @@
-import "bootstrap";
 import "bootstrap-select";
 
 export const refreshSelects = (el)=>{
     const ruleFilterSelects=[];
     const operatorSelects=[];
+
+    if(!bootstrap) {
+      console.error("Bootstrap is not loaded");
+      return;
+    }
 
     el.on("afterCreateRuleFilters.queryBuilder", (e, rule) => {
       const ruleFilterSelect= $(rule.$el.find(`select[name=${rule.id}_filter]`));

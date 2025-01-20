@@ -51,7 +51,7 @@
         type="button"[% IF button.id %]
         id="[% button.id %]"[% END %]
         class="[% button.class ? button.class : 'btn btn-cancel' %]"
-        data-dismiss="modal"
+        data-bs-dismiss="modal"
       >
         <span class="btn__title">[%- button.label || button.name | html -%]</span>
       </button>

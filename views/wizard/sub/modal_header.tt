@@ -4,7 +4,7 @@
       [% label | html %]
     </h3>
   </div>
-  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+  <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
     <span aria-hidden="true" class="hidden">Close</span>
   </button>
 </div>

@@ -21,7 +21,7 @@
     button.type    = button.type ? button.type : 'button';
     button_name    = button.name ? ' name="' _ button.name _ '"' : '';
     button_value   = button.value ? ' value="' _ button.value _ '"' : '';
-    button_dismiss = button.dismiss ? ' data-dismiss="' _ button.dismiss _ '"' : '';
+    button_dismiss = button.dismiss ? ' data-bs-dismiss="' _ button.dismiss _ '"' : '';
 
     IF button.is_form;
       button.method = button.method == "get" ? 'get' : 'post';

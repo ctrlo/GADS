@@ -40,6 +40,8 @@
 
     .close {
       color: $transparent;
+      visibility: hidden;
+      display: none;
     }
   }
 
