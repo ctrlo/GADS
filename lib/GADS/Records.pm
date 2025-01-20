@@ -472,7 +472,7 @@ sub search_query
     push @search, { "$current.instance_id" => $self->layout->instance_id };
     push @search, $self->common_search($current);
     push @search, $self->record_later_search(%options, linked => $linked, search => 1)
-        unless $options{chronology};
+        unless $options{chronology} || $options{no_record_later};
     push @search, {
         "$record_single.created" => { '<=' => $self->rewind_formatted },
     } if $self->rewind;
@@ -570,7 +570,7 @@ sub linked_hash
         };
     }
     else {
-        return {};
+        return ();
     }
 }
 
@@ -1555,23 +1555,36 @@ sub _build_count
 
     return $self->_search_all_fields->{count} if $self->search;
 
-    my $search_query = $self->search_query(search => 1, linked => 1);
-    my @joins        = $self->jpfetch(search => 1, linked => 0);
-    my @linked       = $self->linked_hash(search => 1, linked => 1);
+    # Try and make the count fast, only counting the current table itself if
+    # possible. We can look at only the current table if there is no filtering
+    # and if there is no other need to look at the records join (approval,
+    # rewind etc)
+    my ($search_query, $select);
+    if ($self->rewind || $self->_query_params(search => 1) || $self->_approval_query)
+    {
+        $search_query = $self->search_query(search => 1, linked => 1);
+        my @joins        = $self->jpfetch(search => 1, linked => 0);
+        my @linked       = $self->linked_hash(search => 1, linked => 1);
+        $select = {
+            join     => [
+                [@linked],
+                {
+                    'record_single' => [
+                        'record_later',
+                        @joins
+                    ],
+                },
+            ],
+            distinct => 1, # Otherwise multiple records returned for multivalue fields
+        };
+    }
+    else {
+        # record joins not needed, remove with fresh call
+        $search_query = $self->search_query(search => 1, linked => 1, no_record_later => 1);
+    }
+
     local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
         if $self->rewind;
-    my $select = {
-        join     => [
-            [@linked],
-            {
-                'record_single' => [
-                    'record_later',
-                    @joins
-                ],
-            },
-        ],
-        distinct => 1, # Otherwise multiple records returned for multivalue fields
-    };
 
     $self->schema->resultset('Current')->search(
         [-and => $search_query], $select

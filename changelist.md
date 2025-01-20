@@ -2,6 +2,17 @@
 
 -------
 
+**Version**: 2.5.12
+**Released**: 14-01-2025
+
+-------
+
+## Fixes
+
+- Improve performance of all-record table count
+
+-------
+
 **Version**: 2.5.11
 **Released**: 26-11-2024
 
