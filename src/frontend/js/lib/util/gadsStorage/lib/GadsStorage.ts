@@ -12,11 +12,18 @@ export class GadsStorage implements AppStorage {
     private storage: EncryptedStorage | Storage;
     private storageKey: string;
 
+    /**
+     * Creates a new GadsStorage instance.
+     */
     constructor() {
         this.test && console.log("Using localStorage");
         this.storage = this.test ? localStorage : EncryptedStorage.instance();
     }
 
+    /**
+     * Fetches the storage key used to encrypt data.
+     * @returns The storage key used to encrypt data.
+     */
     private async getStorageKey() {
         if (window.test) { 
             this.storageKey = "test";
@@ -30,7 +37,13 @@ export class GadsStorage implements AppStorage {
         this.storageKey = data.key;
     }
 
+    /**
+     * @inheritdoc
+     */
     async setItem(key: string, value: string) {
+        // We turn off writing if we're performing a recovery to prevent extra write operations—this is more to prevent 
+        // the odd curval error with dropdowns. It's felt it's more sensible to do this here, rather than search through
+        // all the code and try to work out where to put the check (and repeat it ad infinitum)
         if(await this.getItem('recovering')) return;
         if(await this.getItem(key) === value) return;
         if (!this.storageKey) {
@@ -39,6 +52,9 @@ export class GadsStorage implements AppStorage {
         await this.storage.setItem(key, value, this.storageKey);
     }
 
+    /**
+     * @inheritdoc
+     */
     async getItem(key: string) {
         if (!this.storageKey) {
             await this.getStorageKey();
@@ -46,18 +62,30 @@ export class GadsStorage implements AppStorage {
         return await this.storage.getItem(key, this.storageKey);
     }
 
+    /**
+     * @inheritdoc
+     */
     removeItem(key: string) {
         this.storage.removeItem(key);
     }
 
+    /**
+     * @inheritdoc
+     */
     clear() {
         this.storage.clear();
     }
 
+    /**
+     * @inheritdoc
+     */
     key(index: number) {
         return this.storage.key(index);
     }
 
+    /**
+     * @inheritdoc
+     */
     get length() {
         return this.storage.length;
     }

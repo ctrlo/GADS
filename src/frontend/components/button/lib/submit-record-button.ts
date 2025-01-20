@@ -47,6 +47,7 @@ export default class SubmitRecordButton {
                     if ($button.prop("name")) {
                         $button.after(`<input type="hidden" name="${$button.prop("name")}" value="${$button.val()}" />`);
                     }
+                    // Clear the saved form values from local storage as they should now be saved to the record
                     await clearSavedFormValues($form);
                 } else {
                     // Re-add the required attribute to required dependent fields

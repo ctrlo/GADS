@@ -1,5 +1,9 @@
 import gadsStorage from "util/gadsStorage";
 
+/**
+ * Clear all saved form values for the current record
+ * @param $form The form to clear the data for
+ */
 export async function clearSavedFormValues($form: JQuery<HTMLElement>) {
     if (!$form || $form.length === 0) return;
     const layout = layoutId();
@@ -15,18 +19,34 @@ export async function clearSavedFormValues($form: JQuery<HTMLElement>) {
     }));
 }
 
+/**
+ * Get the layout identifier from the body data
+ * @returns The layout identifier
+ */
 export function layoutId() {
     return $('body').data('layout-identifier');
 }
 
+/**
+ * Get the record identifier from the body data
+ * @returns The record identifier
+ */
 export function recordId() {
-    return isNaN(parseInt(location.pathname.split('/').pop())) ? 0 : parseInt(location.pathname.split('/').pop());
+    return $('body').find('.form-edit').data('current-id') || 0;
 }
 
+/**
+ * Get the key for the table used for saving form values
+ * @returns The key for the table
+ */
 export function table_key() {
     return `linkspace-record-change-${layoutId()}-${recordId()}`;
 }
 
+/**
+ * Get the storage object - this originally was used in debugging to allow for the storage object to be mocked
+ * @returns The storage object
+ */
 export function storage() {
-    return location.hostname === 'localhost' || window.test ? localStorage : gadsStorage;
+    return gadsStorage;
 }

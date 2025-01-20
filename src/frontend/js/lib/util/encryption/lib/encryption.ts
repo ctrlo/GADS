@@ -1,3 +1,9 @@
+/**
+ * Encrypts data using AES-GCM
+ * @param data The data to encrypt
+ * @param password The password to encrypt the data with
+ * @returns The encrypted data
+ */
 export async function encrypt(data: string, password: string): Promise<string> {
     const key = createKey(password, "encrypt");
     const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -17,6 +23,12 @@ export async function encrypt(data: string, password: string): Promise<string> {
     return btoa(JSON.stringify(result));
 }
 
+/**
+ * Decrypts data using AES-GCM
+ * @param data The data to decrypt
+ * @param password The password to decrypt the data with
+ * @returns The decrypted data
+ */
 export async function decrypt(data: string, password: string): Promise<string> {
     const key = createKey(password, "decrypt");
     const decoded = JSON.parse(atob(data));
@@ -34,7 +46,12 @@ export async function decrypt(data: string, password: string): Promise<string> {
     return decoder.decode(await decrypted);
 }
 
-
+/**
+ * Creates a key for AES-GCM
+ * @param password The password to create the key with
+ * @param mode Whether to encrypt or decrypt
+ * @returns The key
+ */
 async function createKey(password: string, mode: "encrypt" | "decrypt") {
     const salt = new TextEncoder().encode("salt");
     const encoder = new TextEncoder();

@@ -1,7 +1,14 @@
 import { getFieldValues } from "get-field-values";
 import AutosaveBase from './autosaveBase';
 
+/**
+ * Autosave component
+ * @inherits AutosaveBase
+ */
 class AutosaveComponent extends AutosaveBase {
+  /**
+   * @inheritdoc
+   */
   async initAutosave() {
     const $field = $(this.element);
     const self = this;

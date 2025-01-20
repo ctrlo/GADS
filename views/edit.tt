@@ -11,7 +11,8 @@
     class="[% IF edit_modal %]curval-edit-form[% ELSE %]form-edit[% END %]"
     method="post"
     enctype="multipart/form-data"
-    data-current-id="[% cur_id %]"
+    [% IF cur_id %]data-current-id="[% cur_id %]"[% END %]
+    [% IF from %]data-from="[% from %]"[% END %]
     [%
       IF edit_modal;
         action = cur_id
