@@ -4921,7 +4921,7 @@ sub _process_edit
         $params->{content_block_custom_classes} = 'content-block--footer';
     }
 
-    $params->{from} = $clone_from
+    $params->{clone_from} = $clone_from
         if $clone_from;
 
     $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids
