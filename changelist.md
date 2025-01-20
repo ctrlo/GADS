@@ -13,6 +13,7 @@
 - Added option to add a reason for account rejection
 - Added mandatory fields to account requests
 - View All can be turned on for all curvals
+- User deleted date can now be used in curvals
 
 ## Fixes
 
@@ -20,6 +21,22 @@
 - Removed deprecated buffer code
 - Moved loading graphic on tables back to top
 - User notes now persist when approving user account requests
+- Fix for issue deselecting multi-value trees
+- Added `values_for_timeline` sub that was missing from trees in timelines
+- Various changes for WCAG compliance
+- Made fields madatory when requesting accounts
+
+-------
+
+**Version**: 2.5.12
+**Released**: 17-01-2025
+
+-------
+
+## Fixes
+
+- Fix for efficiency of bulk updates
+- Speed improvements for viewing records summary page
 
 -------
 
