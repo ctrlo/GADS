@@ -1448,6 +1448,17 @@ any ['get', 'post'] => '/api/users' => require_any_role [qw/useradmin superadmin
     return encode_json $return;
 };
 
+get '/api/get_key' => require_login sub {
+    my $user = logged_in_user;
+
+    my $key = $user->encryption_key;
+
+    return to_json {
+        error => 0,
+        key   => $key
+    }
+};
+
 sub _success
 {   my $msg = shift;
     send_as JSON => {
