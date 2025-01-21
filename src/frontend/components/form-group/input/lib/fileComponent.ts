@@ -1,3 +1,4 @@
+import 'util/filedrag';
 import { formdataMapper } from 'util/mapper/formdataMapper';
 import { upload } from 'util/upload/UploadControl';
 
@@ -22,7 +23,7 @@ class FileComponent {
         const dropTarget = this.el.closest('.file-upload');
         if (dropTarget) {
             const dragOptions = { allowMultiple: false };
-            (dropTarget as any).filedrag(dragOptions).on('onFileDrop', (ev, file) => {
+            dropTarget.filedrag(dragOptions).on('onFileDrop', (ev, file) => {
                 this.handleFormUpload(file);
             });
         } else {
