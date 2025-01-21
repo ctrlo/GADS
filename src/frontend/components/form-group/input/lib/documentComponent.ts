@@ -1,4 +1,5 @@
 import 'components/button/lib/rename-button';
+import 'util/filedrag';
 import { upload } from 'util/upload/UploadControl';
 import { validateCheckboxGroup } from 'validation';
 import { formdataMapper } from 'util/mapper/formdataMapper';
@@ -106,7 +107,9 @@ class DocumentComponent {
         const field = $fieldset.find('.input--file').data('field');
         const csrf_token = $('body').data('csrf');
 
-        if (!this.el || !this.el.length || !this.el.data('multivalue')) $ul.empty();
+        if (!this.el || !this.el.length || !this.el.closest('.linkspace-field').data('is-multivalue')) {
+            $ul.empty();
+        }
 
         const $li = $(`
             <li class="list__item">
@@ -184,5 +187,7 @@ class DocumentComponent {
  * @param {JQuery<HTMLElement> | HTMLElement} el The element to attach the document component to
  */
 export default function documentComponent(el: JQuery<HTMLElement> | HTMLElement) {
-    Promise.all([(new DocumentComponent(el)).init()]);
+    const component = new DocumentComponent(el);
+    component.init();
+    return component;
 }

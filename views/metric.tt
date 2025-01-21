@@ -57,7 +57,7 @@
                                data-metric_id=""
                                data-x_axis_field=""
                                data-y_axis_value=""
-                               data-target_value=""
+                               data-bs-target_value=""
                             >Add item
                             </a>
                             <a href="" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modal_delete">Delete group</a>
@@ -77,7 +77,7 @@
                                      data-metric_id="[% metric.id %]"
                                      data-x_axis_value="[% metric.x_axis_value %]"
                                      data-y_axis_grouping_value="[% metric.y_axis_grouping_value %]"
-                                     data-target_value="[% metric.target %]"
+                                     data-bs-target_value="[% metric.target %]"
                               >Edit</a>
                               </td>
                               <td>[% metric.x_axis_value | html_entity %]</td>

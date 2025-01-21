@@ -1,9 +1,10 @@
+import "../../../testing/globals.definitions";
 import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
 import { fromJson, hideElement, showElement } from "./common";
 
 describe('common functions', () => {
-    describe.skip('CSS and ARIA',()=>{
-        let el:JQuery<HTMLElement>;
+    describe.skip('CSS and ARIA - skipped as they are incorrect',()=>{
+        let el: JQuery<HTMLElement>;
 
         beforeEach(() => {
             el=$(document.createElement('div'));
@@ -14,34 +15,45 @@ describe('common functions', () => {
         });
 
         it('hides an element', () => {
+            const hasClass = jest.spyOn(el, 'hasClass');
+            const addClass = jest.spyOn(el, 'addClass');
+            const attr = jest.spyOn(el, 'attr');
             hideElement(el);
-            expect(el.hasClass).toHaveBeenCalledWith('hidden');
-            expect(el.addClass).toHaveBeenCalledWith('hidden');
-            expect(el.attr).toHaveBeenCalledWith('aria-hidden', 'true');
+            expect(hasClass).toHaveBeenCalledWith('hidden');
+            expect(addClass).toHaveBeenCalledWith('hidden');
+            expect(attr).toHaveBeenCalledWith('aria-hidden', 'true');
         });
 
         it('does not hide a hidden element', () => {
-            // el.hasClass = jest.fn().mockReturnValue(true);
+            el.addClass('hidden');
+            const hasClass = jest.spyOn(el, 'hasClass');
+            const addClass = jest.spyOn(el, 'addClass');
+            const attr = jest.spyOn(el, 'attr');
             hideElement(el);
-            expect(el.hasClass).toHaveBeenCalledWith('hidden');
-            expect(el.addClass).not.toHaveBeenCalled();
-            expect(el.attr).not.toHaveBeenCalled();
+            expect(hasClass).toHaveBeenCalledWith('hidden');
+            expect(addClass).not.toHaveBeenCalled();
+            expect(attr).not.toHaveBeenCalled();
         });
 
         it('shows a hidden element', () => {
-            // el.hasClass = jest.fn().mockReturnValue(true);
+            el.addClass('hidden');
+            const hasClass = jest.spyOn(el, 'hasClass');
+            const removeClass = jest.spyOn(el, 'removeClass');
+            const removeAttr = jest.spyOn(el, 'removeAttr');
             showElement(el);
-            expect(el.hasClass).toHaveBeenCalledWith('hidden');
-            expect(el.removeClass).toHaveBeenCalledWith('hidden');
-            expect(el.removeAttr).toHaveBeenCalledWith('aria-hidden');
+            expect(hasClass).toHaveBeenCalledWith('hidden');
+            expect(removeClass).toHaveBeenCalledWith('hidden');
+            expect(removeAttr).toHaveBeenCalledWith('aria-hidden');
         });
 
         it('does not show a visible element', () => {
-            // el.hasClass= jest.fn().mockReturnValue(false);
+            const hasClass = jest.spyOn(el, 'hasClass');
+            const removeClass = jest.spyOn(el, 'removeClass');
+            const removeAttr = jest.spyOn(el, 'removeAttr');
             showElement(el);
-            expect(el.hasClass).toHaveBeenCalledWith('hidden');
-            expect(el.removeClass).not.toHaveBeenCalled();
-            expect(el.removeAttr).not.toHaveBeenCalled();
+            expect(hasClass).toHaveBeenCalledWith('hidden');
+            expect(removeClass).not.toHaveBeenCalled();
+            expect(removeAttr).not.toHaveBeenCalled();
         });
     });
 

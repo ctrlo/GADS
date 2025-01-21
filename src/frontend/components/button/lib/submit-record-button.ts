@@ -1,4 +1,5 @@
 import {validateRequiredFields} from "validation";
+import { clearSavedFormValues } from "./common";
 
 /**
  * Button to submit records
@@ -13,7 +14,7 @@ export default class SubmitRecordButton {
      * @param el {JQuery<HTMLElement>} Element to create as a button
      */
     constructor(private el: JQuery<HTMLElement>) {
-        this.el.on("click", (ev: JQuery.ClickEvent) => {
+        this.el.on("click", async (ev: JQuery.ClickEvent) => {
             const $button = $(ev.target).closest('button');
             const $form = $button.closest("form");
             const $requiredHiddenRecordDependentFields = $form.find(".form-group[data-has-dependency='1'][style*='display: none'] *[aria-required]");
@@ -46,6 +47,8 @@ export default class SubmitRecordButton {
                     if ($button.prop("name")) {
                         $button.after(`<input type="hidden" name="${$button.prop("name")}" value="${$button.val()}" />`);
                     }
+                    // Clear the saved form values from local storage as they should now be saved to the record
+                    await clearSavedFormValues($form);
                 } else {
                     // Re-add the required attribute to required dependent fields
                     $requiredHiddenRecordDependentFields.attr('required', '');

@@ -4761,7 +4761,8 @@ sub _process_edit
         {
             # The "source" parameter is user input, make sure still valid
             my $source_curval = $layout->column(param('source'), permission => 'read');
-            try { $record->write(dry_run => 1, parent_curval => $source_curval) };
+            my %options = (dry_run => 1, parent_curval => $source_curval);
+            try { $record->write(%options) };
             if (my $e = $@->wasFatal)
             {
                 push @validation_errors, $e->reason eq 'PANIC' ? 'An unexpected error occurred' : $e->message;
@@ -4884,6 +4885,9 @@ sub _process_edit
     {
         $params->{content_block_custom_classes} = 'content-block--footer';
     }
+
+    $params->{clone_from} = $clone_from
+        if $clone_from;
 
     $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids
         if $modal;
