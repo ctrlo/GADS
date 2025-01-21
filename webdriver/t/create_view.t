@@ -72,7 +72,7 @@ $gads->assert_success_present(
 # Create a new table
 $gads->navigate_ok(
     'Navigate to the table setup modal',
-    [ qw( .nav__link--tables [data-target='#newTableModal' ) ],
+    [ qw( .nav__link--tables [data-bs-target='#newTableModal' ) ],
 );
 $gads->assert_on_add_a_table_page;
 

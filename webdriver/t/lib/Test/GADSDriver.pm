@@ -900,7 +900,7 @@ sub delete_current_view_ok {
     # could not be scrolled into view" error.
     $webdriver->js( '$.support.transition = false' );
 
-    my @failure = $self->_find_and_click( [ 'a[data-target="#myModal"]' ] );
+    my @failure = $self->_find_and_click( [ 'a[data-bs-target="#myModal"]' ] );
 
     $test->note("About to delete view ${view_name}");
     $webdriver->find('#myModal .modal-dialog .btn-primary')->click;
@@ -1045,7 +1045,7 @@ sub purge_deleted_records_ok {
 
     push @failure, $self->_find_and_click([
         '#selectall',
-        'button[data-target="#purge"]',
+        'button[data-bs-target="#purge"]',
     ]);
     $webdriver->find('button[type="submit"][name="purge"]')->click;
 
