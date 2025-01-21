@@ -35,7 +35,3 @@ yarn-error.log
 webpack.config.development.js
 
 cypress/downloads/downloads.html
-
-.vscode
-epf.*
-_Deparsed_XSubs.pm
