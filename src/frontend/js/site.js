@@ -42,6 +42,7 @@ import ButtonComponent from "components/button";
 import SelectAllComponent from "components/select-all";
 import HelpView from "components/help-view";
 import PeopleFilterComponent from "components/form-group/people-filter";
+import { initJquery } from "./lib/util/common";
 
 // Register them
 registerComponent(AddTableModalComponent);
@@ -81,6 +82,8 @@ registerComponent(SelectAllComponent);
 registerComponent(HelpView);
 registerComponent(PeopleFilterComponent);
 registerComponent(AutosaveComponent);
+
+initJquery();
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body);

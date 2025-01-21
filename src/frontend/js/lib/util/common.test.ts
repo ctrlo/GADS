@@ -1,6 +1,6 @@
 import "../../../testing/globals.definitions";
 import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
-import { fromJson, hideElement, showElement } from "./common";
+import { fromJson, hideElement, showElement, initJquery } from "./common";
 
 describe('common functions', () => {
     describe.skip('CSS and ARIA - skipped as they are incorrect',()=>{
@@ -86,6 +86,23 @@ describe('common functions', () => {
             const json = undefined;
             const parsed = fromJson(json);
             expect(parsed).toEqual({});
+        });
+    });
+
+    describe('JQuery Init', ()=>{
+        it('should initialize jQuery', ()=>{
+            //@ts-ignore
+            delete(window.jQuery);
+            //@ts-ignore
+            delete(window.$);
+            //Sanity check
+            expect(window.jQuery).toBeUndefined();
+            expect(window.$).toBeUndefined();
+            //@ts-ignore
+            jQuery = require('jquery');
+            initJquery();
+            expect(window.jQuery).toBeDefined();
+            expect(window.$).toBeDefined();
         });
     });
 });
