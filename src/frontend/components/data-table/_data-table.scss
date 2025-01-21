@@ -4,6 +4,10 @@
   border-spacing: 0;
   font-size: $font-size-sm;
 
+  th, td {
+      padding: 16px;
+  }
+  
   &.table-thead-hidden thead {
     @include visually-hidden;
   }

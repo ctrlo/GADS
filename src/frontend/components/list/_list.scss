@@ -1,3 +1,9 @@
+ol,
+ul {
+    // Use the orginal Bootstrap 4 padding
+    padding-left: 40px;
+}
+
 .list__title {
   @include font-style-h3;
 

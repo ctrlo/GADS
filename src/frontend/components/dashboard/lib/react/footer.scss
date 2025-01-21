@@ -1,15 +1,22 @@
 .ld-footer-container {
-    display: flex;
-    position: fixed;
-    z-index: 999;
-    right: $padding-large-horizontal;
-    bottom: $padding-large-vertical;
-    flex-direction: column;
-    justify-content: end;
-  }
-  
-  @include media-breakpoint-up(md) {
-    .ld-footer-container {
-      flex-direction: row;
+  display: flex;
+  position: fixed;
+  z-index: 999;
+  right: $padding-large-horizontal;
+  bottom: $padding-large-vertical;
+  flex-direction: column;
+  justify-content: end;
+  .btn-group {
+    margin-right: 24px;
+
+    &:last-of-type {
+        margin-right: 0;
     }
   }
+}
+  
+@include media-breakpoint-up(md) {
+  .ld-footer-container {
+    flex-direction: row;
+  }
+}
