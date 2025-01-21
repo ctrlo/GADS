@@ -1,5 +1,5 @@
 const path = require('path')
-const webpack = require('webpack')
+const { ProvidePlugin } = require('webpack')
 const autoprefixer = require('autoprefixer')
 const sass = require('sass')
 const TerserPlugin = require('terser-webpack-plugin')
@@ -8,10 +8,10 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 
 const plugins = [
-  new webpack.ProvidePlugin({
+  new ProvidePlugin({
     $: 'jquery',
     jQuery: 'jquery',
-    Buffer: ['buffer', 'Buffer'],
+    bootstrap: 'bootstrap',
   }),
   new MiniCssExtractPlugin({
     filename: '[name].css',
@@ -74,16 +74,18 @@ module.exports = (env) => {
             {
               loader: 'postcss-loader',
               options: {
-                plugins: [autoprefixer],
+                postcssOptions: {
+                  plugins: [autoprefixer],
+                }
               },
             },
             {
               loader: 'sass-loader',
               options: {
-                implementation: sass,
                 sassOptions: {
-                  includePaths: ['src/frontend/components'],
-                },
+                  implementation: sass,
+                  loadPaths: ['src/frontend/components'],
+                }
               },
             },
           ],
@@ -122,7 +124,6 @@ module.exports = (env) => {
       extensions: ['.tsx', '.ts', '.jsx', '.js'],
       fallback: {
         'fs': false,
-        'buffer': require.resolve('buffer'),
       },
       modules: [
         path.resolve(__dirname, 'src/frontend/js/lib'),
