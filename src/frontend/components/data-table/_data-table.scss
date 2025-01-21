@@ -5,9 +5,9 @@
   font-size: $font-size-sm;
 
   th, td {
-      padding: 16px;
+    padding: 16px;
   }
-  
+
   &.table-thead-hidden thead {
     @include visually-hidden;
   }
@@ -384,4 +384,20 @@ button.btn-add {
 .dt-column-order {
   display: none;
   visibility: collapse;
+}
+
+table.table.dataTable {
+  margin: $padding-base-vertical 0;
+}
+
+table.dataTable#default_field_permissions_table {
+  margin: $padding-base-vertical 0;
+  thead, tbody {
+    background-color: $white;
+  }
+  tbody {
+    tr.odd, tr:nth-child(odd) {
+      background-color: $gray-light;
+    }
+  }
 }
