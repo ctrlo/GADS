@@ -74,9 +74,7 @@ module.exports = (env) => {
             {
               loader: 'postcss-loader',
               options: {
-                postcssOptions: {
-                  plugins: [autoprefixer],
-                }
+                plugins: [autoprefixer],
               },
             },
             {
@@ -84,7 +82,7 @@ module.exports = (env) => {
               options: {
                 implementation: sass,
                 sassOptions: {
-                  loadPaths: ['src/frontend/components'],
+                  includePaths: ['src/frontend/components'],
                 },
               },
             },
@@ -124,6 +122,7 @@ module.exports = (env) => {
       extensions: ['.tsx', '.ts', '.jsx', '.js'],
       fallback: {
         'fs': false,
+        'buffer': require.resolve('buffer'),
       },
       modules: [
         path.resolve(__dirname, 'src/frontend/js/lib'),
