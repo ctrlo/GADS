@@ -1,5 +1,6 @@
 import { setFieldValues } from "set-field-values";
 import AutosaveBase from './autosaveBase';
+import { fromJson } from "util/common";
 
 /**
  * A modal that allows the user to restore autosaved values.
@@ -10,22 +11,30 @@ class AutosaveModal extends AutosaveBase {
    */
   async initAutosave() {
     const $modal = $(this.element);
+    console.log("modal", this.element);
     const $form = $('.form-edit');
-
+    
     $modal.find('.btn-js-restore-values').on('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
 
+      $modal.find(".modal-footer").find("button").hide();
+
       // This need awaiting or it returns before the value is fully set meaning if the recovery is "fast" it will not clear
       await this.storage.setItem('recovering', true);
       // Count the curvals so we don't return too early
-      let curvalCount = $form.find('.linkspace-field[data-column-type="curval"]').length;
+      let curvalCount = 0;
+      const counter = Promise.all($form.find('.linkspace-field[data-column-type="curval"]').map(async (_, field) => {
+        await this.storage.getItem(this.columnKey($(field))) && (curvalCount += fromJson(await this.storage.getItem(this.columnKey($(field)))).length);
+      }));
+
+      await counter;
 
       let errored = false;
 
       let $list = $("<ul></ul>");
       const $body = $modal.find(".modal-body");
-      $body.html("<p>Restoring values...</p>").append($list);
+      $body.html("<p>Restoring values...</p><p><strong>Please be aware that linked records may take a moment to finish restoring.<strong><p>").append($list);
       // Convert the fields to promise functions (using the fields) that are run in parallel
       // This is only done because various parts of the codebase use the fields in different ways dependent on types (i.e. curval)
       Promise.all($form.find('.linkspace-field').map(async (_, field) => {
@@ -53,15 +62,24 @@ class AutosaveModal extends AutosaveBase {
                 const $li = $(`<li class="li-error">Error restoring ${name}, please check these values before submission<ul><li class="warning">${e.message}</li></ul></li>`);
                 $list.append($li);
                 // If we've done all fields, turn off the recovery flag
-                if (!curvalCount) this.storage.removeItem('recovering');
+                if (!curvalCount) {
+                  // Hide the restore button and show the close button
+                  $modal.find(".modal-footer").find(".btn-cancel").text("Close").show();
+                  this.storage.removeItem('recovering');
+                }
               });
               $field.on("validationPassed", () => {
                 // Decrement the curval count
                 curvalCount--;
+                console.log("curvalCount", curvalCount);
                 const $li = $(`<li class="li-success">Restored ${name}</li>`);
                 $list.append($li);
                 // If we've done all fields, turn off the recovery flag
-                if (!curvalCount) this.storage.removeItem('recovering');
+                if (!curvalCount) {
+                  // Hide the restore button and show the close button
+                  $modal.find(".modal-footer").find(".btn-cancel").text("Close").show();
+                  this.storage.removeItem('recovering');
+                }
               });
             }
             setFieldValues($field, values);
@@ -86,11 +104,13 @@ class AutosaveModal extends AutosaveBase {
         // If there are any errors that can't be handled in the mapped promises, show a critical error message
         $body.append(`<div class="alert alert-danger"><h4>Critical error restoring values</h4><p>${e}</p></div>`);
       }).finally(() => {
-        // Hide the restore button and show the close button
-        $modal.find(".modal-footer").find("button:not(.btn-cancel)").hide();
-        $modal.find(".modal-footer").find(".btn-cancel").text("Close");
-        // If we've done all fields, turn off the recovery flag
-        if (!curvalCount) this.storage.removeItem('recovering');
+        // Only allow to close once recovery is finished
+        console.log("curvalCount", curvalCount);
+        if(!curvalCount || errored) {
+          // Show the close button
+          $modal.find(".modal-footer").find(".btn-cancel").text("Close").show();
+          this.storage.removeItem('recovering');
+        }
       });
     });
 
