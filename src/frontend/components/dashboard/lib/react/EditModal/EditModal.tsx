@@ -27,6 +27,9 @@ export default function EditModal({ editModalOpen, closeModal, editError, loadin
         Modal.setAppElement("#ld-app");
     }, []);
 
+    // @ts-expect-error test is a global variable
+    const test = window.test;
+
     /* @ts-expect-error Modal is apparently not a component */
     return (<Modal
         isOpen={editModalOpen}
@@ -34,6 +37,7 @@ export default function EditModal({ editModalOpen, closeModal, editError, loadin
         style={modalStyle}
         shouldCloseOnOverlayClick={true}
         contentLabel="Edit Modal"
+        ariaHideApp = {!test}
     >
         <div className='modal-header'>
             <div className='modal-header__content'>

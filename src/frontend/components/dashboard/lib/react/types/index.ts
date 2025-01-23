@@ -6,7 +6,6 @@ export type HeaderProps = {
     hMargin: number;
     dashboards: DashboardProps[];
     currentDashboard: DashboardProps;
-    loading: boolean;
     includeH1: boolean;
 }
 

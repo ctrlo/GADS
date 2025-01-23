@@ -14,8 +14,8 @@ export default function Widget({html, readOnly, onEditClick}) {
       <div className="ld-widget">
         <div ref={ref} dangerouslySetInnerHTML={{__html: html}}></div>
         {!readOnly && (<>
-          <a className="ld-edit-button" onClick={onEditClick}><span>edit widget</span></a>
-          <span className="ld-draggable-handle"><span>drag widget</span></span>
+          <a data-testid="edit" className="ld-edit-button" onClick={onEditClick}><span>edit widget</span></a>
+          <span data-testid="drag" className="ld-draggable-handle"><span>drag widget</span></span>
         </>)}
       </div>
     </>

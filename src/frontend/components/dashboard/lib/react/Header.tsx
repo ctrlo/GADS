@@ -2,7 +2,7 @@ import React from "react";
 import { HeaderProps } from "./types";
 import MenuItem from "./Menu/MenuItem";
 
-const Header = ({ hMargin, dashboards, currentDashboard, loading, includeH1 }: HeaderProps) => {
+const Header = ({ hMargin, dashboards, currentDashboard, includeH1 }: HeaderProps) => {
   return (
     <div className="content-block__navigation" style={{marginLeft: hMargin, marginRight: hMargin}}>
       <div className="content-block__navigation-left">
