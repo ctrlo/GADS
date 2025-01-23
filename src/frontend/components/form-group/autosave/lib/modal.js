@@ -11,7 +11,6 @@ class AutosaveModal extends AutosaveBase {
    */
   async initAutosave() {
     const $modal = $(this.element);
-    console.log("modal", this.element);
     const $form = $('.form-edit');
 
     $modal.find('.btn-js-restore-values').on('click', async (e) => {
