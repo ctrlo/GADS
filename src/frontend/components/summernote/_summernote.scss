@@ -59,3 +59,7 @@
     @include btn-disabled;
   }
 }
+
+.note-editor.card {
+  margin-bottom: $padding-base-vertical;
+}

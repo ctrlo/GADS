@@ -7,6 +7,10 @@ class SidebarObservable {
     this.observers.push(subscriber)
   }
 
+  addSubscriberFunction(func) {
+    this.observers.push({ handleSideBarChange: func })
+  }
+
   sideBarChange() {
     this.observers.forEach(item => item.handleSideBarChange?.())
   }

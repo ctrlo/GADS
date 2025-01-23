@@ -1,9 +1,10 @@
 import React from "react";
+import { FooterProps } from "./types";
 
-const Footer = ({ addWidget, widgetTypes, currentDashboard, readOnly, noDownload }) => {
+const Footer = ({ addWidget, widgetTypes, currentDashboard, readOnly, noDownload }: FooterProps) => {
   return (
     <div className='ld-footer-container'>
-      {noDownload ? null : <div className="btn-group mb-3 mb-md-0 mr-md-4">
+      {noDownload || <div className="btn-group mb-3 mb-md-0 mr-md-4">
         <button type="button" className="btn btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
           Download <span className="caret"></span>
         </button>
@@ -16,7 +17,7 @@ const Footer = ({ addWidget, widgetTypes, currentDashboard, readOnly, noDownload
         </div>
       </div>}
 
-      {readOnly ? null : <div className="btn-group">
+      {readOnly || <div className="btn-group">
         <button type="button" className="btn btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" aria-controls="menu_view">
           Add Widget
         </button>
