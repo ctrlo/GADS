@@ -70,7 +70,6 @@ class AutosaveModal extends AutosaveBase {
               $field.on("validationPassed", () => {
                 // Decrement the curval count
                 curvalCount--;
-                console.log("curvalCount", curvalCount);
                 const $li = $(`<li class="li-success">Restored ${name}</li>`);
                 $list.append($li);
                 // If we've done all fields, turn off the recovery flag
@@ -104,7 +103,6 @@ class AutosaveModal extends AutosaveBase {
         $body.append(`<div class="alert alert-danger"><h4>Critical error restoring values</h4><p>${e}</p></div>`);
       }).finally(() => {
         // Only allow to close once recovery is finished
-        console.log("curvalCount", curvalCount);
         if(!curvalCount || errored) {
           // Show the close button
           $modal.find(".modal-footer").find(".btn-cancel").text("Close").show();
