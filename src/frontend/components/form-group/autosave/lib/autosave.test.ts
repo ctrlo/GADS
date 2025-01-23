@@ -1,5 +1,6 @@
-import "../../../../testing/globals.definitions";
+import "testing/globals.definitions";
 import AutosaveBase from './autosaveBase';
+import {describe, beforeAll, afterAll, it, expect} from "@jest/globals";
 
 class TestAutosave extends AutosaveBase {
     initAutosave(): void {

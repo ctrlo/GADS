@@ -12,7 +12,6 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
     protected dragging: boolean = false;
 
     constructor(element: T, private options: FileDragOptions = {}, private onDrop?: (files: FileList | File) => void) {
-        if (options.debug) console.log('FileDrag', element, options);
         this.el = $(element);
         this.initElements()
         this.initDocumentEvents();
@@ -20,7 +19,6 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
     }
 
     initElementEvents() {
-        if (this.options.debug) console.log('initElementEvents');
         this.dropZone.on('dragenter', (e) => {
             if (!this.dragging) return;
             if(!this.dropZone.hasClass('dragging')) this.dropZone.addClass('dragging');
@@ -38,9 +36,7 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
             if(this.el.hasClass('dragging')) this.el.removeClass('dragging');
             hideElement($('.drop-zone'));
             showElement($('[data-draggable="true"]'));
-            if (this.options.debug) console.log(e.originalEvent.dataTransfer.files);
             showElement(this.el);
-            console.log(e.originalEvent.dataTransfer.files);
             if (this.options.allowMultiple) {
                 this.onDrop(e.originalEvent.dataTransfer.files);
             } else {
@@ -51,7 +47,6 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
     }
 
     initDocumentEvents() {
-        if (this.options.debug) console.log('initDocumentEvents');
         $(document).on('dragenter', () => {
             if (this.dragging) return;
             this.dragging = true;
@@ -81,7 +76,6 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
     }
 
     initElements() {
-        if (this.options.debug) console.log('initElements');
         this.el.data('draggable', 'true');
         this.dropZone = $('<div class="drop-zone">Drop files here</div>');
         const error = $('<div class="upload__error">Error</div>');
