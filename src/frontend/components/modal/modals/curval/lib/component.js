@@ -218,7 +218,6 @@ class CurvalModalComponent extends ModalComponent {
     const record_id = isNaN(parseInt(id)) ? 0 : parseInt(id)
     const parent_key = `linkspace-column-${col_id}-${$('body').data('layout-identifier')}-${record_id}`;
     let existing = fromJson(await gadsStorage.getItem(parent_key) ?? "[]")
-    console.log('existing', existing, typeof existing);
     const identifier = current_id || guid
     // "existing" is the existing values for this curval
     // Pull out the current record if it exists
