@@ -110,7 +110,7 @@ class CurvalModalComponent extends ModalComponent {
       const editButton = $(
         `<td>
           <button type="button" class="btn btn-small btn-link btn-js-curval-modal" data-toggle="modal" data-target="#curvalModal" data-layout-id="${col_id}"
-                data-instance-name="${instance_name}" data-current-id="${current_id}">
+                data-instance-name="${instance_name}" ${current_id ? `data-current-id="${current_id}"`:``}>
             <span class="btn__title">Edit</span>
           </button>
           </td>`,
@@ -334,9 +334,6 @@ class CurvalModalComponent extends ModalComponent {
     let url = current_id
       ? `/record/${current_id}`
       : `/${instance_name}/record/`
-    
-    if(url.endsWith('undefined'))
-      url=`/${instance_name}/record/`
 
     url = `${url}?include_draft&modal=${layout_id}`
     if (form_data) url = url + `&${form_data}`
