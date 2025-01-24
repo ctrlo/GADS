@@ -245,7 +245,6 @@ function App(props: AppProps) {
         hMargin={props.gridConfig.containerPadding[0]}
         dashboards={props.dashboards}
         currentDashboard={props.currentDashboard}
-        loading={loading}
         includeH1={props.includeH1}
       />}
       <EditModal

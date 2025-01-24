@@ -15,7 +15,7 @@ export default function EditModal({ editModalOpen, closeModal, editError, loadin
             marginRight: "-50%",
             transform: "translate(-50%, -50%)",
             msTransform: "translate(-50%, -50%)",
-            padding: 0
+            padding: "2rem 1.5rem"
         },
         overlay: {
             zIndex: 1030,
