@@ -5,6 +5,7 @@ import { guid as Guid } from "guid"
 import { initializeRegisteredComponents } from 'component'
 import { validateRadioGroup, validateCheckboxGroup } from 'validation'
 import gadsStorage from 'util/gadsStorage'
+import { fromJson } from 'util/common'
 
 class CurvalModalComponent extends ModalComponent {
 
@@ -109,7 +110,7 @@ class CurvalModalComponent extends ModalComponent {
       const editButton = $(
         `<td>
           <button type="button" class="btn btn-small btn-link btn-js-curval-modal" data-toggle="modal" data-target="#curvalModal" data-layout-id="${col_id}"
-                data-instance-name="${instance_name}" data-current-id="${current_id}">
+                data-instance-name="${instance_name}" ${current_id ? `data-current-id="${current_id}"`:``}>
             <span class="btn__title">Edit</span>
           </button>
           </td>`,
@@ -216,7 +217,7 @@ class CurvalModalComponent extends ModalComponent {
     const id = location.pathname.split("/").pop()
     const record_id = isNaN(parseInt(id)) ? 0 : parseInt(id)
     const parent_key = `linkspace-column-${col_id}-${$('body').data('layout-identifier')}-${record_id}`;
-    let existing = await gadsStorage.getItem(parent_key) ? (JSON.parse(await gadsStorage.getItem(parent_key))) : []
+    let existing = fromJson(await gadsStorage.getItem(parent_key) ?? "[]")
     const identifier = current_id || guid
     // "existing" is the existing values for this curval
     // Pull out the current record if it exists
