@@ -3,7 +3,7 @@ import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals
 import { fromJson, hideElement, showElement, initJquery } from "./common";
 
 describe('common functions', () => {
-    describe.skip('CSS and ARIA - skipped as they are incorrect',()=>{
+    describe('CSS and ARIA - skipped as they are incorrect',()=>{
         let el: JQuery<HTMLElement>;
 
         beforeEach(() => {
@@ -78,12 +78,14 @@ describe('common functions', () => {
 
         it('returns an empty object for null', ()=>{
             const json = null;
+            // @ts-ignore
             const parsed = fromJson(json);
             expect(parsed).toEqual({});
         });
 
         it('returns an empty object for undefined', ()=>{
             const json = undefined;
+            // @ts-ignore
             const parsed = fromJson(json);
             expect(parsed).toEqual({});
         });

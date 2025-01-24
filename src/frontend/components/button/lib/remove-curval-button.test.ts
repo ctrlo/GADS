@@ -2,6 +2,7 @@ import {jest, describe, it, expect, beforeAll, afterEach} from "@jest/globals";
 import createRemoveCurvalButton from "./remove-curval-button";
 
 describe("RemoveCurvalButton", ()=>{
+    // @ts-ignore
     window.confirm = jest.fn().mockReturnValue(true);
 
     beforeAll(()=>{

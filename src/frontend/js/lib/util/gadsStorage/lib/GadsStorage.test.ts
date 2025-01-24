@@ -1,7 +1,6 @@
-import "../../../../../testing/globals.definitions";
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from "@jest/globals";
 import { GadsStorage } from "./GadsStorage";
-import { killNoMockCrypto, setupCrypto, setupNoMockCrypto } from "../../../../../testing/globals.definitions";
+import { killNoMockCrypto, setupCrypto, setupNoMockCrypto } from "testing/globals.definitions";
 
 if (!process.versions.node.startsWith("18")) {
     describe("GadsStorage", () => {

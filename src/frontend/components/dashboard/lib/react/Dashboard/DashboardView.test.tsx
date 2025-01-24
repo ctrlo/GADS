@@ -4,8 +4,8 @@ import '@testing-library/dom';
 import { describe, it, expect, jest } from '@jest/globals';
 
 import DashboardView from './DashboardView';
-import { DashboardProps, WidgetProps } from '../types';
-import ReactGridLayout, { ReactGridLayoutProps } from 'react-grid-layout';
+import { WidgetProps } from '../types';
+import { ReactGridLayoutProps } from 'react-grid-layout';
 
 describe('DashboardView', () => {
     it('Creates a dashboard', () => {
