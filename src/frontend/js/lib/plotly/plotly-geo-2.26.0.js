@@ -14240,7 +14240,7 @@ proto.createButton = function (config) {
       _this.updateActiveButton(ev.currentTarget);
     });
   }
-  button.setAttribute('data-bs-toggle', config.toggle || false);
+  button.setAttribute('data-toggle', config.toggle || false);
   if (config.toggle) d3.select(button).classed('active', true);
   var icon = config.icon;
   if (typeof icon === 'function') {
@@ -14298,10 +14298,10 @@ proto.updateActiveButton = function (buttonClicked) {
   this.buttonElements.forEach(function (button) {
     var thisval = button.getAttribute('data-val') || true;
     var dataAttr = button.getAttribute('data-attr');
-    var isToggleButton = button.getAttribute('data-bs-toggle') === 'true';
+    var isToggleButton = button.getAttribute('data-toggle') === 'true';
     var button3 = d3.select(button);
 
-    // Use 'data-bs-toggle' and 'buttonClicked' to toggle buttons
+    // Use 'data-toggle' and 'buttonClicked' to toggle buttons
     // that have no one-to-one equivalent in fullLayout
     if (isToggleButton) {
       if (dataAttr === dataAttrClicked) {
@@ -26995,6 +26995,7 @@ module.exports = function localize(gd, s) {
 "use strict";
 
 
+/* eslint-disable no-console */
 var dfltConfig = (__webpack_require__(2919).dfltConfig);
 var notifier = __webpack_require__(4545);
 var loggers = module.exports = {};
@@ -85358,9 +85359,9 @@ function newInterval(floori, offseti, count, field) {
     }, function(date, step) {
       if (date >= date) {
         if (step < 0) while (++step <= 0) {
-          while (offseti(date, -1), !test(date)) {}
+          while (offseti(date, -1), !test(date)) {} // eslint-disable-line no-empty
         } else while (--step >= 0) {
-          while (offseti(date, +1), !test(date)) {}
+          while (offseti(date, +1), !test(date)) {} // eslint-disable-line no-empty
         }
       }
     });
@@ -85816,6 +85817,7 @@ function _addListener(target, type, listener, prepend) {
     if (m > 0 && existing.length > m && !existing.warned) {
       existing.warned = true;
       // No error code for this since it is a Warning
+      // eslint-disable-next-line no-restricted-syntax
       var w = new Error('Possible EventEmitter memory leak detected. ' +
                           existing.length + ' ' + String(type) + ' listeners ' +
                           'added. Use emitter.setMaxListeners() to ' +
@@ -88040,6 +88042,7 @@ object-assign
 */
 
 
+/* eslint-disable no-unused-vars */
 var getOwnPropertySymbols = Object.getOwnPropertySymbols;
 var hasOwnProperty = Object.prototype.hasOwnProperty;
 var propIsEnumerable = Object.prototype.propertyIsEnumerable;
@@ -88061,7 +88064,7 @@ function shouldUseNative() {
 		// Detect buggy property enumeration order in older V8 versions.
 
 		// https://bugs.chromium.org/p/v8/issues/detail?id=4118
-		var test1 = new String('abc');
+		var test1 = new String('abc');  // eslint-disable-line no-new-wrappers
 		test1[5] = 'de';
 		if (Object.getOwnPropertyNames(test1)[0] === '5') {
 			return false;
