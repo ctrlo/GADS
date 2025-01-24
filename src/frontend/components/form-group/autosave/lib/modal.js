@@ -17,17 +17,17 @@ class AutosaveModal extends AutosaveBase {
       e.preventDefault();
       e.stopPropagation();
 
+      // Hide all the buttons (we don't want any interaction to close the modal or the restore process fails)
       $modal.find(".modal-footer").find("button").hide();
 
       // This need awaiting or it returns before the value is fully set meaning if the recovery is "fast" it will not clear
       await this.storage.setItem('recovering', true);
       // Count the curvals so we don't return too early
       let curvalCount = 0;
-      const counter = Promise.all($form.find('.linkspace-field[data-column-type="curval"]').map(async (_, field) => {
+      // Only count changed curvals - as each in the array has it's own event, we count the number of changes, not the number of fields
+      await Promise.all($form.find('.linkspace-field[data-column-type="curval"]').map(async (_, field) => {
         await this.storage.getItem(this.columnKey($(field))) && (curvalCount += fromJson(await this.storage.getItem(this.columnKey($(field)))).length);
       }));
-
-      await counter;
 
       let errored = false;
 
@@ -119,7 +119,6 @@ class AutosaveModal extends AutosaveBase {
       $modal.find('.btn-js-delete-values').attr('disabled', 'disabled').hide();
     }
   }
-
 }
 
 export default AutosaveModal;
