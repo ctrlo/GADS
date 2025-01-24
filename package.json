@@ -63,7 +63,7 @@
     "@babel/runtime-corejs3": "^7.26.0",
     "@jest/globals": "^29.7.0",
     "@testing-library/dom": "^10.4.0",
-    "@testing-library/react": "^16.1.0",
+    "@testing-library/react": "^16.2.0",
     "@types/bootstrap": "^5.2.10",
     "@types/form-serialize": "^0.7.4",
     "@types/jquery": "^3.5.32",
