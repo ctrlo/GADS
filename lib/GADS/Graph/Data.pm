@@ -604,9 +604,7 @@ sub _build_data
         }
     }
 
-    my $markeroptions = $self->type eq "scatter"
-                      ? '{ size: 7, style:"x" }'
-                      : '{ show: false }';
+    my $markeroptions = '{ show: false }';
 
     my @points; my @labels;
     if ($self->type eq "pie" || $self->type eq "donut")

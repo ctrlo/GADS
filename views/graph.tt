@@ -375,27 +375,6 @@
                       <div class="row">
                         <div class="col">
                           [%
-                            link_label = layout.user_can('layout')
-                              ? "Plot against <a href='" _ url.page _ "/" _ layout.identifier _ "/metrics'>metrics</a> (optional)"
-                              : "Plot against metrics (optional)";
-                          
-                            INCLUDE fields/select.tt
-                              id           = "metric_group_id"
-                              name         = "metric_group_id"
-                              label        = link_label
-                              placeholder  = "Select plot against metrics (optional)"
-                              value        = graph.metric_group_id
-                              select_class = "select--select"
-                              filter       = ""
-                              hide_group   = 0
-                              items        = metric_group;
-                          %]
-                        </div>
-                      </div>
-                      
-                      <div class="row">
-                        <div class="col">
-                          [%
                             INCLUDE fields/sub/checkbox.tt
                               id = "stackseries"
                               name = "stackseries"

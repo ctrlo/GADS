@@ -156,7 +156,7 @@ sub purge
 }
 
 sub types
-{ qw(bar line donut scatter pie) }
+{ qw(bar line donut pie) }
 
 1;
 

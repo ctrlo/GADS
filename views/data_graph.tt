@@ -3,7 +3,7 @@
     <div class="content-block__main-content">
       <div class="row">
         <div class="col">
-          <div
+          <canvas
             class="graph__container"
             data-chart-id="[% graph_id %]"
             data-graph-type="[% graph.type %]"
@@ -14,7 +14,7 @@
             data-graph-id="[% graph.id %]"
             data-layout-id="[% layout.identifier %]"
             data-page-as-mech="false"
-          ></div>
+          ></canvas>
         </div>
       </div>
     </div>
@@ -67,7 +67,7 @@
     
         <div class="row">
           <div class="col">
-            <div
+            <canvas
               class="graph__container"
               data-chart-id="[% graph.id %]"
               data-graph-type="[% graph.type %]"
@@ -77,7 +77,7 @@
               data-showlegend="[% IF graph.showlegend %]true[% ELSE %]false[% END %]"
               data-graph-id="[% graph.id %]"
               data-layout-id="[% layout.identifier %]"
-            ></div>
+            ></canvas>
           </div>
         </div>
       </div>
