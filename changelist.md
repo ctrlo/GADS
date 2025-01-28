@@ -3,7 +3,7 @@
 -------
 
 **Version**: 2.6.0
-**Released**: TBC
+**Released**: 28-01-2025
 
 -------
 
