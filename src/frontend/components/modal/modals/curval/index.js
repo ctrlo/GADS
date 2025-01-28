@@ -1,10 +1,5 @@
-import { getComponentElements, initializeComponent } from 'component'
+import { initializeComponent } from 'component';
+import CurvalModalComponent from './lib/component';
 
-export default (scope) => {
-    if (!getComponentElements(scope, '.modal--curval').length) return;
-
-    import(/* webpackChunkName="modal" */ "./lib/component")
-        .then(({ default: CurvalModalComponent }) => {
-            initializeComponent(scope, '.modal--curval', CurvalModalComponent)
-        });
-}
+// Originally this was an async load - this has been changed as the autosave code becomes overcomplex with async
+export default (scope) => initializeComponent(scope, '.modal--curval', CurvalModalComponent);
