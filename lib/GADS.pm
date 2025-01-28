@@ -2740,46 +2740,10 @@ prefix '/:layout_name' => sub {
                };
             }
 
-            my $pages = $records->pages;
-
-            my $subset = {
-                rows  => session('rows'),
-                pages => $pages,
-                page  => $page,
-            };
-            if ($pages > 50)
-            {
-                my @pnumbers = (1..5);
-                if ($page-5 > 6)
-                {
-                    push @pnumbers, '...';
-                    my $max = $page + 5 > $pages ? $pages : $page + 5;
-                    push @pnumbers, ($page-5..$max);
-                }
-                else {
-                    push @pnumbers, (6..15);
-                }
-                if ($pages-5 > $page+5)
-                {
-                    push @pnumbers, '...';
-                    push @pnumbers, ($pages-4..$pages);
-                }
-                elsif ($pnumbers[-1] < $pages)
-                {
-                    push @pnumbers, ($pnumbers[-1]+1..$pages);
-                }
-                $subset->{pnumbers} = [@pnumbers];
-            }
-            else {
-                $subset->{pnumbers} = [1..$pages];
-            }
-
             my @columns = @{$records->columns_render};
             $params->{user_can_edit}        = $layout->user_can('write_existing');
             $params->{sort}                 = $records->sort;
-            $params->{subset}               = $subset;
             $params->{aggregate}            = $records->aggregate_presentation;
-            $params->{count}                = $records->count;
             $params->{columns}              = [ map $_->presentation(
                 group            => $records->is_group,
                 group_col_ids    => $records->group_col_ids,
@@ -4797,7 +4761,8 @@ sub _process_edit
         {
             # The "source" parameter is user input, make sure still valid
             my $source_curval = $layout->column(param('source'), permission => 'read');
-            try { $record->write(dry_run => 1, parent_curval => $source_curval) };
+            my %options = (dry_run => 1, parent_curval => $source_curval);
+            try { $record->write(%options) };
             if (my $e = $@->wasFatal)
             {
                 push @validation_errors, $e->reason eq 'PANIC' ? 'An unexpected error occurred' : $e->message;
@@ -4920,6 +4885,9 @@ sub _process_edit
     {
         $params->{content_block_custom_classes} = 'content-block--footer';
     }
+
+    $params->{clone_from} = $clone_from
+        if $clone_from;
 
     $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids
         if $modal;

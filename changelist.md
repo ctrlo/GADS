@@ -26,10 +26,8 @@
 - Various changes for WCAG compliance
 - Made fields madatory when requesting accounts
 
--------
-
 **Version**: 2.5.12
-**Released**: 17-01-2025
+**Released**: 14-01-2025
 
 -------
 

@@ -35,6 +35,11 @@ sub DESTROY
     $self->_root->delete_tree if $self->_has_tree && $self->_root;
 }
 
+sub values_for_timeline
+{   my $self=shift;
+    return map $_->{value}, @{$self->enumvals};
+}
+
 sub value_field_as_index
 {   return 'id';
 }
