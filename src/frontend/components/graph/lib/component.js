@@ -4,7 +4,7 @@ import "util/GadsCharts";
 class GraphComponent extends Component {
   constructor(element) {
     super(element);
-    this.initGraph();    
+    this.initGraph();
   }
 
   initGraph() {
@@ -14,7 +14,7 @@ class GraphComponent extends Component {
     const url = this.getURL(layoutId, graphId);
     fetch(url)
       .then(response => response.json())
-      .then(data=>$el.chart(data));
+      .then(data => $el.chart({ data }));
   }
 
   getURL(layoutId, graphId) {

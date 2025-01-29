@@ -1,19 +1,19 @@
-import { do_plot_json } from '../../../graph/lib/chart'
-import GraphComponent from '../../../graph/lib/component'
+import 'util/GadsCharts';
+import { Component } from 'component'
+import { fromJson } from 'util/common';
 
-class DashboardGraphComponent extends GraphComponent {
-  constructor(element)  {
+class DashboardGraphComponent extends Component {
+  constructor(element) {
     super(element)
     this.initDashboardGraph()
   }
 
   initDashboardGraph() {
     const $graph = $(this.element)
-    const graph_data = $graph.data('plot-data')
-    const options_in = $graph.data('plot-options')
+    const data = fromJson(atob($graph.data('plot-data')))
+    const settings = fromJson(atob($graph.data('plot-options')))
 
-    do_plot_json(graph_data, options_in)
-
+    $graph.chart({ data, settings })
   }
 }
 

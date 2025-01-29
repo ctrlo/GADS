@@ -13,8 +13,8 @@ export type ElementData = {
     GraphType: keyof ChartMap;
     StackSeries: boolean;
     ShowLegend: boolean;
-    GraphId: number;
-    LayoutId: string;
+    GraphId?: number;
+    LayoutId?: string;
     XAxisName?: string;
     YAxisLabel?: string;
 }
@@ -43,3 +43,17 @@ export type BarChartConfig = ChartConfiguration<'bar', (number | [number, number
 export type DoughnutChartConfig = ChartConfiguration<'doughnut', number[]> | ChartConfigurationCustomTypesPerDataset<'doughnut', number[]>;
 export type LineChartConfig = ChartConfiguration<'line', (number | [number, number])[]> | ChartConfigurationCustomTypesPerDataset<'line', (number | [number, number])[]>;
 export type PieChartConfig = ChartConfiguration<'pie', number[]> | ChartConfigurationCustomTypesPerDataset<'pie', number[]>;
+
+export type InputData = {
+    y_axis_label: string,
+    type: keyof ChartMap,
+    x_axis_name: string,
+    id: number,
+    stackseries: boolean,
+    showlegend: boolean
+}
+
+export type ChartOptions = {
+    data: BasicData;
+    settings?: InputData;
+}

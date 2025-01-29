@@ -3,18 +3,22 @@
     <div class="content-block__main-content">
       <div class="row">
         <div class="col">
-          <canvas
-            class="graph__container"
-            data-chart-id="[% graph_id %]"
-            data-graph-type="[% graph.type %]"
-            data-x-axis-name="[% graph.x_axis_name | replace('"', '\\\"') %]"
-            data-y-axis-label="[% graph.y_axis_label | replace('"', '\\\"') %]"
-            data-stackseries="[% graph.stackseries %]"
-            data-showlegend="[% IF graph.showlegend %]true[% ELSE %]false[% END %]"
-            data-graph-id="[% graph.id %]"
-            data-layout-id="[% layout.identifier %]"
-            data-page-as-mech="false"
-          ></canvas>
+          <div class="card">
+            <div class="card-body">
+              <canvas
+                class="graph__container"
+                data-chart-id="[% graph_id %]"
+                data-graph-type="[% graph.type %]"
+                data-x-axis-name="[% graph.x_axis_name | replace('"', '\\\"') %]"
+                data-y-axis-label="[% graph.y_axis_label | replace('"', '\\\"') %]"
+                data-stackseries="[% graph.stackseries %]"
+                data-showlegend="[% IF graph.showlegend %]true[% ELSE %]false[% END %]"
+                data-graph-id="[% graph.id %]"
+                data-layout-id="[% layout.identifier %]"
+                data-page-as-mech="false"
+              ></canvas>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -39,48 +43,54 @@
         hasGraphs = 1;
     %]
       <div class="graph">
-        <div class="row">
-          <div class="col">
-            <h2>[% graph.title | html_entity %]</h2>
-            [% IF graph.description %]<p>[% graph.description | html_entity %]</p>[% END %]
-          </div>
-          <div class="col d-flex justify-content-end mb-2">
-            <div class="dropdown ">
-              <button class="dropdown-toggle dropdown__toggle" type="button" id="download" data-bs-toggle="dropdown" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="download">
-                <span>Download</span>
-              </button>
-              <div class="dropdown-menu dropdown__menu ">
-                <div class="dropdown__group">
-                  <ul class="dropdown__list" role="listbox" aria-labelledby="dropdown">
-                    <li class="dropdown__item" role="option" >
-                      <a class='link link--plain' href='?png=[% graph.id %]'>PNG</a>
-                    </li>
-                    <li class="dropdown__item" role="option" >
-                      <a class='link link--plain' href='?csv=[% graph.id %]'>CSV</a>
-                    </li>
-                  </ul>
+        <div class="card">
+          <div class="card-header bg-transparent">
+            <div class="row">
+              <div class="col">
+                <h2>[% graph.title | html_entity %]</h2>
+                [% IF graph.description %]<p>[% graph.description | html_entity %]</p>[% END %]
+              </div>
+              <div class="col d-flex justify-content-end mb-2">
+                <div class="dropdown ">
+                  <button class="dropdown-toggle dropdown__toggle" type="button" id="download" data-bs-toggle="dropdown" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="download">
+                    <span>Download</span>
+                  </button>
+                  <div class="dropdown-menu dropdown__menu ">
+                    <div class="dropdown__group">
+                      <ul class="dropdown__list" role="listbox" aria-labelledby="dropdown">
+                        <li class="dropdown__item" role="option" >
+                          <a class='link link--plain' href='?png=[% graph.id %]'>PNG</a>
+                        </li>
+                        <li class="dropdown__item" role="option" >
+                          <a class='link link--plain' href='?csv=[% graph.id %]'>CSV</a>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
     
-        <div class="row">
-          <div class="col">
-            <canvas
-              class="graph__container"
-              data-chart-id="[% graph.id %]"
-              data-graph-type="[% graph.type %]"
-              data-x-axis-name="[% graph.x_axis_name | replace('"', '\\\"') %]"
-              data-y-axis-label="[% graph.y_axis_label | replace('"', '\\\"') %]"
-              data-stackseries="[% graph.stackseries %]"
-              data-showlegend="[% IF graph.showlegend %]true[% ELSE %]false[% END %]"
-              data-graph-id="[% graph.id %]"
-              data-layout-id="[% layout.identifier %]"
-            ></canvas>
-          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col">
+                <canvas
+                  class="graph__container"
+                  data-chart-id="[% graph.id %]"
+                  data-graph-type="[% graph.type %]"
+                  data-x-axis-name="[% graph.x_axis_name | replace('"', '\\\"') %]"
+                  data-y-axis-label="[% graph.y_axis_label | replace('"', '\\\"') %]"
+                  data-stackseries="[% graph.stackseries %]"
+                  data-showlegend="[% IF graph.showlegend %]true[% ELSE %]false[% END %]"
+                  data-graph-id="[% graph.id %]"
+                  data-layout-id="[% layout.identifier %]"
+                ></canvas>
+              </div>
+            </div>
         </div>
       </div>
+    </div>
     [%
       END;
       UNLESS hasGraphs;
