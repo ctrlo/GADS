@@ -1,6 +1,6 @@
 [% IF messages.size %]
   [% FOR message IN messages %]
-  <div class="alert alert-[% message.bootstrap_color %]" role="alert">
+  <div class="alert alert-[% message.bootstrap_color %]" role="alert"[% IF record_id.defined %] data-record-id=[% record_id %][% END %]>
     [% message.reason %]:
     [% IF message.inClass("html") %][% message.toString %][% ELSE %][% message.toString | html_entity %][% END %]
   </div>

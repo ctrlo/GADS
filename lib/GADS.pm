@@ -2299,6 +2299,8 @@ prefix '/:layout_name' => sub {
     any ['get', 'post'] => '/data' => require_login sub {
 
         my $layout = var('layout') or pass;
+        my $record_id = session('record_id') if session('record_id');
+        session->delete('record_id') if session('record_id');
 
         my $user   = logged_in_user;
 
@@ -2815,6 +2817,7 @@ prefix '/:layout_name' => sub {
             Crumb($base_url."table/", "Tables"),
             Crumb("", "Table: " . $layout->name)
         ];
+        $params->{record_id} = $record_id if defined $record_id;
 
         template 'data' => $params;
     };
@@ -4801,6 +4804,8 @@ sub _process_edit
                 my $forward = (!$id && $layout->forward_record_after_create) || param('submit') eq 'submit-and-remain'
                     ? 'record/'.$record->current_id
                     : $layout->identifier.'/data';
+                session 'record_id' => ($id ? $id : 0);
+
                 return forwardHome(
                     { success => 'Submission has been completed successfully for record ID '.$record->current_id }, $forward );
             }

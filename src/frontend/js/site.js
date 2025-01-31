@@ -5,6 +5,7 @@ import 'components/graph/lib/chart';
 import 'util/filedrag';
 
 // Components
+import AlertComponent from 'components/alert';
 import AddTableModalComponent from 'components/modal/modals/new-table';
 import AutosaveComponent from 'components/form-group/autosave';
 import CalcFieldsComponent from 'components/form-group/calc-fields';
@@ -44,6 +45,7 @@ import HelpView from "components/help-view";
 import PeopleFilterComponent from "components/form-group/people-filter";
 
 // Register them
+registerComponent(AlertComponent);
 registerComponent(AddTableModalComponent);
 registerComponent(ButtonComponent);
 registerComponent(CalcFieldsComponent);
