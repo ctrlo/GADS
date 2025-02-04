@@ -3,9 +3,9 @@ import { initializeRegisteredComponents, registerComponent } from 'component';
 import 'bootstrap';
 import 'components/graph/lib/chart';
 import 'util/filedrag';
+import 'util/actionsHandler';
 
 // Components
-import AlertComponent from 'components/alert';
 import AddTableModalComponent from 'components/modal/modals/new-table';
 import AutosaveComponent from 'components/form-group/autosave';
 import CalcFieldsComponent from 'components/form-group/calc-fields';
@@ -43,9 +43,9 @@ import ButtonComponent from "components/button";
 import SelectAllComponent from "components/select-all";
 import HelpView from "components/help-view";
 import PeopleFilterComponent from "components/form-group/people-filter";
+import handleActions from "util/actionsHandler";
 
 // Register them
-registerComponent(AlertComponent);
 registerComponent(AddTableModalComponent);
 registerComponent(ButtonComponent);
 registerComponent(CalcFieldsComponent);
@@ -86,3 +86,8 @@ registerComponent(AutosaveComponent);
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body);
+
+// This is wrapped like this just to ensure that the actions are loaded before they are triggered, it's (almost) shorthand for $(document).ready()
+(() => {
+    handleActions();
+})();
