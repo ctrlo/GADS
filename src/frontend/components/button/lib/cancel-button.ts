@@ -6,7 +6,7 @@ export default function createCancelButton(el: HTMLElement | JQuery<HTMLElement>
     $el.data('cancel-button', "true");
     $el.on('click', async () => {
         const href = $el.data('href');
-        await clearSavedFormValues($el.closest('form'));        
+        await clearSavedFormValues();
         if (href)
             window.location.href = href;
         else
