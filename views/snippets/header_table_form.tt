@@ -11,7 +11,7 @@
     </div>
 
     <div class="table-header-bottom">
-      <div class="float-right">
+      <div class="float-end">
         [%
           IF header_record_buttons;
             record_edit_buttons = [];

@@ -1,0 +1,41 @@
+@import "./variables";
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables", "~bootstrap/scss/variables-dark";
+
+// Links
+$link-decoration: none;
+
+// Transitions
+$transition-default: 0.2s all ease;
+
+// Alerts
+$alert-margin-bottom: $padding-large-vertical;
+$alert-padding-x: $padding-base-horizontal;
+$alert-padding-y: $padding-base-horizontal;
+
+// Colors
+$primary: $brand-secundary;
+$secondary: $brand-primary;
+$success: $brand-success;
+$info: $brand-secundary;
+$warning: $brand-warning;
+$danger: $brand-danger;
+$light: $gray-light;
+$dark: $gray-extra-dark;
+
+// Breadcrumbs
+$breadcrumb-font-size: $font-size-sm;
+$breadcrumb-divider: quote(">");
+
+// Buttons
+$btn-padding-x: 30px;
+$btn-padding-y: 10px;
+$btn-line-height: $headings-line-height;
+$btn-border-radius: 23px;
+$btn-padding-sm-x: 20px;
+$btn-padding-sm-y: 7px;
+$btn-font-size-sm: $font-size-sm;
+
+@import "~bootstrap/scss/maps";
+@import "~bootstrap/scss/mixins";
+@import "~bootstrap/scss/root";

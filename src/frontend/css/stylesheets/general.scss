@@ -1,5 +1,7 @@
 @import "definitions/variables";
 
+@import "definitions/bootstrap_base";
+
 // Bootstrap 4.6
 @import "~bootstrap/scss/bootstrap",
         "~datatables.net-bs5/css/dataTables.bootstrap5.min.css",
