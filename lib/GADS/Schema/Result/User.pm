@@ -1218,7 +1218,7 @@ sub validate
     {
         if ($self->is_column_changed($f) || !$self->id)
         {
-            my $search = { $f => $self->$f };
+            my $search = { $f => $self->$f, site_id => $self->site->id };
             $search->{id} = { '!=' => $self->id }
                 if $self->id;
             $self->result_source->resultset->active->search($search)->next
