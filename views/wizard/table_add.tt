@@ -131,7 +131,7 @@
             <div class="row mb-3 permission-group" data-group-id="[% group.id %]">
               <div class="col">
                 <div class="card card--expandable">
-                  <div class="card__header">
+                  <div class="card-header">
                     <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
                       <span class="card__title">
                         Group
@@ -147,7 +147,7 @@
                     </div>
                   </div>
                   <div class="collapse" id="group_permissions_[% group.id %]">
-                    <div class="card__content">
+                    <div class="card-body card__content">
                       <div class="row mb-3">
                         <div class="col">
                           [%

@@ -22,6 +22,14 @@
   }
 }
 
+.btn-cancel {
+  @include button-variant($white, $gray-extra-dark, $gray-extra-dark, $hover-border: $btn-cancel-hover-color, $hover-color: $btn-cancel-hover-color);
+}
+
+.btn-default {
+  @include button-variant($brand-secundary, $brand-secundary, $white);
+}
+
 .btn-add {
   &::before {
     @extend %icon-font;

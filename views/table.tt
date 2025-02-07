@@ -109,7 +109,7 @@
         <div class="row mb-3">
           <div class="col">
             <div class="card card--expandable">
-              <div class="card__header">
+              <div class="card-header">
                 <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#emailAlerts" aria-expanded="false" aria-controls="emailAlerts">
                   <span class="card__title">
                     Email alerts
@@ -122,7 +122,7 @@
                 </div>
               </div>
               <div class="collapse" id="emailAlerts">
-                <div class="card__content">
+                <div class="card-body card__content">
                   <div class="row">
                     <div class="col-lg-12">
                       [%
@@ -151,7 +151,7 @@
         <div class="row mb-3">
           <div class="col">
             <div class="card card--expandable">
-              <div class="card__header">
+              <div class="card-header">
                 <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#limitRecordAccess" aria-expanded="false" aria-controls="limitRecordAccess">
                   <span class="card__title">
                     Limit access to records
@@ -164,7 +164,7 @@
                 </div>
               </div>
               <div class="collapse" id="limitRecordAccess">
-                <div class="card__content">
+                <div class="card-body card__content">
                   <div class="row">
                     <div class="col-lg-12">
                       [%
@@ -190,7 +190,7 @@
         <div class="row mb-3">
           <div class="col">
             <div class="card card--expandable">
-              <div class="card__header">
+              <div class="card-header">
                 <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#ragFieldDefinitions" aria-expanded="false" aria-controls="ragFieldDefinitions">
                   <span class="card__title">
                     RAG field definitions and selections
@@ -203,7 +203,7 @@
                 </div>
               </div>
               <div class="collapse" id="ragFieldDefinitions">
-                <div class="card__content">
+                <div class="card-body card__content">
                   <div class="row">
                     <div class="col-lg-12">
                       <fieldset class="fieldset" data-name="ragFieldDefinitionOptions">

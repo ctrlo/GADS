@@ -293,3 +293,10 @@ ul {
     flex-basis: calc(33.33% - 1rem);
   }
 }
+
+// DR 070225
+.table-header-bottom {
+  .list__item button {
+    padding: 0;
+  }
+}

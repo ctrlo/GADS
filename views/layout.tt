@@ -17,8 +17,8 @@
 
       <div class="content-block__main-content">
 
-        <div class="card card--primary mb-3">
-          <div class="card__body row">
+        <div class="card card-primary mb-3">
+          <div class="card-body">
             <div class="card__content">
               <div class="row">
                 <div class="[% topics.size ? 'col-md-6' : 'col-md-12' %]">
@@ -147,7 +147,7 @@
             <div class="row mt-3 mb-3">
               <div class="col">
                 <div class="card card--expandable">
-                  <div class="card__header">
+                  <div class="card-header">
                     <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#textFieldSettings" aria-expanded="false" aria-controls="textFieldSettings">
                       <span class="card__title">
                         Field settings for text
@@ -160,7 +160,7 @@
                     </div>
                   </div>
                   <div class="collapse" id="textFieldSettings">
-                    <div class="card__content">
+                    <div class="card-body card__content">
                       <div class="row">
                         <div class="col">
                           [%
@@ -205,7 +205,7 @@
             <div class="row mt-3 mb-3">
               <div class="col">
                 <div class="card card--expandable">
-                  <div class="card__header">
+                  <div class="card-header">
                     <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#integerFieldSettings" aria-expanded="false" aria-controls="integerFieldSettings">
                       <span class="card__title">
                         Field settings for integer
@@ -218,7 +218,7 @@
                     </div>
                   </div>
                   <div class="collapse" id="integerFieldSettings">
-                    <div class="card__content">
+                    <div class="card-body card__content">
                       <div class="row">
                         <div class="col">
                           <fieldset class="fieldset">
@@ -260,7 +260,7 @@
             <div class="row mt-3 mb-3">
               <div class="col">
                 <div class="card card--expandable">
-                  <div class="card__header">
+                  <div class="card-header">
                     <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#dateFieldSettings" aria-expanded="false" aria-controls="dateFieldSettings">
                       <span class="card__title">
                         Field settings for date
@@ -273,7 +273,7 @@
                     </div>
                   </div>
                   <div class="collapse" id="dateFieldSettings">
-                    <div class="card__content">
+                    <div class="card-body card__content">
                       <div class="row">
                         <div class="col">
                            <fieldset class="fieldset">
@@ -337,7 +337,7 @@
             <div class="row mt-3 mb-3">
               <div class="col">
                 <div class="card card--expandable">
-                  <div class="card__header">
+                  <div class="card-header">
                     <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#dateRangeFieldSettings" aria-expanded="false" aria-controls="dateRangeFieldSettings">
                       <span class="card__title">
                         Field settings for date range
@@ -350,7 +350,7 @@
                     </div>
                   </div>
                   <div class="collapse" id="dateRangeFieldSettings">
-                    <div class="card__content">
+                    <div class="card-body card__content">
                       <div class="row">
                         <div class="col">
                           <fieldset class="fieldset">
@@ -391,7 +391,7 @@
             <div class="row mt-3 mb-3">
               <div class="col">
                 <div class="card card--expandable">
-                  <div class="card__header">
+                  <div class="card-header">
                     <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#dropdownListFieldSettings" aria-expanded="false" aria-controls="dropdownListFieldSettings">
                       <span class="card__title">
                         Field settings for dropdown list
@@ -404,7 +404,7 @@
                     </div>
                   </div>
                   <div class="collapse" id="dropdownListFieldSettings">
-                    <div class="card__content">
+                    <div class="card-body card__content">
 
                       <div class="orderable-sortable">
                         [%
@@ -504,7 +504,7 @@
             <div class="row mt-3 mb-3">
               <div class="col">
                 <div class="card card--expandable">
-                  <div class="card__header">
+                  <div class="card-header">
                     <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#treeFieldSettings" aria-expanded="false" aria-controls="treeFieldSettings">
                       <span class="card__title">
                         Field settings for tree
@@ -517,7 +517,7 @@
                     </div>
                   </div>
                   <div class="collapse" id="treeFieldSettings">
-                    <div class="card__content">
+                    <div class="card-body card__content">
                       <div class="row">
                         <div class="col">
                           [% IF column.id %]
@@ -567,7 +567,7 @@
             <div class="row mt-3 mb-3">
               <div class="col">
                 <div class="card card--expandable">
-                  <div class="card__header">
+                  <div class="card-header">
                     <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#documentFieldSettings" aria-expanded="false" aria-controls="documentFieldSettings">
                       <span class="card__title">
                         Field settings for document
@@ -580,7 +580,7 @@
                     </div>
                   </div>
                   <div class="collapse" id="documentFieldSettings">
-                    <div class="card__content">
+                    <div class="card-body card__content">
                       <div class="row">
                         <div class="col">
                           [%
@@ -612,7 +612,7 @@
             <div class="row mt-3 mb-3">
               <div class="col">
                 <div class="card card--expandable">
-                  <div class="card__header">
+                  <div class="card-header">
                     <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#personFieldSettings" aria-expanded="false" aria-controls="personFieldSettings">
                       <span class="card__title">
                         Field settings for person
@@ -625,7 +625,7 @@
                     </div>
                   </div>
                   <div class="collapse" id="personFieldSettings">
-                    <div class="card__content">
+                    <div class="card-body card__content">
 
                       <div class="row">
                         <div class="col">
@@ -710,7 +710,7 @@
             <div class="row mt-3 mb-3">
               <div class="col">
                 <div class="card card--expandable">
-                  <div class="card__header">
+                  <div class="card-header">
                     <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#ragFieldSettings" aria-expanded="false" aria-controls="ragFieldSettings">
                       <span class="card__title">
                         Field settings for RAG
@@ -723,7 +723,7 @@
                     </div>
                   </div>
                   <div class="collapse" id="ragFieldSettings">
-                    <div class="card__content">
+                    <div class="card-body card__content">
                       <p class="mb-3">Use a RAG field to automatically generate red, amber or green indicators based on the values of other fields. You set the conditions for the RAG status using the Lua programming language.</p>
                       <div class="row">
                         <div class="col">
@@ -797,7 +797,7 @@
             <div class="row mt-3 mb-3">
               <div class="col">
                 <div class="card card--expandable">
-                  <div class="card__header">
+                  <div class="card-header">
                     <button id="calcfield_card_header" class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#calcValueFieldSettings" aria-expanded="false" aria-controls="calcValueFieldSettings">
                       <span class="card__title">
                         Field settings for calculated value
@@ -810,7 +810,7 @@
                     </div>
                   </div>
                   <div class="collapse" id="calcValueFieldSettings">
-                    <div class="card__content">
+                    <div class="card-body card__content">
                       <p class="mb-3">A calculated value field automatically generates values based on the values of other fields. You define your calculation using the Lua programming language.</p>
                       <div class="row">
                         <div class="col">
@@ -922,7 +922,7 @@
             <div class="row mt-3 mb-3">
               <div class="col">
                 <div class="card card--expandable">
-                  <div class="card__header">
+                  <div class="card-header">
                     <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#fieldsFromAnotherTableFieldSettings" aria-expanded="false" aria-controls="fieldsFromAnotherTableFieldSettings">
                       <span class="card__title">
                         Field settings for fields from another table
@@ -935,7 +935,7 @@
                     </div>
                   </div>
                   <div class="collapse" id="fieldsFromAnotherTableFieldSettings">
-                    <div class="card__content">
+                    <div class="card-body card__content">
                       [% IF NOT instance_layouts.size; %]
                       <div class="row">
                         <div class="col">
@@ -1164,7 +1164,7 @@
             <div class="row mt-3 mb-3">
               <div class="col">
                 <div class="card card--expandable">
-                  <div class="card__header">
+                  <div class="card-header">
                     <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#otherSheetsReferences" aria-expanded="false" aria-controls="otherSheetsReferences">
                       <span class="card__title">
                         Field settings for automatic value of other sheet's references to this one
@@ -1177,7 +1177,7 @@
                     </div>
                   </div>
                   <div class="collapse" id="otherSheetsReferences">
-                    <div class="card__content">
+                    <div class="card-body card__content">
                       <div class="row">
                         <div class="col">
                           <fieldset class="fieldset" >
@@ -1290,7 +1290,7 @@
             <div class="row mt-3 mb-3">
               <div class="col">
                 <div class="card card--expandable">
-                  <div class="card__header">
+                  <div class="card-header">
                     <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#automaticFilteredValues" aria-expanded="false" aria-controls="automaticFilteredValues">
                       <span class="card__title">
                         Field settings for automatic filtered values of other field
@@ -1303,7 +1303,7 @@
                     </div>
                   </div>
                   <div class="collapse" id="automaticFilteredValues">
-                    <div class="card__content">
+                    <div class="card-body card__content">
                       <div class="row">
                         <div class="col">
                           [%
@@ -1376,7 +1376,7 @@
         <div class="row mb-3">
           <div class="col">
             <div class="card card--expandable">
-              <div class="card__header">
+              <div class="card-header">
                 <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#notes" aria-expanded="false" aria-controls="notes">
                   <span class="card__title">
                     Notes
@@ -1389,7 +1389,7 @@
                 </div>
               </div>
               <div class="collapse" id="notes">
-                <div class="card__content">
+                <div class="card-body card__content">
                   [% INCLUDE fields/textarea.tt
                        id = "field_notes"
                        name = "notes"
@@ -1410,7 +1410,7 @@
         <div class="row mb-3">
           <div class="col">
             <div class="card card--expandable">
-              <div class="card__header">
+              <div class="card-header">
                 <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#permissions" aria-expanded="false" aria-controls="permissions">
                   <span class="card__title">
                     Permissions
@@ -1423,7 +1423,7 @@
                 </div>
               </div>
               <div class="collapse" id="permissions">
-                <div class="card__content">
+                <div class="card-body card__content">
                   [% IF ! groups.all.size %]
                     <p>
                       No groups have been created yet. <a href="[% url.page %]/group_add/">Create a group</a>
@@ -1628,7 +1628,7 @@
         <div class="row mb-3">
           <div class="col">
             <div class="card card--expandable">
-              <div class="card__header">
+              <div class="card-header">
                 <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#advancedSettings" aria-expanded="false" aria-controls="advancedSettings">
                   <span class="card__title">
                     Advanced settings
@@ -1641,7 +1641,7 @@
                 </div>
               </div>
               <div class="collapse" id="advancedSettings">
-                <div class="card__content">
+                <div class="card-body card__content">
                   <fieldset class="fieldset">
                     <div class="fieldset__legend fieldset__legend--hidden">
                       <legend>
@@ -1791,7 +1791,7 @@
         <div class="row">
           <div class="col">
             <div class="card card--expandable">
-              <div class="card__header">
+              <div class="card-header">
                 <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#displayConditionsCollapse" aria-expanded="false" aria-controls="displayConditionsCollapse">
                   <span class="card__title">
                     Display conditions
@@ -1804,7 +1804,7 @@
                 </div>
               </div>
               <div class="collapse" id="displayConditionsCollapse">
-                <div class="card__content">
+                <div class="card-body card__content">
                   <p>Use this section to define under what conditions this field is displayed when editing a record. If no conditions are defined, then the field will always displayed.</p>
 
                   <div class="form-group mb-4">

@@ -55,12 +55,14 @@
           [% IF NOT record.new_entry AND NOT edit_modal AND NOT view_modal %]
           <div class="content-block__left col-lg-4 mb-3 mb-lg-0">
             [% IF record.child_record_ids.size %]
-            <div class="card card--header">
+            <div class="card">
+            <div class="card-header">
               <h3 class="card__header">
                 <span>Child records</span>
               </h3>
+              </div>
     
-              <div class="card__body row">
+              <div class="card-body">
                 <div class="card__content">
                   <div class="list list--vertical list--key-value list--no-borders">
                     <ul class="list__items">
@@ -78,12 +80,14 @@
             </div>
             [% END %]
             
-            <div class="card card--header">
+            <div class="card">
+              <div class="card-header">
               <h3 class="card__header">
                 <span>Meta data</span>
               </h3>
+              </div>
               
-              <div class="card__body row">
+              <div class="card-body">
                 <div class="card__content">
                   <div class="list list--vertical list--key-value list--no-borders">
                     <ul class="list__items">
@@ -132,12 +136,14 @@
               </div>
             </div>
   
-            <div class="card card--header">
+            <div class="card">
+            <div class="card-header">
               <h3 class="card__header">
                 <span>Version history</span>
               </h3>
+              </div>
     
-              <div class="card__body row">
+              <div class="card-body">
                 <div class="card__content">
                   <div class="row mb-2">
                     <div class="col">
@@ -199,12 +205,14 @@
             </div>
   
             [% IF record.has_rag_column %]
-            <div class="card card--header">
+            <div class="card">
+              <div class="card-header">
               <h3 class="card__header">
                 <span>Legend</span>
               </h3>
+              </div>
     
-              <div class="card__body row">
+              <div class="card-body">
                 <div class="card__content">
                   [% INCLUDE snippets/rag_legend.tt %]
                 </div>
@@ -370,7 +378,7 @@
 %]
   <div class="[% panel_class %]">
     <div class="card card--expandable card--topic">
-      <div class="card__header">
+      <div class="card-header">
         <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#topic[% block_topic.id; widget_id_modifier; %]" aria-expanded="false" aria-controls="topic[% block_topic.id; widget_id_modifier; %]">
           <span class="card__title">
             [% block_topic.name OR 'Other' | html %]
@@ -406,7 +414,7 @@
         </div>
       </div>
       <div class="collapse[% IF open == 'true' %] show[% END %]" id="topic[% block_topic.id; widget_id_modifier; %]">
-        <div class="card__content">
+        <div class="card__content card-body">
           [% IF block_topic.description %]
             <span class="card__description text-muted">
               [% block_topic.description_html %]

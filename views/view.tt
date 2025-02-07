@@ -110,7 +110,7 @@
                   <div class="row mb-3">
                     <div class="col">
                       <div class="card card--expandable">
-                        <div class="card__header">
+                        <div class="card-header">
                           <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#filter_1" aria-expanded="false" aria-controls="filter_1">
                             <span class="card__title">
                               Filter
@@ -123,7 +123,7 @@
                           </div>
                         </div>
                         <div class="collapse" id="filter_1">
-                          <div class="card__content">
+                          <div class="card-body card__content">
                             <div class="row mb-3">
                               <div class="col">
                                 <div class="form-group mb-4 help-view"
@@ -173,7 +173,7 @@
                   <div class="row mb-3">
                     <div class="col">
                       <div class="card card--expandable">
-                        <div class="card__header">
+                        <div class="card-header">
                           <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1">
                             <span class="card__title">
                               Sort/Group
@@ -186,7 +186,7 @@
                           </div>
                         </div>
                         <div class="collapse" id="sort_group_1">
-                          <div class="card__content">
+                          <div class="card-body card__content">
                             <div class="row mb-3">
                               <div class="col">
                                 <div class="form-group mb-4 help-view"
@@ -390,7 +390,7 @@
                   <div class="row mb-3">
                     <div class="col">
                       <div class="card card--expandable">
-                        <div class="card__header">
+                        <div class="card-header">
                           <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#fields_1" aria-expanded="false" aria-controls="fields_1">
                             <span class="card__title">
                               Fields
@@ -403,7 +403,7 @@
                           </div>
                         </div>
                         <div class="collapse" id="fields_1">
-                          <div class="card__content">
+                          <div class="card-body card__content">
                             <div class="row">
                               <div class="col-sm-12">
                                 <fieldset class="fieldset" >

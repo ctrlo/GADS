@@ -23,6 +23,14 @@ $danger: $brand-danger;
 $light: $gray-light;
 $dark: $gray-extra-dark;
 
+$secundary: $brand-secundary;
+
+$custom-colors: (
+    "secundary": $secundary
+);
+
+$theme-colors: map-merge($theme-colors, $custom-colors);
+
 // Breadcrumbs
 $breadcrumb-font-size: $font-size-sm;
 $breadcrumb-divider: quote(">");
@@ -35,6 +43,11 @@ $btn-border-radius: 23px;
 $btn-padding-sm-x: 20px;
 $btn-padding-sm-y: 7px;
 $btn-font-size-sm: $font-size-sm;
+
+// Cards
+$card-cap-bg: $brand-primary;
+$card-cap-color: $white;
+$card-cap-border-color: $brand-primary;
 
 @import "~bootstrap/scss/maps";
 @import "~bootstrap/scss/mixins";
