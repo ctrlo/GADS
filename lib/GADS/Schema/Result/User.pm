@@ -20,8 +20,6 @@ use MIME::Base64 qw/encode_base64url/;
 use Digest::SHA  qw/hmac_sha256 sha256/;
 use Moo;
 
-use Data::Dump qw/pp/;
-
 extends 'DBIx::Class::Core';
 
 sub BUILDARGS { $_[2] || {} }
@@ -1223,8 +1221,8 @@ sub validate
             my $search = { $f => $self->$f };
             $search->{id} = { '!=' => $self->id }
                 if $self->id;
-            $self->result_source->schema->resultset('User')->active->search($search)->next and
-                error __x"{username} already exists as an active user", username => $self->$f;
+            $self->result_source->schema->resultset('User')->active->search($search)->next
+             and error __x"{username} already exists as an active user", username => $self->$f;
         }
     }
 }
