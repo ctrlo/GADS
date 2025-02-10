@@ -14,20 +14,4 @@ function toHaveAttribute(elm: HTMLElement, attr: string, value: string) {
     }
 }
 
-function toHaveNumberOfMenuItems(elm: HTMLElement, count: number) {
-    const menu = elm.parentElement.querySelector('.dropdown__list');
-    const result = menu?.querySelectorAll('.dropdown__item').length;
-    if(result === count) {
-        return {
-            pass: true,
-            message: () => `Expected element to have ${count} menu items`
-        };
-    } else {
-        return {
-            pass: false,
-            message: () => `Expected element to have ${count} menu items, item has ${result ?? 0}`
-        };
-    }
-}
-
-expect.extend({ toHaveAttribute, toHaveNumberOfMenuItems });
+expect.extend({ toHaveAttribute });

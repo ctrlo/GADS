@@ -7,7 +7,7 @@ const Footer = ({ addWidget, widgetTypes, currentDashboard, readOnly, noDownload
     <div className='ld-footer-container'>
       {noDownload ||
         <Dropdown>
-          <Dropdown.Toggle variant="default" id="dropdown-basic">
+          <Dropdown.Toggle variant="default" id="dropdown-download">
             Download
           </Dropdown.Toggle>
 
@@ -18,7 +18,7 @@ const Footer = ({ addWidget, widgetTypes, currentDashboard, readOnly, noDownload
       
       {readOnly || 
         <Dropdown>
-          <Dropdown.Toggle variant="default" id="dropdown-basic">
+          <Dropdown.Toggle variant="default" id="dropdown-add-widget">
             Add Widget
           </Dropdown.Toggle>
 

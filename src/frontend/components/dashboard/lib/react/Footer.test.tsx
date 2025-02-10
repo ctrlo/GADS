@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import '@testing-library/dom';
 import { describe, it, expect, jest } from '@jest/globals';
 
@@ -25,10 +25,10 @@ describe('Footer', () => {
         render(<Footer {...footerProps} />);
 
         expect(screen.getByText('Download')).toBeInstanceOf(HTMLButtonElement);
+        act(()=>screen.getByText('Download').click());
         // @ts-expect-error extension method
         expect(screen.getByText('As PDF')).toHaveAttribute('href', 'http://localhost:3000/dashboard/1/download');
-        // @ts-expect-error extension method
-        expect(screen.getByText('Add Widget')).toHaveNumberOfMenuItems(2);
+        act(()=>screen.getByText('Add Widget').click());
         expect(screen.getByText('type1')).toBeInstanceOf(HTMLAnchorElement);
         expect(screen.getByText('type2')).toBeInstanceOf(HTMLAnchorElement);
     });
@@ -104,8 +104,9 @@ describe('Footer', () => {
 
         render(<Footer {...footerProps} />);
 
-        const addWidgetButton = screen.getByText('type1');
-        addWidgetButton.click();
+        act(()=>screen.getByText('Add Widget').click());
+        const type1WidgetButton = screen.getByText('type1');
+        type1WidgetButton.click();
 
         expect(addWidget).toHaveBeenCalledTimes(1);
         expect(addWidget).toHaveBeenCalledWith('type1');
