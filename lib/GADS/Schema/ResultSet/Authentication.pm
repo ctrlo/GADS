@@ -34,6 +34,7 @@ sub by_id
     my $id = shift;
     $self->search({
         'me.id' => $id,
+        'me.enabled' => 1,
     });
 }
 
