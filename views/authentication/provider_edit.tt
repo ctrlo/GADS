@@ -64,7 +64,17 @@
                 filter = "html"
                 sub_field = ""
                 sub_params = {};
-            ELSIF field.type == "radio";
+            ELSIF field.type == "radio" and field.name == 'type';
+              INCLUDE fields/radio.tt
+                id    = field.name
+                name  = field.name
+                label = field.description
+                value = editprovider.${field.name}
+                items = [
+                  {id = "1", name = "SAML2"},
+                  {id = "0", name = "Built In"}
+                ];
+            ELSIF field.type == "radio" and field.name == 'enabled';
               INCLUDE fields/radio.tt
                 id    = field.name
                 name  = field.name
