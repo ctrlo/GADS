@@ -300,7 +300,7 @@ sub after_create
     my $rcode = run [ @command ], '>', \$stdout, '2>', \$stderr;
 
     $self->update({
-        saml2_relaystate  => $self->get_saml2_relaystate();
+        saml2_relaystate  => $self->get_saml2_relaystate(),
         sp_key            => read_text($key_file->filename),
         sp_cert           => read_text($cert_file->filename),
 	}
