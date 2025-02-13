@@ -1122,7 +1122,7 @@ sub has_draft
 
 sub update_attributes
 {   my ($self, $attributes) = @_;
-    my $authentication = $self->result_source->schema->resultset('Authentication')->saml2_provider;
+    my $authentication = $self->provider;
     my $site = $self->result_source->schema->resultset('Site')->next;
 
     # Automatically update the firstname and surname if the
@@ -1136,6 +1136,7 @@ sub update_attributes
     {
         $self->update({ surname => $attributes->{$at}->[0] });
     }
+
     # Automatically update the groups and permissions for the user from the SAML2 attributes
     if (my $at = $authentication->saml2_groupname)
     {
