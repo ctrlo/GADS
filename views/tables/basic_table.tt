@@ -98,7 +98,7 @@
     type  = "header"
     label = "Toggle child row"
   });
-
+  
   rowCounter = 1;
 
   FOREACH row in rows;
