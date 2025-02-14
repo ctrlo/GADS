@@ -8,6 +8,7 @@
   .card-header {
     display: flex 100%;
     padding-top: $padding-base-horizontal;
+    padding: $padding-base-vertical $padding-base-horizontal 0;
     span {
       @include font-style-h3;
     }
@@ -21,7 +22,7 @@
 .card.card--topic {
   .card-header {
     border-bottom: 0;
-    background-color: var(--bs-body-bg);
+    background-color: $white;
     color: $brand-secundary;
 
     &:not(:first-child) {
@@ -38,7 +39,7 @@
     }
 
     button {
-      background-color: var(--bs-body-bg);
+      background-color: $white;
       border: 0;
 
       .card__title {

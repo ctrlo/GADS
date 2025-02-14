@@ -18,7 +18,7 @@
       <div class="content-block__main-content">
         <div class="row">
           <div class="col">
-            <div class="card card--primary mb-3">
+            <div class="card card-primary mb-3">
               <div class="card__content">
                 [%
                   INCLUDE fields/input.tt

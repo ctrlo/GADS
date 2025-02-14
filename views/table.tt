@@ -17,7 +17,7 @@
       </div>
       
       <div class="content-block__main-content">
-        <div class="card card--primary mb-3">
+        <div class="card card-primary mb-3">
           <h4 class="card__title">
             <span> Edit your table: [% layout_obj.name | html %] </span>
           </h4>

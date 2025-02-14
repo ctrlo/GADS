@@ -12,7 +12,7 @@
         </legend>
       </div>
       <div class="content-block__main-content">
-        <div class="card card--primary mb-3">
+        <div class="card card-primary mb-3">
           <h4 class="card__title">
             <span> Table permissions </span>
           </h4>

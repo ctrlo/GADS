@@ -42,7 +42,7 @@
 
 <div class="content-block__main">
   <div class="content-block__main-content">
-    <div class="card card--primary mb-3">
+    <div class="card card-primary mb-3">
       <h4 class="card__title">
         <span> Edit your topics </span>
       </h4>
