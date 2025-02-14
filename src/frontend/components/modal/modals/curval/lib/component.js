@@ -5,7 +5,7 @@ import { guid as Guid } from "guid"
 import { initializeRegisteredComponents } from 'component'
 import { validateRadioGroup, validateCheckboxGroup } from 'validation'
 import gadsStorage from 'util/gadsStorage'
-import { fromJson } from 'util/common'
+import { fromJson, parseFormData } from 'util/common'
 
 class CurvalModalComponent extends ModalComponent {
 
@@ -305,12 +305,20 @@ class CurvalModalComponent extends ModalComponent {
       $m.find(".modal-body").text("Loading...")
 
       $m.find(".modal-body").load(
-        this.getURL(current_id, instance_name, layout_id, form_data),
+        /\d+/.test(form_data)? this.getURL(current_id, instance_name, layout_id, form_data): this.getURL(current_id, instance_name, layout_id),
         function() {
           if (mode === "edit") {
             $m.find("form").data("guid", guid)
           }
           initializeRegisteredComponents(self.element)
+          // If we have existing form data, rather than set it using the URL, we use setFieldValues to ensure that the data isn't being sent in the request
+          if(form_data && form_data.contains("&")) {
+            const values = parseFormData(form_data)
+            for(const value in values) {
+              const $field = $m.find(`[name="${value}"]`).closest('.linkspace-field')
+              setFieldValues($field, [values[value]])
+            }
+          }
         }
       )
 
@@ -336,7 +344,7 @@ class CurvalModalComponent extends ModalComponent {
       : `/${instance_name}/record/`
 
     url = `${url}?include_draft&modal=${layout_id}`
-    if (form_data) url = url + `&${form_data}`
+    if(form_data) url += `&form_data=${form_data}`
     return url
   }
 

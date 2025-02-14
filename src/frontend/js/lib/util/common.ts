@@ -26,3 +26,12 @@ export const fromJson = (json: String | object) => {
         return {};
     }
 }
+
+export const parseFormData = <T extends object = object> (formdata:string): T => {
+    const data = {};
+    const form = new URLSearchParams(formdata);
+    form.forEach((value, key) => {
+        data[key]= value;
+    });
+    return data as T;
+}

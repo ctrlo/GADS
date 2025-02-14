@@ -1,5 +1,5 @@
 import "../../../testing/globals.definitions";
-import { fromJson, hideElement, showElement } from "./common";
+import { fromJson, hideElement, parseFormData, showElement } from "./common";
 
 describe('common functions', () => {
     describe.skip('CSS and ARIA - skipped as they are incorrect',()=>{
@@ -85,6 +85,15 @@ describe('common functions', () => {
             const json = undefined;
             const parsed = fromJson(json);
             expect(parsed).toEqual({});
+        });
+    });
+
+    describe("Parser", ()=>{
+        it('parses a formdata string', ()=>{
+            const formdata = "foo=bar&baz=qux";
+            const parsed = parseFormData<{foo:string, baz:string}>(formdata);
+            expect(parsed.foo).toEqual('bar');
+            expect(parsed.baz).toEqual('qux');
         });
     });
 });
