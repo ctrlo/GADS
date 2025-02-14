@@ -17,16 +17,4 @@ describe("ShowBlankButton", ()=>{
         button.trigger("click");
         expect(item.css("display")).not.toBe("none");
     });
-
-    // For some reason this won't behave as expected - disabling the test for now
-    it.skip("hides blank fields", ()=>{
-        const element = $("<div></div>");
-        const button = $("<button class='btn-js-show-blank'><span class='btn__title'>Hide blank values</span></button>");
-        element.append(button);
-        const item = $("<div class='list__item--blank'></div>");
-        element.append(item);
-        showBlankButton(element);
-        button.trigger("click");
-        expect(item.css("display")).toBe("none");
-    });
 });

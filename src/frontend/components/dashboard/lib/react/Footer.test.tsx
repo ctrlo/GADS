@@ -106,14 +106,14 @@ describe('Footer', () => {
 
         act(()=>screen.getByText('Add Widget').click());
         const type1WidgetButton = screen.getByText('type1');
-        type1WidgetButton.click();
+        act(()=>type1WidgetButton.click());
 
         expect(addWidget).toHaveBeenCalledTimes(1);
         expect(addWidget).toHaveBeenCalledWith('type1');
         addWidget.mockClear();
 
         const addWidgetButton2 = screen.getByText('type2');
-        addWidgetButton2.click();
+        act(()=>addWidgetButton2.click());
 
         expect(addWidget).toHaveBeenCalledTimes(1);
         expect(addWidget).toHaveBeenCalledWith('type2');

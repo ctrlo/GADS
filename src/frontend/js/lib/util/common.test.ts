@@ -3,7 +3,7 @@ import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals
 import { fromJson, hideElement, showElement, initJquery } from "./common";
 
 describe('common functions', () => {
-    describe('CSS and ARIA - skipped as they are incorrect',()=>{
+    describe('CSS and ARIA',()=>{
         let el: JQuery<HTMLElement>;
 
         beforeEach(() => {
