@@ -210,7 +210,8 @@ sub metadata
 
 sub _sp
 {   my $self = shift;
-    my $url = "https://sandbox.linkspace.uk";
+    my $host = $self->site->host;
+    my $url  = "https://$host";
 
     my $key_fh = $self->sp_key;
     my $cert_fh = $self->sp_cert;
@@ -246,9 +247,9 @@ sub _sp
         error_url => "$url/support",
 
         # FIXME
-        org_name         => "Simplelists.com",
-        org_display_name => "Simplelists.com",
-        org_contact      => 'timlegge@gmail.com',
+        org_name         => $host,
+        org_display_name => $host,
+        org_contact      => "admin\@$host",
         authnreq_signed  => 1,
     );
 
