@@ -74,13 +74,11 @@ __PACKAGE__->belongs_to(
   },
 );
 
-# FIXME
-my $www     = 'sandbox.linkspace.uk';
-
 sub sso_unique_url
 {   my $self = shift;
+    my $host = $self->site->host;
     my $id   = $self->saml2_unique_id;
-    "https://$www/$id/saml";
+    "https://$host/$id/saml";
 }
 
 sub sso_url
@@ -92,8 +90,9 @@ sub sso_url
 
 sub sso_unique_xml
 {   my $self = shift;
+    my $host = $self->site->host;
     my $id   = $self->saml2_unique_id;
-    "https://$www/$id/saml/xml";
+    "https://$host/$id/saml/xml";
 }
 
 sub sso_xml
@@ -290,11 +289,11 @@ sub after_create
     my ($stdout, $stderr);
     my $key_file = File::Temp->new;
     my $cert_file = File::Temp->new;
+    my $cn        = $self->site->host;
 
-    #FIXME: DNS Names
     my @command = ('/usr/bin/openssl', 'req', '-x509', '-newkey', 'rsa:4096', '-sha256', '-days', '720', '-nodes',
-        '-keyout', $key_file->filename, '-out', $cert_file->filename, '-subj', '/CN=simplelists.com', '-addext',
-        'subjectAltName=DNS:simplelists.com'
+        '-keyout', $key_file->filename, '-out', $cert_file->filename, '-subj', "/CN=$cn", '-addext',
+        "subjectAltName=DNS:$cn"
     );
 
     my $rcode = run [ @command ], '>', \$stdout, '2>', \$stderr;
