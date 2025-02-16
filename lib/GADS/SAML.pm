@@ -161,7 +161,7 @@ sub initiate
         issuer      => $self->authentication->sso_xml,
         destination => $sso_url,
         nameid_format => $idp->format('emailAddress') || undef,
-        # FIXME assertion_url => "https://$www/app/saml",
+        assertion_url => $self->authentication->sso_url,
     );
 
     $self->request_id($authnreq->id);
@@ -246,7 +246,6 @@ sub _sp
         }],
         error_url => "$url/support",
 
-        # FIXME
         org_name         => $host,
         org_display_name => $host,
         org_contact      => "admin\@$host",
