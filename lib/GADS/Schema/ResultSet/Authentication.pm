@@ -71,6 +71,7 @@ sub create_provider
     my $provider = $self->create({
         name                  => $params{name},
         type                  => $params{type},
+        enabled               => defined $params{enabled} ? $params{enabled} : 0,
         saml2_firstname       => $params{saml2_firstname},
         saml2_surname         => $params{saml2_surname},
         xml                   => $params{xml},
