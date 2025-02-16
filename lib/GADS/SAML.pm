@@ -92,7 +92,18 @@ sub callback
 
     my $saml_response = $params{saml_response};
 
-    if (my $return = $post->handle_response($saml_response))
+    my $return;
+    eval {
+	$return = $post->handle_response($saml_response);
+    };
+    if ($@) {
+        my $msg = "Error validating SAML response";
+        $msg = "Could not verify CA Certificate" if ($@ =~ "Could not verify CA certificate");
+	warn $@;
+        GADS::forwardHome({ danger => __x($msg)}, 'login?password=1' );
+    }
+
+    if ($return)
     {
         my $key_fh;
         if (defined $params{sp_key}) {
