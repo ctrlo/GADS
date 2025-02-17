@@ -531,7 +531,8 @@ sub saml_post {
 
     my $user = schema->resultset('User')->active->search({ username => $username })->next;
 
-    if ($user->provider->id ne $authentication->id) {
+    # FIXME: Here we could create the user if the relaystate matches a provider
+    if (!defined $user or ($user->provider->id ne $authentication->id)) {
         my $msg = $authentication->saml_provider_match_error;
 	$user = undef;
         return forwardHome({ danger => __x($msg, username => $username) }, 'saml_login' )
