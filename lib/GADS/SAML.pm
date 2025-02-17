@@ -100,7 +100,7 @@ sub callback
         my $msg = "Error validating SAML response";
         $msg = "Could not verify CA Certificate" if ($@ =~ "Could not verify CA certificate");
 	warn $@;
-        GADS::forwardHome({ danger => __x($msg)}, 'login?password=1' );
+        GADS::forwardHome({ danger => __x($msg)}, 'saml_login' );
     }
 
     if ($return)
@@ -127,7 +127,7 @@ sub callback
                                 saml_request_id => $self->request_id,
                                 status          => $assertion->response_status,
                                 substatus       => $assertion->response_substatus,
-                            ) }, 'login?password=1' );
+                            ) }, 'saml_login' );
         }
         return {
             nameid     => $assertion->nameid,

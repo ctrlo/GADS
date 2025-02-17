@@ -526,7 +526,7 @@ sub saml_post {
     if (! defined ($username = $callback->{nameid})) {
         error __"Missing nameid in SAML response";
         my $msg = $authentication->saml_provider_match_error;
-        return forwardHome({ danger => __x($msg, username => $username) }, 'login?password=1' )
+        return forwardHome({ danger => __x($msg, username => $username) }, 'saml_login' )
     }
 
     my $user = schema->resultset('User')->active->search({ username => $username })->next;
@@ -534,13 +534,13 @@ sub saml_post {
     if ($user->provider->id ne $authentication->id) {
         my $msg = $authentication->saml_provider_match_error;
 	$user = undef;
-        return forwardHome({ danger => __x($msg, username => $username) }, 'login?password=1' )
+        return forwardHome({ danger => __x($msg, username => $username) }, 'saml_login' )
     }
 
     if (!$user)
     {
         my $msg = $authentication->user_not_found_error;
-        return forwardHome({ danger => __x($msg, username => $username) }, 'login?password=1' );
+        return forwardHome({ danger => __x($msg, username => $username) }, 'saml_login' );
     }
 
     $user->update_attributes($callback->{attributes});
@@ -1780,10 +1780,6 @@ any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/u
         editprovider => $editProvider,
         groups   => GADS::Groups->new(schema => schema)->all,
         values   => {
-            title         => $userso->titles, # FIXME delete
-            organisation  => $userso->organisations, # FIXME delete
-            department_id => $userso->departments, # FIXME delete
-            team_id       => $userso->teams, # FIXME delete
             type	  => \@types,
         },
         permissions => $userso->permissions,
