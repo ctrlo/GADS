@@ -129,6 +129,11 @@ sub create_user
             id => $user->id, username => $params{username}
     );
 
+    # FIXME - If you ever add after_create in GADS::Schema::Result::User
+    # this will break the functionality.  The above create will create the record
+    # after_create will fire and properly update the database.
+    # then update_user will pass the original parameter which will undo any
+    # changes the after_insert did for values in %params
     $user->update_user(%params);
 
     # Delete account request user if this is a new account request
