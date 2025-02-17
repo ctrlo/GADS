@@ -221,8 +221,9 @@ sub metadata
 
 sub _sp
 {   my $self = shift;
-    my $host = $self->site->host;
-    my $url  = "https://$host";
+    my $host = $self->{base_url}->host;
+    my $url  = "$self->{base_url}";
+    $url =~ s/\/$//;
 
     my $key_fh = $self->sp_key;
     my $cert_fh = $self->sp_cert;
