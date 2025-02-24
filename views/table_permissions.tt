@@ -16,26 +16,22 @@
           <h4 class="card__title">
             <span> Table permissions </span>
           </h4>
-          <div class="card__body row">
+          <div class="card-body">
             <div class="card__content">
               <p>Here you can set the table actions available to each user group.</p>
               [% FOREACH group IN groups; %]
               <div class="row mb-3 permission-group" data-group-id="[% group.id %]">
                 <div class="col">
                   <div class="card card--expandable">
-                    <div class="card-header">
-                      <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
+                    <div class="card-header" data-bs-toggle="collapse" data-bs-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]" role="button">
                         <span class="card__title">
                           Group
                           <span class="card__subtitle">
                             [% group.name | html %]
                           </span>
                         </span>
-                      </button>
-                      <div class="card__header-right">
-                        <button class="card__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
-                          <span>Toggle collapsible</span>
-                        </button>
+                      <div class="card__header-right card__toggle">
+                         <span>Toggle collapsible</span>
                       </div>
                     </div>
                     <div class="collapse" id="group_permissions_[% group.id %]">

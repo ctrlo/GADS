@@ -59,7 +59,7 @@
     aside_buttons = ! user.permission.superadmin ? [] : [{
       type    = "modal_button"
       modalId = "newTableModal"
-      class   = "btn btn-add"
+      class   = "btn btn-add btn-default"
       label   = "New table"
     }];
 -%]

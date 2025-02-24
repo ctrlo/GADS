@@ -9,7 +9,7 @@ calculated by comparing the absolute value with the relevant metric."
     aside_buttons = [{
      type   = "link"
      target = url.page _ "/" _ layout.identifier _ "/metric/0"
-     class  = "btn btn-add"
+     class  = "btn btn-add btn-default"
      label  = "Add a metrics set"
    }];
 %]

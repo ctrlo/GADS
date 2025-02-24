@@ -7,7 +7,7 @@
       aside_buttons = [{
        type   = "link"
        target = url.page _ "/" _ layout.identifier _ "/graph/0"
-       class  = "btn btn-add"
+       class  = "btn btn-add btn-default"
        label  = "Add a graph"
      }];
   %]

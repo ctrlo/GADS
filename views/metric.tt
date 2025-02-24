@@ -24,7 +24,7 @@
                     <span> Metric name </span>
                   </h4>
                   
-                  <div class="card__body row">
+                  <div class="card-body">
                     <div class="card__content">
                       <div class="row">
                         <div class='col-lg-9'>
@@ -52,7 +52,7 @@
                       <div class="row">
                         <div class="col">
                           <p>
-                            <a class="btn btn-add" href="" data-bs-toggle="modal"
+                            <a class="btn btn-add btn-default" href="" data-bs-toggle="modal"
                                data-bs-target="#modal_metric"
                                data-metric_id=""
                                data-x_axis_field=""
@@ -104,7 +104,7 @@
                 <span> Metrics help </span>
               </h4>
       
-              <div class="card__body row">
+              <div class="card-body">
                 <div class="card__content">
                   <p>
                     Use this page to define a set of metrics to plot graphs against.

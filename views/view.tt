@@ -10,7 +10,7 @@
         <div class="row">
           <div class='col-md-6 col-lg-8 mb-4 mb-lg-0'>
             <div class="card card--secundary">
-              <div class="card__body row">
+              <div class="card-body">
                 <div class="card__content">
 
                   <!-- Name of the view -->
@@ -589,7 +589,7 @@
                 <span> View help </span>
               </h4>
 
-              <div class="card__body row">
+              <div class="card-body">
                 <div id="help__card" class="card__content">
                   <dl>
                     <dt>General</dt>

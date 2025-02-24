@@ -17,7 +17,7 @@
       
       <div class="content-block__main-content">
         <div class="card card--secundary">
-          <div class="card__body row">
+          <div class="card-body">
             <div class="card__content">
               <div class="row">
                 <div class='col'>

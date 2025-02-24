@@ -26,6 +26,7 @@ $dark: $gray-extra-dark;
 $secundary: $brand-secundary;
 
 $custom-colors: (
+    "primary": $primary,
     "secundary": $secundary
 );
 
@@ -45,12 +46,21 @@ $btn-padding-sm-y: 7px;
 $btn-font-size-sm: $font-size-sm;
 
 // Cards
-$card-cap-bg: $brand-primary;
-$card-cap-color: $white;
-$card-cap-border-color: $brand-primary;
+$card-cap-bg: $white;
+$card-cap-color: $brand-primary;
+$card-cap-border-color: $white;
 $card-bg: $white;
 
 $list-group-bg: $white;
+
+$table-caption-color: $primary;
+$table-bg: $white;
+$table-color: $secondary;
+$table-striped-color: $secondary;
+
+$dropdown-bg: $white;
+$input-border-color: $secondary;
+$input-focus-border-color: $primary;
 
 @import "~bootstrap/scss/maps";
 @import "~bootstrap/scss/mixins";

@@ -55,7 +55,7 @@
           [% IF NOT record.new_entry AND NOT edit_modal AND NOT view_modal %]
           <div class="content-block__left col-lg-4 mb-3 mb-lg-0">
             [% IF record.child_record_ids.size %]
-            <div class="card">
+            <div class="card card-info">
             <div class="card-header">
               <h3 class="card__header">
                 <span>Child records</span>
@@ -80,7 +80,7 @@
             </div>
             [% END %]
             
-            <div class="card">
+            <div class="card card-info">
               <div class="card-header">
               <h3 class="card__header">
                 <span>Meta data</span>
@@ -136,7 +136,7 @@
               </div>
             </div>
   
-            <div class="card">
+            <div class="card card-info">
             <div class="card-header">
               <h3 class="card__header">
                 <span>Version history</span>
@@ -205,7 +205,7 @@
             </div>
   
             [% IF record.has_rag_column %]
-            <div class="card">
+            <div class="card card-info">
               <div class="card-header">
               <h3 class="card__header">
                 <span>Legend</span>
@@ -379,11 +379,11 @@
   <div class="[% panel_class %]">
     <div class="card card--expandable card--topic">
       <div class="card-header">
-        <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#topic[% block_topic.id; widget_id_modifier; %]" aria-expanded="false" aria-controls="topic[% block_topic.id; widget_id_modifier; %]">
+        <div class="card-header__toggle" data-bs-toggle="collapse" data-bs-target="#topic[% block_topic.id; widget_id_modifier; %]">
           <span class="card__title">
             [% block_topic.name OR 'Other' | html %]
           </span>
-        </button>
+        </div>
         <div class="card__header-right">
           [% IF editable AND NOT record.new_entry AND NOT edit_modal AND topic.has_editable %]
           <button
@@ -401,16 +401,9 @@
             <span class="btn__title">View</span>
           </button>
         
-          <button
-            class="card__toggle"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#topic[% block_topic.id; widget_id_modifier; %]"
-            aria-expanded="[% open %]"
-            aria-controls="topic[% block_topic.id; widget_id_modifier; %]"
-          >
+          <span class="card__toggle" data-bs-toggle="collapse" data-bs-target="#topic[% block_topic.id; widget_id_modifier; %]" aria-expanded="[% open %]">
             <span>Toggle collapsible</span>
-          </button>
+          </span>
         </div>
       </div>
       <div class="collapse[% IF open == 'true' %] show[% END %]" id="topic[% block_topic.id; widget_id_modifier; %]">

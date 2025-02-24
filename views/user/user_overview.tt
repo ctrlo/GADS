@@ -103,7 +103,7 @@
     }, {
       type    = "modal_button"
       modalId = "userModal"
-      class   = "btn btn-add"
+      class   = "btn btn-add btn-default"
       label   = "Add a user"
     }];
 %]

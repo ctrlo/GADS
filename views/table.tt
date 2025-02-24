@@ -22,7 +22,7 @@
             <span> Edit your table: [% layout_obj.name | html %] </span>
           </h4>
           
-          <div class="card__body row">
+          <div class="card-body">
             <div class="card__content">
               <div class="row">
                 <div class="col-lg-6">
@@ -109,16 +109,12 @@
         <div class="row mb-3">
           <div class="col">
             <div class="card card--expandable">
-              <div class="card-header">
-                <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#emailAlerts" aria-expanded="false" aria-controls="emailAlerts">
-                  <span class="card__title">
-                    Email alerts
-                  </span>
-                </button>
-                <div class="card__header-right">
-                  <button class="card__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#emailAlerts" aria-expanded="false" aria-controls="emailAlerts">
-                    <span>Toggle collapsible</span>
-                  </button>
+              <div class="card-header" data-bs-toggle="collapse" data-bs-target="#emailAlerts" aria-expanded="false" aria-controls="emailAlerts">
+                <span class="card__title">
+                  Email alerts
+                </span>
+                <div class="card__header-right card__toggle">
+                  <span>Toggle collapsible</span>
                 </div>
               </div>
               <div class="collapse" id="emailAlerts">
@@ -151,16 +147,12 @@
         <div class="row mb-3">
           <div class="col">
             <div class="card card--expandable">
-              <div class="card-header">
-                <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#limitRecordAccess" aria-expanded="false" aria-controls="limitRecordAccess">
-                  <span class="card__title">
-                    Limit access to records
-                  </span>
-                </button>
-                <div class="card__header-right">
-                  <button class="card__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#limitRecordAccess" aria-expanded="false" aria-controls="limitRecordAccess">
-                    <span>Toggle collapsible</span>
-                  </button>
+              <div class="card-header" data-bs-toggle="collapse" data-bs-target="#limitRecordAccess" aria-expanded="false" aria-controls="limitRecordAccess">
+                <span class="card__title">
+                  Limit access to records
+                </span>
+                <div class="card__header-right card__toggle">
+                  <span>Toggle collapsible</span>
                 </div>
               </div>
               <div class="collapse" id="limitRecordAccess">
@@ -190,16 +182,12 @@
         <div class="row mb-3">
           <div class="col">
             <div class="card card--expandable">
-              <div class="card-header">
-                <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#ragFieldDefinitions" aria-expanded="false" aria-controls="ragFieldDefinitions">
-                  <span class="card__title">
-                    RAG field definitions and selections
-                  </span>
-                </button>
-                <div class="card__header-right">
-                  <button class="card__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#ragFieldDefinitions" aria-expanded="false" aria-controls="ragFieldDefinitions">
-                    <span>Toggle collapsible</span>
-                  </button>
+              <div class="card-header" data-bs-toggle="collapse" data-bs-target="#ragFieldDefinitions" aria-expanded="false" aria-controls="ragFieldDefinitions">
+                <span class="card__title">
+                  RAG field definitions and selections
+                </span>
+                <div class="card__header-right card__toggle">
+                  <span>Toggle collapsible</span>
                 </div>
               </div>
               <div class="collapse" id="ragFieldDefinitions">

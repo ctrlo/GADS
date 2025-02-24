@@ -36,6 +36,13 @@
   flex-wrap: nowrap;
   gap: $padding-base-horizontal;
   padding-bottom: 1.5rem;
+  .table-header__meta {
+    width: auto;
+  }
+  .table-header__navigation {
+    width: auto;
+    align-self: flex-end;
+  }
 }
 
 .table-header-bottom {

@@ -47,7 +47,7 @@
         <span> Edit your topics </span>
       </h4>
       
-      <div class="card__body row">
+      <div class="card-body">
         <div class="card__content">
           [% INCLUDE tables/basic_table.tt; %]
         </div>

@@ -24,7 +24,7 @@
     <div class="content-block__info col-lg-6"></div>
     
     <div class="content-block__aside col-lg-6">
-      <a href="[% url.page %]/[% layout.identifier %]/graph/0" class="btn btn-add">
+      <a href="[% url.page %]/[% layout.identifier %]/graph/0" class="btn btn-add btn-default">
         Add a graph
       </a>
     </div>

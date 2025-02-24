@@ -129,7 +129,7 @@
           <span> Edit your fields </span>
         </h4>
         
-        <div class="card__body row">
+        <div class="card-body">
           <div class="card__content">
             <div class="row mb-4">
               <div class="col">
