@@ -1,5 +1,6 @@
 const path = require('path')
 const webpack = require('webpack')
+const { ProvidePlugin, WatchIgnorePlugin } = require('webpack')
 const autoprefixer = require('autoprefixer')
 const sass = require('sass')
 const TerserPlugin = require('terser-webpack-plugin')
@@ -8,10 +9,11 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 
 const plugins = [
-  new webpack.ProvidePlugin({
+  new ProvidePlugin({
     $: 'jquery',
     jQuery: 'jquery',
     Buffer: ['buffer', 'Buffer'],
+    "window.jQuery": 'jquery',
   }),
   new MiniCssExtractPlugin({
     filename: '[name].css',
@@ -29,6 +31,14 @@ const plugins = [
       }
     ]
   }),
+  new WatchIgnorePlugin({
+    paths: [
+      path.resolve(__dirname, 'node_modules'),
+      path.resolve(__dirname, 'public'),
+      path.resolve(__dirname, 'cypress'),
+      path.resolve(__dirname, 'webpack'),
+    ],
+  })
 ]
 
 module.exports = (env) => {
@@ -59,6 +69,7 @@ module.exports = (env) => {
         },
         {
           test: /\.(scss|css)$/,
+          exclude: [/node_modules/],
           use: [
             {
               loader: MiniCssExtractPlugin.loader,
@@ -67,7 +78,7 @@ module.exports = (env) => {
               loader: 'css-loader',
               options: {
                 importLoaders: 2,
-                sourceMap: false,
+                sourceMap: env.development,
                 modules: false,
               },
             },
@@ -99,6 +110,8 @@ module.exports = (env) => {
             format: {
               comments: false,
             },
+            keep_classnames: true,
+            sourceMap: env.development
           },
           extractComments: false,
         }),
