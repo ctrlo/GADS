@@ -16,7 +16,6 @@ class SidebarComponent extends Component {
         this.currentState = localStorage.getItem(KEY_NAV_STATE) || (this.isMobile ? NAV_STATE_COLLAPSED : NAV_STATE_EXPANDED)
 
         this.initSidebar()
-        this.el.removeClass('hidden');
     }
 
     initSidebar() {
@@ -33,9 +32,9 @@ class SidebarComponent extends Component {
           this.currentState === NAV_STATE_COLLAPSED ? this.collapseSidebar() : this.expandSidebar()
         }
 
-        $(window).resize(() => { this.handleResize() })
+        $(window).on("resize",() => { this.handleResize() })
 
-        sidebarToggle.click( () => { this.handleClick() })
+        sidebarToggle.on("click", () => { this.handleClick() })
     }
 
     handleResize() {
@@ -62,9 +61,9 @@ class SidebarComponent extends Component {
     }
 
     collapseSidebar() {
+        $("main").addClass(EXPANDED_CLASS)
         this.el.addClass(COLLAPSED_CLASS)
         $(this.toggle).attr('aria-expanded','false')
-        $(document).find("main").addClass(EXPANDED_CLASS)
 
         if (!this.isMobile) {
             this.currentState = NAV_STATE_COLLAPSED
@@ -73,9 +72,9 @@ class SidebarComponent extends Component {
     }
 
     expandSidebar() {
+        $("main").removeClass(EXPANDED_CLASS)
         this.el.removeClass(COLLAPSED_CLASS)
         $(this.toggle).attr('aria-expanded','true')
-        $(document).find("main").removeClass(EXPANDED_CLASS)
 
         if (!this.isMobile) {
             this.currentState = NAV_STATE_EXPANDED
