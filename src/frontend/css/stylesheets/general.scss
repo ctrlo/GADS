@@ -3,10 +3,7 @@
 @import "definitions/bootstrap_base";
 
 // Bootstrap 4.6
-@import "~bootstrap/scss/bootstrap",
-        "~datatables.net-bs5/css/dataTables.bootstrap5.min.css",
-        "~datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css",
-        "~datatables.net-rowreorder-bs5/css/rowReorder.bootstrap5.min.css";
+@import "~bootstrap/scss/bootstrap";
 
 @import "definitions/fonts", "definitions/mixins";
 
@@ -40,10 +37,7 @@
         "dashboard/lib/react/index";
 
 // data-table
-@import "data-table/data-table",
-        "data-table/data-table-toggle",
-        "data-table/table-modal",
-        "data-table/data-table-row";
+@import "data-table/data-table";
 
 // dropdown
 @import "dropdown/dropdown", "dropdown/dropdown-group";
