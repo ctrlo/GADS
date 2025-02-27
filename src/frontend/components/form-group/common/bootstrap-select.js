@@ -4,7 +4,7 @@ export const refreshSelects = (el)=>{
     const ruleFilterSelects=[];
     const operatorSelects=[];
 
-    if(!bootstrap) {
+    if(typeof bootstrap == "undefined" || !bootstrap) {
       console.error("Bootstrap is not loaded");
       return;
     }
