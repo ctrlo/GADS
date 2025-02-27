@@ -43,6 +43,11 @@ import SelectAllComponent from "components/select-all";
 import HelpView from "components/help-view";
 import PeopleFilterComponent from "components/form-group/people-filter";
 import { initJquery } from "./lib/util/common";
+import BootstrapPopoverComponent from "components/bootstrap-popover";
+
+// This should all be within a proper closure, really (it's shorthand "document.ready")
+// I will only adjust indentation if we want to - it's kind of pointless changing 40+ lines of code for no reason
+(()=>{
 
 // Register them
 registerComponent(AddTableModalComponent);
@@ -82,8 +87,11 @@ registerComponent(SelectAllComponent);
 registerComponent(HelpView);
 registerComponent(PeopleFilterComponent);
 registerComponent(AutosaveComponent);
+registerComponent(BootstrapPopoverComponent);
 
 initJquery();
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body);
+
+})();
