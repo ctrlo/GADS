@@ -30,14 +30,6 @@
   @include button-variant($brand-secundary, $brand-secundary, $white);
 }
 
-.btn-add {
-  &::before {
-    @extend %icon-font;
-    content: "\E800";
-    margin-right: 0.5rem;
-  }
-}
-
 .btn-import,
 .btn-export,
 .btn-add-link,
@@ -78,5 +70,21 @@
     color: $brand-secundary;
     text-decoration: none;
     background: $transparent;
+  }
+}
+
+.btn-info {
+  &::after {
+    @extend %icon-font;
+    content: "\E810";
+    margin-left: 0.5rem;
+  }
+}
+
+.btn-add {
+  &::before {
+    @extend %icon-font;
+    content: "\E800";
+    margin-right: 0.75rem;
   }
 }
