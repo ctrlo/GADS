@@ -70,16 +70,15 @@ class CalcFieldsComponent extends Component {
         // first needs to be passed separately so shift it off and do so
         var returnval = func.apply(first, vars)
 
-        
-        const textArea = $field.find('textarea');
+        const $textArea = $field.find('textarea');
         // If the value in the textarea isn't the same as the return value, update it
-        if(textArea.val() != returnval){
+        if($textArea.val() != returnval){
           // Update the field holding the code's value
-          textArea.val(returnval)
+          $textArea.val(returnval)
           // And trigger a change on its parent div to trigger any display
           // conditions
           $field.closest('.linkspace-field').trigger("change")
-          $field.find('textarea').trigger('change');
+          $textArea.find('textarea').trigger('change');
         }
       });
     });
