@@ -3,29 +3,31 @@ import 'datatables.net-bs5'
 import 'datatables.net-buttons-bs5'
 import 'datatables.net-responsive-bs5'
 import 'datatables.net-rowreorder-bs5'
+import './DataTablesPlugins'
 import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets'
 import { moreLess } from 'components/more-less/lib/more-less'
 import { bindToggleTableClickHandlers } from './toggle-table'
+import { createElement } from "util/domutils";
 
 const MORE_LESS_TRESHOLD = 50
 
-//TODO: It is worth noting that there are significant changes between DataTables.net v1 and v2 (hence the major version increase)
-//      We are currently using v2 in this component, but with various deprecated features in use that may need to be updated in the future
 class DataTableComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.hasCheckboxes = this.el.hasClass('table-selectable')
     this.hasClearState = this.el.hasClass('table-clear-state')
     this.forceButtons = this.el.hasClass('table-force-buttons')
+    this.fullTable = this.el.hasClass('dt-table-full')
     this.searchParams = new URLSearchParams(window.location.search)
     this.base_url = this.el.data('href') ? this.el.data('href') : undefined
     this.isFullScreen = false
+
     this.initTable()
   }
 
   initTable() {
-    if(this.hasClearState) {
+    if (this.hasClearState) {
       this.clearTableStateForPage()
 
       const url = new URL(window.location.href)
@@ -37,20 +39,24 @@ class DataTableComponent extends Component {
     }
 
     const conf = this.getConf()
-    const {columns} = conf
+    const { columns } = conf
     this.columns = columns
     this.el.DataTable(conf)
+
+    $(window).on('resize', () => {
+      this.el.DataTable().responsive.recalc()
+    });
+
     this.initializingTable = true
-    $('.dt-column-order').remove() //datatables.net adds it's own ordering class - we remove it because it's easier than rewriting basically everywhere we use datatables
 
     if (this.hasCheckboxes) {
       this.addSelectAllCheckbox()
     }
 
     if (this.el.hasClass('table-account-requests')) {
-      this.modal = $.find('#userModal')
+      this.modal = $('#userModal')
       this.initClickableTable()
-      this.el.on('draw.dt', ()=> {
+      this.el.on('draw.dt', () => {
         this.initClickableTable()
       })
     }
@@ -58,7 +64,7 @@ class DataTableComponent extends Component {
     bindToggleTableClickHandlers(this.el)
 
     // Bind events to disclosure buttons and record-popup links on opening of child row
-    $(this.el).on('childRow.dt', (e, show, row) => {
+    $(this.el).on('childRow.dt', (_e, _show, row) => {
       const $childRow = $(row.child())
       const recordPopupElements = $childRow.find('.record-popup')
 
@@ -66,7 +72,7 @@ class DataTableComponent extends Component {
 
       if (recordPopupElements) {
         import(/* webpackChunkName: "record-popup" */ 'components/record-popup/lib/component').then(({ default: RecordPopupComponent }) => {
-          recordPopupElements.each((i, el) => {
+          recordPopupElements.each((_i, el) => {
             new RecordPopupComponent(el)
           });
         });
@@ -76,7 +82,7 @@ class DataTableComponent extends Component {
 
   clearTableStateForPage() {
     for (let i = 0; i < localStorage.length; i++) {
-      const storageKey = localStorage.key( i )
+      const storageKey = localStorage.key(i)
 
       if (!storageKey.startsWith("DataTables")) {
         continue;
@@ -88,7 +94,7 @@ class DataTableComponent extends Component {
         continue;
       }
 
-      if(window.location.href.indexOf('/' + keySegments.slice(1).join('/')) !== -1) {
+      if (window.location.href.indexOf('/' + keySegments.slice(1).join('/')) !== -1) {
         localStorage.removeItem(storageKey)
       }
     }
@@ -100,9 +106,15 @@ class DataTableComponent extends Component {
     links.off('click')
     links.off('focus')
     links.off('blur')
-    links.on('click', (ev) => { this.handleClick(ev) })
-    links.on('focus', (ev) => { this.toggleFocus(ev, true) })
-    links.on('blur', (ev) => { this.toggleFocus(ev, false) })
+    links.on('click', (ev) => {
+      this.handleClick(ev)
+    })
+    links.on('focus', (ev) => {
+      this.toggleFocus(ev, true)
+    })
+    links.on('blur', (ev) => {
+      this.toggleFocus(ev, false)
+    })
   }
 
   toggleFocus(ev, hasFocus) {
@@ -132,7 +144,7 @@ class DataTableComponent extends Component {
       btnReject.val(id)
     }
 
-    fields.each((i, field) => {
+    fields.each((_i, field) => {
       const fieldName = $(field).attr('name')
       const fieldValue = $(row).find(`td[data-${fieldName}]`).data(fieldName)
 
@@ -155,10 +167,10 @@ class DataTableComponent extends Component {
   getCheckboxElement(id, label) {
     return (
       `<div class='checkbox'>` +
-        `<input id='dt_checkbox_${id}' type='checkbox' />` +
-        `<label class="form-label" for='dt_checkbox_${id}'><span>${label}</span></label>` +
+      `<input id='dt_checkbox_${id}' type='checkbox' />` +
+      `<label class="form-label" for='dt_checkbox_${id}'><span>${label}</span></label>` +
       '</div>'
-      )
+    )
   }
 
   addSelectAllCheckbox() {
@@ -177,10 +189,10 @@ class DataTableComponent extends Component {
     })
 
     // Check if the 'select all' checkbox is checked and all checkboxes need to be checked
-    $selectAllElm.find('input').on( 'click', (ev) => {
+    $selectAllElm.find('input').on('click', (ev) => {
       const checkbox = $(ev.target)
 
-      if ($(checkbox).is( ':checked' )) {
+      if ($(checkbox).is(':checked')) {
         this.checkAllCheckboxes($checkBoxes, true)
       } else {
         this.checkAllCheckboxes($checkBoxes, false)
@@ -190,7 +202,7 @@ class DataTableComponent extends Component {
 
   checkAllCheckboxes($checkBoxes, bCheckAll) {
     if (bCheckAll) {
-      $checkBoxes.prop( 'checked', true )
+      $checkBoxes.prop('checked', true)
     } else {
       $checkBoxes.prop('checked', false)
     }
@@ -199,7 +211,7 @@ class DataTableComponent extends Component {
   checkSelectAll($checkBoxes, $selectAllCheckBox) {
     let bSelectAll = true
 
-    $checkBoxes.each((i, checkBox) => {
+    $checkBoxes.each((_i, checkBox) => {
       if (!checkBox.checked) {
         $selectAllCheckBox.prop('checked', false)
         bSelectAll = false
@@ -214,19 +226,16 @@ class DataTableComponent extends Component {
   addSortButton(dataTable, column, headerContent) {
     const $header = $(column.header())
     const $button = $(`
-      <button class="data-table__sort" type="button">
+      <div class="data-table__sort" type="button">
         <span>${headerContent}</span>
-        <span class="btn btn-sort">
-          <span>Sort</span>
-        </span>
-      </button>`
+      </div>`
     )
 
     $header
       .off()
       .find('.data-table__header-wrapper').html($button)
 
-    dataTable.order.listener($button, column.index() )
+    dataTable.order.listener($button, column.index())
   }
 
   toggleFilter(column) {
@@ -247,10 +256,10 @@ class DataTableComponent extends Component {
     const title = $header.text().trim()
     const searchValue = column.search()
     const self = this
-    const {context} = column;
-    const {oAjaxData} = context[0];
-    const {columns} = oAjaxData;
-    const columnId = columns[column.index()].name;
+    const { context } = column;
+    const { oAjaxData } = context[0];
+    const columns = context[0].aoColumns || oAjaxData.columns;
+    const columnId = columns[column.index()].name ?? columns[column.index()].sTitle;
     const col = this.columns[column.index()];
 
     const $searchElement = $(
@@ -266,7 +275,7 @@ class DataTableComponent extends Component {
           data-bs-target="[data-ddl='ddl_${index}']"
           data-focus="[data-ddl='ddl_${index}']"
         >
-          <span>Search in ${title}</span>
+          <span class="visually-hidden">Search in ${title}</span>
         </button>
         <div class='dropdown-menu p-2' aria-labelledby='search-toggle-${index}'>
           <label class="form-label">
@@ -274,7 +283,7 @@ class DataTableComponent extends Component {
             </div>
           </label>
           <button type='button' class='btn btn-link btn-small data-table__clear hidden'>
-            <span>Clear filter</span>
+            <span class="visually-hidden">Clear filter</span>
           </button>
         </div>
       </div>`
@@ -289,11 +298,11 @@ class DataTableComponent extends Component {
     $searchInput.appendTo($('.input', $searchElement))
     if (col.typeahead_use_id) {
       $searchInput.after(`<input type="hidden" class="search">`)
-      if(searchValue) {
+      if (searchValue) {
         const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1')
         const data = await response.json()
         if (!data.error) {
-          if(data.records.length != 0) {
+          if (data.records.length != 0) {
             $searchInput.val(data.records[0].label)
             $('input.search', $searchElement).val(data.records[0].id).trigger('change')
           }
@@ -309,7 +318,7 @@ class DataTableComponent extends Component {
 
     if (col && col.typeahead) {
       import(/*webpackChunkName: "typeahead" */ "util/typeahead")
-        .then(({default: TypeaheadBuilder})=>{
+        .then(({ default: TypeaheadBuilder }) => {
           const builder = new TypeaheadBuilder();
           builder
             .withAjaxSource(this.getApiEndpoint(columnId))
@@ -318,15 +327,15 @@ class DataTableComponent extends Component {
             .withDefaultMapper()
             .withName(columnId.replace(/\s+/g, '') + 'Search')
             .withCallback((data) => {
-              if(col.typeahead_use_id) {
+              if (col.typeahead_use_id) {
                 $searchInput.val(data.name);
-                $('input.search',$searchElement).val(data.id).trigger('change');
-              }else{
+                $('input.search', $searchElement).val(data.id).trigger('change');
+              } else {
                 $('input', $searchElement).addClass('search').val(data.name).trigger('change');
               }
             })
             .build();
-      });
+        });
     }
 
     // Apply the search
@@ -384,10 +393,6 @@ class DataTableComponent extends Component {
     return $("<textarea/>").text(text).html();
   }
 
-  decodeHTMLEntities(text) {
-    return $("<textarea/>").html(text).text();
-  }
-
   renderMoreLess(strHTML, strColumnName) {
     if (strHTML.toString().length > MORE_LESS_TRESHOLD) {
       return (
@@ -407,8 +412,8 @@ class DataTableComponent extends Component {
     }
 
     data.values.forEach((value, i) => {
-        strHTML += this.encodeHTMLEntities(value)
-        strHTML += (data.values.length > (i + 1)) ? `, ` : ``
+      strHTML += this.encodeHTMLEntities(value)
+      strHTML += (data.values.length > (i + 1)) ? `, ` : ``
     })
 
     return this.renderMoreLess(strHTML, data.name)
@@ -442,16 +447,13 @@ class DataTableComponent extends Component {
             thisHTML += `<p>${this.encodeHTMLEntities(detail.definition)}: ${strDecodedValue}</p>`
           }
         })
-        thisHTML +=  `</div>`
+        thisHTML += `</div>`
         strHTML += (
           `<div class="position-relative">
-            <button class="btn btn-small btn-inverted btn-info trigger" aria-expanded="false" type="button">
+            <button class="btn btn-small btn-inverted btn-info trigger" aria-expanded="false" type="button" data-bs-toggle="popover" data-bs-placement="bottom" data-bs-content='${thisHTML}'>
               ${this.encodeHTMLEntities(value.text)}
               <span class="invisible">contact details</span>
             </button>
-            <div class="person contact-details expandable popover card card--secundary">
-              ${thisHTML}
-            </div>
           </div>`
         )
       }
@@ -470,7 +472,7 @@ class DataTableComponent extends Component {
     data.values.forEach((file) => {
       strHTML += `<a href="/file/${file.id}">`
       if (file.mimetype.match('^image/')) {
-        strHTML += `<img class="autosize" src="/file/${file.id}"></img>`
+        strHTML += `<img alt="image of ${file.id}" class="autosize" src="/file/${file.id}">`
       } else {
         strHTML += `${this.encodeHTMLEntities(file.name)}<br>`
       }
@@ -481,7 +483,8 @@ class DataTableComponent extends Component {
   }
 
   renderRag(data) {
-    let strRagType = ''
+    let strRagType
+
     const arrRagTypes = {
       a_grey: 'undefined',
       b_red: 'danger',
@@ -550,7 +553,7 @@ class DataTableComponent extends Component {
     if (data.limit_rows && data.values.length >= data.limit_rows) {
       strHTML +=
         `<p><em>(showing maximum ${data.limit_rows} rows.
-          <a href="/${data.parent_layout_identifier}/data?curval_record_id=${data.curval_record_id}&curval_layout_id=${data.column_id }">view all</a>)</em>
+          <a href="/${data.parent_layout_identifier}/data?curval_record_id=${data.curval_record_id}&curval_layout_id=${data.column_id}">view all</a>)</em>
         </p>`
     }
 
@@ -577,7 +580,7 @@ class DataTableComponent extends Component {
     }
   }
 
-  renderData(type, row, meta) {
+  renderData(_type, row, meta) {
     const strColumnName = meta ? meta.settings.oAjaxData.columns[meta.col].name : ""
     const data = row[strColumnName]
 
@@ -598,9 +601,32 @@ class DataTableComponent extends Component {
       conf = confData
     }
 
-    if(overrides) {
-      for(const key in overrides) {
-        conf[key] = overrides[key]
+    if (overrides) {
+      $.extend(conf, overrides)
+    }
+
+    // This is the new way of setting the table configuration in DataTables.net 2.0+
+    if (this.fullTable) {
+      conf.layout = {
+        topStart: 'search',
+        topEnd: {
+          pageLength: {
+            menu: [10, 25, 50, 100, 200],
+          },
+          fullscreen: {
+            checked: conf.fullscreen,
+            onToggle: (ev) => this.toggleFullScreenMode(ev)
+          }
+        },
+        bottomStart: "paging",
+        bottomEnd: "info"
+      }
+    } else {
+      conf.layout = {
+        topStart: null,
+        topEnd: this.forceButtons ? { fullscreen: { checked: conf.fullscreen, onToggle: (ev) => this.toggleFullScreenMode(ev) } } : null,
+        bottomStart: null,
+        bottomEnd: null
       }
     }
 
@@ -610,7 +636,7 @@ class DataTableComponent extends Component {
 
     if (conf.serverSide) {
       conf.columns.forEach((column) => {
-        column.render = (data, type, row, meta) => this.renderData(type, row, meta)
+        column.render = (_data, type, row, meta) => this.renderData(type, row, meta)
       })
     }
 
@@ -623,7 +649,7 @@ class DataTableComponent extends Component {
       this.json = json || undefined
 
       if (this.initializingTable || conf.reinitialize) {
-        dataTable.columns().every(function(index) {
+        dataTable.columns().every(function (index) {
           const column = this
           const $header = $(column.header())
 
@@ -659,15 +685,15 @@ class DataTableComponent extends Component {
       }
     }
 
-    conf['footerCallback'] = function() {
+    conf['footerCallback'] = function () {
       const api = this.api();
       // Add aggregate values to table if configured
       const agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate;
       if (agg) {
         const cols = api.settings()[0].oAjaxData.columns;
-        api.columns().every( function () {
+        api.columns().every(function () {
           const idx = this.index()
-          const {name} = cols[idx]
+          const { name } = cols[idx]
           if (agg[name]) {
             $(this.footer()).html(
               self.renderDataType(agg[name])
@@ -685,7 +711,6 @@ class DataTableComponent extends Component {
 
       // (Re)enable wide-table toggle button each time. It is disabled during
       // any drawing to prevent it being clicked multiple times during a draw
-      this.el.DataTable().button(0).enable();
 
       this.bindClickHandlersAfterDraw(conf);
     }
@@ -698,7 +723,7 @@ class DataTableComponent extends Component {
           id: 'full-screen-btn'
         },
         className: 'btn btn-small btn-toggle-off',
-        action: ( e ) => {
+        action: (e) => {
           this.toggleFullScreenMode(e)
         }
       }
@@ -712,74 +737,66 @@ class DataTableComponent extends Component {
     I have tried manually changing the DOM, as well as the methods already present in the code, and I currently believe there is a bug within the DataTables button
     code that is meaning that this won't change (although I am open to the fact that I am being a little slow and missing something glaringly obvious).
   */
-  toggleFullScreenMode(buttonElement) {
-    const table = document.querySelector("table.data-table");
-    const currentTable = $(table);
-    if(currentTable && $.fn.dataTable.isDataTable(currentTable)) {
-      currentTable.DataTable().destroy();
-    }
-    if (!this.isFullScreen) {
+  toggleFullScreenMode(ev) {
+    const table = $("table.data-table");
+    // console.log(ev);
+    if (ev.target.checked ?? ev.target.value) {
       // Create new modal
-      const newModal = document.createElement('div');
-      newModal.id = "table-modal"
-      newModal.classList.add('table-modal');
-      newModal.classList.add('data-table__container--scrollable');
+      const newModal = createElement('div',
+        {
+          id: "table-modal",
+          classList: ['table-modal', 'data-table__container--scrollable']
+        });
 
       // Move data table into new modal
-      newModal.append(table);
-      document.body.appendChild(newModal);
-      if(currentTable && !($.fn.dataTable.isDataTable(currentTable))) {
-        currentTable.DataTable(this.getConf({responsive: false, reinitialize: true}));
+      if ($.fn.dataTable.isDataTable(table)) table.DataTable().destroy()
+      const newTable = table.clone(false, false);
+      newTable.attr('id', '#fullScreenTable')
+      newModal.append(newTable);
+      $('body').append(newModal);
+      if (newTable && !$.fn.dataTable.isDataTable(newTable)) {
+        $(newTable).DataTable(this.getConf({ responsive: false, reinitialize: true, fullscreen: true }));
       }
 
-      $(document).on("keyup", (ev)=>{
-        if(ev.key === "Escape") {
-          this.toggleFullScreenMode(buttonElement)
+      $(document).on("keyup", (ev) => {
+        if (ev.key === "Escape") {
+          this.toggleFullScreenMode(ev);
         }
       });
+      $(ev.target).attr('checked', 'checked');
     } else {
-      // Move data table back to original page
-      const mainContent = document.querySelector('.content-block__main-content');
-      if (!mainContent) {
-        console.warn('Failed to close full screen; missing main content');
-        return;
-      }
-
-      mainContent.appendChild(table);
-      if(currentTable && !($.fn.dataTable.isDataTable(currentTable))) {
-        currentTable.DataTable(this.getConf({reinitialize: true}));
-      }
       // Remove the modal
       document.querySelector('#table-modal').remove();
 
-      $(document).off("keyup");
-    }
+      $('#fullScreenTable').DataTable().destroy();
+      let dataTable = $('table.data-table');
+      $.fn.dataTable.isDataTable('table.data-table') && dataTable.DataTable().destroy();
+      dataTable.DataTable(this.getConf({ reinitialize: true }));
 
-    // Toggle the full screen button
-    this.isFullScreen = !this.isFullScreen;
-    $("#full-screen-btn").removeClass(this.isFullScreen ? 'btn-toggle-off': 'btn-toggle');
-    $("#full-screen-btn").addClass(this.isFullScreen ? 'btn-toggle': 'btn-toggle-off');
+      $(document).off("keyup");
+      $(ev.target).removeAttr('checked');
+    }
   }
 
   bindClickHandlersAfterDraw(conf) {
     const tableElement = this.el
-    const rows = tableElement.DataTable().rows( {page:'current'} ).data()
+    const rows = tableElement.DataTable().rows({ page: 'current' }).data()
 
     if (rows && this.base_url) {
       // Add click handler to tr to open a record by id
-      $(tableElement).find('> tbody > tr').each((i, el) => {
+      $(tableElement).find('> tbody > tr').each((i, _el) => {
         const data = rows[i] ? rows[i] : undefined
         if (data) {
           // URL will be record link for standard view, or filtered URL for
           // grouped view (in which case _count parameter will be present not _id)
-          const url = data['_id'] ? `${this.base_url}/${data['_id']}` : `?${data['_count']['url']}`
+          // const url = data['_id'] ? `${this.base_url}/${data['_id']}` : `?${data['_count']['url']}`
 
-          $(el).find('td:not(".dtr-control")').on('click', (ev) => {
-            // Only for table cells that are not part of a record-popup table row
-            if (!ev.target.closest('.record-popup')) {
-              window.location = url
-            }
-          })
+          // $(el).find('td:not(".dtr-control")').on('click', (ev) => {
+          //   // Only for table cells that are not part of a record-popup table row
+          //   if (!ev.target.closest('.record-popup')) {
+          //               //     window.location = url
+          //   }
+          // })
         }
       })
     }
