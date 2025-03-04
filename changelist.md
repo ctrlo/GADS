@@ -2,6 +2,17 @@
 
 -------
 
+**Version**: 2.5.13
+**Released**: 04-03-2025
+
+-------
+
+## Fixes
+
+- Only update live-calc fields when the output has changed
+
+-------
+
 **Version**: 2.5.12
 **Released**: 14-01-2025
 
