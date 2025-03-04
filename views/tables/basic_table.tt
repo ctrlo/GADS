@@ -197,7 +197,7 @@
 %]
 
 <table
-  class="data-table[% IF table_full %] dt-table-full[% END %][% UNLESS table_id == 'default_field_permissions_table' %] table [% END %][% table_class %]"
+  class="data-table [% IF table_full %] dt-table-full[% END %][% UNLESS table_id == 'default_field_permissions_table' %] table [% END %][% table_class %]"
   [% IF table_id %]id="[% table_id %]"[% END %]
   [% IF table_ajax AND table_ajax_target %]data-href="[% table_ajax_target %]"[% END %]
   [% IF table_destination %]data-destination="[% table_destination %]"[% END %]
