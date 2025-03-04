@@ -47,12 +47,6 @@
 
 .table-header-bottom {
   position: relative;
-
-  .list--tabs {
-    position: relative;
-    z-index: 1;
-    margin-bottom: -2px;
-  }
 }
 
 .table-header__title {
@@ -72,6 +66,24 @@
 
     &::before {
       right: -1 * $grid-offset;
+    }
+  }
+}
+
+// This emulates the earlier nav--tabs behaviour using Bootstrap 5
+.nav.nav-tabs {
+  margin-bottom: -2px;
+  li {
+    margin: 0 -1px;
+    z-index: 2;
+    a {
+      border-bottom: none;
+      &.active {
+        border-bottom: 2px solid transparent;
+      }
+      span {
+        font-weight: $font-weight-bold;
+      }
     }
   }
 }

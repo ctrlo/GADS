@@ -62,6 +62,14 @@ $dropdown-bg: $white;
 $input-border-color: $secondary;
 $input-focus-border-color: $primary;
 
+$nav-tabs-border-color: $secondary;
+$nav-tabs-link-hover-border-color: $secondary;
+$nav-tabs-link-active-border-color: $secondary;
+$nav-tabs-link-active-color: $secondary;
+$nav-tabs-link-color: $secondary;
+$nav-tabs-border-width: 2px;
+$nav-tabs-link-hover-border-color: $gray-500;
+
 @import "~bootstrap/scss/maps";
 @import "~bootstrap/scss/mixins";
 @import "~bootstrap/scss/root";
