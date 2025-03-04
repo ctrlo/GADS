@@ -52,7 +52,7 @@ abstract class LayoutBuilderBase implements ILayoutBuilder {
     build(navigate:boolean = false): void {
         if (navigate) {
             cy.visit("http://localhost:3000/table");
-            cy.getDataTable()
+            cy.get("table")
                 .find("tbody")
                 .find("tr").first()
                 .find("a").contains("Edit table")
