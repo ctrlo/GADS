@@ -25,7 +25,7 @@
                   <div class="card card--expandable">
                     <div class="card-header" data-bs-toggle="collapse" data-bs-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]" role="button">
                         <span class="card__title">
-                          Group
+                          Group&nbsp;
                           <span class="card__subtitle">
                             [% group.name | html %]
                           </span>
