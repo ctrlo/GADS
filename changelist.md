@@ -3,7 +3,7 @@
 -------
 
 **Version**: 2.6.0
-**Released**: 28-01-2025
+**Released**: {TBC}
 
 -------
 
@@ -25,6 +25,22 @@
 - Added `values_for_timeline` sub that was missing from trees in timelines
 - Various changes for WCAG compliance
 - Made fields madatory when requesting accounts
+- Added fix for adding users with multi-tenant systems
+- Added fix for bug where people fields weren't populating correctly
+- Added fix for timeline not allowing navigation away and causing timeout
+
+-------
+
+**Version**: 2.5.13
+**Released**: 03-03-2025
+
+-------
+
+## Fixes
+
+- Improve performance of calc fields
+
+-------
 
 **Version**: 2.5.12
 **Released**: 14-01-2025
@@ -33,8 +49,7 @@
 
 ## Fixes
 
-- Fix for efficiency of bulk updates
-- Speed improvements for viewing records summary page
+- Improve performance of all-record table count
 
 -------
 
