@@ -238,6 +238,9 @@ hook before => sub {
     _audit_log()
         unless request->path =~ m!^/(record|record_body)/!;
 
+    response_header "X-Frame-Options" => "DENY" # Prevent clickjacking
+        unless request->uri eq '/aup_text'; # Except AUP, which will be in an iframe
+
     # The following use logged_in_user so as not to apply for API requests
     if (logged_in_user)
     {
@@ -266,10 +269,6 @@ hook before => sub {
                 below to set a new password." }, 'myaccount')
                     unless request->uri eq '/myaccount' || request->uri eq '/logout';
         }
-
-        response_header "X-Frame-Options" => "DENY" # Prevent clickjacking
-            unless request->uri eq '/aup_text' # Except AUP, which will be in an iframe
-                || request->path eq '/file'; # Or iframe posts for file uploads (hidden iframe used for IE8)
 
         # CSP
         response_header "Content-Security-Policy" => "script-src 'self';";
