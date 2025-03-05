@@ -11,6 +11,12 @@ export const refreshSelects = (el)=>{
       }
       ruleFilterSelect.data("live-search","true");
       ruleFilterSelect.selectpicker();
+      ruleFilterSelect.on("rendered.bs.select",()=>{
+        truncate();
+      });
+      ruleFilterSelect.on("changed.bs.select", () => {
+        truncate();
+      });
     });
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -47,4 +53,12 @@ export const refreshSelects = (el)=>{
         $(operatorSelect).selectpicker("refresh");
       }
     });
+}
+
+function truncate() {
+  const filterInner = $(".filter-option-inner-inner");
+  let text = filterInner.text();
+  if(text.length<50) return;
+  text=text.substring(0,47)+"...";
+  filterInner.text(text);
 }
