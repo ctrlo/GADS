@@ -70,6 +70,10 @@ $nav-tabs-link-color: $secondary;
 $nav-tabs-border-width: 2px;
 $nav-tabs-link-hover-border-color: $gray-500;
 
+$border-color-translucent: rgba($primary, 0.5);
+$popover-header-bg: $primary;
+$popover-header-color: $white;
+
 @import "~bootstrap/scss/maps";
 @import "~bootstrap/scss/mixins";
 @import "~bootstrap/scss/root";

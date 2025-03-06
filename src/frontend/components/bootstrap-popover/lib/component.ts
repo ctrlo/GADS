@@ -1,3 +1,4 @@
+import { Popover } from "bootstrap";
 import { Component } from "component";
 
 // This is a basic wrapper around the Bootstrap popover component.
@@ -5,6 +6,13 @@ import { Component } from "component";
 export default class BootstrapPopoverComponent extends Component {
     constructor(element:HTMLElement) {
         super(element);
-        $(element).popover({html: true});
+        const $el = $(element);
+        const $contentElement = $el.closest(".popover-container")?.find(".popover-content");
+        $contentElement?.hide();
+        const content = $contentElement?.html() || $el.data("content") || $el.data("bs-content") || "empty";
+        new Popover(element, {
+            html: true,
+            content: content,
+        });
     }
 }
