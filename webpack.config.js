@@ -13,7 +13,7 @@ const plugins = [
     $: 'jquery',
     jQuery: 'jquery',
     Buffer: ['buffer', 'Buffer'],
-    // Required for more effective component integration (when it's used)
+    // Required for more effective component integration
     "window.jQuery": 'jquery',
   }),
   new MiniCssExtractPlugin({
