@@ -13,6 +13,7 @@ const plugins = [
     $: 'jquery',
     jQuery: 'jquery',
     Buffer: ['buffer', 'Buffer'],
+    // Required for more effective component integration (when it's used)
     "window.jQuery": 'jquery',
   }),
   new MiniCssExtractPlugin({
@@ -31,6 +32,7 @@ const plugins = [
       }
     ]
   }),
+  // When watching, this plugin ensures that only the relevant folders are watched, increasing efficiency of the build
   new WatchIgnorePlugin({
     paths: [
       path.resolve(__dirname, 'node_modules'),
@@ -78,6 +80,7 @@ module.exports = (env) => {
               loader: 'css-loader',
               options: {
                 importLoaders: 2,
+                // Include source map for SCSS files for debugging if the environment is set to debug
                 sourceMap: env.development,
                 modules: false,
               },
@@ -110,7 +113,9 @@ module.exports = (env) => {
             format: {
               comments: false,
             },
+            // As the terser can sometimes shorten class names to contain invalid characters and as the component class uses the class name within a data attribute to ascertain initialization (`component.js:12), this can cause errors
             keep_classnames: true,
+            // As above
             sourceMap: env.development
           },
           extractComments: false,
