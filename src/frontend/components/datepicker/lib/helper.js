@@ -7,7 +7,7 @@ const initDateField = (field) => {
   }).on('show.bs.modal', function(event) {
     // prevent datepicker from firing bootstrap modal "show.bs.modal"
     event.stopPropagation()
-  }).on('hide', (e) => {
+  }).on('hide.bs.modal', (e) => {
     // prevent datepicker from firing bootstrap modal "hide.bs.modal"
     e.stopPropagation()
   })

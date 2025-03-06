@@ -12,7 +12,7 @@ export default class SelectAllComponent extends Component {
     onChange() {
         const parent = this.el.closest('fieldset');
         const boxes = parent.find("input[type=checkbox]");
-        boxes.toArray().forEach(item => {
+        boxes.each((_i,item) => {
             if (item === this.el[0]) return;
             const i = <HTMLInputElement>item;
             i.checked = (<HTMLInputElement>this.el[0]).checked;

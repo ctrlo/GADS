@@ -1,6 +1,6 @@
 import { Component } from 'component'
-import 'summernote/dist/summernote-bs4'
 import { logging } from 'logging'
+import 'summernote'
 
 class SummerNoteComponent extends Component {
     constructor(element)  {

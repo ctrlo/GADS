@@ -1,3 +1,4 @@
+// If I'm honest, I think we could probably use the API component from the Dashboard here!
 /**
  * Type to represent a function that is called when the upload progress changes
  * @param loaded The number of bytes that have been uploaded

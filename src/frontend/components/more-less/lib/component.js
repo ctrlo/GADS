@@ -13,14 +13,6 @@ class MoreLessComponent extends Component {
     this.initMoreLess()
   }
 
-  uuid() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      const r = (Math.random() * 16) | 0,
-        v = c == 'x' ? r : (r & 0x3) | 0x8
-      return v.toString(16)
-    })
-  }
-
   // Traverse up through the tree and find the parent element that is hidden
   parentHidden($elem) {
     // Test parent first in case we have reached the root of the DOM, in which
@@ -67,7 +59,7 @@ class MoreLessComponent extends Component {
     const self = this
     $parent.find('.more-less').each(function() {
       const $e = $(this)
-      $e.addClass('more-less-id-' + self.uuid())
+      $e.addClass('more-less-id-' + crypto.randomUUID())
     })
 
     // Clone the element and show it to find out its height

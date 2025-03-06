@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import ModalComponent from '../../../lib/component'
 import { setFieldValues } from "set-field-values"
-import { guid as Guid } from "guid"
 import { initializeRegisteredComponents } from 'component'
 import { validateRadioGroup, validateCheckboxGroup } from 'validation'
 import gadsStorage from 'util/gadsStorage'
 import { fromJson } from 'util/common'
+
+function Guid() {
+  return crypto.randomUUID();
+}
 
 class CurvalModalComponent extends ModalComponent {
 
