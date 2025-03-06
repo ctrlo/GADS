@@ -784,19 +784,19 @@ class DataTableComponent extends Component {
 
     if (rows && this.base_url) {
       // Add click handler to tr to open a record by id
-      $(tableElement).find('> tbody > tr').each((i, _el) => {
+      $(tableElement).find('> tbody > tr').each((i, el) => {
         const data = rows[i] ? rows[i] : undefined
         if (data) {
           // URL will be record link for standard view, or filtered URL for
           // grouped view (in which case _count parameter will be present not _id)
-          // const url = data['_id'] ? `${this.base_url}/${data['_id']}` : `?${data['_count']['url']}`
+          const url = data['_id'] ? `${this.base_url}/${data['_id']}` : `?${data['_count']['url']}`
 
-          // $(el).find('td:not(".dtr-control")').on('click', (ev) => {
-          //   // Only for table cells that are not part of a record-popup table row
-          //   if (!ev.target.closest('.record-popup')) {
-          //               //     window.location = url
-          //   }
-          // })
+          $(el).find('td:not(.dtr-control)').on('click', (ev) => {
+            // Only for table cells that are not part of a record-popup table row
+            if (!ev.target.closest('.record-popup')) {
+                            window.location = url
+            }
+          })
         }
       })
     }
