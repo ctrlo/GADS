@@ -115,7 +115,7 @@ module.exports = (env) => {
             },
             // As the terser can sometimes shorten class names to contain invalid characters and as the component class uses the class name within a data attribute to ascertain initialization (`component.js:12), this can cause errors
             keep_classnames: true,
-            // As above
+            // Include source map for SCSS files for debugging if the environment is set to debug
             sourceMap: env.development
           },
           extractComments: false,
