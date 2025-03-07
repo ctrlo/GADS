@@ -47,6 +47,19 @@ class CalcFieldsComponent extends Component {
       // code
       $depend_on.on("change", function() {
 
+        // Recursively shift all the array fields in an object to start at index 1
+        const shiftFields = (obj) => {
+          for(let field in obj){
+              if(Array.isArray(obj[field])) {
+                let obj2 = []
+                obj[field].forEach((element, index) => obj2[index + 1] = element)
+                obj[field] = obj2
+              } else if(typeof obj[field] === 'object') {
+                shiftFields(obj[field])
+              }
+          }
+        };
+
         // All the values
         var vars = params.map(function(value) {
           var $depends = $('.linkspace-field[data-name-short="'+value+'"]')
@@ -59,6 +72,9 @@ class CalcFieldsComponent extends Component {
               ret.forEach((element, index) => ret2[index + 1] = element)
               ret = ret2
           }
+
+          shiftFields(ret)
+          
           return ret
         });
 
