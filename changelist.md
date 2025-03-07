@@ -28,6 +28,10 @@
 - Added fix for adding users with multi-tenant systems
 - Added fix for bug where people fields weren't populating correctly
 - Added fix for timeline not allowing navigation away and causing timeout
+- Added rollback in unique fields when an unexpected exception occurs
+- Added fix for values in curval filter not appearing to be saved
+- Moved `x-frame-options` header out of user_logged_in check
+- Changes to `webpack.config.js` for efficiency and correctness
 
 -------
 
