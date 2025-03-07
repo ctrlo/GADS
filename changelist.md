@@ -12,8 +12,8 @@
 - Added autorecover functionality
 - Added option to add a reason for account rejection
 - Added mandatory fields to account requests
-- View All can be turned on for all curvals
-- User deleted date can now be used in curvals
+- View All can be turned on for all curvals as an option without having to set a limit
+- User deleted date can now be used in calc fields
 
 ## Fixes
 
@@ -29,7 +29,7 @@
 - Added fix for bug where people fields weren't populating correctly
 - Added fix for timeline not allowing navigation away and causing timeout
 - Added rollback in unique fields when an unexpected exception occurs
-- Added fix for values in curval filter not appearing to be saved
+- Added fix for values in curval filter not appearing to be saved when using variables
 - Moved `x-frame-options` header out of user_logged_in check
 - Changes to `webpack.config.js` for efficiency and correctness
 
