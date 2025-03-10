@@ -1326,6 +1326,7 @@ sub fetch_multivalues
         my @cols = ($column);
         if ($column->type eq 'curval')
         {
+            $column->chronology(1) if $params{chronology};
             $parent_field = $column->field;
             push @cols, @{$column->curval_fields_multivalue(already_seen => $already_seen)};
             # Flag any curval multivalue fields as also requiring fetching

@@ -54,6 +54,10 @@ has override_permissions => (
     predicated => 1,
 );
 
+has chronology => (
+    is => 'rw',
+);
+
 has limit_rows => (
     is      => 'rw',
     isa     => Maybe[Int],
@@ -61,6 +65,7 @@ has limit_rows => (
     builder => sub {
         my $self = shift;
         return 0 unless $self->has_options;
+        return 0 if $self->chronology;
         $self->options->{limit_rows};
     },
     coerce  => sub { $_[0] ? int $_[0] : undef },
