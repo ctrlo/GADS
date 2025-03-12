@@ -47,32 +47,34 @@ class CalcFieldsComponent extends Component {
       // code
       $depend_on.on("change", function() {
 
-        // Recursively shift all the array fields in an object to start at index 1
-        const shiftFields = (obj) => {
-          for(let field in obj){
-              if(Array.isArray(obj[field])) {
-                let obj2 = []
-                obj[field].forEach((element, index) => obj2[index + 1] = element)
-                obj[field] = obj2
-              } else if(typeof obj[field] === 'object') {
-                shiftFields(obj[field])
-              }
-          }
-        };
+          // Recursively shift all the array fields in an object to start at index 1
+          const shiftFields = (obj) => {
+            // if obj is an array, shift all the elements into an object starting
+            // at index 1
+            if (Array.isArray(obj)) {
+              // If an array is passed in as-is, then its first element will be at
+              // array index 0, which ipairs will not recognise. Therefore,
+              // offset all the elements into an object starting at index 1
+                const obj2 = [];
+                obj.forEach((element, index) => {
+                    obj2[index + 1] = element;
+                });
+                obj = obj2;
+            } else {
+              // If the field is an object, recursively shift its fields
+                if (typeof obj === 'object') {
+                    for (const field in obj) {
+                        obj[field] = shiftFields(obj[field]);
+                    }
+                }
+            }
+            return obj;
+        }
 
         // All the values
         var vars = params.map(function(value) {
           var $depends = $('.linkspace-field[data-name-short="'+value+'"]')
           let ret = getFieldValues($depends, false, true)
-          // If an array is passed in as-is, then its first element will be at
-          // array index 0, which ipairs will not recognise. Therefore,
-          // offset all the elements into an object starting at index 1
-          if (Array.isArray(ret)) {
-              let ret2 = []
-              ret.forEach((element, index) => ret2[index + 1] = element)
-              ret = ret2
-          }
-
           shiftFields(ret)
           
           return ret
