@@ -87,7 +87,4 @@ registerComponent(AutosaveComponent);
 // Initialize all components at some point
 initializeRegisteredComponents(document.body);
 
-// This is wrapped like this just to ensure that the actions are loaded before they are triggered, it's (almost) shorthand for $(document).ready()
-(() => {
-    handleActions();
-})();
+handleActions();
