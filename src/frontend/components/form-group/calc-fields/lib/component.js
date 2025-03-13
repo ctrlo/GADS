@@ -78,7 +78,7 @@ class CalcFieldsComponent extends Component {
           // And trigger a change on its parent div to trigger any display
           // conditions
           $field.closest('.linkspace-field').trigger("change")
-          $textArea.find('textarea').trigger('change');
+          $textArea.trigger('change');
         }
       });
     });
