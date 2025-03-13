@@ -339,6 +339,9 @@ hook before_template => sub {
     # Base 64 encoder for use in templates
     $tokens->{b64_filter} = sub { encode_base64(encode_json shift, '') };
 
+    $tokens->{actions} = session 'actions';
+    session->delete('actions');
+
     # This line used to be pre-request. However, occasionally errors have been
     # experienced with pages not submitting CSRF tokens. I think these may have
     # been race conditions where the session had been destroyed between the
@@ -2298,7 +2301,7 @@ prefix '/:layout_name' => sub {
     any ['get', 'post'] => '/data' => require_login sub {
 
         my $layout = var('layout') or pass;
-
+        
         my $user   = logged_in_user;
 
         my @additional_filters;
@@ -4674,6 +4677,7 @@ sub _process_edit
     );
     $params{layout} = var('layout') if var('layout'); # Used when creating a new record
 
+    my $actions;
     my $layout;
 
     if (my $delete_id = param 'delete')
@@ -4800,6 +4804,9 @@ sub _process_edit
                 my $forward = (!$id && $layout->forward_record_after_create) || param('submit') eq 'submit-and-remain'
                     ? 'record/'.$record->current_id
                     : $layout->identifier.'/data';
+                $actions->{clear_saved_values} = $id ? $id: 0;
+                session 'actions' => $actions;
+
                 return forwardHome(
                     { success => 'Submission has been completed successfully for record ID '.$record->current_id }, $forward );
             }

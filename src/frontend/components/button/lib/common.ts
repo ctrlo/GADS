@@ -1,22 +1,14 @@
-import gadsStorage from "util/gadsStorage";
+import StorageProvider from "util/storageProvider";
 
 /**
  * Clear all saved form values for the current record
  * @param $form The form to clear the data for
  */
-export async function clearSavedFormValues($form: JQuery<HTMLElement>) {
-    if (!$form || $form.length === 0) return;
-    const layout = layoutId();
-    const record = recordId();
+export async function clearSavedFormValues() {
     const ls = storage();
     const item = await ls.getItem(table_key());
 
-    if (item) ls.removeItem(`linkspace-record-change-${layout}-${record}`);
-    await Promise.all($form.find(".linkspace-field").map(async (_, el) => {
-        const field_id = $(el).data("column-id");
-        const item = await gadsStorage.getItem(`linkspace-column-${field_id}-${layout}-${record}`);
-        if (item) gadsStorage.removeItem(`linkspace-column-${field_id}-${layout}-${record}`);
-    }));
+    if (item) ls.clear();
 }
 
 /**
@@ -48,5 +40,5 @@ export function table_key() {
  * @returns The storage object
  */
 export function storage() {
-    return gadsStorage;
+    return new StorageProvider(table_key());
 }
