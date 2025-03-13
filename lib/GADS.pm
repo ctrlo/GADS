@@ -4805,7 +4805,7 @@ sub _process_edit
                 my $forward = (!$id && $layout->forward_record_after_create) || param('submit') eq 'submit-and-remain'
                     ? 'record/'.$record->current_id
                     : $layout->identifier.'/data';
-                $actions->{update_record} = $id ? $id: 0;
+                $actions->{clear_saved_values} = $id ? $id: 0;
                 session 'actions' => $actions;
 
                 return forwardHome(
