@@ -32,6 +32,7 @@
 - Added fix for values in curval filter not appearing to be saved when using variables
 - Moved `x-frame-options` header out of user_logged_in check
 - Changes to `webpack.config.js` for efficiency and correctness
+- Speed fixes for frontend calcs
 
 -------
 
