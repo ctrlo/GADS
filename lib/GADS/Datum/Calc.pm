@@ -143,7 +143,11 @@ sub convert_value
         }
         elsif ($column->return_type eq 'globe')
         {
-            if ($self->column->check_country($val))
+            if (!$val)
+            {
+                # Do nothing
+            }
+            elsif ($self->column->check_country($val))
             {
                 push @return, $val;
             }

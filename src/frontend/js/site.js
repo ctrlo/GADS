@@ -3,6 +3,7 @@ import { initializeRegisteredComponents, registerComponent } from 'component';
 import 'bootstrap';
 import 'components/graph/lib/chart';
 import 'util/filedrag';
+import 'util/actionsHandler';
 
 // Components
 import AddTableModalComponent from 'components/modal/modals/new-table';
@@ -42,6 +43,7 @@ import ButtonComponent from "components/button";
 import SelectAllComponent from "components/select-all";
 import HelpView from "components/help-view";
 import PeopleFilterComponent from "components/form-group/people-filter";
+import handleActions from "util/actionsHandler";
 import { initJquery } from "./lib/util/common";
 
 // Register them
@@ -87,3 +89,5 @@ initJquery();
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body);
+
+handleActions();

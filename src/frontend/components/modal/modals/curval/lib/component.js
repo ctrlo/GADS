@@ -4,8 +4,8 @@ import { setFieldValues } from "set-field-values"
 import { guid as Guid } from "guid"
 import { initializeRegisteredComponents } from 'component'
 import { validateRadioGroup, validateCheckboxGroup } from 'validation'
-import gadsStorage from 'util/gadsStorage'
 import { fromJson } from 'util/common'
+import StorageProvider from 'util/storageProvider'
 
 class CurvalModalComponent extends ModalComponent {
 
@@ -217,7 +217,8 @@ class CurvalModalComponent extends ModalComponent {
     const id = location.pathname.split("/").pop()
     const record_id = isNaN(parseInt(id)) ? 0 : parseInt(id)
     const parent_key = `linkspace-column-${col_id}-${$('body').data('layout-identifier')}-${record_id}`;
-    let existing = fromJson(await gadsStorage.getItem(parent_key) ?? "[]")
+    const storageProvider = new StorageProvider(`linkspace-record-change-${$('body').data('layout-identifier')}-${record_id}`)
+    let existing = fromJson(await storageProvider.getItem(parent_key) ?? "[]")
     const identifier = current_id || guid
     // "existing" is the existing values for this curval
     // Pull out the current record if it exists
@@ -235,7 +236,7 @@ class CurvalModalComponent extends ModalComponent {
       }
       existing.push(existing_row)
       // Store as array for consistency with other field types
-      await gadsStorage.setItem(parent_key, JSON.stringify(existing))
+      await storageProvider.setItem(parent_key, JSON.stringify(existing))
     }
 
     $(this.element).modal('hide')

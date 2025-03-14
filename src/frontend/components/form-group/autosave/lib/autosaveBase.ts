@@ -1,5 +1,5 @@
 import { Component } from "component";
-import gadsStorage from "util/gadsStorage";
+import StorageProvider from "util/storageProvider";
 
 /**
  * Base class for autosave
@@ -39,7 +39,7 @@ export default abstract class AutosaveBase extends Component {
      * The storage object to use for autosave - this is a variable to allow for mocking in testing
      */
     get storage() {
-        return gadsStorage;
+        return new StorageProvider(`linkspace-record-change-${this.layoutId}-${this.recordId}`);
     }
 
     /**

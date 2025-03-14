@@ -238,6 +238,9 @@ hook before => sub {
     _audit_log()
         unless request->path =~ m!^/(record|record_body)/!;
 
+    response_header "X-Frame-Options" => "DENY" # Prevent clickjacking
+        unless request->uri eq '/aup_text'; # Except AUP, which will be in an iframe
+
     # The following use logged_in_user so as not to apply for API requests
     if (logged_in_user)
     {
@@ -266,10 +269,6 @@ hook before => sub {
                 below to set a new password." }, 'myaccount')
                     unless request->uri eq '/myaccount' || request->uri eq '/logout';
         }
-
-        response_header "X-Frame-Options" => "DENY" # Prevent clickjacking
-            unless request->uri eq '/aup_text' # Except AUP, which will be in an iframe
-                || request->path eq '/file'; # Or iframe posts for file uploads (hidden iframe used for IE8)
 
         # CSP
         response_header "Content-Security-Policy" => "script-src 'self';";
@@ -339,6 +338,9 @@ hook before_template => sub {
 
     # Base 64 encoder for use in templates
     $tokens->{b64_filter} = sub { encode_base64(encode_json shift, '') };
+
+    $tokens->{actions} = session 'actions';
+    session->delete('actions');
 
     # This line used to be pre-request. However, occasionally errors have been
     # experienced with pages not submitting CSRF tokens. I think these may have
@@ -2299,7 +2301,7 @@ prefix '/:layout_name' => sub {
     any ['get', 'post'] => '/data' => require_login sub {
 
         my $layout = var('layout') or pass;
-
+        
         my $user   = logged_in_user;
 
         my @additional_filters;
@@ -4675,6 +4677,7 @@ sub _process_edit
     );
     $params{layout} = var('layout') if var('layout'); # Used when creating a new record
 
+    my $actions;
     my $layout;
 
     if (my $delete_id = param 'delete')
@@ -4801,6 +4804,9 @@ sub _process_edit
                 my $forward = (!$id && $layout->forward_record_after_create) || param('submit') eq 'submit-and-remain'
                     ? 'record/'.$record->current_id
                     : $layout->identifier.'/data';
+                $actions->{clear_saved_values} = $id ? $id: 0;
+                session 'actions' => $actions;
+
                 return forwardHome(
                     { success => 'Submission has been completed successfully for record ID '.$record->current_id }, $forward );
             }

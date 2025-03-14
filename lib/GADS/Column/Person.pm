@@ -25,6 +25,8 @@ use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column';
 
+with 'GADS::Role::Presentation::Column::Person';
+
 our @person_properties = qw/id email username firstname surname freetext1 freetext2 organisation department_id team_id title value deleted/;
 
 has set_filter => (
