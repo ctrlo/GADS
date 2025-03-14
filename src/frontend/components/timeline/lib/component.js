@@ -15,272 +15,274 @@ class TimelineComponent extends Component {
     }
 
     initTimeline() {
-      const $container = $(this.element).find('.timeline__visualization')
-      const records_base64 = $container.data('records')
-      const json = atob(records_base64)
-      const dataset = JSON.parse(json)
-      this.injectContrastingColor(dataset)
+      Promise.resolve().then(()=>{
+        const $container = $(this.element).find('.timeline__visualization')
+        const records_base64 = $container.data('records')
+        const json = atob(records_base64)
+        const dataset = JSON.parse(json)
+        this.injectContrastingColor(dataset)
 
-      const items = new DataSet(dataset)
-      let groups = $container.data('groups')
-      const json_group = atob(groups)
-      groups = JSON.parse(json_group)
-      const is_dashboard = !!$container.data('dashboard')
-      const layout_identifier = $('body').data('layout-identifier')
+        const items = new DataSet(dataset)
+        let groups = $container.data('groups')
+        const json_group = atob(groups)
+        groups = JSON.parse(json_group)
+        const is_dashboard = !!$container.data('dashboard')
+        const layout_identifier = $('body').data('layout-identifier')
 
-      // See http://visjs.org/docs/timeline/#Editing_Items
-      const options = {
-        margin: {
-          item: {
-            horizontal: -1
-          }
-        },
-        moment: function(date) {
-          return moment(date).utc()
-        },
-        clickToUse: is_dashboard,
-        zoomFriction: 10,
-        template: Handlebars.templates.timelineitem,
-        orientation: { axis: 'both' }
-      }
-
-      // Merge any additional options supplied
-      // for (const attrname in options_in) {
-      //   options[attrname] = options_in[attrname]
-      // }
-
-      // options.on_move = on_move
-      // options.snap = this.snapToDay()
-
-      if ($container.data('min')) {
-        options.start = $container.data('min')
-      }
-
-      if ($container.data('max')) {
-        options.end = $container.data('max')
-      }
-
-      if ($container.data('width')) {
-        options.width = $container.data('width')
-      }
-
-      if ($container.data('height')) {
-        options.width = $container.data('height')
-      }
-
-      if (!$container.data('rewind')) {
-        options.editable = {
-          add: false,
-          updateTime: true,
-          updateGroup: false,
-          remove: false
+        // See http://visjs.org/docs/timeline/#Editing_Items
+        const options = {
+          margin: {
+            item: {
+              horizontal: -1
+            }
+          },
+          moment: function(date) {
+            return moment(date).utc()
+          },
+          clickToUse: is_dashboard,
+          zoomFriction: 10,
+          template: Handlebars.templates.timelineitem,
+          orientation: { axis: 'both' }
         }
-        options.multiselect = true
-      }
 
-      const tl = new Timeline($container.get(0), items, options)
-      if (groups.length > 0) {
-        tl.setGroups(groups)
-      }
+        // Merge any additional options supplied
+        // for (const attrname in options_in) {
+        //   options[attrname] = options_in[attrname]
+        // }
 
-      let firstshow=true
-      const self = this
-      tl.on("changed", function (properties) {
-        if (firstshow) {
-          self.setupTippy()
-          firstshow = false
+        // options.on_move = on_move
+        // options.snap = this.snapToDay()
+
+        if ($container.data('min')) {
+          options.start = $container.data('min')
         }
-      })
-      
-      // functionality to add new items on range change
-      let persistent_max
-      let persistent_min
-      tl.on('rangechanged', function(props) {
-        if (!props.byUser) {
-          if (!persistent_min) {
-            persistent_min = props.start.getTime()
+
+        if ($container.data('max')) {
+          options.end = $container.data('max')
+        }
+
+        if ($container.data('width')) {
+          options.width = $container.data('width')
+        }
+
+        if ($container.data('height')) {
+          options.width = $container.data('height')
+        }
+
+        if (!$container.data('rewind')) {
+          options.editable = {
+            add: false,
+            updateTime: true,
+            updateGroup: false,
+            remove: false
           }
-          if (!persistent_max) {
+          options.multiselect = true
+        }
+
+        const tl = new Timeline($container.get(0), items, options)
+        if (groups.length > 0) {
+          tl.setGroups(groups)
+        }
+
+        let firstshow=true
+        const self = this
+        tl.on("changed", function (properties) {
+          if (firstshow) {
+            self.setupTippy()
+            firstshow = false
+          }
+        })
+        
+        // functionality to add new items on range change
+        let persistent_max
+        let persistent_min
+        tl.on('rangechanged', function(props) {
+          if (!props.byUser) {
+            if (!persistent_min) {
+              persistent_min = props.start.getTime()
+            }
+            if (!persistent_max) {
+              persistent_max = props.end.getTime()
+            }
+            return
+          }
+
+          // Shortcut - see if we actually need to continue with calculations
+          if (
+            props.start.getTime() > persistent_min &&
+            props.end.getTime() < persistent_max
+          ) {
+            update_range_session(props)
+            return
+          }
+
+          $container.prev('.timeline__loader').show()
+
+          /* Calculate the range of the current items. This will min/max
+                values for normal dates, but for dateranges we need to work
+                out the dates of what was retrieved. E.g. the earliest
+                end of a daterange will be the start of the range of
+                the current items (otherwise it wouldn't have been
+                retrieved)
+            */
+
+          // Get date range with earliest start
+          let val = items.min('start')
+
+          // Get date range with latest start
+          val = items.max('start')
+          const max_start = val ? new Date(val.start) : undefined
+
+          // Get date range with earliest end
+          val = items.min('end')
+          const min_end = val ? new Date(val.end) : undefined
+
+          // If this is a date range without a time, then the range will have
+          // automatically been altered to add an extra day to its range, in
+          // order to show it across the expected period on the timeline (see
+          // Timeline.pm). When working out the range to request, we have to
+          // remove this extra day, as searching the database will not include it
+          // and we will otherwise end up with duplicates being retrieved
+          if (min_end && !val.has_time) {
+            min_end.setDate(min_end.getDate() - 1)
+          }
+
+          // Get date range with latest end
+          val = items.max('end') 
+
+          // Get earliest single date item
+          val = items.min('single')
+          const min_single = val ? new Date(val.single) : undefined
+
+          // Get latest single date item
+          val = items.max('single')
+          const max_single = val ? new Date(val.single) : undefined
+
+          // Now work out the actual range we have items for
+          const have_range = {}
+
+          if (min_end && min_single) {
+            // Date range items and single date items
+            have_range.min = min_end < min_single ? min_end : min_single
+          } else {
+            // Only one or the other
+            have_range.min = min_end || min_single
+          }
+
+          if (max_start && max_single) {
+            // Date range items and single date items
+            have_range.max = max_start > max_single ? max_start : max_single
+          } else {
+            // Only one or the other
+            have_range.max = max_start || max_single
+          }
+          /* haverange now contains the min and max of the current
+                range. Now work out whether we need to fill to the left or
+                right (or both)
+            */
+          let from
+          let to
+
+          if (!have_range.min) {
+            from = props.start.getTime()
+            to = props.end.getTime()
+            load_items(from, to)
+          }
+
+          if (props.start < have_range.min) {
+            from = props.start.getTime()
+            to = have_range.min.getTime()
+            load_items(from, to, 'to')
+          }
+
+          if (props.end > have_range.max) {
+            from = have_range.max.getTime()
+            to = props.end.getTime()
+            load_items(from, to, 'from')
+          }
+
+          if (!persistent_max || persistent_max < props.end.getTime()) {
             persistent_max = props.end.getTime()
           }
-          return
-        }
 
-        // Shortcut - see if we actually need to continue with calculations
-        if (
-          props.start.getTime() > persistent_min &&
-          props.end.getTime() < persistent_max
-        ) {
+          if (!persistent_min || persistent_min > props.start.getTime()) {
+            persistent_min = props.start.getTime()
+          }
+
+          $container.prev('.timeline__loader').hide()
+
+          // leave to end in case of problems rendering this range
           update_range_session(props)
-          return
+        })
+        const csrf_token = $('body').data('csrf-token')
+        /**
+         * @param {object} props
+         * @returns {void}
+         */
+        function update_range_session(props) {
+          // Do not remember timeline range if adjusting timeline on dashboard
+          if (!is_dashboard) {
+            $.post({
+              url: '/' + layout_identifier + '/data_timeline?',
+              data:
+                'from=' +
+                props.start.getTime() +
+                '&to=' +
+                props.end.getTime() +
+                '&csrf_token=' +
+                csrf_token
+            })
+          }
         }
 
-        $container.prev('.timeline__loader').show()
-
-        /* Calculate the range of the current items. This will min/max
-              values for normal dates, but for dateranges we need to work
-              out the dates of what was retrieved. E.g. the earliest
-              end of a daterange will be the start of the range of
-              the current items (otherwise it wouldn't have been
-              retrieved)
-          */
-
-        // Get date range with earliest start
-        let val = items.min('start')
-
-        // Get date range with latest start
-        val = items.max('start')
-        const max_start = val ? new Date(val.start) : undefined
-
-        // Get date range with earliest end
-        val = items.min('end')
-        const min_end = val ? new Date(val.end) : undefined
-
-        // If this is a date range without a time, then the range will have
-        // automatically been altered to add an extra day to its range, in
-        // order to show it across the expected period on the timeline (see
-        // Timeline.pm). When working out the range to request, we have to
-        // remove this extra day, as searching the database will not include it
-        // and we will otherwise end up with duplicates being retrieved
-        if (min_end && !val.has_time) {
-          min_end.setDate(min_end.getDate() - 1)
-        }
-
-        // Get date range with latest end
-        val = items.max('end') 
-
-        // Get earliest single date item
-        val = items.min('single')
-        const min_single = val ? new Date(val.single) : undefined
-
-        // Get latest single date item
-        val = items.max('single')
-        const max_single = val ? new Date(val.single) : undefined
-
-        // Now work out the actual range we have items for
-        const have_range = {}
-
-        if (min_end && min_single) {
-          // Date range items and single date items
-          have_range.min = min_end < min_single ? min_end : min_single
-        } else {
-          // Only one or the other
-          have_range.min = min_end || min_single
-        }
-
-        if (max_start && max_single) {
-          // Date range items and single date items
-          have_range.max = max_start > max_single ? max_start : max_single
-        } else {
-          // Only one or the other
-          have_range.max = max_start || max_single
-        }
-        /* haverange now contains the min and max of the current
-              range. Now work out whether we need to fill to the left or
-              right (or both)
-          */
-        let from
-        let to
-
-        if (!have_range.min) {
-          from = props.start.getTime()
-          to = props.end.getTime()
-          load_items(from, to)
-        }
-
-        if (props.start < have_range.min) {
-          from = props.start.getTime()
-          to = have_range.min.getTime()
-          load_items(from, to, 'to')
-        }
-
-        if (props.end > have_range.max) {
-          from = have_range.max.getTime()
-          to = props.end.getTime()
-          load_items(from, to, 'from')
-        }
-
-        if (!persistent_max || persistent_max < props.end.getTime()) {
-          persistent_max = props.end.getTime()
-        }
-
-        if (!persistent_min || persistent_min > props.start.getTime()) {
-          persistent_min = props.start.getTime()
-        }
-
-        $container.prev('.timeline__loader').hide()
-
-        // leave to end in case of problems rendering this range
-        update_range_session(props)
-      })
-      const csrf_token = $('body').data('csrf-token')
-      /**
-       * @param {object} props
-       * @returns {void}
-       */
-      function update_range_session(props) {
-        // Do not remember timeline range if adjusting timeline on dashboard
-        if (!is_dashboard) {
-          $.post({
-            url: '/' + layout_identifier + '/data_timeline?',
-            data:
-              'from=' +
-              props.start.getTime() +
-              '&to=' +
-              props.end.getTime() +
-              '&csrf_token=' +
-              csrf_token
+        /**
+         * @param {string} from
+         * @param {string} to
+         * @param {string} exclusive
+         */
+        function load_items(from, to, exclusive) {
+          /* we use the exclusive parameter to not include ranges
+                that go over that date, otherwise we will retrieve
+                items that we already have */
+          let url =
+            '/' +
+            layout_identifier +
+            '/data_timeline/' +
+            '10' +
+            '?from=' +
+            from +
+            '&to=' +
+            to +
+            '&exclusive=' +
+            exclusive
+          if (is_dashboard) {
+            url = url + '&dashboard=1&view=' + $container.data('view')
+          }
+          $.ajax({
+            async: false,
+            url: url,
+            dataType: 'json',
+            success: function(data) {
+              items.add(data)
+            }
           })
         }
-      }
 
-      /**
-       * @param {string} from
-       * @param {string} to
-       * @param {string} exclusive
-       */
-      function load_items(from, to, exclusive) {
-        /* we use the exclusive parameter to not include ranges
-              that go over that date, otherwise we will retrieve
-              items that we already have */
-        let url =
-          '/' +
-          layout_identifier +
-          '/data_timeline/' +
-          '10' +
-          '?from=' +
-          from +
-          '&to=' +
-          to +
-          '&exclusive=' +
-          exclusive
-        if (is_dashboard) {
-          url = url + '&dashboard=1&view=' + $container.data('view')
-        }
-        $.ajax({
-          async: false,
-          url: url,
-          dataType: 'json',
-          success: function(data) {
-            items.add(data)
-          }
-        })
-      }
+        $('#tl_group')
+          .on('change', function() {
+            const fixedvals = $(this)
+              .find(':selected')
+              .data('fixedvals')
+            if (fixedvals) {
+              $('#tl_all_group_values_div').show()
+            } else {
+              $('#tl_all_group_values_div').hide()
+            }
+          })
+          .trigger('change')
 
-      $('#tl_group')
-        .on('change', function() {
-          const fixedvals = $(this)
-            .find(':selected')
-            .data('fixedvals')
-          if (fixedvals) {
-            $('#tl_all_group_values_div').show()
-          } else {
-            $('#tl_all_group_values_div').hide()
-          }
-        })
-        .trigger('change')
-
-      return tl
+        return tl
+      });
     }
 
     setupTippy() {

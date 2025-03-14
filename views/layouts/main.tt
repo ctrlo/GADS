@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="[% url.css %]/external.css?v=7">
     <link rel="stylesheet" href="[% url.css %]/general.css?v=8">
   </head>
-  <body class="[% body_class || 'page' %]"[% IF csrf_token %] data-csrf="[%- csrf_token -%]"[% END; IF layout OR layout_obj; %] data-layout-identifier="[% layout.identifier || layout_obj.identifier %]"[% END %]>
+  <body class="[% body_class || 'page' %]"[% IF csrf_token %] data-csrf="[%- csrf_token -%]"[% END; IF layout OR layout_obj; %] data-layout-identifier="[% layout.identifier || layout_obj.identifier %]"[% END %][% IF actions; %] data-actions="[% b64_filter(actions) %]"[% END; %]>
     <div class="[% container_class || 'container-fluid' %]">
       [%
         IF page == "login" OR page == "register" OR page == "reset" OR page == "invalidsite";

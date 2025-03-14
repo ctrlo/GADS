@@ -1221,8 +1221,8 @@ sub validate
             my $search = { $f => $self->$f };
             $search->{id} = { '!=' => $self->id }
                 if $self->id;
-            $self->result_source->resultset->active->search($search)->next
-                and error __x"{username} already exists as an active user", username => $self->$f;
+            $self->result_source->schema->resultset('User')->active->search($search)->next
+             and error __x"{username} already exists as an active user", username => $self->$f;
         }
     }
 }
