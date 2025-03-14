@@ -52,16 +52,16 @@ class CalcFieldsComponent extends Component {
             // if obj is an array, shift all the elements into an object starting
             // at index 1
             if (Array.isArray(obj)) {
-              // If an array is passed in as-is, then its first element will be at
-              // array index 0, which ipairs will not recognise. Therefore,
-              // offset all the elements into an object starting at index 1
+                // If an array is passed in as-is, then its first element will be at
+                // array index 0, which ipairs will not recognise. Therefore,
+                // offset all the elements into an object starting at index 1
                 const obj2 = [];
                 obj.forEach((element, index) => {
                     obj2[index + 1] = element;
                 });
                 obj = obj2;
             } else {
-              // If the field is an object, recursively shift its fields
+                // If the field is an object, recursively shift its fields
                 if (typeof obj === 'object') {
                     for (const field in obj) {
                         obj[field] = shiftFields(obj[field]);
