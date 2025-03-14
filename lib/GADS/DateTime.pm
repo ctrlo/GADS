@@ -29,6 +29,7 @@ sub parse_datetime
 {   my $value = shift;
     return undef if !$value;
     return $value if ref $value eq 'DateTime';
+    $value =~ s/\.\d+$//; # Strip milliseconds
     my $dateformat = GADS::Config->instance->dateformat;
     # If there's a space in the input value, assume it includes a time as well
     $dateformat .= ' HH:mm:ss' if $value =~ / /;

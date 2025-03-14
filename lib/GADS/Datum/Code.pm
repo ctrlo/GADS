@@ -135,6 +135,8 @@ sub _write_unique
             $schema->storage->svp_release("sp_uq_calc");
         }
         elsif ($@) {
+            $schema->storage->svp_rollback("sp_uq_calc");
+            $schema->storage->svp_release("sp_uq_calc");
             $@->reportAll;
         }
         else {
