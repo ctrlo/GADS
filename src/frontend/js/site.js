@@ -44,6 +44,7 @@ import PeopleFilterComponent from "components/form-group/people-filter";
 import handleActions from "util/actionsHandler";
 import { initJquery } from "./lib/util/common";
 import BootstrapPopoverComponent from "components/bootstrap-popover";
+import ListBox from "components/listbox";
 
 // Register them
 registerComponent(AddTableModalComponent);
@@ -82,6 +83,7 @@ registerComponent(HelpView);
 registerComponent(PeopleFilterComponent);
 registerComponent(AutosaveComponent);
 registerComponent(BootstrapPopoverComponent);
+registerComponent(ListBox);
 
 initJquery();
 

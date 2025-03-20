@@ -1,0 +1,22 @@
+[% 
+# Template for custom input type="listbox"
+# Implementation Example:
+#
+# INCLUDE fields/listbox.tt
+#   id = "username"
+#   label = "Email address"
+#   custom_classes = ""
+#   items = []
+%]
+<div class="listbox [% custom_classes %]" [% IF id %]id="[% id %]" [% END %]>
+    <div class="listbox-header">
+        <h2>[% label %]</h2>
+    </div>
+    <div class="listbox-content">
+        [% FOREACH item IN items; %]
+            <div class="listbox-item" [% IF item.order; %]data-order="[% item.order %]" [% END %]tabindex="0">
+                [% item.name; %]
+            </div>
+        [% END %]
+    </div>
+</div>
