@@ -28,8 +28,8 @@ export default function createSaveViewButtonComponent(el: JQuery<HTMLElement>) {
         }
         $(".filter").each((_i, el) => {
             //Bit of typecasting here, purely because the queryBuilder plugin doesn't have types
-            if (!(<any>$(el)).queryBuilder('validate')) ev.preventDefault();
-            const res = (<any>$(el)).queryBuilder('getRules')
+            if (!$(el).queryBuilder('validate')) ev.preventDefault();
+            const res = $(el).queryBuilder('getRules')
             $(el).next('#filter').val(JSON.stringify(res, null, 2))
         })
     });

@@ -6,7 +6,6 @@ const ReactGridLayout = WidthProvider(RGL);
 
 export default function DashboardView({ readOnly, layout, onLayoutChange, gridConfig, widgets, onEditClick }) {
     return (<div className="content-block__main">
-        { /* @ts-expect-error ReactGridLayout is apparently not a component */}
         <ReactGridLayout
             className={`content-block__main-content ${readOnly ? "" : "react-grid-layout--editable"}`}
             isDraggable={!readOnly}
