@@ -111,6 +111,12 @@ class ButtonComponent extends Component {
                     createCancelButton(el);
                 });
         });
+        map.set('btn-js-select-all', (el)=>{
+            import(/* webpackChunkName: "select-all-button" */ './select-all-button')
+                .then(({default: createSelectAllButton}) => {
+                    createSelectAllButton(el);
+                });
+        })
         ButtonComponent.staticButtonsMap = map;
     }
 

@@ -435,6 +435,9 @@
                                     label = "Rows selected"
                                     items = []
                                 %]
+                                <div class="align-content-start ps-3">
+                                  <button type="button" class="btn btn-default btn-js-select-all" data-action="uncheck">Remove All</button>
+                                </div>
                               </div>
 
                               <!-- Available fields -->
@@ -445,6 +448,9 @@
                                     label = "Rows available"
                                     items = []
                                 %]
+                                <div class="pe-3 d-flex flex-row-reverse">
+                                  <button type="button" class="btn btn-default btn-js-select-all" data-action="check">Add All</button>
+                                </div>
                               </div>
                               <!-- Checkboxes for actual fields -->
                               <div class="visually-hidden">
