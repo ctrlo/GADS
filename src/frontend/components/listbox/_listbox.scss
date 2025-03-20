@@ -17,6 +17,12 @@
 }
 
 @media screen {
+  .listbox-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }  
+
   .listbox {
     display: block;
     margin: $padding-base-horizontal;
@@ -30,6 +36,9 @@
       border-radius: var(--bs-border-radius) var(--bs-border-radius) 0 0;
       padding: 0.5rem 1rem;
       color: $white;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
 
       h2 {
         color: var(--bs-white);
@@ -58,6 +67,34 @@
           border-bottom: none;
         }
       }
+    }
+  }
+}
+
+// Because these extend the icon-font, they can't be within a media selector (apparently).
+#rows-selected {
+  .listbox-item {
+    justify-content: flex-end;
+    &::after {
+      color: var(--bs-danger);
+      content: "\E805";
+      @extend %icon-font;
+      margin-left: 0.5rem;
+      font-weight: bolder;
+    }
+  }
+}
+
+#rows-available {
+  .listbox-item {
+    justify-content: flex-start;
+    &::before {
+      color: var(--bs-success);
+      content: "\E805";
+      @extend %icon-font;
+      margin-right: 0.5rem;
+      font-weight: bolder;
+      transform: rotate(180deg);
     }
   }
 }
