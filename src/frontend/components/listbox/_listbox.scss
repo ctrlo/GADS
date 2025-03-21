@@ -17,84 +17,82 @@
 }
 
 @media screen {
-  .listbox-item {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-  }  
-
   .listbox {
     display: block;
-    margin: $padding-base-horizontal;
+    margin: 0.25rem;
     border: var(--bs-border-color) var(--bs-border-width) var(--bs-border-style);
     border-radius: var(--bs-border-radius);
     padding: 0;
-    box-shadow: var(--bs-box-shadow);
+    font-size: 0.875rem;
+    line-height: var(--bs-line-height, 1.35);
 
     .listbox-header {
-      background: var(--bs-primary);
+      background: var(--bs-white);
       border-radius: var(--bs-border-radius) var(--bs-border-radius) 0 0;
-      padding: 0.5rem 1rem;
-      color: $white;
+      padding: 1rem;
       display: flex;
-      justify-content: space-around;
-      align-items: center;
-
-      h2 {
-        color: var(--bs-white);
-      }
+      font-weight: bold;
+      text-transform: uppercase;
+      color: var(--bs-secondary);
+      border-bottom: var(--bs-border-color) var(--bs-border-width) var(--bs-border-style);
     }
 
     .listbox-content {
       max-height: 20rem;
       min-height: 20rem;
       overflow: auto;
-      padding: 0 1rem;
-      box-shadow: var(--bs-box-shadow) inset;
+      padding: 0;
       border-radius: 0 0 var(--bs-border-radius) var(--bs-border-radius);
 
       .listbox-item,
       [role="listitem"] {
-        padding: 0.5rem 0 0 0;
-        border-bottom: 1px solid var(--bs-gray-200);
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        line-height: var(--bs-line-height, 1.125);
+        padding: 1rem;
+        justify-content: space-between;
 
         &:focus {
-          background-color: var(--bs-primary);
+          background-color: var(--bs-secondary);
           color: var(--bs-white);
         }
 
         &:last-of-type {
           border-bottom: none;
         }
+
+        &:nth-child(odd) {
+          background-color: var(--bs-gray-100);
+        }
       }
     }
+  }
+}
+
+.listbox-item {
+  &::after {
+    @extend %icon-font;
+    margin-right: 0.5rem;
+    font-size: 1.25rem;
   }
 }
 
 // Because these extend the icon-font, they can't be within a media selector (apparently).
 #rows-selected {
   .listbox-item {
-    justify-content: flex-end;
     &::after {
       color: var(--bs-danger);
-      content: "\E805";
-      @extend %icon-font;
-      margin-left: 0.5rem;
-      font-weight: bolder;
+      content: "\E807";
     }
   }
 }
 
 #rows-available {
   .listbox-item {
-    justify-content: flex-start;
-    &::before {
+    &::after {
       color: var(--bs-success);
-      content: "\E805";
-      @extend %icon-font;
-      margin-right: 0.5rem;
-      font-weight: bolder;
-      transform: rotate(180deg);
+      content: "\E804";
     }
   }
 }

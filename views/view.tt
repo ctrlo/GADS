@@ -407,59 +407,70 @@
                                 </fieldset>
                               </div>
                             </div>
-                            <div class="row togglelist">
-                              [%
-                                fields = [];
-
-                                index = 0;
-
-                                FOREACH column IN layout.all_user_read;
-                                  id = column.id;
-                                  is_selected = view_edit.columns.grep("^$id\$").size;
-
-                                  fields.push({
-                                    id          = id,
-                                    name        = column.name,
-                                    is_selected = is_selected
-                                  });
-
-                                  index = index + 1;
-                                END;
-                              %]
-
-                              <!-- Selected fields -->
-                              <div class="col-sm-12 col-lg-6">
-                                [%
-                                  INCLUDE fields/listbox.tt
-                                    id = "rows-selected"
-                                    label = "Rows selected"
-                                    items = []
-                                %]
-                                <div class="align-content-start ps-3">
-                                  <button type="button" class="btn btn-default btn-js-select-all" data-action="uncheck">Remove All</button>
+                            <div class="togglelist">
+                              <div class="row">
+                                <div class="col-6 offset-6">
+                                  <div class="form-group p-1">
+                                    <label for="search-input" class="form-label visually-hidden">Search</label>
+                                    <input type="text" class="form-control" id="search-input" placeholder="Enter search term..." data-target="#rows-available">
+                                  </div>
                                 </div>
                               </div>
-
-                              <!-- Available fields -->
-                              <div class="col-sm-12 col-lg-6">
+                              <div class="row">
                                 [%
-                                  INCLUDE fields/listbox.tt
-                                    id = "rows-available"
-                                    label = "Rows available"
-                                    items = []
+                                  fields = [];
+
+                                  index = 0;
+
+                                  FOREACH column IN layout.all_user_read;
+                                    id = column.id;
+                                    is_selected = view_edit.columns.grep("^$id\$").size;
+
+                                    fields.push({
+                                      id          = id,
+                                      name        = column.name,
+                                      is_selected = is_selected
+                                    });
+
+                                    index = index + 1;
+                                  END;
                                 %]
-                                <div class="pe-3 d-flex flex-row-reverse">
-                                  <button type="button" class="btn btn-default btn-js-select-all" data-action="check">Add All</button>
+
+                                <!-- Selected fields -->
+                                <div class="col-sm-12 col-lg-6">
+                                  [%
+                                    INCLUDE fields/listbox.tt
+                                      id = "rows-selected"
+                                      label = "fields in view"
+                                      items = []
+                                  %]
+                                  <div class="align-content-start ps-1 pt-1">
+                                    <button type="button" class="btn btn-default btn-js-select-all" data-action="uncheck">Remove All</button>
+                                  </div>
                                 </div>
-                              </div>
-                              <!-- Checkboxes for actual fields -->
-                              <div class="visually-hidden">
-                                [% FOREACH field IN fields %]
-                                <div class="form-group">
-                                  <input type="checkbox" name="column" value="[% field.id %]" id="[% field.id %]"[% IF field.is_selected %] checked="checked"[% END %]>
-                                  <label for="[% field.id %]">[% field.name %]</label>
+
+                                <!-- Available fields -->
+                                <div class="col-sm-12 col-lg-6">
+                                  [%
+                                    INCLUDE fields/listbox.tt
+                                      id = "rows-available"
+                                      label = "available fields"
+                                      items = []
+                                      search = '#search-input'
+                                  %]
+                                  <div class="pe-1 pt-1 d-flex flex-row-reverse">
+                                    <button type="button" class="btn btn-default btn-js-select-all" data-action="check">Add All</button>
+                                  </div>
                                 </div>
-                                [% END %]
+                                <!-- Checkboxes for actual fields -->
+                                <div class="visually-hidden">
+                                  [% FOREACH field IN fields %]
+                                  <div class="form-group">
+                                    <input type="checkbox" name="column" value="[% field.id %]" id="[% field.id %]"[% IF field.is_selected %] checked="checked"[% END %]>
+                                    <label for="[% field.id %]">[% field.name %]</label>
+                                  </div>
+                                  [% END %]
+                                </div>
                               </div>
                             </div>
                           </div>

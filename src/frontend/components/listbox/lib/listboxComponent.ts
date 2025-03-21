@@ -3,6 +3,7 @@ import { Component } from "component";
 export default class ListboxComponent extends Component {
   items: { text: string, order: number, controls: JQuery<HTMLElement> }[] = [];
   $el: JQuery<HTMLElement>;
+  filter: string;
 
   constructor(element: HTMLElement) {
     super(element);
@@ -10,6 +11,14 @@ export default class ListboxComponent extends Component {
     if (!this.$el || this.$el.length === 0) {
       throw new Error('No element provided');
     }
+    if(this.$el.data('search')) this.initSearch($(this.$el.data('search')));
+  }
+
+  private initSearch($search: JQuery<HTMLInputElement>) {
+    $search.on('keyup', (ev)=>{
+      this.filter=$(ev.target).val();
+      this.render();
+    })
   }
 
   addItem(text: string, order: number, controls: HTMLElement | JQuery<HTMLElement> | string) {
@@ -25,7 +34,11 @@ export default class ListboxComponent extends Component {
       throw new Error('No element provided');
     }
     $target.empty();
-    this.items.forEach(({ text, order, controls }) => {
+    let filteredItems = this.items;
+    if(this.filter) {
+      filteredItems = this.items.filter(({text})=>new RegExp(this.filter, 'i').test(text));
+    }
+    filteredItems.forEach(({ text, order, controls }) => {
       const item = document.createElement('div');
       const $item = $(item);
       $item.attr("tabindex", "0");

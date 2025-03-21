@@ -7,10 +7,11 @@
 #   label = "Email address"
 #   custom_classes = ""
 #   items = []
+#   search = "#search"
 %]
-<div class="listbox [% custom_classes %]" [% IF id %]id="[% id %]" [% END %]>
+<div class="listbox [% custom_classes %]" [% IF id %]id="[% id %]" [% END %][% IF search %]data-search="[% search %]"[% END %]>
     <div class="listbox-header">
-        <h2>[% label %]</h2>
+        <span>[% label %]</span>
     </div>
     <div class="listbox-content">
         [% FOREACH item IN items; %]
