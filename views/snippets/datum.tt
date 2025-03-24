@@ -30,7 +30,7 @@
         [% END %]
       </table>
     [% END %]
-    [% IF (col.limit_rows AND curval.links.size >= col.limit_rows) OR col.show_view_all %]
+    [% IF (curval.has_more) OR col.show_view_all %]
         <p><em>(showing
         [% IF col.limit_rows AND curval.links.size >= col.limit_rows %]
             maximum [% col.limit_rows %] 
