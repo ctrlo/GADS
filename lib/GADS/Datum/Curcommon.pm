@@ -127,7 +127,8 @@ sub _build__init_value_hash
         my (@ids, @records);
         foreach my $v (@{$self->init_value})
         {
-            $self->_set_has_more($v->{has_more}) if defined $v->{has_more};
+            $self->_set_has_more($v->{has_more})
+                if ref $v eq 'HASH' && defined $v->{has_more};
             my ($record, $id) = $self->_transform_value($v);
             push @records, $record if $record;
             # Don't include IDs of draft records. These will be recreated
