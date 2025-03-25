@@ -45,13 +45,14 @@ sub check_file
                 |application/rtf|application/vnd\.ms-excel
                 |application/vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet
                 |application/json
+                |message/.*
             )!xi;
 
     $upload->filename =~ /\.([a-z]+)$/i
         or error __"Files without extensions cannot be uploaded";
     my $ext = $1;
     error __x"Files with extension of {ext} are not allowed", ext => $ext
-        unless $ext =~ /^(doc|docx|pdf|jpeg|jpg|png|wav|rtf|xls|xlsx|ods|ppt|pptx|odf|odg|odt|ott|sda|sdc|sdd|sdw|sxc|sxw|odp|sdp|csv|txt|msg|tif|svg)$/i;
+        unless $ext =~ /^(doc|docx|pdf|jpeg|jpg|png|wav|rtf|xls|xlsx|ods|ppt|pptx|odf|odg|odt|ott|sda|sdc|sdd|sdw|sxc|sxw|odp|sdp|csv|txt|msg|tif|svg|eml)$/i;
 
     # As recommended at https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload
     # Brackets have been added to this - above recommendations do not explicitly state that brackets are not allowed - Ticket #1695
