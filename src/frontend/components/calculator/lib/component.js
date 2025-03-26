@@ -1,13 +1,23 @@
 import { Component } from 'component'
 
+/**
+ * Calculator Component
+ */
 class CalculatorComponent extends Component {
-  constructor(element)  {
+  /**
+   * Create a new Calculator Component
+   * @param {HTMLElement} element The element to attach the calculator to
+   */
+  constructor(element) {
     super(element)
     this.el = $(this.element)
 
     this.initCalculator()
   }
 
+  /**
+   * Initialize the calculator
+   */
   initCalculator() {
     const selector = this.el.find('input:not([type="checkbox"])')
     const $nodes = this.el.find('label:not(.checkbox-label)')
@@ -28,15 +38,15 @@ class CalculatorComponent extends Component {
 
       calculator_elem.append(
         '<form class="form-inline">' +
-          '    <div class="form-group"><div class="radio-group radio-group--buttons" data-toggle="buttons"></div></div>' +
-          '    <div class="form-group"><div class="input"><input type="text" placeholder="Number" class="form-control"></input></div></div>' +
-          '    <div class="form-group">' +
-          '        <input type="submit" value="Calculate" class="btn btn-default"></input>' +
-          "    </div>" +
-          "</form>"
+        '    <div class="form-group"><div class="radio-group radio-group--buttons" data-toggle="buttons"></div></div>' +
+        '    <div class="form-group"><div class="input"><input type="text" placeholder="Number" class="form-control"></input></div></div>' +
+        '    <div class="form-group">' +
+        '        <input type="submit" value="Calculate" class="btn btn-default"></input>' +
+        "    </div>" +
+        "</form>"
       )
 
-      $(document).on('mouseup',(e) => {
+      $(document).on('mouseup', (e) => {
         if (
           !calculator_elem.is(e.target) &&
           calculator_elem.has(e.target).length === 0
@@ -53,7 +63,7 @@ class CalculatorComponent extends Component {
           action: 'add',
           label: '+',
           keypress: ['+'],
-          operation: function(a, b) {
+          operation: function (a, b) {
             return a + b
           }
         },
@@ -61,7 +71,7 @@ class CalculatorComponent extends Component {
           action: 'subtract',
           label: '-',
           keypress: ['-'],
-          operation: function(a, b) {
+          operation: function (a, b) {
             return a - b
           }
         },
@@ -69,7 +79,7 @@ class CalculatorComponent extends Component {
           action: 'multiply',
           label: '×',
           keypress: ['*', 'X', 'x', '×'],
-          operation: function(a, b) {
+          operation: function (a, b) {
             return a * b
           }
         },
@@ -77,7 +87,7 @@ class CalculatorComponent extends Component {
           action: 'divide',
           label: '÷',
           keypress: ['/', '÷'],
-          operation: function(a, b) {
+          operation: function (a, b) {
             return a / b
           }
         }
@@ -89,8 +99,8 @@ class CalculatorComponent extends Component {
         const btn = calculator_button[i]
         const button_elem = $(
           `<div class="radio-group__option">` +
-            `<input type="radio" name="op" id="op_${btn.action}" class="radio-group__input btn_label_${btn.action}">` +
-            `<label class="radio-group__label" for="op_${btn.action}">${btn.label}</label>` +
+          `<input type="radio" name="op" id="op_${btn.action}" class="radio-group__input btn_label_${btn.action}">` +
+          `<label class="radio-group__label" for="op_${btn.action}">${btn.label}</label>` +
           `</div>`
         )
 
