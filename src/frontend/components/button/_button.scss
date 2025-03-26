@@ -584,7 +584,8 @@ $btn-border-radius: 23px;
   .btn-export,
   .btn-add-link,
   .btn-filter,
-  .btn-clear { // to overwrite auto width of .btn
+  .btn-clear {
+    // to overwrite auto width of .btn
     width: max-content;
   }
 

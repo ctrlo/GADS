@@ -1,8 +1,9 @@
-import {validateRequiredFields} from "validation";
+import { validateRequiredFields } from "validation";
 import "@lol768/jquery-querybuilder-no-eval";
 
 /**
- * SaveViewButtonComponent
+ * Create a save view button component
+ * @param el The element to function as a save view button
  */
 export default function createSaveViewButtonComponent(el: JQuery<HTMLElement>) {
     const $form = el.closest('form');

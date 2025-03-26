@@ -2,12 +2,12 @@ import { initGlobals } from "../../../testing/globals.definitions";
 import SubmitFieldButtonComponent from "./submit-field-button";
 
 describe("Submit field button tests", () => {
-    beforeEach(()=>{
+    beforeEach(() => {
         initGlobals();
     })
 
     async function loadSubmitFieldButtonComponent(element: HTMLElement) {
-        const {default: SubmitFieldButtonComponent} = await import("./submit-field-button");
+        const { default: SubmitFieldButtonComponent } = await import("./submit-field-button");
         return new SubmitFieldButtonComponent($(element));
     }
 

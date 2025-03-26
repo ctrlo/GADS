@@ -1,7 +1,5 @@
 // noinspection ExceptionCaughtLocallyJS
 
-import {logging} from "logging";
-
 /**
  * Create delete button
  * @param element {JQuery<HTMLElement>} - Element to act as a delete button
@@ -23,7 +21,9 @@ export default function createDeleteButton(element: JQuery<HTMLElement>) {
                 throw `There is no modal with id: ${target}`
             }
         } catch (e) {
-            logging.error(e)
+            import('logging').then(({logging}) =>
+                logging.error(e)
+            );
             $(element).on('click', function (e: JQuery.ClickEvent) {
                 e.stopPropagation()
             });

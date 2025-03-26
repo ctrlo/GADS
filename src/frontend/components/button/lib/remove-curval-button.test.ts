@@ -1,25 +1,25 @@
-import {jest, describe, it, expect, beforeAll, afterEach} from "@jest/globals";
+import { jest, describe, it, expect, beforeAll, afterEach } from "@jest/globals";
 import createRemoveCurvalButton from "./remove-curval-button";
 
-describe("RemoveCurvalButton", ()=>{
+describe("RemoveCurvalButton", () => {
     // @ts-expect-error - jest types are not complete
     window.confirm = jest.fn().mockReturnValue(true);
 
-    beforeAll(()=>{
+    beforeAll(() => {
         document.body.innerHTML = "";
     });
 
-    afterEach(()=>{
+    afterEach(() => {
         document.body.innerHTML = "";
     });
 
-    it("should mock as expected", ()=>{
+    it("should mock as expected", () => {
         expect(confirm("Are you sure you wish to continue?")).toBe(true);
     });
 
-    it('Should remove a value from a table', ()=>{
+    it('Should remove a value from a table', () => {
         const table = document.createElement("table");
-        table.className="table-curval-group";
+        table.className = "table-curval-group";
         const tbody = document.createElement("tbody");
         const tr = document.createElement("tr");
         tr.className = "table-curval-item";
@@ -38,7 +38,7 @@ describe("RemoveCurvalButton", ()=>{
         expect(table.children[0].children.length).toBe(0);
     });
 
-    it('Should remove a value from a select widget', ()=>{
+    it('Should remove a value from a select widget', () => {
         const selectWidget = document.createElement("div");
         selectWidget.className = "select-widget";
         const answer = document.createElement("div");

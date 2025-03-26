@@ -1,30 +1,30 @@
-import {expect, it, describe, afterEach, beforeAll} from '@jest/globals';
+import { expect, it, describe, afterEach, beforeAll } from '@jest/globals';
 import createMoreInfoButton from './more-info-button';
 
 const jQuery = $;
 
-(($)=>{ 
-    $.fn.load = function() {
+(($) => {
+    $.fn.load = function () {
         this.text('mocked');
         return this;
     }
 })(jQuery);
 
 describe.skip('createMoreInfoButton', () => {
-    beforeAll(()=>{
+    beforeAll(() => {
         document.body.innerHTML = '';
     });
 
-    afterEach(()=>{
+    afterEach(() => {
         document.body.innerHTML = '';
     });
 
-    it('should mock as expected', ()=>{
+    it('should mock as expected', () => {
         const div = $('<div></div>');
         expect(div.load('').text()).toBe('mocked');
     });
 
-    it('should set the title of the modal', ()=>{
+    it('should set the title of the modal', () => {
         const button = document.createElement('button');
         button.setAttribute('data-record-id', '123');
         button.setAttribute('data-bs-target', '#modal');
@@ -41,7 +41,7 @@ describe.skip('createMoreInfoButton', () => {
         expect(title.textContent).toBe('Record ID: 123');
     });
 
-    it('should load the record body into the modal', ()=>{
+    it('should load the record body into the modal', () => {
         const button = $('<button data-record-id="123" data-bs-target="#modal" class="btn"></button>');
         button.appendTo(document.body);
         const modal = $(`<div id="modal"><div class="modal-body"></div></div>`);
