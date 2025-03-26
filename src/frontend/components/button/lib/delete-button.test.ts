@@ -58,8 +58,13 @@ describe('button tests', ()=>{
         const button = document.createElement('button');
         button.setAttribute('data-title', 'title');
         button.setAttribute('data-id', 'id');
+<<<<<<< HEAD
         button.setAttribute('data-bs-target', 'target');
         button.setAttribute('data-bs-toggle', 'toggle');
+=======
+        button.setAttribute('data-target', 'target');
+        button.setAttribute('data-toggle', 'toggle');
+>>>>>>> jest-code-cleanup
         document.body.appendChild(button);
         const modal = document.createElement('div');
         modal.classList.add('modal--deletetarget');

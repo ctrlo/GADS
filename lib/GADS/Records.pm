@@ -1408,13 +1408,16 @@ sub fetch_multivalues
                     # we don't do this.
                     my %colsd;
 
+                    my $limit_rows = !$col->is_curcommon || $params{chronology} ? 0 : $col->limit_rows;
                     foreach my $val ($col->fetch_multivalues(
                             \@retrieve_ids,
                             is_draft     => $params{is_draft},
                             rewind       => $self->rewind, # Would be better in a context object
                             already_seen => $already_seen,
+                            limit_rows   => $limit_rows,
                     ))
                     {
+                        $val->{has_more} = 0 if !$limit_rows;
                         my $field = "field$val->{layout_id}";
                         next if $cols_done->{$parent_field_this}->{$val->{layout_id}};
                         $multi->{$parent_field_this}->{$val->{record_id}}->{$field} ||= [];

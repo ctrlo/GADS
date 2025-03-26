@@ -1,6 +1,6 @@
 import "../../../testing/globals.definitions";
+import { fromJson, hideElement, initJquery, showElement } from "./common";
 import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
-import { fromJson, hideElement, showElement, initJquery } from "./common";
 
 describe('common functions', () => {
     describe('CSS and ARIA - skipped as they are incorrect',()=>{

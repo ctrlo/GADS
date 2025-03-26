@@ -23,7 +23,6 @@ export default function createDeleteButton(element: JQuery<HTMLElement>) {
                 throw `There is no modal with id: ${target}`
             }
         } catch (e) {
-            //@ts-expect-error - test is a global variable
             if(window.test)
                 throw e;
             else
@@ -31,6 +30,7 @@ export default function createDeleteButton(element: JQuery<HTMLElement>) {
             this.el.on('click', function (e: JQuery.ClickEvent) {
                 e.stopPropagation()
             });
+            if(window.test) throw e;
         }
 
         $deleteModal.find('.modal-title').text(modalTitle)

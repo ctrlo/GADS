@@ -1,6 +1,6 @@
 import {validateRequiredFields} from 'validation';
 import CreateReportButtonComponent from "./create-report-button";
-import {describe, expect, it, jest} from "@jest/globals";
+import {describe, expect, it, jest} from '@jest/globals';
 
 describe('create-report-button', () => {
     it('does not submit form if no checkboxes are checked', () => {

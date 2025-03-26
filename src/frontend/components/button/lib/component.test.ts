@@ -1,3 +1,4 @@
+import "../../../testing/globals.definitions";
 import { describe, it, expect} from "@jest/globals";
 import ButtonComponent from './component';
 

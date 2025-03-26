@@ -1051,6 +1051,7 @@ sub _find
                 records      => [$record],
                 is_draft     => $find{draftuser_id},
                 already_seen => $records->already_seen,
+                chronology   => 1,
             );
             my @changed;
             foreach my $column (@{$record->columns_render})
