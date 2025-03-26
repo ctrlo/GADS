@@ -24,9 +24,10 @@ export default function createDeleteButton(element: JQuery<HTMLElement>) {
             }
         } catch (e) {
             logging.error(e)
-            this.el.on('click', function (e: JQuery.ClickEvent) {
+            $(element).on('click', function (e: JQuery.ClickEvent) {
                 e.stopPropagation()
             });
+            if(window.test) throw e;
         }
 
         $deleteModal.find('.modal-title').text(modalTitle)

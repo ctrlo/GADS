@@ -1,5 +1,6 @@
 import "../../../testing/globals.definitions";
 import { fromJson, hideElement, showElement } from "./common";
+import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
 
 describe('common functions', () => {
     describe.skip('CSS and ARIA - skipped as they are incorrect',()=>{

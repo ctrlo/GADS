@@ -5,7 +5,7 @@ import buttonComponent from "../../components/button";
 import multipleSelectComponent from "../../components/form-group/multiple-select";
 import selectWidgetComponent from "../../components/form-group/select-widget";
 import textAreaComponent from "../../components/form-group/textarea";
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { setFieldValues } from "./set-field-values";
 
 declare global {
@@ -16,7 +16,9 @@ declare global {
 }
 
 (($)=>{
+    // @ts-ignore
     $.fn.renameButton = jest.fn().mockReturnThis();
+    // @ts-ignore
     $.fn.filedrag = jest.fn().mockReturnThis();
 })(jQuery);
 
