@@ -1,31 +1,47 @@
 import { Component } from 'component'
 
+/**
+ * Popover component
+ */
 class PopoverComponent extends Component {
-  constructor(element)  {
-      super(element)
-      this.el = $(this.element)
-      this.button = this.el.find('.popover__btn')
-      this.popover = this.el.find('.popover')
-      this.arrow = this.el.find('.arrow')
-      this.strShowClassName = 'show'
+  /**
+   * Create a new Popover Component
+   * @param {HTMLElement} element The element to create the popover on
+   */
+  constructor(element) {
+    super(element)
+    this.el = $(this.element)
+    this.button = this.el.find('.popover__btn')
+    this.popover = this.el.find('.popover')
+    this.arrow = this.el.find('.arrow')
+    this.strShowClassName = 'show'
 
-      this.initPopover(this.button)
+    this.initPopover(this.button)
   }
 
+  /**
+   * Initialize the popover
+   * @param {JQuery<HTMLButtonElement>} button The button to initialize the popover on
+   */
   initPopover(button) {
-      if (!button) {
-          return
-      }
+    if (!button) {
+      return
+    }
 
-      this.popover.removeClass(this.strShowClassName)
-      this.arrow.removeClass(this.strShowClassName)
-      button.on('click keydown', (ev) => {
-        if (ev.type === 'click' || (ev.type === 'keydown' && (ev.which === 13 || ev.which === 32))) {
-          ev.preventDefault()
-          this.handleClick(ev) }
-        })
+    this.popover.removeClass(this.strShowClassName)
+    this.arrow.removeClass(this.strShowClassName)
+    button.on('click keydown', (ev) => {
+      if (ev.type === 'click' || (ev.type === 'keydown' && (ev.which === 13 || ev.which === 32))) {
+        ev.preventDefault()
+        this.handleClick(ev)
+      }
+    })
   }
 
+  /**
+   * Handle the click event
+   * @param {JQuery.Event} ev The event that triggered the popover toggle
+   */
   handleClick(ev) {
     this.togglePopover()
     ev.stopPropagation();
@@ -41,8 +57,11 @@ class PopoverComponent extends Component {
     // })
   }
 
+  /**
+   * Toggle the popover
+   */
   togglePopover() {
-    
+
     if (this.popover.hasClass(this.strShowClassName)) {
       this.popover.removeClass(this.strShowClassName)
       this.arrow.removeClass(this.strShowClassName)
