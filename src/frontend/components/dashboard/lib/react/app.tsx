@@ -92,7 +92,7 @@ class App extends React.Component<any, any> {
     const arrGlobe = document.querySelectorAll(".globe");
     import('../../../globe/lib/component').then(({default: GlobeComponent}) => {
       arrGlobe.forEach((globe) => {
-        new GlobeComponent(globe)
+        new GlobeComponent(globe as HTMLElement)
       });
     });
   }
