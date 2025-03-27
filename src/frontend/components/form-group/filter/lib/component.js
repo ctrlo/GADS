@@ -6,8 +6,15 @@ import { logging } from 'logging'
 import TypeaheadBuilder from 'util/typeahead'
 import { refreshSelects } from 'components/form-group/common/bootstrap-select'
 
+/**
+ * Filter Component
+ */
 class FilterComponent extends Component {
-  constructor(element)  {
+  /**
+   * Create a new Filter Component
+   * @param {HTMLElement} element The element to initialize the component on
+   */
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.operators = [
@@ -88,6 +95,9 @@ class FilterComponent extends Component {
     this.initFilter()
   }
 
+  /**
+   * Initialize the filter component
+   */
   initFilter() {
     const self = this
     const $builderEl = this.el
@@ -118,17 +128,17 @@ class FilterComponent extends Component {
       }
     })
 
-    $builderEl.on('validationError.queryBuilder', function(e, node, error, value) {
+    $builderEl.on('validationError.queryBuilder', function (e, node, error, value) {
       logging.log(error);
       logging.log(value);
       logging.log(e);
       logging.log(node);
     });
 
-    $builderEl.on('afterCreateRuleInput.queryBuilder', function(e, rule) {
+    $builderEl.on('afterCreateRuleInput.queryBuilder', function (e, rule) {
       let filterConfig
 
-      builderConfig.filters.forEach(function(value) {
+      builderConfig.filters.forEach(function (value) {
         if (value.filterId === rule.filter.id) {
           filterConfig = value
           return false
@@ -154,15 +164,15 @@ class FilterComponent extends Component {
       })
 
       const filterCallback = (suggestion) => {
-        if(filterConfig.useIdInFilter) {
+        if (filterConfig.useIdInFilter) {
           $ruleInputHidden.val(suggestion.id)
-        }else {
+        } else {
           $ruleInputHidden.val(suggestion.name)
         }
       }
 
       // This is required to ensure that the correct query is sent each time
-      const buildQuery = () => {return {q:$ruleInputText.val(), oi:filterConfig.instanceId}}
+      const buildQuery = () => { return { q: $ruleInputText.val(), oi: filterConfig.instanceId } }
 
       const builder = new TypeaheadBuilder();
       builder
@@ -176,7 +186,7 @@ class FilterComponent extends Component {
         .build()
     })
 
-    if(filterBase) {
+    if (filterBase) {
       const data = atob(filterBase, 'base64')
       try {
         const obj = JSON.parse(data);
@@ -184,7 +194,7 @@ class FilterComponent extends Component {
           $builderEl.queryBuilder('setRules', obj)
         } else {
           // Ensure that no blank rules by default, otherwise view cannot be submitted
-          $builderEl.queryBuilder('setRules', {rules:[]})
+          $builderEl.queryBuilder('setRules', { rules: [] })
         }
       } catch (error) {
         logging.log('Incorrect data object passed to queryBuilder')
@@ -192,6 +202,12 @@ class FilterComponent extends Component {
     }
   }
 
+  /**
+   * Get the URL for the API endpoint
+   * @param {*} layoutId The layout ID
+   * @param {*} urlSuffix The suffix for the URL
+   * @returns {string} The URL
+   */
   getURL(layoutId, urlSuffix) {
     const devEndpoint = window.siteConfig && window.siteConfig.urls.filterApi
 
@@ -202,6 +218,9 @@ class FilterComponent extends Component {
     }
   }
 
+  /**
+   * Make the update filter function
+   */
   makeUpdateFilter() {
     window.UpdateFilter = (builder, ev) => {
       if (!builder.queryBuilder('validate')) ev.preventDefault();
@@ -210,18 +229,29 @@ class FilterComponent extends Component {
     }
   }
 
+  /**
+   * Build the filter object
+   * @param {object} builderConfig The builder configuration
+   * @param {*} col The column configuration
+   * @returns A filter object
+   */
   buildFilter = (builderConfig, col) => {
     return ({
-    id: col.filterId,
-    label: col.label,
-    type: 'string',
-    operators: this.buildFilterOperators(col.type),
-    ...(col.type === 'rag'
-      ? this.ragProperties
-      : {})
-  })
-}
+      id: col.filterId,
+      label: col.label,
+      type: 'string',
+      operators: this.buildFilterOperators(col.type),
+      ...(col.type === 'rag'
+        ? this.ragProperties
+        : {})
+    })
+  }
 
+  /**
+   * Build the filter operators
+   * @param {*} type The datatype
+   * @returns The filter operators
+   */
   buildFilterOperators(type) {
     if (!['date', 'daterange'].includes(type)) return undefined
     const operators = [
@@ -238,6 +268,14 @@ class FilterComponent extends Component {
     return operators
   }
 
+  /**
+   * Get the records from the API
+   * @param {*} layoutId The layout ID
+   * @param {*} urlSuffix The URL suffix
+   * @param {*} instanceId The instance ID
+   * @param {*} query The query
+   * @returns An AJAX request
+   */
   getRecords = (layoutId, urlSuffix, instanceId, query) => {
     return (
       $.ajax({
