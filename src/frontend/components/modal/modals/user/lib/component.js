@@ -1,27 +1,39 @@
 import { modal } from '../../../lib/modal'
 import ModalComponent from '../../../lib/component'
 
+/**
+ * User modal component
+ */
 class UserModalComponent extends ModalComponent {
-  constructor(element)  {
+  /**
+   * Create a new User Modal Component
+   * @param {HTMLElement} element The element to create the modal on
+   */
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.emailField = this.el.find('input[name="email"]')
     this.emailText = this.el.find('.js-email')
-    
+
     this.initUserModal()
   }
 
-  // Initialize the modal
+  /**
+   * Initialize the user modal
+   */
   initUserModal() {
-    this.el.on('show.bs.modal', (ev) => { 
+    this.el.on('show.bs.modal', (ev) => {
       this.toggleContent(ev)
-      modal.validate() 
+      modal.validate()
       this.updateEmail()
-      this.emailField.keyup( () => { this.updateEmail() })
+      this.emailField.on("keyup", () => { this.updateEmail() })
     })
   }
 
-  // Toggle the right content (add user or approve account)
+  /**
+   * Toggle the right content (add user or approve account)
+   * @param {JQuery.Event} ev The event that triggered the modal
+   */
   toggleContent(ev) {
     this.target = $(ev.relatedTarget)
     if (this.target.hasClass('btn-add')) {
@@ -34,7 +46,7 @@ class UserModalComponent extends ModalComponent {
     } else {
       this.el.find('.js-add-user').hide()
       this.el.find('.js-approve-account').show()
-      this.el.find('.btn-js-reject-request').show().on("click", ()=>{
+      this.el.find('.btn-js-reject-request').show().on("click", () => {
         this.activateFrame(4);
       })
       this.el.find('.btn-js-save .btn__title').html('Approve account')
@@ -42,12 +54,17 @@ class UserModalComponent extends ModalComponent {
     }
   }
 
-  // Update the text container for the email address
+  /**
+   * Update the text container for the email address
+   */
   updateEmail() {
     this.emailText.html(this.emailField.val())
   }
 
-  // Get all data from all fields in the modal
+  /**
+   * Get all data from all fields in the modal
+   * @returns {Object} The data from the form
+   */
   getData() {
     const data = {
       view_limits: [],
@@ -65,7 +82,7 @@ class UserModalComponent extends ModalComponent {
             data[$(field).attr('name')] = fieldValue
           }
         }
-      } else if ($(field).val()|| $(field).value) {
+      } else if ($(field).val() || $(field).value) {
         const fieldValue = $(field).val() || $(field).value
         const fieldParsedValue = isNaN(fieldValue) ? this.parseValue(fieldValue) : parseInt(fieldValue)
         if (Array.isArray(data[$(field).attr('name')])) {
@@ -79,33 +96,49 @@ class UserModalComponent extends ModalComponent {
     return data
   }
 
+  /**
+   * Parse a string value to a boolean
+   * @param {'true'|'false'|undefined} val The value to parse
+   * @returns {boolean} A boolean value
+   */
   parseValue(val) {
-    return val === 'true' ? true : val === 'false' ? false : val 
+    // Hadn't we may as well just use this inline?
+    return Boolean.parseValue(val)
   }
 
-  // Handle save
+  /**
+   * Handle save
+   */
   handleSave() {
     modal.upload(this.getData())
   }
 
-  // Handle close
+  /**
+   * Handle close
+   */
   handleClose() {
     super.handleClose()
     this.emailText.html("USER")
   }
 
+  /**
+   * Handle back
+   */
   handleBack() {
     super.handleBack()
-    if(this.target.hasClass('btn-add')) return;
-    this.el.find('.btn-js-reject-request').off().on("click", ()=>{
+    if (this.target.hasClass('btn-add')) return;
+    this.el.find('.btn-js-reject-request').off().on("click", () => {
       this.activateFrame(4);
     });
   }
 
+  /**
+   * Handle next
+   */
   handleNext() {
     super.handleNext()
-    if(this.target.hasClass('btn-add')) return;
-    this.el.find('.btn-js-reject-request').off().on("click", ()=>{
+    if (this.target.hasClass('btn-add')) return;
+    this.el.find('.btn-js-reject-request').off().on("click", () => {
       this.activateFrame(4);
     });
   }
