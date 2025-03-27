@@ -5,7 +5,7 @@
 /**
  * Array of actions to be handled
  */
-const actions: (()=>void)[] = [];
+const actions: (() => void)[] = [];
 
 /**
  * Add an action to the handler

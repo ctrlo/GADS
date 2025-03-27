@@ -30,4 +30,4 @@ export const clearAutorecoverAction = async () => {
 /**
  * Action handler for when a record is created or updated - only runs outside of a test environment
  */
-if(!window.test) addAction(clearAutorecoverAction);
+if (!window.test) addAction(clearAutorecoverAction);
