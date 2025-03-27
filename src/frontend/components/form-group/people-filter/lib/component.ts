@@ -19,12 +19,22 @@ interface FilterSettings {
     allow_empty: boolean;
 }
 
+/**
+ * People filter component
+ */
 class PeopleFilterComponent extends Component {
+    /**
+     * Create a new people filter component
+     * @param element The element to attach the people filter component to
+     */
     constructor(public element: HTMLElement) {
         super(element);
         this.init();
     }
 
+    /**
+     * Initialize the people filter component
+     */
     init() {
         const elementData = $(this.element).data('filters');
         const peopleDisplayData = $('#people-display').data('filter-base64');
