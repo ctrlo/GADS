@@ -1,12 +1,9 @@
+import { stringLike } from "./types";
+
 /**
  * Type to represent a string of LUA code.
  */
 type LUACode = string;
-
-/**
- * Anything with a toString method.
- */
-type stringLike = { toString(): string };
 
 /**
  * This is currently to purely mark where we expect LUA code to be present
@@ -25,4 +22,4 @@ function LUA(strings: TemplateStringsArray, ...values: (stringLike | string | nu
     return str;
 }
 
-export {LUACode, LUA};
+export { LUACode, LUA };

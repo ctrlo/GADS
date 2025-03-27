@@ -5,7 +5,7 @@
  */
 type ProgressFunction = (loaded: number, total: number) => void;
 
-type RequestMethod = "PUT"|"POST"|"GET"|"DELETE"|"PATCH";
+type RequestMethod = "PUT" | "POST" | "GET" | "DELETE" | "PATCH";
 
 /**
  * Type to represent an object similar to an XMLHttpRequest object
@@ -45,6 +45,11 @@ class Uploader {
     private url: string | URL;
     private method: RequestMethod;
 
+    /**
+     * Create a new Uploader class
+     * @param url The url to upload to
+     * @param method The method to use, either POST, PUT, GET, PATCH, or DELETE
+     */
     constructor(url: string | URL, method: RequestMethod) {
         this.url = url;
         this.method = method;
@@ -60,6 +65,7 @@ class Uploader {
 
     /**
      * Upload form data to a server endpoint
+     * @async
      * @param data The form data or JSON object to upload
      * @returns A promise that resolves to the JSON response from the server
      */

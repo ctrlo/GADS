@@ -68,7 +68,7 @@ class SelectWidgetComponent extends Component {
 
     $(document).on("click", (e) => { this.handleDocumentClick(e) })
 
-    $(document).off(function (e) {
+    $(document).on('keyup',function (e) {
       if (e.key == "Escape") {
         this.collapse(this.$widget, this.$trigger, this.$target)
       }
@@ -102,9 +102,6 @@ class SelectWidgetComponent extends Component {
     })
   }
 
-  /**
-   * Handle widget click
-   */
   handleWidgetClick() {
     if (this.$trigger.attr("aria-expanded") === "true") {
       this.collapse(this.$widget, this.$trigger, this.$target)
@@ -113,10 +110,6 @@ class SelectWidgetComponent extends Component {
     }
   }
 
-  /**
-   * Handle click on a document element
-   * @param {JQuery.Event} e The event object
-   */
   handleDocumentClick(e) {
     const clickedOutside = !this.el.is(e.target) && this.el.has(e.target).length === 0
     if (clickedOutside) {
@@ -124,10 +117,6 @@ class SelectWidgetComponent extends Component {
     }
   }
 
-  /**
-   * Handle a keyup event
-   * @param {JQuery.Event} e The event object
-   */
   handleKeyUp(e) {
     const searchValue = $(e.target)
       .val()
@@ -330,7 +319,7 @@ class SelectWidgetComponent extends Component {
               if (nextItem) {
                 $(nextItem)
                   .find("input")
-                  .focus()
+                  .trigger("focus")
               }
 
               break
@@ -723,7 +712,7 @@ class SelectWidgetComponent extends Component {
     $target.removeAttr("hidden")
 
     if (this.$search.get(0) !== document.activeElement) {
-      this.$search.trigger('focus')
+      this.$search.focus()
     }
   }
 }
