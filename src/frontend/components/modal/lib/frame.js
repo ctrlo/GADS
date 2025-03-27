@@ -1,3 +1,16 @@
+/**
+ * Frame class
+ * @property {number} object - configuration object of the frame
+ * @property {number} step - number of the step
+ * @property {number} number - frame number
+ * @property {number} item - item name of the frame
+ * @property {number} skip - number of the frame to skip to
+ * @property {number} back - number of the frame to go back to
+ * @property {JQuery<HTMLElement>} requiredFields - required fields of the frame
+ * @property {boolean} isValid - if the frame is valid
+ * @property {Array} error - error messages
+ * @property {object} buttons - buttons on the frame
+ */
 class Frame {
   constructor(frame, previousFrameNumber) {
     this.object = frame
