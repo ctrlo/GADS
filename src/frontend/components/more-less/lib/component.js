@@ -3,26 +3,44 @@ import { Component } from 'component'
 import { setupDisclosureWidgets } from "./disclosure-widgets";
 import { moreLess } from './more-less';
 
+/**
+ * Maximum height for a more/less element
+ */
 const MAX_HEIGHT = 50
 
+/**
+ * More/Less component
+ */
 class MoreLessComponent extends Component {
-
-  constructor(element)  {
+  /**
+   * Create a new More/Less Component
+   * @param {HTMLElement} element The element to create the more/less on
+   */
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.clearMoreLess()
     this.initMoreLess()
   }
 
+  /**
+   * Generate a UUID
+   * @returns {string} A UUID
+   * @deprecated Use `crypto.randomUUID()` instead
+   */
   uuid() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
       const r = (Math.random() * 16) | 0,
         v = c == 'x' ? r : (r & 0x3) | 0x8
       return v.toString(16)
     })
   }
 
-  // Traverse up through the tree and find the parent element that is hidden
+  /**
+   * Traverse up through the tree and find the parent element that is hidden
+   * @param {*} $elem The element to traverse from
+   * @returns The parent element that is hidden
+   */
   parentHidden($elem) {
     // Test parent first in case we have reached the root of the DOM, in which
     // case .css() will throw an error on the element
@@ -39,6 +57,11 @@ class MoreLessComponent extends Component {
   // We previously used a plugin for this
   // (https://github.com/dreamerslab/jquery.actual) but its performance was slow
   // when a page had many more-less divs
+  /**
+   * Get the actual height of an element
+   * @param {*} $elem The element to get the actual height of
+   * @returns The actual height of the element
+   */
   getActualHeight($elem) {
     if ($elem.attr('data-actual-height')) {
       // cached heights from previous runs
@@ -65,10 +88,9 @@ class MoreLessComponent extends Component {
     // Add a unique identifier to each more-less class, before cloning. Once we
     // measure the height on the cloned elements, we can apply the height as a
     // data value to its real equivalent element using this unique class.
-    const self = this
-    $parent.find('.more-less').each(function() {
+    $parent.find('.more-less').each(function () {
       const $e = $(this)
-      $e.addClass('more-less-id-' + self.uuid())
+      $e.addClass('more-less-id-' + crypto.randomUUID())
     })
 
     // Clone the element and show it to find out its height
@@ -80,10 +102,10 @@ class MoreLessComponent extends Component {
 
     // The cloned element could contain many other hidden more-less divs, so do
     // them all at the same time to improve performance
-    $clone.find('.more-less').each(function() {
+    $clone.find('.more-less').each(function () {
       const $ml = $(this)
       const classList = $ml.attr('class').split(/\s+/)
-      $.each(classList, function(index, item) {
+      $.each(classList, function (index, item) {
         if (item.indexOf('more-less-id') >= 0) {
           const $toset = $parent.find('.' + item)
           // Can't use data() as it can't be re-read
@@ -97,11 +119,17 @@ class MoreLessComponent extends Component {
     return $elem.attr('data-actual-height')
   }
 
+  /**
+   * Re-initialise the more/less component
+   */
   reInitMoreLess() {
     this.clearMoreLess()
     this.initMoreLess()
   }
 
+  /**
+   * Clear the more/less component
+   */
   clearMoreLess() {
     const $ml = $(this.el)
 
@@ -114,7 +142,10 @@ class MoreLessComponent extends Component {
     }
   }
 
-  initMoreLess() {    
+  /**
+   * Initialise the more/less component
+   */
+  initMoreLess() {
     const $ml = $(this.el)
     const column = $ml.data('column')
     const content = $ml.html()
@@ -147,7 +178,7 @@ class MoreLessComponent extends Component {
       'data-label-collapsed': toggleLabel
     })
 
-    $expandToggle.on('toggle', function(e, state) {
+    $expandToggle.on('toggle', function (e, state) {
       const windowWidth = $(window).width()
       const leftOffset = $expandable.offset().left
       const minWidth = 400
