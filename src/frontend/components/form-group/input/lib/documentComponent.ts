@@ -18,11 +18,18 @@ interface RenameResponse {
     is_ok: boolean;
 }
 
+/**
+ * Document component
+ */
 class DocumentComponent {
     readonly type = 'document';
     readonly el: JQuery<HTMLElement>;
     readonly fileInput: JQuery<HTMLInputElement>;
 
+    /**
+     * Create a new document component
+     * @param el The element to attach the document component to
+     */
     constructor(el: JQuery<HTMLElement> | HTMLElement) {
         this.el = $(el);
         this.el.closest('.fieldset').find('.rename').renameButton().on('rename', async (ev: RenameEvent) => {
@@ -33,6 +40,9 @@ class DocumentComponent {
         this.fileInput = this.el.find<HTMLInputElement>('.form-control-file');
     }
 
+    /**
+     * Initialize the document component
+     */
     async init() {
         const url = this.el.data('fileupload-url');
 
@@ -69,7 +79,12 @@ class DocumentComponent {
         });
     }
 
-    showProgress(loaded, total) {
+    /**
+     * Show the progress of a load
+     * @param loaded The amount of data loaded
+     * @param total The total amount of data to load
+     */
+    showProgress(loaded: number, total: number) {
         let uploadProgression = (loaded / total) * 100;
         if (uploadProgression == Infinity) {
             // This will occur when there is an error uploading the file or the file is empty
@@ -82,6 +97,12 @@ class DocumentComponent {
         this.el.find('.progress-bar__progress').css('width', `${uploadProgression}%`);
     }
 
+    /**
+     * Handle the file upload
+     * @param uri The uri to upload the file to
+     * @param csrf_token The csrf token
+     * @param file The file to upload
+     */
     async handleAjaxUpload(uri: string, csrf_token: string, file: File) {
         try {
             if (!file) this.showException(new Error('No file provided'));
@@ -96,6 +117,10 @@ class DocumentComponent {
         }
     }
 
+    /**
+     * Add a file to the field
+     * @param file The file to add to the field
+     */
     addFileToField(file: { id: number | string; name: string }) {
         const $fieldset = this.el.closest('.fieldset');
         const $ul = $fieldset.find('.fileupload__files');
@@ -135,6 +160,14 @@ class DocumentComponent {
         });
     }
 
+    /**
+     * Rename a file
+     * @param fileId The ID of the file to rename
+     * @param oldName The old name of the file
+     * @param newName The new name of the file
+     * @param csrf_token The CSRF token
+     * @param is_new Is this a new file?
+     */
     private async renameFile(fileId: number, oldName: string, newName: string, csrf_token: string, is_new: boolean = false) { // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why, so I've used the button itself
         try {
             this.hideException();
@@ -156,11 +189,18 @@ class DocumentComponent {
         }
     }
 
+    /**
+     * Show the progress bar container
+     */
     showContainer() {
         const container = $(this.el.find('.progress-bar__container'))
         container.show()
     }
 
+    /**
+     * Show an exception
+     * @param e The exception to show
+     */
     showException(e: any) {
         this.showContainer();
         logging.info('Error uploading file', e);
@@ -171,6 +211,9 @@ class DocumentComponent {
         this.el.find('.progress-bar__percentage').html(error);
     }
 
+    /**
+     * Hide the exception
+     */
     hideException() {
         this.el.find('.progress-bar__container')
             .css('width', undefined)
