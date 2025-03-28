@@ -1,17 +1,32 @@
 import { marked } from "marked";
 import { Component } from "component";
 
+/**
+ * Markdown Component
+ */
 class MarkdownComponent extends Component {
+  /**
+   * Create a new Markdown Component
+   * @param {HTMLElement} element The element to attach the component to
+   */
   constructor(element) {
     super(element);
     this.initMarkdownEditor();
   }
 
+  /**
+   * Render markdown
+   * @param {string} md The markdown to render
+   * @returns A string of HTML representing the rendered markdown
+   */
   renderMarkdown(md) {
     const mdEncoded = $('<span>').text(md).html()
-    return marked(mdEncoded, {async: false});
+    return marked(mdEncoded, { async: false });
   }
 
+  /**
+   * Initialize the markdown editor
+   */
   initMarkdownEditor() {
     marked.use({ breaks: true });
 
@@ -23,7 +38,7 @@ class MarkdownComponent extends Component {
         $preview.html(htmlText);
       }
     });
-    $textArea.keyup(() => {
+    $textArea.on("keyup", () => {
       const markdownText = $textArea.val();
       if (!markdownText || markdownText === "") {
         $preview.html('<p class="text-info">Nothing to preview!</p>');

@@ -1,4 +1,10 @@
-const positionDisclosure = function(offsetTop, offsetLeft, triggerHeight) {
+/**
+ * Position the disclosure popover below the trigger element
+ * @param {number} offsetTop The top offset of the trigger element
+ * @param {number} offsetLeft The left offset of the trigger element
+ * @param {number} triggerHeight The height of the trigger element
+ */
+const positionDisclosure = function (offsetTop, offsetLeft, triggerHeight) {
   const left = offsetLeft + 'px'
   const top = offsetTop + triggerHeight + 'px'
 
@@ -24,7 +30,14 @@ const positionDisclosure = function(offsetTop, offsetLeft, triggerHeight) {
   }
 }
 
-const toggleDisclosure = function(e, $trigger, state, permanent) {
+/**
+ * Toggle the state of a disclosure
+ * @param {JQuery.Event} e The event that triggered the disclosure toggle
+ * @param {JQuery<HTMLElement>} $trigger The element that triggered the disclosure toggle
+ * @param {boolean} state The state of the disclosure (true for expanded, false for collapsed)
+ * @param {boolean} permanent Is the disclosure permanently expanded
+ */
+const toggleDisclosure = function (e, $trigger, state, permanent) {
   $trigger.attr('aria-expanded', state)
   $trigger.toggleClass('expanded--permanent', state && permanent)
 
@@ -61,13 +74,21 @@ const toggleDisclosure = function(e, $trigger, state, permanent) {
   e.stopPropagation()
 }
 
-const onDisclosureClick = function(e) {
+/**
+ * Handle a click event on a disclosure trigger
+ * @param {JQuery.Event} e The event that triggered the disclosure toggle
+ */
+const onDisclosureClick = function (e) {
   const $trigger = $(this)
   const currentlyPermanentExpanded = $trigger.hasClass('expanded--permanent')
   toggleDisclosure(e, $trigger, !currentlyPermanentExpanded, true)
 }
 
-const onDisclosureMouseover = function(e) {
+/**
+ * Handle a mouseover event on a disclosure trigger
+ * @param {JQuery.Event} e The event that triggered the disclosure toggle
+ */
+const onDisclosureMouseover = function (e) {
   const $trigger = $(this)
   const currentlyExpanded = $trigger.attr('aria-expanded') === 'true'
 
@@ -76,7 +97,11 @@ const onDisclosureMouseover = function(e) {
   }
 }
 
-const onDisclosureMouseout = function(e) {
+/**
+ * Handle a mouseout event on a disclosure trigger
+ * @param {JQuery.Event} e The event that triggered the disclosure toggle
+ */
+const onDisclosureMouseout = function (e) {
   const $trigger = $(this)
   const currentlyExpanded = $trigger.attr('aria-expanded') === 'true'
   const currentlyPermanentExpanded = $trigger.hasClass('expanded--permanent')
@@ -86,8 +111,12 @@ const onDisclosureMouseout = function(e) {
   }
 }
 
-const setupDisclosureWidgets = function(context) {
-  $('.trigger[aria-expanded]', context).on('click keydown', function(ev) {
+/**
+ * Setup all disclosure widgets within a given context
+ * @param {*} context The context in which to search for disclosure widgets
+ */
+const setupDisclosureWidgets = function (context) {
+  $('.trigger[aria-expanded]', context).on('click keydown', function (ev) {
     if (ev.type === 'click' || (ev.type === 'keydown' && (ev.which === 13 || ev.which === 32))) {
       ev.preventDefault();
       onDisclosureClick.call(this, ev);

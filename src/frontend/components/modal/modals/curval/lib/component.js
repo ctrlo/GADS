@@ -6,21 +6,27 @@ import { validateRadioGroup, validateCheckboxGroup } from 'validation'
 import { fromJson } from 'util/common'
 import StorageProvider from 'util/storageProvider'
 
-function Guid() {
-  return crypto.randomUUID();
-}
-
+/**
+ * Curval modal component
+ */
 class CurvalModalComponent extends ModalComponent {
 
+  /** Allow reinitialization */
   static get allowReinitialization() { return true }
 
-  constructor(element)  {
+  /**
+   * Create a curval modal component
+   * @param {HTMLElement} element The element to attach the component to
+   */
+  constructor(element) {
     super(element)
     this.context = undefined // Populated on modal show
     if (!this.wasInitialized) this.initCurvalModal()
   }
 
-  // Initialize the modal
+  /**
+   * Initialize the curval modal component
+   */
   initCurvalModal() {
     this.setupModal()
     this.setupSubmit()
@@ -30,6 +36,11 @@ class CurvalModalComponent extends ModalComponent {
   // function opens a modal edit for each curval, makes the changes, and then
   // submits. It does this synchronously so that the modal is only processing
   // one curval value at a time
+  /**
+   * Set the value of a curval
+   * @param {HTMLElement} $target The target to set the value of
+   * @param {*} rows The rows to set the value to
+   */
   setValue($target, rows) {
     const layout_id = $target.data("column-id")
     const $m = this.el
@@ -42,7 +53,7 @@ class CurvalModalComponent extends ModalComponent {
     function autosaveLoadValue() {
 
       if (index >= rows.length) return // Finished?
-      
+
       const id = location.pathname.split("/").pop()
       const record_id = isNaN(parseInt(id)) ? 0 : parseInt(id)
 
@@ -52,14 +63,14 @@ class CurvalModalComponent extends ModalComponent {
       // New records will have a GUID rather than record ID
       let guid
       if (!/^\d+$/.test(current_id)) {
-          guid = current_id
-          current_id = null
+        guid = current_id
+        current_id = null
       }
       const instance_name = $target.data("curval-instance-name")
       // Load the modal and load each value into its fields
-      $m.find(".modal-body").load(self.getURL(current_id, instance_name, layout_id), function(){
+      $m.find(".modal-body").load(self.getURL(current_id, instance_name, layout_id), function () {
         initializeRegisteredComponents($m.get(0))
-        $m.find('.linkspace-field').each(function(){
+        $m.find('.linkspace-field').each(function () {
           const $field = $(this)
           const key = `linkspace-column-${$field.data('column-id')}-${$('body').data('layout-identifier')}-${record_id}`
           const vals = values[key]
@@ -75,6 +86,11 @@ class CurvalModalComponent extends ModalComponent {
     }
   }
 
+  /**
+   * Validation succeeded
+   * @param {JQuery<HTMLFormElement>} form The form to validate
+   * @param {*} values The values to validate
+   */
   async curvalModalValidationSucceeded(form, values) {
     const form_data = form.serialize()
     const modal_field_ids = form.data("modal-field-ids")
@@ -82,12 +98,12 @@ class CurvalModalComponent extends ModalComponent {
     let guid = form.data("guid")
     const $formGroup = $("div[data-column-id=" + col_id + "]")
     const valueSelector = $formGroup.data("value-selector")
-    const self=this
+    const self = this
     const $field = $(`#curval_list_${col_id}`).closest('.linkspace-field')
     const current_id = form.data('current-id')
 
     const textValue = jQuery
-      .map(modal_field_ids, function(element) {
+      .map(modal_field_ids, function (element) {
         const value = values["field" + element]
         return $("<div />")
           .text(value)
@@ -100,7 +116,7 @@ class CurvalModalComponent extends ModalComponent {
       // No strict requirement for alias here, but it is needed below, so for the sake of consistency
       const row_cells = $('<tr class="table-curval-item">', self.context)
 
-      jQuery.map($field.data("modal-field-ids"), function(element) {
+      jQuery.map($field.data("modal-field-ids"), function (element) {
         let value = values["field" + element]
         value = $("<div />").text(value).html()
         row_cells.append(
@@ -112,8 +128,8 @@ class CurvalModalComponent extends ModalComponent {
       const instance_name = $field.data("curval-instance-name")
       const editButton = $(
         `<td>
-          <button type="button" class="btn btn-small btn-link btn-js-curval-modal" data-toggle="modal" data-target="#curvalModal" data-layout-id="${col_id}"
-                data-instance-name="${instance_name}" ${current_id ? `data-current-id="${current_id}"`:``}>
+          <button type="button" class="btn btn-small btn-link btn-js-curval-modal" data-bs-toggle="modal" data-bs-target="#curvalModal" data-layout-id="${col_id}"
+                data-instance-name="${instance_name}" ${current_id ? `data-current-id="${current_id}"` : ``}>
             <span class="btn__title">Edit</span>
           </button>
           </td>`,
@@ -134,8 +150,8 @@ class CurvalModalComponent extends ModalComponent {
       // guids in the autosave
       let is_new_row
       if (!guid && !current_id) {
-          guid = Guid()
-          is_new_row = true
+        guid = Guid()
+        is_new_row = true
       }
       const hidden_input = $("<input>").attr({
         type: "hidden",
@@ -180,21 +196,21 @@ class CurvalModalComponent extends ModalComponent {
       const deleteButton = multi
         ? '<button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times</button>'
         : ""
-      
-        $search.before(
+
+      $search.before(
         `<li data-list-item="${id}" data-list-text="${textValue}" data-form-data="${form_data}" data-guid="${guid}"><span class="widget-value__value">${textValue}</span>${deleteButton}</li>`
       ).before(' ') // Ensure space between elements in widget
 
       const inputType = multi ? "checkbox" : "radio"
       const strRequired = required ?
-          `required="required" aria-required="true" aria-errormessage="${$widget.attr('id')}-err"` :
-          ``
+        `required="required" aria-required="true" aria-errormessage="${$widget.attr('id')}-err"` :
+        ``
 
       $answersList.append(`<li class="answer" role="option">
         <div class="control">
-          <div class="${ multi ? "checkbox" : "radio-group__option" }">
-            <input ${strRequired} id="${id}" name="field${col_id}" type="${inputType}" value="${form_data}" class="${ multi ? "" : "radio-group__input" }" checked aria-labelledby="${id}_label">
-            <label id="${id}_label" for="${id}" class="${ multi ? "" : "radio-group__label" }">
+          <div class="${multi ? "checkbox" : "radio-group__option"}">
+            <input ${strRequired} id="${id}" name="field${col_id}" type="${inputType}" value="${form_data}" class="${multi ? "" : "radio-group__input"}" checked aria-labelledby="${id}_label">
+            <label id="${id}_label" for="${id}" class="${multi ? "" : "radio-group__label"}">
               <span>${textValue}</span>
             </label>
           </div>
@@ -225,7 +241,7 @@ class CurvalModalComponent extends ModalComponent {
     const identifier = current_id || guid
     // "existing" is the existing values for this curval
     // Pull out the current record if it exists
-    let existing_row = existing.filter((item) => item.identifier == identifier)[0] || {identifier: identifier}
+    let existing_row = existing.filter((item) => item.identifier == identifier)[0] || { identifier: identifier }
     // And then remove it from the array so that we can re-add it in a moment
     existing = existing.filter((item) => Number.isInteger(item) || item.identifier != identifier)
     // Retrieve all the changes from the modal record form
@@ -246,6 +262,12 @@ class CurvalModalComponent extends ModalComponent {
     $formGroup.trigger("change", true)
   }
 
+  /**
+   * Update the widget state
+   * @param {*} $widget The widget to update
+   * @param {*} multi Is the field a multi
+   * @param {*} required Is the field required
+   */
   updateWidgetState($widget, multi, required) {
     const $current = $widget.find(".current")
     const $visible = $current.children("[data-list-item]:not([hidden])")
@@ -261,6 +283,11 @@ class CurvalModalComponent extends ModalComponent {
     }
   }
 
+  /**
+   * Validation failure
+   * @param {*} form The form that has failed validation
+   * @param {*} errorMessage The error message
+   */
   curvalModalValidationFailed(form, errorMessage) {
     form
       .find(".alert")
@@ -273,8 +300,11 @@ class CurvalModalComponent extends ModalComponent {
     form.find("button[type=submit]").prop("disabled", false)
   }
 
+  /**
+   * Setup the modal
+   */
   setupModal() {
-    this.el.on('show.bs.modal', (ev) => { 
+    this.el.on('show.bs.modal', (ev) => {
       const button = ev.relatedTarget
       const $field = $(button).closest('.linkspace-field')
       const layout_id = $field.data("column-id")
@@ -310,7 +340,7 @@ class CurvalModalComponent extends ModalComponent {
 
       $m.find(".modal-body").load(
         this.getURL(current_id, instance_name, layout_id, form_data),
-        function() {
+        function () {
           if (mode === "edit") {
             $m.find("form").data("guid", guid)
           }
@@ -318,7 +348,7 @@ class CurvalModalComponent extends ModalComponent {
         }
       )
 
-      $m.on("focus", ".datepicker", function() {
+      $m.on("focus", ".datepicker", function () {
         $(this).datepicker({
           format: $m.attr("data-dateformat-datepicker"),
           autoclose: true
@@ -327,12 +357,20 @@ class CurvalModalComponent extends ModalComponent {
 
       $m.off('hide.bs.modal')
         .on('hide.bs.modal', () => {
-        return confirm("Closing this dialogue will cancel any work. Are you sure you want to do so?")
-      })
+          return confirm("Closing this dialogue will cancel any work. Are you sure you want to do so?")
+        })
     })
 
   }
 
+  /**
+   * Get a URL for the record
+   * @param {*} current_id Current ID of the record
+   * @param {*} instance_name Instance name
+   * @param {*} layout_id The layout ID of the record
+   * @param {*} form_data The form data
+   * @returns A string url
+   */
   getURL(current_id, instance_name, layout_id, form_data) {
 
     let url = current_id
@@ -344,10 +382,13 @@ class CurvalModalComponent extends ModalComponent {
     return url
   }
 
+  /**
+   * Setup form submission
+   */
   setupSubmit() {
     const self = this
 
-    $(this.element).on("submit", ".curval-edit-form", function(e, autosaveLoadValue) {
+    $(this.element).on("submit", ".curval-edit-form", function (e, autosaveLoadValue) {
       // Don't show close warning when user clicks submit button
       self.el.off('hide.bs.modal')
 
@@ -367,36 +408,36 @@ class CurvalModalComponent extends ModalComponent {
         $.post(
           url,
           form_data,
-          function(data) {
-            const fieldId=$form.data("curval-id")
-            const $field = $('[data-column-type="curval"][data-column-id="'+fieldId+'"]');
+          function (data) {
+            const fieldId = $form.data("curval-id")
+            const $field = $('[data-column-type="curval"][data-column-id="' + fieldId + '"]');
             if (data.error === 0) {
               const e = $.Event('validationPassed');
               $field.trigger(e);
               self.curvalModalValidationSucceeded($form, data.values)
             } else {
-              if(autosaveLoadValue) {
+              if (autosaveLoadValue) {
                 const e = $.Event("validationFailed", { message: data.message || "Something went wrong!" });
                 $field.trigger(e);
                 // We still allow the form to submit as if it was correct
                 self.curvalModalValidationSucceeded($form, data.values);
               } else {
                 const errorMessage =
-                data.error === 1 ? data.message : "Oops! Something went wrong."
+                  data.error === 1 ? data.message : "Oops! Something went wrong."
                 self.curvalModalValidationFailed($form, errorMessage)
               }
             }
           },
           "json"
         )
-        .fail(function(jqXHR, textstatus, errorthrown) {
-          const errorMessage = `Oops! Something went wrong: ${textstatus}: ${errorthrown}`
-          self.curvalModalValidationFailed($form, errorMessage)
-        })
-        .always(function() {
-          $form.removeClass("edit-form--validating")
-          if (autosaveLoadValue) autosaveLoadValue()
-        })
+          .fail(function (jqXHR, textstatus, errorthrown) {
+            const errorMessage = `Oops! Something went wrong: ${textstatus}: ${errorthrown}`
+            self.curvalModalValidationFailed($form, errorMessage)
+          })
+          .always(function () {
+            $form.removeClass("edit-form--validating")
+            if (autosaveLoadValue) autosaveLoadValue()
+          })
       }
     })
   }

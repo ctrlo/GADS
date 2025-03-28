@@ -24,11 +24,11 @@ describe('Element factory tests', () => {
         expect(result).toEqual(expected);
     });
 
-    it('Should create a DIV element with multiple Classes', () =>{
-        const el=document.createElement('div');
-        el.classList.add("testClass","testClass2");
+    it('Should create a DIV element with multiple Classes', () => {
+        const el = document.createElement('div');
+        el.classList.add("testClass", "testClass2");
         const expected = $(el);
-        const result = createElement('div', {classList: ['testClass', 'testClass2']});
+        const result = createElement('div', { classList: ['testClass', 'testClass2'] });
         expect(result).toEqual(expected);
     });
 
@@ -36,7 +36,7 @@ describe('Element factory tests', () => {
         const el = document.createElement('input');
         el.type = 'text';
         const expected = $(el);
-        const result = createElement('input', {type: 'text'});
+        const result = createElement('input', { type: 'text' });
         expect(result).toEqual(expected);
     });
 });

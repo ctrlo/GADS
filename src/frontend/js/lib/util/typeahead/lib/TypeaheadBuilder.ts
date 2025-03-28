@@ -2,7 +2,7 @@ import { MapperFunction, map } from "util/mapper/mapper";
 import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
 import { Typeahead } from "./Typeahead";
 
-type TypeaheadCallback = (suggestion: {name:string, id:number}) => void;
+type TypeaheadCallback = (suggestion: { name: string, id: number }) => void;
 
 /**
  * TypeaheadBuilder class for building Typeahead class
@@ -23,7 +23,7 @@ export class TypeaheadBuilder {
     private ajaxSource: string;
     private appendQuery: boolean;
     private data: any;
-    private mapper: MapperFunction = (data: any) => {return data.map(d=> {return {name: d.name, id: d.id}})};
+    private mapper: MapperFunction = (data: any) => { return data.map((d: { name: any, id: any }) => { return { name: d.name, id: d.id } }) };
     private dataBuilder: Function;
 
     /**
@@ -114,7 +114,7 @@ export class TypeaheadBuilder {
      * @param dataBuilderFunction The function to be used to build the data to be sent with the ajax request
      * @returns The builder being used
      */
-    withDataBuilder(dataBuilderFunction:Function) {
+    withDataBuilder(dataBuilderFunction: Function) {
         this.data = undefined;
         this.dataBuilder = dataBuilderFunction;
         return this;

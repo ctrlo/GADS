@@ -2,7 +2,14 @@ import { Component } from 'component'
 import 'jstree'
 import { initValidationOnField, validateTree } from 'validation'
 
+/**
+ * Tree component
+ */
 class TreeComponent extends Component {
+  /**
+   * Create a new Tree component
+   * @param {HTMLElement} element The element to attach the component to
+   */
   constructor(element) {
     super(element)
     this.el = $(this.element)
@@ -24,6 +31,9 @@ class TreeComponent extends Component {
     }
   }
 
+  /**
+   * Initialize the tree component
+   */
   initTree() {
     const idsAsParams = this.$treeContainer.data('ids-as-params')
     const treeConfig = {
@@ -84,6 +94,12 @@ class TreeComponent extends Component {
     this.$treeContainer.jstree(true).settings.checkbox.cascade = 'undetermined'
   }
 
+  /**
+   * Get the data for the tree
+   * @param {*} id The ID of the tree
+   * @param {*} idsAsParams The IDs as params
+   * @returns a data object with the URL and data to fetch the tree data
+   */
   getData(id, idsAsParams) {
     const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi
     const layout_identifier = $('body').data('layout-identifier')
@@ -105,6 +121,11 @@ class TreeComponent extends Component {
     )
   }
 
+  /**
+   * Handle the select event
+   * @param {JQuery.Event} e The event object (unused)
+   * @param {*} data The tree data
+   */
   handleSelect(e, data) {
     if (data.node.children.length == 0) {
       return
@@ -117,6 +138,11 @@ class TreeComponent extends Component {
     }
   }
 
+  /**
+   * Handle a change to the tree
+   * @param {JQuery.Event} e The event object
+   * @param {*} data The tree data
+   */
   handleChange(e, data) {
     // remove all existing hidden value fields
     this.$treeContainer.nextAll('.selected-tree-value').remove()
@@ -143,6 +169,10 @@ class TreeComponent extends Component {
       this.$treeContainer.trigger('change')
   }
 
+  /**
+   * Set up the JS tree buttons
+   * @param {JQuery<HTMLElement>} $treeContainer The container for the tree
+   */
   setupJStreeButtons($treeContainer) {
     const $btnExpand = this.el.find('.btn-js-tree-expand')
     const $btnCollapse = this.el.find('.btn-js-tree-collapse')
@@ -159,6 +189,9 @@ class TreeComponent extends Component {
     $btnDelete.on('click', () => { this.handleDelete() })
   }
 
+  /**
+   * Handle the add event
+   */
   handleAdd() {
     const ref = this.$treeContainer.jstree(true)
     let sel = ref.get_selected()
@@ -176,6 +209,9 @@ class TreeComponent extends Component {
     }
   }
 
+  /**
+   * Handle the delete event
+   */
   handleDelete() {
     const ref = this.$treeContainer.jstree(true)
     let sel = ref.get_selected()
@@ -187,6 +223,9 @@ class TreeComponent extends Component {
     ref.delete_node(sel)
   }
 
+  /**
+   * Handle the rename event
+   */
   handleRename() {
     const ref = this.$treeContainer.jstree(true)
     let sel = ref.get_selected()

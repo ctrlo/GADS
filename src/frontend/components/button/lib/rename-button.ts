@@ -26,10 +26,9 @@ declare global {
         renameButton(): JQuery<TElement>;
         /**
          * Handle the rename event
-         * @template TElement The element type
-         * @param { RenameEvent } events The event name
-         * @param { 'rename' } handler The event handler
-         * @returns {JQuery<TElement>} the JQuery element
+         * @param events The event name
+         * @param handler The event handler
+         * @returns the JQuery element
          */
         on(events: 'rename', handler: (ev: RenameEvent) => void): JQuery<TElement>
     }
@@ -44,7 +43,7 @@ class RenameButton {
 
     /**
      * Attach event to button
-     * @param {HTMLButtonElement} button Button to attach the event to
+     * @param button Button to attach the event to
      */
     constructor(button: HTMLButtonElement) {
         const $button = $(button);
@@ -57,8 +56,8 @@ class RenameButton {
 
     /**
      * Create the relevant elements in order to perform the rename
-     * @param {JQuery<HTMLButtonElement>} button The button element that shall trigger the rename
-     * @param {string | number} id The file ID to trigger the rename for
+     * @param button The button element that shall trigger the rename
+     * @param id The file ID to trigger the rename for
      */
     private createElements(button: JQuery<HTMLButtonElement>, id: string | number) {
         if (!id) throw new Error("File ID is null or empty");
@@ -102,8 +101,8 @@ class RenameButton {
 
     /**
      * Perform click event
-     * @param {number} id The id of the field
-     * @param {JQuery.ClickEvent} ev The event object
+     * @param id The id of the field
+     * @param ev The event object
      */
     private renameClick(id: number, ev: JQuery.ClickEvent) {
         ev.preventDefault();
@@ -128,8 +127,8 @@ class RenameButton {
         $(`#rename-confirm-${id}`)
             .removeClass('hidden')
             .attr('aria-hidden', null)
-            .on('click', (e) => {
-                this.triggerRename(id, ev.target, <any>e)
+            .on('click', () => {
+                this.triggerRename(id, ev.target)
             });
         $(`#rename-cancel-${id}`)
             .removeClass('hidden')
@@ -143,9 +142,9 @@ class RenameButton {
 
     /**
      * Rename keydown event
-     * @param {number} id The id of the field
-     * @param {JQuery<HTMLButtonElement>} button The button that was clicked
-     * @param {JQuery.KeyDownEvent} ev The keydown event
+     * @param id The id of the field
+     * @param button The button that was clicked
+     * @param ev The keydown event
      */
     private renameKeydown(id: number, button: JQuery<HTMLButtonElement>, ev: JQuery.KeyDownEvent) {
         if (ev.key === 'Escape') {
@@ -156,12 +155,11 @@ class RenameButton {
 
     /**
      * Rename blur event
-     * @param {number} id The id of the field
-     * @param {JQuery<HTMLButtonElement>} button The button that was clicked
-     * @param {JQuery.BlurEvent} ev The blur event
+     * @param id The id of the field
+     * @param button The button that was clicked
      */
-    private triggerRename(id: number, button: JQuery<HTMLButtonElement>, ev: JQuery.BlurEvent) {
-        let $current = $(`#current-${id}`);
+    private triggerRename(id: number, button: JQuery<HTMLButtonElement>) {
+        const $current = $(`#current-${id}`);
         const previousValue = $current.text();
         const extension = '.' + previousValue.split('.').pop();
         const newName = this.value.endsWith(extension) ? this.value : this.value + extension;
@@ -172,6 +170,12 @@ class RenameButton {
         this.hideRenameControls(id, button);
     }
 
+    /**
+     * Hide the rename controls
+     * @param id Id of the file
+     * @param button The button to hide
+     * @private
+     */
     private hideRenameControls(id: number, button: JQuery<HTMLButtonElement>) {
         $(`#current-${id}`).removeClass('hidden').attr('aria-hidden', 'false');
         $(`#file-rename-${id}`)
@@ -190,7 +194,7 @@ class RenameButton {
     }
 }
 
-if(typeof jQuery !== 'undefined') {
+if (typeof jQuery !== 'undefined') {
     (function ($) {
         $.fn.renameButton = function () {
             return this.each(function (_: unknown, el: HTMLButtonElement) {

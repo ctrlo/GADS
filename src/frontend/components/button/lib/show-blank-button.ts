@@ -1,6 +1,6 @@
 /**
  * Create a button that toggles the visibility of blank fields.
- * @param element {JQuery<HTMLElement>} The element to attach the button to.
+ * @param element The element to attach the button to.
  */
 export default function createShowBlankButton(element: JQuery<HTMLElement>) {
     element.on('click', (ev) => {

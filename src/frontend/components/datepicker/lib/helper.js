@@ -1,10 +1,14 @@
-import  'bootstrap-datepicker'
+import 'bootstrap-datepicker'
 
+/**
+ * Initialize a date field
+ * @param {*} field The field to initialize
+ */
 const initDateField = (field) => {
   field.datepicker({
     "format": field.data("dateformat-datepicker"),
     "autoclose": "true"
-  }).on('show.bs.modal', function(event) {
+  }).on('show.bs.modal', function (event) {
     // prevent datepicker from firing bootstrap modal "show.bs.modal"
     event.stopPropagation()
   }).on('hide.bs.modal', (e) => {

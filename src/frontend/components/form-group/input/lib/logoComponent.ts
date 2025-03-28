@@ -1,18 +1,28 @@
 import { formdataMapper } from 'util/mapper/formdataMapper';
 import { upload } from 'util/upload/UploadControl';
 
+/**
+ * Logo component
+ */
 class LogoComponent {
     el: JQuery<HTMLElement>;
     logoDisplay: JQuery<HTMLImageElement>;
     fileInput: JQuery<HTMLInputElement>;
     protected readonly type = 'logo';
 
+    /**
+     * Create a new Logo component
+     * @param el The element to attach the logo component to
+     */
     constructor(el: JQuery<HTMLElement> | HTMLElement) {
         this.el = $(el);
         this.logoDisplay = this.el.parent().find('img');
         this.fileInput = this.el.find('.form-control-file') as JQuery<HTMLInputElement>;
     }
 
+    /**
+     * Initialize the logo component
+     */
     init() {
         if (this.logoDisplay.attr('src') === '#') {
             this.logoDisplay.hide();
@@ -23,6 +33,10 @@ class LogoComponent {
         this.fileInput.on('change', this.handleFileChange);
     }
 
+    /**
+     * Handle a file change
+     * @param ev The change event
+     */
     handleFileChange = (ev: JQuery.ChangeEvent<HTMLInputElement>) => {
         ev.preventDefault();
         const url = this.el.data('fileupload-url');
@@ -41,7 +55,10 @@ class LogoComponent {
     };
 }
 
+/**
+ * Create a new logo component
+ * @param el The element to attach the logo component to
+ */
 export default function logoComponent(el: JQuery<HTMLElement> | HTMLElement) {
-    const component = new LogoComponent(el);
-    component.init();
+    (new LogoComponent(el)).init();
 }

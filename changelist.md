@@ -2,6 +2,51 @@
 
 -------
 
+**Version**: 2.6.0
+**Released**: 24-03-2025
+
+-------
+
+## New features
+
+- Added autorecover functionality
+- Added option to add a reason for account rejection
+- Added mandatory fields to account requests
+- View All can be turned on for all curvals as an option without having to set a limit
+- User deleted date can now be used in calc fields
+
+## Fixes
+
+- Webdriver test fix to triage current issue
+- Removed deprecated buffer code
+- Moved loading graphic on tables back to top
+- User notes now persist when approving user account requests
+- Fix for issue deselecting multi-value trees
+- Added `values_for_timeline` sub that was missing from trees in timelines
+- Various changes for WCAG compliance
+- Made fields madatory when requesting accounts
+- Added fix for adding users with multi-tenant systems
+- Added fix for bug where people fields weren't populating correctly
+- Added fix for timeline not allowing navigation away and causing timeout
+- Added rollback in unique fields when an unexpected exception occurs
+- Added fix for values in curval filter not appearing to be saved when using variables
+- Moved `x-frame-options` header out of user_logged_in check
+- Changes to `webpack.config.js` for efficiency and correctness
+- Speed fixes for frontend calcs
+
+-------
+
+**Version**: 2.5.13
+**Released**: 03-03-2025
+
+-------
+
+## Fixes
+
+- Improve performance of calc fields
+
+-------
+
 **Version**: 2.5.12
 **Released**: 14-01-2025
 

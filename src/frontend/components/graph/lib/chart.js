@@ -1,3 +1,8 @@
+/**
+ * Plot a graph using jqplot
+ * @param {*} plotData The data to plot
+ * @param {*} options_in The options for the plot
+ */
 const do_plot = (plotData, options_in) => {
   const ticks = plotData.xlabels
   let plotOptions = {}
@@ -67,12 +72,16 @@ const do_plot = (plotData, options_in) => {
 // Phantomjs to produce PNG versions of the graphs. Once jqplot has been
 // replaced by a more modern graphing library, the PNG/Phantomjs functionality
 // will probably unneccessary if that functionality is built into the library.
-const do_plot_json = (window.do_plot_json = function(plotData, options_in) {
+const do_plot_json = (window.do_plot_json = function (plotData, options_in) {
   plotData = JSON.parse(atob(plotData))
   options_in = JSON.parse(atob(options_in))
   do_plot(plotData, options_in);
 });
 
+/**
+ * Make the default series options for jqplot
+ * @returns {Object} The default series options for jqplot
+ */
 const makeSeriesDefaults = () => ({
   bar: {
     renderer: $.jqplot.BarRenderer,

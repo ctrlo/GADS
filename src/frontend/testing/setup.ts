@@ -1,4 +1,7 @@
 import { jest } from "@jest/globals";
+import {TextEncoder, TextDecoder} from "util";
+
+Object.assign(global, {TextEncoder, TextDecoder});
 
 declare global {
     interface Window {

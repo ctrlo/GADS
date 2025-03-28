@@ -1,10 +1,8 @@
 // noinspection ExceptionCaughtLocallyJS
 
-import {logging} from "logging";
-
 /**
  * Create delete button
- * @param element {JQuery<HTMLElement>} - Element to act as a delete button
+ * @param element Element to act as a delete button
  */
 export default function createDeleteButton(element: JQuery<HTMLElement>) {
     element.on('click', (ev) => {
@@ -23,14 +21,14 @@ export default function createDeleteButton(element: JQuery<HTMLElement>) {
                 throw `There is no modal with id: ${target}`
             }
         } catch (e) {
-            //@ts-expect-error - test is a global variable
-            if(window.test)
-                throw e;
-            else
+            import('logging').then(({ logging }) =>
                 logging.error(e)
-            this.el.on('click', function (e: JQuery.ClickEvent) {
+            );
+            $(element).on('click', function (e: JQuery.ClickEvent) {
                 e.stopPropagation()
             });
+            // @ts-expect-error For JEST tests
+            if (window.test) throw e;
         }
 
         $deleteModal.find('.modal-title').text(modalTitle)

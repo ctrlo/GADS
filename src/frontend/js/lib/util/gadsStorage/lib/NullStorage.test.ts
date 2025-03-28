@@ -10,6 +10,6 @@ describe("NullStorage", () => {
         const key = "key";
         const value = "value";
         await storage.setItem(key, value);
-        expect (localStorage.getItem(key)).toBeNull();
+        expect(localStorage.getItem(key)).toBeNull();
     });
 });

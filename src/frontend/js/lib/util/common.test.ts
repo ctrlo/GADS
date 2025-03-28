@@ -1,13 +1,12 @@
-import "../../../testing/globals.definitions";
+import { fromJson, hideElement, initJquery, showElement } from "./common";
 import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
-import { fromJson, hideElement, showElement, initJquery } from "./common";
 
 describe('common functions', () => {
-    describe('CSS and ARIA',()=>{
+    describe('CSS and ARIA', () => {
         let el: JQuery<HTMLElement>;
 
         beforeEach(() => {
-            el=$(document.createElement('div'));
+            el = $(document.createElement('div'));
         });
 
         afterEach(() => {
@@ -57,33 +56,33 @@ describe('common functions', () => {
         });
     });
 
-    describe('JSON tests',() => {
+    describe('JSON tests', () => {
         it('parses a JSON string', () => {
             const json = '{"foo":"bar"}';
             const parsed = fromJson(json);
             expect(parsed.foo).toEqual('bar');
         });
 
-        it('parses a JSON object', ()=>{
-            const json = {foo: "bar"};
+        it('parses a JSON object', () => {
+            const json = { foo: "bar" };
             const parsed = fromJson(json);
             expect(parsed.foo).toEqual('bar');
         });
 
-        it('returns an empty object for invalid JSON', ()=>{
+        it('returns an empty object for invalid JSON', () => {
             const json = "foo";
             const parsed = fromJson(json);
             expect(parsed).toEqual({});
         });
 
-        it('returns an empty object for null', ()=>{
+        it('returns an empty object for null', () => {
             const json = null;
             // @ts-ignore
             const parsed = fromJson(json);
             expect(parsed).toEqual({});
         });
 
-        it('returns an empty object for undefined', ()=>{
+        it('returns an empty object for undefined', () => {
             const json = undefined;
             // @ts-ignore
             const parsed = fromJson(json);
@@ -91,12 +90,12 @@ describe('common functions', () => {
         });
     });
 
-    describe('JQuery Init', ()=>{
-        it('should initialize jQuery', ()=>{
+    describe('JQuery Init', () => {
+        it('should initialize jQuery', () => {
             //@ts-ignore
-            delete(window.jQuery);
+            delete (window.jQuery);
             //@ts-ignore
-            delete(window.$);
+            delete (window.$);
             //Sanity check
             expect(window.jQuery).toBeUndefined();
             expect(window.$).toBeUndefined();

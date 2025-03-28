@@ -225,7 +225,7 @@ function App(props: AppProps) {
     if (summernoteEl) {
       import(/* WebpackChunkName: "summernote" */ "../../../summernote/lib/component")
         .then(({ default: SummerNoteComponent }) => {
-          new SummerNoteComponent(summernoteEl)
+          new SummerNoteComponent(summernoteEl as HTMLElement)
         });
     }
   }
@@ -234,7 +234,7 @@ function App(props: AppProps) {
     const arrGlobe = document.querySelectorAll(".globe");
     import(/* WebpackChunkName: "globe" */ '../../../globe/lib/component').then(({ default: GlobeComponent }) => {
       arrGlobe.forEach((globe) => {
-        new GlobeComponent(globe)
+        new GlobeComponent(globe as HTMLElement)
       });
     });
   }

@@ -30,5 +30,5 @@ export const clearAutorecoverAction = async () => {
 /**
  * Action handler for when a record is created or updated - only runs outside of a test environment
  */
-// @ts-expect-error - test is not defined in the window object
-if(!window.test) addAction(clearAutorecoverAction);
+// @ts-expect-error "window.test is not valid"
+if (!window.test) addAction(clearAutorecoverAction);

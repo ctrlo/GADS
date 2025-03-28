@@ -1,4 +1,4 @@
-import {validateRequiredFields} from "validation";
+import { validateRequiredFields } from "validation";
 
 /**
  * Button to submit records
@@ -10,7 +10,7 @@ export default class SubmitRecordButton {
 
     /**
      * Create a button to submit records
-     * @param el {JQuery<HTMLElement>} Element to create as a button
+     * @param el Element to create as a button
      */
     constructor(private el: JQuery<HTMLElement>) {
         this.el.on("click", async (ev: JQuery.ClickEvent) => {
