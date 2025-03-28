@@ -3,13 +3,6 @@ import "datatables.net";
 import "@lol768/jquery-querybuilder-no-eval"
 
 declare global {
-    interface Window {
-        siteConfig: {
-            urls: {
-                treeApi: string;
-            }
-        }
-    }
     interface JQuery<TElement = HTMLElement> {
         queryBuilder(operation: string): JQuery<TElement>;
     }
@@ -79,7 +72,6 @@ export default class SubmitFieldButton {
             }
 
             if (bUpdateTree) {
-                //Bit of typecasting here, purely because the jstree plugin doesn't have types
                 const v = $jstreeEl.jstree(true).get_json('#', { flat: false });
                 const mytext = JSON.stringify(v);
                 const data = $jstreeEl.data();

@@ -15,13 +15,6 @@ export default abstract class AutosaveBase extends Component {
     }
 
     /**
-     * Whether the current form is a clone
-     */
-    get isClone() {
-        return !!$('body').find('.form-edit').data('from');
-    }
-
-    /**
      * The layout identifier of the current form
      */
     get layoutId() {
