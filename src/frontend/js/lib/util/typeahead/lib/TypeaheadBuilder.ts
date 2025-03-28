@@ -23,7 +23,7 @@ export class TypeaheadBuilder {
     private ajaxSource: string;
     private appendQuery: boolean;
     private data: any;
-    private mapper: MapperFunction = (data: any) => { return data.map((d: {name: any, id: any}) => { return { name: d.name, id: d.id } }) };
+    private mapper: MapperFunction = (data: any) => { return data.map((d: { name: any, id: any }) => { return { name: d.name, id: d.id } }) };
     private dataBuilder: Function;
 
     /**

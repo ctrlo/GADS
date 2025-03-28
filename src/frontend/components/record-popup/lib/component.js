@@ -9,7 +9,7 @@ class RecordPopupComponent extends Component {
    * Create a new RecordPopupComponent
    * @param {HTMLElement} element The element to attach the component to
    */
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.modal = $.find('#readMore')
     this.initRecordPopup()
@@ -38,7 +38,7 @@ class RecordPopupComponent extends Component {
 
     ev.preventDefault()
 
-    if (version_id) { url = `${url}?version_id=${version_id} `}
+    if (version_id) { url = `${url}?version_id=${version_id} ` }
 
     modalBody.text('Loading...')
     modalBody.load(url)

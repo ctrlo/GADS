@@ -189,8 +189,8 @@ class DataTableComponent extends Component {
   getCheckboxElement(id, label) {
     return (
       `<div class='checkbox'>` +
-        `<input id='dt_checkbox_${id}' type='checkbox' />` +
-        `<label class="form-label" for='dt_checkbox_${id}'><span>${label}</span></label>` +
+      `<input id='dt_checkbox_${id}' type='checkbox' />` +
+      `<label class="form-label" for='dt_checkbox_${id}'><span>${label}</span></label>` +
       '</div>'
     )
   }

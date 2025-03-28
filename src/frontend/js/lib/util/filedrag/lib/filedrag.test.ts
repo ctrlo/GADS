@@ -1,5 +1,5 @@
 import FileDrag from './filedrag';
-import {describe, expect, it, jest} from "@jest/globals";
+import { describe, expect, it, jest } from "@jest/globals";
 
 class FileDragTest extends FileDrag {
     constructor(element, onDrop?: (files: FileList | File) => void) {

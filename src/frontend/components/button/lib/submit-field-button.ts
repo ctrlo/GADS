@@ -117,7 +117,7 @@ export default class SubmitFieldButton {
      * @param data The data for the tree
      * @returns The URL for the tree API
      */
-    private getURL(data:JQuery.PlainObject):string {
+    private getURL(data: JQuery.PlainObject): string {
         // @ts-expect-error - This is a global variable
         if (window.test) return "";
 

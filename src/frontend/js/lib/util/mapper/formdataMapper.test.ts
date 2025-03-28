@@ -1,5 +1,5 @@
 import { formdataMapper } from './formdataMapper';
-import {describe, expect, it} from "@jest/globals";
+import { describe, expect, it } from "@jest/globals";
 
 describe("Basic formdata mapper tests", () => {
     it("should map a simple object", () => {

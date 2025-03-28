@@ -1,5 +1,5 @@
 import "../../../../../testing/globals.definitions";
-import {describe, it, expect} from '@jest/globals';
+import { describe, it, expect } from '@jest/globals';
 import loadActions from './actionsLoader';
 
 describe('loadActions', () => {
@@ -17,10 +17,10 @@ describe('loadActions', () => {
     });
 
     it('should return the actions object', async () => {
-        const actions_b64 = btoa(JSON.stringify({action: 'test'}));
+        const actions_b64 = btoa(JSON.stringify({ action: 'test' }));
         const $body = $('body');
         $body.data('actions', actions_b64);
         const actions = await loadActions();
-        expect(actions).toEqual({action: 'test'});
+        expect(actions).toEqual({ action: 'test' });
     });
 });

@@ -21,13 +21,14 @@ export default function createDeleteButton(element: JQuery<HTMLElement>) {
                 throw `There is no modal with id: ${target}`
             }
         } catch (e) {
-            import('logging').then(({logging}) =>
+            import('logging').then(({ logging }) =>
                 logging.error(e)
             );
             $(element).on('click', function (e: JQuery.ClickEvent) {
                 e.stopPropagation()
             });
-            if(window.test) throw e;
+            // @ts-expect-error For JEST tests
+            if (window.test) throw e;
         }
 
         $deleteModal.find('.modal-title').text(modalTitle)

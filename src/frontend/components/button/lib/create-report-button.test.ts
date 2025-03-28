@@ -1,4 +1,4 @@
-import {validateRequiredFields} from 'validation';
+import { validateRequiredFields } from 'validation';
 import CreateReportButtonComponent from "./create-report-button";
 import { describe, expect, it, jest, afterEach } from '@jest/globals';
 
@@ -63,7 +63,9 @@ describe('create-report-button', () => {
     let $submit = $('#submit');
     new CreateReportButtonComponent($submit);
     const submitSpy = jest.fn((ev) => {
+      // @ts-ignore
       ev.preventDefault();
+      // @ts-ignore
       ev.stopPropagation();
     });
 
@@ -97,7 +99,9 @@ describe('create-report-button', () => {
     const $submit = $('#submit');
     new CreateReportButtonComponent($submit);
     const formSpyFn = jest.fn((ev) => {
+      // @ts-ignore
       ev.preventDefault();
+      // @ts-ignore
       ev.stopPropagation();
     });
     $('#myform').on('submit', formSpyFn);

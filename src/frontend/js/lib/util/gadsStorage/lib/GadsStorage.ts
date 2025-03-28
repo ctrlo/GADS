@@ -26,7 +26,7 @@ export class GadsStorage implements AppStorage {
      */
     private async getStorageKey() {
         //@ts-expect-error This is for unit tests
-        if (window.test) { 
+        if (window.test) {
             this.storageKey = "test";
             return;
         }

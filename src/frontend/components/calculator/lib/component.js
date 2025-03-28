@@ -38,12 +38,12 @@ class CalculatorComponent extends Component {
 
       calculator_elem.append(
         '<form class="form-inline">' +
-          '    <div class="form-group mb-4"><div class="radio-group radio-group--buttons" data-bs-toggle="buttons"></div></div>' +
-          '    <div class="form-group mb-4"><div class="input"><input type="text" placeholder="Number" class="form-control"></input></div></div>' +
-          '    <div class="form-group mb-4">' +
-          '        <input type="submit" value="Calculate" class="btn btn-default"></input>' +
-          "    </div>" +
-          "</form>"
+        '    <div class="form-group mb-4"><div class="radio-group radio-group--buttons" data-bs-toggle="buttons"></div></div>' +
+        '    <div class="form-group mb-4"><div class="input"><input type="text" placeholder="Number" class="form-control"></input></div></div>' +
+        '    <div class="form-group mb-4">' +
+        '        <input type="submit" value="Calculate" class="btn btn-default"></input>' +
+        "    </div>" +
+        "</form>"
       )
 
       $(document).on('mouseup', (e) => {

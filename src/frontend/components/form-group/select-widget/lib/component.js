@@ -67,7 +67,7 @@ class SelectWidgetComponent extends Component {
 
     $(document).on("click", (e) => { this.handleDocumentClick(e) })
 
-    $(document).on('keyup',function (e) {
+    $(document).on('keyup', function (e) {
       if (e.key == "Escape") {
         this.collapse(this.$widget, this.$trigger, this.$target)
       }
@@ -461,38 +461,38 @@ class SelectWidgetComponent extends Component {
 
     const $li = $(
       '<li class="' +
-        classNames +
-        '">' +
-        '<div class="control">' +
-        '<div class="' +
-        (multi ? "checkbox" : "radio-group__option") +
-        '">' +
-        '<input id="' +
-        valueId +
-        '" type="' +
-        (multi ? "checkbox" : "radio") +
-        '" name="' +
-        field +
-        '" ' +
-        (checked ? " checked" : "") +
-        (this.required && !this.multi ? ' required aria-required="true"' : "") +
-        ' value="' +
-        (value_id || "") +
-        '" class="' +
-        (multi ? "" : "visually-hidden") +
-        '" aria-labelledby="lbl-' +
-        valueId +
-        '"> ' + // Add space to keep spacing consistent with templates
-        '<label class="form-label" id="lbl-' +
-        valueId +
-        '" for="' +
-        valueId +
-        '">' + label +
-        "</label>" +
-        "</div>" +
-        "</div>" +
-        (value_id ? detailsButton : "") +
-        "</li>"
+      classNames +
+      '">' +
+      '<div class="control">' +
+      '<div class="' +
+      (multi ? "checkbox" : "radio-group__option") +
+      '">' +
+      '<input id="' +
+      valueId +
+      '" type="' +
+      (multi ? "checkbox" : "radio") +
+      '" name="' +
+      field +
+      '" ' +
+      (checked ? " checked" : "") +
+      (this.required && !this.multi ? ' required aria-required="true"' : "") +
+      ' value="' +
+      (value_id || "") +
+      '" class="' +
+      (multi ? "" : "visually-hidden") +
+      '" aria-labelledby="lbl-' +
+      valueId +
+      '"> ' + // Add space to keep spacing consistent with templates
+      '<label class="form-label" id="lbl-' +
+      valueId +
+      '" for="' +
+      valueId +
+      '">' + label +
+      "</label>" +
+      "</div>" +
+      "</div>" +
+      (value_id ? detailsButton : "") +
+      "</li>"
     )
     $li.data('list-text', value_text)
     $li.data('list-id', value_id)
@@ -589,8 +589,8 @@ class SelectWidgetComponent extends Component {
           data.error === 1 ? data.message : "Oops! Something went wrong."
         const errorLi = $(
           '<li class="answer answer--blank alert alert-danger d-flex flex-row justify-content-start"><span class="control"><label class="form-label">' +
-            errorMessage +
-            "</label></span></li>"
+          errorMessage +
+          "</label></span></li>"
         )
         this.$available.append(errorLi)
       }
@@ -607,8 +607,8 @@ class SelectWidgetComponent extends Component {
         )
         const errorLi = $(
           '<li class="answer answer--blank alert alert-danger"><span class="control"><label class="form-label">' +
-            errorMessage +
-            "</label></span></li>"
+          errorMessage +
+          "</label></span></li>"
         )
         self.$available.append(errorLi)
       })

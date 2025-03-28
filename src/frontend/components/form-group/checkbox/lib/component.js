@@ -8,7 +8,7 @@ class CheckboxComponent extends Component {
    * Create a new Checkbox
    * @param {HTMLElement} element The checkbox element
    */
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
 

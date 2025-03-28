@@ -90,12 +90,12 @@ describe('common functions', () => {
         });
     });
 
-    describe('JQuery Init', ()=>{
-        it('should initialize jQuery', ()=>{
+    describe('JQuery Init', () => {
+        it('should initialize jQuery', () => {
             //@ts-ignore
-            delete(window.jQuery);
+            delete (window.jQuery);
             //@ts-ignore
-            delete(window.$);
+            delete (window.$);
             //Sanity check
             expect(window.jQuery).toBeUndefined();
             expect(window.$).toBeUndefined();

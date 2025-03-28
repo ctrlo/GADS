@@ -1,6 +1,6 @@
 import { setupCrypto } from 'testing/globals.definitions';
 import { EncryptedStorage } from './encryptedStorage';
-import {describe, expect, beforeAll, beforeEach, afterEach, it} from "@jest/globals";
+import { describe, expect, beforeAll, beforeEach, afterEach, it } from "@jest/globals";
 
 class TestStorage implements Storage {
     private map = new Map<string, string>();
