@@ -80,11 +80,7 @@ class AutosaveModal extends AutosaveBase {
                 }
               });
             }
-            try {
-              setFieldValues($field, values);
-            } catch (e) {
-              console.error(e);
-            }
+            setFieldValues($field, values);
             if (type !== "curval") {
               const $li = $(`<li class="li-success">Restored ${name}</li>`);
               $list.append($li);

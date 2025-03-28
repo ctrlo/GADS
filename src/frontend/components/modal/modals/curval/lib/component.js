@@ -61,11 +61,7 @@ class CurvalModalComponent extends ModalComponent {
           const key = `linkspace-column-${$field.data('column-id')}-${$('body').data('layout-identifier')}-${record_id}`
           const vals = values[key]
           if (vals) {
-            try {
-              setFieldValues($field, vals)
-            } catch (e) {
-              console.error(e)
-            }
+            setFieldValues($field, vals)
           }
         })
         let $form = $m.find('.curval-edit-form')
