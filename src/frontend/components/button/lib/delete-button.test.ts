@@ -1,8 +1,8 @@
-import {describe, it, expect} from '@jest/globals';
+import { describe, it, expect } from '@jest/globals';
 import createDeleteButton from './delete-button';
 
-describe('button tests', ()=>{
-    it('should throw on absence of id', ()=>{
+describe('button tests', () => {
+    it('should throw on absence of id', () => {
         const button = document.createElement('button');
         button.setAttribute('data-title', 'title');
         button.setAttribute('data-bs-target', 'target');
@@ -10,10 +10,10 @@ describe('button tests', ()=>{
         document.body.appendChild(button);
         const $button = $(button);
         createDeleteButton($button)
-        expect(()=>{$button.trigger('click')}).toThrow('Delete button should have data attributes id, toggle and target!');
+        expect(() => { $button.trigger('click') }).toThrow('Delete button should have data attributes id, toggle and target!');
     });
 
-    it('should throw on absence of target', ()=>{
+    it('should throw on absence of target', () => {
         const button = document.createElement('button');
         button.setAttribute('data-title', 'title');
         button.setAttribute('data-id', 'id');
@@ -21,10 +21,10 @@ describe('button tests', ()=>{
         document.body.appendChild(button);
         const $button = $(button);
         createDeleteButton($button);
-        expect(()=>{$button.trigger('click')}).toThrow('Delete button should have data attributes id, toggle and target!');
+        expect(() => { $button.trigger('click') }).toThrow('Delete button should have data attributes id, toggle and target!');
     });
 
-    it('should throw on absence of toggle', ()=>{
+    it('should throw on absence of toggle', () => {
         const button = document.createElement('button');
         button.setAttribute('data-title', 'title');
         button.setAttribute('data-id', 'id');
@@ -32,10 +32,10 @@ describe('button tests', ()=>{
         document.body.appendChild(button);
         const $button = $(button);
         createDeleteButton($button);
-        expect(()=>{$button.trigger('click')}).toThrow('Delete button should have data attributes id, toggle and target!');
+        expect(() => { $button.trigger('click') }).toThrow('Delete button should have data attributes id, toggle and target!');
     });
 
-    it('should set the title of the modal', ()=>{
+    it('should set the title of the modal', () => {
         const button = document.createElement('button');
         button.setAttribute('data-title', 'title');
         button.setAttribute('data-id', 'id');
@@ -54,7 +54,7 @@ describe('button tests', ()=>{
         expect($(modal).find('.modal-title').text()).toBe('Delete - title');
     });
 
-    it('should set the id of the delete button', ()=>{
+    it('should set the id of the delete button', () => {
         const button = document.createElement('button');
         button.setAttribute('data-title', 'title');
         button.setAttribute('data-id', 'id');

@@ -1,4 +1,4 @@
-import {validateRequiredFields} from "validation";
+import { validateRequiredFields } from "validation";
 
 /**
  * CreateReportButtonComponent class to create a report submission button component
@@ -8,9 +8,9 @@ export default class CreateReportButtonComponent {
 
     /**
      * Create a new CreateReportButtonComponent
-     * @param {JQuery<HTMLElement>} element button element
+     * @param element button element
      */
-    constructor(element:JQuery<HTMLElement>) {
+    constructor(element: JQuery<HTMLElement>) {
         element.on('click', (ev) => {
             const $button = $(ev.target).closest('button');
             const $form = $button.closest("form");
@@ -30,9 +30,9 @@ export default class CreateReportButtonComponent {
 
     /**
      * Submit the form
-     * @param {JQuery<HTMLElement>} $button form to submit
+     * @param $button Button element to use for the submission
      */
-    submit($button:JQuery<HTMLElement>) {
+    submit($button: JQuery<HTMLElement>) {
         $button.trigger("click");
         $button.prop("disabled", true);
     }

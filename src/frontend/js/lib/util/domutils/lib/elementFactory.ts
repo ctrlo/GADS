@@ -1,3 +1,8 @@
+/**
+ * Create an HTML element with the given type and definition
+ * @param type The type of element to create
+ * @param definition The definition object for the element
+ */
 function createElement(type: 'button', definition: object): JQuery<HTMLButtonElement>
 function createElement(type: 'div', definition: object): JQuery<HTMLDivElement>
 function createElement(type: 'input', definition: object): JQuery<HTMLInputElement>

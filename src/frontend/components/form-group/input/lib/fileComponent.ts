@@ -2,6 +2,9 @@ import 'util/filedrag';
 import { formdataMapper } from 'util/mapper/formdataMapper';
 import { upload } from 'util/upload/UploadControl';
 
+/**
+ * File component
+ */
 class FileComponent {
     el: JQuery<HTMLElement>;
     fileInput: JQuery<HTMLInputElement>;
@@ -11,6 +14,10 @@ class FileComponent {
 
     protected readonly type = 'file';
 
+    /**
+     * Create a new file component
+     * @param el The element to attach the file component to
+     */
     constructor(el: HTMLElement | JQuery<HTMLElement>) {
         this.el = el instanceof HTMLElement ? $(el) : el;
         this.fileInput = this.el.find('.form-control-file') as JQuery<HTMLInputElement>;
@@ -19,6 +26,9 @@ class FileComponent {
         this.inputFileLabel = this.el.find('.input__file-label');
     }
 
+    /**
+     * Initialize the file component
+     */
     init() {
         const dropTarget = this.el.closest('.file-upload');
         if (dropTarget) {
@@ -36,7 +46,10 @@ class FileComponent {
         this.fileDelete.on('click', this.deleteFile);
     }
 
-    // As some of these, if not all, are event handlers, scoping can get a bit wiggy; using arrow functions to keep the scope of `this` to the class
+    /**
+     * Handle a file upload
+     * @param file The file to upload
+     */
     handleFormUpload = (file: File) => {
         if (!file) throw new Error('No file provided');
 
@@ -46,7 +59,7 @@ class FileComponent {
         const tokenField = form.find('input[name="csrf_token"]');
         const csrf_token = tokenField.val() as string ?? tokenField.val()?.toString();
         const formData = formdataMapper({ file, csrf_token });
-        
+
         if (method === 'POST') {
             upload(action, formData, 'POST').catch(console.error);
         } else {
@@ -54,6 +67,10 @@ class FileComponent {
         }
     };
 
+    /**
+     * Handle the change event for the file input
+     * @param ev The change event
+     */
     changeFile = (ev: JQuery.ChangeEvent<HTMLInputElement>) => {
         const [file] = ev.target.files!;
         const { name: fileName } = file;
@@ -63,12 +80,19 @@ class FileComponent {
         this.fileDelete.removeClass('hidden');
     };
 
+    /**
+     * Handle the enter or space key event for the input file label
+     * @param ev The key event for the input file label
+     */
     uploadFile = (ev: JQuery.KeyUpEvent) => {
         if (ev.which === 32 || ev.which === 13) {
             this.fileInput.trigger('click');
         }
     };
 
+    /**
+     * Delete the file
+     */
     deleteFile = () => {
         this.fileName.text('No file chosen');
         this.fileName.attr('title', '');
@@ -78,6 +102,10 @@ class FileComponent {
     };
 }
 
+/**
+ * Create a new file component
+ * @param el The element to attach the file component to
+ */
 export default function fileComponent(el: HTMLElement | JQuery<HTMLElement>) {
     const component = new FileComponent(el);
     component.init();

@@ -2,15 +2,19 @@ import { Component } from 'component'
 import { logging } from 'logging'
 import { initValidationOnField } from 'validation'
 
-  /*
-   * A SelectWidget is a custom disclosure widget
-   * with multi or single options selectable.
-   * SelectWidgets can depend on each other;
-   * for instance if Value "1" is selected in Widget "A",
-   * Widget "B" might not be displayed.
-   */
+/*
+ * A SelectWidget is a custom disclosure widget
+ * with multi or single options selectable.
+ * SelectWidgets can depend on each other;
+ * for instance if Value "1" is selected in Widget "A",
+ * Widget "B" might not be displayed.
+ */
 class SelectWidgetComponent extends Component {
-  constructor(element)  {
+  /**
+   * Create a SelectWidget
+   * @param {HTMLElement} element The element to create the component on
+   */
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.$selectWidget = this.el;
@@ -39,34 +43,37 @@ class SelectWidgetComponent extends Component {
     if (this.required) {
       initValidationOnField(this.el)
     }
-  } 
+  }
 
+  /**
+   * Initialise the Select Widget
+   */
   initSelectWidget() {
     this.updateState()
     if (this.$widget.is('[readonly]')) return
     this.connect()
-  
-    this.$widget.unbind("click")
+
+    this.$widget.off("click")
     this.$widget.on("click", () => { this.handleWidgetClick() })
-  
-    this.$search.unbind("blur")
+
+    this.$search.off("blur")
     this.$search.on("blur", (e) => { this.possibleCloseWidget(e) })
 
-    this.$availableItems.unbind("blur")
+    this.$availableItems.off("blur")
     this.$availableItems.on("blur", (e) => { this.possibleCloseWidget(e) })
 
-    this.$moreInfoButtons.unbind("blur")
+    this.$moreInfoButtons.off("blur")
     this.$moreInfoButtons.on("blur", (e) => { this.possibleCloseWidget(e) })
 
     $(document).on("click", (e) => { this.handleDocumentClick(e) })
 
-    $(document).keyup(function(e) {
-      if (e.keyCode == 27) {
+    $(document).on('keyup',function (e) {
+      if (e.key == "Escape") {
         this.collapse(this.$widget, this.$trigger, this.$target)
       }
     })
 
-    this.$widget.delegate(".select-widget-value__delete", "click", function(e) {
+    this.$widget.on(".select-widget-value__delete", "click", function (e) {
       e.preventDefault()
       e.stopPropagation()
 
@@ -78,16 +85,16 @@ class SelectWidgetComponent extends Component {
       $(checkbox).trigger("change")
     })
 
-    this.$search.unbind("focus", this.expandWidgetHandler)
+    this.$search.off("focus", this.expandWidgetHandler)
     this.$search.on("focus", (e) => { this.expandWidgetHandler(e) })
 
-    this.$search.unbind("keydown")
+    this.$search.off("keydown")
     this.$search.on("keydown", (e) => { this.handleKeyDown(e) })
 
-    this.$search.unbind("keyup")
+    this.$search.off("keyup")
     this.$search.on("keyup", (e) => { this.handleKeyUp(e) })
 
-    this.$search.unbind("click")
+    this.$search.off("click")
     this.$search.on("click", (e) => {
       // Prevent bubbling the click event to the $widget (which expands/collapses the widget on click).
       e.stopPropagation()
@@ -111,8 +118,8 @@ class SelectWidgetComponent extends Component {
 
   handleKeyUp(e) {
     const searchValue = $(e.target)
-    .val()
-    .toLowerCase()
+      .val()
+      .toLowerCase()
     const self = this
 
     this.$fakeInput =
@@ -132,8 +139,8 @@ class SelectWidgetComponent extends Component {
       // hasn't started
       clearTimeout(this.timeout)
       this.$available.find(".spinner").removeAttr("hidden")
-      this.timeout = setTimeout(function() {
-        self.$available.find(".answer").not('.answer--blank').each(function() {
+      this.timeout = setTimeout(function () {
+        self.$available.find(".answer").not('.answer--blank').each(function () {
           const $answer = $(this)
           if (!$answer.find('input:checked').length) {
             $answer.remove()
@@ -144,7 +151,7 @@ class SelectWidgetComponent extends Component {
     } else {
       // hide the answers that do not contain the searchvalue
       let anyHits = false
-      $.each(this.$answers, function() {
+      $.each(this.$answers, function () {
         const labelValue = $(this)
           .find("label")[0]
           .innerHTML.toLowerCase()
@@ -164,6 +171,10 @@ class SelectWidgetComponent extends Component {
     }
   }
 
+  /**
+   * Handle the keydown event
+   * @param {JQuery.Event} e The event object
+   */
   handleKeyDown(e) {
     const key = e.which || e.keyCode
 
@@ -209,11 +220,20 @@ class SelectWidgetComponent extends Component {
     }
   }
 
+  /**
+   * Handle the expand widget event
+   * @param {JQuery.Event} e The event object
+   */
   expandWidgetHandler(e) {
     e.stopPropagation()
     this.expand(this.$widget, this.$trigger, this.$target)
   }
 
+  /**
+   * Collapse the widget
+   * @param {JQuery<HTMLElement>} $widget The widget to use (unused)
+   * @param {JQuery<HTMLElement>} $trigger The trigger element
+   */
   collapse($widget, $trigger) {
     this.$selectWidget.removeClass("select-widget--open")
     $trigger.attr("aria-expanded", false)
@@ -229,12 +249,19 @@ class SelectWidgetComponent extends Component {
     }, 50)
   }
 
+  /**
+   * Update the widget state
+   */
   updateState() {
     const $visible = this.$current.children("[data-list-item]:not([hidden])")
 
     this.$current.toggleClass("empty", $visible.length === 0)
   }
 
+  /**
+   * Possibly close a widget
+   * @param {JQuery.Event} e The event object
+   */
   possibleCloseWidget(e) {
     const newlyFocussedElement = e.relatedTarget || document.activeElement
 
@@ -248,14 +275,18 @@ class SelectWidgetComponent extends Component {
     }
   }
 
+  /**
+   * Connect the multi-select widget
+   * @returns a function to connect the multi-select widget
+   */
   connectMulti() {
     const self = this
-    return function() {
+    return function () {
       const $item = $(this)
       const itemId = $item.data("list-item")
       const $associated = $("#" + itemId)
 
-      $associated.unbind("change")
+      $associated.off("change")
       $associated.on("change", (e) => {
         if ($(e.target).prop("checked")) {
           $item.removeAttr("hidden")
@@ -265,8 +296,8 @@ class SelectWidgetComponent extends Component {
         self.updateState()
       })
 
-      $associated.unbind("keydown")
-      $associated.on("keydown", function(e) {
+      $associated.off("keydown")
+      $associated.on("keydown", function (e) {
         const key = e.which || e.keyCode
 
         switch (key) {
@@ -287,7 +318,7 @@ class SelectWidgetComponent extends Component {
               if (nextItem) {
                 $(nextItem)
                   .find("input")
-                  .focus()
+                  .trigger("focus")
               }
 
               break
@@ -303,6 +334,9 @@ class SelectWidgetComponent extends Component {
     }
   }
 
+  /**
+   * Connect the single-select widget
+   */
   connectSingle() {
     const self = this;
 
@@ -312,12 +346,12 @@ class SelectWidgetComponent extends Component {
       const $associated = $("#" + itemId)
 
       $associated.off("click");
-      $associated.on("click", function(e) {
+      $associated.on("click", function (e) {
         e.stopPropagation();
       });
 
       $associated.off("change");
-      $associated.on("change", function() {
+      $associated.on("change", function () {
         // First hide all items in the drop-down display
         self.$currentItems.each((_, currentItem) => {
           $(currentItem).attr("hidden", "")
@@ -331,7 +365,7 @@ class SelectWidgetComponent extends Component {
         self.updateState()
       });
 
-      $associated.parent().unbind("keypress")
+      $associated.parent().off("keypress")
       $associated.parent().on("keypress", (e) => {
         // KeyCode Enter or Spacebar
         if (e.keyCode === 13 || e.keyCode === 32) {
@@ -349,6 +383,9 @@ class SelectWidgetComponent extends Component {
     })
   }
 
+  /**
+   * Connect the widget
+   */
   connect() {
     if (this.multi) {
       this.$currentItems.each(this.connectMulti())
@@ -357,6 +394,16 @@ class SelectWidgetComponent extends Component {
     }
   }
 
+  /**
+   * Create the li element HTML
+   * @param {boolean} multi Is the field a multi-select field
+   * @param {*} field The field
+   * @param {*} value_id The ID of the value
+   * @param {*} value_text The text of the value
+   * @param {*} value_html The HTML of the value
+   * @param {*} checked Is the value checked
+   * @returns The li element HTML
+   */
   currentLi(multi, field, value_id, value_text, value_html, checked) {
     if (multi && !value_id) {
       return $('<li class="none-selected">blank</li>')
@@ -367,15 +414,15 @@ class SelectWidgetComponent extends Component {
     const deleteButton = '<button type="button" class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times</button>'
     const $li = $(
       "<li " +
-        (checked ? "" : "hidden") +
-        ' data-list-item="' +
-        valueId +
-        '" class="' +
-        className +
-        '"><span class="widget-value__value">' +
-        "</span>" +
-        deleteButton +
-        "</li>"
+      (checked ? "" : "hidden") +
+      ' data-list-item="' +
+      valueId +
+      '" class="' +
+      className +
+      '"><span class="widget-value__value">' +
+      "</span>" +
+      deleteButton +
+      "</li>"
     )
     $li.data('list-text', value_text)
     $li.data('list-id', value_id)
@@ -383,6 +430,16 @@ class SelectWidgetComponent extends Component {
     return $li
   }
 
+  /**
+   * Create an li element
+   * @param {boolean} multi Is the field a multi-select field
+   * @param {*} field The field
+   * @param {*} value_id The ID of the value
+   * @param {*} value_text The text of the value
+   * @param {*} label The label of the value
+   * @param {*} checked Is the value checked
+   * @returns The li element HTML
+   */
   availableLi(multi, field, value_id, value_text, label, checked) {
     if (this.multi && !value_id) {
       return null
@@ -442,7 +499,11 @@ class SelectWidgetComponent extends Component {
     return $li
   }
 
-  //Some odd scoping issues here - but it works
+  /**
+   * Update the JSON data
+   * @param {*} url The url to fetch the JSON from
+   * @param {*} typeahead The typeahead value
+   */
   updateJson(url, typeahead) {
     this.loadCounter++
     const self = this;
@@ -450,7 +511,7 @@ class SelectWidgetComponent extends Component {
     this.$available.find(".spinner").removeAttr("hidden")
     const currentValues = this.$available
       .find("input:checked")
-      .map(function() {
+      .map(function () {
         return parseInt($(this).val());
       })
       .get()
@@ -477,17 +538,17 @@ class SelectWidgetComponent extends Component {
         } else {
           this.$currentItems.remove()
         }
-        
+
         const checked = currentValues.includes(NaN)
         if (this.multi) {
           this.$search
             .parent()
             .prevAll(".none-selected")
             .remove() // Prevent duplicate blank entries
-            this.$search
+          this.$search
             .parent()
             .before(this.currentLi(this.multi, field, null, "", "blank", checked))
-            this.$available.append(this.availableLi(this.multi, field, null, "", "blank", checked))
+          this.$available.append(this.availableLi(this.multi, field, null, "", "blank", checked))
         }
 
         $.each(data.records, (recordIndex, record) => {
@@ -498,8 +559,8 @@ class SelectWidgetComponent extends Component {
               .before(
                 this.currentLi(this.multi, field, record.id, record.label, record.html, checked)
               ).before(' ') // Ensure space between elements
-              this.$available.append(
-                this.availableLi(this.multi, field, record.id, record.label, record.html, checked)
+            this.$available.append(
+              this.availableLi(this.multi, field, record.id, record.label, record.html, checked)
             )
           }
         })
@@ -534,15 +595,15 @@ class SelectWidgetComponent extends Component {
         this.$available.append(errorLi)
       }
     })
-      .fail(function(jqXHR, textStatus, textError) {
+      .fail(function (jqXHR, textStatus, textError) {
         const errorMessage = "Oops! Something went wrong."
         logging.error(
           "Failed to make request to " +
-            url +
-            ": " +
-            textStatus +
-            ": " +
-            textError
+          url +
+          ": " +
+          textStatus +
+          ": " +
+          textError
         )
         const errorLi = $(
           '<li class="answer answer--blank alert alert-danger"><span class="control"><label class="form-label">' +
@@ -551,13 +612,16 @@ class SelectWidgetComponent extends Component {
         )
         self.$available.append(errorLi)
       })
-      .always(function() {
+      .always(function () {
         if (hideSpinner) {
           self.$available.find(".spinner").attr("hidden", "")
         }
       })
   }
 
+  /**
+   * Fetch the options
+   */
   fetchOptions() {
     const filterEndpoint = this.$selectWidget.data("filter-endpoint")
     const filterFields = this.$selectWidget.data("filter-fields")
@@ -569,9 +633,9 @@ class SelectWidgetComponent extends Component {
 
     // Collect values of linked fields
     const values = ["submission-token=" + submissionToken]
-    $.each(filterFields, function(_, field) {
+    $.each(filterFields, function (_, field) {
 
-      $("input[name=" + field + "]").each(function(_, input) {
+      $("input[name=" + field + "]").each(function (_, input) {
         const $input = $(input)
 
         switch ($input.attr("type")) {
@@ -610,6 +674,12 @@ class SelectWidgetComponent extends Component {
     this.lastFetchParams = fetchParams
   }
 
+  /**
+   * Expand a select widget component
+   * @param {JQuery<HTMLElement>} $widget The widget to expand
+   * @param {JQuery<HTMLElement>} $trigger The trigger Element
+   * @param {JQuery<HTMLElement>} $target The target
+   */
   expand($widget, $trigger, $target) {
     if ($trigger.attr("aria-expanded") === "true") {
       return

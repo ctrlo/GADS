@@ -4,6 +4,10 @@
   This is used to "move" fields between the tables (using display: none; for unchecked fields)
 */
 
+/**
+ * Bind click handlers to the table to toggle rows
+ * @param {*} tableElement The element to bind the click handlers to
+ */
 const bindToggleTableClickHandlers = (tableElement) => {
   if (tableElement.hasClass('table-toggle')) {
     const fields = tableElement.find('tbody tr')
@@ -16,6 +20,10 @@ const bindToggleTableClickHandlers = (tableElement) => {
   }
 }
 
+/**
+ * Toggle a row in a table
+ * @param {JQuery.Event} ev The event object
+ */
 const toggleRow = (ev) => {
   ev.preventDefault()
   const clickedRow = $(ev.target).closest('tr')[0]

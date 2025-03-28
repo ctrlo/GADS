@@ -2,13 +2,12 @@ import StorageProvider from "util/storageProvider";
 
 /**
  * Clear all saved form values for the current record
- * @param $form The form to clear the data for
  */
 export async function clearSavedFormValues() {
     const ls = storage();
     const item = await ls.getItem(table_key());
 
-    if (item) ls.clear();
+    if (item) await ls.clear();
 }
 
 /**

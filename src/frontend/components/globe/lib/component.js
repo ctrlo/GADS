@@ -3,12 +3,22 @@ import * as Plotly from 'plotly/plotly-geo-2.26.0'
 // Use following line once patches merged upstream
 // import Plotly from 'plotly.js-geo-dist'
 
+/**
+ * Globe Component
+ */
 class GlobeComponent extends Component {
-  constructor(element)  {
+  /**
+   * Create a globe component
+   * @param {HTMLElement} element The element to attach a globe component to
+   */
+  constructor(element) {
     super(element)
     this.initGlobe()
   }
 
+  /**
+   * Initialize the globe
+   */
   initGlobe() {
     Plotly.setPlotConfig({ locale: "en-GB" })
 
@@ -38,9 +48,9 @@ class GlobeComponent extends Component {
       topojsonURL: $(this.element).data("topojsonurl")
     }
 
-    Plotly.newPlot(this.element, data, layout, options).then(function(gd) {
+    Plotly.newPlot(this.element, data, layout, options).then(function (gd) {
       // Set up handler to show records of country when country is clicked
-      gd.on("plotly_click", function(d) {
+      gd.on("plotly_click", function (d) {
         // Prevent click event when map is dragged
         if (d.event.defaultPrevented) return;
 
@@ -53,12 +63,12 @@ class GlobeComponent extends Component {
         // are equal to the country. This should be an "OR" condition
         // instead
         const filter = params.globe_fields
-          .map(function(field) {
+          .map(function (field) {
             return field + "=" + pt.location;
           })
           .join("&");
 
-          let url =
+        let url =
           "/" +
           params.layout_identifier +
           "/data?viewtype=table&view=" +

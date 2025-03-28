@@ -1,7 +1,14 @@
 import { Component } from 'component'
 
+/**
+ * Collapsible component
+ */
 class CollapsibleComponent extends Component {
-    constructor(element)  {
+    /**
+     * Create a collapsible component
+     * @param {HTMLElement} element The element to attach the component to
+     */
+    constructor(element) {
         super(element)
         this.el = $(this.element)
         this.button = this.el.find('.btn-collapsible')
@@ -11,18 +18,25 @@ class CollapsibleComponent extends Component {
         this.initCollapsible(this.button)
     }
 
+    /**
+     * Initialize the collapsible component
+     * @param {JQuery<HTMLButtonElement>} button The button to attach the collapsible to
+     */
     initCollapsible(button) {
         if (!button) {
             return
         }
 
         this.titleExpanded.addClass('hidden')
-        button.click( () => { this.handleClick() })
+        button.on("click", () => { this.handleClick() })
     }
 
+    /**
+     * Handle the click event
+     */
     handleClick() {
-      this.titleExpanded.toggleClass('hidden')
-      this.titleCollapsed.toggleClass('hidden')
+        this.titleExpanded.toggleClass('hidden')
+        this.titleCollapsed.toggleClass('hidden')
     }
 }
 

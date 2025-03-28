@@ -29,7 +29,7 @@ export class Typeahead {
             datumTokenizer: Bloodhound.tokenizers.whitespace,
             queryTokenizer: Bloodhound.tokenizers.whitespace,
             remote: {
-                url: ajaxSource + (appendQuery ?  "%QUERY" : ""),
+                url: ajaxSource + (appendQuery ? "%QUERY" : ""),
                 wildcard: '%QUERY',
                 transform: (response) => {
                     return mapper(response);

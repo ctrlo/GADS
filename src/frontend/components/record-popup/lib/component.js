@@ -1,13 +1,23 @@
 import { Component } from 'component'
 
+/**
+ * Record Popup component
+ */
 class RecordPopupComponent extends Component {
 
+  /**
+   * Create a new RecordPopupComponent
+   * @param {HTMLElement} element The element to attach the component to
+   */
   constructor(element)  {
     super(element)
     this.modal = $.find('#readMore')
     this.initRecordPopup()
   }
 
+  /**
+   * Initialize the record popup
+   */
   initRecordPopup() {
     $(this.element).on('click keydown', (ev) => {
       if (ev.type === 'click' || (ev.type === 'keydown' && (ev.which === 13 || ev.which === 32))) {
@@ -16,6 +26,10 @@ class RecordPopupComponent extends Component {
     });
   }
 
+  /**
+   * Handle the click event
+   * @param {JQuery.Event} ev The event that triggered the click
+   */
   handleClick(ev) {
     const record_id = $(this.element).data('record-id')
     const version_id = $(this.element).data('version-id')

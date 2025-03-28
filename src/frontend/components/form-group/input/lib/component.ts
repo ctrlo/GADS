@@ -9,7 +9,13 @@ import { initValidationOnField } from "validation";
 
 type ComponentInitializer = (element: JQuery<HTMLElement> | HTMLElement) => void;
 
+/**
+ * Input component
+ */
 class InputComponent extends Component {
+    /**
+     * Map of component classes to their respective initializers
+     */
     private static componentMap: { [key: string]: ComponentInitializer } = {
         'input--password': passwordComponent,
         'input--logo': logoComponent,
@@ -19,12 +25,19 @@ class InputComponent extends Component {
         'input--autocomplete': autocompleteComponent
     };
 
+    /**
+     * Create a new input component
+     * @param element The element to attach the input component to
+     */
     constructor(element: HTMLElement | JQuery<HTMLElement>) {
         super(element);
         this.initializeComponent();
         this.initializeValidation();
     }
 
+    /**
+     * Initialize the input component
+     */
     private initializeComponent() {
         const $el = $(this.element);
 
@@ -36,6 +49,9 @@ class InputComponent extends Component {
         }
     }
 
+    /**
+     * Initialize the validation on the input component
+     */
     private initializeValidation() {
         const $el = $(this.element);
 

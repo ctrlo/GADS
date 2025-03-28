@@ -103,7 +103,7 @@ class AutosaveModal extends AutosaveBase {
         $body.append(`<div class="alert alert-danger"><h4>Critical error restoring values</h4><p>${e}</p></div>`);
       }).finally(() => {
         // Only allow to close once recovery is finished
-        if(!curvalCount || errored) {
+        if (!curvalCount || errored) {
           // Show the close button
           $modal.find(".modal-footer").find(".btn-cancel").text("Close").show();
           this.storage.removeItem('recovering');
