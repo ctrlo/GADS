@@ -1,4 +1,4 @@
-import { fromJson, hideElement, showElement } from "./common";
+import { fromJson, hideElement, initJquery, showElement } from "./common";
 import { describe, it, expect, jest, beforeEach, afterEach } from "@jest/globals";
 
 describe('common functions', () => {

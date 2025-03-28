@@ -101,8 +101,8 @@ class RenameButton {
 
     /**
      * Perform click event
-     * @param {number} id The id of the field
-     * @param {JQuery.ClickEvent} ev The event object
+     * @param id The id of the field
+     * @param ev The event object
      */
     private renameClick(id: number, ev: JQuery.ClickEvent) {
         ev.preventDefault();
@@ -170,6 +170,12 @@ class RenameButton {
         this.hideRenameControls(id, button);
     }
 
+    /**
+     * Hide the rename controls
+     * @param id Id of the file
+     * @param button The button to hide
+     * @private
+     */
     private hideRenameControls(id: number, button: JQuery<HTMLButtonElement>) {
         $(`#current-${id}`).removeClass('hidden').attr('aria-hidden', 'false');
         $(`#file-rename-${id}`)

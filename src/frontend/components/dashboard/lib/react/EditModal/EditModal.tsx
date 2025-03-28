@@ -30,7 +30,6 @@ export default function EditModal({ editModalOpen, closeModal, editError, loadin
     // @ts-expect-error test is a global variable
     const test = window.test;
 
-    /* @ts-expect-error Modal is apparently not a component */
     return (<Modal
         isOpen={editModalOpen}
         onRequestClose={closeModal}

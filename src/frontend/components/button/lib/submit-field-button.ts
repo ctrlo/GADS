@@ -121,6 +121,7 @@ export default class SubmitFieldButton {
         // @ts-expect-error - This is a global variable
         if (window.test) return "";
 
+        // @ts-expect-error Test variables created by Digitpaint
         const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi;
 
         return devEndpoint ? devEndpoint : `/${data.layoutIdentifier}/tree/${data.columnId}`

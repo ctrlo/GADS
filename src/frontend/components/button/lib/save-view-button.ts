@@ -1,5 +1,5 @@
 import { validateRequiredFields } from "validation";
-import "@lol768/jquery-querybuilder-no-eval";
+import "jQuery-QueryBuilder";
 
 /**
  * Create a save view button component

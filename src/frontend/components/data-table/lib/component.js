@@ -6,7 +6,6 @@ import 'datatables.net-rowreorder-bs5'
 import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets'
 import { moreLess } from 'components/more-less/lib/more-less'
 import { bindToggleTableClickHandlers } from './toggle-table'
-import DataTable from 'datatables.net-bs4'
 
 const MORE_LESS_TRESHOLD = 50
 
