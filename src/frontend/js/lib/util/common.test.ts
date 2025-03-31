@@ -1,4 +1,4 @@
-import "../../../testing/globals.definitions";
+import "testing/globals.definitions";
 import { fromJson, hideElement, showElement } from "./common";
 
 describe('common functions', () => {

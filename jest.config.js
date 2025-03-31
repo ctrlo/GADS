@@ -97,6 +97,7 @@ const config = {
     "^components/(.*)$": "<rootDir>/src/frontend/components/$1",
     "^set-field-values$": "<rootDir>/src/frontend/js/lib/set-field-values",
     "^guid$": "<rootDir>/src/frontend/js/lib/guid",
+    "^testing/(.*)$": "<rootDir>/src/frontend/testing/$1",
   },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
@@ -141,7 +142,7 @@ const config = {
   // runner: "jest-runner",
 
   // The paths to modules that run some code to configure or set up the testing environment before each test
-  // setupFiles: [],
+  setupFiles: ['<rootDir>/src/frontend/testing/setup.ts'],
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
   // setupFilesAfterEnv: [],
@@ -168,9 +169,9 @@ const config = {
   // ],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
-  // testPathIgnorePatterns: [
-  //   "/node_modules/"
-  // ],
+  testPathIgnorePatterns: [
+    "/node_modules/"
+  ],
 
   // The regexp pattern or array of patterns that Jest uses to detect test files
   // testRegex: [],

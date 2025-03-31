@@ -1,4 +1,4 @@
-import "../../../../testing/globals.definitions";
+import "testing/globals.definitions";
 import AutosaveBase from './autosaveBase';
 
 class TestAutosave extends AutosaveBase {

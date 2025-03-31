@@ -1,4 +1,4 @@
-import { setupCrypto } from '../../../../../testing/globals.definitions';
+import { setupCrypto } from 'testing/globals.definitions';
 import { EncryptedStorage } from './encryptedStorage';
 
 class TestStorage implements Storage {
