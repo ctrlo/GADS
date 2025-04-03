@@ -2,6 +2,17 @@
 
 -------
 
+**Version**: 2.6.1
+**Released**: 03-04-2025
+
+-------
+
+## Fixes
+
+- Fix download menu option not displaying
+
+-------
+
 **Version**: 2.6.0
 **Released**: 24-03-2025
 
