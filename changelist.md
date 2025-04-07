@@ -2,6 +2,17 @@
 
 -------
 
+**Version**: 2.6.2
+**Released**: 07-04-2025
+
+-------
+
+## Fixes
+
+- Fix email users functionality not working
+
+-------
+
 **Version**: 2.6.1
 **Released**: 03-04-2025
 
