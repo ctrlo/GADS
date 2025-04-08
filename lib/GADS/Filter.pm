@@ -26,7 +26,7 @@ use Log::Report 'linkspace';
 use MIME::Base64;
 
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base qw(Bool ArrayRef HashRef);
 
 has is_people_filter => (
     is  => 'ro',

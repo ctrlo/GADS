@@ -38,7 +38,7 @@ use Scalar::Util qw(looks_like_number);
 use Text::CSV::Encoded;
 use Tree::DAG_Node;
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base qw(Maybe Str ArrayRef HashRef Bool Int);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 
 with 'GADS::RecordsJoin', 'GADS::Role::Presentation::Records', 'GADS::Helper::ConditionBuilder';

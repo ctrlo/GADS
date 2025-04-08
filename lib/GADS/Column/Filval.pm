@@ -22,7 +22,6 @@ use GADS::Records;
 use Log::Report 'linkspace';
 
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
 
 with 'GADS::Role::Curcommon::RelatedField';
 with 'GADS::Role::Curcommon::CurvalMulti';

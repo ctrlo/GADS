@@ -21,7 +21,7 @@ package GADS::Globe;
 use GADS::RecordsGlobe;
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base qw(Bool HashRef);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 
 has records => (

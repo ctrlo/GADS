@@ -24,7 +24,7 @@ use String::CamelCase qw(camelize);
 use Tree::DAG_Node;
 
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Bool HashRef ArrayRef/;
 
 extends 'GADS::Column';
 

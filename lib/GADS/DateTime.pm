@@ -23,20 +23,25 @@ use DateTime::Span;
 use GADS::Config;
 use Log::Report 'linkspace';
 use Moo::Role;
-use MooX::Types::MooseLike::Base qw(:all);
 
 sub parse_datetime
-{   my $value = shift;
+{   my ($self, $value, %options) = @_;
+    my $source = $options{source};
     return undef if !$value;
     return $value if ref $value eq 'DateTime';
-    $value =~ s/\.\d+$//; # Strip milliseconds
-    my $dateformat = GADS::Config->instance->dateformat;
-    # If there's a space in the input value, assume it includes a time as well
-    $dateformat .= ' HH:mm:ss' if $value =~ / /;
-    my $cldr = DateTime::Format::CLDR->new(
-        pattern => $dateformat,
-    );
-    $value && $cldr->parse_datetime($value);
+    if ($source && $source eq 'db')
+    {
+        return $self->_parse_db($value);
+    }
+    else {
+        my $dateformat = GADS::Config->instance->dateformat;
+        # If there's a space in the input value, assume it includes a time as well
+        $dateformat .= ' HH:mm:ss' if $value =~ / /;
+        my $cldr = DateTime::Format::CLDR->new(
+            pattern => $dateformat,
+        );
+        return $cldr->parse_datetime($value);
+    }
 }
 
 sub parse_daterange
@@ -73,13 +78,8 @@ sub parse_daterange
     my ($from, $to);
     if ($source eq 'db')
     {
-        my $db_parser = $self->schema->storage->datetime_parser;
-        my $f = $original->{from};
-        $f = "$f 00:00:00" if $f !~ / /;
-        my $t = $original->{to};
-        $t = "$t 00:00:00" if $t !~ / /;
-        $from = $db_parser->parse_datetime($f);
-        $to   = $db_parser->parse_datetime($t);
+        $from = $self->_parse_db($original->{from});
+        $to   = $self->_parse_db($original->{to});
     }
     elsif (ref $original->{from} eq 'DateTime' && ref $original->{to} eq 'DateTime')
     {
@@ -189,7 +189,7 @@ sub validate_daterange_search
     }
     if ($options{full_only})
     {
-        if (my $hash = $self->split($value))
+        if (my $hash = $self->_split($value))
         {
             return $self->validate($hash, %options);
         }
@@ -200,13 +200,13 @@ sub validate_daterange_search
             value => $value, name => $self->name, format => $config->dateformat;
     }
     # Accept both formats. Normal date format used to validate searches
-    return 1 if $self->parse_date($value) || ($self->split($value) && $self->validate($self->split($value)));
+    return 1 if $self->parse_date($value) || ($self->_split($value) && $self->validate($self->_split($value)));
     return 0 unless $options{fatal};
     error "Invalid format {value} for {name}",
         value => $value, name => $self->name;
 }
 
-sub split
+sub _split
 {   my ($self, $value) = @_;
     if ($value =~ /(.+) to (.+)/)
     {
@@ -218,6 +218,13 @@ sub split
             to   => $to,
         };
     }
+}
+
+sub _parse_db
+{   my ($self, $value) = @_;
+    my $db_parser = $self->schema->storage->datetime_parser;
+    $value = "$value 00:00:00" if $value !~ / /;
+    $db_parser->parse_datetime($value);
 }
 
 1;

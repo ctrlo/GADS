@@ -27,7 +27,7 @@ use Text::CSV;
 use GADS::Helper::ConditionBuilder;
 
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base qw(ArrayRef);
 
 has filter => (
     is => 'ro',

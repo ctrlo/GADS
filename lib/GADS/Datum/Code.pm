@@ -24,7 +24,7 @@ use String::CamelCase qw(camelize);
 use Tree::DAG_Node;
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/ArrayRef/;
 use namespace::clean;
 
 extends 'GADS::Datum';
