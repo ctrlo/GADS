@@ -2,6 +2,17 @@
 
 -------
 
+**Version**: 2.6.3
+**Released**: 08-04-2025
+
+-------
+
+## Fixes
+
+- Fix panics using deleted people in calcs
+
+-------
+
 **Version**: 2.6.2
 **Released**: 07-04-2025
 
