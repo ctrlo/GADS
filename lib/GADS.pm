@@ -1701,7 +1701,7 @@ post '/file/:id?' => require_login sub {
     {
         my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
         my $file;
-        if (process( sub { $file = rset('Fileval')->create({
+        if (process( sub { $file = rset('Fileval')->create_with_file({
             name           => $upload->filename,
             mimetype       => $mimetype,
             content        => $upload->content,
@@ -1760,7 +1760,7 @@ put '/api/file/:id' => require_login sub {
             rename_existing => 1)
                 or error __x"File ID {id} cannot be found", id => $id;
 
-        my $newFile = rset('Fileval')->create({
+        my $newFile = rset('Fileval')->create_with_file({
             name           => $newname,
             mimetype       => $file->single_mimetype,
             content        => $file->single_content,
@@ -1806,7 +1806,7 @@ post '/api/file/?' => require_login sub {
         $filename =~ s/[^a-zA-Z0-9\._\-\(\) ]//g;
 
         my $file;
-        if (process( sub { $file = rset('Fileval')->create({
+        if (process( sub { $file = rset('Fileval')->create_with_file({
             name           => $filename,
             mimetype       => $mimetype,
             content        => $upload->content,

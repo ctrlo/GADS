@@ -10,7 +10,14 @@ GADS::Schema::Result::Fileval
 use strict;
 use warnings;
 
-use base 'DBIx::Class::Core';
+use Path::Class qw(file dir);
+use Moo;
+
+use GADS::Config;
+
+extends 'DBIx::Class::Core';
+
+sub BUILDARGS { $_[2] || {} }
 
 =head1 COMPONENTS LOADED
 
@@ -48,11 +55,6 @@ __PACKAGE__->table("fileval");
   data_type: 'text'
   is_nullable: 1
 
-=head2 content
-
-  data_type: 'longblob'
-  is_nullable: 1
-
 =cut
 
 __PACKAGE__->add_columns(
@@ -62,8 +64,6 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "mimetype",
   { data_type => "text", is_nullable => 1 },
-  "content",
-  { data_type => "longblob", is_nullable => 1 },
   "is_independent",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "edit_user_id",
@@ -114,6 +114,29 @@ __PACKAGE__->belongs_to(
 sub sqlt_deploy_hook {
     my ($self, $sqlt_table) = @_;
     $sqlt_table->add_index(name => 'fileval_idx_name', fields => [ { name => 'name', prefix_length => 64 } ]);
+}
+
+sub create_file {
+  my ($self, $content) = @_;
+  my $target = $self->file_to_id;
+  $target->dir->mkpath;
+  $target->spew(iomode => '>:raw', $content);
+}
+
+sub file_to_id {
+  my $self = shift;
+  my $path = GADS::Config->instance->uploads;
+  my $id = sprintf "%09d", $self->id;
+  $id =~ s!(\d{3})!$1/!g;
+  $id =~ s!/$!!g;
+  file($path, $id);
+};
+
+sub content {
+  my $self = shift;
+  my $target = $self->file_to_id;
+  return unless -e $target;
+  return $target->slurp(iomode => '<:raw');
 }
 
 1;

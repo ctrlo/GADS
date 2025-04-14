@@ -33,6 +33,7 @@ has config => (
         $self->clear_login_instance;
         $self->clear_dateformat;
         $self->clear_dateformat_datepicker;
+        $self->clear_uploads;
     },
 );
 
@@ -111,6 +112,26 @@ has dateformat_datepicker => (
 
         return $dateformat;
     },
+);
+
+has uploads => (
+    is => 'ro',
+    lazy => 1,
+    clearer=>1,
+    builder => sub {
+        my $self = shift;
+        my $upload_path = $self->gads && ref($self->gads) eq 'HASH' && $self->gads->{uploads};
+        my $path;
+        if(!$upload_path || $upload_path eq '') {
+            $path = '/var/lib/linkspace';
+        } else {
+            $upload_path =~ s!/$!!; # Remove leading slash
+            $path = $upload_path;
+        }
+        say STDERR "Path: $path";
+        dir($path)->mkpath unless -d $path;
+        $upload_path or '/var/lib/linkspace';
+    }
 );
 
 1;

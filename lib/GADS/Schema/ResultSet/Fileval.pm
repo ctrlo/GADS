@@ -10,6 +10,8 @@ use Log::Report 'linkspace';
 use GADS::Datum::File;
 use GADS::Layout;
 
+use Data::Dumper qw(Dumper);
+
 sub independent
 {   shift->search_rs({
         is_independent => 1,
@@ -76,6 +78,30 @@ sub find_with_permission
     }
 
     $file;
+}
+
+sub create_with_file {
+    my ($self, $options) = @_;
+    my $name = $options->{name};
+    my $mimetype = $options->{mimetype};
+    my $content = $options->{content};
+    my $independent = $options->{is_independent};
+    my $user = $options->{edit_user_id};
+
+    my $guard = $self->result_source->schema->txn_scope_guard;
+
+    my $return = $self->create({
+        name => $name,
+        mimetype => $mimetype,
+        is_independent => $independent || 0,
+        edit_user_id => $user,
+    });
+
+    $return->create_file($content);
+
+    $guard->commit;
+
+    $return;
 }
 
 1;
