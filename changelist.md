@@ -2,6 +2,17 @@
 
 -------
 
+**Version**: 2.6.4
+**Released**: 14-04-2025
+
+-------
+
+## Fixes
+
+- Ignore invalid values when using API to populate fields
+
+-------
+
 **Version**: 2.6.3
 **Released**: 08-04-2025
 
