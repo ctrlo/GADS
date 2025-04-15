@@ -7,8 +7,14 @@ import dateComponent from "./dateComponent";
 import autocompleteComponent from "./autocompleteComponent";
 import { initValidationOnField } from "validation";
 
+/**
+ * Component initializer function
+ */
 type ComponentInitializer = (element: JQuery<HTMLElement> | HTMLElement) => void;
 
+/**
+ * Input component class
+ */
 class InputComponent extends Component {
     private static componentMap: { [key: string]: ComponentInitializer } = {
         'input--password': passwordComponent,
@@ -19,12 +25,19 @@ class InputComponent extends Component {
         'input--autocomplete': autocompleteComponent
     };
 
+    /**
+     * Create a new input component
+     * @param element The Element to attach the component to.
+     */
     constructor(element: HTMLElement | JQuery<HTMLElement>) {
         super(element);
         this.initializeComponent();
         this.initializeValidation();
     }
 
+    /**
+     * Initialize the component based on its class
+     */
     private initializeComponent() {
         const $el = $(this.element);
 
@@ -36,6 +49,9 @@ class InputComponent extends Component {
         }
     }
 
+    /**
+     * Initialize validation on the input field
+     */
     private initializeValidation() {
         const $el = $(this.element);
 

@@ -3,7 +3,14 @@ import * as DataTableHelper from 'components/data-table/lib/helper'
 import { modal } from 'components/modal/lib/modal'
 import SelectComponent from 'components/form-group/select/lib/component'
 
+/**
+ * Component for the add table modal
+ */
 class AddTableModalComponent extends ModalComponent {
+  /**
+   * Create a new Add table modal component
+   * @param {HTMLElement} element The element to attach the modal to
+   */
   constructor(element) {
     super(element)
     this.el = $(this.element)
@@ -20,7 +27,9 @@ class AddTableModalComponent extends ModalComponent {
     this.initNewTable(this.el)
   }
 
-  // Initialize the new table wizzard
+  /**
+   * Initialize the new table wizard
+   */
   initNewTable() {
     const btnCreateTopic = this.el.find('.modal-body .btn-js-create-topic')
     const btnCreateField = this.el.find('.modal-body .btn-js-create-field')
@@ -31,6 +40,9 @@ class AddTableModalComponent extends ModalComponent {
     this.setupDataObject()
   }
 
+  /**
+   * Setup the default data object
+   */
   setupDataObject() {
     this.json = {
       table_permissions: [],
@@ -39,6 +51,11 @@ class AddTableModalComponent extends ModalComponent {
     }
   }
 
+  /**
+   * Add fields to a data object
+   * @param {JQuery} $fields The fields to add
+   * @param {*} obj The parameters object to use
+   */
   addFieldsToObject($fields, obj) {
     $fields.each((i, field) => {
       if ($(field).val()) {
@@ -59,7 +76,10 @@ class AddTableModalComponent extends ModalComponent {
     return obj
   }
 
-  // Add a topic to the json and update the topics table
+  /**
+   * Add a topic to the json and update the topics table
+   * @param {*} frame The frame object to add the topic from
+   */
   addTopic(frame) {
     const $fields = frame.find('input, textarea')
 
@@ -118,6 +138,11 @@ class AddTableModalComponent extends ModalComponent {
     }
   }
 
+  /**
+   * Fill the fields from the data object
+   * @param {JQuery} $container The container object
+   * @param {*} data The data object
+   */
   fillFields($container, data) {
     for (const [key, value] of Object.entries(data)) {
       const $field = $container.find(`[name=${key}]`)
@@ -136,6 +161,11 @@ class AddTableModalComponent extends ModalComponent {
     }
   }
 
+  /**
+   * Edit a topic
+   * @param {*} topic The topic to edit
+   * @param {*} frame The frame object
+   */
   editTopic(topic, frame) {
     this.currentTopicObject = topic
 
@@ -143,6 +173,11 @@ class AddTableModalComponent extends ModalComponent {
     this.fillFields($(frame), topic)
   }
 
+  /**
+   * Edit a field
+   * @param {*} field The field to edit
+   * @param {*} frame The frame object
+   */
   editField(field, frame) {
     this.currentFieldObject = field
     // Also clear frame 8 (field type settings) and 9 (custom field permissions)
@@ -170,12 +205,21 @@ class AddTableModalComponent extends ModalComponent {
     })
   }
 
+  /**
+   * Remove a node from the data
+   * @param {*} id The id of the node to remove
+   * @param {*} data The data object
+   */
   removeNode(id, data) {
     return data.filter((e) => {
       return e.tempId !== id
     })
   }
 
+  /**
+   * Add the handler to the edit button
+   * @param {string} strType The type of item to edit
+   */
   addHandlerToEditItemButton(strType) {
     const $btnEditItem = this.el.find(`.modal-body .btn-js-edit-${strType}`)
 
@@ -189,11 +233,18 @@ class AddTableModalComponent extends ModalComponent {
     })
   }
 
+  /**
+   * Create a unique id
+   * @returns A unique ID
+   */
   uniqueID() {
     return Math.floor(Math.random() * Date.now())
   }
 
-  // Add a field to the json and update the fields table
+  /**
+   * Add a field to the json and update the fields table
+   * @param {*} frame The frame object
+   */
   addField(frame) {
     const $fields = frame.find('input, textarea')
 
@@ -251,6 +302,10 @@ class AddTableModalComponent extends ModalComponent {
     }
   }
 
+  /**
+   * Add field type settings view to the modal
+   * @param {*} frame The frame
+   */
   addFieldTypeSettings(frame) {
     const $fieldTypeContainer = frame.find('[id^=field_type_].select-reveal__instance:visible')
     const $fields = $fieldTypeContainer.find('input, textarea')
@@ -332,7 +387,10 @@ class AddTableModalComponent extends ModalComponent {
     }
   }
 
-  // Add a table to the json
+  /**
+   * Add a table to the json
+   * @param {*} frame The frame object
+   */
   addTable(frame) {
     const $fields = frame.find('input, textarea')
     const $modalTitle = this.el.find('.modal-title')
@@ -348,7 +406,10 @@ class AddTableModalComponent extends ModalComponent {
     }
   }
 
-  // Add default_field_permissions to the json
+  /**
+   * Add default_field_permissions to the json
+   * @param {*} frame The frame object
+   */
   addCustomFieldPermissions(frame) {
     const $customFieldPermissionsTable = frame.find('#custom_field_permissions_table')
     const $groups = $customFieldPermissionsTable.DataTable().rows()
@@ -378,7 +439,10 @@ class AddTableModalComponent extends ModalComponent {
     })
   }
 
-  // Add table_permissions to the json
+  /**
+   * Add table_permissions to the json
+   * @param {*} frame The frame object
+   */
   addTablePermissions(frame) {
     const $groups = frame.find('.card--expandable')
 
@@ -410,7 +474,10 @@ class AddTableModalComponent extends ModalComponent {
     })
   }
 
-  // Handle next
+  /**
+   * Handle next
+   * @param {*} frame The frame object
+   */
   handleNext(frame) {
     super.handleNext()
 
@@ -442,21 +509,32 @@ class AddTableModalComponent extends ModalComponent {
     }
   }
 
-  // Adjust column widths of datatables when they become visible
+  /**
+   * Adjust column widths of datatables when they become visible
+   * @param {*} table The table to recalculate
+   */
   recalculateDatatableColumnWidths(table) {
     table.DataTable().columns.adjust()
   }
 
-  // Handle back
+  /**
+   * Handle back
+   */
   handleBack() {
     super.handleBack()
   }
 
-  // TODO: Handle save
+  /**
+   * Handle save
+   */
   handleSave() {
     modal.upload(this.json)
   }
 
+  /**
+   * Handle save
+   * @param {*} frame The frame object
+   */
   handleUpdate(frame) {
     if (frame.data('config').item === "topic") {
       this.addTopic(frame)
@@ -467,6 +545,12 @@ class AddTableModalComponent extends ModalComponent {
     }
   }
 
+  /**
+   * Handle save
+   * @param {*} frameNumber The frame number
+   * @param {*} clearFields Whether to clear the fields
+   * @param {*} id The ID
+   */
   handleActivate(frameNumber, clearFields, id) {
     super.handleActivate(frameNumber, clearFields)
 
@@ -495,7 +579,9 @@ class AddTableModalComponent extends ModalComponent {
     super.validateFrame()
   }
 
-  // Handle close
+  /**
+   * Handle close
+   */
   handleClose() {
     // Collapse all collapsibles
     this.el.find('.collapse').collapse('hide')

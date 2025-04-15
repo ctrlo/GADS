@@ -1,3 +1,9 @@
+/**
+ * Position the disclosure widget relative to the trigger element
+ * @param {*} offsetTop Offset from the top of the page
+ * @param {*} offsetLeft Offset from the left of the page
+ * @param {*} triggerHeight The height of the trigger element
+ */
 const positionDisclosure = function (offsetTop, offsetLeft, triggerHeight) {
   const left = offsetLeft + 'px'
   const top = offsetTop + triggerHeight + 'px'
@@ -24,6 +30,13 @@ const positionDisclosure = function (offsetTop, offsetLeft, triggerHeight) {
   }
 }
 
+/**
+ * Toggle the disclosure widget
+ * @param {JQuery.Event} e The event object
+ * @param {JQuery} $trigger The trigger element
+ * @param {*} state The state
+ * @param {boolean} permanent Whether the disclosure is permanent
+ */
 const toggleDisclosure = function (e, $trigger, state, permanent) {
   $trigger.attr('aria-expanded', state)
   $trigger.toggleClass('expanded--permanent', state && permanent)
@@ -61,12 +74,20 @@ const toggleDisclosure = function (e, $trigger, state, permanent) {
   e.stopPropagation()
 }
 
+/**
+ * Handle click of the disclosure element
+ * @param {JQuery.Event} e The event object
+ */
 const onDisclosureClick = function (e) {
   const $trigger = $(this)
   const currentlyPermanentExpanded = $trigger.hasClass('expanded--permanent')
   toggleDisclosure(e, $trigger, !currentlyPermanentExpanded, true)
 }
 
+/**
+ * Handle disclosure mouseover event
+ * @param {JQuery.Event} e The event object
+ */
 const onDisclosureMouseover = function (e) {
   const $trigger = $(this)
   const currentlyExpanded = $trigger.attr('aria-expanded') === 'true'
@@ -76,6 +97,10 @@ const onDisclosureMouseover = function (e) {
   }
 }
 
+/**
+ * Handle disclosure mouseout event
+ * @param {JQuery.Event} e The event object
+ */
 const onDisclosureMouseout = function (e) {
   const $trigger = $(this)
   const currentlyExpanded = $trigger.attr('aria-expanded') === 'true'
@@ -86,6 +111,10 @@ const onDisclosureMouseout = function (e) {
   }
 }
 
+/**
+ * Set up the disclosure widgets
+ * @param {*} context The context in which to set up the disclosure widgets
+ */
 const setupDisclosureWidgets = function (context) {
   $('.trigger[aria-expanded]', context).on('click keydown', function (ev) {
     if (ev.type === 'click' || (ev.type === 'keydown' && (ev.which === 13 || ev.which === 32))) {

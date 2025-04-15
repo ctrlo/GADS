@@ -9,7 +9,14 @@ import '../../../js/lib/jqplot/jqplot.canvasAxisLabelRenderer'
 import '../../../js/lib/jqplot/jqplot.canvasAxisTickRenderer'
 import '../../../js/lib/jqplot/jqplot.highlighter'
 
+/**
+ * Graph component using JQPlot
+ */
 class GraphComponent extends Component {
+  /**
+   * Create a new graph component
+   * @param {HTMLElement} element The element to attach the component to
+   */
   constructor(element) {
     super(element)
     this.graphContainer = $(this.element).find('.graph__container')
@@ -19,6 +26,9 @@ class GraphComponent extends Component {
     }
   }
 
+  /**
+   * Initialize the graph
+   */
   initGraph() {
     $.jqplot.config.enablePlugins = true
     const data = this.graphContainer.data()
@@ -35,6 +45,10 @@ class GraphComponent extends Component {
     this.do_plot(plotData, options_in)
   }
 
+  /**
+   * Get the URL for the graph data
+   * @param {*} data The data for the graph
+   */
   getURL(data) {
     let devEndpoint
 
@@ -52,6 +66,11 @@ class GraphComponent extends Component {
     }
   }
 
+  /**
+   * Data renderer that fetches the data for the graph
+   * @param {*} url The URL to fetch data from
+   * @returns A data object for the graph
+   */
   ajaxDataRenderer(url) {
     let ret = null
 
@@ -66,6 +85,11 @@ class GraphComponent extends Component {
     return ret
   }
 
+  /**
+   * Plot the graph data
+   * @param {*} plotData The data for the graph
+   * @param {*} options_in The options for the graph
+   */
   do_plot(plotData, options_in) {
     const ticks = plotData.xlabels
     let plotOptions = {}
@@ -131,6 +155,10 @@ class GraphComponent extends Component {
     $(`[data-chart-id=${options_in.id}]`).jqplot(plotData.points, plotOptions)
   }
 
+  /**
+   * Make the series defaults for a graph
+   * @returns {object} Default values for the graph
+   */
   makeSeriesDefaults = () => ({
     bar: {
       renderer: $.jqplot.BarRenderer,

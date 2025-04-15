@@ -1,5 +1,12 @@
+/**
+ * Mapped response interface for Typeahead class
+ */
 export type MappedResponse = { name: string, id: number };
-export type MapperFunction = (any) => MappedResponse[];
+
+/**
+ * Mapper function type for Typeahead class to map responses
+ */
+export type MapperFunction = (any: any) => MappedResponse[];
 
 /**
  * ScriptResponse interface for Typeahead class script responses

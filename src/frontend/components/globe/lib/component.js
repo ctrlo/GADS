@@ -3,12 +3,22 @@ import * as Plotly from 'plotly/plotly-geo-2.26.0'
 // Use following line once patches merged upstream
 // import Plotly from 'plotly.js-geo-dist'
 
+/**
+ * Create a component to show a globe with Plotly
+ */
 class GlobeComponent extends Component {
+  /**
+   * Create a new globe component
+   * @param {HTMLElement} element The element to attach the component to
+   */
   constructor(element) {
     super(element)
     this.initGlobe()
   }
 
+  /**
+   * Initialize the globe component
+   */
   initGlobe() {
     Plotly.setPlotConfig({ locale: "en-GB" })
 

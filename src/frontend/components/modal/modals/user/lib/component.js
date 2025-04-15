@@ -1,7 +1,14 @@
 import { modal } from '../../../lib/modal'
 import ModalComponent from '../../../lib/component'
 
+/**
+ * Modal component for adding users
+ */
 class UserModalComponent extends ModalComponent {
+  /**
+   * Create a new user modal component
+   * @param {HTMLElement} element The element to initialize the component on
+   */
   constructor(element) {
     super(element)
     this.el = $(this.element)
@@ -11,7 +18,9 @@ class UserModalComponent extends ModalComponent {
     this.initUserModal()
   }
 
-  // Initialize the modal
+  /**
+   * Initialize the modal
+   */
   initUserModal() {
     this.el.on('show.bs.modal', (ev) => {
       this.toggleContent(ev)
@@ -21,7 +30,10 @@ class UserModalComponent extends ModalComponent {
     })
   }
 
-  // Toggle the right content (add user or approve account)
+  /**
+   * Toggle the right content (add user or approve account)
+   * @param {JQuery.Event} ev The event object
+   */
   toggleContent(ev) {
     this.target = $(ev.relatedTarget)
     if (this.target.hasClass('btn-add')) {
@@ -42,12 +54,17 @@ class UserModalComponent extends ModalComponent {
     }
   }
 
-  // Update the text container for the email address
+  /**
+   * Update the text container for the email address
+   */
   updateEmail() {
     this.emailText.html(this.emailField.val())
   }
 
-  // Get all data from all fields in the modal
+  /**
+   * Get all data from all fields in the modal
+   * @returns {Object} The data to be sent to the server
+   */
   getData() {
     const data = {
       view_limits: [],
@@ -79,21 +96,33 @@ class UserModalComponent extends ModalComponent {
     return data
   }
 
+  /**
+   * Parse a value to boolean
+   * @param {*} val The value to "parse"
+   * @returns True for 'true', else false if it is 'false', else the value
+   */
   parseValue(val) {
     return val === 'true' ? true : val === 'false' ? false : val
   }
 
-  // Handle save
+  /**
+   * Handle save
+   */
   handleSave() {
     modal.upload(this.getData())
   }
 
-  // Handle close
+  /**
+   * Handle close
+   */
   handleClose() {
     super.handleClose()
     this.emailText.html("USER")
   }
 
+  /**
+   * Handle back
+   */
   handleBack() {
     super.handleBack()
     if (this.target.hasClass('btn-add')) return;
@@ -102,6 +131,9 @@ class UserModalComponent extends ModalComponent {
     });
   }
 
+  /**
+   * Handle next
+   */
   handleNext() {
     super.handleNext()
     if (this.target.hasClass('btn-add')) return;

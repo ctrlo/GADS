@@ -1,4 +1,4 @@
-import React from "react";
+import React, { RefObject } from "react";
 import serialize from "form-serialize";
 
 import Modal from "react-modal";
@@ -39,14 +39,21 @@ const modalStyle = {
   }
 };
 
+/**
+ * Main App Component
+ */
 class App extends React.Component<any, any> {
-  private formRef;
+  private formRef: RefObject<HTMLDivElement>;
 
-  constructor(props) {
+  /**
+   * Create the App component
+   * @param props The props passed to the component
+   */
+  constructor(props: any) {
     super(props);
     Modal.setAppElement("#ld-app");
 
-    const layout = props.widgets.map(widget => widget.config);
+    const layout = props.widgets.map((widget: any) => widget.config);
     this.formRef = React.createRef();
     sidebarObservable.addSubscriber(this);
 
@@ -78,26 +85,36 @@ class App extends React.Component<any, any> {
     }
   }
 
+  /**
+   * Initialize the Summernote component
+   */
   initializeSummernoteComponent = () => {
     const summernoteEl = this.formRef.current.querySelector('.summernote');
     if (summernoteEl) {
       import(/* WebpackChunkName: "summernote" */ "../../../summernote/lib/component")
         .then(({ default: SummerNoteComponent }) => {
-          new SummerNoteComponent(summernoteEl)
+          new SummerNoteComponent(summernoteEl as HTMLElement)
         });
     }
   }
 
+  /**
+   * Initialize the Globe component
+   */
   initializeGlobeComponents = () => {
     const arrGlobe = document.querySelectorAll(".globe");
     import('../../../globe/lib/component').then(({ default: GlobeComponent }) => {
       arrGlobe.forEach((globe) => {
-        new GlobeComponent(globe)
+        new GlobeComponent(globe as HTMLElement)
       });
     });
   }
 
-  updateWidgetHtml = async (id) => {
+  /**
+   * Update the widget HTML
+   * @param id The ID of the widget to update
+   */
+  updateWidgetHtml = async (id: string) => {
     const newHtml = await this.props.api.getWidgetHtml(id);
     const newWidgets = this.state.widgets.map(widget => {
       if (widget.config.i === id) {
@@ -111,7 +128,11 @@ class App extends React.Component<any, any> {
     this.setState({ widgets: newWidgets });
   }
 
-  fetchEditForm = async (id) => {
+  /**
+   * Fetch the edit form for a widget
+   * @param id The ID of the widget to fetch the edit form for
+   */
+  fetchEditForm = async (id: string) => {
     const editFormHtml = await this.props.api.getEditForm(id);
     if (editFormHtml.is_error) {
       this.setState({ loadingEditHtml: false, editError: editFormHtml.message });
@@ -120,20 +141,35 @@ class App extends React.Component<any, any> {
     this.setState({ loadingEditHtml: false, editError: false, editHtml: editFormHtml.content });
   }
 
-  onEditClick = id => (event) => {
+  /**
+   * On edit click event handler
+   * @param id The ID of the widget to edit
+   * @param event The event that triggered the edit
+   */
+  onEditClick = (id: string) => (event: MouseEvent) => {
     event.preventDefault();
     this.showEditForm(id);
   }
 
-  showEditForm = (id) => {
+  /**
+   * Show the edit form for a widget
+   * @param id The ID of the widget to show the edit form for
+   */
+  showEditForm = (id: string) => {
     this.setState({ editModalOpen: true, loadingEditHtml: true, activeItem: id });
     this.fetchEditForm(id);
   }
 
+  /**
+   * Close the edit modal
+   */
   closeModal = () => {
     this.setState({ editModalOpen: false });
   }
 
+  /**
+   * Delete the active widget
+   */
   deleteActiveWidget = () => {
     // eslint-disable-next-line no-alert
     if (!window.confirm("Deleting a widget is permanent! Are you sure?"))
@@ -146,7 +182,11 @@ class App extends React.Component<any, any> {
     this.props.api.deleteWidget(this.state.activeItem);
   }
 
-  saveActiveWidget = async (event) => {
+  /**
+   * Save the active widget
+   * @param event The event that triggered the save
+   */
+  saveActiveWidget = async (event: any) => {
     event.preventDefault();
     const formEl = this.formRef.current.querySelector("form");
     if (!formEl) {
@@ -165,7 +205,15 @@ class App extends React.Component<any, any> {
     this.closeModal();
   }
 
-  isGridConflict = (x, y, w, h) => {
+  /**
+   * Check for a grid conflict when placing or adding a widget
+   * @param x The x coordinate of the widget
+   * @param y The y coordinate of the widget
+   * @param w The width of the widget
+   * @param h The height of the widget
+   * @returns True if there is a conflict with the grid, false otherwise
+   */
+  isGridConflict = (x: number, y: number, w: number, h: number):boolean => {
     const ulc = { x, y };
     const drc = { x: x + w, y: y + h };
     return this.state.layout.some((widget) => {
@@ -179,7 +227,13 @@ class App extends React.Component<any, any> {
     });
   }
 
-  firstAvailableSpot = (w, h) => {
+  /**
+   * Find the first available spot for a widget in the grid
+   * @param w The width of the widget
+   * @param h The height of the widget
+   * @returns The first available spot for the widget
+   */
+  firstAvailableSpot = (w: number, h: number) => {
     let x = 0;
     let y = 0;
     while (this.isGridConflict(x, y, w, h)) {
@@ -194,8 +248,12 @@ class App extends React.Component<any, any> {
     return { x, y };
   }
 
+  /**
+   * Add a widget to the dashboard
+   * @param type The type of widget to add
+   */
   // eslint-disable-next-line no-unused-vars
-  addWidget = async (type) => {
+  addWidget = async (type: string) => {
     this.setState({ loading: true });
     const result = await this.props.api.createWidget(type)
     if (result.error) {
@@ -225,6 +283,10 @@ class App extends React.Component<any, any> {
     this.showEditForm(id);
   }
 
+  /**
+   * Generate the widget DOM elements
+   * @returns The DOM elements for the widgets
+   */
   generateDOM = () => (
     this.state.widgets.map(widget => (
       <div key={widget.config.i} className={`ld-widget-container ${this.props.readOnly || widget.config.static ? "" : "ld-widget-container--editable"}`}>
@@ -233,14 +295,24 @@ class App extends React.Component<any, any> {
     ))
   )
 
-  onLayoutChange = (layout) => {
+  /**
+   * Event handler for when the grid layout changes
+   * @param layout The new layout of the grid
+   */
+  onLayoutChange = (layout: any) => {
     if (this.shouldSaveLayout(this.state.layout, layout)) {
       this.props.api.saveLayout(this.props.dashboardId, layout);
     }
     this.setState({ layout });
   }
 
-  shouldSaveLayout = (prevLayout, newLayout) => {
+  /**
+   * Check if the new layout needs saving
+   * @param prevLayout The previous layout of the grid
+   * @param newLayout The new layout of the grid
+   * @returns True if the layout should be saved, false otherwise
+   */
+  shouldSaveLayout = (prevLayout: any, newLayout: any) => {
     if (prevLayout.length !== newLayout.length) {
       return true;
     }
@@ -257,6 +329,9 @@ class App extends React.Component<any, any> {
     return false;
   }
 
+  /**
+   * Render the edit modal
+   */
   renderModal = () => (
     <Modal
       isOpen={this.state.editModalOpen}
@@ -288,6 +363,9 @@ class App extends React.Component<any, any> {
     </Modal>
   )
 
+  /**
+   * Overwrite the submit event
+   */
   overWriteSubmitEventListener = () => {
     const formContainer = document.getElementById("ld-form-container");
     if (!formContainer)
@@ -304,10 +382,16 @@ class App extends React.Component<any, any> {
     form.appendChild(submitButton);
   }
 
+  /**
+   * Handler for when the sidebar is expanded or collapsed
+   */
   handleSideBarChange = () => {
     window.dispatchEvent(new Event('resize'));
   }
 
+  /**
+   * Render the component
+   */
   render() {
     return (
       <div className="content-block">

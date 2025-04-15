@@ -4,7 +4,7 @@ import { logging } from "logging";
 
 /**
  * Create delete button
- * @param element {JQuery<HTMLElement>} - Element to act as a delete button
+ * @param element Element to act as a delete button
  */
 export default function createDeleteButton(element: JQuery<HTMLElement>) {
     element.on('click', (ev) => {

@@ -8,7 +8,7 @@ export default class CreateReportButtonComponent {
 
     /**
      * Create a new CreateReportButtonComponent
-     * @param {JQuery<HTMLElement>} element button element
+     * @param element button element
      */
     constructor(element:JQuery<HTMLElement>) {
         element.on('click', (ev) => {
@@ -30,7 +30,7 @@ export default class CreateReportButtonComponent {
 
     /**
      * Submit the form
-     * @param {JQuery<HTMLElement>} $button form to submit
+     * @param $button form to submit
      */
     submit($button:JQuery<HTMLElement>) {
         $button.trigger("click");

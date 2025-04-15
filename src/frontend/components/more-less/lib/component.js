@@ -5,8 +5,14 @@ import { moreLess } from './more-less';
 
 const MAX_HEIGHT = 50
 
+/**
+ * More/less component to show more or less content in a div.
+ */
 class MoreLessComponent extends Component {
-
+  /**
+   * Create a new more/less component
+   * @param {HTMLElement} element The element to attach the div to
+   */
   constructor(element) {
     super(element)
     this.el = $(this.element)
@@ -14,6 +20,11 @@ class MoreLessComponent extends Component {
     this.initMoreLess()
   }
 
+  /**
+   * Create a random UUID
+   * @returns {string} A random UUID
+   * @deprecated Use `crypto.randomUUID()` instead
+   */
   uuid() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
       const r = (Math.random() * 16) | 0,
@@ -22,7 +33,10 @@ class MoreLessComponent extends Component {
     })
   }
 
-  // Traverse up through the tree and find the parent element that is hidden
+  /**
+   * Traverse up through the tree and find the parent element that is hidden
+   * @param {jQuery} $elem The element to start from
+   */
   parentHidden($elem) {
     // Test parent first in case we have reached the root of the DOM, in which
     // case .css() will throw an error on the element
@@ -36,9 +50,11 @@ class MoreLessComponent extends Component {
     return this.parentHidden($parent)
   }
 
-  // We previously used a plugin for this
-  // (https://github.com/dreamerslab/jquery.actual) but its performance was slow
-  // when a page had many more-less divs
+  /**
+   * Get the actual height of an element
+   * @param {JQuery} $elem The element to get the height of
+   * @returns {number} The height of the element
+   */
   getActualHeight($elem) {
     if ($elem.attr('data-actual-height')) {
       // cached heights from previous runs
@@ -97,11 +113,17 @@ class MoreLessComponent extends Component {
     return $elem.attr('data-actual-height')
   }
 
+  /**
+   * Re-initialize the more/less component
+   */
   reInitMoreLess() {
     this.clearMoreLess()
     this.initMoreLess()
   }
 
+  /**
+   * Clear the more/less component
+   */
   clearMoreLess() {
     const $ml = $(this.el)
 
@@ -114,6 +136,9 @@ class MoreLessComponent extends Component {
     }
   }
 
+  /**
+   * Initialize the more/less component
+   */
   initMoreLess() {
     const $ml = $(this.el)
     const column = $ml.data('column')

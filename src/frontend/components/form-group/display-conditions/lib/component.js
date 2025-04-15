@@ -3,13 +3,23 @@ import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min
 import 'bootstrap-select/dist/js/bootstrap-select'
 import { refreshSelects } from 'components/form-group/common/bootstrap-select'
 
+/**
+ * Display conditions component that creates a query builder
+ */
 class DisplayConditionsComponent extends Component {
+  /**
+   * Create a new display conditions component
+   * @param {HTMLElement} element The element to attach the component to
+   */
   constructor(element) {
     super(element)
     this.el = $(this.element)
     this.initDisplayConditions()
   }
 
+  /**
+   * Initialize the display conditions component
+   */
   initDisplayConditions() {
     const builderData = this.el.data()
     const filters = JSON.parse(atob(builderData.filters))

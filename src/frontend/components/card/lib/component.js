@@ -1,7 +1,14 @@
 import { Component } from 'component'
 import "bootstrap";
 
+/**
+ * Expandable card component
+ */
 class ExpandableCardComponent extends Component {
+  /**
+   * Create a new Expandable Card Component
+   * @param {HTMLElement} element The element to attach the component to
+   */
   constructor(element) {
     super(element)
     this.$el = $(this.element)
@@ -14,6 +21,9 @@ class ExpandableCardComponent extends Component {
     }
   }
 
+  /**
+   * Initialize the expandable card component
+   */
   initExpandableCard() {
     const $collapsibleElm = this.$el.find('.collapse')
     const $btnEdit = this.$el.find('.btn-js-edit')
@@ -65,6 +75,9 @@ class ExpandableCardComponent extends Component {
     })
   }
 
+  /**
+   * Initialize the topic card
+   */
   initTopicCard() {
     // Now that fields are shown/hidden on page load, for each topic check
     // whether it has zero displayed fields, in which case hide the whole
@@ -84,10 +97,19 @@ class ExpandableCardComponent extends Component {
     }
   }
 
+  /**
+   * Can the edit class be removed?
+   * @returns {boolean} true if the edit class can be removed, false otherwise
+   */
   canRemoveEditClass() {
     return !this.$contentBlock.find('.card--edit').length
   }
 
+  /**
+   * Confirm if the page can be closed
+   * @param {JQuery.Event} ev The event object
+   * @returns the message to display in the confirmation dialog
+   */
   confirmOnPageExit = function (ev) {
     ev = ev || window.event
     const message = "Please note that any changes will be lost."
@@ -101,6 +123,9 @@ class ExpandableCardComponent extends Component {
     In order to ensure headers on the view filter tables are the correct width, we need to remove any styling that has been added to the header elements.
     And for some reason, using JQuery and DataTables, the styling is not reset as we expect it to be.
   */
+  /**
+   * Clear up datatable styling that appears to conflict
+   */
   clearupStyling() {
     const tables = $('.table-toggle')
     tables.removeAttr('style');

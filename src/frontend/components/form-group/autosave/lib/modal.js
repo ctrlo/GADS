@@ -6,9 +6,6 @@ import { fromJson } from "util/common";
  * A modal that allows the user to restore autosaved values.
  */
 class AutosaveModal extends AutosaveBase {
-  /**
-   * @inheritdoc
-   */
   async initAutosave() {
     const $modal = $(this.element);
     const $form = $('.form-edit');

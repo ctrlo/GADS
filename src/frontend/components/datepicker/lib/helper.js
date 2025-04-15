@@ -1,5 +1,9 @@
 import  'bootstrap-datepicker'
 
+/**
+ * Initialize a date field
+ * @param {*} field The field to initialize as a date field
+ */
 const initDateField = (field) => {
   field.datepicker({
     "format": field.data("dateformat-datepicker"),

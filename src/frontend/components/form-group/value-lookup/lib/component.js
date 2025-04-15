@@ -2,20 +2,31 @@ import { Component } from 'component'
 import { getFieldValues } from "get-field-values"
 import { setFieldValues } from "set-field-values"
 
-/* Used to lookup a value at an external endpoint
- * and prefill other fields from the response */
-
+/**
+ * Used to lookup a value at an external endpoint and prefill other fields from the response
+ */
 class ValueLookupComponent extends Component {
+  /**
+   * Create a new value lookup component
+   * @param {HTMLElement} element The element to attach the component to
+   */
   constructor(element) {
     super(element)
     this.initLookupComponent()
   }
 
+  /**
+   * Initialise the value lookup component
+   */
   initLookupComponent() {
     const field = this.getLookupEndpoint();
     this.setupValueLookup(field);
   }
 
+  /**
+   * Get the endpoint to lookup values from
+   * @returns {Object} The field data
+   */
   getLookupEndpoint() {
     const lookup_endpoint = $(this.element).data("lookup-endpoint");
     const lookup_fields = $(this.element).data("lookup-fields");
@@ -26,6 +37,10 @@ class ValueLookupComponent extends Component {
     };
   }
 
+  /**
+   * Setup value lookup for a field
+   * @param {*} field The field to setup the value lookup for
+   */
   setupValueLookup(field) {
     const endpoint = field.endpoint;
     const $field = field.field;
@@ -86,6 +101,13 @@ class ValueLookupComponent extends Component {
   }
 }
 
+/**
+ * Add a status message
+ * @param {JQuery} $field The field to add a status message to
+ * @param {string} message The message to set
+ * @param {boolean} spinner Whether to show a spinner or not
+ * @param {boolean} is_error Is the message an error?
+ */
 const addStatusMessage = ($field, message, spinner, is_error) => {
   let $notice = $field.find('.lookup-status')
   let $text = $notice.find('.status-text')
@@ -105,6 +127,10 @@ const addStatusMessage = ($field, message, spinner, is_error) => {
   $notice.removeClass("d-none")
 }
 
+/**
+ * Remove the status message from a field
+ * @param {JQuery} $field The field to remove the status message from
+ */
 const removeStatusMessage = ($field) => {
   $field.find('.lookup-status').addClass("d-none")
 }

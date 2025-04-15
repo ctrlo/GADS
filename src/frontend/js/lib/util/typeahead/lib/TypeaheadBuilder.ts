@@ -2,6 +2,9 @@ import { MapperFunction, map } from "util/mapper/mapper";
 import { TypeaheadSourceOptions } from "./TypeaheadSourceOptions";
 import { Typeahead } from "./Typeahead";
 
+/**
+ * TypeaheadCallback type for the callback function to be called when a suggestion is selected
+ */
 type TypeaheadCallback = (suggestion: { name: string, id: number }) => void;
 
 /**
@@ -104,6 +107,10 @@ export class TypeaheadBuilder {
         return this;
     }
 
+    /**
+     * Use the default mapper implementation
+     * @returns The builder being used
+     */
     withDefaultMapper() {
         this.mapper = map;
         return this;

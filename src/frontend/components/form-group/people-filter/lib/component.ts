@@ -19,12 +19,22 @@ interface FilterSettings {
     allow_empty: boolean;
 }
 
+/**
+ * People filter component to create a querybuilder to filter values on a people field
+ */
 class PeopleFilterComponent extends Component {
+    /**
+     * Create a new PeopleFilterComponent.
+     * @param element The Element to attach the component to.
+     */
     constructor(public element: HTMLElement) {
         super(element);
         this.init();
     }
 
+    /**
+     * Initialize the people filter component
+     */
     init() {
         const elementData = $(this.element).data('filters');
         const peopleDisplayData = $('#people-display').data('filter-base64');

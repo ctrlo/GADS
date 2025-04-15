@@ -9,7 +9,7 @@ const actions: (() => void)[] = [];
 
 /**
  * Add an action to the handler
- * @param action {()=>void} Action to add to the handler
+ * @param action Action to add to the handler
  */
 const addAction = (action: () => void) => {
     actions.push(action);

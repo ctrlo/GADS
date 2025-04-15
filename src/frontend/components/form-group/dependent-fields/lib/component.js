@@ -1,17 +1,31 @@
 import { Component } from 'component'
 import { getFieldValues } from "get-field-values"
 
+/**
+ * Dependent fields component
+ */
 class DependentFieldsComponent extends Component {
+  /**
+   * Create a new Dependent Fields Component
+   * @param {HTMLElement} element The element to attach the dependent fields component to
+   */
   constructor(element) {
     super(element)
     this.initDependentFields()
   }
 
+  /**
+   * Initialize the dependent fields component
+   */
   initDependentFields() {
     const field = this.getFieldDependency();
     this.setupDependentField(field);
   }
 
+  /**
+   * Get the field dependency object
+   * @returns {Object} The field dependency object
+   */
   getFieldDependency() {
     const dependency = $(this.element).data("dependency");
     const decoded = JSON.parse(atob(dependency));
@@ -46,16 +60,17 @@ class DependentFieldsComponent extends Component {
     };
   }
 
-  /***
+  /**
    *
    * Handle the dependency connections between fields
    * via regular expression checks on field values
    *
-   * FIXME: It would be an improvement to abstract the
+   * @todo It would be an improvement to abstract the
    * different field types in GADS behind a common interface
    * as opposed to using dom-attributes.
    *
-  */
+   * @param {Object} field - The field object containing the dependency rules
+   */
   setupDependentField(field) {
     const condition = field.condition;
     const rules = field.rules;

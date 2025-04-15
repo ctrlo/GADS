@@ -7,7 +7,14 @@ const SORTABLE_HANDLE = 'sortable__handle'
 const SORTABLE_HANDLE_HIDDEN = 'sortable__handle--hidden'
 const SORTABLE_ROW = 'sortable__row'
 
+/**
+ * Component that allows sorting of data
+ */
 class SortableComponent extends Component {
+  /**
+   * Create a new sortable component
+   * @param {HTMLElement} element The element to attach the component to
+   */
   constructor(element) {
     super(element)
     this.el = $(this.element)
@@ -19,6 +26,9 @@ class SortableComponent extends Component {
     this.initSortable()
   }
 
+  /**
+   * Initialize the sortable component
+   */
   initSortable() {
     if (this.el.find(`.${SORTABLE_ROW}`).length === 1) {
       this.hideButtons()
@@ -32,6 +42,9 @@ class SortableComponent extends Component {
     this.delBtn.on('click', (ev) => { this.handleClickDelete(ev) })
   }
 
+  /**
+   * Handle the click event for the add button
+   */
   handleClickAdd() {
     this.el.find(`.${BTN_ICON_CLOSE}`).removeClass(BTN_ICON_CLOSE_HIDDEN)
     this.el.find(`.${SORTABLE_HANDLE}`).removeClass(SORTABLE_HANDLE_HIDDEN)
@@ -58,6 +71,10 @@ class SortableComponent extends Component {
     this.sortableList.sortable('refresh')
   }
 
+  /**
+   * Handle the click event for the delete button
+   * @param {JQuery.Event} ev The event object
+   */
   handleClickDelete(ev) {
     const target = $(ev.currentTarget)
 
@@ -68,10 +85,17 @@ class SortableComponent extends Component {
     }
   }
 
+  /**
+   * Create a random unique ID
+   * @returns {number} A unique ID
+   */
   uniqueID() {
     return Math.floor(Math.random() * Date.now())
   }
 
+  /**
+   * Hide the buttons in the sortable component
+   */
   hideButtons() {
     this.el.find(`.${BTN_ICON_CLOSE}`).addClass(BTN_ICON_CLOSE_HIDDEN)
     this.el.find(`.${SORTABLE_HANDLE}`).addClass(SORTABLE_HANDLE_HIDDEN)

@@ -7,26 +7,38 @@ import { validateRadioGroup, validateCheckboxGroup } from 'validation'
 import { fromJson } from 'util/common'
 import StorageProvider from 'util/storageProvider'
 
+/**
+ * Curval modal component
+ */
 class CurvalModalComponent extends ModalComponent {
 
   static get allowReinitialization() { return true }
 
+  /**
+   * Create a new curval modal component
+   * @param {HTMLElement} element The element to attach the modal to
+   */
   constructor(element) {
     super(element)
     this.context = undefined // Populated on modal show
     if (!this.wasInitialized) this.initCurvalModal()
   }
 
-  // Initialize the modal
+  /**
+   * Initialize the modal
+   */
   initCurvalModal() {
     this.setupModal()
     this.setupSubmit()
   }
 
-  // Set the value of a curval. In order to ensure consistent data, this
-  // function opens a modal edit for each curval, makes the changes, and then
-  // submits. It does this synchronously so that the modal is only processing
-  // one curval value at a time
+  /**
+   * Set the value of a curval.
+   * In order to ensure consistent data, this function opens a modal edit for each curval, makes the changes, and then submits.
+   * It does this synchronously so that the modal is only processing one curval value at a time
+   * @param {JQuery} $target The target modal
+   * @param {*} rows The rows containing the data for the modal
+   */
   setValue($target, rows) {
     const layout_id = $target.data("column-id")
     const $m = this.el
@@ -72,6 +84,11 @@ class CurvalModalComponent extends ModalComponent {
     }
   }
 
+  /**
+   * Handle when the validation of a modal succeeds
+   * @param {*} form The form to validate
+   * @param {*} values The values to set
+   */
   async curvalModalValidationSucceeded(form, values) {
     const form_data = form.serialize()
     const modal_field_ids = form.data("modal-field-ids")
@@ -243,6 +260,12 @@ class CurvalModalComponent extends ModalComponent {
     $formGroup.trigger("change", true)
   }
 
+  /**
+   * Update the state of a widget
+   * @param {JQuery} $widget The widget to update the state of
+   * @param {boolean} multi Whether the widget is multi-value
+   * @param {boolean} required Whether the widget is required
+   */
   updateWidgetState($widget, multi, required) {
     const $current = $widget.find(".current")
     const $visible = $current.children("[data-list-item]:not([hidden])")
@@ -258,6 +281,11 @@ class CurvalModalComponent extends ModalComponent {
     }
   }
 
+  /**
+   * Handle when the curval validation fails
+   * @param {*} form The form object
+   * @param {string} errorMessage The error message to display
+   */
   curvalModalValidationFailed(form, errorMessage) {
     form
       .find(".alert")
@@ -270,6 +298,9 @@ class CurvalModalComponent extends ModalComponent {
     form.find("button[type=submit]").prop("disabled", false)
   }
 
+  /**
+   * Set up the modal
+   */
   setupModal() {
     this.el.on('show.bs.modal', (ev) => {
       const button = ev.relatedTarget
@@ -330,6 +361,14 @@ class CurvalModalComponent extends ModalComponent {
 
   }
 
+  /**
+   * Get the URL for the modal submission
+   * @param {*} current_id The current ID of the record
+   * @param {*} instance_name The instance name
+   * @param {*} layout_id The layout ID
+   * @param {*} form_data The form data to pass
+   * @returns {string} The URL to use for submission
+   */
   getURL(current_id, instance_name, layout_id, form_data) {
 
     let url = current_id
@@ -341,6 +380,9 @@ class CurvalModalComponent extends ModalComponent {
     return url
   }
 
+  /**
+   * Set up the sibmit handler for the modal
+   */
   setupSubmit() {
     const self = this
 

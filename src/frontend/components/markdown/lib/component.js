@@ -1,17 +1,32 @@
 import { marked } from "marked";
 import { Component } from "component";
 
+/**
+ * Component to render a preview of markdown text.
+ */
 class MarkdownComponent extends Component {
+  /**
+   * Create a new MarkdownComponent.
+   * @param {HTMLElement} element The element to attach the component to.
+   */
   constructor(element) {
     super(element);
     this.initMarkdownEditor();
   }
 
+  /**
+   * Render markdown text to HTML.
+   * @param {string} md The markdown to render.
+   * @returns {string} The rendered HTML.
+   */
   renderMarkdown(md) {
     const mdEncoded = $('<span>').text(md).html()
     return marked(mdEncoded);
   }
 
+  /**
+   * Initialize the markdown editor.
+   */
   initMarkdownEditor() {
     marked.use({ breaks: true });
 

@@ -11,6 +11,10 @@ import { initValidationOnField } from 'validation'
  * Widget "B" might not be displayed.
  */
 class SelectWidgetComponent extends Component {
+  /**
+   * Create a new Select Widget Component
+   * @param {HTMLElement} element The element to attach the component to
+   */
   constructor(element) {
     super(element)
     this.el = $(this.element)
@@ -42,6 +46,9 @@ class SelectWidgetComponent extends Component {
     }
   }
 
+  /**
+   * Initialise the Select Widget
+   */
   initSelectWidget() {
     this.updateState()
     if (this.$widget.is('[readonly]')) return
@@ -95,6 +102,9 @@ class SelectWidgetComponent extends Component {
     })
   }
 
+  /**
+   * Handle the click event on the widget
+   */
   handleWidgetClick() {
     if (this.$trigger.attr("aria-expanded") === "true") {
       this.collapse(this.$widget, this.$trigger, this.$target)
@@ -103,6 +113,10 @@ class SelectWidgetComponent extends Component {
     }
   }
 
+  /**
+   * Handle the click event on the document object
+   * @param {JQuery.Event} e The event object
+   */
   handleDocumentClick(e) {
     const clickedOutside = !this.el.is(e.target) && this.el.has(e.target).length === 0
     if (clickedOutside) {
@@ -110,6 +124,10 @@ class SelectWidgetComponent extends Component {
     }
   }
 
+  /**
+   * Handle the keyup event on the search input
+   * @param {JQuery.Event} e The event object
+   */
   handleKeyUp(e) {
     const searchValue = $(e.target)
       .val()
@@ -165,6 +183,10 @@ class SelectWidgetComponent extends Component {
     }
   }
 
+  /**
+   * Handle the keydown event on the search input
+   * @param {JQuery.Event} e The event object
+   */
   handleKeyDown(e) {
     const key = e.which || e.keyCode
 
@@ -210,11 +232,20 @@ class SelectWidgetComponent extends Component {
     }
   }
 
+  /**
+   * Expand a widget
+   * @param {JQuery.Event} e The event object
+   */
   expandWidgetHandler(e) {
     e.stopPropagation()
     this.expand(this.$widget, this.$trigger, this.$target)
   }
 
+  /**
+   * Collapse a widget
+   * @param {JQuery} $widget The widget to expand
+   * @param {JQuery} $trigger The triggering object
+   */
   collapse($widget, $trigger) {
     this.$selectWidget.removeClass("select-widget--open")
     $trigger.attr("aria-expanded", false)
@@ -230,12 +261,19 @@ class SelectWidgetComponent extends Component {
     }, 50)
   }
 
+  /**
+   * Update the state of the widget
+   */
   updateState() {
     const $visible = this.$current.children("[data-list-item]:not([hidden])")
 
     this.$current.toggleClass("empty", $visible.length === 0)
   }
 
+  /**
+   * Possibly close the widget
+   * @param {JQuery.Event} e The event object
+   */
   possibleCloseWidget(e) {
     const newlyFocussedElement = e.relatedTarget || document.activeElement
 
@@ -249,6 +287,9 @@ class SelectWidgetComponent extends Component {
     }
   }
 
+  /**
+   * Connect the widget to the available items
+   */
   connectMulti() {
     const self = this
     return function () {
@@ -304,6 +345,9 @@ class SelectWidgetComponent extends Component {
     }
   }
 
+  /**
+   * Connect the widget to the available items
+   */
   connectSingle() {
     const self = this;
 
@@ -350,6 +394,9 @@ class SelectWidgetComponent extends Component {
     })
   }
 
+  /**
+   * Connect the widget to the available items
+   */
   connect() {
     if (this.multi) {
       this.$currentItems.each(this.connectMulti())
@@ -358,6 +405,15 @@ class SelectWidgetComponent extends Component {
     }
   }
 
+  /**
+   * Get the current list item
+   * @param {*} multi Is the field a multi-value field
+   * @param {*} field The field
+   * @param {*} value_id The value identifier
+   * @param {*} value_text The value text
+   * @param {*} value_html The value HTML
+   * @param {*} checked Whether the value is checked
+   */
   currentLi(multi, field, value_id, value_text, value_html, checked) {
     if (multi && !value_id) {
       return $('<li class="none-selected">blank</li>')
@@ -384,6 +440,15 @@ class SelectWidgetComponent extends Component {
     return $li
   }
 
+  /**
+   * Get the available list item
+   * @param {*} multi Is the field a multi-value field
+   * @param {*} field The field
+   * @param {*} value_id The value identifier
+   * @param {*} value_text The value text
+   * @param {*} label The label
+   * @param {*} checked Whether the value is checked
+   */
   availableLi(multi, field, value_id, value_text, label, checked) {
     if (this.multi && !value_id) {
       return null
@@ -443,7 +508,11 @@ class SelectWidgetComponent extends Component {
     return $li
   }
 
-  //Some odd scoping issues here - but it works
+  /**
+   * Update the JSON
+   * @param {*} url The URL to update the JSON from
+   * @param {*} typeahead The typeahead flag
+   */
   updateJson(url, typeahead) {
     this.loadCounter++
     const self = this;
@@ -559,6 +628,9 @@ class SelectWidgetComponent extends Component {
       })
   }
 
+  /**
+   * Fetch the options for the component
+   */
   fetchOptions() {
     const filterEndpoint = this.$selectWidget.data("filter-endpoint")
     const filterFields = this.$selectWidget.data("filter-fields")
@@ -611,6 +683,12 @@ class SelectWidgetComponent extends Component {
     this.lastFetchParams = fetchParams
   }
 
+  /**
+   * Expand a widget
+   * @param {JQuery} $widget The widget to expand
+   * @param {JQuery} $trigger The trigger component
+   * @param {JQuery} $target The target component
+   */
   expand($widget, $trigger, $target) {
     if ($trigger.attr("aria-expanded") === "true") {
       return

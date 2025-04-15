@@ -1,7 +1,14 @@
 import { Component } from 'component'
 import { initValidationOnField } from 'validation'
 
+/**
+ * Textarea component
+ */
 class TextareaComponent extends Component {
+  /**
+   * Create a new textarea component
+   * @param {HTMLElement} element The element to attach the component to
+   */
   constructor(element) {
     super(element)
     this.el = $(this.element)
@@ -20,6 +27,10 @@ class TextareaComponent extends Component {
       });
     }
   }
+
+  /**
+   * Adjust the height of the textarea based on its content
+   */
   adjustTextareaHeight() {
     const $textarea = this.el.find('textarea.auto-adjust');
 
@@ -55,4 +66,5 @@ class TextareaComponent extends Component {
     $textarea.css('height', `${adjustedHeight}rem`);
   }
 }
+
 export default TextareaComponent

@@ -1,6 +1,10 @@
 import React from "react";
 
-const Footer = ({ addWidget, widgetTypes, currentDashboard, readOnly, noDownload }) => {
+/**
+ * Create a footer component for the dashboard
+ * @param param0 The props for the footer component
+ */
+const Footer = ({ addWidget, widgetTypes, currentDashboard, readOnly, noDownload }: {addWidget: (type: string)=>void, widgetTypes: string[], currentDashboard: any, readOnly: boolean, noDownload: boolean}) => {
   return (
     <div className='ld-footer-container'>
       {noDownload ? null : <div className="btn-group mb-3 mb-md-0 mr-md-4">

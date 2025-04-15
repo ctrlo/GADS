@@ -4,10 +4,17 @@ import { modal } from './modal'
 import { Frame } from './frame'
 import { logging } from 'logging'
 
+/**
+ * Base modal component
+ */
 class ModalComponent extends Component {
 
   static get allowReinitialization() { return true }
 
+  /**
+   * Create a new bas modal component
+   * @param {HTMLElement} element The element to attach the component to
+   */
   constructor(element) {
     super(element)
     this.el = $(this.element)
@@ -18,7 +25,9 @@ class ModalComponent extends Component {
     if (!this.wasInitialized) this.initModal()
   }
 
-  // Initialize the modal
+  /**
+   * Initialize the modal
+   */
   initModal() {
     this.el.on('show.bs.modal', () => {
       modal.addSubscriber(this)
@@ -51,6 +60,10 @@ class ModalComponent extends Component {
     })
   }
 
+  /**
+   * Check if the data has changed
+   * @returns {boolean} true if the data has changed, false otherwise
+   */
   dataHasChanged() {
     const fields = $(this.el).find('input, textarea')
     let hasChanged = false
@@ -75,6 +88,10 @@ class ModalComponent extends Component {
     return hasChanged
   }
 
+  /**
+   * Hidel the content if required
+   * @param {boolean} bHide True to hide the content, false to show it
+   */
   hideContent(bHide) {
     if (bHide) {
       $('body').children().attr('aria-hidden', true)
@@ -83,7 +100,9 @@ class ModalComponent extends Component {
     }
   }
 
-  // Prevent the modal to open
+  /**
+   * Prevent the modal from opening
+   */
   preventModalToOpen() {
     const modalId = this.el.attr('id') || ""
     $(`.btn[data-target="#${modalId}"]`).on('click', function (e) {
@@ -91,7 +110,10 @@ class ModalComponent extends Component {
     });
   }
 
-  // Clear all fields of the current frame
+  /**
+   * Clear all fields of the current frame
+   * @param {*} frame The frame object
+   */
   clearFields(frame) {
     const fields = $(frame).find('input, textarea')
 
@@ -121,7 +143,10 @@ class ModalComponent extends Component {
     })
   }
 
-  // Clear all fields in all frames
+  /**
+   * Clear all fields in specified frames
+   * @param {number[]} arrFrameNumbers An array of the frames to clear
+   */
   clearFrames(arrFrameNumbers) {
     if (arrFrameNumbers) {
       $(arrFrameNumbers).each((i, frameNr) => {
@@ -135,6 +160,11 @@ class ModalComponent extends Component {
     }
   }
 
+  /**
+   * Get the frame number from the frame object
+   * @param {*} frame The frame to get the number for
+   * @returns The frame number
+   */
   getFrameNumber(frame) {
     const config = $(frame).data('config')
 
@@ -145,6 +175,11 @@ class ModalComponent extends Component {
     return config.frame
   }
 
+  /**
+   * Get the frame object by frame number
+   * @param {*} frameNr The frame number
+   * @returns The frame object
+   */
   getFrameByNumber(frameNr) {
     let selectedFrame = null
 
@@ -160,7 +195,12 @@ class ModalComponent extends Component {
     return selectedFrame
   }
 
-  // Activate a frame by it's number
+  /**
+   * Activate a frame by it's number
+   * @param {*} frameNumber The frame number
+   * @param {*} previousFrameNumber The previous frame number
+   * @param {*} clearFields Whether to clear the fields or not
+   */
   activateFrame(frameNumber, previousFrameNumber, clearFields) {
     this.frames.each((i, frame) => {
       const config = $(frame).data('config')
@@ -199,7 +239,12 @@ class ModalComponent extends Component {
     })
   }
 
-  // Create a new frame object
+  /**
+   * Create a new frame object
+   * @param {*} frame The frame element
+   * @param {*} previousFrameNumber The previous frame number
+   * @returns A frame object
+   */
   createFrame(frame, previousFrameNumber) {
     if (isNaN($(frame).data('config').step) || (isNaN($(frame).data('config').frame))) {
       throw 'createFrame: Parameter is not a number!'
@@ -210,7 +255,9 @@ class ModalComponent extends Component {
     return new Frame($(frame), previousFrameNumber)
   }
 
-  // Add event listeners to the buttons and required fields of the current frame
+  /**
+   * Add event listeners to the buttons and required fields of the current frame
+   */
   bindEventHandlers() {
     this.frame.buttons.next.click(() => { modal.next(this.frame.object) })
     this.frame.buttons.back.click(() => { modal.back(this.frame.object) })
@@ -222,6 +269,10 @@ class ModalComponent extends Component {
     this.frame.requiredFields.bind('blur.modalEvent', (ev) => { this.handleBlur(ev) })
   }
 
+  /**
+   * Handle the keyup event
+   * @param {JQuery.Event} ev The event object
+   */
   handleKeyup(ev) {
     const doneTypingInterval = 1000
     const field = ev.target
@@ -234,10 +285,17 @@ class ModalComponent extends Component {
       doneTypingInterval)
   }
 
+  /**
+   * Handle the keydown event
+   */
   handleKeydown() {
     clearTimeout(this.typingTimer)
   }
 
+  /**
+   * Handle the blur event
+   * @param {JQuery.Event} ev The event object
+   */
   handleBlur(ev) {
     const field = ev.target
     clearTimeout(this.typingTimer)
@@ -246,7 +304,11 @@ class ModalComponent extends Component {
       this.validateField(field)
   }
 
-  // Check if a field is valid
+  /**
+   * Check if a field is valid
+   * @param {*} field The field to checkt
+   * @returns {boolean} True if the field is valid, false otherwise
+   */
   isValidField(field) {
     if (($(field).is(':invalid')) || ($(field).val() == "")) {
       return false
@@ -255,7 +317,10 @@ class ModalComponent extends Component {
     }
   }
 
-  // Validate a single field
+  /**
+   * Validate a single field
+   * @param {*} field The field object
+   */
   validateField(field) {
     const isValid = this.isValidField(field)
     this.frame.error = []
@@ -269,7 +334,9 @@ class ModalComponent extends Component {
     this.validateFrame()
   }
 
-  // Validate the required fields of the frame
+  /**
+   * Validate the required fields of the frame
+   */
   validateFrame() {
     if (!this.frame) return;
     this.frame.isValid = true
@@ -283,6 +350,10 @@ class ModalComponent extends Component {
     this.setFrameState()
   }
 
+  /**
+   * Set the input state of a field
+   * @param {JQuery} $field The field object
+   */
   setInputState($field) {
     if ($field.is(':invalid')) {
       $field.attr('aria-invalid', true)
@@ -293,6 +364,9 @@ class ModalComponent extends Component {
     }
   }
 
+  /**
+   * Set the frame state
+   */
   setFrameState() {
     const alert = this.frame.object.find('.alert')
 
@@ -316,13 +390,19 @@ class ModalComponent extends Component {
     }
   }
 
-  // Unbind event handlers from all elements of this frame
+  /**
+   * Unbind event handlers from all elements of this frame
+   * @param {*} frame The frame object
+   */
   unbindEventHandlers(frame) {
     frame.find('.modal-footer .btn').unbind()
     frame.find('input[required]').unbind('.modalEvent')
   }
 
-  // Set the state of the next button
+  /**
+   * Set the state of the next button
+   * @param {boolean} valid Whether the frame is valid or not
+   */
   setNextButtonState(valid) {
     if (valid) {
       this.frame.buttons.next.removeAttr('disabled')
@@ -335,7 +415,10 @@ class ModalComponent extends Component {
     }
   }
 
-  // Set the state of the invisible button
+  /**
+   * Set the state of the invisible button
+   * @param {boolean} valid Whether the frame is valid or not
+   */
   setInvisibleButtonState(valid) {
     if (valid) {
       this.frame.buttons.invisible.removeClass('btn-invisible')
@@ -344,7 +427,10 @@ class ModalComponent extends Component {
     }
   }
 
-  // Activate the current step in the header of the modal
+  /**
+   * Activate the current step in the header of the modal
+   * @param {*} currentStep The current step to highlight
+   */
   activateStep(currentStep) {
     let steps = this.el.find('.modal__step')
 
@@ -357,7 +443,10 @@ class ModalComponent extends Component {
     })
   }
 
-  // Handle upload to server - reference to this is used here due to XMLHttpRequest scope issues
+  /**
+   * Handle upload to server
+   * @param {*} dataObj The data object to upload
+   */
   handleUpload(dataObj) {
     const self = this;
     const url = this.el.data('config').url
@@ -383,6 +472,10 @@ class ModalComponent extends Component {
       })
   }
 
+  /**
+   * Show an error message
+   * @param {string} strError The error message
+   */
   showError(strError) {
     const alert = this.frame.object.find('.alert')
 
@@ -392,7 +485,9 @@ class ModalComponent extends Component {
     this.el.animate({ scrollTop: alert.offset().top }, 500)
   }
 
-  // Handle next
+  /**
+   * Handle next
+   */
   handleNext() {
     const nextFrameNumber = this.frame.number + 1
     if (this.frames.length >= (nextFrameNumber)) {
@@ -400,7 +495,9 @@ class ModalComponent extends Component {
     }
   }
 
-  // Handle back
+  /**
+   * Handle back
+   */
   handleBack() {
     const previousFrameNumber = this.frame.back
     if (previousFrameNumber > 0) {
@@ -409,39 +506,58 @@ class ModalComponent extends Component {
     this.validateFrame()
   }
 
-  // Handle skip
+  /**
+   * Handle skip
+   */
   handleSkip(skipToNumber) {
     this.activateFrame(skipToNumber, this.frame.number)
   }
 
-  // Handle add
+  /**
+   * Handle add
+   * @param {*} frame The frame object
+   */
   handleAdd(frame) {
     modal.update(frame)
     this.clearFields(frame)
     this.validateFrame()
   }
 
-  // Handle activate
+  /**
+   * Handle activate
+   * @param {*} frameNumber The frame number to activate
+   * @param {boolean} clearFields Whether to clear the fields or not
+   */
   handleActivate(frameNumber, clearFields) {
     this.activateFrame(frameNumber, this.frame.number, clearFields)
   }
 
-  // Handle show
+  /**
+   * Handle show
+   * @param {*} modal The modal to show
+   */
   handleShow(modal) {
     $(modal).modal('show')
   }
 
-  // Handle clear
+  /**
+   * Handle clear
+   * @param {number[]} arr An array of frame numbers to clear
+   */
   handleClear(arr) {
     this.clearFrames(arr)
   }
 
-  // Handle validate
+  /**
+   * Handle validate
+   */
   handleValidate() {
     this.validateFrame()
   }
 
-  // Handle close
+  /**
+   * Handle close
+   */
   handleClose() {
     this.clearFrames()
 

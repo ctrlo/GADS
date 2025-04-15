@@ -6,7 +6,14 @@ import Handlebars from 'handlebars'
 import './handlebars/handlebars-timeline-item-template.js'
 import './print/timeline'
 
+/**
+ * The timeline component.
+ */
 class TimelineComponent extends Component {
+  /**
+   * Create a new timeline component.
+   * @param {HTMLElement} element The element to attach the timeline component to
+   */
   constructor(element) {
     super(element)
     this.el = $(this.element)
@@ -14,6 +21,10 @@ class TimelineComponent extends Component {
     this.initTimeline()
   }
 
+  /**
+   * Initialize the timeline component.
+   * This is async in order to stop the page from blocking while the timeline is being created, and to allow for navigation away should it be required
+   */
   initTimeline() {
     Promise.resolve().then(() => {
       const $container = $(this.element).find('.timeline__visualization')
@@ -285,6 +296,9 @@ class TimelineComponent extends Component {
     });
   }
 
+  /**
+   * Set up the tooltips using Tippy
+   */
   setupTippy() {
     const $tippyElements = this.el.find('[data-tippy-content]')
 
@@ -296,6 +310,10 @@ class TimelineComponent extends Component {
     })
   }
 
+  /**
+   * Snap to a specific datetime in the timeline.
+   * @param {*} datetime The datetime to snap to in the timeline
+   */
   snapToDay(datetime) {
     // A bit of a mess, as the input to this function is in the browser's
     // local timezone, but we need to return it from the function in UTC.
@@ -307,7 +325,10 @@ class TimelineComponent extends Component {
     return moment.utc("" + year + month + day)
   }
 
-  // If the perceived background color is dark, switch the font color to white.
+  /**
+   * If the perceived background color is dark, switch the font color to white.
+   * @param {*} dataset The dataset to use for injecting the colour
+   */
   injectContrastingColor(dataset) {
     const self = this
 
@@ -341,8 +362,8 @@ class TimelineComponent extends Component {
  * to determine whether the color is light or dark.
  * Source: https://awik.io/determine-color-bright-dark-using-javascript/
  *
- * @param {string} color
- * @returns {string}
+ * @param {string} color The colour to check
+ * @returns {'light'|'dark'} The colour type
  */
   lightOrDark(color) {
     // Convert it to HEX: http://gist.github.com/983661

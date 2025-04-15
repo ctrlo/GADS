@@ -7,7 +7,14 @@ const KEY_NAV_STATE = 'main-menu::state'
 const NAV_STATE_EXPANDED = 'expanded'
 const NAV_STATE_COLLAPSED = 'collapsed'
 
+/**
+ * Sidebar component
+ */
 class SidebarComponent extends Component {
+    /**
+     * Create a new sidebar component
+     * @param {HTMLElement} element The element to attach the sidebar to
+     */
     constructor(element) {
         super(element)
         this.el = $(this.element)
@@ -19,6 +26,9 @@ class SidebarComponent extends Component {
         this.el.removeClass('hidden');
     }
 
+    /**
+     * Initialize the sidebar
+     */
     initSidebar() {
         const sidebarToggle = this.el.find('.sidebar__toggle')
         sidebarObservable.addSubscriber(this)
@@ -38,6 +48,9 @@ class SidebarComponent extends Component {
         sidebarToggle.click(() => { this.handleClick() })
     }
 
+    /**
+     * Handle the sidebar resize
+     */
     handleResize() {
         if (this.isMobileResolution()) {
             if (!this.isMobile) {
@@ -52,6 +65,9 @@ class SidebarComponent extends Component {
         }
     }
 
+    /**
+     * Handle the click event
+     */
     handleClick() {
         if (this.el.hasClass(COLLAPSED_CLASS)) {
             this.expandSidebar()
@@ -61,6 +77,9 @@ class SidebarComponent extends Component {
         sidebarObservable.sideBarChange()
     }
 
+    /**
+     * Collapse the sidebar
+     */
     collapseSidebar() {
         this.el.addClass(COLLAPSED_CLASS)
         $(this.toggle).attr('aria-expanded', 'false')
@@ -72,6 +91,9 @@ class SidebarComponent extends Component {
         }
     }
 
+    /**
+     * Expand the sidebar
+     */
     expandSidebar() {
         this.el.removeClass(COLLAPSED_CLASS)
         $(this.toggle).attr('aria-expanded', 'true')
@@ -83,6 +105,10 @@ class SidebarComponent extends Component {
         }
     }
 
+    /**
+     * Is the screen mobile resolution
+     * @returns {boolean} true if the screen is mobile resolution
+     */
     isMobileResolution() {
         return window.matchMedia("(max-width: 991px)").matches
     }

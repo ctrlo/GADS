@@ -1,3 +1,11 @@
+import "bootstrap";
+import "bootstrap-select";
+import "@lol768/jquery-querybuilder-no-eval";
+
+/**
+ * Function to handle refreshing the selects used in the query builder that are bootstrap selects
+ * @param {*} el The elements to refresh the selects for
+ */
 export const refreshSelects = (el) => {
   const ruleFilterSelects = [];
   const operatorSelects = [];

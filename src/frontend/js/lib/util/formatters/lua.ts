@@ -1,12 +1,9 @@
+import { stringLike } from "./common";
+
 /**
  * Type to represent a string of LUA code.
  */
 type LUACode = string;
-
-/**
- * Anything with a toString method.
- */
-type stringLike = { toString(): string };
 
 /**
  * This is currently to purely mark where we expect LUA code to be present

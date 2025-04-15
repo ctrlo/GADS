@@ -5,6 +5,9 @@
  */
 type ProgressFunction = (loaded: number, total: number) => void;
 
+/**
+ * Type to represent the HTTP request method
+ */
 type RequestMethod = "PUT" | "POST" | "GET" | "DELETE" | "PATCH";
 
 /**

@@ -15,7 +15,14 @@ import ReactDOM from "react-dom";
 import App from "./react/app";
 import ApiClient from "./react/api";
 
+/**
+ * Dashboard component which can contain multiple widgets.
+ */
 class DashboardComponent extends Component {
+  /**
+   * Create a new Dashboard
+   * @param {HTMLElement} element The element to attach the dashboard to.
+   */
   constructor(element) {
     super(element)
     this.el = $(this.element)
@@ -30,6 +37,9 @@ class DashboardComponent extends Component {
     this.initDashboard()
   }
 
+  /**
+   * Initialize the dashboard.
+   */
   initDashboard() {
     this.element.className = "";
     const widgetsEls = Array.prototype.slice.call(document.querySelectorAll("#ld-app > div"));

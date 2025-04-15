@@ -1,17 +1,30 @@
 import { Component } from 'component'
 import { getFieldValues } from "get-field-values"
 
+/**
+ * Component for handling calcuated fields
+ */
 class CalcFieldsComponent extends Component {
+  /**
+   * Create a new calc fields component
+   * @param {HTMLElement} element The element to attach the component to
+   */
   constructor(element) {
     super(element)
     this.initCalcFields()
   }
 
+  /**
+   * Initialize the calc fields
+   */
   initCalcFields() {
     const field = this.getFieldCalc();
     this.setupCalcField(field);
   }
 
+  /**
+   * Get the field and its dependencies
+   */
   getFieldCalc() {
 
     const dependency = $(this.element).data("calc-depends-on")
@@ -29,6 +42,10 @@ class CalcFieldsComponent extends Component {
 
   }
 
+  /**
+   * Setup a calc field
+   * @param {*} field The field to set up
+   */
   setupCalcField(field) {
     let { code } = field
     const { depends_on, params } = field

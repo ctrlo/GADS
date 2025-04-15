@@ -6,7 +6,14 @@ import { logging } from 'logging'
 import TypeaheadBuilder from 'util/typeahead'
 import { refreshSelects } from 'components/form-group/common/bootstrap-select'
 
+/**
+ * Filter component using jquery-querybuilder to create filters for fields
+ */
 class FilterComponent extends Component {
+  /**
+   * Create a new filter component
+   * @param {HTMLElement} element The element to attach the filter component to
+   */
   constructor(element) {
     super(element)
     this.el = $(this.element)
@@ -88,6 +95,9 @@ class FilterComponent extends Component {
     this.initFilter()
   }
 
+  /**
+   * Initialize the filter component
+   */
   initFilter() {
     const self = this
     const $builderEl = this.el
@@ -192,6 +202,12 @@ class FilterComponent extends Component {
     }
   }
 
+  /**
+   * Get the url for a specific layout with a specific suffix
+   * @param {*} layoutId The layout ID
+   * @param {*} urlSuffix The suffix of the URL to use
+   * @returns {string} The URL to use for the filter
+   */
   getURL(layoutId, urlSuffix) {
     const devEndpoint = window.siteConfig && window.siteConfig.urls.filterApi
 
@@ -202,6 +218,10 @@ class FilterComponent extends Component {
     }
   }
 
+  /**
+   * Make the upadate filter global function
+   * @todo: This needs refactoring out to an observable or something similar
+   */
   makeUpdateFilter() {
     window.UpdateFilter = (builder, ev) => {
       if (!builder.queryBuilder('validate')) ev.preventDefault();
@@ -210,6 +230,12 @@ class FilterComponent extends Component {
     }
   }
 
+  /**
+   * Build a filter for the query builder
+   * @param {*} builderConfig The builder configuration (unused)
+   * @param {*} col The column to build the filter for
+   * @returns {object} The filter object to use for the query builder
+   */
   buildFilter = (builderConfig, col) => {
     return ({
       id: col.filterId,
@@ -222,6 +248,11 @@ class FilterComponent extends Component {
     })
   }
 
+  /**
+   * Build the filter operators for a specific type
+   * @param {string} type The type of the filter
+   * @returns {array} The operators to use for the filter
+   */
   buildFilterOperators(type) {
     if (!['date', 'daterange'].includes(type)) return undefined
     const operators = [
@@ -238,6 +269,14 @@ class FilterComponent extends Component {
     return operators
   }
 
+  /**
+   * Get the record data for the filter
+   * @param {*} layoutId The layout id
+   * @param {*} urlSuffix The URL suffix to append to the request
+   * @param {*} instanceId The instance ID
+   * @param {*} query The query
+   * @returns An ajax request to get the records
+   */
   getRecords = (layoutId, urlSuffix, instanceId, query) => {
     return (
       $.ajax({

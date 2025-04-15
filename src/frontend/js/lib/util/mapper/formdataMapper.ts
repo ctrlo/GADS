@@ -1,3 +1,11 @@
+/**
+ * Map a JSON object to FormData.
+ * This function takes a JSON object or a FormData object and converts it to a FormData object.
+ * If the input is already a FormData object, it checks if it is empty and throws an error if it is.
+ * @param data The data to map to FormData. This can be a FormData object or an object with key-value pairs.
+ * @throws Error if the data is empty.
+ * @returns The formdata object.
+ */
 export const formdataMapper = <T>(data: FormData | T) => {
     if (data instanceof FormData) {
         let hasData = false;

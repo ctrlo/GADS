@@ -1,16 +1,35 @@
 import { hideElement, showElement } from "util/common";
 
+/**
+ * The options for the FileDrag class.
+ */
 export interface FileDragOptions {
+    /**
+     * Allow multiple files to be dropped.
+     */
     allowMultiple?: boolean;
+    /**
+     * Whether the FileDrag instance is in debug mode.
+     */
     debug?: boolean;
 }
 
+/**
+ * The FileDrag class handles drag and drop file uploads.
+ * @template T The type of the element to attach the FileDrag functionality to.
+ */
 class FileDrag<T extends HTMLElement = HTMLElement> {
     private el: JQuery<T>;
     private dropZone: JQuery<HTMLElement>;
     // for testing
     protected dragging: boolean = false;
 
+    /**
+     * Create a new FileDrag instance.
+     * @param element The element to attach the FileDrag functionality to.
+     * @param options The options for the FileDrag instance.
+     * @param onDrop The callback function to call when files are dropped.
+     */
     constructor(element: T, private options: FileDragOptions = {}, private onDrop?: (files: FileList | File) => void) {
         if (options.debug) console.log('FileDrag', element, options);
         this.el = $(element);
@@ -19,6 +38,9 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
         this.initElementEvents();
     }
 
+    /**
+     * Initialize the elements for the FileDrag instance.
+     */
     initElementEvents() {
         if (this.options.debug) console.log('initElementEvents');
         this.dropZone.on('dragenter', (e) => {
@@ -50,6 +72,9 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
         });
     }
 
+    /**
+     * Initialize the document events for the FileDrag instance.
+     */
     initDocumentEvents() {
         if (this.options.debug) console.log('initDocumentEvents');
         $(document).on('dragenter', () => {
@@ -80,6 +105,9 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
         });
     }
 
+    /**
+     * Initialize the elements for the FileDrag instance.
+     */
     initElements() {
         if (this.options.debug) console.log('initElements');
         this.el.data('draggable', 'true');

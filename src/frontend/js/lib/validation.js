@@ -1,4 +1,7 @@
-// Bind events to a field to trigger validation
+/**
+ * Bind events to a field to trigger validation
+ * @param {*} field The field to validate
+ */
 const initValidationOnField = (field) => {
   // Input
   if (field.hasClass('input--required')) {
@@ -101,8 +104,13 @@ const initValidationOnField = (field) => {
   }
 }
 
-// Validate the required fields of a form
+/**
+ * Validate the required fields of a form
+ * @param {*} form The form to validate
+ * @return {boolean} True if the form is valid, false otherwise
+ */
 const validateRequiredFields = (form) => {
+  // Would it not make more sense to return early rather than running through all the fields?
   let isValidForm = true
 
   form.find(".input--required:not(.input--document), .textarea--required, .select--required").each((i, field) => {
@@ -161,6 +169,11 @@ const validateRequiredFields = (form) => {
   return isValidForm
 }
 
+/**
+ * Validate required fieldset checkboxes
+ * @param {*} fieldset The fieldset to validate
+ * @returns true if at least one checkbox is checked, false otherwise
+ */
 const validateRequiredFieldsetCheckboxes = (fieldset) => {
   let isValid = false;
   fieldset.find("input[type=checkbox]").each((i, field) => {
@@ -172,6 +185,12 @@ const validateRequiredFieldsetCheckboxes = (fieldset) => {
   return isValid;
 };
 
+/**
+ * Add an error message to an invalid field
+ * @param {*} field The field to add the error message to
+ * @param {*} name The name of the field
+ * @param {*} id The ID of the field
+ */
 const addErrorMessage = (field, name, id) => {
   const $errorDiv = $('<div class="error">')
   let $span = $(`<span id="${id}-err" class="form-text form-text--error" aria-live="off"></span>`)
@@ -180,15 +199,28 @@ const addErrorMessage = (field, name, id) => {
   field.append($errorDiv)
 }
 
+/**
+ * Remove an error message from a field
+ * @param {*} field The field to remove the error message from
+ */
 const removeErrorMessage = (field) => {
   field.find('.error').remove()
 }
 
+/**
+ * Check if a field is hidden by a dependency
+ * @param {*} field The field to check
+ * @returns True if the field is hidden by a dependency, false otherwise
+ */
 const isHiddenDependentField = (field) => {
   return (field.closest(".form-group[data-has-dependency='1'][style*='display: none']").length > 0)
 }
 
-// Validate input field
+/**
+ * Validate input field
+ * @param {*} field The field to validate the input of
+ * @returns True if the input is valid, false otherwise
+ */
 const validateInput = (field) => {
   const $inputEl = field.find('[required]')
   const strFieldName = field.find('label').text() || ''
@@ -213,7 +245,11 @@ const validateInput = (field) => {
   }
 }
 
-// Validate radio-group
+/**
+ * Validate radio-group
+ * @param {*} field The field to validate
+ * @returns True if the field is valid, false otherwise
+ */
 const validateRadioGroup = (field) => {
   const $radioButtons = field.find('input[required]')
   const $fieldSet = field.closest('.fieldset--required')
@@ -246,7 +282,11 @@ const validateRadioGroup = (field) => {
   }
 }
 
-// Validate checkbox group
+/**
+ * Validate checkbox group
+ * @param {*} field The field to validate
+ * @returns True if the field is valid, false otherwise
+ */
 const validateCheckboxGroup = (field) => {
   const $checkBoxes = field.find('input[type="checkbox"]')
   const $fieldSet = field.closest('.fieldset--required')
@@ -277,7 +317,11 @@ const validateCheckboxGroup = (field) => {
 
 }
 
-// Validate tree
+/**
+ * Validate tree
+ * @param {*} field The field to validate
+ * @returns True if the field is valid, false otherwise
+ */
 const validateTree = (field) => {
   const $inputEl = field.find('input[type="hidden"]')
   const $fieldSet = field.closest('.fieldset--required')
@@ -304,7 +348,10 @@ const validateTree = (field) => {
   }
 }
 
-// Expand the card with a certain field and scroll it into view
+/**
+ * Expand the card with a certain field and scroll it into view
+ * @param {*} field The field to expose
+ */
 const expandCardValidate = (field) => {
   const $collapse = $(field).closest('.card--expandable').find('.collapse')
   if (!$collapse || !$collapse.collapse) return;

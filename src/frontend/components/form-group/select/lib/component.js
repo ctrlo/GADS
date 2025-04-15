@@ -5,7 +5,14 @@ const SELECT_PLACEHOLDER = 'select__placeholder'
 const SELECT_MENU_ITEM_ACTIVE = 'select__menu-item--active'
 const SELECT_MENU_ITEM_HOVER = 'select__menu-item--hover'
 
+/**
+ * Select component class
+ */
 class SelectComponent extends Component {
+  /**
+   * Create a new select component
+   * @param {HTMLElement} element The element to attach the component to
+   */
   constructor(element) {
     super(element)
     this.el = $(this.element)
@@ -24,9 +31,12 @@ class SelectComponent extends Component {
     }
   }
 
+  // why? Static is a _bad_ idea, especially when mixing object scope with the static scope!
   static self = this
 
-  // Intializes the select
+  /**
+   * Intializes the select
+   */
   initSelect() {
     if (!this.options) {
       return
@@ -42,6 +52,11 @@ class SelectComponent extends Component {
     }
   }
 
+  /**
+   * Add an option to the select
+   * @param {*} name The name of the option
+   * @param {*} value The value of the option
+   */
   addOption(name, value) {
     const newOption = document.createElement("li")
 
@@ -57,6 +72,10 @@ class SelectComponent extends Component {
     this.options = this.el.find('.select__menu-item')
   }
 
+  /**
+   * Remove an option from the select
+   * @param {*} value The value of the option to remove
+   */
   removeOption(value) {
     this.options.each((i, option) => {
       if (parseInt(option.dataset.value) === value) {
@@ -65,6 +84,11 @@ class SelectComponent extends Component {
     })
   }
 
+  /**
+   * Update an options in the select
+   * @param {*} name The name for the option
+   * @param {*} value The value for the option
+   */
   updateOption(name, value) {
     this.options.each((i, option) => {
       if (parseInt(option.dataset.value) === value) {
@@ -74,23 +98,35 @@ class SelectComponent extends Component {
     })
   }
 
+  /**
+   * Bind the click handler to the option
+   * @param {*} option The option to attach the event handler to
+   */
   bindOptionHandler(option) {
     $(option).on('click', (ev) => { this.handleClick(ev) })
   }
 
-  // Handles the opening of the select
+  /**
+   * Handles the opening of the select
+   */
   handleOpen() {
     this.el.on("keydown", (ev) => { this.supportKeyboardNavigation(ev) })
   }
 
-  // Handles the closing of the select
+  /**
+   * Handles the closing of the select
+   * @param {JQuery.Event} ev The event object
+   */
   handleClose(ev) {
     this.el.dropdown("hide")
     ev.stopPropagation()
     this.el.off("keydown")
   }
 
-  // Handles a change event of the (hidden) input
+  /**
+   * Handles a change event of the (hidden) input
+   * @param {JQuery.Event} ev The event object
+   */
   handleChange(ev) {
     const value = $(ev.target).val()
 
@@ -108,7 +144,10 @@ class SelectComponent extends Component {
     }
   }
 
-  // Handles a click event on one of the options
+  /**
+   * Handles a click event on one of the options
+   * @param {JQuery.Event} ev The event object
+   */
   handleClick(ev) {
     const option = $(ev.target)
     const value = option.data('value')
@@ -131,6 +170,10 @@ class SelectComponent extends Component {
     this.toggleButton.trigger('focus')
   }
 
+  /**
+   * Handle reveal of the select dropdown
+   * @param {JQuery} $option The options instance
+   */
   revealInstance($option) {
     const arrSelectRevealInstances = $(`.select-reveal--${this.input.attr('id')} > .select-reveal__instance`)
     let instanceID = ''
@@ -150,6 +193,11 @@ class SelectComponent extends Component {
     this.disableFields($(instanceID), false)
   }
 
+  /**
+   * Disable fields
+   * @param {*} container The container to disable the fields in
+   * @param {boolean} bDisable Whether to disable to fields or not
+   */
   disableFields(container, bDisable) {
     const $fields = $(container).find('input, textarea')
 
@@ -160,7 +208,10 @@ class SelectComponent extends Component {
     }
   }
 
-  // Updates the hovered option
+  /**
+   * Updates the hovered option
+   * @param {*} newIndex The index of the new hovered option
+   */
   updateHovered(newIndex) {
     const prevOption = this.options[this.optionHoveredIndex]
     const option = this.options[newIndex]
@@ -175,7 +226,10 @@ class SelectComponent extends Component {
     this.optionHoveredIndex = newIndex
   }
 
-  // Updates the checked option
+  /**
+   * Updates the checked option
+   * @param {*} option The option to check
+   */
   updateChecked(option) {
     const value = $(option).data('value')
     const text = $(option).html()
@@ -192,7 +246,10 @@ class SelectComponent extends Component {
     this.optionChecked = value
   }
 
-  // Handles the keyboard events
+  /**
+   * Handles the keyboard events
+   * @param {JQuery.Event} ev The event object
+   */
   supportKeyboardNavigation(ev) {
     // press down -> go next
     if (ev.keyCode === 40 && this.optionHoveredIndex < this.optionsCount - 1) {
@@ -228,7 +285,9 @@ class SelectComponent extends Component {
     }
   }
 
-  // Reset the select to it's initial state
+  /**
+   * Reset the select to it's initial state
+   */
   resetSelect() {
     const placeholder = this.input[0].placeholder
 

@@ -1,6 +1,13 @@
 import { Component } from 'component'
 
+/**
+ * Checkbox Component
+ */
 class CheckboxComponent extends Component {
+  /**
+   * Create a new checkbox component
+   * @param {HTMLElement} element The element to attach the checkbox component to
+   */
   constructor(element) {
     super(element)
     this.el = $(this.element)
@@ -8,7 +15,9 @@ class CheckboxComponent extends Component {
     this.initCheckbox()
   }
 
-  // Intializes the checkbox
+  /**
+   * Intializes the checkbox component
+   */
   initCheckbox() {
     const inputEl = $(this.el).find('input')
     const id = $(inputEl).attr('id')
@@ -27,6 +36,11 @@ class CheckboxComponent extends Component {
     })
   }
 
+  /**
+   * Show an element
+   * @param {JQuery} $revealEl The element to reveal
+   * @param {boolean} bShow Whether to show or hide the element
+   */
   showRevealElement($revealEl, bShow) {
     const strCheckboxRevealShowClassName = 'checkbox-reveal--show'
 

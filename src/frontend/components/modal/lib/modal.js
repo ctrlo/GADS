@@ -1,86 +1,128 @@
+/**
+ * Modal observable class
+ */
 class Modal {
-  // A list of observers
-  constructor() {
-    this.observers = []
-  }
+  observers = []
 
-  // Method for subscribing to, or "observing" observable
+  /**
+   * Method for subscribing to, or "observing" observable
+   * @param {*} subscriber - The subscriber object
+   */
   addSubscriber(subscriber) {
     this.observers.push(subscriber)
   }
 
-  // Method for unsubscribing from observable
+  /**
+   * Method for unsubscribing from observable
+   * @param {*} subscriber The subscriber object to remove
+   */
   unsubscribe(subscriber) {
     var index = this.observers.indexOf(subscriber)
     this.observers.splice(index, 1)
   }
 
-  // Activate
+  /**
+   * Handle Activate
+   * @param {*} frameNr The frame number
+   * @param {number} clearFields Whether to clear the fields
+   * @param {*} id The ID
+   */
   activate(frameNr, clearFields, id) {
     this.observers.forEach(item => item.handleActivate?.(frameNr, clearFields, id))
   }
 
-  // Add
+  /**
+   * Handle Add
+   * @param {*} frame The frame object
+   */
   add(frame) {
     this.observers.forEach(item => item.handleAdd?.(frame))
   }
 
-  // Back
+  /**
+   * Handle Back
+   * @param {*} frame The frame object
+   */
   back(frame) {
     this.observers.forEach(item => item.handleBack?.(frame))
   }
 
-  // Next
+  /**
+   * Handle Next
+   * @param {*} frame The frame object
+   */
   next(frame) {
     this.observers.forEach(item => item.handleNext?.(frame))
   }
 
-  // Show
+  /**
+   * Handle Show
+   * @param {*} modal The modal object
+   */
   show(modal) {
     this.observers.forEach(item => item.handleShow?.(modal))
   }
 
-  // Save
+  /**
+   * Handle Save
+   */
   save() {
     this.observers.forEach(item => item.handleSave?.())
   }
 
-  // Upload
+  /**
+   * Handle Upload
+   * @param {*} data The data object
+   */
   upload(data) {
     this.observers.forEach(item => item.handleUpload?.(data))
   }
 
-  // Clear
+  /**
+   * Handle Clear
+   * @param {*} arr The array to clear
+   */
   clear(arr) {
     this.observers.forEach(item => item.handleClear?.(arr))
   }
 
-  // Close
+  /**
+   * Handle Close
+   */
   close() {
     this.observers.forEach(item => item.handleClose?.())
   }
 
-  // Skip
+  /**
+   * Handle Skip
+   * @param {*} frameNr The frame number
+   */
   skip(frameNr) {
     this.observers.forEach(item => item.handleSkip?.(frameNr))
   }
 
-  // Validate
+  /**
+   * Handle Validate
+   */
   validate() {
     this.observers.forEach(item => item.handleValidate?.())
   }
 
-  // Update
+  /**
+   * Handle Update
+   * @param {*} frame The frame object
+   */
   update(frame) {
     this.observers.forEach(item => item.handleUpdate?.(frame))
   }
 }
 
+/**
+ * Modal instance - singleton
+ */
 const modal = new Modal
 
 export {
   Modal,
   modal
 }
-
-

@@ -2,6 +2,8 @@ import FileDrag from "./lib/filedrag";
 
 import { FileDragOptions } from "./lib/filedrag";
 
+// The filedrag component is a jQuery plugin that allows for drag and drop file uploads
+
 declare global {
     interface JQuery<TElement = HTMLElement> {
         filedrag(options: FileDragOptions): JQuery<TElement>;

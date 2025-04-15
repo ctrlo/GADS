@@ -1,6 +1,13 @@
 import { Component } from 'component'
 
+/**
+ * Calculator component for number input fields.
+ */
 class CalculatorComponent extends Component {
+  /**
+   * Create a new CalculatorComponent instance.
+   * @param {HTMLElement} element The element to attach the calculator to.
+   */
   constructor(element) {
     super(element)
     this.el = $(this.element)
@@ -8,6 +15,9 @@ class CalculatorComponent extends Component {
     this.initCalculator()
   }
 
+  /**
+   * Initialize the calculator component.
+   */
   initCalculator() {
     const selector = this.el.find('input:not([type="checkbox"])')
     const $nodes = this.el.find('label:not(.checkbox-label)')

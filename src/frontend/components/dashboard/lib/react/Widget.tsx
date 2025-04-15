@@ -1,16 +1,23 @@
-import React from "react";
+import React, { RefObject } from "react";
 import { initializeRegisteredComponents } from 'component'
 
+/**
+ * Widget component
+ */
 export default class Widget extends React.Component<any, any> {
-  private ref;
+  private ref: RefObject<HTMLDivElement>;
 
-  constructor(props) {
+  /**
+   * Create a new widget component
+   * @param props The props for the widget component
+   */
+  constructor(props: any) {
     super(props);
 
     this.ref = React.createRef();
   }
 
-  shouldComponentUpdate = (nextProps) => {
+  shouldComponentUpdate = (nextProps: any) => {
     return nextProps.widget.html !== this.props.widget.html;
   }
 
@@ -18,6 +25,9 @@ export default class Widget extends React.Component<any, any> {
     this.initializeLinkspace();
   }
 
+  /**
+   * Initialize the component
+   */
   initializeLinkspace = () => {
     if (!this.ref) {
       return;
@@ -25,6 +35,9 @@ export default class Widget extends React.Component<any, any> {
     initializeRegisteredComponents(this.ref.current)
   }
 
+  /**
+   * Render the widget component
+   */
   render() {
     return (
       <React.Fragment>

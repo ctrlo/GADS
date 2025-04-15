@@ -1,9 +1,17 @@
 import { marked } from "marked";
+import { stringLike } from "./common";
 
+/**
+ * MarkdownCode is a type that represents a string that contains Markdown content.
+ */
 type MarkdownCode = string;
 
-type stringLike = { toString(): string };
-
+/**
+ * This is a function to transform a template string into a Markdown code.
+ * @param strings Template to transform into Markdown code
+ * @param values The values to insert into the Markdown code
+ * @returns A string of Markdown code
+ */
 function MarkDown(strings: TemplateStringsArray, ...values: (stringLike | string | number | MarkdownCode)[]): MarkdownCode {
     marked.use({ breaks: true })
     let str = '';

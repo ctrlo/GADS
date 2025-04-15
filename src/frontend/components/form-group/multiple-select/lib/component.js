@@ -4,7 +4,14 @@ import initDateField from 'components/datepicker/lib/helper'
 const SELECT_PLACEHOLDER = 'select__placeholder'
 const SELECT_MENU_ITEM_ACTIVE = 'select__menu-item--active'
 
+/**
+ * A select component that allows for multiple selections.
+ */
 class MultipleSelectComponent extends Component {
+  /**
+   * Create a new multiple select component
+   * @param {HTMLElement} element The element to attach the component to.
+   */
   constructor(element) {
     super(element)
     this.el = $(this.element)
@@ -16,6 +23,9 @@ class MultipleSelectComponent extends Component {
     this.initMultipleSelect(this.el)
   }
 
+  /**
+   * Create a new multiple select component
+   */
   initMultipleSelect() {
     if (!this.multipleSelectList) {
       return
@@ -31,6 +41,10 @@ class MultipleSelectComponent extends Component {
     this.addBtn.on('click', () => { this.handleClick() })
   }
 
+  /**
+   * Handle whether the delete button should be visible or not
+   * @param {*} row The row to handle the visibility of the delete button
+   */
   handleDeleteButtonVisibility(row) {
     const delBtn = $(row).find('.btn-delete')
     const rowInputs = $(row).find('input[type="hidden"]')
@@ -44,6 +58,9 @@ class MultipleSelectComponent extends Component {
     })
   }
 
+  /**
+   * Handle the click event
+   */
   handleClick() {
     this.el.find('.btn-delete').removeClass('btn-delete--hidden')
 
@@ -89,6 +106,10 @@ class MultipleSelectComponent extends Component {
     $newMultipleSelectRow.appendTo(this.multipleSelectList)
   }
 
+  /**
+   * Handle the click event on the delete button
+   * @param {JQuery.Event} ev The event object
+   */
   handleClickDelete(ev) {
     const multipleSelectArray = this.multipleSelectList.find('> .multiple-select__row')
 
@@ -107,6 +128,10 @@ class MultipleSelectComponent extends Component {
     }
   }
 
+  /**
+   * Reset the row in the select
+   * @param {*} row The row object
+   */
   resetRow(row) {
     const rowInputs = $(row).find('input[type="hidden"]')
 

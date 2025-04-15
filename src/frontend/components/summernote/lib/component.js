@@ -3,12 +3,22 @@ import { Component } from 'component'
 import 'summernote/dist/summernote-bs4'
 import { logging } from 'logging'
 
+/**
+ * Summernote component for rich text editing.
+ */
 class SummerNoteComponent extends Component {
+  /**
+   * Create a new summernote component
+   * @param {HTMLElement} element The element to attach the summernote component to
+   */
   constructor(element) {
     super(element)
     this.initSummerNote()
   }
 
+  /**
+   * Initialize the summernote component
+   */
   initSummerNote() {
     const self = this;
     $(this.element).summernote({
@@ -50,6 +60,11 @@ class SummerNoteComponent extends Component {
     })
   }
 
+  /**
+   * Handle upload within the HTML editor
+   * @param {*} file The file to upload
+   * @param {*} el The element object
+   */
   handleHtmlEditorFileUpload(file, el) {
     if (file.type.includes('image')) {
       const data = new FormData()

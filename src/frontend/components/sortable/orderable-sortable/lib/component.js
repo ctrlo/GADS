@@ -1,6 +1,13 @@
 import { Component } from 'component'
 
+/**
+ * Create a component in which items can be ordered and sorted.
+ */
 class OrderableSortableComponent extends Component {
+  /**
+   * Create a new Orderable/Sortable component
+   * @param {HTMLElement} element The element to attach the component to
+   */
   constructor(element) {
     super(element)
     this.el = $(this.element)
@@ -9,10 +16,17 @@ class OrderableSortableComponent extends Component {
     this.initSortable()
   }
 
+  /**
+   * Initialize the sortable component
+   */
   initSortable() {
     this.selectElement.on("click", (ev) => { this.handleOrder(ev) })
   }
 
+  /**
+   * Handle the ordering event
+   * @param {JQuery.Event} ev The event object
+   */
   handleOrder(ev) {
     const target = $(ev.currentTarget)
 
@@ -23,6 +37,10 @@ class OrderableSortableComponent extends Component {
     }
   }
 
+  /**
+   * Order the rows in a table
+   * @param {boolean} ascending Whether to sort in ascending order
+   */
   orderRows(ascending) {
     const items = $('.sortable__list').children(".sortable__row").sort(function (a, b) {
       const vA = $('.input > .input__field > .form-control', a).val()

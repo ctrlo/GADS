@@ -1,6 +1,13 @@
 import { Component } from 'component'
 
+/**
+ * Collapsible component class
+ */
 class CollapsibleComponent extends Component {
+    /**
+     * Create a new collapsible component.
+     * @param {HTMLElement} element The element to attach the collapsible component to.
+     */
     constructor(element) {
         super(element)
         this.el = $(this.element)
@@ -11,6 +18,10 @@ class CollapsibleComponent extends Component {
         this.initCollapsible(this.button)
     }
 
+    /**
+     * Initialize the collapsible component.
+     * @param {*} button The button to trigger the collapsible component.
+     */
     initCollapsible(button) {
         if (!button) {
             return
@@ -20,6 +31,9 @@ class CollapsibleComponent extends Component {
         button.click(() => { this.handleClick() })
     }
 
+    /**
+     * Handle the click event on the button.
+     */
     handleClick() {
         this.titleExpanded.toggleClass('hidden')
         this.titleCollapsed.toggleClass('hidden')

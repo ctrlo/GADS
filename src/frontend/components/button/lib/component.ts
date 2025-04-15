@@ -7,13 +7,11 @@ import {Component} from 'component'
 class ButtonComponent extends Component {
     /**
      * List of linked classes - this is purely for testing purposes
-     * @type {string[]}
      */
     linkedClasses: string[] = [];
 
     /**
      * Map of button components
-     * @type {Map<string, (element: JQuery<HTMLElement>) => void>}
      */
     private static staticButtonsMap: Map<string, (element: JQuery<HTMLElement>) => void>;
 
@@ -27,7 +25,7 @@ class ButtonComponent extends Component {
 
     /**
      * Create a button component
-     * @param element {HTMLElement} The button element
+     * @param element The button element
      */
     constructor(element: HTMLElement) {
         super(element)
@@ -116,7 +114,7 @@ class ButtonComponent extends Component {
 
     /**
      * Initialize the button
-     * @param element {HTMLElement} The button element
+     * @param element The button element
      */
     private initButton(element: HTMLElement) {
         const el: JQuery<HTMLElement> = $(element)

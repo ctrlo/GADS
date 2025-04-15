@@ -1,6 +1,13 @@
 import { Component } from 'component'
 
+/**
+ * Component for popover functionality
+ */
 class PopoverComponent extends Component {
+  /**
+   * Create a new popover component
+   * @param {HTMLElement} element Element to attach the popover to
+   */
   constructor(element) {
     super(element)
     this.el = $(this.element)
@@ -12,6 +19,10 @@ class PopoverComponent extends Component {
     this.initPopover(this.button)
   }
 
+  /**
+   * Initialize the popover component
+   * @param {*} button The button element to attach the popover to
+   */
   initPopover(button) {
     if (!button) {
       return
@@ -27,6 +38,10 @@ class PopoverComponent extends Component {
     })
   }
 
+  /**
+   * Handle the click event
+   * @param {JQuery.Event} ev The event object
+   */
   handleClick(ev) {
     this.togglePopover()
     ev.stopPropagation();
@@ -42,6 +57,9 @@ class PopoverComponent extends Component {
     // })
   }
 
+  /**
+   * Toggle the popover
+   */
   togglePopover() {
 
     if (this.popover.hasClass(this.strShowClassName)) {
