@@ -12,10 +12,10 @@
     "esModuleInterop": true,
     "paths": {
       "js/*": [
-        "src/frontend/js/*"
+        "js/*"
       ],
       "components/*": [
-        "src/frontend/components/*"
+        "components/*"
       ],
       "util/*" : [
         "js/lib/util/*"
@@ -38,6 +38,6 @@
     "node_modules",
     "dist",
     "src/**/*.test.ts",
-    "src/**/*.definitions.ts"
+    "src/frontend/testing/**/*"
   ]
 }
