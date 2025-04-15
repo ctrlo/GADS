@@ -7,7 +7,7 @@ const MAX_HEIGHT = 50
 
 class MoreLessComponent extends Component {
 
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.clearMoreLess()
@@ -15,7 +15,7 @@ class MoreLessComponent extends Component {
   }
 
   uuid() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
       const r = (Math.random() * 16) | 0,
         v = c == 'x' ? r : (r & 0x3) | 0x8
       return v.toString(16)
@@ -66,7 +66,7 @@ class MoreLessComponent extends Component {
     // measure the height on the cloned elements, we can apply the height as a
     // data value to its real equivalent element using this unique class.
     const self = this
-    $parent.find('.more-less').each(function() {
+    $parent.find('.more-less').each(function () {
       const $e = $(this)
       $e.addClass('more-less-id-' + self.uuid())
     })
@@ -80,10 +80,10 @@ class MoreLessComponent extends Component {
 
     // The cloned element could contain many other hidden more-less divs, so do
     // them all at the same time to improve performance
-    $clone.find('.more-less').each(function() {
+    $clone.find('.more-less').each(function () {
       const $ml = $(this)
       const classList = $ml.attr('class').split(/\s+/)
-      $.each(classList, function(index, item) {
+      $.each(classList, function (index, item) {
         if (item.indexOf('more-less-id') >= 0) {
           const $toset = $parent.find('.' + item)
           // Can't use data() as it can't be re-read
@@ -114,7 +114,7 @@ class MoreLessComponent extends Component {
     }
   }
 
-  initMoreLess() {    
+  initMoreLess() {
     const $ml = $(this.el)
     const column = $ml.data('column')
     const content = $ml.html()
@@ -147,7 +147,7 @@ class MoreLessComponent extends Component {
       'data-label-collapsed': toggleLabel
     })
 
-    $expandToggle.on('toggle', function(e, state) {
+    $expandToggle.on('toggle', function (e, state) {
       const windowWidth = $(window).width()
       const leftOffset = $expandable.offset().left
       const minWidth = 400

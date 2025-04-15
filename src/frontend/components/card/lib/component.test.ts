@@ -160,7 +160,7 @@ describe('ExpandableCardComponent', () => {
   describe('With topic', () => {
     beforeEach(() => {
       const target = document.getElementById('target');
-      if(!target) throw new Error('Target not found');
+      if (!target) throw new Error('Target not found');
       target?.classList.add('card--topic');
     });
 
@@ -169,10 +169,10 @@ describe('ExpandableCardComponent', () => {
       if (!target) throw new Error('Target not found');
       // Set the items in the card to be invisible, as if there was nothing to show
       const $target = $(target);
-      $target.find('.list--fields').find('ul li').each((_i, el)=>{
+      $target.find('.list--fields').find('ul li').each((_i, el) => {
         $(el).css('display', 'none');
       });
-      $target.find('.linkspace-field').each((_i, el)=>{
+      $target.find('.linkspace-field').each((_i, el) => {
         $(el).css('display', 'none');
       });
       new ExpandableCardComponent(target as HTMLElement);

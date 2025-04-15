@@ -1,4 +1,4 @@
-const positionDisclosure = function(offsetTop, offsetLeft, triggerHeight) {
+const positionDisclosure = function (offsetTop, offsetLeft, triggerHeight) {
   const left = offsetLeft + 'px'
   const top = offsetTop + triggerHeight + 'px'
 
@@ -24,7 +24,7 @@ const positionDisclosure = function(offsetTop, offsetLeft, triggerHeight) {
   }
 }
 
-const toggleDisclosure = function(e, $trigger, state, permanent) {
+const toggleDisclosure = function (e, $trigger, state, permanent) {
   $trigger.attr('aria-expanded', state)
   $trigger.toggleClass('expanded--permanent', state && permanent)
 
@@ -61,13 +61,13 @@ const toggleDisclosure = function(e, $trigger, state, permanent) {
   e.stopPropagation()
 }
 
-const onDisclosureClick = function(e) {
+const onDisclosureClick = function (e) {
   const $trigger = $(this)
   const currentlyPermanentExpanded = $trigger.hasClass('expanded--permanent')
   toggleDisclosure(e, $trigger, !currentlyPermanentExpanded, true)
 }
 
-const onDisclosureMouseover = function(e) {
+const onDisclosureMouseover = function (e) {
   const $trigger = $(this)
   const currentlyExpanded = $trigger.attr('aria-expanded') === 'true'
 
@@ -76,7 +76,7 @@ const onDisclosureMouseover = function(e) {
   }
 }
 
-const onDisclosureMouseout = function(e) {
+const onDisclosureMouseout = function (e) {
   const $trigger = $(this)
   const currentlyExpanded = $trigger.attr('aria-expanded') === 'true'
   const currentlyPermanentExpanded = $trigger.hasClass('expanded--permanent')
@@ -86,8 +86,8 @@ const onDisclosureMouseout = function(e) {
   }
 }
 
-const setupDisclosureWidgets = function(context) {
-  $('.trigger[aria-expanded]', context).on('click keydown', function(ev) {
+const setupDisclosureWidgets = function (context) {
+  $('.trigger[aria-expanded]', context).on('click keydown', function (ev) {
     if (ev.type === 'click' || (ev.type === 'keydown' && (ev.which === 13 || ev.which === 32))) {
       ev.preventDefault();
       onDisclosureClick.call(this, ev);

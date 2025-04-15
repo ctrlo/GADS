@@ -16,10 +16,10 @@ import App from "./react/app";
 import ApiClient from "./react/api";
 
 class DashboardComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
-    
+
     this.gridConfig = {
       cols: 2,
       margin: [32, 32],
@@ -50,7 +50,7 @@ class DashboardComponent extends Component {
         noDownload={this.element.getAttribute("data-dashboard-no-download") === "true"}
         api={api}
         widgetTypes={JSON.parse(this.element.getAttribute("data-widget-types") || "[]")}
-        dashboards={JSON.parse(this.element.getAttribute("data-dashboards") || "[]" )}
+        dashboards={JSON.parse(this.element.getAttribute("data-dashboards") || "[]")}
         gridConfig={this.gridConfig} />,
       this.element,
     );

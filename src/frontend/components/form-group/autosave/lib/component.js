@@ -17,7 +17,7 @@ class AutosaveComponent extends AutosaveBase {
     // For each field, when it changes save the value to the local storage
     $field.on('change', async function () {
       const recovering = await self.storage.getItem('recovering');
-      if(recovering) return;
+      if (recovering) return;
       if ($field.hasClass('field--changed')) $field.removeClass('field--changed');
       let values = getFieldValues($field, false, false, true);
       values = (Array.isArray(values) ? values : [values]).filter(function (element) {
@@ -49,7 +49,7 @@ class AutosaveComponent extends AutosaveBase {
           values = values.map((item) => Number.isInteger(item) ? item : indexed[item]);
         }
         await self.storage.setItem(column_key, JSON.stringify(values));
-        if(!(await self.storage.getItem(self.table_key))) await self.storage.setItem(self.table_key, true);
+        if (!(await self.storage.getItem(self.table_key))) await self.storage.setItem(self.table_key, true);
       } else {
         // Delete any values now deleted
         let existing = await self.storage.getItem(column_key) ? JSON.parse(await self.storage.getItem(column_key)) : [];
@@ -59,7 +59,7 @@ class AutosaveComponent extends AutosaveBase {
         // deleted, this will need setting if the change was triggered as a
         // result of a modal submit for a curval add - everything else will
         // have already been saved)
-        if(!(await self.storage.getItem(self.table_key))) await self.storage.setItem(self.table_key, true);
+        if (!(await self.storage.getItem(self.table_key))) await self.storage.setItem(self.table_key, true);
       }
     });
   }

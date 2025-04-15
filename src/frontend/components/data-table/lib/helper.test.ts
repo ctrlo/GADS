@@ -1,9 +1,9 @@
-import {describe, it, expect, beforeEach, afterEach} from '@jest/globals';
-import {addRow, clearTable, updateRow} from './helper';
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { addRow, clearTable, updateRow } from './helper';
 import Datatable from 'datatables.net-bs4';
 
-describe('helper', ()=>{
-    beforeEach(()=>{
+describe('helper', () => {
+    beforeEach(() => {
         document.body.innerHTML = `
         <table id="target" class="table table-striped">
             <thead>
@@ -28,11 +28,11 @@ describe('helper', ()=>{
         `
     });
 
-    afterEach(()=>{
+    afterEach(() => {
         document.body.innerHTML = '';
     })
 
-    it('should add a row to a datatable', ()=>{
+    it('should add a row to a datatable', () => {
         const target = document.getElementById('target');
         expect(target).not.toBeNull();
         new Datatable(target as HTMLElement);
@@ -42,9 +42,9 @@ describe('helper', ()=>{
         expect(target?.querySelectorAll('tbody tr').length).toBe(2);
     });
 
-    it('should update a row', ()=>{
+    it('should update a row', () => {
         const target = document.getElementById('target');
-        if(!target) throw new Error('Target not found');
+        if (!target) throw new Error('Target not found');
         new Datatable(target);
         expect(Datatable.isDataTable(target)).toBeTruthy();
         expect(target.querySelectorAll('tbody tr').length).toBe(1);
@@ -60,9 +60,9 @@ describe('helper', ()=>{
         expect(rows[0].querySelectorAll('td')[2].textContent).toBe('31');
     });
 
-    it('Should clear a table', ()=>{
+    it('Should clear a table', () => {
         const target = document.getElementById('target');
-        if(!target) throw new Error('Target not found');
+        if (!target) throw new Error('Target not found');
         new Datatable(target);
         expect(Datatable.isDataTable(target)).toBeTruthy();
         expect(target.querySelectorAll('tbody tr').length).toBe(1);

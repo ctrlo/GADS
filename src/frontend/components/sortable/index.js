@@ -7,9 +7,8 @@ export default (scope) => {
 
     import(
         /* webpackChunkName: "sortable" */
-        './lib/component' 
+        './lib/component'
     ).then(({ default: Component }) => {
         initializeComponent(scope, '.sortable', Component)
     });
 }
-  

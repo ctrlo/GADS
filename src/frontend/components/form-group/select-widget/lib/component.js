@@ -3,15 +3,15 @@ import { Component } from 'component'
 import { logging } from 'logging'
 import { initValidationOnField } from 'validation'
 
-  /*
-   * A SelectWidget is a custom disclosure widget
-   * with multi or single options selectable.
-   * SelectWidgets can depend on each other;
-   * for instance if Value "1" is selected in Widget "A",
-   * Widget "B" might not be displayed.
-   */
+/*
+ * A SelectWidget is a custom disclosure widget
+ * with multi or single options selectable.
+ * SelectWidgets can depend on each other;
+ * for instance if Value "1" is selected in Widget "A",
+ * Widget "B" might not be displayed.
+ */
 class SelectWidgetComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.$selectWidget = this.el;
@@ -40,16 +40,16 @@ class SelectWidgetComponent extends Component {
     if (this.required) {
       initValidationOnField(this.el)
     }
-  } 
+  }
 
   initSelectWidget() {
     this.updateState()
     if (this.$widget.is('[readonly]')) return
     this.connect()
-  
+
     this.$widget.unbind("click")
     this.$widget.on("click", () => { this.handleWidgetClick() })
-  
+
     this.$search.unbind("blur")
     this.$search.on("blur", (e) => { this.possibleCloseWidget(e) })
 
@@ -61,13 +61,13 @@ class SelectWidgetComponent extends Component {
 
     $(document).on("click", (e) => { this.handleDocumentClick(e) })
 
-    $(document).keyup(function(e) {
+    $(document).keyup(function (e) {
       if (e.keyCode == 27) {
         this.collapse(this.$widget, this.$trigger, this.$target)
       }
     })
 
-    this.$widget.delegate(".select-widget-value__delete", "click", function(e) {
+    this.$widget.delegate(".select-widget-value__delete", "click", function (e) {
       e.preventDefault()
       e.stopPropagation()
 
@@ -112,8 +112,8 @@ class SelectWidgetComponent extends Component {
 
   handleKeyUp(e) {
     const searchValue = $(e.target)
-    .val()
-    .toLowerCase()
+      .val()
+      .toLowerCase()
     const self = this
 
     this.$fakeInput =
@@ -133,8 +133,8 @@ class SelectWidgetComponent extends Component {
       // hasn't started
       clearTimeout(this.timeout)
       this.$available.find(".spinner").removeAttr("hidden")
-      this.timeout = setTimeout(function() {
-        self.$available.find(".answer").not('.answer--blank').each(function() {
+      this.timeout = setTimeout(function () {
+        self.$available.find(".answer").not('.answer--blank').each(function () {
           const $answer = $(this)
           if (!$answer.find('input:checked').length) {
             $answer.remove()
@@ -145,7 +145,7 @@ class SelectWidgetComponent extends Component {
     } else {
       // hide the answers that do not contain the searchvalue
       let anyHits = false
-      $.each(this.$answers, function() {
+      $.each(this.$answers, function () {
         const labelValue = $(this)
           .find("label")[0]
           .innerHTML.toLowerCase()
@@ -251,7 +251,7 @@ class SelectWidgetComponent extends Component {
 
   connectMulti() {
     const self = this
-    return function() {
+    return function () {
       const $item = $(this)
       const itemId = $item.data("list-item")
       const $associated = $("#" + itemId)
@@ -267,7 +267,7 @@ class SelectWidgetComponent extends Component {
       })
 
       $associated.unbind("keydown")
-      $associated.on("keydown", function(e) {
+      $associated.on("keydown", function (e) {
         const key = e.which || e.keyCode
 
         switch (key) {
@@ -313,12 +313,12 @@ class SelectWidgetComponent extends Component {
       const $associated = $("#" + itemId)
 
       $associated.off("click");
-      $associated.on("click", function(e) {
+      $associated.on("click", function (e) {
         e.stopPropagation();
       });
 
       $associated.off("change");
-      $associated.on("change", function() {
+      $associated.on("change", function () {
         // First hide all items in the drop-down display
         self.$currentItems.each((_, currentItem) => {
           $(currentItem).attr("hidden", "")
@@ -368,15 +368,15 @@ class SelectWidgetComponent extends Component {
     const deleteButton = '<button type="button" class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times</button>'
     const $li = $(
       "<li " +
-        (checked ? "" : "hidden") +
-        ' data-list-item="' +
-        valueId +
-        '" class="' +
-        className +
-        '"><span class="widget-value__value">' +
-        "</span>" +
-        deleteButton +
-        "</li>"
+      (checked ? "" : "hidden") +
+      ' data-list-item="' +
+      valueId +
+      '" class="' +
+      className +
+      '"><span class="widget-value__value">' +
+      "</span>" +
+      deleteButton +
+      "</li>"
     )
     $li.data('list-text', value_text)
     $li.data('list-id', value_id)
@@ -405,38 +405,38 @@ class SelectWidgetComponent extends Component {
 
     const $li = $(
       '<li class="' +
-        classNames +
-        '">' +
-        '<div class="control">' +
-        '<div class="' +
-        (multi ? "checkbox" : "radio-group__option") +
-        '">' +
-        '<input id="' +
-        valueId +
-        '" type="' +
-        (multi ? "checkbox" : "radio") +
-        '" name="' +
-        field +
-        '" ' +
-        (checked ? " checked" : "") +
-        (this.required && !this.multi ? ' required aria-required="true"' : "") +
-        ' value="' +
-        (value_id || "") +
-        '" class="' +
-        (multi ? "" : "visually-hidden") +
-        '" aria-labelledby="lbl-' +
-        valueId +
-        '"> ' + // Add space to keep spacing consistent with templates
-        '<label id="lbl-' +
-        valueId +
-        '" for="' +
-        valueId +
-        '">' + label +
-        "</label>" +
-        "</div>" +
-        "</div>" +
-        (value_id ? detailsButton : "") +
-        "</li>"
+      classNames +
+      '">' +
+      '<div class="control">' +
+      '<div class="' +
+      (multi ? "checkbox" : "radio-group__option") +
+      '">' +
+      '<input id="' +
+      valueId +
+      '" type="' +
+      (multi ? "checkbox" : "radio") +
+      '" name="' +
+      field +
+      '" ' +
+      (checked ? " checked" : "") +
+      (this.required && !this.multi ? ' required aria-required="true"' : "") +
+      ' value="' +
+      (value_id || "") +
+      '" class="' +
+      (multi ? "" : "visually-hidden") +
+      '" aria-labelledby="lbl-' +
+      valueId +
+      '"> ' + // Add space to keep spacing consistent with templates
+      '<label id="lbl-' +
+      valueId +
+      '" for="' +
+      valueId +
+      '">' + label +
+      "</label>" +
+      "</div>" +
+      "</div>" +
+      (value_id ? detailsButton : "") +
+      "</li>"
     )
     $li.data('list-text', value_text)
     $li.data('list-id', value_id)
@@ -451,7 +451,7 @@ class SelectWidgetComponent extends Component {
     this.$available.find(".spinner").removeAttr("hidden")
     const currentValues = this.$available
       .find("input:checked")
-      .map(function() {
+      .map(function () {
         return parseInt($(this).val());
       })
       .get()
@@ -478,17 +478,17 @@ class SelectWidgetComponent extends Component {
         } else {
           this.$currentItems.remove()
         }
-        
+
         const checked = currentValues.includes(NaN)
         if (this.multi) {
           this.$search
             .parent()
             .prevAll(".none-selected")
             .remove() // Prevent duplicate blank entries
-            this.$search
+          this.$search
             .parent()
             .before(this.currentLi(this.multi, field, null, "", "blank", checked))
-            this.$available.append(this.availableLi(this.multi, field, null, "", "blank", checked))
+          this.$available.append(this.availableLi(this.multi, field, null, "", "blank", checked))
         }
 
         $.each(data.records, (recordIndex, record) => {
@@ -499,8 +499,8 @@ class SelectWidgetComponent extends Component {
               .before(
                 this.currentLi(this.multi, field, record.id, record.label, record.html, checked)
               ).before(' ') // Ensure space between elements
-              this.$available.append(
-                this.availableLi(this.multi, field, record.id, record.label, record.html, checked)
+            this.$available.append(
+              this.availableLi(this.multi, field, record.id, record.label, record.html, checked)
             )
           }
         })
@@ -529,30 +529,30 @@ class SelectWidgetComponent extends Component {
           data.error === 1 ? data.message : "Oops! Something went wrong."
         const errorLi = $(
           '<li class="answer answer--blank alert alert-danger d-flex flex-row justify-content-start"><span class="control"><label>' +
-            errorMessage +
-            "</label></span></li>"
+          errorMessage +
+          "</label></span></li>"
         )
         this.$available.append(errorLi)
       }
     })
-      .fail(function(jqXHR, textStatus, textError) {
+      .fail(function (jqXHR, textStatus, textError) {
         const errorMessage = "Oops! Something went wrong."
         logging.error(
           "Failed to make request to " +
-            url +
-            ": " +
-            textStatus +
-            ": " +
-            textError
+          url +
+          ": " +
+          textStatus +
+          ": " +
+          textError
         )
         const errorLi = $(
           '<li class="answer answer--blank alert alert-danger"><span class="control"><label>' +
-            errorMessage +
-            "</label></span></li>"
+          errorMessage +
+          "</label></span></li>"
         )
         self.$available.append(errorLi)
       })
-      .always(function() {
+      .always(function () {
         if (hideSpinner) {
           self.$available.find(".spinner").attr("hidden", "")
         }
@@ -570,9 +570,9 @@ class SelectWidgetComponent extends Component {
 
     // Collect values of linked fields
     const values = ["submission-token=" + submissionToken]
-    $.each(filterFields, function(_, field) {
+    $.each(filterFields, function (_, field) {
 
-      $("input[name=" + field + "]").each(function(_, input) {
+      $("input[name=" + field + "]").each(function (_, input) {
         const $input = $(input)
 
         switch ($input.attr("type")) {

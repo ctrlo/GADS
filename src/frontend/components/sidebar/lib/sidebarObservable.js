@@ -14,7 +14,7 @@ class SidebarObservable {
 
 const sidebarObservable = new SidebarObservable
 
-export { 
+export {
   SidebarObservable,
   sidebarObservable
 }

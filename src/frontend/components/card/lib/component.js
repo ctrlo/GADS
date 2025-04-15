@@ -2,10 +2,10 @@ import { Component } from 'component'
 import "bootstrap";
 
 class ExpandableCardComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.$el = $(this.element)
-    this.$contentBlock = this.$el.closest('.content-block') 
+    this.$contentBlock = this.$el.closest('.content-block')
 
     this.initExpandableCard()
 
@@ -85,10 +85,10 @@ class ExpandableCardComponent extends Component {
   }
 
   canRemoveEditClass() {
-    return ! this.$contentBlock.find('.card--edit').length
+    return !this.$contentBlock.find('.card--edit').length
   }
 
-  confirmOnPageExit = function(ev) {
+  confirmOnPageExit = function (ev) {
     ev = ev || window.event
     const message = "Please note that any changes will be lost."
     if (ev) {

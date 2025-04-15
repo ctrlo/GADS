@@ -13,7 +13,7 @@ const Header = ({ hMargin, dashboards, currentDashboard, loading, includeH1 }) =
     }
   }
   return (
-    <div className="content-block__navigation" style={{marginLeft: hMargin, marginRight: hMargin}}>
+    <div className="content-block__navigation" style={{ marginLeft: hMargin, marginRight: hMargin }}>
       <div className="content-block__navigation-left">
         {loading ? <p className="spinner"><i className="fa fa-spinner fa-spin"></i></p> : null}
         <div className="list list--horizontal list--no-borders">
@@ -22,7 +22,7 @@ const Header = ({ hMargin, dashboards, currentDashboard, loading, includeH1 }) =
               <li className="list__item" key={index}>
                 {renderMenuItem(dashboard)}
               </li>
-              ))}
+            ))}
           </ul>
         </div>
       </div>

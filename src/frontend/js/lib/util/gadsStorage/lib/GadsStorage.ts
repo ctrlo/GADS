@@ -25,7 +25,7 @@ export class GadsStorage implements AppStorage {
      * @returns The storage key used to encrypt data.
      */
     private async getStorageKey() {
-        if (window.test) { 
+        if (window.test) {
             this.storageKey = "test";
             return;
         }
@@ -44,8 +44,8 @@ export class GadsStorage implements AppStorage {
         // We turn off writing if we're performing a recovery to prevent extra write operations—this is more to prevent 
         // the odd curval error with dropdowns. It's felt it's more sensible to do this here, rather than search through
         // all the code and try to work out where to put the check (and repeat it ad infinitum)
-        if(await this.getItem('recovering')) return;
-        if(await this.getItem(key) === value) return;
+        if (await this.getItem('recovering')) return;
+        if (await this.getItem(key) === value) return;
         if (!this.storageKey) {
             await this.getStorageKey();
         }

@@ -45,7 +45,7 @@ class FileComponent {
         const tokenField = form.find('input[name="csrf_token"]');
         const csrf_token = tokenField.val() as string ?? tokenField.val()?.toString();
         const formData = formdataMapper({ file, csrf_token });
-        
+
         if (method === 'POST') {
             upload(action, formData, 'POST').catch(console.error);
         } else {

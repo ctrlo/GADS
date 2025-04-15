@@ -78,7 +78,7 @@ class Modal {
 
 const modal = new Modal
 
-export { 
+export {
   Modal,
   modal
 }

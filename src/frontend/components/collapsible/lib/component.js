@@ -1,7 +1,7 @@
 import { Component } from 'component'
 
 class CollapsibleComponent extends Component {
-    constructor(element)  {
+    constructor(element) {
         super(element)
         this.el = $(this.element)
         this.button = this.el.find('.btn-collapsible')
@@ -17,12 +17,12 @@ class CollapsibleComponent extends Component {
         }
 
         this.titleExpanded.addClass('hidden')
-        button.click( () => { this.handleClick() })
+        button.click(() => { this.handleClick() })
     }
 
     handleClick() {
-      this.titleExpanded.toggleClass('hidden')
-      this.titleCollapsed.toggleClass('hidden')
+        this.titleExpanded.toggleClass('hidden')
+        this.titleCollapsed.toggleClass('hidden')
     }
 }
 

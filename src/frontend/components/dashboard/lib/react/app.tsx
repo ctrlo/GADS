@@ -11,7 +11,7 @@ import { sidebarObservable } from '../../../sidebar/lib/sidebarObservable';
 
 declare global {
   interface Window {
-    Linkspace : any,
+    Linkspace: any,
     // @ts-expect-error "Typings clash with JSTree"
     siteConfig: any
   }
@@ -90,7 +90,7 @@ class App extends React.Component<any, any> {
 
   initializeGlobeComponents = () => {
     const arrGlobe = document.querySelectorAll(".globe");
-    import('../../../globe/lib/component').then(({default: GlobeComponent}) => {
+    import('../../../globe/lib/component').then(({ default: GlobeComponent }) => {
       arrGlobe.forEach((globe) => {
         new GlobeComponent(globe)
       });
@@ -196,10 +196,10 @@ class App extends React.Component<any, any> {
 
   // eslint-disable-next-line no-unused-vars
   addWidget = async (type) => {
-    this.setState({loading: true});
+    this.setState({ loading: true });
     const result = await this.props.api.createWidget(type)
     if (result.error) {
-      this.setState({loading: false});
+      this.setState({ loading: false });
       alert(result.message);
       return;
     }

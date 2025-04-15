@@ -2,7 +2,7 @@ import { Component } from 'component'
 import { getFieldValues } from "get-field-values"
 
 class DependentFieldsComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.initDependentFields()
   }
@@ -18,15 +18,15 @@ class DependentFieldsComponent extends Component {
     const rules = decoded.rules;
     const condition = decoded.condition;
 
-    const rr = jQuery.map(rules, function(rule) {
+    const rr = jQuery.map(rules, function (rule) {
       const match_type = rule.operator;
       const is_negative = match_type.indexOf("not") !== -1 ? true : false;
       const regexp =
         match_type.indexOf("equal") !== -1
           ? new RegExp("^" + rule.value + "$", "i")
           : new RegExp(rule.value, "i");
-          let id = rule.id;
-          let filtered = false;
+      let id = rule.id;
+      let filtered = false;
       if (rule.filtered) { // Whether the field is of type "filval"
         id = rule.filtered;
         filtered = true;
@@ -70,14 +70,14 @@ class DependentFieldsComponent extends Component {
       $field.hide();
     }
 
-    const test_all = function(condition, rules) {
+    const test_all = function (condition, rules) {
       if (rules.length == 0) {
         return true;
       }
 
       let is_shown = false;
 
-      rules.some(function(rule) {
+      rules.some(function (rule) {
         // Break if returns true
 
         const $depends = rule.dependsOn;
@@ -85,7 +85,7 @@ class DependentFieldsComponent extends Component {
         const is_negative = rule.is_negative;
         const values = getFieldValues($depends, rule.filtered);
         let this_not_shown = is_negative ? false : true;
-        $.each(values, function(index, value) {
+        $.each(values, function (index, value) {
           // Blank values are returned as undefined for consistency with
           // backend calc code. Convert to empty string, otherwise they will
           // be rendered as the string "undefined" in a regex
@@ -117,10 +117,10 @@ class DependentFieldsComponent extends Component {
       return is_shown;
     };
 
-    rules.forEach(function(rule) {
+    rules.forEach(function (rule) {
       const $depends = rule.dependsOn;
 
-      const processChange = function() {
+      const processChange = function () {
         test_all(condition, rules) ? $field.show() : $field.hide();
         const $expandableCard = $field.closest(".card--expandable");
 
@@ -128,7 +128,7 @@ class DependentFieldsComponent extends Component {
           // Check each field in the card to see if none are shown, and
           // hide/show the card accordingly
           let none_shown = true; // Assume card not shown
-          $expandableCard.find(".linkspace-field").each(function() {
+          $expandableCard.find(".linkspace-field").each(function () {
             if ($(this).css("display") != "none") {
               none_shown = false;
               return; // Shortcut checking any more fields
@@ -147,7 +147,7 @@ class DependentFieldsComponent extends Component {
         // blank. Don't do this if the dependent field is the same as the field
         // with the display condition.
         if ($field.data('column-id') != $depends.data('column-id'))
-            $field.trigger("change");
+          $field.trigger("change");
       };
 
       // If the field depended on is not actually in the form (e.g. if the
@@ -158,8 +158,8 @@ class DependentFieldsComponent extends Component {
       }
 
       // Standard change of visible form field
-      $depends.on("change", function() {
-          processChange();
+      $depends.on("change", function () {
+        processChange();
       });
     });
   }

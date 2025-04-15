@@ -7,7 +7,7 @@ import TypeaheadBuilder from 'util/typeahead'
 import { refreshSelects } from 'components/form-group/common/bootstrap-select'
 
 class FilterComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.operators = [
@@ -118,17 +118,17 @@ class FilterComponent extends Component {
       }
     })
 
-    $builderEl.on('validationError.queryBuilder', function(e, node, error, value) {
+    $builderEl.on('validationError.queryBuilder', function (e, node, error, value) {
       logging.log(error);
       logging.log(value);
       logging.log(e);
       logging.log(node);
     });
 
-    $builderEl.on('afterCreateRuleInput.queryBuilder', function(e, rule) {
+    $builderEl.on('afterCreateRuleInput.queryBuilder', function (e, rule) {
       let filterConfig
 
-      builderConfig.filters.forEach(function(value) {
+      builderConfig.filters.forEach(function (value) {
         if (value.filterId === rule.filter.id) {
           filterConfig = value
           return false
@@ -154,15 +154,15 @@ class FilterComponent extends Component {
       })
 
       const filterCallback = (suggestion) => {
-        if(filterConfig.useIdInFilter) {
+        if (filterConfig.useIdInFilter) {
           $ruleInputHidden.val(suggestion.id)
-        }else {
+        } else {
           $ruleInputHidden.val(suggestion.name)
         }
       }
 
       // This is required to ensure that the correct query is sent each time
-      const buildQuery = () => {return {q:$ruleInputText.val(), oi:filterConfig.instanceId}}
+      const buildQuery = () => { return { q: $ruleInputText.val(), oi: filterConfig.instanceId } }
 
       const builder = new TypeaheadBuilder();
       builder
@@ -176,7 +176,7 @@ class FilterComponent extends Component {
         .build()
     })
 
-    if(filterBase) {
+    if (filterBase) {
       const data = atob(filterBase, 'base64')
       try {
         const obj = JSON.parse(data);
@@ -184,7 +184,7 @@ class FilterComponent extends Component {
           $builderEl.queryBuilder('setRules', obj)
         } else {
           // Ensure that no blank rules by default, otherwise view cannot be submitted
-          $builderEl.queryBuilder('setRules', {rules:[]})
+          $builderEl.queryBuilder('setRules', { rules: [] })
         }
       } catch (error) {
         logging.log('Incorrect data object passed to queryBuilder')
@@ -212,15 +212,15 @@ class FilterComponent extends Component {
 
   buildFilter = (builderConfig, col) => {
     return ({
-    id: col.filterId,
-    label: col.label,
-    type: 'string',
-    operators: this.buildFilterOperators(col.type),
-    ...(col.type === 'rag'
-      ? this.ragProperties
-      : {})
-  })
-}
+      id: col.filterId,
+      label: col.label,
+      type: 'string',
+      operators: this.buildFilterOperators(col.type),
+      ...(col.type === 'rag'
+        ? this.ragProperties
+        : {})
+    })
+  }
 
   buildFilterOperators(type) {
     if (!['date', 'daterange'].includes(type)) return undefined

@@ -5,7 +5,7 @@
  */
 type ProgressFunction = (loaded: number, total: number) => void;
 
-type RequestMethod = "PUT"|"POST"|"GET"|"DELETE"|"PATCH";
+type RequestMethod = "PUT" | "POST" | "GET" | "DELETE" | "PATCH";
 
 /**
  * Type to represent an object similar to an XMLHttpRequest object

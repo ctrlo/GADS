@@ -4,7 +4,7 @@ import 'bootstrap-select/dist/js/bootstrap-select'
 import { refreshSelects } from 'components/form-group/common/bootstrap-select'
 
 class DisplayConditionsComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.initDisplayConditions()

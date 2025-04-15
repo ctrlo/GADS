@@ -13,7 +13,7 @@ import "jstree";
   "id" key or a "text" key, with the required value
 */
 
-const setFieldValues = function($field, values) {
+const setFieldValues = function ($field, values) {
 
   const type = $field.data("column-type")
   const name = $field.data("name")
@@ -44,22 +44,22 @@ const setFieldValues = function($field, values) {
 
   } else if (type === "daterange") {
 
-    values.forEach(function(value, index){
+    values.forEach(function (value, index) {
       let $single = prepare_multi($field, index)
       set_daterange($single, value)
     })
 
   } else if (type === "date") {
 
-    values.forEach(function(value, index){
+    values.forEach(function (value, index) {
       let $single = prepare_multi($field, index)
       set_date($single, value)
     })
 
   } else if (type === "string" || type === "intgr") {
 
-    if(values.length===0) set_string($field, "")
-    values.forEach(function(value, index){
+    if (values.length === 0) set_string($field, "")
+    values.forEach(function (value, index) {
       let $single = prepare_multi($field, index)
       set_string($single, value)
     })
@@ -71,7 +71,7 @@ const setFieldValues = function($field, values) {
     // fieldset div. The latter also has a .input class but it should be the
     // former that becomes the component
     let filecomp = (documentComponent($field.find('.file-upload')));
-    values.forEach(function(value){
+    values.forEach(function (value) {
       filecomp.addFileToField({ id: value.id, name: value.filename });
     })
 
@@ -97,7 +97,7 @@ const setFieldValues = function($field, values) {
 
 // Deal with either single value field or field with multiple inputs. Create as
 // many inputs as required
-const prepare_multi = function($field, index) {
+const prepare_multi = function ($field, index) {
   if ($field.data("is-multivalue")) {
     let $multi_container = $field.find(".multiple-select__list")
     let existing_count = $multi_container.children().length
@@ -110,12 +110,12 @@ const prepare_multi = function($field, index) {
   }
 }
 
-const set_enum_single = function($element, values) {
+const set_enum_single = function ($element, values) {
 
   const type = $element.data("column-type")
   // Accept ID or text value, specified depending on the key of the value
   // object
-  values.forEach(function(value){
+  values.forEach(function (value) {
     let $option
     let val
     if (/^\d+$/.test(value)) { // Value could be a stringified integer
@@ -133,9 +133,9 @@ const set_enum_single = function($element, values) {
       $option.trigger("click")
     } else {
       let name = $element.data("name")
-      if(type === 'curval') {
+      if (type === 'curval') {
         throw new Error(`Unable to set value for ${name} - the data may have been changed or removed`)
-      }else{
+      } else {
         throw new Error(`Unknown value ${val} for ${name}`)
       }
     }
@@ -143,7 +143,7 @@ const set_enum_single = function($element, values) {
 
 }
 
-const set_enum_multi = function($element, values) {
+const set_enum_multi = function ($element, values) {
 
   const id_hash = {}
   const text_hash = {}
@@ -162,7 +162,7 @@ const set_enum_multi = function($element, values) {
 
   // Iterate each available checkbox, and select or deselect as required to
   // match values
-  $element.find('.checkbox').each(function(){
+  $element.find('.checkbox').each(function () {
     let $check = $(this).find('input')
     // Mark an option checked if either the id or text value match the
     // submitted values
@@ -200,15 +200,15 @@ const set_enum_multi = function($element, values) {
   }
 }
 
-const set_date = function($element, value) {
+const set_date = function ($element, value) {
   const $input = $element.find('input')
   if (/^\d+$/.test(value)) {
     // Assume epoch
     $input.datepicker('update', new Date(value * 1000))
   } else {
     // Otherwise assume string
-    if (typeof value === 'object'){
-      if(value.epoch) {
+    if (typeof value === 'object') {
+      if (value.epoch) {
         $input.datepicker('update', new Date(value.epoch * 1000))
       } else {
         $input.datepicker('setDate', `${value.year}-${value.month}-${value.day}`)
@@ -219,17 +219,17 @@ const set_date = function($element, value) {
   }
 }
 
-const set_daterange = function($element, value) {
+const set_daterange = function ($element, value) {
   set_date($element.find('.input--from'), value.from)
   set_date($element.find('.input--to'), value.to)
 }
 
-const set_string = function($element, value) {
-  const $input = $element.find('input').length? $element.find('input') : $element.find('textarea');
+const set_string = function ($element, value) {
+  const $input = $element.find('input').length ? $element.find('input') : $element.find('textarea');
   $input.val(value).trigger("change")
 }
 
-const set_tree = function($field, values) {
+const set_tree = function ($field, values) {
 
   let $jstree = $field.find('.jstree').jstree(true)
   let nodes = $jstree.get_json('#', { flat: true })
@@ -241,7 +241,7 @@ const set_tree = function($field, values) {
     nodes_hash[node.text] = node.id
   })
   $jstree.deselect_all()
-  values.forEach(function(value){
+  values.forEach(function (value) {
     let id
     if (/^\d+$/.test(value)) { // Value could be a stringified integer
       id = value
@@ -254,7 +254,7 @@ const set_tree = function($field, values) {
         console.debug("Unknown text value for tree: " + value['text'])
       }
     } else {
-        throw new Error("Unknown value key for tree")
+      throw new Error("Unknown value key for tree")
     }
     $jstree.select_node(id)
   })

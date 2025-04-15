@@ -6,7 +6,7 @@ import { NullStorage } from "./NullStorage";
  */
 export abstract class AppStorage {
     static CreateStorageInstance(): AppStorage {
-        return crypto.subtle && typeof crypto.subtle != "undefined" ? new GadsStorage(): new NullStorage();
+        return crypto.subtle && typeof crypto.subtle != "undefined" ? new GadsStorage() : new NullStorage();
     }
     /**
      * Store a value in the browsers' storage

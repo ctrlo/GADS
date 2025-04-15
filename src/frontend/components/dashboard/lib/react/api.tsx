@@ -24,7 +24,7 @@ export default class ApiClient {
 
     const fullRoute = `${this.baseUrl}${route}${csrfParam}`;
 
-    const opts : any = {
+    const opts: any = {
       method,
       headers: Object.assign(this.headers),
       credentials: 'same-origin', // Needed for older versions of Firefox, otherwise cookies not sent

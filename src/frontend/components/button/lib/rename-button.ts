@@ -187,7 +187,7 @@ class RenameButton {
     }
 }
 
-if(typeof jQuery !== 'undefined') {
+if (typeof jQuery !== 'undefined') {
     (function ($) {
         $.fn.renameButton = function () {
             return this.each(function (_: unknown, el: HTMLButtonElement) {

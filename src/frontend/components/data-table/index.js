@@ -7,7 +7,7 @@ export default (scope) => {
 
   import(
     /* webpackChunkName: "datatable" */
-    './lib/component' 
+    './lib/component'
   ).then(({ default: Component }) => {
     initializeComponent(scope, '.data-table', Component)
   });

@@ -2,11 +2,11 @@ import "testing/globals.definitions";
 import { fromJson, hideElement, showElement } from "./common";
 
 describe('common functions', () => {
-    describe('CSS and ARIA - skipped as they are incorrect',()=>{
+    describe('CSS and ARIA - skipped as they are incorrect', () => {
         let el: JQuery<HTMLElement>;
 
         beforeEach(() => {
-            el=$(document.createElement('div'));
+            el = $(document.createElement('div'));
         });
 
         afterEach(() => {
@@ -56,32 +56,32 @@ describe('common functions', () => {
         });
     });
 
-    describe('JSON tests',() => {
+    describe('JSON tests', () => {
         it('parses a JSON string', () => {
             const json = '{"foo":"bar"}';
             const parsed = fromJson(json);
             expect(parsed.foo).toEqual('bar');
         });
 
-        it('parses a JSON object', ()=>{
-            const json = {foo: "bar"};
+        it('parses a JSON object', () => {
+            const json = { foo: "bar" };
             const parsed = fromJson(json);
             expect(parsed.foo).toEqual('bar');
         });
 
-        it('returns an empty object for invalid JSON', ()=>{
+        it('returns an empty object for invalid JSON', () => {
             const json = "foo";
             const parsed = fromJson(json);
             expect(parsed).toEqual({});
         });
 
-        it('returns an empty object for null', ()=>{
+        it('returns an empty object for null', () => {
             const json = null;
             const parsed = fromJson(json);
             expect(parsed).toEqual({});
         });
 
-        it('returns an empty object for undefined', ()=>{
+        it('returns an empty object for undefined', () => {
             const json = undefined;
             const parsed = fromJson(json);
             expect(parsed).toEqual({});

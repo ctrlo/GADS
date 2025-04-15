@@ -4,7 +4,7 @@ import { modal } from 'components/modal/lib/modal'
 import SelectComponent from 'components/form-group/select/lib/component'
 
 class AddTableModalComponent extends ModalComponent {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.json = {}
@@ -25,8 +25,8 @@ class AddTableModalComponent extends ModalComponent {
     const btnCreateTopic = this.el.find('.modal-body .btn-js-create-topic')
     const btnCreateField = this.el.find('.modal-body .btn-js-create-field')
 
-    btnCreateTopic.on("click", () => { modal.activate(4, true) } )
-    btnCreateField.on("click", () => { modal.activate(7, true) } )
+    btnCreateTopic.on("click", () => { modal.activate(4, true) })
+    btnCreateField.on("click", () => { modal.activate(7, true) })
     this.fieldOptions.addClass('hidden')
     this.setupDataObject()
   }
@@ -146,7 +146,7 @@ class AddTableModalComponent extends ModalComponent {
   editField(field, frame) {
     this.currentFieldObject = field
     // Also clear frame 8 (field type settings) and 9 (custom field permissions)
-    modal.clear([8,9])
+    modal.clear([8, 9])
 
     // Fill the fields
     this.fillFields($(frame), field)
@@ -185,7 +185,7 @@ class AddTableModalComponent extends ModalComponent {
 
     $btnEditItem.each((i, btn) => {
       const tempId = $(btn).data('tempid')
-      $(btn).on('click', () => { modal.activate(frameNumber, true, tempId) } )
+      $(btn).on('click', () => { modal.activate(frameNumber, true, tempId) })
     })
   }
 
@@ -336,7 +336,7 @@ class AddTableModalComponent extends ModalComponent {
   addTable(frame) {
     const $fields = frame.find('input, textarea')
     const $modalTitle = this.el.find('.modal-title')
-    
+
     $fields.each((i, field) => {
       if ($(field).val()) {
         this.json[$(field).attr('name')] = $(field).val()
@@ -357,7 +357,7 @@ class AddTableModalComponent extends ModalComponent {
     // Clear custom field permissions in json
     currentField.custom_field_permissions = []
 
-    $groups.every(() =>  {
+    $groups.every(() => {
       const group = this.nodes()[0]
       const iGroupId = group.dataset.groupId
       const strGroupName = $(group).find('td')[0].innerHTML.trim()
@@ -381,7 +381,7 @@ class AddTableModalComponent extends ModalComponent {
   // Add table_permissions to the json
   addTablePermissions(frame) {
     const $groups = frame.find('.card--expandable')
-    
+
     $groups.each((i, group) => {
       const $groupRow = $(group).closest('.permission-group')
       const iGroupId = ($groupRow && typeof $groupRow.data('group-id') !== 'undefined') ? $groupRow.data('group-id') : ''
@@ -480,9 +480,9 @@ class AddTableModalComponent extends ModalComponent {
       this.currentFieldObject = {}
 
       // Also clear frame 8 (field type settings) and 9 (custom field permissions)
-      modal.clear([8,9])
+      modal.clear([8, 9])
 
-    } else if((frameNumber === 4) && id) { // Edit topic
+    } else if ((frameNumber === 4) && id) { // Edit topic
       const frame = super.getFrameByNumber(frameNumber)
       const topic = this.json.topics.find(e => e.tempId === id)
 

@@ -1,6 +1,6 @@
 // noinspection ExceptionCaughtLocallyJS
 
-import {logging} from "logging";
+import { logging } from "logging";
 
 /**
  * Create delete button
@@ -27,7 +27,7 @@ export default function createDeleteButton(element: JQuery<HTMLElement>) {
             element.on('click', function (e: JQuery.ClickEvent) {
                 e.stopPropagation()
             });
-            if(window.test) throw e;
+            if (window.test) throw e;
         }
 
         $deleteModal.find('.modal-title').text(modalTitle)

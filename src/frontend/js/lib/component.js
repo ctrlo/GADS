@@ -110,7 +110,7 @@ const initializeComponent = (scope, selector, ComponentClass) => {
   const scopes = (scope instanceof jQuery) ? scope.get() : [scope]
 
   const elements = scopes.flatMap(
-      (scope) => typeof(selector) === 'function' ? selector(scope) : getComponentElements(scope, selector)
+    (scope) => typeof (selector) === 'function' ? selector(scope) : getComponentElements(scope, selector)
   )
 
   if (!elements.length) {
@@ -119,11 +119,11 @@ const initializeComponent = (scope, selector, ComponentClass) => {
 
   return elements
     .filter((el) => {
-        return (
-            ComponentClass.allowReinitialization
-            // See comments for allowReinitialization()
-            || !componentIsInitialized(el, ComponentClass.name)
-        )
+      return (
+        ComponentClass.allowReinitialization
+        // See comments for allowReinitialization()
+        || !componentIsInitialized(el, ComponentClass.name)
+      )
     }).map((el) => new ComponentClass(el))
 }
 

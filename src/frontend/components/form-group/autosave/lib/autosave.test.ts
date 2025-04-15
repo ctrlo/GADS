@@ -17,7 +17,7 @@ describe('AutosaveBase', () => {
         $('body').data('layout-identifier', 1);
     });
 
-    afterAll(()=>{
+    afterAll(() => {
         document.body.innerHTML = '';
     });
 

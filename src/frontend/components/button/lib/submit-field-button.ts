@@ -25,7 +25,7 @@ export default class SubmitFieldButton {
      * Create a submit field button
      * @param element The submit button element
      */
-    constructor(element:JQuery<HTMLElement>) {
+    constructor(element: JQuery<HTMLElement>) {
         element.on('click', (ev) => {
 
             const $jstreeContainer = $('#field_type_tree');
@@ -74,13 +74,13 @@ export default class SubmitFieldButton {
                 bUpdateDisplayConditions = true;
             }
 
-            if(peopleConditionsFieldEl.length && $peopleConditionsFieldRes) {
+            if (peopleConditionsFieldEl.length && $peopleConditionsFieldRes) {
                 bUpdatePeopleFilter = true;
             }
 
             if (bUpdateTree) {
                 //Bit of typecasting here, purely because the jstree plugin doesn't have types
-                const v = $jstreeEl.jstree(true).get_json('#', {flat: false});
+                const v = $jstreeEl.jstree(true).get_json('#', { flat: false });
                 const mytext = JSON.stringify(v);
                 const data = $jstreeEl.data();
 
@@ -88,7 +88,7 @@ export default class SubmitFieldButton {
                     async: false,
                     type: 'POST',
                     url: this.getURL(data),
-                    data: {data: mytext, csrf_token: data.csrfToken}
+                    data: { data: mytext, csrf_token: data.csrfToken }
                 }).done(() => {
                     // eslint-disable-next-line no-alert
                     alert('Tree has been updated')
@@ -101,7 +101,7 @@ export default class SubmitFieldButton {
                 window.UpdateFilter($filterEl, ev);
             }
 
-            if(bUpdatePeopleFilter && window.UpdatePeopleFilter) {
+            if (bUpdatePeopleFilter && window.UpdatePeopleFilter) {
                 window.UpdatePeopleFilter(peopleConditionsFieldEl, ev);
             }
 
@@ -126,7 +126,7 @@ export default class SubmitFieldButton {
      * @param data The data for the tree
      * @returns The URL for the tree API
      */
-    private getURL(data:JQuery.PlainObject):string {
+    private getURL(data: JQuery.PlainObject): string {
         if (window.test) return "";
 
         const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi;

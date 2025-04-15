@@ -29,7 +29,7 @@ export class Typeahead {
             datumTokenizer: Bloodhound.tokenizers.whitespace,
             queryTokenizer: Bloodhound.tokenizers.whitespace,
             remote: {
-                url: ajaxSource + (appendQuery ?  "%QUERY" : ""),
+                url: ajaxSource + (appendQuery ? "%QUERY" : ""),
                 wildcard: '%QUERY',
                 transform: (response) => {
                     return mapper(response);
@@ -66,7 +66,7 @@ export class Typeahead {
             this.callback(suggestion);
         });
 
-        if(window.test) {
+        if (window.test) {
             this.$input.on("typeahead:asyncrequest", () => {
                 console.log("Typeahead async request");
             });
