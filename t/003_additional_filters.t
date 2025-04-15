@@ -9,6 +9,14 @@ use Log::Report;
 use lib 't/lib';
 use Test::GADS::DataSheet;
 
+my $config = {
+    gads => {
+        uploads => './uploads',
+    }
+};
+
+GADS::Config->instance->config($config);
+
 my $data = [
     {
         string1    => 'Foo',

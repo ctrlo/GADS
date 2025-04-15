@@ -12,6 +12,14 @@ use GADS::Schema;
 use lib 't/lib';
 use Test::GADS::DataSheet;
 
+my $config = {
+    gads => {
+        uploads => './uploads',
+    }
+};
+
+GADS::Config->instance->config($config);
+
 my $values = {
     string1 => {
         old_as_string => 'foo', # The initial value
