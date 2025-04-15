@@ -320,6 +320,7 @@
                       rows = 2;
                   -%]
                 </div>
+              </div>
 
             </div> <!-- container end -->
           </div> <!-- modal body end -->

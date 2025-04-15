@@ -2362,7 +2362,7 @@ prefix '/:layout_name' => sub {
             else {
                 my $input = param('rewind_date');
                 $input   .= ' ' . (param('rewind_time') ? param('rewind_time') : '23:59:59');
-                my $dt    = GADS::DateTime::parse_datetime($input)
+                my $dt    = GADS::DateTime::parse_datetime(undef, $input)
                     or error __x"Invalid date or time: {datetime}", datetime => $input;
                 session rewind => $dt;
             }

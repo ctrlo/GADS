@@ -53,7 +53,7 @@ use JSON qw(decode_json encode_json);
 use String::CamelCase qw(camelize);
 
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Maybe Int Str Bool ArrayRef HashRef/;
 
 has schema => (
     is       => 'rw',

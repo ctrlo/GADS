@@ -26,7 +26,7 @@ use MIME::Base64;
 use String::CamelCase qw(camelize);
 
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base qw(Maybe Int Bool HashRef ArrayRef);
 use namespace::clean;
 
 has id => (

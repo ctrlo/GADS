@@ -20,7 +20,7 @@ package GADS::Metric;
 
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Str/;
 
 # Only needed when manipulating the object
 has schema => (

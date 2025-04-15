@@ -2,6 +2,39 @@
 
 -------
 
+**Version**: 2.6.3
+**Released**: 08-04-2025
+
+-------
+
+## Fixes
+
+- Fix panics using deleted people in calcs
+
+-------
+
+**Version**: 2.6.2
+**Released**: 07-04-2025
+
+-------
+
+## Fixes
+
+- Fix email users functionality not working
+
+-------
+
+**Version**: 2.6.1
+**Released**: 03-04-2025
+
+-------
+
+## Fixes
+
+- Fix download menu option not displaying
+
+-------
+
 **Version**: 2.6.0
 **Released**: 24-03-2025
 

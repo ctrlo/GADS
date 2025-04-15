@@ -59,9 +59,13 @@ class ValueLookupComponent extends Component {
           addStatusMessage($field, error, false, true)
         } else {
           for (const [name, value] of Object.entries(data.result)) {
-            var $f = $('.linkspace-field[data-name-short="' + name + '"]')
-            if (!$f || $f.length == 0) continue;
-            setFieldValues($f, value)
+            var $f = $('.linkspace-field[data-name-short="'+name+'"]')
+            if(!$f || $f.length == 0) continue;
+            try {
+              setFieldValues($f, value)
+            } catch (e) {
+              console.error("Error setting field values", e)
+            }
           }
           removeStatusMessage($field)
         }

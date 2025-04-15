@@ -1,7 +1,7 @@
 package GADS::Role::Curcommon::RelatedField;
 
 use Moo::Role;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Maybe Int/;
 
 has related_field => (
     is      => 'ro',

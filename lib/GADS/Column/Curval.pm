@@ -23,7 +23,7 @@ use GADS::Records;
 use Log::Report 'linkspace';
 
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Bool Str ArrayRef/;
 
 extends 'GADS::Column::Curcommon';
 

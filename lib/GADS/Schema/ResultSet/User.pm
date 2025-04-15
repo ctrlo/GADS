@@ -16,7 +16,6 @@ use Session::Token;
 use Text::CSV;
 
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 
 extends 'DBIx::Class::ResultSet';
