@@ -23,6 +23,8 @@ use Moo;
 use MooX::Types::MooseLike::Base qw/:all/;
 use namespace::clean;
 
+use MIME::Base64 qw(encode_base64);
+
 extends 'GADS::Datum';
 
 with 'GADS::Role::Presentation::Datum::File';
@@ -68,11 +70,12 @@ after set_value => sub {
             my $old_value   = $self->schema->resultset('Fileval')->find($old[0]); # Only do one fetch here
             my $old_content = $old_value->content;
             my $old_name    = $old_value->name;
-            $changed = 0 if $self->schema->resultset('Fileval')->search({
+            if(my $fl = $self->schema->resultset('Fileval')->search({
                 id      => $values[0],
-                content => $old_content,
                 name    => $old_name
-            })->count;
+            })->next) {
+                $changed = 0 if $fl && (encode_base64($fl->content) eq encode_base64($old_content));
+            }
         }
     }
     if ($changed)

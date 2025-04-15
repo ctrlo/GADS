@@ -128,14 +128,15 @@ sub file_to_id {
   my $path = GADS::Config->instance->uploads;
   my $id = sprintf "%09d", $self->id;
   $id =~ s!(\d{3})!$1/!g;
-  $id =~ s!/$!!g;
+  $id =~ s!/$!!g; # remove trailing slash
+  $id =~ s!^/!!g; # remove leading slash
   file($path, $id);
 };
 
 sub content {
   my $self = shift;
   my $target = $self->file_to_id;
-  return unless -e $target;
+  error __"File not found!" unless -e $target; # file may have been deleted
   return $target->slurp(iomode => '<:raw');
 }
 

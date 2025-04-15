@@ -120,17 +120,10 @@ has uploads => (
     clearer=>1,
     builder => sub {
         my $self = shift;
-        my $upload_path = $self->gads && ref($self->gads) eq 'HASH' && $self->gads->{uploads};
-        my $path;
-        if(!$upload_path || $upload_path eq '') {
-            $path = '/var/lib/linkspace';
-        } else {
-            $upload_path =~ s!/$!!; # Remove leading slash
-            $path = $upload_path;
-        }
-        say STDERR "Path: $path";
-        dir($path)->mkpath unless -d $path;
-        $upload_path or '/var/lib/linkspace';
+        my $upload_path = ref($self->gads) eq 'HASH' && $self->gads->{uploads};
+        $upload_path =~ s!/$!!; # Remove leading slash
+        dir($upload_path)->mkpath unless -d $upload_path;
+        $upload_path;
     }
 );
 
