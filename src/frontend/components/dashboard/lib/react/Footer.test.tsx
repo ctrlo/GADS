@@ -6,7 +6,7 @@ import { describe, it, expect, jest } from '@jest/globals';
 import Footer from './Footer';
 import { FooterProps } from './types';
 
-import 'testing/extentions';
+import 'testing/extensions';
 
 describe('Footer', () => {
     it('Creates a footer', () => {
