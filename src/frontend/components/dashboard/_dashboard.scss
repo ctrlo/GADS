@@ -76,3 +76,13 @@
     opacity: 1;
   }
 }
+
+.ld-footer-container {
+  .btn-group {
+    margin-right: $padding-base-vertical;
+
+    &:last-of-type {
+      margin-right: 0;
+    }
+  }
+}

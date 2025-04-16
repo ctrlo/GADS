@@ -13,6 +13,16 @@ class SidebarObservable {
   }
 
   /**
+   * Add a function to the observable
+   * @param {()=>void} func The function to apply to the subscribers
+   */
+  addSubscriberFunction(func) {
+    this.observers.push({
+      handleSideBarChange: func
+    })
+  }
+
+  /**
    * Handle the change event for the sidebar
    */
   sideBarChange() {

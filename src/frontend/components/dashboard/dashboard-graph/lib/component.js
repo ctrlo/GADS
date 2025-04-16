@@ -2,12 +2,12 @@ import { do_plot_json } from '../../../graph/lib/chart'
 import GraphComponent from '../../../graph/lib/component'
 
 /**
- * Graph component for use in the dashboard
+ * Graph component for the dashboard
  */
 class DashboardGraphComponent extends GraphComponent {
   /**
-   * Create a new Dashboard graph component
-   * @param {HTMLElement} element The element to attach the graph component to
+   * Create a new dashboard graph component
+   * @param {HTMLElement} element The element to attach the component to
    */
   constructor(element) {
     super(element)
@@ -15,7 +15,7 @@ class DashboardGraphComponent extends GraphComponent {
   }
 
   /**
-   * Initialize the graph component
+   * Initialize the dashboard graph
    */
   initDashboardGraph() {
     const $graph = $(this.element)
