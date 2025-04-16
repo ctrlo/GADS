@@ -13,7 +13,6 @@ type MarkdownCode = string;
  * @returns A string of Markdown code
  */
 function MarkDown(strings: TemplateStringsArray, ...values: (stringLike | string | number | MarkdownCode)[]): MarkdownCode {
-    marked.use({ breaks: true })
     let str = '';
     for (let i = 0; i < strings.length; i++) {
         str += strings[i];
@@ -22,7 +21,7 @@ function MarkDown(strings: TemplateStringsArray, ...values: (stringLike | string
         }
     }
     str = str.replace(/\\n/g, '\n\n');
-    return marked(str).trim();
+    return marked(str, {breaks: true, async: false}).trim();
 }
 
 export { MarkdownCode, MarkDown };
