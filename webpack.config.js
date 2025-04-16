@@ -12,7 +12,7 @@ const plugins = [
   new ProvidePlugin({
     $: 'jquery',
     jQuery: 'jquery',
-    Buffer: ['buffer', 'Buffer'],
+    bootstrap: 'bootstrap',
     // Required for more effective component integration
     "window.jQuery": 'jquery',
   }),
@@ -88,16 +88,18 @@ module.exports = (env) => {
             {
               loader: 'postcss-loader',
               options: {
-                plugins: [autoprefixer],
+                postcssOptions: {
+                  plugins: [autoprefixer],
+                }
               },
             },
             {
               loader: 'sass-loader',
               options: {
-                implementation: sass,
                 sassOptions: {
-                  includePaths: ['src/frontend/components'],
-                },
+                  implementation: sass,
+                  loadPaths: ['src/frontend/components'],
+                }
               },
             },
           ],
@@ -141,7 +143,6 @@ module.exports = (env) => {
       extensions: ['.tsx', '.ts', '.jsx', '.js'],
       fallback: {
         'fs': false,
-        'buffer': require.resolve('buffer'),
       },
       modules: [
         path.resolve(__dirname, 'src/frontend/js/lib'),
