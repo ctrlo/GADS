@@ -70,7 +70,7 @@ class TreeComponent extends Component {
       });
 
       this.$treeContainer.on('select_node.jstree', (e, data) => {
-        if (node && data.node.id == node.id) {
+        if (node && data.node.id === node.id) {
           this.$treeContainer.jstree(true).deselect_node(data.node);
           node = null;
         } else {
@@ -126,7 +126,7 @@ class TreeComponent extends Component {
    * @param {*} data The data object
    */
   handleSelect(e, data) {
-    if (data.node.children.length == 0) {
+    if (data.node.children.length === 0) {
       return
     }
     if (this.endNodeOnly) {
@@ -160,7 +160,7 @@ class TreeComponent extends Component {
     // Hacky: we need to submit at least an empty value if nothing is
     // selected, to ensure the forward/back functionality works. XXX If the
     // forward/back functionality is removed, this can be removed too.
-    if (selectedElms.length == 0) {
+    if (selectedElms.length === 0) {
       this.$treeContainer.after(`<input type="hidden" class="selected-tree-value" name="${this.field}" value="" />`)
     }
 

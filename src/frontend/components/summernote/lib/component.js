@@ -42,7 +42,7 @@ class SummerNoteComponent extends Component {
           $(this).summernote('code', $sum_input.val())
         },
         onImageUpload: function (files) {
-          for (var i = 0; i < files.length; i++) {
+          for (let i = 0; i < files.length; i++) {
             self.handleHtmlEditorFileUpload(files[i], this)
           }
         },
@@ -53,7 +53,7 @@ class SummerNoteComponent extends Component {
           if ($sum_div.summernote('isEmpty')) {
             contents = ''
           }
-          var $sum_input = $sum_div.siblings('input[type=hidden].summernote_content')
+          const $sum_input = $sum_div.siblings('input[type=hidden].summernote_content');
           $sum_input.val(contents)
         }
       }

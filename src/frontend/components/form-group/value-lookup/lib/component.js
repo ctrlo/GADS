@@ -52,7 +52,9 @@ class ValueLookupComponent extends Component {
         all_fields.push($f.data('name'))
         const values = getFieldValues($f)
         data[name_short] = values
-        return values.filter(function (value) { return value !== undefined }).length ? true : false
+        return !!values.filter(function (value) {
+          return value !== undefined
+        }).length
       });
       // If one of the values in this group is blank then do not perform lookup
       if (!has_values) return false
@@ -74,8 +76,8 @@ class ValueLookupComponent extends Component {
           addStatusMessage($field, error, false, true)
         } else {
           for (const [name, value] of Object.entries(data.result)) {
-            var $f = $('.linkspace-field[data-name-short="'+name+'"]')
-            if(!$f || $f.length == 0) continue;
+            const $f = $('.linkspace-field[data-name-short="' + name + '"]');
+            if (!$f || $f.length === 0) continue;
             try {
               setFieldValues($f, value)
             } catch (e) {
@@ -88,9 +90,9 @@ class ValueLookupComponent extends Component {
         .fail(function (jqXHR, textStatus) {
           // Use error in JSON from endpoint if available, otherwise try and
           // interpret error response appropriately
-          const err_message = textStatus == "timeout"
+          const err_message = textStatus === "timeout"
             ? `Failed to look up ${all_names}: request timed out`
-            : textStatus == "parsererror" // result not in JSON
+            : textStatus === "parsererror" // result not in JSON
               ? `Failed to look up ${all_names}: unexpected response format from server`
               : (jqXHR.responseJSON && jqXHR.responseJSON.message)
                 ? jqXHR.responseJSON.message

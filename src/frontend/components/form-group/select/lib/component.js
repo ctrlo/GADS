@@ -20,7 +20,6 @@ class SelectComponent extends Component {
     this.input = this.el.find('input')
     this.menu = this.el.find('.select__menu')
     this.options = this.el.find('.select__menu-item')
-    this.optionChecked = ""
     this.optionHoveredIndex = -1
     this.optionsCount = this.options.length
     this.isSelectReveal = this.el.hasClass('select--reveal')
@@ -30,9 +29,6 @@ class SelectComponent extends Component {
       initValidationOnField(this.el)
     }
   }
-
-  // why? Static is a _bad_ idea, especially when mixing object scope with the static scope!
-  static self = this
 
   /**
    * Intializes the select
@@ -176,7 +172,7 @@ class SelectComponent extends Component {
    */
   revealInstance($option) {
     const arrSelectRevealInstances = $(`.select-reveal--${this.input.attr('id')} > .select-reveal__instance`)
-    let instanceID = ''
+    let instanceID;
 
     if ($option.data('reveal_id') !== undefined) {
       instanceID = `#${this.input.attr('id')}_${$option.data('reveal_id')}`
@@ -252,19 +248,19 @@ class SelectComponent extends Component {
    */
   supportKeyboardNavigation(ev) {
     // press down -> go next
-    if (ev.keyCode === 40 && this.optionHoveredIndex < this.optionsCount - 1) {
+    if (ev.key === "ArrowDown" && this.optionHoveredIndex < this.optionsCount - 1) {
       ev.preventDefault() // prevent page scrolling
       this.updateHovered(this.optionHoveredIndex + 1)
     }
 
     // press up -> go previous
-    if (ev.keyCode === 38 && this.optionHoveredIndex > 0) {
+    if (ev.key === "ArrowUp" && this.optionHoveredIndex > 0) {
       ev.preventDefault(); // prevent page scrolling
       this.updateHovered(this.optionHoveredIndex - 1)
     }
 
     // press Enter or space -> select the option
-    if (ev.keyCode === 13 || ev.keyCode === 32) {
+    if (ev.key === " " || ev.key === "Enter") {
       ev.preventDefault()
 
       const option = this.options[this.optionHoveredIndex]
@@ -280,7 +276,7 @@ class SelectComponent extends Component {
     }
 
     // press ESC -> close selectCustom
-    if (ev.keyCode === 27) {
+    if (ev.key === "Escape") {
       this.handleClose(ev)
     }
   }

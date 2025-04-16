@@ -6,7 +6,7 @@
 const do_plot = (plotData, options_in) => {
   const ticks = plotData.xlabels
   let plotOptions = {}
-  const showmarker = options_in.type == 'line' ? true : false
+  const showmarker = options_in.type === 'line'
 
   plotOptions.highlighter = {
     showMarker: showmarker,
@@ -21,7 +21,7 @@ const do_plot = (plotData, options_in) => {
     plotOptions.seriesDefaults = seriesDefaults.default
   }
 
-  if (options_in.type != 'donut' && options_in.type != 'pie') {
+  if (options_in.type !== 'donut' && options_in.type !== 'pie') {
     plotOptions.series = plotData.labels
     plotOptions.axes = {
       xaxis: {
@@ -75,7 +75,7 @@ const do_plot = (plotData, options_in) => {
 /**
  * Global function to do the plot using JSON data
  */
-const do_plot_json = (window.do_plot_json = function(plotData, options_in) {
+const do_plot_json = (window.do_plot_json = function (plotData, options_in) {
   plotData = JSON.parse(atob(plotData))
   options_in = JSON.parse(atob(options_in))
   do_plot(plotData, options_in);
@@ -123,4 +123,4 @@ const makeSeriesDefaults = () => ({
   }
 })
 
-export { do_plot_json }
+export { do_plot_json, do_plot }

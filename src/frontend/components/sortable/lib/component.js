@@ -21,7 +21,6 @@ class SortableComponent extends Component {
     this.sortableList = this.el.find('.sortable__list')
     this.addBtn = this.el.find('.btn-default')
     this.delBtn = this.el.find(`.${BTN_ICON_CLOSE}`)
-    this.dragHandle = this.el.find(`.${SORTABLE_HANDLE}`)
 
     this.initSortable()
   }

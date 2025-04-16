@@ -31,7 +31,7 @@ export class Typeahead {
             remote: {
                 url: ajaxSource + (appendQuery ? "%QUERY" : ""),
                 wildcard: '%QUERY',
-                transform: (response) => {
+                transform: (response: any) => {
                     return mapper(response);
                 },
                 rateLimitBy: 'debounce',

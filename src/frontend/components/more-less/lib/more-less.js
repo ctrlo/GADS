@@ -14,7 +14,7 @@ class MoreLess {
    * @param {*} subscriber - The object that wants to stop observing the observable
    */
   unsubscribe(subscriber) {
-    var index = this.observers.indexOf(subscriber)
+    const index = this.observers.indexOf(subscriber);
     this.observers.splice(index, 1)
   }
 

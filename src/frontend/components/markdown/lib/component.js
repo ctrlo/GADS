@@ -1,5 +1,6 @@
 import { marked } from "marked";
 import { Component } from "component";
+import { MarkDown } from "util/formatters/markdown";
 
 /**
  * Component to render a preview of markdown text.
@@ -21,7 +22,7 @@ class MarkdownComponent extends Component {
    */
   renderMarkdown(md) {
     const mdEncoded = $('<span>').text(md).html()
-    return marked(mdEncoded);
+    return MarkDown`${mdEncoded}`;
   }
 
   /**

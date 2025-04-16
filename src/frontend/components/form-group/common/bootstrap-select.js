@@ -22,7 +22,7 @@ export const refreshSelects = (el) => {
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  el.on("afterCreateRuleOperators.queryBuilder", (e, rule, operators) => {
+  el.on("afterCreateRuleOperators.queryBuilder", (e, rule) => {
     const operatorSelect = $(rule.$el.find(`select[name=${rule.id}_operator]`));
     if (!operatorSelect || !operatorSelect[0]) {
       console.error("No operator select found");

@@ -7,7 +7,7 @@ export async function clearSavedFormValues() {
     const ls = storage();
     const item = await ls.getItem(table_key());
 
-    if (item) ls.clear();
+    if (item) await ls.clear();
 }
 
 /**

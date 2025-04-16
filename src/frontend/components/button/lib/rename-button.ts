@@ -26,11 +26,11 @@ declare global {
         renameButton(): JQuery<TElement>;
         /**
          * Handle the rename event
-         * @param { RenameEvent } events The event name
-         * @param { 'rename' } handler The event handler
-         * @returns {JQuery<TElement>} the JQuery element
+         * @param events The event name
+         * @param handler The event handler
+         * @returns the JQuery element
          */
-        on(events: 'rename', handler: (ev: RenameEvent) => void): JQuery<TElement>
+        on(events: 'rename', handler: (ev: RenameEvent) => void): JQuery
     }
 }
 
@@ -106,12 +106,13 @@ class RenameButton {
      */
     private renameClick(id: number, ev: JQuery.ClickEvent) {
         ev.preventDefault();
-        const original = $(`#current-${id}`)
+        const $current = $(`#current-${id}`);
+        const original = $current
             .text()
             .split('.')
             .slice(0, -1)
             .join('.');
-        $(`#current-${id}`)
+        $current
             .addClass('hidden')
             .attr('aria-hidden', 'true');
         $(`#file-rename-${id}`)
@@ -158,11 +159,12 @@ class RenameButton {
      * @param button The button that was clicked
      */
     private triggerRename(id: number, button: JQuery<HTMLButtonElement>) {
-        const previousValue = $(`#current-${id}`).text();
+        const $current = $(`#current-${id}`);
+        const previousValue = $current.text();
         const extension = '.' + previousValue.split('.').pop();
         const newName = this.value.endsWith(extension) ? this.value : this.value + extension;
         if (newName === '' || newName === previousValue) return;
-        $(`#current-${id}`).text(newName);
+        $current.text(newName);
         const event = $.Event('rename', { oldName: previousValue, newName, target: button });
         $(button).trigger(event);
         this.hideRenameControls(id, button);

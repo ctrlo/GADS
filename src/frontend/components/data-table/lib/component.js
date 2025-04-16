@@ -26,7 +26,6 @@ class DataTableComponent extends Component {
     this.el = $(this.element)
     this.hasCheckboxes = this.el.hasClass('table-selectable')
     this.hasClearState = this.el.hasClass('table-clear-state')
-    this.forceButtons = this.el.hasClass('table-force-buttons')
     this.searchParams = new URLSearchParams(window.location.search)
     this.base_url = this.el.data('href') ? this.el.data('href') : undefined
     this.isFullScreen = false
@@ -171,7 +170,7 @@ class DataTableComponent extends Component {
         const $field = $(field)
         $field.data('original-value', fieldValue)
         if ($field.is(":radio, :checkbox")) {
-          if ($field.val() == fieldValue) {
+          if ($field.val() === fieldValue) {
             $field.trigger("click")
           }
         } else {
@@ -357,7 +356,7 @@ class DataTableComponent extends Component {
         const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1')
         const data = await response.json()
         if (!data.error) {
-          if (data.records.length != 0) {
+          if (data.records.length !== 0) {
             $searchInput.val(data.records[0].label)
             $('input.search', $searchElement).val(data.records[0].id).trigger('change')
           }
@@ -456,15 +455,6 @@ class DataTableComponent extends Component {
    */
   encodeHTMLEntities(text) {
     return $("<textarea/>").text(text).html();
-  }
-
-  /**
-   * Decode HTML entities in a string
-   * @param {string} text The text to decode
-   * @returns A string with HTML entities decoded
-   */
-  decodeHTMLEntities(text) {
-    return $("<textarea/>").html(text).text();
   }
 
   /**
@@ -575,7 +565,7 @@ class DataTableComponent extends Component {
     data.values.forEach((file) => {
       strHTML += `<a href="/file/${file.id}">`
       if (file.mimetype.match('^image/')) {
-        strHTML += `<img class="autosize" src="/file/${file.id}"></img>`
+        strHTML += `<img alt="Preview of File" class="autosize" src="/file/${file.id}">`
       } else {
         strHTML += `${this.encodeHTMLEntities(file.name)}<br>`
       }
@@ -591,7 +581,7 @@ class DataTableComponent extends Component {
    * @returns The HTML representation of the data as it should be rendered
    */
   renderRag(data) {
-    let strRagType = ''
+    let strRagType;
     const arrRagTypes = {
       a_grey: 'undefined',
       b_red: 'danger',
@@ -899,8 +889,9 @@ class DataTableComponent extends Component {
 
     // Toggle the full screen button
     this.isFullScreen = !this.isFullScreen;
-    $("#full-screen-btn").removeClass(this.isFullScreen ? 'btn-toggle-off' : 'btn-toggle');
-    $("#full-screen-btn").addClass(this.isFullScreen ? 'btn-toggle' : 'btn-toggle-off');
+    const $fullScreenButton = $("#full-screen-btn");
+    $fullScreenButton.removeClass(this.isFullScreen ? 'btn-toggle-off' : 'btn-toggle');
+    $fullScreenButton.addClass(this.isFullScreen ? 'btn-toggle' : 'btn-toggle-off');
   }
 
   /**

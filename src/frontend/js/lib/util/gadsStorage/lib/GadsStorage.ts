@@ -53,7 +53,7 @@ export class GadsStorage implements AppStorage {
         if (!this.storageKey) {
             await this.getStorageKey();
         }
-        return await this.storage.getItem(key, this.storageKey);
+        return this.storage.getItem(key, this.storageKey);
     }
 
     removeItem(key: string) {

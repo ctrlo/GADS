@@ -43,9 +43,9 @@ class SidebarComponent extends Component {
             this.currentState === NAV_STATE_COLLAPSED ? this.collapseSidebar() : this.expandSidebar()
         }
 
-        $(window).resize(() => { this.handleResize() })
+        $(window).on("resize", () => { this.handleResize() })
 
-        sidebarToggle.click(() => { this.handleClick() })
+        sidebarToggle.on("click", () => { this.handleClick() })
     }
 
     /**

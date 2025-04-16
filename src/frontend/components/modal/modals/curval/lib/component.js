@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import ModalComponent from '../../../lib/component'
 import { setFieldValues } from "set-field-values"
-import { guid as Guid } from "guid"
 import { initializeRegisteredComponents } from 'component'
 import { validateRadioGroup, validateCheckboxGroup } from 'validation'
 import { fromJson } from 'util/common'
@@ -148,7 +147,7 @@ class CurvalModalComponent extends ModalComponent {
       // guids in the autosave
       let is_new_row
       if (!guid && !current_id) {
-        guid = Guid()
+        guid = crypto.randomUUID()
         is_new_row = true
       }
       const hidden_input = $("<input>").attr({
@@ -189,7 +188,7 @@ class CurvalModalComponent extends ModalComponent {
         $answersList.find("li input").prop("checked", false)
       }
 
-      guid ||= Guid()
+      guid ||= crypto.randomUUID()
       const id = `field${col_id}_${guid}`
       const deleteButton = multi
         ? '<button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times</button>'
@@ -233,15 +232,16 @@ class CurvalModalComponent extends ModalComponent {
     // Update autosave values for all changes in this edit
     const id = location.pathname.split("/").pop()
     const record_id = isNaN(parseInt(id)) ? 0 : parseInt(id)
-    const parent_key = `linkspace-column-${col_id}-${$('body').data('layout-identifier')}-${record_id}`;
-    const storageProvider = new StorageProvider(`linkspace-record-change-${$('body').data('layout-identifier')}-${record_id}`)
+    const $body = $('body');
+    const parent_key = `linkspace-column-${col_id}-${$body.data('layout-identifier')}-${record_id}`;
+    const storageProvider = new StorageProvider(`linkspace-record-change-${$body.data('layout-identifier')}-${record_id}`)
     let existing = fromJson(await storageProvider.getItem(parent_key) ?? "[]")
     const identifier = current_id || guid
     // "existing" is the existing values for this curval
     // Pull out the current record if it exists
-    let existing_row = existing.filter((item) => item.identifier == identifier)[0] || { identifier: identifier }
+    let existing_row = existing.filter((item) => item.identifier === identifier)[0] || { identifier: identifier }
     // And then remove it from the array so that we can re-add it in a moment
-    existing = existing.filter((item) => Number.isInteger(item) || item.identifier != identifier)
+    existing = existing.filter((item) => Number.isInteger(item) || item.identifier !== identifier)
     // Retrieve all the changes from the modal record form
     let changes = form.data('autosave-changes')
     // Changes will not exist if this update is being triggered by the restore of a previous autosave
@@ -327,7 +327,7 @@ class CurvalModalComponent extends ModalComponent {
       if (mode === "edit") {
         guid = hidden.data("guid")
         if (!guid) {
-          guid = Guid()
+          guid = crypto.randomUUID()
           hidden.attr("data-guid", guid)
         }
       }

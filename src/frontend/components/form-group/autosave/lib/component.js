@@ -34,7 +34,7 @@ class AutosaveComponent extends AutosaveBase {
         let existing = $form.data('autosave-changes') || {};
         existing[column_key] = values;
         $form.data('autosave-changes', existing);
-      } else if ($field.data('value-selector') != 'noshow') {
+      } else if ($field.data('value-selector') !== 'noshow') {
         // If this field is a curval with an add button, then make sure that
         // any values that have been added (and will already be in storage)
         // are retained. These will be returned from getFieldValues() as guids,

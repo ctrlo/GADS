@@ -30,20 +30,4 @@ const clearTable = (table) => {
   table.DataTable().clear().draw()
 }
 
-/**
- * Get the row order from a row
- * @param {*} row The row to get the order from
- */
-const getRowOrder = (row) => {
-  try {
-    const orderValue = $(row.node()).find('input').first().data('order')
-    if (typeof orderValue === "undefined") {
-      return -1
-    }
-    return parseInt(orderValue)
-  } catch {
-    return -1
-  }
-}
-
-export { addRow, updateRow, clearTable, getRowOrder }
+export { addRow, updateRow, clearTable }

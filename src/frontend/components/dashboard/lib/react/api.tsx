@@ -1,12 +1,12 @@
-type ApiMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+type ApiMethod = "GET" | "POST" | "PUT" | "DELETE";
 
 /**
  * ApiClient is a class that provides methods to make HTTP requests to a given base URL.
  * It supports GET, POST, PUT, PATCH, and DELETE methods.
  */
 export default class ApiClient {
-  private headers: any;
-  private isDev: boolean;
+  private readonly headers: any;
+  private readonly isDev: boolean;
 
   /**
    * Create a new ApiClient instance.
@@ -31,7 +31,7 @@ export default class ApiClient {
     if (!route) throw new Error("Route is undefined");
 
     let csrfParam = "";
-    if (method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE") {
+    if (method === "POST" || method === "PUT" || method === "DELETE") {
       const body = document.querySelector("body");
       const csrfToken = body ? body.getAttribute("data-csrf") : null;
       if (csrfToken) {
@@ -78,15 +78,6 @@ export default class ApiClient {
   PUT<T extends object>(route: string, body: T) { return this._fetch(route, "PUT", body); }
 
   /**
-   * Perform a PATCH request to the specified route.
-   * @param route The route to fetch.
-   * @param body The body to send with the request.
-   * @returns A Promise that resolves to the Response object.
-   * @template T The type of the body to send with the request.
-   */
-  PATCH<T extends object>(route: string, body: T) { return this._fetch(route, "PATCH", body); }
-
-  /**
    * Perform a DELETE request to the specified route.
    * @param route The route to fetch.
    * @returns A Promise that resolves to the Response object.
@@ -101,7 +92,7 @@ export default class ApiClient {
    */
   saveLayout = (id: string, layout: any) => {
     if (!this.isDev) {
-      const strippedLayout = layout.map(widget => ({ ...widget, moved: undefined }));
+      const strippedLayout = layout.map((widget: any) => ({ ...widget, moved: undefined }));
       return this.PUT(`/dashboard/${id}`, strippedLayout);
     }
   }

@@ -310,11 +310,7 @@ class ModalComponent extends Component {
    * @returns {boolean} True if the field is valid, false otherwise
    */
   isValidField(field) {
-    if (($(field).is(':invalid')) || ($(field).val() == "")) {
-      return false
-    } else {
-      return true
-    }
+    return !(($(field).is(':invalid')) || ($(field).val() === ""));
   }
 
   /**
@@ -572,7 +568,7 @@ class ModalComponent extends Component {
     }
 
     // Remove binded events and subscribers
-    this.el.unbind('hide.bs.modal hidden.bs.modal')
+    this.el.off('hide.bs.modal hidden.bs.modal')
     modal.unsubscribe(this)
   }
 }

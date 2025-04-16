@@ -42,7 +42,8 @@ class OrderableSortableComponent extends Component {
    * @param {boolean} ascending Whether to sort in ascending order
    */
   orderRows(ascending) {
-    const items = $('.sortable__list').children(".sortable__row").sort(function (a, b) {
+    const $sortableList = $('.sortable__list');
+    const items = $sortableList.children(".sortable__row").sort(function (a, b) {
       const vA = $('.input > .input__field > .form-control', a).val()
       const vB = $('.input > .input__field > .form-control', b).val()
       if (ascending) {
@@ -51,7 +52,7 @@ class OrderableSortableComponent extends Component {
         return (vA > vB) ? -1 : (vA < vB) ? 1 : 0
       }
     })
-    $('.sortable__list').append(items)
+    $sortableList.append(items)
   }
 }
 

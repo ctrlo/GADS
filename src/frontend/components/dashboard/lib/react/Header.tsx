@@ -1,11 +1,11 @@
 import React from "react";
 
 /**
- * 
+ * Create a header component for the dashboard
  * @param param0 Props for the Header component
  * @returns 
  */
-const Header = ({ hMargin, dashboards, currentDashboard, loading, includeH1 }: {hMargin: number, dashboards: any[], currentDashboard: any, loading: boolean, includeH1: boolean}) => {
+const Header = ({ hMargin, dashboards, currentDashboard, loading, includeH1 }: { hMargin: number, dashboards: any[], currentDashboard: any, loading: boolean, includeH1: boolean }) => {
   const renderMenuItem = (dashboard: any) => {
     if (dashboard.name === currentDashboard.name) {
       if (includeH1) {

@@ -34,7 +34,7 @@ class DependentFieldsComponent extends Component {
 
     const rr = jQuery.map(rules, function (rule) {
       const match_type = rule.operator;
-      const is_negative = match_type.indexOf("not") !== -1 ? true : false;
+      const is_negative = match_type.indexOf("not") !== -1;
       const regexp =
         match_type.indexOf("equal") !== -1
           ? new RegExp("^" + rule.value + "$", "i")
@@ -86,7 +86,7 @@ class DependentFieldsComponent extends Component {
     }
 
     const test_all = function (condition, rules) {
-      if (rules.length == 0) {
+      if (rules.length === 0) {
         return true;
       }
 
@@ -99,7 +99,7 @@ class DependentFieldsComponent extends Component {
         const regexp = rule.regexp;
         const is_negative = rule.is_negative;
         const values = getFieldValues($depends, rule.filtered);
-        let this_not_shown = is_negative ? false : true;
+        let this_not_shown = !is_negative;
         $.each(values, function (index, value) {
           // Blank values are returned as undefined for consistency with
           // backend calc code. Convert to empty string, otherwise they will
@@ -117,7 +117,7 @@ class DependentFieldsComponent extends Component {
         }
 
         if (condition) {
-          if (condition == "OR") {
+          if (condition === "OR") {
             return is_shown; // Whether to break
           }
           if (this_not_shown) {
@@ -144,7 +144,7 @@ class DependentFieldsComponent extends Component {
           // hide/show the card accordingly
           let none_shown = true; // Assume card not shown
           $expandableCard.find(".linkspace-field").each(function () {
-            if ($(this).css("display") != "none") {
+            if ($(this).css("display") !== "none") {
               none_shown = false;
               return; // Shortcut checking any more fields
             }
@@ -161,14 +161,14 @@ class DependentFieldsComponent extends Component {
         // if this one is now hidden then that will change its value to
         // blank. Don't do this if the dependent field is the same as the field
         // with the display condition.
-        if ($field.data('column-id') != $depends.data('column-id'))
+        if ($field.data('column-id') !== $depends.data('column-id'))
           $field.trigger("change");
       };
 
       // If the field depended on is not actually in the form (e.g. if the
       // user doesn't have access to it) then treat it as an empty value and
       // process as normal. Process immediately as the value won't change
-      if ($depends.length == 0) {
+      if ($depends.length === 0) {
         processChange();
       }
 

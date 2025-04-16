@@ -89,9 +89,9 @@ class ExpandableCardComponent extends Component {
     // and also check .table-fields as historical view will not include any
     // of the linkspace-field fields
     if (!this.$el.find('.list--fields').find('ul li').filter(function () {
-      return $(this).css("display") != "none";
+      return $(this).css("display") !== "none";
     }).length && !this.$el.find('.linkspace-field').filter(function () {
-      return $(this).css("display") != "none";
+      return $(this).css("display") !== "none";
     }).length) {
       this.$el.hide();
     }
@@ -111,7 +111,6 @@ class ExpandableCardComponent extends Component {
    * @returns the message to display in the confirmation dialog
    */
   confirmOnPageExit = function (ev) {
-    ev = ev || window.event
     const message = "Please note that any changes will be lost."
     if (ev) {
       ev.returnValue = message

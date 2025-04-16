@@ -17,7 +17,7 @@ class Modal {
    * @param {*} subscriber The subscriber object to remove
    */
   unsubscribe(subscriber) {
-    var index = this.observers.indexOf(subscriber)
+    const index = this.observers.indexOf(subscriber);
     this.observers.splice(index, 1)
   }
 

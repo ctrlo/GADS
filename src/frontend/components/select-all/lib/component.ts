@@ -4,7 +4,7 @@ import { Component } from "component";
  * Select all component for checkboxes
  */
 export default class SelectAllComponent extends Component {
-    private el: JQuery<HTMLInputElement>;
+    private readonly el: JQuery<HTMLInputElement>;
 
     /**
      * Create a new SelectAllComponent

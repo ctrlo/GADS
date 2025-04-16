@@ -57,7 +57,7 @@ class DocumentComponent {
 
             try {
                 const file = ev.target.files![0];
-                if (!file || file === undefined || !file.name) return;
+                if (!file || !file.name) return;
                 const formData = formdataMapper({ file, csrf_token });
                 this.showContainer();
                 const data = await upload<FileData>(url, formData, 'POST', this.showProgress.bind(this));
@@ -69,7 +69,7 @@ class DocumentComponent {
         });
     }
 
-    showProgress(loaded, total) {
+    showProgress(loaded: number, total: number) {
         let uploadProgression = (loaded / total) * 100;
         if (uploadProgression == Infinity) {
             // This will occur when there is an error uploading the file or the file is empty

@@ -15,8 +15,8 @@ type RequestMethod = "PUT" | "POST" | "GET" | "DELETE" | "PATCH";
  */
 type XmlHttpRequestLike = {
     open: (method: string, url: string) => void,
-    onabort?: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => any) | null, // eslint-disable-line @typescript-eslint/no-explicit-any
-    onerror?: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => any) | null, // eslint-disable-line @typescript-eslint/no-explicit-any
+    onabort?: ((this: XMLHttpRequest, ev: ProgressEvent) => any) | null, // eslint-disable-line @typescript-eslint/no-explicit-any
+    onerror?: ((this: XMLHttpRequest, ev: ProgressEvent) => any) | null, // eslint-disable-line @typescript-eslint/no-explicit-any
     onprogress?: ((e: ProgressEvent) => void) | null,
     onreadystatechange: ((this: XMLHttpRequest, ev: Event) => any) | null, // eslint-disable-line @typescript-eslint/no-explicit-any
     send: (data?: Document | XMLHttpRequestBodyInit | null | undefined) => void,
@@ -46,7 +46,7 @@ async function upload<T = unknown>(url: string | URL, data?: FormData | object, 
 class Uploader {
     private onProgressCallback?: ProgressFunction;
     private url: string | URL;
-    private method: RequestMethod;
+    private readonly method: RequestMethod;
 
     constructor(url: string | URL, method: RequestMethod) {
         this.url = url;

@@ -43,7 +43,7 @@ const modalStyle = {
  * Main App Component
  */
 class App extends React.Component<any, any> {
-  private formRef: RefObject<HTMLDivElement>;
+  private readonly formRef: RefObject<HTMLDivElement>;
 
   /**
    * Create the App component
@@ -73,7 +73,7 @@ class App extends React.Component<any, any> {
     this.initializeGlobeComponents();
   }
 
-  componentDidUpdate = (prevProps, prevState) => {
+  componentDidUpdate = (prevProps: any, prevState: any) => {
     window.requestAnimationFrame(this.overWriteSubmitEventListener);
 
     if (this.state.editModalOpen && prevState.loadingEditHtml && !this.state.loadingEditHtml && this.formRef) {
@@ -116,7 +116,7 @@ class App extends React.Component<any, any> {
    */
   updateWidgetHtml = async (id: string) => {
     const newHtml = await this.props.api.getWidgetHtml(id);
-    const newWidgets = this.state.widgets.map(widget => {
+    const newWidgets = this.state.widgets.map((widget: any) => {
       if (widget.config.i === id) {
         return {
           ...widget,
@@ -144,7 +144,7 @@ class App extends React.Component<any, any> {
   /**
    * On edit click event handler
    * @param id The ID of the widget to edit
-   * @param event The event that triggered the edit
+   * @returns A function that handles the click event
    */
   onEditClick = (id: string) => (event: MouseEvent) => {
     event.preventDefault();
@@ -176,7 +176,7 @@ class App extends React.Component<any, any> {
       return
 
     this.setState({
-      widgets: this.state.widgets.filter(item => item.config.i !== this.state.activeItem),
+      widgets: this.state.widgets.filter((item: any) => item.config.i !== this.state.activeItem),
       editModalOpen: false,
     });
     this.props.api.deleteWidget(this.state.activeItem);
@@ -213,17 +213,14 @@ class App extends React.Component<any, any> {
    * @param h The height of the widget
    * @returns True if there is a conflict with the grid, false otherwise
    */
-  isGridConflict = (x: number, y: number, w: number, h: number):boolean => {
+  isGridConflict = (x: number, y: number, w: number, h: number): boolean => {
     const ulc = { x, y };
     const drc = { x: x + w, y: y + h };
-    return this.state.layout.some((widget) => {
+    return this.state.layout.some((widget: any) => {
       if (ulc.x >= (widget.x + widget.w) || widget.x >= drc.x) {
         return false;
       }
-      if (ulc.y >= (widget.y + widget.h) || widget.y >= drc.y) {
-        return false;
-      }
-      return true;
+      return !(ulc.y >= (widget.y + widget.h) || widget.y >= drc.y);
     });
   }
 
@@ -288,7 +285,7 @@ class App extends React.Component<any, any> {
    * @returns The DOM elements for the widgets
    */
   generateDOM = () => (
-    this.state.widgets.map(widget => (
+    this.state.widgets.map((widget: any) => (
       <div key={widget.config.i} className={`ld-widget-container ${this.props.readOnly || widget.config.static ? "" : "ld-widget-container--editable"}`}>
         <Widget key={widget.config.i} widget={widget} readOnly={this.props.readOnly || widget.config.static} onEditClick={this.onEditClick(widget.config.i)} />
       </div>
@@ -321,8 +318,7 @@ class App extends React.Component<any, any> {
       const isDifferent = entriesNew.some((keypair) => {
         const [key, value] = keypair;
         if (key === "moved" || key === "static") return false;
-        if (value !== prevLayout[i][key]) return true;
-        return false;
+        return value !== prevLayout[i][key];
       });
       if (isDifferent) return true;
     }

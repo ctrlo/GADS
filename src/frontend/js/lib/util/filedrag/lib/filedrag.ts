@@ -19,7 +19,7 @@ export interface FileDragOptions {
  * @template T The type of the element to attach the FileDrag functionality to.
  */
 class FileDrag<T extends HTMLElement = HTMLElement> {
-    private el: JQuery<T>;
+    private readonly el: JQuery<T>;
     private dropZone: JQuery<HTMLElement>;
     // for testing
     protected dragging: boolean = false;
@@ -45,19 +45,19 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
         if (this.options.debug) console.log('initElementEvents');
         this.dropZone.on('dragenter', (e) => {
             if (!this.dragging) return;
-            if(!this.dropZone.hasClass('dragging')) this.dropZone.addClass('dragging');
+            if (!this.dropZone.hasClass('dragging')) this.dropZone.addClass('dragging');
             e.preventDefault();
         });
         this.dropZone.on('dragleave', (e) => {
             if (!this.dragging) return;
-            if(this.dropZone.hasClass('dragging')) this.dropZone.removeClass('dragging');
+            if (this.dropZone.hasClass('dragging')) this.dropZone.removeClass('dragging');
             e.preventDefault();
         });
         this.dropZone.on('drop', (e) => {
             e.preventDefault();
             if (!this.dragging) return;
             this.dragging = false;
-            if(this.el.hasClass('dragging')) this.el.removeClass('dragging');
+            if (this.el.hasClass('dragging')) this.el.removeClass('dragging');
             hideElement($('.drop-zone'));
             showElement($('[data-draggable="true"]'));
             if (this.options.debug) console.log(e.originalEvent.dataTransfer.files);

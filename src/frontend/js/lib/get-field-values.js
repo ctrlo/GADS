@@ -27,8 +27,8 @@ const getFieldValues = function ($depends, filtered, for_code, for_autosave) {
   // updated in the future in order to do something similar as normal fields
   // (returning blank if they themselves would not be shown under display
   // conditions)
-  if ($depends.length == 0 || $depends.css("display") == "none") {
-    if (type != "calc") {
+  if ($depends.length === 0 || $depends.css("display") === "none") {
+    if (type !== "calc") {
       return [""];
     }
   }
@@ -36,7 +36,7 @@ const getFieldValues = function ($depends, filtered, for_code, for_autosave) {
   let values = [];
   let $f;
   if (type === "enum" || type === "curval" || type === "person") {
-    if ($depends.data('value-selector') == "noshow") {
+    if ($depends.data('value-selector') === "noshow") {
       $depends.find('.table-curval-group').find('input').each(function () {
         const item = $(this);
         values.push(item);
@@ -136,7 +136,7 @@ const getFieldValues = function ($depends, filtered, for_code, for_autosave) {
     });
     // Provide consistency with backend: single value of non-multi field is
     // returned as scalar
-    if (for_code && !$depends.data('is-multivalue') && values.length == 1) {
+    if (for_code && !$depends.data('is-multivalue') && values.length === 1) {
       values = values.shift();
     }
   } else if (type === "daterange") {
@@ -147,7 +147,7 @@ const getFieldValues = function ($depends, filtered, for_code, for_autosave) {
     let dateranges = [];
     let from_date;
     $f.each(function (index) {
-      if (index % 2 == 0) {
+      if (index % 2 === 0) {
         // from date
         from_date = $(this);
       } else {
@@ -226,12 +226,12 @@ const getFieldValues = function ($depends, filtered, for_code, for_autosave) {
     // Can't use map as an undefined return value is skipped
     values = [];
     $depends.find(".form-control").each(function () {
-      var $df = $(this);
+      const $df = $(this);
       values.push($df.val().length ? $df.val() : undefined);
     });
     // Provide consistency with backend: single value of non-multi field is
     // returned as scalar
-    if (for_code && !$depends.data('is-multivalue') && values.length == 1) {
+    if (for_code && !$depends.data('is-multivalue') && values.length === 1) {
       values = values.shift();
     }
   }
@@ -240,7 +240,7 @@ const getFieldValues = function ($depends, filtered, for_code, for_autosave) {
   // single-select with no values. Ensure that both are returned as a single
   // empty string value. This is important for display_condition testing, so
   // that at least one value is tested, even if it's empty
-  if (Array.isArray(values) && values.length == 0) {
+  if (Array.isArray(values) && values.length === 0) {
     values = [""];
   }
 

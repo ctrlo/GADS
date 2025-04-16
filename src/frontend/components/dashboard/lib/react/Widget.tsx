@@ -5,7 +5,7 @@ import { initializeRegisteredComponents } from 'component'
  * Widget component
  */
 export default class Widget extends React.Component<any, any> {
-  private ref: RefObject<HTMLDivElement>;
+  private readonly ref: RefObject<HTMLDivElement>;
 
   /**
    * Create a new widget component

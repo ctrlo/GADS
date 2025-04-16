@@ -59,12 +59,8 @@ class AddTableModalComponent extends ModalComponent {
   addFieldsToObject($fields, obj) {
     $fields.each((i, field) => {
       if ($(field).val()) {
-        if ($(field).prop('type') == "checkbox") {
-          if ($(field).prop('checked')) {
-            obj[$(field).attr('name')] = true
-          } else {
-            obj[$(field).attr('name')] = false
-          }
+        if ($(field).prop('type') === "checkbox") {
+          obj[$(field).attr('name')] = !!$(field).prop('checked');
         } else if ($(field).attr('name') === 'topic_tempid') {
           obj[$(field).attr('name')] = parseInt($(field).val())
         } else {
@@ -343,12 +339,8 @@ class AddTableModalComponent extends ModalComponent {
 
           if ($jstreeEl.length) {
             const v = $jstreeEl.jstree(true).get_json('#', { flat: false })
-            //Not entirely sure what this is - I'm going to leave it in for now
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const mytext = JSON.stringify(v)
-            const data = $jstreeEl.data().jstree._model.data
 
-            treeSettingsObject.data = data
+            treeSettingsObject.data = $jstreeEl.data().jstree._model.data
             treeSettingsObject.dataJson = v
           }
 

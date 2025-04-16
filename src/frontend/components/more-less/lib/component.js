@@ -28,7 +28,7 @@ class MoreLessComponent extends Component {
   uuid() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
       const r = (Math.random() * 16) | 0,
-        v = c == 'x' ? r : (r & 0x3) | 0x8
+        v = c === 'x' ? r : (r & 0x3) | 0x8
       return v.toString(16)
     })
   }
@@ -44,7 +44,7 @@ class MoreLessComponent extends Component {
     if (!$parent || !$parent.length) {
       return undefined
     }
-    if ($elem.css('display') == 'none') {
+    if ($elem.css('display') === 'none') {
       return $elem
     }
     return this.parentHidden($parent)
@@ -53,7 +53,7 @@ class MoreLessComponent extends Component {
   /**
    * Get the actual height of an element
    * @param {JQuery} $elem The element to get the height of
-   * @returns {number} The height of the element
+   * @returns {*} The height of the element
    */
   getActualHeight($elem) {
     if ($elem.attr('data-actual-height')) {
@@ -62,7 +62,7 @@ class MoreLessComponent extends Component {
     }
 
     // If the element is blank then it will have 0 height
-    if ($elem.text().trim().length == 0) {
+    if ($elem.text().trim().length === 0) {
       return 0;
     }
 
@@ -81,10 +81,9 @@ class MoreLessComponent extends Component {
     // Add a unique identifier to each more-less class, before cloning. Once we
     // measure the height on the cloned elements, we can apply the height as a
     // data value to its real equivalent element using this unique class.
-    const self = this
     $parent.find('.more-less').each(function () {
       const $e = $(this)
-      $e.addClass('more-less-id-' + self.uuid())
+      $e.addClass('more-less-id-' + crypto.randomUUID())
     })
 
     // Clone the element and show it to find out its height

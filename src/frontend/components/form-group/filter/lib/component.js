@@ -268,26 +268,6 @@ class FilterComponent extends Component {
     type === 'daterange' && operators.push('contain')
     return operators
   }
-
-  /**
-   * Get the record data for the filter
-   * @param {*} layoutId The layout id
-   * @param {*} urlSuffix The URL suffix to append to the request
-   * @param {*} instanceId The instance ID
-   * @param {*} query The query
-   * @returns An ajax request to get the records
-   */
-  getRecords = (layoutId, urlSuffix, instanceId, query) => {
-    return (
-      $.ajax({
-        type: 'GET',
-        url: this.getURL(layoutId, urlSuffix),
-        data: { q: query, oi: instanceId },
-        dataType: 'json',
-        path: 'records'
-      })
-    )
-  }
 }
 
 export default FilterComponent
