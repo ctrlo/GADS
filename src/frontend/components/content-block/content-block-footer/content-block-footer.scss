@@ -3,6 +3,9 @@
   z-index: 999;
   bottom: 0;
   margin: $padding-large-vertical 0 (-$padding-large-vertical) -1.25rem;
+  .row {
+    position: relative;
+  }
 }
 
 .content-block__footer-container {

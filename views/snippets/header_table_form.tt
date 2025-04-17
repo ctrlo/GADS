@@ -1,8 +1,8 @@
 [% PROCESS navigation/active_pages.tt; %]
 
-<header class="table-header row no-gutters">
+<header class="table-header row g-0">
   <div class="table-header-container">
-    <div class="table-header-top row justify-content-between no-gutters">
+    <div class="table-header-top row justify-content-between g-0">
       <div class="table-header__meta">
         [% INCLUDE navigation/breadcrumbs.tt %]
         <h1 class="table-header__title">[% layout_obj.name | html %]</h1>
@@ -10,8 +10,11 @@
       [% INCLUDE navigation/user_menu.tt user_menu_class="table-header__navigation" %]
     </div>
 
-    <div class="table-header-bottom">
-      <div class="float-right">
+    <div class="table-header-bottom d-flex flex-row flex-nowrap justify-content-between">
+      <h2 class="table-header__page-title">
+        [% INCLUDE snippets/header_table_form_title.tt | html %]
+      </h2>
+      <div>
         [%
           IF header_record_buttons;
             record_edit_buttons = [];
@@ -97,10 +100,6 @@
           END;
         %]
       </div>
-
-      <h2 class="table-header__page-title">
-        [% INCLUDE snippets/header_table_form_title.tt | html %]
-      </h2>
     </div>
   </div>
 </header>

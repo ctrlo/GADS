@@ -2,7 +2,6 @@
   min-height: $min-height-container;
   padding: 50px 0 80px;
   color: $white;
-  transition: all 0.2s ease;
 
   &::before {
     content: '';
@@ -154,8 +153,6 @@
   &:active:focus,
   &.nav__link--active {
     outline: 0;
-    // opacity will make no difference for white, retained for historical reasons from gray-light
-    background-color: rgba($white, 0.4);
     text-decoration: none;
   }
 }

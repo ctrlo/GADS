@@ -124,12 +124,12 @@
   [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
   <div class="content-block__main">
     <div class="content-block__main-content">
-      <div class="card card--primary mb-3">
+      <div class="card card-primary mb-3">
         <h4 class="card__title">
           <span> Edit your fields </span>
         </h4>
         
-        <div class="card__body row">
+        <div class="card-body">
           <div class="card__content">
             <div class="row mb-4">
               <div class="col">

@@ -18,7 +18,7 @@
           <span> Manage titles </span>
         </h4>
         
-        <div class="card__body row">
+        <div class="card-body">
           <div class="card__content">
             <p>List the <i>titles</i> that you want to assign users to.</p>
           </div>
@@ -34,7 +34,7 @@
           <span> Manage [% site.organisation_name | html %]s </span>
         </h4>
         
-        <div class="card__body row">
+        <div class="card-body">
           <div class="card__content">
             <p>List the parts of the <i>[% site.organisation_name | html %]</i> that you want to assign users to.</p>
           </div>
@@ -51,7 +51,7 @@
           <span> Manage [% site.department_name | html %]s </span>
         </h4>
         
-        <div class="card__body row">
+        <div class="card-body">
           <div class="card__content">
             <p>List the <i>[% site.department_name | html %]s</i> that you want to assign users to.</p>
           </div>
@@ -68,7 +68,7 @@
           <span> Manage [% site.team_name | html %]s </span>
         </h4>
         
-        <div class="card__body row">
+        <div class="card-body">
           <div class="card__content">
             <p>List the <i>[% site.team_name | html %]s</i> that you want to assign users to.</p>
           </div>
@@ -92,7 +92,7 @@
           <span> Default welcome email </span>
         </h4>
         
-        <div class="card__body row">
+        <div class="card-body">
           <div class="card__content">
             <p>Define your welcome email to new users of your system.</p>
           </div>
@@ -108,7 +108,7 @@
           <span> User-editable personal details </span>
         </h4>
         
-        <div class="card__body row">
+        <div class="card-body">
           <div class="card__content">
             <p>Define which personal details the users are allowed to edit.</p>
           </div>
@@ -123,7 +123,7 @@
           <span>Report Logo and Security Marking</span>
         </h4>
 
-        <div class="card__body row">
+        <div class="card-body">
           <div class="card__content">
             <p>Upload a Logo and set the default Security Marking for reports</p>
           </div>
@@ -146,7 +146,7 @@
           <span> User audit logs </span>
         </h4>
       
-        <div class="card__body row">
+        <div class="card-body">
           <div class="card__content">
             <p>View your system audit log.</p>
           </div>

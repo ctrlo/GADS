@@ -14,6 +14,7 @@ $brand-info-light: #ABA9EB;
 $field-highlight: lighten($brand-warning, 40%);
 
 $warning: $brand-warning;
+$upload-error: adjust-color($color: $brand-danger, $red: -100, $green: -100, $blue: -100);
 
 $brand-secundary-hover: $brand-primary;
 

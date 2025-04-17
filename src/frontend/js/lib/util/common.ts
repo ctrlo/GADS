@@ -1,3 +1,11 @@
+// TS errors if this is not here
+declare global {
+    interface Window {
+        jQuery: JQueryStatic;
+        $: JQueryStatic;
+    }
+}
+
 /**
  * Hide an element by adding the 'hidden' class and setting aria-hidden to true.
  * @param element The element to hide
@@ -39,3 +47,18 @@ export const fromJson = (json: String | object) => {
         return {};
     }
 }
+
+/**
+ * Ensure jQuery is loaded and available globally.
+ * This function checks if jQuery is already loaded, and if not, it loads it.
+ */
+export const initJquery = () => {
+    if (window.jQuery && window.$) {
+        console.log('jQuery already loaded');
+    } else {
+        (($) => {
+            if (!window.jQuery) window.jQuery = $;
+            if (!window.$) window.$ = $;
+        })(jQuery);
+    }
+};

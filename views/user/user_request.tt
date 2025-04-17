@@ -9,7 +9,7 @@
       next     => "Next page",
       previous => "Previous page"
     },
-    search            => "<span class=\"sr-only\">Search account requests:</span>",
+    search            => "<span class=\"visually-hidden\">Search account requests:</span>",
     searchPlaceholder => "Search through your users"
   }
   table_caption = "Table to show account requests";
@@ -210,7 +210,7 @@
     aside_buttons = ! user.permission.useradmin ? [] : [{
       type    = "modal_button"
       modalId = "userModal"
-      class   = "btn btn-add"
+      class   = "btn btn-add btn-default"
       label   = "Add a user"
     }];
 %]

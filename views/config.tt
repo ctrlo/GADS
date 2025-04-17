@@ -14,8 +14,8 @@
                 only the main homepage as defined in system-wide settings will
                 be shown to users.
             </p>
-            <div class="form-group">
-                <label for="homepage_text">Left-hand (top) content block:</label>
+            <div class="form-group mb-4">
+                <label class="form-label" for="homepage_text">Left-hand (top) content block:</label>
                 [% IF 0 # Add config later for TinyMCE %]
                     <textarea class="form-control" id="homepage_text" name="homepage_text">[% instance.homepage_text | html_entity %]</textarea>
                 [% ELSE %]
@@ -23,8 +23,8 @@
                     <input type="hidden" name="homepage_text" id="homepage_text" class="summernote_content" value="[% instance.homepage_text | html %]">
                 [% END %]
             </div>
-            <div class="form-group">
-                <label for="homepage_text2">Right-hand (bottom) content block:</label>
+            <div class="form-group mb-4">
+                <label class="form-label" for="homepage_text2">Right-hand (bottom) content block:</label>
                 [% IF 0 %]
                     <textarea class="form-control" id="homepage_text2" name="homepage_text2">[% instance.homepage_text2 | html_entity %]</textarea>
                 [% ELSE %]

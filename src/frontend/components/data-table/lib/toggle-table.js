@@ -5,8 +5,8 @@
 */
 
 /**
- * Bind the toggleable click handlers
- * @param {*} tableElement The element to bind the handlers to
+ * Bind click handlers to the table to toggle rows
+ * @param {*} tableElement The element to bind the click handlers to
  */
 const bindToggleTableClickHandlers = (tableElement) => {
   if (tableElement.hasClass('table-toggle')) {
@@ -21,7 +21,7 @@ const bindToggleTableClickHandlers = (tableElement) => {
 }
 
 /**
- * Toggle a row from one table to another
+ * Toggle a row in a table
  * @param {JQuery.Event} ev The event object
  */
 const toggleRow = (ev) => {
@@ -53,7 +53,7 @@ const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceChec
   const toggleFieldID = clickedRow.dataset.toggleFieldIdSelector + clickedRow.dataset.toggleFieldId;
   const destinationRow = destinationTable.DataTable().row(toggleFieldID)
 
-  if (destinationRow.length === 0) {
+  if (destinationRow.length == 0) {
     console.error(`Failed to toggle row; missing row ${toggleFieldID} in table ${destinationTableID}`)
     return
   }
@@ -67,7 +67,7 @@ const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceChec
       sourceRowCheckbox.checked = !forceCheck
     } else {
       // Toggle the checkbox
-      sourceRowCheckbox.checked = !sourceRowCheckbox.checked
+      sourceRowCheckbox.checked ^= 1
     }
   }
 
@@ -91,7 +91,7 @@ const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceChec
       destinationRow.node().dataset.fieldIsToggled = forceCheck.toString()
     } else {
       // Toggle the attribute
-      destinationRow.node().dataset.fieldIsToggled = destinationRowDataAttribute === 'true' ? 'false' : 'true'
+      destinationRow.node().dataset.fieldIsToggled = destinationRowDataAttribute == 'true' ? 'false' : 'true'
     }
 
   }
@@ -104,7 +104,7 @@ const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceChec
       clickedRow.dataset.fieldIsToggled = !forceCheck.toString()
     } else {
       // Toggle the attribute
-      clickedRow.dataset.fieldIsToggled = sourceRowDataAttribute === 'true' ? 'false' : 'true'
+      clickedRow.dataset.fieldIsToggled = sourceRowDataAttribute == 'true' ? 'false' : 'true'
     }
   }
 }

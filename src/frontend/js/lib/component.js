@@ -97,7 +97,7 @@ const getComponentElements = (scope, selector) => {
  * @export
  * @param {HTMLElement} scope The scope to initialize the objects on
  * @param {String|Function} selector The selector to select elements
- * @param {Component & new()=>Component} ComponentClass The Component class to initialize
+ * @param {Component} ComponentClass The Component class to initialize
  * @returns {Array[Component]} An array of initialized components
  */
 const initializeComponent = (scope, selector, ComponentClass) => {

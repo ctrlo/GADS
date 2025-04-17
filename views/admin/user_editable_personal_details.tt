@@ -19,7 +19,7 @@
               </legend>
             </div>
             
-            <div class="form-group ">
+            <div class="form-group mb-4 ">
               <div class="list list--vertical list--checkboxes">
                 <ul class="list__items">
                   [% FOREACH field in instance.user_fields %]

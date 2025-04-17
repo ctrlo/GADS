@@ -11,7 +11,6 @@ import AutosaveComponent from 'components/form-group/autosave';
 import CalcFieldsComponent from 'components/form-group/calc-fields';
 import CalculatorComponent from 'components/calculator';
 import CheckboxComponent from 'components/form-group/checkbox';
-import CollapsibleComponent from 'components/collapsible';
 import CurvalModalComponent from 'components/modal/modals/curval';
 import DashboardComponent from 'components/dashboard';
 import DataTableComponent from 'components/data-table';
@@ -25,7 +24,6 @@ import InputComponent from 'components/form-group/input';
 import MoreLessComponent from 'components/more-less';
 import MultipleSelectComponent from 'components/form-group/multiple-select';
 import OrderableSortableComponent from 'components/sortable/orderable-sortable';
-import PopoverComponent from 'components/popover';
 import RadioGroupComponent from 'components/form-group/radio-group';
 import RecordPopupComponent from 'components/record-popup';
 import SelectComponent from 'components/form-group/select';
@@ -44,6 +42,8 @@ import SelectAllComponent from "components/select-all";
 import HelpView from "components/help-view";
 import PeopleFilterComponent from "components/form-group/people-filter";
 import handleActions from "util/actionsHandler";
+import { initJquery } from "./lib/util/common";
+import BootstrapPopoverComponent from "components/bootstrap-popover";
 
 // Register them
 registerComponent(AddTableModalComponent);
@@ -51,7 +51,6 @@ registerComponent(ButtonComponent);
 registerComponent(CalcFieldsComponent);
 registerComponent(CalculatorComponent);
 registerComponent(CheckboxComponent);
-registerComponent(CollapsibleComponent);
 registerComponent(CurvalModalComponent);
 registerComponent(DashboardComponent);
 registerComponent(DataTableComponent);
@@ -65,7 +64,6 @@ registerComponent(InputComponent);
 registerComponent(MoreLessComponent);
 registerComponent(MultipleSelectComponent);
 registerComponent(OrderableSortableComponent);
-registerComponent(PopoverComponent);
 registerComponent(RadioGroupComponent);
 registerComponent(RecordPopupComponent);
 registerComponent(SelectComponent);
@@ -83,6 +81,9 @@ registerComponent(SelectAllComponent);
 registerComponent(HelpView);
 registerComponent(PeopleFilterComponent);
 registerComponent(AutosaveComponent);
+registerComponent(BootstrapPopoverComponent);
+
+initJquery();
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body);

@@ -5,26 +5,26 @@
             <input type="hidden" name="csrf_token" value="[% csrf_token %]">
 
             <h3>Welcome emails</h3>
-            <div class="form-group">
-                <label for="name">System name:</label>
+            <div class="form-group mb-4">
+                <label class="form-label" for="name">System name:</label>
                 <input type="text" name="name" id="name" class="form-control" value="[% instance.name | html %]">
             </div>
-            <div class="form-group">
-                <label for="email_welcome_subject">Welcome email subject:</label>
+            <div class="form-group mb-4">
+                <label class="form-label" for="email_welcome_subject">Welcome email subject:</label>
                 <input type="text" name="email_welcome_subject" id="email_welcome_subject" class="form-control" value="[% instance.email_welcome_subject | html %]">
             </div>
-            <div class="form-group">
-                <label for="email_welcome_text">Welcome email text:</label>
+            <div class="form-group mb-4">
+                <label class="form-label" for="email_welcome_text">Welcome email text:</label>
                 <textarea class="form-control" name="email_welcome_text" id="email_welcome_text" rows="5">[% instance.email_welcome_text | html %]</textarea>
             </div>
 
             <h3>User-editable personal details</h3>
-            <label>
+            <label class="form-label">
                 Allow users to edit the following details of their account:
             </label>
             [% FOREACH field in instance.user_fields %]
                 <div class="checkbox">
-                    <label>
+                    <label class="form-label">
                         <input type="checkbox" name="user_editable" value="[% field.name | html %]"
                             [% IF field.editable %]checked[% END %]>[% field.description | html %]
                     </label>

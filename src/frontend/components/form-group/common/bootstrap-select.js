@@ -1,6 +1,6 @@
 import "bootstrap";
 import "bootstrap-select";
-import "@lol768/jquery-querybuilder-no-eval";
+import "jQuery-QueryBuilder";
 
 /**
  * Function to handle refreshing the selects used in the query builder that are bootstrap selects

@@ -1,197 +1,133 @@
 .card {
-  @include card;
-}
-
-.card__body {
-  margin: -$padding-large-vertical (-$padding-base-horizontal) 0;
-
-  & > * {
-    padding: 0 $padding-base-horizontal;
-  }
-}
-
-.card__title {
-  @include font-style-h3;
-
-  display: flex;
-  margin: 0 0 $padding-base-vertical;
-  color: $gray-extra-dark;
-
-  &:not(:first-child) {
-    margin-top: $padding-large-vertical;
-  }
-}
-
-.card__image,
-.card__content {
-  margin-top: $padding-large-vertical;
-}
-
-.card__image {
-  flex: 1 1 186px;
-
-  img {
-    width: 100%;
-    height: auto;
-  }
-}
-
-.card__content {
-  flex: 100%;
-}
-
-.card--primary,
-.card--secundary,
-.card--record {
-  border: 0;
-  border-radius: 0;
-}
-
-// card primary
-.card--primary > .card__title {
-  color: $brand-primary;
-}
-
-// card secundary
-.card--secundary {
-  .card__title {
-    color: $brand-secundary;
-  }
-}
-
-// card help
-.card--help {
-  line-height: 1.5;
-}
-
-// card record
-.card--record {
-  padding: $padding-base-vertical;
-
-  h3 {
-    margin-bottom: $padding-large-vertical;
-    color: $brand-secundary;
-  }
-
-  .list__item {
-    &:nth-child(2) {
-      margin-bottom: 1rem;
-    }
-
-    &:nth-child(4) {
-      margin-bottom: 1.5rem;
-    }
-  }
-}
-
-// card header
-.card--header {
-  border-radius: 0;
+  box-shadow: 0 0 7px rgba(0, 0, 0, 0.4);
 
   &:not(:last-of-type) {
     margin-bottom: $padding-base-vertical;
   }
 
-  .card__header {
-    margin: (-$padding-base-vertical) (-$padding-base-horizontal) $padding-base-vertical;
-    padding: $padding-base-vertical $padding-base-horizontal;
-    background-color: $brand-primary;
-    color: $white;
-  }
+  .card-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
 
-  .card__title {
-    margin-top: 0;
-    color: $brand-secundary;
-  }
+    span {
+      @include font-style-h3;
+    }
 
-  .list--key-value:not(:last-of-type) {
-    margin-bottom: 1.5rem;
-  }
-}
-
-// card inside dashboard widget
-.dashboard__widget .card {
-  height: 100%;
-}
-
-@include media-breakpoint-up(md) {
-  .card__image {
-    flex: 2 0 186px;
-  }
-
-  .card__content {
-    flex: 10 1 200px;
-  }
-
-  .card--primary > .card__title {
-    font-size: $font-size-lg;
-  }
-}
-
-// card settings
-.card--settings {
-  height: 100%;
-  border: 0;
-
-  .card__title {
-    color: $brand-secundary;
-  }
-
-  .card__title span {
-    transition: border-bottom 0.3s ease-in-out;
-    border-bottom: solid 1px transparent;
-  }
-
-  .card__content {
-    color: $gray-extra-dark;
-  }
-
-  .card__title-icon {
-    &::before {
-      @extend %icon-font;
-
-      content: "";
-      margin-right: 0.5rem;
+    *:not(.btn) {
       color: $brand-secundary;
-      font-size: 1.25rem;
     }
   }
 
-  &:hover {
-    .card__title span {
-      border-bottom: solid 1px $brand-secundary;
+  &.card-info {
+    .card-header {
+      background-color: $brand-primary;
+      color: $white;
+
+      & *:not(.btn) {
+        color: inherit;
+      }
     }
   }
+}
 
-  .card__title-icon--user::before {
-    content: "\E81a";
+.card.card--topic,
+.card.card--expandable {
+  .card-header {
+    border-bottom: 0;
+    background-color: $white;
+    color: $brand-secundary;
+    display: flex;
+    cursor: pointer;
+
+    &:not(:first-child) {
+      margin-top: $padding-large-vertical;
+    }
+
+    .card__header-right {
+      display: flex;
+      align-items: center;
+      * {
+        margin-bottom: 0;
+      }
+    }
+
+    * {
+      color: $brand-secundary;
+    }
+
+    .card-header__toggle {
+      width: 100%;
+      height: 100%;
+      padding: 1rem 0;
+    }
+  }
+}
+
+.card__title {
+  @include font-style-h3;
+  margin: 1rem $padding-base-vertical;
+  display: flex;
+  
+  &:not(:first-child) {
+    margin-top: $padding-large-vertical;
+  }
+}
+
+.card__edit-content,
+.btn-view {
+  display: none;
+}
+
+.card.card--topic {
+  .card__toggle {
+    margin: 0 0.5rem;
+  }
+}
+
+.card__toggle {
+  span {
+    @include visually-hidden;
   }
 
-  .card__title-icon--organisation::before {
-    content: "\E827";
+  &::after {
+    @extend %icon-font;
+    transition: all 0.3s ease-in-out;
+    content: quote("\E805");
+    font-size: 1.25rem;
+    color: $brand-primary;
   }
 
-  .card__title-icon--department::before {
-    content: "\E820";
+  &[aria-expanded="true"]::after {
+    transform: rotate(90deg);
+  }
+}
+
+.card-header:not(.collapsed) {
+  .card__toggle::after {
+    transform: rotate(90deg);
+  }
+}
+
+.card--edit {
+
+  .card__edit-content,
+  .btn-view {
+    display: block;
   }
 
-  .card__title-icon--groups::before {
-    content: "\E80e";
+  .card__view-content,
+  .btn-edit {
+    display: none;
   }
+}
 
-  .card__title-icon--table::before {
-    content: "\E817";
-  }
-
-  .card__title-icon--email::before {
-    content: "\E81c";
-  }
-
-  .card__title-icon--settings::before {
-    content: "\E814";
-  }
-
-  .card__title-icon--report::before {
-    content: "\E819";
+.card-header {
+  .row {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 }

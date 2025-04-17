@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { addRow, clearTable, updateRow } from './helper';
-import Datatable from 'datatables.net-bs4';
+import Datatable from 'datatables.net-bs5';
 
 describe('helper', () => {
     beforeEach(() => {

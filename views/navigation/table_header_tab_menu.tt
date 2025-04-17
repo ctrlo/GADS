@@ -1,20 +1,24 @@
-<div class="list list--tabs">
-  <ul class="list__items">
-    <li class="list__item[% page_is_active(records_active_pages, ' list__item--active'); %]">
-      <a href='[% url.page %]/[% layout_obj.identifier %]/data?table_clear_state=1' class='link link--plain'><span>[% layout.record_name_plural.ucfirst | html %]</span></a>
-    </li>
-    
-    <li class="list__item[% page_is_active(table_dashboard_active_pages, ' list__item--active'); %]">
-      <a href='[% url.page %]/[% layout_obj.identifier %]/' class='link link--plain'><span>Dashboard</span></a>
-    </li>
-    
-    [% IF user.permission.superadmin OR layout.user_can("layout"); %]
-    <li class="list__item[% page_is_active(edit_table_active_pages, ' list__item--active'); %]">
-      <a href='[% url.page %]/[% layout_obj.identifier %]/edit' class='link link--plain'><span>Edit table</span></a>
-    </li>
-    <li class="list__item[% page_is_active(report_active_pages, ' list__item--active'); %]">
-      <a href='[% url.page %]/[% layout_obj.identifier %]/report' class='link link--plain'><span>Reports</span></a>
-    </li>
-    [% END; %]
-  </ul>
-</div>
+<ul class="nav nav-tabs">
+  <li class="nav-item">
+    <a href="[% url.page %]/[% layout_obj.identifier %]/data?table_clear_state=1" class="nav-link[% page_is_active(records_active_pages, ' active'); %]" [% page_is_active(records_active_pages, ' aria-current="page"'); %]>
+      <span>[% layout.record_name_plural.ucfirst | html %]</span>
+    </a>
+  </li>
+  <li class="nav-item">
+    <a href="[% url.page %]/[% layout_obj.identifier %]/" class="nav-link[% page_is_active(table_dashboard_active_pages, ' active'); %]">
+      <span>Dashboard</span>
+    </a>
+  </li>
+  [% IF user.permission.superadmin OR layout.user_can("layout"); %]
+  <li class="nav-item">
+    <a href="[% url.page %]/[% layout_obj.identifier %]/edit" class="nav-link[% page_is_active(edit_table_active_pages, ' active'); %]">
+      <span>Edit Table</span>
+    </a>
+  </li>
+  <li class="nav-item">
+    <a href="[% url.page %]/[% layout_obj.identifier %]/report" class="nav-link[% page_is_active(report_active_pages, ' active'); %]">
+      <span>Reports</span>
+    </a>
+  </li>
+  [% END; %]
+</ul>

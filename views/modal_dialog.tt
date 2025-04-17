@@ -29,7 +29,7 @@
                         </h3>
                     </div>
                 [% END %]
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true" class="hidden">Close</span>
                 </button>
             </div>
@@ -39,10 +39,10 @@
             </div>
             <div class="modal-footer">
             [% IF modal_close_only %]
-                <button type="button" class="btn btn-default" data-dismiss="modal">[% modal_action_text | html %]</button>
+                <button type="button" class="btn btn-default" data-bs-dismiss="modal">[% modal_action_text | html %]</button>
             [% ELSE %]
                 [% IF modal_with_cancel_button %]
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">Cancel</button>
                 [% END %]
                 [% IF modal_extra_action %]
                     <button type="submit" value="submit" class="btn btn-primary" name="[% modal_extra_action %]">[% modal_extra_action_text | html %]</button>

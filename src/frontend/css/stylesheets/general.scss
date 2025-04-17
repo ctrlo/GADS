@@ -1,10 +1,9 @@
 @import "definitions/variables";
 
+@import "definitions/bootstrap_base";
+
 // Bootstrap 4.6
-@import "~bootstrap/scss/bootstrap",
-        "~datatables.net-bs4/css/dataTables.bootstrap4.min.css",
-        "~datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css",
-        "~datatables.net-rowreorder-bs4/css/rowReorder.bootstrap4.min.css";
+@import "~bootstrap/scss/bootstrap";
 
 @import "definitions/fonts", "definitions/mixins";
 
@@ -13,19 +12,19 @@
         "external/react-grid-layout/styles.min.css";
 
 // Base settings
-@import "base/global";
+@import "./base/global";
 
 // Components
 @import "alert/alert";
 @import "attention/attention";
-@import "breadcrumbs/breadcrumbs";
 @import "button/button";
 @import "calculator/calculator";
 
 // card
-@import "card/card", "card/card-expandable";
+@import "card/card";
 
-@import "collapsible/collapsible-dropdown";
+// popover
+@import "bootstrap-popover/popover";
 
 // content block
 @import "content-block/content-block",
@@ -39,10 +38,7 @@
         "dashboard/lib/react/index";
 
 // data-table
-@import "data-table/data-table",
-        "data-table/data-table-toggle",
-        "data-table/table-modal",
-        "data-table/data-table-row";
+@import "data-table/data-table";
 
 // dropdown
 @import "dropdown/dropdown", "dropdown/dropdown-group";
@@ -64,7 +60,6 @@
         "form-group/select/select-reveal",
         "form-group/tree/tree",
         "form-group/select-widget/select-widget",
-        "form-group/switch/switch",
         "form-group/textarea/textarea",
         "form-group/input-group/input-group";
 
@@ -78,7 +73,6 @@
 
 @import "more-less/more-less";
 @import "page-header/page-header";
-@import "popover/popover";
 
 // rag
 @import "rag-legend/rag/rag", "rag-legend/rag-legend";

@@ -32,7 +32,7 @@
             </li>
           </ol>
         </div>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
           <span aria-hidden="true" class="hidden">Close</span>
         </button>
       </div>
@@ -56,7 +56,7 @@
             </div>
             
             
-            <div class="form-group ">
+            <div class="form-group mb-4 ">
               
               <div class="row">
                 <div class="col-lg-7">
@@ -107,6 +107,7 @@
             left_buttons = [{
               class   = "btn-cancel"
               label   = "Cancel"
+              dismiss = "modal"
             }]
             right_buttons = [{
               class   = "btn-js-next btn-disabled"
@@ -130,23 +131,19 @@
             <div class="row mb-3 permission-group" data-group-id="[% group.id %]">
               <div class="col">
                 <div class="card card--expandable">
-                  <div class="card__header">
-                    <button class="card__header-left" type="button" data-toggle="collapse" data-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
+                  <div class="card-header" role="button" aria-type="button" data-bs-target="#group_permissions_[% group.id %]" data-bs-toggle="collapse" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
                       <span class="card__title">
                         Group
                         <span class="card__subtitle">
                           [% group.name | html %]
                         </span>
                       </span>
-                    </button>
-                    <div class="card__header-right">
-                      <button class="card__toggle" type="button" data-toggle="collapse" data-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
+                      <span class="card__header-right card__toggle">
                         <span>Toggle collapsible</span>
-                      </button>
-                    </div>
+                      </span>
                   </div>
                   <div class="collapse" id="group_permissions_[% group.id %]">
-                    <div class="card__content">
+                    <div class="card-body card__content">
                       <div class="row mb-3">
                         <div class="col">
                           [%
@@ -401,7 +398,7 @@
                 <table class="data-table table "
                        data-config='{"data":null,"dom":"t","order":[],"language":{},"responsive":false,"scrollX":false,"rowReorder":false,"pageLength":10,"lengthMenu":[10,25,50,100],"autoWidth":false,"columns":[{"name":"Topic","orderable":false}]}'
                        width="100%" id=topics>
-                  <caption class="sr-only">Table for topics</caption>
+                  <caption class="visually-hidden">Table for topics</caption>
                   <thead>
                     <tr>
                       <th>
@@ -616,7 +613,7 @@
                         </legend>
                       </div>
   
-                      <div class="form-group">
+                      <div class="form-group mb-4">
                         [%
                           INCLUDE fields/sub/checkbox.tt
                             id          = "show_calculator"
@@ -641,7 +638,7 @@
                         </legend>
                       </div>
 
-                      <div class="form-group mb-2">
+                      <div class="form-group mb-4 mb-2">
                         [%
                           INCLUDE fields/sub/checkbox.tt
                             id      = "show_datepicker_date"
@@ -662,7 +659,7 @@
                         </legend>
                       </div>
 
-                      <div class="form-group">
+                      <div class="form-group mb-4">
                         [%
                           INCLUDE fields/sub/checkbox.tt
                             id          = "default_today"
@@ -687,7 +684,7 @@
                         </legend>
                       </div>
 
-                      <div class="form-group">
+                      <div class="form-group mb-4">
                         [%
                           INCLUDE fields/sub/checkbox.tt
                             id      = "show_datepicker_date-range"
@@ -719,7 +716,7 @@
 
                   <div class="sortable">
                     <div class="sortable__label">
-                      <label>
+                      <label class="form-label">
                         Add dropdown values
                       </label>
                     </div>
@@ -764,7 +761,7 @@
                   <div class="col">
                     <p>Each value in the tree is referred to as a node.</p>
 
-                    <div class="form-group">
+                    <div class="form-group mb-4">
                       [%
                         INCLUDE fields/sub/checkbox.tt
                           id      = "end_node_only"
@@ -805,7 +802,7 @@
               <div class="select-reveal__instance" id="field_type_person">
                 <div class="row">
                   <div class="col">
-                    <div class="form-group">
+                    <div class="form-group mb-4">
                       [%
                         INCLUDE fields/sub/checkbox.tt
                           id      = "default_to_login"
@@ -880,7 +877,7 @@
                         </legend>
                       </div>
 
-                      <div class="form-group">
+                      <div class="form-group mb-4">
                       [%
                         INCLUDE fields/sub/checkbox.tt
                           id      = "no_alerts_calc_rag"
@@ -969,7 +966,7 @@
                         </legend>
                       </div>
 
-                      <div class="form-group">
+                      <div class="form-group mb-4">
                       [%
                         INCLUDE fields/sub/checkbox.tt
                           id      = "no_alerts_calc"
@@ -1036,7 +1033,7 @@
 
                       </div>
 
-                      <div class="form-group ">
+                      <div class="form-group mb-4 ">
                         [%
                           INCLUDE fields/sub/checkbox.tt
                             id      = "show_add"
@@ -1058,7 +1055,7 @@
                         </legend>
                       </div>
 
-                      <div class="form-group ">
+                      <div class="form-group mb-4 ">
                         [%
                           INCLUDE fields/sub/checkbox.tt
                             id      = "delete_not_used"
@@ -1080,7 +1077,7 @@
                         </legend>
                       </div>
 
-                      <div class="form-group ">
+                      <div class="form-group mb-4 ">
                         [%
                           INCLUDE fields/sub/checkbox.tt
                             id      = "override_permissions"
@@ -1161,7 +1158,7 @@
                             </legend>
                           </div>
 
-                          <div class="form-group">
+                          <div class="form-group mb-4">
                             [%
                               PROCESS builder.tt
                                 builder_id = instance_layout.instance_id
@@ -1227,7 +1224,7 @@
                     next     => "Next",
                     previous => "Previous"
                   },
-                  search            => "<span class=\"sr-only\">Search in groups:</span>",
+                  search            => "<span class=\"visually-hidden\">Search in groups:</span>",
                   searchPlaceholder => "Search group"
                 }
                 table_page_length  = 5;
@@ -1452,7 +1449,7 @@
                       next     => "Next",
                       previous => "Previous"
                     },
-                    search            => "<span class=\"sr-only\">Search in fields:</span>",
+                    search            => "<span class=\"visually-hidden\">Search in fields:</span>",
                     searchPlaceholder => "Search field"
                   }
                   table_page_length  = 5;

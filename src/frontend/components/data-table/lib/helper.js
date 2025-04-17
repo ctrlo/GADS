@@ -1,16 +1,17 @@
 /**
- * Add a row at the bottom of a table
- * @param {*} rowData The data for the row to add
- * @param {*} table The datatable to add the row to
+ * Add a row to the table
+ * @param {*} rowData The data to add the row to
+ * @param {*} table The table to add the row to
  */
 const addRow = (rowData, table) => {
+  // Insert row at bottom of table
   table.DataTable().row.add(rowData).draw()
 }
 
 /**
- * Update a row in a table
- * @param {*} rowData The data to update
- * @param {*} table The table to update the data in
+ * Update a row in the table
+ * @param {*} rowData The row data to update
+ * @param {*} table The table to update the row in
  * @param {*} id The ID of the row to update
  */
 const updateRow = (rowData, table, id) => {
@@ -23,11 +24,28 @@ const updateRow = (rowData, table, id) => {
 }
 
 /**
- * Clear a table of all data
+ * Clear a table
  * @param {*} table The table to clear
  */
 const clearTable = (table) => {
   table.DataTable().clear().draw()
 }
 
-export { addRow, updateRow, clearTable }
+/**
+ * Get the row order
+ * @param {*} row The row in the table
+ * @returns An integer value of the order of the row
+ */
+const getRowOrder = (row) => {
+  try {
+    const orderValue = $(row.node()).find('input').first().data('order')
+    if (typeof orderValue === "undefined") {
+      return -1
+    }
+    return parseInt(orderValue)
+  } catch {
+    return -1
+  }
+}
+
+export { addRow, updateRow, clearTable, getRowOrder }

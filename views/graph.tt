@@ -19,12 +19,14 @@
           <div class='col-md-6 col-lg-8 mb-4 mb-lg-0'>
             <div class="row mb-3">
               <div class="col">
-                <div class="card card--secundary">
+                <div class="card card-secundary">
+                <div class="card-header">
                   <h4 class="card__title">
                     <span> General </span>
                   </h4>
+                </div>
                   
-                  <div class="card__body row">
+                  <div class="card-body">
                     <div class="card__content">
                       <div class="row">
                         <div class='col'>
@@ -120,12 +122,14 @@
             
             <div class="row mb-3">
               <div class="col">
-                <div class="card card--secundary">
+                <div class="card card-secundary">
+                <div class="card-header">
                   <h4 class="card__title">
                     <span> X-axis </span>
                   </h4>
+                  </div>
                   
-                  <div class="card__body row">
+                  <div class="card-body">
                     <div class="card__content">
                       <div class="row">
                         <div class="col">
@@ -265,12 +269,14 @@
             
             <div class="row mb-3">
               <div class="col">
-                <div class="card card--secundary">
+                <div class="card card-secundary">
+                <div class="card-header">
                   <h4 class="card__title">
                     <span> Y-axis </span>
                   </h4>
+                  </div>
                   
-                  <div class="card__body row">
+                  <div class="card-body row">
                     <div class="card__content">
                       <div class="row">
                         <div class="col">
@@ -422,12 +428,14 @@
           </div>
           
           <div class='col-md-6 col-lg-4'>
-            <div class="card card--secundary card--help">
+            <div class="card card-secundary card--help">
+            <div class="card-header">
               <h4 class="card__title">
                 <span> Graph help </span>
               </h4>
+              </div>
               
-              <div class="card__body row">
+              <div class="card-body row">
                 <div class="card__content">
                   <dl>
                     <dt>X-axis</dt>

@@ -17,16 +17,8 @@
   border-bottom: 0;
 
   .close {
-    margin-bottom: -1rem;
-    padding-bottom: 1rem;
-    line-height: $font-size-base;
-
-    &::before {
-      @extend %icon-font;
-
-      content: "\E807";
-      font-size: $font-size-base;
-    }
+    visibility: hidden;
+    display: none;
   }
 }
 
@@ -40,6 +32,8 @@
 
     .close {
       color: $transparent;
+      visibility: hidden;
+      display: none;
     }
   }
 

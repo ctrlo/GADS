@@ -1,383 +1,182 @@
-/* stylelint-disable selector-no-qualifying-type */
+@import "~datatables.net-bs5/css/dataTables.bootstrap5.css",
+        "~datatables.net-responsive-bs5/css/responsive.bootstrap5.css",
+        "~datatables.net-rowreorder-bs5/css/rowReorder.bootstrap5.css";
 
 .data-table {
-  border-spacing: 0;
-  font-size: $font-size-sm;
 
-  &.table-thead-hidden thead {
-    @include visually-hidden;
-  }
+    tr {
 
-  thead {
-    background-color: $white;
-    z-index: 1;
-  }
-
-  thead th {
-    border-bottom: 1px solid $gray;
-    text-transform: uppercase;
-    vertical-align: top;
-
-    &[class*="sorting_asc"],
-    &[class*="sorting_desc"] {
-      color: $brand-secundary;
+        td,
+        th {
+            padding: 0.5rem;
+        }
     }
 
-    &.data-table__header--invisible span,
-    &.dt__header--inivisible span {
-      @include visually-hidden;
+    th {
+        margin: 0;
+        padding: 1rem;
+
+        .data-table__header-wrapper {
+            display: flex;
+            align-items: center;
+
+            .data-table__sort {
+                cursor: pointer;
+            }
+
+            .dt-column-order {
+                display: none;
+            }
+
+            .dropdown-toggle {
+                opacity: 0;
+                border: none;
+                margin: 0;
+                padding: 0;
+                transition: all 0.3s ease;
+
+                &::after {
+                    display: none;
+                }
+            }
+
+            .data-table__sort {
+                display: flex;
+                flex-direction: row;
+            }
+
+            &:hover {
+                .data-table__sort {
+                    cursor: pointer;
+                }
+
+                .dropdown-toggle {
+                    opacity: 1;
+                    border-bottom: none;
+                }
+            }
+        }
     }
-  }
 
-  tfoot {
-    background-color: $table-hover-bg;
-    font-weight: bold;
-  }
+    .data-table__sort {
+        &::after {
+            color: transparent;
+            @extend %icon-font;
+            content: quote("\E805");
+            padding-left: 0.5rem;
+            transition: all 0.3s ease;
+        }
+    }
 
-  &.table-lines th,
-  &.table-lines td {
-    border-top: 0;
-    border-bottom: 1px solid $gray;
-  }
+    .dt-ordering-desc {
+        .data-table__sort {
+            &::after {
+                color: $brand-secundary;
+                transform: rotate(90deg);
+            }
+        }
+    }
 
-  .autosize {
-    max-height: 30px;
-  }
+    .dt-ordering-asc {
+        .data-table__sort {
+            &::after {
+                color: $brand-secundary;
+                transform: rotate(-90deg);
+            }
+        }
+    }
 }
 
-/* Necessary to overrule default styling */
-table.dataTable thead .sorting,
-table.dataTable thead .sorting_disabled {
-
-  /* stylelint-disable declaration-no-important */
-  // Remove the sorting arrows from the sorting element, important needed to overrule default styling
-  &::before,
-  &::after {
-    content: normal !important;
-  }
+div.dt-processing>div:last-child>div {
+    background-color: $brand-secundary;
+    background: $brand-secundary;
 }
 
-// Styling of the generated dataTable
-.dataTables_wrapper {
-  margin-bottom: $padding-small-vertical;
-  font-size: $font-size-sm;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-
-  .row {
-    width: 100%;
-  }
-
-  .row--header,
-  .row--main {
-    margin-bottom: $padding-base-vertical;
-  }
-}
-
-.row--fiv-header {
-  margin-top: 1.9rem;
-}
-
-.dataTables_toggle_full_width {
-
-  .btn-toggle,
-  .btn-toggle-off {
-    padding-top: 7px;
-  }
-}
-
-.data-table__container--scrollable {
-  overflow: auto;
-
-  thead {
-    position: sticky;
-    top: 0;
-  }
-}
-
-.dataTables_info_wrapper {
-  display: none;
-}
-
-.dataTables_length_wrapper {
-  margin-top: $padding-large-vertical;
-}
-
-.dataTables_length {
-  .form-control {
-    @include form-control;
-  }
-}
-
-.dataTables_filter {
-  label {
-    @include input-search;
-
+.dt-layout-row {
     display: flex;
-    justify-content: flex-start;
-  }
-
-  .form-control {
-    @include form-control;
-  }
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
 }
 
-.data-table__sort {
-  display: flex;
-  align-items: flex-start;
-  order: 2;
-  padding: 0;
-  transition: 0.2s all ease-in;
-  border: 0;
-  border-bottom: 1px solid $transparent;
-  background-color: $transparent;
-  color: $gray-extra-dark;
-  font-weight: bold;
-  text-align: left;
-  text-transform: uppercase;
+.dt-start {
+    // This is so it doesn't clash when the toggle is visible for fullscreen
+    width: 62%;
+}
 
-  .btn-sort {
-    margin-top: 0.1rem;
-    margin-left: 0.25rem;
-    opacity: 0;
-
-    &:hover {
-      border-bottom: none;
+@include media-breakpoint-up(xl) {
+    div.dt-start {
+        width: 75%;
     }
-  }
+}
 
-  &:hover,
-  &:active,
-  &:focus,
-  .dt-ordering-asc &,
-  .dt-ordering-desc & {
-    color: $brand-secundary;
-
-    .btn-sort {
-      opacity: 1;
+.dt-end {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-items: center;
+    .form-check {
+        margin-left: 1rem;
     }
-  }
-
-  .data-table__header--invisible & {
-    display: none;
-  }
 }
 
-.data-table__search {
-  margin: 0 0.1rem 0 -1rem;
-
-  .dropdown-toggle {
-    margin-top: 0.1rem;
-    transition: 0.2s opacity ease-in;
-    opacity: 0;
-
-    &:hover,
-    &:active,
-    &:focus {
-      opacity: 1;
-    }
-
-    &::after {
-      content: normal;
-    }
-  }
-
-  &.show .dropdown-toggle {
-    opacity: 1;
-  }
-
-  label {
-    @include input-search;
-  }
-
-  .input .form-control {
-    width: auto;
-  }
-
-  .data-table__header--invisible & {
-    display: none;
-  }
-}
-
-.col {
-  .dt-search {
-    input[type="search"] { // The styling has to be _very_ specific, if I leave out the `.col` field, it won't work.
-      width: 98%; // I'm not sure where the bug this solves came from - I think it may be because of the DT upgrade (and just wasn't spotted) - if I use 100% it causes the other elements to be pushed down (I'm not keen on using percentiles, either).
-    }
-  } 
-}
-
-.dataTables_scrollHead .table--bordered,
-.dt-scroll-head .table--bordered {
-  box-sizing: border-box;
-  border: 1px solid $gray;
-  border-bottom: 0;
-  border-top-left-radius: $table-border-radius;
-  border-top-right-radius: $table-border-radius;
-
-  thead {
-    // Why is this not in the variables file?? Or even more important, why is this a variable?
-    $table-bordered-head-color: #585858;
-
-    color: $table-bordered-head-color;
-  }
-}
-
-.dataTables_scrollBody:has(.table--bordered),
-.dt-scroll-body:has(.table--bordered) {
-  border: 1px solid $gray;
-  border-top: 0;
-  border-bottom-left-radius: $table-border-radius;
-  border-bottom-right-radius: $table-border-radius;
-
-  .table-striped {
-    border-bottom: 0;
-  }
-}
-
-.dataTables_scrollFoot .table-striped.table--bordered,
-.dt-scroll-foot .table-striped.table--bordered {
-  border: 0;
-}
-
-.data-table__header-wrapper {
-  display: flex;
-  position: relative;
-  align-items: flex-start;
-
-  &.filter .data-table__search .dropdown-toggle.btn-search {
-    opacity: 1;
-  }
-
-  &:hover,
-  &:active,
-  &:focus {
-    .data-table__search .dropdown-toggle {
-      opacity: 1;
-    }
-  }
-}
-
-// Pagination
-.dataTables_paginate .pagination {
-  justify-content: center;
+div.dt-container div.dt-search input {
+    margin: 0;
+    width: 100%;
 }
 
 .page-item {
-  .page-link {
-    transition: 0.2s all ease;
-  }
-
-  &.active .page-link,
-  .page-link:hover {
-    border-color: $brand-secundary;
-    background-color: $brand-secundary;
-    color: $white;
-  }
-}
-
-/* Necessary to overrule default styling */
-div.dataTables_wrapper div.dataTables_length {
-  text-align: left;
-
-  label {
-    justify-content: flex-start;
-
-    .form-control {
-      margin-left: $padding-small-horizontal;
+    .page-link {
+        transition: 0.2s all ease;
     }
-  }
+
+    &.active .page-link,
+    .page-link:hover {
+        border-color: $brand-secundary;
+        background-color: $brand-secundary;
+        color: $white;
+    }
 }
 
-/* Necessary to overrule default styling */
-div.dataTables_wrapper div.dataTables_filter input.form-control {
-  width: 100%;
-  margin-left: 0;
+th.data-table__header--invisible span {
+    @include visually-hidden;
 }
 
-// Table fullscreen mode
-:fullscreen {
-  body {
-    padding: 0;
-    background-color: $white;
-  }
-
-  .main {
-    max-width: none;
-  }
-
-  .sidebar,
-  .table-header,
-  .content-block__navigation,
-  .content-block__head {
-    display: none;
-  }
-
-  .content-block__main {
-    padding-top: 0;
-  }
-
-  .dataTables_wrapper {
-    padding-top: $padding-large-vertical;
-  }
-
-  .data-table {
-    margin-top: 0 !important; //Necessary to overrule external styling
-  }
+.dt-layout-table {
+    .dt-layout-cell {
+        width: 100%;
+    }
 }
 
-@include media-breakpoint-up(lg) {
-  .dataTables_wrapper .row--main {
-    margin-bottom: $padding-large-vertical;
-  }
-
-  .dataTables_length_wrapper {
-    margin-top: 0;
-  }
-
-  .dataTables_length label {
-    justify-content: flex-end;
-  }
-
-  .dataTables_info_wrapper {
-    display: block;
-    text-align: right;
-  }
-
-  .dataTables_paginate .pagination {
-    justify-content: flex-start;
-  }
+div.dt-length label {
+    padding-right: 0.5rem;
+    font-weight: 600;
 }
 
-div.dataTables_wrapper div.dataTables_processing,
-div.td-container div.dt-processing {
-  top: 10rem;
+.table-modal {
+    overflow: auto;
+    position: fixed;
+    z-index: 1020;
+    /* Make sure this modal is above the nav bar */
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 1rem;
+    background: white;
+
+    .row {
+        margin-right: 0;
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .data-table__header--invisible {
+        display: none;
+    }
 }
 
-table.table-purge {
-
-  thead tr th,
-  tbody tr td {
-    text-align: center !important; // For some reason, this doesn't override unless I do !important
-  }
-  tbody tr td {
-    border: 1px solid $gray;
-    border-top: 0;
-  }
-  thead tr th {
-    background-color: $brand-secundary;
-    color: $white;
-  }
-}
-
-button.btn-remove,
-button.btn-add {
-  margin: $padding-base-vertical 0;
-}
-
-.dt-column-order {
-  display: none;
-  visibility: collapse;
+td:not(.dtr-control) {
+    cursor: pointer;
 }

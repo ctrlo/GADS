@@ -55,12 +55,14 @@
           [% IF NOT record.new_entry AND NOT edit_modal AND NOT view_modal %]
           <div class="content-block__left col-lg-4 mb-3 mb-lg-0">
             [% IF record.child_record_ids.size %]
-            <div class="card card--header">
+            <div class="card card-info">
+            <div class="card-header">
               <h3 class="card__header">
                 <span>Child records</span>
               </h3>
+              </div>
     
-              <div class="card__body row">
+              <div class="card-body">
                 <div class="card__content">
                   <div class="list list--vertical list--key-value list--no-borders">
                     <ul class="list__items">
@@ -78,12 +80,14 @@
             </div>
             [% END %]
             
-            <div class="card card--header">
+            <div class="card card-info">
+              <div class="card-header">
               <h3 class="card__header">
                 <span>Meta data</span>
               </h3>
+              </div>
               
-              <div class="card__body row">
+              <div class="card-body">
                 <div class="card__content">
                   <div class="list list--vertical list--key-value list--no-borders">
                     <ul class="list__items">
@@ -132,12 +136,14 @@
               </div>
             </div>
   
-            <div class="card card--header">
+            <div class="card card-info">
+            <div class="card-header">
               <h3 class="card__header">
                 <span>Version history</span>
               </h3>
+              </div>
     
-              <div class="card__body row">
+              <div class="card-body">
                 <div class="card__content">
                   <div class="row mb-2">
                     <div class="col">
@@ -156,7 +162,7 @@
                             END;
                           END;
                         %]
-                        <button class="collapsible__toggle" type="button" data-toggle="collapse" data-target="#dropdown" aria-expanded="false" aria-controls="collapseExample">
+                        <button class="collapsible__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#dropdown" aria-expanded="false" aria-controls="collapseExample">
                           <span> [% dropdown_title %] </span>
                         </button>
                         <div class="collapse" id="dropdown">
@@ -199,12 +205,14 @@
             </div>
   
             [% IF record.has_rag_column %]
-            <div class="card card--header">
+            <div class="card card-info">
+              <div class="card-header">
               <h3 class="card__header">
                 <span>Legend</span>
               </h3>
+              </div>
     
-              <div class="card__body row">
+              <div class="card-body">
                 <div class="card__content">
                   [% INCLUDE snippets/rag_legend.tt %]
                 </div>
@@ -309,7 +317,7 @@
 </div>
 
 [% IF view_modal %]
-<div class="modal-footer modal-footer_sticky mt-1 pb-0 pr-0 pl-0">
+<div class="modal-footer modal-footer_sticky mt-1 pb-0 pe-0 ps-0">
   <div class="modal-footer__left"></div>
   <div class="modal-footer__right">
     <a class="btn btn-default" href="[% url.page %]/record/[% record.current_id %]" target="_blank">Open full record</a>
@@ -370,12 +378,12 @@
 %]
   <div class="[% panel_class %]">
     <div class="card card--expandable card--topic">
-      <div class="card__header">
-        <button class="card__header-left" type="button" data-toggle="collapse" data-target="#topic[% block_topic.id; widget_id_modifier; %]" aria-expanded="false" aria-controls="topic[% block_topic.id; widget_id_modifier; %]">
+      <div class="card-header">
+        <div class="card-header__toggle" data-bs-toggle="collapse" data-bs-target="#topic[% block_topic.id; widget_id_modifier; %]">
           <span class="card__title">
             [% block_topic.name OR 'Other' | html %]
           </span>
-        </button>
+        </div>
         <div class="card__header-right">
           [% IF editable AND NOT record.new_entry AND NOT edit_modal AND topic.has_editable %]
           <button
@@ -393,20 +401,13 @@
             <span class="btn__title">View</span>
           </button>
         
-          <button
-            class="card__toggle"
-            type="button"
-            data-toggle="collapse"
-            data-target="#topic[% block_topic.id; widget_id_modifier; %]"
-            aria-expanded="[% open %]"
-            aria-controls="topic[% block_topic.id; widget_id_modifier; %]"
-          >
+          <span class="card__toggle" data-bs-toggle="collapse" data-bs-target="#topic[% block_topic.id; widget_id_modifier; %]" aria-expanded="[% open %]">
             <span>Toggle collapsible</span>
-          </button>
+          </span>
         </div>
       </div>
       <div class="collapse[% IF open == 'true' %] show[% END %]" id="topic[% block_topic.id; widget_id_modifier; %]">
-        <div class="card__content">
+        <div class="card__content card-body">
           [% IF block_topic.description %]
             <span class="card__description text-muted">
               [% block_topic.description_html %]
@@ -519,7 +520,7 @@
 
 [% BLOCK print_field; %]
   <div
-      class="[% IF col.show_in_edit %]form-group [% END %]linkspace-field[% IF col.show_in_edit==2 %] hidden[% END %]"
+      class="[% IF col.show_in_edit %]form-group mb-4 [% END %]linkspace-field[% IF col.show_in_edit==2 %] hidden[% END %]"
       [% IF col.show_in_edit==2 %]aria-hidden="true"[% END %]
       data-column-id="[% col.id %]"
       data-column-type="[% col.type %]"
@@ -772,7 +773,7 @@
           filter       = "html"
           popover_body = col.helptext_html;
       IF readonly;
-        '<div class="form-group">';
+        '<div class="form-group mb-4">';
             render_datum(col);
         '</div>';
         # Send values back, otherwise controller will think blank values submitted
@@ -1103,7 +1104,7 @@
   [% IF col.lookup_endpoint %]
     <div class="lookup-status d-none">
       <div class="d-flex align-items-center p-2">
-        <div class="spinner-border spinner-border-sm text-info mr-3" role="status" aria-hidden="true"></div>
+        <div class="spinner-border spinner-border-sm text-info me-3" role="status" aria-hidden="true"></div>
         <div class="text-info status-text"></div>
       </div>
     </div>
@@ -1115,8 +1116,8 @@
   <button
     type="button"
     class="btn btn-js-curval-modal btn-add-link"
-    data-toggle="modal"
-    data-target=#curvalModal
+    data-bs-toggle="modal"
+    data-bs-target=#curvalModal
   >
     <span class="btn__title">Add</span>
   </button>

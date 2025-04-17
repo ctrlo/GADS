@@ -1,3 +1,9 @@
+ol,
+ul {
+    // Use the orginal Bootstrap 4 padding
+    padding-left: 40px;
+}
+
 .list__title {
   @include font-style-h3;
 
@@ -285,5 +291,12 @@
 @include media-breakpoint-up(xl) {
   .modal .list--checkboxes .list__item {
     flex-basis: calc(33.33% - 1rem);
+  }
+}
+
+// DR 070225
+.table-header-bottom {
+  .list__item button {
+    padding: 0;
   }
 }

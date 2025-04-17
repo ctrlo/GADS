@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component'
-import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
+import 'jQuery-QueryBuilder'
 import 'bootstrap-select/dist/js/bootstrap-select'
 import { logging } from 'logging'
 import TypeaheadBuilder from 'util/typeahead'

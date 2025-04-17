@@ -24,7 +24,7 @@
     <div class="content-block__info col-lg-6"></div>
     
     <div class="content-block__aside col-lg-6">
-      <a href="[% url.page %]/[% layout.identifier %]/graph/0" class="btn btn-add">
+      <a href="[% url.page %]/[% layout.identifier %]/graph/0" class="btn btn-add btn-default">
         Add a graph
       </a>
     </div>
@@ -46,7 +46,7 @@
           </div>
           <div class="col d-flex justify-content-end mb-2">
             <div class="dropdown ">
-              <button class="dropdown-toggle dropdown__toggle" type="button" id="download" data-toggle="dropdown" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="download">
+              <button class="dropdown-toggle dropdown__toggle" type="button" id="download" data-bs-toggle="dropdown" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="download">
                 <span>Download</span>
               </button>
               <div class="dropdown-menu dropdown__menu ">

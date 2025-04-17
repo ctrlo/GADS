@@ -9,7 +9,7 @@
       next     => "Next page",
       previous => "Previous page"
     },
-    search            => "<span class=\"sr-only\">Search in users:</span>",
+    search            => "<span class=\"visually-hidden\">Search in users:</span>",
     searchPlaceholder => "Search through your users"
   }
   table_ajax         = url.page _ "/api/users?csrf-token=" _ csrf_token;
@@ -103,7 +103,7 @@
     }, {
       type    = "modal_button"
       modalId = "userModal"
-      class   = "btn btn-add"
+      class   = "btn btn-add btn-default"
       label   = "Add a user"
     }];
 %]

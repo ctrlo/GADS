@@ -2,10 +2,10 @@
   <p>[% INCLUDE fields/sub/filter.tt value=label_left; %]</p>
 </div>
 <div class="col">
-  <div class="form-group mb-0">
+  <div class="form-group mb-4 mb-0">
     <div class="switch [% switch_class %]">
       <input class="switch__input" type="checkbox" id="[% id %]" name="[% name %]" value="[% value %]" [%- IF checked -%]checked="checked"[%- END -%]>
-      <label class="switch__label" for="[% id %]">
+      <label class="switch__label form-label" for="[% id %]">
         [% INCLUDE fields/sub/filter.tt value=label_right; %]
       </label>
     </div>

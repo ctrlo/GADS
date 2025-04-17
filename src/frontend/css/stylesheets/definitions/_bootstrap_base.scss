@@ -1,0 +1,79 @@
+@import "./variables";
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables", "~bootstrap/scss/variables-dark";
+
+// Links
+$link-decoration: none;
+
+// Transitions
+$transition-default: 0.2s all ease;
+
+// Alerts
+$alert-margin-bottom: $padding-large-vertical;
+$alert-padding-x: $padding-base-horizontal;
+$alert-padding-y: $padding-base-horizontal;
+
+// Colors
+$primary: $brand-secundary;
+$secondary: $brand-primary;
+$success: $brand-success;
+$info: $brand-secundary;
+$warning: $brand-warning;
+$danger: $brand-danger;
+$light: $gray-light;
+$dark: $gray-extra-dark;
+
+$secundary: $brand-secundary;
+
+$custom-colors: (
+    "primary": $primary,
+    "secundary": $secundary
+);
+
+$theme-colors: map-merge($theme-colors, $custom-colors);
+
+// Breadcrumbs
+$breadcrumb-font-size: $font-size-sm;
+$breadcrumb-divider: quote(">");
+
+// Buttons
+$btn-padding-x: 30px;
+$btn-padding-y: 10px;
+$btn-line-height: $headings-line-height;
+$btn-border-radius: 23px;
+$btn-padding-sm-x: 20px;
+$btn-padding-sm-y: 7px;
+$btn-font-size-sm: $font-size-sm;
+
+// Cards
+$card-cap-bg: $white;
+$card-cap-color: $brand-primary;
+$card-cap-border-color: $white;
+$card-bg: $white;
+
+$list-group-bg: $white;
+
+$table-caption-color: $primary;
+$table-bg: $white;
+$table-color: $secondary;
+$table-striped-color: $secondary;
+
+$dropdown-bg: $white;
+$input-border-color: $secondary;
+$input-focus-border-color: $primary;
+
+$nav-tabs-border-color: $secondary;
+$nav-tabs-link-hover-border-color: $secondary;
+$nav-tabs-link-active-border-color: $secondary;
+$nav-tabs-link-active-color: $secondary;
+$nav-tabs-link-color: $secondary;
+$nav-tabs-border-width: 2px;
+$nav-tabs-link-hover-border-color: $gray-500;
+
+$border-color-translucent: rgba($primary, 0.5);
+$popover-header-bg: $primary;
+$popover-header-color: $white;
+
+@import "~bootstrap/scss/maps";
+@import "~bootstrap/scss/mixins";
+@import "~bootstrap/scss/root";
