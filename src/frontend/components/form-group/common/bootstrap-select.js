@@ -21,7 +21,6 @@ export const refreshSelects = (el) => {
     ruleFilterSelect.selectpicker();
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   el.on("afterCreateRuleOperators.queryBuilder", (e, rule) => {
     const operatorSelect = $(rule.$el.find(`select[name=${rule.id}_operator]`));
     if (!operatorSelect || !operatorSelect[0]) {

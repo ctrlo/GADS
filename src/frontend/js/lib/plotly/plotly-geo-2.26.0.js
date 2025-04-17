@@ -85817,7 +85817,6 @@ function _addListener(target, type, listener, prepend) {
     if (m > 0 && existing.length > m && !existing.warned) {
       existing.warned = true;
       // No error code for this since it is a Warning
-      // eslint-disable-next-line no-restricted-syntax
       var w = new Error('Possible EventEmitter memory leak detected. ' +
                           existing.length + ' ' + String(type) + ' listeners ' +
                           'added. Use emitter.setMaxListeners() to ' +

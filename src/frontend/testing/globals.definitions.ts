@@ -21,7 +21,6 @@ export function initGlobals() {
 }
 
 export function mockJSTree() {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     $.fn.jstree = jest.fn().mockImplementation((arg: boolean) => {
         return {
             get_json: () => {

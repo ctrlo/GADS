@@ -11,5 +11,5 @@ declare global {
 }
 
 // JQuery isn't enabled by default in Jest
-window.$ = window.jQuery = require("jquery"); // eslint-disable-line @typescript-eslint/no-require-imports
+window.$ = window.jQuery = require("jquery");
 window.alert = jest.fn(); // Mocking alert function

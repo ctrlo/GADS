@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component'
 import { logging } from 'logging'
 import { initValidationOnField } from 'validation'

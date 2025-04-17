@@ -32,7 +32,7 @@ class FileComponent {
         const dropTarget = this.el.closest('.file-upload');
         if (dropTarget) {
             const dragOptions = { allowMultiple: false };
-            (dropTarget as any).filedrag(dragOptions).on('onFileDrop', (ev: any, file: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+            (dropTarget as any).filedrag(dragOptions).on('onFileDrop', (ev: any, file: any) => {
                 this.handleFormUpload(file);
             });
         } else {

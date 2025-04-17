@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-namespace */
 /// <reference types="cypress" />
 
 import { IBuildable } from "./builders/layout/interfaces";

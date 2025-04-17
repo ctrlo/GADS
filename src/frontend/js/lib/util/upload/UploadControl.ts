@@ -15,10 +15,10 @@ type RequestMethod = "PUT" | "POST" | "GET" | "DELETE" | "PATCH";
  */
 type XmlHttpRequestLike = {
     open: (method: string, url: string) => void,
-    onabort?: ((this: XMLHttpRequest, ev: ProgressEvent) => any) | null, // eslint-disable-line @typescript-eslint/no-explicit-any
-    onerror?: ((this: XMLHttpRequest, ev: ProgressEvent) => any) | null, // eslint-disable-line @typescript-eslint/no-explicit-any
+    onabort?: ((this: XMLHttpRequest, ev: ProgressEvent) => any) | null,
+    onerror?: ((this: XMLHttpRequest, ev: ProgressEvent) => any) | null,
     onprogress?: ((e: ProgressEvent) => void) | null,
-    onreadystatechange: ((this: XMLHttpRequest, ev: Event) => any) | null, // eslint-disable-line @typescript-eslint/no-explicit-any
+    onreadystatechange: ((this: XMLHttpRequest, ev: Event) => any) | null,
     send: (data?: Document | XMLHttpRequestBodyInit | null | undefined) => void,
     setRequestHeader: (header: string, value: string) => void,
     readyState: number,

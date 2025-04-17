@@ -90,7 +90,6 @@ function App(props: AppProps) {
   }
 
   const deleteActiveWidget = () => {
-    // eslint-disable-next-line no-alert
     if (!window.confirm("Deleting a widget is permanent! Are you sure?"))
       return
 
@@ -103,7 +102,6 @@ function App(props: AppProps) {
     event.preventDefault();
     const formEl = formRef.current.querySelector("form");
     if (!formEl) {
-      // eslint-disable-next-line no-console
       console.error("No form element was found!");
       return;
     }
@@ -147,7 +145,6 @@ function App(props: AppProps) {
     return { x, y };
   }
 
-  // eslint-disable-next-line no-unused-vars
   const addWidget = async (type) => {
     setLoading(true);
     const result = await props.api.createWidget(type)

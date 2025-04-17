@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-this-alias */
 import ModalComponent from '../../../lib/component'
 import { setFieldValues } from "set-field-values"
 import { initializeRegisteredComponents } from 'component'

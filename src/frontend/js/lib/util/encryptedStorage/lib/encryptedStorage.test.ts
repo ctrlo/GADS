@@ -49,7 +49,6 @@ describe('EncryptedStorage', () => {
 
     beforeEach(() => {
         setupCrypto();
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         encryptedStorageMock = new EncryptedStorage((data: string, key: string) => Promise.resolve(data), (data: string, key: string) => Promise.resolve(data), new TestStorage());
     });
 

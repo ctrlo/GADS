@@ -15,8 +15,6 @@
   }
 }
 
-/* stylelint-disable selector-no-qualifying-type */
-
 /* Necessary to overrule default styling */
 table.dataTable {
   // Replace the collapse control with an arrow
@@ -103,8 +101,6 @@ table.dataTable {
   tbody tr > td {
     line-height: 17px; // Makes each row 50px high
   }
-
-  /* stylelint-disable declaration-no-important */
 
   /* Necessary to overrule default styling */
   tbody tr.odd + tr.child:hover {

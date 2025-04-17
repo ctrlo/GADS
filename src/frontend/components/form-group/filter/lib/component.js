@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component'
 import 'jQuery-QueryBuilder'
 import 'bootstrap-select/dist/js/bootstrap-select'

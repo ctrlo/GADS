@@ -1,7 +1,5 @@
 .dataTables_scrollBody:has(.table-toggle) {
-  @include media-breakpoint-down(md) {
-    /* stylelint-disable-next-line declaration-no-important */
-    height: auto !important;
+  @include media-breakpoint-down(md) {    height: auto !important;
   }
 }
 

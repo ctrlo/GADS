@@ -48,7 +48,6 @@ $fonts-path: "../../fonts" !default;
 %icon-font {
   // From https://github.com/FortAwesome/Font-Awesome/blob/master/scss/_core.scss
   display: inline-block;
-  /* stylelint-disable-next-line font-family-no-missing-generic-family-keyword */
   font: normal normal normal 14px/1 'linkspace-font'; // shortening font declaration
   font-size: inherit; // can't have font-size inherit on line above, so need to override
   text-rendering: auto; // optimizelegibility throws things off #1094
