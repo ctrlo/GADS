@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component'
 import { logging } from 'logging'
+import { fromJson } from 'util/common'
 import { initValidationOnField } from 'validation'
 
   /*
@@ -536,7 +537,8 @@ class SelectWidgetComponent extends Component {
       }
     })
       .fail(function(jqXHR, textStatus, textError) {
-        const errorMessage = "Oops! Something went wrong."
+        const response = jqXHR.responseJSON;
+        const errorMessage = response ? fromJson(response).message : "Oops! Something went wrong."
         logging.error(
           "Failed to make request to " +
             url +
