@@ -2,6 +2,17 @@
 
 -------
 
+**Version**: 2.6.5
+**Released**: 06-05-2025
+
+-------
+
+## Fixes
+
+- Rolled back error causing filter typeaheads not to render correctly
+
+-------
+
 **Version**: 2.6.4
 **Released**: 14-04-2025
 
