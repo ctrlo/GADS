@@ -2,6 +2,17 @@
 
 -------
 
+**Version**: 2.6.6
+**Released**: 12-05-2025
+
+-------
+
+## Fixes
+
+- Centre loading spinner in table view
+
+-------
+
 **Version**: 2.6.5
 **Released**: 06-05-2025
 
