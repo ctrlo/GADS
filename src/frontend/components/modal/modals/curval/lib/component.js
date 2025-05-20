@@ -4,9 +4,8 @@ import { setFieldValues } from "set-field-values"
 import { guid as Guid } from "guid"
 import { initializeRegisteredComponents } from 'component'
 import { validateRadioGroup, validateCheckboxGroup } from 'validation'
-import { fromJson, urlDataToJson } from 'util/common'
+import { fromJson } from 'util/common'
 import StorageProvider from 'util/storageProvider'
-import { formdataMapper } from 'util/mapper/formdataMapper'
 
 class CurvalModalComponent extends ModalComponent {
 
@@ -306,17 +305,9 @@ class CurvalModalComponent extends ModalComponent {
       const self = this
       $m.find(".modal-body").text("Loading...")
 
-      const jsonData = {
-        csrf_token: $('body').data("csrf"),
-        include_draft: true,
-        ...urlDataToJson(form_data)
-      };
-
-      const body = formdataMapper(jsonData);
-
       fetch(this.getURL(current_id, instance_name, layout_id), {
         method: 'POST',
-        body
+        body: form_data,
       })
         .then((response)=>response.text())
         .then((text) => $m.find(".modal-body").html(text))
@@ -348,7 +339,7 @@ class CurvalModalComponent extends ModalComponent {
       ? `/record/${current_id}`
       : `/${instance_name}/record/`
 
-    url += `?csrf-token=${$('body').data("csrf")}&modal=${layout_id}`
+    url += `?csrf-token=${$('body').data("csrf")}&modal=${layout_id}&include_draft=1`
     return url
   }
 

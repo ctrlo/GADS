@@ -87,36 +87,4 @@ describe('common functions', () => {
             expect(parsed).toEqual({});
         });
     });
-
-    describe("urlDataToJson", () => {
-        it("parses a URL query string into a JSON object", () => {
-            const data = "foo=bar&baz=qux";
-            const json = urlDataToJson(data);
-            expect(json).toEqual({ foo: "bar", baz: "qux" });
-        });
-
-        it("handles empty strings", () => {
-            const data = "";
-            const json = urlDataToJson(data);
-            expect(json).toEqual({});
-        });
-
-        it("handles single key-value pairs", () => {
-            const data = "foo=bar";
-            const json = urlDataToJson(data);
-            expect(json).toEqual({ foo: "bar" });
-        });
-
-        it("handles keys without values", () => {
-            const data = "foo&baz=qux";
-            const json = urlDataToJson(data);
-            expect(json).toEqual({ foo: "1", baz: "qux" });
-        });
-
-        it("handles URL-encoded characters", () => {
-            const data = "foo%20bar=baz%20qux";
-            const json = urlDataToJson(data);
-            expect(json).toEqual({ "foo bar": "baz qux" });
-        });
-    });
 });
