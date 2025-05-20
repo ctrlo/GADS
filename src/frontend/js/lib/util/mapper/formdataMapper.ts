@@ -11,6 +11,7 @@ export const formdataMapper = <T>(data: FormData | T) => {
     if(data instanceof Object && Object.keys(data).length === 0) throw new Error("Cannot map an empty object");
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
+        console.log("Adding to formData", key, value);
         formData.append(key, value);
     });
     return formData;

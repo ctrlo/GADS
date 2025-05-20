@@ -4,8 +4,9 @@ import { setFieldValues } from "set-field-values"
 import { guid as Guid } from "guid"
 import { initializeRegisteredComponents } from 'component'
 import { validateRadioGroup, validateCheckboxGroup } from 'validation'
-import { fromJson } from 'util/common'
+import { fromJson, urlDataToJson } from 'util/common'
 import StorageProvider from 'util/storageProvider'
+import { formdataMapper } from 'util/mapper/formdataMapper'
 
 class CurvalModalComponent extends ModalComponent {
 
@@ -305,15 +306,26 @@ class CurvalModalComponent extends ModalComponent {
       const self = this
       $m.find(".modal-body").text("Loading...")
 
-      $m.find(".modal-body").load(
-        this.getURL(current_id, instance_name, layout_id, form_data),
-        function() {
+      const jsonData = {
+        csrf_token: $('body').data("csrf"),
+        include_draft: true,
+        ...urlDataToJson(form_data)
+      };
+
+      const body = formdataMapper(jsonData);
+
+      fetch(this.getURL(current_id, instance_name, layout_id), {
+        method: 'POST',
+        body
+      })
+        .then((response)=>response.text())
+        .then((text) => $m.find(".modal-body").html(text))
+        .then(() => {
           if (mode === "edit") {
-            $m.find("form").data("guid", guid)
+            $m.find("form").data("guid", guid);
           }
-          initializeRegisteredComponents(self.element)
-        }
-      )
+          initializeRegisteredComponents(self.element);
+        });
 
       $m.on("focus", ".datepicker", function() {
         $(this).datepicker({
@@ -330,14 +342,13 @@ class CurvalModalComponent extends ModalComponent {
 
   }
 
-  getURL(current_id, instance_name, layout_id, form_data) {
+  getURL(current_id, instance_name, layout_id) {
 
     let url = current_id
       ? `/record/${current_id}`
       : `/${instance_name}/record/`
 
-    url = `${url}?include_draft&modal=${layout_id}`
-    if (form_data) url = url + `&${form_data}`
+    url += `?csrf-token=${$('body').data("csrf")}&modal=${layout_id}`
     return url
   }
 
