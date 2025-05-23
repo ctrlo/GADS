@@ -339,7 +339,7 @@ class CurvalModalComponent extends ModalComponent {
       ? `/record/${current_id}`
       : `/${instance_name}/record/`
 
-    url += `?csrf-token=${$('body').data("csrf")}&modal=${layout_id}&include_draft=1`
+    url += `?modal=${layout_id}&include_draft=1`
     return url
   }
 

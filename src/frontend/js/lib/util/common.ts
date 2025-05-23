@@ -1,8 +1,3 @@
-export const isDefined = <T>(value: unknown): value is T => value !== undefined && value !== null;
-export const isString = (value: unknown): value is string => isDefined(value) && typeof value === 'string';
-export const isNotEmptyString = (value: unknown): value is string => isString(value) && value.trim() !== '';
-export const isEmptyString = (value: unknown): value is string => isString(value) && value.trim() === '';
-
 export const hideElement = (element: HTMLElement | JQuery<HTMLElement>) => {
     const $el = $(element);
     if ($el.hasClass('hidden')) return;

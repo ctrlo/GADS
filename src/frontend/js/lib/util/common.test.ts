@@ -1,5 +1,5 @@
 import "../../../testing/globals.definitions";
-import { fromJson, hideElement, showElement, urlDataToJson } from "./common";
+import { fromJson, hideElement, showElement } from "./common";
 
 describe('common functions', () => {
     describe.skip('CSS and ARIA - skipped as they are incorrect',()=>{
