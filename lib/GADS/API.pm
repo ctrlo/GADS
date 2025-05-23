@@ -332,7 +332,8 @@ post '/api/token' => sub {
     # RFC6749 says try auth header first, then fall back to body params
     if (my $auth = request->header('authorization'))
     {
-        if (my ($encoded) = split 'Basic ', $auth)
+        #Originally, this would only give a blank string when not used with API client as we were only using the first half of the split string
+        if (my $encoded = (split('Basic ', $auth))[1])
         {
             if (my $decoded = decode_base64 $encoded)
             {
