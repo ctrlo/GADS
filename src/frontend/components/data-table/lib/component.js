@@ -578,7 +578,7 @@ class DataTableComponent extends Component {
       $.extend(conf, overrides)
     }
 
-    if (conf.layout.topEnd) {
+    if (conf && conf.layout && conf.layout.topEnd) {
       if (Array.isArray(conf.layout.topEnd)) {
         conf.layout.topEnd.push({ fullscreen: { checked: this.isFullScreen, onToggle: (ev) => this.toggleFullScreenMode(ev) } })
       }

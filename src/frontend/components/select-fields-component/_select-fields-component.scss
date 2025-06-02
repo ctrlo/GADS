@@ -1,0 +1,74 @@
+#availableSearch {
+    @extend .m-0;
+    @extend .mb-2;
+}
+
+#selectedFields {
+    margin-top: 3.6rem;
+}
+
+.field-container {
+    @extend .border;
+    @extend .rounded;
+    @extend .p-2;
+    min-height: 20rem;
+    max-height: 20rem;
+    overflow-y: auto;
+}
+
+.select-item {
+    @extend .border-bottom;
+    @extend .px-1;
+    @extend .py-2;
+    @extend .d-flex;
+    @extend .align-items-center;
+    @extend .justify-content-between;
+
+    &:last-of-type {
+        @extend .border-0;
+    }
+
+    &:nth-child(odd) {
+        @extend .bg-light;
+    }
+
+    &::before {
+        @extend %icon-font;
+        @extend .text-success;
+        @extend .me-2;
+        content: quote("\e804");
+    }
+
+    &.selected {
+        &::before {
+            content: none;
+        }
+
+        &::after {
+            @extend %icon-font;
+            @extend .text-danger;
+            @extend .ms-2;
+            content: quote("\e807");
+        }
+    }
+}
+
+.select-all,
+.deselect-all {
+    @extend .btn;
+    @extend .btn-primary;
+    @extend .mb-2;
+    @extend .mt-2;
+}
+
+.select-all {
+    @extend .btn-add;
+}
+
+.deselect-all {
+    &::before {
+        @extend %icon-font;
+        @extend .me-2;
+        content: quote("\e82b");
+    }
+}

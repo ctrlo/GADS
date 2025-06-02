@@ -17,7 +17,7 @@ describe('Util Tests', () => {
     }, {
         value: 'test',
         expected: true
-    }]
+    }];
 
     for (const { value, expected } of testValues) {
         it(`should return ${expected} for ${value} when using isDefined`, () => {

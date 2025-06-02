@@ -413,156 +413,32 @@
                                 </fieldset>
                               </div>
                             </div>
-                            <div class="row">
-                              [%
-                                fields_available = [];
-                                fields_selected  = [];
-
-                                row_height = 50;
-
-                                # Calculate height needed for the table
-                                table_height = layout.all_user_read.size * row_height;
-
-                                # Height of each table should be max 10 rows
-                                IF table_height > 10 * row_height;
-                                table_height = 10 * row_height;
-                                END;
-
-                                # Compensate 1px border to prevent scroll bar from appearing
-                                table_height = table_height + 1;
-
-                                FOREACH column IN layout.all_user_read;
-                                  id = column.id;
-                                  is_selected = view_edit.columns.grep("^$id\$").size;
-
-                                  selected_field_row = {
-                                    id = "selected-field-" _ column.id
-                                    data_attributes = [{
-                                      name => 'toggle-field-id-selector'
-                                      value => '#available-field-'
-                                    }, {
-                                      name => 'toggle-field-id'
-                                      value => column.id
-                                    }, {
-                                      name => 'field-is-toggled',
-                                      value => is_selected ? 'true' : 'false'
-                                    }]
-                                    fields = [{
-                                      type   = "text"
-                                      label  = column.name
-                                      sub_field       = "fields/sub/checkbox.tt"
-                                      sub_params      = {
-                                        autofocus     => 0
-                                        checked       => is_selected ? 1 : 0
-                                        filter        => "html"
-                                        input_class   => "invisible"
-                                        is_required   => 0
-                                        label         => column.name
-                                        label_in_span => 1
-                                        name          => "column"
-                                        order         => loop.index()
-                                        value         => column.id
-                                      }
-                                    }]
-                                  };
-
-                                  available_field_row = {
-                                    id = "available-field-" _ column.id
-                                    data_attributes = [{
-                                      name => 'toggle-field-id-selector'
-                                      value => '#selected-field-'
-                                    }, {
-                                      name => 'toggle-field-id'
-                                      value => column.id
-                                    }, {
-                                      name => 'field-is-toggled',
-                                      value => is_selected ? 'false' : 'true'
-                                    }]
-                                    fields = [{
-                                      type  = "text"
-                                      label = column.name
-                                    }]
-                                  };
-
-                                  fields_selected.push(selected_field_row);
-                                  fields_available.push(available_field_row);
-                                END;
-                              %]
-
-                              <!-- Selected fields -->
-                              <div class="col-sm-12 col-lg-6">
-                                [%
-                                  INCLUDE tables/basic_table.tt
-
-                                  # Table configuration
-                                  table_id = "table-view-fields-selected"
-                                  table_class = 'table--bordered table-hover table-toggle table-toggle--remove'
-                                  table_caption = "Table with selected fields in view"
-                                  table_columns = [{
-                                    name = "Fields in view",
-                                    orderable = 0,
-                                    data = "string",
-                                    class = "check"
-                                  }]
-                                  table_info = 0
-                                  table_language = {
-                                    emptyTable => "Please add fields here...",
-                                  }
-                                  table_ordering = 0
-                                  table_paging = 0
-                                  table_scroll_y = table_height
-                                  table_show_all_records = 1
-                                  table_destination = "#table-view-fields-available"
-                                  table_unresponsive = 1
-                                  rows = fields_selected
-                                %]
-
-                                <button
-                                  class="btn btn-default btn-small btn-remove btn-js-toggle-all-fields"
-                                  data-bs-toggle-source="#table-view-fields-selected"
-                                  data-bs-toggle-destination="#table-view-fields-available">
-                                    Remove all fields
-                                </button>
-                              </div>
-
-                              <!-- Available fields -->
-                              <div class="col-sm-12 col-lg-6">
-                                [%
-                                  INCLUDE tables/basic_table.tt
-
-                                  # Table configuration
-                                  table_id = "table-view-fields-available"
-                                  table_class = 'table--bordered table-hover table-toggle table-toggle--add table-search'
-                                  table_caption = "Table to select fields in view"
-                                  table_columns = [{
-                                    name = "Available fields",
-                                    orderable = 0,
-                                    data = "string",
-                                    class = "check"
-                                  }]
-                                  table_info = 0
-                                  table_language = {
-                                    emptyTable => "No available fields",
-                                    search => "<span class=\"visually-hidden\">Search available fields:</span>",
-                                    searchPlaceholder => "Search available fields"
-                                  }
-                                  table_ordering = 0
-                                  table_paging = 0
-                                  table_scroll_y = table_height
-                                  table_show_all_records = 1
-                                  table_destination = "#table-view-fields-selected"
-                                  table_unresponsive = 1
-                                  rows = fields_available
-                                  table_layout = { top = "search" }
-                                %]
-                                <button
-                                  class="btn btn-default btn-small btn-add btn-js-toggle-all-fields"
-                                  data-bs-toggle-source="#table-view-fields-available"
-                                  data-bs-toggle-destination="#table-view-fields-selected">
-                                    Select all fields
-                                </button>
-                              </div>
-
+                              <div class="select-fields-component row">
+                                <div class="col-md-6 col-sm-12">
+                                  <h3>Selected Fields</h3>
+                                  <div id="selectedFields" class="field-container">
+                                  </div>
+                                  <button class="deselect-all" type="button">Deselect All</button>
+                                </div>
+                                <div class="col-md-6 col-sm-12">
+                                  <h3>Available Fields</h3>
+                                  <div class="form-group mb-3 mt-3">
+                                    <label for="availableSearch" class="visually-hidden">Search:</label><input type="search" id="availableSearch" placeholder="Search available fields" class="form-control">
+                                    <div id="availableFields" class="field-container">
+                                    </div>
+                                    <button class="select-all" type="button">Select All</button>
+                                  </div>
+                                </div>
+                                <div class="visually-hidden">
+                                  [% FOREACH column IN layout.all_user_read;
+                                      id = column.id;
+                                      is_selected = view_edit.columns.grep("^$id\$").size; %]
+                                      <div class="form-group">
+                                        <input type="checkbox" name="column" value="[% id %]" id="input_[% id %]"[% IF is_selected %] checked="checked"[% END %]>
+                                        <label for="input_[% id %]" class="form-label">[% column.name %]</label>
+                                      </div>
+                                  [% END %]
+                                </div>
                             </div>
                           </div>
                         </div>

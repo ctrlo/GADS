@@ -29,7 +29,7 @@ describe('Field Tests', () => {
         input.type = 'checkbox';
         input.value = '';
         
-        expect(() => Field.createField(input)).toThrow("Field ID is not defined or empty");
+        expect(() => Field.createField(input)).toThrow('Field ID is not defined or empty');
     });
 
     it('should throw an error if field label is not defined or empty', () => {
@@ -38,6 +38,6 @@ describe('Field Tests', () => {
         input.value = '2';
         input.id = 'field2';
         
-        expect(() => Field.createField(input)).toThrow("Field label is not defined or empty");
+        expect(() => Field.createField(input)).toThrow('Field label is not defined or empty');
     });
 });
