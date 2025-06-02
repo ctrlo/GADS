@@ -1,7 +1,6 @@
 [%
   # prepare table config
-  table_class    = 'table-striped table-hover';
-  table_dom      = '<"row row--header"<"col"f><"col-lg-auto dataTables_length_wrapper"l>><"row row--main"<"col-sm-12"tr>><"row row--footer"<"col-sm-12 col-lg-6"p><"col-sm-12 col-lg-6 dataTables_info_wrapper"i>>';
+  table_class    = 'table-striped table-hover datatables-no-header-search';
   table_language = {
     emptyTable => "There is no data available in this table",
     lengthMenu => "Rows per page _MENU_",
@@ -17,6 +16,13 @@
   table_save_state   = 1;
   table_unresponsive = 0;
   table_caption      = "Table to show list of users";
+  table_layout       = {
+    topStart    = undef,
+    topEnd      = undef,
+    top         = ["search", "pageLength"],
+    bottomStart = "paging",
+    bottomEnd   = "info"
+  };
 
   table_columns = [{
     name      = "ID"

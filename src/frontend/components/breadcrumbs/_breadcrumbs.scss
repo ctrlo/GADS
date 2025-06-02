@@ -3,7 +3,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: $padding-small-horizontal;
-  font-size: $font-size-sm;
+  @include font-size($font-size-sm);
 
   .link {
     display: flex;
@@ -27,7 +27,7 @@
     content: "\E805";
     margin-right: 4px;
     transform: rotate(180deg);
-    font-size: $font-size-xsm;
+    @include font-size($font-size-xsm);
   }
 }
 
@@ -64,6 +64,6 @@
   .breadcrumbs__divider::after {
     content: "\E805";
     display: block;
-    font-size: 8px;
+    @include font-size(8px);
   }
 }

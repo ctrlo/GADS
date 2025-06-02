@@ -13,9 +13,11 @@
       </div>
       <div class="content-block__main-content">
         <div class="card card-primary mb-3">
-          <h4 class="card__title">
-            <span> Table permissions </span>
-          </h4>
+          <div class="card-header">
+            <h4 class="card__title">
+              <span> Table permissions </span>
+            </h4>
+          </div>
           <div class="card-body">
             <div class="card__content">
               <p>Here you can set the table actions available to each user group.</p>
@@ -23,15 +25,19 @@
               <div class="row mb-3 permission-group" data-group-id="[% group.id %]">
                 <div class="col">
                   <div class="card card--expandable">
-                    <div class="card-header" data-bs-toggle="collapse" data-bs-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]" role="button">
+                    <div class="card-header">
+                      <div class="card-header__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]" role="button">
                         <span class="card__title">
                           Group&nbsp;
                           <span class="card__subtitle">
                             [% group.name | html %]
                           </span>
                         </span>
-                      <div class="card__header-right card__toggle">
-                         <span>Toggle collapsible</span>
+                      </div>
+                      <div class="card__header-right">
+                        <span class="card__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]" role="button">
+                          <span>Toggle collapsible</span>
+                        </span>
                       </div>
                     </div>
                     <div class="collapse" id="group_permissions_[% group.id %]">

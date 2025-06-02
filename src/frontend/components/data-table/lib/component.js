@@ -1,6 +1,5 @@
 import { Component, initializeRegisteredComponents } from 'component'
 import 'datatables.net-bs5'
-import 'datatables.net-buttons-bs5'
 import 'datatables.net-responsive-bs5'
 import 'datatables.net-rowreorder-bs5'
 import './DataTablesPlugins'
@@ -8,7 +7,7 @@ import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/
 import { moreLess } from 'components/more-less/lib/more-less'
 import { bindToggleTableClickHandlers } from './toggle-table'
 import { createElement } from "util/domutils";
-import { logging } from 'logging'
+import { Config } from 'datatables.net-bs5'
 
 const MORE_LESS_TRESHOLD = 50
 
@@ -26,10 +25,11 @@ class DataTableComponent extends Component {
     this.hasCheckboxes = this.el.hasClass('table-selectable')
     this.hasClearState = this.el.hasClass('table-clear-state')
     this.forceButtons = this.el.hasClass('table-force-buttons')
-    this.fullTable = this.el.hasClass('dt-table-full')
+    this.hasSearch = this.el.hasClass('table-search')
     this.searchParams = new URLSearchParams(window.location.search)
     this.base_url = this.el.data('href') ? this.el.data('href') : undefined
     this.isFullScreen = false
+    this.initializingTable = true
 
     this.initTable()
   }
@@ -52,7 +52,7 @@ class DataTableComponent extends Component {
     const conf = this.getConf()
     const { columns } = conf
     this.columns = columns
-    this.el.DataTable(conf)
+    const dt = this.el.DataTable(conf)
 
     $(window).on('resize', () => {
       this.el.DataTable().responsive.recalc()
@@ -88,7 +88,7 @@ class DataTableComponent extends Component {
           });
         });
       }
-    })
+    });
   }
 
   /**
@@ -198,6 +198,7 @@ class DataTableComponent extends Component {
    * Get the checkbox element
    * @param {string} id The ID of the checkbox
    * @param {string} label The label for the checkbox
+   * @returns {string} The element HTML
    */
   getCheckboxElement(id, label) {
     return (
@@ -272,27 +273,6 @@ class DataTableComponent extends Component {
   }
 
   /**
-   * Add a sort button to the datatable column
-   * @param {*} dataTable The datatable to add the button to
-   * @param {*} column The column to add the button to
-   * @param {*} headerContent The content of the header in the column
-   */
-  addSortButton(dataTable, column, headerContent) {
-    const $header = $(column.header())
-    const $button = $(`
-      <div class="data-table__sort" type="button">
-        <span>${headerContent}</span>
-      </div>`
-    )
-
-    $header
-      .off()
-      .find('.data-table__header-wrapper').html($button)
-
-    dataTable.order.listener($button, column.index())
-  }
-
-  /**
    * Toggle filtering on a column
    * @param {*} column The column to toggle filtering on
    */
@@ -309,148 +289,9 @@ class DataTableComponent extends Component {
   }
 
   /**
-   * Add a search dropdown to a column
-   * @param {*} column The column to add the dropdown to
-   * @param {*} id The ID of the dropdown
-   * @param {*} index The index of the dropdown
-   */
-  async addSearchDropdown(column, id, index) {
-    const $header = $(column.header())
-    const title = $header.text().trim()
-    const searchValue = column.search()
-    const self = this
-    const { context } = column;
-    const { oAjaxData } = context[0];
-    const columns = context[0].aoColumns || oAjaxData.columns;
-    const columnId = columns[column.index()].name ?? columns[column.index()].sTitle;
-    const col = this.columns[column.index()];
-
-    const $searchElement = $(
-      `<div class='data-table__search'>
-        <button
-          class='btn btn-search dropdown-toggle'
-          id='search-toggle-${index}'
-          type='button'
-          data-bs-toggle='dropdown'
-          aria-expanded='false'
-          data-boundary='viewport'
-          data-reference='parent'
-          data-bs-target="[data-ddl='ddl_${index}']"
-          data-focus="[data-ddl='ddl_${index}']"
-        >
-          <span class="visually-hidden">Search in ${title}</span>
-        </button>
-        <div class='dropdown-menu p-2' aria-labelledby='search-toggle-${index}'>
-          <label class="form-label">
-            <div class='input'>
-            </div>
-          </label>
-          <button type='button' class='btn btn-link btn-small data-table__clear hidden'>
-            <span class="visually-hidden">Clear filter</span>
-          </button>
-        </div>
-      </div>`
-    )
-
-    /* Construct search box for filtering. If the filter has a typeahead and if
-     * it uses an ID rather than text, then add a second (hidden) input field
-     * to store the ID. If we already have a stored search value for the
-     * column, then if it's an ID we will need to look up the textual value for
-     * insertion into the visible input */
-    const $searchInput = $(`<input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>`)
-    $searchInput.appendTo($('.input', $searchElement))
-    if (col.typeahead_use_id) {
-      $searchInput.after(`<input type="hidden" class="search">`)
-      if (searchValue) {
-        const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1')
-        const data = await response.json()
-        if (!data.error) {
-          if (data.records.length != 0) {
-            $searchInput.val(data.records[0].label)
-            $('input.search', $searchElement).val(data.records[0].id).trigger('change')
-          }
-        }
-      }
-    } else {
-      $('input', $searchElement).addClass('search')
-    }
-
-    $header.find('.data-table__header-wrapper').prepend($searchElement)
-
-    this.toggleFilter(column)
-
-    if (col && col.typeahead) {
-      import(/*webpackChunkName: "typeahead" */ "util/typeahead")
-        .then(({ default: TypeaheadBuilder }) => {
-          const builder = new TypeaheadBuilder();
-          builder
-            .withAjaxSource(this.getApiEndpoint(columnId))
-            .withInput($('input', $header))
-            .withAppendQuery()
-            .withDefaultMapper()
-            .withName(columnId.replace(/\s+/g, '') + 'Search')
-            .withCallback((data) => {
-              if (col.typeahead_use_id) {
-                $searchInput.val(data.name);
-                $('input.search', $searchElement).val(data.id).trigger('change');
-              } else {
-                $('input', $searchElement).addClass('search').val(data.name).trigger('change');
-              }
-            })
-            .build();
-        });
-    }
-
-    // Apply the search
-    $('input.search', $header).on('change', function (ev) {
-      let value = this.value || ev.target.value;
-      if (column.search() !== value) {
-        column
-          .search(value)
-          .draw()
-      }
-
-      self.toggleFilter(column)
-
-      // Update or add the filter to the searchParams
-      self.searchParams.has(id) ?
-        self.searchParams.set(id, this.value) :
-        self.searchParams.append(id, this.value)
-
-      // Update URL. Do not reload otherwise the data is fetched twice (already
-      // redrawn in the previous statement)
-      const url = `${window.location.href.split('?')[0]}?${self.searchParams.toString()}`
-      window.history.replaceState(null, '', url);
-    })
-
-    // Clear the search
-    $('.data-table__clear', $header).on('click', function () {
-      $(this).closest('.dropdown-menu').find('input').val('')
-      column
-        .search('')
-        .draw()
-
-      self.toggleFilter(column)
-
-      // Delete the filter from the searchparams and update and reload the url
-      if (self.searchParams.has(id)) {
-        self.searchParams.delete(id)
-        let url = `${window.location.href.split('?')[0]}`
-
-        if (self.searchParams.entries().next().value !== undefined) {
-          url += `?${self.searchParams.toString()}`
-        }
-
-        // Update URL. See comment above about the same
-        window.history.replaceState(null, '', url);
-      }
-    })
-  }
-
-  /**
    * Get the API endpoint for searches
    * @param {*} columnId The ID of the column to get the API endpoint for
-   * @returns The API endpoint
+   * @returns {string} The API endpoint
    */
   getApiEndpoint(columnId) {
     const table = $("body").data("layout-identifier");
@@ -460,7 +301,7 @@ class DataTableComponent extends Component {
   /**
    * Encode HTML entities in a string
    * @param {string} text The text to encode
-   * @returns A string with HTML entities encoded
+   * @returns {string} A string with HTML entities encoded
    */
   encodeHTMLEntities(text) {
     return $("<textarea/>").text(text).html();
@@ -486,7 +327,7 @@ class DataTableComponent extends Component {
   /**
    * Render default data types
    * @param {*} data The data to render
-   * @returns An HTML representation of the data as it should be rendered
+   * @returns {string} An HTML representation of the data as it should be rendered
    */
   renderDefault(data) {
     let strHTML = ''
@@ -506,7 +347,7 @@ class DataTableComponent extends Component {
   /**
    * Render an ID field
    * @param {*} data The data to render
-   * @returns An HTML representation of the data as it should be rendered
+   * @returns {string} An HTML representation of the data as it should be rendered
    */
   renderId(data) {
     let retval = ''
@@ -521,7 +362,7 @@ class DataTableComponent extends Component {
   /**
    * Render a person field
    * @param {*} data The data to render
-   * @returns An HTML representation of the data as it should be rendered
+   * @returns {string} An HTML representation of the data as it should be rendered
    */
   renderPerson(data) {
     let strHTML = ''
@@ -559,7 +400,7 @@ class DataTableComponent extends Component {
   /**
    * Render a file datum
    * @param {*} data The data to render
-   * @returns The HTML representation of the data as it should be rendered
+   * @returns {string} The HTML representation of the data as it should be rendered
    */
   renderFile(data) {
     let strHTML = ''
@@ -584,7 +425,7 @@ class DataTableComponent extends Component {
   /**
    * Render a RAG (Red, Amber, Green) datum
    * @param {*} data The data to render
-   * @returns The HTML representation of the data as it should be rendered
+   * @returns {string} The HTML representation of the data as it should be rendered
    */
   renderRag(data) {
     let strRagType;
@@ -614,7 +455,7 @@ class DataTableComponent extends Component {
   /**
    * Render a curval datum
    * @param {*} data The data to render
-   * @returns An HTML representation of the data as it should be rendered
+   * @returns {string} An HTML representation of the data as it should be rendered
    */
   renderCurCommon(data) {
     let strHTML = ''
@@ -630,7 +471,7 @@ class DataTableComponent extends Component {
   /**
    * Render a curval table
    * @param {*} data The data to render
-   * @returns An HTML representation of the data as it should be rendered
+   * @returns {string} An HTML representation of the data as it should be rendered
    */
   renderCurCommonTable(data) {
     let strHTML = ''
@@ -676,7 +517,7 @@ class DataTableComponent extends Component {
   /**
    * Render data according to it's datatype
    * @param {*} data The data to render
-   * @returns An HTML representation of the data as it should be rendered
+   * @returns {string} An HTML representation of the data as it should be rendered
    */
   renderDataType(data) {
     switch (data.type) {
@@ -703,7 +544,7 @@ class DataTableComponent extends Component {
    * @param {*} type The datatype (unused)
    * @param {*} row The row to render the data on
    * @param {*} meta The row metadata
-   * @returns An HTML representation of the data as it should be rendered
+   * @returns {string} An HTML representation of the data as it should be rendered
    */
   renderData(type, row, meta) {
     const strColumnName = meta ? meta.settings.oAjaxData.columns[meta.col].name : ""
@@ -718,51 +559,36 @@ class DataTableComponent extends Component {
 
   /**
    * Get the datatable configuration
-   * @param {*} overrides Any overrides for the configuration
-   * @returns A configuration object for the datatable
+   * @param { Config } overrides Any overrides for the configuration
+   * @returns { Config } A configuration object for the datatable
    */
   getConf(overrides = undefined) {
     const confData = this.el.data('config')
     let conf = {}
 
-    if (typeof confData === 'string') {
+    if (typeof confData == 'string') {
       conf = JSON.parse(atob(confData))
-    } else if (typeof confData === 'object') {
-      conf = confData
+    } else if (typeof confData == 'object') {
+      conf = confData;
+    } else {
+      throw new Error('DataTable data is of invalid type')
     }
 
     if (overrides) {
       $.extend(conf, overrides)
     }
 
-    // This is the new way of setting the table configuration in DataTables.net 2.0+
-    if (this.fullTable) {
-      conf.layout = {
-        topStart: 'search',
-        topEnd: {
-          pageLength: {
-            menu: [10, 25, 50, 100, 200],
-          },
-          fullscreen: {
-            checked: conf.fullscreen,
-            onToggle: (ev) => this.toggleFullScreenMode(ev)
-          }
-        },
-        bottomStart: "paging",
-        bottomEnd: "info"
-      }
-    } else {
-      conf.layout = {
-        topStart: null,
-        topEnd: this.forceButtons ? { fullscreen: { checked: conf.fullscreen, onToggle: (ev) => this.toggleFullScreenMode(ev) } } : null,
-        bottomStart: null,
-        bottomEnd: null
+    if (conf.layout.topEnd) {
+      if (Array.isArray(conf.layout.topEnd)) {
+        conf.layout.topEnd.push({ fullscreen: { checked: this.isFullScreen, onToggle: (ev) => this.toggleFullScreenMode(ev) } })
       }
     }
 
-    conf.columns.forEach((column) => {
-      column.orderable = column.orderable === 1
-    });
+    if ("columns" in conf || conf.columns) {
+      conf.columns.forEach((column) => {
+        column.orderable = column.orderable === 1
+      });
+    }
 
     if (conf.serverSide) {
       conf.columns.forEach((column) => {
@@ -772,50 +598,100 @@ class DataTableComponent extends Component {
 
     const self = this;
 
-    conf['initComplete'] = (settings, json) => {
-      const tableElement = this.el
-      const dataTable = tableElement.DataTable()
+    conf.initComplete = async function () {
+      if (self.el.hasClass('table-account-requests') || self.el.hasClass('datatables-no-header-search')) return;
+      if (!conf.serverSide) return;
+      const api = this.api();
+      const columns = api.columns();
+      if (self.initializingTable || conf.reinitialize) {
+        columns.every(async function () {
+          const column = this;
+          if ($(column.header()).hasClass('data-table__header--invisible')) return;
+          const index = column.index();
+          const $header = $(column.header());
+          const title = $header.text().trim();
+          const searchValue = column.search();
+          const col = self.columns[index];
+          const id = isNaN(col.name) ? 0 : parseInt(col.name);
 
-      this.json = json || undefined
+          const { context } = column;
+          const { oAjaxData } = context[0];
+          const { columns } = oAjaxData;
+          const columnId = columns[column.index()].name;
 
-      if (this.initializingTable || conf.reinitialize) {
-        dataTable.columns().every(function (index) {
-          const column = this
-          const $header = $(column.header())
+          const $searchElement = $(`
+          <div class"data-table__header">
+            ${self.hasSearch && `<div class="data-table__search">
+              <button 
+                  class="btn btn-search dropdown-toggle"
+                  id="search-toggle-${index}"
+                  type="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                  data-boundary="viewport"
+                  data-reference="parent"
+                  data-bs-target="[data-ddl='ddl-index-${index}']"
+                  data-focus="data-ddl='ddl-index-${index}'">
+                  <span class="visually-hidden">Search in ${title}</span>
+              </button>
+              <div class="dropdown-menu p2" aria-labelledby="search-toggle-1">
+                  <div class="input"></div>
+                  <button type='button' class='btn btn-link btn-small data-table__clear hidden'>
+                      <span>Clear filter</span>
+                  </button>
+              </div>
+          </div>` }
+          <div class="data-table__title">
+            <span class="dt-column-title">${title}</div>
+            <div class="data-table__sort"></div>
+          </div>
+        </div>
+        `)
 
-          const headerContent = $header.html()
-          $header.html(`<div class='data-table__header-wrapper position-relative ${column.search() ? 'filter' : ''}' data-ddl='ddl_${index}'>${headerContent}</div>`)
-
-          // Add sort button to column header
-          if ($header.hasClass('dt-orderable-asc') || $header.hasClass('dt-orderable-desc')) {
-            self.addSortButton(dataTable, column, headerContent)
+          const $searchInput = $(`<input class='form-control form-control-sm' type='search' placeholder='Search' ${typeof searchValue != 'undefined' ? 'value="' + searchValue + '"' : ''}/>`)
+          $searchInput.appendTo($('.input', $searchElement))
+          if (col.typeahead_use_id) {
+            $searchInput.after(`<input type="hidden" class="search">`)
+            if (searchValue) {
+              const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1')
+              const data = await response.json()
+              if (!data.error) {
+                if (data.records.length != 0) {
+                  $searchInput.val(data.records[0].label)
+                  $('input.search', $searchElement).val(data.records[0].id).trigger('change')
+                }
+              }
+            }
+          } else {
+            $('input', $searchElement).addClass('search')
           }
 
-          // Add button to column headers (only serverside tables)
-          if ((conf.serverSide) && (tableElement.hasClass('table-search'))) {
-            const id = settings.oAjaxData.columns[index].name
-
-            if (self.searchParams.has(id)) {
-              column.search(self.searchParams.get(id)).draw()
+          $('input.search', $searchElement).on('change clear', function (ev) {
+            let value = this.value || ev.target.value;
+            if (column.search !== value) {
+              column.search(value).draw();
             }
 
-            self.addSearchDropdown(column, id, index)
-          }
-          return true;
-        })
+            self.searchParams.has(id) ? this.value ? self.searchParams.set(id, this.value) : self.searchParams.delete(id) : self.searchParams.append(id, this.value);
 
-        // If the table has not wrapped (become responsive) then hide the "Full screen" toggle button
-        if (!this.el.hasClass("collapsed")) {
-          if (this.el.closest('.dataTables_wrapper').find('.btn-toggle-off').length) {
-            this.el.closest('.dataTables_wrapper').find('.dataTables_toggle_full_width').hide()
-          }
-        }
+            const searchParams = self.searchParams?.length ? '' : `?${self.searchParams.toString()}`
+            const url = searchParams || searchParams.length > 1 ? `${window.location.href.split("?")[0]}${searchParams}` : window.location.href.split("?")[0];
+            window.history.replaceState(null, '', url);
+          });
 
-        this.initializingTable = false
+          column.header().replaceChildren($searchElement[0]);
+
+          if ($header.hasClass('dt-orderable-asc') || $header.hasClass('dt-orderable-desc')) {
+            $header.find('.data-table__search').on('click', (ev) => {
+              ev.stopPropagation();
+            });
+          }
+        });
+        this.initializingTable = false;
       }
     }
 
-    conf['footerCallback'] = function () {
+    conf.footerCallback = function () {
       const api = this.api();
       // Add aggregate values to table if configured
       const agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate;
@@ -834,7 +710,7 @@ class DataTableComponent extends Component {
       }
     }
 
-    conf['drawCallback'] = () => {
+    conf.drawCallback = () => {
 
       //Re-initialize more-less components after initialisation is complete
       moreLess.reinitialize()
@@ -845,31 +721,17 @@ class DataTableComponent extends Component {
       this.bindClickHandlersAfterDraw(conf);
     }
 
-    conf['buttons'] = [
-      {
-        text: 'Full screen',
-        enabled: false,
-        attr: {
-          id: 'full-screen-btn'
-        },
-        className: 'btn btn-small btn-toggle-off',
-        action: (e) => {
-          this.toggleFullScreenMode(e)
-        }
-      }
-    ]
-
     return conf
   }
 
   /**
    * Toggle fullscreen mode
-   * @param {*} buttonElement The button element
+   * @param {JQuery.Event} ev The button element
    */
   toggleFullScreenMode(ev) {
     const table = $("table.data-table");
-    // console.log(ev);
-    if (ev.target.checked ?? ev.target.value) {
+    if (!this.isFullScreen) {
+      this.isFullScreen = true;
       // Create new modal
       const newModal = createElement('div',
         {
@@ -884,7 +746,7 @@ class DataTableComponent extends Component {
       newModal.append(newTable);
       $('body').append(newModal);
       if (newTable && !$.fn.dataTable.isDataTable(newTable)) {
-        $(newTable).DataTable(this.getConf());
+        $(newTable).DataTable(this.getConf({ responsive: false }));
       }
 
       $(document).on("keyup", (ev) => {
@@ -894,6 +756,7 @@ class DataTableComponent extends Component {
       });
       $(ev.target).attr('checked', 'checked');
     } else {
+      this.isFullScreen = false;
       // Remove the modal
       document.querySelector('#table-modal').remove();
 
@@ -909,9 +772,14 @@ class DataTableComponent extends Component {
 
   /**
    * Bind any click handlers once the Datatable is rendered
-   * @param {*} conf The datatable configuration
+   * @param {{serverSide: boolean}} conf The datatable configuration
    */
   bindClickHandlersAfterDraw(conf) {
+    function findResult(data) {
+      if (!data || !Array.isArray(data)) throw new Error("Invalid data");
+      return data.find((item) => item.match(/^<a href="(\/.*?\/record\/\d+)">/gm)).match(/href="(.*?)"/)[1];
+    }
+
     const tableElement = this.el
     const rows = tableElement.DataTable().rows({ page: 'current' }).data()
 
@@ -922,7 +790,15 @@ class DataTableComponent extends Component {
         if (data) {
           // URL will be record link for standard view, or filtered URL for
           // grouped view (in which case _count parameter will be present not _id)
-          const url = data['_id'] ? `${this.base_url}/${data['_id']}` : `?${data['_count']['url']}`
+          let url = '';
+          try {
+            url = Array.isArray(data) ? findResult(data) : data['_id'] ? `${this.base_url}/${data['_id']}` : `?${data['_count']['url']}`
+            if(!url) {
+              throw new Error("No URL found");
+            }
+          } catch (e) {
+            console.warn("No ID found", e)
+          }
 
           $(el).find('td:not(.dtr-control)').on('click', (ev) => {
             // Only for table cells that are not part of a record-popup table row

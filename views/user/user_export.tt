@@ -1,5 +1,4 @@
 [%-
-  table_dom = "t";
   table_language = {
     emptyTable => "No exports to show"
   }

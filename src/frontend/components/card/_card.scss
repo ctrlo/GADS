@@ -1,133 +1,138 @@
 .card {
-  box-shadow: 0 0 7px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--bs-box-shadow);
 
   &:not(:last-of-type) {
-    margin-bottom: $padding-base-vertical;
+    margin-bottom: var(--bs-gutter-x);
   }
 
-  .card-header {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-
-    span {
-      @include font-style-h3;
+  &.card--edit {
+    .btn-edit {
+      display: none;
     }
 
-    *:not(.btn) {
-      color: $brand-secundary;
+    .btn-view {
+      display: block;
+    }
+
+    .card__view-content {
+      display: none;
+    }
+  }
+
+  &:not(.card--edit) {
+    .btn-edit {
+      display: block;
+    }
+
+    .btn-view {
+      display: none;
+    }
+
+    .card__edit-content {
+      display: none;
     }
   }
 
   &.card-info {
     .card-header {
-      background-color: $brand-primary;
-      color: $white;
+      background: $brand-primary;
 
-      & *:not(.btn) {
-        color: inherit;
+      .card__header {
+        color: $white;
+        margin: 0;
       }
     }
   }
-}
 
-.card.card--topic,
-.card.card--expandable {
   .card-header {
-    border-bottom: 0;
-    background-color: $white;
-    color: $brand-secundary;
+    background: $white;
     display: flex;
-    cursor: pointer;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: center;
+    border: none;
 
-    &:not(:first-child) {
-      margin-top: $padding-large-vertical;
-    }
-
-    .card__header-right {
-      display: flex;
-      align-items: center;
-      * {
-        margin-bottom: 0;
-      }
-    }
-
-    * {
-      color: $brand-secundary;
+    .card__title {
+      @extend h3;
+      color: $primary;
     }
 
     .card-header__toggle {
       width: 100%;
       height: 100%;
-      padding: 1rem 0;
+    }
+
+    .card__header-right {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      align-items: center;
+
+      .btn-edit,
+      .btn-view {
+        margin: 0;
+        border-width: 0;
+
+        &:hover,
+        &:active {
+          text-decoration: underline;
+        }
+      }
+
+      .btn-edit {
+        &::before {
+          @extend %icon-font;
+          content: quote("\E80B");
+          margin-right: 0.75rem;
+          color: $brand-secundary;
+          background: $transparent;
+          transition: all 0.2s ease;
+        }
+      }
+
+      .btn-view {
+        &::before {
+          @extend %icon-font;
+          content: quote("\E80f");
+          margin-right: 0.75rem;
+          color: $brand-secundary;
+          background: $transparent;
+          transition: all 0.2s ease;
+        }
+      }
+
+      .card__toggle {
+        span {
+          @include visually-hidden;
+        }
+
+        &:after {
+          @extend %icon-font;
+          content: quote("\e805");
+          transform: rotate(90deg);
+          transition: all 0.2s ease;
+        }
+
+        &.collapsed:after {
+          transform: rotate(0deg);
+        }
+      }
     }
   }
 }
 
-.card__title {
-  @include font-style-h3;
-  margin: 1rem $padding-base-vertical;
-  display: flex;
-  
-  &:not(:first-child) {
-    margin-top: $padding-large-vertical;
+.card-primary {
+  .card-header {
+    .card__title {
+      @extend h3;
+      color: $secondary;
+      @include font-size(1.125rem);
+    }
   }
 }
 
-.card__edit-content,
-.btn-view {
-  display: none;
-}
-
-.card.card--topic {
-  .card__toggle {
-    margin: 0 0.5rem;
-  }
-}
-
-.card__toggle {
-  span {
-    @include visually-hidden;
-  }
-
-  &::after {
-    @extend %icon-font;
-    transition: all 0.3s ease-in-out;
-    content: quote("\E805");
-    font-size: 1.25rem;
-    color: $brand-primary;
-  }
-
-  &[aria-expanded="true"]::after {
-    transform: rotate(90deg);
-  }
-}
-
-.card-header:not(.collapsed) {
-  .card__toggle::after {
-    transform: rotate(90deg);
-  }
-}
-
-.card--edit {
-
-  .card__edit-content,
-  .btn-view {
-    display: block;
-  }
-
-  .card__view-content,
-  .btn-edit {
-    display: none;
-  }
-}
-
-.card-header {
-  .row {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
+.card--expandable:has([data-bs-toggle="collapse"]):not(:has(.show)) {
+  border-radius: var(--bs-border-radius) var(--bs-border-radius) 0 0;
 }

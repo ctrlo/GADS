@@ -28,7 +28,7 @@
       flex: 0 0 1.25rem;
       margin-right: $padding-base-horizontal;
       border-radius: 50%;
-      font-size: 1.125rem;
+      @include font-size(1.125rem);
     }
   }
 }

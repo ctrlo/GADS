@@ -1,3 +1,4 @@
+import "datatables.net-bs5";
 /* Explanation of the Toggle Table:
   A toggle table consist of two twin tables containing the same fields
   One table contains hidden checkboxes while the other one contains text only

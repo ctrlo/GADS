@@ -6,9 +6,6 @@ import AutosaveBase from './autosaveBase';
  * @inherits AutosaveBase
  */
 class AutosaveComponent extends AutosaveBase {
-  /**
-   * @inheritdoc
-   */
   async initAutosave() {
     const $field = $(this.element);
     const self = this;

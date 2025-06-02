@@ -20,7 +20,7 @@
     @extend %icon-font;
 
     color: $brand-primary;
-    font-size: 1.25rem;
+    @include font-size(1.25rem);
   }
 
   span {
@@ -30,7 +30,7 @@
 
 .user__link--details::before {
   content: "\E81a";
-  font-size: 24px;
+  @include font-size(24px);
 }
 
 .user__link--logout::before {

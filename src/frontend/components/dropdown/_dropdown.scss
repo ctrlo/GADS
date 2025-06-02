@@ -43,18 +43,5 @@
 
 .dropdown-menu.show {
   z-index: $zindex-tooltip;
-
-  /* If menu items in a dropdown are quite long, enable them to expand to the
-   * following widths (used for view dropdown selector) */
-  @include media-breakpoint-up(sm) {
-    max-width: 90vw;
-  }
-
-  @include media-breakpoint-up(md) {
-    max-width: 70vw;
-  }
-
-  @include media-breakpoint-up(lg) {
-    max-width: 50vw;
-  }
+  max-width: 100vw;
 }

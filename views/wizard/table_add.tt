@@ -394,7 +394,6 @@
                   collapsed and hide them from view.</p>
                 <p>You can create topics in this window or skip this step and create them later. Topics are applied to
                   fields in the edit field screens.</p>
-                
                 <table class="data-table table "
                        data-config='{"data":null,"dom":"t","order":[],"language":{},"responsive":false,"scrollX":false,"rowReorder":false,"pageLength":10,"lengthMenu":[10,25,50,100],"autoWidth":false,"columns":[{"name":"Topic","orderable":false}]}'
                        width="100%" id=topics>
@@ -1216,7 +1215,6 @@
                 # prepare table config
                 table_id           = 'custom_field_permissions_table';
                 table_class        = 'table-lines table-no-margin';
-                table_dom          = '<"row row--header"<"col"f><"col-lg-auto dataTables_length_wrapper"l>><"row row--main"<"col-sm-12"tr>><"row row--footer"<"col-sm-12 col-lg-6"p><"col-sm-12 col-lg-6 dataTables_info_wrapper"i>>';
                 table_language     = {
                   emptyTable => "There are no groups available",
                   lengthMenu => "Rows per page _MENU_",
@@ -1442,7 +1440,6 @@
                 [%
                   table_id           = 'fields';
                   table_class        = 'table-lines';
-                  table_dom          = '<"row row--header"<"col"f><"col-lg-auto dataTables_length_wrapper"l>><"row row--main"<"col-sm-12"tr>><"row row--footer"<"col-sm-12 col-lg-6"p><"col-sm-12 col-lg-6 dataTables_info_wrapper"i>>';
                   table_language     = {
                     lengthMenu => "Rows per page _MENU_",
                     paginate   => {

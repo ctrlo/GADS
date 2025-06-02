@@ -8,8 +8,7 @@ describe('loadActions', () => {
         expect(actions).toBe(undefined);
     });
 
-    it.skip('should return undefined if action_json is undefined', async () => {
-        // Skipped as this is not as easy to test as I'd expect
+    it('should return undefined if action_json is undefined', async () => {
         const $body = $('body');
         $body.data('actions', '');
         const actions = await loadActions();

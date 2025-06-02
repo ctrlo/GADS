@@ -9,15 +9,18 @@
 }
 
 .btn-delete {
-  @include button-variant(transparent, transparent, $brand-danger, $hover-color: $brand-danger);
+  @include button-variant($transparent, $transparent, $brand-danger, $hover-color: $brand-danger);
   padding: 0;
+
   &:hover {
     text-decoration: underline;
   }
 }
 
 .btn-link {
-  @include button-variant($transparent, $transparent, $brand-primary, $hover-color: $brand-secundary);
+  @include button-variant($transparent, $transparent, $brand-secundary, $hover-color: $brand-secundary, $hover-border: $transparent);
+  padding: 0;
+
   &:hover {
     text-decoration: underline;
   }
@@ -46,7 +49,6 @@
   display: flex;
   align-items: center;
   width: max-content;
-  padding: 10px 0 0;
   border: 0;
   border-bottom: 1px solid transparent;
   border-radius: 0;
@@ -63,14 +65,17 @@
     transition: all 0.2s ease;
   }
 
-  &:hover,
-  &:focus,
-  &:active {
-    border-bottom: solid 1px $brand-secundary;
-    box-shadow: none;
-    color: $brand-secundary;
-    text-decoration: none;
-    background: $transparent;
+  &:not(.btn-edit) {
+
+    &:hover,
+    &:focus,
+    &:active {
+      border-bottom: solid 1px $brand-secundary;
+      box-shadow: none;
+      color: $brand-secundary;
+      text-decoration: none;
+      background: $transparent;
+    }
   }
 }
 
@@ -82,10 +87,19 @@
   }
 }
 
-.btn-add {
+.btn-add,
+.btn-add-link {
   &::before {
     @extend %icon-font;
     content: "\E800";
+    margin-right: 0.75rem;
+  }
+}
+
+.btn-upload {
+  &::before {
+    @extend %icon-font;
+    content: "\E81F";
     margin-right: 0.75rem;
   }
 }
@@ -96,5 +110,39 @@
     content: "\E80A";
     margin-right: 0.75rem;
   }
+
   padding: 0;
+}
+
+.collapsible__toggle {
+  @extend .btn;
+  @include button-variant($transparent, $transparent, $brand-primary, $hover-color: $brand-secundary, $hover-border: $transparent);
+  padding: 0;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &::after {
+    @extend %icon-font;
+    content: "\E805";
+    margin-left: 0.75rem;
+    color: $brand-secundary;
+    background: $transparent;
+    transition: all 0.2s ease;
+  }
+
+  &[aria-expanded="true"] {
+    &::after {
+      transform: rotate(90deg);
+    }
+  }
+}
+
+.close {
+  @extend .btn;
+  @include button-variant($transparent, $transparent, $black, $hover-color: $black);
+  padding: 0;
+  text-decoration: none;
 }

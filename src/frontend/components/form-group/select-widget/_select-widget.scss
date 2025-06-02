@@ -30,7 +30,7 @@
       transform: translateY(-50%) rotate(90deg);
       border: 0;
       color: $gray-extra-dark;
-      font-size: 10px;
+      @include font-size(1rem);
     }
   }
 
@@ -70,6 +70,7 @@
     padding: 0 $padding-small-horizontal;
     border: 0;
     border-left: 1px solid $gray;
+    border-radius: unset;
     outline: 0;
 
     /* clears the 'X' from Internet Explorer */
@@ -95,6 +96,14 @@
 
     &::placeholder {
       @include placeholder;
+    }
+
+    // This doesn't work without !important because of the bootstrap form-control
+    &:hover,
+    &:active,
+    &:focus {
+      border: 0 !important;
+      border-left: 1px solid $primary !important;
     }
   }
 
@@ -127,7 +136,7 @@
     }
   }
 
-  & + .btn {
+  &+.btn {
     margin-top: 0.5rem;
   }
 }
@@ -142,6 +151,9 @@
 
 .select-widget-value__delete {
   font-size: $font-size-base;
+  &[aria-hidden="true"] {
+    display: none;
+  }
 }
 
 .select-widget-dropdown {

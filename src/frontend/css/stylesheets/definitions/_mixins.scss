@@ -1,13 +1,13 @@
-@mixin visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  border: 0;
-}
+// @mixin visually-hidden {
+//   position: absolute;
+//   width: 1px;
+//   height: 1px;
+//   margin: -1px;
+//   padding: 0;
+//   overflow: hidden;
+//   clip: rect(0 0 0 0);
+//   border: 0;
+// }
 
 @mixin visually-hidden-off {
   position: static;
@@ -137,7 +137,7 @@
     transform: rotate(90deg);
     border: 0;
     color: $gray-extra-dark;
-    font-size: 10px;
+    @include font-size(10px);
   }
 }
 
@@ -180,7 +180,7 @@
     left: 4px;
     transform: translateY(-50%);
     color: $white;
-    font-size: 7px;
+    font-size: 10px;
   }
 }
 
@@ -217,7 +217,7 @@
   }
 
   label {
-    @if $type == "checkbox" {
+    @if $type =="checkbox" {
       @include custom-checkbox;
     }
 
@@ -230,12 +230,12 @@
     padding-left: 1.5rem;
   }
 
-  input[type=#{$type}]:focus + label {
+  input[type=#{$type}]:focus+label {
     @include custom-option-focus;
   }
 
-  input[type=#{$type}]:checked + label {
-    @if $type == "checkbox" {
+  input[type=#{$type}]:checked+label {
+    @if $type =="checkbox" {
       @include custom-checkbox-checked;
     }
 
@@ -244,17 +244,18 @@
         content: '';
         display: inline-block;
         position: absolute;
-        top: 0.45rem;
-        left: 0.25rem;
+        top: 0.8rem;
+        left: 0.6rem;
         width: 0.5rem;
         height: 0.5rem;
         border-radius: 50%;
         background-color: $brand-secundary;
+        transform: translate(-50%, -50%);
       }
     }
   }
 
-  input[disabled] + label {
+  input[disabled]+label {
     color: $gray;
 
     &:hover::before {
@@ -262,8 +263,8 @@
     }
   }
 
-  input[type=#{$type}]:checked:disabled + label {
-    @if $type == "checkbox" {
+  input[type=#{$type}]:checked:disabled+label {
+    @if $type =="checkbox" {
       &::before {
         border-color: $gray;
         background-color: $gray;
@@ -303,7 +304,7 @@
   position: relative;
   align-items: center;
 
-  @if $position == 'before' {
+  @if $position =='before' {
     padding-left: 1.75rem;
 
     &::before {
@@ -407,14 +408,10 @@
     transition: 0.2s transform ease;
     border: 0;
     color: $gray-extra-dark;
-    font-size: 10px;
+    @include font-size(10px);
   }
 
-  &:hover,
-  &:focus,
-  &:active,
-  &:active:focus,
-  &:active:hover {
+  &.show {
     border: none;
     background-color: $transparent;
 
@@ -475,4 +472,12 @@
   border-radius: 10px;
   background-color: $white;
   box-shadow: $box-shadow-darker;
+}
+
+@mixin flex-helper($direction: row, $align: center, $justify: center) {
+  display: flex;
+  flex-direction: $direction;
+  align-items: $align;
+  justify-content: $justify;
+  flex-wrap: nowrap;
 }

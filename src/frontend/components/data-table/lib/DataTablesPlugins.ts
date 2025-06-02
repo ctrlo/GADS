@@ -9,14 +9,18 @@ import DataTable from "datatables.net-bs5";
  */
 function createToggleButton(id:string, label:string, checked: boolean, onToggle:(ev:JQuery.Event)=>void) {
     const element = $(`
-    <div class="pull-end">
+    <div class="dt-toggle-button">
         <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" role="switch" id="${id}" ${checked ? 'checked' : ''}>
             <label class="form-check-label" for="${id}">${label}</label>
         </div>
     </div>`);
 
-    element.find(`#${id}`).on('change', (ev) => onToggle(ev));
+    element.find(`#${id}`).on('change', (ev) => {
+        const target = ev.target as HTMLInputElement;
+        target.checked = !target.checked;
+        onToggle(ev)
+    });
 
     return element;
 }

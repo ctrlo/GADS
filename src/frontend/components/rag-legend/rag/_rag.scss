@@ -10,7 +10,7 @@ span.rag {
     padding: 0.313rem;
     border-radius: 0.125rem;
     color: $white;
-    font-size: 1.25rem;
+    @include font-size(1.25rem);
   }
 }
 
@@ -76,7 +76,7 @@ span.rag {
     padding: 0 0.4375rem;
     background-color: $transparent;
     color: $text-color;
-    font-size: 2rem;
+    @include font-size(2rem);
     line-height: 0.95;
   }
 }

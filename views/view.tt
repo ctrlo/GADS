@@ -111,15 +111,13 @@
                     <div class="col">
                       <div class="card card--expandable">
                         <div class="card-header">
-                          <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#filter_1" aria-expanded="false" aria-controls="filter_1">
-                            <span class="card__title">
-                              Filter
-                            </span>
-                          </button>
+                          <span class="card-header__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#filter_1" aria-expanded="false" aria-controls="filter_1">
+                            <span class="card__title">Filter</span>
+                          </span>
                           <div class="card__header-right">
-                            <button class="card__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#filter_1" aria-expanded="false" aria-controls="filter_1">
+                            <span class="card__toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#filter_1" aria-expanded="false" aria-controls="filter_1">
                               <span>Toggle collapsible</span>
-                            </button>
+                            </span>
                           </div>
                         </div>
                         <div class="collapse" id="filter_1">
@@ -174,15 +172,15 @@
                     <div class="col">
                       <div class="card card--expandable">
                         <div class="card-header">
-                          <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1">
+                          <span class="card-header__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1">
                             <span class="card__title">
                               Sort/Group
                             </span>
-                          </button>
+                          </span>
                           <div class="card__header-right">
-                            <button class="card__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1">
+                            <span class="card__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1">
                               <span>Toggle collapsible</span>
-                            </button>
+                            </span>
                           </div>
                         </div>
                         <div class="collapse" id="sort_group_1">
@@ -391,13 +389,13 @@
                     <div class="col">
                       <div class="card card--expandable">
                         <div class="card-header">
-                          <button class="card__header-left" type="button" data-bs-toggle="collapse" data-bs-target="#fields_1" aria-expanded="false" aria-controls="fields_1">
+                          <span class="card-header__toggle" data-bs-toggle="collapse" data-bs-target="#fields_1" aria-expanded="false" aria-controls="fields_1">
                             <span class="card__title">
                               Fields
                             </span>
-                          </button>
+                          </span>
                           <div class="card__header-right">
-                            <button class="card__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#fields_1" aria-expanded="false" aria-controls="fields_1">
+                            <span class="card__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#fields_1" aria-expanded="false" aria-controls="fields_1">
                               <span>Toggle collapsible</span>
                             </button>
                           </div>
@@ -499,10 +497,6 @@
                                   # Table configuration
                                   table_id = "table-view-fields-selected"
                                   table_class = 'table--bordered table-hover table-toggle table-toggle--remove'
-                                  table_dom = '<"row row--fiv-header"><"row row--main"<"col-sm-12"tr>>'
-                                  table_buttons = [{
-                                    button_class = "btn"
-                                  }]
                                   table_caption = "Table with selected fields in view"
                                   table_columns = [{
                                     name = "Fields in view",
@@ -539,10 +533,6 @@
                                   # Table configuration
                                   table_id = "table-view-fields-available"
                                   table_class = 'table--bordered table-hover table-toggle table-toggle--add table-search'
-                                  table_dom = '<"row row--header"<"col"' _ (session.rewind ? '' : 'f') _ '>><"row row--main"<"col-sm-12"tr>>'
-                                  table_buttons = [{
-                                    button_class = "btn"
-                                  }]
                                   table_caption = "Table to select fields in view"
                                   table_columns = [{
                                     name = "Available fields",
@@ -563,6 +553,7 @@
                                   table_destination = "#table-view-fields-selected"
                                   table_unresponsive = 1
                                   rows = fields_available
+                                  table_layout = { top = "search" }
                                 %]
                                 <button
                                   class="btn btn-default btn-small btn-add btn-js-toggle-all-fields"

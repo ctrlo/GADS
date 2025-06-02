@@ -1,182 +1,268 @@
-@import "~datatables.net-bs5/css/dataTables.bootstrap5.css",
-        "~datatables.net-responsive-bs5/css/responsive.bootstrap5.css",
-        "~datatables.net-rowreorder-bs5/css/rowReorder.bootstrap5.css";
+table,
+.table {
+    // Remove default Bootstrap table accent color as it is not needed
+    --bs-table-accent-bg: $transparent;
+}
 
 .data-table {
+    border-spacing: 0;
+    @include font-size(1rem);
 
-    tr {
-
-        td,
-        th {
-            padding: 0.5rem;
-        }
+    &.table-thead-hidden thead {
+        display: none;
     }
 
-    th {
-        margin: 0;
-        padding: 1rem;
-
-        .data-table__header-wrapper {
-            display: flex;
-            align-items: center;
-
-            .data-table__sort {
-                cursor: pointer;
-            }
-
-            .dt-column-order {
-                display: none;
-            }
-
-            .dropdown-toggle {
-                opacity: 0;
-                border: none;
-                margin: 0;
-                padding: 0;
-                transition: all 0.3s ease;
-
-                &::after {
-                    display: none;
-                }
-            }
-
-            .data-table__sort {
-                display: flex;
-                flex-direction: row;
-            }
-
-            &:hover {
-                .data-table__sort {
-                    cursor: pointer;
-                }
-
-                .dropdown-toggle {
-                    opacity: 1;
-                    border-bottom: none;
-                }
-            }
-        }
+    thead {
+        background-color: $white;
+        z-index: 1;
     }
 
-    .data-table__sort {
-        &::after {
-            color: transparent;
-            @extend %icon-font;
-            content: quote("\E805");
-            padding-left: 0.5rem;
-            transition: all 0.3s ease;
-        }
-    }
+    thead th {
+        border-bottom: 1px solid $gray;
+        text-transform: uppercase;
+        vertical-align: top;
 
-    .dt-ordering-desc {
-        .data-table__sort {
-            &::after {
-                color: $brand-secundary;
-                transform: rotate(90deg);
-            }
+        &.sorting_asc,
+        &.sorting_desc {
+            color: $brand-secundary;
         }
-    }
 
-    .dt-ordering-asc {
-        .data-table__sort {
-            &::after {
-                color: $brand-secundary;
-                transform: rotate(-90deg);
-            }
+        &.data-table__header--invisible span,
+        &.dt-header--invisible span {
+            @include visually-hidden;
         }
     }
 }
 
-div.dt-processing>div:last-child>div {
-    background-color: $brand-secundary;
-    background: $brand-secundary;
+tfoot {
+    background-color: $table-hover-bg;
+    font-weight: bold;
 }
 
-.dt-layout-row {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-.dt-start {
-    // This is so it doesn't clash when the toggle is visible for fullscreen
-    width: 62%;
-}
-
-@include media-breakpoint-up(xl) {
-    div.dt-start {
-        width: 75%;
+.dataTables_filter {
+    label {
+        display: flex;
+        justify-content: flex-start;
     }
 }
 
-.dt-end {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-evenly;
-    align-items: center;
-    .form-check {
-        margin-left: 1rem;
-    }
-}
+.data-table__search {
+    margin: 0 0.1rem 0 -1rem;
 
-div.dt-container div.dt-search input {
-    margin: 0;
-    width: 100%;
-}
-
-.page-item {
-    .page-link {
-        transition: 0.2s all ease;
+    .dropdown-toggle {
+        margin-top: 0.1rem;
+        color: $gray-extra-dark;
     }
 
-    &.active .page-link,
-    .page-link:hover {
-        border-color: $brand-secundary;
-        background-color: $brand-secundary;
-        color: $white;
-    }
-}
-
-th.data-table__header--invisible span {
-    @include visually-hidden;
-}
-
-.dt-layout-table {
-    .dt-layout-cell {
-        width: 100%;
-    }
-}
-
-div.dt-length label {
-    padding-right: 0.5rem;
-    font-weight: 600;
-}
-
-.table-modal {
-    overflow: auto;
-    position: fixed;
-    z-index: 1020;
-    /* Make sure this modal is above the nav bar */
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    padding: 1rem;
-    background: white;
-
-    .row {
-        margin-right: 0;
-        margin-left: 0;
-        width: 100%;
+    label {
+        @include input-search;
     }
 
-    .data-table__header--invisible {
+    .input .form-control {
+        width: auto;
+    }
+
+    .data-table__header--invisible & {
         display: none;
     }
 }
 
-td:not(.dtr-control) {
-    cursor: pointer;
+th {
+    div {
+        padding: 0 0.5rem;
+        @include flex-helper($align: flex-start, $justify: left);
+    }
+}
+
+th {
+    padding: 0.5rem;
+
+    .data-table__sort {
+        color: $gray-extra-dark;
+        font-weight: normal;
+        @include flex-helper($direction: column);
+        @include font-size(0.5rem);
+        margin-left: 0.5rem;
+
+        &::before,
+        &::after {
+            @extend %icon-font;
+        }
+
+        &::before {
+            content: '\E805';
+            rotate: -90deg;
+        }
+
+        &::after {
+            content: '\E805';
+            rotate: 90deg;
+        }
+    }
+}
+
+th[aria-sort='ascending'] {
+    .data-table__sort {
+        &::before {
+            content: '\E805';
+            @include font-size(1rem);
+        }
+
+        &::after {
+            content: none;
+        }
+    }
+}
+
+th[aria-sort='descending'] {
+    .data-table__sort {
+        &::before {
+            content: none;
+        }
+
+        &::after {
+            content: '\E805';
+            @include font-size(1rem);
+        }
+    }
+}
+
+.btn-search {
+    margin: 0;
+    margin-right: 0;
+    padding: 0;
+
+    span {
+        visibility: hidden;
+    }
+
+    &::before {
+        content: '\E813';
+        color: $gray-extra-dark;
+        margin-right: 0;
+    }
+
+    &::after {
+        content: none;
+    }
+}
+
+div.input::after {
+    content: none;
+}
+
+input[type='search'] {
+    @extend .form-control;
+    margin: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    @include font-size(1rem);
+}
+
+body:has(#table-modal) {
+    overflow: hidden;
+
+    #table-modal {
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2000;
+        position: absolute;
+        background: $white;
+        overflow: auto;
+    }
+}
+
+.dt-paging li.active button {
+    background-color: $brand-secundary;
+    border-color: $brand-secundary;
+}
+
+.list__value {
+    table {
+        --bs-table-bg: $white;
+        --bs-table-striped-bg: $white;
+        --bs-table-accent-bg: $transparent;
+        --bs-border-color: $gray;
+
+        tr:not(:last-of-type) {
+            border-bottom: 1px solid $gray;
+        }
+    }
+}
+
+// This is for the header with search, length, and toggle button - specififity is important
+.dt-container {
+    .row {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: nowrap;
+
+        .dt-layout-start,
+        .dt-layout-end {
+            margin: 1rem 0.5rem;
+        }
+
+        .dt-layout-start {
+            flex-grow: 1;
+
+            .dt-search {
+                width: 100%;
+                label {
+                    @include visually-hidden;
+                }
+
+                input {
+                    @extend .form-control;
+                }
+            }
+        }
+
+        .dt-layout-end {
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-end;
+            align-items: center;
+            flex-wrap: nowrap;
+
+            .dt-length {
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-end;
+                align-items: center;
+                flex-wrap: nowrap;
+
+                label {
+                    @extend .form-label;
+                    white-space: nowrap;
+                }
+
+                select {
+                    @extend .form-select;
+                    max-width: 5rem;
+                }
+            }
+
+            .dt-toggle-button {
+                margin-left: 0.5rem;
+            }
+        }
+    }
+}
+
+.dataTables_scrollBody:has(.table-toggle) {
+  @include media-breakpoint-down(md) {
+    /* stylelint-disable-next-line declaration-no-important */
+    height: auto !important;
+  }
+}
+
+.table-toggle tr[data-field-is-toggled="false"] {
+  display: none;
+}
+
+.table-toggle tbody tr[data-field-is-toggled="true"]:nth-child(odd) {
+  background-color: $gray-light;
 }

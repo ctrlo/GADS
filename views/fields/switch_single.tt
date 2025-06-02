@@ -14,9 +14,9 @@
       [% help_text | html %]
     </p>
     [% END %]
-    <div class="switch [% switch_class %]">
-      <input class="switch__input" type="checkbox" id="[% id %]" name="[% name %]" value="[% value %]" [%- IF checked -%]checked="checked"[%- END -%]>
-      <label class="switch__label form-label" for="[% id %]">
+    <div class="form-check form-switch [% switch_class %]">
+      <input class="form-check-input" type="checkbox" id="[% id %]" name="[% name %]" value="[% value %]" [%- IF checked -%]checked="checked"[%- END -%]>
+      <label class="form-check-label" for="[% id %]">
         [% INCLUDE fields/sub/filter.tt value=placeholder; %]
       </label>
     </div>

@@ -1,5 +1,4 @@
 [%
-  table_dom = "t";
   table_show_all_records = "true";
   table_width = 85;
   table_class = "table-striped";
@@ -51,16 +50,10 @@
       <div class="col mb-3">
         <div class="card">
           <div class="card-header">
-            <div class="row">
-              <div class="col">
-                <h3 class="card__title">
-                  <span>Reports</span>
-                </h3>
-              </div>
-              <div class="col d-md-flex justify-content-md-end align-items-center">
-                <a href = [% url.page _ "/" _ layout_obj.identifier _ "/report/add" %] class="btn btn-add btn-default">Create Report</a>
-              </div>
-            </div>
+            <h3 class="card__title">
+              <span>Reports</span>
+            </h3>
+            <a href = [% url.page _ "/" _ layout_obj.identifier _ "/report/add" %] class="btn btn-add btn-default">Create Report</a>
           </div>
           <div class="card-body">
             <div class="card__content">

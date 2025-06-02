@@ -63,7 +63,7 @@
 .link--calendar,
 .link--timeline {
   &::before {
-    font-size: 1.5rem;
+    @include font-size(1.5rem);
   }
 }
 

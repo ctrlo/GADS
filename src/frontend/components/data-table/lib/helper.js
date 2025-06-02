@@ -1,3 +1,5 @@
+import "datatables.net-bs5"
+
 /**
  * Add a row to the table
  * @param {*} rowData The data to add the row to

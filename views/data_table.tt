@@ -26,9 +26,13 @@
       END;
       
       # prepare table config
-      table_full         = 1
       table_class        = (table_clear_state ? 'table-clear-state ' : '') _ 'table-striped table-hover table-search';
-      table_dom          = '<"row row--header"<"col"' _ (session.rewind ? '' : 'f') _ '><"col-lg-auto dataTables_length_wrapper"l><"col-lg-auto dataTables_toggle_full_width"B>><"row row--main"<"col-sm-12"tr>><"row row--footer"<"col-sm-12 col-lg-6"p><"col-sm-12 col-lg-6 dataTables_info_wrapper"i>>';
+      table_layout       =  {
+        topStart = session.rewind ? undef : "search",
+        topEnd = ["pageLength"],
+        bottomStart = "paging",
+        bottomEnd = "info",
+      };
       table_ajax         = url.page _ "/api/" _ layout.identifier _ "/records?csrf-token=" _ csrf_token _ "&group_filter=" _ group_filter _ "&curval_layout_id=" _ curval_layout_id _ "&curval_record_id=" _ curval_record_id;
       table_ajax_target  = url.page _ "/" _ layout.identifier _ "/record"; # will be appended with /{id} by JS
       table_order        = [];

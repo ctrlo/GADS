@@ -6,7 +6,6 @@
     [%
     # prepare table config
     table_class            = 'table-striped table-selectable';
-    table_dom              = 't';
     table_language         = {
         emptyTable => "There are no records in this view.",
     };

@@ -2,6 +2,8 @@
 @import "~bootstrap/scss/functions";
 @import "~bootstrap/scss/variables", "~bootstrap/scss/variables-dark";
 
+$font-size-base: 14pt;
+
 // Links
 $link-decoration: none;
 
@@ -35,6 +37,7 @@ $theme-colors: map-merge($theme-colors, $custom-colors);
 // Breadcrumbs
 $breadcrumb-font-size: $font-size-sm;
 $breadcrumb-divider: quote(">");
+$breadcrumb-bg: #f9f9f9;
 
 // Buttons
 $btn-padding-x: 30px;
@@ -50,6 +53,7 @@ $card-cap-bg: $white;
 $card-cap-color: $brand-primary;
 $card-cap-border-color: $white;
 $card-bg: $white;
+$card-cap-padding-y: $card-cap-padding-x;
 
 $list-group-bg: $white;
 
@@ -73,6 +77,9 @@ $nav-tabs-link-hover-border-color: $gray-500;
 $border-color-translucent: rgba($primary, 0.5);
 $popover-header-bg: $primary;
 $popover-header-color: $white;
+
+$form-switch-checked-color: $brand-primary;
+$form-check-input-checked-bg-color: $primary;
 
 @import "~bootstrap/scss/maps";
 @import "~bootstrap/scss/mixins";

@@ -10,7 +10,7 @@
 
     width: auto;
     margin-bottom: 0.25rem;
-    font-size: 0.875rem; // 14px
+    @include font-size(0.875rem); // 14px
   }
 }
 
@@ -26,7 +26,7 @@
   margin-bottom: 1rem;
 }
 
-.fieldset__legend + .form-group {
+.fieldset__legend+.form-group {
   margin-top: 0.25rem;
 }
 

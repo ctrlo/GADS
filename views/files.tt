@@ -1,6 +1,5 @@
 [%
   # prepare files table config
-  table_dom = "t";
   table_show_all_records = 1;
 
   table_caption = "Table to show files";
@@ -51,7 +50,7 @@
     aside_buttons = [{
       type    = "modal_button"
       modalId = "uploadFile"
-      class   = "btn btn-default"
+      class   = "btn btn-default btn-upload"
       label   = "Upload a file"
     }];
 %]
