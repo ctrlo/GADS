@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component'
 import { logging } from 'logging'
+import { fromJson } from 'util/common'
 import { initValidationOnField } from 'validation'
 
   /*
@@ -465,7 +466,8 @@ class SelectWidgetComponent extends Component {
     // If we cancel this particular loop, then we don't want to remove the
     // spinner if another one has since started running
     let hideSpinner = true
-    $.getJSON(url, (data) => {
+    $.ajax(url).done((data)=>{
+      data = fromJson(data)
       if (data.error === 0) {
         if (myLoad != this.loadCounter) { // A new one has started running
           hideSpinner = false // Don't remove the spinner on completion
@@ -526,7 +528,7 @@ class SelectWidgetComponent extends Component {
 
       } else {
         const errorMessage =
-          data.error === 1 ? data.message : "Oops! Something went wrong."
+          data.message ? data.message : "Oops! Something went wrong."
         const errorLi = $(
           '<li class="answer answer--blank alert alert-danger d-flex flex-row justify-content-start"><span class="control"><label>' +
             errorMessage +
@@ -534,8 +536,7 @@ class SelectWidgetComponent extends Component {
         )
         this.$available.append(errorLi)
       }
-    })
-      .fail(function(jqXHR, textStatus, textError) {
+    }).fail(function(jqXHR, textStatus, textError) {
         const errorMessage = "Oops! Something went wrong."
         logging.error(
           "Failed to make request to " +
