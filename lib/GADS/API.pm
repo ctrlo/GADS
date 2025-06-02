@@ -420,7 +420,7 @@ post '/api/token' => sub {
 
 prefix '/:layout_name' => sub {
 
-    any ['get', 'post'] => '/api/field/values/:id' => require_login sub {
+    post '/api/field/values/:id' => require_login sub {
 
         my $user   = logged_in_user;
         my $layout = var('layout') or pass;
