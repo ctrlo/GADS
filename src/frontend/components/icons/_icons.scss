@@ -1,0 +1,36 @@
+.icon::before {
+    @extend %icon-font;
+    margin-right: 0.75rem;
+}
+
+.icon-user::before {
+    content: quote("\E81A");
+}
+
+.icon-organisation::before {
+    content: quote("\E827");
+}
+
+.icon-dept::before {
+    content: quote("\E820");
+}
+
+.icon-team::before {
+    content: quote("\E80E")
+}
+
+.icon-email::before {
+    content: quote("\E81C");
+}
+
+.icon-settings::before {
+    content: quote("\E814");
+}
+
+.icon-unlocked::before {
+    content: quote("\E819");
+}
+
+.icon-table::before {
+    content: quote("\E817");
+}

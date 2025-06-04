@@ -13,14 +13,15 @@
     
     <div class="col-md-4 col-sm-6 mb-3">
       <a href="[% url.page %]/settings/title_overview/" class="card card--settings">
-        <h4 class="card__title">
-          <div class="card__title-icon card__title-icon--user"></div>
-          <span> Manage titles </span>
-        </h4>
+        <div class="card-header">
+          <h4 class="card__title">
+            <span class="icon icon-user">Manage titles</span>
+          </h4>
+        </div>
         
         <div class="card-body">
           <div class="card__content">
-            <p>List the <i>titles</i> that you want to assign users to.</p>
+            <p>List the <em>titles</em> that you want to assign users to.</p>
           </div>
         </div>
       </a>
@@ -29,11 +30,11 @@
     [% IF site.register_show_organisation %]
     <div class="col-md-4 col-sm-6 mb-3">
       <a href="[% url.page %]/settings/organisation_overview/" class="card card--settings">
-        <h4 class="card__title">
-          <div class="card__title-icon card__title-icon--organisation"></div>
-          <span> Manage [% site.organisation_name | html %]s </span>
-        </h4>
-        
+        <div class="card-header">
+          <h4 class="card__title">
+            <span class="icon icon-organisation"> Manage [% site.organisation_name | html %]s </span>
+          </h4>
+        </div>
         <div class="card-body">
           <div class="card__content">
             <p>List the parts of the <i>[% site.organisation_name | html %]</i> that you want to assign users to.</p>
@@ -46,10 +47,11 @@
     [% IF site.register_show_department %]
     <div class="col-md-4 col-sm-6 mb-3">
       <a href="[% url.page %]/settings/department_overview/" class="card card--settings">
-        <h4 class="card__title">
-          <div class="card__title-icon card__title-icon--department"></div>
-          <span> Manage [% site.department_name | html %]s </span>
-        </h4>
+        <div class="card-header">
+          <h4 class="card__title">
+            <span class="icon icon-dept"> Manage [% site.department_name | html %]s </span>
+          </h4>
+        </div>
         
         <div class="card-body">
           <div class="card__content">
@@ -63,10 +65,11 @@
     [% IF site.register_show_team %]
     <div class="col-md-4 col-sm-6 mb-3">
       <a href="[% url.page %]/settings/team_overview/" class="card card--settings">
-        <h4 class="card__title">
-          <div class="card__title-icon card__title-icon--groups"></div>
-          <span> Manage [% site.team_name | html %]s </span>
-        </h4>
+        <div class="card-header">
+          <h4 class="card__title">
+            <span class="icon icon-team"> Manage [% site.team_name | html %]s </span>
+          </h4>
+        </div>
         
         <div class="card-body">
           <div class="card__content">
@@ -87,10 +90,11 @@
     
     <div class="col-md-4 col-sm-6 mb-3">
       <a href="[% url.page %]/settings/default_welcome_email/" class="card card--settings">
-        <h4 class="card__title">
-          <div class="card__title-icon card__title-icon--email"></div>
-          <span> Default welcome email </span>
-        </h4>
+        <div class="card-header">
+          <h4 class="card__title">
+            <span class="icon icon-email"> Default welcome email </span>
+          </h4>
+        </div>
         
         <div class="card-body">
           <div class="card__content">
@@ -103,10 +107,11 @@
     
     <div class="col-md-4 col-sm-6 mb-3">
       <a href="[% url.page %]/settings/user_editable_personal_details/" class="card card--settings">
-        <h4 class="card__title">
-          <div class="card__title-icon card__title-icon--settings"></div>
-          <span> User-editable personal details </span>
-        </h4>
+        <div class="card-header">
+          <h4 class="card__title">
+            <span class="icon icon-settings"> User-editable personal details </span>
+          </h4>
+        </div>
         
         <div class="card-body">
           <div class="card__content">
@@ -118,10 +123,11 @@
 
     <div class="col-md-4 col-sm-6 mb-3">
       <a href="[% url.page %]/settings/report_defaults/" class="card card--settings">
-        <h4 class="card__title">
-          <div class="card__title-icon card__title-icon--report"></div>
-          <span>Report Logo and Security Marking</span>
-        </h4>
+        <div class="card-header">
+          <h4 class="card__title">
+            <span class="icon icon-unlocked">Report Logo and Security Marking</span>
+          </h4>
+        </div>
 
         <div class="card-body">
           <div class="card__content">
@@ -141,10 +147,11 @@
   <div class="row mb-3">
     <div class="col-md-4 col-sm-6 mb-3">
       <a href="[% url.page %]/settings/audit/" class="card card--settings">
-        <h4 class="card__title">
-          <div class="card__title-icon card__title-icon--table"></div>
-          <span> User audit logs </span>
-        </h4>
+        <div class="card-header">
+          <h4 class="card__title">
+            <span class="icon icon-table"> User audit logs </span>
+          </h4>
+        </div>
       
         <div class="card-body">
           <div class="card__content">

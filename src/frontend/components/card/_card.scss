@@ -136,3 +136,13 @@
 .card--expandable:has([data-bs-toggle="collapse"]):not(:has(.show)) {
   border-radius: var(--bs-border-radius) var(--bs-border-radius) 0 0;
 }
+
+.card--settings {
+  .card-header {
+    @extend .pb-0;
+
+    .card__title {
+      @include font-size(1.25rem);
+    }
+  }
+}
