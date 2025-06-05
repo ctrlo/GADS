@@ -65,6 +65,7 @@ $table-striped-color: $secondary;
 $dropdown-bg: $white;
 $input-border-color: $secondary;
 $input-focus-border-color: $primary;
+$input-focus-bg: $white;
 
 $nav-tabs-border-color: $secondary;
 $nav-tabs-link-hover-border-color: $secondary;
@@ -80,6 +81,7 @@ $popover-header-color: $white;
 
 $form-switch-checked-color: $brand-primary;
 $form-check-input-checked-bg-color: $primary;
+
 
 @import "~bootstrap/scss/maps";
 @import "~bootstrap/scss/mixins";
