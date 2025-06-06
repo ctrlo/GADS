@@ -12,11 +12,12 @@ export const refreshSelects = (el) => {
 
   el.on("afterCreateRuleFilters.queryBuilder", (e, rule) => {
     const ruleFilterSelect = $(rule.$el.find(`select[name=${rule.id}_filter]`));
-    if (!ruleFilterSelects.includes(ruleFilterSelect[0])) ruleFilterSelects.push(ruleFilterSelect[0]);
+    if (!ruleFilterSelects.includes(ruleFilterSelect)) ruleFilterSelects.push(ruleFilterSelect);
     if (!ruleFilterSelect || !ruleFilterSelect[0]) {
       console.error("No select found");
       return;
     }
+    if(ruleFilterSelect.hasClass("form-select")) ruleFilterSelect.removeClass("form-select");
     ruleFilterSelect.data("live-search", "true");
     ruleFilterSelect.selectpicker();
   });
@@ -27,8 +28,9 @@ export const refreshSelects = (el) => {
       console.error("No operator select found");
       return;
     }
-    if (!operatorSelects.includes(operatorSelect[0])) operatorSelects.push(operatorSelect[0]);
+    if (!operatorSelects.includes(operatorSelect)) operatorSelects.push(operatorSelect);
     if (operatorSelect.data("live-search")) return;
+    if(operatorSelect.hasClass("form-select")) operatorSelect.removeClass("form-select");
     operatorSelect.data("live-search", "true");
     operatorSelect.selectpicker();
   });
@@ -38,20 +40,20 @@ export const refreshSelects = (el) => {
       if (!ruleFilterSelect) {
         continue;
       }
-      $(ruleFilterSelect).selectpicker("refresh");
+      $(ruleFilterSelect).selectpicker("destroy").selectpicker();
     }
     for (const operatorSelect of operatorSelects) {
-      if (!operatorSelect) continue;
-      $(operatorSelect).selectpicker("refresh");
+      if (!operatorSelect || !operatorSelect.length) continue;
+      operatorSelect.selectpicker("destroy").selectpicker();
     }
   });
 
   el.on("afterSetRuleOperator.queryBuilder", () => {
     for (const operatorSelect of operatorSelects) {
-      if (!operatorSelect) {
+      if (!operatorSelect || !operatorSelect.length) {
         continue;
       }
-      $(operatorSelect).selectpicker("refresh");
+      operatorSelect.selectpicker("destroy").selectpicker();
     }
   });
 }
