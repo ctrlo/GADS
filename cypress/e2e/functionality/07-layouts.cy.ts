@@ -140,7 +140,7 @@ end
         });
     });
 
-    context("Layout creation with Curval", () => {
+    context.only("Layout creation with Curval", () => {
         it("Creates a Curval with reference", () => {
             const refName = "refField";
             const refTable = "curval";

@@ -49,7 +49,7 @@ abstract class LayoutBuilderBase implements ILayoutBuilder {
         return this;
     }
 
-    build(navigate:boolean = false): void {
+    build(navigate: boolean = false): void {
         if (navigate) {
             cy.visit("http://localhost:3000/table");
             cy.getDataTable()
@@ -68,7 +68,7 @@ abstract class LayoutBuilderBase implements ILayoutBuilder {
             .type(this.name);
         this.setType();
         if (this.shortName) {
-            cy.get("button")
+            cy.get("span")
                 .contains("Advanced settings")
                 .click();
             cy.get("input[name='name_short']")
@@ -77,7 +77,7 @@ abstract class LayoutBuilderBase implements ILayoutBuilder {
         this.buildSpecific();
         this.setPermissions();
         cy.on("uncaught:exception", (err) => {
-            if(err.message.includes("filters")) return false;
+            if (err.message.includes("filters")) return false;
             return true;
         })
         cy.get("button[type='submit']")
@@ -101,7 +101,7 @@ abstract class LayoutBuilderBase implements ILayoutBuilder {
     }
 
     protected setPermissions(): void {
-        cy.get("button")
+        cy.get("span")
             .contains("Permissions")
             .click();
         cy.getDataTable()
@@ -135,14 +135,14 @@ class CodeLayoutBuilder extends LayoutBuilderBase implements ICodeLayoutBuilder 
     buildSpecific() {
         // Expand the code editor
         if (this.layoutType === "RAG") {
-            cy.get("button")
+            cy.get("span")
                 .contains("Field settings for RAG")
                 .click();
             // Enter the code
             cy.get("textarea[name='code_rag']")
                 .type(this.code);
         } else if (this.layoutType === "CALC") {
-            cy.get("button")
+            cy.get("span")
                 .contains("Field settings for calculated value")
                 .click();
             cy.get("textarea[name='code_calc']")
@@ -174,11 +174,11 @@ class DropdownLayoutBuilder extends LayoutBuilderBase implements IDropdownLayout
 
     buildSpecific() {
         // Expand the options
-        cy.get("button")
+        cy.get("span")
             .contains("Field settings for dropdown list")
             .click();
         // Enter the options
-        for(let i; i<this.options.values.length-1; i++) {
+        for (let i = 0; i < this.options.values.length - 1; i++) {
             cy.get("input[name='enumval']")
                 .type(this.options[i]);
             cy.get("button")
@@ -186,7 +186,7 @@ class DropdownLayoutBuilder extends LayoutBuilderBase implements IDropdownLayout
                 .click();
         }
         cy.get("input[name='enumval']")
-            .type(this.options[this.options.length-1]);
+            .type(this.options[this.options.length - 1]);
     }
 }
 
@@ -210,7 +210,7 @@ class CurvalLayoutBuilder extends LayoutBuilderBase implements ICurvalLayoutBuil
 
     buildSpecific() {
         // Expand Field settings
-        cy.get("button")
+        cy.get("span")
             .contains("Field settings for fields from another table")
             .click();
         // Enter the options
