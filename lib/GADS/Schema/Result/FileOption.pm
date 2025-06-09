@@ -52,6 +52,11 @@ __PACKAGE__->table("file_option");
   data_type: 'integer'
   is_nullable: 1
 
+=head2 extra_values
+
+  data_type: 'text'
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -61,6 +66,9 @@ __PACKAGE__->add_columns(
   { data_type => "integer", is_foreign_key => 1, is_nullable => 0 },
   "filesize",
   { data_type => "integer", is_nullable => 1 },
+  # Could use a one to many, but for the amount it will be used, I feel storing as a JSON string would be best here
+  "extra_values",
+  { data_type => "text", is_nullable=>1 },
 );
 
 =head1 PRIMARY KEY

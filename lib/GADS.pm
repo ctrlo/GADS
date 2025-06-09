@@ -69,6 +69,7 @@ use GADS::Helper::BreadCrumbs qw(Crumb);
 use HTML::Entities;
 use HTML::FromText qw(text2html);
 use JSON qw(decode_json encode_json);
+use MIME::Base64 qw/decode_base64/;
 use Math::Random::ISAAC::XS; # Make Dancer session generation cryptographically secure
 use MIME::Base64 qw/encode_base64/;
 use Session::Token;
@@ -1796,7 +1797,12 @@ post '/api/file/?' => require_login sub {
 
     if (my $upload = upload('file'))
     {
-        my $mimetype = $filecheck->check_file($upload, check_name => 0); # Borks on invalid file type
+        my $allowed_mimetypes_b64 = body_parameters->get('extra_data');
+        # There's got to be a better way of doing this!
+        my $allowed_mimetypes = decode_json(decode_base64($allowed_mimetypes_b64)) if $allowed_mimetypes_b64;
+        $allowed_mimetypes //= [];
+
+        my $mimetype = $filecheck->check_file($upload, check_name => 0, allowed_mimetypes=>$allowed_mimetypes); # Borks on invalid file type
         my $filename = $upload->filename;
 
         # Remove any invalid characters from the new name - this will possibly be changed to an error going forward

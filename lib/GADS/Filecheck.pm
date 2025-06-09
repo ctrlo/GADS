@@ -6,6 +6,8 @@ use warnings;
 use File::LibMagic;
 use Log::Report 'linkspace';
 
+use MIME::Base64 qw/decode_base64/;
+
 use Moo;
 
 with 'MooX::Singleton';
@@ -29,12 +31,18 @@ sub check_file
 {   my ($self, $upload, %options) = @_;
 
     my $check_name = $options{check_name} // 1;
+    my $allowed_data = $options{allowed_mimetypes} // [];
 
+    my $mimeRegex = '^(' . join('|', map { $_->{name} } @$allowed_data) . ')';
+    my $filetypeRegex = '^(' . join('|', map {$_->{extension}} @$allowed_data) . ')$';
+    
     my $info = $magic->info_from_filename($upload->tempname);
+
+    my $allowed_bypass = $info->{mime_type} =~ qr/$mimeRegex/;
 
     error __x"Files of mimetype {mimetype} are not allowed",
         mimetype => $info->{mime_type}
-            unless $info->{mime_type} =~ m!^
+            unless $allowed_bypass or $info->{mime_type} =~ m!^
                 (text/|image/|video/|audio/|application/x-abiword
                 |application/msword|application/vnd\.openxmlformats-officedocument\.wordprocessingml\.document
                 |application/vnd\.oasis\.opendocument\.presentation
@@ -51,7 +59,7 @@ sub check_file
         or error __"Files without extensions cannot be uploaded";
     my $ext = $1;
     error __x"Files with extension of {ext} are not allowed", ext => $ext
-        unless $ext =~ /^(doc|docx|pdf|jpeg|jpg|png|wav|rtf|xls|xlsx|ods|ppt|pptx|odf|odg|odt|ott|sda|sdc|sdd|sdw|sxc|sxw|odp|sdp|csv|txt|msg|tif|svg)$/i;
+        unless $ext=~qr/$filetypeRegex/ or $ext =~ /^(doc|docx|pdf|jpeg|jpg|png|wav|rtf|xls|xlsx|ods|ppt|pptx|odf|odg|odt|ott|sda|sdc|sdd|sdw|sxc|sxw|odp|sdp|csv|txt|msg|tif|svg)$/i;
 
     # As recommended at https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload
     # Brackets have been added to this - above recommendations do not explicitly state that brackets are not allowed - Ticket #1695

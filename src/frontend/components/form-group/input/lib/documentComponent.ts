@@ -35,6 +35,7 @@ class DocumentComponent {
 
     async init() {
         const url = this.el.data('fileupload-url');
+        const extraTypesData = this.el.data('extra-values');
 
         const tokenField = this.el.closest('form').find('input[name="csrf_token"]');
         const csrf_token = tokenField.val() as string;
@@ -44,7 +45,7 @@ class DocumentComponent {
             const dragOptions = { allowMultiple: false };
             dropTarget.filedrag(dragOptions).on('onFileDrop', async (_: JQuery.DropEvent, file: File) => {
                 logging.info('File dropped', file);
-                await this.handleAjaxUpload(url, csrf_token, file);
+                await this.handleAjaxUpload(url, csrf_token, file, extraTypesData);
             });
         } else {
             throw new Error('Could not find file-upload element');
@@ -58,7 +59,7 @@ class DocumentComponent {
             try {
                 const file = ev.target.files![0];
                 if (!file || file === undefined || !file.name) return;
-                const formData = formdataMapper({ file, csrf_token });
+                const formData = formdataMapper({ file, csrf_token, extra_data: extraTypesData });
                 this.showContainer();
                 const data = await upload<FileData>(url, formData, 'POST', this.showProgress.bind(this));
                 this.addFileToField({ id: data.id, name: data.filename });
@@ -82,11 +83,11 @@ class DocumentComponent {
         this.el.find('.progress-bar__progress').css('width', `${uploadProgression}%`);
     }
 
-    async handleAjaxUpload(uri: string, csrf_token: string, file: File) {
+    async handleAjaxUpload(uri: string, csrf_token: string, file: File, extra_data: string) {
         try {
             if (!file) this.showException(new Error('No file provided'));
 
-            const fileData = formdataMapper({ file, csrf_token });
+            const fileData = formdataMapper({ file, csrf_token, extra_data });
 
             this.showContainer();
             const data = await upload<FileData>(uri, fileData, 'POST', this.showProgress.bind(this));
