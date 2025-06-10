@@ -21,7 +21,6 @@ package GADS::Column;
 use JSON qw(decode_json encode_json);
 use Log::Report 'linkspace';
 use String::CamelCase qw(camelize);
-use GADS::DateTime;
 use GADS::DB;
 use GADS::Filter;
 use GADS::Groups;
@@ -32,12 +31,11 @@ use MIME::Base64 qw/encode_base64/;
 use Text::Markdown qw/markdown/;
 
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Maybe Bool Int Str ArrayRef HashRef/;
 
 use List::Compare ();
 
-use namespace::clean; # Otherwise Enum clashes with MooseLike
-
+with 'GADS::DateTime';
 with 'GADS::Role::Presentation::Column';
 
 sub types
@@ -797,7 +795,7 @@ sub parse_date
     # Check whether it's a CURDATE first
     my $dt = GADS::Filter->parse_date_filter($value);
     return $dt if $dt;
-    $value && GADS::DateTime::parse_datetime($value);
+    $value && $self->parse_datetime($value);
 }
 
 sub _build_permissions

@@ -332,7 +332,7 @@ post '/api/token' => sub {
     # RFC6749 says try auth header first, then fall back to body params
     if (my $auth = request->header('authorization'))
     {
-        if (my ($encoded) = split 'Basic ', $auth)
+        if (my ($encoded) = $auth =~ /^Basic (.+)/)
         {
             if (my $decoded = decode_base64 $encoded)
             {
@@ -420,7 +420,7 @@ post '/api/token' => sub {
 
 prefix '/:layout_name' => sub {
 
-    get '/api/field/values/:id' => require_login sub {
+    post '/api/field/values/:id' => require_login sub {
 
         my $user   = logged_in_user;
         my $layout = var('layout') or pass;

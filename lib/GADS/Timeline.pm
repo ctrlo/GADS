@@ -24,7 +24,7 @@ use JSON qw(encode_json);
 use GADS::Graph::Data;
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base qw(Maybe Int);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 use List::Util  qw(min max);
 use Scalar::Util qw/blessed/;

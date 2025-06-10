@@ -22,7 +22,7 @@ use CGI::Deurl::XS 'parse_query_string';
 use HTML::Entities qw/encode_entities/;
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Maybe Bool ArrayRef HashRef Str/;
 
 extends 'GADS::Datum';
 

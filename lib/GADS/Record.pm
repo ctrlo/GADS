@@ -50,7 +50,7 @@ use Session::Token;
 use URI::Escape;
 
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base qw(Maybe Bool Int ArrayRef HashRef);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 use namespace::clean;
 
