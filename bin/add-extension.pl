@@ -31,13 +31,11 @@ GetOptions(
 );
 
 unless ( $mimetype && $extension && $instance && $layout ) {
-    say
-"Usage $0 --mimetype=<mimetype> --extension=<extension> --instance=<instance_id> --layout=<layout_id>";
+    say "Usage $0 --mimetype=<mimetype> --extension=<extension> --instance=<instance_id> --layout=<layout_id>";
     exit 1;
 }
 
-if (
-    $mimetype =~ m!^
+if ( $mimetype =~ m!^
                 (text/|image/|video/|audio/|application/x-abiword
                 |application/msword|application/vnd\.openxmlformats-officedocument\.wordprocessingml\.document
                 |application/vnd\.oasis\.opendocument\.presentation
@@ -48,17 +46,12 @@ if (
                 |application/rtf|application/vnd\.ms-excel
                 |application/vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet
                 |application/json
-            )!xi
-  )
-{
+            )!xi ) {
     say "Mimetype $mimetype already allowed";
     exit 2;
 }
 
-if ( $extension =~
-/^(doc|docx|pdf|jpeg|jpg|png|wav|rtf|xls|xlsx|ods|ppt|pptx|odf|odg|odt|ott|sda|sdc|sdd|sdw|sxc|sxw|odp|sdp|csv|txt|msg|tif|svg)$/i
-  )
-{
+if ( $extension =~ /^(doc|docx|pdf|jpeg|jpg|png|wav|rtf|xls|xlsx|ods|ppt|pptx|odf|odg|odt|ott|sda|sdc|sdd|sdw|sxc|sxw|odp|sdp|csv|txt|msg|tif|svg)$/i ) {
     say "Extension $extension already allowed";
     exit 3;
 }
@@ -81,12 +74,6 @@ unless ( ref($result) eq "GADS::Column::File" ) {
     exit 4;
 }
 
-say "Field "
-  . $result->name
-  . " with ID "
-  . $result->id
-  . " is a "
-  . ref($result);
 print "Do you want to add mime type $mimetype with extension $extension (y/n): ";
 my $answer = <STDIN>;
 if ( $answer =~ /^y/i ) {
