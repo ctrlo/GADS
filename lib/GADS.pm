@@ -1788,7 +1788,7 @@ post '/api/file/?' => require_login sub {
 
         my $fileval = schema->resultset('Fileval')->find($delete_id);
 
-        $fileval->delete;
+        $fileval->remove();
 
         return forwardHome(
             { success => "The file has been deleted successfully" }, 'file/' );
