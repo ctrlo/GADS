@@ -34,3 +34,17 @@
 .icon-table::before {
     content: quote("\E817");
 }
+
+.icon-help::before {
+    content: quote("?");
+    border: solid 1px $brand-secundary;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    // These may look like random values, but I wanted a circle.
+    padding: 0.17rem 0.4rem;
+    margin: 0 0.2rem;
+}
+
+.icon-chevron-right {
+    content: quote("\E805");
+}

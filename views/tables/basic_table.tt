@@ -88,6 +88,7 @@
   END;
 
   # Add column for screen overflow expand/collapse column
+  UNLESS no_toggle;
   config_columns.push({
     name      = "Toggle child row",
     orderable = 0,
@@ -98,6 +99,7 @@
     type  = "header"
     label = "Toggle child row"
   });
+  END;
   
   rowCounter = 1;
 
@@ -149,8 +151,10 @@
     END;
 
     # add empty field for screen overflow expand/collapse column
+    UNLESS no_toggle;
     row.fields.push({type = "text"});
     rowCounter   = rowCounter + 1;
+    END;
   END;
 
   table_config = {

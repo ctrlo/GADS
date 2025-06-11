@@ -154,6 +154,7 @@
   &.nav__link--active {
     outline: 0;
     text-decoration: none;
+    background: rgba($white, 0.3);
   }
 }
 

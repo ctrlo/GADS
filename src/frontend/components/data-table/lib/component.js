@@ -8,6 +8,7 @@ import { moreLess } from 'components/more-less/lib/more-less'
 import { bindToggleTableClickHandlers } from './toggle-table'
 import { createElement } from "util/domutils";
 import { Config } from 'datatables.net-bs5'
+import BootstrapPopoverComponent from 'components/bootstrap-popover/lib/component'
 
 const MORE_LESS_TRESHOLD = 50
 
@@ -564,6 +565,9 @@ class DataTableComponent extends Component {
    */
   getConf(overrides = undefined) {
     const confData = this.el.data('config')
+    /**
+     * @type {Config}
+     */
     let conf = {}
 
     if (typeof confData == 'string') {
@@ -793,7 +797,7 @@ class DataTableComponent extends Component {
           let url = '';
           try {
             url = Array.isArray(data) ? findResult(data) : data['_id'] ? `${this.base_url}/${data['_id']}` : `?${data['_count']['url']}`
-            if(!url) {
+            if (!url) {
               throw new Error("No URL found");
             }
           } catch (e) {

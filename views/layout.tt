@@ -1615,6 +1615,13 @@
                         rows.push(row);
                       END;
 
+                      no_toggle=1;
+
+                      table_layout = {
+                        topStart = "search",
+                        topEnd = undef
+                      };
+
                       INCLUDE tables/basic_table.tt;
                     END;
                   %]

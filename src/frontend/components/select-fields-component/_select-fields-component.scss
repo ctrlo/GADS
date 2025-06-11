@@ -32,7 +32,7 @@
         @extend .bg-light;
     }
 
-    &::before {
+    &::after {
         @extend %icon-font;
         @extend .text-success;
         @extend .me-2;
@@ -40,10 +40,6 @@
     }
 
     &.selected {
-        &::before {
-            content: none;
-        }
-
         &::after {
             @extend %icon-font;
             @extend .text-danger;

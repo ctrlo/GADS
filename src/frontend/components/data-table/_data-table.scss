@@ -1,3 +1,7 @@
+@import "~datatables.net-bs5/css/dataTables.bootstrap5.css",
+        "~datatables.net-responsive-bs5/css/responsive.bootstrap5.css",
+        "~datatables.net-rowreorder-bs5/css/rowReorder.bootstrap5.css";
+
 table,
 .table {
     // Remove default Bootstrap table accent color as it is not needed
@@ -210,6 +214,7 @@ body:has(#table-modal) {
 
             .dt-search {
                 width: 100%;
+
                 label {
                     @include visually-hidden;
                 }
@@ -253,16 +258,31 @@ body:has(#table-modal) {
 }
 
 .dataTables_scrollBody:has(.table-toggle) {
-  @include media-breakpoint-down(md) {
-    /* stylelint-disable-next-line declaration-no-important */
-    height: auto !important;
-  }
+    @include media-breakpoint-down(md) {
+        /* stylelint-disable-next-line declaration-no-important */
+        height: auto !important;
+    }
 }
 
 .table-toggle tr[data-field-is-toggled="false"] {
-  display: none;
+    display: none;
 }
 
 .table-toggle tbody tr[data-field-is-toggled="true"]:nth-child(odd) {
-  background-color: $gray-light;
+    background-color: $gray-light;
+}
+
+.table > :not(caption) > * > * {
+    padding: $padding-base-horizontal $padding-base-vertical;
+}
+
+.dt-empty {
+    text-align: center;
+    padding: 1rem;
+    color: $gray-extra-dark;
+}
+
+td.dtr-control::before {
+    @extend .icon;
+    @extend .icon-chevron-right;
 }

@@ -37,7 +37,7 @@ $theme-colors: map-merge($theme-colors, $custom-colors);
 // Breadcrumbs
 $breadcrumb-font-size: $font-size-sm;
 $breadcrumb-divider: quote(">");
-$breadcrumb-bg: #f9f9f9;
+$breadcrumb-bg: $transparent;
 
 // Buttons
 $btn-padding-x: 30px;
@@ -63,7 +63,7 @@ $table-color: $secondary;
 $table-striped-color: $secondary;
 
 $dropdown-bg: $white;
-$input-border-color: $secondary;
+$input-border-color: $gray-300;
 $input-focus-border-color: $primary;
 $input-focus-bg: $white;
 

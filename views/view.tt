@@ -452,9 +452,11 @@
           </div>
           <div class='col-md-6 col-lg-4'>
             <div class="card card--secundary card--help">
-              <h4 class="card__title">
-                <span> View help </span>
-              </h4>
+              <div class="card-header">
+                <h4 class="card__title">
+                  <span> View help </span>
+                </h4>
+              </div>
 
               <div class="card-body">
                 <div id="help__card" class="card__content">

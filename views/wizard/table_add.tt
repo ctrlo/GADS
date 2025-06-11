@@ -395,7 +395,7 @@
                 <p>You can create topics in this window or skip this step and create them later. Topics are applied to
                   fields in the edit field screens.</p>
                 <table class="data-table table "
-                       data-config='{"data":null,"dom":"t","order":[],"language":{},"responsive":false,"scrollX":false,"rowReorder":false,"pageLength":10,"lengthMenu":[10,25,50,100],"autoWidth":false,"columns":[{"name":"Topic","orderable":false}]}'
+                       data-config='{"data":null,"order":[],"language":{},"responsive":false,"scrollX":false,"rowReorder":false,"pageLength":10,"lengthMenu":[10,25,50,100],"autoWidth":false,"columns":[{"name":"Topic","orderable":false}]}'
                        width="100%" id=topics>
                   <caption class="visually-hidden">Table for topics</caption>
                   <thead>

@@ -11,6 +11,9 @@
 @import "~react-resizable/css/styles.css",
         "external/react-grid-layout/styles.min.css";
 
+// Icon definitions
+@import "icons/icons";
+
 // Base settings
 @import "./base/global";
 
@@ -90,4 +93,3 @@
 @import "typeahead/typeahead";
 @import "purge/purge";
 @import "select-fields-component/select-fields-component";
-@import "icons/icons";

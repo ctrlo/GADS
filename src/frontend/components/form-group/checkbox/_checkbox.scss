@@ -16,6 +16,12 @@
 .checkbox--hide-label {
   input[type=checkbox]:checked + label::after {
     left: 5px;
+    font-weight: $font-weight-bold;
+  }
+
+  input[type=checkbox]:checked + label::before {
+    width: 1.2rem;
+    height: 1.2rem;
   }
 
   label > span {

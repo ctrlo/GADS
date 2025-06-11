@@ -29,7 +29,7 @@ export default class HelpView extends Component {
         // Yes, I know it's not a button, but $a just didn't feel right!
         const $button = $(document.createElement("a"));
         if ($label && $label.length > 0) {
-            $button.addClass("btn").addClass("btn-plain").addClass("btn-help").attr("role", "button").attr("type", "button");
+            $button.addClass("icon").addClass("icon-help").attr("role", "button").attr("type", "button");
             $label.first().append($button);
         }
         this.$button = $button;
