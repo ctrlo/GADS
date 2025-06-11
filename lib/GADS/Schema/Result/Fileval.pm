@@ -134,6 +134,7 @@ sub file_to_id {
 };
 
 sub _filepath {
+  my $self = shift;
   my $path = GADS::Config->instance->uploads;
   my $id = sprintf "%09d", $self->id;
   $id =~ s!(\d{3})!$1/!g;
@@ -154,7 +155,7 @@ sub remove {
 
   my $filepath = $self->filepath;
 
-  unlink $filepath;
+  unlink $filepath if -f $filepath;
 
   $self->delete;
 }
