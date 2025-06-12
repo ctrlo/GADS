@@ -140,7 +140,7 @@ class MoreLessComponent extends Component {
   initMoreLess() {
     const $ml = $(this.el)
     const column = $ml.data('column')
-    const content = $ml.html()
+    const content = "<div class=\"card-body\">" + $ml.html() + "</div>"
 
     moreLess.addSubscriber(this)
 
@@ -175,7 +175,7 @@ class MoreLessComponent extends Component {
       const leftOffset = $expandable.offset().left
       const minWidth = 400
       const colWidth = $ml.width()
-      const newWidth = colWidth > minWidth ? colWidth : minWidth
+      const newWidth = Math.max(colWidth, minWidth)
       if (state === 'expanded') {
         $expandable.css('width', newWidth + 'px')
         if (leftOffset + newWidth + 20 < windowWidth) {

@@ -109,13 +109,13 @@
           <div class="col">
             <div class="card card--expandable">
               <div class="card-header">
-                <div class="card-header__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#emailAlerts" aria-expanded="false" aria-controls="emailAlerts">
+                <div class="card-header__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#emailAlerts" aria-expanded="false" aria-controls="emailAlerts" role="button">
                   <span class="card__title">
                     Email alerts
                   </span>
                 </div>
                 <div class="card__header-right">
-                  <span class="card__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#emailAlerts" aria-expanded="false" aria-controls="emailAlerts">
+                  <span class="card__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#emailAlerts" aria-expanded="false" aria-controls="emailAlerts" role="button">
                     <span>Toggle collapsible</span>
                   </span>
                 </div>
@@ -151,13 +151,13 @@
           <div class="col">
             <div class="card card--expandable">
               <div class="card-header">
-                <div class="card-header__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#limitRecordAccess" aria-expanded="false" aria-controls="limitRecordAccess">
+                <div class="card-header__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#limitRecordAccess" aria-expanded="false" aria-controls="limitRecordAccess" role="button">
                   <span class="card__title">
                     Limit access to records
                   </span>
                 </div>
                 <div class="card__header-right">
-                  <div class="card__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#limitRecordAccess" aria-expanded="false" aria-controls="limitRecordAccess">
+                  <div class="card__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#limitRecordAccess" aria-expanded="false" aria-controls="limitRecordAccess" role="button">
                     <span>Toggle collapsible</span>
                   </div>
                 </div>
@@ -190,13 +190,13 @@
           <div class="col">
             <div class="card card--expandable">
               <div class="card-header">
-                <div class="card-header__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#ragFieldDefinitions" aria-expanded="false" aria-controls="ragFieldDefinitions">
+                <div class="card-header__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#ragFieldDefinitions" aria-expanded="false" aria-controls="ragFieldDefinitions" role="button">
                   <span class="card__title">
                     RAG field definitions and selections
                   </span>
                 </div>
                 <div class="card__header-right">
-                  <span class="card__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#ragFieldDefinitions" aria-expanded="false" aria-controls="ragFieldDefinitions">
+                  <span class="card__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#ragFieldDefinitions" aria-expanded="false" aria-controls="ragFieldDefinitions" role="button">
                     <span>Toggle collapsible</span>
                   </span>
                 </div>

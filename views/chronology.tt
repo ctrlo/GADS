@@ -16,11 +16,11 @@
         action_by       = version.editor.id ? " by " _ version.editor.as_string : '';
     
     %]
-    <div class="card">
-    <div class="card-header">
-      <h3 class="card__header">
-        <span> [%  action_datetime _ " - " _ " record " _ action_type _ action_by | html %] </span>
-      </h3>
+    <div class="card card-info">
+      <div class="card-header">
+        <h2 class="card__header">
+          <span> [%  action_datetime _ " - " _ " record " _ action_type _ action_by | html %] </span>
+        </h2>
       </div>
     
       <div class="card-body">

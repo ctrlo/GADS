@@ -48,3 +48,7 @@
 .icon-chevron-right {
     content: quote("\E805");
 }
+
+.icon-reorder::before {
+    content: quote("\E829");
+}

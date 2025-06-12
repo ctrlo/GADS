@@ -379,7 +379,7 @@
   <div class="[% panel_class %]">
     <div class="card card--expandable card--topic">
       <div class="card-header">
-        <div class="card-header__toggle" data-bs-toggle="collapse" data-bs-target="#topic[% block_topic.id; widget_id_modifier; %]">
+        <div class="card-header__toggle" data-bs-toggle="collapse" data-bs-target="#topic[% block_topic.id; widget_id_modifier; %]" role="button" aria-expanded="[% open %]">
           <span class="card__title">
             [% block_topic.name OR 'Other' | html %]
           </span>

@@ -17,9 +17,8 @@
   table_unresponsive = 0;
   table_caption      = "Table to show list of users";
   table_layout       = {
-    topStart    = undef,
-    topEnd      = undef,
-    top         = ["search", "pageLength"],
+    topStart    = "search",
+    topEnd      = "pageLength",
     bottomStart = "paging",
     bottomEnd   = "info"
   };

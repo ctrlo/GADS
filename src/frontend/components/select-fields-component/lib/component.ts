@@ -57,7 +57,6 @@ export default class SelectComponent extends Component {
         });
         this.$searchBox.on('keyup', ev => {
             this.fieldSetup.searchTerm = isEmpty(ev.target.value) ? undefined : ev.target.value;
-            console.log('Search term:', this.fieldSetup.searchTerm);
             this.refresh();
         }).on('clear', () => {
             this.fieldSetup.searchTerm = undefined;
@@ -93,11 +92,20 @@ export default class SelectComponent extends Component {
     private refresh() {
         this.$availableFields.children('div').remove();
         this.$selectedFields.children('div').remove();
-        for (const item of this.fieldSetup.fields) {
-            if (item.checked) {
+        if(this.fieldSetup.searchTerm) {
+            for (const item of this.fieldSetup.fields.filter(i=>i.checked)) {
                 this.addEntryTo(item, this.$selectedFields);
-            } else if (this.fieldSetup.searchTerm === undefined || item.label.includes(this.fieldSetup.searchTerm)) {
+            }
+            for(const item of this.fieldSetup.filteredFields) {
                 this.addEntryTo(item, this.$availableFields);
+            }
+        } else {
+            for (const item of this.fieldSetup.fields) {
+                if (item.checked) {
+                    this.addEntryTo(item, this.$selectedFields);
+                } else if (this.fieldSetup.searchTerm === undefined) {
+                    this.addEntryTo(item, this.$availableFields);
+                }
             }
         }
     }

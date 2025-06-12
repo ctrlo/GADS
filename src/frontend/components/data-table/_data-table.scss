@@ -1,6 +1,6 @@
 @import "~datatables.net-bs5/css/dataTables.bootstrap5.css",
-        "~datatables.net-responsive-bs5/css/responsive.bootstrap5.css",
-        "~datatables.net-rowreorder-bs5/css/rowReorder.bootstrap5.css";
+"~datatables.net-responsive-bs5/css/responsive.bootstrap5.css",
+"~datatables.net-rowreorder-bs5/css/rowReorder.bootstrap5.css";
 
 table,
 .table {
@@ -27,8 +27,14 @@ table,
         vertical-align: top;
 
         &.sorting_asc,
-        &.sorting_desc {
+        &.sorting_desc,
+        &[aria-sort] {
             color: $brand-secundary;
+
+            &::before,
+            &::after {
+                color: $brand-secundary;
+            }
         }
 
         &.data-table__header--invisible span,
@@ -272,7 +278,7 @@ body:has(#table-modal) {
     background-color: $gray-light;
 }
 
-.table > :not(caption) > * > * {
+.table> :not(caption)>*>* {
     padding: $padding-base-horizontal $padding-base-vertical;
 }
 
@@ -285,4 +291,15 @@ body:has(#table-modal) {
 td.dtr-control::before {
     @extend .icon;
     @extend .icon-chevron-right;
+}
+
+.reorder:not(th) {
+    white-space: nowrap;
+
+    &::before {
+        @extend .icon;
+        @extend .icon-reorder;
+        color: rgba($gray-600, 0.5);
+        cursor: move;
+    }
 }

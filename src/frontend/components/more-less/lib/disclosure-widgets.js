@@ -62,7 +62,7 @@ const toggleDisclosure = function (e, $trigger, state, permanent) {
       top = top - offsetParentOffset.top
       left = left - offsetParentOffset.left
     }
-    positionDisclosure.call($disclosure, top, left, $trigger.outerHeight() + 6)
+    positionDisclosure.call($disclosure, top, left, 6)
   }
 
   $trigger.trigger(state ? 'expand' : 'collapse', $disclosure)

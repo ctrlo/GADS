@@ -111,11 +111,11 @@
                     <div class="col">
                       <div class="card card--expandable">
                         <div class="card-header">
-                          <span class="card-header__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#filter_1" aria-expanded="false" aria-controls="filter_1">
+                          <span class="card-header__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#filter_1" aria-expanded="false" aria-controls="filter_1" role="button">
                             <span class="card__title">Filter</span>
                           </span>
                           <div class="card__header-right">
-                            <span class="card__toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#filter_1" aria-expanded="false" aria-controls="filter_1">
+                            <span class="card__toggle collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#filter_1" aria-expanded="false" aria-controls="filter_1" role="button">
                               <span>Toggle collapsible</span>
                             </span>
                           </div>
@@ -172,13 +172,13 @@
                     <div class="col">
                       <div class="card card--expandable">
                         <div class="card-header">
-                          <span class="card-header__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1">
+                          <span class="card-header__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1" role="button">
                             <span class="card__title">
                               Sort/Group
                             </span>
                           </span>
                           <div class="card__header-right">
-                            <span class="card__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1">
+                            <span class="card__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1" role="button">
                               <span>Toggle collapsible</span>
                             </span>
                           </div>
@@ -389,13 +389,13 @@
                     <div class="col">
                       <div class="card card--expandable">
                         <div class="card-header">
-                          <span class="card-header__toggle" data-bs-toggle="collapse" data-bs-target="#fields_1" aria-expanded="false" aria-controls="fields_1">
+                          <span class="card-header__toggle" data-bs-toggle="collapse" data-bs-target="#fields_1" aria-expanded="false" aria-controls="fields_1" role="button">
                             <span class="card__title">
                               Fields
                             </span>
                           </span>
                           <div class="card__header-right">
-                            <span class="card__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#fields_1" aria-expanded="false" aria-controls="fields_1">
+                            <span class="card__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#fields_1" aria-expanded="false" aria-controls="fields_1" role="button">
                               <span>Toggle collapsible</span>
                             </button>
                           </div>
