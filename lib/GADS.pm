@@ -1724,7 +1724,7 @@ post '/file/:id?' => require_login sub {
     my $fileval = $id =~ /^[0-9]+$/ && schema->resultset('Fileval')->find($id)
         or error __x"File ID {id} cannot be found", id => $id;
 
-    if (process( sub { $fileval->delete }))
+    if (process( sub { $fileval->remove_file }))
     {
         return forwardHome( { success => "File has been deleted successsfully" }, 'file/' );
     }
@@ -1788,7 +1788,7 @@ post '/api/file/?' => require_login sub {
 
         my $fileval = schema->resultset('Fileval')->find($delete_id);
 
-        $fileval->remove();
+        $fileval->remove_file();
 
         return forwardHome(
             { success => "The file has been deleted successfully" }, 'file/' );

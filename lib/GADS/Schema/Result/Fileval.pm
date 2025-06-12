@@ -150,13 +150,13 @@ sub content {
   return $target->slurp(iomode => '<:raw');
 }
 
-sub remove {
+sub remove_file {
   my $self = shift;
 
-  my $filepath = $self->filepath;
+  my $filepath = $self->_filepath;
 
   unlink $filepath if -f $filepath;
-
+  
   $self->delete;
 }
 
