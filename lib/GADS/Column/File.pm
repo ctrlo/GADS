@@ -49,9 +49,6 @@ after build_values => sub {
     $self->string_storage(1);
     $self->value_field('name');
     my ($file_option) = $original->{file_options}->[0];
-    my $fo_rs = $self->schema->resultset('FileOption');
-    $fo_rs->result_class("DBIx::Class::ResultClass::HashRefInflator");
-    my $file_option = $fo_rs->find({layout_id => $original->{id}});
     if ($file_option)
     {
         $self->filesize($file_option->{filesize});
