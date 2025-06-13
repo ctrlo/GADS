@@ -2,9 +2,8 @@ import { Component } from 'component'
 import { DataSet, Timeline } from 'vis-timeline/standalone'
 import moment from 'moment'
 import TippyComponent from '../tippy/lib/component.js'
-import Handlebars from 'handlebars'
-import './handlebars/handlebars-timeline-item-template.js'
 import './print/timeline'
+import {itemRenderer} from './renderer.js';
 
 /**
  * The timeline component.
@@ -26,6 +25,7 @@ class TimelineComponent extends Component {
    * This is async in order to stop the page from blocking while the timeline is being created, and to allow for navigation away should it be required
    */
   initTimeline() {
+    // For some reason, you can't have a loading spinner that remains visible while the timeline is being created
     Promise.resolve().then(() => {
       const $container = $(this.element).find('.timeline__visualization')
       const records_base64 = $container.data('records')
@@ -52,7 +52,7 @@ class TimelineComponent extends Component {
         },
         clickToUse: is_dashboard,
         zoomFriction: 10,
-        template: Handlebars.templates.timelineitem,
+        template: itemRenderer,
         orientation: { axis: 'both' }
       }
 

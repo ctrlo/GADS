@@ -1,0 +1,1 @@
+export { loggedDecorator } from './lib/decorators';
