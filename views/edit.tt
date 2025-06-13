@@ -917,8 +917,7 @@
           data_attributes  = [
             {name = "field", value = field},
             {name = "fileupload-url", value = url.page _ "/api/file/"},
-            {name = "multivalue", value = col.multivalue},
-            {name = "extra_values", value = b64_filter(col.extra_values)}
+            {name = "multivalue", value = col.multivalue}
           ]
           popover_body     = ""
           help_text        = ""

@@ -21,27 +21,13 @@ package GADS::Column::File;
 use Log::Report 'linkspace';
 use MIME::Base64 qw/decode_base64/;
 use Moo;
-use MooX::Types::MooseLike::Base qw/Int Maybe ArrayRef/;
-use JSON qw(decode_json encode_json);
+use MooX::Types::MooseLike::Base qw/Int Maybe/;
 
 extends 'GADS::Column';
-
-with 'GADS::Role::Presentation::Column::File';
 
 has filesize => (
     is      => 'rw',
     isa     => Maybe[Int],
-);
-
-# Extra extensions allowed for upload
-has extra_values => (
-    is => 'rw',
-    isa => Maybe[ArrayRef],
-    coerce => sub {
-        return $_[0] if ref $_[0];
-        return decode_json($_[0]) if $_[0];
-        undef;
-    },
 );
 
 has '+can_multivalue' => (
@@ -62,17 +48,13 @@ after build_values => sub {
     
     $self->string_storage(1);
     $self->value_field('name');
-    # This doesn't exists in truth - there is no relationship set up there - I am going to comment it out and manually retrieve it,
-    # because the relationship may get a bit "odd" as it's related to Layout and File objects
-    # my ($file_option) = $original->{file_options}->[0];
+    my ($file_option) = $original->{file_options}->[0];
     my $fo_rs = $self->schema->resultset('FileOption');
     $fo_rs->result_class("DBIx::Class::ResultClass::HashRefInflator");
     my $file_option = $fo_rs->find({layout_id => $original->{id}});
     if ($file_option)
     {
         $self->filesize($file_option->{filesize});
-        # If we have a string here (which is what I expect right now) the coerce sub /should/ handle that internally
-        $self->extra_values($file_option->{extra_values})
     }
 };
 
@@ -104,8 +86,6 @@ sub write_special
 
     my $foption = {
         filesize => $self->filesize,
-        # Need to encode to JSON for storage rather than ending up with `HASH` in the DB
-        extra_values => encode_json($self->extra_values),
     };
     my ($file_option) = $self->schema->resultset('FileOption')->search({
         layout_id => $id,
@@ -159,7 +139,6 @@ around export_hash => sub {
     my ($self, $values) = @_;
     my $hash = $orig->(@_);
     $hash->{filesize} = $self->filesize;
-    $hash->{extra_values} = $self->extra_values;
     return $hash;
 };
 
