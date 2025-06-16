@@ -320,7 +320,7 @@
 <div class="modal-footer modal-footer_sticky mt-1 pb-0 pe-0 ps-0">
   <div class="modal-footer__left"></div>
   <div class="modal-footer__right">
-    <a class="btn btn-default" href="[% url.page %]/record/[% record.current_id %]" target="_blank">Open full record</a>
+    <a class="btn btn-default my-3" href="[% url.page %]/record/[% record.current_id %]" target="_blank">Open full record</a>
   </div>
 </div>
 [% END %]
@@ -379,7 +379,7 @@
   <div class="[% panel_class %]">
     <div class="card card--expandable card--topic">
       <div class="card-header">
-        <div class="card-header__toggle" data-bs-toggle="collapse" data-bs-target="#topic[% block_topic.id; widget_id_modifier; %]" role="button" aria-expanded="[% open %]">
+        <div class="card-header__toggle [% IF open == 'false' %]collapsed[% END %]" data-bs-toggle="collapse" data-bs-target="#topic[% block_topic.id; widget_id_modifier; %]" role="button" aria-expanded="[% open %]">
           <span class="card__title">
             [% block_topic.name OR 'Other' | html %]
           </span>
@@ -401,7 +401,7 @@
             <span class="btn__title">View</span>
           </button>
         
-          <span class="card__toggle" data-bs-toggle="collapse" data-bs-target="#topic[% block_topic.id; widget_id_modifier; %]" aria-expanded="[% open %]">
+          <span class="card__toggle [% IF open == 'false' %]collapsed[% END %]" data-bs-toggle="collapse" data-bs-target="#topic[% block_topic.id; widget_id_modifier; %]" aria-expanded="[% open %]">
             <span>Toggle collapsible</span>
           </span>
         </div>

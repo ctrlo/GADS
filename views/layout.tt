@@ -1383,7 +1383,7 @@
                   </span>
                 </span>
                 <span class="card__header-right">
-                  <span class="card__toggle collapsed">
+                  <span class="card__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#notes" aria-expanded="false" aria-controls="notes">
                     <span>Toggle collapsible</span>
                   </span>
                 </span>

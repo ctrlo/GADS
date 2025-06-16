@@ -2,7 +2,7 @@
 @import "~bootstrap/scss/functions";
 @import "~bootstrap/scss/variables", "~bootstrap/scss/variables-dark";
 
-$font-size-base: 14pt;
+$font-size-base: 18px;
 
 // Links
 $link-decoration: none;
@@ -47,6 +47,7 @@ $btn-border-radius: 23px;
 $btn-padding-sm-x: 20px;
 $btn-padding-sm-y: 7px;
 $btn-font-size-sm: $font-size-sm;
+$btn-font-size: $font-size-base;
 
 // Cards
 $card-cap-bg: $white;
@@ -55,18 +56,24 @@ $card-cap-border-color: $white;
 $card-bg: $white;
 $card-cap-padding-y: $card-cap-padding-x;
 
+// List groups
 $list-group-bg: $white;
 
+// Tables
 $table-caption-color: $primary;
 $table-bg: $white;
 $table-color: $secondary;
 $table-striped-color: $secondary;
 
+// Dropdowns
 $dropdown-bg: $white;
+
+// Forms
 $input-border-color: $gray-300;
 $input-focus-border-color: $primary;
 $input-focus-bg: $white;
 
+// Navs
 $nav-tabs-border-color: $secondary;
 $nav-tabs-link-hover-border-color: $secondary;
 $nav-tabs-link-active-border-color: $secondary;
@@ -76,12 +83,14 @@ $nav-tabs-border-width: 2px;
 $nav-tabs-link-hover-border-color: $gray-500;
 
 $border-color-translucent: rgba($primary, 0.5);
-$popover-header-bg: $primary;
+
+// Popovers
+$popover-header-bg: $secondary;
 $popover-header-color: $white;
 
+// Switches
 $form-switch-checked-color: $brand-primary;
 $form-check-input-checked-bg-color: $primary;
-
 
 @import "~bootstrap/scss/maps";
 @import "~bootstrap/scss/mixins";

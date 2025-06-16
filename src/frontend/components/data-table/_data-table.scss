@@ -56,24 +56,37 @@ tfoot {
     }
 }
 
-.data-table__search {
-    margin: 0 0.1rem 0 -1rem;
+th {
+    .data-table__search {
+        margin: 0 0.1rem 0 -1rem;
+        color: $transparent;
 
-    .dropdown-toggle {
-        margin-top: 0.1rem;
-        color: $gray-extra-dark;
+        .dropdown-toggle {
+            margin-top: 0.1rem;
+            color: $gray-extra-dark;
+        }
+
+        label {
+            @include input-search;
+        }
+
+        .input .form-control {
+            width: auto;
+        }
+
+        .data-table__header--invisible & {
+            display: none;
+        }
     }
 
-    label {
-        @include input-search;
-    }
+    &:hover {
+        .data-table__search {
+            color: $gray-extra-dark;
 
-    .input .form-control {
-        width: auto;
-    }
-
-    .data-table__header--invisible & {
-        display: none;
+            .dropdown-toggle {
+                color: $brand-secundary;
+            }
+        }
     }
 }
 
@@ -87,8 +100,28 @@ th {
 th {
     padding: 0.5rem;
 
+    .btn-search {
+        margin: 0;
+        margin-right: 0;
+        padding: 0;
+
+        span {
+            visibility: hidden;
+        }
+
+        &::before {
+            content: '\E813';
+            color: $transparent;
+            margin-right: 0;
+        }
+
+        &::after {
+            content: none;
+        }
+    }
+
     .data-table__sort {
-        color: $gray-extra-dark;
+        color: $transparent;
         font-weight: normal;
         @include flex-helper($direction: column);
         @include font-size(0.5rem);
@@ -109,6 +142,22 @@ th {
             rotate: 90deg;
         }
     }
+
+    &:hover,
+    &:active {
+        color: $brand-secundary;
+
+        .data-table__sort::before,
+        .data-table__sort::after {
+            color: $brand-secundary;
+        }
+
+        .btn-search {
+            &::before {
+                color: $brand-secundary;
+            }
+        }
+    }
 }
 
 th[aria-sort='ascending'] {
@@ -116,6 +165,7 @@ th[aria-sort='ascending'] {
         &::before {
             content: '\E805';
             @include font-size(1rem);
+            color: $brand-secundary;
         }
 
         &::after {
@@ -133,27 +183,8 @@ th[aria-sort='descending'] {
         &::after {
             content: '\E805';
             @include font-size(1rem);
+            color: $brand-secundary;
         }
-    }
-}
-
-.btn-search {
-    margin: 0;
-    margin-right: 0;
-    padding: 0;
-
-    span {
-        visibility: hidden;
-    }
-
-    &::before {
-        content: '\E813';
-        color: $gray-extra-dark;
-        margin-right: 0;
-    }
-
-    &::after {
-        content: none;
     }
 }
 
@@ -301,5 +332,14 @@ td.dtr-control::before {
         @extend .icon-reorder;
         color: rgba($gray-600, 0.5);
         cursor: move;
+    }
+}
+
+#default_field_permissions_table tbody tr td{
+    @extend .px-2;
+    @extend .py-1;
+    @extend .align-middle;
+    &:not(:has(div)) {
+        @extend .pt-4;
     }
 }

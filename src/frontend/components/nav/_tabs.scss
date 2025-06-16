@@ -1,0 +1,6 @@
+.nav-tabs {
+    .nav-link {
+        --bs-nav-link-color: #{$secondary};
+        border-color: rgba($secondary, 0.1);
+    }
+}

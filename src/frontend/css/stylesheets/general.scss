@@ -1,8 +1,9 @@
 @import "definitions/variables";
 
+// Override bootstrap base styles
 @import "definitions/bootstrap_base";
 
-// Bootstrap 4.6
+// Bootstrap 5.2
 @import "~bootstrap/scss/bootstrap";
 
 @import "definitions/fonts", "definitions/mixins";
@@ -66,20 +67,32 @@
         "form-group/textarea/textarea",
         "form-group/input-group/input-group";
 
+// Graphs
 @import "graph/graph";
-@import "link/link";
+
+// Lists
 @import "list/list";
+
+//Login page
 @import "login/login";
 
 // modal
 @import "modal/modal", "modal/modal-frame";
 
+// More-less
 @import "more-less/more-less";
+
+// Navigation
+@import 'nav/tabs';
+@import "link/link";
+
+// Page header
 @import "page-header/page-header";
 
 // rag
 @import "rag-legend/rag/rag", "rag-legend/rag-legend";
 
+// General
 @import "readonly/readonly";
 @import "sidebar/sidebar";
 @import "skip-links/skip-links";

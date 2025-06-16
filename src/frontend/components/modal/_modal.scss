@@ -9,7 +9,7 @@
 }
 
 .modal-body {
-  padding-top: 0;
+  @extend .py-0;
 }
 
 .modal-header {
