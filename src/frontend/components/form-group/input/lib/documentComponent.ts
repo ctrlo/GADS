@@ -40,11 +40,13 @@ class DocumentComponent {
         const csrf_token = tokenField.val() as string;
         const dropTarget = this.el.closest('.file-upload');
 
+        const columnId = this.el.closest('.linkspace-field')?.data('column-id') ?? 0;
+
         if (dropTarget) {
             const dragOptions = { allowMultiple: false };
             dropTarget.filedrag(dragOptions).on('onFileDrop', async (_: JQuery.DropEvent, file: File) => {
                 logging.info('File dropped', file);
-                await this.handleAjaxUpload(url, csrf_token, file);
+                await this.handleAjaxUpload(url, csrf_token, file, columnId);
             });
         } else {
             throw new Error('Could not find file-upload element');
@@ -58,10 +60,10 @@ class DocumentComponent {
             try {
                 const file = ev.target.files![0];
                 if (!file || file === undefined || !file.name) return;
-                const formData = formdataMapper({ file, csrf_token });
+                const formData = formdataMapper({ file, csrf_token, column_id: columnId });
                 this.showContainer();
                 const data = await upload<FileData>(url, formData, 'POST', this.showProgress.bind(this));
-                this.addFileToField({ id: data.id, name: data.filename });
+                this.addFileToField({ id: data.id, name: data.filename});
             } catch (error) {
                 this.showException(error);
                 return;
@@ -82,11 +84,11 @@ class DocumentComponent {
         this.el.find('.progress-bar__progress').css('width', `${uploadProgression}%`);
     }
 
-    async handleAjaxUpload(uri: string, csrf_token: string, file: File) {
+    async handleAjaxUpload(uri: string, csrf_token: string, file: File, columnId: number) {
         try {
             if (!file) this.showException(new Error('No file provided'));
 
-            const fileData = formdataMapper({ file, csrf_token });
+            const fileData = formdataMapper({ file, csrf_token, column_id: columnId });
 
             this.showContainer();
             const data = await upload<FileData>(uri, fileData, 'POST', this.showProgress.bind(this));

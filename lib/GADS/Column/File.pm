@@ -21,9 +21,32 @@ package GADS::Column::File;
 use Log::Report 'linkspace';
 use MIME::Base64 qw/decode_base64/;
 use Moo;
-use MooX::Types::MooseLike::Base qw/Int Maybe/;
+use MooX::Types::MooseLike::Base qw/Int Maybe ArrayRef/;
+use JSON qw/decode_json/;
+
+use Data::Dump qw(pp);
 
 extends 'GADS::Column';
+
+has '+option_names' => (
+    default => sub { [qw/override_types/] }
+);
+
+has override_types => (
+    is      => 'rw',
+    isa     => Maybe[ArrayRef],
+    lazy    => 1,
+    coerce  => sub {
+        my $value = shift;
+        return ref($value) ? $value : $value && decode_json($value);
+    },
+    builder => sub {
+        my $self = shift;
+        return 0 unless $self->has_options;
+        $self->options->{override_types};
+    },
+    trigger => sub { $_[0]->reset_options },
+);
 
 has filesize => (
     is      => 'rw',
@@ -63,6 +86,11 @@ sub _build_retrieve_fields
 sub validate
 {   my ($self, $value, %options) = @_;
     return 1 if !$value;
+
+    # Do another file type check here, just in case the ID or any other data was spoofed on the original upload
+    my $file_check = GADS::Filecheck->instance;
+    return 1 if $file_check->check_file(extra_types => $self->override_types);
+    error __"Invalid file uploaded!";
 
     if ($value !~ /^[0-9]+$/ || !$self->schema->resultset('Fileval')->find($value))
     {
