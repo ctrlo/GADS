@@ -18,6 +18,7 @@ use Dancer2::Plugin::DBIC;
 use GADS::Schema;
 use GADS::Layout;
 use GADS::Config;
+use GADS::Filecheck;
 
 use Dancer2::Plugin::LogReport 'linkspace';
 
@@ -31,7 +32,7 @@ GetOptions(
 );
 
 unless ( $mimetype && $extension && $instance && $layout_id ) {
-    say "Usage $0 --mimetype=<mimetype> --extension=<extension> --layout=<layout_id>";
+    say "Usage $0 --mimetype=<mimetype> --extension=<extension> --layout=<layout_id> --instance=<instance_id>";
     exit 1;
 }
 
