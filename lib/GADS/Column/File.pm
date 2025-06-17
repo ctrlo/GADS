@@ -87,8 +87,6 @@ sub validate
 {   my ($self, $value, %options) = @_;
     return 1 if !$value;
 
-    error __"Invalid file uploaded!";
-
     if ($value !~ /^[0-9]+$/ || !$self->schema->resultset('Fileval')->find($value))
     {
         return 0 unless $options{fatal};
