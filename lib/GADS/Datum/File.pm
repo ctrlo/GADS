@@ -74,7 +74,7 @@ after set_value => sub {
                 id      => $values[0],
                 name    => $old_name
             })->next) {
-                $changed = 0 if $fl && (encode_base64($fl->content) eq encode_base64($old_content));
+                $changed = 0 if $fl && $fl->content == $old_content;
             }
         }
     }

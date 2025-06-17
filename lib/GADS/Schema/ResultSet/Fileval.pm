@@ -10,8 +10,6 @@ use Log::Report 'linkspace';
 use GADS::Datum::File;
 use GADS::Layout;
 
-use Data::Dumper qw(Dumper);
-
 sub independent
 {   shift->search_rs({
         is_independent => 1,
@@ -91,10 +89,10 @@ sub create_with_file {
     my $guard = $self->result_source->schema->txn_scope_guard;
 
     my $return = $self->create({
-        name => $name,
-        mimetype => $mimetype,
+        name           => $name,
+        mimetype       => $mimetype,
         is_independent => $independent || 0,
-        edit_user_id => $user,
+        edit_user_id   => $user,
     });
 
     $return->create_file($content);

@@ -133,16 +133,6 @@ sub file_to_id {
   file($path, $id);
 };
 
-sub _filepath {
-  my $self = shift;
-  my $path = GADS::Config->instance->uploads;
-  my $id = sprintf "%09d", $self->id;
-  $id =~ s!(\d{3})!$1/!g;
-  $id =~ s!/$!!g; # remove trailing slash
-  $id =~ s!^/!!g; # remove leading slash
-  "$path/$id"
-}
-
 sub content {
   my $self = shift;
   my $target = $self->file_to_id;
@@ -153,7 +143,13 @@ sub content {
 sub remove_file {
   my $self = shift;
 
-  my $filepath = $self->_filepath;
+  my $self = shift;
+  my $path = GADS::Config->instance->uploads;
+  my $id = sprintf "%09d", $self->id;
+  $id =~ s!(\d{3})!$1/!g;
+  $id =~ s!/$!!g; # remove trailing slash
+  $id =~ s!^/!!g; # remove leading slash
+  my $filepath = "$path/$id"
 
   unlink $filepath if -f $filepath;
   
