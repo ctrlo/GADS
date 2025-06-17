@@ -20,7 +20,7 @@ package GADS::Datum::File;
 
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Bool ArrayRef/;
 use namespace::clean;
 
 use MIME::Base64 qw(encode_base64);

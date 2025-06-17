@@ -2362,7 +2362,7 @@ prefix '/:layout_name' => sub {
             else {
                 my $input = param('rewind_date');
                 $input   .= ' ' . (param('rewind_time') ? param('rewind_time') : '23:59:59');
-                my $dt    = GADS::DateTime::parse_datetime($input)
+                my $dt    = GADS::DateTime::parse_datetime(undef, $input)
                     or error __x"Invalid date or time: {datetime}", datetime => $input;
                 session rewind => $dt;
             }
@@ -4735,8 +4735,8 @@ sub _process_edit
             my $newv;
             if ($modal)
             {
-                next unless defined query_parameters->get($col->field);
-                $newv = [query_parameters->get_all($col->field)];
+                next unless defined body_parameters->get($col->field);
+                $newv = [body_parameters->get_all($col->field)];
             }
             else {
                 next unless defined body_parameters->get($col->field);

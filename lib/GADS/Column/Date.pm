@@ -23,7 +23,7 @@ use DateTime::Format::ISO8601;
 use GADS::View;
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Bool/;
 
 extends 'GADS::Column';
 

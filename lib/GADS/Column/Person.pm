@@ -21,7 +21,7 @@ package GADS::Column::Person;
 use Log::Report 'linkspace';
 use GADS::Users;
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Bool/;
 
 extends 'GADS::Column';
 

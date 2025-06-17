@@ -21,7 +21,7 @@ package GADS::Column::Calc;
 use Log::Report 'linkspace';
 
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Int Maybe/;
 use Scalar::Util qw(looks_like_number);
 
 extends 'GADS::Column::Code';

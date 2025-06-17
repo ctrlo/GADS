@@ -21,7 +21,7 @@ package GADS::Column::File;
 use Log::Report 'linkspace';
 use MIME::Base64 qw/decode_base64/;
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Int Maybe/;
 
 extends 'GADS::Column';
 
