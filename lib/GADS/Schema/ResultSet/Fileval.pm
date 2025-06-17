@@ -79,13 +79,8 @@ sub find_with_permission
 }
 
 sub create_with_file {
-    my ($self, $options) = @_;
-    my $name = $options->{name};
-    my $mimetype = $options->{mimetype};
-    my $content = $options->{content};
-    my $independent = $options->{is_independent};
-    my $user = $options->{edit_user_id};
-
+    my ($self, $name, $mimetype, $content, $independent, $user) = @_;
+    
     my $guard = $self->result_source->schema->txn_scope_guard;
 
     my $return = $self->create({

@@ -142,11 +142,11 @@ around export_hash => sub {
 sub import_value
 {   my ($self, $value) = @_;
 
-    my $file = $value->{content} && $self->schema->resultset('Fileval')->create_with_file({
-        name     => $value->{name},
-        mimetype => $value->{mimetype},
-        content  => decode_base64($value->{content}),
-    });
+    my $file = $value->{content} && $self->schema->resultset('Fileval')->create_with_file(
+        $value->{name},
+        $value->{mimetype},
+        decode_base64($value->{content}),
+    );
     $self->schema->resultset('File')->create({
         record_id    => $value->{record_id},
         layout_id    => $self->id,

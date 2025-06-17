@@ -143,13 +143,12 @@ sub content {
 sub remove_file {
   my $self = shift;
 
-  my $self = shift;
   my $path = GADS::Config->instance->uploads;
   my $id = sprintf "%09d", $self->id;
   $id =~ s!(\d{3})!$1/!g;
   $id =~ s!/$!!g; # remove trailing slash
   $id =~ s!^/!!g; # remove leading slash
-  my $filepath = "$path/$id"
+  my $filepath = "$path/$id";
 
   unlink $filepath if -f $filepath;
   
