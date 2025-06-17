@@ -87,14 +87,14 @@ sub validate
 {   my ($self, $value, %options) = @_;
     return 1 if !$value;
 
-    # Do another file type check here, just in case the ID or any other data was spoofed on the original upload
-    my $file_check = GADS::Filecheck->instance;
-    return 1 if $file_check->check_file(extra_types => $self->override_types);
     error __"Invalid file uploaded!";
 
     if ($value !~ /^[0-9]+$/ || !$self->schema->resultset('Fileval')->find($value))
     {
         return 0 unless $options{fatal};
+        # The new file check will go in here but will _not_ be included in this change request because
+        # the file is on the filesystem from another change - I will create a new PR from that commit and
+        # integrate the file check from the filesystem from there.
         error __x"'{int}' is not a valid file ID for '{col}'",
             int => $value, col => $self->name;
     }
