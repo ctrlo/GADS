@@ -27,7 +27,7 @@ jobs:
         run: |
           sudo apt-get install cpanminus liblua5.3-dev
           # Avoid "Install CPAN dependencies" needing to compile so much
-          sudo apt-get install libdancer2-perl libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl
+          sudo apt-get install libdancer2-perl libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl libtest-tempdir-tiny-perl
       - name: 'Build cpanfile'
         run: perl bin/output_cpanfile > cpanfile
       - name: 'Install CPAN dependencies'
