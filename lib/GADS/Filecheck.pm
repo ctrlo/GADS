@@ -33,8 +33,8 @@ sub check_file
     my $check_name = $options{check_name} // 1;
     my $allowed_data = $options{extra_types};
 
-    my $mimeRegex = '^(' . join('|', map { $_->{name} } @$allowed_data) . ')' if @$allowed_data;
-    my $filetypeRegex = '^(' . join('|', map {$_->{extension}} @$allowed_data) . ')$' if @$allowed_data;
+    my $mimeRegex = '^(' . join('|', map { $_->{name} } @$allowed_data) . ')' if $allowed_data && @$allowed_data;
+    my $filetypeRegex = '^(' . join('|', map {$_->{extension}} @$allowed_data) . ')$' if $allowed_data && @$allowed_data;
     
     my $info = $magic->info_from_filename($upload->tempname);
 
