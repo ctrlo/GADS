@@ -4738,8 +4738,8 @@ sub _process_edit
             my $newv;
             if ($modal)
             {
-                next unless defined query_parameters->get($col->field);
-                $newv = [query_parameters->get_all($col->field)];
+                next unless defined body_parameters->get($col->field);
+                $newv = [body_parameters->get_all($col->field)];
             }
             else {
                 next unless defined body_parameters->get($col->field);
