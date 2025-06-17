@@ -31,14 +31,14 @@ sub check_file
 {   my ($self, $upload, %options) = @_;
 
     my $check_name = $options{check_name} // 1;
-    my $allowed_data = $options{extra_types} // [];
+    my $allowed_data = $options{extra_types};
 
-    my $mimeRegex = '^(' . join('|', map { $_->{name} } @$allowed_data) . ')';
-    my $filetypeRegex = '^(' . join('|', map {$_->{extension}} @$allowed_data) . ')$';
+    my $mimeRegex = '^(' . join('|', map { $_->{name} } @$allowed_data) . ')' if @$allowed_data;
+    my $filetypeRegex = '^(' . join('|', map {$_->{extension}} @$allowed_data) . ')$' if @$allowed_data;
     
     my $info = $magic->info_from_filename($upload->tempname);
 
-    my $allowed_bypass = $info->{mime_type} =~ qr/$mimeRegex/;
+    my $allowed_bypass = $info->{mime_type} =~ qr/$mimeRegex/ if $mimeRegex;
 
     error __x"Files of mimetype {mimetype} are not allowed",
         mimetype => $info->{mime_type}
@@ -47,8 +47,9 @@ sub check_file
     $upload->filename =~ /\.([a-z]+)$/i
         or error __"Files without extensions cannot be uploaded";
     my $ext = $1;
+    my $extension_bypass = $ext =~ qr/$filetypeRegex/ if $filetypeRegex;
     error __x"Files with extension of {ext} are not allowed", ext => $ext
-        unless $ext=~qr/$filetypeRegex/ or $self->check_extension($ext);
+        unless $extension_bypass or $self->check_extension($ext);
 
     # As recommended at https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload
     # Brackets have been added to this - above recommendations do not explicitly state that brackets are not allowed - Ticket #1695
