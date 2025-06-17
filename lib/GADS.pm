@@ -1707,7 +1707,7 @@ post '/file/:id?' => require_login sub {
             $upload->content,
             1,
             undef,
-        )}));
+        )}))
         {
             my $msg = __x"File has been uploaded as ID {id}", id => $file->id;
             return forwardHome( { success => "$msg" }, 'file/' );
