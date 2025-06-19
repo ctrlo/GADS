@@ -9,7 +9,7 @@
     [% INCLUDE fields/sub/label_fieldset.tt; %]
     <div class="select-widget[% select_widget_class %] multi" [% IF data_attributes; INCLUDE fields/sub/data_attributes.tt; END; %]>
       <div class="select-widget-dropdown">
-        <div class="form-control" [% IF is_readonly %]readonly disabled[% END %]>
+        <div class="form-control m-0 p-0 ps-2" [% IF is_readonly %]readonly disabled[% END %]>
           <ul class="current">
             <li class="none-selected">[% INCLUDE fields/sub/filter.tt value=placeholder filter="html"; %]</li>
             [%
@@ -44,7 +44,7 @@
               <li class="search">
                 <input
                   type="search"
-                  class="form-control-search"
+                  class="form-control-search m-1 ms-2"
                   style="width:100px"
                   placeholder="Search..."
                   aria-controls="[% id %]-values-multi"

@@ -1,19 +1,13 @@
 .modal-footer {
   display: block;
 
-  & > * {
+  &>* {
     margin: 0;
   }
 
   .btn {
     width: 100%;
   }
-}
-
-.modal-footer_sticky {
-  position: sticky;
-  z-index: 999;
-  bottom: 1rem;
 }
 
 .modal-footer__left {
@@ -23,6 +17,14 @@
 .modal-footer__right {
   .btn:not(:last-child) {
     margin-bottom: $padding-base-vertical;
+  }
+}
+
+#readMore {
+  .modal-dialog {
+    .content-block__footer-container {
+      @extend .sticky-bottom;
+    }
   }
 }
 

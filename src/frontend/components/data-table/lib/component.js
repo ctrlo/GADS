@@ -1,3 +1,5 @@
+import "bootstrap";
+import "@popperjs/core";
 import { Component, initializeRegisteredComponents } from 'component'
 import 'datatables.net-bs5'
 import 'datatables.net-responsive-bs5'
@@ -7,8 +9,8 @@ import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/
 import { moreLess } from 'components/more-less/lib/more-less'
 import { bindToggleTableClickHandlers } from './toggle-table'
 import { createElement } from "util/domutils";
-import { Config } from 'datatables.net-bs5'
-import BootstrapPopoverComponent from 'components/bootstrap-popover/lib/component'
+import { isNotEmptyString } from 'util/typeChecks'
+import { Config } from "datatables.net-bs5";
 
 const MORE_LESS_TRESHOLD = 50
 
@@ -79,6 +81,7 @@ class DataTableComponent extends Component {
     $(this.el).on('childRow.dt', (_e, _show, row) => {
       const $childRow = $(row.child())
       const recordPopupElements = $childRow.find('.record-popup')
+      const bsPopupElements = $childRow.find('[bs-data-toggle="popover"]');
 
       setupDisclosureWidgets($childRow)
 
@@ -86,6 +89,14 @@ class DataTableComponent extends Component {
         import(/* webpackChunkName: "record-popup" */ 'components/record-popup/lib/component').then(({ default: RecordPopupComponent }) => {
           recordPopupElements.each((_i, el) => {
             new RecordPopupComponent(el)
+          });
+        });
+      }
+
+      if(bsPopupElements && bsPopupElements.length) {
+        import(/* webpackChunkName: "bootstrap-popover" */ 'components/bootstrap-popover/lib/component').then(({default: BootstrapPopoverComponent}) =>{
+          bsPopupElements.each((_i, el) => {
+            new BootstrapPopoverComponent(el);
           });
         });
       }
@@ -526,7 +537,7 @@ class DataTableComponent extends Component {
         return this.renderId(data)
       case 'person':
       case 'createdby':
-        return this.renderPerson(data)
+        return this.renderPerson(data);
       case 'curval':
       case 'autocur':
       case 'filval':
@@ -565,9 +576,6 @@ class DataTableComponent extends Component {
    */
   getConf(overrides = undefined) {
     const confData = this.el.data('config')
-    /**
-     * @type {Config}
-     */
     let conf = {}
 
     if (typeof confData == 'string') {
@@ -598,6 +606,7 @@ class DataTableComponent extends Component {
       conf.columns.forEach((column) => {
         column.render = (_data, type, row, meta) => this.renderData(type, row, meta)
       })
+      
     }
 
     const self = this;
@@ -681,6 +690,12 @@ class DataTableComponent extends Component {
             const searchParams = self.searchParams?.length ? '' : `?${self.searchParams.toString()}`
             const url = searchParams || searchParams.length > 1 ? `${window.location.href.split("?")[0]}${searchParams}` : window.location.href.split("?")[0];
             window.history.replaceState(null, '', url);
+            
+            if(isNotEmptyString(value)) {
+              $header.find('.btn-search').addClass('active');
+            } else {
+              $header.find('.btn-search').removeClass('active');
+            }
           });
 
           column.header().replaceChildren($searchElement[0]);
@@ -691,6 +706,9 @@ class DataTableComponent extends Component {
             });
           }
         });
+
+        this.initializingTable && initializeRegisteredComponents(self.element);
+
         this.initializingTable = false;
       }
     }

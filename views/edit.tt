@@ -233,6 +233,9 @@
           [%
             left_buttons = [];
             right_buttons = [];
+
+          %]
+          [%
           
             IF edit_modal;
               left_buttons.push({
@@ -297,7 +300,15 @@
                 value = "submit",
                 label = "Submit and exit"
               });
-          
+            ELSIF view_modal;
+              right_buttons.push({
+                type   = "link",
+                class  = "btn btn-default btn-js-view-record",
+                id     = "view-record",
+                name   = "view-record",
+                label  = "View full record"
+                target = url.page _ '/record/' _ record.current_id
+              });
             END;
           
             INCLUDE navigation/button_bar.tt
@@ -315,15 +326,6 @@
     </fieldset>
   </form>
 </div>
-
-[% IF view_modal %]
-<div class="modal-footer modal-footer_sticky mt-1 pb-0 pe-0 ps-0">
-  <div class="modal-footer__left"></div>
-  <div class="modal-footer__right">
-    <a class="btn btn-default my-3" href="[% url.page %]/record/[% record.current_id %]" target="_blank">Open full record</a>
-  </div>
-</div>
-[% END %]
 
 [% UNLESS edit_modal %]
     [% INCLUDE wizard/curval.tt modalId="curvalModal"; %]

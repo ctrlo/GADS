@@ -61,6 +61,10 @@ th {
         margin: 0 0.1rem 0 -1rem;
         color: $transparent;
 
+        &.active {
+            color: $brand-secundary;
+        }
+
         .dropdown-toggle {
             margin-top: 0.1rem;
             color: $gray-extra-dark;
@@ -81,7 +85,7 @@ th {
 
     &:hover {
         .data-table__search {
-            color: $gray-extra-dark;
+            color: $brand-secundary;
 
             .dropdown-toggle {
                 color: $brand-secundary;
@@ -113,6 +117,10 @@ th {
             content: '\E813';
             color: $transparent;
             margin-right: 0;
+        }
+
+        &.active::before {
+            color: $brand-secundary;
         }
 
         &::after {
@@ -325,7 +333,9 @@ td.dtr-control::before {
 }
 
 .reorder:not(th) {
-    white-space: nowrap;
+    span {
+        @include visually-hidden;
+    }
 
     &::before {
         @extend .icon;
