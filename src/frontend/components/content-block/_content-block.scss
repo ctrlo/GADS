@@ -12,18 +12,6 @@
   justify-content: space-between;
   margin-bottom: 1px; // To reserve room for the bottom border of 2px
   padding: $padding-base-vertical 0 $padding-base-vertical;
-
-  &::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    bottom: -1px;
-    left: 0;
-    height: 1px;
-    margin-right: -$grid-offset-mobile;
-    margin-left: -$grid-offset-mobile;
-    background: $gray;
-  }
 }
 
 .content-block__navigation-left,
