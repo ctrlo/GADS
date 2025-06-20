@@ -29,3 +29,14 @@
         }
     }
 }
+
+.has-error {
+    .error-container {
+        &::before {
+            @extend .icon;
+            @extend .icon-error;
+            @extend .px-2;
+            cursor: default;
+        }
+    }
+}

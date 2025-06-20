@@ -8,7 +8,7 @@
 
   table_caption = "Table for audit log";
   table_class = "table-force-buttons";
-
+  
   table_columns = [{
     name = "ID"
     orderable = 1

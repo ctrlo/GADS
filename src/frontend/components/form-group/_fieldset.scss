@@ -6,11 +6,8 @@
   display: flex;
 
   legend {
-    @include form-label;
-
-    width: auto;
-    margin-bottom: 0.25rem;
-    @include font-size(0.875rem); // 14px
+    @extend .form-label;
+    @extend .mb-2;
   }
 }
 

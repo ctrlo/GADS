@@ -130,7 +130,7 @@
 
       <button
         type="button"
-        class="btn btn-add-link"
+        class="btn btn-add-link px-0"
       >
         <span class="btn__title">Add extra value</span>
       </button>

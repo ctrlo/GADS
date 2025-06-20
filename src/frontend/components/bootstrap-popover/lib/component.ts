@@ -23,7 +23,7 @@ export default class BootstrapPopoverComponent extends Component {
         new Popover(element, {
             html: true,
             content: content,
-            container: "body",
+            placement: $el.data("bs-placement") || "top",
         });
     }
 }

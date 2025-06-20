@@ -14,9 +14,6 @@ ul {
   margin: 0;
   padding-left: $padding-small-horizontal;
   list-style-type: none;
-}
-
-.list__item {
   padding-bottom: $padding-small-vertical;
 }
 
@@ -33,6 +30,8 @@ ul {
     padding-right: $padding-base-horizontal;
     padding-bottom: 0;
     border-right: 1px solid $gray;
+    white-space: nowrap;
+    @extend .m-2;
 
     &:last-child {
       padding-right: 0;

@@ -6,11 +6,12 @@
  */
 const positionDisclosure = function (offsetTop, offsetLeft, triggerHeight) {
   const left = offsetLeft + 'px'
-  const top = offsetTop + triggerHeight + 'px'
+  const top = 20 + offsetTop + triggerHeight + 'px'
 
   this.css({
     left: left,
-    top: top
+    top: top,
+    position: 'absolute',
   })
 
   // If the popover is outside the body move it a bit to the left

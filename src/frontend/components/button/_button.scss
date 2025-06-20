@@ -5,7 +5,7 @@
 }
 
 .btn-inverted {
-  @include button-variant($white, $brand-secundary, $brand-secundary);
+  @include button-variant($transparent, $brand-secundary, $brand-secundary);
 }
 
 .btn-delete {
@@ -108,10 +108,12 @@
   &::after {
     @extend %icon-font;
     content: "\E80A";
-    margin-right: 0.75rem;
+    color: $brand-secundary;
+    @extend .mx-3;
   }
 
-  padding: 0;
+  @extend .p-0;
+  border: none;
 }
 
 .collapsible__toggle {
@@ -145,4 +147,17 @@
   @include button-variant($transparent, $transparent, $black, $hover-color: $black);
   padding: 0;
   text-decoration: none;
+}
+
+.btn-small {
+  @extend .px-2;
+  @extend .py-1;
+}
+
+.btn-disabled {
+  @extend .btn-default;
+}
+
+.btn-add-link {
+  border-color: $transparent !important;
 }

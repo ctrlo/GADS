@@ -306,7 +306,7 @@
                 class  = "btn btn-default btn-js-view-record",
                 id     = "view-record",
                 name   = "view-record",
-                label  = "View full record"
+                label  = "Open full record"
                 target = url.page _ '/record/' _ record.current_id
               });
             END;
@@ -1117,7 +1117,7 @@
 [% BLOCK curval_add_button %]
   <button
     type="button"
-    class="btn btn-js-curval-modal btn-add-link"
+    class="btn btn-js-curval-modal btn-add-link px-0"
     data-bs-toggle="modal"
     data-bs-target=#curvalModal
   >

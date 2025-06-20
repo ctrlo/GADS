@@ -13,16 +13,27 @@
     background-clip: padding-box;
     max-height: 15em;
     overflow-y: auto;
+    border-radius: none;
+
+    .tt-dataset {
+        display: flex;
+        align-items: start;
+        flex-direction: column;
+        width: 100%;
+        @extend .px-2;
+        @extend .py-1;
+    }
 
     .tt-suggestion,
     .tt-dataset div {
-        background-color: $white;
+        background-color: $transparent;
         margin: 2px;
         color: $gray-extra-dark;
         border-bottom: 1px solid $input-border;
         padding: $padding-small-horizontal $padding-base-horizontal;
         font-weight: normal;
         cursor: pointer;
+        width: 100%;
     }
 
     .tt-suggestion:last-child {

@@ -55,7 +55,7 @@
 
     .card__title {
       @extend h3;
-      color: $primary;
+      color: $brand-secundary;
     }
 
     .card-header__toggle {
@@ -127,8 +127,12 @@
   .card-header {
     .card__title {
       @extend h3;
-      color: $secondary;
+      color: $primary;
       @include font-size(1.125rem);
+      .card__subtitle {
+        color: $secondary;
+        font-weight: $font-weight-normal;
+      }
     }
   }
 }
@@ -145,4 +149,8 @@
       @include font-size(1.25rem);
     }
   }
+}
+
+.card--settings {
+  min-height: 10rem;
 }

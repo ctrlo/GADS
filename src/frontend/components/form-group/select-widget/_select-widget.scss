@@ -40,12 +40,17 @@
     align-items: center;
 
     li[data-list-item] {
-      @extend .pb-2;
+      padding: calc($padding-small-vertical/2);
+      @extend .px-3;
+      @extend .mx-2;
       display: flex;
       align-items: center;
       border-radius: 7px;
       background-color: $gray;
       color: $black;
+      .close {
+        display: block;
+      }
     }
 
     .widget-value__value {
@@ -67,6 +72,7 @@
     border: 0;
     border-radius: unset;
     outline: 0;
+    background-color: $transparent;
 
     /* clears the 'X' from Internet Explorer */
     &::-ms-clear {

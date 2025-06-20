@@ -24,7 +24,6 @@
 
     &::before {
       @extend %icon-font;
-
       content: "\E807";
       font-size: $font-size-base;
     }
@@ -40,9 +39,8 @@
     color: $white;
 
     .close {
-      color: $transparent;
-      visibility: hidden;
-      display: none;
+      @extend .ms-3;
+      color: $white;
     }
   }
 

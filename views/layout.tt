@@ -1447,6 +1447,10 @@
                       table_length_menu  = 'detail';
                       table_unresponsive = 1;
                       table_caption      = "Table to edit permissions in a table";
+                      table_layout       = {
+                        topStart = "search",
+                        topEnd   = { pageLength = { menu = [5,10,25,50,-1]} }
+                      };
 
                       table_columns = [{
                         name      = "Group"
@@ -1616,11 +1620,6 @@
                       END;
 
                       no_toggle=1;
-
-                      table_layout = {
-                        topStart = "search",
-                        topEnd = undef
-                      };
 
                       INCLUDE tables/basic_table.tt;
                     END;

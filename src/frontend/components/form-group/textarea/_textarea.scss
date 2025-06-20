@@ -34,3 +34,17 @@
 .textarea--required label::after {
   content: "*";
 }
+
+textarea:read-only,
+textarea[readonly],
+input:read-only,
+input[readonly] {
+  background-color: $gray-light;
+  border-color: $transparent;
+  cursor: not-allowed;
+
+  &:hover,
+  &:active {
+    border-color: $transparent !important;
+  }
+}

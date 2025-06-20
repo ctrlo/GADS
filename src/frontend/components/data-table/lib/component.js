@@ -4,6 +4,7 @@ import { Component, initializeRegisteredComponents } from 'component'
 import 'datatables.net-bs5'
 import 'datatables.net-responsive-bs5'
 import 'datatables.net-rowreorder-bs5'
+import 'datatables.net-buttons-bs5'
 import './DataTablesPlugins'
 import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets'
 import { moreLess } from 'components/more-less/lib/more-less'
@@ -93,8 +94,8 @@ class DataTableComponent extends Component {
         });
       }
 
-      if(bsPopupElements && bsPopupElements.length) {
-        import(/* webpackChunkName: "bootstrap-popover" */ 'components/bootstrap-popover/lib/component').then(({default: BootstrapPopoverComponent}) =>{
+      if (bsPopupElements && bsPopupElements.length) {
+        import(/* webpackChunkName: "bootstrap-popover" */ 'components/bootstrap-popover/lib/component').then(({ default: BootstrapPopoverComponent }) => {
           bsPopupElements.each((_i, el) => {
             new BootstrapPopoverComponent(el);
           });
@@ -293,10 +294,10 @@ class DataTableComponent extends Component {
 
     if (column.search() !== '') {
       $header.find('.data-table__header-wrapper').addClass('filter')
-      $header.find('.data-table__clear').show()
+      // $header.find('.data-table__clear').show()
     } else {
       $header.find('.data-table__header-wrapper').removeClass('filter')
-      $header.find('.data-table__clear').hide()
+      // $header.find('.data-table__clear').hide()
     }
   }
 
@@ -594,6 +595,10 @@ class DataTableComponent extends Component {
       if (Array.isArray(conf.layout.topEnd)) {
         conf.layout.topEnd.push({ fullscreen: { checked: this.isFullScreen, onToggle: (ev) => this.toggleFullScreenMode(ev) } })
       }
+    } else if (this.forceButtons) {
+      conf.layout = conf.layout || {};
+      conf.layout.topEnd = conf.layout.topEnd || [];
+      conf.layout.topEnd.push({ fullscreen: { checked: this.isFullScreen, onToggle: (ev) => this.toggleFullScreenMode(ev) } });
     }
 
     if ("columns" in conf || conf.columns) {
@@ -606,7 +611,7 @@ class DataTableComponent extends Component {
       conf.columns.forEach((column) => {
         column.render = (_data, type, row, meta) => this.renderData(type, row, meta)
       })
-      
+
     }
 
     const self = this;
@@ -636,7 +641,7 @@ class DataTableComponent extends Component {
           <div class"data-table__header">
             ${self.hasSearch && `<div class="data-table__search">
               <button 
-                  class="btn btn-search dropdown-toggle"
+                  class="btn btn-search dropdown-toggle${isNotEmptyString(searchValue) ? ' active': ''}"
                   id="search-toggle-${index}"
                   type="button"
                   data-bs-toggle="dropdown"
@@ -690,8 +695,8 @@ class DataTableComponent extends Component {
             const searchParams = self.searchParams?.length ? '' : `?${self.searchParams.toString()}`
             const url = searchParams || searchParams.length > 1 ? `${window.location.href.split("?")[0]}${searchParams}` : window.location.href.split("?")[0];
             window.history.replaceState(null, '', url);
-            
-            if(isNotEmptyString(value)) {
+
+            if (isNotEmptyString(value)) {
               $header.find('.btn-search').addClass('active');
             } else {
               $header.find('.btn-search').removeClass('active');
@@ -699,6 +704,30 @@ class DataTableComponent extends Component {
           });
 
           column.header().replaceChildren($searchElement[0]);
+
+          self.toggleFilter(column);
+
+          if (col && col.typeahead) {
+            import(/*webpackChunkName: "typeahead" */ "util/typeahead")
+              .then(({ default: TypeaheadBuilder }) => {
+                const builder = new TypeaheadBuilder();
+                builder
+                  .withAjaxSource(self.getApiEndpoint(columnId))
+                  .withInput($('input', $header))
+                  .withAppendQuery()
+                  .withDefaultMapper()
+                  .withName(columnId.replace(/\s+/g, '') + 'Search')
+                  .withCallback((data) => {
+                    if (col.typeahead_use_id) {
+                      $searchInput.val(data.name);
+                      $('input.search', $searchElement).val(data.id).trigger('change');
+                    } else {
+                      $('input', $searchElement).addClass('search').val(data.name).trigger('change');
+                    }
+                  })
+                  .build();
+              });
+          }
 
           if ($header.hasClass('dt-orderable-asc') || $header.hasClass('dt-orderable-desc')) {
             $header.find('.data-table__search').on('click', (ev) => {

@@ -21,6 +21,7 @@
 
 .form-text {
   @include form-text;
+  @extend .mb-3;
 }
 
 .form-text--error {
@@ -46,4 +47,11 @@
   .tt-suggestion:hover {
     background-color: #E5E5E5;
   }
+}
+
+// Why are we using legends as form labels?
+.form-label,
+legend {
+  @include font-size(1.125rem);
+  font-weight: 800;
 }

@@ -1,6 +1,7 @@
 @import "~datatables.net-bs5/css/dataTables.bootstrap5.css",
 "~datatables.net-responsive-bs5/css/responsive.bootstrap5.css",
-"~datatables.net-rowreorder-bs5/css/rowReorder.bootstrap5.css";
+"~datatables.net-rowreorder-bs5/css/rowReorder.bootstrap5.css",
+"~datatables.net-buttons-bs5/css/buttons.bootstrap5.css";
 
 table,
 .table {
@@ -14,6 +15,10 @@ table,
 
     &.table-thead-hidden thead {
         display: none;
+    }
+
+    tr {
+        cursor: pointer;
     }
 
     thead {
@@ -297,6 +302,19 @@ body:has(#table-modal) {
 
             .dt-toggle-button {
                 margin-left: 0.5rem;
+                cursor: pointer;
+
+                & * {
+                    cursor: pointer;
+                }
+
+                &:hover {
+                    color: $brand-secundary;
+
+                    label {
+                        text-decoration: underline;
+                    }
+                }
             }
         }
     }
@@ -345,11 +363,21 @@ td.dtr-control::before {
     }
 }
 
-#default_field_permissions_table tbody tr td{
+#default_field_permissions_table tbody tr td {
     @extend .px-2;
     @extend .py-1;
     @extend .align-middle;
+
     &:not(:has(div)) {
         @extend .pt-4;
     }
+}
+
+.dt-type-numeric {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.data-table__search:has(input:not(:blank)) button {
+    color: $brand-secundary;
 }

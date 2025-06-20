@@ -29,7 +29,7 @@
     }
 
     &:nth-child(odd) {
-        @extend .bg-light;
+        background-color: rgba(var(--bs-light-rgb), 1);
     }
 
     &::after {
@@ -46,6 +46,11 @@
             @extend .ms-2;
             content: quote("\e807");
         }
+    }
+
+    &:hover,
+    &:nth-child(odd):hover {
+        background: $gray-300;
     }
 }
 

@@ -1,5 +1,5 @@
 <div class="popover-container [% popover_class %]">
-  <div class="popover-content" id="[% popover_id %]-popover">
+  <div class="popover-content" id="[% popover_id %]-popover" style="display: none;">
     [% popover_body %]
   </div>
   <button class="btn btn-popover [% popover_button_class %]" type="button" [% IF popover_title; %]title="[% popover_title %]" [% END; %]aria-describedby="[% popover_id %]-popover" data-bs-toggle="popover">

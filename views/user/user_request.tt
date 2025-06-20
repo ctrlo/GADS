@@ -15,7 +15,8 @@
   table_layout       = {
     topStart    = undef,
     topEnd      = undef,
-    top         = ["search", "pageLength"],
+    topStart    = "search"
+    topEnd      = "pageLength",
     bottomStart = "paging",
     bottomEnd   = "info"
   };
