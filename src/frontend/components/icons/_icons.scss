@@ -1,10 +1,18 @@
+.span-invisible {
+    span {
+        @extend .visually-hidden;
+    }
+}
+
 .icon::before {
+    content: '';
     @extend %icon-font;
     margin-right: 0.75rem;
 }
 
 .icon-user::before {
     content: quote("\E81A");
+    font-size: calc($font-size-base * 1.5);
 }
 
 .icon-organisation::before {
@@ -56,4 +64,9 @@
 
 .icon-error::before {
     content: quote("\E810");
+}
+
+.icon-logout::before {
+    font-size: calc($font-size-base * 1.25);
+    content: quote("\E812");
 }

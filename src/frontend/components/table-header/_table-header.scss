@@ -1,90 +1,28 @@
-.table-header-container {
-  position: relative;
-  width: 100%;
-  padding: 1rem 0 0 $grid-offset-mobile;
+.table-header-top {
+    column-gap: 16px;
+}
 
-  &::before {
+.table-header-container::before {
     content: '';
     position: absolute;
-    right: 0;
-    bottom: 0;
+    top: 0;
     left: 0;
-    background-color: $secondary;
-    height: 2px;
-    z-index: 0;
-  }
+    right: -1.25rem;
+    bottom: 0;
+    background-color: rgb($white, 0);
 }
 
-// .table-header-top {
-//   position: relative;
-//   flex-direction: row;
-//   flex-wrap: nowrap;
-//   gap: $padding-base-horizontal;
-//   padding-bottom: 1.5rem;
+.user {
+    gap: 1rem;
+}
 
-//   .table-header__meta {
-//     width: auto;
-//   }
-
-//   .table-header__navigation {
-//     width: auto;
-//     align-self: flex-end;
-//   }
-// }
-
-// .table-header-bottom {
-//   position: relative;
-// }
-
-// .table-header__title {
-//   margin: $padding-base-vertical $padding-base-horizontal 0 0;
-//   color: $text-color;
-// }
+.user-item:not(:last-of-type) {
+    padding-right: 1rem;
+    border-right: $gray-500 solid 1px;
+}
 
 @include media-breakpoint-up(lg) {
-  .table-header {
-    &::after {
-      margin-right: -$grid-offset;
+    .table-header-container::before {
+        right: -2rem;
     }
-  }
-
-  .table-header-container {
-    padding: 1rem 0 0 $grid-offset;
-
-    &::before {
-      right: -1 * $grid-offset;
-    }
-  }
-}
-
-//This emulates the earlier nav--tabs behaviour using Bootstrap 5
-.nav.nav-tabs {
-  --bs-nav-link-color: #{$secondary};
-  margin-bottom: -1px;
-  border-color: rgba($secondary, 0.1);
-
-  li {
-    margin: 0 -1px;
-    z-index: 2;
-
-    a {
-      border-bottom: none;
-
-      &.active {
-        &::after {
-          content: '';
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          height: 2px;
-          background-color: $transparent;
-        }
-      }
-
-      span {
-        font-weight: $font-weight-bold;
-      }
-    }
-  }
 }

@@ -3,8 +3,7 @@
   <ol class="breadcrumb">
     [%
     FOREACH crumb IN breadcrumbs;
-      IF crumb.is_link;
-    %]
+      IF crumb.is_link; %]
         <li class="breadcrumb-item"><a href="[% crumb.href %]">[% crumb.text %]</a></li>
       [% ELSE; %]
         <li class="breadcrumb-item active" aria-current="page">[% crumb.text %]</li>

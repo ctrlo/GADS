@@ -2,7 +2,7 @@
 @import "~bootstrap/scss/functions";
 @import "~bootstrap/scss/variables", "~bootstrap/scss/variables-dark";
 
-$font-size-base: 18px;
+$font-size-base: 16px;
 
 // Links
 $link-decoration: none;
@@ -75,12 +75,13 @@ $input-focus-bg: $white;
 
 // Navs
 $nav-tabs-border-color: $secondary;
+$nav-link-color: $secondary;
+$nav-tabs-border-color: $secondary;
 $nav-tabs-link-hover-border-color: $secondary;
 $nav-tabs-link-active-border-color: $secondary;
 $nav-tabs-link-active-color: $secondary;
 $nav-tabs-link-color: $secondary;
 $nav-tabs-border-width: 2px;
-$nav-tabs-link-hover-border-color: $gray-500;
 
 $border-color-translucent: rgba($primary, 0.5);
 
@@ -92,6 +93,7 @@ $popover-header-color: $white;
 $form-switch-checked-color: $brand-primary;
 $form-check-input-checked-bg-color: $primary;
 
+@import "./helpers";
 @import "~bootstrap/scss/maps";
 @import "~bootstrap/scss/mixins";
 @import "~bootstrap/scss/root";

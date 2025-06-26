@@ -1,12 +1,12 @@
 <nav class="[% user_menu_class %]" aria-label="Top">
-  <ul class="user">
+  <ul class="user align-items-center list-unstyled d-flex position-relative">
     <li class="user__item">
-      <a class="user__link user__link--details" href="[% url.page %]/myaccount" title="View user profile">
+      <a class="icon icon-user span-invisible" href="[% url.page %]/myaccount" title="View user profile">
         <span>My details</span>
       </a>
     </li>
     <li class="user__item">
-      <a class="user__link user__link--logout" href="[% url.page %]/logout" title="Logout">
+      <a class="icon icon-logout span-invisible" href="[% url.page %]/logout" title="Logout">
         <span>Logout</span>
       </a>
     </li>

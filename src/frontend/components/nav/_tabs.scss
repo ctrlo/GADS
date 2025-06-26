@@ -1,6 +1,28 @@
-.nav-tabs {
+//This emulates the earlier nav--tabs behaviour using Bootstrap 5
+.nav.nav-tabs {
+    --bs-border-width: 2px;
+    margin-bottom: -1px;
+    
     .nav-link {
-        --bs-nav-link-color: #{$secondary};
         border-color: rgba($secondary, 0.1);
+        font-size: calc($font-size-base * 1.125);
+
+        &.active {
+            border-color: $secondary;
+        }
+    }
+
+    li {
+        margin: 0 -1px;
+        z-index: 2;
+
+        a {
+            border-bottom: none;
+
+            span {
+                font-weight: $font-weight-bold;
+                text-transform: capitalize;
+            }
+        }
     }
 }

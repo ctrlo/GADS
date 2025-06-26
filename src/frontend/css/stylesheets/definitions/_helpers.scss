@@ -1,0 +1,29 @@
+@for $i from 1 through 10 {
+    $multiplier: 8px;
+
+    .ms-n-#{$i} {
+        margin-left: ($i * $multiplier) * -1;
+    }
+
+    .me-n-#{$i} {
+        margin-right: ($i * $multiplier) * -1;
+    }
+
+    .mt-n-#{$i} {
+        margin-top: ($i * $multiplier) * -1;
+    }
+
+    .mb-n-#{$i} {
+        margin-bottom: ($i * $multiplier) * -1;
+    }
+
+    .mx-n-#{$i} {
+        @extend .ms-n-#{$i};
+        @extend .me-n-#{$i};
+    }
+
+    .my-n-#{$i} {
+        @extend .mt-n-#{$i};
+        @extend .mb-n-#{$i};
+    }
+}

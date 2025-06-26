@@ -1,16 +1,16 @@
 [% PROCESS navigation/active_pages.tt; %]
-<header class="table-header row g-0">
-  <div class="table-header-container">
-    <div class="table-header-top row">
-      <div class="table-header__meta g-0 d-flex flex-row justify-content-between align-items-center w-100 flex-nowrap">
+<header class="table-header row g-0 position-relative mb-1">
+  <div class="table-header-container position-relative ps-4 pt-3 d-flex justify-content-between">
+    <div class="table-header-top row justify-content-between g-0 pb-4">
+      <div class="table-header__meta">
         [% INCLUDE navigation/breadcrumbs.tt %]
-        [% INCLUDE navigation/user_menu.tt user_menu_class="table-header__navigation" %]
       </div>
-      <h1 class="table-header__title">[% layout_obj.name | html %]</h1>
+      <h1 class="table-header__title me-3 mt-3">[% layout_obj.name | html %]</h1>
     </div>
+    [% INCLUDE navigation/user_menu.tt user_menu_class="table-header__navigation" %]
+  </div>
     
-    <div class="table-header-bottom">
-      [% INCLUDE navigation/table_header_tab_menu.tt %]
-    </div>
+  <div class="table-header-bottom">
+    [% INCLUDE navigation/table_header_tab_menu.tt %]
   </div>
 </header>
