@@ -2,11 +2,16 @@ import FileDrag from "./lib/filedrag";
 
 import { FileDragOptions } from "./lib/filedrag";
 
+export interface FileDropEvent extends JQuery.TriggeredEvent {
+    file: File;
+}
+
+export { FileDragOptions }
+
 declare global {
     interface JQuery<TElement = HTMLElement> {
         filedrag(options: FileDragOptions): JQuery<TElement>;
-        // We could create our own event types, but for simplicity we use the JQuery.TriggeredEvent type and add a parameter for the file
-        on(event: "fileDrop", handler: (event: JQuery.TriggeredEvent, file: File) => void): JQuery<TElement>;
+        on(event: "fileDrop", handler: (event: FileDropEvent) => void): JQuery<TElement>;
         on(event: "uploadsComplete", handler: (event: JQuery.TriggeredEvent) => void): JQuery<TElement>;
     }
 }
@@ -23,12 +28,15 @@ if (typeof jQuery !== "undefined") {
 
             if (!this.data("filedrag")) {
                 this.data("filedrag", "true");
-                new FileDrag(this, options, (files) => {
-                    if (options.debug) console.log("fileDrop", files);
-                    this.trigger("fileDrop", files)
-                }, ()=>{
+                new FileDrag(this, options, (file) => {
+                    if (options.debug) console.log("fileDrop", file);
+                    const event = $.Event("fileDrop", { file });
+                    this.trigger(event);
+                },
+                () => {
                     if (options.debug) console.log("uploadsComplete");
-                    this.trigger("uploadsComplete");
+                    const event = $.Event("uploadsComplete");
+                    this.trigger(event);
                 })
             }
 

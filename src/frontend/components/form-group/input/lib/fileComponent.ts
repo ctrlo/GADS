@@ -1,3 +1,4 @@
+import { FileDropEvent } from 'util/filedrag';
 import { formdataMapper } from 'util/mapper/formdataMapper';
 import { upload } from 'util/upload/UploadControl';
 
@@ -22,7 +23,7 @@ class FileComponent {
         const dropTarget = this.el.closest('.file-upload');
         if (dropTarget) {
             const dragOptions = { allowMultiple: true };
-            (dropTarget as any).filedrag(dragOptions).on('fileDrop', (_ev: JQuery.TriggeredEvent, file:File) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+            (dropTarget as any).filedrag(dragOptions).on('fileDrop', ({ file }: FileDropEvent) => { // eslint-disable-line @typescript-eslint/no-explicit-any
                 this.handleFormUpload(file);
             }).on('uploadsComplete', () => {
                 window.location.reload();
@@ -47,9 +48,10 @@ class FileComponent {
         const tokenField = form.find('input[name="csrf_token"]');
         const csrf_token = tokenField.val() as string ?? tokenField.val()?.toString();
         const formData = formdataMapper({ file, csrf_token });
-        
+
         if (method === 'POST') {
-            upload(action, formData, 'POST').catch(console.error);
+            upload(action, formData, 'POST')
+                .catch(console.error);
         } else {
             throw new Error('Method not supported');
         }

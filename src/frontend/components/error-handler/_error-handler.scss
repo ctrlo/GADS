@@ -1,0 +1,6 @@
+.error-message::before {
+    @extend .pr-2;
+    @extend %icon-font;
+    content: "\E822";
+    font-weight: bold;
+}
