@@ -10,7 +10,7 @@ export class ErrorHandler {
     }
 
     private initErrorDisplay() {
-        this.errorContainer = $('<div class="error-container p-3 bg-danger text-light font-weight-bold my-3"></div>')
+        this.errorContainer = $('<div class="error-container p-3 alert alert-danger font-weight-bold my-3 d-flex flex-column align-items-start"></div>')
         this.el.prepend(this.errorContainer);
         this.renderErrors();
     }
@@ -39,7 +39,7 @@ export class ErrorHandler {
         if (this.errors.length > 0) {
             this.errorContainer.show();
             this.errors.forEach(error => {
-                const errorElement = $('<div class="error-message mx-1 my-2"></div>').text(error);
+                const errorElement = $('<p class="error-message mx-1 my-2"></p>').text(error);
                 this.errorContainer.append(errorElement);
             });
         } else {

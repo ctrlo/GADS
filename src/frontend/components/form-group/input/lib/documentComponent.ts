@@ -50,6 +50,7 @@ class DocumentComponent {
         if (dropTarget) {
             const dragOptions = { allowMultiple: true };
             dropTarget.filedrag(dragOptions).on('fileDrop', ({ file }: FileDropEvent) => {
+                this.handler.clearErrors();
                 logging.info('File dropped', file);
                 this.handleAjaxUpload(url, csrf_token, file);
             });
@@ -99,7 +100,13 @@ class DocumentComponent {
             this.showContainer();
             upload<FileData>(uri, fileData, 'POST', this.showProgress).then((data) => {
                 this.addFileToField({ id: data.id, name: data.filename });
-            }).catch((e) => {
+            }).then(
+                () => { 
+                    this.hideException();
+                    const container = $(this.el.find('.progress-bar__container'));
+                    container.hide();
+                }
+            ).catch((e) => {
                 const error = e instanceof Error ? e.message : e as string ?? e.toString();
                 // If the error is a string, try to parse it as JSON
                 if(isString(error) && fromJson(error)) {
@@ -110,6 +117,8 @@ class DocumentComponent {
                 } else {
                     this.handler.addError(new Error(`Unable to upload ${file.name}: ${error}`));
                 }
+                const container = $(this.el.find('.progress-bar__container'));
+                container.hide();
             });
         } catch (e) {
             this.showException(e instanceof Error ? e.message : e as string ?? e.toString());
