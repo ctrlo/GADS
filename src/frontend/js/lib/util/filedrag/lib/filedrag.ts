@@ -11,7 +11,7 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
     // for testing
     protected dragging: boolean = false;
 
-    constructor(element: T, private options: FileDragOptions = {}, private onDrop: (files: File) => void, private onUploadsComplete?: () => void) {
+    constructor(element: T, private options: FileDragOptions = {}, private onDrop: (files: File, index?: number, length?:number) => void) {
         if (options.debug) console.log('FileDrag', element, options);
         this.el = $(element);
         this.initElements()
@@ -44,10 +44,9 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
             if (this.options.allowMultiple) {
                 // For some reason the function will not accept a FileList, so we convert it to an array
                 const files = Array.from(e.originalEvent.dataTransfer.files);
-                files.forEach(file => {
-                    this.onDrop(file);
+                files.forEach((file, index) => {
+                    this.onDrop(file, index, files.length);
                 });
-                this.onUploadsComplete?.();
             } else {
                 this.onDrop(e.originalEvent.dataTransfer.files[0]);
             }

@@ -4,6 +4,8 @@ import { FileDragOptions } from "./lib/filedrag";
 
 export interface FileDropEvent extends JQuery.TriggeredEvent {
     file: File;
+    index: number;
+    length: number;
 }
 
 export { FileDragOptions }
@@ -28,14 +30,11 @@ if (typeof jQuery !== "undefined") {
 
             if (!this.data("filedrag")) {
                 this.data("filedrag", "true");
-                new FileDrag(this, options, (file) => {
-                    if (options.debug) console.log("fileDrop", file);
-                    const event = $.Event("fileDrop", { file });
-                    this.trigger(event);
-                },
-                () => {
-                    if (options.debug) console.log("uploadsComplete");
-                    const event = $.Event("uploadsComplete");
+                new FileDrag(this, options, (file, index, length) => {
+                    if(index === undefined) index = 1;
+                    if(length === undefined) length = 1;
+                    if (options.debug) console.log("fileDrop", file, index, length);
+                    const event = $.Event("fileDrop", { file, index, length });
                     this.trigger(event);
                 })
             }

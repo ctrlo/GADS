@@ -1,3 +1,4 @@
+import { logging } from 'logging';
 import { FileDropEvent } from 'util/filedrag';
 import { formdataMapper } from 'util/mapper/formdataMapper';
 import { upload } from 'util/upload/UploadControl';
@@ -23,10 +24,8 @@ class FileComponent {
         const dropTarget = this.el.closest('.file-upload');
         if (dropTarget) {
             const dragOptions = { allowMultiple: true };
-            (dropTarget as any).filedrag(dragOptions).on('fileDrop', ({ file }: FileDropEvent) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-                this.handleFormUpload(file);
-            }).on('uploadsComplete', () => {
-                window.location.reload();
+            dropTarget.filedrag(dragOptions).on('fileDrop', ({ file, index, length }: FileDropEvent) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+                this.handleFormUpload(file, index, length);
             });
         } else {
             throw new Error('Could not find file-upload element');
@@ -39,7 +38,7 @@ class FileComponent {
     }
 
     // As some of these, if not all, are event handlers, scoping can get a bit wiggy; using arrow functions to keep the scope of `this` to the class
-    handleFormUpload = (file: File) => {
+    handleFormUpload = (file: File, index:number, length: number) => {
         if (!file) throw new Error('No file provided');
 
         const form = this.el.closest('form');
@@ -50,8 +49,15 @@ class FileComponent {
         const formData = formdataMapper({ file, csrf_token });
 
         if (method === 'POST') {
-            upload(action, formData, 'POST')
-                .catch(console.error);
+            logging.info(`Uploading file: ${file.name} (${index} of ${length}) to ${action} using POST method`);
+            const uploadPromise = upload(action, formData, 'POST')
+            if(index === length-1) {
+                uploadPromise.then(() => {
+                    logging.info("File upload complete, reloading page");
+                    window.location.reload();
+                });
+            }
+            uploadPromise.catch(console.error);
         } else {
             throw new Error('Method not supported');
         }
