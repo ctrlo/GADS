@@ -5,6 +5,7 @@ import { FileDragOptions } from "./lib/filedrag";
 declare global {
     interface JQuery<TElement = HTMLElement> {
         filedrag(options: FileDragOptions): JQuery<TElement>;
+        // We could create our own event types, but for simplicity we use the JQuery.TriggeredEvent type and add a parameter for the file
         on(event: "fileDrop", handler: (event: JQuery.TriggeredEvent, file: File) => void): JQuery<TElement>;
         on(event: "uploadsComplete", handler: (event: JQuery.TriggeredEvent) => void): JQuery<TElement>;
     }

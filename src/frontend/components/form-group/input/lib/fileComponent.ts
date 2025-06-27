@@ -22,7 +22,7 @@ class FileComponent {
         const dropTarget = this.el.closest('.file-upload');
         if (dropTarget) {
             const dragOptions = { allowMultiple: true };
-            (dropTarget as any).filedrag(dragOptions).on('onFileDrop', (ev, file) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+            (dropTarget as any).filedrag(dragOptions).on('fileDrop', (_ev: JQuery.TriggeredEvent, file:File) => { // eslint-disable-line @typescript-eslint/no-explicit-any
                 this.handleFormUpload(file);
             }).on('uploadsComplete', () => {
                 window.location.reload();

@@ -42,7 +42,7 @@ class DocumentComponent {
 
         if (dropTarget) {
             const dragOptions = { allowMultiple: true };
-            dropTarget.filedrag(dragOptions).on('onFileDrop', async (_: JQuery.DropEvent, file: File) => {
+            dropTarget.filedrag(dragOptions).on('fileDrop', async (_ev: JQuery.TriggeredEvent, file: File) => {
                 logging.info('File dropped', file);
                 await this.handleAjaxUpload(url, csrf_token, file);
             });
