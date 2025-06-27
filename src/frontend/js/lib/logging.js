@@ -9,25 +9,25 @@ class Logging {
 
   log(...message) {
       if(this.allowLogging) {
-          console.log(message)
+          console.log(...message)
       }
   }
 
   info(...message) {
       if(this.allowLogging) {
-          console.info(message)
+          console.info(...message)
       }
   }
 
   warn(...message) {
       if(this.allowLogging) {
-          console.warn(message)
+          console.warn(...message)
       }
   }
 
   error(...message) {
       if(this.allowLogging) {
-          console.error(message)
+          console.error(...message)
       }
   }
 }
