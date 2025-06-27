@@ -21,9 +21,11 @@ class FileComponent {
     init() {
         const dropTarget = this.el.closest('.file-upload');
         if (dropTarget) {
-            const dragOptions = { allowMultiple: false };
+            const dragOptions = { allowMultiple: true };
             (dropTarget as any).filedrag(dragOptions).on('onFileDrop', (ev, file) => { // eslint-disable-line @typescript-eslint/no-explicit-any
                 this.handleFormUpload(file);
+            }).on('uploadsComplete', () => {
+                window.location.reload();
             });
         } else {
             throw new Error('Could not find file-upload element');

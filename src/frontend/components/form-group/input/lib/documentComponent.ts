@@ -41,7 +41,7 @@ class DocumentComponent {
         const dropTarget = this.el.closest('.file-upload');
 
         if (dropTarget) {
-            const dragOptions = { allowMultiple: false };
+            const dragOptions = { allowMultiple: true };
             dropTarget.filedrag(dragOptions).on('onFileDrop', async (_: JQuery.DropEvent, file: File) => {
                 logging.info('File dropped', file);
                 await this.handleAjaxUpload(url, csrf_token, file);
