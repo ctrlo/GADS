@@ -3,7 +3,6 @@ import "bootstrap";
 import { Component } from 'component'
 import { logging } from 'logging'
 import { fromJson } from 'util/common'
-import { upload } from "util/upload/UploadControl";
 import { initValidationOnField } from 'validation'
 
   /*
@@ -449,7 +448,7 @@ class SelectWidgetComponent extends Component {
   //Some odd scoping issues here - but it works
   updateJson(url, payload, typeahead) {
     this.loadCounter++
-    // const self = this;
+    const self = this;
     const myLoad = this.loadCounter // ID of this process
     this.$available.find(".spinner").removeAttr("hidden")
     const currentValues = this.$available
@@ -464,6 +463,7 @@ class SelectWidgetComponent extends Component {
       this.$available.find(".answer").remove()
     }
 
+    const field = this.$selectWidget.data("field")
     // If we cancel this particular loop, then we don't want to remove the
     // spinner if another one has since started running
     let hideSpinner = true
