@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
+import "bootstrap";
 import { Component } from 'component'
 import { logging } from 'logging'
 import { fromJson } from 'util/common'
+import { upload } from "util/upload/UploadControl";
 import { initValidationOnField } from 'validation'
 
   /*
@@ -141,7 +143,7 @@ class SelectWidgetComponent extends Component {
             $answer.remove()
           }
         })
-        self.updateJson(url + '?noempty=1&q=' + searchValue, true)
+        self.updateJson(url, 'noempty=1&q=' + searchValue, true)
       }, 200)
     } else {
       // hide the answers that do not contain the searchvalue
@@ -445,9 +447,9 @@ class SelectWidgetComponent extends Component {
   }
 
   //Some odd scoping issues here - but it works
-  updateJson(url, typeahead) {
+  updateJson(url, payload, typeahead) {
     this.loadCounter++
-    const self = this;
+    // const self = this;
     const myLoad = this.loadCounter // ID of this process
     this.$available.find(".spinner").removeAttr("hidden")
     const currentValues = this.$available
@@ -462,11 +464,17 @@ class SelectWidgetComponent extends Component {
       this.$available.find(".answer").remove()
     }
 
-    const field = this.$selectWidget.data("field")
     // If we cancel this particular loop, then we don't want to remove the
     // spinner if another one has since started running
     let hideSpinner = true
-    $.ajax(url).done((data)=>{
+
+    url = url + "?" + payload + "&csrf-token=" + $('body').data("csrf");
+
+    $.ajax({
+      url,
+      method: "POST",
+    }).done((data)=>{
+      console.log("Received data from " + url + ": ", data)
       data = fromJson(data)
       if (data.error === 0) {
         if (myLoad != this.loadCounter) { // A new one has started running
@@ -610,7 +618,7 @@ class SelectWidgetComponent extends Component {
     }
     this.lastFetchParams = null
 
-    this.updateJson(filterEndpoint + "?" + fetchParams)
+    this.updateJson(filterEndpoint, fetchParams)
     this.lastFetchParams = fetchParams
   }
 
