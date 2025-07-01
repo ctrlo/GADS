@@ -35,7 +35,5 @@ yarn-error.log
 webpack.config.development.js
 
 cypress/downloads/downloads.html
-uploads
-!uploads/versions
-!uploads/*.png
+
 

@@ -1701,13 +1701,13 @@ post '/file/:id?' => require_login sub {
     {
         my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
         my $file;
-        if (process( sub { $file = rset('Fileval')->create_with_file(
-            $upload->filename,
-            $mimetype,
-            $upload->content,
-            1,
-            undef,
-        )}))
+        if (process( sub { $file = rset('Fileval')->create_with_file({
+                name           => $upload->filename,
+                mimetype       => $mimetype,
+                content        => $upload->content,
+                is_independent => 1,
+                edit_user_id   => undef,
+            })}))
         {
             my $msg = __x"File has been uploaded as ID {id}", id => $file->id;
             return forwardHome( { success => "$msg" }, 'file/' );
@@ -1760,13 +1760,13 @@ put '/api/file/:id' => require_login sub {
             rename_existing => 1)
                 or error __x"File ID {id} cannot be found", id => $id;
 
-        my $newFile = rset('Fileval')->create_with_file(
-            $newname,
-            $file->single_mimetype,
-            $file->single_content,
-            0,
-            logged_in_user->id,
-        );
+        my $newFile = rset('Fileval')->create_with_file({
+            name           => $newname,
+            mimetype       => $file->single_mimetype,
+            content        => $file->single_content,
+            is_independent => 0,
+            edit_user_id   => logged_in_user->id,
+        });
 
         content_type 'application/json';
 
@@ -1806,13 +1806,13 @@ post '/api/file/?' => require_login sub {
         $filename =~ s/[^a-zA-Z0-9\._\-\(\) ]//g;
 
         my $file;
-        if (process( sub { $file = rset('Fileval')->create_with_file(
-            $filename,
-            $mimetype,
-            $upload->content,
-            0,
-            logged_in_user->id,
-        ) } ))
+        if (process( sub { $file = rset('Fileval')->create_with_file({
+            name           => $filename,
+            mimetype       => $mimetype,
+            content        => $upload->content,
+            is_independent => 0,
+            edit_user_id   => logged_in_user->id,
+        } ) } ))
         {
             return encode_json({
                 id       => $file->id,

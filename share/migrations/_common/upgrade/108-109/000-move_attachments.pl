@@ -4,7 +4,6 @@ use warnings;
 use DBIx::Class::Migration::RunScript;
 use FindBin;
 use Log::Report;
-use Dancer2::Plugin::LogReport;
 
 use lib "$FindBin::Bin/../lib";
 

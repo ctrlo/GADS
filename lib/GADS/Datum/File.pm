@@ -23,8 +23,6 @@ use Moo;
 use MooX::Types::MooseLike::Base qw/Bool ArrayRef/;
 use namespace::clean;
 
-use MIME::Base64 qw(encode_base64);
-
 extends 'GADS::Datum';
 
 with 'GADS::Role::Presentation::Datum::File';
@@ -74,7 +72,7 @@ after set_value => sub {
                 id      => $values[0],
                 name    => $old_name
             })->next) {
-                $changed = 0 if $fl && $fl->content == $old_content;
+                $changed = 0 if $fl && $fl->content eq $old_content;
             }
         }
     }
