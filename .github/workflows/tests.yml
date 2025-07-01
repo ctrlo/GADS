@@ -89,6 +89,8 @@ jobs:
         run: |
           echo '*:*:*:postgres:postgrespassword' > ~/.pgpass
           chmod 600 ~/.pgpass
+      - name: 'create uploads directory'
+        run: mkdir -p /tmp/uploads
       - name: 'Start the application'
         env:
           DANCER_CONFDIR: 'webdriver'
