@@ -3,11 +3,12 @@ use warnings;
 
 use DBIx::Class::Migration::RunScript;
 use FindBin;
-use Log::Report;
 
 use lib "$FindBin::Bin/../lib";
 
 use Config::Any    ();
+
+use feature 'say';
 
 my $config_fn = "$FindBin::Bin/../config.yml";
 
@@ -18,7 +19,7 @@ my $config = Config::Any->load_files(
     }
 );
 
-my $conf = $config->[0]{'config.yml'} or die "No config found";
+my $conf = $config->[0]{$config_fn} or die "No config found";
 
 migrate {
     my $schema = shift->schema;
@@ -34,7 +35,7 @@ migrate {
     my $last_page = $pager->last_page;
     do {
         $rs = $rs->search( {}, { page => $page } );
-        notice __x "Page {page} of {last}", page => $page, last => $last_page;
+        say "Page $page of $last_page";
         $pager->current_page($page);
         foreach my $file ( $rs->all ) {
             my $target = GADS::Schema::Result::Fileval::file_to_id($file);

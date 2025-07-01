@@ -19,7 +19,7 @@ my $config = Config::Any->load_files({
     use_ext => 1,
 });
 
-my $conf = $config->[0]{'config.yml'} or die "No config found";
+my $conf = $config->[0]{$config_fn} or die "No config found";
 
 migrate {
     my $schema = shift->schema;
