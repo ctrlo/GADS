@@ -10,7 +10,6 @@ use feature 'say';
 
 use lib "$FindBin::Bin/../lib";
 
-use File::Basename qw(basename);
 use Config::Any ();
 
 my $config_fn = "$FindBin::Bin/../config.yml";

@@ -11,14 +11,6 @@ use Test::GADS::DataSheet;
 
 use Test::Simple tests => 384;
 
-my $config = {
-    gads => {
-        uploads => './uploads',
-    }
-};
-
-GADS::Config->instance->config($config);
-
 my $sheet = Test::GADS::DataSheet->new(
     column_count => {
         string => 2,
