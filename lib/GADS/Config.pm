@@ -115,17 +115,17 @@ has dateformat_datepicker => (
 );
 
 has uploads => (
-    is      => 'ro',
-    lazy    => 1,
-    clearer => 1,
-    builder => sub {
-        my $self = shift;
-        my $upload_path = (ref($self->gads) eq 'HASH' && $self->gads->{uploads}) || '/var/lib/GADS/uploads';
-        $upload_path =~ s!/$!!; # Remove trailing slash
-        error __x"Upload directory {path} does not exist", path => $upload_path
-            unless -d $upload_path;
-        $upload_path;
-    }
+    is      => 'lazy',
+    clearer => 1
 );
+
+sub _build_uploads {
+    my $self = shift;
+    my $upload_path = (ref($self->gads) eq 'HASH' && $self->gads->{uploads}) || '/var/lib/GADS/uploads';
+    $upload_path =~ s!/$!!; # Remove trailing slash
+    error __x"Upload directory {path} does not exist", path => $upload_path
+        unless -d $upload_path;
+    $upload_path;
+};
 
 1;

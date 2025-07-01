@@ -26,9 +26,11 @@ use MooX::Types::MooseLike::Base qw(:all);
 
 use Test::TempDir::Tiny;
 
+my $tempdir = tempdir("uploads");
+
 my $config = {
     gads => {
-        uploads => tempdir("uploads"),
+        uploads => $tempdir
     }
 };
 

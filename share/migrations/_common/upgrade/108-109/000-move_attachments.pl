@@ -7,10 +7,9 @@ use Log::Report;
 
 use lib "$FindBin::Bin/../lib";
 
-use File::Basename qw(basename);
 use Config::Any    ();
 
-my $config_fn = basename $0 . './config.yml';
+my $config_fn = "$FindBin::Bin/../config.yml";
 
 my $config = Config::Any->load_files(
     {
