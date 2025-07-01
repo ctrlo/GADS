@@ -40,11 +40,11 @@ after set_value => sub {
         # hashref for tests etc
         if (ref $val eq 'HASH')
         {
-            my $file = $self->schema->resultset('Fileval')->create_with_file(
-                $val->{name},
-                $val->{mimetype},
-                $val->{content},
-            );
+            my $file = $self->schema->resultset('Fileval')->create_with_file({
+                name     => $val->{name},
+                mimetype => $val->{mimetype},
+                content  => $val->{content},
+            });
             push @values, $file->id;
         }
         else {
