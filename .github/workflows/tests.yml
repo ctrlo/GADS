@@ -52,7 +52,7 @@ jobs:
             os: 'ubuntu-22.04'
           - name: 'Firefox'
             command: 'MOZ_HEADLESS=1 geckodriver --log warn &'
-            os: 'ubuntu-20.04'
+            os: 'ubuntu-22.04'
 
     services:
       postgres:
