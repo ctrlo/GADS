@@ -332,7 +332,7 @@ post '/api/token' => sub {
     # RFC6749 says try auth header first, then fall back to body params
     if (my $auth = request->header('authorization'))
     {
-        if (my ($encoded) = split 'Basic ', $auth)
+        if (my ($encoded) = $auth =~ /^Basic (.+)/)
         {
             if (my $decoded = decode_base64 $encoded)
             {
