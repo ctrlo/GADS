@@ -1,4 +1,6 @@
+// We need to import Bootstrap to avoid an error in the console (this.collapse is not a function).
 /* eslint-disable @typescript-eslint/no-this-alias */
+import "bootstrap";
 import { Component } from 'component'
 import { logging } from 'logging'
 import { fromJson } from 'util/common'
@@ -48,27 +50,27 @@ class SelectWidgetComponent extends Component {
     if (this.$widget.is('[readonly]')) return
     this.connect()
   
-    this.$widget.unbind("click")
+    this.$widget.off("click")
     this.$widget.on("click", () => { this.handleWidgetClick() })
   
-    this.$search.unbind("blur")
+    this.$search.off("blur")
     this.$search.on("blur", (e) => { this.possibleCloseWidget(e) })
 
-    this.$availableItems.unbind("blur")
+    this.$availableItems.off("blur")
     this.$availableItems.on("blur", (e) => { this.possibleCloseWidget(e) })
 
-    this.$moreInfoButtons.unbind("blur")
+    this.$moreInfoButtons.off("blur")
     this.$moreInfoButtons.on("blur", (e) => { this.possibleCloseWidget(e) })
 
     $(document).on("click", (e) => { this.handleDocumentClick(e) })
 
-    $(document).keyup(function(e) {
-      if (e.keyCode == 27) {
+    $(document).on("keyup",function(e) {
+      if (e.key == "Escape") {
         this.collapse(this.$widget, this.$trigger, this.$target)
       }
     })
 
-    this.$widget.delegate(".select-widget-value__delete", "click", function(e) {
+    this.$widget.on(".select-widget-value__delete", "click", function(e) {
       e.preventDefault()
       e.stopPropagation()
 
@@ -80,16 +82,16 @@ class SelectWidgetComponent extends Component {
       $(checkbox).trigger("change")
     })
 
-    this.$search.unbind("focus", this.expandWidgetHandler)
+    this.$search.off("focus", this.expandWidgetHandler)
     this.$search.on("focus", (e) => { this.expandWidgetHandler(e) })
 
-    this.$search.unbind("keydown")
+    this.$search.off("keydown")
     this.$search.on("keydown", (e) => { this.handleKeyDown(e) })
 
-    this.$search.unbind("keyup")
+    this.$search.off("keyup")
     this.$search.on("keyup", (e) => { this.handleKeyUp(e) })
 
-    this.$search.unbind("click")
+    this.$search.off("click")
     this.$search.on("click", (e) => {
       // Prevent bubbling the click event to the $widget (which expands/collapses the widget on click).
       e.stopPropagation()
@@ -167,34 +169,34 @@ class SelectWidgetComponent extends Component {
   }
 
   handleKeyDown(e) {
-    const key = e.which || e.keyCode
+    const key = e.key
 
     // If still in search text after previous search and select, ensure that
     // widget expands again to show results
     this.expand(this.$widget, this.$trigger, this.$target)
 
     switch (key) {
-      case 38: // UP
-      case 40: // DOWN
+      case "ArrowUp": // UP
+      case "ArrowDown": // DOWN
         {
           const items = this.$available.find(".answer:not([hidden]) input")
           let nextItem
 
           e.preventDefault()
 
-          if (key === 38) {
+          if (key === "ArrowUp") {
             nextItem = items[items.length - 1]
           } else {
             nextItem = items[0]
           }
 
           if (nextItem) {
-            $(nextItem).focus()
+            $(nextItem).trigger("focus")
           }
 
           break
         }
-      case 13: // ENTER
+      case "Enter": // ENTER
         {
           e.preventDefault()
 
@@ -257,7 +259,7 @@ class SelectWidgetComponent extends Component {
       const itemId = $item.data("list-item")
       const $associated = $("#" + itemId)
 
-      $associated.unbind("change")
+      $associated.off("change")
       $associated.on("change", (e) => {
         if ($(e.target).prop("checked")) {
           $item.removeAttr("hidden")
@@ -267,20 +269,20 @@ class SelectWidgetComponent extends Component {
         self.updateState()
       })
 
-      $associated.unbind("keydown")
+      $associated.off("keydown")
       $associated.on("keydown", function(e) {
-        const key = e.which || e.keyCode
+        const key = e.key;
 
         switch (key) {
-          case 38: // UP
-          case 40: // DOWN
+          case "ArrowUp": // UP
+          case "ArrowDown": // DOWN
             {
               const currentIndex = self.$answers.index($associated.closest(".answer"))
               let nextItem
 
               e.preventDefault()
 
-              if (key === 38) {
+              if (key === "ArrowUp") {
                 nextItem = self.$answers[currentIndex - 1]
               } else {
                 nextItem = self.$answers[currentIndex + 1]
@@ -289,7 +291,7 @@ class SelectWidgetComponent extends Component {
               if (nextItem) {
                 $(nextItem)
                   .find("input")
-                  .focus()
+                  .trigger("focus")
               }
 
               break
@@ -333,10 +335,10 @@ class SelectWidgetComponent extends Component {
         self.updateState()
       });
 
-      $associated.parent().unbind("keypress")
+      $associated.parent().off("keypress")
       $associated.parent().on("keypress", (e) => {
         // KeyCode Enter or Spacebar
-        if (e.keyCode === 13 || e.keyCode === 32) {
+        if (e.key === "Enter" || e.key === " ") {
           e.preventDefault()
           $(e.target).parent().trigger("click")
         }
@@ -643,7 +645,7 @@ class SelectWidgetComponent extends Component {
     $target.removeAttr("hidden")
 
     if (this.$search.get(0) !== document.activeElement) {
-      this.$search.focus()
+      this.$search.trigger("focus")
     }
   }
 }
