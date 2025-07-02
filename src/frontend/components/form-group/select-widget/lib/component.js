@@ -1,6 +1,4 @@
-// We need to import Bootstrap to avoid an error in the console (this.collapse is not a function).
 /* eslint-disable @typescript-eslint/no-this-alias */
-import "bootstrap";
 import { Component } from 'component'
 import { logging } from 'logging'
 import { fromJson } from 'util/common'
@@ -50,27 +48,27 @@ class SelectWidgetComponent extends Component {
     if (this.$widget.is('[readonly]')) return
     this.connect()
   
-    this.$widget.off("click")
+    this.$widget.unbind("click")
     this.$widget.on("click", () => { this.handleWidgetClick() })
   
-    this.$search.off("blur")
+    this.$search.unbind("blur")
     this.$search.on("blur", (e) => { this.possibleCloseWidget(e) })
 
-    this.$availableItems.off("blur")
+    this.$availableItems.unbind("blur")
     this.$availableItems.on("blur", (e) => { this.possibleCloseWidget(e) })
 
-    this.$moreInfoButtons.off("blur")
+    this.$moreInfoButtons.unbind("blur")
     this.$moreInfoButtons.on("blur", (e) => { this.possibleCloseWidget(e) })
 
     $(document).on("click", (e) => { this.handleDocumentClick(e) })
 
-    $(document).on("keyup",function(e) {
-      if (e.key == "Escape") {
+    $(document).keyup(function(e) {
+      if (e.keyCode == 27) {
         this.collapse(this.$widget, this.$trigger, this.$target)
       }
     })
 
-    this.$widget.on(".select-widget-value__delete", "click", function(e) {
+    this.$widget.delegate(".select-widget-value__delete", "click", function(e) {
       e.preventDefault()
       e.stopPropagation()
 
@@ -82,16 +80,16 @@ class SelectWidgetComponent extends Component {
       $(checkbox).trigger("change")
     })
 
-    this.$search.off("focus", this.expandWidgetHandler)
+    this.$search.unbind("focus", this.expandWidgetHandler)
     this.$search.on("focus", (e) => { this.expandWidgetHandler(e) })
 
-    this.$search.off("keydown")
+    this.$search.unbind("keydown")
     this.$search.on("keydown", (e) => { this.handleKeyDown(e) })
 
-    this.$search.off("keyup")
+    this.$search.unbind("keyup")
     this.$search.on("keyup", (e) => { this.handleKeyUp(e) })
 
-    this.$search.off("click")
+    this.$search.unbind("click")
     this.$search.on("click", (e) => {
       // Prevent bubbling the click event to the $widget (which expands/collapses the widget on click).
       e.stopPropagation()
@@ -169,34 +167,34 @@ class SelectWidgetComponent extends Component {
   }
 
   handleKeyDown(e) {
-    const key = e.key
+    const key = e.which || e.keyCode
 
     // If still in search text after previous search and select, ensure that
     // widget expands again to show results
     this.expand(this.$widget, this.$trigger, this.$target)
 
     switch (key) {
-      case "ArrowUp": // UP
-      case "ArrowDown": // DOWN
+      case 38: // UP
+      case 40: // DOWN
         {
           const items = this.$available.find(".answer:not([hidden]) input")
           let nextItem
 
           e.preventDefault()
 
-          if (key === "ArrowUp") {
+          if (key === 38) {
             nextItem = items[items.length - 1]
           } else {
             nextItem = items[0]
           }
 
           if (nextItem) {
-            $(nextItem).trigger("focus")
+            $(nextItem).focus()
           }
 
           break
         }
-      case "Enter": // ENTER
+      case 13: // ENTER
         {
           e.preventDefault()
 
@@ -259,7 +257,7 @@ class SelectWidgetComponent extends Component {
       const itemId = $item.data("list-item")
       const $associated = $("#" + itemId)
 
-      $associated.off("change")
+      $associated.unbind("change")
       $associated.on("change", (e) => {
         if ($(e.target).prop("checked")) {
           $item.removeAttr("hidden")
@@ -269,20 +267,20 @@ class SelectWidgetComponent extends Component {
         self.updateState()
       })
 
-      $associated.off("keydown")
+      $associated.unbind("keydown")
       $associated.on("keydown", function(e) {
-        const key = e.key;
+        const key = e.which || e.keyCode
 
         switch (key) {
-          case "ArrowUp": // UP
-          case "ArrowDown": // DOWN
+          case 38: // UP
+          case 40: // DOWN
             {
               const currentIndex = self.$answers.index($associated.closest(".answer"))
               let nextItem
 
               e.preventDefault()
 
-              if (key === "ArrowUp") {
+              if (key === 38) {
                 nextItem = self.$answers[currentIndex - 1]
               } else {
                 nextItem = self.$answers[currentIndex + 1]
@@ -291,7 +289,7 @@ class SelectWidgetComponent extends Component {
               if (nextItem) {
                 $(nextItem)
                   .find("input")
-                  .trigger("focus")
+                  .focus()
               }
 
               break
@@ -335,10 +333,10 @@ class SelectWidgetComponent extends Component {
         self.updateState()
       });
 
-      $associated.parent().off("keypress")
+      $associated.parent().unbind("keypress")
       $associated.parent().on("keypress", (e) => {
         // KeyCode Enter or Spacebar
-        if (e.key === "Enter" || e.key === " ") {
+        if (e.keyCode === 13 || e.keyCode === 32) {
           e.preventDefault()
           $(e.target).parent().trigger("click")
         }
@@ -448,6 +446,7 @@ class SelectWidgetComponent extends Component {
 
   //Some odd scoping issues here - but it works
   updateJson(url, typeahead) {
+    if(!url.includes('csrf-token')) url += (url.includes('?') ? '&' : '?') + 'csrf-token=' + $('body').data('csrf');
     this.loadCounter++
     const self = this;
     const myLoad = this.loadCounter // ID of this process
@@ -468,7 +467,7 @@ class SelectWidgetComponent extends Component {
     // If we cancel this particular loop, then we don't want to remove the
     // spinner if another one has since started running
     let hideSpinner = true
-    $.ajax(url).done((data)=>{
+    $.ajax({url, method: "POST"}).done((data)=>{
       data = fromJson(data)
       if (data.error === 0) {
         if (myLoad != this.loadCounter) { // A new one has started running
@@ -645,7 +644,7 @@ class SelectWidgetComponent extends Component {
     $target.removeAttr("hidden")
 
     if (this.$search.get(0) !== document.activeElement) {
-      this.$search.trigger("focus")
+      this.$search.focus()
     }
   }
 }
