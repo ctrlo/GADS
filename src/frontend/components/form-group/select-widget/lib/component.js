@@ -1,3 +1,4 @@
+// We import Bootstrap because there is an error that throws if we don't (this.collapse is not a function).
 /* eslint-disable @typescript-eslint/no-this-alias */
 import "bootstrap";
 import { Component } from 'component'
@@ -142,7 +143,7 @@ class SelectWidgetComponent extends Component {
             $answer.remove()
           }
         })
-        self.updateJson(url, 'noempty=1&q=' + searchValue, true)
+        self.updateJson(url + 'noempty=1&q=' + searchValue, true)
       }, 200)
     } else {
       // hide the answers that do not contain the searchvalue
@@ -446,7 +447,7 @@ class SelectWidgetComponent extends Component {
   }
 
   //Some odd scoping issues here - but it works
-  updateJson(url, payload, typeahead) {
+  updateJson(url, typeahead) {
     this.loadCounter++
     const self = this;
     const myLoad = this.loadCounter // ID of this process
@@ -468,13 +469,7 @@ class SelectWidgetComponent extends Component {
     // spinner if another one has since started running
     let hideSpinner = true
 
-    url = url + "?" + payload + "&csrf-token=" + $('body').data("csrf");
-
-    $.ajax({
-      url,
-      method: "POST",
-    }).done((data)=>{
-      console.log("Received data from " + url + ": ", data)
+    $.ajax(url).done((data)=>{
       data = fromJson(data)
       if (data.error === 0) {
         if (myLoad != this.loadCounter) { // A new one has started running
@@ -618,7 +613,7 @@ class SelectWidgetComponent extends Component {
     }
     this.lastFetchParams = null
 
-    this.updateJson(filterEndpoint, fetchParams)
+    this.updateJson(filterEndpoint + "?" + fetchParams)
     this.lastFetchParams = fetchParams
   }
 
