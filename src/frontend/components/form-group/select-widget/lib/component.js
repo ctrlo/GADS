@@ -143,7 +143,7 @@ class SelectWidgetComponent extends Component {
             $answer.remove()
           }
         })
-        self.updateJson(url + 'noempty=1&q=' + searchValue, true)
+        self.updateJson(url + '?noempty=1&q=' + searchValue, true)
       }, 200)
     } else {
       // hide the answers that do not contain the searchvalue
@@ -541,8 +541,7 @@ class SelectWidgetComponent extends Component {
       }
     })
       .fail(function(jqXHR, textStatus, textError) {
-        const response = jqXHR.responseJSON;
-        const errorMessage = response ? fromJson(response).message : "Oops! Something went wrong."
+        const errorMessage = "Oops! Something went wrong."
         logging.error(
           "Failed to make request to " +
             url +
