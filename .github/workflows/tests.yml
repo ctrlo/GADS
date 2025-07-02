@@ -90,7 +90,9 @@ jobs:
           echo '*:*:*:postgres:postgrespassword' > ~/.pgpass
           chmod 600 ~/.pgpass
       - name: 'create uploads directory'
-        run: mkdir -p /tmp/uploads
+        run: |
+          mkdir -p /tmp/uploads
+          chmod 777 /tmp/uploads
       - name: 'Start the application'
         env:
           DANCER_CONFDIR: 'webdriver'
@@ -162,6 +164,11 @@ jobs:
         run: |
           sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
           yarn
+          yarn build --no-watch
+      - name: 'create uploads directory'
+        run: |
+          mkdir -p /tmp/uploads
+          chmod 777 /tmp/uploads
       - name: 'Start the application'
         env:
           DANCER_CONFDIR: 'webdriver'
