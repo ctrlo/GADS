@@ -539,8 +539,7 @@ class SelectWidgetComponent extends Component {
         )
         this.$available.append(errorLi)
       }
-    })
-      .fail(function(jqXHR, textStatus, textError) {
+    }).fail(function(jqXHR, textStatus, textError) {
         const errorMessage = "Oops! Something went wrong."
         logging.error(
           "Failed to make request to " +
