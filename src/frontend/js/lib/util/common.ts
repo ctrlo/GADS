@@ -1,3 +1,18 @@
+import { isObject, isString } from "./typeChecks";
+import { isJsonParseable } from "./typeChecks/lib/parseable";
+
+// TS errors if this is not here
+declare global {
+    interface Window {
+        jQuery: JQueryStatic;
+        $: JQueryStatic;
+    }
+}
+
+/**
+ * Hide an element by adding the 'hidden' class and setting aria-hidden to true.
+ * @param element The element to hide
+ */
 export const hideElement = (element: HTMLElement | JQuery<HTMLElement>) => {
     const $el = $(element);
     if ($el.hasClass('hidden')) return;
@@ -15,14 +30,35 @@ export const showElement = (element: HTMLElement | JQuery<HTMLElement>) => {
     $el.removeAttr('style');
 };
 
-export const fromJson = (json: String | object) => {
-    try {
-        if (!json || json === '') return {};
-        if (typeof json === 'string') {
-            return JSON.parse(json);
+/**
+ * Convert a string or object to a JSON object.
+ * @param json The JSON string or object to parse
+ * @returns An object representation of the JSON string or the original object if it is already an object
+ */
+export const fromJson = <T> (json: unknown) => {
+    if (isString(json) && isJsonParseable(json)) {
+        try {
+            return JSON.parse(json) as T ?? {};
+        } catch {
+            return {};
         }
-        return json;
-    } catch (e) {
-        return {};
+    } else if (isObject(json)) {
+        return json as T ?? {};
     }
+    return {};
 }
+
+/**
+ * Ensure jQuery is loaded and available globally.
+ * This function checks if jQuery is already loaded, and if not, it loads it.
+ */
+export const initJquery = () => {
+    if (window.jQuery && window.$) {
+        console.log('jQuery already loaded');
+    } else {
+        (($) => {
+            if (!window.jQuery) window.jQuery = $;
+            if (!window.$) window.$ = $;
+        })(jQuery);
+    }
+};
