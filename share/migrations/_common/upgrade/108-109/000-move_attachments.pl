@@ -26,6 +26,11 @@ migrate {
 
     GADS::Config->instance( config => $conf );
 
+    my $uid = getpwnam("lspace")
+        or die "Unable to get UID for user lspace";
+    my $gid = getgrnam("www-root")
+        or die "Unable to get GID for group www-root";
+
     $schema->storage->connect_info( [ sub { $schema->storage->dbh }, { quote_names => 1 } ] );
 
     my $rs = $schema->resultset('Fileval')->search( {}, { page => 1, rows => 100, order_by => 'me.id' } );
@@ -41,7 +46,15 @@ migrate {
             my $target = GADS::Schema::Result::Fileval::file_to_id($file);
             $target->dir->mkpath;
             $target->spew( iomode => '>:raw', $file->content );
+            chown $uid, $gid, "$target"
+              or die("Unable to change ownership of $target");
+            chmod 775, "$target"
+              or die("Unable to change permissions on $target");
         }
         $page = $pager->next_page;
     } while ($page);
+
+    my $baseDir = GADS::Config->instance->uploads;
+    die "Invalid basedir"
+        unless -d $basedir;    
 };
