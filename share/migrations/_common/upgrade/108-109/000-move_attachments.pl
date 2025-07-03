@@ -26,10 +26,8 @@ migrate {
 
     GADS::Config->instance( config => $conf );
 
-    my $uid = getpwnam("lspace")
-        or die "Unable to get UID for user lspace";
-    my $gid = getgrnam("www-root")
-        or die "Unable to get GID for group www-root";
+    my $uid = getpwnam("lspace");
+    my $gid = getgrnam("www-root");
 
     $schema->storage->connect_info( [ sub { $schema->storage->dbh }, { quote_names => 1 } ] );
 
@@ -46,6 +44,7 @@ migrate {
             my $target = GADS::Schema::Result::Fileval::file_to_id($file);
             $target->dir->mkpath;
             $target->spew( iomode => '>:raw', $file->content );
+            # Simplest way, trying to recursively run through all files and directories would overcomplicate this IMO
             chown $uid, $gid, "$target"
               or die("Unable to change ownership of $target");
             chmod 775, "$target"
@@ -53,8 +52,4 @@ migrate {
         }
         $page = $pager->next_page;
     } while ($page);
-
-    my $baseDir = GADS::Config->instance->uploads;
-    die "Invalid basedir"
-        unless -d $basedir;    
 };
