@@ -42,7 +42,7 @@ has override_types => (
     },
     builder => sub {
         my $self = shift;
-        return 0 unless $self->has_options;
+        return undef unless $self->has_options;
         $self->options->{override_types};
     },
     trigger => sub { $_[0]->reset_options },
