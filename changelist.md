@@ -2,6 +2,17 @@
 
 -------
 
+**Version**: 2.6.7
+**Released**: 03-07-2025
+
+-------
+
+## Fixes
+
+- Fix basic authentication in API
+
+-------
+
 **Version**: 2.6.6
 **Released**: 12-05-2025
 
