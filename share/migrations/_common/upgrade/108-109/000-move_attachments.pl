@@ -42,12 +42,12 @@ migrate {
         $pager->current_page($page);
         foreach my $file ( $rs->all ) {
             my $target = GADS::Schema::Result::Fileval::file_to_id($file);
-            $target->dir->mkpath(0, { owner => $uid, group => $gid, mode => 600 });
+            $target->dir->mkpath(0, { owner => $uid, group => $gid, chmod => 0660 });
             $target->spew( iomode => '>:raw', $file->content );
             # Simplest way, trying to recursively run through all files and directories would overcomplicate this IMO
             chown $uid, $gid, "$target"
               or die("Unable to change ownership of $target");
-            chmod 660, "$target"
+            chmod 0660, "$target"
               or die("Unable to change permissions on $target");
         }
         $page = $pager->next_page;
