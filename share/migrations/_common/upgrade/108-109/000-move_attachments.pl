@@ -42,14 +42,7 @@ migrate {
         $pager->current_page($page);
         foreach my $file ( $rs->all ) {
             my $target = GADS::Schema::Result::Fileval::file_to_id($file);
-            # We use "$path" here to coerce the value from an object to a string
-            my @paths = $target->dir->mkpath;
-            foreach my $path (@paths) {
-                chown $uid, $gid, "$path"
-                    or die("Unable to change ownership of $path");
-                chmod 660, "$path"
-                    or die("Unable to change permissions on $path");
-            }
+            $target->dir->mkpath(0, { owner => $uid, group => $gid, mode => 600 });
             $target->spew( iomode => '>:raw', $file->content );
             # Simplest way, trying to recursively run through all files and directories would overcomplicate this IMO
             chown $uid, $gid, "$target"
