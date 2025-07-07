@@ -27,7 +27,7 @@ migrate {
     GADS::Config->instance( config => $conf );
 
     my $uid = getpwnam("lspace");
-    my $gid = getgrnam("www-root");
+    my $gid = getgrnam("www-data");
 
     $schema->storage->connect_info( [ sub { $schema->storage->dbh }, { quote_names => 1 } ] );
 
