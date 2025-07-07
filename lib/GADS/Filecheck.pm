@@ -6,8 +6,6 @@ use warnings;
 use File::LibMagic;
 use Log::Report 'linkspace';
 
-use MIME::Base64 qw/decode_base64/;
-
 use Moo;
 
 with 'MooX::Singleton';
