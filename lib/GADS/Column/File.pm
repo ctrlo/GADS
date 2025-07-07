@@ -24,8 +24,6 @@ use Moo;
 use MooX::Types::MooseLike::Base qw/Int Maybe ArrayRef/;
 use JSON qw/decode_json/;
 
-use Data::Dump qw(pp);
-
 extends 'GADS::Column';
 
 has '+option_names' => (
