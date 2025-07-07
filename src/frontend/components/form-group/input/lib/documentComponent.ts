@@ -8,7 +8,7 @@ import { RenameEvent } from 'components/button/lib/rename-button';
 import { fromJson } from 'util/common';
 import { FileDropEvent } from 'util/filedrag';
 import ErrorHandler from 'util/errorHandler';
-import { isString } from 'vis-util';
+import { isString } from 'util/typechecks';
 
 interface FileData {
     id: number | string;
