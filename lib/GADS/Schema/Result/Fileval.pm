@@ -13,6 +13,8 @@ use warnings;
 use Path::Class qw(file dir);
 use Moo;
 
+use Log::Report 'linkspace';
+
 use GADS::Config;
 
 extends 'DBIx::Class::Core';
