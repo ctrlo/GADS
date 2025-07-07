@@ -124,7 +124,7 @@ sub _build_uploads {
     my $upload_path = (ref($self->gads) eq 'HASH' && $self->gads->{uploads}) || '/var/lib/GADS/uploads';
     $upload_path =~ s!/$!!; # Remove trailing slash
     error __x"Upload directory {path} does not exist", path => $upload_path
-        unless -d $upload_path;
+        unless -d $upload_path && -w _;
     $upload_path;
 };
 
