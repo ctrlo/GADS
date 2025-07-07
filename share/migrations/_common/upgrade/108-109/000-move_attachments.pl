@@ -43,7 +43,8 @@ migrate {
         foreach my $file ( $rs->all ) {
             my $target = GADS::Schema::Result::Fileval::file_to_id($file);
             # We use "$path" here to coerce the value from an object to a string
-            foreach my $path (@{$target->dir->mkpath}) {
+            my @paths = $target->dir->mkpath;
+            foreach my $path (@paths) {
                 chown $uid, $gid, "$path"
                     or die("Unable to change ownership of $path");
                 chmod 660, "$path"
