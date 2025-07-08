@@ -138,7 +138,7 @@ sub file_to_id {
 sub content {
   my $self = shift;
   my $target = $self->file_to_id;
-  error __"File not found!" unless -e $target; # file may have been deleted
+  error __"File not found!" unless -r $target; # file may have been deleted
   return $target->slurp(iomode => '<:raw');
 }
 

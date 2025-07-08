@@ -40,14 +40,15 @@ migrate {
         $rs = $rs->search( {}, { page => $page } );
         say "Page $page of $last_page";
         $pager->current_page($page);
+        # We have to use 775 for permissions - for some reason if we don't have x on the file, it won't download!
         foreach my $file ( $rs->all ) {
             my $target = GADS::Schema::Result::Fileval::file_to_id($file);
-            $target->dir->mkpath(0, { owner => $uid, group => $gid, chmod => 0660 });
+            $target->dir->mkpath(0, { owner => $uid, group => $gid, chmod => 0775 });
             $target->spew( iomode => '>:raw', $file->content );
             # Simplest way, trying to recursively run through all files and directories would overcomplicate this IMO
             chown $uid, $gid, "$target"
               or die("Unable to change ownership of $target");
-            chmod 0660, "$target"
+            chmod 0775, "$target"
               or die("Unable to change permissions on $target");
         }
         $page = $pager->next_page;
