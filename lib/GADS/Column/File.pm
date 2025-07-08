@@ -32,15 +32,12 @@ has '+option_names' => (
 
 has override_types => (
     is      => 'rw',
+    # Maybe needed because if there are no options this can be undef
     isa     => Maybe[ArrayRef],
     lazy    => 1,
-    coerce  => sub {
-        my $value = shift;
-        return ref($value) ? $value : $value && decode_json($value);
-    },
     builder => sub {
         my $self = shift;
-        return undef unless $self->has_options;
+        return [] unless $self->has_options;
         $self->options->{override_types};
     },
     trigger => sub { $_[0]->reset_options },
@@ -88,9 +85,9 @@ sub validate
     if ($value !~ /^[0-9]+$/ || !$self->schema->resultset('Fileval')->find($value))
     {
         return 0 unless $options{fatal};
-        # The new file check will go in here but will _not_ be included in this change request because
-        # the file is on the filesystem from another change - I will create a new PR from that commit and
-        # integrate the file check from the filesystem from there.
+        # Check that the file type is allowed here as well
+        my $filecheck = GADS::Filecheck->instance;
+        $filecheck->check_upload($self->name, $self->content, extra_types => $self->override_types);
         error __x"'{int}' is not a valid file ID for '{col}'",
             int => $value, col => $self->name;
     }
