@@ -4,7 +4,6 @@ import "bootstrap";
 import { Component } from 'component'
 import { logging } from 'logging'
 import { fromJson } from 'util/common'
-import { createErrorMessage } from "util/parsers";
 import { initValidationOnField } from 'validation'
 
   /*
@@ -449,6 +448,7 @@ class SelectWidgetComponent extends Component {
 
   //Some odd scoping issues here - but it works
   updateJson(url, typeahead) {
+    if(!url.includes('csrf-token')) url += (url.includes('?') ? '&' : '?') + 'csrf-token=' + $('body').data('csrf');
     this.loadCounter++
     const self = this;
     const myLoad = this.loadCounter // ID of this process
@@ -469,8 +469,7 @@ class SelectWidgetComponent extends Component {
     // If we cancel this particular loop, then we don't want to remove the
     // spinner if another one has since started running
     let hideSpinner = true
-
-    $.ajax(url).done((data)=>{
+    $.ajax({url, method: "POST"}).done((data)=>{
       data = fromJson(data)
       if (data.error === 0) {
         if (myLoad != this.loadCounter) { // A new one has started running
@@ -531,7 +530,7 @@ class SelectWidgetComponent extends Component {
         })
 
       } else {
-        const errorMessage = createErrorMessage(data);
+        const errorMessage = data.message;
         const errorLi = $(
           '<li class="answer answer--blank alert alert-danger d-flex flex-row justify-content-start"><span class="control"><label>' +
             errorMessage +
@@ -540,7 +539,7 @@ class SelectWidgetComponent extends Component {
         this.$available.append(errorLi)
       }
     }).fail(function(jqXHR, textStatus, textError) {
-        const errorMessage = createErrorMessage(jqXHR.responseJSON || jqXHR.responseText);
+        const errorMessage = jqXHR.responseJSON.message;
         logging.error(
           "Failed to make request to " +
             url +

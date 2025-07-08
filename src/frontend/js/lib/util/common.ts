@@ -1,6 +1,3 @@
-import { isObject, isString } from "./typeChecks";
-import { isJsonParseable } from "./typeChecks/lib/parseable";
-
 // TS errors if this is not here
 declare global {
     interface Window {
@@ -35,17 +32,17 @@ export const showElement = (element: HTMLElement | JQuery<HTMLElement>) => {
  * @param json The JSON string or object to parse
  * @returns An object representation of the JSON string or the original object if it is already an object
  */
-export const fromJson = <T> (json: unknown) => {
-    if (isString(json) && isJsonParseable(json)) {
-        try {
-            return JSON.parse(json) as T ?? {};
-        } catch {
-            return {};
+export const fromJson = (json: String | object) => {
+    try {
+        // An empty string returns false in a boolean context, this also covers null and undefined
+        if (!json) return {};
+        if (typeof json === 'string') {
+            return JSON.parse(json);
         }
-    } else if (isObject(json)) {
-        return json as T ?? {};
+        return json;
+    } catch (e) {
+        return {}
     }
-    return {};
 }
 
 /**
