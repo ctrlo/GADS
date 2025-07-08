@@ -2315,10 +2315,7 @@ sub set_blank_dependents
 
     foreach my $column (@{$options{columns}})
     {
-        # Don't attempt any blanking if the user is editing an existing record
-        # and they do not have access to the field
-        next if !$self->new_entry && !$column->user_can('write_existing');
-        my $datum = $self->get_field_value($column);
+        my $datum = $self->fields->{$column->id};
         $datum->set_value('')
             if $datum->dependent_not_shown(submission_token => $options{submission_token})
                 && ($datum->column->can_child || !$self->parent_id);
