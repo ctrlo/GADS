@@ -48,7 +48,7 @@ migrate {
             # Simplest way, trying to recursively run through all files and directories would overcomplicate this IMO
             chown $uid, $gid, "$target"
               or die("Unable to change ownership of $target");
-            chmod 0775, "$target"
+            chmod 0664, "$target"
               or die("Unable to change permissions on $target");
         }
         $page = $pager->next_page;
