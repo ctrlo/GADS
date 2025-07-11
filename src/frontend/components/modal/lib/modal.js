@@ -2,11 +2,30 @@
  * Modal observable class
  */
 class Modal {
+  /**
+   * @type {Array<modalSubscriber>}
+   */
   observers = []
 
   /**
+   * @typedef modalSubscriber 
+   * @property {(frameNr:*, clearFields:*, id:*)=>void} handleActivate Handle activation of a modal frame
+   * @property {(frame:*)=>void} handleAdd Handle addition of a modal frame
+   * @property {(frame:*)=>void} handleBack Handle going back in modal frames
+   * @property {(frame:*)=>void} handleNext Handle going to the next modal frame
+   * @property {(modal:*)=>void} handleShow Handle showing a modal
+   * @property {()=>void} handleSave Handle saving the modal
+   * @property {(data:*)=>void} handleUpload Handle uploading data in the modal
+   * @property {(arr:*)=>void} handleClear Handle clearing an array in the modal
+   * @property {()=>void} handleClose Handle closing the modal
+   * @property {(frameNr:*)=>void} handleSkip Handle skipping a modal frame
+   * @property {()=>void} handleValidate Handle validating the modal
+   * @property {(frame:*)=>void} handleUpdate Handle updating a modal frame
+   */
+
+  /**
    * Method for subscribing to, or "observing" observable
-   * @param {*} subscriber - The subscriber object
+   * @param {modalSubscriber} subscriber - The subscriber object
    */
   addSubscriber(subscriber) {
     this.observers.push(subscriber)
@@ -24,7 +43,7 @@ class Modal {
   /**
    * Handle Activate
    * @param {*} frameNr The frame number
-   * @param {number} clearFields Whether to clear the fields
+   * @param {*} clearFields Whether to clear the fields
    * @param {*} id The ID
    */
   activate(frameNr, clearFields, id) {

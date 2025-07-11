@@ -10,12 +10,12 @@ type TypeaheadCallback = (suggestion: { name: string, id: number }) => void;
 /**
  * TypeaheadBuilder class for building Typeahead class
  * @type T - type of the suggestion extending `{ name: string, id: number }`
- * @param $input - input element to attach typeahead to
- * @param callback - callback function to be called when a suggestion is selected
- * @param name - name of the typeahead data source
- * @param ajaxSource - url to the ajax source
- * @param appendQuery - whether to append the query to the ajax source url
- * @param data - data to be sent with the ajax request (if any)
+ * @prop $input - input element to attach typeahead to
+ * @prop callback - callback function to be called when a suggestion is selected
+ * @prop name - name of the typeahead data source
+ * @prop ajaxSource - url to the ajax source
+ * @prop appendQuery - whether to append the query to the ajax source url
+ * @prop data - data to be sent with the ajax request (if any)
  * @returns Typeahead class
  * @throws Error if $input, callback, name, or ajaxSource is not set
  */
@@ -27,7 +27,7 @@ export class TypeaheadBuilder {
     private appendQuery: boolean;
     private data: any;
     private mapper: MapperFunction = (data: any) => { return data.map(d => { return { name: d.name, id: d.id } }) };
-    private dataBuilder: Function;
+    private dataBuilder: (...params: any)=>any;
 
     /**
      * Constructor for TypeaheadBuilder class

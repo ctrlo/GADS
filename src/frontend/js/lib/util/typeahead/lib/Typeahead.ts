@@ -5,9 +5,9 @@ import { MappedResponse } from "util/mapper/mapper";
 
 /**
  * Typeahead class for creating a typeahead
- * @param $input - input element to attach typeahead to
- * @param callback - callback function to be called when a suggestion is selected
- * @param sourceOptions - options for the typeahead data source
+ * @prop $input - input element to attach typeahead to
+ * @prop callback - callback function to be called when a suggestion is selected
+ * @prop sourceOptions - options for the typeahead data source
  */
 export class Typeahead {
     /**
@@ -31,7 +31,7 @@ export class Typeahead {
             remote: {
                 url: ajaxSource + (appendQuery ? "%QUERY" : ""),
                 wildcard: '%QUERY',
-                transform: (response) => {
+                transform: (response: any) => {
                     return mapper(response);
                 },
                 rateLimitBy: 'debounce',

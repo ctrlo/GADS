@@ -1,8 +1,4 @@
 /**
- * This is the main file of the actions handler. These will trigger any actions as they are created in the application.
- */
-
-/**
  * Array of actions to be handled
  */
 const actions: (() => void)[] = [];

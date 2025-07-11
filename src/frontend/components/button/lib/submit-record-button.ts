@@ -4,9 +4,9 @@ import { validateRequiredFields } from "validation";
  * Button to submit records
  */
 export default class SubmitRecordButton {
-    private requiredHiddenRecordDependentFieldsCleared: boolean = false;
-    private canSubmitRecordForm: boolean = false;
-    private disableButton: boolean = false;
+    private requiredHiddenRecordDependentFieldsCleared = false;
+    private canSubmitRecordForm = false;
+    private disableButton = false;
 
     /**
      * Create a button to submit records

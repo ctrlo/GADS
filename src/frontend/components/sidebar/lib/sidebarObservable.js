@@ -6,7 +6,7 @@ class SidebarObservable {
   
   /**
    * Add a subscriber to the observable
-   * @param {*} subscriber The subscriber to add
+   * @param {{handleSidebarChange:()=>void}} subscriber The subscriber to add
    */
   addSubscriber(subscriber) {
     this.observers.push(subscriber)

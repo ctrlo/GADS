@@ -2,7 +2,7 @@ import "testing/globals.definitions";
 import { fromJson, hideElement, showElement } from "./common";
 
 describe('common functions', () => {
-    describe('CSS and ARIA - skipped as they are incorrect', () => {
+    describe('CSS and ARIA', () => {
         let el: JQuery<HTMLElement>;
 
         beforeEach(() => {

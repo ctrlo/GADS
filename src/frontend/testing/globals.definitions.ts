@@ -1,5 +1,8 @@
 import { XmlHttpRequestLike } from "../js/lib/util/upload/UploadControl";
 
+/**
+ * Mock the JQuery AJAX function
+ */
 export function mockJQueryAjax() {
     $.ajax = jest.fn().mockImplementation(() => {
         return {
@@ -20,6 +23,9 @@ export function initGlobals() {
     mockJSTree();
 }
 
+/**
+ * Mocks the jstree function to return a mock implementation
+ */
 export function mockJSTree() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     $.fn.jstree = jest.fn().mockImplementation((arg: boolean) => {
@@ -31,6 +37,9 @@ export function mockJSTree() {
     });
 }
 
+/**
+ * Mock XMLHttpRequest for testing purposes
+ */
 export class MockXhr implements XmlHttpRequestLike {
     open: (method: string, url: string) => void = jest.fn();
     onabort?: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => any) | null | undefined = jest.fn();
@@ -44,6 +53,9 @@ export class MockXhr implements XmlHttpRequestLike {
     responseText: string = JSON.stringify({ error: 0 });
 }
 
+/**
+ * Mocks an element like interface for testing
+ */
 export interface ElementLike {
     hasClass: (className: string) => boolean;
     addClass: (className: string) => void;
@@ -53,6 +65,9 @@ export interface ElementLike {
     removeAttr: (attr: string) => void;
 }
 
+/**
+ * Default implementation of ElementLike for testing purposes
+ */
 export class DefaultElementLike implements ElementLike {
     hasClass: (className: string) => boolean = jest.fn().mockReturnValue(false);
     addClass: (className: string) => void = jest.fn();
@@ -62,6 +77,10 @@ export class DefaultElementLike implements ElementLike {
     removeAttr: (attr: string) => void = jest.fn();
 }
 
+/**
+ * Sets up the crypto object for testing purposes
+ * This is used to mock the crypto API in tests
+ */
 export function setupCrypto() {
     const crypto = {
         subtle: {
@@ -78,6 +97,9 @@ export function setupCrypto() {
     });
 }
 
+/**
+ * Clear all the mocks and import a full implementation of the crypto API
+ */
 export async function setupNoMockCrypto() {
     const crypto = await import("crypto");
     Object.defineProperty(window, "crypto", {
@@ -85,6 +107,9 @@ export async function setupNoMockCrypto() {
     });
 }
 
+/**
+ * Clear the crypto implementation from the browser (for testing)
+ */
 export function killNoMockCrypto() {
     // @ts-expect-error This is a unit test, so this is not readonly
     delete window.crypto;

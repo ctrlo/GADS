@@ -32,6 +32,12 @@ class Component {
   // elements etc)
   static get allowReinitialization() { return false }
 
+  /**
+   * Create a new component
+   * @param {HTMLElement} element The element to attach the component to
+   * @throws {Error} If the element is not an HTMLElement
+   * @constructor
+   */
   constructor(element) {
     if (!(element instanceof HTMLElement)) {
       throw new Error(
@@ -46,7 +52,7 @@ class Component {
 }
 
 /**
- * All registered component
+ * All registered components
  */
 const registeredComponents = []
 
@@ -97,7 +103,7 @@ const getComponentElements = (scope, selector) => {
  * @export
  * @param {HTMLElement} scope The scope to initialize the objects on
  * @param {String|Function} selector The selector to select elements
- * @param {Component} ComponentClass The Component class to initialize
+ * @param {Component & { new: (HTMLElement)=>Component }} ComponentClass The Component class to initialize
  * @returns {Array[Component]} An array of initialized components
  */
 const initializeComponent = (scope, selector, ComponentClass) => {

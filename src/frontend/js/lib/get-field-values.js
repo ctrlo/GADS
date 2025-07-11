@@ -15,7 +15,14 @@ const format_date = function (date) {
   };
 };
 
-// get the value from a field, depending on its type
+/**
+ * Get the values from a field, depending on its type.
+ * @param {jQuery} $depends The jQuery dependendent element.
+ * @param {boolean} filtered Whether the field is filtered.
+ * @param {boolean} for_code Whether to return values for code.
+ * @param {boolean} for_autosave Whether to return values for autosave.
+ * @returns {Array|Object|string} The values from the field.
+ */
 const getFieldValues = function ($depends, filtered, for_code, for_autosave) {
   const type = $depends.data("column-type");
 

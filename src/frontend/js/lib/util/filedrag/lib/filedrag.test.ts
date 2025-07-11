@@ -2,8 +2,9 @@ import "testing/globals.definitions";
 import FileDrag from './filedrag';
 
 class FileDragTest extends FileDrag {
-    constructor(element, onDrop?: (files: FileList | File) => void) {
-        super(element, { debug: true }, onDrop);
+    constructor(element: HTMLElement, onDrop?: (files: File, index?: number, length?: number) => void) {
+        const dropFn = onDrop || (() => {});
+        super(element, { debug: true }, dropFn);
     }
 
     setDragging(dragging: boolean) {

@@ -16,6 +16,10 @@ type ComponentInitializer = (element: JQuery<HTMLElement> | HTMLElement) => void
  * Input component class
  */
 class InputComponent extends Component {
+
+    /**
+     * Map of component classes to their initializers.
+     */
     private static componentMap: { [key: string]: ComponentInitializer } = {
         'input--password': passwordComponent,
         'input--logo': logoComponent,
@@ -30,7 +34,7 @@ class InputComponent extends Component {
      * @param element The Element to attach the component to.
      */
     constructor(element: HTMLElement | JQuery<HTMLElement>) {
-        super(element);
+        super(element instanceof HTMLElement ? element : element[0]);
         this.initializeComponent();
         this.initializeValidation();
     }
