@@ -211,12 +211,16 @@ hook before => sub {
         $token ||= query_parameters->get('csrf-token') || body_parameters->get('csrf_token');
         error __x"csrf-token missing for uri {uri}", uri => request->uri
             if !$token;
-        error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
-            if $token ne session('csrf_token');
+        # This is to ensure the API endpoint returns the correct error on timeout, rather than the below error
+        if(logged_in_user || request->path eq '/login')
+        {
+            error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
+                if $token ne session('csrf_token');
 
-        # If it's a potential login, change the token
-        _update_csrf_token()
-            if request->path eq '/login';
+            # If it's a potential login, change the token
+            _update_csrf_token()
+                if request->path eq '/login';
+        }
     }
 
     if ($user)
@@ -1701,7 +1705,7 @@ post '/file/:id?' => require_login sub {
     {
         my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
         my $file;
-        if (process( sub { $file = rset('Fileval')->create({
+        if (process( sub { $file = rset('Fileval')->create_with_file({
             name           => $upload->filename,
             mimetype       => $mimetype,
             content        => $upload->content,
@@ -1724,7 +1728,7 @@ post '/file/:id?' => require_login sub {
     my $fileval = $id =~ /^[0-9]+$/ && schema->resultset('Fileval')->find($id)
         or error __x"File ID {id} cannot be found", id => $id;
 
-    if (process( sub { $fileval->delete }))
+    if (process( sub { $fileval->remove_file }))
     {
         return forwardHome( { success => "File has been deleted successsfully" }, 'file/' );
     }
@@ -1760,7 +1764,7 @@ put '/api/file/:id' => require_login sub {
             rename_existing => 1)
                 or error __x"File ID {id} cannot be found", id => $id;
 
-        my $newFile = rset('Fileval')->create({
+        my $newFile = rset('Fileval')->create_with_file({
             name           => $newname,
             mimetype       => $file->single_mimetype,
             content        => $file->single_content,
@@ -1788,7 +1792,7 @@ post '/api/file/?' => require_login sub {
 
         my $fileval = schema->resultset('Fileval')->find($delete_id);
 
-        $fileval->delete;
+        $fileval->remove_file();
 
         return forwardHome(
             { success => "The file has been deleted successfully" }, 'file/' );
@@ -1796,7 +1800,17 @@ post '/api/file/?' => require_login sub {
 
     if (my $upload = upload('file'))
     {
-        my $mimetype = $filecheck->check_file($upload, check_name => 0); # Borks on invalid file type
+        my $user = logged_in_user;
+        my $column_id = body_parameters->get('column_id')
+            or error __"Missing column ID";
+
+        my $column = GADS::Layout->new(
+            schema => schema,
+            user   => $user,
+            config => config
+        )->column($column_id);
+
+        my $mimetype = $filecheck->check_file($upload, check_name => 0, extra_types => $column->override_types); # Borks on invalid file type
         my $filename = $upload->filename;
 
         # Remove any invalid characters from the new name - this will possibly be changed to an error going forward
@@ -1806,7 +1820,7 @@ post '/api/file/?' => require_login sub {
         $filename =~ s/[^a-zA-Z0-9\._\-\(\) ]//g;
 
         my $file;
-        if (process( sub { $file = rset('Fileval')->create({
+        if (process( sub { $file = rset('Fileval')->create_with_file({
             name           => $filename,
             mimetype       => $mimetype,
             content        => $upload->content,
