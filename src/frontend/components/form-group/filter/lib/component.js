@@ -238,15 +238,17 @@ class FilterComponent extends Component {
    */
   buildFilter = (builderConfig, col) => {
     return ({
-      id: col.filterId,
-      label: col.label,
-      type: 'string',
-      operators: this.buildFilterOperators(col.type),
-      ...(col.type === 'rag'
-        ? this.ragProperties
-        : {})
-    })
-  }
+    id: col.filterId,
+    label: col.label,
+    type: 'string',
+    operators: this.buildFilterOperators(col.type),
+    ...(col.type === 'rag'
+      ? this.ragProperties
+      : col.hasFilterTypeahead
+      ? this.typeaheadProperties
+      : {})
+  })
+}
 
   /**
    * Build the filter operators for a specific type
@@ -269,14 +271,28 @@ class FilterComponent extends Component {
     return operators
   }
 
-  /**
-   * Get the record data for the filter
-   * @param {*} layoutId The layout id
-   * @param {*} urlSuffix The URL suffix to append to the request
-   * @param {*} instanceId The instance ID
-   * @param {*} query The query
-   * @returns An ajax request to get the records
-   */
+  get typeaheadProperties() {
+    return {
+      input: (container, input_name) => {
+        return (
+          `<div class='tt__container'>
+            <input class='form-control typeahead_text' type='text' name='${input_name}_text'/>
+            <input class='form-control typeahead_hidden' type='hidden' name='${input_name}'/>
+          </div>`
+        )
+      },
+      valueSetter: (rule, value) => {
+        rule.$el.find('.typeahead_hidden').val(value)
+        const typeahead = rule.$el.find('.typeahead_text')
+        typeahead.typeahead('val',rule.data.text)
+        typeahead.val(rule.data.text)
+      },
+      validation: {
+        callback: () => {return true}
+      }
+    }
+  }
+
   getRecords = (layoutId, urlSuffix, instanceId, query) => {
     return (
       $.ajax({

@@ -128,6 +128,20 @@ declare global {
              * @example cy.deleteInstanceByShortName('t')
              */
             deleteInstanceByShortName(shortName: string): void;
+            /**
+             * Navigate to the table permissions page and check all boxes that are unchecked
+             * @example cy.setAllTablePermissions()
+             */
+            setAllTablePermissions(): void;
+            /**
+             * Add a user to a group
+             * @param user The user to add to a group
+             * @param name The name of the group to add the user to
+             * @param location The location to navigate to after adding the user to the group (optional)
+             * @example cy.addUserToGroup('test@example.com', 'basic')
+             * @example cy.addUserToGroup('test@example.com', 'basic', '/user_overview/')
+             */
+            addUserToGroup(user: string, name: string, location?: string): void;
         }
     }
 }
@@ -266,4 +280,26 @@ Cypress.Commands.add("deleteInstanceByShortName", (shortName: string) => {
         .find("button")
         .contains("Delete")
         .click();
+});
+
+Cypress.Commands.add("setAllTablePermissions", () => {
+    cy.location('pathname').should('include', '/table');
+    cy.get('.table-header-bottom').find('ul').find('li').contains('Edit table').click();
+    cy.get('.content-block__navigation-left').find('ul').find('li').contains('Permissions').click();
+    cy.get('.card__title').contains('Group').click();
+    cy.get('.card__content').find<HTMLInputElement>('input[type="checkbox"]').each((el: HTMLInputElement) => {
+        cy.wrap<HTMLInputElement>(el).check({ force: true });
+    });
+    cy.get('.btn').contains('Save').click();
+    cy.get('.table-header-bottom').find('ul').find('li').contains('Records').click();
+});
+
+Cypress.Commands.add("addUserToGroup", (user: string, name: string, location?: string) => {
+    cy.visit('http://localhost:3000/user_overview/');
+    cy.get('td').contains(user).click();
+    const group = cy.get('label').contains(name).prev('input[type="checkbox"]');
+    group.should('exist');
+    group.check({ force: true });
+    cy.get('.btn').contains('Save changes').click();
+    location && cy.visit(location);
 });

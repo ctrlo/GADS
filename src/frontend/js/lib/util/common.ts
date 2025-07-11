@@ -30,12 +30,13 @@ export const showElement = (element: HTMLElement | JQuery<HTMLElement>) => {
  */
 export const fromJson = (json: String | object) => {
     try {
-        if (!json || json === '') return {};
+        // An empty string returns false in a boolean context, this also covers null and undefined
+        if (!json) return {};
         if (typeof json === 'string') {
             return JSON.parse(json);
         }
         return json;
     } catch (e) {
-        return {};
+        return {}
     }
 }
