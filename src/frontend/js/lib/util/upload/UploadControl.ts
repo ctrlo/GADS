@@ -1,3 +1,5 @@
+import { fromJson } from "util/common";
+
 /**
  * Type to represent a function that is called when the upload progress changes
  * @param loaded The number of bytes that have been uploaded
@@ -73,7 +75,7 @@ class Uploader {
             request.onreadystatechange = () => {
                 if (request.readyState === 4) {
                     if (request.status === 200) {
-                        resolve(JSON.parse(request.responseText));
+                        resolve(fromJson(request.responseText));
                     } else {
                         reject(request.responseText);
                     }

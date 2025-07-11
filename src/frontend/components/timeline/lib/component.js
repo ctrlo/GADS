@@ -281,9 +281,11 @@ class TimelineComponent extends Component {
         })
         .trigger('change')
 
-      return tl
-    });
-  }
+        return tl
+      }).then(()=>{
+        $('#loading').hide()
+      });
+    }
 
   setupTippy() {
     const $tippyElements = this.el.find('[data-tippy-content]')
@@ -330,11 +332,11 @@ class TimelineComponent extends Component {
                   1px 1px 2px ${backgroundColor},
                   0 0 1em ${backgroundColor},
                   0 0 0.2em ${backgroundColor};`
+            }
           }
         }
-      }
-    })
-  }
+      });
+    }
 
   /**
  * This function takes a color (hex) as the argument, calculates the color’s HSP value, and uses that
