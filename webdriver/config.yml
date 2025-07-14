@@ -16,7 +16,6 @@ gads:
     default_instance: 1
     url: "http://invalidhost.example.com/"
     user_status: 0
-    uploads: "/tmp/uploads"
 
 plugins:
     LogReport:

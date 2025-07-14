@@ -27,7 +27,7 @@ jobs:
         run: |
           sudo apt-get install cpanminus liblua5.3-dev
           # Avoid "Install CPAN dependencies" needing to compile so much
-          sudo apt-get install libdancer2-perl libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl libtest-tempdir-tiny-perl
+          sudo apt-get install libdancer2-perl libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl
       - name: 'Build cpanfile'
         run: perl bin/output_cpanfile > cpanfile
       - name: 'Install CPAN dependencies'
@@ -52,7 +52,7 @@ jobs:
             os: 'ubuntu-22.04'
           - name: 'Firefox'
             command: 'MOZ_HEADLESS=1 geckodriver --log warn &'
-            os: 'ubuntu-22.04'
+            os: 'ubuntu-20.04'
 
     services:
       postgres:
@@ -89,10 +89,6 @@ jobs:
         run: |
           echo '*:*:*:postgres:postgrespassword' > ~/.pgpass
           chmod 600 ~/.pgpass
-      - name: 'create uploads directory'
-        run: |
-          mkdir -p /tmp/uploads
-          chmod 777 /tmp/uploads
       - name: 'Start the application'
         env:
           DANCER_CONFDIR: 'webdriver'
@@ -164,11 +160,6 @@ jobs:
         run: |
           sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
           yarn
-          yarn build --no-watch
-      - name: 'create uploads directory'
-        run: |
-          mkdir -p /tmp/uploads
-          chmod 777 /tmp/uploads
       - name: 'Start the application'
         env:
           DANCER_CONFDIR: 'webdriver'

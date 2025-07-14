@@ -78,20 +78,4 @@ sub find_with_permission
     $file;
 }
 
-sub create_with_file {
-    my ($self, $params) = @_;
-    
-    my $guard = $self->result_source->schema->txn_scope_guard;
-
-    my $content = delete $params->{content};
-
-    my $return = $self->create($params);
-
-    $return->create_file($content);
-
-    $guard->commit;
-
-    $return;
-}
-
 1;

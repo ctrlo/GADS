@@ -142,7 +142,7 @@ around export_hash => sub {
 sub import_value
 {   my ($self, $value) = @_;
 
-    my $file = $value->{content} && $self->schema->resultset('Fileval')->create_with_file({
+    my $file = $value->{content} && $self->schema->resultset('Fileval')->create({
         name     => $value->{name},
         mimetype => $value->{mimetype},
         content  => decode_base64($value->{content}),
