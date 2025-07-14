@@ -1,8 +1,8 @@
-import "../../../testing/globals.definitions";
+import "testing/globals.definitions";
 import { fromJson, hideElement, showElement } from "./common";
 
 describe('common functions', () => {
-    describe.skip('CSS and ARIA - skipped as they are incorrect',()=>{
+    describe('CSS and ARIA - skipped as they are incorrect',()=>{
         let el: JQuery<HTMLElement>;
 
         beforeEach(() => {

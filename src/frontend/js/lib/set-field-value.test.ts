@@ -1,4 +1,4 @@
-import "../../testing/globals.definitions";
+import "testing/globals.definitions";
 import "components/button/lib/rename-button";
 import inputComponent from "../../components/form-group/input";
 import buttonComponent from "../../components/button";

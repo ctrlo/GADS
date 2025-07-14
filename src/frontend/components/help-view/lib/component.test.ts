@@ -1,4 +1,4 @@
-import "../../../testing/globals.definitions";
+import "testing/globals.definitions";
 import HelpView from "./component";
 
 class TestHelpView extends HelpView {
