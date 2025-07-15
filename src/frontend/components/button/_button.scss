@@ -161,3 +161,22 @@
 .btn-add-link {
   border-color: $transparent !important;
 }
+
+.btn-email,
+.btn-import,
+.btn-export {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.btn-email {
+  &::before {
+    content: "\E81C";
+  }
+}
+
+.btn-import {
+  &::before {
+    transform: rotate(180deg);
+  }
+}

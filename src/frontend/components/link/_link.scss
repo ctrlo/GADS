@@ -1,5 +1,12 @@
 .link {
-  @include link;
+  &.link--active {
+    color: $primary;
+    text-decoration: none;
+
+    &:hover {
+      color: $primary;
+    }
+  }
 }
 
 .link--bold {
