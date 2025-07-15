@@ -39,12 +39,14 @@ textarea:read-only,
 textarea[readonly],
 input:read-only,
 input[readonly] {
-  background-color: $gray-light;
-  border-color: $transparent;
-  cursor: not-allowed;
+  &:not([role="switch"]) {
+    background-color: $gray-light;
+    border-color: $transparent;
+    cursor: not-allowed;
 
-  &:hover,
-  &:active {
-    border-color: $transparent !important;
+    &:hover,
+    &:active {
+      border-color: $transparent !important;
+    }
   }
 }

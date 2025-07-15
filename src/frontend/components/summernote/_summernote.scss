@@ -24,7 +24,7 @@
       padding-left: 1.5rem;
     }
 
-    .form-check-input {
+    .form-check-input:not([role="switch"]) {
       @include custom-checkbox;
 
       margin-left: -1.5rem;

@@ -19,6 +19,10 @@ table,
 
     tr {
         cursor: pointer;
+
+        td {
+            @include font-size(0.87rem);
+        }
     }
 
     thead {
@@ -30,6 +34,9 @@ table,
         border-bottom: 1px solid $gray;
         text-transform: uppercase;
         vertical-align: top;
+        @include font-size(0.87rem);
+        position: relative;
+        padding-right: 1.875rem;
 
         &.sorting_asc,
         &.sorting_desc,
@@ -138,7 +145,9 @@ th {
         font-weight: normal;
         @include flex-helper($direction: column);
         @include font-size(0.5rem);
-        margin-left: 0.5rem;
+        margin-left: 0.25rem;
+        margin-top: 0.1rem;
+        padding: unset;
 
         &::before,
         &::after {
@@ -247,26 +256,32 @@ body:has(#table-modal) {
 
 // This is for the header with search, length, and toggle button - specififity is important
 .dt-container {
-    .row {
+    .row,
+    .dt-layout-row {
         display: flex;
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
         flex-wrap: nowrap;
-
+        
         .dt-layout-start,
-        .dt-layout-end {
+        .dt-layout-end,
+        .dt-start,
+        .dt-end {
             margin: 1rem 0.5rem;
         }
 
-        .dt-layout-start {
+        .dt-layout-start,
+        .dt-start {
             flex-grow: 1;
+            @extend .py-0;
+            @extend .my-0;
 
             .dt-search {
                 width: 100%;
 
                 label {
-                    @include visually-hidden;
+                    @extend .visually-hidden;
                 }
 
                 input {
@@ -275,12 +290,15 @@ body:has(#table-modal) {
             }
         }
 
-        .dt-layout-end {
+        .dt-layout-end,
+        .dt-end {
             display: flex;
             flex-direction: row;
             justify-content: flex-end;
             align-items: center;
             flex-wrap: nowrap;
+            @extend .py-0;
+            @extend .my-0;
 
             .dt-length {
                 display: flex;
@@ -292,17 +310,20 @@ body:has(#table-modal) {
                 label {
                     @extend .form-label;
                     white-space: nowrap;
+                    margin-right: 0.5rem;
+                    margin-bottom: 0;
                 }
 
                 select {
                     @extend .form-select;
-                    max-width: 5rem;
+                    max-width: 5.5rem;
                 }
             }
 
             .dt-toggle-button {
                 margin-left: 0.5rem;
                 cursor: pointer;
+                transition: $transition-base;
 
                 & * {
                     cursor: pointer;
@@ -316,6 +337,12 @@ body:has(#table-modal) {
                     }
                 }
             }
+        }
+    }
+
+    .dt-layout-table {
+        .dt-layout-cell {
+            width: 100%;
         }
     }
 }

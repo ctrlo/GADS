@@ -1440,7 +1440,7 @@
                           next     => "Next",
                           previous => "Previous"
                         },
-                        search            => "<span class=\"visually-hidden\">Search groups:</span>",
+                        search            => "<span>Search groups:</span>",
                         searchPlaceholder => "Search group"
                       }
                       table_page_length  = 5;

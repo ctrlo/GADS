@@ -1222,7 +1222,7 @@
                     next     => "Next",
                     previous => "Previous"
                   },
-                  search            => "<span class=\"visually-hidden\">Search in groups:</span>",
+                  search            => "<span>Search in groups:</span>",
                   searchPlaceholder => "Search group"
                 }
                 table_page_length  = 5;
@@ -1446,7 +1446,7 @@
                       next     => "Next",
                       previous => "Previous"
                     },
-                    search            => "<span class=\"visually-hidden\">Search in fields:</span>",
+                    search            => "<span>Search in fields:</span>",
                     searchPlaceholder => "Search field"
                   }
                   table_page_length  = 5;

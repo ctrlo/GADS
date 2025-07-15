@@ -616,7 +616,8 @@ class DataTableComponent extends Component {
     const self = this;
 
     conf.initComplete = async function () {
-      if (self.el.hasClass('table-account-requests') || self.el.hasClass('datatables-no-header-search')) return;
+      self.hasSearch = self.hasSearch || !self.el.hasClass('datatables-no-header-search')
+      if (self.el.hasClass('table-account-requests')) return;
       if (!conf.serverSide) return;
       const api = this.api();
       const columns = api.columns();
@@ -637,8 +638,8 @@ class DataTableComponent extends Component {
           const columnId = columns[column.index()].name;
 
           const $searchElement = $(`
-          <div class"data-table__header">
-            ${self.hasSearch && `<div class="data-table__search">
+          <div class="data-table__header">
+            ${self.hasSearch ? `<div class="data-table__search">
               <button 
                   class="btn btn-search dropdown-toggle${searchValue ? ' active': ''}"
                   id="search-toggle-${index}"
@@ -657,7 +658,7 @@ class DataTableComponent extends Component {
                       <span>Clear filter</span>
                   </button>
               </div>
-          </div>` }
+          </div>` :``}
           <div class="data-table__title">
             <span class="dt-column-title">${title}</div>
             <div class="data-table__sort"></div>
@@ -665,7 +666,8 @@ class DataTableComponent extends Component {
         </div>
         `)
 
-          const $searchInput = $(`<input class='form-control form-control-sm' type='search' placeholder='Search' ${typeof searchValue != 'undefined' ? 'value="' + searchValue + '"' : ''}/>`)
+        if(self.hasSearch) {
+          const $searchInput = $(`<input class='form-control form-control-sm' type='search' placeholder='Search' ${searchValue ? 'value="' + searchValue + '"' : ''}/>`)
           $searchInput.appendTo($('.input', $searchElement))
           if (col.typeahead_use_id) {
             $searchInput.after(`<input type="hidden" class="search">`)
@@ -701,10 +703,11 @@ class DataTableComponent extends Component {
               $header.find('.btn-search').removeClass('active');
             }
           });
+        }
 
           column.header().replaceChildren($searchElement[0]);
 
-          self.toggleFilter(column);
+          self.hasSearch && self.toggleFilter(column);
 
           if (col && col.typeahead) {
             import(/*webpackChunkName: "typeahead" */ "util/typeahead")
@@ -728,7 +731,7 @@ class DataTableComponent extends Component {
               });
           }
 
-          if ($header.hasClass('dt-orderable-asc') || $header.hasClass('dt-orderable-desc')) {
+          if (self.hasSearch && $header.hasClass('dt-orderable-asc') || $header.hasClass('dt-orderable-desc')) {
             $header.find('.data-table__search').on('click', (ev) => {
               ev.stopPropagation();
             });

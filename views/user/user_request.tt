@@ -8,7 +8,7 @@
       next     => "Next page",
       previous => "Previous page"
     },
-    search            => "<span class=\"visually-hidden\">Search account requests:</span>",
+    search            => "<span>Search account requests:</span>",
     searchPlaceholder => "Search through your users"
   }
   table_caption = "Table to show account requests";
