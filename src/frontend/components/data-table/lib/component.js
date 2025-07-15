@@ -10,7 +10,6 @@ import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/
 import { moreLess } from 'components/more-less/lib/more-less'
 import { bindToggleTableClickHandlers } from './toggle-table'
 import { createElement } from "util/domutils";
-import { isNotEmptyString } from 'util/typeChecks'
 import { Config } from "datatables.net-bs5";
 
 const MORE_LESS_TRESHOLD = 50
@@ -641,7 +640,7 @@ class DataTableComponent extends Component {
           <div class"data-table__header">
             ${self.hasSearch && `<div class="data-table__search">
               <button 
-                  class="btn btn-search dropdown-toggle${isNotEmptyString(searchValue) ? ' active': ''}"
+                  class="btn btn-search dropdown-toggle${searchValue ? ' active': ''}"
                   id="search-toggle-${index}"
                   type="button"
                   data-bs-toggle="dropdown"

@@ -6,22 +6,25 @@
           [% INCLUDE navigation/dropdown_select_view.tt %]
         </li>
         
-        <li class="list__item ">
+        <li class="list__item">
           [%
             table_view_buttons = [{
               type        = "link",
               target      = "?viewtype=table",
-              class       = "link link--primary link--table" _ (viewtype == "table" ? " link--active" : ""),
+              active      = viewtype == "table",
+              icon        = "table",
               label       = "Table"
             },{
               type        = "link",
               target      = "?viewtype=graph",
-              class       = "link link--primary link--graph" _ (viewtype == "graph" ? " link--active" : ""),
+              active      = viewtype == "graph",
+              icon        = "graph",
               label       = "Graph"
             },{
               type        = "link",
               target      = "?viewtype=timeline",
-              class       = "link link--primary link--timeline" _ (viewtype == "timeline" ? " link--active" : ""),
+              active      = viewtype == "timeline",
+              icon        = "timeline",
               label       = "Timeline"
             }];
           
@@ -33,12 +36,16 @@
             #     label       = "Globe"
             #   });
             # END;
-          
-            INCLUDE snippets/button_list.tt
-              list_class = "list--horizontal list--no-borders"
-              buttons    = table_view_buttons;
           %]
-        </li>
+          <ul class="nav nav-pills">
+            [% FOREACH button IN table_view_buttons %]
+            <li class="nav-item">
+              <a class="text-decoration-none hover-primary nav-link[% IF button.icon %] icon icon-[% button.icon %] d-flex[% END %][% IF button.active %] active[% END %]" [% IF button.active %]aria-current="page" [% END %]href="[% button.target %]">
+                <span>[% button.label | html %]</span>
+              </a>
+            </li>
+            [% END %]
+          </ul>
       </ul>
     </div>
   </div>

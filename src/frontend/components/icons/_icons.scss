@@ -41,6 +41,7 @@
 
 .icon-table::before {
     content: quote("\E817");
+    @include font-size(1.5rem);
 }
 
 .icon-help::before {
@@ -67,6 +68,16 @@
 }
 
 .icon-logout::before {
-    font-size: calc($font-size-base * 1.25);
+    font-size: 1.25rem;
     content: quote("\E812");
+}
+
+.icon-graph::before {
+    content: '\e80d';
+    @include font-size(1.5rem);
+}
+
+.icon-timeline::before {
+    content: '\e818';
+    @include font-size(1.5rem);
 }
