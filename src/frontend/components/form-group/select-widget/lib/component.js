@@ -3,7 +3,6 @@
 import "bootstrap";
 import { Component } from 'component'
 import { logging } from 'logging'
-import { fromJson } from 'util/common'
 import { initValidationOnField } from 'validation'
 
   /*

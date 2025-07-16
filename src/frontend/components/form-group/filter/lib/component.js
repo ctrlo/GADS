@@ -219,8 +219,6 @@ class FilterComponent extends Component {
     operators: this.buildFilterOperators(col.type),
     ...(col.type === 'rag'
       ? this.ragProperties
-      : col.hasFilterTypeahead
-      ? this.typeaheadProperties
       : {})
   })
 }
@@ -239,28 +237,6 @@ class FilterComponent extends Component {
     ]
     type === 'daterange' && operators.push('contain')
     return operators
-  }
-
-  get typeaheadProperties() {
-    return {
-      input: (container, input_name) => {
-        return (
-          `<div class='tt__container'>
-            <input class='form-control typeahead_text' type='text' name='${input_name}_text'/>
-            <input class='form-control typeahead_hidden' type='hidden' name='${input_name}'/>
-          </div>`
-        )
-      },
-      valueSetter: (rule, value) => {
-        rule.$el.find('.typeahead_hidden').val(value)
-        const typeahead = rule.$el.find('.typeahead_text')
-        typeahead.typeahead('val',rule.data.text)
-        typeahead.val(rule.data.text)
-      },
-      validation: {
-        callback: () => {return true}
-      }
-    }
   }
 
   getRecords = (layoutId, urlSuffix, instanceId, query) => {

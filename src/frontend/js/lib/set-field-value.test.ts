@@ -1,13 +1,14 @@
-import "../../testing/globals.definitions";
+import "testing/globals.definitions";
 import "components/button/lib/rename-button";
-import inputComponent from "../../components/form-group/input";
-import buttonComponent from "../../components/button";
-import multipleSelectComponent from "../../components/form-group/multiple-select";
-import selectWidgetComponent from "../../components/form-group/select-widget";
-import textAreaComponent from "../../components/form-group/textarea";
-import { describe, it, expect } from '@jest/globals';
+import inputComponent from "components/form-group/input";
+import buttonComponent from "components/button";
+import multipleSelectComponent from "components/form-group/multiple-select";
+import selectWidgetComponent from "components/form-group/select-widget";
+import textAreaComponent from "components/form-group/textarea";
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { setFieldValues } from "./set-field-values";
 
+// Mocking jQuery plugins
 declare global {
     interface JQuery<TElement = HTMLElement> {
         renameButton: (options?: any) => JQuery<TElement>;
@@ -15,11 +16,13 @@ declare global {
     }
 }
 
-(($)=>{
+// Mocking jQuery functions
+(($) => {
     $.fn.renameButton = jest.fn().mockReturnThis();
     $.fn.filedrag = jest.fn().mockReturnThis();
 })(jQuery);
 
+// DOM elements for testing
 const stringDom = `
 <div class="form-group linkspace-field" data-column-id="19" data-column-type="string" data-value-selector=""
     data-show-add="" data-modal-field-ids="" data-curval-instance-name="" data-name="text" data-name-short=""
@@ -765,7 +768,7 @@ describe('setFieldValue', () => {
             expect(inputs.length).toBe(3);
         });
 
-        it('sets a date field using an object', ()=>{
+        it('sets a date field using an object', () => {
             const dom = $(dateField)[0];
             inputComponent(dom);
             buttonComponent(dom);
@@ -773,7 +776,7 @@ describe('setFieldValue', () => {
             selectWidgetComponent(dom);
             document.body.appendChild(dom);
             const field = $(dom);
-            const values = [{"year":2024,"month":11,"day":12,"hour":0,"minute":0,"second":0,"epoch":1731369600}];
+            const values = [{ "year": 2024, "month": 11, "day": 12, "hour": 0, "minute": 0, "second": 0, "epoch": 1731369600 }];
             setFieldValues(field, values);
             const input = field.find<HTMLInputElement>('input');
             expect(input.val()).toBe(`${values[0].year}-${values[0].month}-${values[0].day}`);
@@ -851,7 +854,7 @@ describe('setFieldValue', () => {
         });
     });
 
-    describe('Text area', ()=> {
+    describe('Text area', () => {
         it('Should set a text area field', () => {
             const dom = $(textAreaDom)[0];
             inputComponent(dom);
