@@ -13,6 +13,7 @@ import textAreaComponent from 'components/form-group/textarea';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { setFieldValues } from './set-field-values';
 
+// Mocking jQuery plugins
 declare global {
     interface JQuery<TElement = HTMLElement> {
         renameButton: (options?: any) => JQuery<TElement>;
@@ -27,6 +28,7 @@ declare global {
     $.fn.filedrag = jest.fn().mockReturnThis();
 })(jQuery);
 
+// DOM elements for testing
 const stringDom = `
 <div class="form-group linkspace-field" data-column-id="19" data-column-type="string" data-value-selector=""
     data-show-add="" data-modal-field-ids="" data-curval-instance-name="" data-name="text" data-name-short=""
@@ -571,6 +573,7 @@ describe('setFieldValue', () => {
         const dom = $(stringDom)[0];
         document.body.appendChild(dom);
         const field = $(dom);
+        /* @ts-ignore */
         expect(() => setFieldValues(field, 'test')).toThrowError('Attempt to set value for text without array');
     });
 
@@ -624,6 +627,7 @@ describe('setFieldValue', () => {
             document.body.appendChild(dom);
             const field = $(dom);
             const values = [6];
+            /* @ts-ignore */
             setFieldValues(field, values);
             const input = field.find<HTMLInputElement>('input[type="radio"]');
             for (const val of input) {
@@ -644,6 +648,7 @@ describe('setFieldValue', () => {
             document.body.appendChild(dom);
             const field = $(dom);
             const values = [6, 7];
+            /* @ts-ignore */
             setFieldValues(field, values);
             const input = field.find<HTMLInputElement>('input[type="checkbox"]');
             for (const val of input) {
@@ -666,6 +671,7 @@ describe('setFieldValue', () => {
             document.body.appendChild(dom);
             const field = $(dom);
             const values = [1];
+            /* @ts-ignore */
             setFieldValues(field, values);
             const input = field.find<HTMLInputElement>('input[type="radio"]');
             for (const val of input) {
@@ -686,6 +692,7 @@ describe('setFieldValue', () => {
             document.body.appendChild(dom);
             const field = $(dom);
             const values = [1, 4];
+            /* @ts-ignore */
             setFieldValues(field, values);
             const input = field.find<HTMLInputElement>('input[type="checkbox"]');
             for (const val of input) {
@@ -797,6 +804,7 @@ describe('setFieldValue', () => {
             document.body.appendChild(dom);
             const field = $(dom);
             const values = [1];
+            /* @ts-ignore */
             setFieldValues(field, values);
             const input = field.find<HTMLInputElement>('input');
             expect(input.val()).toBe('1');
@@ -811,6 +819,7 @@ describe('setFieldValue', () => {
             document.body.appendChild(dom);
             const field = $(dom);
             const values = [1, 2, 3];
+            /* @ts-ignore */
             setFieldValues(field, values);
             const inputs = $('input');
             let i = 1;

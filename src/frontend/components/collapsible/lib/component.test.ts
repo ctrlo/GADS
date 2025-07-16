@@ -3,6 +3,7 @@ import Collapsible from './component';
 
 describe('Collapsible', () => {
     beforeEach(() => {
+        // Set up the HTML structure for the collapsible component
         document.body.innerHTML = `
         <div id="target" class="collapsible">
             <div class="form-group">
