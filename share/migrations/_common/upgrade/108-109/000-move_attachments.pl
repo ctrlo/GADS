@@ -10,7 +10,7 @@ use Config::Any    ();
 
 use feature 'say';
 
-my $config_fn = "$FindBin::Bin/../config.yml";
+my $config_fn = "$FindBin::Bin/.." . ($ENV{DANCER_CONFDIR} ? "/" . $ENV{DANCER_CONFDIR} : "") . "/config.yml";
 
 my $config = Config::Any->load_files(
     {
@@ -19,7 +19,7 @@ my $config = Config::Any->load_files(
     }
 );
 
-my $conf = $config->[0]{$config_fn} or die "No config found";
+my $conf = $config->[0]{$config_fn} or die "No config found: $config_fn";
 
 migrate {
     my $schema = shift->schema;
