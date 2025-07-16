@@ -1,6 +1,6 @@
 import { XmlHttpRequestLike } from "../js/lib/util/upload/UploadControl";
 
-function mockJQueryAjax() {
+export function mockJQueryAjax() {
     $.ajax = jest.fn().mockImplementation(() => {
         return {
             done: (callback: () => void) => {
@@ -20,7 +20,7 @@ export function initGlobals() {
     mockJSTree();
 }
 
-function mockJSTree() {
+export function mockJSTree() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     $.fn.jstree = jest.fn().mockImplementation((arg: boolean) => {
         return {

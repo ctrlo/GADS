@@ -409,6 +409,7 @@ class ModalComponent extends Component {
     /**
      * Unbind event handlers from all elements of this frame
      * @param {JQuery<HTMLElement>} frame The frame to unbind event handlers from.
+     * @todo Fix deprecation
      */
     unbindEventHandlers(frame) {
         frame.find('.modal-footer .btn').unbind();

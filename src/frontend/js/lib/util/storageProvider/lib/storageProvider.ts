@@ -34,7 +34,7 @@ class StorageProvider {
     async setItem(key: string, value: string) {
         let item = await this.storage.getItem(this.instance);
         if (!item) item = '{}';
-        const map: StringMap = fromJson(item);
+        const map: StringMap = fromJson(item) as StringMap;
         map[key] = value;
         await this.storage.setItem(this.instance, JSON.stringify(map));
     }
@@ -47,7 +47,7 @@ class StorageProvider {
     async getItem(key: string): Promise<string | undefined> {
         const item = await this.storage.getItem(this.instance);
         if (!item) return undefined;
-        const map: StringMap = fromJson(item);
+        const map: StringMap = fromJson(item) as StringMap;
         return map[key] || undefined;
     }
 
@@ -58,7 +58,7 @@ class StorageProvider {
     async getAll(): Promise<StringMap> {
         const item = await this.storage.getItem(this.instance);
         if (!item) return {};
-        return fromJson(item);
+        return fromJson(item) as StringMap;
     }
 
     /**
@@ -75,7 +75,7 @@ class StorageProvider {
     async removeItem(key: string) {
         const item = await this.storage.getItem(this.instance);
         if (!item) return;
-        const map: StringMap = fromJson(item);
+        const map: StringMap = fromJson(item) as StringMap;
         delete map[key];
         await this.storage.setItem(this.instance, JSON.stringify(map));
     }
