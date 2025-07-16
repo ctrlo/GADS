@@ -1,6 +1,8 @@
-import "../../../../testing/globals.definitions";
+import "testing/globals.definitions";
 import AutosaveBase from './autosaveBase';
+import { describe, it, expect, beforeAll, afterAll } from "@jest/globals"
 
+// Mocking the AutosaveBase class for testing
 class TestAutosave extends AutosaveBase {
     initAutosave(): void {
         console.log('initAutosave');
@@ -17,7 +19,7 @@ describe('AutosaveBase', () => {
         $('body').data('layout-identifier', 1);
     });
 
-    afterAll(()=>{
+    afterAll(() => {
         document.body.innerHTML = '';
     });
 

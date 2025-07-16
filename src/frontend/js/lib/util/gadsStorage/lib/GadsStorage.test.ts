@@ -1,7 +1,7 @@
-import "../../../../../testing/globals.definitions";
+import "testing/globals.definitions";
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from "@jest/globals";
 import { GadsStorage } from "./GadsStorage";
-import { killNoMockCrypto, setupCrypto, setupNoMockCrypto } from "../../../../../testing/globals.definitions";
+import { killNoMockCrypto, setupCrypto, setupNoMockCrypto } from "testing/globals.definitions";
 
 if (!process.versions.node.startsWith("18")) {
     describe("GadsStorage", () => {
@@ -22,8 +22,8 @@ if (!process.versions.node.startsWith("18")) {
 
         afterEach(() => {
             try {
-            // @ts-expect-error This is a unit test, so this is not readonly
-            window.crypto && window.crypto.subtle && delete window.crypto.subtle; // We want to also clear the mock implementation of crypto
+                // @ts-expect-error This is a unit test, so this is not readonly
+                window.crypto && window.crypto.subtle && delete window.crypto.subtle; // We want to also clear the mock implementation of crypto
             } catch {
                 // We don't care if this fails - if we're using the non-mock, it will!
             }
@@ -80,11 +80,11 @@ if (!process.versions.node.startsWith("18")) {
             expect(storage.length).toBe(0);
         });
 
-        it('Should do multiple read/writes to the same value without erroring', async() => {
+        it('Should do multiple read/writes to the same value without erroring', async () => {
             await setupNoMockCrypto();
             expect.assertions(10);
-            const myValues = [{id: 1, value: "value1", array: [1]}];
-            for(let i = 0; i < 10; i++) {
+            const myValues = [{ id: 1, value: "value1", array: [1] }];
+            for (let i = 0; i < 10; i++) {
                 const storage = new GadsStorage();
                 const values = JSON.stringify(myValues);
                 await storage.setItem("myValues", values);
@@ -97,6 +97,6 @@ if (!process.versions.node.startsWith("18")) {
 } else {
     console.warn("GadsStorage tests are skipped because they are not compatible with Node 18");
     describe.skip("GadsStorage", () => {
-        it("Should skip", () => {});
+        it("Should skip", () => { });
     })
 }

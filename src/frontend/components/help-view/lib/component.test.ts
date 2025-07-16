@@ -1,33 +1,35 @@
-import "../../../testing/globals.definitions";
+import "testing/globals.definitions";
 import HelpView from "./component";
+import { describe, it, expect } from "@jest/globals"
 
+// Mock class to test the HelpView component exposing private members
 class TestHelpView extends HelpView {
     public get button() {
         return this.$button;
     }
 }
 
-describe("help view tests", ()=> {
-    it("throws an error when help-text is not provided", ()=> {
+describe("help view tests", () => {
+    it("throws an error when help-text is not provided", () => {
         const element = document.createElement("div");
-        expect(()=>new HelpView(element)).toThrow("help-text is required");
+        expect(() => new HelpView(element)).toThrow("help-text is required");
     });
 
-    it("throws when help-target is not provided", () =>{
+    it("throws when help-target is not provided", () => {
         const element = document.createElement("div");
         element.setAttribute("data-help-text", "help text");
-        expect(()=>new HelpView(element)).toThrow("help-target is required");
+        expect(() => new HelpView(element)).toThrow("help-target is required");
     });
 
-    it("throws when help-target is not found", ()=>{
+    it("throws when help-target is not found", () => {
         const element = document.createElement("div");
         element.setAttribute("data-help-text", "help text");
         const helpTarget = "help-target";
         element.setAttribute("data-help-target", helpTarget);
-        expect(()=>new HelpView(element)).toThrow(`Could not find help target with id: ${helpTarget}`);
+        expect(() => new HelpView(element)).toThrow(`Could not find help target with id: ${helpTarget}`);
     });
 
-    it("links the help text to the help target", ()=>{
+    it("links the help text to the help target", () => {
         const element = document.createElement("div");
         element.setAttribute("data-help-text", "help text");
         const helpTarget = "help-target";

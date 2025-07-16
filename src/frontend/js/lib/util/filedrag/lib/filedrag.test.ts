@@ -1,8 +1,10 @@
-import "../../../../../testing/globals.definitions";
+import { describe, it, expect, jest } from '@jest/globals';
+import "testing/globals.definitions";
 import FileDrag from './filedrag';
 
+// Test class implementation to expose private methods for testing
 class FileDragTest extends FileDrag {
-    constructor(element, onDrop?: (files: FileList | File) => void) {
+    constructor(element: HTMLElement, onDrop?: (files: FileList | File) => void) {
         super(element, { debug: true }, onDrop);
     }
 

@@ -1,4 +1,4 @@
-import "../../../../../testing/globals.definitions";
+import "testing/globals.definitions";
 import { describe, it, expect } from "@jest/globals";
 import { NullStorage } from "./NullStorage";
 import { AppStorage } from "./AppStorage";
@@ -10,6 +10,6 @@ describe("NullStorage", () => {
         const key = "key";
         const value = "value";
         await storage.setItem(key, value);
-        expect (localStorage.getItem(key)).toBeNull();
+        expect(localStorage.getItem(key)).toBeNull();
     });
 });
