@@ -4,6 +4,7 @@ import Datatable from 'datatables.net-bs4';
 
 describe('helper', () => {
     beforeEach(() => {
+        // create the DOM structure for the tests
         document.body.innerHTML = `
         <table id="target" class="table table-striped">
             <thead>
