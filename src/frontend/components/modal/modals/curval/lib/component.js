@@ -325,18 +325,15 @@ class CurvalModalComponent extends ModalComponent {
       const self = this
       $m.find(".modal-body").text("Loading...")
 
-      fetch(this.getURL(current_id, instance_name, layout_id), {
-        method: 'POST',
-        body: form_data,
-      })
-        .then((response)=>response.text())
-        .then((text) => $m.find(".modal-body").html(text))
-        .then(() => {
+      $m.find(".modal-body").load(
+        this.getURL(current_id, instance_name, layout_id, form_data),
+        function() {
           if (mode === "edit") {
-            $m.find("form").data("guid", guid);
+            $m.find("form").data("guid", guid)
           }
-          initializeRegisteredComponents(self.element);
-        });
+          initializeRegisteredComponents(self.element)
+        }
+      )
 
       $m.on("focus", ".datepicker", function() {
         $(this).datepicker({
@@ -353,13 +350,14 @@ class CurvalModalComponent extends ModalComponent {
 
   }
 
-  getURL(current_id, instance_name, layout_id) {
+  getURL(current_id, instance_name, layout_id, form_data) {
 
     let url = current_id
       ? `/record/${current_id}`
       : `/${instance_name}/record/`
 
-    url += `?modal=${layout_id}&include_draft=1`
+    url = `${url}?include_draft&modal=${layout_id}`
+    if (form_data) url = url + `&${form_data}`
     return url
   }
 
