@@ -28,6 +28,7 @@ class MarkdownComponent extends Component {
 
     /**
      * Initialize the markdown editor.
+     * @todo Fix deprecation
      */
     initMarkdownEditor() {
         marked.use({ breaks: true });

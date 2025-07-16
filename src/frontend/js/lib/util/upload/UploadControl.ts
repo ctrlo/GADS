@@ -92,7 +92,7 @@ class Uploader {
             request.onreadystatechange = () => {
                 if (request.readyState === 4) {
                     if (request.status === 200) {
-                        resolve(fromJson(request.responseText));
+                        resolve(fromJson(request.responseText) as T);
                     } else {
                         reject(request.responseText);
                     }

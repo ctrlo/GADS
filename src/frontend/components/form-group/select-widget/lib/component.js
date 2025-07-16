@@ -510,7 +510,6 @@ class SelectWidgetComponent extends Component {
         return $li;
     }
 
-    //Some odd scoping issues here - but it works
     /**
      * Updates the JSON data for the select widget.
      * @param {string} url - The URL to fetch the JSON data from.
@@ -600,7 +599,8 @@ class SelectWidgetComponent extends Component {
                 });
 
             } else {
-                const errorMessage = data.message;
+                const errorMessage =
+                    data.error === 1 ? data.message : 'Oops! Something went wrong.';
                 const errorLi = $(
                     '<li class="answer answer--blank alert alert-danger d-flex flex-row justify-content-start"><span class="control"><label>' +
                     errorMessage +
