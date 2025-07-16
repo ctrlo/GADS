@@ -3,17 +3,13 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "NODE_ENV=production webpack --progress --watch",
+    "build": "NODE_ENV=production webpack --progress",
     "lint": "eslint src",
     "test": "jest",
-    "build:dev": "webpack --env development --progress -c webpack.config.js -w",
+    "build:dev": "webpack --env development --progress -w",
     "test:watch": "jest --watch",
     "e2e": "yarn cypress run",
-    "e2e:open": "yarn cypress open",
-    "e2e:chrome": "yarn cypress run --browser chrome",
-    "e2e:firefox": "yarn cypress run --browser firefox",
-    "e2e:edge": "yarn cypress run --browser edge",
-    "e2e:electron": "yarn cypress run --browser electron"
+    "prebuild": "npx update-browserslist-db@latest"
   },
   "dependencies": {
     "@egjs/hammerjs": "^2.0.0",
@@ -60,6 +56,7 @@
     "@babel/preset-typescript": "^7.16.7",
     "@babel/runtime-corejs3": "^7.14.7",
     "@jest/globals": "^29.7.0",
+    "@testing-library/react": "12",
     "@types/jest": "^29.5.6",
     "@types/jquery": "^3.5.24",
     "@types/jstree": "^3.3.46",
@@ -71,7 +68,6 @@
     "@typescript-eslint/parser": "^7.7.0",
     "@webpack-cli/serve": "^2.0.1",
     "autoprefixer": "^9.8.8",
-    "babel-jest": "^29.7.0",
     "babel-loader": "^8.2.2",
     "buffer": "^6.0.3",
     "clean-webpack-plugin": "^4.0.0",
