@@ -2,6 +2,7 @@
 import HelpView from './component';
 import { describe, it, expect } from '@jest/globals';
 
+// Mock class to test the HelpView component exposing private members
 class TestHelpView extends HelpView {
     public get button() {
         return this.$button;
