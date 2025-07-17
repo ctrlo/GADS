@@ -100,6 +100,7 @@ export default class ApiClient {
             const strippedLayout = layout.map(widget => ({ ...widget, moved: undefined }));
             return this.PUT(`/dashboard/${id}`, strippedLayout);
         }
+        return Promise.resolve(new Response());
     };
 
     /**
@@ -127,7 +128,7 @@ export default class ApiClient {
      * @param {string} id The ID of the widget to delete.
      * @returns {promise<Response>} A promise that resolves when the widget is deleted.
      */
-    deleteWidget = (id: string): Promise<Response> => !this.isDev && this.DELETE(`/widget/${id}`);
+    deleteWidget = (id: string): Promise<Response> => this.isDev ? Promise.resolve(new Response()) : this.DELETE(`/widget/${id}`);
 
     /**
      * Get the edit form for a widget.

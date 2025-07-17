@@ -31,5 +31,3 @@ export {
     SidebarObservable,
     sidebarObservable
 };
-
-
