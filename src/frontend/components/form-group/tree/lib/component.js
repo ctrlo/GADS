@@ -212,8 +212,6 @@ class TreeComponent extends Component {
 
     /**
      * Handle the deletion of a node from the jstree.
-     * @returns {boolean} Returns true if a node was deleted, false otherwise.
-     * @todo Why does this have a return value?
      */
     handleDelete() {
         const ref = this.$treeContainer.jstree(true);
@@ -224,25 +222,21 @@ class TreeComponent extends Component {
         }
 
         ref.delete_node(sel);
-        return true;
     }
 
     /**
      * Handle the renaming of a node in the jstree.
-     * @returns {boolean} Returns true if a node was renamed, false otherwise.
-     * @todo Why does this have a return value?
      */
     handleRename() {
         const ref = this.$treeContainer.jstree(true);
         let sel = ref.get_selected();
 
         if (!sel.length) {
-            return false;
+            return;
         }
 
         sel = sel[0];
         ref.edit(sel);
-        return true;
     }
 }
 

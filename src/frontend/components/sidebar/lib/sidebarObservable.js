@@ -1,5 +1,6 @@
 /**
  * SidebarObservable class to manage subscribers for sidebar changes.
+ * @todo: JS/TS is event driven - do we need this, or can we just use events?
  */
 class SidebarObservable {
     /**
