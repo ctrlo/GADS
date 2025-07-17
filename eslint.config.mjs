@@ -8,7 +8,7 @@ import stylistic from "@stylistic/eslint-plugin";
 
 export default defineConfig([
     { settings: { react: { version: "detect" } } },
-    { ignores: ["eslint.config.mjs", "**/public/**", "**/node_modules/**", "**/cypress/**", "cypress.config.ts", ".stylelintrc.js", "src/frontend/testing/**", "src/frontend/css/stylesheets/external/**", "src/frontend/components/dashboard/lib/react/polyfills/**", "babel.config.js", "webpack.config.js", "jest.config.js", "tsconfig.json", "src/frontend/js/lib/jqplot/**", "src/frontend/js/lib/jquery/**", "src/frontend/js/lib/plotly/**", "src/frontend/components/timeline/**", "fengari-web.js"] },
+    { ignores: ["*.cjs", "eslint.config.mjs", "**/public/**", "**/node_modules/**", "**/cypress/**", "cypress.config.ts", ".stylelintrc.js", "src/frontend/testing/**", "src/frontend/css/stylesheets/external/**", "src/frontend/components/dashboard/lib/react/polyfills/**", "babel.config.js", "webpack.config.js", "jest.config.js", "tsconfig.json", "src/frontend/js/lib/jqplot/**", "src/frontend/js/lib/jquery/**", "src/frontend/js/lib/plotly/**", "src/frontend/components/timeline/**", "fengari-web.js"] },
     { files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"], plugins: { js }, extends: ["js/recommended"] },
     { files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"], languageOptions: { globals: { ...globals.browser, ...globals.jquery } } },
     tseslint.configs.recommended,
