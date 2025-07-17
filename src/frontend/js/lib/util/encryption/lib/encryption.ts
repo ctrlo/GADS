@@ -5,13 +5,13 @@
  * @returns The encrypted data
  */
 export async function encrypt(data: string, password: string): Promise<string> {
-    const key = createKey(password, "encrypt");
+    const key = createKey(password, 'encrypt');
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const encoder = new TextEncoder();
     const encoded = encoder.encode(data);
     const encrypted = crypto.subtle.encrypt(
         {
-            name: "AES-GCM",
+            name: 'AES-GCM',
             iv: iv
         },
         await key,
@@ -30,13 +30,13 @@ export async function encrypt(data: string, password: string): Promise<string> {
  * @returns The decrypted data
  */
 export async function decrypt(data: string, password: string): Promise<string> {
-    const key = createKey(password, "decrypt");
+    const key = createKey(password, 'decrypt');
     const decoded = JSON.parse(atob(data));
     const iv = new Uint8Array(decoded.slice(0, 12));
     const encrypted = new Uint8Array(decoded.slice(12));
     const decrypted = crypto.subtle.decrypt(
         {
-            name: "AES-GCM",
+            name: 'AES-GCM',
             iv: iv
         },
         await key,
@@ -52,19 +52,19 @@ export async function decrypt(data: string, password: string): Promise<string> {
  * @param mode Whether to encrypt or decrypt
  * @returns The key
  */
-async function createKey(password: string, mode: "encrypt" | "decrypt") {
-    const salt = new TextEncoder().encode("salt");
+async function createKey(password: string, mode: 'encrypt' | 'decrypt') {
+    const salt = new TextEncoder().encode('salt');
     const encoder = new TextEncoder();
-    const deriver = crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"]);
+    const deriver = crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, ['deriveKey']);
     const key = crypto.subtle.deriveKey(
         {
-            name: "PBKDF2",
+            name: 'PBKDF2',
             salt: salt,
             iterations: 100000,
-            hash: "SHA-256"
+            hash: 'SHA-256'
         },
         await deriver,
-        { name: "AES-GCM", length: 256 },
+        { name: 'AES-GCM', length: 256 },
         true,
         [mode]
     );

@@ -1,13 +1,13 @@
 export const hideElement = (element: HTMLElement | JQuery<HTMLElement>) => {
-    const $el = element instanceof HTMLElement ? $(element): element;
-    if($el.hasClass('hidden')) return;
+    const $el = element instanceof HTMLElement ? $(element) : element;
+    if ($el.hasClass('hidden')) return;
     $el.addClass('hidden');
     $el.attr('aria-hidden', 'true');
     $el.css('display', 'none');
     $el.css('visibility', 'hidden');
 };
 
-export const showElement = (element: HTMLElement |JQuery<HTMLElement>) => {
+export const showElement = (element: HTMLElement | JQuery<HTMLElement>) => {
     const $el = element instanceof HTMLElement ? $(element) : element;
     if (!$el.hasClass('hidden')) return;
     $el.removeClass('hidden');
@@ -15,7 +15,7 @@ export const showElement = (element: HTMLElement |JQuery<HTMLElement>) => {
     $el.removeAttr('style');
 };
 
-export const fromJson = (json: String | object) => {
+export const fromJson = (json: string | object) => {
     try {
         // An empty string returns false in a boolean context, this also covers null and undefined
         if (!json || json === '') return {};
@@ -23,7 +23,7 @@ export const fromJson = (json: String | object) => {
             return JSON.parse(json);
         }
         return json;
-    } catch (e) {
+    } catch {
         return {};
     }
-}
+};

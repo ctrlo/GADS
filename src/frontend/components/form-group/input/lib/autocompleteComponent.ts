@@ -9,7 +9,7 @@ class AutocompleteComponent {
     }
 
     init() {
-        const suggestionCallback = (suggestion: { id: number, name:string }) => {
+        const suggestionCallback = (suggestion: { id: number, name: string }) => {
             this.el.find('input[type="hidden"]').val(suggestion.id);
         };
 
