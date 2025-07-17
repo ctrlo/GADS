@@ -1,6 +1,6 @@
-import StorageProvider from "util/storageProvider";
-import { addAction } from "./handler";
-import loadActions from "./actionsLoader";
+import StorageProvider from 'util/storageProvider';
+import { addAction } from './handler';
+import loadActions from './actionsLoader';
 
 // Exported to be used in tests - return values are to be used in tests
 export const clearAutorecoverAction = async () => {
@@ -25,9 +25,9 @@ export const clearAutorecoverAction = async () => {
     // Clear the storage provider
     await storage.clear();
     return true;
-}
+};
 
 /**
  * Action handler for when a record is created or updated - only runs outside of a test environment
  */
-if(!window.test) addAction(clearAutorecoverAction);
+if (!window.test) addAction(clearAutorecoverAction);

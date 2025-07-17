@@ -1,4 +1,4 @@
-import { describe, it, expect, jest } from "@jest/globals"
+import { describe, it, expect, jest } from '@jest/globals';
 import { addAction, handleActions } from './handler';
 
 describe('addAction', () => {

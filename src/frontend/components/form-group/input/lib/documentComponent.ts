@@ -25,11 +25,13 @@ class DocumentComponent {
 
     constructor(el: JQuery<HTMLElement> | HTMLElement) {
         this.el = $(el);
-        this.el.closest('.fieldset').find('.rename').renameButton().on('rename', async (ev: RenameEvent) => {
-            if (!ev) throw new Error("e is not a RenameEvent - this shouldn't happen!")
-            const $target = $(ev.target);
-            await this.renameFile($target.data('field-id'), ev.oldName, ev.newName, $('body').data('csrf'));
-        });
+        this.el.closest('.fieldset').find('.rename')
+            .renameButton()
+            .on('rename', async (ev: RenameEvent) => {
+                if (!ev) throw new Error('e is not a RenameEvent - this shouldn\'t happen!');
+                const $target = $(ev.target);
+                await this.renameFile($target.data('field-id'), ev.oldName, ev.newName, $('body').data('csrf'));
+            });
         this.fileInput = this.el.find<HTMLInputElement>('.form-control-file');
     }
 
@@ -141,11 +143,12 @@ class DocumentComponent {
             const filename = newName;
             const url = `/api/file/${fileId}`;
             const mappedData = formdataMapper({ csrf_token, filename, is_new: is_new ? 1 : 0 });
-            const data = await upload<RenameResponse>(url, mappedData, 'PUT')
+            const data = await upload<RenameResponse>(url, mappedData, 'PUT');
             if (is_new) {
                 $(`#current-${fileId}`).text(data.name);
             } else {
-                $(`#current-${fileId}`).closest('li').remove();
+                $(`#current-${fileId}`).closest('li')
+                    .remove();
                 const { id, name } = data;
                 this.addFileToField({ id, name });
             }
@@ -157,8 +160,8 @@ class DocumentComponent {
     }
 
     showContainer() {
-        const container = $(this.el.find('.progress-bar__container'))
-        container.show()
+        const container = $(this.el.find('.progress-bar__container'));
+        container.show();
     }
 
     showException(e: any) {

@@ -1,19 +1,16 @@
 import { setupCrypto } from 'testing/globals.definitions';
 import { EncryptedStorage } from './encryptedStorage';
-import { describe, it, expect, beforeAll, beforeEach, afterEach } from '@jest/globals';
 
-// Mock implementation of the Storage interface for testing purposes
 class TestStorage implements Storage {
     private map = new Map<string, string>();
 
-    [name: string]: any;
+    [name: string]: any;  
     length: number;
 
     clear(): void {
         this.map.clear();
         this.length = 0;
     }
-
     getItem(key: string): string | null {
         const ret = this.map.get(key);
         if (ret === undefined) {
@@ -21,7 +18,6 @@ class TestStorage implements Storage {
         }
         return ret;
     }
-
     key(index: number): string | null {
         const keys = Array.from(this.map.keys());
         if (keys.length <= index) {
@@ -29,7 +25,6 @@ class TestStorage implements Storage {
         }
         return keys[index];
     }
-
     removeItem(key: string): void {
         if (this.map.has(key)) {
             this.map.delete(key);
@@ -37,7 +32,6 @@ class TestStorage implements Storage {
             this[key] = undefined;
         }
     }
-
     setItem(key: string, value: string): void {
         this.map.set(key, value);
         this[key] = value;
@@ -49,9 +43,11 @@ describe('EncryptedStorage', () => {
     let encryptedStorageMock: EncryptedStorage;
 
     beforeAll(() => {
-        // @ts-expect-error This is a unit test, so this is not readonly
-        window.crypto && window.crypto.subtle && delete window.crypto.subtle; // We want to make sure the mock implementation of crypto is used
-    })
+        if (window.crypto && window.crypto.subtle) {
+            // @ts-expect-error This is a unit test, so this is not readonly
+            delete window.crypto.subtle; // We want to make sure the mock implementation of crypto is used}
+        }
+    });
 
     beforeEach(() => {
         setupCrypto();
@@ -60,8 +56,10 @@ describe('EncryptedStorage', () => {
     });
 
     afterEach(() => {
-        // @ts-expect-error This is a unit test, so this is not readonly
-        window.crypto && window.crypto.subtle && delete window.crypto.subtle; // We want to also clear the mock implementation of crypto
+        if (window.crypto && window.crypto.subtle) {
+            // @ts-expect-error This is a unit test, so this is not readonly
+            delete window.crypto.subtle; // We want to also clear the mock implementation of crypto
+        }
     });
 
     it('should set and get an item', async () => {

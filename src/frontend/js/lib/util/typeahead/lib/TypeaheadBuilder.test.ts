@@ -1,6 +1,5 @@
-import "testing/globals.definitions";
+import 'testing/globals.definitions';
 import { TypeaheadBuilder } from './TypeaheadBuilder';
-import { describe, it, expect } from '@jest/globals';
 
 describe('builder', () => {
     it('should error on the typeahead input not being set', () => {

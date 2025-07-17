@@ -59,7 +59,7 @@ describe('StorageProvider', () => {
         await expect(storage.getItem('key')).resolves.toBe(undefined);
     });
 
-    it('should set multiple key value pairs on the same instance', async () => {
+    it('should set multipe key value pairs on the same instance', async () => {
         const storage = new StorageProvider('test', localStorage);
         await expect(storage.setItem('key1', 'value1')).resolves.toBeUndefined();
         await expect(storage.setItem('key2', 'value2')).resolves.toBeUndefined();

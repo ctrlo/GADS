@@ -1,5 +1,5 @@
-import { Component } from "component";
-import StorageProvider from "util/storageProvider";
+import { Component } from 'component';
+import StorageProvider from 'util/storageProvider';
 
 /**
  * Base class for autosave
@@ -18,7 +18,8 @@ export default abstract class AutosaveBase extends Component {
      * Whether the current form is a clone
      */
     get isClone() {
-        return !!$('body').find('.form-edit').data('from');
+        return !!$('body').find('.form-edit')
+            .data('from');
     }
 
     /**
@@ -32,7 +33,8 @@ export default abstract class AutosaveBase extends Component {
      * The record identifier of the current form
      */
     get recordId() {
-        return $('body').find('.form-edit').data('current-id') || 0;
+        return $('body').find('.form-edit')
+            .data('current-id') || 0;
     }
 
     /**

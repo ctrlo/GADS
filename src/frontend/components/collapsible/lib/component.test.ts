@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import {describe, it, expect, beforeEach, afterEach} from '@jest/globals';
 import Collapsible from './component';
 
 describe('Collapsible', () => {
     beforeEach(() => {
-        // Set up the HTML structure for the collapsible component
         document.body.innerHTML = `
         <div id="target" class="collapsible">
             <div class="form-group">
@@ -20,7 +19,7 @@ describe('Collapsible', () => {
             <div class="attention">Please make a secure note of this content now, as it will not be displayed again.</div>
             </div>
         </div>
-  `
+  `;
     });
 
     afterEach(() => {
@@ -37,7 +36,7 @@ describe('Collapsible', () => {
 
     it('should toggle the collapsible content', () => {
         const target = document.getElementById('target');
-        if (target === null) throw new Error('Target element not found');
+        if(target === null) throw new Error('Target element not found');
         new Collapsible(target as HTMLElement);
         const button = target.querySelector('.btn-collapsible') as HTMLButtonElement;
         const titleCollapsed = target.querySelector('.btn__title--collapsed') as HTMLSpanElement;

@@ -1,6 +1,6 @@
-import FileDrag from "./lib/filedrag";
+import FileDrag from './lib/filedrag';
 
-import { FileDragOptions } from "./lib/filedrag";
+import { FileDragOptions } from './lib/filedrag';
 
 declare global {
     interface JQuery<TElement = HTMLElement> {
@@ -8,9 +8,9 @@ declare global {
     }
 }
 
-export { }
+export { };
 
-if (typeof jQuery !== "undefined") {
+if (typeof jQuery !== 'undefined') {
     (function ($) {
         $.fn.filedrag = function (options) {
             options = $.extend({
@@ -18,12 +18,12 @@ if (typeof jQuery !== "undefined") {
                 debug: false
             }, options);
 
-            if (!this.data("filedrag")) {
-                this.data("filedrag", "true");
+            if (!this.data('filedrag')) {
+                this.data('filedrag', 'true');
                 new FileDrag(this, options, (files) => {
-                    if (options.debug) console.log("onFileDrop", files);
-                    this.trigger("onFileDrop", files)
-                })
+                    if (options.debug) console.log('onFileDrop', files);
+                    this.trigger('onFileDrop', files);
+                });
             }
 
             return this;

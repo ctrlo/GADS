@@ -1,5 +1,5 @@
-import { Component } from "component";
-import "@lol768/jquery-querybuilder-no-eval";
+import { Component } from 'component';
+import '@lol768/jquery-querybuilder-no-eval';
 
 declare global {
     interface Window {
@@ -53,7 +53,7 @@ class PeopleFilterComponent extends Component {
                 $('#people-display').val(JSON.stringify(query, null, 2));
             };
         } catch (e) {
-            console.error("Error:", e);
+            console.error('Error:', e);
         }
     }
 }

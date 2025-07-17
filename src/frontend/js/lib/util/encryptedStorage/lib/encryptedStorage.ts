@@ -1,4 +1,4 @@
-import { decrypt, encrypt } from "util/encryption";
+import { decrypt, encrypt } from 'util/encryption';
 
 /**
  * EncryptedStorage is a wrapper around the localStorage API that encrypts and decrypts data before storing it.
@@ -27,7 +27,7 @@ class EncryptedStorage {
      * @param decrypt The function to decrypt data (this is to make it pluggable for different encryption algorithms should it be required)
      * @param storage The storage provider to use (defaults to window.localStorage)
      */
-    constructor(private encrypt: (data:string, key:string) => Promise<string>, private decrypt: (data:string, key:string) => Promise<string>, storage?: Storage) {
+    constructor(private encrypt: (data: string, key: string) => Promise<string>, private decrypt: (data: string, key: string) => Promise<string>, storage?: Storage) {
         this.storage = storage || window.localStorage;
     }
 
