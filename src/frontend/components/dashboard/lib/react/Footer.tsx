@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { JSX } from 'react';
 
 /**
  * Create a Footer component that displays options for downloading the dashboard and adding widgets.
