@@ -10,7 +10,7 @@ export class ErrorHandler {
     }
 
     private initErrorDisplay() {
-        this.errorContainer = $('<div class="error-container p-3 alert alert-danger font-weight-bold my-3 flex-column align-items-start"></div>')
+        this.errorContainer = $('<div class="error-container p-3 alert alert-danger font-weight-bold my-3 flex-column align-items-start"></div>');
         this.el.prepend(this.errorContainer);
         this.renderErrors();
     }

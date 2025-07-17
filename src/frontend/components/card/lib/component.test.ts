@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from "@jest/globals";
-import ExpandableCardComponent from "./component";
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import ExpandableCardComponent from './component';
 
 describe('ExpandableCardComponent', () => {
     beforeEach(() => {
-        // Create the HTML structure for the tests
         document.body.innerHTML = `
 <div class="content-block">
   <div id="target" class="card card--expandable">
@@ -170,9 +169,10 @@ describe('ExpandableCardComponent', () => {
             if (!target) throw new Error('Target not found');
             // Set the items in the card to be invisible, as if there was nothing to show
             const $target = $(target);
-            $target.find('.list--fields').find('ul li').each((_i, el) => {
-                $(el).css('display', 'none');
-            });
+            $target.find('.list--fields').find('ul li')
+                .each((_i, el) => {
+                    $(el).css('display', 'none');
+                });
             $target.find('.linkspace-field').each((_i, el) => {
                 $(el).css('display', 'none');
             });
