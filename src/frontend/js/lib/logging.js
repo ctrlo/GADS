@@ -22,10 +22,10 @@ class Logging {
      */
     log(...message) {
         if (this.allowLogging) {
-            console.log(...message)
+            console.log(...message);
         } else {
-            const msg = this.formatMessage('log', ...message)
-            uploadMessage(msg)
+            const msg = this.formatMessage('log', ...message);
+            uploadMessage(msg);
         }
     }
 
@@ -34,10 +34,10 @@ class Logging {
      */
     info(...message) {
         if (this.allowLogging) {
-            console.info(...message)
+            console.info(...message);
         } else {
-            const msg = this.formatMessage('info', ...message)
-            uploadMessage(msg)
+            const msg = this.formatMessage('info', ...message);
+            uploadMessage(msg);
         }
     }
 
@@ -46,10 +46,10 @@ class Logging {
      */
     warn(...message) {
         if (this.allowLogging) {
-            console.warn(...message)
+            console.warn(...message);
         } else {
-            const msg = this.formatMessage('warn', ...message)
-            uploadMessage(msg)
+            const msg = this.formatMessage('warn', ...message);
+            uploadMessage(msg);
         }
     }
 
@@ -58,10 +58,10 @@ class Logging {
      */
     error(...message) {
         if (this.allowLogging) {
-            console.error(...message)
+            console.error(...message);
         } else {
-            const msg = this.formatMessage('error', ...message)
-            uploadMessage(msg)
+            const msg = this.formatMessage('error', ...message);
+            uploadMessage(msg);
         }
     }
 
@@ -85,4 +85,4 @@ class Logging {
 }
 
 const logging = new Logging();
-export { logging }
+export { logging };

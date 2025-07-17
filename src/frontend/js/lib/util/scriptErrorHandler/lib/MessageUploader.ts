@@ -13,12 +13,21 @@ export const uploadMessage = async (message: string) => {
     return await messageUploader.uploadMessage(body.description);
 };
 
+/**
+ * MessageUploader is a singleton class that handles the uploading of messages to the server. It uses an instance of Uploader to perform the actual upload.
+ */
 class MessageUploader {
     private static _instance: MessageUploader;
 
+    /**
+     * Create a new instance of MessageUploader with the provided Uploader.
+     */
     constructor(private uploader: Uploader) {
     }
 
+    /**
+     * Get the singleton instance of MessageUploader. If it doesn't exist, create a new instance with a new Uploader.
+     */
     static get instance(): MessageUploader {
         if (!this._instance) {
             this._instance = new MessageUploader(new Uploader('/api/script_error', 'POST'));
@@ -26,6 +35,11 @@ class MessageUploader {
         return this._instance;
     }
 
+    /**
+     * Uploads a message to the server.
+     * It constructs the request body with the provided description, current URL, and CSRF token, then calls the upload method of the Uploader instance.
+     * If the upload fails, it logs an error to the console.
+     */
     async uploadMessage(description: string): Promise<void> {
         const csrf_token = document.body.dataset.csrf;
         const body = {

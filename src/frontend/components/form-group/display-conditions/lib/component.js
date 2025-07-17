@@ -25,7 +25,7 @@ class DisplayConditionsComponent extends Component {
         const filters = JSON.parse(atob(builderData.filters));
         if (!filters.length) return;
 
-    refreshSelects(this.el)
+        refreshSelects(this.el);
 
         this.el.queryBuilder({
             filters: filters,
