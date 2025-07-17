@@ -31,7 +31,7 @@ export class TypeaheadBuilder {
      * @param method - The HTTP method to use for the ajax request, defaults to 'GET'
      * @returns The builder being used
      */
-    withMethod(method: 'GET' | 'POST' = 'GET') {
+    withMethod(method: 'GET' | 'POST' = 'GET'): this {
         if (method !== 'GET' && method !== 'POST') {
             throw new Error('Method must be either \'GET\' or \'POST\'');
         }
@@ -135,7 +135,7 @@ export class TypeaheadBuilder {
      * @returns {Typeahead} The built Typeahead class
      * @throws {Error} If input, callback, name, or ajax source is not set
      */
-    build() {
+    build(): Typeahead {
         if (!this.$input) throw new Error('Input not set');
         if (!this.callback) throw new Error('Callback not set');
         if (!this.name) throw new Error('Name not set');

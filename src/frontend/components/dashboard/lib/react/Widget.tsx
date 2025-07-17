@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { JSX } from 'react';
 import { initializeRegisteredComponents } from 'component';
 
 /**
  * Widget component that renders a widget with HTML content.
  */
 export default class Widget extends React.Component<any, any> {
-    private ref;
+    private ref: React.RefObject<HTMLDivElement>;
 
     /**
      * Create a Widget component.
@@ -17,7 +17,7 @@ export default class Widget extends React.Component<any, any> {
         this.ref = React.createRef();
     }
 
-    shouldComponentUpdate = (nextProps) => {
+    shouldComponentUpdate = (nextProps: any) => {
         return nextProps.widget.html !== this.props.widget.html;
     };
 
@@ -36,7 +36,7 @@ export default class Widget extends React.Component<any, any> {
      * Render the Widget component.
      * @returns {JSX.Element} The rendered widget component.
      */
-    render() {
+    render(): JSX.Element {
         return (
             <React.Fragment>
                 <div className="ld-widget">
