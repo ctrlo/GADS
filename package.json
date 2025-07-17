@@ -8,7 +8,9 @@
     "test": "jest",
     "build:dev": "webpack --env development --progress -w",
     "test:watch": "jest --watch",
-    "e2e": "yarn cypress run"
+    "e2e": "yarn cypress run",
+    "prebuild": "npx update-browserslist-db@latest",
+    "pretest": "npx update-browserslist-db@latest"
   },
   "dependencies": {
     "@egjs/hammerjs": "^2.0.17",
@@ -48,6 +50,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.7",
+    "@babel/highlight": "^7.25.9",
     "@babel/preset-env": "^7.29.7",
     "@babel/preset-react": "^7.29.7",
     "@babel/preset-typescript": "^7.29.7",
