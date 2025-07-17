@@ -67,5 +67,4 @@ class TextareaComponent extends Component {
         $textarea.css('height', `${adjustedHeight}rem`);
     }
 }
-
 export default TextareaComponent;
