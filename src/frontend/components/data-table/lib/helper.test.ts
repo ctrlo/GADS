@@ -4,7 +4,6 @@ import { addRow, clearTable, updateRow } from './helper';
 
 describe.skip('helper - Jest really doesn\'t like JQuery right now!', () => {
     beforeEach(() => {
-        // create the DOM structure for the tests
         document.body.innerHTML = `
         <table id="target" class="table table-striped">
             <thead>
