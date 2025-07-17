@@ -11,7 +11,7 @@ export class TypeaheadSourceOptions {
      * @param {MapperFunction} mapper The function to map the data
      * @param {boolean} appendQuery Whether to append the query to the AJAX request
      * @param {*} data Any additional data to send with the request
-     * @param {(...args:any[]) => any} dataBuilder A function to build the data for the request
+     * @param {(...args:any[]) => any} [dataBuilder] A function to build the data for the request
      * @param {'GET'|'POST'} method The request method to use
      */
     constructor(
