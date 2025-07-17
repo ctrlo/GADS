@@ -28,7 +28,7 @@ export const showElement = (element: HTMLElement | JQuery<HTMLElement>) => {
  * @param {string | object} json JSON string or object to parse
  * @returns {object} Parsed object or an empty object if parsing fails
  */
-export const fromJson = (json: string | object) => {
+export const fromJson = (json: string | object): object => {
     try {
         // An empty string returns false in a boolean context, this also covers null and undefined
         if (!json || json === '') return {};
