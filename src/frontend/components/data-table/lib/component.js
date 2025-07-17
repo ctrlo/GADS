@@ -364,8 +364,14 @@ class DataTableComponent extends Component {
         $searchInput.appendTo($('.input', $searchElement));
         if (col.typeahead_use_id) {
             $searchInput.after('<input type="hidden" class="search">');
-            if (searchValue) {
-                const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1', { method: 'POST', data: { csrf_token: $('body').data('csrf') } });
+            if(searchValue) {
+                const response = await fetch(
+                    this.getApiEndpoint(columnId) + searchValue + '&use_id=1',
+                    {
+                        method: 'POST',
+                        data: {csrf_token: $('body').data('csrf')}
+                    }
+                );
                 const data = await response.json();
                 if (!data.error) {
                     if (data.records.length != 0) {
@@ -378,10 +384,6 @@ class DataTableComponent extends Component {
         } else {
             $('input', $searchElement).addClass('search');
         }
-
-        $header.find('.data-table__header-wrapper').prepend($searchElement);
-
-        this.toggleFilter(column);
 
         if (col && col.typeahead) {
             import(/*webpackChunkName: "typeahead" */ 'util/typeahead')
@@ -409,6 +411,10 @@ class DataTableComponent extends Component {
                         .build();
                 });
         }
+
+        $header.find('.data-table__header-wrapper').prepend($searchElement);
+
+        this.toggleFilter(column);
 
         // Apply the search
         $('input.search', $header).on('change', function (ev) {
