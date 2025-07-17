@@ -1,7 +1,7 @@
+/* eslint-disable jsdoc/require-jsdoc */
 import AutosaveBase from './autosaveBase';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 
-// Mocking the AutosaveBase class for testing
 class TestAutosave extends AutosaveBase {
     initAutosave(): void {
         console.log('initAutosave');

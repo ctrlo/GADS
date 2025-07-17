@@ -1,21 +1,35 @@
+/**
+ * MoreLess is a class manage observers of the more/less functionality.
+ */
 class MoreLess {
-    // A list of observers
+    /**
+     * Creates an instance of MoreLess.
+     */
     constructor() {
         this.observers = [];
     }
 
-    // Method for subscribing to, or "observing" observable
+
+    /**
+     * Adds a subscriber to the MoreLess observable.
+     * @param {object} subscriber The subscriber to add.
+     */
     addSubscriber(subscriber) {
         this.observers.push(subscriber);
     }
 
-    // Method for unsubscribing from observable
+    /**
+     * Unsubscribes a subscriber from the MoreLess observable.
+     * @param {object} subscriber The subscriber to remove.
+     */
     unsubscribe(subscriber) {
         var index = this.observers.indexOf(subscriber);
         this.observers.splice(index, 1);
     }
 
-    // Reinitialize
+    /**
+     * Notifies all observers to reinitialize the more/less functionality.
+     */
     reinitialize() {
         this.observers.forEach(item => item.reInitMoreLess?.());
     }
@@ -24,5 +38,3 @@ class MoreLess {
 const moreLess = new MoreLess;
 
 export { moreLess };
-
-

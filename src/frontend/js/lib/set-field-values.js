@@ -2,17 +2,19 @@ import CurvalModalComponent from 'components/modal/modals/curval';
 import documentComponent from 'components/form-group/input/lib/documentComponent';
 import 'jstree';
 
-/*
-  Set the value of a field, depending on its type.
-
-  curval fields not supported at the time of writing
-
+/**
+  @fileoverview Set the value of a field, depending on its type.
+  Curval fields not supported at the time of writing
   For text only values, accepts arrays of strings
-
   For enum-type values (enums, trees, people) accepts an object with either an
   "id" key or a "text" key, with the required value
 */
 
+/**
+ * Set the value of a field based on its type.
+ * @param {JQuery} $field The field to set values for
+ * @param {(string | object)[]} values
+ */
 const setFieldValues = function ($field, values) {
 
     const type = $field.data('column-type');
@@ -95,8 +97,12 @@ const setFieldValues = function ($field, values) {
     }
 };
 
-// Deal with either single value field or field with multiple inputs. Create as
-// many inputs as required
+/**
+ * Deal with either single value field or field with multiple inputs. Create as many inputs as required and return the input at the specified index.
+ * @param {JQuery} $field The field to prepare
+ * @param {number} index The index of the input to return
+ * @returns {JQuery} The input at the specified index, or the field itself if it is not a multi-value field
+ */
 const prepare_multi = function ($field, index) {
     if ($field.data('is-multivalue')) {
         let $multi_container = $field.find('.multiple-select__list');
@@ -110,6 +116,11 @@ const prepare_multi = function ($field, index) {
     }
 };
 
+/**
+ * Set the value of a single enum field.
+ * @param {JQuery} $element The element to set the value for
+ * @param {(string | object)[]} values The values to set, either as strings or objects with an "id" key or a "text" key
+ */
 const set_enum_single = function ($element, values) {
 
     const type = $element.data('column-type');
@@ -143,6 +154,11 @@ const set_enum_single = function ($element, values) {
 
 };
 
+/**
+ * Set the value of a multi-value enum field.
+ * @param {JQuery} $element The element to set the value for
+ * @param {(string|object)[]} values The values to set, either as strings or objects with an "id" key or a "text" key
+ */
 const set_enum_multi = function ($element, values) {
 
     const id_hash = {};
@@ -200,13 +216,18 @@ const set_enum_multi = function ($element, values) {
     }
 };
 
+/**
+ * Set the date for a date field.
+ * @param {JQuery} $element The element to set the date for
+ * @param {string | object} value The value to set, either as a string or an object with an "epoch" key or "year", "month", "day" keys
+ */
 const set_date = function ($element, value) {
     const $input = $element.find('input');
     if (/^\d+$/.test(value)) {
-    // Assume epoch
+        // Assume epoch
         $input.datepicker('update', new Date(value * 1000));
     } else {
-    // Otherwise assume string
+        // Otherwise assume string
         if (typeof value === 'object') {
             if (value.epoch) {
                 $input.datepicker('update', new Date(value.epoch * 1000));
@@ -219,16 +240,31 @@ const set_date = function ($element, value) {
     }
 };
 
+/**
+ * Set the date range for a date range field.
+ * @param {JQuery} $element The element to set the date range for
+ * @param {object} value The value to set, an object with "from" and "to" keys, each being a date string or an object with "epoch" or "year", "month", "day" keys
+ */
 const set_daterange = function ($element, value) {
     set_date($element.find('.input--from'), value.from);
     set_date($element.find('.input--to'), value.to);
 };
 
+/**
+ * Set the value of a string field.
+ * @param {JQuery} $element The element to set the value for
+ * @param {string} value The value to set
+ */
 const set_string = function ($element, value) {
     const $input = $element.find('input').length ? $element.find('input') : $element.find('textarea');
     $input.val(value).trigger('change');
 };
 
+/**
+ * Set the value of a tree field.
+ * @param {JQuery} $field The field to set values for
+ * @param {(string | object)} values The values to set, either as strings or objects with an "id" key or a "text" key
+ */
 const set_tree = function ($field, values) {
 
     let $jstree = $field.find('.jstree').jstree(true);

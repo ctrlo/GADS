@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { fromJson, hideElement, showElement } from './common';
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 
@@ -77,14 +78,14 @@ describe('common functions', () => {
 
         it('returns an empty object for null', () => {
             const json = null;
-            // @ts-expect-error This is a test for null input
+            /* @ts-ignore */
             const parsed = fromJson(json);
             expect(parsed).toEqual({});
         });
 
         it('returns an empty object for undefined', () => {
             const json = undefined;
-            // @ts-expect-error This is a test for undefined input
+            /* @ts-ignore */
             const parsed = fromJson(json);
             expect(parsed).toEqual({});
         });

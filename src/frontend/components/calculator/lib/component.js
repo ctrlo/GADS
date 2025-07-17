@@ -1,6 +1,14 @@
 import { Component } from 'component';
 
+/**
+ * CalculatorComponent class to handle calculator functionality in the UI.
+ * It initializes a calculator dropdown for input fields, allowing users to perform basic arithmetic operations.
+ */
 class CalculatorComponent extends Component {
+    /**
+     * Creates an instance of CalculatorComponent.
+     * @param {HTMLElement} element The element to be initialized as a calculator component.
+     */
     constructor(element) {
         super(element);
         this.el = $(this.element);
@@ -8,6 +16,11 @@ class CalculatorComponent extends Component {
         this.initCalculator();
     }
 
+    /**
+     * Initializes the calculator functionality by creating a dropdown
+     * with buttons for arithmetic operations and an input field for numbers.
+     * @todo This method should be refactored to improve readability and maintainability.
+     */
     initCalculator() {
         const selector = this.el.find('input:not([type="checkbox"])');
         const $nodes = this.el.find('label:not(.checkbox-label)');

@@ -1,10 +1,10 @@
-/* eslint-disable */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { describe, it, expect, afterEach, jest } from '@jest/globals';
-import { AppStorage } from "./AppStorage";
-import { GadsStorage } from "./GadsStorage";
-import { NullStorage } from "./NullStorage";
+import { AppStorage } from './AppStorage';
+import { GadsStorage } from './GadsStorage';
+import { NullStorage } from './NullStorage';
 /* @ts-ignore */
-import { setupCrypto } from "testing/globals.definitions";
+import { setupCrypto } from 'testing/globals.definitions';
 
 describe('AppStorage', () => {
     afterEach(() => {

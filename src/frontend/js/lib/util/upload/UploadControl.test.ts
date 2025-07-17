@@ -1,5 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import { Uploader, XmlHttpRequestLike } from './UploadControl';
+/* @ts-ignore */
 import { initGlobals, MockXhr } from 'testing/globals.definitions';
 
 describe('UploadControl', () => {

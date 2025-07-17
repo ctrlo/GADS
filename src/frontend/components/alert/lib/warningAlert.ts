@@ -1,5 +1,8 @@
 import { AlertBase } from './alertBase';
 
+/**
+ * A warning alert component that extends the AlertBase class.
+ */
 export class WarningAlert extends AlertBase {
     /**
      * Create an instance of InfoAlert.

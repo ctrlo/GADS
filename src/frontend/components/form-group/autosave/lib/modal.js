@@ -8,9 +8,7 @@ import { RenderableButton } from 'components/button/lib/RenderableButton';
  * A modal that allows the user to restore autosaved values.
  */
 class AutosaveModal extends AutosaveBase {
-    /**
-   * @inheritdoc
-   */
+    /** @inheritdoc */
     async initAutosave() {
         const $modal = $(this.element);
         const $form = $('.form-edit');

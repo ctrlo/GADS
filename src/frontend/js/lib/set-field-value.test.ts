@@ -1,19 +1,18 @@
-/* eslint-disable */
-import "components/button/lib/rename-button";
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+import 'components/button/lib/rename-button';
 /* @ts-ignore */
-import inputComponent from "components/form-group/input";
+import inputComponent from 'components/form-group/input';
 /* @ts-ignore */
-import buttonComponent from "components/button";
+import buttonComponent from 'components/button';
 /* @ts-ignore */
-import multipleSelectComponent from "components/form-group/multiple-select";
+import multipleSelectComponent from 'components/form-group/multiple-select';
 /* @ts-ignore */
-import selectWidgetComponent from "components/form-group/select-widget";
+import selectWidgetComponent from 'components/form-group/select-widget';
 /* @ts-ignore */
-import textAreaComponent from "components/form-group/textarea";
+import textAreaComponent from 'components/form-group/textarea';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { setFieldValues } from "./set-field-values";
+import { setFieldValues } from './set-field-values';
 
-// Mocking jQuery plugins
 declare global {
     interface JQuery<TElement = HTMLElement> {
         renameButton: (options?: any) => JQuery<TElement>;
@@ -28,7 +27,6 @@ declare global {
     $.fn.filedrag = jest.fn().mockReturnThis();
 })(jQuery);
 
-// DOM elements for testing
 const stringDom = `
 <div class="form-group linkspace-field" data-column-id="19" data-column-type="string" data-value-selector=""
     data-show-add="" data-modal-field-ids="" data-curval-instance-name="" data-name="text" data-name-short=""

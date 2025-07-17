@@ -1,9 +1,13 @@
-/* Explanation of the Toggle Table:
-  A toggle table consist of two twin tables containing the same fields
-  One table contains hidden checkboxes while the other one contains text only
-  This is used to "move" fields between the tables (using display: none; for unchecked fields)
+/**
+  * @fileoverview A toggle table consist of two twin tables containing the same fields
+  * One table contains hidden checkboxes while the other one contains text only
+  * This is used to "move" fields between the tables (using display: none; for unchecked fields)
 */
 
+/**
+ * Bind click handlers to toggle table rows.
+ * @param {JQuery} tableElement The jQuery element of the table to bind click handlers to.
+ */
 const bindToggleTableClickHandlers = (tableElement) => {
     if (tableElement.hasClass('table-toggle')) {
         const fields = tableElement.find('tbody tr');
@@ -16,6 +20,10 @@ const bindToggleTableClickHandlers = (tableElement) => {
     }
 };
 
+/**
+ * Toggle a row in the table when clicked.
+ * @param {JQuery.ClickEvent} ev The click event triggered by the user.
+ */
 const toggleRow = (ev) => {
     ev.preventDefault();
     const clickedRow = $(ev.target).closest('tr')[0];
@@ -27,11 +35,11 @@ const toggleRow = (ev) => {
 
 /**
  * Toggles (switches) all fields from source table to destination table
- * @param clickedRow {HTMLTableRowElement} - The row element to toggle
- * @param sourceTable {JQuery<HTMLTableElement>} - The table of the clicked row (source)
- * @param destinationTableID {string} - ID of the table where it's twin field need to be toggled
- * @param forceCheck {boolean|null} When defined it will force the field be checked (true) or unchecked (false).
- *                                  Default = null, meaning it will toggle based on its currect check status)
+ * @param {HTMLTableRowElement} clickedRow The row element to toggle
+ * @param {HTMLTableElement} sourceTable The table of the clicked row (source)
+ * @param {string} destinationTableID ID of the table where it's twin field need to be toggled
+ * @param {boolean | null} forceCheck When defined it will force the field be checked (true) or unchecked (false).
+ *                                    Default = null, meaning it will toggle based on its currect check status)
  */
 const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceCheck = null) => {
     // Retrieve the destination table

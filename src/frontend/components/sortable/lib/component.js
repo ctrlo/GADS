@@ -7,7 +7,15 @@ const SORTABLE_HANDLE = 'sortable__handle';
 const SORTABLE_HANDLE_HIDDEN = 'sortable__handle--hidden';
 const SORTABLE_ROW = 'sortable__row';
 
+/**
+ * Class representing a Sortable component.
+ * This component allows users to add, delete, and reorder items in a sortable list.
+ */
 class SortableComponent extends Component {
+    /**
+     * Creates an instance of SortableComponent.
+     * @param {HTMLElement} element The HTML element where the sortable component will be initialized
+     */
     constructor(element) {
         super(element);
         this.el = $(this.element);
@@ -19,6 +27,9 @@ class SortableComponent extends Component {
         this.initSortable();
     }
 
+    /**
+     * Initializes the sortable component with event listeners.
+     */
     initSortable() {
         if (this.el.find(`.${SORTABLE_ROW}`).length === 1) {
             this.hideButtons();
@@ -32,6 +43,9 @@ class SortableComponent extends Component {
         this.delBtn.on('click', (ev) => { this.handleClickDelete(ev); });
     }
 
+    /**
+     * Handles the click event for adding a new sortable row.
+     */
     handleClickAdd() {
         this.el.find(`.${BTN_ICON_CLOSE}`).removeClass(BTN_ICON_CLOSE_HIDDEN);
         this.el.find(`.${SORTABLE_HANDLE}`).removeClass(SORTABLE_HANDLE_HIDDEN);
@@ -58,6 +72,10 @@ class SortableComponent extends Component {
         this.sortableList.sortable('refresh');
     }
 
+    /**
+     * Handles the click event for deleting a sortable row.
+     * @param {JQuery.ClickEvent} ev The click event triggered by the user.
+     */
     handleClickDelete(ev) {
         const target = $(ev.currentTarget);
 
@@ -68,10 +86,17 @@ class SortableComponent extends Component {
         }
     }
 
+    /**
+     * Generates a unique identifier based on the current time.
+     * @returns {number} A unique identifier based on the current time.
+     */
     uniqueID() {
         return Math.floor(Math.random() * Date.now());
     }
 
+    /**
+     * Hides the delete buttons and drag handles when there is only one sortable row.
+     */
     hideButtons() {
         this.el.find(`.${BTN_ICON_CLOSE}`).addClass(BTN_ICON_CLOSE_HIDDEN);
         this.el.find(`.${SORTABLE_HANDLE}`).addClass(SORTABLE_HANDLE_HIDDEN);
