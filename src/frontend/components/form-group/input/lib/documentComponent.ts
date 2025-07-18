@@ -38,7 +38,7 @@ class DocumentComponent {
         this.fileInput = this.el.find<HTMLInputElement>('.form-control-file');
     }
 
-    async init() {
+    init() {
         const url = this.el.data('fileupload-url');
 
         const tokenField = this.el.closest('form').find('input[name="csrf_token"]');
@@ -91,7 +91,7 @@ class DocumentComponent {
         this.el?.find('.progress-bar__progress').css('width', `${uploadProgression}%`);
     }
 
-    async handleAjaxUpload(uri: string, csrf_token: string, file: File, columnId: number) {
+    handleAjaxUpload(uri: string, csrf_token: string, file: File, columnId: number) {
         try {
             if (!file) this.showException(new Error('No file provided'));
 
