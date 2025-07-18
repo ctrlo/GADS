@@ -211,12 +211,16 @@ hook before => sub {
         $token ||= query_parameters->get('csrf-token') || body_parameters->get('csrf_token');
         error __x"csrf-token missing for uri {uri}", uri => request->uri
             if !$token;
-        error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
-            if $token ne session('csrf_token');
+        # This is to ensure the API endpoint returns the correct error on timeout, rather than the below error
+        if(logged_in_user || request->path eq '/login')
+        {
+            error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
+                if $token ne session('csrf_token');
 
-        # If it's a potential login, change the token
-        _update_csrf_token()
-            if request->path eq '/login';
+            # If it's a potential login, change the token
+            _update_csrf_token()
+                if request->path eq '/login';
+        }
     }
 
     if ($user)

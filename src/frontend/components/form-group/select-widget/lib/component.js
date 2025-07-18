@@ -1,4 +1,6 @@
+// We import Bootstrap because there is an error that throws if we don't (this.collapse is not a function).
 /* eslint-disable @typescript-eslint/no-this-alias */
+import "bootstrap";
 import { Component } from 'component'
 import { logging } from 'logging'
 import { fromJson } from 'util/common'
@@ -528,8 +530,7 @@ class SelectWidgetComponent extends Component {
         })
 
       } else {
-        const errorMessage =
-          data.message ? data.message : "Oops! Something went wrong."
+        const errorMessage = data.message;
         const errorLi = $(
           '<li class="answer answer--blank alert alert-danger d-flex flex-row justify-content-start"><span class="control"><label>' +
             errorMessage +
@@ -538,7 +539,7 @@ class SelectWidgetComponent extends Component {
         this.$available.append(errorLi)
       }
     }).fail(function(jqXHR, textStatus, textError) {
-        const errorMessage = "Oops! Something went wrong."
+        const errorMessage = jqXHR.responseJSON.message;
         logging.error(
           "Failed to make request to " +
             url +
