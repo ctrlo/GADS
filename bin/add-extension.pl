@@ -3,8 +3,6 @@
 use warnings;
 use strict;
 
-use feature 'say';
-
 use FindBin qw($Bin);
 
 use lib "$Bin/../lib";
