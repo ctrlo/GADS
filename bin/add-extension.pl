@@ -86,7 +86,7 @@ if ( $answer =~ /^y/i ) {
     push(@$types, $type) unless grep { $_->{extension} eq $type->{extension} && $_->{name} eq $type->{name} } @$types;
     $result->override_types($types);
     $result->write;
-    notice __"Extension and mime type added\n\n";
+    notice __"Extension and mime type added";
 } else {
-    notice __"Addition of extension cancelled\n\n";
+    notice __"Addition of extension cancelled";
 }
