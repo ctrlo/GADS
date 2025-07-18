@@ -21,9 +21,24 @@ package GADS::Column::File;
 use Log::Report 'linkspace';
 use MIME::Base64 qw/decode_base64/;
 use Moo;
-use MooX::Types::MooseLike::Base qw/Int Maybe/;
+use MooX::Types::MooseLike::Base qw/Int Maybe ArrayRef/;
 
 extends 'GADS::Column';
+
+has '+option_names' => (
+    default => sub { [qw/override_types/] }
+);
+
+has override_types => (
+    is      => 'rw',
+    isa     => ArrayRef,
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->options->{override_types} || [];
+    },
+    trigger => sub { $_[0]->reset_options },
+);
 
 has filesize => (
     is      => 'rw',
@@ -45,7 +60,7 @@ sub value_field_as_index
 
 after build_values => sub {
     my ($self, $original) = @_;
-
+    
     $self->string_storage(1);
     $self->value_field('name');
     my ($file_option) = $original->{file_options}->[0];
@@ -67,6 +82,9 @@ sub validate
     if ($value !~ /^[0-9]+$/ || !$self->schema->resultset('Fileval')->find($value))
     {
         return 0 unless $options{fatal};
+        # Check that the file type is allowed here as well
+        my $filecheck = GADS::Filecheck->instance;
+        $filecheck->check_upload($self->name, $self->content, extra_types => $self->override_types);
         error __x"'{int}' is not a valid file ID for '{col}'",
             int => $value, col => $self->name;
     }

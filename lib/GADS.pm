@@ -1796,7 +1796,17 @@ post '/api/file/?' => require_login sub {
 
     if (my $upload = upload('file'))
     {
-        my $mimetype = $filecheck->check_file($upload, check_name => 0); # Borks on invalid file type
+        my $user = logged_in_user;
+        my $column_id = body_parameters->get('column_id')
+            or error __"Missing column ID";
+
+        my $column = GADS::Layout->new(
+            schema => schema,
+            user   => $user,
+            config => config
+        )->column($column_id);
+
+        my $mimetype = $filecheck->check_file($upload, check_name => 0, extra_types => $column->override_types); # Borks on invalid file type
         my $filename = $upload->filename;
 
         # Remove any invalid characters from the new name - this will possibly be changed to an error going forward
