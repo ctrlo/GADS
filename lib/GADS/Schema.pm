@@ -8,7 +8,7 @@ use base 'DBIx::Class::Schema';
 
 __PACKAGE__->load_namespaces;
 
-our $VERSION = 108;
+our $VERSION = 109;
 
 our $IGNORE_PERMISSIONS;
 our $IGNORE_PERMISSIONS_SEARCH;

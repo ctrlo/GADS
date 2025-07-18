@@ -1701,7 +1701,7 @@ post '/file/:id?' => require_login sub {
     {
         my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
         my $file;
-        if (process( sub { $file = rset('Fileval')->create({
+        if (process( sub { $file = rset('Fileval')->create_with_file({
             name           => $upload->filename,
             mimetype       => $mimetype,
             content        => $upload->content,
@@ -1724,7 +1724,7 @@ post '/file/:id?' => require_login sub {
     my $fileval = $id =~ /^[0-9]+$/ && schema->resultset('Fileval')->find($id)
         or error __x"File ID {id} cannot be found", id => $id;
 
-    if (process( sub { $fileval->delete }))
+    if (process( sub { $fileval->remove_file }))
     {
         return forwardHome( { success => "File has been deleted successsfully" }, 'file/' );
     }
@@ -1760,7 +1760,7 @@ put '/api/file/:id' => require_login sub {
             rename_existing => 1)
                 or error __x"File ID {id} cannot be found", id => $id;
 
-        my $newFile = rset('Fileval')->create({
+        my $newFile = rset('Fileval')->create_with_file({
             name           => $newname,
             mimetype       => $file->single_mimetype,
             content        => $file->single_content,
@@ -1788,7 +1788,7 @@ post '/api/file/?' => require_login sub {
 
         my $fileval = schema->resultset('Fileval')->find($delete_id);
 
-        $fileval->delete;
+        $fileval->remove_file();
 
         return forwardHome(
             { success => "The file has been deleted successfully" }, 'file/' );
@@ -1816,7 +1816,7 @@ post '/api/file/?' => require_login sub {
         $filename =~ s/[^a-zA-Z0-9\._\-\(\) ]//g;
 
         my $file;
-        if (process( sub { $file = rset('Fileval')->create({
+        if (process( sub { $file = rset('Fileval')->create_with_file({
             name           => $filename,
             mimetype       => $mimetype,
             content        => $upload->content,

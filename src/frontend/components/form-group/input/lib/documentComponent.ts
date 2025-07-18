@@ -6,6 +6,9 @@ import { formdataMapper } from 'util/mapper/formdataMapper';
 import { logging } from 'logging';
 import { RenameEvent } from 'components/button/lib/rename-button';
 import { fromJson } from 'util/common';
+import { FileDropEvent } from 'util/filedrag';
+import ErrorHandler from 'util/errorHandler';
+import { isString } from 'util/typechecks';
 
 interface FileData {
     id: number | string;
@@ -22,6 +25,8 @@ class DocumentComponent {
     readonly type = 'document';
     readonly el: JQuery<HTMLElement>;
     readonly fileInput: JQuery<HTMLInputElement>;
+    errors: (string|Error)[];
+    handler: ErrorHandler;
 
     constructor(el: JQuery<HTMLElement> | HTMLElement) {
         this.el = $(el);
@@ -41,47 +46,49 @@ class DocumentComponent {
         const dropTarget = this.el.closest('.file-upload');
 
         const columnId = this.el.closest('.linkspace-field')?.data('column-id') ?? 0;
+        this.handler = new ErrorHandler(dropTarget[0]);
 
         if (dropTarget) {
-            const dragOptions = { allowMultiple: false };
-            dropTarget.filedrag(dragOptions).on('onFileDrop', async (_: JQuery.DropEvent, file: File) => {
+            const dragOptions = { allowMultiple: true };
+            dropTarget.filedrag(dragOptions).on('fileDrop', ({ file }: FileDropEvent) => {
+                this.handler.clearErrors();
                 logging.info('File dropped', file);
-                await this.handleAjaxUpload(url, csrf_token, file, columnId);
+                this.handleAjaxUpload(url, csrf_token, file, columnId);
             });
         } else {
             throw new Error('Could not find file-upload element');
         }
 
-        this.fileInput.on('change', async (ev) => {
+        this.fileInput.on('change', (ev) => {
             if (!(ev.target instanceof HTMLInputElement)) {
                 throw new Error('Could not find file-upload element');
             }
 
-            try {
-                const file = ev.target.files![0];
-                if (!file || file === undefined || !file.name) return;
-                const formData = formdataMapper({ file, csrf_token, column_id: columnId });
-                this.showContainer();
-                const data = await upload<FileData>(url, formData, 'POST', this.showProgress.bind(this));
-                this.addFileToField({ id: data.id, name: data.filename});
-            } catch (error) {
-                this.showException(error);
-                return;
-            }
+            const file = ev.target.files![0];
+            if (!file || file === undefined || !file.name) return;
+            const formData = formdataMapper({ file, csrf_token, column_id: columnId });
+            this.showContainer();
+            upload<FileData>(url, formData, 'POST', this.showProgress.bind(this)).then((data)=>{
+                this.addFileToField({ id: data.id, name: data.filename });
+            }).catch((e) => {
+                if(JSON.parse(e as string)?.message)
+                    e = JSON.parse(e as string).message;
+                this.handler.addError(e);
+            });
         });
     }
 
-    showProgress(loaded, total) {
+    showProgress(loaded: number, total: number) {
         let uploadProgression = (loaded / total) * 100;
         if (uploadProgression == Infinity) {
             // This will occur when there is an error uploading the file or the file is empty
             uploadProgression = 100;
         }
-        this.el.find('.progress-bar__container')
+        this.el?.find('.progress-bar__container')
             .css('width', undefined)
             .removeClass('progress-bar__container--fail');
-        this.el.find('.progress-bar__percentage').html(uploadProgression === 100 ? 'complete' : `${uploadProgression}%`);
-        this.el.find('.progress-bar__progress').css('width', `${uploadProgression}%`);
+        this.el?.find('.progress-bar__percentage').html(uploadProgression === 100 ? 'complete' : `${uploadProgression}%`);
+        this.el?.find('.progress-bar__progress').css('width', `${uploadProgression}%`);
     }
 
     async handleAjaxUpload(uri: string, csrf_token: string, file: File, columnId: number) {
@@ -91,8 +98,28 @@ class DocumentComponent {
             const fileData = formdataMapper({ file, csrf_token, column_id: columnId });
 
             this.showContainer();
-            const data = await upload<FileData>(uri, fileData, 'POST', this.showProgress.bind(this));
-            this.addFileToField({ id: data.id, name: data.filename });
+            upload<FileData>(uri, fileData, 'POST', this.showProgress).then((data) => {
+                this.addFileToField({ id: data.id, name: data.filename });
+            }).then(
+                () => { 
+                    this.hideException();
+                    const container = $(this.el.find('.progress-bar__container'));
+                    container.hide();
+                }
+            ).catch((e) => {
+                const error = e instanceof Error ? e.message : e as string ?? e.toString();
+                // If the error is a string, try to parse it as JSON
+                if(isString(error) && fromJson(error)) {
+                    const decodedError = fromJson(error)
+                    if( 'message' in decodedError && decodedError.message ) {
+                        this.handler.addError(new Error(`Unable to upload ${file.name}: ${decodedError.message}`));
+                    }
+                } else {
+                    this.handler.addError(new Error(`Unable to upload ${file.name}: ${error}`));
+                }
+                const container = $(this.el.find('.progress-bar__container'));
+                container.hide();
+            });
         } catch (e) {
             this.showException(e instanceof Error ? e.message : e as string ?? e.toString());
         }
