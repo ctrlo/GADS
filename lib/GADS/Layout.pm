@@ -1605,16 +1605,4 @@ sub set_marking {
     $self->_rset->update({security_marking => $marking});
 }
 
-# sub get_from_layout_id {
-#     my ($self, $id) = @_;
-
-#     my $layout_rs = $self->schema->resultset('Layout')->find({id=>$id});
-#     GADS::Layout->new(
-#         schema => $self->schema,
-#         user => $self->user,
-#         instance_id => $layout_rs->instance_id,
-#         config => GADS::Config->instance
-#     )
-# }
-
 1;

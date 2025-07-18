@@ -10,7 +10,6 @@ use FindBin qw($Bin);
 use lib "$Bin/../lib";
 
 use Getopt::Long;
-use JSON qw(decode_json encode_json);
 
 use Dancer2;
 use Dancer2::Plugin::DBIC;
@@ -22,6 +21,8 @@ use GADS::Filecheck;
 
 use Dancer2::Plugin::LogReport 'linkspace';
 
+dispatcher close => 'error_handler';
+
 my ( $mimetype, $extension, $instance, $layout_id );
 
 GetOptions(
@@ -32,8 +33,7 @@ GetOptions(
 );
 
 unless ( $mimetype && $extension && $instance && $layout_id ) {
-    say "Usage $0 --mimetype=<mimetype> --extension=<extension> --layout=<layout_id> --instance=<instance_id>";
-    exit 1;
+    report ERROR => __x"Usage {command} --mimetype=<mimetype> --extension=<extension> --layout=<layout_id> --instance=<instance_id>", command => $0;
 }
 
 # we need a config instance, and a filecheck instance
@@ -42,14 +42,12 @@ my $file_check = GADS::Filecheck->instance();
 
 # Check against the already allowed mime-types and error if it already exists
 if ( $file_check->check_type($mimetype) ) {
-    error __x"Mimetype {type} already allowed", type=>$mimetype;
-    exit 2;
+    report ERROR => __x"Mimetype {type} already allowed", type=>$mimetype;
 }
 
 # Check against the already allowed extensions and error if it already exists
 if ( $file_check->check_extension($extension) ) {
-    error __x"Extension {extension} already allowed", extension=>$extension;
-    exit 3;
+    report ERROR => __x"Extension {extension} already allowed", extension=>$extension;
 }
 
 # We're doing this server-side as admin, therefore we don't worry about permissions
@@ -70,8 +68,7 @@ my $result     = $layout->column($layout_id);
 
 # Check if the column is of the correct type - there's no point setting this property on the wrong one!
 if ( $result->type ne 'file' ) {
-    error __x"Invalid column for properties to be set on";
-    exit 4;
+    report ERROR => __"Invalid column for properties to be set on";
 }
 
 # Make sure the user wants to add the data to the selected column.
@@ -89,10 +86,7 @@ if ( $answer =~ /^y/i ) {
     push(@$types, $type) unless grep { $_->{extension} eq $type->{extension} && $_->{name} eq $type->{name} } @$types;
     $result->override_types($types);
     $result->write;
-    print "Extension and mime type added\n\n";
+    notice __"Extension and mime type added\n\n";
 } else {
-    print "Addition of extension cancelled\n\n";
+    notice __"Addition of extension cancelled\n\n";
 }
-
-# Ensure a zero exit code (all errors have an attached number in case this script is used within other scripts)
-exit 0;

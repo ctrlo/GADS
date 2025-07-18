@@ -22,7 +22,6 @@ use Log::Report 'linkspace';
 use MIME::Base64 qw/decode_base64/;
 use Moo;
 use MooX::Types::MooseLike::Base qw/Int Maybe ArrayRef/;
-use JSON qw/decode_json/;
 
 extends 'GADS::Column';
 
@@ -32,13 +31,11 @@ has '+option_names' => (
 
 has override_types => (
     is      => 'rw',
-    # Maybe needed because if there are no options this can be undef
-    isa     => Maybe[ArrayRef],
+    isa     => ArrayRef,
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        return [] unless $self->has_options;
-        $self->options->{override_types};
+        $self->options->{override_types} || [];
     },
     trigger => sub { $_[0]->reset_options },
 );

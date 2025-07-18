@@ -52,10 +52,12 @@ sub check_upload
 sub create_regex
 {   my ($self, $allowed_data) = @_;
 
-    my $mimeRegex = '^(' . join('|', map { $_->{name} } @$allowed_data) . ')' if $allowed_data && @$allowed_data;
-    my $filetypeRegex = '^(' . join('|', map { $_->{extension} } @$allowed_data) . ')$' if $allowed_data && @$allowed_data;
+    return (undef, undef) unless @$allowed_data;
 
-    return ($mimeRegex, $filetypeRegex);
+    my $mimeRegex = '^(' . join('|', map { '\Q' . $_->{name} .'\E' } @$allowed_data) . ')';
+    my $filetypeRegex = '^(' . join('|', map { '\Q'.$_->{extension}.'\E' } @$allowed_data) . ')$';
+
+    return (qr/$mimeRegex/, qr/$filetypeRegex/);
 }
 
 sub check_filename
@@ -64,7 +66,7 @@ sub check_filename
     $filename =~ /\.([a-z]+)$/i
         or error __"Files without extensions cannot be uploaded";
     my $ext = $1;
-    my $extension_bypass = $ext =~ qr/$filetypeRegex/ if $filetypeRegex;
+    my $extension_bypass = $ext =~ $filetypeRegex if $filetypeRegex;
     error __x"Files with extension of {ext} are not allowed", ext => $ext
         unless $extension_bypass or $self->check_extension($ext);
 }
@@ -79,7 +81,7 @@ sub check_file
     
     my $info = $magic->info_from_filename($upload->tempname);
 
-    my $allowed_bypass = $info->{mime_type} =~ qr/$mimeRegex/ if $mimeRegex;
+    my $allowed_bypass = $info->{mime_type} =~ $mimeRegex if $mimeRegex;
 
     error __x"Files of mimetype {mimetype} are not allowed",
         mimetype => $info->{mime_type}
