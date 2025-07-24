@@ -19,25 +19,19 @@ jobs:
     name: 'Unit Tests'
     runs-on: 'ubuntu-22.04'
     timeout-minutes: 30
+    container: debian:bookworm
 
     steps:
       - name: 'Check out the GADS repository'
         uses: 'actions/checkout@v4'
-      - name: 'Install Non-CPAN dependencies'
+      - name: 'Install dependencies'
         run: |
-          sudo apt-get install cpanminus liblua5.3-dev
-          # Avoid "Install CPAN dependencies" needing to compile so much
-          sudo apt-get install libdancer2-perl libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl libtest-tempdir-tiny-perl
-      - name: 'Build cpanfile'
-        run: perl bin/output_cpanfile > cpanfile
-      - name: 'Install CPAN dependencies'
-        uses: 'perl-actions/install-with-cpanm@v1'
-        with:
-          cpanfile: 'cpanfile'
+          chmod +x ./.github/workflows/install.sh
+          ./.github/workflows/install.sh
       - name: 'Run the unit tests'
-        run: |
-          prove -lrs -j4 t
+        run: prove -lrs -j4 t
 
+  # I cannot currently get this working in a container
   webdriver_tests:
     name: 'Webdriver Tests for ${{ matrix.browser.name }}'
     runs-on: '${{ matrix.browser.os }}'
@@ -71,19 +65,14 @@ jobs:
     steps:
       - name: 'Check out the GADS code'
         uses: 'actions/checkout@v4'
-      - name: 'Install Non-CPAN dependencies'
+      - name: 'Install dependencies'
         run: |
-          sudo apt-get install cpanminus liblua5.3-dev
-          # Avoid "Install CPAN dependencies" needing to compile so much
-          sudo apt-get install libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl
-      - name: 'Build cpanfile'
+          chmod +x ./.github/workflows/install.sh
+          ./.github/workflows/install.sh
+      - name: 'Install Integration Test Dependencies'
         run: |
-          perl bin/output_cpanfile > cpanfile
-          ( cd webdriver && perl ../bin/output_cpanfile ) >> cpanfile
-      - name: 'Install CPAN dependencies'
-        uses: 'perl-actions/install-with-cpanm@v1'
-        with:
-          cpanfile: 'cpanfile'
+          chmod +x ./.github/workflows/install_integration.sh
+          ./.github/workflows/install_integration.sh
       - name: 'Set up credentials for psql'
         # See https://wiki.postgresql.org/wiki/Pgpass
         run: |
@@ -97,7 +86,7 @@ jobs:
         env:
           DANCER_CONFDIR: 'webdriver'
           PGDATABASE: 'postgres'
-          PGHOST: 'localhost'
+          PGHOST: 'postgres' # to connect to the container
           PGUSER: 'postgres'
         run: |
           ./bin/setup_database
@@ -111,6 +100,7 @@ jobs:
     name: 'Cypress Tests for ${{ matrix.browser.name }}'
     runs-on: '${{ matrix.browser.os }}'
     timeout-minutes: 30
+    container: debian:bookworm
 
     strategy:
       fail-fast: false
@@ -136,25 +126,14 @@ jobs:
     steps:
       - name: 'Check out the GADS code'
         uses: 'actions/checkout@v4'
-      - name: 'Install Non-CPAN dependencies'
+      - name: 'Install dependencies'
         run: |
-          sudo apt-get install cpanminus liblua5.3-dev gcc g++ libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl
-          sudo apt-get install libdbix-class-schema-loader-perl libmagic-dev postgresql-client libpng-dev libssl-dev libpq-dev
-          sudo apt-get install libjson-perl libsession-token-perl libnet-oauth2-authorizationserver-perl libtext-csv-encoded-perl
-          sudo apt-get install libcrypt-urandom-perl libhtml-scrubber-perl libtext-markdown-perl libwww-form-urlencoded-xs-perl
-          sudo apt-get install libstring-camelcase-perl libmail-transport-perl liblog-log4perl-perl libplack-perl libdbd-pg-perl
-          sudo apt-get install libmail-message-perl libmath-random-isaac-xs-perl libdbix-class-helpers-perl libtree-dagnode-perl
-          sudo apt-get install libmath-round-perl libdatetime-format-dateparse-perl libwww-mechanize-perl libdatetime-format-iso8601-perl
-          sudo apt-get install libmoox-types-mooselike-perl libmoox-singleton-perl libdancer2-perl liblist-compare-perl
-          sudo apt-get install liburl-encode-perl libtie-cache-perl libhtml-fromtext-perl libdata-compare-perl libfile-bom-perl
-          sudo apt-get install libalgorithm-dependency-perl libdancer-plugin-auth-extensible-perl libfile-libmagic-perl postfix
-      - name: 'Build cpanfile'
+          chmod +x ./.github/workflows/install.sh
+          ./.github/workflows/install.sh
+      - name: 'Install Integration Test Dependencies'
         run: |
-          perl bin/output_cpanfile > cpanfile
-      - name: 'Install CPAN dependencies'
-        uses: 'perl-actions/install-with-cpanm@v1'
-        with:
-          cpanfile: 'cpanfile'
+          chmod +x ./.github/workflows/install_integration.sh
+          ./.github/workflows/install_integration.sh
       - name: 'Set up credentials for psql'
         # See https://wiki.postgresql.org/wiki/Pgpass
         run: |
@@ -162,7 +141,6 @@ jobs:
           chmod 600 ~/.pgpass
       - name: 'Install YARN dependencies'
         run: |
-          sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
           yarn
           yarn build --no-watch
       - name: 'create uploads directory'
