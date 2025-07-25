@@ -23,10 +23,6 @@ use MIME::Base64 qw/decode_base64/;
 use Moo;
 use MooX::Types::MooseLike::Base qw/Int Maybe ArrayRef/;
 
-use MIME::Base64 qw/encode_base64/;
-
-use Data::Dump qw/pp/;
-
 extends 'GADS::Column';
 
 has '+option_names' => (
@@ -88,23 +84,15 @@ sub validate
 {   my ($self, $value, %options) = @_;
     return 1 if !$value;
 
-    print STDERR pp %options;
-
     if ($value !~ /^[0-9]+$/ || !$self->schema->resultset('Fileval')->find($value))
     {
         return 0 unless $options{fatal};
+        # Check that the file type is allowed here as well
+        my $filecheck = GADS::Filecheck->instance;
+        $filecheck->check_upload($self->name, $self->content, extra_types => $self->override_types);
         error __x"'{int}' is not a valid file ID for '{col}'",
             int => $value, col => $self->name;
     }
-
-    # Check that the file type is allowed here as well
-    my $filecheck = GADS::Filecheck->instance;
-    my $fileval = $self->schema->resultset('Fileval')->find($value);
-    my $content = encode_base64($fileval->content);
-    my $name = $fileval->name;
-    print STDERR "Checking upload for column " . $self->name . " with filename " . $name . "\n";
-    $filecheck->check_upload($name, $content, extra_types => $self->override_types);
-    
     1;
 }
 
