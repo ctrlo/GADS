@@ -55,8 +55,9 @@ sub create_regex
     # If we try to make this an array, it will bork if it's undef!
     return (undef, undef) unless $allowed_data;
 
-    my $mimeRegex = '^(' . join('|', map { '\Q' . $_->{name} .'\E' } @$allowed_data) . ')';
-    my $filetypeRegex = '^(' . join('|', map { '\Q'.$_->{extension}.'\E' } @$allowed_data) . ')$';
+    # Putting in \Q and \E to escape any special characters in the mimetype or extension breaks this - I don't know why
+    my $mimeRegex = '^(' . join('|', map { $_->{name} } @$allowed_data) . ')';
+    my $filetypeRegex = '^(' . join('|', map { $_->{extension} } @$allowed_data) . ')$';
 
     return (qr/$mimeRegex/, qr/$filetypeRegex/);
 }

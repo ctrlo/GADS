@@ -39,7 +39,11 @@ has '+return_type' => (
 );
 
 has '+option_names' => (
-    default => sub { [qw/show_calculator/] },
+    default => sub {
+        +{
+            show_calculator => 1,
+        }
+    },
 );
 
 has show_calculator => (

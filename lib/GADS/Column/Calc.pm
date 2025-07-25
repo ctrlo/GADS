@@ -33,7 +33,11 @@ has '+type' => (
 );
 
 has '+option_names' => (
-    default => sub { [qw/show_in_edit/] },
+    default => sub {
+        +{
+            show_in_edit => 1,
+        }
+    },
 );
 
 has show_in_edit => (

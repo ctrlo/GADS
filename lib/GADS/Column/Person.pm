@@ -73,7 +73,14 @@ has '+fixedvals' => (
 );
 
 has '+option_names' => (
-    default => sub { [qw/default_to_login notify_on_selection notify_on_selection_message notify_on_selection_subject/] },
+    default => sub {
+        +{
+            default_to_login            => 1,
+            notify_on_selection         => 1,
+            notify_on_selection_subject => 1,
+            notify_on_selection_message => 1,
+        }
+    },
 );
 
 has '+can_multivalue' => (

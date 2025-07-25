@@ -46,7 +46,12 @@ has '+has_multivalue_plus' => (
 );
 
 has '+option_names' => (
-    default => sub { [qw/show_datepicker default_today/] },
+    default => sub {
+        +{
+            show_datepicker => 1,
+            default_today   => 1,
+        }
+    },
 );
 
 has show_datepicker => (

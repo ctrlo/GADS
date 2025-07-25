@@ -45,7 +45,11 @@ has '+has_multivalue_plus' => (
 );
 
 has '+option_names' => (
-    default => sub { [qw/show_datepicker/] },
+    default => sub {
+        +{
+            show_datepicker => 1,
+        }
+    },
 );
 
 sub _build_retrieve_fields

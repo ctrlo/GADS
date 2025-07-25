@@ -30,7 +30,16 @@ extends 'GADS::Column::Curcommon';
 with 'GADS::Role::Curcommon::CurvalMulti';
 
 has '+option_names' => (
-    default => sub { [qw/override_permissions value_selector show_add delete_not_used limit_rows show_view_all/] },
+    default => sub {
+        +{
+            override_permissions => 1,
+            value_selector       => 1,
+            show_add             => 1,
+            delete_not_used      => 1,
+            limit_rows           => 1,
+            show_view_all        => 1,
+        }
+    },
 );
 
 has show_view_all => (

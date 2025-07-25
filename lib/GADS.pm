@@ -3730,8 +3730,10 @@ prefix '/:layout_name' => sub {
                         multivalue remember link_parent_id topic_id width aggregate group_display/);
                 $column->type(param 'type')
                     unless param('id'); # Can't change type as it would require DBIC resultsets to be removed and re-added
-                $column->$_(param $_)
-                    foreach @{$column->option_names};
+                foreach (@{$column->user_options}) {
+                    print STDERR "Setting user option $_\n";
+                    $column->$_(param $_)
+                }
                 $column->display_fields(param 'display_fields');
                 # Set the layout in the GADS::Filter object, in case the write
                 # doesn't success, in which case the filter will need to be

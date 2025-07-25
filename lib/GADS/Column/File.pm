@@ -26,7 +26,11 @@ use MooX::Types::MooseLike::Base qw/Int Maybe ArrayRef/;
 extends 'GADS::Column';
 
 has '+option_names' => (
-    default => sub { [qw/override_types/] }
+    default => sub { 
+        +{
+            override_types => 0,
+        }
+    }
 );
 
 has override_types => (
@@ -35,16 +39,10 @@ has override_types => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
+        return [] unless $self->has_options;
         $self->options->{override_types} || [];
     },
     trigger => sub { $_[0]->reset_options },
-    default => sub { [] },
-    # Coerce the value to an empty array if it is not defined
-    coerce => sub {
-        my $value = shift;
-        return [] if !$value;
-        $value;
-    },
 );
 
 has filesize => (
