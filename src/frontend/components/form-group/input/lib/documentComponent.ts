@@ -6,6 +6,7 @@ import { formdataMapper } from 'util/mapper/formdataMapper';
 import { RenameEvent } from 'components/button/lib/rename-button';
 import { FileDropEvent } from 'util/filedrag';
 import ErrorHandler from 'util/errorHandler';
+import { fromJson } from 'util/common';
 
 /**
  * Interface for the file data returned from the server.
@@ -120,7 +121,7 @@ class DocumentComponent {
      * @param {number} total The total number of bytes to be loaded.
      */
     showProgress(file: string, loaded: number, total: number) {
-        let uploadProgression = Math.round((loaded / total) * 100);
+        let uploadProgression = (loaded / total) * 100;
         if (uploadProgression == Infinity) {
             // This will occur when there is an error uploading the file or the file is empty
             uploadProgression = 100;
