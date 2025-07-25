@@ -393,7 +393,11 @@ class CurvalModalComponent extends ModalComponent {
     }
 
     /**
-     * Get the URL for the modal, including query parameters for the layout and draft status.
+     * Get the URL for the curval modal.
+     * @param {number|null} current_id - The current record ID, or null for new records.
+     * @param {string} instance_name - The name of the instance.
+     * @param {string} layout_id - The layout ID for the curval.
+     * @returns {string} The URL for the curval modal.
      */
     getURL(current_id, instance_name, layout_id) {
 

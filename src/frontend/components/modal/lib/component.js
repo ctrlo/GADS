@@ -205,7 +205,6 @@ class ModalComponent extends Component {
         return selectedFrame;
     }
 
-
     /**
      * Activate a frame by it's number
      * @param {number} frameNumber The frame number to activate.
