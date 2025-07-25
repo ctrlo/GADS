@@ -6,15 +6,6 @@ type TypeaheadCallback = (suggestion: { name: string, id: number }) => void;
 
 /**
  * TypeaheadBuilder class for building Typeahead class
- * @type T - type of the suggestion extending `{ name: string, id: number }`
- * @param $input - input element to attach typeahead to
- * @param callback - callback function to be called when a suggestion is selected
- * @param name - name of the typeahead data source
- * @param ajaxSource - url to the ajax source
- * @param appendQuery - whether to append the query to the ajax source url
- * @param data - data to be sent with the ajax request (if any)
- * @returns Typeahead class
- * @throws Error if $input, callback, name, or ajaxSource is not set
  */
 export class TypeaheadBuilder {
     private $input: JQuery<HTMLInputElement>;
@@ -22,9 +13,9 @@ export class TypeaheadBuilder {
     private name: string;
     private ajaxSource: string;
     private appendQuery: boolean;
-    private data: any;  
-    private mapper: MapperFunction = (data: any) => { return data.map(d => { return { name: d.name, id: d.id }; }); };  
-    private dataBuilder: (...params: any[]) => any;  
+    private data: any;
+    private mapper: MapperFunction = (data: any) => { return data.map(d => { return { name: d.name, id: d.id }; }); };
+    private dataBuilder: (...params: any[]) => any;
 
     /**
      * Constructor for TypeaheadBuilder class
@@ -36,59 +27,60 @@ export class TypeaheadBuilder {
 
     /**
      * Set the input element to attach typeahead to
-     * @param $input The input element to attach typeahead to
-     * @returns The builder being used
+     * @param {JQuery<HTMLElement>} $input The input element to attach typeahead to
+     * @returns {this} The builder being used
      */
-    withInput($input: JQuery<HTMLInputElement>) {
+    withInput($input: JQuery<HTMLInputElement>): this {
         this.$input = $input;
         return this;
     }
 
     /**
      * Set the callback function to be called when a suggestion is selected
-     * @param callback The callback function to be called when a suggestion is selected - this function should take in a suggestion of type T and return void
-     * @returns The builder being used
+     * @param {TypeaheadCallback} callback The callback function to be called when a suggestion is selected - this function should take in a suggestion of type T and return void
+     * @returns {this} The builder being used
      */
-    withCallback(callback: TypeaheadCallback) {
+    withCallback(callback: TypeaheadCallback): this {
         this.callback = callback;
         return this;
     }
 
     /**
      * Set the name of the typeahead data source
-     * @param name The name of the typeahead data source
-     * @returns The builder being used
+     * @param {string} name The name of the typeahead data source
+     * @returns {this} The builder being used
      */
-    withName(name: string) {
+    withName(name: string): this {
         this.name = name;
         return this;
     }
 
     /**
      * Set the URL to the typeahead ajax source
-     * @param ajaxSource The url to the ajax source
-     * @returns The builder being used
+     * @param {string} ajaxSource The url to the ajax source
+     * @returns {this} The builder being used
      */
-    withAjaxSource(ajaxSource: string) {
+    withAjaxSource(ajaxSource: string): this {
         this.ajaxSource = ajaxSource;
         return this;
     }
 
     /**
      * Sets the append query to true
-     * @returns The builder being used
+     * @param {boolean} appendQuery Whether to append the query to the ajax request
+     * @returns {this} The builder being used
      */
-    withAppendQuery(appendQuery: boolean = true) {
+    withAppendQuery(appendQuery: boolean = true): this {
         this.appendQuery = appendQuery;
         return this;
     }
 
     /**
      * Sets the data to be sent with the ajax request
-     * @param data The data to be sent with the ajax request
-     * @returns The builder being used
+     * @param {*} data The data to be sent with the ajax request
+     * @returns {this} The builder being used
      */
-    withData(data: any) {  
+    withData(data: any): this {
         this.dataBuilder = undefined;
         this.data = data;
         return this;
@@ -96,25 +88,29 @@ export class TypeaheadBuilder {
 
     /**
      * Sets the mapper to use with the typeahead
-     * @param mapper The mapper function to be used to map the ajax response to the typeahead suggestion
-     * @returns The builder being used
+     * @param {MapperFunction} mapper The mapper function to be used to map the ajax response to the typeahead suggestion
+     * @returns {this} The builder being used
      */
-    withMapper(mapper: MapperFunction) {
+    withMapper(mapper: MapperFunction): this {
         this.mapper = mapper;
         return this;
     }
 
-    withDefaultMapper() {
+    /**
+     * Sets to use the default mapper function
+     * @returns {this} The builder being used
+     */
+    withDefaultMapper(): this {
         this.mapper = map;
         return this;
     }
 
     /**
      * Set the data builder function to be used to build the data to be sent with the ajax request
-     * @param dataBuilderFunction The function to be used to build the data to be sent with the ajax request
-     * @returns The builder being used
+     * @param {(...args: any[])=>any} dataBuilderFunction The function to be used to build the data to be sent with the ajax request
+     * @returns {this} The builder being used
      */
-    withDataBuilder(dataBuilderFunction: (...args: any[]) => any) {  
+    withDataBuilder(dataBuilderFunction: (...args: any[]) => any): this {
         this.data = undefined;
         this.dataBuilder = dataBuilderFunction;
         return this;
@@ -122,9 +118,10 @@ export class TypeaheadBuilder {
 
     /**
      * Build the Typeahead class
-     * @returns The built Typeahead class
+     * @returns {Typeahead} The built Typeahead class
+     * @throws {Error} If input, callback, name, or ajax source is not set
      */
-    build() {
+    build(): Typeahead {
         if (!this.$input) throw new Error('Input not set');
         if (!this.callback) throw new Error('Callback not set');
         if (!this.name) throw new Error('Name not set');

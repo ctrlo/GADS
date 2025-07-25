@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-jsdoc */
 import 'testing/globals.definitions';
 import AutosaveBase from './autosaveBase';
 

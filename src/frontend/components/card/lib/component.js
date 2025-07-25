@@ -1,7 +1,15 @@
 import { Component } from 'component';
 import 'bootstrap';
 
+/**
+ * Creates an expandable card component.
+ */
 class ExpandableCardComponent extends Component {
+
+    /**
+     * Creates an instance of ExpandableCardComponent.
+     * @param {HTMLElement} element The HTML element to attach the component to.
+     */
     constructor(element) {
         super(element);
         this.$el = $(this.element);
@@ -14,6 +22,9 @@ class ExpandableCardComponent extends Component {
         }
     }
 
+    /**
+     * Initializes the expandable card functionality.
+     */
     initExpandableCard() {
         const $collapsibleElm = this.$el.find('.collapse');
         const $btnEdit = this.$el.find('.btn-js-edit');
@@ -65,6 +76,9 @@ class ExpandableCardComponent extends Component {
         });
     }
 
+    /**
+     * Initializes the topic card functionality.
+     */
     initTopicCard() {
         // Now that fields are shown/hidden on page load, for each topic check
         // whether it has zero displayed fields, in which case hide the whole
@@ -85,6 +99,10 @@ class ExpandableCardComponent extends Component {
         }
     }
 
+    /**
+     * Checks if the edit class can be removed from the content block.
+     * @returns {boolean} True if the edit class can be removed, false otherwise.
+     */
     canRemoveEditClass() {
         return !this.$contentBlock.find('.card--edit').length;
     }
@@ -97,17 +115,6 @@ class ExpandableCardComponent extends Component {
         }
         return message;
     };
-
-    /*
-      In order to ensure headers on the view filter tables are the correct width, we need to remove any styling that has been added to the header elements.
-      And for some reason, using JQuery and DataTables, the styling is not reset as we expect it to be.
-    */
-    clearupStyling() {
-        const tables = $('.table-toggle');
-        tables.removeAttr('style');
-        const headers = $('.dt-scroll-headInner');
-        headers.removeAttr('style');
-    }
 }
 
 export default ExpandableCardComponent;

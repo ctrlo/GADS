@@ -1,10 +1,11 @@
+/* eslint-disable jsdoc/require-jsdoc */
 import { setupCrypto } from 'testing/globals.definitions';
 import { EncryptedStorage } from './encryptedStorage';
 
 class TestStorage implements Storage {
     private map = new Map<string, string>();
 
-    [name: string]: any;  
+    [name: string]: any;
     length: number;
 
     clear(): void {

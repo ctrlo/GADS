@@ -3,14 +3,15 @@ import { Component } from 'component';
 import { logging } from 'logging';
 import { initValidationOnField } from 'validation';
 
-/*
- * A SelectWidget is a custom disclosure widget
- * with multi or single options selectable.
- * SelectWidgets can depend on each other;
- * for instance if Value "1" is selected in Widget "A",
- * Widget "B" might not be displayed.
+/**
+ * A SelectWidget is a custom disclosure widget with multi or single options selectable.
+ * SelectWidgets can depend on each other; for instance if Value "1" is selected in Widget "A", Widget "B" might not be displayed.
  */
 class SelectWidgetComponent extends Component {
+    /**
+     * Constructor for the SelectWidgetComponent.
+     * @param {HTMLElement} element The HTML element that this component is attached to.
+     */
     constructor(element) {
         super(element);
         this.el = $(this.element);
@@ -41,6 +42,9 @@ class SelectWidgetComponent extends Component {
         }
     }
 
+    /**
+     * Initializes the SelectWidget component.
+     */
     initSelectWidget() {
         this.updateState();
         if (this.$widget.is('[readonly]')) return;
@@ -95,6 +99,9 @@ class SelectWidgetComponent extends Component {
         });
     }
 
+    /**
+     * Handles the click event on the widget.
+     */
     handleWidgetClick() {
         if (this.$trigger.attr('aria-expanded') === 'true') {
             this.collapse(this.$widget, this.$trigger, this.$target);
@@ -103,6 +110,10 @@ class SelectWidgetComponent extends Component {
         }
     }
 
+    /**
+     * Handles the click event on the document.
+     * @param {JQuery.ClickEvent} e The click event triggered on the document.
+     */
     handleDocumentClick(e) {
         const clickedOutside = !this.el.is(e.target) && this.el.has(e.target).length === 0;
         if (clickedOutside) {
@@ -110,6 +121,10 @@ class SelectWidgetComponent extends Component {
         }
     }
 
+    /**
+     * Handle the keyup event on the search input.
+     * @param {JQuery.KeyUpEvent} e The keyup event triggered on the search input.
+     */
     handleKeyUp(e) {
         const searchValue = $(e.target)
             .val()
@@ -166,6 +181,11 @@ class SelectWidgetComponent extends Component {
         }
     }
 
+    /**
+     * Handle the keydown event on the search input.
+     * @param {JQuery.KeyDownEvent} e The keydown event triggered on the search input.
+     * @todo Handle deprecated key codes and ensure compatibility with modern browsers.
+     */
     handleKeyDown(e) {
         const key = e.which || e.keyCode;
 
@@ -211,11 +231,20 @@ class SelectWidgetComponent extends Component {
         }
     }
 
+    /**
+     * Handle the event triggered when the widget is expanded.
+     * @param {JQuery.TriggeredEvent} e The event triggered when the widget is expanded.
+     */
     expandWidgetHandler(e) {
         e.stopPropagation();
         this.expand(this.$widget, this.$trigger, this.$target);
     }
 
+    /**
+     * Collapse the select widget.
+     * @param {JQuery<HTMLElement>} $widget The widget element.
+     * @param {JQuery<HTMLElement>} $trigger The trigger element that expands the widget.
+     */
     collapse($widget, $trigger) {
         this.$selectWidget.removeClass('select-widget--open');
         $trigger.attr('aria-expanded', false);
@@ -231,12 +260,19 @@ class SelectWidgetComponent extends Component {
         }, 50);
     }
 
+    /**
+     * Update the state of the select widget based on the current items.
+     */
     updateState() {
         const $visible = this.$current.children('[data-list-item]:not([hidden])');
 
         this.$current.toggleClass('empty', $visible.length === 0);
     }
 
+    /**
+     * Possible close the widget based on focus change.
+     * @param {JQuery.TriggeredEvent} e The event triggered when the widget might need to be closed.
+     */
     possibleCloseWidget(e) {
         const newlyFocussedElement = e.relatedTarget || document.activeElement;
 
@@ -250,6 +286,11 @@ class SelectWidgetComponent extends Component {
         }
     }
 
+    /**
+     * Connects the multi-select items to their associated checkboxes.
+     * @returns {Function} A function that connects the multi-select items.
+     * @todo Remove deprecated key codes and ensure compatibility with modern browsers.
+     */
     connectMulti() {
         const self = this;
         return function () {
@@ -305,6 +346,10 @@ class SelectWidgetComponent extends Component {
         };
     }
 
+    /**
+     * Connects the single-select items to their associated checkboxes.
+     * @todo Remove deprecated key codes and ensure compatibility with modern browsers.
+     */
     connectSingle() {
         const self = this;
 
@@ -352,6 +397,9 @@ class SelectWidgetComponent extends Component {
         });
     }
 
+    /**
+     * Connects the select widget items to their associated checkboxes.
+     */
     connect() {
         if (this.multi) {
             this.$currentItems.each(this.connectMulti());
@@ -360,6 +408,16 @@ class SelectWidgetComponent extends Component {
         }
     }
 
+    /**
+     * Get the current list item for the select widget.
+     * @param {boolean} multi Is the select widget multi-select?
+     * @param {JQuery<HTMLElement>} field The field name for the select widget.
+     * @param {number} value_id The ID of the value.
+     * @param {string} value_text The text of the value.
+     * @param {string} value_html The HTML representation of the value.
+     * @param {boolean} checked Is the value checked?
+     * @returns {JQuery<HTMLElement>} The current list item as a jQuery object.
+     */
     currentLi(multi, field, value_id, value_text, value_html, checked) {
         if (multi && !value_id) {
             return $('<li class="none-selected">blank</li>');
@@ -386,6 +444,16 @@ class SelectWidgetComponent extends Component {
         return $li;
     }
 
+    /**
+     * Get the available list item for the select widget.
+     * @param {boolean} multi Is the select widget multi-select?
+     * @param {JQuery<HTMLElement>} field The field name for the select widget.
+     * @param {number} value_id The ID of the value.
+     * @param {string} value_text The text of the value.
+     * @param {string} label The label for the value.
+     * @param {boolean} checked Is the value checked?
+     * @returns {JQuery<HTMLElement>} The available list item as a jQuery object.
+     */
     availableLi(multi, field, value_id, value_text, label, checked) {
         if (this.multi && !value_id) {
             return null;
@@ -445,8 +513,13 @@ class SelectWidgetComponent extends Component {
         return $li;
     }
 
-    //Some odd scoping issues here - but it works
+    /**
+     * Update the JSON data for the select widget.
+     * @param {string} url The URL to fetch the JSON data from.
+     * @param {boolean} typeahead Whether the update is for typeahead functionality.
+     */
     updateJson(url, typeahead) {
+        //Some odd scoping issues here - but it works
         this.loadCounter++;
         const self = this;
         const myLoad = this.loadCounter; // ID of this process
@@ -562,6 +635,10 @@ class SelectWidgetComponent extends Component {
             });
     }
 
+    /**
+     * Fetch options for the select widget based on linked fields.
+     * @throws Will throw an error if the filter fields are not a valid array.
+     */
     fetchOptions() {
         const filterEndpoint = this.$selectWidget.data('filter-endpoint');
         const filterFields = this.$selectWidget.data('filter-fields');
@@ -614,6 +691,13 @@ class SelectWidgetComponent extends Component {
         this.lastFetchParams = fetchParams;
     }
 
+    /**
+     * Expand the select widget to show available options.
+     * @param {JQuery<HTMLElement>} $widget The widget element.
+     * @param {JQuery<HTMLElement>} $trigger The trigger element that expands the widget.
+     * @param {JQuery<HTMLElement>} $target The target element that contains the available options.
+     * @todo Remove deprecated key codes and ensure compatibility with modern browsers.
+     */
     expand($widget, $trigger, $target) {
         if ($trigger.attr('aria-expanded') === 'true') {
             return;

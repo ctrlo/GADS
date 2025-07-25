@@ -11,9 +11,16 @@ import { bindToggleTableClickHandlers } from './toggle-table';
 
 const MORE_LESS_TRESHOLD = 50;
 
-//TODO: It is worth noting that there are significant changes between DataTables.net v1 and v2 (hence the major version increase)
-//      We are currently using v2 in this component, but with various deprecated features in use that may need to be updated in the future
+/**
+ * Component for initializing and managing DataTables
+ * @todo It is worth noting that there are significant changes between DataTables.net v1 and v2 (hence the major version increase)
+         We are currently using v2 in this component, but with various deprecated features in use that may need to be updated in the future
+ */
 class DataTableComponent extends Component {
+    /**
+     * Creates a new DataTable component
+     * @param {HTMLElement} element The element to attach the DataTable functionality to
+     */
     constructor(element) {
         super(element);
         this.el = $(this.element);
@@ -26,6 +33,9 @@ class DataTableComponent extends Component {
         this.initTable();
     }
 
+    /**
+     * Initializes the DataTable component
+     */
     initTable() {
         if (this.hasClearState) {
             this.clearTableStateForPage();
@@ -76,6 +86,9 @@ class DataTableComponent extends Component {
         });
     }
 
+    /**
+     * Clears the table state for the current page
+     */
     clearTableStateForPage() {
         for (let i = 0; i < localStorage.length; i++) {
             const storageKey = localStorage.key(i);
@@ -96,6 +109,9 @@ class DataTableComponent extends Component {
         }
     }
 
+    /**
+     * Initializes the clickable table functionality
+     */
     initClickableTable() {
         const links = this.el.find('tbody td .link');
         // Remove all existing click events to prevent multiple bindings
@@ -107,6 +123,11 @@ class DataTableComponent extends Component {
         links.on('blur', (ev) => { this.toggleFocus(ev, false); });
     }
 
+    /**
+     * Toggles focus on a row
+     * @param {JQuery.FocusEvent} ev The event that triggered the focus change
+     * @param {boolean} hasFocus Whether the row has focus or not
+     */
     toggleFocus(ev, hasFocus) {
         const row = $(ev.target).closest('tr');
         if (hasFocus) {
@@ -116,6 +137,10 @@ class DataTableComponent extends Component {
         }
     }
 
+    /**
+     * Handle click event on a row
+     * @param {JQuery.ClickEvent} ev The click event
+     */
     handleClick(ev) {
         const rowClicked = $(ev.target).closest('tr');
         ev.preventDefault();
@@ -123,6 +148,10 @@ class DataTableComponent extends Component {
         $(this.modal).modal('show');
     }
 
+    /**
+     * Fill the modal data from the clicked row
+     * @param {HTMLTableRowElement} row The row to fill the modal data from
+     */
     fillModalData(row) {
         const fields = $(this.modal).find('input, textarea');
         const btnReject = $(this.modal).find('.btn-js-reject-request-send');
@@ -156,6 +185,12 @@ class DataTableComponent extends Component {
         });
     }
 
+    /**
+     * Get a checkbox element as an HTML string
+     * @param {number } id The ID for the checkbox element
+     * @param {string} label  The label for the checkbox element
+     * @returns {string} The HTML string for the checkbox element
+     */
     getCheckboxElement(id, label) {
         return (
             '<div class=\'checkbox\'>' +
@@ -165,6 +200,9 @@ class DataTableComponent extends Component {
         );
     }
 
+    /**
+     * Add a select all checkbox to the table header
+     */
     addSelectAllCheckbox() {
         const $selectAllElm = this.el.find('thead th.check');
         const $checkBoxes = this.el.find('tbody .check .checkbox input');
@@ -192,6 +230,11 @@ class DataTableComponent extends Component {
         });
     }
 
+    /**
+     * Check or uncheck all checkboxes in the table
+     * @param {JQuery<HTMLInputElement>} $checkBoxes The checkboxes to check or uncheck
+     * @param {boolean} bCheckAll True to check all checkboxes, false to uncheck all
+     */
     checkAllCheckboxes($checkBoxes, bCheckAll) {
         if (bCheckAll) {
             $checkBoxes.prop('checked', true);
@@ -200,6 +243,11 @@ class DataTableComponent extends Component {
         }
     }
 
+    /**
+     * Check or uncheck the 'select all' checkbox based on the state of the individual checkboxes
+     * @param {JQuery<HTMLInputElement>} $checkBoxes The checkboxes to check or uncheck
+     * @param {JQuery<HTMLInputElement>} $selectAllCheckBox The select all checkbox to update
+     */
     checkSelectAll($checkBoxes, $selectAllCheckBox) {
         let bSelectAll = true;
 
@@ -215,6 +263,12 @@ class DataTableComponent extends Component {
         }
     }
 
+    /**
+     * Add a sort button to the column header
+     * @param {DataTable} dataTable The DataTable instance
+     * @param {any} column The column to add the sort button to
+     * @param {any} headerContent The content of the column header
+     */
     addSortButton(dataTable, column, headerContent) {
         const $header = $(column.header());
         const $button = $(`
@@ -234,6 +288,10 @@ class DataTableComponent extends Component {
         dataTable.order.listener($button, column.index());
     }
 
+    /**
+     * Toggle the filter for a column
+     * @param {any} column The column to toggle the filter for
+     */
     toggleFilter(column) {
         const $header = $(column.header());
 
@@ -246,8 +304,14 @@ class DataTableComponent extends Component {
         }
     }
 
-    // Self reference included due to scoping
+    /**
+     * Add a search dropdown to the column header
+     * @param {any} column The column to add the search dropdown to
+     * @param {string} id The ID of the column
+     * @param {number} index The index of the column
+     */
     async addSearchDropdown(column, id, index) {
+        // Self reference included due to scoping
         const $header = $(column.header());
         const title = $header.text().trim();
         const searchValue = column.search();
@@ -388,21 +452,42 @@ class DataTableComponent extends Component {
         });
     }
 
+    /**
+     * Get the API endpoint for the column typeahead
+     * @param {number} columnId The ID of the column to get the API endpoint for
+     * @returns {string} The API endpoint for the column typeahead
+     */
     getApiEndpoint(columnId) {
         const table = $('body').data('layout-identifier');
         return `/${table}/match/layout/${columnId}?q=`;
     }
 
+    /**
+     * Encode HTML entities in a string
+     * @param {string} text The text to encode
+     * @returns {string} The encoded text
+     */
     encodeHTMLEntities(text) {
         return $('<textarea/>').text(text)
             .html();
     }
 
+    /**
+     * Decode HTML entities in a string
+     * @param {string} text The text to decode
+     * @returns {string} The decoded text
+     */
     decodeHTMLEntities(text) {
         return $('<textarea/>').html(text)
             .text();
     }
 
+    /**
+     * Render a more-less component if the HTML string exceeds the threshold
+     * @param {string} strHTML The HTML string to render
+     * @param {string} strColumnName The name of the column to render
+     * @returns {string} The rendered HTML string with more-less component if applicable
+     */
     renderMoreLess(strHTML, strColumnName) {
         if (strHTML.toString().length > MORE_LESS_TRESHOLD) {
             return (
@@ -414,6 +499,12 @@ class DataTableComponent extends Component {
         return strHTML;
     }
 
+    /**
+     * Render the default data type
+     * @param {object} data The data to render
+     * @returns {string} The rendered HTML string
+     * @todo Would it be better to use an abstract factory method here to handle different data types?
+     */
     renderDefault(data) {
         let strHTML = '';
 
@@ -429,6 +520,11 @@ class DataTableComponent extends Component {
         return this.renderMoreLess(strHTML, data.name);
     }
 
+    /**
+     * Render the ID data type
+     * @param {object} data The data to render
+     * @returns {string} The rendered HTML string for the ID
+     */
     renderId(data) {
         let retval = '';
         const id = data.values[0];
@@ -439,6 +535,11 @@ class DataTableComponent extends Component {
         return retval + `<a href="${this.base_url}/${id}">${id}</a>`;
     }
 
+    /**
+     * Render the person data type
+     * @param {string} data The data to render
+     * @returns {string} The rendered HTML string for the person data type
+     */
     renderPerson(data) {
         let strHTML = '';
 
@@ -475,6 +576,11 @@ class DataTableComponent extends Component {
         return strHTML;
     }
 
+    /**
+     * Render the file data type
+     * @param {object} data The data to render
+     * @returns {string} The rendered HTML string for the file data type
+     */
     renderFile(data) {
         let strHTML = '';
 
@@ -495,6 +601,11 @@ class DataTableComponent extends Component {
         return strHTML;
     }
 
+    /**
+     * Render the RAG (Red-Amber-Green) status
+     * @param {object} data The data to render
+     * @returns {string} The rendered HTML string for the RAG (Red-Amber-Green) status
+     */
     renderRag(data) {
         let strRagType = '';
         const arrRagTypes = {
@@ -520,6 +631,11 @@ class DataTableComponent extends Component {
         return `<span class="rag rag--${strRagType}" title="${text}" aria-labelledby="rag_${strRagType}_meaning"><span>✗</span></span>`;
     }
 
+    /**
+     * Render curval data type
+     * @param {object} data The data to render
+     * @returns {string} The rendered HTML string for the curval data type
+     */
     renderCurCommon(data) {
         let strHTML = '';
 
@@ -531,6 +647,11 @@ class DataTableComponent extends Component {
         return this.renderMoreLess(strHTML, data.name);
     }
 
+    /**
+     * Render a curval table
+     * @param {object} data The data to render
+     * @returns {string} The rendered HTML string for the curval table
+     */
     renderCurCommonTable(data) {
         let strHTML = '';
 
@@ -572,6 +693,11 @@ class DataTableComponent extends Component {
         return strHTML;
     }
 
+    /**
+     * Render the data type based on its type
+     * @param {object} data The data to render
+     * @returns {string} The rendered HTML string for the data type
+     */
     renderDataType(data) {
         switch (data.type) {
             case 'id':
@@ -592,6 +718,13 @@ class DataTableComponent extends Component {
         }
     }
 
+    /**
+     * Render the data for a specific row and column type
+     * @param {string} type The type of data to render
+     * @param {JQuery<HTMLElement>} row The row to render the data for
+     * @param {any} meta The metadata for the row
+     * @returns {string} The rendered HTML string for the data
+     */
     renderData(type, row, meta) {
         const strColumnName = meta ? meta.settings.oAjaxData.columns[meta.col].name : '';
         const data = row[strColumnName];
@@ -603,6 +736,11 @@ class DataTableComponent extends Component {
         return this.renderDataType(data);
     }
 
+    /**
+     * Get the configuration object for the DataTable
+     * @param {Parital<Config>} overrides Any values to override in the configuration
+     * @returns {Config} The configuration object for the DataTable
+     */
     getConf(overrides = undefined) {
         const confData = this.el.data('config');
         let conf = {};
@@ -724,13 +862,16 @@ class DataTableComponent extends Component {
         return conf;
     }
 
-    /*
-      For some reason, the current code that is present doesn't enable/disable the button as expected; it will disable the button, but will not re-enable the button.
-      I have tried manually changing the DOM, as well as the methods already present in the code, and I currently believe there is a bug within the DataTables button
-      code that is meaning that this won't change (although I am open to the fact that I am being a little slow and missing something glaringly obvious).
-    */
-     
+    /**
+     * Toggle full screen mode for the DataTable
+     * @param {HTMLButtonElement} buttonElement The button element that was clicked to toggle full screen mode
+     */
     toggleFullScreenMode(buttonElement) {
+        /*
+            For some reason, the current code that is present doesn't enable/disable the button as expected; it will disable the button, but will not re-enable the button.
+            I have tried manually changing the DOM, as well as the methods already present in the code, and I currently believe there is a bug within the DataTables button
+            code that is meaning that this won't change (although I am open to the fact that I am being a little slow and missing something glaringly obvious).
+        */
         const table = document.querySelector('table.data-table');
         const currentTable = $(table);
         if (currentTable && $.fn.dataTable.isDataTable(currentTable)) {
@@ -779,6 +920,10 @@ class DataTableComponent extends Component {
         $('#full-screen-btn').addClass(this.isFullScreen ? 'btn-toggle' : 'btn-toggle-off');
     }
 
+    /**
+     * Bind click handlers after the DataTable has been drawn
+     * @param {Config} conf The configuration object for the DataTable
+     */
     bindClickHandlersAfterDraw(conf) {
         const tableElement = this.el;
         const rows = tableElement.DataTable().rows({ page: 'current' })

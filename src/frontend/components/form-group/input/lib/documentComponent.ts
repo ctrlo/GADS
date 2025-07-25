@@ -7,22 +7,55 @@ import { logging } from 'logging';
 import { RenameEvent } from 'components/button/lib/rename-button';
 import { fromJson } from 'util/common';
 
+/**
+ * Interface for the file data returned from the server.
+ */
 interface FileData {
+    /**
+     * Identifier for the file.
+     * @type {number | string}
+     */
     id: number | string;
+    /**
+     * Name of the file.
+     * @type {string}
+     */
     filename: string;
 }
 
+/**
+ * Interface for the response received after renaming a file.
+ */
 interface RenameResponse {
+    /**
+     * Identifier for the file.
+     * @type {number | string}
+     */
     id: number | string;
+    /**
+     * Name of the file after renaming.
+     * @type {string}
+     */
     name: string;
+    /**
+     * Indicates whether the operation was successful.
+     * @type {boolean}
+     */
     is_ok: boolean;
 }
 
+/**
+ * DocumentComponent class for handling document upload functionality.
+ */
 class DocumentComponent {
     readonly type = 'document';
     readonly el: JQuery<HTMLElement>;
     readonly fileInput: JQuery<HTMLInputElement>;
 
+    /**
+     * Create a new DocumentComponent.
+     * @param {JQuery<HTMLElement> | HTMLElement} el The HTML element for the document component, can be a jQuery object or a plain HTMLElement.
+     */
     constructor(el: JQuery<HTMLElement> | HTMLElement) {
         this.el = $(el);
         this.el.closest('.fieldset').find('.rename')
@@ -35,6 +68,10 @@ class DocumentComponent {
         this.fileInput = this.el.find<HTMLInputElement>('.form-control-file');
     }
 
+    /**
+     * Initialize the document component by setting up event listeners and drag-and-drop functionality.
+     * @throws {Error} If the file upload element cannot be found.
+     */
     async init() {
         const url = this.el.data('fileupload-url');
 
@@ -71,7 +108,12 @@ class DocumentComponent {
         });
     }
 
-    showProgress(loaded, total) {
+    /**
+     * Show the progress of the file upload.
+     * @param {number} loaded The number of bytes loaded so far.
+     * @param {number} total The total number of bytes to be loaded.
+     */
+    showProgress(loaded: number, total: number) {
         let uploadProgression = (loaded / total) * 100;
         if (uploadProgression == Infinity) {
             // This will occur when there is an error uploading the file or the file is empty
@@ -84,6 +126,12 @@ class DocumentComponent {
         this.el.find('.progress-bar__progress').css('width', `${uploadProgression}%`);
     }
 
+    /**
+     * Upload a file via AJAX.
+     * @param {string} uri The URI to which the file will be uploaded.
+     * @param {string} csrf_token The CSRF token for security.
+     * @param {File} file The file to be uploaded.
+     */
     async handleAjaxUpload(uri: string, csrf_token: string, file: File) {
         try {
             if (!file) this.showException(new Error('No file provided'));
@@ -98,6 +146,12 @@ class DocumentComponent {
         }
     }
 
+    /**
+     * Add a file to the field.
+     * @param {object} file The file to be added to the field.
+     * @param {number | string} file.id The ID of the file.
+     * @param {string} file.name The name of the file.
+     */
     addFileToField(file: { id: number | string; name: string }) {
         const $fieldset = this.el.closest('.fieldset');
         const $ul = $fieldset.find('.fileupload__files');
@@ -137,6 +191,14 @@ class DocumentComponent {
         });
     }
 
+    /**
+     * Rename a file.
+     * @param {number} fileId The ID of the file to be renamed.
+     * @param {string} oldName The current name of the file.
+     * @param {string} newName The new name for the file.
+     * @param {string} csrf_token The CSRF token for security.
+     * @param {boolean} is_new Indicates if the file is new (default is false).
+     */
     private async renameFile(fileId: number, oldName: string, newName: string, csrf_token: string, is_new: boolean = false) { // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why, so I've used the button itself
         try {
             this.hideException();
@@ -159,12 +221,19 @@ class DocumentComponent {
         }
     }
 
+    /**
+     * Show the container for the progress bar.
+     */
     showContainer() {
         const container = $(this.el.find('.progress-bar__container'));
         container.show();
     }
 
-    showException(e: any) {
+    /**
+     * Show an exception message in the progress bar.
+     * @param {string | Error} e The error to be displayed.
+     */
+    showException(e: string | Error) {
         this.showContainer();
         logging.info('Error uploading file', e);
         const error = typeof e == 'string' ? (fromJson(e) as Error).message : e.message;
@@ -174,6 +243,9 @@ class DocumentComponent {
         this.el.find('.progress-bar__percentage').html(error);
     }
 
+    /**
+     * Hide the exception message in the progress bar.
+     */
     hideException() {
         this.el.find('.progress-bar__container')
             .css('width', undefined)
@@ -185,6 +257,7 @@ class DocumentComponent {
 /**
  * Create a new document component
  * @param {JQuery<HTMLElement> | HTMLElement} el The element to attach the document component to
+ * @returns {DocumentComponent} The initialized document component
  */
 export default function documentComponent(el: JQuery<HTMLElement> | HTMLElement) {
     const component = new DocumentComponent(el);

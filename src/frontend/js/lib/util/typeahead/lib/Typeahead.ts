@@ -5,16 +5,13 @@ import { MappedResponse } from 'util/mapper/mapper';
 
 /**
  * Typeahead class for creating a typeahead
- * @param $input - input element to attach typeahead to
- * @param callback - callback function to be called when a suggestion is selected
- * @param sourceOptions - options for the typeahead data source
  */
 export class Typeahead {
     /**
      * Create a new Typeahead class
-     * @param $input The input element to attach typeahead to
-     * @param callback The callback function to be called when a suggestion is selected - this function should take in a suggestion of type T and return void
-     * @param sourceOptions The options for the typeahead data source
+     * @param {JQuery<HTMLElement>} $input The input element to attach typeahead to
+     * @param {(MappedResponse)=>void} callback The callback function to be called when a suggestion is selected - this function should take in a suggestion of type T and return void
+     * @param {TypeaheadSourceOptions} sourceOptions The options for the typeahead data source
      */
     constructor(private $input: JQuery<HTMLInputElement>, private callback: (suggestion: MappedResponse) => void, private sourceOptions: TypeaheadSourceOptions) {
         this.init();

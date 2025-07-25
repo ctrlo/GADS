@@ -39,10 +39,18 @@ const modalStyle = {
     }
 };
 
+/**
+ * App component for the dashboard, managing widgets and layout.
+ */
 class App extends React.Component<any, any> {
     private formRef;
 
-    constructor(props) {
+    /**
+     * Create an instance of the App component.
+     * @param {any} props The properties passed to the component, including widgets, api, dashboardId, etc.
+     * @todo Use concrete types instead of `any` for better type safety.
+     */
+    constructor(props: any) {
         super(props);
         Modal.setAppElement('#ld-app');
 
@@ -66,7 +74,7 @@ class App extends React.Component<any, any> {
         this.initializeGlobeComponents();
     };
 
-    componentDidUpdate = (prevProps, prevState) => {
+    componentDidUpdate = (prevProps: any, prevState: any) => {
         window.requestAnimationFrame(this.overWriteSubmitEventListener);
 
         if (this.state.editModalOpen && prevState.loadingEditHtml && !this.state.loadingEditHtml && this.formRef) {
@@ -92,7 +100,7 @@ class App extends React.Component<any, any> {
         const arrGlobe = document.querySelectorAll('.globe');
         import('../../../globe/lib/component').then(({ default: GlobeComponent }) => {
             arrGlobe.forEach((globe) => {
-                new GlobeComponent(globe);
+                new GlobeComponent(globe as HTMLElement);
             });
         });
     };
@@ -135,7 +143,7 @@ class App extends React.Component<any, any> {
     };
 
     deleteActiveWidget = () => {
-     
+
         if (!window.confirm('Deleting a widget is permanent! Are you sure?'))
             return;
 
@@ -150,7 +158,7 @@ class App extends React.Component<any, any> {
         event.preventDefault();
         const formEl = this.formRef.current.querySelector('form');
         if (!formEl) {
-       
+
             console.error('No form element was found!');
             return;
         }
@@ -194,7 +202,7 @@ class App extends React.Component<any, any> {
         return { x, y };
     };
 
-   
+
     addWidget = async (type) => {
         this.setState({ loading: true });
         const result = await this.props.api.createWidget(type);
@@ -308,7 +316,11 @@ class App extends React.Component<any, any> {
         window.dispatchEvent(new Event('resize'));
     };
 
-    render() {
+    /**
+     * Renders the App component.
+     * @returns {React.JSX.Element} The rendered component, including the header, footer, and grid layout with widgets.
+     */
+    render(): React.JSX.Element {
         return (
             <div className="content-block">
                 {this.props.hideMenu ? null : <Header

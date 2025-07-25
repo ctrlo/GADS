@@ -6,7 +6,14 @@ import { logging } from 'logging';
 import TypeaheadBuilder from 'util/typeahead';
 import { refreshSelects } from 'components/form-group/common/bootstrap-select';
 
+/**
+ * FilterComponent class for managing filter functionality in a query builder.
+ */
 class FilterComponent extends Component {
+    /**
+     * Create an instance of FilterComponent
+     * @param {HTMLElement} element The HTML element that contains the filter component
+     */
     constructor(element) {
         super(element);
         this.el = $(this.element);
@@ -88,6 +95,9 @@ class FilterComponent extends Component {
         this.initFilter();
     }
 
+    /**
+     * Initializes the filter component by setting up the query builder
+     */
     initFilter() {
         const self = this;
         const $builderEl = this.el;
@@ -192,6 +202,12 @@ class FilterComponent extends Component {
         }
     }
 
+    /**
+     * Get the URL for the filter API
+     * @param {number} layoutId The ID of the layout
+     * @param {string} urlSuffix The suffix for the URL to fetch filter data
+     * @returns {string} The complete URL for the filter API
+     */
     getURL(layoutId, urlSuffix) {
         const devEndpoint = window.siteConfig && window.siteConfig.urls.filterApi;
 
@@ -202,6 +218,9 @@ class FilterComponent extends Component {
         }
     }
 
+    /**
+     * Creates a global function to update the filter
+     */
     makeUpdateFilter() {
         window.UpdateFilter = (builder, ev) => {
             if (!builder.queryBuilder('validate')) ev.preventDefault();
@@ -210,6 +229,12 @@ class FilterComponent extends Component {
         };
     }
 
+    /**
+     * Build the filter object for the query builder
+     * @param {object} builderConfig The configuration object for the query builder
+     * @param {object} col The column object containing filter properties
+     * @returns {object} The filter object to be used in the query builder
+     */
     buildFilter = (builderConfig, col) => {
         return ({
             id: col.filterId,
@@ -222,6 +247,11 @@ class FilterComponent extends Component {
         });
     };
 
+    /**
+     * Build the operators for a filter based on its type
+     * @param {string} type The type of the filter (e.g., 'date', 'daterange')
+     * @returns {string[]} An array of operators for the filter type
+     */
     buildFilterOperators(type) {
         if (!['date', 'daterange'].includes(type)) return undefined;
         const operators = [
@@ -238,6 +268,14 @@ class FilterComponent extends Component {
         return operators;
     }
 
+    /**
+     * Get the records based on the filter criteria
+     * @param {number} layoutId The ID of the layout
+     * @param {string} urlSuffix The suffix for the URL to fetch records
+     * @param {number} instanceId The ID of the instance
+     * @param {string} query The query string to filter records
+     * @returns {JQuery.jqXHR} An AJAX promise that resolves with the records
+     */
     getRecords = (layoutId, urlSuffix, instanceId, query) => {
         return (
             $.ajax({

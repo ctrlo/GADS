@@ -3,12 +3,22 @@ import { Component } from 'component';
 import 'summernote/dist/summernote-bs4';
 import { logging } from 'logging';
 
+/**
+ * Class representing a SummerNote component.
+ */
 class SummerNoteComponent extends Component {
+    /**
+     * Creates an instance of SummerNoteComponent.
+     * @param {HTMLElement} element The HTML element where the Summernote editor will be initialized
+     */
     constructor(element) {
         super(element);
         this.initSummerNote();
     }
 
+    /**
+     * Initializes the Summernote editor with the specified configuration.
+     */
     initSummerNote() {
         const self = this;
         $(this.element).summernote({
@@ -50,6 +60,11 @@ class SummerNoteComponent extends Component {
         });
     }
 
+    /**
+     * Handles file upload for the HTML editor.
+     * @param {File} file The file to upload.
+     * @param {HTMLElement} el The HTML element where the editor is initialized.
+     */
     handleHtmlEditorFileUpload(file, el) {
         if (file.type.includes('image')) {
             const data = new FormData();

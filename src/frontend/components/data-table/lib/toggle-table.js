@@ -27,11 +27,11 @@ const toggleRow = (ev) => {
 
 /**
  * Toggles (switches) all fields from source table to destination table
- * @param clickedRow {HTMLTableRowElement} - The row element to toggle
- * @param sourceTable {JQuery<HTMLTableElement>} - The table of the clicked row (source)
- * @param destinationTableID {string} - ID of the table where it's twin field need to be toggled
- * @param forceCheck {boolean|null} When defined it will force the field be checked (true) or unchecked (false).
- *                                  Default = null, meaning it will toggle based on its currect check status)
+ * @param {HTMLTableRowElement} clickedRow The row element to toggle
+ * @param {HTMLTableElement} sourceTable The table of the clicked row (source)
+ * @param {string} destinationTableID ID of the table where it's twin field need to be toggled
+ * @param {boolean | null} forceCheck When defined it will force the field be checked (true) or unchecked (false).
+ *                                    Default = null, meaning it will toggle based on its currect check status)
  */
 const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceCheck = null) => {
     // Retrieve the destination table

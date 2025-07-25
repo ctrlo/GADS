@@ -1,4 +1,13 @@
+/**
+ * Represents a single frame in a modal flow.
+ * @description A Frame holds configuration and DOM references for managing navigation and validation within a multi-step UI process.
+ */
 class Frame {
+    /**
+     * Creates a new Frame instance.
+     * @param {JQuery<HTMLElement>} frame - The jQuery object representing the frame DOM element.
+     * @param {number} previousFrameNumber - The number of the previous frame in the sequence.
+     */
     constructor(frame, previousFrameNumber) {
         this.object = frame;
         this.step = frame.data('config').step;

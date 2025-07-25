@@ -1,8 +1,8 @@
 /**
  * Encrypts data using AES-GCM
- * @param data The data to encrypt
- * @param password The password to encrypt the data with
- * @returns The encrypted data
+ * @param {string} data The data to encrypt
+ * @param {string} password The password to encrypt the data with
+ * @returns {Promise<string>} The encrypted data
  */
 export async function encrypt(data: string, password: string): Promise<string> {
     const key = createKey(password, 'encrypt');
@@ -25,9 +25,9 @@ export async function encrypt(data: string, password: string): Promise<string> {
 
 /**
  * Decrypts data using AES-GCM
- * @param data The data to decrypt
- * @param password The password to decrypt the data with
- * @returns The decrypted data
+ * @param {string} data The data to decrypt
+ * @param {string} password The password to decrypt the data with
+ * @returns {Promise<string>} The decrypted data
  */
 export async function decrypt(data: string, password: string): Promise<string> {
     const key = createKey(password, 'decrypt');
@@ -48,11 +48,11 @@ export async function decrypt(data: string, password: string): Promise<string> {
 
 /**
  * Creates a key for AES-GCM
- * @param password The password to create the key with
- * @param mode Whether to encrypt or decrypt
- * @returns The key
+ * @param {string} password The password to create the key with
+ * @param {'encrypt'|'decrypt'} mode Whether to encrypt or decrypt
+ * @returns {Promise<CryptoKey>} The key
  */
-async function createKey(password: string, mode: 'encrypt' | 'decrypt') {
+async function createKey(password: string, mode: 'encrypt' | 'decrypt'): Promise<CryptoKey> {
     const salt = new TextEncoder().encode('salt');
     const encoder = new TextEncoder();
     const deriver = crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, ['deriveKey']);

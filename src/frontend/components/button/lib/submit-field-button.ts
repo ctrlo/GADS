@@ -23,7 +23,7 @@ export default class SubmitFieldButton {
 
     /**
      * Create a submit field button
-     * @param element The submit button element
+     * @param {JQuery<HTMLElement>} element The submit button element
      */
     constructor(element: JQuery<HTMLElement>) {
         element.on('click', (ev) => {
@@ -90,7 +90,7 @@ export default class SubmitFieldButton {
                     url: this.getURL(data),
                     data: { data: mytext, csrf_token: data.csrfToken }
                 }).done(() => {
-                     
+
                     alert('Tree has been updated');
                 });
             }
@@ -123,8 +123,8 @@ export default class SubmitFieldButton {
 
     /**
      * Get the URL for the tree API
-     * @param data The data for the tree
-     * @returns The URL for the tree API
+     * @param {JQuery.PlainObject} data The data for the tree
+     * @returns {string} The URL for the tree API
      */
     private getURL(data: JQuery.PlainObject): string {
         if (window.test) return '';

@@ -23,9 +23,9 @@ export class GadsStorage implements AppStorage {
 
     /**
      * Fetches the storage key used to encrypt data.
-     * @returns The storage key used to encrypt data.
+     * @returns {Promise<string>} The storage key used to encrypt data.
      */
-    private async getStorageKey() {
+    private async getStorageKey(): Promise<string> {
         if (window.test) {
             this.storageKey = 'test';
             return;
@@ -38,9 +38,7 @@ export class GadsStorage implements AppStorage {
         this.storageKey = data.key;
     }
 
-    /**
-     * @inheritdoc
-     */
+    /** @inheritdoc */
     async setItem(key: string, value: string) {
         // We turn off writing if we're performing a recovery to prevent extra write operations—this is more to prevent
         // the odd curval error with dropdowns. It's felt it's more sensible to do this here, rather than search through
@@ -53,9 +51,7 @@ export class GadsStorage implements AppStorage {
         await this.storage.setItem(key, value, this.storageKey);
     }
 
-    /**
-     * @inheritdoc
-     */
+    /** @inheritdoc */
     async getItem(key: string) {
         if (!this.storageKey) {
             await this.getStorageKey();
@@ -63,30 +59,22 @@ export class GadsStorage implements AppStorage {
         return await this.storage.getItem(key, this.storageKey);
     }
 
-    /**
-     * @inheritdoc
-     */
+    /** @inheritdoc */
     removeItem(key: string) {
         this.storage.removeItem(key);
     }
 
-    /**
-     * @inheritdoc
-     */
+    /** @inheritdoc */
     clear() {
         this.storage.clear();
     }
 
-    /**
-     * @inheritdoc
-     */
+    /** @inheritdoc */
     key(index: number) {
         return this.storage.key(index);
     }
 
-    /**
-     * @inheritdoc
-     */
+    /** @inheritdoc */
     get length() {
         return this.storage.length;
     }

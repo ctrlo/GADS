@@ -5,7 +5,14 @@ const SELECT_PLACEHOLDER = 'select__placeholder';
 const SELECT_MENU_ITEM_ACTIVE = 'select__menu-item--active';
 const SELECT_MENU_ITEM_HOVER = 'select__menu-item--hover';
 
+/**
+ * Select component that handles custom select functionality
+ */
 class SelectComponent extends Component {
+    /**
+     * Create a new SelectComponent instance
+     * @param {HTMLElement} element The select element
+     */
     constructor(element) {
         super(element);
         this.el = $(this.element);
@@ -24,9 +31,17 @@ class SelectComponent extends Component {
         }
     }
 
+    /**
+     * @type {SelectComponent} self
+     * @description Reference to the current instance for static methods
+     * @static
+     * @todo Why is this needed?
+     */
     static self = this;
 
-    // Intializes the select
+    /**
+     * Intializes the select
+     */
     initSelect() {
         if (!this.options) {
             return;
@@ -42,6 +57,11 @@ class SelectComponent extends Component {
         }
     }
 
+    /**
+     * Add an option to the select menu
+     * @param {string} name The name of the option to add
+     * @param {string} value The value of the option to add
+     */
     addOption(name, value) {
         const newOption = document.createElement('li');
 
@@ -57,6 +77,10 @@ class SelectComponent extends Component {
         this.options = this.el.find('.select__menu-item');
     }
 
+    /**
+     * Remove an option from the select menu
+     * @param {string} value The value of the option to remove
+     */
     removeOption(value) {
         this.options.each((i, option) => {
             if (parseInt(option.dataset.value) === value) {
@@ -65,6 +89,11 @@ class SelectComponent extends Component {
         });
     }
 
+    /**
+     * Update an option in the select menu
+     * @param {string} name The name of the option to update
+     * @param {string} value The value of the option to update
+     */
     updateOption(name, value) {
         this.options.each((i, option) => {
             if (parseInt(option.dataset.value) === value) {
@@ -74,23 +103,35 @@ class SelectComponent extends Component {
         });
     }
 
+    /**
+     * Bind a click handler to an option
+     * @param {HTMLElement} option The option element to bind the click handler to
+     */
     bindOptionHandler(option) {
         $(option).on('click', (ev) => { this.handleClick(ev); });
     }
 
-    // Handles the opening of the select
+    /**
+     * Handles the opening of the select
+     */
     handleOpen() {
         this.el.on('keydown', (ev) => { this.supportKeyboardNavigation(ev); });
     }
 
-    // Handles the closing of the select
+    /**
+     * Handles the closing of the select
+     * @param {JQuery.TriggeredEvent} ev The event that triggered the close
+     */
     handleClose(ev) {
         this.el.dropdown('hide');
         ev.stopPropagation();
         this.el.off('keydown');
     }
 
-    // Handles a change event of the (hidden) input
+    /**
+     * Handles a change event of the (hidden) input
+     * @param {JQuery.ChangeEvent} ev The event that triggered the change
+     */
     handleChange(ev) {
         const value = $(ev.target).val();
 
@@ -109,7 +150,10 @@ class SelectComponent extends Component {
         }
     }
 
-    // Handles a click event on one of the options
+    /**
+     * Handles a click event on one of the options
+     * @param {JQuery.ClickEvent} ev The event that triggered the click
+     */
     handleClick(ev) {
         const option = $(ev.target);
         const value = option.data('value');
@@ -132,6 +176,10 @@ class SelectComponent extends Component {
         this.toggleButton.trigger('focus');
     }
 
+    /**
+     * Reveals the instance associated with the clicked option
+     * @param {JQuery<HTMLElement>} $option The option that was clicked
+     */
     revealInstance($option) {
         const arrSelectRevealInstances = $(`.select-reveal--${this.input.attr('id')} > .select-reveal__instance`);
         let instanceID = '';
@@ -151,6 +199,11 @@ class SelectComponent extends Component {
         this.disableFields($(instanceID), false);
     }
 
+    /**
+     * Enable or disable fields within a container
+     * @param {HTMLElement} container The container element that holds the fields to disable
+     * @param {boolean} bDisable True to disable the fields, false to enable them
+     */
     disableFields(container, bDisable) {
         const $fields = $(container).find('input, textarea');
 
@@ -161,7 +214,10 @@ class SelectComponent extends Component {
         }
     }
 
-    // Updates the hovered option
+    /**
+     * Updates the hovered option
+     * @param {number} newIndex The index of the new hovered option
+     */
     updateHovered(newIndex) {
         const prevOption = this.options[this.optionHoveredIndex];
         const option = this.options[newIndex];
@@ -176,7 +232,10 @@ class SelectComponent extends Component {
         this.optionHoveredIndex = newIndex;
     }
 
-    // Updates the checked option
+    /**
+     * Updates the checked option
+     * @param {HTMLElement} option The option element to update
+     */
     updateChecked(option) {
         const value = $(option).data('value');
         const text = $(option).html();
@@ -193,7 +252,10 @@ class SelectComponent extends Component {
         this.optionChecked = value;
     }
 
-    // Handles the keyboard events
+    /**
+     * Handles the keyboard events for navigation within the select menu
+     * @param {JQuery.KeyDownEvent} ev The keyboard event
+     */
     supportKeyboardNavigation(ev) {
     // press down -> go next
         if (ev.keyCode === 40 && this.optionHoveredIndex < this.optionsCount - 1) {
@@ -229,7 +291,9 @@ class SelectComponent extends Component {
         }
     }
 
-    // Reset the select to it's initial state
+    /**
+     * Reset the select to it's initial state
+     */
     resetSelect() {
         const placeholder = this.input[0].placeholder;
 

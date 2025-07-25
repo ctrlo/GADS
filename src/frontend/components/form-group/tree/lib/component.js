@@ -2,7 +2,14 @@ import { Component } from 'component';
 import 'jstree';
 import { initValidationOnField, validateTree } from 'validation';
 
+/**
+ * Component to display a tree structure using jstree.
+ */
 class TreeComponent extends Component {
+    /**
+     * Create a new TreeComponent.
+     * @param {HTMLElement} element The HTML element that this component is attached to.
+     */
     constructor(element) {
         super(element);
         this.el = $(this.element);
@@ -24,6 +31,9 @@ class TreeComponent extends Component {
         }
     }
 
+    /**
+     * Initializes the jstree with the appropriate configuration.
+     */
     initTree() {
         const idsAsParams = this.$treeContainer.data('ids-as-params');
         const treeConfig = {
@@ -50,7 +60,7 @@ class TreeComponent extends Component {
         // The below fix is to prevent the tree from erroring when it is a multivalue and a value is deselected
         if (!this.multiValue) {
             //Deselect Fix - 26.04.24 - DR
-            //Unless you have a click event, the select_node event doesn't trigger when you click on the same node - I don't know why this is, 
+            //Unless you have a click event, the select_node event doesn't trigger when you click on the same node - I don't know why this is,
             //all I know is, it gave me a headache! Either way, it appears to work now, so I'm happy!!
             let node;
 
@@ -84,6 +94,12 @@ class TreeComponent extends Component {
         this.$treeContainer.jstree(true).settings.checkbox.cascade = 'undetermined';
     }
 
+    /**
+     * Get the data for the jstree.
+     * @param {number} id The ID of the tree to fetch data for.
+     * @param {string} idsAsParams The parameters in the request.
+     * @returns {object} The configuration object for the jstree data source.
+     */
     getData(id, idsAsParams) {
         const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi;
         const layout_identifier = $('body').data('layout-identifier');
@@ -105,6 +121,12 @@ class TreeComponent extends Component {
         );
     }
 
+    /**
+     * Handle the selection of a node in the jstree.
+     * @param {JQuery.TriggeredEvent} e The event triggered by the jstree.
+     * @param {object} data The data object containing the node information.
+     * @todo This method can have the event parameter removed, as it is not used.
+     */
     handleSelect(e, data) {
         if (data.node.children.length == 0) {
             return;
@@ -117,6 +139,12 @@ class TreeComponent extends Component {
         }
     }
 
+    /**
+     * Handle change to the jstree selection.
+     * @param {JQuery.TriggeredEvent} e The event triggered by the jstree.
+     * @param {object} data The data object containing the selected nodes.
+     * @todo This method can have the event parameter removed, as it is not used.
+     */
     handleChange(e, data) {
     // remove all existing hidden value fields
         this.$treeContainer.nextAll('.selected-tree-value').remove();
@@ -143,6 +171,10 @@ class TreeComponent extends Component {
             this.$treeContainer.trigger('change');
     }
 
+    /**
+     * Setup the jstree buttons for expand, collapse, reload, add, rename, and delete.
+     * @param {JQuery<HTMLElement>} $treeContainer The jstree container element.
+     */
     setupJStreeButtons($treeContainer) {
         const $btnExpand = this.el.find('.btn-js-tree-expand');
         const $btnCollapse = this.el.find('.btn-js-tree-collapse');
@@ -159,6 +191,9 @@ class TreeComponent extends Component {
         $btnDelete.on('click', () => { this.handleDelete(); });
     }
 
+    /**
+     * Handle the addition of a new node to the jstree.
+     */
     handleAdd() {
         const ref = this.$treeContainer.jstree(true);
         let sel = ref.get_selected();
@@ -176,6 +211,11 @@ class TreeComponent extends Component {
         }
     }
 
+    /**
+     * Handle the deletion of a node from the jstree.
+     * @returns {boolean} Returns true if a node was deleted, false otherwise.
+     * @todo Why does this have a return value?
+     */
     handleDelete() {
         const ref = this.$treeContainer.jstree(true);
         let sel = ref.get_selected();
@@ -185,8 +225,14 @@ class TreeComponent extends Component {
         }
 
         ref.delete_node(sel);
+        return true;
     }
 
+    /**
+     * Handle the renaming of a node in the jstree.
+     * @returns {boolean} Returns true if a node was renamed, false otherwise.
+     * @todo Why does this have a return value?
+     */
     handleRename() {
         const ref = this.$treeContainer.jstree(true);
         let sel = ref.get_selected();
@@ -197,6 +243,7 @@ class TreeComponent extends Component {
 
         sel = sel[0];
         ref.edit(sel);
+        return true;
     }
 }
 

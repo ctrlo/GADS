@@ -1,16 +1,39 @@
 import { hideElement, showElement } from 'util/common';
 
+/**
+ * FileDragOptions interface to define options for the FileDrag class.
+ */
 export interface FileDragOptions {
+    /**
+     * Whether to allow multiple files to be dropped.
+     * @default false
+     * @type {boolean}
+     */
     allowMultiple?: boolean;
+    /**
+     * Whether to enable debug mode for logging.
+     * @default false
+     * @type {boolean}
+     */
     debug?: boolean;
 }
 
+/**
+ * FileDrag class to handle drag and drop file uploads.
+ * @template T The type of the HTML element to be used for drag and drop.
+ */
 class FileDrag<T extends HTMLElement = HTMLElement> {
     private el: JQuery<T>;
     private dropZone: JQuery<HTMLElement>;
     // for testing
     protected dragging: boolean = false;
 
+    /**
+     * Creates an instance of FileDrag.
+     * @param {T} element The HTML element to attach the drag and drop functionality to.
+     * @param {FileDragOptions} options The options for the FileDrag instance.
+     * @param {(FileList | File)} onDrop Callback function to be called when files are dropped.
+     */
     constructor(element: T, private options: FileDragOptions = {}, private onDrop?: (files: FileList | File) => void) {
         if (options.debug) console.log('FileDrag', element, options);
         this.el = $(element);
@@ -19,6 +42,9 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
         this.initElementEvents();
     }
 
+    /**
+     * Initializes the events for the drop zone elements.
+     */
     initElementEvents() {
         if (this.options.debug) console.log('initElementEvents');
         this.dropZone.on('dragenter', (e) => {
@@ -50,6 +76,9 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
         });
     }
 
+    /**
+     * Initializes the document-wide drag and drop events.
+     */
     initDocumentEvents() {
         if (this.options.debug) console.log('initDocumentEvents');
         $(document).on('dragenter', () => {
@@ -80,6 +109,9 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
         });
     }
 
+    /**
+     * Initializes the elements for the drag and drop functionality.
+     */
     initElements() {
         if (this.options.debug) console.log('initElements');
         this.el.data('draggable', 'true');

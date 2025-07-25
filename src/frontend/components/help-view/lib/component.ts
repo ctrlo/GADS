@@ -3,15 +3,15 @@ import { MarkDown } from 'util/formatters/markdown';
 
 /**
  * @class HelpView
- * @extends Component
  * @description A component that displays help text in a target.
  */
 export default class HelpView extends Component {
     // This is protected so that it can be accessed in tests.
     protected $button: JQuery<HTMLAnchorElement>;
+
     /**
-     * @constructor Create a new HelpView component.
-     * @param element The Element to attach the component to.
+     * Create a new HelpView component.
+     * @param {HTMLElement} element The Element to attach the component to.
      */
     constructor(element: HTMLElement) {
         super(element);
@@ -19,9 +19,8 @@ export default class HelpView extends Component {
     }
 
     /**
-     * @method initHelp
-     * @description Initialize the help view.
-     * @param element The element to attach the help view to.
+     * Initialize the help view.
+     * @param {HTMLElement} element The element to attach the help view to.
      */
     initHelp(element: HTMLElement) {
         const $el = $(element);

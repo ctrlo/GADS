@@ -2,7 +2,6 @@ import {Component} from 'component';
 
 /**
  * Button component
- * @extends Component
  */
 class ButtonComponent extends Component {
     /**
@@ -19,6 +18,7 @@ class ButtonComponent extends Component {
 
     /**
      * Get the map of button components
+     * @returns {Map<string, (element: JQuery<HTMLElement>) => void>} The map of button components
      */
     private get buttonsMap(): Map<string, (element: JQuery<HTMLElement>) => void> {
         if (!ButtonComponent.staticButtonsMap) ButtonComponent.initMap();
@@ -27,7 +27,7 @@ class ButtonComponent extends Component {
 
     /**
      * Create a button component
-     * @param element {HTMLElement} The button element
+     * @param { HTMLElement } element The button element
      */
     constructor(element: HTMLElement) {
         super(element);
@@ -116,7 +116,7 @@ class ButtonComponent extends Component {
 
     /**
      * Initialize the button
-     * @param element {HTMLElement} The button element
+     * @param {HTMLElement} element The button element
      */
     private initButton(element: HTMLElement) {
         const el: JQuery<HTMLElement> = $(element);

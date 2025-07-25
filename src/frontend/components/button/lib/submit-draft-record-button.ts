@@ -2,7 +2,7 @@ import { clearSavedFormValues } from './common';
 
 /**
  * Create a submit draft record button
- * @param element {JQuery<HTMLElement>} The button element
+ * @param {JQuery<HTMLElement>} element The button element
  */
 export default function createSubmitDraftRecordButton(element: JQuery<HTMLElement>) {
     element.on('click', async (ev: JQuery.ClickEvent) => {

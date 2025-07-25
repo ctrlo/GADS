@@ -1,14 +1,24 @@
 import { Component } from 'component';
 
+/**
+ * SelectAllComponent class to manage the behavior of a "select all" checkbox.
+ */
 export default class SelectAllComponent extends Component {
     el: JQuery<HTMLInputElement>;
 
-    constructor(element) {
+    /**
+     * Creates an instance of SelectAllComponent.
+     * @param {HTMLElement} element The HTML element representing the "select all" checkbox.
+     */
+    constructor(element: HTMLElement) {
         super(element);
-        this.el = $(element);
+        this.el = $<HTMLInputElement>(element as HTMLInputElement);
         this.element.addEventListener('change', () => this.onChange());
     }
 
+    /**
+     * Handles the change event of the "select all" checkbox.
+     */
     onChange() {
         const parent = this.el.closest('fieldset');
         const boxes = parent.find('input[type=checkbox]');

@@ -4,7 +4,14 @@ import initDateField from 'components/datepicker/lib/helper';
 const SELECT_PLACEHOLDER = 'select__placeholder';
 const SELECT_MENU_ITEM_ACTIVE = 'select__menu-item--active';
 
+/**
+ * Component for multiple select form elements.
+ */
 class MultipleSelectComponent extends Component {
+    /**
+     * Create a new MultipleSelectComponent.
+     * @param {HTMLElement} element The HTML element for the multiple select component.
+     */
     constructor(element) {
         super(element);
         this.el = $(this.element);
@@ -16,6 +23,9 @@ class MultipleSelectComponent extends Component {
         this.initMultipleSelect(this.el);
     }
 
+    /**
+     * Initialize the multiple select component.
+     */
     initMultipleSelect() {
         if (!this.multipleSelectList) {
             return;
@@ -32,6 +42,10 @@ class MultipleSelectComponent extends Component {
         this.addBtn.on('click', () => { this.handleClick(); });
     }
 
+    /**
+     * Handle the visibility of the delete button based on input values.
+     * @param {HTMLElement} row The row element to check for delete button visibility.
+     */
     handleDeleteButtonVisibility(row) {
         const delBtn = $(row).find('.btn-delete');
         const rowInputs = $(row).find('input[type="hidden"]');
@@ -45,6 +59,9 @@ class MultipleSelectComponent extends Component {
         });
     }
 
+    /**
+     * Handle the click event to add a new multiple select row.
+     */
     handleClick() {
         this.el.find('.btn-delete').removeClass('btn-delete--hidden');
 
@@ -90,6 +107,10 @@ class MultipleSelectComponent extends Component {
         $newMultipleSelectRow.appendTo(this.multipleSelectList);
     }
 
+    /**
+     * Handle the click event to delete a multiple select row.
+     * @param {JQuery.ClickEvent} ev The click event triggered by the delete button.
+     */
     handleClickDelete(ev) {
         const multipleSelectArray = this.multipleSelectList.find('> .multiple-select__row');
 
@@ -108,6 +129,10 @@ class MultipleSelectComponent extends Component {
         }
     }
 
+    /**
+     * Reset a row in the multiple select component.
+     * @param {HTMLElement} row The row element to reset.
+     */
     resetRow(row) {
         const rowInputs = $(row).find('input[type="hidden"]');
 

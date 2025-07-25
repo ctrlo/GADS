@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-jsdoc */
 /// <reference types="jest" />
 import { LUA } from './lua';
 

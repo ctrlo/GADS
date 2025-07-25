@@ -5,6 +5,9 @@
  */
 type ProgressFunction = (loaded: number, total: number) => void;
 
+/**
+ * Type to represent the HTTP request methods that can be used for uploading data
+ */
 type RequestMethod = 'PUT' | 'POST' | 'GET' | 'DELETE' | 'PATCH';
 
 /**
@@ -12,10 +15,10 @@ type RequestMethod = 'PUT' | 'POST' | 'GET' | 'DELETE' | 'PATCH';
  */
 type XmlHttpRequestLike = {
     open: (method: string, url: string) => void,
-    onabort?: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => any) | null,  
-    onerror?: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => any) | null,  
+    onabort?: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => any) | null,
+    onerror?: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => any) | null,
     onprogress?: ((e: ProgressEvent) => void) | null,
-    onreadystatechange: ((this: XMLHttpRequest, ev: Event) => any) | null,  
+    onreadystatechange: ((this: XMLHttpRequest, ev: Event) => any) | null,
     send: (data?: Document | XMLHttpRequestBodyInit | null | undefined) => void,
     setRequestHeader: (header: string, value: string) => void,
     readyState: number,
@@ -25,11 +28,12 @@ type XmlHttpRequestLike = {
 
 /**
  * Upload data to a server endpoint
- * @param url The endpoint to upload to
- * @param data The form data to upload
- * @param method The method to use, either POST, PUT, or GET
- * @param onProgress A callback that is called when the upload progress changes
- * @returns The JSON response from the server
+ * @template T The type of the response data
+ * @param { string | URL } url The endpoint to upload to
+ * @param {FormData | object} data The form data or object to upload
+ * @param { RequestMethod } method The method to use, either POST, PUT, or GET
+ * @param { ProgressFunction } onProgress A callback that is called when the upload progress changes
+ * @returns { Promise<T> } The JSON response from the server
  */
 async function upload<T = unknown>(url: string | URL, data?: FormData | object, method: RequestMethod = 'POST', onProgress: ProgressFunction = () => { }): Promise<T> {
     const uploader = new Uploader(url, method);
@@ -39,12 +43,18 @@ async function upload<T = unknown>(url: string | URL, data?: FormData | object, 
 
 /**
  * Helper class to upload form data to a server endpoint
+ * @todo The API class could be used within the Dashboard component rather than this class
  */
 class Uploader {
     private onProgressCallback?: ProgressFunction;
     private url: string | URL;
     private method: RequestMethod;
 
+    /**
+     * Create a new Uploader instance
+     * @param {string} url The endpoint to upload to
+     * @param {RequestMethod} method The method to use, either POST, PUT, or GET
+     */
     constructor(url: string | URL, method: RequestMethod) {
         this.url = url;
         this.method = method;
@@ -52,7 +62,7 @@ class Uploader {
 
     /**
      * Set a callback that is called when the upload progress changes
-     * @param callback A callback that is called when the upload progress changes
+     * @param {ProgressFunction} callback A callback that is called when the upload progress changes
      */
     onProgress(callback: ProgressFunction) {
         this.onProgressCallback = callback;
@@ -60,8 +70,9 @@ class Uploader {
 
     /**
      * Upload form data to a server endpoint
-     * @param data The form data or JSON object to upload
-     * @returns A promise that resolves to the JSON response from the server
+     * @template T The type of the response data
+     * @param { FormData | object } data The form data or JSON object to upload
+     * @returns { Promise<T> } A promise that resolves to the JSON response from the server
      */
     async upload<T>(data?: FormData | object): Promise<T> {
         return new Promise((resolve, reject) => {
