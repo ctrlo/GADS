@@ -23,7 +23,7 @@ export class GadsStorage implements AppStorage {
 
     /**
      * Fetches the storage key used to encrypt data.
-     * @returns {Promise<string>} The storage key used to encrypt data.
+     * @returns {Promise<void>} The storage key used to encrypt data.
      */
     private async getStorageKey(): Promise<void> {
         if (window.test) {

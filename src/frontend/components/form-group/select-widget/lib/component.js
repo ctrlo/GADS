@@ -186,7 +186,9 @@ class SelectWidgetComponent extends Component {
     }
 
     /**
-     * Handles keydown events on the search input.
+     * Handle the keydown event on the search input.
+     * @param {JQuery.KeyDownEvent} e The keydown event triggered on the search input.
+     * @todo Handle deprecated key codes and ensure compatibility with modern browsers.
      */
     handleKeyDown(e) {
         const key = e.which || e.keyCode;
@@ -234,7 +236,8 @@ class SelectWidgetComponent extends Component {
     }
 
     /**
-     * Handles the focus event on the search input to expand the widget.
+     * Handle the event triggered when the widget is expanded.
+     * @param {JQuery.TriggeredEvent} e The event triggered when the widget is expanded.
      */
     expandWidgetHandler(e) {
         e.stopPropagation();
@@ -242,7 +245,9 @@ class SelectWidgetComponent extends Component {
     }
 
     /**
-     * Collapses the select widget.
+     * Collapse the select widget.
+     * @param {JQuery<HTMLElement>} $widget The widget element.
+     * @param {JQuery<HTMLElement>} $trigger The trigger element that expands the widget.
      */
     collapse($widget, $trigger) {
         this.$selectWidget.removeClass('select-widget--open');
@@ -269,7 +274,8 @@ class SelectWidgetComponent extends Component {
     }
 
     /**
-     * Checks if the widget should be closed based on focus changes.
+     * Possible close the widget based on focus change.
+     * @param {JQuery.TriggeredEvent} e The event triggered when the widget might need to be closed.
      */
     possibleCloseWidget(e) {
         const newlyFocussedElement = e.relatedTarget || document.activeElement;
