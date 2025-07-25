@@ -1,10 +1,17 @@
 import React, {JSX, Component} from 'react';
 import { initializeRegisteredComponents } from 'component';
 
+/**
+ * Widget component that renders a widget with HTML content.
+ */
 export default class Widget extends Component<any, any> {
     private ref;
 
-    constructor(props) {
+    /**
+     * Create a Widget component.
+     * @param {*} props The properties passed to the component, including the widget HTML and a flag for read-only mode.
+     */
+    constructor(props: any) {
         super(props);
 
         this.ref = React.createRef();
