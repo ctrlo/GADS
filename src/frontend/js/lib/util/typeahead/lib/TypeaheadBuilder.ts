@@ -135,7 +135,7 @@ export class TypeaheadBuilder {
      * @returns {Typeahead} The built Typeahead class
      * @throws {Error} If input, callback, name, or ajax source is not set
      */
-    build() {
+    build(): Typeahead {
         if (!this.$input) throw new Error('Input not set');
         if (!this.callback) throw new Error('Callback not set');
         if (!this.name) throw new Error('Name not set');

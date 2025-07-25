@@ -120,7 +120,7 @@ class DocumentComponent {
      * @param {number} total The total number of bytes to be loaded.
      */
     showProgress(file: string, loaded: number, total: number) {
-        let uploadProgression = Math.round((loaded / total) * 100);
+        let uploadProgression = (loaded / total) * 100;
         if (uploadProgression == Infinity) {
             // This will occur when there is an error uploading the file or the file is empty
             uploadProgression = 100;

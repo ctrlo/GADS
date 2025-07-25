@@ -217,23 +217,20 @@ class TreeComponent extends Component {
         const ref = this.$treeContainer.jstree(true);
         let sel = ref.get_selected();
 
-        if (!sel.length) {
-            return false;
-        }
+        if (!sel.length)  return;
 
         ref.delete_node(sel);
     }
 
     /**
      * Handle the renaming of a node in the jstree.
+     * @returns {boolean} Returns true if a node was renamed, false otherwise.
      */
     handleRename() {
         const ref = this.$treeContainer.jstree(true);
         let sel = ref.get_selected();
 
-        if (!sel.length) {
-            return;
-        }
+        if (!sel.length) return;
 
         sel = sel[0];
         ref.edit(sel);
