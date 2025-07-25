@@ -117,10 +117,10 @@ class ExpandableCardComponent extends Component {
     };
 
     /**
-     * In order to ensure headers on the view filter tables are the correct width, we need to remove any styling that has been added to the header elements.
-     * And for some reason, using JQuery and DataTables, the styling is not reset as we expect it to be.
+     * In order to ensure headers on the view filter tables are the correct width
      */
     clearupStyling() {
+        // using JQuery and DataTables the styling is not as we expect it to be.
         const tables = $('.table-toggle');
         tables.removeAttr('style');
         const headers = $('.dt-scroll-headInner');

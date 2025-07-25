@@ -10,6 +10,7 @@ describe.skip('Submit field button tests - error in Jest means QB doesn\'t load'
         initGlobals();
     });
 
+     
     async function loadSubmitFieldButtonComponent(element: HTMLElement) {
         const { default: SubmitFieldButtonComponent } = await import('./submit-field-button');
         return new SubmitFieldButtonComponent($(element));
