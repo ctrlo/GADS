@@ -71,7 +71,10 @@ class Uploader {
             request.open(this.method, this.url.toString());
             request.onabort = () => reject('aborted');
             request.onerror = () => reject('error');
-            request.onprogress = (e: ProgressEvent) => this.onProgressCallback?.(e.loaded, e.total);
+            request.upload.onprogress = (e: ProgressEvent) => {
+                if(!e.lengthComputable) this.onProgressCallback?.(e.loaded, 0);
+                this.onProgressCallback?.(e.loaded, e.total);
+            }
             request.onreadystatechange = () => {
                 if (request.readyState === 4) {
                     if (request.status === 200) {
