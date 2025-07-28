@@ -22,4 +22,4 @@ apt-get install -y libplack-perl libpng-dev libpq-dev libscalar-list-utils-perl 
 apt-get install -y libstring-camelcase-perl libtest-mocktime-perl libtest-most-perl libtext-autoformat-perl
 apt-get install -y libtext-csv-encoded-perl libtext-markdown-perl libtie-cache-perl libtree-dagnode-perl liburl-encode-perl
 apt-get install -y libwww-form-urlencoded-xs-perl libwww-mechanize-chrome-perl libwww-mechanize-perl libyaml-perl postfix
-apt-get install -y postgresql-client starman perl libtest-tempdir-tiny-perl
+apt-get install -y postgresql-client starman perl libtest-tempdir-tiny-perl libtest-simple-perl
