@@ -65,7 +65,7 @@ describe('UploadControl', () => {
         const method = 'POST';
         const data = { key: 'value' };
         const uploader = new Uploader(url, method);
-        uploader.onProgress((loaded, total) => {
+        uploader.onProgress((name, loaded, total) => {
             expect(loaded).toBe(1);
             expect(total).toBe(2);
         });
