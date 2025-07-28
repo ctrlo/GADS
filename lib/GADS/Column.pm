@@ -248,14 +248,14 @@ sub reset_options
     # Force each option to build now to capture its value, otherwise if it
     # hasn't already been built then the options hash will be lost and it will
     # use its default value
-    $self->$_ foreach keys %{$self->option_names};
+    $self->$_ foreach map { $_->{name} } @{$self->option_names};
     $self->clear_options;
 }
 
 sub _build_options
 {   my $self = shift;
     my $options = {};
-    foreach my $option_name (keys %{$self->option_names})
+    foreach my $option_name (map {$_->{name}} @{$self->option_names})
     {
         $options->{$option_name} = $self->$option_name;
     }
@@ -264,8 +264,8 @@ sub _build_options
 
 has option_names => (
     is      => 'ro',
-    isa     => HashRef,
-    default => sub { {} },
+    isa     => ArrayRef,
+    default => sub { [] },
 );
 
 has user_options => (
@@ -273,7 +273,7 @@ has user_options => (
     isa     => ArrayRef[Str],
     builder => sub {
         my $self = shift;
-        [grep { $self->option_names->{$_} } keys %{$self->option_names}];
+        [map { $_->{name} } grep {$_->{user_configurable}} @{$self->option_names}];
     },
 );
 
@@ -1682,7 +1682,7 @@ sub import_hash
     notice __x"Update: filter from {old} to {new} for {name}",
         old => $self->filter->as_json, new => $values->{filter}, name => $self->name
             if $report && $self->filter->changed;
-    foreach my $option (keys %{$self->option_names})
+    foreach my $option (map {$_->{name}} @{$self->option_names})
     {
         notice __x"Update: {option} from {old} to {new} for {name}",
             option => $option, old => $self->$option, new => $values->{$option}, name => $self->name
@@ -1735,7 +1735,7 @@ sub export_hash
         };
     }
     $return->{display_fields} = \@display_fields;
-    foreach my $option (keys %{$self->option_names})
+    foreach my $option (map {$_->{name}} @{$self->option_names})
     {
         $return->{$option} = $self->$option;
     }

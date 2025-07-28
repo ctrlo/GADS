@@ -31,14 +31,25 @@ with 'GADS::Role::Curcommon::CurvalMulti';
 
 has '+option_names' => (
     default => sub {
-        +{
-            override_permissions => 1,
-            value_selector       => 1,
-            show_add             => 1,
-            delete_not_used      => 1,
-            limit_rows           => 1,
-            show_view_all        => 1,
-        }
+        [{
+            name              => 'override_permissions',
+            user_configurable => 1,
+        }, {
+            name              => 'value_selector',
+            user_configurable => 1,
+        }, {
+            name              =>'show_add',
+            user_configurable => 1,
+        }, {
+            name              => 'delete_not_used',
+            user_configurable => 1,
+        }, {
+            name              => 'limit_rows',
+            user_configurable => 1,
+        }, {
+            name              => 'show_view_all',
+            user_configurable => 1,
+        }]
     },
 );
 

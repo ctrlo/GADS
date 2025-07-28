@@ -46,9 +46,10 @@ has '+has_multivalue_plus' => (
 
 has '+option_names' => (
     default => sub {
-        +{
-            show_datepicker => 1,
-        }
+        [{
+            name              =>'show_datepicker',
+            user_configurable => 1,
+        }]
     },
 );
 

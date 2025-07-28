@@ -22,6 +22,7 @@ use Log::Report 'linkspace';
 use MIME::Base64 qw/decode_base64/;
 use Moo;
 use MooX::Types::MooseLike::Base qw/Int Maybe ArrayRef/;
+use GADS::Filecheck;
 
 use MIME::Base64 qw/encode_base64/;
 
@@ -29,9 +30,10 @@ extends 'GADS::Column';
 
 has '+option_names' => (
     default => sub { 
-        +{
-            override_types => 0,
-        }
+        [+{
+            name              => 'override_types',
+            user_configurable => 0,
+        }]
     }
 );
 

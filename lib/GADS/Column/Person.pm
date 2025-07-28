@@ -74,12 +74,19 @@ has '+fixedvals' => (
 
 has '+option_names' => (
     default => sub {
-        +{
-            default_to_login            => 1,
-            notify_on_selection         => 1,
-            notify_on_selection_subject => 1,
-            notify_on_selection_message => 1,
-        }
+        [{
+            name              => 'default_to_login',
+            user_configurable => 1,
+        }, {
+            name              => 'notify_on_selection',
+            user_configurable => 1,
+        }, {
+            name              => 'notify_on_selection_subject',
+            user_configurable => 1,
+        }, {
+            name              => 'notify_on_selection_message',
+            user_configurable =>1,
+        }]
     },
 );
 
