@@ -5,13 +5,16 @@ import { logging } from 'logging';
 import { initValidationOnField } from 'validation';
 
 /**
- * A SelectWidget is a custom disclosure widget with multi or single options selectable.
- * SelectWidgets can depend on each other; for instance if Value "1" is selected in Widget "A", Widget "B" might not be displayed.
+ * A SelectWidget is a custom disclosure widget
+ * with multi or single options selectable.
+ * SelectWidgets can depend on each other;
+ * for instance if Value "1" is selected in Widget "A",
+ * Widget "B" might not be displayed.
  */
 class SelectWidgetComponent extends Component {
     /**
-     * Constructor for the SelectWidgetComponent.
-     * @param {HTMLElement} element The HTML element that this component is attached to.
+     * Create a new SelectWidgetComponent.
+     * @param {HTMLElement} element - The HTML element that this component is attached to.
      */
     constructor(element) {
         super(element);
@@ -124,8 +127,7 @@ class SelectWidgetComponent extends Component {
     }
 
     /**
-     * Handle the keyup event on the search input.
-     * @param {JQuery.KeyUpEvent} e The keyup event triggered on the search input.
+     * Handles keyup events on the search input.
      */
     handleKeyUp(e) {
         const searchValue = $(e.target)
@@ -183,9 +185,7 @@ class SelectWidgetComponent extends Component {
     }
 
     /**
-     * Handle the keydown event on the search input.
-     * @param {JQuery.KeyDownEvent} e The keydown event triggered on the search input.
-     * @todo Handle deprecated key codes and ensure compatibility with modern browsers.
+     * Handles keydown events on the search input.
      */
     handleKeyDown(e) {
         const key = e.which || e.keyCode;
@@ -233,8 +233,7 @@ class SelectWidgetComponent extends Component {
     }
 
     /**
-     * Handle the event triggered when the widget is expanded.
-     * @param {JQuery.TriggeredEvent} e The event triggered when the widget is expanded.
+     * Handles the focus event on the search input to expand the widget.
      */
     expandWidgetHandler(e) {
         e.stopPropagation();
@@ -242,9 +241,7 @@ class SelectWidgetComponent extends Component {
     }
 
     /**
-     * Collapse the select widget.
-     * @param {JQuery<HTMLElement>} $widget The widget element.
-     * @param {JQuery<HTMLElement>} $trigger The trigger element that expands the widget.
+     * Collapses the select widget.
      */
     collapse($widget, $trigger) {
         this.$selectWidget.removeClass('select-widget--open');
@@ -262,7 +259,7 @@ class SelectWidgetComponent extends Component {
     }
 
     /**
-     * Update the state of the select widget based on the current items.
+     * Updates the state of the select widget based on the current items.
      */
     updateState() {
         const $visible = this.$current.children('[data-list-item]:not([hidden])');
@@ -271,8 +268,7 @@ class SelectWidgetComponent extends Component {
     }
 
     /**
-     * Possible close the widget based on focus change.
-     * @param {JQuery.TriggeredEvent} e The event triggered when the widget might need to be closed.
+     * Checks if the widget should be closed based on focus changes.
      */
     possibleCloseWidget(e) {
         const newlyFocussedElement = e.relatedTarget || document.activeElement;
@@ -409,14 +405,14 @@ class SelectWidgetComponent extends Component {
     }
 
     /**
-     * Get the current list item for the select widget.
-     * @param {boolean} multi Is the select widget multi-select?
-     * @param {JQuery<HTMLElement>} field The field name for the select widget.
-     * @param {number} value_id The ID of the value.
-     * @param {string} value_text The text of the value.
-     * @param {string} value_html The HTML representation of the value.
-     * @param {boolean} checked Is the value checked?
-     * @returns {JQuery<HTMLElement>} The current list item as a jQuery object.
+     * Creates a list item for the currently selected value.
+     * @param {boolean} multi - Whether the widget is multi-select.
+     * @param {string} field - The field name for the select widget.
+     * @param {string|null} value_id - The ID of the selected value.
+     * @param {string} value_text - The text of the selected value.
+     * @param {string} value_html - The HTML representation of the selected value.
+     * @param {boolean} checked - Whether the item is checked.
+     * @returns {jQuery} - The jQuery object representing the list item.
      */
     currentLi(multi, field, value_id, value_text, value_html, checked) {
         if (multi && !value_id) {
@@ -445,14 +441,14 @@ class SelectWidgetComponent extends Component {
     }
 
     /**
-     * Get the available list item for the select widget.
-     * @param {boolean} multi Is the select widget multi-select?
-     * @param {JQuery<HTMLElement>} field The field name for the select widget.
-     * @param {number} value_id The ID of the value.
-     * @param {string} value_text The text of the value.
-     * @param {string} label The label for the value.
-     * @param {boolean} checked Is the value checked?
-     * @returns {JQuery<HTMLElement>} The available list item as a jQuery object.
+     * Creates a list item for the available options.
+     * @param {boolean} multi - Whether the widget is multi-select.
+     * @param {string} field - The field name for the select widget.
+     * @param {string|null} value_id - The ID of the available value.
+     * @param {string} value_text - The text of the available value.
+     * @param {string} label - The label for the available value.
+     * @param {boolean} checked - Whether the item is checked.
+     * @returns {jQuery|null} - The jQuery object representing the list item, or null if no value_id is provided in multi-select mode.
      */
     availableLi(multi, field, value_id, value_text, label, checked) {
         if (this.multi && !value_id) {
@@ -513,6 +509,7 @@ class SelectWidgetComponent extends Component {
         return $li;
     }
 
+    //Some odd scoping issues here - but it works
     /**
      * Updates the JSON data for the select widget.
      * @param {string} url - The URL to fetch the JSON data from.
@@ -690,11 +687,10 @@ class SelectWidgetComponent extends Component {
     }
 
     /**
-     * Expand the select widget to show available options.
-     * @param {JQuery<HTMLElement>} $widget The widget element.
-     * @param {JQuery<HTMLElement>} $trigger The trigger element that expands the widget.
-     * @param {JQuery<HTMLElement>} $target The target element that contains the available options.
-     * @todo Remove deprecated key codes and ensure compatibility with modern browsers.
+     * Expands the select widget to show available options.
+     * @param {jQuery} $widget - The jQuery object representing the widget.
+     * @param {jQuery} $trigger - The jQuery object representing the trigger element.
+     * @param {jQuery} $target - The jQuery object representing the target element
      */
     expand($widget, $trigger, $target) {
         if ($trigger.attr('aria-expanded') === 'true') {

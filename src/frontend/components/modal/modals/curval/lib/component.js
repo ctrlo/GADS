@@ -21,7 +21,7 @@ class CurvalModalComponent extends ModalComponent {
      * Create a new instance of the Curval Modal Component
      * @param {HTMLElement} element The element to attach the component to
      */
-    constructor(element) {
+    constructor(element)  {
         super(element);
         this.context = undefined; // Populated on modal show
         if (!this.wasInitialized) this.initCurvalModal();
