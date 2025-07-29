@@ -78,18 +78,16 @@ class DocumentComponent {
     }
 
     showProgress(file: string, loaded: number, total: number) {
-        let uploadProgression = (loaded / total) * 100;
+        let uploadProgression = Math.round((loaded / total) * 100);
         if (uploadProgression == Infinity) {
             // This will occur when there is an error uploading the file or the file is empty
             uploadProgression = 100;
         }
         let barContainer = this.el?.find('.progress-bar__container[data-file-name="' + file + '"] ');
         if (!barContainer || barContainer.length < 1) {
-            logging.info('Creating new progress bar for file:', file);
             this.createProgressBar(this.el, file);
             barContainer = this.el.find('.progress-bar__container[data-file-name="' + file + '"]');
         }
-        logging.info('Updating progress bar for file:', file, 'Progression:', uploadProgression);
         barContainer.css('width', undefined)
         barContainer.find('.progress-bar__percentage').html(uploadProgression === 100 ? 'complete' : `${uploadProgression}%`);
         barContainer.find('.progress-bar__progress').css('width', `${uploadProgression}%`);
@@ -98,11 +96,14 @@ class DocumentComponent {
     createProgressBar(el: JQuery<HTMLElement>, file: string) {
         const progressBar = $(`
             <div class="progress-bar__container" data-file-name="${file}">
-                <div class="progress-bar__progress"></div>
-                <span class="progress-bar__percentage">0%</span>
+                <div class="progress-bar__progress">
+                    <span class="progress-bar__percentage">0%</span>
+                </div>
             </div>
         `);
-        el?.find(".progress-bars").append(progressBar);
+        const barContainer = el?.find("#progress-bars");
+        barContainer.append(progressBar);
+        progressBar.show();
     }
 
     handleAjaxUpload(uri: string, csrf_token: string, file: File, columnId: number) {
