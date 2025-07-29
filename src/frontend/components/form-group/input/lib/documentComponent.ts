@@ -6,7 +6,6 @@ import { formdataMapper } from 'util/mapper/formdataMapper';
 import { RenameEvent } from 'components/button/lib/rename-button';
 import { FileDropEvent } from 'util/filedrag';
 import ErrorHandler from 'util/errorHandler';
-import { fromJson } from 'util/common';
 
 /**
  * Interface for the file data returned from the server.
