@@ -22,7 +22,7 @@ class CurvalModalComponent extends ModalComponent {
      * Create a new instance of the Curval Modal Component
      * @param {HTMLElement} element The element to attach the component to
      */
-    constructor(element) {
+    constructor(element)  {
         super(element);
         this.context = undefined; // Populated on modal show
         if (!this.wasInitialized) this.initCurvalModal();
@@ -457,7 +457,7 @@ class CurvalModalComponent extends ModalComponent {
                     'json'
                 )
                     .fail(function(jqXHR, textstatus, errorthrown) {
-                        const errorMessage = `Oops! Something went wrong: ${textstatus}: ${errorthrown}`;
+                        const errorMessage = jqXHR.responseJSON?.message ?? `Oops! Something went wrong: ${textstatus}: ${errorthrown}`;
                         self.curvalModalValidationFailed($form, errorMessage);
                     })
                     .always(function() {
