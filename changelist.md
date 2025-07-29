@@ -1,5 +1,7 @@
 # GADS Changelist
 
+--------
+
 **Version**: 2.7.0
 **Released**: {TBC}
 
@@ -7,7 +9,7 @@
 
 ## Features
 
-- Integrated new chart system using Chart.js allowing for clearer charts
+- Clearer feedback is now provided when a session times out
 - Added customisation of file types allowed at layout level
 - Updated to allow saving of files to server filesystem, allowing for larger file sizes to be uploaded
 
@@ -15,14 +17,13 @@
 
 - Added loading div to Timeline
 - Modified get request where a large amount of data was being sent in the request to now use post
-- Fix for basic auth not working as expected on API requests
 
-## QoL/Development fixes
+-------
 
-- Upgraded libraries to current versions
-- Upgraded and integrated new React v19+ components
-- Upgraded and integrated DataTables.net v2
-- Upgraded and integrated Bootstrap v5+
+**Version**: 2.6.7
+**Released**: 03-07-2025
+
+- Fix basic authentication in API
 
 -------
 
