@@ -46,7 +46,7 @@ class DocumentComponent {
         const dropTarget = this.el.closest('.file-upload');
 
         const columnId = this.el.closest('.linkspace-field')?.data('column-id') ?? 0;
-        this.handler = new ErrorHandler(dropTarget[0]);
+        this.handler = new ErrorHandler(this.el.find('.error-messages')[0]);
 
         if (dropTarget) {
             const dragOptions = { allowMultiple: true };
@@ -101,7 +101,7 @@ class DocumentComponent {
                 </div>
             </div>
         `);
-        const barContainer = el?.find("#progress-bars");
+        const barContainer = el?.find(".progress-bars");
         barContainer.append(progressBar);
         progressBar.show();
     }
