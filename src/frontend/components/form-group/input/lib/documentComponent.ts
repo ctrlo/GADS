@@ -67,8 +67,7 @@ class DocumentComponent {
             const file = ev.target.files![0];
             if (!file || file === undefined || !file.name) return;
             const formData = formdataMapper({ file, csrf_token, column_id: columnId });
-            this.showContainer();
-            upload<FileData>(url, formData, 'POST', this.showProgress.bind(this)).then((data)=>{
+            upload<FileData>(url, formData, 'POST', (loaded, total) => this.showProgress(file.name, loaded, total)).then((data)=>{
                 this.addFileToField({ id: data.id, name: data.filename });
             }).catch((e) => {
                 if(JSON.parse(e as string)?.message)
@@ -78,17 +77,32 @@ class DocumentComponent {
         });
     }
 
-    showProgress(loaded: number, total: number) {
+    showProgress(file: string, loaded: number, total: number) {
         let uploadProgression = (loaded / total) * 100;
         if (uploadProgression == Infinity) {
             // This will occur when there is an error uploading the file or the file is empty
             uploadProgression = 100;
         }
-        this.el?.find('.progress-bar__container')
-            .css('width', undefined)
-            .removeClass('progress-bar__container--fail');
-        this.el?.find('.progress-bar__percentage').html(uploadProgression === 100 ? 'complete' : `${uploadProgression}%`);
-        this.el?.find('.progress-bar__progress').css('width', `${uploadProgression}%`);
+        let barContainer = this.el?.find('.progress-bar__container[data-file-name="' + file + '"] ');
+        if (!barContainer || barContainer.length < 1) {
+            logging.info('Creating new progress bar for file:', file);
+            this.createProgressBar(this.el, file);
+            barContainer = this.el.find('.progress-bar__container[data-file-name="' + file + '"]');
+        }
+        logging.info('Updating progress bar for file:', file, 'Progression:', uploadProgression);
+        barContainer.css('width', undefined)
+        barContainer.find('.progress-bar__percentage').html(uploadProgression === 100 ? 'complete' : `${uploadProgression}%`);
+        barContainer.find('.progress-bar__progress').css('width', `${uploadProgression}%`);
+    }
+
+    createProgressBar(el: JQuery<HTMLElement>, file: string) {
+        const progressBar = $(`
+            <div class="progress-bar__container" data-file-name="${file}">
+                <div class="progress-bar__progress"></div>
+                <span class="progress-bar__percentage">0%</span>
+            </div>
+        `);
+        el?.find(".progress-bars").append(progressBar);
     }
 
     handleAjaxUpload(uri: string, csrf_token: string, file: File, columnId: number) {
@@ -97,14 +111,12 @@ class DocumentComponent {
 
             const fileData = formdataMapper({ file, csrf_token, column_id: columnId });
 
-            this.showContainer();
-            upload<FileData>(uri, fileData, 'POST', this.showProgress).then((data) => {
+            upload<FileData>(uri, fileData, 'POST', (loaded, total) => this.showProgress(file.name, loaded, total)).then((data) => {
                 this.addFileToField({ id: data.id, name: data.filename });
             }).then(
                 () => { 
-                    this.hideException();
-                    const container = $(this.el.find('.progress-bar__container'));
-                    container.hide();
+                    $(this.el.find('.progress-bar__container[data-file-name="' + file.name + '"]'))
+                        .hide();
                 }
             ).catch((e) => {
                 const error = e instanceof Error ? e.message : e as string ?? e.toString();
@@ -166,7 +178,6 @@ class DocumentComponent {
 
     private async renameFile(fileId: number, oldName: string, newName: string, csrf_token: string, is_new: boolean = false) { // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why, so I've used the button itself
         try {
-            this.hideException();
             const filename = newName;
             const url = `/api/file/${fileId}`;
             const mappedData = formdataMapper({ csrf_token, filename, is_new: is_new ? 1 : 0 });
@@ -185,26 +196,8 @@ class DocumentComponent {
         }
     }
 
-    showContainer() {
-        const container = $(this.el.find('.progress-bar__container'))
-        container.show()
-    }
-
     showException(e: any) {
-        this.showContainer();
-        logging.info('Error uploading file', e);
-        const error = typeof e == 'string' ? (fromJson(e) as Error).message : e.message;
-        this.el.find('.progress-bar__container')
-            .css('width', '100%')
-            .addClass('progress-bar__container--fail');
-        this.el.find('.progress-bar__percentage').html(error);
-    }
-
-    hideException() {
-        this.el.find('.progress-bar__container')
-            .css('width', undefined)
-            .removeClass('progress-bar__container--fail')
-            .hide();
+        this.handler.addError(e);
     }
 }
 
