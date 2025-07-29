@@ -14,7 +14,6 @@ import 'jstree';
  * Set the value of a field based on its type.
  * @param {JQuery} $field The field to set values for
  * @param {(string | object)[]} values
- * @todo A map may be more efficient?
  */
 const setFieldValues = function ($field, values) {
 
