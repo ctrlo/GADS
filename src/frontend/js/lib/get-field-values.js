@@ -1,6 +1,11 @@
 import 'jstree';
 
-// General function to format date as per backend
+/**
+ * General function to format date as per backend
+ * @param {Date} date - The date to format
+ * @returns {Object} An object with year, month, day, hour, minute, second, and epoch properties
+ * @private
+ */
 const format_date = function (date) {
     if (!date) return undefined;
     return {
@@ -15,7 +20,14 @@ const format_date = function (date) {
     };
 };
 
-// get the value from a field, depending on its type
+/**
+ * get the value from a field, depending on its type
+ * @param {jQuery} $depends - The jQuery object representing the field
+ * @param {boolean} filtered - Whether the field is filtered
+ * @param {boolean} for_code - Whether to return the value for code generation
+ * @param {boolean} for_autosave - Whether to return the value for autosave
+ * @returns {string|Array|Object} The value(s) of the field, formatted according to the field type
+ */
 const getFieldValues = function ($depends, filtered, for_code, for_autosave) {
     const type = $depends.data('column-type');
 

@@ -1,6 +1,16 @@
 import React from 'react';
 
-const Footer = ({ addWidget, widgetTypes, currentDashboard, readOnly, noDownload }) => {
+/**
+ * Create a Footer component that displays options for downloading the dashboard and adding widgets.
+ * @param param0 The properties for the Footer component, including a function to add a widget, a list of widget types, the current dashboard, a read-only flag, and a no-download flag.
+ * @param {function} param0.addWidget Function to call when adding a widget.
+ * @param {Array} param0.widgetTypes The list of widget types available for addition.
+ * @param {object} param0.currentDashboard The currently active dashboard.
+ * @param {boolean} param0.readOnly A flag indicating whether the dashboard is in read-only mode.
+ * @param {boolean} param0.noDownload A flag indicating whether the download option
+ * @returns {JSX.Element} The rendered Footer component.
+ */
+const Footer = ({ addWidget, widgetTypes, currentDashboard, readOnly, noDownload }): JSX.Element => {
     return (
         <div className='ld-footer-container'>
             {noDownload ? null : <div className="btn-group mb-3 mb-md-0 mr-md-4">

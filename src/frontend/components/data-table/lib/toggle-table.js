@@ -1,9 +1,13 @@
-/* Explanation of the Toggle Table:
-  A toggle table consist of two twin tables containing the same fields
-  One table contains hidden checkboxes while the other one contains text only
-  This is used to "move" fields between the tables (using display: none; for unchecked fields)
+/**
+  * @fileoverview A toggle table consist of two twin tables containing the same fields
+  * One table contains hidden checkboxes while the other one contains text only
+  * This is used to "move" fields between the tables (using display: none; for unchecked fields)
 */
 
+/**
+ * Bind click handlers to toggle table rows.
+ * @param {JQuery} tableElement The jQuery element of the table to bind click handlers to.
+ */
 const bindToggleTableClickHandlers = (tableElement) => {
     if (tableElement.hasClass('table-toggle')) {
         const fields = tableElement.find('tbody tr');
@@ -16,6 +20,10 @@ const bindToggleTableClickHandlers = (tableElement) => {
     }
 };
 
+/**
+ * Toggle a row in the table when clicked.
+ * @param {JQuery.ClickEvent} ev The click event triggered by the user.
+ */
 const toggleRow = (ev) => {
     ev.preventDefault();
     const clickedRow = $(ev.target).closest('tr')[0];

@@ -1,3 +1,7 @@
+/**
+ * Hides an element by adding the 'hidden' class and aria-hidden attribute.,
+ * @param { HTMLElement | JQuery<HTMLElement> } element HTMLElement or jQuery element to hide
+ */
 export const hideElement = (element: HTMLElement | JQuery<HTMLElement>) => {
     const $el = element instanceof HTMLElement ? $(element) : element;
     if ($el.hasClass('hidden')) return;
@@ -7,6 +11,10 @@ export const hideElement = (element: HTMLElement | JQuery<HTMLElement>) => {
     $el.css('visibility', 'hidden');
 };
 
+/**
+ * Show an element by removing the 'hidden' class and aria-hidden attribute.
+ * @param {HTMLElement | JQuery<HTMLElement>} element HTMLElement or jQuery element to show
+ */
 export const showElement = (element: HTMLElement | JQuery<HTMLElement>) => {
     const $el = element instanceof HTMLElement ? $(element) : element;
     if (!$el.hasClass('hidden')) return;
@@ -15,6 +23,11 @@ export const showElement = (element: HTMLElement | JQuery<HTMLElement>) => {
     $el.removeAttr('style');
 };
 
+/**
+ * Parse a JSON string or object and return an object.
+ * @param {string | object} json JSON string or object to parse
+ * @returns {object} Parsed object or an empty object if parsing fails
+ */
 export const fromJson = (json: string | object) => {
     try {
         if (!json || json === '') return {};

@@ -1,4 +1,7 @@
-// Bind events to a field to trigger validation
+/**
+ * Bind events to a field to trigger validation
+ * @param {jQuery} field - The field to bind validation events to
+ */
 const initValidationOnField = (field) => {
     // Input
     if (field.hasClass('input--required')) {
@@ -101,7 +104,11 @@ const initValidationOnField = (field) => {
     }
 };
 
-// Validate the required fields of a form
+/**
+ * Validate the required fields of a form
+ * @param {jQuery} form - The form to validate
+ * @returns {boolean} - Returns true if the form is valid, false otherwise
+ */
 const validateRequiredFields = (form) => {
     let isValidForm = true;
 
@@ -166,6 +173,11 @@ const validateRequiredFields = (form) => {
     return isValidForm;
 };
 
+/**
+ * Check if at least one checkbox in a fieldset is checked
+ * @param {JQuery} fieldset The fieldset containing checkboxes to validate
+ * @returns {boolean} Returns true if at least one checkbox is checked, false otherwise
+ */
 const validateRequiredFieldsetCheckboxes = (fieldset) => {
     let isValid = false;
     fieldset.find('input[type=checkbox]').each((i, field) => {
@@ -177,6 +189,12 @@ const validateRequiredFieldsetCheckboxes = (fieldset) => {
     return isValid;
 };
 
+/**
+ * Add an error message to a field
+ * @param {JQuery} field The field to which the error message will be added
+ * @param {string} name The name of the field to be displayed in the error message
+ * @param {string} id The field's ID, used for the error message's ID
+ */
 const addErrorMessage = (field, name, id) => {
     const $errorDiv = $('<div class="error">');
     let $span = $(`<span id="${id}-err" class="form-text form-text--error" aria-live="off"></span>`);
@@ -185,15 +203,28 @@ const addErrorMessage = (field, name, id) => {
     field.append($errorDiv);
 };
 
+/**
+ * Remove the error message from a field
+ * @param {JQuery} field The field from which the error message will be removed
+ */
 const removeErrorMessage = (field) => {
     field.find('.error').remove();
 };
 
+/**
+ * Check if a field is hidden due to a dependency
+ * @param {JQuery} field The field to check if it is hidden due to a dependency
+ * @returns {boolean} Returns true if the field is hidden due to a dependency, false otherwise
+ */
 const isHiddenDependentField = (field) => {
     return (field.closest('.form-group[data-has-dependency=\'1\'][style*=\'display: none\']').length > 0);
 };
 
-// Validate input field
+/**
+ * Validate input field
+ * @param {JQuery} field The field to validate
+ * @returns {boolean} Returns true if the input is valid, false otherwise
+ */
 const validateInput = (field) => {
     const $inputEl = field.find('[required]');
     const strFieldName = field.find('label').text() || '';
@@ -218,7 +249,11 @@ const validateInput = (field) => {
     }
 };
 
-// Validate radio-group
+/**
+ * Validate radio-group
+ * @param {JQuery} field The field to validate
+ * @returns {boolean} Returns true if the radio group is valid, false otherwise
+ */
 const validateRadioGroup = (field) => {
     const $radioButtons = field.find('input[required]');
     const $fieldSet = field.closest('.fieldset--required');
@@ -251,7 +286,11 @@ const validateRadioGroup = (field) => {
     }
 };
 
-// Validate checkbox group
+/**
+ * Validate checkbox group
+ * @param {JQuery} field The field to validate
+ * @returns {boolean} Returns true if at least one checkbox is checked, false otherwise
+ */
 const validateCheckboxGroup = (field) => {
     const $checkBoxes = field.find('input[type="checkbox"]');
     const $fieldSet = field.closest('.fieldset--required');
@@ -282,7 +321,11 @@ const validateCheckboxGroup = (field) => {
 
 };
 
-// Validate tree
+/**
+ * Validate tree
+ * @param {JQuery} field The field to validate
+ * @returns {boolean} Returns true if the tree is valid, false otherwise
+ */
 const validateTree = (field) => {
     const $inputEl = field.find('input[type="hidden"]');
     const $fieldSet = field.closest('.fieldset--required');
@@ -309,7 +352,10 @@ const validateTree = (field) => {
     }
 };
 
-// Expand the card with a certain field and scroll it into view
+/**
+ * Expand the card with a certain field and scroll it into view
+ * @param {JQuery} field The field to expand the card for
+ */
 const expandCardValidate = (field) => {
     const $collapse = $(field).closest('.card--expandable')
         .find('.collapse');

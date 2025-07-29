@@ -1,4 +1,11 @@
-export const formdataMapper = <T>(data: FormData | T) => {
+/**
+ * Map an object or FormData to a FormData object.
+ * @param {FormData | T} data The data to be mapped, either FormData or an object
+ * @template T The type of the data being mapped
+ * @throws {Error} If the data is empty or not a valid FormData or object
+ * @returns {FormData} The mapped FormData object
+ */
+export const formdataMapper = <T extends object>(data: FormData | T): FormData => {
     if (data instanceof FormData) {
         let hasData = false;
         data.forEach(() => {

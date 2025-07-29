@@ -89,30 +89,62 @@ export default class ApiClient {
      */
     DELETE(route: string): Promise<Response> { return this._fetch(route, 'DELETE', null); }
 
-    saveLayout = (id, layout) => {
+    /**
+     * Save the layout of a dashboard.
+     * @param {string} id The ID of the dashboard to save the layout for.
+     * @param {object} layout The layout to save, typically an array of widget configurations.
+     * @returns {Promise<Response>} The response from the save operation.
+     */
+    saveLayout = (id: string, layout: object): Promise<Response> => {
         if (!this.isDev) {
             const strippedLayout = layout.map(widget => ({ ...widget, moved: undefined }));
             return this.PUT(`/dashboard/${id}`, strippedLayout);
         }
     };
 
-    createWidget = async type => {
+    /**
+     * Create a new widget.
+     * @param {string} type The type of widget to create.
+     * @returns {Promise<Response>} The response from the widget creation request.
+     */
+    createWidget = async (type: string): Promise<Response> => {
         const response = this.isDev ? await this.GET(`/widget/create.json?type=${type}`) : await this.POST(`/widget?type=${type}`, null);
         return await response.json();
     };
 
-    getWidgetHtml = async id => {
+    /**
+     * Get the HTML content of a widget.
+     * @param {string} id The ID of the widget to retrieve HTML for.
+     * @returns {Promise<string>} The HTML content of the widget.
+     */
+    getWidgetHtml = async (id: string): Promise<string> => {
         const html = this.isDev ? await this.GET(`/widget/${id}/create`) : await this.GET(`/widget/${id}`);
         return html.text();
     };
 
-    deleteWidget = id => !this.isDev && this.DELETE(`/widget/${id}`);
+    /**
+     * Delete a widget by its ID.
+     * @param {string} id The ID of the widget to delete.
+     * @returns {promise<Response>} A promise that resolves when the widget is deleted.
+     */
+    deleteWidget = (id: string): Promise<Response> => !this.isDev && this.DELETE(`/widget/${id}`);
 
-    getEditForm = async id => {
+    /**
+     * Get the edit form for a widget.
+     * @param {string} id The ID of the widget to retrieve the edit form for.
+     * @returns {Promise<object>} The JSON response containing the edit form data for the widget.
+     */
+    getEditForm = async (id: string): Promise<object> => {
         const response = await this.GET(`/widget/${id}/edit`);
         return response.json();
     };
 
+    /**
+     * Save a widget.
+     * @param {string} url The URL to save the widget.
+     * @param {object} params The parameters to save the widget.
+     * @returns {Promise<object>} The JSON response containing the saved widget data.
+     */
     saveWidget = async (url, params) => {
         const result = this.isDev ? await this.GET('/widget/update.json') : await this.PUT(`${url}`, params);
         return await result.json();

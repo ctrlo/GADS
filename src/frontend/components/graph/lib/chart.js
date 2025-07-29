@@ -1,3 +1,8 @@
+/**
+ * Plot the graph using the provided data and options.
+ * @param {object} plotData The data to plot on the graph.
+ * @param {object} options_in The options for the graph, including type, axis names, and legend visibility.
+ */
 const do_plot = (plotData, options_in) => {
     const ticks = plotData.xlabels;
     let plotOptions = {};
@@ -67,12 +72,21 @@ const do_plot = (plotData, options_in) => {
 // Phantomjs to produce PNG versions of the graphs. Once jqplot has been
 // replaced by a more modern graphing library, the PNG/Phantomjs functionality
 // will probably unneccessary if that functionality is built into the library.
+/**
+ * Function to perform a plot using JSON data.
+ * @param {string} plotData Base64 encoded JSON string of the plot data.
+ * @param {string} options_in Base64 encoded JSON string of the plot options.
+ */
 const do_plot_json = (window.do_plot_json = function(plotData, options_in) {
     plotData = JSON.parse(atob(plotData));
     options_in = JSON.parse(atob(options_in));
     do_plot(plotData, options_in);
 });
 
+/**
+ * Make default series options for different graph types.
+ * @returns {object} Default series options for different graph types.
+ */
 const makeSeriesDefaults = () => ({
     bar: {
         renderer: $.jqplot.BarRenderer,
