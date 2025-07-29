@@ -1,6 +1,6 @@
 /**
  * Bind events to a field to trigger validation
- * @param {jQuery} field - The field to bind validation events to
+ * @param {JQuery<HTMLElement>} field - The field to bind validation events to
  */
 const initValidationOnField = (field) => {
     // Input
@@ -106,7 +106,7 @@ const initValidationOnField = (field) => {
 
 /**
  * Validate the required fields of a form
- * @param {jQuery} form - The form to validate
+ * @param {JQuery<HTMLElement>} form - The form to validate
  * @returns {boolean} - Returns true if the form is valid, false otherwise
  */
 const validateRequiredFields = (form) => {

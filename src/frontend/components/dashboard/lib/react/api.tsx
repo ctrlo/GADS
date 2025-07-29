@@ -95,7 +95,7 @@ export default class ApiClient {
      * @param {object} layout The layout to save, typically an array of widget configurations.
      * @returns {Promise<Response>} The response from the save operation.
      */
-    saveLayout = (id: string, layout: object): Promise<Response> => {
+    saveLayout = (id: string, layout: Array<any>): Promise<Response> => {
         if (!this.isDev) {
             const strippedLayout = layout.map(widget => ({ ...widget, moved: undefined }));
             return this.PUT(`/dashboard/${id}`, strippedLayout);
