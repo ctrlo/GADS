@@ -1703,7 +1703,7 @@ post '/file/:id?' => require_login sub {
     # File upload through the "manage files" interface
     if (my $upload = upload('file'))
     {
-        my $mimetype = $filecheck->check_upload_old($upload); # Borks on invalid file type
+        my $mimetype = $filecheck->check_upload($upload); # Borks on invalid file type
         my $file;
         if (process( sub { $file = rset('Fileval')->create_with_file({
             name           => $upload->filename,
