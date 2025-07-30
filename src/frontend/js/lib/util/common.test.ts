@@ -1,5 +1,5 @@
 import 'testing/globals.definitions';
-import { fromJson, hideElement, showElement } from './common';
+import { encodeHTMLEntities, fromJson, hideElement, showElement } from './common';
 
 describe('common functions', () => {
     describe('CSS and ARIA - skipped as they are incorrect', () => {
@@ -85,6 +85,20 @@ describe('common functions', () => {
             const json = undefined;
             const parsed = fromJson(json);
             expect(parsed).toEqual({});
+        });
+    });
+
+    describe('HTML encoding tests', () => {
+        it('encodes HTML entities in a string', () => {
+            const input = '<div>Test & "Quotes"</div>';
+            const encoded = encodeHTMLEntities(input);
+            expect(encoded).toEqual('&lt;div&gt;Test &amp; "Quotes"&lt;/div&gt;');
+        });
+
+        it('encodes special characters', () => {
+            const input = 'Special characters: < > & " \'';
+            const encoded = encodeHTMLEntities(input);
+            expect(encoded).toEqual('Special characters: &lt; &gt; &amp; " \'');
         });
     });
 });

@@ -50,27 +50,27 @@ class SelectWidgetComponent extends Component {
         if (this.$widget.is('[readonly]')) return;
         this.connect();
 
-        this.$widget.unbind('click');
+        this.$widget.off('click');
         this.$widget.on('click', () => { this.handleWidgetClick(); });
 
-        this.$search.unbind('blur');
+        this.$search.off('blur');
         this.$search.on('blur', (e) => { this.possibleCloseWidget(e); });
 
-        this.$availableItems.unbind('blur');
+        this.$availableItems.off('blur');
         this.$availableItems.on('blur', (e) => { this.possibleCloseWidget(e); });
 
-        this.$moreInfoButtons.unbind('blur');
+        this.$moreInfoButtons.off('blur');
         this.$moreInfoButtons.on('blur', (e) => { this.possibleCloseWidget(e); });
 
         $(document).on('click', (e) => { this.handleDocumentClick(e); });
 
-        $(document).keyup(function (e) {
-            if (e.keyCode == 27) {
+        $(document).on('keyup',function (e) {
+            if (e.key == 'Escape') {
                 this.collapse(this.$widget, this.$trigger, this.$target);
             }
         });
 
-        this.$widget.delegate('.select-widget-value__delete', 'click', function (e) {
+        this.$widget.on('.select-widget-value__delete', 'click', function (e) {
             e.preventDefault();
             e.stopPropagation();
 
@@ -83,16 +83,16 @@ class SelectWidgetComponent extends Component {
             $(checkbox).trigger('change');
         });
 
-        this.$search.unbind('focus', this.expandWidgetHandler);
+        this.$search.off('focus', this.expandWidgetHandler);
         this.$search.on('focus', (e) => { this.expandWidgetHandler(e); });
 
-        this.$search.unbind('keydown');
+        this.$search.off('keydown');
         this.$search.on('keydown', (e) => { this.handleKeyDown(e); });
 
-        this.$search.unbind('keyup');
+        this.$search.off('keyup');
         this.$search.on('keyup', (e) => { this.handleKeyUp(e); });
 
-        this.$search.unbind('click');
+        this.$search.off('click');
         this.$search.on('click', (e) => {
             // Prevent bubbling the click event to the $widget (which expands/collapses the widget on click).
             e.stopPropagation();
@@ -184,18 +184,17 @@ class SelectWidgetComponent extends Component {
     /**
      * Handle the keydown event on the search input.
      * @param {JQuery.KeyDownEvent} e The keydown event triggered on the search input.
-     * @todo Handle deprecated key codes and ensure compatibility with modern browsers.
      */
     handleKeyDown(e) {
-        const key = e.which || e.keyCode;
+        const key = e.key;
 
         // If still in search text after previous search and select, ensure that
         // widget expands again to show results
         this.expand(this.$widget, this.$trigger, this.$target);
 
         switch (key) {
-            case 38: // UP
-            case 40: // DOWN
+            case 'ArrowUp': // UP
+            case 'ArrowDown': // DOWN
             {
                 const items = this.$available.find('.answer:not([hidden]) input');
                 let nextItem;
@@ -209,12 +208,12 @@ class SelectWidgetComponent extends Component {
                 }
 
                 if (nextItem) {
-                    $(nextItem).focus();
+                    $(nextItem).trigger('focus');
                 }
 
                 break;
             }
-            case 13: // ENTER
+            case 'Enter': // ENTER
             {
                 e.preventDefault();
 
@@ -289,7 +288,6 @@ class SelectWidgetComponent extends Component {
     /**
      * Connects the multi-select items to their associated checkboxes.
      * @returns {Function} A function that connects the multi-select items.
-     * @todo Remove deprecated key codes and ensure compatibility with modern browsers.
      */
     connectMulti() {
         const self = this;
@@ -298,7 +296,7 @@ class SelectWidgetComponent extends Component {
             const itemId = $item.data('list-item');
             const $associated = $('#' + itemId);
 
-            $associated.unbind('change');
+            $associated.off('change');
             $associated.on('change', (e) => {
                 if ($(e.target).prop('checked')) {
                     $item.removeAttr('hidden');
@@ -308,13 +306,13 @@ class SelectWidgetComponent extends Component {
                 self.updateState();
             });
 
-            $associated.unbind('keydown');
+            $associated.off('keydown');
             $associated.on('keydown', function (e) {
-                const key = e.which || e.keyCode;
+                const key = e.key;
 
                 switch (key) {
-                    case 38: // UP
-                    case 40: // DOWN
+                    case 'ArrowUp': // UP
+                    case 'ArrowDown': // DOWN
                     {
                         const currentIndex = self.$answers.index($associated.closest('.answer'));
                         let nextItem;
@@ -330,12 +328,12 @@ class SelectWidgetComponent extends Component {
                         if (nextItem) {
                             $(nextItem)
                                 .find('input')
-                                .focus();
+                                .trigger('focus');
                         }
 
                         break;
                     }
-                    case 13:
+                    case 'Enter':
                     {
                         e.preventDefault();
                         $(this).trigger('click');
@@ -348,7 +346,6 @@ class SelectWidgetComponent extends Component {
 
     /**
      * Connects the single-select items to their associated checkboxes.
-     * @todo Remove deprecated key codes and ensure compatibility with modern browsers.
      */
     connectSingle() {
         const self = this;
@@ -378,10 +375,10 @@ class SelectWidgetComponent extends Component {
                 self.updateState();
             });
 
-            $associated.parent().unbind('keypress');
+            $associated.parent().off('keypress');
             $associated.parent().on('keypress', (e) => {
                 // KeyCode Enter or Spacebar
-                if (e.keyCode === 13 || e.keyCode === 32) {
+                if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     $(e.target).parent()
                         .trigger('click');
@@ -696,7 +693,6 @@ class SelectWidgetComponent extends Component {
      * @param {JQuery<HTMLElement>} $widget The widget element.
      * @param {JQuery<HTMLElement>} $trigger The trigger element that expands the widget.
      * @param {JQuery<HTMLElement>} $target The target element that contains the available options.
-     * @todo Remove deprecated key codes and ensure compatibility with modern browsers.
      */
     expand($widget, $trigger, $target) {
         if ($trigger.attr('aria-expanded') === 'true') {
@@ -729,7 +725,7 @@ class SelectWidgetComponent extends Component {
         $target.removeAttr('hidden');
 
         if (this.$search.get(0) !== document.activeElement) {
-            this.$search.focus();
+            this.$search.trigger('focus');
         }
     }
 }

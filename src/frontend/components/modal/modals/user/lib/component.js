@@ -27,7 +27,7 @@ class UserModalComponent extends ModalComponent {
             this.toggleContent(ev);
             modal.validate();
             this.updateEmail();
-            this.emailField.keyup(() => { this.updateEmail(); });
+            this.emailField.on('keyup',() => { this.updateEmail(); });
         });
     }
 

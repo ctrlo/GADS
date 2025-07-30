@@ -32,14 +32,6 @@ class SelectComponent extends Component {
     }
 
     /**
-     * @type {SelectComponent} self
-     * @description Reference to the current instance for static methods
-     * @static
-     * @todo Why is this needed?
-     */
-    static self = this;
-
-    /**
      * Intializes the select
      */
     initSelect() {
@@ -258,19 +250,19 @@ class SelectComponent extends Component {
      */
     supportKeyboardNavigation(ev) {
     // press down -> go next
-        if (ev.keyCode === 40 && this.optionHoveredIndex < this.optionsCount - 1) {
+        if (ev.key === 'ArrowDown' && this.optionHoveredIndex < this.optionsCount - 1) {
             ev.preventDefault(); // prevent page scrolling
             this.updateHovered(this.optionHoveredIndex + 1);
         }
 
         // press up -> go previous
-        if (ev.keyCode === 38 && this.optionHoveredIndex > 0) {
+        if (ev.key === 'ArrowUp' && this.optionHoveredIndex > 0) {
             ev.preventDefault(); // prevent page scrolling
             this.updateHovered(this.optionHoveredIndex - 1);
         }
 
         // press Enter or space -> select the option
-        if (ev.keyCode === 13 || ev.keyCode === 32) {
+        if (ev.key === 'Enter' || ev.key === ' ') {
             ev.preventDefault();
 
             const option = this.options[this.optionHoveredIndex];
@@ -286,7 +278,7 @@ class SelectComponent extends Component {
         }
 
         // press ESC -> close selectCustom
-        if (ev.keyCode === 27) {
+        if (ev.key === 'Escape') {
             this.handleClose(ev);
         }
     }

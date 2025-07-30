@@ -60,7 +60,7 @@ class ValueLookupComponent extends Component {
             const all_names = formatter.format(all_fields);
             // Remove any existing status messages on the whole record
             $('.lookup-status').addClass('d-none');
-            addStatusMessage($field, `Looking up ${all_names}...`, true, false);
+            this.addStatusMessage($field, `Looking up ${all_names}...`, true, false);
             $.ajax({
                 type: 'GET',
                 url: endpoint,
@@ -71,14 +71,14 @@ class ValueLookupComponent extends Component {
             }).done(function (data) {
                 if (data.is_error || !data.result) {
                     let error = data.message ? data.message : 'Unknown error';
-                    addStatusMessage($field, error, false, true);
+                    this.addStatusMessage($field, error, false, true);
                 } else {
                     for (const [name, value] of Object.entries(data.result)) {
                         var $f = $('.linkspace-field[data-name-short="' + name + '"]');
                         if (!$f || $f.length == 0) continue;
                         setFieldValues($f, value);
                     }
-                    removeStatusMessage($field);
+                    this.removeStatusMessage($field);
                 }
             })
                 .fail(function (jqXHR, textStatus) {
@@ -91,45 +91,44 @@ class ValueLookupComponent extends Component {
                             : (jqXHR.responseJSON && jqXHR.responseJSON.message)
                                 ? jqXHR.responseJSON.message
                                 : `Failed to look up ${all_names}: ${jqXHR.statusText}`;
-                    addStatusMessage($field, err_message, false, true);
+                    this.addStatusMessage($field, err_message, false, true);
                 });
         });
     }
-}
 
-/**
+    /**
  * Add a status message to the field
  * @param {JQuery<HTMLElement>} $field The field element to add the status message to
  * @param {string} message The message to display
  * @param {boolean} spinner The flag to show a spinner
  * @param {boolean} is_error Is the message an error message
- * @todo Why is this not a method of the component?
  */
-const addStatusMessage = ($field, message, spinner, is_error) => {
-    let $notice = $field.find('.lookup-status');
-    let $text = $notice.find('.status-text');
-    $text.text(message);
-    if (is_error) {
-        $text.addClass('text-danger');
-        $text.removeClass('text-info');
-    } else {
-        $text.addClass('text-info');
-        $text.removeClass('text-danger');
+    addStatusMessage($field, message, spinner, is_error) {
+        let $notice = $field.find('.lookup-status');
+        let $text = $notice.find('.status-text');
+        $text.text(message);
+        if (is_error) {
+            $text.addClass('text-danger');
+            $text.removeClass('text-info');
+        } else {
+            $text.addClass('text-info');
+            $text.removeClass('text-danger');
+        }
+        if (spinner) {
+            $notice.find('.spinner-border').show();
+        } else {
+            $notice.find('.spinner-border').hide();
+        }
+        $notice.removeClass('d-none');
     }
-    if (spinner) {
-        $notice.find('.spinner-border').show();
-    } else {
-        $notice.find('.spinner-border').hide();
-    }
-    $notice.removeClass('d-none');
-};
 
-/**
- * Remove the status message from the field
- * @param {JQuery<HTMLElement>} $field The field element to remove the status message from
- */
-const removeStatusMessage = ($field) => {
-    $field.find('.lookup-status').addClass('d-none');
-};
+    /**
+     * Remove the status message from the field
+     * @param {JQuery<HTMLElement>} $field The field element to remove the status message from
+     */
+    removeStatusMessage($field) {
+        $field.find('.lookup-status').addClass('d-none');
+    }
+}
 
 export default ValueLookupComponent;

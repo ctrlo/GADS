@@ -92,13 +92,13 @@ class FileComponent {
 
     /**
      * Delete the selected file and reset the file input and display.
-     * @todo set focus back to input__file-label without triggering keyup event on it
      */
     deleteFile = () => {
         this.fileName.text('No file chosen');
         this.fileName.attr('title', '');
         this.fileInput.val('');
         this.fileDelete.addClass('hidden');
+        this.el.find('.input__file-label').trigger('focus');
     };
 }
 

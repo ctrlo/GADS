@@ -35,29 +35,25 @@ type XmlHttpRequestLike = {
  * @param { ProgressFunction } onProgress A callback that is called when the upload progress changes
  * @returns { Promise<T> } The JSON response from the server
  */
-async function upload<T = unknown>(url: string | URL, data?: FormData | object, method: RequestMethod = 'POST', onProgress: ProgressFunction = () => { }): Promise<T> {
+async function upload<T = unknown>(url: string | URL, data?: FormData | object, method: RequestMethod = 'POST', onProgress: ProgressFunction = () => { }, headers?: Record<string, string>): Promise<T> {
     const uploader = new Uploader(url, method);
     uploader.onProgress(onProgress);
-    return uploader.upload(data);
+    return uploader.upload(data, headers);
 }
 
 /**
  * Helper class to upload form data to a server endpoint
- * @todo The API class could be used within the Dashboard component rather than this class
+ * @todo The API class could be used within the Dashboard component rather than this class - we could also use this as a singleton
  */
 class Uploader {
     private onProgressCallback?: ProgressFunction;
-    private url: string | URL;
-    private method: RequestMethod;
 
     /**
      * Create a new Uploader instance
      * @param {string} url The endpoint to upload to
      * @param {RequestMethod} method The method to use, either POST, PUT, or GET
      */
-    constructor(url: string | URL, method: RequestMethod) {
-        this.url = url;
-        this.method = method;
+    constructor(private readonly url: string | URL, private readonly method: RequestMethod) {
     }
 
     /**
@@ -74,9 +70,12 @@ class Uploader {
      * @param { FormData | object } data The form data or JSON object to upload
      * @returns { Promise<T> } A promise that resolves to the JSON response from the server
      */
-    async upload<T>(data?: FormData | object): Promise<T> {
+    async upload<T>(data?: FormData | object, headers?: Record<string, string>): Promise<T> {
         return new Promise((resolve, reject) => {
             const request: XmlHttpRequestLike & XMLHttpRequest = new XMLHttpRequest();
+            for(const [key, value] of Object.entries(headers || {})) {
+                request.setRequestHeader(key, value);
+            }
             request.open(this.method, this.url.toString());
             request.onabort = () => reject('aborted');
             request.onerror = () => reject('error');

@@ -10,7 +10,7 @@ import React from 'react';
  * @param {boolean} param0.noDownload A flag indicating whether the download option
  * @returns {JSX.Element} The rendered Footer component.
  */
-const Footer = ({ addWidget, widgetTypes, currentDashboard, readOnly, noDownload }): JSX.Element => {
+const Footer = ({ addWidget, widgetTypes, currentDashboard, readOnly, noDownload }): React.JSX.Element => {
     return (
         <div className='ld-footer-container'>
             {noDownload ? null : <div className="btn-group mb-3 mb-md-0 mr-md-4">

@@ -10,7 +10,7 @@ import React from 'react';
  * @param {boolean} param0.includeH1 A flag indicating whether to include an
  * @returns {JSX.Element} The rendered Header component.
  */
-const Header = ({ hMargin, dashboards, currentDashboard, loading, includeH1 }: { hMargin: number; dashboards: Array<any>; currentDashboard: {name: string}; loading: boolean; includeH1: boolean; }): JSX.Element => {
+const Header = ({ hMargin, dashboards, currentDashboard, loading, includeH1 }: { hMargin: number; dashboards: Array<any>; currentDashboard: {name: string}; loading: boolean; includeH1: boolean; }): React.JSX.Element => {
     const renderMenuItem = (dashboard) => {
         if (dashboard.name === currentDashboard.name) {
             if (includeH1) {
