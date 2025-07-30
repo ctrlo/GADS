@@ -5,10 +5,8 @@ import { validateCheckboxGroup } from 'validation';
 import { formdataMapper } from 'util/mapper/formdataMapper';
 import { logging } from 'logging';
 import { RenameEvent } from 'components/button/lib/rename-button';
-import { fromJson } from 'util/common';
 import { FileDropEvent } from 'util/filedrag';
 import ErrorHandler from 'util/errorHandler';
-import { isString } from 'util/typechecks';
 
 interface FileData {
     id: number | string;
@@ -120,10 +118,16 @@ class DocumentComponent {
                         .hide();
                 }
             ).catch((e) => {
+                if(JSON.parse(e as string)?.message)
+                    e = JSON.parse(e as string).message;
+                else if (typeof e == "object" && "message" in e)
+                    e = e.message;
                 this.handler.addError(e);
+                $(this.el.find('.progress-bar__container[data-file-name="' + file.name + '"]'))
+                    .hide();
             });
         } catch (e) {
-            this.showException(e instanceof Error ? e.message : e as string ?? e.toString());
+            this.showException(e instanceof Error || "message" in e ? e.message : e as string ?? e.toString());
         }
     }
 
@@ -180,14 +184,20 @@ class DocumentComponent {
                 this.addFileToField({ id, name });
             }
         } catch (error) {
-            this.showException(error);
+            let e=error
+            if( error instanceof Error || "message" in error) {
+                e = error.message;
+            } else if (typeof error === 'string' && JSON.parse(error)?.message) {
+                e = JSON.parse(error).message;
+            }
+            this.showException(e);
             const current = $(`#current-${fileId}`);
             current.text(oldName);
         }
     }
 
     showException(e: any) {
-        this.handler.addError(e);
+        this.handler.addError(e instanceof Error ? e.message : typeof e == "object" && "message" in e ? e.message : e.toString());
     }
 }
 
