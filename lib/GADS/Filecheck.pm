@@ -43,6 +43,8 @@ sub check_upload
     
     $self->check_filename($name, $filetypeRegex);
 
+    # As recommended at https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload
+    # Brackets have been added to this - above recommendations do not explicitly state that brackets are not allowed - Ticket #1695
     $self->check_name($name)
         if($check_name);
 
@@ -78,6 +80,9 @@ sub check_filename
 sub check_file
 {
     my ($self, $upload, %options) = @_;
+
+    error __"Maximum file size is 50 MB"
+        if $upload->size > 50 * 1024 * 1024;
 
     return $self->check_upload($upload->filename, $upload->tempname, %options);
 }
