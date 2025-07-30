@@ -96,7 +96,6 @@ sub validate
     # Check that the file type is allowed here as well
     my $filecheck = GADS::Filecheck->instance;
     my $fileval = $self->schema->resultset('Fileval')->find($value);
-    # Need to quote the path to ensure it is a string, rather than a file object
     $filecheck->check_fileval($fileval, extra_types => $self->override_types, check_name => 0);
     1;
 }
