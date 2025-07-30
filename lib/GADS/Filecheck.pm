@@ -56,8 +56,11 @@ sub create_regex
     return (undef, undef) unless $allowed_data;
 
     # Putting in \Q and \E to escape any special characters in the mimetype or extension breaks this - I don't know why
-    my $mimeRegex = '^(' . join('|', map { $_->{name} } @$allowed_data) . ')';
-    my $filetypeRegex = '^(' . join('|', map { $_->{extension} } @$allowed_data) . ')$';
+    my @mimeRegexes = map { qr!\Q$_->{name}\E! } @$allowed_data;
+    my @filetypeRegexes = map { qr!\Q$_->{extension}\E! } @$allowed_data;
+
+    my $mimeRegex = '^(' . join ('|', @mimeRegexes) . ')$';
+    my $filetypeRegex = '^(' . join ('|', @filetypeRegexes) . ')$';
 
     return (qr/$mimeRegex/, qr/$filetypeRegex/);
 }
