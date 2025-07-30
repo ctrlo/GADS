@@ -100,8 +100,7 @@ sub validate
     my $fileval = $self->schema->resultset('Fileval')->find($value);
     my $content = encode_base64($fileval->content);
     my $name = $fileval->name;
-    print STDERR "Checking upload for column " . $self->name . " with filename " . $name . "\n";
-    $filecheck->check_upload($name, $content, extra_types => $self->override_types);
+    $filecheck->check_upload($name, $content, extra_types => $self->override_types, check_name => 0);
     
     1;
 }
