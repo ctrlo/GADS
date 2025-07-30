@@ -26,12 +26,12 @@ sub is_image
 }
 
 sub check_upload
-{   my ($self, $name, $content, %options) = @_;
+{   my ($self, $name, $file, %options) = @_;
 
     my $check_name = $options{check_name} // 1;
     my $allowed_data = $options{extra_types};
 
-    my $info = $magic->info_from_string($content);
+    my $info = $magic->info_from_filename($file);
 
     my ($mimeRegex, $filetypeRegex) = $self->create_regex($allowed_data);
 
@@ -77,32 +77,10 @@ sub check_filename
 }
 
 sub check_file
-{   my ($self, $upload, %options) = @_;
+{
+    my ($self, $upload, %options) = @_;
 
-    my $check_name = $options{check_name} // 1;
-    my $allowed_data = $options{extra_types};
-
-    my ($mimeRegex, $filetypeRegex) = $self->create_regex($allowed_data);
-    
-    my $info = $magic->info_from_filename($upload->tempname);
-
-    my $allowed_bypass = $info->{mime_type} =~ $mimeRegex if $mimeRegex;
-
-    error __x"Files of mimetype {mimetype} are not allowed",
-        mimetype => $info->{mime_type}
-            unless $allowed_bypass or $self->check_type($info->{mime_type});
-
-    $self->check_filename($upload->filename, $filetypeRegex);
-
-    # As recommended at https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload
-    # Brackets have been added to this - above recommendations do not explicitly state that brackets are not allowed - Ticket #1695
-    $self->check_name($upload->filename)
-        if($check_name);
-
-    error __"Maximum file size is 50 MB"
-        if $upload->size > 50 * 1024 * 1024;
-
-    return $info->{mime_type};
+    return $self->check_upload($upload->filename, $upload->tempname, %options);
 }
 
 sub check_name { 

@@ -98,10 +98,10 @@ sub validate
     # Check that the file type is allowed here as well
     my $filecheck = GADS::Filecheck->instance;
     my $fileval = $self->schema->resultset('Fileval')->find($value);
-    my $content = encode_base64($fileval->content);
     my $name = $fileval->name;
-    $filecheck->check_upload($name, $content, extra_types => $self->override_types, check_name => 0);
-    
+    my $path = $fileval->file_to_id;
+    # Need to quote the path to ensure it is a string, rather than a file object
+    $filecheck->check_upload($name, "$path", extra_types => $self->override_types, check_name => 0);
     1;
 }
 
