@@ -23,6 +23,9 @@ type XmlHttpRequestLike = {
     readyState: number,
     status: number,
     responseText: string,
+    upload?: {
+        onprogress?: ((e: ProgressEvent) => void) | null
+    };
 };
 
 /**
