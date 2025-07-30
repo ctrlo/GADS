@@ -52,10 +52,9 @@ sub check_upload
 sub create_regex
 {   my ($self, $allowed_data) = @_;
 
-    # If we try to make this an array, it will bork if it's undef!
+    # We need to check the allowed data is defined rather than checking for an array
     return (undef, undef) unless $allowed_data;
 
-    # Putting in \Q and \E to escape any special characters in the mimetype or extension breaks this - I don't know why
     my @mimeRegexes = map { qr!\Q$_->{name}\E! } @$allowed_data;
     my @filetypeRegexes = map { qr!\Q$_->{extension}\E! } @$allowed_data;
 
