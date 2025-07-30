@@ -120,18 +120,7 @@ class DocumentComponent {
                         .hide();
                 }
             ).catch((e) => {
-                const error = e instanceof Error ? e.message : e as string ?? e.toString();
-                // If the error is a string, try to parse it as JSON
-                if(isString(error) && fromJson(error)) {
-                    const decodedError = fromJson(error)
-                    if( 'message' in decodedError && decodedError.message ) {
-                        this.handler.addError(new Error(`Unable to upload ${file.name}: ${decodedError.message}`));
-                    }
-                } else {
-                    this.handler.addError(new Error(`Unable to upload ${file.name}: ${error}`));
-                }
-                const container = $(this.el.find('.progress-bar__container'));
-                container.hide();
+                this.handler.addError(e);
             });
         } catch (e) {
             this.showException(e instanceof Error ? e.message : e as string ?? e.toString());
