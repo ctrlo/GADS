@@ -1,3 +1,5 @@
+import { fromJson } from "util/common";
+
 export class ErrorHandler {
     private el: JQuery<HTMLElement>;
     private errors: string[] = [];
@@ -18,6 +20,10 @@ export class ErrorHandler {
     addError(...errors: (string | Error)[]) {
         errors.forEach(error => {
             if (typeof error === 'string') {
+                const jsonError = fromJson(error);
+                if(jsonError) {
+                    this.addError(jsonError);
+                }
                 this.errors.push(error);
             } else if (error instanceof Error) {
                 this.errors.push(error.message);
