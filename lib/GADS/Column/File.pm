@@ -22,11 +22,17 @@ use Log::Report 'linkspace';
 use MIME::Base64 qw/decode_base64/;
 use Moo;
 use MooX::Types::MooseLike::Base qw/Int Maybe ArrayRef/;
+use GADS::Filecheck;
 
 extends 'GADS::Column';
 
 has '+option_names' => (
-    default => sub { [qw/override_types/] }
+    default => sub { 
+        [+{
+            name              => 'override_types',
+            user_configurable => 0,
+        }]
+    }
 );
 
 has override_types => (
@@ -35,16 +41,10 @@ has override_types => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
+        return [] unless $self->has_options;
         $self->options->{override_types} || [];
     },
     trigger => sub { $_[0]->reset_options },
-    default => sub { [] },
-    # Coerce the value to an empty array if it is not defined
-    coerce => sub {
-        my $value = shift;
-        return [] if !$value;
-        $value;
-    },
 );
 
 has filesize => (
@@ -89,12 +89,15 @@ sub validate
     if ($value !~ /^[0-9]+$/ || !$self->schema->resultset('Fileval')->find($value))
     {
         return 0 unless $options{fatal};
-        # Check that the file type is allowed here as well
-        my $filecheck = GADS::Filecheck->instance;
-        $filecheck->check_upload($self->name, $self->content, extra_types => $self->override_types);
         error __x"'{int}' is not a valid file ID for '{col}'",
             int => $value, col => $self->name;
     }
+
+    # Check that the file type is allowed here as well
+    my $filecheck = GADS::Filecheck->instance;
+    my $fileval = $self->schema->resultset('Fileval')->find($value);
+    # Need to quote the path to ensure it is a string, rather than a file object
+    $filecheck->check_fileval($fileval, extra_types => $self->override_types, check_name => 0);
     1;
 }
 
