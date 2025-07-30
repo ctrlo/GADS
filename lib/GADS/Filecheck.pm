@@ -25,7 +25,7 @@ sub is_image
     $info->{mime_type} =~ m!^image/!;
 }
 
-sub check_upload
+sub _check_file
 {   my ($self, $name, $file, %options) = @_;
 
     my $check_name = $options{check_name} // 1;
@@ -49,6 +49,25 @@ sub check_upload
         if($check_name);
 
     return $info->{mime_type};
+}
+
+sub check_fileval {
+    my ($self, $fileval, %options) = @_;
+
+    my $filename = $fileval->file_to_id;
+
+    # Quote the path to ensure it is a string, rather than a file object
+    return $self->_check_file($fileval->name, "$filename", %options);
+}
+
+sub check_upload
+{
+    my ($self, $upload, %options) = @_;
+
+    error __"Maximum file size is 50 MB"
+        if $upload->size > 50 * 1024 * 1024;
+
+    return $self->_check_file($upload->filename, $upload->tempname, %options);
 }
 
 sub create_regex
@@ -75,16 +94,6 @@ sub check_filename
     my $extension_bypass = $ext =~ $filetypeRegex if $filetypeRegex;
     error __x"Files with extension of {ext} are not allowed", ext => $ext
         unless $extension_bypass or $self->check_extension($ext);
-}
-
-sub check_file
-{
-    my ($self, $upload, %options) = @_;
-
-    error __"Maximum file size is 50 MB"
-        if $upload->size > 50 * 1024 * 1024;
-
-    return $self->check_upload($upload->filename, $upload->tempname, %options);
 }
 
 sub check_name { 

@@ -1703,7 +1703,7 @@ post '/file/:id?' => require_login sub {
     # File upload through the "manage files" interface
     if (my $upload = upload('file'))
     {
-        my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
+        my $mimetype = $filecheck->check_upload_old($upload); # Borks on invalid file type
         my $file;
         if (process( sub { $file = rset('Fileval')->create_with_file({
             name           => $upload->filename,
@@ -1810,7 +1810,7 @@ post '/api/file/?' => require_login sub {
             config => config
         )->column($column_id);
 
-        my $mimetype = $filecheck->check_file($upload, check_name => 0, extra_types => $column->override_types); # Borks on invalid file type
+        my $mimetype = $filecheck->check_upload($upload, check_name => 0, extra_types => $column->override_types); # Borks on invalid file type
         my $filename = $upload->filename;
 
         # Remove any invalid characters from the new name - this will possibly be changed to an error going forward
