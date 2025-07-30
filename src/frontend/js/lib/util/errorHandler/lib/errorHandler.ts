@@ -25,7 +25,7 @@ export class ErrorHandler {
                     this.addError(jsonError);
                 }
                 this.errors.push(error);
-            } else if (error instanceof Error || "message" in error) {
+            } else if (error instanceof Error) {
                 this.errors.push(error.message);
             } else {
                 console.warn('Unsupported error type:', error);
