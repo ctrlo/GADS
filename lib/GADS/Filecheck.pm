@@ -52,8 +52,7 @@ sub check_upload
 sub create_regex
 {   my ($self, $allowed_data) = @_;
 
-    # If we try to make this an array, it will bork if it's undef!
-    return (undef, undef) unless $allowed_data;
+    return (undef, undef) unless @$allowed_data;
 
     my $mimeRegex = '^(' . join('|', map { '\Q' . $_->{name} .'\E' } @$allowed_data) . ')';
     my $filetypeRegex = '^(' . join('|', map { '\Q'.$_->{extension}.'\E' } @$allowed_data) . ')$';
