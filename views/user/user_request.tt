@@ -2,10 +2,10 @@
   # prepare table config
   table_class = 'table-striped table-hover table-account-requests';
   table_layout = {
-    topStart = "search",
-    topEnd   = "pageLength",
-    main     = "paging",
-    bottomStart = "info",
+    topStart    = "search",
+    topEnd      = "pageLength",
+    bottomStart = "paging",
+    bottomEnd   = "info",
   }
   table_language = {
     emptyTable => "There are currently no account requests",
