@@ -1703,7 +1703,7 @@ post '/file/:id?' => require_login sub {
     # File upload through the "manage files" interface
     if (my $upload = upload('file'))
     {
-        my $mimetype = $filecheck->check_upload($upload); # Borks on invalid file type
+        my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
         my $file;
         if (process( sub { $file = rset('Fileval')->create_with_file({
             name           => $upload->filename,
@@ -1810,7 +1810,7 @@ post '/api/file/?' => require_login sub {
             config => config
         )->column($column_id);
 
-        my $mimetype = $filecheck->check_upload($upload, check_name => 0, extra_types => $column->override_types); # Borks on invalid file type
+        my $mimetype = $filecheck->check_file($upload, check_name => 0, extra_types => $column->override_types); # Borks on invalid file type
         my $filename = $upload->filename;
 
         # Remove any invalid characters from the new name - this will possibly be changed to an error going forward
@@ -3731,7 +3731,7 @@ prefix '/:layout_name' => sub {
                 $column->type(param 'type')
                     unless param('id'); # Can't change type as it would require DBIC resultsets to be removed and re-added
                 $column->$_(param $_)
-                    foreach @{$column->user_options};
+                    foreach @{$column->option_names};
                 $column->display_fields(param 'display_fields');
                 # Set the layout in the GADS::Filter object, in case the write
                 # doesn't success, in which case the filter will need to be

@@ -25,13 +25,13 @@ sub is_image
     $info->{mime_type} =~ m!^image/!;
 }
 
-sub _check_file
-{   my ($self, $name, $file, %options) = @_;
+sub check_upload
+{   my ($self, $name, $content, %options) = @_;
 
     my $check_name = $options{check_name} // 1;
     my $allowed_data = $options{extra_types};
 
-    my $info = $magic->info_from_filename($file);
+    my $info = $magic->info_from_string($content);
 
     my ($mimeRegex, $filetypeRegex) = $self->create_regex($allowed_data);
 
@@ -43,44 +43,19 @@ sub _check_file
     
     $self->check_filename($name, $filetypeRegex);
 
-    # As recommended at https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload
-    # Brackets have been added to this - above recommendations do not explicitly state that brackets are not allowed - Ticket #1695
     $self->check_name($name)
         if($check_name);
 
     return $info->{mime_type};
 }
 
-sub check_fileval {
-    my ($self, $fileval, %options) = @_;
-
-    my $filename = $fileval->file_to_id;
-
-    # Quote the path to ensure it is a string, rather than a file object
-    return $self->_check_file($fileval->name, "$filename", %options);
-}
-
-sub check_upload
-{
-    my ($self, $upload, %options) = @_;
-
-    error __"Maximum file size is 50 MB"
-        if $upload->size > 50 * 1024 * 1024;
-
-    return $self->_check_file($upload->filename, $upload->tempname, %options);
-}
-
 sub create_regex
 {   my ($self, $allowed_data) = @_;
 
-    # We need to check the allowed data is defined rather than checking for an array
-    return (undef, undef) unless $allowed_data;
+    return (undef, undef) unless @$allowed_data;
 
-    my @mimeRegexes = map { qr!\Q$_->{name}\E! } @$allowed_data;
-    my @filetypeRegexes = map { qr!\Q$_->{extension}\E! } @$allowed_data;
-
-    my $mimeRegex = '^(' . join ('|', @mimeRegexes) . ')$';
-    my $filetypeRegex = '^(' . join ('|', @filetypeRegexes) . ')$';
+    my $mimeRegex = '^(' . join('|', map { '\Q' . $_->{name} .'\E' } @$allowed_data) . ')';
+    my $filetypeRegex = '^(' . join('|', map { '\Q'.$_->{extension}.'\E' } @$allowed_data) . ')$';
 
     return (qr/$mimeRegex/, qr/$filetypeRegex/);
 }
@@ -94,6 +69,35 @@ sub check_filename
     my $extension_bypass = $ext =~ $filetypeRegex if $filetypeRegex;
     error __x"Files with extension of {ext} are not allowed", ext => $ext
         unless $extension_bypass or $self->check_extension($ext);
+}
+
+sub check_file
+{   my ($self, $upload, %options) = @_;
+
+    my $check_name = $options{check_name} // 1;
+    my $allowed_data = $options{extra_types};
+
+    my ($mimeRegex, $filetypeRegex) = $self->create_regex($allowed_data);
+    
+    my $info = $magic->info_from_filename($upload->tempname);
+
+    my $allowed_bypass = $info->{mime_type} =~ $mimeRegex if $mimeRegex;
+
+    error __x"Files of mimetype {mimetype} are not allowed",
+        mimetype => $info->{mime_type}
+            unless $allowed_bypass or $self->check_type($info->{mime_type});
+
+    $self->check_filename($upload->filename, $filetypeRegex);
+
+    # As recommended at https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload
+    # Brackets have been added to this - above recommendations do not explicitly state that brackets are not allowed - Ticket #1695
+    $self->check_name($upload->filename)
+        if($check_name);
+
+    error __"Maximum file size is 50 MB"
+        if $upload->size > 50 * 1024 * 1024;
+
+    return $info->{mime_type};
 }
 
 sub check_name { 

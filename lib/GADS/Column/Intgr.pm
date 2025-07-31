@@ -39,12 +39,7 @@ has '+return_type' => (
 );
 
 has '+option_names' => (
-    default => sub {
-        [{
-            name              => 'show_calculator',
-            user_configurable => 1,
-        }]
-    },
+    default => sub { [qw/show_calculator/] },
 );
 
 has show_calculator => (

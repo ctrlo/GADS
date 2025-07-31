@@ -72,7 +72,6 @@ if ( $result->type ne 'file' ) {
 # Make sure the user wants to add the data to the selected column.
 print "Do you want to add mime type $mimetype with extension $extension to ". $result->name ." (y/n): ";
 my $answer = <STDIN>;
-chomp $answer;
 
 # Do a check for y
 if ( $answer =~ /^y/i ) {
@@ -80,6 +79,7 @@ if ( $answer =~ /^y/i ) {
         'name'      => $mimetype,
         'extension' => $extension,
     };
+    $result->override_types([]) unless $result->override_types;
     my $types = $result->override_types;
     push(@$types, $type) unless grep { $_->{extension} eq $type->{extension} && $_->{name} eq $type->{name} } @$types;
     $result->override_types($types);

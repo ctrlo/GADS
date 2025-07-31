@@ -111,7 +111,6 @@ class RenameButton {
             .split('.')
             .slice(0, -1)
             .join('.');
-        console.log("Original file name:", original);
         $(`#current-${id}`)
             .addClass('hidden')
             .attr('aria-hidden', 'true');
