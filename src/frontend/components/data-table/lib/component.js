@@ -779,12 +779,18 @@ class DataTableComponent extends Component {
      * @param {Config['layout']} layout The layout configuration for the DataTable
      */
     setupFullscreen(layout) {
-        if (!layout) return;
-        if (!layout.topEnd) return;
-        if (Array.isArray(layout.topEnd) && layout.topEnd.includes('fullscreen')) {
-            layout.topEnd = [...layout.topEnd.filter((item) => item !== 'fullscreen'), { fullscreen: { checked: this.fullscreen, onToggle: (ev) => this.toggleFullScreenMode(ev) } }];
-        } else if (layout.topEnd === 'fullscreen') {
-            layout.topEnd = { fullscreen: { checked: this.fullscreen, onToggle: (ev) => this.toggleFullScreenMode(ev) } };
+        if(!layout) return;
+        if(!layout.topEnd) return;
+        if(Array.isArray(layout.topEnd) && layout.topEnd.includes('fs')) {
+            console.log('Fullscreen mode enabled for DataTable');
+            layout.topEnd = layout.topEnd.filter((item) => item !== 'fs');
+            layout.topEnd.push({fullscreen: {checked: this.fullScreen, onToggle: (ev) => this.toggleFullScreenMode(ev)}});
+        } else if (layout.topEnd === 'fs') {
+            layout.topEnd = undefined;
+            console.log('Fullscreen mode enabled for DataTable');
+            layout.topEnd = {fullscreen: {checked: this.fullScreen, onToggle: (ev) => this.toggleFullScreenMode(ev)}};
+        } else {
+            console.log('No fullscreen mode enabled for DataTable');
         }
     }
 
