@@ -5,7 +5,7 @@
     topStart = "search",
     topEnd   = "pageLength",
     main     = "paging",
-    bottomStart = "length",
+    bottomStart = "info",
   }
   table_language = {
     emptyTable => "There are currently no account requests",

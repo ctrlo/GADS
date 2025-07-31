@@ -1223,7 +1223,7 @@
                     topStart => "search",
                     topEnd   => "pageLength",
                     bottomStart => "paging",
-                    bottomEnd   => "length"
+                    bottomEnd   => "info"
                 }
                 table_language     = {
                   emptyTable => "There are no groups available",
@@ -1454,7 +1454,7 @@
                     topStart => "search",
                     topEnd   => "pageLength",
                     bottomStart => "paging",
-                    bottomEnd => "length"
+                    bottomEnd => "info"
                   }
                   table_language     = {
                     lengthMenu => "Rows per page _MENU_",

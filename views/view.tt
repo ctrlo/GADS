@@ -500,9 +500,6 @@
                                   table_id = "table-view-fields-selected"
                                   table_class = 'table--bordered table-hover table-toggle table-toggle--remove'
                                   table_layout = undef
-                                  table_buttons = [{
-                                    button_class = "btn"
-                                  }]
                                   table_caption = "Table with selected fields in view"
                                   table_columns = [{
                                     name = "Fields in view",
@@ -541,7 +538,7 @@
                                   table_class = 'table--bordered table-hover table-toggle table-toggle--add table-search'
                                   table_layout = {
                                     topStart => session.rewind ? undef : "search",
-                                    topEnd   => "pageLength",
+                                    topEnd   => ["pageLength", "fs"],
                                     bottomStart => "paging",
                                     bottomEnd => "info"
                                   }

@@ -389,6 +389,10 @@ button.btn-add {
 .dt-end {
     @extend .py-4;
     @extend .align-content-center;
+    @extend .d-flex;
+    @extend .flex-row;
+    @extend .justify-content-between;
+    @extend .align-items-center;
 }
 
 .dt-start {
