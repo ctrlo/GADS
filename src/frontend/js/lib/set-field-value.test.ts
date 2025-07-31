@@ -572,7 +572,7 @@ describe('setFieldValue', () => {
         document.body.appendChild(dom);
         const field = $(dom);
         /* @ts-ignore */
-        expect(() => setFieldValues(field, 'test')).toThrowError('Attempt to set value for text without array');
+        expect(() => setFieldValues(field, 'test')).toThrow('Attempt to set value for text without array');
     });
 
     describe('String field', () => {
