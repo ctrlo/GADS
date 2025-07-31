@@ -1,4 +1,3 @@
- 
 import 'testing/globals.definitions';
 import 'components/button/lib/rename-button';
 import inputComponent from '../../components/form-group/input';
@@ -565,7 +564,8 @@ describe('setFieldValue', () => {
         const dom = $(stringDom)[0];
         document.body.appendChild(dom);
         const field = $(dom);
-        expect(() => setFieldValues(field, 'test')).toThrowError('Attempt to set value for text without array');
+        // @ts-expect-error We are testing an error case here
+        expect(() => setFieldValues(field, 'test')).toThrow('Attempt to set value for text without array');
     });
 
     describe('String field', () => {
