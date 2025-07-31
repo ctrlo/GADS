@@ -1,5 +1,5 @@
 [%-
-  table_dom = "t";
+  table_layout = undef
   table_language = {
     emptyTable => "No exports to show"
   }
@@ -88,6 +88,6 @@
       </form>
     </div>
   </div>
-  
+
   [% INCLUDE tables/basic_table.tt; %]
 </div>

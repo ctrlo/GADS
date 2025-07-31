@@ -2,7 +2,7 @@
   PROCESS help.tt;
 
   # prepare table config
-  table_dom = "t";
+  table_layout = undef;
   table_class = "table-striped";
   table_width = 85;
   table_show_all_records = 1;

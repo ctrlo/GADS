@@ -1,7 +1,12 @@
 [%
   # prepare table config
   table_class = 'table-striped table-hover table-account-requests';
-  table_dom = '<"row row--header"<"col"f><"col-lg-auto dataTables_length_wrapper"l>><"row row--main"<"col-sm-12"tr>><"row row--footer"<"col-sm-12 col-lg-6"p><"col-sm-12 col-lg-6 dataTables_info_wrapper"i>>';
+  table_layout = {
+    topStart = "search",
+    topEnd   = "pageLength",
+    main     = "paging",
+    bottomStart = "length",
+  }
   table_language = {
     emptyTable => "There are currently no account requests",
     lengthMenu => "Rows per page _MENU_",
@@ -131,7 +136,7 @@
         value  = user_row.title.id
       });
     END;
-    
+
     row.fields.push({
       type   = "link"
       label  = user_row.email
@@ -139,7 +144,7 @@
       name   = "email"
       value  = user_row.email
     });
-    
+
     IF site.register_show_organisation;
       row.fields.push({
         type   = "link"
@@ -149,7 +154,7 @@
         value  = user_row.organisation.id
       });
     END;
-    
+
     IF site.register_show_department;
       row.fields.push({
         type   = "link"
@@ -159,7 +164,7 @@
         value  = user_row.department.id
       });
     END;
-    
+
     IF site.register_show_team;
       row.fields.push({
         type   = "link"
@@ -169,7 +174,7 @@
         value  = user_row.team.id
       });
     END;
-    
+
     IF site.register_freetext1_name;
       row.fields.push({
         type   = "link"
@@ -179,7 +184,7 @@
         value  = user_row.freetext1
       });
     END;
-    
+
     IF site.register_freetext2_name;
       row.fields.push({
         type   = "link"
@@ -189,7 +194,7 @@
         value  = user_row.freetext2
       });
     END;
-    
+
     row.fields.push({
       type  = "link"
       label = user_row.created OR "Unknown"
@@ -223,7 +228,7 @@
           <li class="list__item">
             <a href='[% url.page %]/user_overview/' class='link link--plain'><span>Active accounts</span></a>
           </li>
-          
+
           <li class="list__item">
             <a href='[% url.page %]/user_requests/' class='link link--plain link--active'><span>Account requests</span></a>
           </li>
@@ -231,7 +236,7 @@
       </div>
     </div>
   </div>
-  
+
   [% INCLUDE tables/basic_table.tt; %]
 </div>
 [%- INCLUDE wizard/user_add.tt endpoint="/api/user_account" modalId="userModal" -%]

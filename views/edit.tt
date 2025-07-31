@@ -27,15 +27,15 @@
     >
     [%
       INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
-      
+
       IF submission_token;
         INCLUDE fields/hidden.tt name="submission_token" value=submission_token;
       END;
-  
+
       IF cur_id;
         INCLUDE fields/hidden.tt name="current_id" value=record.current_id;
       END;
-  
+
       IF child;
         INCLUDE fields/hidden.tt name="child" value=child;
       END;
@@ -49,7 +49,7 @@
           [% page_title | html %]
         </legend>
       </div>
-    
+
       <div class="content-block__main-content">
         <div class="row">
           [% IF NOT record.new_entry AND NOT edit_modal AND NOT view_modal %]
@@ -59,7 +59,7 @@
               <h3 class="card__header">
                 <span>Child records</span>
               </h3>
-    
+
               <div class="card__body row">
                 <div class="card__content">
                   <div class="list list--vertical list--key-value list--no-borders">
@@ -77,12 +77,12 @@
               </div>
             </div>
             [% END %]
-            
+
             <div class="card card--header">
               <h3 class="card__header">
                 <span>Meta data</span>
               </h3>
-              
+
               <div class="card__body row">
                 <div class="card__content">
                   <div class="list list--vertical list--key-value list--no-borders">
@@ -99,14 +99,14 @@
                           </div>
                         </span>
                       </li>
-            
+
                       <li class="list__item ">
                         <span class="list__key">Last edited time</span>
                         <span class="list__value">[% record.version_datetime.data.value | html %]</span>
                       </li>
                     </ul>
                   </div>
-        
+
                   <div class="list list--vertical list--key-value list--no-borders">
                     <ul class="list__items">
                       <li class="list__item ">
@@ -121,7 +121,7 @@
                           </div>
                         </span>
                       </li>
-            
+
                       <li class="list__item ">
                         <span class="list__key">Created time</span>
                         <span class="list__value">[% record.created_datetime.data.value | html %]</span>
@@ -131,12 +131,12 @@
                 </div>
               </div>
             </div>
-  
+
             <div class="card card--header">
               <h3 class="card__header">
                 <span>Version history</span>
               </h3>
-    
+
               <div class="card__body row">
                 <div class="card__content">
                   <div class="row mb-2">
@@ -149,7 +149,7 @@
                       <div class="collapsible-dropdown">
                         [%
                           dropdown_title = "Select version...";
-                        
+
                           FOREACH version IN record.versions;
                             IF version.id == record.record_id;
                               dropdown_title = version.created;
@@ -165,7 +165,7 @@
                               <ul class="dropdown__list" role="listbox" aria-labelledby="dropdown">
                                 [%
                                   history_link = record.deleted ? "purgehistory" : "history";
-                                
+
                                   FOREACH version IN record.versions;
                                 %]
                                 <li class="dropdown__item" role="option">
@@ -184,26 +184,26 @@
                                 [% END %]
                               </ul>
                             </div>
-                
-                
+
+
                           </div>
                         </div>
                       </div>
-          
+
                     </div>
                   </div>
-      
+
                 </div>
-    
+
               </div>
             </div>
-  
+
             [% IF record.has_rag_column %]
             <div class="card card--header">
               <h3 class="card__header">
                 <span>Legend</span>
               </h3>
-    
+
               <div class="card__body row">
                 <div class="card__content">
                   [% INCLUDE snippets/rag_legend.tt %]
@@ -213,26 +213,26 @@
             [% END %]
           </div>
           [% END %]
-          
+
           <div class="content-block__right col-lg-[% IF record.new_entry OR edit_modal OR view_modal %]12[% ELSE %]8[% END %]">
             [% PROCESS form %]
           </div>
         </div>
       </div>
-      
+
       <footer class="content-block__footer">
         <div class="content-block__footer-container">
           [%
             left_buttons = [];
             right_buttons = [];
-          
+
             IF edit_modal;
               left_buttons.push({
                 type    = "modal_dismiss_button"
                 class   = "btn btn-cancel"
                 label   = "Cancel"
               });
-          
+
               right_buttons.push({
                 type  = "button",
                 class = "btn btn-default btn-js-submit-record",
@@ -252,7 +252,7 @@
                   value = url.page _ "/" _ layout_obj.identifier _ "/data"
                 }]
               });
-          
+
               IF record.is_draft;
                 right_buttons.push({
                   type  = "button",
@@ -289,9 +289,9 @@
                 value = "submit",
                 label = "Submit and exit"
               });
-          
+
             END;
-          
+
             INCLUDE navigation/button_bar.tt
               row_class = "row"
               columns   = [{
@@ -328,17 +328,17 @@
     modal_description =
       "Are you sure you want to delete this record? The version history of the record will
       also be deleted. You cannot undo this step.";
-      
+
     IF record.child_record_ids.size;
       modal_description = modal_description _ "<br><br>The following child records will also be deleted:<ul>";
-      
+
       FOREACH rec IN record.child_record_ids;
         modal_description = modal_description _ "<li>" _ rec _ "</li>";
       END;
-  
+
       modal_description = modal_description _ "</ul>";
     END;
-    
+
     INCLUDE wizard/delete.tt
       modalId     = "deleteModal"
       label       = "Delete - record"
@@ -385,14 +385,14 @@
             <span class="btn__title">Edit</span>
           </button>
           [% END %]
-          
+
           <button
             type="button"
             class="btn btn-view btn-js-view"
           >
             <span class="btn__title">View</span>
           </button>
-        
+
           <button
             class="card__toggle"
             type="button"
@@ -441,7 +441,7 @@
   [%
     editable = record.user_can_edit AND NOT record.deleted AND NOT is_history AND NOT view_modal ? 1 : 0;
     is_first_topic = 1;
-    
+
     FOREACH topic IN record.topics;
       IF existing;
         oldvalue = existing.fields.$colid.html; # All value already entity-encoded
@@ -468,30 +468,30 @@
       </ul>
     </div>
   </div>
-  
+
   <div class="card__edit-content">
   [%
     END; # end IF NOT record.new_entry AND NOT edit_modal; as the edit view can be opened directly
-    
+
     FOREACH col IN topic.columns;
       NEXT IF NOT editable OR NOT col.display_for_edit;
-    
+
       editvalue = col.data;
       field     = 'field' _ col.id;
       colid     = col.id;
       readonly  = col.readonly AND page != "approval" ? 1 : 0;
       indents   = record.indent.${col.id};
-    
+
       field_label = "";
-    
+
       IF col.show_in_edit;
         field_label = col.name;
-        
+
         IF page != "bulk" AND oldvalue;
           field_label = field_label _ ' (current value "' _ oldvalue _ '")';
         END;
       END;
-    
+
       IF col.multivalue;
         IF col.has_multivalue_plus;
           PROCESS print_field;
@@ -502,7 +502,7 @@
       ELSE;
         PROCESS print_field;
       END;
-    
+
     END; # foreach end
 %]
   [% IF NOT record.new_entry AND NOT edit_modal; %]
@@ -511,7 +511,7 @@
 [%
 
       PROCESS panel_end;
-  
+
       is_first_topic = 0;
     END;
   END;
@@ -561,16 +561,16 @@
       select_items  = [];
       select_values = [];
       select_value  = "";
-  
+
       # Add any values that have since been deleted, in case the user is not editing
       # this field (otherwise they will be blanked unexpectedly on submission
       FOREACH v IN editvalue.deleted_values;
         values.unshift(v);
       END;
-  
+
       FOREACH value IN values;
         NEXT IF value.deleted;
-  
+
         IF editvalue.id_hash.${value.selector_id};
           IF col.multivalue;
             select_values.push(value.value_id);
@@ -578,7 +578,7 @@
             select_value = value.value_id;
           END;
         END;
-  
+
         select_items.push({label_plain=value.value, label_html=value.html, value=value.value_id});
       END;
 
@@ -625,7 +625,7 @@
       select_items  = [];
       select_values = [];
       select_value  = "";
-  
+
       IF page == "bulk";
           values = col.all_values;
       ELSIF col.has_subvals;
@@ -635,7 +635,7 @@
       ELSE;
           values = col.filtered_values;
       END;
-  
+
       FOREACH value IN values;
         NEXT IF value.deleted;
         IF editvalue.id_hash.${value.selector_id};
@@ -645,12 +645,12 @@
             select_value = value.value_id;
           END;
         END;
-  
+
         select_items.push({label_plain=value.value, label_html=value.html, value=value.value_id});
       END;
 
       show_add_btn = col.show_add;
-      
+
       IF col.value_selector == "noshow";
         '<fieldset class="fieldset input">';
         INCLUDE fields/sub/label_fieldset.tt
@@ -660,14 +660,14 @@
           help_text    = col.description
           filter       = "html"
           popover_body = col.helptext_html;
-  
+
         IF show_add_btn;
           PROCESS curval_add_button;
         END;
-  
+
         PROCESS curval_noshow;
         INCLUDE fields/hidden.tt id="" name=field value="" filter="";
-  
+
         '</fieldset>';
       ELSIF col.multivalue;
         tmp_data_attributes = [
@@ -751,9 +751,9 @@
           has_subvals          = col.has_subvals
           has_typeahead        = col.has_typeahead
           filter               = "html";
-          
+
           data_attributes = [];
-          
+
           IF show_add_btn;
             PROCESS curval_add_button;
           END;
@@ -855,7 +855,7 @@
           help_text    = col.description
           filter       = "html"
           popover_body = col.helptext_html;
-  
+
       IF readonly;
         IF editvalue.files.size;
           '<div class="list list--vertical list--no-borders">';
@@ -874,7 +874,7 @@
       ELSE;
         # Ensure something gets sent back to show it's been displayed
         INCLUDE fields/hidden.tt id="" name=field value="" filter="";
-        
+
         '<div class="list list--vertical list--key-value list--no-borders">';
           '<ul class="list__items fileupload__files">';
             FOREACH file IN editvalue.files;
@@ -891,7 +891,7 @@
                     name  = "filename"
                     value = file.name
                   }];
-          
+
               '</span>';
               '<span class="list__value">';
                 'Current file name: ';
@@ -904,7 +904,7 @@
              '</li>';
           '</ul>';
        '</div>';
-       
+
        '<div class="file-upload">';
         INCLUDE fields/file.tt
           id               = col.id
@@ -927,7 +927,7 @@
           is_readonly      = readonly
           is_multiple      = col.multivalue == multivalue ? 1 : 0
           filter           = "";
-  
+
           show_progress = 0;
           data_attributes = "";
         '</div>';
@@ -1043,20 +1043,20 @@
       field_input_type  = "text";
       field_input_class = "";
       field_placeholder = "";
-  
+
       IF col.type == "date";
         field_input_class = "input--date";
         field_placeholder = config.dateformat_datepicker;
         field_dateformat  = config.dateformat_datepicker;
-  
+
         IF col.show_datepicker AND !readonly;
           field_input_class = field_input_class _ " input--datepicker";
         END;
       END;
-  
+
       IF col.type == "intgr";
         field_input_type = "number";
-  
+
         IF editvalue.value.defined AND col.show_calculator;
           field_input_class = "calculator";
         END;
@@ -1096,8 +1096,8 @@
           hide_group   = 1
           type         = field_input_type;
       END;
-  
-      
+
+
     END;
   %]
   [% IF col.lookup_endpoint %]
@@ -1127,7 +1127,7 @@
     # prepare table config
     table_id               = 'curval_list_' _ col.id;
     table_class            = 'table-curval-group table-thead-hidden table-striped';
-    table_dom              = 't';
+    table_layout           = undef
     table_language         = {emptyTable => "No data available."};
     table_show_all_records = 1
 

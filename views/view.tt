@@ -499,7 +499,7 @@
                                   # Table configuration
                                   table_id = "table-view-fields-selected"
                                   table_class = 'table--bordered table-hover table-toggle table-toggle--remove'
-                                  table_dom = '<"row row--fiv-header"><"row row--main"<"col-sm-12"tr>>'
+                                  table_layout = undef
                                   table_buttons = [{
                                     button_class = "btn"
                                   }]
@@ -539,7 +539,12 @@
                                   # Table configuration
                                   table_id = "table-view-fields-available"
                                   table_class = 'table--bordered table-hover table-toggle table-toggle--add table-search'
-                                  table_dom = '<"row row--header"<"col"' _ (session.rewind ? '' : 'f') _ '>><"row row--main"<"col-sm-12"tr>>'
+                                  table_layout = {
+                                    topStart => session.rewind ? undef : "search",
+                                    topEnd   => "pageLength",
+                                    bottomStart => "paging",
+                                    bottomEnd => "info"
+                                  }
                                   table_buttons = [{
                                     button_class = "btn"
                                   }]

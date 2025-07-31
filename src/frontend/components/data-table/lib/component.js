@@ -12,9 +12,6 @@ import DataRenderer from './renderers/DataRenderer';
 
 /**
  * Component for initializing and managing DataTables
- * @todo It is worth noting that there are significant changes between DataTables.net v1 and v2 (hence the major version increase)
-         We are currently using v2 in this component, but with various deprecated features in use that may need to be updated in the future
-         It is worth noting that this will occur in the component upgrade process
  */
 class DataTableComponent extends Component {
     /**
@@ -504,11 +501,7 @@ class DataTableComponent extends Component {
             conf = confData;
         }
 
-        if (overrides) {
-            for (const key in overrides) {
-                conf[key] = overrides[key];
-            }
-        }
+        Object.assign(conf, overrides);
 
         conf.columns.forEach((column) => {
             column.orderable = column.orderable === 1;
@@ -526,7 +519,7 @@ class DataTableComponent extends Component {
             const tableElement = this.el;
             const dataTable = tableElement.DataTable();
 
-            this.json = json || undefined;
+            this.json = json;
 
             if (this.initializingTable || conf.reinitialize) {
                 dataTable.columns().every(function (index) {

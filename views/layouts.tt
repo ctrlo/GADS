@@ -1,7 +1,7 @@
 [%
   # prepare table config
   table_class            = 'table-striped table-hover table-lines';
-  table_dom              = 't';
+  layout                 = undef;
   table_language         = {
     emptyTable => "No fields have been created yet."
   };
@@ -10,7 +10,7 @@
   table_length_menu      = 'basic';
   table_caption          = "Table to show fields";
   table_order            = [0, "asc"]; # Needed for sortable rows to work (drag/drop)
-  
+
   table_buttons = [];
 
   table_columns = [{
@@ -98,7 +98,7 @@
         link_class = "link link--plain"
       });
     END;
-    
+
     row.fields.push({
       type       = col.internal ? "text" : "link",
       label      = col.name_short,
@@ -128,7 +128,7 @@
         <h4 class="card__title">
           <span> Edit your fields </span>
         </h4>
-        
+
         <div class="card__body row">
           <div class="card__content">
             <div class="row mb-4">
@@ -145,7 +145,7 @@
         </div>
       </div>
     </div>
-    
+
     <footer class="content-block__footer">
       <div class="content-block__footer-container">
         [%

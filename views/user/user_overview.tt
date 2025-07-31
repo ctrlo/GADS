@@ -1,7 +1,12 @@
 [%
   # prepare table config
   table_class    = 'table-striped table-hover';
-  table_dom      = '<"row row--header"<"col"f><"col-lg-auto dataTables_length_wrapper"l>><"row row--main"<"col-sm-12"tr>><"row row--footer"<"col-sm-12 col-lg-6"p><"col-sm-12 col-lg-6 dataTables_info_wrapper"i>>';
+  table_layout = {
+    topStart => "search",
+    topEnd   => "pageLength",
+    main     => "paging",
+    bottomStart => "length",
+  }
   table_language = {
     emptyTable => "There is no data available in this table",
     lengthMenu => "Rows per page _MENU_",
@@ -116,7 +121,7 @@
           <li class="list__item">
             <a href='[% url.page %]/user_overview/' class='link link--plain link--active'><span>Active accounts</span></a>
           </li>
-          
+
           <li class="list__item">
             <a href='[% url.page %]/user_requests/' class='link link--plain'><span>Account requests</span></a>
           </li>
@@ -124,7 +129,7 @@
       </div>
     </div>
   </div>
-  
+
   [% INCLUDE tables/basic_table.tt; %]
 </div>
 
