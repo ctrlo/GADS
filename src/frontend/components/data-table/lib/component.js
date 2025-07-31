@@ -5,6 +5,7 @@ import 'datatables.net-bs4';
 import 'datatables.net-buttons-bs4';
 import 'datatables.net-responsive-bs4';
 import 'datatables.net-rowreorder-bs4';
+import './DataTablesPlugins';
 import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets';
 import { moreLess } from 'components/more-less/lib/more-less';
 import { bindToggleTableClickHandlers } from './toggle-table';
@@ -13,8 +14,6 @@ const MORE_LESS_TRESHOLD = 50;
 
 /**
  * Component for initializing and managing DataTables
- * @todo It is worth noting that there are significant changes between DataTables.net v1 and v2 (hence the major version increase)
-         We are currently using v2 in this component, but with various deprecated features in use that may need to be updated in the future
  */
 class DataTableComponent extends Component {
     /**
@@ -800,6 +799,26 @@ class DataTableComponent extends Component {
     }
 
     /**
+     * Setup the fullscreen mode for the DataTable
+     * @param {Config['layout']} layout The layout configuration for the DataTable
+     */
+    setupFullscreen(layout) {
+        if(!layout) return;
+        if(!layout.topEnd) return;
+        if(Array.isArray(layout.topEnd) && layout.topEnd.includes('fs')) {
+            console.log('Fullscreen mode enabled for DataTable');
+            layout.topEnd = layout.topEnd.filter((item) => item !== 'fs');
+            layout.topEnd.push({fullscreen: {checked: this.fullScreen, onToggle: (ev) => this.toggleFullScreenMode(ev)}});
+        } else if (layout.topEnd === 'fs') {
+            layout.topEnd = undefined;
+            console.log('Fullscreen mode enabled for DataTable');
+            layout.topEnd = {fullscreen: {checked: this.fullScreen, onToggle: (ev) => this.toggleFullScreenMode(ev)}};
+        } else {
+            console.log('No fullscreen mode enabled for DataTable');
+        }
+    }
+
+    /**
      * Get the configuration object for the DataTable
      * @import { Config } from 'datatables.net-bs4';
      * @param {Parital<Config>} overrides Any values to override in the configuration
@@ -837,7 +856,7 @@ class DataTableComponent extends Component {
             const tableElement = this.el;
             const dataTable = tableElement.DataTable();
 
-            this.json = json || undefined;
+            this.json = json;
 
             if (this.initializingTable || conf.reinitialize) {
                 dataTable.columns().every(function(index) {
@@ -908,20 +927,6 @@ class DataTableComponent extends Component {
 
             this.bindClickHandlersAfterDraw(conf);
         };
-
-        conf['buttons'] = [
-            {
-                text: 'Full screen',
-                enabled: false,
-                attr: {
-                    id: 'full-screen-btn'
-                },
-                className: 'btn btn-small btn-toggle-off',
-                action: ( e ) => {
-                    this.toggleFullScreenMode(e);
-                }
-            }
-        ];
 
         return conf;
     }
