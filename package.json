@@ -66,6 +66,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/react-grid-layout": "^1.0.0",
     "@types/typeahead.js": "^0.11.6",
+    "@typescript-eslint/type-utils": "^8.61.1",
     "@webpack-cli/serve": "^2.0.1",
     "autoprefixer": "^10.5.0",
     "babel-loader": "^10.1.1",
