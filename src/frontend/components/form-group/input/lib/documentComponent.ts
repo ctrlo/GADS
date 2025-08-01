@@ -185,11 +185,10 @@ class DocumentComponent {
             }
         } catch (error) {
             let e=error
-            if( error instanceof Error || "message" in error) {
-                e = error.message;
-            } else if (typeof error === 'string' && JSON.parse(error)?.message) {
-                e = JSON.parse(error).message;
-            }
+            if(JSON.parse(error as string)?.message)
+                e = JSON.parse(error as string).message;
+            else if (typeof error == "object" && "message" in error)
+                e = e.message;
             this.showException(e);
             const current = $(`#current-${fileId}`);
             current.text(oldName);
