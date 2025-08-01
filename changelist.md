@@ -1,5 +1,30 @@
 # GADS Changelist
 
+--------
+
+**Version**: 2.7.0
+**Released**: 01-08-2025
+
+-------
+
+## Features
+
+- Clearer feedback is now provided when a session times out
+- Added customisation of file types allowed at layout level
+- Updated to allow saving of files to server filesystem, allowing for larger file sizes to be uploaded
+
+## Fixes
+
+- Added loading div to Timeline
+- Modified get request where a large amount of data was being sent in the request to now use post
+
+-------
+
+**Version**: 2.6.7
+**Released**: 03-07-2025
+
+- Fix basic authentication in API
+
 -------
 
 **Version**: 2.6.6
