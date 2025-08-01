@@ -1813,11 +1813,13 @@ post '/api/file/?' => require_login sub {
         my $mimetype = $filecheck->check_upload($upload, check_name => 0, extra_types => $column->override_types); # Borks on invalid file type
         my $filename = $upload->filename;
 
-        # Remove any invalid characters from the new name - this will possibly be changed to an error going forward
-        # Due to dragging allowing (almost) any character it is decided that this would be best so users can input what
-        # they want, and the text be stripped on rename server-side
-        # Note: This regex should mirror the regex in GADS::Filecheck::check_name()
-        $filename =~ s/[^a-zA-Z0-9\._\-\(\) ]//g;
+        # Strip out any invalid characters from the filename
+        $filename =~ /([a-zA-Z0-9\.]{1,200})\.([a-zA-Z0-9]{1,10})$/g;
+        my $name = $1;
+        my $ext = $2;
+        $name =~ s/[^-+_ a-zA-Z0-9\(\)]+//g;
+        
+        $filename = $name . '.' . $ext;
 
         my $file;
         if (process( sub { $file = rset('Fileval')->create_with_file({

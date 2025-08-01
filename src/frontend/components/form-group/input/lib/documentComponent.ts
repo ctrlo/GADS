@@ -48,30 +48,34 @@ class DocumentComponent {
 
         if (dropTarget) {
             const dragOptions = { allowMultiple: true };
-            dropTarget.filedrag(dragOptions).on('fileDrop', ({ file }: FileDropEvent) => {
+            dropTarget.filedrag(dragOptions).on('fileDrop', async ({ file }: FileDropEvent) => {
                 this.handler.clearErrors();
                 logging.info('File dropped', file);
-                this.handleAjaxUpload(url, csrf_token, file, columnId);
+                await this.handleAjaxUpload(url, csrf_token, file, columnId);
             });
         } else {
             throw new Error('Could not find file-upload element');
         }
 
-        this.fileInput.on('change', (ev) => {
+        this.fileInput.on('change', async (ev) => {
             if (!(ev.target instanceof HTMLInputElement)) {
                 throw new Error('Could not find file-upload element');
             }
 
-            const file = ev.target.files![0];
-            if (!file || file === undefined || !file.name) return;
-            const formData = formdataMapper({ file, csrf_token, column_id: columnId });
-            upload<FileData>(url, formData, 'POST', (loaded, total) => this.showProgress(file.name, loaded, total)).then((data)=>{
+            try {
+                const file = ev.target.files![0];
+                if (!file || file === undefined || !file.name) return;
+                const formData = formdataMapper({ file, csrf_token, column_id: columnId });
+                const data = await upload<FileData>(url, formData, 'POST', (loaded, total) => this.showProgress(file.name, loaded, total));
                 this.addFileToField({ id: data.id, name: data.filename });
-            }).catch((e) => {
+            } catch(e) {
+                let error = e;
                 if(JSON.parse(e as string)?.message)
-                    e = JSON.parse(e as string).message;
-                this.handler.addError(e);
-            });
+                    error = JSON.parse(e as string).message;
+                this.handler.addError(error);
+            } finally {
+                $(this.el.find('.progress-bar__container[data-file-name="' + ev.target.files![0].name + '"]')).hide();
+            }
         });
     }
 
@@ -104,30 +108,19 @@ class DocumentComponent {
         progressBar.show();
     }
 
-    handleAjaxUpload(uri: string, csrf_token: string, file: File, columnId: number) {
+    async handleAjaxUpload(uri: string, csrf_token: string, file: File, columnId: number) {
         try {
             if (!file) this.showException(new Error('No file provided'));
 
             const fileData = formdataMapper({ file, csrf_token, column_id: columnId });
 
-            upload<FileData>(uri, fileData, 'POST', (loaded, total) => this.showProgress(file.name, loaded, total)).then((data) => {
-                this.addFileToField({ id: data.id, name: data.filename });
-            }).then(
-                () => { 
-                    $(this.el.find('.progress-bar__container[data-file-name="' + file.name + '"]'))
-                        .hide();
-                }
-            ).catch((e) => {
-                if(JSON.parse(e as string)?.message)
-                    e = JSON.parse(e as string).message;
-                else if (typeof e == "object" && "message" in e)
-                    e = e.message;
-                this.handler.addError(e);
-                $(this.el.find('.progress-bar__container[data-file-name="' + file.name + '"]'))
-                    .hide();
-            });
+            const data = await upload<FileData>(uri, fileData, 'POST', (loaded, total) => this.showProgress(file.name, loaded, total))
+            this.addFileToField({ id: data.id, name: data.filename });
         } catch (e) {
             this.showException(e instanceof Error || "message" in e ? e.message : e as string ?? e.toString());
+            $(this.el.find('.progress-bar__container[data-file-name="' + file.name + '"]')).hide();
+        } finally {
+            $(this.el.find('.progress-bar__container[data-file-name="' + file.name + '"]')).hide();
         }
     }
 
@@ -185,11 +178,10 @@ class DocumentComponent {
             }
         } catch (error) {
             let e=error
-            if( error instanceof Error || "message" in error) {
-                e = error.message;
-            } else if (typeof error === 'string' && JSON.parse(error)?.message) {
-                e = JSON.parse(error).message;
-            }
+            if(JSON.parse(error as string)?.message)
+                e = JSON.parse(error as string).message;
+            else if (typeof error == "object" && "message" in error)
+                e = e.message;
             this.showException(e);
             const current = $(`#current-${fileId}`);
             current.text(oldName);
