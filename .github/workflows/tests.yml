@@ -5,6 +5,10 @@ on:
       - master
       - dev
       - hotfix
+      - test*
+    paths-ignore:
+      - '*.md'
+      - VERSION
   pull_request:
     branches:
       - master
