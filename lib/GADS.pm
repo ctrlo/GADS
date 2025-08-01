@@ -1814,11 +1814,13 @@ post '/api/file/?' => require_login sub {
         my $filename = $upload->filename;
 
         # Strip out any invalid characters from the filename
-        $filename =~ /([a-zA-Z0-9\.]{1,200})\.([a-zA-Z0-9]{1,10})$/g;
+        $filename =~ s/[^A-Za-z0-9\._\(\)-]+//g;
+        
+        $filename =~ /([A-Za-z0-9\._\(\)-]{1,100})\.([a-zA-Z0-9]{1,10})$/g;
         my $name = $1;
         my $ext = $2;
-        $name =~ s/[^-+_ a-zA-Z0-9\(\)]+//g;
-        
+        $name =~ s/\.//;  # Remove leading dots
+
         $filename = $name . '.' . $ext;
 
         my $file;
