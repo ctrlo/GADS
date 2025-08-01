@@ -156,7 +156,7 @@ class RenameButton {
      * Rename blur event
      * @param {number} id The id of the field
      * @param {JQuery<HTMLButtonElement>} button The button that was clicked
-     * @param {JQuery.BlurEvent} e The blur event
+     * @param {JQuery.BlurEvent} ev The blur event
      */
     private triggerRename(id: number, button: JQuery<HTMLButtonElement>, e: JQuery.Event) {
         const previousValue = $(`#current-${id}`).text();
