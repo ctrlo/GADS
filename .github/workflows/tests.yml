@@ -32,69 +32,69 @@ jobs:
         run: prove -lrs -j4 t
 
   # I cannot currently get this working in a container
-  webdriver_tests:
-    name: 'Webdriver Tests for ${{ matrix.browser.name }}'
-    runs-on: '${{ matrix.browser.os }}'
-    timeout-minutes: 30
+  # webdriver_tests:
+  #   name: 'Webdriver Tests for ${{ matrix.browser.name }}'
+  #   runs-on: '${{ matrix.browser.os }}'
+  #   timeout-minutes: 30
 
-    strategy:
-      fail-fast: false
-      matrix:
-        browser:
-          - name: 'Chromium'
-            command: 'chromedriver --port=4444 &'
-            os: 'ubuntu-22.04'
-          - name: 'Firefox'
-            command: 'MOZ_HEADLESS=1 geckodriver --log warn &'
-            os: 'ubuntu-22.04'
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       browser:
+  #         - name: 'Chromium'
+  #           command: 'chromedriver --port=4444 &'
+  #           os: 'ubuntu-22.04'
+  #         - name: 'Firefox'
+  #           command: 'MOZ_HEADLESS=1 geckodriver --log warn &'
+  #           os: 'ubuntu-22.04'
 
-    services:
-      postgres:
-        image: postgres
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgrespassword
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
+  #   services:
+  #     postgres:
+  #       image: postgres
+  #       env:
+  #         POSTGRES_USER: postgres
+  #         POSTGRES_PASSWORD: postgrespassword
+  #         POSTGRES_DB: postgres
+  #       ports:
+  #         - 5432:5432
 
-    env:
-      GADS_USERNAME: 'test@example.com'
-      GADS_PASSWORD: 'xyz123'
+  #   env:
+  #     GADS_USERNAME: 'test@example.com'
+  #     GADS_PASSWORD: 'xyz123'
 
-    steps:
-      - name: 'Check out the GADS code'
-        uses: 'actions/checkout@v4'
-      - name: 'Install dependencies'
-        run: |
-          chmod +x ./.github/workflows/install.sh
-          ./.github/workflows/install.sh
-      - name: 'Install Integration Test Dependencies'
-        run: |
-          chmod +x ./.github/workflows/install_integration.sh
-          ./.github/workflows/install_integration.sh
-      - name: 'Set up credentials for psql'
-        # See https://wiki.postgresql.org/wiki/Pgpass
-        run: |
-          echo '*:*:*:postgres:postgrespassword' > ~/.pgpass
-          chmod 600 ~/.pgpass
-      - name: 'create uploads directory'
-        run: |
-          mkdir -p /tmp/uploads
-          chmod 777 /tmp/uploads
-      - name: 'Start the application'
-        env:
-          DANCER_CONFDIR: 'webdriver'
-          PGDATABASE: 'postgres'
-          PGHOST: 'postgres' # to connect to the container
-          PGUSER: 'postgres'
-        run: |
-          ./bin/setup_database
-          perl bin/app.pl &
-      - name: 'Run the Webdriver implementation'
-        run: '${{ matrix.browser.command }}'
-      - name: 'Run the Webdriver tests'
-        run: prove -lmrsv webdriver/t
+  #   steps:
+  #     - name: 'Check out the GADS code'
+  #       uses: 'actions/checkout@v4'
+  #     - name: 'Install dependencies'
+  #       run: |
+  #         chmod +x ./.github/workflows/install.sh
+  #         ./.github/workflows/install.sh
+  #     - name: 'Install Integration Test Dependencies'
+  #       run: |
+  #         chmod +x ./.github/workflows/install_integration.sh
+  #         ./.github/workflows/install_integration.sh
+  #     - name: 'Set up credentials for psql'
+  #       # See https://wiki.postgresql.org/wiki/Pgpass
+  #       run: |
+  #         echo '*:*:*:postgres:postgrespassword' > ~/.pgpass
+  #         chmod 600 ~/.pgpass
+  #     - name: 'create uploads directory'
+  #       run: |
+  #         mkdir -p /tmp/uploads
+  #         chmod 777 /tmp/uploads
+  #     - name: 'Start the application'
+  #       env:
+  #         DANCER_CONFDIR: 'webdriver'
+  #         PGDATABASE: 'postgres'
+  #         PGHOST: 'postgres' # to connect to the container
+  #         PGUSER: 'postgres'
+  #       run: |
+  #         ./bin/setup_database
+  #         perl bin/app.pl &
+  #     - name: 'Run the Webdriver implementation'
+  #       run: '${{ matrix.browser.command }}'
+  #     - name: 'Run the Webdriver tests'
+  #       run: prove -lmrsv webdriver/t
   
   cypress_tests:
     name: 'Cypress Tests for ${{ matrix.browser.name }}'
@@ -159,7 +159,8 @@ jobs:
           perl bin/app.pl &
       - name: 'Run the Cypress tests'
         run: yarn cypress run --browser ${{ matrix.browser.name }}
-              
+  
+  # This does not need testing in a container
   js_tests:
     runs-on: ubuntu-latest
 
