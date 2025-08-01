@@ -194,8 +194,20 @@ class DocumentComponent {
     }
 
     showException(e: any) {
-        this.handler.addError(e instanceof Error ? e.message : typeof e == "object" && "message" in e ? e.message :
-            JSON.parse(e.toString())?.message ?? e.toString());
+        if(typeof e === 'string') {
+            try {
+                e = JSON.parse(e);
+            } catch(error) {
+                // If parsing fails, we keep e as a string
+            }
+        } else if (typeof e === 'object' && e !== null && 'message' in e) {
+            e = e.message;
+        } else if (e instanceof Error) {
+            e = e.message;
+        } else {
+            e = e.toString();
+        }
+        this.handler.addError(e);
     }
 }
 
