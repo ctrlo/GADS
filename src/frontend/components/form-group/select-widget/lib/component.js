@@ -1,12 +1,11 @@
 // We import Bootstrap because there is an error that throws if we don't (this.collapse is not a function).
 /* eslint-disable @typescript-eslint/no-this-alias */
-import "bootstrap";
-import { Component } from 'component'
-import { logging } from 'logging'
-import { fromJson } from 'util/common'
-import { initValidationOnField } from 'validation'
+import 'bootstrap';
+import { Component } from 'component';
+import { logging } from 'logging';
+import { initValidationOnField } from 'validation';
 
-  /*
+/*
    * A SelectWidget is a custom disclosure widget
    * with multi or single options selectable.
    * SelectWidgets can depend on each other;
@@ -572,42 +571,13 @@ class SelectWidgetComponent extends Component {
 
         if (!Array.isArray(filterFields)) {
             throw 'Invalid data-filter-fields found. It should be a proper JSON array of fields.';
-      } else {
-        const errorMessage = data.message;
-        const errorLi = $(
-          '<li class="answer answer--blank alert alert-danger d-flex flex-row justify-content-start"><span class="control"><label>' +
-            errorMessage +
-            "</label></span></li>"
-        )
-        this.$available.append(errorLi)
-      }
-    }).fail(function(jqXHR, textStatus, textError) {
-        const errorMessage = jqXHR.responseJSON.message;
-        logging.error(
-          "Failed to make request to " +
-            url +
-            ": " +
-            textStatus +
-            ": " +
-            textError
-        )
-        const errorLi = $(
-          '<li class="answer answer--blank alert alert-danger"><span class="control"><label>' +
-            errorMessage +
-            "</label></span></li>"
-        )
-        self.$available.append(errorLi)
-      })
-      .always(function() {
-        if (hideSpinner) {
-          self.$available.find(".spinner").attr("hidden", "")
         }
 
         // Collect values of linked fields
         const values = ['submission-token=' + submissionToken];
-        $.each(filterFields, function (_, field) {
+        $.each(filterFields, function(_, field) {
 
-            $('input[name=' + field + ']').each(function (_, input) {
+            $('input[name=' + field + ']').each(function(_, input) {
                 const $input = $(input);
 
                 switch ($input.attr('type')) {

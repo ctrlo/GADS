@@ -69,11 +69,12 @@ class DocumentComponent {
             const formData = formdataMapper({ file, csrf_token, column_id: columnId });
             upload<FileData>(url, formData, 'POST', (loaded, total) => this.showProgress(file.name, loaded, total)).then((data)=>{
                 this.addFileToField({ id: data.id, name: data.filename });
-            }).catch((e) => {
-                if(JSON.parse(e as string)?.message)
-                    e = JSON.parse(e as string).message;
-                this.handler.addError(e);
-            });
+            })
+                .catch((e) => {
+                    if(JSON.parse(e as string)?.message)
+                        e = JSON.parse(e as string).message;
+                    this.handler.addError(e);
+                });
         });
     }
 
@@ -88,7 +89,7 @@ class DocumentComponent {
             this.createProgressBar(this.el, file);
             barContainer = this.el.find('.progress-bar__container[data-file-name="' + file + '"]');
         }
-        barContainer.css('width', undefined)
+        barContainer.css('width', undefined);
         barContainer.find('.progress-bar__percentage').html(uploadProgression === 100 ? 'complete' : `${uploadProgression}%`);
         barContainer.find('.progress-bar__progress').css('width', `${uploadProgression}%`);
     }
@@ -101,7 +102,7 @@ class DocumentComponent {
                 </div>
             </div>
         `);
-        const barContainer = el?.find(".progress-bars");
+        const barContainer = el?.find('.progress-bars');
         barContainer.append(progressBar);
         progressBar.show();
     }
@@ -114,22 +115,24 @@ class DocumentComponent {
 
             upload<FileData>(uri, fileData, 'POST', (loaded, total) => this.showProgress(file.name, loaded, total)).then((data) => {
                 this.addFileToField({ id: data.id, name: data.filename });
-            }).then(
-                () => { 
+            })
+                .then(
+                    () => { 
+                        $(this.el.find('.progress-bar__container[data-file-name="' + file.name + '"]'))
+                            .hide();
+                    }
+                )
+                .catch((e) => {
+                    if(JSON.parse(e as string)?.message)
+                        e = JSON.parse(e as string).message;
+                    else if (typeof e == 'object' && 'message' in e)
+                        e = e.message;
+                    this.handler.addError(e);
                     $(this.el.find('.progress-bar__container[data-file-name="' + file.name + '"]'))
                         .hide();
-                }
-            ).catch((e) => {
-                if(JSON.parse(e as string)?.message)
-                    e = JSON.parse(e as string).message;
-                else if (typeof e == "object" && "message" in e)
-                    e = e.message;
-                this.handler.addError(e);
-                $(this.el.find('.progress-bar__container[data-file-name="' + file.name + '"]'))
-                    .hide();
-            });
+                });
         } catch (e) {
-            this.showException(e instanceof Error || "message" in e ? e.message : e as string ?? e.toString());
+            this.showException(e instanceof Error || 'message' in e ? e.message : e as string ?? e.toString());
         }
     }
 
@@ -187,10 +190,10 @@ class DocumentComponent {
                 this.addFileToField({ id, name });
             }
         } catch (error) {
-            let e=error
+            let e=error;
             if(JSON.parse(error as string)?.message)
                 e = JSON.parse(error as string).message;
-            else if (typeof error == "object" && "message" in error)
+            else if (typeof error == 'object' && 'message' in error)
                 e = e.message;
             this.showException(e);
             const current = $(`#current-${fileId}`);
@@ -199,7 +202,7 @@ class DocumentComponent {
     }
 
     showException(e: any) {
-        this.handler.addError(e instanceof Error ? e.message : typeof e == "object" && "message" in e ? e.message : e.toString());
+        this.handler.addError(e instanceof Error ? e.message : typeof e == 'object' && 'message' in e ? e.message : e.toString());
     }
 }
 

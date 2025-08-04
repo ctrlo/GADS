@@ -8,13 +8,13 @@ export interface FileDropEvent extends JQuery.TriggeredEvent {
     length: number;
 }
 
-export { FileDragOptions }
+export { FileDragOptions };
 
 declare global {
     interface JQuery<TElement = HTMLElement> {
         filedrag(options: FileDragOptions): JQuery<TElement>;
-        on(event: "fileDrop", handler: (event: FileDropEvent) => void): JQuery<TElement>;
-        on(event: "uploadsComplete", handler: (event: JQuery.TriggeredEvent) => void): JQuery<TElement>;
+        on(event: 'fileDrop', handler: (event: FileDropEvent) => void): JQuery<TElement>;
+        on(event: 'uploadsComplete', handler: (event: JQuery.TriggeredEvent) => void): JQuery<TElement>;
     }
 }
 
@@ -28,15 +28,15 @@ if (typeof jQuery !== 'undefined') {
                 debug: false
             }, options);
 
-            if (!this.data("filedrag")) {
-                this.data("filedrag", "true");
+            if (!this.data('filedrag')) {
+                this.data('filedrag', 'true');
                 new FileDrag(this, options, (file, index, length) => {
                     if(index === undefined) index = 1;
                     if(length === undefined) length = 1;
-                    if (options.debug) console.log("fileDrop", file, index, length);
-                    const event = $.Event("fileDrop", { file, index, length });
+                    if (options.debug) console.log('fileDrop', file, index, length);
+                    const event = $.Event('fileDrop', { file, index, length });
                     this.trigger(event);
-                })
+                });
             }
 
             return this;

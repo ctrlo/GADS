@@ -24,7 +24,7 @@ class FileComponent {
         const dropTarget = this.el.closest('.file-upload');
         if (dropTarget) {
             const dragOptions = { allowMultiple: true };
-            dropTarget.filedrag(dragOptions).on('fileDrop', ({ file, index, length }: FileDropEvent) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+            dropTarget.filedrag(dragOptions).on('fileDrop', ({ file, index, length }: FileDropEvent) => {  
                 this.handleFormUpload(file, index, length);
             });
         } else {
@@ -50,10 +50,10 @@ class FileComponent {
 
         if (method === 'POST') {
             logging.info(`Uploading file: ${file.name} (${index} of ${length}) to ${action} using POST method`);
-            const uploadPromise = upload(action, formData, 'POST')
+            const uploadPromise = upload(action, formData, 'POST');
             if(index === length-1) {
                 uploadPromise.then(() => {
-                    logging.info("File upload complete, reloading page");
+                    logging.info('File upload complete, reloading page');
                     window.location.reload();
                 });
             }
