@@ -879,9 +879,11 @@
           '<ul class="list__items fileupload__files">';
             FOREACH file IN editvalue.files;
             '<li class="list__item">';
+              '<div class="row">';
+                '<div class="col-auto align-content-center">';
               '<span class="list__key">';
                 INCLUDE fields/sub/checkbox.tt
-                  id      = "file_checkbox_" _ col.id _ "_" _ file.id
+                  id      = "file-" _ file.id
                   name    = field
                   label   = "Include file."
                   value   = file.id
@@ -895,10 +897,13 @@
               '</span>';
               '<span class="list__value">';
                 'Current file name: ';
-                '<a class="link link--plain" href="' _ url.page _ '/file/' _ file.id _'">';
+                '<a class="link link--plain" href="' _ url.page _ '/file/' _ file.id _'" id="current-'_ file.id _'">';
                   file.name | html;
-                '</a>.';
+                '</a>';
+                '<button data-field-id="' _ file.id _ '" class="rename btn btn-plain btn-small btn-sm py-0"></button>';
               '</span>';
+              '</div>';
+              '</div>';
             '</li>';
             END;
              '</li>';

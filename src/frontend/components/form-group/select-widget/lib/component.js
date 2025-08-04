@@ -1,4 +1,6 @@
+// We import Bootstrap because there is an error that throws if we don't (this.collapse is not a function).
 /* eslint-disable @typescript-eslint/no-this-alias */
+import 'bootstrap';
 import { Component } from 'component';
 import { logging } from 'logging';
 import { initValidationOnField } from 'validation';
@@ -647,9 +649,9 @@ class SelectWidgetComponent extends Component {
 
         // Collect values of linked fields
         const values = ['submission-token=' + submissionToken];
-        $.each(filterFields, function (_, field) {
+        $.each(filterFields, function(_, field) {
 
-            $('input[name=' + field + ']').each(function (_, input) {
+            $('input[name=' + field + ']').each(function(_, input) {
                 const $input = $(input);
 
                 switch ($input.attr('type')) {
