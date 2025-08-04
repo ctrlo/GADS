@@ -24,7 +24,7 @@ export class TypeaheadBuilder {
     private appendQuery: boolean;
     private data: any;
     private mapper: MapperFunction = (data: any) => {return data.map(d=> {return {name: d.name, id: d.id};});};
-    private dataBuilder: (...args: any[])=>any;
+    private dataBuilder: (...args: any[]) => any;
     private method: 'GET' | 'POST' = 'GET';
 
     /**

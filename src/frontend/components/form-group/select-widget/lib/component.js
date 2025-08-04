@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component';
 import { logging } from 'logging';
+import { fromJson } from 'util/common';
 import { initValidationOnField } from 'validation';
 
 /*
@@ -29,6 +30,7 @@ class SelectWidgetComponent extends Component {
         this.$search = this.el.find('.form-control-search');
         this.lastFetchParams = null;
         this.multi = this.el.hasClass('multi');
+        this.timeout = undefined;
         this.required = this.el.hasClass('select-widget--required');
         // Give each AJAX load its own ID. If a higher ID has started by the time
         // we get the results, then cancel the current process to prevent
@@ -117,8 +119,7 @@ class SelectWidgetComponent extends Component {
             .toLowerCase();
         const self = this;
 
-        this.$fakeInput =
-            this.$fakeInput ||
+        this.$fakeInput = this.$fakeInput ||
             $('<span>')
                 .addClass('form-control-search')
                 .css('white-space', 'nowrap');
@@ -448,6 +449,7 @@ class SelectWidgetComponent extends Component {
 
     //Some odd scoping issues here - but it works
     updateJson(url, typeahead) {
+        const formData = { 'csrf_token': $('body').data('csrf') };
         this.loadCounter++;
         const self = this;
         const myLoad = this.loadCounter; // ID of this process
@@ -468,7 +470,8 @@ class SelectWidgetComponent extends Component {
         // If we cancel this particular loop, then we don't want to remove the
         // spinner if another one has since started running
         let hideSpinner = true;
-        $.getJSON(url, (data) => {
+        $.ajax(url, { method: 'POST', data: formData }).done((data) => {
+            data = fromJson(data);
             if (data.error === 0) {
                 if (myLoad != this.loadCounter) { // A new one has started running
                     hideSpinner = false; // Don't remove the spinner on completion
@@ -529,8 +532,7 @@ class SelectWidgetComponent extends Component {
                 });
 
             } else {
-                const errorMessage =
-                    data.error === 1 ? data.message : 'Oops! Something went wrong.';
+                const errorMessage = data.message;
                 const errorLi = $(
                     '<li class="answer answer--blank alert alert-danger d-flex flex-row justify-content-start"><span class="control"><label>' +
                     errorMessage +
@@ -540,7 +542,7 @@ class SelectWidgetComponent extends Component {
             }
         })
             .fail(function (jqXHR, textStatus, textError) {
-                const errorMessage = 'Oops! Something went wrong.';
+                const errorMessage = jqXHR.responseJSON.message;
                 logging.error(
                     'Failed to make request to ' +
                     url +

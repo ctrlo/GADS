@@ -69,11 +69,12 @@ class DocumentComponent {
             const formData = formdataMapper({ file, csrf_token, column_id: columnId });
             upload<FileData>(url, formData, 'POST', (loaded, total) => this.showProgress(file.name, loaded, total)).then((data)=>{
                 this.addFileToField({ id: data.id, name: data.filename });
-            }).catch((e) => {
-                if(JSON.parse(e as string)?.message)
-                    e = JSON.parse(e as string).message;
-                this.handler.addError(e);
-            });
+            })
+                .catch((e) => {
+                    if(JSON.parse(e as string)?.message)
+                        e = JSON.parse(e as string).message;
+                    this.handler.addError(e);
+                });
         });
     }
 
