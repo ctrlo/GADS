@@ -3,6 +3,7 @@
 import { Component } from 'component';
 import { fromJson } from 'util/common';
 import { logging } from 'logging';
+import { fromJson } from 'util/common';
 import { initValidationOnField } from 'validation';
 
 /**
