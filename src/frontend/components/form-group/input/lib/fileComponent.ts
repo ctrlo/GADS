@@ -1,3 +1,5 @@
+import { logging } from 'logging';
+import { FileDropEvent } from 'util/filedrag';
 import { formdataMapper } from 'util/mapper/formdataMapper';
 import { upload } from 'util/upload/UploadControl';
 
@@ -31,9 +33,9 @@ class FileComponent {
     init() {
         const dropTarget = this.el.closest('.file-upload');
         if (dropTarget) {
-            const dragOptions = { allowMultiple: false };
-            (dropTarget as any).filedrag(dragOptions).on('onFileDrop', (ev, file) => {
-                this.handleFormUpload(file);
+            const dragOptions = { allowMultiple: true };
+            dropTarget.filedrag(dragOptions).on('fileDrop', ({ file, index, length }: FileDropEvent) => {
+                this.handleFormUpload(file, index, length);
             });
         } else {
             throw new Error('Could not find file-upload element');
@@ -49,7 +51,7 @@ class FileComponent {
      * Handle the file upload process.
      * @param {File} file The file to be uploaded.
      */
-    handleFormUpload = (file: File) => {
+    handleFormUpload = (file: File, index:number, length: number) => {
         // As some of these, if not all, are event handlers, scoping can get a bit wiggy; using arrow functions to keep the scope of `this` to the class
         if (!file) throw new Error('No file provided');
 
@@ -61,7 +63,15 @@ class FileComponent {
         const formData = formdataMapper({ file, csrf_token });
 
         if (method === 'POST') {
-            upload(action, formData, 'POST').catch(console.error);
+            logging.info(`Uploading file: ${file.name} (${index} of ${length}) to ${action} using POST method`);
+            const uploadPromise = upload(action, formData, 'POST');
+            if(index === length-1) {
+                uploadPromise.then(() => {
+                    logging.info('File upload complete, reloading page');
+                    window.location.reload();
+                });
+            }
+            uploadPromise.catch(console.error);
         } else {
             throw new Error('Method not supported');
         }
