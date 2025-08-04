@@ -1,0 +1,11 @@
+.error-container.alert-danger {
+    &::before {
+        content: none;
+    }
+
+    .error-message::before {
+        @extend .pr-2;
+        @extend %icon-font;
+        content: "\E822";
+    }
+}
