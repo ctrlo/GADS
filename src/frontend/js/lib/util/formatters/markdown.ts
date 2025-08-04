@@ -1,4 +1,4 @@
-import { marked } from 'marked';
+import { marked } from 'marked'; //16.x currently broken - using 15.x for now
 
 type MarkdownCode = string;
 
