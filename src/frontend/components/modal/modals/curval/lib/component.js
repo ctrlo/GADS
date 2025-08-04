@@ -71,9 +71,9 @@ class CurvalModalComponent extends ModalComponent {
             }
             const instance_name = $target.data('curval-instance-name');
             // Load the modal and load each value into its fields
-            $m.find('.modal-body').load(self.getURL(current_id, instance_name, layout_id), function () {
+            $m.find('.modal-body').load(self.getURL(current_id, instance_name, layout_id), function(){
                 initializeRegisteredComponents($m.get(0));
-                $m.find('.linkspace-field').each(function () {
+                $m.find('.linkspace-field').each(function(){
                     const $field = $(this);
                     const key = `linkspace-column-${$field.data('column-id')}-${$('body').data('layout-identifier')}-${record_id}`;
                     const vals = values[key];
@@ -102,12 +102,12 @@ class CurvalModalComponent extends ModalComponent {
         let guid = form.data('guid');
         const $formGroup = $('div[data-column-id=' + col_id + ']');
         const valueSelector = $formGroup.data('value-selector');
-        const self = this;
+        const self=this;
         const $field = $(`#curval_list_${col_id}`).closest('.linkspace-field');
         const current_id = form.data('current-id');
 
         const textValue = jQuery
-            .map(modal_field_ids, function (element) {
+            .map(modal_field_ids, function(element) {
                 const value = values['field' + element];
                 return $('<div />')
                     .text(value)
@@ -120,7 +120,7 @@ class CurvalModalComponent extends ModalComponent {
             // No strict requirement for alias here, but it is needed below, so for the sake of consistency
             const row_cells = $('<tr class="table-curval-item">', self.context);
 
-            jQuery.map($field.data('modal-field-ids'), function (element) {
+            jQuery.map($field.data('modal-field-ids'), function(element) {
                 let value = values['field' + element];
                 value = $('<div />').text(value)
                     .html();
@@ -134,7 +134,7 @@ class CurvalModalComponent extends ModalComponent {
             const editButton = $(
                 `<td>
           <button type="button" class="btn btn-small btn-link btn-js-curval-modal" data-toggle="modal" data-target="#curvalModal" data-layout-id="${col_id}"
-                data-instance-name="${instance_name}" ${current_id ? `data-current-id="${current_id}"` : ''}>
+                data-instance-name="${instance_name}" ${current_id ? `data-current-id="${current_id}"`:''}>
             <span class="btn__title">Edit</span>
           </button>
           </td>`,
@@ -213,9 +213,9 @@ class CurvalModalComponent extends ModalComponent {
 
             $answersList.append(`<li class="answer" role="option">
         <div class="control">
-          <div class="${multi ? 'checkbox' : 'radio-group__option'}">
-            <input ${strRequired} id="${id}" name="field${col_id}" type="${inputType}" value="${form_data}" class="${multi ? '' : 'radio-group__input'}" checked aria-labelledby="${id}_label">
-            <label id="${id}_label" for="${id}" class="${multi ? '' : 'radio-group__label'}">
+          <div class="${ multi ? 'checkbox' : 'radio-group__option' }">
+            <input ${strRequired} id="${id}" name="field${col_id}" type="${inputType}" value="${form_data}" class="${ multi ? '' : 'radio-group__input' }" checked aria-labelledby="${id}_label">
+            <label id="${id}_label" for="${id}" class="${ multi ? '' : 'radio-group__label' }">
               <span>${textValue}</span>
             </label>
           </div>
@@ -413,7 +413,7 @@ class CurvalModalComponent extends ModalComponent {
     setupSubmit() {
         const self = this;
 
-        $(this.element).on('submit', '.curval-edit-form', function (e, autosaveLoadValue) {
+        $(this.element).on('submit', '.curval-edit-form', function(e, autosaveLoadValue) {
             // Don't show close warning when user clicks submit button
             self.el.off('hide.bs.modal');
 
@@ -433,15 +433,15 @@ class CurvalModalComponent extends ModalComponent {
                 $.post(
                     url,
                     form_data,
-                    function (data) {
-                        const fieldId = $form.data('curval-id');
-                        const $field = $('[data-column-type="curval"][data-column-id="' + fieldId + '"]');
+                    function(data) {
+                        const fieldId=$form.data('curval-id');
+                        const $field = $('[data-column-type="curval"][data-column-id="'+fieldId+'"]');
                         if (data.error === 0) {
                             const e = $.Event('validationPassed');
                             $field.trigger(e);
                             self.curvalModalValidationSucceeded($form, data.values);
                         } else {
-                            if (autosaveLoadValue) {
+                            if(autosaveLoadValue) {
                                 const e = $.Event('validationFailed', { message: data.message || 'Something went wrong!' });
                                 $field.trigger(e);
                                 // We still allow the form to submit as if it was correct
@@ -458,7 +458,7 @@ class CurvalModalComponent extends ModalComponent {
                         const errorMessage = jqXHR.responseJSON?.message ?? `Oops! Something went wrong: ${textstatus}: ${errorthrown}`;
                         self.curvalModalValidationFailed($form, errorMessage);
                     })
-                    .always(function () {
+                    .always(function() {
                         $form.removeClass('edit-form--validating');
                         if (autosaveLoadValue) autosaveLoadValue();
                     });
