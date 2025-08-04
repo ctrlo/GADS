@@ -274,13 +274,7 @@ class DocumentComponent {
      * @param {string | Error} e The error to be displayed.
      */
     showException(e: string | Error) {
-        this.showContainer();
-        logging.info('Error uploading file', e);
-        const error = typeof e == 'string' ? (fromJson(e) as Error).message : e.message;
-        this.el.find('.progress-bar__container')
-            .css('width', '100%')
-            .addClass('progress-bar__container--fail');
-        this.el.find('.progress-bar__percentage').html(error);
+        this.handler.addError(e);
     }
 
     /**
