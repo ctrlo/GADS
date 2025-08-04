@@ -1,4 +1,5 @@
-import "../../../../testing/globals.definitions";
+/* eslint-disable jsdoc/require-jsdoc */
+import 'testing/globals.definitions';
 import AutosaveBase from './autosaveBase';
 
 class TestAutosave extends AutosaveBase {
@@ -17,7 +18,7 @@ describe('AutosaveBase', () => {
         $('body').data('layout-identifier', 1);
     });
 
-    afterAll(()=>{
+    afterAll(() => {
         document.body.innerHTML = '';
     });
 

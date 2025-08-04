@@ -1,8 +1,7 @@
-import {Component} from 'component'
+import {Component} from 'component';
 
 /**
  * Button component
- * @extends Component
  */
 class ButtonComponent extends Component {
     /**
@@ -19,6 +18,7 @@ class ButtonComponent extends Component {
 
     /**
      * Get the map of button components
+     * @returns {Map<string, (element: JQuery<HTMLElement>) => void>} The map of button components
      */
     private get buttonsMap(): Map<string, (element: JQuery<HTMLElement>) => void> {
         if (!ButtonComponent.staticButtonsMap) ButtonComponent.initMap();
@@ -27,11 +27,11 @@ class ButtonComponent extends Component {
 
     /**
      * Create a button component
-     * @param element {HTMLElement} The button element
+     * @param { HTMLElement } element The button element
      */
     constructor(element: HTMLElement) {
-        super(element)
-        this.initButton(element)
+        super(element);
+        this.initButton(element);
     }
 
     /**
@@ -42,13 +42,13 @@ class ButtonComponent extends Component {
         map.set('btn-js-report', (el) => {
             import(/* webpackChunkName: "create-report-button" */ './create-report-button')
                 .then(({default: CreateReportButtonComponent}) => {
-                    new CreateReportButtonComponent(el)
+                    new CreateReportButtonComponent(el);
                 });
         });
         map.set('btn-js-more-info', (el) => {
             import(/* webpackChunkName: "more-info-button" */ './more-info-button')
                 .then(({default: createMoreInfoButton}) => {
-                    createMoreInfoButton(el)
+                    createMoreInfoButton(el);
                 });
         });
         map.set('btn-js-delete', (el) => {
@@ -58,7 +58,7 @@ class ButtonComponent extends Component {
                 });
         });
         map.set('btn-js-submit-field', (el) => {
-            import(/* webpackChunkName: "submit-field-button" */ "./submit-field-button")
+            import(/* webpackChunkName: "submit-field-button" */ './submit-field-button')
                 .then(({default: SubmitFieldButtonComponent}) => {
                     new SubmitFieldButtonComponent(el);
                 });
@@ -116,13 +116,13 @@ class ButtonComponent extends Component {
 
     /**
      * Initialize the button
-     * @param element {HTMLElement} The button element
+     * @param {HTMLElement} element The button element
      */
     private initButton(element: HTMLElement) {
-        const el: JQuery<HTMLElement> = $(element)
+        const el: JQuery<HTMLElement> = $(element);
         element.classList.forEach((className) => {
             if(!className.startsWith('btn-js-')) return;
-            if (!this.buttonsMap) throw "Buttons map is not initialized";
+            if (!this.buttonsMap) throw 'Buttons map is not initialized';
             if (!this.buttonsMap.has(className)) return;
             this.linkedClasses.push(className);
             this.buttonsMap.get(className)(el);
@@ -130,4 +130,4 @@ class ButtonComponent extends Component {
     }
 }
 
-export default ButtonComponent
+export default ButtonComponent;
