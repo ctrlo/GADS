@@ -103,7 +103,7 @@ class CurvalModalComponent extends ModalComponent {
         let guid = form.data('guid');
         const $formGroup = $('div[data-column-id=' + col_id + ']');
         const valueSelector = $formGroup.data('value-selector');
-        const self = this;
+        const self=this;
         const $field = $(`#curval_list_${col_id}`).closest('.linkspace-field');
         const current_id = form.data('current-id');
 
