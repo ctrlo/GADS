@@ -1,4 +1,4 @@
-import { hideElement, showElement } from "util/common";
+import { hideElement, showElement } from 'util/common';
 
 export interface FileDragOptions {
     allowMultiple?: boolean;
@@ -14,7 +14,7 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
     constructor(element: T, private options: FileDragOptions = {}, private onDrop: (files: File, index?: number, length?:number) => void) {
         if (options.debug) console.log('FileDrag', element, options);
         this.el = $(element);
-        this.initElements()
+        this.initElements();
         this.initDocumentEvents();
         this.initElementEvents();
     }
@@ -77,7 +77,7 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
             this.dragging = false;
             hideElement(this.dropZone);
             showElement(this.el);
-        })
+        });
         $(document).on('dragover', (e) => {
             if (!this.dragging) return;
             e.preventDefault();
@@ -89,7 +89,7 @@ class FileDrag<T extends HTMLElement = HTMLElement> {
         this.el.data('draggable', 'true');
         this.dropZone = $('<div class="drop-zone">Drop files here</div>');
         const error = $('<div class="upload__error">Error</div>');
-        hideElement(error)
+        hideElement(error);
         const parent = this.el.parent();
         parent.append(this.dropZone);
         parent.append(error);

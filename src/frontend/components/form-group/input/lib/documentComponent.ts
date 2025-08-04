@@ -28,11 +28,13 @@ class DocumentComponent {
 
     constructor(el: JQuery<HTMLElement> | HTMLElement) {
         this.el = $(el);
-        this.el.closest('.fieldset').find('.rename').renameButton().on('rename', async (ev: RenameEvent) => {
-            if (!ev) throw new Error("e is not a RenameEvent - this shouldn't happen!")
-            const $target = $(ev.target);
-            await this.renameFile($target.data('field-id'), ev.oldName, ev.newName, $('body').data('csrf'));
-        });
+        this.el.closest('.fieldset').find('.rename')
+            .renameButton()
+            .on('rename', async (ev: RenameEvent) => {
+                if (!ev) throw new Error('e is not a RenameEvent - this shouldn\'t happen!');
+                const $target = $(ev.target);
+                await this.renameFile($target.data('field-id'), ev.oldName, ev.newName, $('body').data('csrf'));
+            });
         this.fileInput = this.el.find<HTMLInputElement>('.form-control-file');
     }
 
@@ -67,11 +69,12 @@ class DocumentComponent {
             const formData = formdataMapper({ file, csrf_token, column_id: columnId });
             upload<FileData>(url, formData, 'POST', (loaded, total) => this.showProgress(file.name, loaded, total)).then((data)=>{
                 this.addFileToField({ id: data.id, name: data.filename });
-            }).catch((e) => {
-                if(JSON.parse(e as string)?.message)
-                    e = JSON.parse(e as string).message;
-                this.handler.addError(e);
-            });
+            })
+                .catch((e) => {
+                    if(JSON.parse(e as string)?.message)
+                        e = JSON.parse(e as string).message;
+                    this.handler.addError(e);
+                });
         });
     }
 
@@ -86,7 +89,7 @@ class DocumentComponent {
             this.createProgressBar(this.el, file);
             barContainer = this.el.find('.progress-bar__container[data-file-name="' + file + '"]');
         }
-        barContainer.css('width', undefined)
+        barContainer.css('width', undefined);
         barContainer.find('.progress-bar__percentage').html(uploadProgression === 100 ? 'complete' : `${uploadProgression}%`);
         barContainer.find('.progress-bar__progress').css('width', `${uploadProgression}%`);
     }
@@ -99,7 +102,7 @@ class DocumentComponent {
                 </div>
             </div>
         `);
-        const barContainer = el?.find(".progress-bars");
+        const barContainer = el?.find('.progress-bars');
         barContainer.append(progressBar);
         progressBar.show();
     }
@@ -112,22 +115,24 @@ class DocumentComponent {
 
             upload<FileData>(uri, fileData, 'POST', (loaded, total) => this.showProgress(file.name, loaded, total)).then((data) => {
                 this.addFileToField({ id: data.id, name: data.filename });
-            }).then(
-                () => { 
+            })
+                .then(
+                    () => { 
+                        $(this.el.find('.progress-bar__container[data-file-name="' + file.name + '"]'))
+                            .hide();
+                    }
+                )
+                .catch((e) => {
+                    if(JSON.parse(e as string)?.message)
+                        e = JSON.parse(e as string).message;
+                    else if (typeof e == 'object' && 'message' in e)
+                        e = e.message;
+                    this.handler.addError(e);
                     $(this.el.find('.progress-bar__container[data-file-name="' + file.name + '"]'))
                         .hide();
-                }
-            ).catch((e) => {
-                if(JSON.parse(e as string)?.message)
-                    e = JSON.parse(e as string).message;
-                else if (typeof e == "object" && "message" in e)
-                    e = e.message;
-                this.handler.addError(e);
-                $(this.el.find('.progress-bar__container[data-file-name="' + file.name + '"]'))
-                    .hide();
-            });
+                });
         } catch (e) {
-            this.showException(e instanceof Error || "message" in e ? e.message : e as string ?? e.toString());
+            this.showException(e instanceof Error || 'message' in e ? e.message : e as string ?? e.toString());
         }
     }
 
@@ -175,19 +180,20 @@ class DocumentComponent {
             const filename = newName;
             const url = `/api/file/${fileId}`;
             const mappedData = formdataMapper({ csrf_token, filename, is_new: is_new ? 1 : 0 });
-            const data = await upload<RenameResponse>(url, mappedData, 'PUT')
+            const data = await upload<RenameResponse>(url, mappedData, 'PUT');
             if (is_new) {
                 $(`#current-${fileId}`).text(data.name);
             } else {
-                $(`#current-${fileId}`).closest('li').remove();
+                $(`#current-${fileId}`).closest('li')
+                    .remove();
                 const { id, name } = data;
                 this.addFileToField({ id, name });
             }
         } catch (error) {
-            let e=error
+            let e=error;
             if(JSON.parse(error as string)?.message)
                 e = JSON.parse(error as string).message;
-            else if (typeof error == "object" && "message" in error)
+            else if (typeof error == 'object' && 'message' in error)
                 e = e.message;
             this.showException(e);
             const current = $(`#current-${fileId}`);
@@ -196,7 +202,7 @@ class DocumentComponent {
     }
 
     showException(e: any) {
-        this.handler.addError(e instanceof Error ? e.message : typeof e == "object" && "message" in e ? e.message : e.toString());
+        this.handler.addError(e instanceof Error ? e.message : typeof e == 'object' && 'message' in e ? e.message : e.toString());
     }
 }
 

@@ -1,0 +1,28 @@
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.md]
+trim_trailing_whitespace = false
+insert_final_newline = false
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[*.{ts,js,jsx,tsx}]
+quote_type = double
+continuation_indent_size = 2
+curly_brace_next_line = false
+indent_brace_style = BSD
+spaces_around_operators = true
+spaces_around_brackets = true
+
+[*.{pl,pm,t,PL}]
+max_line_length = off
+continuation_indent_size = 4

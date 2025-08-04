@@ -1,8 +1,8 @@
-import { getComponentElements, initializeComponent } from 'component'
+import { getComponentElements, initializeComponent } from 'component';
 
 export default (scope) => {
-    if(!getComponentElements(scope,'.orderable-sortable')) return
+    if (!getComponentElements(scope, '.orderable-sortable')) return;
 
-    import(/* webpackChunkName: "orderable" */ "./lib/component")
-        .then(({default:OrderableSortableComponent})=> initializeComponent(scope, '.orderable-sortable', OrderableSortableComponent));
-}
+    import(/* webpackChunkName: "orderable" */ './lib/component')
+        .then(({ default: OrderableSortableComponent }) => initializeComponent(scope, '.orderable-sortable', OrderableSortableComponent));
+};

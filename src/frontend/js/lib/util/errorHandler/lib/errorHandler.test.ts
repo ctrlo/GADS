@@ -1,4 +1,4 @@
-import "../../../../../testing/globals.definitions";
+import '../../../../../testing/globals.definitions';
 
 import { describe, it, expect } from '@jest/globals';
 import { ErrorHandler } from './errorHandler';
