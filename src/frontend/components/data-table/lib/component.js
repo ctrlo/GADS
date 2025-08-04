@@ -368,7 +368,7 @@ class DataTableComponent extends Component {
                 const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1', { method: 'POST', data: { csrf_token: $('body').data('csrf') } });
                 const data = await response.json();
                 if (!data.error) {
-                    if (data.records.length != 0) {
+                    if(data.records.length != 0) {
                         $searchInput.val(data.records[0].label);
                         $('input.search', $searchElement).val(data.records[0].id)
                             .trigger('change');
@@ -385,7 +385,7 @@ class DataTableComponent extends Component {
 
         if (col && col.typeahead) {
             import(/*webpackChunkName: "typeahead" */ 'util/typeahead')
-                .then(({ default: TypeaheadBuilder }) => {
+                .then(({default: TypeaheadBuilder})=>{
                     const builder = new TypeaheadBuilder();
                     builder
                         .withAjaxSource(this.getApiEndpoint(columnId))
@@ -396,11 +396,11 @@ class DataTableComponent extends Component {
                         .withDefaultMapper()
                         .withName(columnId.replace(/\s+/g, '') + 'Search')
                         .withCallback((data) => {
-                            if (col.typeahead_use_id) {
+                            if(col.typeahead_use_id) {
                                 $searchInput.val(data.name);
-                                $('input.search', $searchElement).val(data.id)
+                                $('input.search',$searchElement).val(data.id)
                                     .trigger('change');
-                            } else {
+                            }else{
                                 $('input', $searchElement).addClass('search')
                                     .val(data.name)
                                     .trigger('change');
