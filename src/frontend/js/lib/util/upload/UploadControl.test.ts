@@ -10,12 +10,12 @@ describe('UploadControl', () => {
         initGlobals();
 
         mockXhr = new MockXhr();
-        oldXMLHttpRequest = <any>window.XMLHttpRequest;  
-        window.XMLHttpRequest = <any>(jest.fn(() => mockXhr));  
+        oldXMLHttpRequest = <any>window.XMLHttpRequest;
+        window.XMLHttpRequest = <any>(jest.fn(() => mockXhr));
     });
 
     afterEach(() => {
-        window.XMLHttpRequest = <any>oldXMLHttpRequest;  
+        window.XMLHttpRequest = <any>oldXMLHttpRequest;
         mockXhr = null;
     });
 
@@ -72,11 +72,12 @@ describe('UploadControl', () => {
         const promise = uploader.upload(data);
         const ev: ProgressEvent = {
             loaded: 1,
-            total: 2
-        } as any;  
+            total: 2,
+            lengthComputable: true
+        } as any;
         setTimeout(() => {
-            if (localMock.onprogress)
-                localMock.onprogress(ev);
+            if (localMock.upload?.onprogress)
+                localMock.upload?.onprogress?.(ev);
         }, 500);
         setTimeout(localMock.onreadystatechange!, 1500);
         await promise;

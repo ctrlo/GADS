@@ -10,7 +10,7 @@ use Config::Any    ();
 
 use feature 'say';
 
-my $config_fn = "$FindBin::Bin/../config.yml";
+my $config_fn = "$FindBin::Bin/.." . ($ENV{DANCER_CONFDIR} ? "/" . $ENV{DANCER_CONFDIR} : "") . "/config.yml";
 
 my $config = Config::Any->load_files(
     {
