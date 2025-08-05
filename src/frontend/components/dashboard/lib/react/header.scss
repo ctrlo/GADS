@@ -1,3 +1,22 @@
+.nav-pills {
+  --bs-heading-color: #{$white};
+  --bs-nav-pills-link-active-bg: #{$brand-primary};
+  --bs-nav-link-color: #{$brand-primary};
+  --bs-nav-link-hover-color: #{$brand-primary};
+  --bs-nav-link-font-weight: 800;
+  
+  .nav-link {
+    &:not(.active):hover {
+      text-decoration: underline;
+    }
+  }
+
+  h1 {
+    @include font-size(1rem);
+    margin: 0;
+  }
+}
+
 .ld-header-container {
   text-align: right;
 
