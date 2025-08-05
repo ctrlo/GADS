@@ -33,6 +33,7 @@
     "propagating-hammerjs": "^3.0.0",
     "react": "^19.2.7",
     "react-app-polyfill": "^3.0.0",
+    "react-bootstrap": "^2.10.10",
     "react-dom": "^19.2.7",
     "react-grid-layout": "^2.2.3",
     "react-modal": "^3.16.3",
