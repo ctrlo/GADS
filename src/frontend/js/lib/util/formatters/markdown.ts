@@ -1,4 +1,4 @@
-import { marked } from 'marked';
+import { marked } from 'marked'; //16.x currently broken - using 15.x for now
 
 type MarkdownCode = string;
 
@@ -22,4 +22,4 @@ function MarkDown(strings: TemplateStringsArray, ...values: (stringLike | string
     return marked(str, {breaks: true, async: false}).trim();
 }
 
-export { MarkdownCode, MarkDown };
+export { MarkDown };

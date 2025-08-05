@@ -34,23 +34,4 @@ const clearTable = (table) => {
         .draw();
 };
 
-/**
- * Get the order of a row in the table.
- * @param {object} row The row to get the order from.
- * @returns {number} The order value of the row, or -1 if not found.
- */
-const getRowOrder = (row) => {
-    try {
-        const orderValue = $(row.node()).find('input')
-            .first()
-            .data('order');
-        if (typeof orderValue === 'undefined') {
-            return -1;
-        }
-        return parseInt(orderValue);
-    } catch {
-        return -1;
-    }
-};
-
-export { addRow, updateRow, clearTable, getRowOrder };
+export { addRow, updateRow, clearTable };

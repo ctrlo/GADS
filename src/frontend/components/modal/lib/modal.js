@@ -124,7 +124,4 @@ class Modal {
 
 const modal = new Modal;
 
-export {
-    Modal,
-    modal
-};
+export { modal };
