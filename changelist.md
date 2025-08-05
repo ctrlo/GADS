@@ -2,6 +2,17 @@
 
 --------
 
+**Version**: 2.7.1
+**Released**: 06-08-2025
+
+-------
+
+## Fixes
+
+- Fix csrf error when editing curvals in a record
+
+--------
+
 **Version**: 2.7.0
 **Released**: 01-08-2025
 
