@@ -1,20 +1,6 @@
 import { XmlHttpRequestLike } from "../js/lib/util/upload/UploadControl";
-import {TextEncoder, TextDecoder} from "util";
 
-Object.assign(global, {TextEncoder, TextDecoder});
-
-declare global {
-    interface Window {
-        $: JQueryStatic;
-        jQuery: JQueryStatic;
-        alert: (message?: any)=>void;
-    }
-}
-
-window.$ = window.jQuery = require("jquery"); // eslint-disable-line @typescript-eslint/no-require-imports
-window.alert = jest.fn();
-
-export function mockJQueryAjax() {
+function mockJQueryAjax() {
     $.ajax = jest.fn().mockImplementation(() => {
         return {
             done: (callback: () => void) => {
@@ -33,8 +19,8 @@ export function initGlobals() {
     mockJQueryAjax();
     mockJSTree();
 }
-    
-export function mockJSTree() {
+
+function mockJSTree() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     $.fn.jstree = jest.fn().mockImplementation((arg: boolean) => {
         return {
@@ -55,28 +41,10 @@ export class MockXhr implements XmlHttpRequestLike {
     setRequestHeader: (header: string, value: string) => void = jest.fn();
     readyState: number = 4;
     status: number = 200;
-    responseText: string = JSON.stringify({error: 0});
+    responseText: string = JSON.stringify({ error: 0 });
     upload = {
         onprogress: jest.fn()
     }
-}
-
-export interface ElementLike {
-    hasClass: (className: string) => boolean;
-    addClass: (className: string) => void;
-    attr: (attr: string, value: string) => void;
-    css: (attr: string, value: string) => void;
-    removeClass: (className: string) => void;
-    removeAttr: (attr: string) => void;
-}
-
-export class DefaultElementLike implements ElementLike {
-    hasClass: (className: string) => boolean = jest.fn().mockReturnValue(false);
-    addClass: (className: string) => void = jest.fn();
-    attr: (attr: string, value: string) => void = jest.fn();
-    css: (attr: string, value: string) => void = jest.fn();
-    removeClass: (className: string) => void = jest.fn();
-    removeAttr: (attr: string) => void = jest.fn();
 }
 
 export function setupCrypto() {
