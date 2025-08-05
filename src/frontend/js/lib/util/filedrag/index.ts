@@ -8,8 +8,6 @@ export interface FileDropEvent extends JQuery.TriggeredEvent {
     length: number;
 }
 
-export { FileDragOptions };
-
 declare global {
     interface JQuery<TElement = HTMLElement> {
         filedrag(options: FileDragOptions): JQuery<TElement>;
