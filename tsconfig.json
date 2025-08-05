@@ -29,6 +29,18 @@
             "logging": [
                 "js/lib/logging"
             ],
+            "get-field-values": [
+                "js/lib/get-field-values"
+            ],
+            "set-field-values": [
+                "js/lib/set-field-values"
+            ],
+            "plotly/*": [
+                "js/lib/plotly/*"
+            ],
+            "guid": [
+                "js/lib/guid"
+            ],
         }
     },
     "include": [

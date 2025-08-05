@@ -1,6 +1,6 @@
 import { XmlHttpRequestLike } from "../js/lib/util/upload/UploadControl";
 
-export function mockJQueryAjax() {
+function mockJQueryAjax() {
     $.ajax = jest.fn().mockImplementation(() => {
         return {
             done: (callback: () => void) => {
@@ -20,7 +20,7 @@ export function initGlobals() {
     mockJSTree();
 }
 
-export function mockJSTree() {
+function mockJSTree() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     $.fn.jstree = jest.fn().mockImplementation((arg: boolean) => {
         return {
@@ -45,24 +45,6 @@ export class MockXhr implements XmlHttpRequestLike {
     upload = {
         onprogress: jest.fn()
     }
-}
-
-export interface ElementLike {
-    hasClass: (className: string) => boolean;
-    addClass: (className: string) => void;
-    attr: (attr: string, value: string) => void;
-    css: (attr: string, value: string) => void;
-    removeClass: (className: string) => void;
-    removeAttr: (attr: string) => void;
-}
-
-export class DefaultElementLike implements ElementLike {
-    hasClass: (className: string) => boolean = jest.fn().mockReturnValue(false);
-    addClass: (className: string) => void = jest.fn();
-    attr: (attr: string, value: string) => void = jest.fn();
-    css: (attr: string, value: string) => void = jest.fn();
-    removeClass: (className: string) => void = jest.fn();
-    removeAttr: (attr: string) => void = jest.fn();
 }
 
 export function setupCrypto() {
