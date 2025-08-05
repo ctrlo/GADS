@@ -22,4 +22,4 @@ function MarkDown(strings: TemplateStringsArray, ...values: (stringLike | string
     return marked(str, {breaks: true, async: false}).trim();
 }
 
-export { MarkdownCode, MarkDown };
+export { MarkDown };

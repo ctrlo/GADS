@@ -39,6 +39,6 @@ export function table_key(): string {
  * Get the storage object - this originally was used in debugging to allow for the storage object to be mocked
  * @returns { StorageProvider } The storage object
  */
-export function storage(): StorageProvider {
+function storage(): StorageProvider {
     return new StorageProvider(table_key());
 }

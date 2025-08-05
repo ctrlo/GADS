@@ -109,4 +109,4 @@ const toggleRowInTable = (clickedRow, sourceTable, destinationTableID, forceChec
     }
 };
 
-export { bindToggleTableClickHandlers, toggleRow, toggleRowInTable };
+export { bindToggleTableClickHandlers, toggleRowInTable };
