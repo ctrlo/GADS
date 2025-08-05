@@ -1,4 +1,4 @@
-import "../../../../../testing/globals.definitions";
+import '../../../../../testing/globals.definitions';
 
 import { describe, it, expect } from '@jest/globals';
 import { ErrorHandler } from './errorHandler';
@@ -30,7 +30,7 @@ describe('ErrorHandler', () => {
     });
 
     it('should handle unsupported error types gracefully', () => {
-        const unsupportedError = { message: 'Unsupported type' };
+        const unsupportedError = { bob: 'Unsupported type' };
         console.warn = jest.fn(); // Mock console.warn
         errorHandler.addError(unsupportedError as any);
         expect(console.warn).toHaveBeenCalledWith('Unsupported error type:', unsupportedError);

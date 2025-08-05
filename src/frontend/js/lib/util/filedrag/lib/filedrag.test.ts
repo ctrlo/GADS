@@ -1,4 +1,5 @@
-import "../../../../../testing/globals.definitions";
+/* eslint-disable jsdoc/require-jsdoc */
+import 'testing/globals.definitions';
 import FileDrag from './filedrag';
 
 class FileDragTest extends FileDrag {
@@ -116,10 +117,10 @@ describe('FileDrag class tests', () => {
                 dataTransfer: {
                     files: [
                         {
-                            name: 'test.txt',
-                        },
-                    ],
-                },
+                            name: 'test.txt'
+                        }
+                    ]
+                }
             }, preventDefault: jest.fn()
         });
         $(dropZone!).trigger(e);
