@@ -25,7 +25,7 @@ export default class DashboardComponent extends Component {
             cols: 2,
             margin: [32, 32],
             containerPadding: [0, 10],
-            rowHeight: 80,
+            rowHeight: 80
         };
 
         this.initDashboard();
@@ -39,7 +39,7 @@ export default class DashboardComponent extends Component {
         const widgetsEls = Array.prototype.slice.call(document.querySelectorAll('#ld-app > div'));
         const widgets = widgetsEls.map((el: HTMLElement) => ({
             html: el.innerHTML,
-            config: JSON.parse(el.getAttribute('data-grid')),
+            config: JSON.parse(el.getAttribute('data-grid'))
         }));
         const api = new ApiClient(this.element.getAttribute('data-dashboard-endpoint') || '');
 

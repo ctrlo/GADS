@@ -18,4 +18,4 @@ export default function Header ({ hMargin, dashboards, currentDashboard, include
             </Nav>
         </div>
     );
-};
+}

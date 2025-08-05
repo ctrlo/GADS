@@ -17,9 +17,9 @@ describe('EditModal', () => {
             formRef:React.createRef(),
             loadingEditHtml:true,
             saveActiveWidget:()=>{}
-        }
+        };
 
-        const rendered = render(
+        render(
             <div>
                 <div className='ld-app' id='ld-app'></div>
                 <EditModal {...modalProps} />
@@ -40,9 +40,9 @@ describe('EditModal', () => {
             formRef:React.createRef(),
             loadingEditHtml:false,
             saveActiveWidget:()=>{}
-        }
+        };
 
-        const rendered = render(
+        render(
             <div>
                 <div className='ld-app' id='ld-app'></div>
                 <EditModal {...modalProps} />
@@ -63,9 +63,9 @@ describe('EditModal', () => {
             formRef:React.createRef(),
             loadingEditHtml:false,
             saveActiveWidget:()=>{}
-        }
+        };
 
-        const rendered = render(
+        render(
             <div>
                 <div className='ld-app' id='ld-app'></div>
                 <EditModal {...modalProps} />
@@ -86,9 +86,9 @@ describe('EditModal', () => {
             formRef:React.createRef(),
             loadingEditHtml:true,
             saveActiveWidget:jest.fn()
-        }
+        };
 
-        const rendered = render(
+        render(
             <div>
                 <div className='ld-app' id='ld-app'></div>
                 <EditModal {...modalProps} />
@@ -109,9 +109,9 @@ describe('EditModal', () => {
             formRef:React.createRef(),
             loadingEditHtml:true,
             saveActiveWidget:jest.fn()
-        }
+        };
 
-        const rendered = render(
+        render(
             <div>
                 <div className='ld-app' id='ld-app'></div>
                 <EditModal {...modalProps} />
@@ -132,9 +132,9 @@ describe('EditModal', () => {
             formRef:React.createRef(),
             loadingEditHtml:true,
             saveActiveWidget:jest.fn()
-        }
+        };
 
-        const rendered = render(
+        render(
             <div>
                 <div className='ld-app' id='ld-app'></div>
                 <EditModal {...modalProps} />

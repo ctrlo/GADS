@@ -11,8 +11,8 @@ describe('MenuItem', () => {
         const DashboardProps: DashboardProps = {
             name: 'Dashboard 1',
             url: 'http://localhost:3000/dashboard',
-            download_url: 'http://localhost:3000/dashboard/download',
-        }
+            download_url: 'http://localhost:3000/dashboard/download'
+        };
 
         render(<MenuItem dashboard={DashboardProps} currentDashboard={DashboardProps} includeH1={true} />);
 
@@ -23,8 +23,8 @@ describe('MenuItem', () => {
         const DashboardProps: DashboardProps = {
             name: 'Dashboard 1',
             url: 'http://localhost:3000/dashboard',
-            download_url: 'http://localhost:3000/dashboard/download',
-        }
+            download_url: 'http://localhost:3000/dashboard/download'
+        };
 
         render(<MenuItem dashboard={DashboardProps} currentDashboard={DashboardProps} includeH1={false} />);
 
@@ -35,12 +35,12 @@ describe('MenuItem', () => {
         const DashboardProps: DashboardProps[] = [{
             name: 'Dashboard 1',
             url: 'http://localhost:3000/dashboard',
-            download_url: 'http://localhost:3000/dashboard/download',
+            download_url: 'http://localhost:3000/dashboard/download'
         }, {
             name: 'Dashboard 2',
             url: 'http://localhost:3000/dashboard2',
-            download_url: 'http://localhost:3000/dashboard2/download',
-        }]
+            download_url: 'http://localhost:3000/dashboard2/download'
+        }];
 
         render(<MenuItem dashboard={DashboardProps[0]} currentDashboard={DashboardProps[1]} includeH1={true} />);
 

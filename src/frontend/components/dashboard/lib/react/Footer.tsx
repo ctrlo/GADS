@@ -29,7 +29,7 @@ export default function Footer({ addWidget, widgetTypes, currentDashboard, readO
 
                     <Dropdown.Menu>
                         {widgetTypes.map(type => (
-                            <Dropdown.Item key={type} onClick={(e) => { e.preventDefault(); addWidget(type) }}>{type}</Dropdown.Item>
+                            <Dropdown.Item key={type} onClick={(e) => { e.preventDefault(); addWidget(type); }}>{type}</Dropdown.Item>
                         ))}
                     </Dropdown.Menu>
                 </Dropdown>}

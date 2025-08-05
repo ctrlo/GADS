@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/dom';
-import { describe, it, expect, jest } from '@jest/globals';
+import { describe, it, expect } from '@jest/globals';
 
 import Header from './Header';
 import { HeaderProps } from './types';
@@ -25,9 +25,9 @@ describe('Header', () => {
                 url: 'http://localhost:3000/dashboard/1'
             },
             includeH1: true
-        }
+        };
 
-        const rendered = render(
+        render(
             <Header {...headerProps} />
         );
 

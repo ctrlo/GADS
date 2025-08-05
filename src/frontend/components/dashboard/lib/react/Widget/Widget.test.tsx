@@ -10,12 +10,12 @@ describe('Widget', () => {
     const WidgetProps: WidgetProps = {
         config: {
             h: 1,
-            i: "0",
+            i: '0',
             w: 1,
             x: 0,
             y: 0
         },
-        html: "<div>Test</div>",
+        html: '<div>Test</div>'
     };
 
     it('Renders a Widget with HTML set', () => {
