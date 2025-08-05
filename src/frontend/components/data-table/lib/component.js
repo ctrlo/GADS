@@ -490,7 +490,7 @@ class DataTableComponent extends Component {
 
     /**
      * Get the configuration object for the DataTable
-     * @import { Config } from './types';
+     * @import { Config } from 'datatables.net-bs4';
      * @param {Parital<Config>} overrides Any values to override in the configuration
      * @returns {Config} The configuration object for the DataTable
      */
