@@ -288,7 +288,7 @@ class CurvalModalComponent extends ModalComponent {
       // possible improvement might be to save the hidden value as JSON
       // instead
       const form_data = new FormData();
-      if (hidden.val().includes('=')) {
+      if (hidden.val() && hidden.val().includes('=')) {
         const search_params = new URLSearchParams(hidden.val())
         for (const [key, value] of search_params.entries()) {
           form_data.append(key, value);
