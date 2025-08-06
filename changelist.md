@@ -2,6 +2,17 @@
 
 --------
 
+**Version**: 2.7.2
+**Released**: 06-08-2025
+
+-------
+
+## Fixes
+
+- Fix curval values being incorrectly removed on record save
+
+--------
+
 **Version**: 2.7.1
 **Released**: 06-08-2025
 
