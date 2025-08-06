@@ -1169,7 +1169,7 @@
           sub_params = {
             id    = "curval-current-id-" _ val.id
             name  = field
-            value = val.as_query
+            value = val.as_query OR val.id
             data_attributes = [{
                 name  = "restore_value"
                 value = val.as_query OR val.id
