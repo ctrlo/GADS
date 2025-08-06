@@ -205,9 +205,10 @@ jobs:
           cache: 'npm'
       - run: npx update-browserslist-db@latest
       - run: yarn
-      - run: yarn build --no-watch
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          path: 'public'
-          name: gads-build
+      - run: NODE_ENV=production webpack
+      - run: |
+          git config --local user.name "GADS CI"
+          git config --local user.email "noreply@ctrlo.com"
+          git add public
+          git commit -m "Update scripts" || echo "No changes to commit"
+          git push || echo "No changes to push"
