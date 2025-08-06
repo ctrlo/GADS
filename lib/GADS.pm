@@ -4452,7 +4452,7 @@ prefix '/:layout_name' => sub {
     };
 
     # I don't know where else this is used, so I am going to revert it to it's original setup and leave it alone for now!
-    get '/match/layout/:layout_id' => require_login sub {
+    any ['get', 'post'] => '/match/layout/:layout_id' => require_login sub {
 
         my $layout = var('layout') or pass;
         my $query = param('q');
