@@ -1,5 +1,4 @@
 const path = require('path')
-const webpack = require('webpack')
 const { ProvidePlugin, WatchIgnorePlugin } = require('webpack')
 const autoprefixer = require('autoprefixer')
 const sass = require('sass')
@@ -7,8 +6,21 @@ const TerserPlugin = require('terser-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
+const { execSync } = require('child_process')
+const { existsSync } = require('fs');
 
 const plugins = [
+  {
+    apply: (compiler) => {
+      compiler.hooks.done.tap('RestorePlugin', () => {
+        console.log('\nChecking for fengari-web.js restoration...\n');
+        if(!existsSync(path.resolve(__dirname, 'public', 'js', 'fengari-web.js'))) {
+          console.log('Restoring fengari-web.js from git...');
+          execSync('git restore public/js/fengari-web.js', { stdio: 'inherit' });
+        }
+      });
+    }
+  },
   new ProvidePlugin({
     $: 'jquery',
     jQuery: 'jquery',
