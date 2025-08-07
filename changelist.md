@@ -2,6 +2,17 @@
 
 --------
 
+**Version**: 2.7.3
+**Released**: 07-08-2025
+
+-------
+
+## Fixes
+
+- Fix typeahead curval fields
+
+--------
+
 **Version**: 2.7.2
 **Released**: 06-08-2025
 
