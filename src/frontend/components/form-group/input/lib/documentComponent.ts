@@ -49,8 +49,7 @@ class DocumentComponent {
         if (dropTarget) {
             const dragOptions = { allowMultiple: true };
             dropTarget.filedrag(dragOptions).on('fileDrop', ({ file }: FileDropEvent) => {
-                this.handler.clearErrors();
-                logging.info('File dropped', file);
+                // this.handler.clearErrors();
                 this.handleAjaxUpload(url, csrf_token, file, columnId);
             });
         } else {
@@ -65,12 +64,16 @@ class DocumentComponent {
             const file = ev.target.files![0];
             if (!file || file === undefined || !file.name) return;
             const formData = formdataMapper({ file, csrf_token, column_id: columnId });
-            upload<FileData>(url, formData, 'POST', (loaded, total) => this.showProgress(file.name, loaded, total)).then((data)=>{
+            upload<FileData>(url, formData, 'POST', (loaded, total) => this.showProgress(file.name, loaded, total))
+            .then(data=>{
                 this.addFileToField({ id: data.id, name: data.filename });
-            }).catch((e) => {
+            }).catch(e => {
+                let error = e;
                 if(JSON.parse(e as string)?.message)
-                    e = JSON.parse(e as string).message;
-                this.handler.addError(e);
+                    error = JSON.parse(e as string).message;
+                this.handler.addError(error);
+            }).finally(()=> {
+                $(this.el.find('.progress-bar__container[data-file-name="' + ev.target.files![0].name + '"]')).hide();
             });
         });
     }
@@ -105,29 +108,25 @@ class DocumentComponent {
     }
 
     handleAjaxUpload(uri: string, csrf_token: string, file: File, columnId: number) {
+        if (!file) this.showException(new Error('No file provided'));
+
+        const fileData = formdataMapper({ file, csrf_token, column_id: columnId });
+
         try {
-            if (!file) this.showException(new Error('No file provided'));
-
-            const fileData = formdataMapper({ file, csrf_token, column_id: columnId });
-
-            upload<FileData>(uri, fileData, 'POST', (loaded, total) => this.showProgress(file.name, loaded, total)).then((data) => {
-                this.addFileToField({ id: data.id, name: data.filename });
-            }).then(
-                () => { 
-                    $(this.el.find('.progress-bar__container[data-file-name="' + file.name + '"]'))
-                        .hide();
-                }
-            ).catch((e) => {
-                if(JSON.parse(e as string)?.message)
-                    e = JSON.parse(e as string).message;
-                else if (typeof e == "object" && "message" in e)
-                    e = e.message;
-                this.handler.addError(e);
-                $(this.el.find('.progress-bar__container[data-file-name="' + file.name + '"]'))
-                    .hide();
-            });
-        } catch (e) {
-            this.showException(e instanceof Error || "message" in e ? e.message : e as string ?? e.toString());
+            upload<FileData>(uri, fileData, 'POST', (loaded, total) => this.showProgress(file.name, loaded, total))
+                .then(data=>{
+                    this.addFileToField({ id: data.id, name: data.filename });
+                }).catch(e => {
+                    this.showException(e instanceof Error || (typeof e == "object" && "message" in e) ? e.message : e as string ?? e.toString());
+                    $(this.el.find('.progress-bar__container[data-file-name="' + file.name + '"]')).hide();
+                }).finally(() => {
+                    $(this.el.find('.progress-bar__container[data-file-name="' + file.name + '"]')).hide();
+                });
+        } catch (error) {
+            let e = error;
+            if (JSON.parse(error as string)?.message)
+                e = JSON.parse(error as string).message;
+            this.showException(e);
         }
     }
 
@@ -170,33 +169,45 @@ class DocumentComponent {
         });
     }
 
-    private async renameFile(fileId: number, oldName: string, newName: string, csrf_token: string, is_new: boolean = false) { // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why, so I've used the button itself
-        try {
-            const filename = newName;
-            const url = `/api/file/${fileId}`;
-            const mappedData = formdataMapper({ csrf_token, filename, is_new: is_new ? 1 : 0 });
-            const data = await upload<RenameResponse>(url, mappedData, 'PUT')
-            if (is_new) {
-                $(`#current-${fileId}`).text(data.name);
-            } else {
-                $(`#current-${fileId}`).closest('li').remove();
-                const { id, name } = data;
-                this.addFileToField({ id, name });
-            }
-        } catch (error) {
-            let e=error
-            if(JSON.parse(error as string)?.message)
-                e = JSON.parse(error as string).message;
-            else if (typeof error == "object" && "message" in error)
-                e = e.message;
-            this.showException(e);
-            const current = $(`#current-${fileId}`);
-            current.text(oldName);
-        }
+    private renameFile(fileId: number, oldName: string, newName: string, csrf_token: string, is_new: boolean = false) { // for some reason using the ev.target doesn't allow for changing of the data attribute - I don't know why, so I've used the button itself
+        const filename = newName;
+        const url = `/api/file/${fileId}`;
+        const mappedData = formdataMapper({ csrf_token, filename, is_new: is_new ? 1 : 0 });
+        upload<RenameResponse>(url, mappedData, 'PUT')
+            .then(data=>{
+                if (is_new) {
+                    $(`#current-${fileId}`).text(data.name);
+                } else {
+                    $(`#current-${fileId}`).closest('li').remove();
+                    const { id, name } = data;
+                    this.addFileToField({ id, name });
+                }
+            }).catch ((error) => {
+                if(JSON.parse(error as string)?.message)
+                    error = JSON.parse(error as string).message;
+                else if (typeof error == "object" && "message" in error)
+                    error = error.message;
+                this.showException(error);
+                const current = $(`#current-${fileId}`);
+                current.text(oldName);
+            });
     }
 
     showException(e: any) {
-        this.handler.addError(e instanceof Error ? e.message : typeof e == "object" && "message" in e ? e.message : e.toString());
+        if(typeof e === 'string') {
+            try {
+                e = JSON.parse(e);
+            } catch(error) {
+                // If parsing fails, we keep e as a string
+            }
+        } else if (typeof e === 'object' && e !== null && 'message' in e) {
+            e = e.message;
+        } else if (e instanceof Error) {
+            e = e.message;
+        } else {
+            e = e.toString();
+        }
+        this.handler.addError(e);
     }
 }
 
