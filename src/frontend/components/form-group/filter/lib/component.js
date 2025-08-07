@@ -168,6 +168,8 @@ class FilterComponent extends Component {
       builder
         .withInput($ruleInputText)
         .withAjaxSource(self.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
+        .withMethod('POST')
+        .withData({csrf_token: $('body').data('csrf')})
         .withDataBuilder(buildQuery)
         .withDefaultMapper()
         .withName('rule')
@@ -265,7 +267,7 @@ class FilterComponent extends Component {
   getRecords = (layoutId, urlSuffix, instanceId, query) => {
     return (
       $.ajax({
-        type: 'GET',
+        type: 'POST',
         url: this.getURL(layoutId, urlSuffix),
         data: { q: query, oi: instanceId },
         dataType: 'json',

@@ -24,12 +24,12 @@ export class Typeahead {
      * Initialize the typeahead
      */
     private init() {
-        const { appendQuery, mapper, name, ajaxSource } = this.sourceOptions;
+        const { data, appendQuery, mapper, name, ajaxSource, method } = this.sourceOptions;
         const bloodhound = new Bloodhound({
             datumTokenizer: Bloodhound.tokenizers.whitespace,
             queryTokenizer: Bloodhound.tokenizers.whitespace,
             remote: {
-                url: ajaxSource + (appendQuery ?  "%QUERY" : ""),
+                url: ajaxSource + (appendQuery ? "%QUERY" : ""),
                 wildcard: '%QUERY',
                 transform: (response) => {
                     return mapper(response);
@@ -37,6 +37,19 @@ export class Typeahead {
                 rateLimitBy: 'debounce',
                 rateLimitWait: 300,
                 cache: false,
+                // Using composite typing here because the first three properties are required by typeahead.js, whereas the rest are specific to this implementation
+                transport: (request: { url: string, type: string, dataType: string } & { data?: any }, success: (resp: any) => void, error: (err: any) => void) => {
+                    console.log("Typeahead transport called with args:", request, success, error);
+                    request.type = method;
+                    request.data = data;
+                    $.ajax(request)
+                        .done(success)
+                        .fail((jqXHR, textStatus, errorThrown) => {
+                            console.error("Typeahead ajax request failed:", textStatus, errorThrown);
+                            error(errorThrown);
+                        }
+                        );
+                }
             }
         });
 
@@ -66,7 +79,7 @@ export class Typeahead {
             this.callback(suggestion);
         });
 
-        if(window.test) {
+        if (window.test) {
             this.$input.on("typeahead:asyncrequest", () => {
                 console.log("Typeahead async request");
             });
