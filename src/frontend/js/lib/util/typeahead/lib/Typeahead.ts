@@ -39,7 +39,6 @@ export class Typeahead {
                 cache: false,
                 // Using composite typing here because the first three properties are required by typeahead.js, whereas the rest are specific to this implementation
                 transport: (request: { url: string, type: string, dataType: string } & { data?: any }, success: (resp: any) => void, error: (err: any) => void) => {
-                    console.log("Typeahead transport called with args:", request, success, error);
                     request.type = method;
                     request.data = data;
                     $.ajax(request)
