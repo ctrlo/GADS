@@ -42,15 +42,11 @@ export class Typeahead {
                     request.type = method;
                     request.data = data ? data : this.sourceOptions.dataBuilder ? this.sourceOptions.dataBuilder() : undefined;
                     $.ajax(request)
-                        .done((data)=>{
-                            console.log("Typeahead ajax request successful:", data);
-                            success(data);
-                        })
+                        .done(success)
                         .fail((jqXHR, textStatus, errorThrown) => {
                             console.error("Typeahead ajax request failed:", textStatus, errorThrown, jqXHR.responseText);
                             error(errorThrown);
-                        }
-                        );
+                        });
                 }
             }
         });
