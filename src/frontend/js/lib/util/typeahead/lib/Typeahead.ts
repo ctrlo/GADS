@@ -40,11 +40,14 @@ export class Typeahead {
                 // Using composite typing here because the first three properties are required by typeahead.js, whereas the rest are specific to this implementation
                 transport: (request: { url: string, type: string, dataType: string } & { data?: any }, success: (resp: any) => void, error: (err: any) => void) => {
                     request.type = method;
-                    request.data = data;
+                    request.data = data ? data : this.sourceOptions.dataBuilder ? this.sourceOptions.dataBuilder() : undefined;
                     $.ajax(request)
-                        .done(success)
+                        .done((data)=>{
+                            console.log("Typeahead ajax request successful:", data);
+                            success(data);
+                        })
                         .fail((jqXHR, textStatus, errorThrown) => {
-                            console.error("Typeahead ajax request failed:", textStatus, errorThrown);
+                            console.error("Typeahead ajax request failed:", textStatus, errorThrown, jqXHR.responseText);
                             error(errorThrown);
                         }
                         );
