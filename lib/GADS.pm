@@ -1761,7 +1761,7 @@ any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/u
 
         # FIXME: Should change this so cannot delete enabled provider for current user
         return forwardHome(
-            { danger => "Cannot delete currently an enabled authentication provider" } )
+            { danger => "Cannot delete an enabled authentication provider" } )
             if $usero->enabled;
         if (process( sub { $usero->retire(current_user => logged_in_user) }))
         {
