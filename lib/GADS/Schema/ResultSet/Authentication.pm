@@ -24,7 +24,7 @@ sub providers
 sub enabled
 {   shift->search({
         'me.enabled' => 1,
-        'me.type'    => 1,
+        'me.type'    => 0,
     });
 }
 
