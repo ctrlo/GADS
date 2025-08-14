@@ -5,9 +5,16 @@
     description = "In this window you can edit an authentication provider in the system."
     back_button = { url = url.page _ "/authentication_providers/" };
 -%]
+[%
+  IF editprovider.type == 1 
+%]
   <a href='[% url.page %]/metadata/[% editprovider.id %]' class='link link--plain link--active'><span>Download Metadata</span></a>
+[% END %]
 <div class="content-block__main">
   <form method="post" action="">
+  [%
+    IF editprovider.type == 1 
+  %]
     <fieldset class="fieldset">
       <legend class="fieldset__legend fieldset__legend--hidden">My details</legend>
       [%-
@@ -97,7 +104,13 @@
       [% END %]
 
     </fieldset>
+[% ELSE %]
+  <p>The built in authentication provider cannot be edited.</p>
+[% END %]
 
+[%
+  IF editprovider.type != 0;
+%]
     [%
       INCLUDE navigation/button_bar.tt
         row_class = "row mt-5"
@@ -127,6 +140,22 @@
           }]
         }];
     %]
+[% ELSE %]
+    [%
+      INCLUDE navigation/button_bar.tt
+        row_class = "row mt-5"
+        columns = [{
+          class = "col-sm-auto mb-3 mb-sm-0",
+          buttons = [{
+            type = "link",
+            class = "btn btn-cancel",
+            target = url.page _ "/authentication_providers/",
+            label = "Cancel"
+          }]
+        },
+      ];
+    %]
+[% END %]
   </form>
 </div>
 
