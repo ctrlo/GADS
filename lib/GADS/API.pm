@@ -739,6 +739,7 @@ sub _post_add_user_account
         freetext1             => $body->{freetext1},
         freetext2             => $body->{freetext2},
         title                 => $body->{title},
+        provider              => $body->{provider},
         organisation          => $body->{organisation},
         department_id         => $body->{department_id},
         team_id               => $body->{team_id},

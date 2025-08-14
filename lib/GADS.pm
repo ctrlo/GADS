@@ -1637,6 +1637,7 @@ any ['get', 'post'] => '/user_overview/' => require_any_role [qw/useradmin super
             organisation  => $userso->organisations,
             department_id => $userso->departments,
             team_id       => $userso->teams,
+            provider      => $userso->providers,
         },
         permissions     => $userso->permissions,
         page            => 'user',

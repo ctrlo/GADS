@@ -120,6 +120,7 @@ sub create_user
         resetpw               => $code,
         created               => DateTime->now,
         account_request_notes => $params{notes},
+        provider              => $params{provider},
     });
 
     my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $params{current_user});
