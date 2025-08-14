@@ -216,7 +216,7 @@ sub metadata
         $metadata .= $sp->metadata;
     }
 
-    return $metadata;
+    return $metadata->stringify();
 }
 
 sub _sp
