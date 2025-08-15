@@ -37,7 +37,7 @@
           [% END %]
         <div class="col-lg-5">
           [%
-            IF field.type == "freetext";
+            IF field.type == "freetext" AND (field.name != 'sso_url' AND field.name != 'sso_xml');
               INCLUDE fields/input.tt
                 id = field.name
                 name = field.name
@@ -46,6 +46,18 @@
                 placeholder = field.placeholder
                 type = "text"
                 filter = "html"
+                sub_field = ""
+                sub_params = {};
+
+            ELSIF field.type == "freetext" AND (field.name == 'sso_url' OR field.name == 'sso_xml');
+              INCLUDE fields/input.tt
+                id = field.name
+                name = field.name
+                value = editprovider.${field.name}
+                label = field.description
+                placeholder = field.placeholder
+                type = "text"
+                is_readonly = 1
                 sub_field = ""
                 sub_params = {};
 
