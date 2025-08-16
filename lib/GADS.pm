@@ -1828,7 +1828,7 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
             team_id               => param('team_id') || undef,
             account_request       => param('account_request'),
             account_request_notes => param('account_request_notes'),
-            provider              => param('provider') || undef,
+            provider              => param('provider') || 1,
             view_limits           => [body_parameters->get_all('view_limits')],
             groups                => [body_parameters->get_all('groups')],
         );
