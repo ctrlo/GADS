@@ -1,12 +1,12 @@
 <form class="login__form" method="post" autocomplete="off">
   [% PROCESS snippets/message_center.tt %]
-  
+
   <div class="login__head">
     <h1 class="login__title">
       Please sign in
     </h2>
   </div>
-  
+
   <div class="login__fields">
     <fieldset class="fieldset">
       <legend class="fieldset__legend fieldset__legend--hidden">
@@ -14,7 +14,7 @@
       </legend>
       [%
         INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
-        
+
         INCLUDE fields/input.tt
           id = "username"
           name = "username"
@@ -31,33 +31,20 @@
             checked => username
             tabindex => 2
           };
-  
-        INCLUDE fields/password.tt
-          id = "password"
-          name = "password"
-          label = "Password"
-          placeholder = "Password"
-          type = "password"
-          input_class = "input--password"
-          tabindex = 3
-          sub_field = "fields/sub/link.tt"
-          sub_params = {
-            link => "/resetpw"
-            label => "Reset password"
-          };
+
       %]
     </fieldset>
   </div>
-  
+
   <div class="login__btns">
-    <button tabindex="4" type="submit" name="signin" value="1" class="btn btn-default">
-      <span class="btn__title">Sign in</span>
+    <button tabindex="4" type="submit" name="login" formaction="login" value="1" class="btn btn-default">
+      <span class="btn__title">Sign in via SAML</span>
     </button>
   </div>
 </form>
 
 <div class="login__subtext">
-  <a href="[% url.page %]/saml_login">Login via SAML</a>
+  <a href="[% url.page %]/login?password=1">Login locally</a>
 </div>
 [% UNLESS site.hide_account_request %]
 <div class="login__subtext">

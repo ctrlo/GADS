@@ -1,0 +1,38 @@
+.provider {
+  display: flex;
+  position: relative;
+  align-items: center;
+  gap: $padding-base-horizontal;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+}
+
+.provider__item {
+  &:not(:last-child) {
+    padding-right: $padding-base-horizontal;
+    border-right: 1px solid $gray;
+  }
+}
+
+.provider__link {
+  &::before {
+    @extend %icon-font;
+
+    color: $brand-primary;
+    font-size: 1.25rem;
+  }
+
+  span {
+    @include visually-hidden;
+  }
+}
+
+.provider__link--details::before {
+  content: "\E81a";
+  font-size: 24px;
+}
+
+.provider__link--logout::before {
+  content: "\E812";
+}
