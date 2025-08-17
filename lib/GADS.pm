@@ -1602,10 +1602,23 @@ any ['get', 'post'] => '/user_export/?' => require_any_role [qw/useradmin supera
 
 any ['get', 'post'] => '/authentication_providers/' => require_any_role [qw/useradmin superadmin/] => sub {
 
+    my @name_ids = (
+            { label_plain => 'emailAddress',               value => 'emailAddress' },
+            { label_plain => 'unspecified',                value => 'unspecified' },
+            { label_plain => 'X509SubjectName',            value => 'X509SubjectName' },
+            { label_plain => 'WindowsDomainQualifiedName', value => 'WindowsDomainQualifiedName' },
+            { label_plain => 'entity',                     value => 'entity' },
+            { label_plain => 'transient',                  value => 'transient' },
+            { label_plain => 'persistent',                 value => 'persistent' },
+    );
+
     my $auth = GADS::Authentication->new(schema => schema);
     template 'authentication/providers' => {
             providers       => $auth,
             permissions     => "permisission", #$auth->permissions,
+            values   => {
+                saml2_nameid  => \@name_ids,
+            },
             page            => 'system_settings',
     };
 };
@@ -1740,6 +1753,7 @@ any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/u
             ) : (),
             saml2_relaystate      => param('saml2_relaystate'),
             saml2_groupname       => param('saml2_groupname'),
+            saml2_nameid          => param('saml2_nameid'),
             enabled               => param('enabled'),
         );
         # FIXME: Remove permissions below
@@ -1771,6 +1785,8 @@ any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/u
         return forwardHome(
             { danger => "Cannot delete an enabled authentication provider" } )
             if $usero->enabled;
+	# FIXME: Will panic here if a user is still associated with this provider
+	# timlegge - fix
         if (process( sub { $usero->retire(current_user => logged_in_user) }))
         {
             #FIXME: fix audit
@@ -1785,12 +1801,23 @@ any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/u
             { 'label_plain' => 'builtin', value => 'builtin'},
     );
 
+    my @name_ids = (
+            { label_plain => 'emailAddress',               value => 'emailAddress' },
+            { label_plain => 'unspecified',                value => 'unspecified' },
+            { label_plain => 'X509SubjectName',            value => 'X509SubjectName' },
+            { label_plain => 'WindowsDomainQualifiedName', value => 'WindowsDomainQualifiedName' },
+            { label_plain => 'entity',                     value => 'entity' },
+            { label_plain => 'transient',                  value => 'transient' },
+            { label_plain => 'persistent',                 value => 'persistent' },
+    );
+
     # FIXME need to revise what is passed to the template
     my $output = template 'authentication/provider_edit' => {
         editprovider => $editProvider,
         groups   => GADS::Groups->new(schema => schema)->all,
         values   => {
             type	  => \@types,
+            saml2_nameid  => \@name_ids,
         },
         permissions => $userso->permissions,
         page        => 'admin',

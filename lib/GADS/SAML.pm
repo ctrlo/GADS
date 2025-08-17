@@ -11,7 +11,7 @@ use Net::SAML2::IdP;
 use Net::SAML2::SP;
 use Net::SAML2::Protocol::Assertion;
 use Net::SAML2::Protocol::AuthnRequest;
-use URN::OASIS::SAML2 qw(:bindings :urn);
+use URN::OASIS::SAML2 qw(:bindings :urn :nameid);
 
 use MIME::Base64;
 
@@ -168,10 +168,25 @@ sub initiate
     unlink $cacert_fh->filename;
     my $sso_url = $idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
 
+    my %name_ids = (
+        emailAddress               => NAMEID_EMAIL,
+        unspecified                => NAMEID_UNSPECIFIED,
+        X509SubjectName            => NAMEID_X509_SUBJECT_NAME,
+        WindowsDomainQualifiedName => NAMEID_WINDOWS_DOMAIN_QUALIFIED_NAME,
+        entity                     => NAMEID_FORMAT_ENTITY,
+        transient                  => NAMEID_TRANSIENT,
+        persistent                 => NAMEID_PERSISTENT,
+    );
+    # saml2_nameid can be undefined, blank or a value. Undefined will result in
+    # the previous behaviour of requesting the email address. Blank will not
+    # send the format request ($nameid will be undefined)
+    my $nameid = defined $self->authentication->saml2_nameid
+        ? $name_ids{$self->authentication->saml2_nameid} : NAMEID_EMAIL;
+
     my $authnreq = Net::SAML2::Protocol::AuthnRequest->new(
         issuer      => $self->authentication->sso_xml,
         destination => $sso_url,
-        nameid_format => $idp->format('emailAddress') || undef,
+        $nameid ? (nameidpolicy_format => $nameid) : (), # don't send nameidpolicy_format if $nameid is undefined
         assertion_url => $self->authentication->sso_url,
     );
 
