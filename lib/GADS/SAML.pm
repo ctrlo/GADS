@@ -166,8 +166,12 @@ sub initiate
     );
 
     unlink $cacert_fh->filename;
-    my $sso_url = $idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
-
+    
+    my $sso_url;
+    foreach ('redirect', 'post') {
+        $sso_url = $idp->sso_url($idp->binding($_));
+        next if defined $sso_url;
+    }
     my %name_ids = (
         emailAddress               => NAMEID_EMAIL,
         unspecified                => NAMEID_UNSPECIFIED,
