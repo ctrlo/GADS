@@ -81,6 +81,7 @@ sub create_provider
         saml2_unique_id       => $params{saml2_unique_id},
         saml2_relaystate      => $params{saml2_relaystate},
         saml2_groupname       => $params{saml2_groupname},
+        saml2_nameid          => $params{saml2_nameid},
     });
 
     my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $params{auth_provider_change});

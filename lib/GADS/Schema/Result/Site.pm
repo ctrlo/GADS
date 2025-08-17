@@ -324,6 +324,12 @@ sub provider_fields
           placeholder   => 'http://schemas.xmlsoap.org/claims/Group',
         },
         {
+          name        => 'saml2_nameid',
+          description => 'SAML NameID format',
+          type        => 'dropdown',
+          is_required => 1,
+        },
+        {
           name          => 'xml',
           description   => 'Identity Provider Metadata XML',
           type          => 'textarea',

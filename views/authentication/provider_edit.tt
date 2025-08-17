@@ -103,6 +103,16 @@
                   {id = "1", name = "Enable Authentication Provider"},
                   {id = "0", name = "Disable Authentication Provider"}
                 ];
+            ELSIF field.type == "dropdown";
+              INCLUDE fields/select.tt
+                id = field.name
+                name = field.name
+                label = field.description
+                placeholder = field.placeholder
+                items = values.${field.name}
+                filter = "html"
+                sub_field = sub_field
+                sub_params = sub_params;
 
             END;
           %]

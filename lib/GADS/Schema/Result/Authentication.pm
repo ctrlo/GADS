@@ -46,6 +46,8 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "saml2_unique_id",
   { data_type => "varchar", is_nullable => 1, size => 80 },
+  "saml2_nameid",
+  { data_type => "varchar", is_nullable => 1, size => 30 },
   "error_messages",
   { data_type => "text", is_nullable => 1 },
 );
