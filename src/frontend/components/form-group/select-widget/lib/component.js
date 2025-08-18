@@ -3,7 +3,6 @@
 import "bootstrap";
 import { Component } from 'component'
 import { logging } from 'logging'
-import { fromJson } from 'util/common'
 import { initValidationOnField } from 'validation'
 
   /*
@@ -530,7 +529,8 @@ class SelectWidgetComponent extends Component {
         })
 
       } else {
-        const errorMessage = data.message;
+        const errorMessage =
+          data.error === 1 ? data.message : "Oops! Something went wrong."
         const errorLi = $(
           '<li class="answer answer--blank alert alert-danger d-flex flex-row justify-content-start"><span class="control"><label>' +
             errorMessage +
