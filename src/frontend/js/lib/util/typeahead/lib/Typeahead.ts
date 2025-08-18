@@ -26,7 +26,7 @@ export class Typeahead {
             datumTokenizer: Bloodhound.tokenizers.whitespace,
             queryTokenizer: Bloodhound.tokenizers.whitespace,
             remote: {
-                url: ajaxSource + (appendQuery ? "%QUERY" : ""),
+                url: ajaxSource + (appendQuery ? '%QUERY' : ''),
                 wildcard: '%QUERY',
                 transform: (response) => {
                     return mapper(response);
@@ -41,7 +41,7 @@ export class Typeahead {
                     $.ajax(request)
                         .done(success)
                         .fail((jqXHR, textStatus, errorThrown) => {
-                            console.error("Typeahead ajax request failed:", textStatus, errorThrown, jqXHR.responseText);
+                            console.error('Typeahead ajax request failed:', textStatus, errorThrown, jqXHR.responseText);
                             error(errorThrown);
                         });
                 }
@@ -73,5 +73,5 @@ export class Typeahead {
         this.$input.on('typeahead:select', (ev: JQuery.TriggeredEvent, suggestion: MappedResponse) => {
             this.callback(suggestion);
         });
-  }
+    }
 }

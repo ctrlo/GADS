@@ -347,58 +347,62 @@ class DataTableComponent extends Component {
           </button>
         </div>
       </div>`
-    )
+        );
 
-    /* Construct search box for filtering. If the filter has a typeahead and if
-     * it uses an ID rather than text, then add a second (hidden) input field
-     * to store the ID. If we already have a stored search value for the
-     * column, then if it's an ID we will need to look up the textual value for
-     * insertion into the visible input */
-    const $searchInput = $(`<input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>`)
-    $searchInput.appendTo($('.input', $searchElement))
-    if (col.typeahead_use_id) {
-      $searchInput.after(`<input type="hidden" class="search">`)
-      if(searchValue) {
-        const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1', {method: 'POST', data: {csrf_token: $('body').data('csrf')}})
-        const data = await response.json()
-        if (!data.error) {
-          if(data.records.length != 0) {
-            $searchInput.val(data.records[0].label)
-            $('input.search', $searchElement).val(data.records[0].id).trigger('change')
-          }
+        /* Construct search box for filtering. If the filter has a typeahead and if
+         * it uses an ID rather than text, then add a second (hidden) input field
+         * to store the ID. If we already have a stored search value for the
+         * column, then if it's an ID we will need to look up the textual value for
+         * insertion into the visible input */
+        const $searchInput = $(`<input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>`);
+        $searchInput.appendTo($('.input', $searchElement));
+        if (col.typeahead_use_id) {
+            $searchInput.after('<input type="hidden" class="search">');
+            if(searchValue) {
+                const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1', {method: 'POST', data: {csrf_token: $('body').data('csrf')}});
+                const data = await response.json();
+                if (!data.error) {
+                    if(data.records.length != 0) {
+                        $searchInput.val(data.records[0].label);
+                        $('input.search', $searchElement).val(data.records[0].id)
+                            .trigger('change');
+                    }
+                }
+            }
+        } else {
+            $('input', $searchElement).addClass('search');
         }
-      }
-    } else {
-      $('input', $searchElement).addClass('search')
-    }
 
-    $header.find('.data-table__header-wrapper').prepend($searchElement)
+        $header.find('.data-table__header-wrapper').prepend($searchElement);
 
-    this.toggleFilter(column)
+        this.toggleFilter(column);
 
-    if (col && col.typeahead) {
-      import(/*webpackChunkName: "typeahead" */ "util/typeahead")
-        .then(({default: TypeaheadBuilder})=>{
-          const builder = new TypeaheadBuilder();
-          builder
-            .withAjaxSource(this.getApiEndpoint(columnId))
-            .withMethod('POST')
-            .withData({csrf_token: $('body').data('csrf')})
-            .withInput($('input', $header))
-            .withAppendQuery()
-            .withDefaultMapper()
-            .withName(columnId.replace(/\s+/g, '') + 'Search')
-            .withCallback((data) => {
-              if(col.typeahead_use_id) {
-                $searchInput.val(data.name);
-                $('input.search',$searchElement).val(data.id).trigger('change');
-              }else{
-                $('input', $searchElement).addClass('search').val(data.name).trigger('change');
-              }
-            })
-            .build();
-      });
-    }
+        if (col && col.typeahead) {
+            import(/*webpackChunkName: "typeahead" */ 'util/typeahead')
+                .then(({default: TypeaheadBuilder})=>{
+                    const builder = new TypeaheadBuilder();
+                    builder
+                        .withAjaxSource(this.getApiEndpoint(columnId))
+                        .withMethod('POST')
+                        .withData({csrf_token: $('body').data('csrf')})
+                        .withInput($('input', $header))
+                        .withAppendQuery()
+                        .withDefaultMapper()
+                        .withName(columnId.replace(/\s+/g, '') + 'Search')
+                        .withCallback((data) => {
+                            if(col.typeahead_use_id) {
+                                $searchInput.val(data.name);
+                                $('input.search',$searchElement).val(data.id)
+                                    .trigger('change');
+                            }else{
+                                $('input', $searchElement).addClass('search')
+                                    .val(data.name)
+                                    .trigger('change');
+                            }
+                        })
+                        .build();
+                });
+        }
 
         $header.find('.data-table__header-wrapper').prepend($searchElement);
 
@@ -765,6 +769,7 @@ class DataTableComponent extends Component {
 
     /**
      * Get the configuration object for the DataTable
+     * @import { Config } from 'datatables.net-bs4';
      * @param {Parital<Config>} overrides Any values to override in the configuration
      * @returns {Config} The configuration object for the DataTable
      */
@@ -949,6 +954,7 @@ class DataTableComponent extends Component {
 
     /**
      * Bind click handlers after the DataTable has been drawn
+     * @import { Config } from 'datatables.net-bs4';
      * @param {Config} conf The configuration object for the DataTable
      */
     bindClickHandlersAfterDraw(conf) {

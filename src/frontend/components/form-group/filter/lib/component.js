@@ -171,21 +171,21 @@ class FilterComponent extends Component {
                 }
             };
 
-      // This is required to ensure that the correct query is sent each time
-      const buildQuery = () => {return {q:$ruleInputText.val(), oi:filterConfig.instanceId, csrf_token: $('body').data('csrf')}}
+            // This is required to ensure that the correct query is sent each time
+            const buildQuery = () => {return {q:$ruleInputText.val(), oi:filterConfig.instanceId, csrf_token: $('body').data('csrf')};};
 
-      const builder = new TypeaheadBuilder();
-      builder
-        .withInput($ruleInputText)
-        .withAjaxSource(self.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
-        .withMethod('POST')
-        .withDataBuilder(buildQuery)
-        .withDefaultMapper()
-        .withName('rule')
-        .withAppendQuery()
-        .withCallback(filterCallback)
-        .build()
-    })
+            const builder = new TypeaheadBuilder();
+            builder
+                .withInput($ruleInputText)
+                .withAjaxSource(self.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
+                .withMethod('POST')
+                .withDataBuilder(buildQuery)
+                .withDefaultMapper()
+                .withName('rule')
+                .withAppendQuery()
+                .withCallback(filterCallback)
+                .build();
+        });
 
         if (filterBase) {
             const data = atob(filterBase, 'base64');
@@ -277,17 +277,17 @@ class FilterComponent extends Component {
      * @param {string} query The query string to filter records
      * @returns {JQuery.jqXHR} An AJAX promise that resolves with the records
      */
-  getRecords = (layoutId, urlSuffix, instanceId, query) => {
-    return (
-      $.ajax({
-        type: 'POST',
-        url: this.getURL(layoutId, urlSuffix),
-        data: { q: query, oi: instanceId },
-        dataType: 'json',
-        path: 'records'
-      })
-    )
-  }
+    getRecords = (layoutId, urlSuffix, instanceId, query) => {
+        return (
+            $.ajax({
+                type: 'POST',
+                url: this.getURL(layoutId, urlSuffix),
+                data: { q: query, oi: instanceId },
+                dataType: 'json',
+                path: 'records'
+            })
+        );
+    };
 }
 
 export default FilterComponent;
