@@ -24,7 +24,7 @@ export class Typeahead {
      * Initialize the typeahead
      */
     private init() {
-        const { appendQuery, mapper, name, ajaxSource } = this.sourceOptions;
+        const { data, appendQuery, mapper, name, ajaxSource, method } = this.sourceOptions;
         const bloodhound = new Bloodhound({
             datumTokenizer: Bloodhound.tokenizers.whitespace,
             queryTokenizer: Bloodhound.tokenizers.whitespace,
@@ -36,7 +36,18 @@ export class Typeahead {
                 },
                 rateLimitBy: 'debounce',
                 rateLimitWait: 300,
-                cache: false
+                cache: false,
+                // Using composite typing here because the first three properties are required by typeahead.js, whereas the rest are specific to this implementation
+                transport: (request: { url: string, type: string, dataType: string } & { data?: any }, success: (resp: any) => void, error: (err: any) => void) => {
+                    request.type = method;
+                    request.data = data ? data : this.sourceOptions.dataBuilder ? this.sourceOptions.dataBuilder() : undefined;
+                    $.ajax(request)
+                        .done(success)
+                        .fail((jqXHR, textStatus, errorThrown) => {
+                            console.error("Typeahead ajax request failed:", textStatus, errorThrown, jqXHR.responseText);
+                            error(errorThrown);
+                        });
+                }
             }
         });
 
@@ -65,19 +76,5 @@ export class Typeahead {
         this.$input.on('typeahead:select', (ev: JQuery.TriggeredEvent, suggestion: MappedResponse) => {
             this.callback(suggestion);
         });
-
-        if (window.test) {
-            this.$input.on('typeahead:asyncrequest', () => {
-                console.log('Typeahead async request');
-            });
-
-            this.$input.on('typeahead:asyncreceive', () => {
-                console.log('Typeahead async receive');
-            });
-
-            this.$input.on('typeahead:asynccancel', () => {
-                console.log('Typeahead async cancel');
-            });
-        }
     }
 }

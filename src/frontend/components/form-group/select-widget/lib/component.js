@@ -354,17 +354,89 @@ class SelectWidgetComponent extends Component {
         });
     }
 
-    connect() {
-        if (this.multi) {
-            this.$currentItems.each(this.connectMulti());
-        } else {
-            this.connectSingle();
-        }
+    const valueId = value_id ? field + "_" + value_id : field + "__blank"
+    const classNames = value_id ? "answer" : "answer answer--blank"
+
+    // Add space at beginning to keep format consistent with that in template
+    const detailsButton =
+      ' <div class="details">' +
+      '<button type="button" class="btn btn-small btn-default btn-js-more-info" data-record-id="' + value_id +
+      '" aria-describedby="lbl-' + valueId +
+      '" data-target="' + this.el.data('details-modal') + // TODO: get id of modal
+      '" data-toggle="modal">' +
+      "Details" +
+      "</button>" +
+      "</div>"
+
+    const $li = $(
+      '<li class="' +
+        classNames +
+        '">' +
+        '<div class="control">' +
+        '<div class="' +
+        (multi ? "checkbox" : "radio-group__option") +
+        '">' +
+        '<input id="' +
+        valueId +
+        '" type="' +
+        (multi ? "checkbox" : "radio") +
+        '" name="' +
+        field +
+        '" ' +
+        (checked ? " checked" : "") +
+        (this.required && !this.multi ? ' required aria-required="true"' : "") +
+        ' value="' +
+        (value_id || "") +
+        '" class="' +
+        (multi ? "" : "visually-hidden") +
+        '" aria-labelledby="lbl-' +
+        valueId +
+        '"> ' + // Add space to keep spacing consistent with templates
+        '<label id="lbl-' +
+        valueId +
+        '" for="' +
+        valueId +
+        '">' + label +
+        "</label>" +
+        "</div>" +
+        "</div>" +
+        (value_id ? detailsButton : "") +
+        "</li>"
+    )
+    $li.data('list-text', value_text)
+    $li.data('list-id', value_id)
+    return $li
+  }
+
+  //Some odd scoping issues here - but it works
+  updateJson(url, typeahead) {
+    const formData = {"csrf_token": $('body').data('csrf')};
+    this.loadCounter++
+    const self = this;
+    const myLoad = this.loadCounter // ID of this process
+    this.$available.find(".spinner").removeAttr("hidden")
+    const currentValues = this.$available
+      .find("input:checked")
+      .map(function() {
+        return parseInt($(this).val());
+      })
+      .get()
+
+    // Remove existing items if needed, now that we have found out which ones are selected
+    if (!typeahead) {
+      this.$available.find(".answer").remove()
     }
 
-    currentLi(multi, field, value_id, value_text, value_html, checked) {
-        if (multi && !value_id) {
-            return $('<li class="none-selected">blank</li>');
+    const field = this.$selectWidget.data("field")
+    // If we cancel this particular loop, then we don't want to remove the
+    // spinner if another one has since started running
+    let hideSpinner = true
+    $.ajax(url, { method: "POST", data: formData}).done((data)=>{
+      data = fromJson(data)
+      if (data.error === 0) {
+        if (myLoad != this.loadCounter) { // A new one has started running
+          hideSpinner = false // Don't remove the spinner on completion
+          return
         }
 
         const valueId = value_id ? field + '_' + value_id : field + '__blank';

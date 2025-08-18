@@ -14,7 +14,8 @@ export class TypeaheadSourceOptions {
         public ajaxSource: string,
         public mapper: MapperFunction,
         public appendQuery: boolean,
-        public data: any,  
-        public dataBuilder: (...args: any[]) => any) {  
+        public data: any,
+        public dataBuilder: Function,
+        public method: 'GET' | 'POST' = 'GET') {
     }
 }
