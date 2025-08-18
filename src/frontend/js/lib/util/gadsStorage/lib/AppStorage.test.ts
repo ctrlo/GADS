@@ -1,4 +1,3 @@
-import "testing/globals.definitions";
 import { describe, it, expect, afterEach, jest } from '@jest/globals';
 import { AppStorage } from "./AppStorage";
 import { GadsStorage } from "./GadsStorage";
