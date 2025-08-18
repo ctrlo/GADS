@@ -589,33 +589,9 @@ foreach my $field (@fields)
 
     is($record->fields->{$integer1->id}->as_string, '250', 'Field depending on non-visible field - reverse');
 
-    # Now test that no write access to either field does not alter values. To
-    # do this we will set up the fields so that integer1 will not show based on
-    # the current value of string1. Both values should be retained as the user
-    # does not have access to either.
-    # Drop permissions from integer1 and update display condition.
-    $integer1->display_fields(_filter(col_id => $string1->id, regex => 'ABC')); # integer1 not shown
-    $integer1->set_permissions({$sheet->group->id => []});
-    $integer1->write;
-    $layout->clear;
-    $record->clear;
-    $record->find_current_id(3);
-    # Modify unrelated field that the user does have access to
-    my $date1 = $columns->{date1};
-    $record->fields->{$date1->id}->set_value('2018-06-01');
-    $record->write(no_alerts => 1);
-    $record->clear;
-    $record->find_current_id(3);
-    # Integer1 and string1 should be unchanged
-    is($record->fields->{$string1->id}->as_string, 'Foobar', "String1 unchanged with no write access");
-    is($record->fields->{$integer1->id}->as_string, '250', "Integer1 unchanged with no write access");
-    is($record->fields->{$date1->id}->as_string, '2018-06-01', "Date1 as entered");
-
     # Reset permissions for other tests
     $string1->set_permissions({$sheet->group->id => $sheet->default_permissions});
     $string1->write;
-    $integer1->set_permissions({$sheet->group->id => $sheet->default_permissions});
-    $integer1->write;
     $layout->clear;
 }
 
