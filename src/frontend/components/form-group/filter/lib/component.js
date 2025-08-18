@@ -162,12 +162,13 @@ class FilterComponent extends Component {
             };
 
             // This is required to ensure that the correct query is sent each time
-            const buildQuery = () => { return { q: $ruleInputText.val(), oi: filterConfig.instanceId }; };
+            const buildQuery = () => { return { q: $ruleInputText.val(), oi: filterConfig.instanceId, csrf_token: $('body').data('csrf') }; };
 
             const builder = new TypeaheadBuilder();
             builder
                 .withInput($ruleInputText)
                 .withAjaxSource(self.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
+                .withMethod('POST')
                 .withDataBuilder(buildQuery)
                 .withDefaultMapper()
                 .withName('rule')
@@ -190,67 +191,10 @@ class FilterComponent extends Component {
                 logging.log('Incorrect data object passed to queryBuilder');
             }
         }
-      }
-    })
+    }
 
-    $builderEl.on('validationError.queryBuilder', function(e, node, error, value) {
-      logging.log(error);
-      logging.log(value);
-      logging.log(e);
-      logging.log(node);
-    });
-
-    $builderEl.on('afterCreateRuleInput.queryBuilder', function(e, rule) {
-      let filterConfig
-
-      builderConfig.filters.forEach(function(value) {
-        if (value.filterId === rule.filter.id) {
-          filterConfig = value
-          return false
-        }
-      })
-
-      if (!filterConfig || filterConfig.type === 'rag' || !filterConfig.hasFilterTypeahead) {
-        return
-      }
-
-      const $ruleInputText = $(
-        `#${rule.id} .rule-value-container input[type='text']`
-      )
-
-      const $ruleInputHidden = $(
-        `#${rule.id} .rule-value-container input[type='hidden']`
-      )
-
-      $ruleInputText.attr('autocomplete', 'off')
-
-      $ruleInputText.on('keyup', () => {
-        $ruleInputHidden.val($ruleInputText.val())
-      })
-
-      const filterCallback = (suggestion) => {
-        if(filterConfig.useIdInFilter) {
-          $ruleInputHidden.val(suggestion.id)
-        }else {
-          $ruleInputHidden.val(suggestion.name)
-        }
-      }
-
-      // This is required to ensure that the correct query is sent each time
-      const buildQuery = () => {return {q:$ruleInputText.val(), oi:filterConfig.instanceId, csrf_token: $('body').data('csrf')}}
-
-      const builder = new TypeaheadBuilder();
-      builder
-        .withInput($ruleInputText)
-        .withAjaxSource(self.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
-        .withMethod('POST')
-        .withDataBuilder(buildQuery)
-        .withDefaultMapper()
-        .withName('rule')
-        .withAppendQuery()
-        .withCallback(filterCallback)
-        .build()
-    })
+    getURL(layoutId, urlSuffix) {
+        const devEndpoint = window.siteConfig && window.siteConfig.urls.filterApi;
 
         if (devEndpoint) {
             return devEndpoint;
@@ -275,7 +219,9 @@ class FilterComponent extends Component {
             operators: this.buildFilterOperators(col.type),
             ...(col.type === 'rag'
                 ? this.ragProperties
-                : {})
+                : col.hasFilterTypeahead
+                    ? this.typeaheadProperties
+                    : {})
         });
     };
 
@@ -291,41 +237,45 @@ class FilterComponent extends Component {
             'is_empty',
             'is_not_empty'
         ];
-        if (type === 'daterange') operators.push('contain');
+        if (type === 'daterange') {
+            operators.push('contain');
+        }
         return operators;
+    }
+
+    get typeaheadProperties() {
+        return {
+            input: (container, input_name) => {
+                return (
+                    `<div class='tt__container'>
+            <input class='form-control typeahead_text' type='text' name='${input_name}_text'/>
+            <input class='form-control typeahead_hidden' type='hidden' name='${input_name}'/>
+          </div>`
+                );
+            },
+            valueSetter: (rule, value) => {
+                rule.$el.find('.typeahead_hidden').val(value);
+                const typeahead = rule.$el.find('.typeahead_text');
+                typeahead.typeahead('val', rule.data.text);
+                typeahead.val(rule.data.text);
+            },
+            validation: {
+                callback: () => { return true; }
+            }
+        };
     }
 
     getRecords = (layoutId, urlSuffix, instanceId, query) => {
         return (
-          `<div class='tt__container'>
-            <input class='form-control typeahead_text' type='text' name='${input_name}_text'/>
-            <input class='form-control typeahead_hidden' type='hidden' name='${input_name}'/>
-          </div>`
-        )
-      },
-      valueSetter: (rule, value) => {
-        rule.$el.find('.typeahead_hidden').val(value)
-        const typeahead = rule.$el.find('.typeahead_text')
-        typeahead.typeahead('val',rule.data.text)
-        typeahead.val(rule.data.text)
-      },
-      validation: {
-        callback: () => {return true}
-      }
-    }
-  }
-
-  getRecords = (layoutId, urlSuffix, instanceId, query) => {
-    return (
-      $.ajax({
-        type: 'POST',
-        url: this.getURL(layoutId, urlSuffix),
-        data: { q: query, oi: instanceId },
-        dataType: 'json',
-        path: 'records'
-      })
-    )
-  }
+            $.ajax({
+                type: 'POST',
+                url: this.getURL(layoutId, urlSuffix),
+                data: { q: query, oi: instanceId },
+                dataType: 'json',
+                path: 'records'
+            })
+        );
+    };
 }
 
 export default FilterComponent;

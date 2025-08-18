@@ -11,7 +11,7 @@ class CurvalModalComponent extends ModalComponent {
 
     static get allowReinitialization() { return true; }
 
-    constructor(element) {
+    constructor(element)  {
         super(element);
         this.context = undefined; // Populated on modal show
         if (!this.wasInitialized) this.initCurvalModal();
@@ -54,9 +54,9 @@ class CurvalModalComponent extends ModalComponent {
             }
             const instance_name = $target.data('curval-instance-name');
             // Load the modal and load each value into its fields
-            $m.find('.modal-body').load(self.getURL(current_id, instance_name, layout_id), function () {
+            $m.find('.modal-body').load(self.getURL(current_id, instance_name, layout_id), function(){
                 initializeRegisteredComponents($m.get(0));
-                $m.find('.linkspace-field').each(function () {
+                $m.find('.linkspace-field').each(function(){
                     const $field = $(this);
                     const key = `linkspace-column-${$field.data('column-id')}-${$('body').data('layout-identifier')}-${record_id}`;
                     const vals = values[key];
@@ -79,12 +79,12 @@ class CurvalModalComponent extends ModalComponent {
         let guid = form.data('guid');
         const $formGroup = $('div[data-column-id=' + col_id + ']');
         const valueSelector = $formGroup.data('value-selector');
-        const self = this;
+        const self=this;
         const $field = $(`#curval_list_${col_id}`).closest('.linkspace-field');
         const current_id = form.data('current-id');
 
         const textValue = jQuery
-            .map(modal_field_ids, function (element) {
+            .map(modal_field_ids, function(element) {
                 const value = values['field' + element];
                 return $('<div />')
                     .text(value)
@@ -97,7 +97,7 @@ class CurvalModalComponent extends ModalComponent {
             // No strict requirement for alias here, but it is needed below, so for the sake of consistency
             const row_cells = $('<tr class="table-curval-item">', self.context);
 
-            jQuery.map($field.data('modal-field-ids'), function (element) {
+            jQuery.map($field.data('modal-field-ids'), function(element) {
                 let value = values['field' + element];
                 value = $('<div />').text(value)
                     .html();
@@ -111,7 +111,7 @@ class CurvalModalComponent extends ModalComponent {
             const editButton = $(
                 `<td>
           <button type="button" class="btn btn-small btn-link btn-js-curval-modal" data-toggle="modal" data-target="#curvalModal" data-layout-id="${col_id}"
-                data-instance-name="${instance_name}" ${current_id ? `data-current-id="${current_id}"` : ''}>
+                data-instance-name="${instance_name}" ${current_id ? `data-current-id="${current_id}"`:''}>
             <span class="btn__title">Edit</span>
           </button>
           </td>`,
@@ -190,9 +190,9 @@ class CurvalModalComponent extends ModalComponent {
 
             $answersList.append(`<li class="answer" role="option">
         <div class="control">
-          <div class="${multi ? 'checkbox' : 'radio-group__option'}">
-            <input ${strRequired} id="${id}" name="field${col_id}" type="${inputType}" value="${form_data}" class="${multi ? '' : 'radio-group__input'}" checked aria-labelledby="${id}_label">
-            <label id="${id}_label" for="${id}" class="${multi ? '' : 'radio-group__label'}">
+          <div class="${ multi ? 'checkbox' : 'radio-group__option' }">
+            <input ${strRequired} id="${id}" name="field${col_id}" type="${inputType}" value="${form_data}" class="${ multi ? '' : 'radio-group__input' }" checked aria-labelledby="${id}_label">
+            <label id="${id}_label" for="${id}" class="${ multi ? '' : 'radio-group__label' }">
               <span>${textValue}</span>
             </label>
           </div>
@@ -223,7 +223,7 @@ class CurvalModalComponent extends ModalComponent {
         const identifier = current_id || guid;
         // "existing" is the existing values for this curval
         // Pull out the current record if it exists
-        let existing_row = existing.filter((item) => item.identifier == identifier)[0] || { identifier: identifier };
+        let existing_row = existing.filter((item) => item.identifier == identifier)[0] || {identifier: identifier};
         // And then remove it from the array so that we can re-add it in a moment
         existing = existing.filter((item) => Number.isInteger(item) || item.identifier != identifier);
         // Retrieve all the changes from the modal record form
@@ -270,105 +270,104 @@ class CurvalModalComponent extends ModalComponent {
             .scrollIntoView();
         form.find('button[type=submit]').prop('disabled', false);
     }
-  }
 
-  curvalModalValidationFailed(form, errorMessage) {
-    form
-      .find(".alert")
-      .text(errorMessage)
-      .removeAttr("hidden")
-    form
-      .parents(".modal-content")
-      .get(0)
-      .scrollIntoView()
-    form.find("button[type=submit]").prop("disabled", false)
-  }
+    setupModal() {
+        this.el.on('show.bs.modal', (ev) => {
+            const button = ev.relatedTarget;
+            const $field = $(button).closest('.linkspace-field');
+            const layout_id = $field.data('column-id');
+            const instance_name = $field.data('curval-instance-name');
+            const current_id = $(button).data('current-id');
+            const hidden = $(button)
+                .closest('.table-curval-item')
+                .find(`input[name=field${layout_id}]`);
+            // The hidden value may contain the value of a record ID or edited record
+            // data as a query string.  Test it to see which applies, and if it's
+            // query data then convert to FormData so that it can be submitted
+            // using fetch().  There doesn't seem any way to create a FormData
+            // object directly from application/x-www-form-urlencoded data. A
+            // possible improvement might be to save the hidden value as JSON
+            // instead
+            const form_data = new FormData();
+            if (hidden.val() && hidden.val().includes('=')) {
+                const search_params = new URLSearchParams(hidden.val());
+                for (const [key, value] of search_params.entries()) {
+                    form_data.append(key, value);
+                }
+            }
+            // At this point we either have a full form's values, or nothing at all.
+            // If nothing at all we need to add the CSRF token for the POST request.
+            if (form_data.getAll('csrf_token').length == 0) {
+                const $csrf = $field.closest('form.form-edit').find('input[name="csrf_token"]');
+                form_data.append('csrf_token', $csrf.val());
+            }
 
-  setupModal() {
-    this.el.on('show.bs.modal', (ev) => { 
-      const button = ev.relatedTarget
-      const $field = $(button).closest('.linkspace-field')
-      const layout_id = $field.data("column-id")
-      const instance_name = $field.data("curval-instance-name")
-      const current_id = $(button).data("current-id")
-      const hidden = $(button)
-        .closest(".table-curval-item")
-        .find(`input[name=field${layout_id}]`)
-      // The hidden value may contain the value of a record ID or edited record
-      // data as a query string.  Test it to see which applies, and if it's
-      // query data then convert to FormData so that it can be submitted
-      // using fetch().  There doesn't seem any way to create a FormData
-      // object directly from application/x-www-form-urlencoded data. A
-      // possible improvement might be to save the hidden value as JSON
-      // instead
-      const form_data = new FormData();
-      if (hidden.val() && hidden.val().includes('=')) {
-        const search_params = new URLSearchParams(hidden.val())
-        for (const [key, value] of search_params.entries()) {
-          form_data.append(key, value);
-        }
-      }
-      // At this point we either have a full form's values, or nothing at all.
-      // If nothing at all we need to add the CSRF token for the POST request.
-      if (form_data.getAll('csrf_token').length == 0) {
-        const $csrf = $field.closest('form.form-edit').find('input[name="csrf_token"]')
-        form_data.append("csrf_token", $csrf.val())
-      }
+            const mode = hidden.length ? 'edit' : 'add';
+            let guid;
 
-      const mode = hidden.length ? "edit" : "add"
-      let guid
+            if ($field.find('.table-curval-group').length) {
+                this.context = $field.find('.table-curval-group');
+            } else if ($field.find('.select-widget').length) {
+                this.context = $field.find('.select-widget');
+            }
 
-      if ($field.find('.table-curval-group').length) {
-        this.context = $field.find('.table-curval-group')
-      } else if ($field.find('.select-widget').length) {
-        this.context = $field.find('.select-widget')
-      }
+            // For edits, write a guid to the row now (if it hasn't already been
+            // written), which will be matched on submission.
+            // For new records, a guid is written on submission
+            if (mode === 'edit') {
+                guid = hidden.data('guid');
+                if (!guid) {
+                    guid = Guid();
+                    hidden.attr('data-guid', guid);
+                }
+            }
 
-      // For edits, write a guid to the row now (if it hasn't already been
-      // written), which will be matched on submission.
-      // For new records, a guid is written on submission
-      if (mode === "edit") {
-        guid = hidden.data("guid")
-        if (!guid) {
-          guid = Guid()
-          hidden.attr("data-guid", guid)
-        }
-      }
+            const $m = $(this.element);
+            const self = this;
+            $m.find('.modal-body').text('Loading...');
 
-      const $m = $(this.element)
-      const self = this
-      $m.find(".modal-body").text("Loading...")
+            fetch(this.getURL(current_id, instance_name, layout_id), {
+                method: 'POST',
+                body: form_data
+            })
+                .then((response)=>response.text())
+                .then((text) => $m.find('.modal-body').html(text))
+                .then(() => {
+                    if (mode === 'edit') {
+                        $m.find('form').data('guid', guid);
+                    }
+                    initializeRegisteredComponents(self.element);
+                });
 
-      fetch(this.getURL(current_id, instance_name, layout_id), {
-        method: 'POST',
-        body: form_data,
-      })
-        .then((response)=>response.text())
-        .then((text) => $m.find(".modal-body").html(text))
-        .then(() => {
-          if (mode === "edit") {
-            $m.find("form").data("guid", guid);
-          }
-          initializeRegisteredComponents(self.element);
+            $m.on('focus', '.datepicker', function() {
+                $(this).datepicker({
+                    format: $m.attr('data-dateformat-datepicker'),
+                    autoclose: true
+                });
+            });
+
+            $m.off('hide.bs.modal')
+                .on('hide.bs.modal', () => {
+                    return confirm('Closing this dialogue will cancel any work. Are you sure you want to do so?');
+                });
         });
 
     }
 
-    getURL(current_id, instance_name, layout_id, form_data) {
+    getURL(current_id, instance_name, layout_id) {
 
         let url = current_id
             ? `/record/${current_id}`
             : `/${instance_name}/record/`;
 
-        url = `${url}?include_draft&modal=${layout_id}`;
-        if (form_data) url = url + `&${form_data}`;
+        url += `?modal=${layout_id}&include_draft=1`;
         return url;
     }
 
     setupSubmit() {
         const self = this;
 
-        $(this.element).on('submit', '.curval-edit-form', function (e, autosaveLoadValue) {
+        $(this.element).on('submit', '.curval-edit-form', function(e, autosaveLoadValue) {
             // Don't show close warning when user clicks submit button
             self.el.off('hide.bs.modal');
 
@@ -388,33 +387,33 @@ class CurvalModalComponent extends ModalComponent {
                 $.post(
                     url,
                     form_data,
-                    function (data) {
-                        const fieldId = $form.data('curval-id');
-                        const $field = $('[data-column-type="curval"][data-column-id="' + fieldId + '"]');
+                    function(data) {
+                        const fieldId=$form.data('curval-id');
+                        const $field = $('[data-column-type="curval"][data-column-id="'+fieldId+'"]');
                         if (data.error === 0) {
                             const e = $.Event('validationPassed');
                             $field.trigger(e);
                             self.curvalModalValidationSucceeded($form, data.values);
                         } else {
-                            if (autosaveLoadValue) {
+                            if(autosaveLoadValue) {
                                 const e = $.Event('validationFailed', { message: data.message || 'Something went wrong!' });
                                 $field.trigger(e);
                                 // We still allow the form to submit as if it was correct
                                 self.curvalModalValidationSucceeded($form, data.values);
                             } else {
                                 const errorMessage =
-                  data.error === 1 ? data.message : 'Oops! Something went wrong.';
+                data.error === 1 ? data.message : 'Oops! Something went wrong.';
                                 self.curvalModalValidationFailed($form, errorMessage);
                             }
                         }
                     },
                     'json'
                 )
-                    .fail(function (jqXHR, textstatus, errorthrown) {
+                    .fail(function(jqXHR, textstatus, errorthrown) {
                         const errorMessage = `Oops! Something went wrong: ${textstatus}: ${errorthrown}`;
                         self.curvalModalValidationFailed($form, errorMessage);
                     })
-                    .always(function () {
+                    .always(function() {
                         $form.removeClass('edit-form--validating');
                         if (autosaveLoadValue) autosaveLoadValue();
                     });

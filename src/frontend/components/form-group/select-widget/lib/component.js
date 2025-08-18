@@ -3,15 +3,16 @@
 import 'bootstrap';
 import { Component } from 'component';
 import { logging } from 'logging';
+import { fromJson } from 'util/common';
 import { initValidationOnField } from 'validation';
 
 /*
-   * A SelectWidget is a custom disclosure widget
-   * with multi or single options selectable.
-   * SelectWidgets can depend on each other;
-   * for instance if Value "1" is selected in Widget "A",
-   * Widget "B" might not be displayed.
-   */
+ * A SelectWidget is a custom disclosure widget
+ * with multi or single options selectable.
+ * SelectWidgets can depend on each other;
+ * for instance if Value "1" is selected in Widget "A",
+ * Widget "B" might not be displayed.
+ */
 class SelectWidgetComponent extends Component {
     constructor(element) {
         super(element);
@@ -30,6 +31,7 @@ class SelectWidgetComponent extends Component {
         this.$search = this.el.find('.form-control-search');
         this.lastFetchParams = null;
         this.multi = this.el.hasClass('multi');
+        this.timeout = undefined;
         this.required = this.el.hasClass('select-widget--required');
         // Give each AJAX load its own ID. If a higher ID has started by the time
         // we get the results, then cancel the current process to prevent
@@ -118,8 +120,7 @@ class SelectWidgetComponent extends Component {
             .toLowerCase();
         const self = this;
 
-        this.$fakeInput =
-            this.$fakeInput ||
+        this.$fakeInput = this.$fakeInput ||
             $('<span>')
                 .addClass('form-control-search')
                 .css('white-space', 'nowrap');
@@ -354,89 +355,17 @@ class SelectWidgetComponent extends Component {
         });
     }
 
-    const valueId = value_id ? field + "_" + value_id : field + "__blank"
-    const classNames = value_id ? "answer" : "answer answer--blank"
-
-    // Add space at beginning to keep format consistent with that in template
-    const detailsButton =
-      ' <div class="details">' +
-      '<button type="button" class="btn btn-small btn-default btn-js-more-info" data-record-id="' + value_id +
-      '" aria-describedby="lbl-' + valueId +
-      '" data-target="' + this.el.data('details-modal') + // TODO: get id of modal
-      '" data-toggle="modal">' +
-      "Details" +
-      "</button>" +
-      "</div>"
-
-    const $li = $(
-      '<li class="' +
-        classNames +
-        '">' +
-        '<div class="control">' +
-        '<div class="' +
-        (multi ? "checkbox" : "radio-group__option") +
-        '">' +
-        '<input id="' +
-        valueId +
-        '" type="' +
-        (multi ? "checkbox" : "radio") +
-        '" name="' +
-        field +
-        '" ' +
-        (checked ? " checked" : "") +
-        (this.required && !this.multi ? ' required aria-required="true"' : "") +
-        ' value="' +
-        (value_id || "") +
-        '" class="' +
-        (multi ? "" : "visually-hidden") +
-        '" aria-labelledby="lbl-' +
-        valueId +
-        '"> ' + // Add space to keep spacing consistent with templates
-        '<label id="lbl-' +
-        valueId +
-        '" for="' +
-        valueId +
-        '">' + label +
-        "</label>" +
-        "</div>" +
-        "</div>" +
-        (value_id ? detailsButton : "") +
-        "</li>"
-    )
-    $li.data('list-text', value_text)
-    $li.data('list-id', value_id)
-    return $li
-  }
-
-  //Some odd scoping issues here - but it works
-  updateJson(url, typeahead) {
-    const formData = {"csrf_token": $('body').data('csrf')};
-    this.loadCounter++
-    const self = this;
-    const myLoad = this.loadCounter // ID of this process
-    this.$available.find(".spinner").removeAttr("hidden")
-    const currentValues = this.$available
-      .find("input:checked")
-      .map(function() {
-        return parseInt($(this).val());
-      })
-      .get()
-
-    // Remove existing items if needed, now that we have found out which ones are selected
-    if (!typeahead) {
-      this.$available.find(".answer").remove()
+    connect() {
+        if (this.multi) {
+            this.$currentItems.each(this.connectMulti());
+        } else {
+            this.connectSingle();
+        }
     }
 
-    const field = this.$selectWidget.data("field")
-    // If we cancel this particular loop, then we don't want to remove the
-    // spinner if another one has since started running
-    let hideSpinner = true
-    $.ajax(url, { method: "POST", data: formData}).done((data)=>{
-      data = fromJson(data)
-      if (data.error === 0) {
-        if (myLoad != this.loadCounter) { // A new one has started running
-          hideSpinner = false // Don't remove the spinner on completion
-          return
+    currentLi(multi, field, value_id, value_text, value_html, checked) {
+        if (multi && !value_id) {
+            return $('<li class="none-selected">blank</li>');
         }
 
         const valueId = value_id ? field + '_' + value_id : field + '__blank';
@@ -521,6 +450,7 @@ class SelectWidgetComponent extends Component {
 
     //Some odd scoping issues here - but it works
     updateJson(url, typeahead) {
+        const formData = { 'csrf_token': $('body').data('csrf') };
         this.loadCounter++;
         const self = this;
         const myLoad = this.loadCounter; // ID of this process
@@ -541,7 +471,8 @@ class SelectWidgetComponent extends Component {
         // If we cancel this particular loop, then we don't want to remove the
         // spinner if another one has since started running
         let hideSpinner = true;
-        $.getJSON(url, (data) => {
+        $.ajax(url, { method: 'POST', data: formData }).done((data) => {
+            data = fromJson(data);
             if (data.error === 0) {
                 if (myLoad != this.loadCounter) { // A new one has started running
                     hideSpinner = false; // Don't remove the spinner on completion
@@ -602,8 +533,7 @@ class SelectWidgetComponent extends Component {
                 });
 
             } else {
-                const errorMessage =
-                    data.error === 1 ? data.message : 'Oops! Something went wrong.';
+                const errorMessage = data.message;
                 const errorLi = $(
                     '<li class="answer answer--blank alert alert-danger d-flex flex-row justify-content-start"><span class="control"><label>' +
                     errorMessage +
@@ -613,7 +543,7 @@ class SelectWidgetComponent extends Component {
             }
         })
             .fail(function (jqXHR, textStatus, textError) {
-                const errorMessage = 'Oops! Something went wrong.';
+                const errorMessage = jqXHR.responseJSON.message;
                 logging.error(
                     'Failed to make request to ' +
                     url +
@@ -647,9 +577,9 @@ class SelectWidgetComponent extends Component {
 
         // Collect values of linked fields
         const values = ['submission-token=' + submissionToken];
-        $.each(filterFields, function(_, field) {
+        $.each(filterFields, function (_, field) {
 
-            $('input[name=' + field + ']').each(function(_, input) {
+            $('input[name=' + field + ']').each(function (_, input) {
                 const $input = $(input);
 
                 switch ($input.attr('type')) {

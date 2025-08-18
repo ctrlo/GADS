@@ -44,7 +44,7 @@ export class Typeahead {
                     $.ajax(request)
                         .done(success)
                         .fail((jqXHR, textStatus, errorThrown) => {
-                            console.error("Typeahead ajax request failed:", textStatus, errorThrown, jqXHR.responseText);
+                            console.error('Typeahead ajax request failed:', textStatus, errorThrown, jqXHR.responseText);
                             error(errorThrown);
                         });
                 }
