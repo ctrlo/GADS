@@ -41,7 +41,10 @@ export class MockXhr implements XmlHttpRequestLike {
     setRequestHeader: (header: string, value: string) => void = jest.fn();
     readyState: number = 4;
     status: number = 200;
-    responseText: string = JSON.stringify({ error: 0 });
+    responseText: string = JSON.stringify({error: 0});
+    upload = {
+        onprogress: jest.fn()
+    }
 }
 
 export interface ElementLike {

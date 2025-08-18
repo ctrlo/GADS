@@ -45,7 +45,7 @@
   content: "*";
 }
 
-.input--required.input--file .input__label > label::after {
+.input--required.input--file .input__label>label::after {
   content: normal;
 }
 
@@ -202,10 +202,22 @@
     margin-bottom: $padding-small-vertical;
     padding: $padding-small-horizontal;
     border-radius: $input-border-radius;
-    background-color: rgba($brand-success, 0.2);
+    background-color: transparent;
     color: $brand-success;
     text-align: center;
     vertical-align: middle;
+    
+    .progress-bar__progress {
+      background-color: rgba($brand-success, 0.2);
+      .progress-bar__percentage {
+        display: inline-block;
+        width: 100%;
+        text-align: center;
+        font-size: $font-size-sm;
+        color: $brand-success;
+        white-space: nowrap;
+      }
+    }
   }
 
   .progress-bar__container--fail {

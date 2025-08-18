@@ -211,12 +211,16 @@ hook before => sub {
         $token ||= query_parameters->get('csrf-token') || body_parameters->get('csrf_token');
         error __x"csrf-token missing for uri {uri}", uri => request->uri
             if !$token;
-        error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
-            if $token ne session('csrf_token');
+        # This is to ensure the API endpoint returns the correct error on timeout, rather than the below error
+        if(logged_in_user || request->path eq '/login')
+        {
+            error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
+                if $token ne session('csrf_token');
 
-        # If it's a potential login, change the token
-        _update_csrf_token()
-            if request->path eq '/login';
+            # If it's a potential login, change the token
+            _update_csrf_token()
+                if request->path eq '/login';
+        }
     }
 
     if ($user)
@@ -1699,7 +1703,7 @@ post '/file/:id?' => require_login sub {
     # File upload through the "manage files" interface
     if (my $upload = upload('file'))
     {
-        my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
+        my $mimetype = $filecheck->check_upload($upload); # Borks on invalid file type
         my $file;
         if (process( sub { $file = rset('Fileval')->create_with_file({
             name           => $upload->filename,
@@ -1796,7 +1800,17 @@ post '/api/file/?' => require_login sub {
 
     if (my $upload = upload('file'))
     {
-        my $mimetype = $filecheck->check_file($upload, check_name => 0); # Borks on invalid file type
+        my $user = logged_in_user;
+        my $column_id = body_parameters->get('column_id')
+            or error __"Missing column ID";
+
+        my $column = GADS::Layout->new(
+            schema => schema,
+            user   => $user,
+            config => config
+        )->column($column_id);
+
+        my $mimetype = $filecheck->check_upload($upload, check_name => 0, extra_types => $column->override_types); # Borks on invalid file type
         my $filename = $upload->filename;
 
         # Remove any invalid characters from the new name - this will possibly be changed to an error going forward
@@ -3717,7 +3731,7 @@ prefix '/:layout_name' => sub {
                 $column->type(param 'type')
                     unless param('id'); # Can't change type as it would require DBIC resultsets to be removed and re-added
                 $column->$_(param $_)
-                    foreach @{$column->option_names};
+                    foreach @{$column->user_options};
                 $column->display_fields(param 'display_fields');
                 # Set the layout in the GADS::Filter object, in case the write
                 # doesn't success, in which case the filter will need to be
@@ -4437,8 +4451,9 @@ prefix '/:layout_name' => sub {
         to_json [ rset('User')->match($query) ];
     };
 
-    # I don't know where else this is used, so I am going to revert it to it's original setup and leave it alone for now!
-    get '/match/layout/:layout_id' => require_login sub {
+    # This has been changed to `POST` because the select-filter requires all requests to be post (for security)
+    # All calls to this endpoint should now be using `POST` going forward
+    post '/match/layout/:layout_id' => require_login sub {
 
         my $layout = var('layout') or pass;
         my $query = param('q');

@@ -27,12 +27,11 @@
 -%]
 <div class="input input--file [% input_class %]"[% IF data_attributes; INCLUDE fields/sub/data_attributes.tt; END; %]>
   [% IF show_progress %]
-  <div class="progress-bar__container">
-    <div class="progress-bar__progress">
-      <p class="progress-bar__percentage">0%</p>
-    </div>
+  <div class="progress-bars">
   </div>
   [% END %]
+  <div class="error-messages">
+  </div>
 
   [% INCLUDE fields/sub/label_file.tt; %]
   

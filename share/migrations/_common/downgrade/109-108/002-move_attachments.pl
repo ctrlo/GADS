@@ -12,7 +12,7 @@ use lib "$FindBin::Bin/../lib";
 
 use Config::Any ();
 
-my $config_fn = "$FindBin::Bin/../config.yml";
+my $config_fn = "$FindBin::Bin/.." . ($ENV{DANCER_CONFDIR} ? "/" . $ENV{DANCER_CONFDIR} : "") . "/config.yml";
 
 my $config = Config::Any->load_files({
     files=> [ $config_fn ],

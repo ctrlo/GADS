@@ -1,4 +1,6 @@
+// We import Bootstrap because there is an error that throws if we don't (this.collapse is not a function).
 /* eslint-disable @typescript-eslint/no-this-alias */
+import "bootstrap";
 import { Component } from 'component'
 import { logging } from 'logging'
 import { initValidationOnField } from 'validation'
@@ -445,6 +447,7 @@ class SelectWidgetComponent extends Component {
 
   //Some odd scoping issues here - but it works
   updateJson(url, typeahead) {
+    const formData = {"csrf_token": $('body').data('csrf')};
     this.loadCounter++
     const self = this;
     const myLoad = this.loadCounter // ID of this process
@@ -465,7 +468,8 @@ class SelectWidgetComponent extends Component {
     // If we cancel this particular loop, then we don't want to remove the
     // spinner if another one has since started running
     let hideSpinner = true
-    $.getJSON(url, (data) => {
+    $.ajax(url, { method: "POST", data: formData}).done((data)=>{
+      data = fromJson(data)
       if (data.error === 0) {
         if (myLoad != this.loadCounter) { // A new one has started running
           hideSpinner = false // Don't remove the spinner on completion
@@ -534,9 +538,8 @@ class SelectWidgetComponent extends Component {
         )
         this.$available.append(errorLi)
       }
-    })
-      .fail(function(jqXHR, textStatus, textError) {
-        const errorMessage = "Oops! Something went wrong."
+    }).fail(function(jqXHR, textStatus, textError) {
+        const errorMessage = jqXHR.responseJSON.message;
         logging.error(
           "Failed to make request to " +
             url +
