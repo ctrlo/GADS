@@ -1,36 +1,37 @@
-import { Component } from 'component'
-import { initValidationOnField } from 'validation'
+import { Component } from 'component';
+import { initValidationOnField } from 'validation';
 
 class TextareaComponent extends Component {
-    constructor(element)  {
-      super(element)
-      this.el = $(this.element)
+    constructor(element) {
+        super(element);
+        this.el = $(this.element);
 
-      if (this.el.hasClass("textarea--required")) {
-        initValidationOnField(this.el)
-      }
-      
-      // Check if there is a textarea with the class 'auto-adjust'
-      const $autoAdjustTextarea = this.el.find('textarea.auto-adjust');
-      if ($autoAdjustTextarea.length) {
-        this.adjustTextareaHeight();
+        if (this.el.hasClass('textarea--required')) {
+            initValidationOnField(this.el);
+        }
 
-        $autoAdjustTextarea.on('change', () => {
+        // Check if there is a textarea with the class 'auto-adjust'
+        const $autoAdjustTextarea = this.el.find('textarea.auto-adjust');
+        if ($autoAdjustTextarea.length) {
             this.adjustTextareaHeight();
-        });
-      }
-    } 
+
+            $autoAdjustTextarea.on('change', () => {
+                this.adjustTextareaHeight();
+            });
+        }
+    }
     adjustTextareaHeight() {
         const $textarea = this.el.find('textarea.auto-adjust');
 
         // Create a hidden div with just the text content
-        const $hiddenDiv = $('<div></div>').text($textarea.val()).css({
-            visibility: 'hidden',
-            position: 'absolute',
-            whiteSpace: 'pre-wrap',
-            padding: $textarea.css('padding'),
-            border: $textarea.css('border'),
-        });
+        const $hiddenDiv = $('<div></div>').text($textarea.val())
+            .css({
+                visibility: 'hidden',
+                position: 'absolute',
+                whiteSpace: 'pre-wrap',
+                padding: $textarea.css('padding'),
+                border: $textarea.css('border')
+            });
 
         // Add div to body
         $('body').append($hiddenDiv);
@@ -55,4 +56,4 @@ class TextareaComponent extends Component {
         $textarea.css('height', `${adjustedHeight}rem`);
     }
 }
-export default TextareaComponent
+export default TextareaComponent;

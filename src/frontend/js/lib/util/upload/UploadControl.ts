@@ -1,4 +1,4 @@
-import { fromJson } from "util/common";
+import { fromJson } from 'util/common';
 
 /**
  * Type to represent a function that is called when the upload progress changes
@@ -7,17 +7,17 @@ import { fromJson } from "util/common";
  */
 type ProgressFunction = (loaded: number, total: number) => void;
 
-type RequestMethod = "PUT"|"POST"|"GET"|"DELETE"|"PATCH";
+type RequestMethod = 'PUT' | 'POST' | 'GET' | 'DELETE' | 'PATCH';
 
 /**
  * Type to represent an object similar to an XMLHttpRequest object
  */
 type XmlHttpRequestLike = {
     open: (method: string, url: string) => void,
-    onabort?: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => any) | null, // eslint-disable-line @typescript-eslint/no-explicit-any
-    onerror?: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => any) | null, // eslint-disable-line @typescript-eslint/no-explicit-any
+    onabort?: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => any) | null,
+    onerror?: ((this: XMLHttpRequest, ev: ProgressEvent<EventTarget>) => any) | null,
     onprogress?: ((e: ProgressEvent) => void) | null,
-    onreadystatechange: ((this: XMLHttpRequest, ev: Event) => any) | null, // eslint-disable-line @typescript-eslint/no-explicit-any
+    onreadystatechange: ((this: XMLHttpRequest, ev: Event) => any) | null,
     send: (data?: Document | XMLHttpRequestBodyInit | null | undefined) => void,
     setRequestHeader: (header: string, value: string) => void,
     readyState: number,
@@ -77,7 +77,7 @@ class Uploader {
             request.upload.onprogress = (e: ProgressEvent) => {
                 if(!e.lengthComputable) this.onProgressCallback?.(e.loaded, 0);
                 this.onProgressCallback?.(e.loaded, e.total);
-            }
+            };
             request.onreadystatechange = () => {
                 if (request.readyState === 4) {
                     if (request.status === 200) {

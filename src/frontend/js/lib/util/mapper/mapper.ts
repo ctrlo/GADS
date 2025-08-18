@@ -41,6 +41,6 @@ export const map: MapperFunction = (r: ScriptResponse) => {
                 id: i++
             });
         }
-    })
+    });
     return result;
-}
+};

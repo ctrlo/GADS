@@ -25,4 +25,4 @@ function LUA(strings: TemplateStringsArray, ...values: (stringLike | string | nu
     return str;
 }
 
-export {LUACode, LUA};
+export { LUACode, LUA };
