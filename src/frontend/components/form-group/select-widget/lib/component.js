@@ -288,116 +288,91 @@ class SelectWidgetComponent extends Component {
         }
     }
 
-    /**
-     * Connects the multi-select items to their associated checkboxes.
-     * @returns {Function} A function that connects the multi-select items.
-     * @todo Remove deprecated key codes and ensure compatibility with modern browsers.
-     */
-    connectMulti() {
-        const self = this;
-        return function () {
-            const $item = $(this);
-            const itemId = $item.data('list-item');
-            const $associated = $('#' + itemId);
 
-            $associated.unbind('change');
-            $associated.on('change', (e) => {
-                if ($(e.target).prop('checked')) {
-                    $item.removeAttr('hidden');
-                } else {
-                    $item.attr('hidden', '');
-                }
-                self.updateState();
-            });
+    const valueId = value_id ? field + "_" + value_id : field + "__blank"
+    const classNames = value_id ? "answer" : "answer answer--blank"
 
-            $associated.unbind('keydown');
-            $associated.on('keydown', function (e) {
-                const key = e.which || e.keyCode;
+    // Add space at beginning to keep format consistent with that in template
+    const detailsButton =
+      ' <div class="details">' +
+      '<button type="button" class="btn btn-small btn-default btn-js-more-info" data-record-id="' + value_id +
+      '" aria-describedby="lbl-' + valueId +
+      '" data-target="' + this.el.data('details-modal') + // TODO: get id of modal
+      '" data-toggle="modal">' +
+      "Details" +
+      "</button>" +
+      "</div>"
 
-                switch (key) {
-                    case 38: // UP
-                    case 40: // DOWN
-                    {
-                        const currentIndex = self.$answers.index($associated.closest('.answer'));
-                        let nextItem;
+    const $li = $(
+      '<li class="' +
+        classNames +
+        '">' +
+        '<div class="control">' +
+        '<div class="' +
+        (multi ? "checkbox" : "radio-group__option") +
+        '">' +
+        '<input id="' +
+        valueId +
+        '" type="' +
+        (multi ? "checkbox" : "radio") +
+        '" name="' +
+        field +
+        '" ' +
+        (checked ? " checked" : "") +
+        (this.required && !this.multi ? ' required aria-required="true"' : "") +
+        ' value="' +
+        (value_id || "") +
+        '" class="' +
+        (multi ? "" : "visually-hidden") +
+        '" aria-labelledby="lbl-' +
+        valueId +
+        '"> ' + // Add space to keep spacing consistent with templates
+        '<label id="lbl-' +
+        valueId +
+        '" for="' +
+        valueId +
+        '">' + label +
+        "</label>" +
+        "</div>" +
+        "</div>" +
+        (value_id ? detailsButton : "") +
+        "</li>"
+    )
+    $li.data('list-text', value_text)
+    $li.data('list-id', value_id)
+    return $li
+  }
 
-                        e.preventDefault();
+  //Some odd scoping issues here - but it works
+  updateJson(url, typeahead) {
+    const formData = {"csrf_token": $('body').data('csrf')};
+    this.loadCounter++
+    const self = this;
+    const myLoad = this.loadCounter // ID of this process
+    this.$available.find(".spinner").removeAttr("hidden")
+    const currentValues = this.$available
+      .find("input:checked")
+      .map(function() {
+        return parseInt($(this).val());
+      })
+      .get()
 
-                        if (key === 38) {
-                            nextItem = self.$answers[currentIndex - 1];
-                        } else {
-                            nextItem = self.$answers[currentIndex + 1];
-                        }
-
-                        if (nextItem) {
-                            $(nextItem)
-                                .find('input')
-                                .focus();
-                        }
-
-                        break;
-                    }
-                    case 13:
-                    {
-                        e.preventDefault();
-                        $(this).trigger('click');
-                        break;
-                    }
-                }
-            });
-        };
+    // Remove existing items if needed, now that we have found out which ones are selected
+    if (!typeahead) {
+      this.$available.find(".answer").remove()
     }
 
-    /**
-     * Connects the single-select items to their associated checkboxes.
-     * @todo Remove deprecated key codes and ensure compatibility with modern browsers.
-     */
-    connectSingle() {
-        const self = this;
-
-        this.$currentItems.each((_, item) => {
-            const $item = $(item);
-            const itemId = $item.data('list-item');
-            const $associated = $('#' + itemId);
-
-            $associated.off('click');
-            $associated.on('click', function (e) {
-                e.stopPropagation();
-            });
-
-            $associated.off('change');
-            $associated.on('change', function () {
-                // First hide all items in the drop-down display
-                self.$currentItems.each((_, currentItem) => {
-                    $(currentItem).attr('hidden', '');
-                });
-                // Then show the one selected
-                if ($associated.prop('checked')) {
-                    $item.removeAttr('hidden');
-                }
-                // Update state so as to show "select option" default text for nothing
-                // selected
-                self.updateState();
-            });
-
-            $associated.parent().unbind('keypress');
-            $associated.parent().on('keypress', (e) => {
-                // KeyCode Enter or Spacebar
-                if (e.keyCode === 13 || e.keyCode === 32) {
-                    e.preventDefault();
-                    $(e.target).parent()
-                        .trigger('click');
-                }
-            });
-
-            $associated.parent().off('click');
-            $associated.parent().on('click', () => {
-                // Need to collapse on click (not change) otherwise drop-down will
-                // collapse when changing using the keyboard
-                this.collapse(this.$widget, this.$trigger, this.$target);
-            });
-        });
-    }
+    const field = this.$selectWidget.data("field")
+    // If we cancel this particular loop, then we don't want to remove the
+    // spinner if another one has since started running
+    let hideSpinner = true
+    $.ajax(url, { method: "POST", data: formData}).done((data)=>{
+      data = fromJson(data)
+      if (data.error === 0) {
+        if (myLoad != this.loadCounter) { // A new one has started running
+          hideSpinner = false // Don't remove the spinner on completion
+          return
+        }
 
     /**
      * Connects the select widget items to their associated checkboxes.

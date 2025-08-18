@@ -365,6 +365,87 @@ class CurvalModalComponent extends ModalComponent {
         });
 
     }
+  }
+
+  curvalModalValidationFailed(form, errorMessage) {
+    form
+      .find(".alert")
+      .text(errorMessage)
+      .removeAttr("hidden")
+    form
+      .parents(".modal-content")
+      .get(0)
+      .scrollIntoView()
+    form.find("button[type=submit]").prop("disabled", false)
+  }
+
+  setupModal() {
+    this.el.on('show.bs.modal', (ev) => { 
+      const button = ev.relatedTarget
+      const $field = $(button).closest('.linkspace-field')
+      const layout_id = $field.data("column-id")
+      const instance_name = $field.data("curval-instance-name")
+      const current_id = $(button).data("current-id")
+      const hidden = $(button)
+        .closest(".table-curval-item")
+        .find(`input[name=field${layout_id}]`)
+      // The hidden value may contain the value of a record ID or edited record
+      // data as a query string.  Test it to see which applies, and if it's
+      // query data then convert to FormData so that it can be submitted
+      // using fetch().  There doesn't seem any way to create a FormData
+      // object directly from application/x-www-form-urlencoded data. A
+      // possible improvement might be to save the hidden value as JSON
+      // instead
+      const form_data = new FormData();
+      if (hidden.val() && hidden.val().includes('=')) {
+        const search_params = new URLSearchParams(hidden.val())
+        for (const [key, value] of search_params.entries()) {
+          form_data.append(key, value);
+        }
+      }
+      // At this point we either have a full form's values, or nothing at all.
+      // If nothing at all we need to add the CSRF token for the POST request.
+      if (form_data.getAll('csrf_token').length == 0) {
+        const $csrf = $field.closest('form.form-edit').find('input[name="csrf_token"]')
+        form_data.append("csrf_token", $csrf.val())
+      }
+
+      const mode = hidden.length ? "edit" : "add"
+      let guid
+
+      if ($field.find('.table-curval-group').length) {
+        this.context = $field.find('.table-curval-group')
+      } else if ($field.find('.select-widget').length) {
+        this.context = $field.find('.select-widget')
+      }
+
+      // For edits, write a guid to the row now (if it hasn't already been
+      // written), which will be matched on submission.
+      // For new records, a guid is written on submission
+      if (mode === "edit") {
+        guid = hidden.data("guid")
+        if (!guid) {
+          guid = Guid()
+          hidden.attr("data-guid", guid)
+        }
+      }
+
+      const $m = $(this.element)
+      const self = this
+      $m.find(".modal-body").text("Loading...")
+
+      fetch(this.getURL(current_id, instance_name, layout_id), {
+        method: 'POST',
+        body: form_data,
+      })
+        .then((response)=>response.text())
+        .then((text) => $m.find(".modal-body").html(text))
+        .then(() => {
+          if (mode === "edit") {
+            $m.find("form").data("guid", guid);
+          }
+          initializeRegisteredComponents(self.element);
+        });
 
     /**
      * Get the URL for the curval modal.
