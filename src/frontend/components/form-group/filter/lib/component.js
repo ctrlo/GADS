@@ -243,7 +243,7 @@ class FilterComponent extends Component {
     return operators
   }
 
-   get typeaheadProperties() {
+  get typeaheadProperties() {
     return {
       input: (container, input_name) => {
         return (
