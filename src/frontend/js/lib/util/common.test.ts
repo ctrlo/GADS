@@ -1,4 +1,3 @@
-import "testing/globals.definitions";
 import { fromJson, hideElement, showElement } from "./common";
 import { describe, it, expect, beforeEach, afterEach, jest } from "@jest/globals";
 

@@ -1,4 +1,3 @@
-import "testing/globals.definitions";
 import { describe, it, expect } from "@jest/globals";
 import { NullStorage } from "./NullStorage";
 import { AppStorage } from "./AppStorage";

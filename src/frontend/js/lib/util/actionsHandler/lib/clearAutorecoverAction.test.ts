@@ -1,4 +1,3 @@
-import "testing/globals.definitions";
 import { describe, it, expect } from "@jest/globals"
 import { clearAutorecoverAction } from './clearAutorecoverAction';
 import StorageProvider from "../../storageProvider/lib/storageProvider";
