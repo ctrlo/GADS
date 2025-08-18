@@ -2437,7 +2437,7 @@ sub rule_to_condition
 
             $_ =~ s/\_/\\\_/g if $operator eq '-like';
 
-            if ($_ && $_ =~ /\[CURUSER(\.(ORG|DEPT|TEAM|ID|TITLE))?\]/)
+            if ($_ && $_ =~ /\[CURUSER(\.(ORG|DEPT|TEAM|ID|TITLE|EMAIL))?\]/)
             {
                 my $curuser = $options{user} || $self->user
                     or warning "FIXME: user not set for filter";
@@ -2451,6 +2451,8 @@ sub rule_to_condition
                 {
                     my $curuser_value = $curuser ? $curuser->value : '';
                     $_ =~ s/\[CURUSER\]/$curuser_value/g;
+                    my $curuser_email = $curuser ? $curuser->email : '';
+                    $_ =~ s/\[CURUSER\.EMAIL\]/$curuser_email/g;
                     my $curuser_org = $curuser->organisation ? $curuser->organisation->name : '';
                     $_ =~ s/\[CURUSER\.ORG\]/$curuser_org/g;
                     my $curuser_dept = $curuser->department ? $curuser->department->name : '';

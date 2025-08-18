@@ -448,7 +448,7 @@ class SelectWidgetComponent extends Component {
 
   //Some odd scoping issues here - but it works
   updateJson(url, typeahead) {
-    if(!url.includes('csrf-token')) url += (url.includes('?') ? '&' : '?') + 'csrf-token=' + $('body').data('csrf');
+    const formData = {"csrf_token": $('body').data('csrf')};
     this.loadCounter++
     const self = this;
     const myLoad = this.loadCounter // ID of this process
@@ -469,7 +469,7 @@ class SelectWidgetComponent extends Component {
     // If we cancel this particular loop, then we don't want to remove the
     // spinner if another one has since started running
     let hideSpinner = true
-    $.ajax({url, method: "POST"}).done((data)=>{
+    $.ajax(url, { method: "POST", data: formData}).done((data)=>{
       data = fromJson(data)
       if (data.error === 0) {
         if (myLoad != this.loadCounter) { // A new one has started running
