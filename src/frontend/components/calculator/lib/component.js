@@ -1,5 +1,4 @@
 import { Component } from 'component';
-import { CalculatorOperation } from './CalculatorOperation';
 
 /**
  * CalculatorComponent class to handle calculator functionality in the UI.
@@ -18,43 +17,9 @@ class CalculatorComponent extends Component {
     }
 
     /**
-     * Array of CalculatorOperation instances representing basic arithmetic operations.
-     * Each operation includes an action name, label, keypresses, and a function to perform the operation.
-     * This array is used to dynamically create buttons and handle operations in the calculator UI.
-     * @static
-     * @type {CalculatorOperation[]}
-     * @readonly
-     */
-    calculatorActions = [
-        new CalculatorOperation(
-            'add',
-            '+',
-            ['+'],
-            (a, b) => a + b
-        ),
-        new CalculatorOperation(
-            'subtract',
-            '-',
-            ['-'],
-            (a, b) => a - b
-        ),
-        new CalculatorOperation(
-            'multiply',
-            '×',
-            ['*', 'X', 'x', '×'],
-            (a, b) => a * b
-        ),
-        new CalculatorOperation(
-            'divide',
-            '÷',
-            ['/', '÷'],
-            (a, b) => a / b
-        )
-    ];
-
-    /**
      * Initializes the calculator functionality by creating a dropdown
      * with buttons for arithmetic operations and an input field for numbers.
+     * @todo This method should be refactored to improve readability and maintainability.
      */
     initCalculator() {
         const selector = this.el.find('input:not([type="checkbox"])');
@@ -76,18 +41,18 @@ class CalculatorComponent extends Component {
 
             calculator_elem.append(
                 '<form class="form-inline">' +
-                '    <div class="form-group"><div class="radio-group radio-group--buttons" data-toggle="buttons"></div></div>' +
-                '    <div class="form-group"><div class="input"><input type="text" placeholder="Number" class="form-control"></input></div></div>' +
-                '    <div class="form-group">' +
-                '        <input type="submit" value="Calculate" class="btn btn-default"></input>' +
-                '    </div>' +
-                '</form>'
+        '    <div class="form-group"><div class="radio-group radio-group--buttons" data-toggle="buttons"></div></div>' +
+        '    <div class="form-group"><div class="input"><input type="text" placeholder="Number" class="form-control"></input></div></div>' +
+        '    <div class="form-group">' +
+        '        <input type="submit" value="Calculate" class="btn btn-default"></input>' +
+        '    </div>' +
+        '</form>'
             );
 
             $(document).on('mouseup', (e) => {
                 if (
                     !calculator_elem.is(e.target) &&
-                    calculator_elem.has(e.target).length === 0
+          calculator_elem.has(e.target).length === 0
                 ) {
                     calculator_elem.hide();
                 }
@@ -96,12 +61,52 @@ class CalculatorComponent extends Component {
             let calculator_operation;
             let integer_input_elem;
 
+            const calculator_button = [
+                {
+                    action: 'add',
+                    label: '+',
+                    keypress: ['+'],
+                    operation: function (a, b) {
+                        return a + b;
+                    }
+                },
+                {
+                    action: 'subtract',
+                    label: '-',
+                    keypress: ['-'],
+                    operation: function (a, b) {
+                        return a - b;
+                    }
+                },
+                {
+                    action: 'multiply',
+                    label: '×',
+                    keypress: ['*', 'X', 'x', '×'],
+                    operation: function (a, b) {
+                        return a * b;
+                    }
+                },
+                {
+                    action: 'divide',
+                    label: '÷',
+                    keypress: ['/', '÷'],
+                    operation: function (a, b) {
+                        return a / b;
+                    }
+                }
+            ];
             const keypress_action = {};
             const operator_btns_elem = calculator_elem.find('.radio-group--buttons');
 
-            $(this.calculatorActions).each((i) => {
-                const btn = this.calculatorActions[i];
-                const button_elem = btn.render();
+            $(calculator_button).each((i) => {
+                const btn = calculator_button[i];
+                const button_elem = $(
+                    '<div class="radio-group__option">' +
+          `<input type="radio" name="op" id="op_${btn.action}" class="radio-group__input btn_label_${btn.action}">` +
+          `<label class="radio-group__label" for="op_${btn.action}">${btn.label}</label>` +
+          '</div>'
+                );
+
                 operator_btns_elem.append(button_elem);
 
                 $(button_elem).find('.radio-group__label')
@@ -109,7 +114,7 @@ class CalculatorComponent extends Component {
                         $(button_elem).find('.radio-group__input')
                             .prop('checked', true);
                         calculator_operation = btn.operation;
-                        calculator_elem.find(':text').trigger('focus');
+                        calculator_elem.find(':text').focus();
                     });
 
                 for (const j in btn.keypress) {

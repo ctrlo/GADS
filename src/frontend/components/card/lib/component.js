@@ -107,12 +107,8 @@ class ExpandableCardComponent extends Component {
         return !this.$contentBlock.find('.card--edit').length;
     }
 
-    /**
-     * Displays a confirmation message when the user attempts to leave the page.
-     * @param {JQuery.Event} ev The event object.
-     * @returns
-     */
     confirmOnPageExit = function (ev) {
+        ev = ev || window.event;
         const message = 'Please note that any changes will be lost.';
         if (ev) {
             ev.returnValue = message;
