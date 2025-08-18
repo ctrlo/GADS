@@ -1,4 +1,3 @@
-import "testing/globals.definitions";
 import AutosaveBase from './autosaveBase';
 import { describe, it, expect, beforeAll, afterAll } from "@jest/globals"
 
