@@ -2315,7 +2315,7 @@ sub set_blank_dependents
 
     foreach my $column (@{$options{columns}})
     {
-        my $datum = $self->fields->{$column->id};
+        my $datum = $self->get_field_value($column);
         $datum->set_value('')
             if $datum->dependent_not_shown(submission_token => $options{submission_token})
                 && ($datum->column->can_child || !$self->parent_id);
