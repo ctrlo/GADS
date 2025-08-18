@@ -282,6 +282,8 @@ class TimelineComponent extends Component {
           .trigger('change')
 
         return tl
+      }).then(()=>{
+        $('#loading').hide()
       });
     }
 
@@ -333,7 +335,7 @@ class TimelineComponent extends Component {
             }
           }
         }
-      })
+      });
     }
 
     /**
