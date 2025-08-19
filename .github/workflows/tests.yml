@@ -1,5 +1,5 @@
 name: 'GADS Tests'
-on: 
+on:
   push:
     branches:
       - master
