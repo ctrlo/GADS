@@ -285,7 +285,17 @@ class SelectWidgetComponent extends Component {
 
     /**
      * Connects the multi-select items to their associated checkboxes.
+<<<<<<< HEAD
+<<<<<<< HEAD
      * @returns {(...*)=>*} A function that connects the multi-select items.
+<<<<<<< HEAD
+=======
+     * @todo Remove deprecated key codes and ensure compatibility with modern browsers.
+=======
+>>>>>>> bb34593f4 (Updated with changes within current dev)
+=======
+>>>>>>> 3cacb9c64 (Updated code files with changes as required where they were included in dev)
+>>>>>>> 2e3c97fe (Updated with changes within current dev)
      */
     connectMulti() {
         const self = this;
@@ -344,7 +354,6 @@ class SelectWidgetComponent extends Component {
 
     /**
      * Connects the single-select items to their associated checkboxes.
-     * @todo Remove deprecated key codes and ensure compatibility with modern browsers.
      */
     connectSingle() {
         const self = this;
@@ -631,8 +640,16 @@ class SelectWidgetComponent extends Component {
     }
 
     /**
+<<<<<<< HEAD
+<<<<<<< HEAD
      * Fetch options for the select widget based on linked fields.
      * @throws {string} Will throw an error if the filter fields are not a valid array.
+=======
+     * Fetches options for the select widget based on linked fields.
+>>>>>>> bb34593f4 (Updated with changes within current dev)
+=======
+     * Fetches options for the select widget based on linked fields.
+>>>>>>> 3cacb9c64 (Updated code files with changes as required where they were included in dev)
      */
     fetchOptions() {
         const filterEndpoint = this.$selectWidget.data('filter-endpoint');
@@ -645,9 +662,9 @@ class SelectWidgetComponent extends Component {
 
         // Collect values of linked fields
         const values = ['submission-token=' + submissionToken];
-        $.each(filterFields, function(_, field) {
+        $.each(filterFields, function (_, field) {
 
-            $('input[name=' + field + ']').each(function(_, input) {
+            $('input[name=' + field + ']').each(function (_, input) {
                 const $input = $(input);
 
                 switch ($input.attr('type')) {
