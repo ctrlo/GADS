@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import ModalComponent from '../../../lib/component';
 import { setFieldValues } from 'set-field-values';
+import { guid as Guid } from 'guid';
 import { initializeRegisteredComponents } from 'component';
 import { validateRadioGroup, validateCheckboxGroup } from 'validation';
 import { fromJson } from 'util/common';
@@ -155,7 +156,7 @@ class CurvalModalComponent extends ModalComponent {
             // guids in the autosave
             let is_new_row;
             if (!guid && !current_id) {
-                guid = crypto.randomUUID();
+                guid = Guid();
                 is_new_row = true;
             }
             const hidden_input = $('<input>').attr({
@@ -196,7 +197,7 @@ class CurvalModalComponent extends ModalComponent {
                 $answersList.find('li input').prop('checked', false);
             }
 
-            guid ||= crypto.randomUUID();
+            guid ||= Guid();
             const id = `field${col_id}_${guid}`;
             const deleteButton = multi
                 ? '<button class="close select-widget-value__delete" aria-hidden="true" aria-label="delete" title="delete" tabindex="-1">&times</button>'
@@ -354,7 +355,7 @@ class CurvalModalComponent extends ModalComponent {
             if (mode === 'edit') {
                 guid = hidden.data('guid');
                 if (!guid) {
-                    guid = crypto.randomUUID();
+                    guid = Guid();
                     hidden.attr('data-guid', guid);
                 }
             }
