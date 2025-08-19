@@ -286,7 +286,6 @@ class SelectWidgetComponent extends Component {
     /**
      * Connects the multi-select items to their associated checkboxes.
      * @returns {(...*)=>*} A function that connects the multi-select items.
-     * @todo Remove deprecated key codes and ensure compatibility with modern browsers.
      */
     connectMulti() {
         const self = this;
@@ -295,7 +294,7 @@ class SelectWidgetComponent extends Component {
             const itemId = $item.data('list-item');
             const $associated = $('#' + itemId);
 
-            $associated.unbind('change');
+            $associated.off('change');
             $associated.on('change', (e) => {
                 if ($(e.target).prop('checked')) {
                     $item.removeAttr('hidden');
@@ -305,7 +304,7 @@ class SelectWidgetComponent extends Component {
                 self.updateState();
             });
 
-            $associated.unbind('keydown');
+            $associated.off('keydown');
             $associated.on('keydown', function (e) {
                 const key = e.which || e.keyCode;
 
@@ -345,7 +344,6 @@ class SelectWidgetComponent extends Component {
 
     /**
      * Connects the single-select items to their associated checkboxes.
-     * @todo Remove deprecated key codes and ensure compatibility with modern browsers.
      */
     connectSingle() {
         const self = this;
@@ -375,7 +373,7 @@ class SelectWidgetComponent extends Component {
                 self.updateState();
             });
 
-            $associated.parent().unbind('keypress');
+            $associated.parent().off('keypress');
             $associated.parent().on('keypress', (e) => {
                 // KeyCode Enter or Spacebar
                 if (e.keyCode === 13 || e.keyCode === 32) {
@@ -634,7 +632,8 @@ class SelectWidgetComponent extends Component {
     }
 
     /**
-     * Fetches options for the select widget based on linked fields.
+     * Fetch options for the select widget based on linked fields.
+     * @throws {string} Will throw an error if the filter fields are not a valid array.
      */
     fetchOptions() {
         const filterEndpoint = this.$selectWidget.data('filter-endpoint');
