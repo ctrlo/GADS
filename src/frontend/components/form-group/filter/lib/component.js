@@ -172,7 +172,13 @@ class FilterComponent extends Component {
             };
 
             // This is required to ensure that the correct query is sent each time
-            const buildQuery = () => { return { q: $ruleInputText.val(), oi: filterConfig.instanceId, csrf_token: $('body').data('csrf') }; };
+            const buildQuery = () => {
+                return {
+                    q: $ruleInputText.val(),
+                    oi: filterConfig.instanceId,
+                    csrf_token: $('body').data('csrf')
+                };
+            };
 
             const builder = new TypeaheadBuilder();
             builder

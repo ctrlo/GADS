@@ -365,13 +365,7 @@ class DataTableComponent extends Component {
         if (col.typeahead_use_id) {
             $searchInput.after('<input type="hidden" class="search">');
             if(searchValue) {
-                const response = await fetch(
-                    this.getApiEndpoint(columnId) + searchValue + '&use_id=1',
-                    {
-                        method: 'POST',
-                        data: {csrf_token: $('body').data('csrf')}
-                    }
-                );
+                const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1', {method: 'POST', data: {csrf_token: $('body').data('csrf')}});
                 const data = await response.json();
                 if (!data.error) {
                     if(data.records.length != 0) {
@@ -387,7 +381,7 @@ class DataTableComponent extends Component {
 
         if (col && col.typeahead) {
             import(/*webpackChunkName: "typeahead" */ 'util/typeahead')
-                .then(({default: TypeaheadBuilder})=>{
+                .then(({ default: TypeaheadBuilder }) => {
                     const builder = new TypeaheadBuilder();
                     builder
                         .withAjaxSource(this.getApiEndpoint(columnId))
