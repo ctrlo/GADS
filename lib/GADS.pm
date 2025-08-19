@@ -4451,8 +4451,9 @@ prefix '/:layout_name' => sub {
         to_json [ rset('User')->match($query) ];
     };
 
-    # I don't know where else this is used, so I am going to revert it to it's original setup and leave it alone for now!
-    get '/match/layout/:layout_id' => require_login sub {
+    # This has been changed to `POST` because the select-filter requires all requests to be post (for security)
+    # All calls to this endpoint should now be using `POST` going forward
+    post '/match/layout/:layout_id' => require_login sub {
 
         my $layout = var('layout') or pass;
         my $query = param('q');
