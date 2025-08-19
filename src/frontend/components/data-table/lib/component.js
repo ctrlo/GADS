@@ -410,6 +410,37 @@ class DataTableComponent extends Component {
 
         if (col && col.typeahead) {
             import(/*webpackChunkName: "typeahead" */ 'util/typeahead')
+                .then(({ default: TypeaheadBuilder }) => {
+                    const builder = new TypeaheadBuilder();
+                    builder
+                        .withAjaxSource(this.getApiEndpoint(columnId))
+                        .withMethod('POST')
+                        .withData({csrf_token: $('body').data('csrf')})
+                        .withInput($('input', $header))
+                        .withAppendQuery()
+                        .withDefaultMapper()
+                        .withName(columnId.replace(/\s+/g, '') + 'Search')
+                        .withCallback((data) => {
+                            if(col.typeahead_use_id) {
+                                $searchInput.val(data.name);
+                                $('input.search',$searchElement).val(data.id)
+                                    .trigger('change');
+                            }else{
+                                $('input', $searchElement).addClass('search')
+                                    .val(data.name)
+                                    .trigger('change');
+                            }
+                        })
+                        .build();
+                });
+        }
+
+        $header.find('.data-table__header-wrapper').prepend($searchElement);
+
+        this.toggleFilter(column);
+
+        if (col && col.typeahead) {
+            import(/*webpackChunkName: "typeahead" */ 'util/typeahead')
                 .then(({default: TypeaheadBuilder})=>{
                     const builder = new TypeaheadBuilder();
                     builder
