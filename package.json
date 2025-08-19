@@ -9,8 +9,7 @@
     "build:dev": "webpack --env development --progress -w",
     "test:watch": "jest --watch",
     "e2e": "yarn cypress run",
-    "prebuild": "npx update-browserslist-db@latest",
-    "pretest": "npx update-browserslist-db@latest"
+    "prebuild": "npx update-browserslist-db@latest"
   },
   "dependencies": {
     "@egjs/hammerjs": "^2.0.0",
