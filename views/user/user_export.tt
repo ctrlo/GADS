@@ -1,5 +1,4 @@
 [%-
-  table_layout = undef
   table_language = {
     emptyTable => "No exports to show"
   }

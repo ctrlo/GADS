@@ -499,7 +499,6 @@
                                   # Table configuration
                                   table_id = "table-view-fields-selected"
                                   table_class = 'table--bordered table-hover table-toggle table-toggle--remove'
-                                  table_layout = undef
                                   table_caption = "Table with selected fields in view"
                                   table_columns = [{
                                     name = "Fields in view",
