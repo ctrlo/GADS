@@ -1,7 +1,6 @@
 [%
   # prepare table config
   table_class            = 'table-striped table-hover table-lines';
-  layout                 = undef;
   table_language         = {
     emptyTable => "No fields have been created yet."
   };

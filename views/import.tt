@@ -1,6 +1,5 @@
 [%
   # prepare files table config
-  table_layout = undef;
   table_class = "table-striped";
   table_language = {
     emptyTable => "No imports to show"
