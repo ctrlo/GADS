@@ -3,6 +3,12 @@ import { AppStorage } from 'util/gadsStorage/lib/AppStorage';
 import { fromJson } from 'util/common';
 
 /**
+ * Type to represent a map of strings
+ * @todo This could be replaced with a record<string, string> type
+ */
+type StringMap = { [key: string]: string };
+
+/**
  * StorageProvider class for managing storage operations
  */
 class StorageProvider {
@@ -28,7 +34,7 @@ class StorageProvider {
     async setItem(key: string, value: string) {
         let item = await this.storage.getItem(this.instance);
         if (!item) item = '{}';
-        const map: Record<string,string> = fromJson(item);
+        const map: StringMap = fromJson(item);
         map[key] = value;
         await this.storage.setItem(this.instance, JSON.stringify(map));
     }
@@ -41,15 +47,15 @@ class StorageProvider {
     async getItem(key: string): Promise<string | undefined> {
         const item = await this.storage.getItem(this.instance);
         if (!item) return undefined;
-        const map: Record<string,string> = fromJson(item);
+        const map: StringMap = fromJson(item);
         return map[key] || undefined;
     }
 
     /**
      * Get all items from the storage
-     * @returns {Promise<string,string>} All items in the storage as a key-value map
+     * @returns {Promise<StringMap>} All items in the storage as a key-value map
      */
-    async getAll(): Promise<Record<string,string>> {
+    async getAll(): Promise<StringMap> {
         const item = await this.storage.getItem(this.instance);
         if (!item) return {};
         return fromJson(item);
@@ -69,7 +75,7 @@ class StorageProvider {
     async removeItem(key: string) {
         const item = await this.storage.getItem(this.instance);
         if (!item) return;
-        const map: Record<string,string> = fromJson(item);
+        const map: StringMap = fromJson(item);
         delete map[key];
         await this.storage.setItem(this.instance, JSON.stringify(map));
     }

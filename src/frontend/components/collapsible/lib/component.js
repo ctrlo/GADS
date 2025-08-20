@@ -1,7 +1,7 @@
 import { Component } from 'component';
 
 /**
- * Component for creating a collapsible section in the UI.
+ *
  */
 class CollapsibleComponent extends Component {
     /**

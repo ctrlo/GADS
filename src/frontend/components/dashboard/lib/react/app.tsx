@@ -48,7 +48,7 @@ class App extends React.Component<any, any> {
     /**
      * Create an instance of the App component.
      * @param {any} props The properties passed to the component, including widgets, api, dashboardId, etc.
-     * @todo Use concrete types instead of `any` for better type safety. This will be done on the React upgrade.
+     * @todo Use concrete types instead of `any` for better type safety.
      */
     constructor(props: any) {
         super(props);

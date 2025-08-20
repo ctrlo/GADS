@@ -107,18 +107,25 @@ class ExpandableCardComponent extends Component {
         return !this.$contentBlock.find('.card--edit').length;
     }
 
-    /**
-     * Displays a confirmation message when the user attempts to leave the page.
-     * @param {JQuery.Event} ev The event object.
-     * @returns
-     */
     confirmOnPageExit = function (ev) {
+        ev = ev || window.event;
         const message = 'Please note that any changes will be lost.';
         if (ev) {
             ev.returnValue = message;
         }
         return message;
     };
+
+    /**
+     * In order to ensure headers on the view filter tables are the correct width, we need to remove any styling that has been added to the header elements.
+     * And for some reason, using JQuery and DataTables, the styling is not reset as we expect it to be.
+     */
+    clearupStyling() {
+        const tables = $('.table-toggle');
+        tables.removeAttr('style');
+        const headers = $('.dt-scroll-headInner');
+        headers.removeAttr('style');
+    }
 }
 
 export default ExpandableCardComponent;

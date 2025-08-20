@@ -40,13 +40,3 @@ export const fromJson = (json: string | object) => {
         return {};
     }
 };
-
-/**
- * Encode HTML entities in a string.
- * @param {string} input String to encode HTML entities
- * @returns {string} String with HTML entities encoded
- */
-export const encodeHTMLEntities = (input: string): string => {
-    return $('<textarea/>').text(input)
-        .html();
-};
