@@ -50,7 +50,7 @@ describe('StorageProvider', () => {
         await expect(storage.setItem('key', 'new value')).resolves.toBeUndefined();
         await expect(storage.getItem('key')).resolves.toBe('new value');
     });
-    
+
     it('should remove a key-value pair', async () => {
         const storage = new StorageProvider('test', localStorage);
         await expect(storage.setItem('key', 'value')).resolves.toBeUndefined();

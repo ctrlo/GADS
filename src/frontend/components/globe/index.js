@@ -1,15 +1,14 @@
-import { initializeComponent, getComponentElements } from 'component'
+import { initializeComponent, getComponentElements } from 'component';
 
 export default (scope) => {
     if (!getComponentElements(scope, '.globe').length) {
-      return;
+        return;
     }
-  
+
     import(
-      /* webpackChunkName: "globe" */
-      './lib/component' 
+    /* webpackChunkName: "globe" */
+        './lib/component'
     ).then(({ default: Component }) => {
-      initializeComponent(scope, '.globe', Component)
+        initializeComponent(scope, '.globe', Component);
     });
-  }
-  
+};
