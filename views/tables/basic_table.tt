@@ -154,7 +154,6 @@
   END;
 
   table_config = {
-    layout     = ( table_layout ),
     order      = ( table_order && table_order.size ? table_order : [] ),
     ordering   = ( table_ordering.defined ? table_ordering : 1 ), # Defines if you can sort records (enabled by default)
     language   = ( table_language && table_language.size ? table_language : { emptyTable => "There is no data available in this table" } ),
@@ -165,6 +164,17 @@
     scrollY    = ( table_scroll_y.defined ? table_scroll_y : '' ) # Defines a fixed table height (disabled by default)
     info       = ( table_info.defined ? table_info : 1 ) # Defines whether to show table info ("showing x to y of z entries")
   };
+
+  IF table_layout.defined;
+    table_config.layout = table_layout;
+  ELSE;
+    table_config.layout = {
+        topStart = undef,
+        topEnd   = undef,
+        bottomStart = undef,
+        bottomEnd   = undef,
+    };
+  END;
 
   IF table_ajax;
     table_config.ajax = {

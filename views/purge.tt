@@ -19,7 +19,6 @@
         [%
           # prepare table config
           table_class            = 'table-striped table-selectable';
-          table_layout           = undef;
           table_language         = {
             emptyTable => "There are no deleted records in this table.",
           };
