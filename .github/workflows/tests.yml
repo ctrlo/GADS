@@ -1,5 +1,5 @@
 name: 'GADS Tests'
-on: 
+on:
   push:
     branches:
       - master
@@ -106,7 +106,7 @@ jobs:
         run: '${{ matrix.browser.command }}'
       - name: 'Run the Webdriver tests'
         run: prove -lmrsv webdriver/t
-  
+
   cypress_tests:
     name: 'Cypress Tests for ${{ matrix.browser.name }}'
     runs-on: '${{ matrix.browser.os }}'
@@ -118,7 +118,7 @@ jobs:
         browser:
           - name: 'chrome'
             os: 'ubuntu-22.04'
-          
+
     services:
       postgres:
         image: postgres
@@ -181,13 +181,13 @@ jobs:
           perl bin/app.pl &
       - name: 'Run the Cypress tests'
         run: yarn cypress run --browser ${{ matrix.browser.name }}
-              
+
   js_tests:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [20.x, 22.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
@@ -197,6 +197,5 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - run: npx update-browserslist-db@latest
       - run: yarn
       - run: yarn jest --passWithNoTests
