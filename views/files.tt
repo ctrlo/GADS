@@ -1,6 +1,5 @@
 [%
   # prepare files table config
-  table_dom = "t";
   table_show_all_records = 1;
 
   table_caption = "Table to show files";
@@ -43,7 +42,7 @@
       }]
     });
   END;
-  
+
   # add standardized page header
   INCLUDE layouts/page_header.tt
     title         = "Files"
