@@ -9,7 +9,8 @@ import './DataTablesPlugins';
 import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets';
 import { moreLess } from 'components/more-less/lib/more-less';
 import { bindToggleTableClickHandlers } from './toggle-table';
-import DataRenderer from './renderers/DataRenderer';
+
+const MORE_LESS_TRESHOLD = 50;
 
 /**
  * Component for initializing and managing DataTables
@@ -24,6 +25,7 @@ class DataTableComponent extends Component {
         this.el = $(this.element);
         this.hasCheckboxes = this.el.hasClass('table-selectable');
         this.hasClearState = this.el.hasClass('table-clear-state');
+        this.forceButtons = this.el.hasClass('table-force-buttons');
         this.searchParams = new URLSearchParams(window.location.search);
         this.base_url = this.el.data('href') ? this.el.data('href') : undefined;
         this.isFullScreen = false;
@@ -355,11 +357,11 @@ class DataTableComponent extends Component {
         $searchInput.appendTo($('.input', $searchElement));
         if (col.typeahead_use_id) {
             $searchInput.after('<input type="hidden" class="search">');
-            if (searchValue) {
-                const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1');
+            if(searchValue) {
+                const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1', {method: 'POST', data: {csrf_token: $('body').data('csrf')}});
                 const data = await response.json();
                 if (!data.error) {
-                    if (data.records.length != 0) {
+                    if(data.records.length != 0) {
                         $searchInput.val(data.records[0].label);
                         $('input.search', $searchElement).val(data.records[0].id)
                             .trigger('change');
@@ -368,6 +370,37 @@ class DataTableComponent extends Component {
             }
         } else {
             $('input', $searchElement).addClass('search');
+        }
+
+        $header.find('.data-table__header-wrapper').prepend($searchElement);
+
+        this.toggleFilter(column);
+
+        if (col && col.typeahead) {
+            import(/*webpackChunkName: "typeahead" */ 'util/typeahead')
+                .then(({default: TypeaheadBuilder})=>{
+                    const builder = new TypeaheadBuilder();
+                    builder
+                        .withAjaxSource(this.getApiEndpoint(columnId))
+                        .withMethod('POST')
+                        .withData({csrf_token: $('body').data('csrf')})
+                        .withInput($('input', $header))
+                        .withAppendQuery()
+                        .withDefaultMapper()
+                        .withName(columnId.replace(/\s+/g, '') + 'Search')
+                        .withCallback((data) => {
+                            if(col.typeahead_use_id) {
+                                $searchInput.val(data.name);
+                                $('input.search',$searchElement).val(data.id)
+                                    .trigger('change');
+                            }else{
+                                $('input', $searchElement).addClass('search')
+                                    .val(data.name)
+                                    .trigger('change');
+                            }
+                        })
+                        .build();
+                });
         }
 
         $header.find('.data-table__header-wrapper').prepend($searchElement);
@@ -460,12 +493,259 @@ class DataTableComponent extends Component {
     }
 
     /**
+     * Encode HTML entities in a string
+     * @param {string} text The text to encode
+     * @returns {string} The encoded text
+     */
+    encodeHTMLEntities(text) {
+        return $('<textarea/>').text(text)
+            .html();
+    }
+
+    /**
+     * Decode HTML entities in a string
+     * @param {string} text The text to decode
+     * @returns {string} The decoded text
+     */
+    decodeHTMLEntities(text) {
+        return $('<textarea/>').html(text)
+            .text();
+    }
+
+    /**
+     * Render a more-less component if the HTML string exceeds the threshold
+     * @param {string} strHTML The HTML string to render
+     * @param {string} strColumnName The name of the column to render
+     * @returns {string} The rendered HTML string with more-less component if applicable
+     */
+    renderMoreLess(strHTML, strColumnName) {
+        if (strHTML.toString().length > MORE_LESS_TRESHOLD) {
+            return (
+                `<div class="more-less" data-column="${strColumnName}">
+          ${strHTML}
+        </div>`
+            );
+        }
+        return strHTML;
+    }
+
+    /**
+     * Render the default data type
+     * @param {object} data The data to render
+     * @returns {string} The rendered HTML string
+     * @todo Would it be better to use an abstract factory method here to handle different data types?
+     */
+    renderDefault(data) {
+        let strHTML = '';
+
+        if (!data.values || !data.values.length) {
+            return strHTML;
+        }
+
+        data.values.forEach((value, i) => {
+            strHTML += this.encodeHTMLEntities(value);
+            strHTML += (data.values.length > (i + 1)) ? ', ' : '';
+        });
+
+        return this.renderMoreLess(strHTML, data.name);
+    }
+
+    /**
+     * Render the ID data type
+     * @param {object} data The data to render
+     * @returns {string} The rendered HTML string for the ID
+     */
+    renderId(data) {
+        let retval = '';
+        const id = data.values[0];
+        if (!id) return retval;
+        if (data.parent_id) {
+            retval = `<span title="Child record with parent record ${data.parent_id}">${data.parent_id} &#8594;</span> `;
+        }
+        return retval + `<a href="${this.base_url}/${id}">${id}</a>`;
+    }
+
+    /**
+     * Render the person data type
+     * @param {string} data The data to render
+     * @returns {string} The rendered HTML string for the person data type
+     */
+    renderPerson(data) {
+        let strHTML = '';
+
+        if (!data.values.length) {
+            return strHTML;
+        }
+
+        data.values.forEach((value) => {
+            if (value.details.length) {
+                let thisHTML = '<div>';
+                value.details.forEach((detail) => {
+                    const strDecodedValue = this.encodeHTMLEntities(detail.value);
+                    if (detail.type === 'email') {
+                        thisHTML += `<p>E-mail: <a href="mailto:${strDecodedValue}">${strDecodedValue}</a></p>`;
+                    } else {
+                        thisHTML += `<p>${this.encodeHTMLEntities(detail.definition)}: ${strDecodedValue}</p>`;
+                    }
+                });
+                thisHTML += '</div>';
+                strHTML += (
+                    `<div class="position-relative">
+            <button class="btn btn-small btn-inverted btn-info trigger" aria-expanded="false" type="button">
+              ${this.encodeHTMLEntities(value.text)}
+              <span class="invisible">contact details</span>
+            </button>
+            <div class="person contact-details expandable popover card card--secundary">
+              ${thisHTML}
+            </div>
+          </div>`
+                );
+            }
+        });
+
+        return strHTML;
+    }
+
+    /**
+     * Render the file data type
+     * @param {object} data The data to render
+     * @returns {string} The rendered HTML string for the file data type
+     */
+    renderFile(data) {
+        let strHTML = '';
+
+        if (!data.values.length) {
+            return strHTML;
+        }
+
+        data.values.forEach((file) => {
+            strHTML += `<a href="/file/${file.id}">`;
+            if (file.mimetype.match('^image/')) {
+                strHTML += `<img class="autosize" src="/file/${file.id}"></img>`;
+            } else {
+                strHTML += `${this.encodeHTMLEntities(file.name)}<br>`;
+            }
+            strHTML += '</a>';
+        });
+
+        return strHTML;
+    }
+
+    /**
+     * Render the RAG (Red-Amber-Green) status
+     * @param {object} data The data to render
+     * @returns {string} The rendered HTML string for the RAG (Red-Amber-Green) status
+     */
+    renderRag(data) {
+        let strRagType = '';
+        const arrRagTypes = {
+            a_grey: 'undefined',
+            b_red: 'danger',
+            b_attention: 'attention',
+            c_amber: 'warning',
+            c_yellow: 'advisory',
+            d_green: 'success',
+            d_blue: 'complete',
+            e_purple: 'unexpected'
+        };
+
+        if (data.values.length) {
+            const value = data.values[0]; // There's always only one rag
+            strRagType = arrRagTypes[value] || 'blank';
+        } else {
+            strRagType = 'blank';
+        }
+
+        const text = $('#rag_' + strRagType + '_meaning').text();
+
+        return `<span class="rag rag--${strRagType}" title="${text}" aria-labelledby="rag_${strRagType}_meaning"><span>✗</span></span>`;
+    }
+
+    /**
+     * Render curval data type
+     * @param {object} data The data to render
+     * @returns {string} The rendered HTML string for the curval data type
+     */
+    renderCurCommon(data) {
+        let strHTML = '';
+
+        if (data.values.length === 0) {
+            return strHTML;
+        }
+
+        strHTML = this.renderCurCommonTable(data);
+        return this.renderMoreLess(strHTML, data.name);
+    }
+
+    /**
+     * Render a curval table
+     * @param {object} data The data to render
+     * @returns {string} The rendered HTML string for the curval table
+     */
+    renderCurCommonTable(data) {
+        let strHTML = '';
+
+        if (data.values.length === 0) {
+            return strHTML;
+        }
+        if (data.values[0].fields.length === 0) {
+            // No columns visible to user
+            return strHTML;
+        }
+
+        strHTML += '<table class="table-curcommon">';
+
+        data.values.forEach((row) => {
+            strHTML += `<tr role="button" tabindex="0" class="link record-popup" data-record-id="${row.record_id}"`;
+            if (row.version_id) {
+                strHTML += `data-version-id="${row.version_id}"`;
+            }
+            strHTML += '>';
+            if (row.status) {
+                strHTML += `<td><em>${row.status}:</em></td>`;
+            }
+
+            row.fields.forEach((field) => {
+                strHTML += `<td class="${field.type}">${this.renderDataType(field)}</td>`;
+            });
+            strHTML += '</tr>';
+        });
+
+        strHTML += '</table>';
+
+        if (data.limit_rows && data.values.length >= data.limit_rows) {
+            strHTML +=
+                `<p><em>(showing maximum ${data.limit_rows} rows.
+          <a href="/${data.parent_layout_identifier}/data?curval_record_id=${data.curval_record_id}&curval_layout_id=${data.column_id}">view all</a>)</em>
+        </p>`;
+        }
+
+        return strHTML;
+    }
+
+    /**
      * Render the data type based on its type
      * @param {object} data The data to render
      * @returns {string} The rendered HTML string for the data type
      */
     renderDataType(data) {
-        DataRenderer.create(data).render();
+        switch (data.type) {
+            case 'id':
+                return this.renderId(data);
+            case 'person':
+            case 'createdby':
+                return this.renderPerson(data);
+            case 'curval':
+            case 'autocur':
+            case 'filval':
+                return this.renderCurCommon(data);
+            case 'file':
+                return this.renderFile(data);
+            case 'rag':
+                return this.renderRag(data);
+            default:
+                return this.renderDefault(data);
+        }
     }
 
     /**
@@ -677,6 +957,7 @@ class DataTableComponent extends Component {
 
     /**
      * Bind click handlers after the DataTable has been drawn
+     * @import { Config } from 'datatables.net-bs4';
      * @param {Config} conf The configuration object for the DataTable
      */
     bindClickHandlersAfterDraw(conf) {

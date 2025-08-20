@@ -172,12 +172,13 @@ class FilterComponent extends Component {
             };
 
             // This is required to ensure that the correct query is sent each time
-            const buildQuery = () => { return { q: $ruleInputText.val(), oi: filterConfig.instanceId }; };
+            const buildQuery = () => {return {q:$ruleInputText.val(), oi:filterConfig.instanceId, csrf_token: $('body').data('csrf')};};
 
             const builder = new TypeaheadBuilder();
             builder
                 .withInput($ruleInputText)
                 .withAjaxSource(self.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
+                .withMethod('POST')
                 .withDataBuilder(buildQuery)
                 .withDefaultMapper()
                 .withName('rule')
@@ -279,7 +280,7 @@ class FilterComponent extends Component {
     getRecords = (layoutId, urlSuffix, instanceId, query) => {
         return (
             $.ajax({
-                type: 'GET',
+                type: 'POST',
                 url: this.getURL(layoutId, urlSuffix),
                 data: { q: query, oi: instanceId },
                 dataType: 'json',
