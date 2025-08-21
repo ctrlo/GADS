@@ -287,11 +287,7 @@ class SelectWidgetComponent extends Component {
         }
     }
 
-    /**
-     * Connects the multi-select items to their associated checkboxes.
-     * @returns {Function} A function that connects the multi-select items.
-     */
-    connectMulti() {
+  connectMulti() {
         const self = this;
         return function () {
             const $item = $(this);
@@ -518,34 +514,35 @@ class SelectWidgetComponent extends Component {
      * @param {boolean} typeahead Whether the update is for typeahead functionality.
      */
     updateJson(url, typeahead) {
-        //Some odd scoping issues here - but it works
-        this.loadCounter++;
-        const self = this;
-        const myLoad = this.loadCounter; // ID of this process
-        this.$available.find('.spinner').removeAttr('hidden');
-        const currentValues = this.$available
-            .find('input:checked')
-            .map(function () {
-                return parseInt($(this).val());
-            })
-            .get();
+    const formData = {"csrf_token": $('body').data('csrf')};
+    this.loadCounter++
+    const self = this;
+    const myLoad = this.loadCounter // ID of this process
+    this.$available.find(".spinner").removeAttr("hidden")
+    const currentValues = this.$available
+      .find("input:checked")
+      .map(function() {
+        return parseInt($(this).val());
+      })
+      .get()
 
-        // Remove existing items if needed, now that we have found out which ones are selected
-        if (!typeahead) {
-            this.$available.find('.answer').remove();
+    // Remove existing items if needed, now that we have found out which ones are selected
+    if (!typeahead) {
+      this.$available.find(".answer").remove()
+    }
+
+    const field = this.$selectWidget.data("field")
+    // If we cancel this particular loop, then we don't want to remove the
+    // spinner if another one has since started running
+    let hideSpinner = true
+    $.ajax(url, { method: "POST", data: formData}).done((data)=>{
+      data = fromJson(data)
+      if (data.error === 0) {
+        if (myLoad != this.loadCounter) { // A new one has started running
+          hideSpinner = false // Don't remove the spinner on completion
+          return
         }
-
-        const field = this.$selectWidget.data('field');
-        // If we cancel this particular loop, then we don't want to remove the
-        // spinner if another one has since started running
-        let hideSpinner = true;
-        $.getJSON(url, (data) => {
-            if (data.error === 0) {
-                if (myLoad != this.loadCounter) { // A new one has started running
-                    hideSpinner = false; // Don't remove the spinner on completion
-                    return;
-                }
-
+        
                 if (typeahead) {
                     // Need to keep currently selected item
                     this.$currentItems.filter(':hidden').remove();

@@ -16,6 +16,7 @@ export class TypeaheadBuilder {
     private data: any;
     private mapper: MapperFunction = (data: any) => { return data.map(d => { return { name: d.name, id: d.id }; }); };
     private dataBuilder: (...params: any[]) => any;
+    private method: 'GET' | 'POST' = 'GET';
 
     /**
      * Constructor for TypeaheadBuilder class
@@ -23,6 +24,19 @@ export class TypeaheadBuilder {
     constructor() {
         this.appendQuery = false;
         this.data = undefined;
+    }
+
+    /**
+     * Set the HTTP method to use for the ajax request
+     * @param method - The HTTP method to use for the ajax request, defaults to 'GET'
+     * @returns The builder being used
+     */
+    withMethod(method: 'GET'|'POST'='GET') {
+        if(method !== 'GET' && method !== 'POST') {
+            throw new Error("Method must be either 'GET' or 'POST'");
+        }
+        this.method = method;
+        return this;
     }
 
     /**
@@ -121,12 +135,12 @@ export class TypeaheadBuilder {
      * @returns {Typeahead} The built Typeahead class
      * @throws {Error} If input, callback, name, or ajax source is not set
      */
-    build(): Typeahead {
-        if (!this.$input) throw new Error('Input not set');
-        if (!this.callback) throw new Error('Callback not set');
-        if (!this.name) throw new Error('Name not set');
-        if (!this.ajaxSource) throw new Error('Ajax source not set');
-        const options = new TypeaheadSourceOptions(this.name, this.ajaxSource, this.mapper, this.appendQuery, this.data, this.dataBuilder);
+    build() {
+        if (!this.$input) throw new Error("Input not set");
+        if (!this.callback) throw new Error("Callback not set");
+        if (!this.name) throw new Error("Name not set");
+        if (!this.ajaxSource) throw new Error("Ajax source not set");
+        const options = new TypeaheadSourceOptions(this.name, this.ajaxSource, this.mapper, this.appendQuery, this.data, this.dataBuilder, this.method);
         return new Typeahead(this.$input, this.callback, options);
     }
 }
