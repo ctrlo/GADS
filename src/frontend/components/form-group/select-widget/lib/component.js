@@ -199,38 +199,38 @@ class SelectWidgetComponent extends Component {
         switch (key) {
             case 38: // UP
             case 40: // DOWN
-                {
-                    const items = this.$available.find('.answer:not([hidden]) input');
-                    let nextItem;
+            {
+                const items = this.$available.find('.answer:not([hidden]) input');
+                let nextItem;
 
-                    e.preventDefault();
+                e.preventDefault();
 
-                    if (key === 38) {
-                        nextItem = items[items.length - 1];
-                    } else {
-                        nextItem = items[0];
-                    }
-
-                    if (nextItem) {
-                        $(nextItem).focus();
-                    }
-
-                    break;
+                if (key === 38) {
+                    nextItem = items[items.length - 1];
+                } else {
+                    nextItem = items[0];
                 }
+
+                if (nextItem) {
+                    $(nextItem).focus();
+                }
+
+                break;
+            }
             case 13: // ENTER
-                {
-                    e.preventDefault();
+            {
+                e.preventDefault();
 
-                    // Select the first (visible) item
-                    const firstItem = this.$available.find('.answer:not([hidden]) input').get(0);
-                    if (firstItem) {
-                        $(firstItem)
-                            .parent()
-                            .trigger('click');
-                    }
-
-                    break;
+                // Select the first (visible) item
+                const firstItem = this.$available.find('.answer:not([hidden]) input').get(0);
+                if (firstItem) {
+                    $(firstItem)
+                        .parent()
+                        .trigger('click');
                 }
+
+                break;
+            }
         }
     }
 
@@ -312,32 +312,32 @@ class SelectWidgetComponent extends Component {
                 switch (key) {
                     case 38: // UP
                     case 40: // DOWN
-                        {
-                            const currentIndex = self.$answers.index($associated.closest('.answer'));
-                            let nextItem;
+                    {
+                        const currentIndex = self.$answers.index($associated.closest('.answer'));
+                        let nextItem;
 
-                            e.preventDefault();
+                        e.preventDefault();
 
-                            if (key === 38) {
-                                nextItem = self.$answers[currentIndex - 1];
-                            } else {
-                                nextItem = self.$answers[currentIndex + 1];
-                            }
-
-                            if (nextItem) {
-                                $(nextItem)
-                                    .find('input')
-                                    .focus();
-                            }
-
-                            break;
+                        if (key === 38) {
+                            nextItem = self.$answers[currentIndex - 1];
+                        } else {
+                            nextItem = self.$answers[currentIndex + 1];
                         }
+
+                        if (nextItem) {
+                            $(nextItem)
+                                .find('input')
+                                .focus();
+                        }
+
+                        break;
+                    }
                     case 13:
-                        {
-                            e.preventDefault();
-                            $(this).trigger('click');
-                            break;
-                        }
+                    {
+                        e.preventDefault();
+                        $(this).trigger('click');
+                        break;
+                    }
                 }
             });
         };
@@ -530,10 +530,10 @@ class SelectWidgetComponent extends Component {
 
         // Remove existing items if needed, now that we have found out which ones are selected
         if (!typeahead) {
-            this.$available.find(".answer").remove()
+            this.$available.find('.answer').remove();
         }
 
-        const field = this.$selectWidget.data("field")
+        const field = this.$selectWidget.data('field');
         // If we cancel this particular loop, then we don't want to remove the
         // spinner if another one has since started running
         let hideSpinner = true;
