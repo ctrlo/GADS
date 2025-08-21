@@ -346,7 +346,7 @@ class DataTableComponent extends Component {
           </button>
         </div>
       </div>`
-        );
+    )
 
         /* Construct search box for filtering. If the filter has a typeahead and if
          * it uses an ID rather than text, then add a second (hidden) input field
