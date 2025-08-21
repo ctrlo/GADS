@@ -1,12 +1,12 @@
-import "../../testing/globals.definitions";
-import "components/button/lib/rename-button";
-import inputComponent from "../../components/form-group/input";
-import buttonComponent from "../../components/button";
-import multipleSelectComponent from "../../components/form-group/multiple-select";
-import selectWidgetComponent from "../../components/form-group/select-widget";
-import textAreaComponent from "../../components/form-group/textarea";
+import 'testing/globals.definitions';
+import 'components/button/lib/rename-button';
+import inputComponent from '../../components/form-group/input';
+import buttonComponent from '../../components/button';
+import multipleSelectComponent from '../../components/form-group/multiple-select';
+import selectWidgetComponent from '../../components/form-group/select-widget';
+import textAreaComponent from '../../components/form-group/textarea';
 import { describe, it, expect } from '@jest/globals';
-import { setFieldValues } from "./set-field-values";
+import { setFieldValues } from './set-field-values';
 
 declare global {
     interface JQuery<TElement = HTMLElement> {
@@ -15,7 +15,7 @@ declare global {
     }
 }
 
-(($)=>{
+(($) => {
     $.fn.renameButton = jest.fn().mockReturnThis();
     $.fn.filedrag = jest.fn().mockReturnThis();
 })(jQuery);
@@ -564,7 +564,8 @@ describe('setFieldValue', () => {
         const dom = $(stringDom)[0];
         document.body.appendChild(dom);
         const field = $(dom);
-        expect(() => setFieldValues(field, 'test')).toThrowError('Attempt to set value for text without array');
+        // @ts-expect-error We are testing an error case here
+        expect(() => setFieldValues(field, 'test')).toThrow('Attempt to set value for text without array');
     });
 
     describe('String field', () => {
@@ -765,7 +766,7 @@ describe('setFieldValue', () => {
             expect(inputs.length).toBe(3);
         });
 
-        it('sets a date field using an object', ()=>{
+        it('sets a date field using an object', () => {
             const dom = $(dateField)[0];
             inputComponent(dom);
             buttonComponent(dom);
@@ -773,7 +774,7 @@ describe('setFieldValue', () => {
             selectWidgetComponent(dom);
             document.body.appendChild(dom);
             const field = $(dom);
-            const values = [{"year":2024,"month":11,"day":12,"hour":0,"minute":0,"second":0,"epoch":1731369600}];
+            const values = [{ 'year': 2024, 'month': 11, 'day': 12, 'hour': 0, 'minute': 0, 'second': 0, 'epoch': 1731369600 }];
             setFieldValues(field, values);
             const input = field.find<HTMLInputElement>('input');
             expect(input.val()).toBe(`${values[0].year}-${values[0].month}-${values[0].day}`);
@@ -828,7 +829,7 @@ describe('setFieldValue', () => {
             const inputs = field.find<HTMLInputElement>('input[type="checkbox"]');
             let i = 0;
             inputs.each((_, input) => {
-                expect(Number.parseInt($(input).val() ?? "")).toBe(values[i++].id);
+                expect(Number.parseInt($(input).val() ?? '')).toBe(values[i++].id);
             });
         });
 
@@ -839,7 +840,7 @@ describe('setFieldValue', () => {
             multipleSelectComponent(dom);
             selectWidgetComponent(dom);
             document.body.appendChild(dom);
-            const field = $("#fileDom");
+            const field = $('#fileDom');
             const values = [{ id: 1, filename: 'test' }, { id: 2, filename: 'test1' }];
             setFieldValues(field, values);
             const inputs = field.find('input[type="checkbox"]');
@@ -851,7 +852,7 @@ describe('setFieldValue', () => {
         });
     });
 
-    describe('Text area', ()=> {
+    describe('Text area', () => {
         it('Should set a text area field', () => {
             const dom = $(textAreaDom)[0];
             inputComponent(dom);

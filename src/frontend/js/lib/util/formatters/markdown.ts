@@ -1,11 +1,16 @@
-import { marked } from "marked";
+import { marked } from 'marked'; //16.x currently broken - using 15.x for now
 
 type MarkdownCode = string;
 
 type stringLike = { toString(): string };
 
-function MarkDown(strings: TemplateStringsArray, ...values:(stringLike| string|number|MarkdownCode)[]): MarkdownCode {
-    marked.use({breaks: true})
+/**
+ * Create a markdown string using template literals.
+ * @param { TemplateStringsArray } strings The template strings array containing the static parts of the markdown string.
+ * @param { (stringLike | string | number | MarkdownCode)[] } values The values to interpolate into the markdown string. These can be strings, numbers, or objects with a `toString` method.
+ * @returns {MarkdownCode} The formatted markdown string, processed by the marked library.
+ */
+function MarkDown(strings: TemplateStringsArray, ...values: (stringLike | string | number | MarkdownCode)[]): MarkdownCode {
     let str = '';
     for (let i = 0; i < strings.length; i++) {
         str += strings[i];
@@ -14,7 +19,7 @@ function MarkDown(strings: TemplateStringsArray, ...values:(stringLike| string|n
         }
     }
     str = str.replace(/\\n/g, '\n\n');
-    return marked(str).trim();
+    return marked(str, { async: false, breaks: true }).trim();
 }
 
-export {MarkdownCode, MarkDown};
+export { MarkDown };
