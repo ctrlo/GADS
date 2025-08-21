@@ -45,9 +45,9 @@ class SidebarComponent extends Component {
             this.expandSidebar();
         }
 
-        $(window).on('resize', () => { this.handleResize(); });
+        $(window).resize(() => { this.handleResize(); });
 
-        sidebarToggle.on('click', () => { this.handleClick(); });
+        sidebarToggle.click(() => { this.handleClick(); });
     }
 
     /**

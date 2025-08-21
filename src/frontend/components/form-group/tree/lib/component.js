@@ -54,7 +54,7 @@ class TreeComponent extends Component {
         }
 
         if (!this.isConfTree) {
-            this.$treeContainer.on('changed.jstree', (_e, data) => this.handleChange(data));
+            this.$treeContainer.on('changed.jstree', (e, data) => this.handleChange(e, data));
         }
 
         // The below fix is to prevent the tree from erroring when it is a multivalue and a value is deselected
@@ -75,7 +75,7 @@ class TreeComponent extends Component {
                     node = null;
                 } else {
                     node = data.node;
-                    this.handleSelect(data);
+                    this.handleSelect(e, data);
                 }
             });
             //Endfix
@@ -125,8 +125,9 @@ class TreeComponent extends Component {
      * Handle the selection of a node in the jstree.
      * @param {JQuery.TriggeredEvent} e The event triggered by the jstree.
      * @param {object} data The data object containing the node information.
+     * @todo This method can have the event parameter removed, as it is not used.
      */
-    handleSelect(data) {
+    handleSelect(e, data) {
         if (data.node.children.length == 0) {
             return;
         }
@@ -142,8 +143,9 @@ class TreeComponent extends Component {
      * Handle change to the jstree selection.
      * @param {JQuery.TriggeredEvent} e The event triggered by the jstree.
      * @param {object} data The data object containing the selected nodes.
+     * @todo This method can have the event parameter removed, as it is not used.
      */
-    handleChange(data) {
+    handleChange(e, data) {
     // remove all existing hidden value fields
         this.$treeContainer.nextAll('.selected-tree-value').remove();
         const selectedElms = this.$treeContainer.jstree('get_selected', true);
@@ -211,31 +213,37 @@ class TreeComponent extends Component {
 
     /**
      * Handle the deletion of a node from the jstree.
+     * @returns {boolean} Returns true if a node was deleted, false otherwise.
+     * @todo Why does this have a return value?
      */
     handleDelete() {
         const ref = this.$treeContainer.jstree(true);
         let sel = ref.get_selected();
 
         if (!sel.length) {
-            return;
+            return false;
         }
 
         ref.delete_node(sel);
+        return true;
     }
 
     /**
      * Handle the renaming of a node in the jstree.
+     * @returns {boolean} Returns true if a node was renamed, false otherwise.
+     * @todo Why does this have a return value?
      */
     handleRename() {
         const ref = this.$treeContainer.jstree(true);
         let sel = ref.get_selected();
 
         if (!sel.length) {
-            return;
+            return false;
         }
 
         sel = sel[0];
         ref.edit(sel);
+        return true;
     }
 }
 

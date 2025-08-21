@@ -29,11 +29,11 @@ class GraphComponent extends Component {
     /**
      * Initialize the graph component.
      */
-    async initGraph() {
+    initGraph() {
         $.jqplot.config.enablePlugins = true;
         const data = this.graphContainer.data();
         const jsonurl = this.getURL(data);
-        const plotData = await this.ajaxDataRenderer(jsonurl);
+        const plotData = this.ajaxDataRenderer(jsonurl);
         const options_in = {
             type: data.graphType,
             x_axis_name: data.xAxisName,
@@ -71,10 +71,20 @@ class GraphComponent extends Component {
      * Fetch graph data from the server using AJAX. This request is synchronous.
      * @param {string} url The URL to fetch data from.
      * @returns {object|null} The JSON data received from the server, or null if the request fails.
+     * @todo Would it not be better to use async/await here?
      */
-    async ajaxDataRenderer(url) {
-        const response = await fetch(url);
-        return await response.json();
+    ajaxDataRenderer(url) {
+        let ret = null;
+
+        $.ajax({
+            async: false,
+            url: url,
+            dataType: 'json',
+            success: function(data) {
+                ret = data;
+            }
+        });
+        return ret;
     }
 
     /**

@@ -62,7 +62,7 @@ export default class ApiClient {
      * @param {string} route The API route to fetch.
      * @returns {Promise<Response>} A promise that resolves to the response of the fetch request.
      */
-    GET(route: string): Promise<Response> { return this._fetch(route, 'GET'); }
+    GET(route: string): Promise<Response> { return this._fetch(route, 'GET', null); }
 
     /**
      * Perform a POST request to the API.
@@ -71,7 +71,7 @@ export default class ApiClient {
      * @param {T} body The body of the request
      * @returns {Promise<Response>} A promise that resolves to the response of the fetch request.
      */
-    POST<T extends object = object>(route: string, body: T): Promise<Response> { return this._fetch(route, 'POST', body); }
+    POST(route: string, body: any): Promise<Response> { return this._fetch(route, 'POST', body); }
 
     /**
      * Perform a PUT request to the API.
@@ -80,14 +80,14 @@ export default class ApiClient {
      * @param {T} body The body of the request
      * @returns {Promise<Response>} A promise that resolves to the response of the fetch request.
      */
-    PUT<T extends object = object>(route: string, body: T): Promise<Response> { return this._fetch(route, 'PUT', body); }
+    PUT(route: string, body: any): Promise<Response> { return this._fetch(route, 'PUT', body); }
 
     /**
      * Perform a DELETE request to the API.
      * @param {string} route The API route to fetch.
      * @returns {Promise<Response>} A promise that resolves to the response of the fetch request.
      */
-    DELETE(route: string): Promise<Response> { return this._fetch(route, 'DELETE'); }
+    DELETE(route: string): Promise<Response> { return this._fetch(route, 'DELETE', null); }
 
     /**
      * Save the layout of a dashboard.

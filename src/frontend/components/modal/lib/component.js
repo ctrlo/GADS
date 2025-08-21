@@ -161,7 +161,7 @@ class ModalComponent extends Component {
         if (arrFrameNumbers) {
             $(arrFrameNumbers).each((i, frameNr) => {
                 const frame = this.getFrameByNumber(frameNr);
-                if (frame) this.clearFields(frame);
+                if(frame) this.clearFields(frame);
             });
         } else {
             this.frames.each((i, frame) => {
@@ -234,8 +234,8 @@ class ModalComponent extends Component {
                 this.bindEventHandlers();
 
                 if (this.frame.requiredFields.length) {
-                    if (this.frame.buttons.next) this.setNextButtonState(false);
-                    if (this.frame.buttons.invisible) this.setInvisibleButtonState(false);
+                    if(this.frame.buttons.next) this.setNextButtonState(false);
+                    if(this.frame.buttons.invisible) this.setInvisibleButtonState(false);
                 }
 
                 if (clearFields) {
@@ -268,16 +268,17 @@ class ModalComponent extends Component {
 
     /**
      * Add event listeners to the buttons and required fields of the current frame
+     * @todo Fix deprecation
      */
     bindEventHandlers() {
-        this.frame.buttons.next.on('click', () => { modal.next(this.frame.object); });
-        this.frame.buttons.back.on('click', () => { modal.back(this.frame.object); });
-        this.frame.buttons.skip.on('click', () => { if (this.frame.skip) modal.skip(this.frame.skip); });
-        this.frame.buttons.addNext.on('click', () => { modal.add(this.frame.object); });
-        this.frame.buttons.save.on('click', () => { modal.save(); });
-        this.frame.requiredFields.on('keyup.modalEvent', this.handleKeyup.bind(this));
-        this.frame.requiredFields.on('keydown.modalEvent', this.handleKeydown.bind(this));
-        this.frame.requiredFields.on('blur.modalEvent', this.handleBlur.bind(this));
+        this.frame.buttons.next.click(() => { modal.next(this.frame.object); });
+        this.frame.buttons.back.click(() => { modal.back(this.frame.object); });
+        this.frame.buttons.skip.click(() => { if(this.frame.skip) modal.skip(this.frame.skip); });
+        this.frame.buttons.addNext.click(() => { modal.add(this.frame.object); });
+        this.frame.buttons.save.click(() => { modal.save(); });
+        this.frame.requiredFields.bind('keyup.modalEvent', (ev) => { this.handleKeyup(ev); });
+        this.frame.requiredFields.bind('keydown.modalEvent', () => { this.handleKeydown(); });
+        this.frame.requiredFields.bind('blur.modalEvent', (ev) => { this.handleBlur(ev); });
     }
 
     /**
@@ -319,9 +320,14 @@ class ModalComponent extends Component {
      * Check if a field is valid
      * @param {HTMLElement | JQuery<HTMLElement>} field The field to validate.
      * @returns {boolean} true if the field is valid, false otherwise.
+     * @todo This can be simplified by just inverting the if statement
      */
     isValidField(field) {
-        return ($(field).is(':invalid')) || ($(field).val() != '');
+        if (($(field).is(':invalid')) || ($(field).val() == '')) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     /**
@@ -379,8 +385,8 @@ class ModalComponent extends Component {
     setFrameState() {
         const alert = this.frame.object.find('.alert');
 
-        if (this.frame.buttons.next) this.setNextButtonState(this.frame.isValid);
-        if (this.frame.buttons.invisible) this.setInvisibleButtonState(this.frame.isValid);
+        if(this.frame.buttons.next) this.setNextButtonState(this.frame.isValid);
+        if(this.frame.buttons.invisible) this.setInvisibleButtonState(this.frame.isValid);
 
         if ((!this.frame.isValid) && (this.frame.error.length > 0)) {
             const errorIntro = '<p>There were problems with the following fields:</p>';
@@ -405,8 +411,8 @@ class ModalComponent extends Component {
      * @param {JQuery<HTMLElement>} frame The frame to unbind event handlers from.
      */
     unbindEventHandlers(frame) {
-        frame.find('.modal-footer .btn').off();
-        frame.find('input[required]').off('.modalEvent');
+        frame.find('.modal-footer .btn').unbind();
+        frame.find('input[required]').unbind('.modalEvent');
     }
 
     /**
@@ -585,7 +591,7 @@ class ModalComponent extends Component {
         }
 
         // Remove binded events and subscribers
-        this.el.off('hide.bs.modal hidden.bs.modal');
+        this.el.unbind('hide.bs.modal hidden.bs.modal');
         modal.unsubscribe(this);
     }
 }

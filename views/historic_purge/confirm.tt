@@ -19,7 +19,6 @@
 
     # prepare table config
     table_class            = 'table table-striped table-purge';
-    table_layout           = undef;
     table_language         = {
         emptyTable => "There are no records in this view.",
     };
