@@ -1173,6 +1173,7 @@ sub update_attributes
             next if defined $permission_map{$group};
             #FIXME: There is likely a much better way to do this
             my @groups1 = $schema->resultset('Group')->search({name => $group}, {order_by => 'me.name'})->first;
+            next if ! defined $groups1[0];
             push @groups, $groups1[0]->id if $groups1[0]->name eq $group;
         }
         if (@groups)
