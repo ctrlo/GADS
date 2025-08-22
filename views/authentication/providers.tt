@@ -1,0 +1,72 @@
+[%
+  # prepare table config
+  table_class    = 'table-striped table-hover';
+  table_dom      = '<"row row--header"<"col"f><"col-lg-auto dataTables_length_wrapper"l>><"row row--main"<"col-sm-12"tr>><"row row--footer"<"col-sm-12 col-lg-6"p><"col-sm-12 col-lg-6 dataTables_info_wrapper"i>>';
+  table_language = {
+    emptyTable => "There is no data available in this table",
+    lengthMenu => "Rows per page _MENU_",
+    paginate   => {
+      next     => "Next page",
+      previous => "Previous page"
+    },
+    search            => "<span class=\"sr-only\">Search in authentication providers:</span>",
+    searchPlaceholder => "Search through your providers"
+  }
+  table_ajax         = url.page _ "/api/providers?csrf-token=" _ csrf_token;
+  table_ajax_target  = url.page _ "/authentication_providers"; # will be appended with /{id} by JS
+  table_save_state   = 1;
+  table_unresponsive = 0;
+  table_caption      = "Table to show list of authentication providers";
+
+  table_columns = [{
+    name      = "ID"
+    orderable = 1
+  },{
+    name      = "Site ID"
+    orderable = 1
+  },{
+    name      = "Type"
+    orderable = 1
+  },{
+    name      = "Name"
+    orderable = 1
+  },{
+    name      = "enabled"
+    orderable = 1
+  },{
+    name      = "error_messages"
+    orderable = 1
+  }];
+
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title         = "Authentication Providers"
+    description   = "This is an overview of all the authentication providers within your Linkspace system."
+    aside_buttons = ! user.permission.useradmin ? [] : [{
+      type    = "modal_button"
+      modalId = "providerModal"
+      class   = "btn btn-add"
+      label   = "Add an authentication provider"
+    }];
+%]
+
+<div class="content-block__main">
+  <div class="row mb-4">
+    <div class="col">
+      <div class="list list--horizontal">
+        <ul class="list__items">
+          <li class="list__item">
+            <a href='[% url.page %]/authentication_providers/' class='link link--plain link--active'><span>Active providers</span></a>
+          </li>
+
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  [% INCLUDE tables/basic_table.tt; %]
+</div>
+
+[%-
+  INCLUDE wizard/provider_add.tt endpoint="/api/authentication_providers" modalId="providerModal";
+-%]
