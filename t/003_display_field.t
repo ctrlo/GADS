@@ -8,6 +8,8 @@ use Log::Report;
 use lib 't/lib';
 use Test::GADS::DataSheet;
 
+use Data::Dump qw(pp);
+
 # Hide "mistake" messages emitted during tests
 dispatcher PERL => 'default', accept => 'ERROR-';
 
@@ -589,9 +591,26 @@ foreach my $field (@fields)
 
     is($record->fields->{$integer1->id}->as_string, '250', 'Field depending on non-visible field - reverse');
 
+    # Ensure that dependent fields that the user does not have write access to do not clear on update of their parent field.
+    # Drop permissions from integer1 and update display condition.
+    $integer1->display_fields(_filter(col_id => $string1->id, regex => 'ABC')); # integer1 not shown
+    $integer1->set_permissions({$sheet->group->id => []});
+    $integer1->write;
+    $layout->clear;
+    $record->clear;
+    $record->find_current_id(3);
+    # Modify unrelated field that the user does have access to
+    my $date1 = $columns->{date1};
+    $record->fields->{$date1->id}->set_value('2018-06-01');
+    try { $record->write(no_alerts => 1); };
+    like($@, qr/error: You do not have permission to edit field integer1/, "Write fails with dependent field not shown and no write access");
+    $record->clear;
+
     # Reset permissions for other tests
     $string1->set_permissions({$sheet->group->id => $sheet->default_permissions});
     $string1->write;
+    $integer1->set_permissions({$sheet->group->id => $sheet->default_permissions});
+    $integer1->write;
     $layout->clear;
 }
 
