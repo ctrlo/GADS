@@ -8,8 +8,6 @@ use Log::Report;
 use lib 't/lib';
 use Test::GADS::DataSheet;
 
-use Data::Dump qw(pp);
-
 # Hide "mistake" messages emitted during tests
 dispatcher PERL => 'default', accept => 'ERROR-';
 
@@ -591,7 +589,8 @@ foreach my $field (@fields)
 
     is($record->fields->{$integer1->id}->as_string, '250', 'Field depending on non-visible field - reverse');
 
-    # Ensure that dependent fields that the user does not have write access to do not clear on update of their parent field.
+    # Ensure that dependent fields that the user does not have write access to do not clear on update
+    # of their parent field.
     # Drop permissions from integer1 and update display condition.
     $integer1->display_fields(_filter(col_id => $string1->id, regex => 'ABC')); # integer1 not shown
     $integer1->set_permissions({$sheet->group->id => []});
