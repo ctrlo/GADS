@@ -30,3 +30,34 @@ li.li-error {
         margin-right: 0.5em;
     }
 }
+
+// I don't know why this button wasn't hidden before, but it is now
+#restoreValuesModal .btn-js-delete-values {
+    visibility: hidden;
+    display: none;
+}
+
+.alert-restore {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    
+    p {
+        flex-grow: 1;
+    }
+
+    // TODO: This will be moved over to BS5 on merge - remember, syntax is _completely_ different
+    .btn-alert-restore {
+        @include button-variant($white, $brand-secundary, $white, $brand-primary, $brand-secundary, $brand-secundary);
+        color: $brand-secundary;
+
+        &:hover {
+            color: $brand-primary;
+        }
+    }
+
+    .btn-alert-restore-cancel {
+        @extend .btn-danger;
+    }
+}
