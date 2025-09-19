@@ -2,12 +2,13 @@
  * Set up event listeners for query builder rule filters and operators to initialise the bootstrap-select component.
  * @param {JQuery} el The jQuery element to attach the event listeners to.
  */
-export const refreshSelects = (el) => {
+export const refreshSelects = (el)  => {
     const ruleFilterSelects = [];
     const operatorSelects = [];
 
     el.on('afterCreateRuleFilters.queryBuilder', (e, rule) => {
         const ruleFilterSelect = $(rule.$el.find(`select[name=${rule.id}_filter]`));
+        if(ruleFilterSelect.hasClass('form-select')) ruleFilterSelect.removeClass('form-select');
         if (!ruleFilterSelects.includes(ruleFilterSelect[0])) ruleFilterSelects.push(ruleFilterSelect[0]);
         if (!ruleFilterSelect || !ruleFilterSelect[0]) {
             console.error('No select found');

@@ -1,12 +1,12 @@
 <form class="login__form" method="post" autocomplete="off">
   [% PROCESS snippets/message_center.tt %]
-  
+
   <div class="login__head">
     <h1 class="login__title">
       Please sign in
     </h2>
   </div>
-  
+
   <div class="login__fields">
     <fieldset class="fieldset">
       <legend class="fieldset__legend fieldset__legend--hidden">
@@ -14,7 +14,7 @@
       </legend>
       [%
         INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
-        
+
         INCLUDE fields/input.tt
           id = "username"
           name = "username"
@@ -31,7 +31,7 @@
             checked => username
             tabindex => 2
           };
-  
+
         INCLUDE fields/password.tt
           id = "password"
           name = "password"
@@ -48,9 +48,9 @@
       %]
     </fieldset>
   </div>
-  
+
   <div class="login__btns">
-    <button tabindex="4" type="submit" name="signin" value="1" class="btn btn-default">
+    <button tabindex="4" type="submit" name="signin" value="1" class="btn btn-primary">
       <span class="btn__title">Sign in</span>
     </button>
   </div>

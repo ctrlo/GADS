@@ -2,7 +2,7 @@
   <div class="modal-dialog modal-dialog-centered " role="document">
     <div class="modal-content">
       [% INCLUDE wizard/sub/modal_header.tt label="View timeline as PDF"; %]
-      
+
       <form method="post" class="" action="[% url.page %]/print" target="_blank">
         [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
         <div class="modal-frame">
@@ -18,7 +18,7 @@
                     filter = "html"
                     is_disabled = default_fit_to_page_width ? 1 : 0
                     type = "number";
-                  
+
                 INCLUDE fields/sub/checkbox.tt
                     id          = "fit_to_page_width"
                     name        = "fit_to_page_width"
@@ -29,7 +29,7 @@
                 %]
               </div>
             </div>
-            
+
           [%
             INCLUDE fields/hidden.tt
               id="html"
@@ -41,7 +41,7 @@
               ];
           %]
           </div>
-          
+
           [%
             INCLUDE wizard/sub/modal_footer.tt
               left_buttons = [{
@@ -51,7 +51,7 @@
               }]
               right_buttons = [{
                 type  = "submit"
-                class = "btn-default"
+                class = "btn-primary"
                 name  = "modal_pdf"
                 value = "submit"
                 label = "View"

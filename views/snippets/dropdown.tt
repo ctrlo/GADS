@@ -3,14 +3,14 @@
     class="dropdown-toggle dropdown__toggle"
     type="button"
     id="[% id %]"
-    data-toggle="dropdown"
+    data-bs-toggle="dropdown"
     aria-haspopup="listbox"
     aria-expanded="false"
     aria-labelledby="=[% id %]"
   >
     <span>[% INCLUDE fields/sub/filter.tt value=label; %]</span>
   </button>
-  
+
   <div class="dropdown-menu dropdown__menu[% IF menu_right %] dropdown-menu-right[% END %]">
     [% FOREACH group IN groups %]
     <div class="dropdown__group">
@@ -27,8 +27,8 @@
              id="[% item.id %]"
              class="link link--plain [% item.class %]"
              tabindex="-1"
-             data-toggle="modal"
-             data-target="#[% item.target %]"
+             data-bs-toggle="modal"
+             data-bs-target="#[% item.target %]"
           >
             [% INCLUDE fields/sub/filter.tt value=item.label; %]
           </a>

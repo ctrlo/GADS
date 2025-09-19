@@ -2,33 +2,33 @@
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
       [% INCLUDE wizard/sub/modal_header.tt label="Send an email"; %]
-      
+
       <form method="post">
         <div class="modal-frame">
           <div class="modal-body">
             [%-
               INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
-            
+
               select_items  = [];
-            
+
               FOREACH group IN groups;
                 select_items.push({label_plain=group.name, label_html=group.name, value=group.id});
               END;
-            
+
               INCLUDE fields/select_multiple.tt
                 id          = "group"
                 name        = "group_ids"
                 items       = select_items
                 filter      = "html"
                 placeholder = "All users";
-            
+
               INCLUDE fields/input.tt
                 id          = "email_subject"
                 name        = "email_subject"
                 label       = "Subject"
                 placeholder = "Subject"
                 type        = "text";
-              
+
               INCLUDE fields/textarea.tt
                 id    = "email_text"
                 name  = "email_text"
@@ -36,7 +36,7 @@
                 rows  = 10;
             -%]
           </div>
-          
+
           [%-
             INCLUDE wizard/sub/modal_footer.tt
               left_buttons = [{
@@ -46,7 +46,7 @@
               }]
               right_buttons = [{
                 type  = "submit"
-                class = "btn-default"
+                class = "btn-primary"
                 name  = "sendemail"
                 value = "submit"
                 label = "Send e-mail"

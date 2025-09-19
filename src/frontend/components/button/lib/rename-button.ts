@@ -84,7 +84,7 @@ class RenameButton {
                             type: 'button',
                             textContent: 'Rename',
                             ariaHidden: 'true',
-                            classList: ['btn', 'btn-small', 'btn-default', 'hidden']
+                            classList: ['btn', 'btn-sm', 'btn-primary', 'hidden']
                         }).on('click', (ev: JQuery.ClickEvent) => {
                             ev.preventDefault();
                             this.renameClick(typeof (id) === 'string' ? parseInt(id) : id, ev);
@@ -94,7 +94,7 @@ class RenameButton {
                             type: 'button',
                             textContent: 'Cancel',
                             ariaHidden: 'true',
-                            classList: ['btn', 'btn-small', 'btn-danger', 'hidden']
+                            classList: ['btn', 'btn-sm', 'btn-danger', 'hidden']
                         })
                     )
             );

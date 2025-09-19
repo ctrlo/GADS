@@ -44,7 +44,7 @@ class CalculatorComponent extends Component {
         '    <div class="form-group"><div class="radio-group radio-group--buttons" data-toggle="buttons"></div></div>' +
         '    <div class="form-group"><div class="input"><input type="text" placeholder="Number" class="form-control"></input></div></div>' +
         '    <div class="form-group">' +
-        '        <input type="submit" value="Calculate" class="btn btn-default"></input>' +
+        '        <input type="submit" value="Calculate" class="btn btn-primary"></input>' +
         '    </div>' +
         '</form>'
             );
