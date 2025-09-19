@@ -1,50 +1,11 @@
-$btn-border-radius: 23px;
-
-.btn {
-  width: 100%;
-  padding: 10px 30px;
-  transition: 0.2s all ease;
-  border-radius: $btn-border-radius;
-  line-height: $headings-line-height;
-  vertical-align: unset;
-
-  &:not(:last-of-type) {
-    margin-bottom: $padding-base-vertical;
-  }
-}
-
-.btn-default {
-  @include btn-default;
-}
-
-.btn-small {
-  padding: 7px 20px;
-  font-size: $font-size-sm;
-}
-
-.btn-primary {
-  @include btn-default;
-
-  background-color: $brand-primary;
-
-  &:hover,
-  &:focus,
-  &:not(:disabled):not(.disabled):active,
-  &:not(:disabled):not(.disabled):active:focus,
-  &:not(:disabled):not(.disabled).active,
-  &:not(:disabled):not(.disabled).active:focus {
-    border: 1px solid $transparent;
-    background-color: rgba($brand-primary, 0.8);
-  }
-
-  &.disabled {
-    @include btn-disabled;
-  }
+.btn-primary,
+.btn-sm {
+    &.btn-inverted {
+        @include button-variant($white, $primary, $primary);
+    }
 }
 
 .btn-add {
-  @include btn-default;
-
   &::before {
     @extend %icon-font;
 
@@ -53,28 +14,12 @@ $btn-border-radius: 23px;
     color: $white;
   }
 
-  &.btn-inverted {
-    &::before {
-      color: $brand-secundary;
-    }
-
-    &:hover,
-    &:active,
-    &:focus,
-    &:active:focus {
-      border: 1px solid $btn-default-hover-color;
-      background-color: $white;
-
-      &::before {
-        color: $btn-default-hover-color;
-      }
-    }
+  &.btn-inverted::before {
+    color: $primary;
   }
 }
 
 .btn-info {
-  @include btn-default;
-
   &::after {
     @extend %icon-font;
 
@@ -83,38 +28,13 @@ $btn-border-radius: 23px;
     color: $white;
   }
 
-  &.btn-inverted {
-    &::after {
-      color: $brand-secundary;
-    }
-
-    &:hover,
-    &:active,
-    &:focus,
-    &:active:focus {
-      border: 1px solid $btn-default-hover-color;
-      background-color: $white;
-
-      &::after {
-        color: $btn-default-hover-color;
-      }
-    }
+  &.btn-inverted::after {
+    color: $primary;
   }
 }
 
 .btn-cancel {
-  border: 1px solid $gray-extra-dark;
-  background-color: $white;
-  color: $gray-extra-dark;
-
-  &:hover,
-  &:active,
-  &:focus,
-  &:active:focus {
-    border-color: $btn-cancel-hover-color;
-    // background-color: rgba($gray-dark, 0.2);
-    color: $btn-cancel-hover-color;
-  }
+    @include button-variant($white, $gray-extra-dark, $gray-extra-dark, $white, $gray-extra-dark, $gray-extra-dark, $white, $gray-extra-dark, $gray-extra-dark);
 }
 
 .btn-drag-widget {
@@ -214,18 +134,14 @@ $btn-border-radius: 23px;
 }
 
 .btn-disabled {
-  background-color: $gray;
-  color: $white;
+  @include button-variant($white, $gray, $gray, $hover-color: $white);
 
   &:hover {
-    color: $white;
     cursor: not-allowed;
   }
 }
 
 .btn-remove {
-  @include btn-default;
-
   &::before {
     @extend %icon-font;
 
@@ -278,7 +194,6 @@ $btn-border-radius: 23px;
   }
 }
 
-/* stylelint-disable no-descending-specificity */
 .btn-round {
   width: auto;
   padding: 10px 12px;
@@ -308,11 +223,6 @@ $btn-border-radius: 23px;
   &.btn-add::before {
     margin-right: 0;
   }
-}
-
-/* stylelint-enable no-descending-specificity */
-.btn-inverted {
-  @include btn-inverted;
 }
 
 .btn-back,
@@ -358,7 +268,6 @@ $btn-border-radius: 23px;
   }
 }
 
-/* stylelint-disable no-descending-specificity */
 .btn-title-back {
   @include font-style-h2;
 
@@ -383,7 +292,6 @@ $btn-border-radius: 23px;
   }
 }
 
-/* stylelint-enable no-descending-specificity */
 .btn-link {
   width: max-content;
   padding: 0;
@@ -417,7 +325,6 @@ $btn-border-radius: 23px;
   }
 }
 
-/* stylelint-disable no-descending-specificity */
 .btn-import {
   &::before {
     content: "\E81f";
@@ -482,6 +389,7 @@ $btn-border-radius: 23px;
   }
 }
 
+/* This may not be required */
 .btn-toggle,
 .btn-toggle-off {
   &::before {
@@ -500,15 +408,7 @@ $btn-border-radius: 23px;
     content: "\F204";
   }
 }
-
-.dt-ordering-asc .btn-sort::before {
-  transform: rotate(-90deg);
-}
-
-.dt-ordering-desc .btn-sort::before {
-  transform: rotate(90deg);
-}
-
+/* end */
 .btn-add-link {
   padding: 0;
 
@@ -529,7 +429,6 @@ $btn-border-radius: 23px;
     word-break: break-all;
   }
 
-  /* stylelint-enable no-descending-specificity */
   &::after {
     @extend %icon-font;
 

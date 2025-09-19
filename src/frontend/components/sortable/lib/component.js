@@ -20,7 +20,7 @@ class SortableComponent extends Component {
         super(element);
         this.el = $(this.element);
         this.sortableList = this.el.find('.sortable__list');
-        this.addBtn = this.el.find('.btn-default');
+        this.addBtn = this.el.find('.btn-primary');
         this.delBtn = this.el.find(`.${BTN_ICON_CLOSE}`);
         this.dragHandle = this.el.find(`.${SORTABLE_HANDLE}`);
 

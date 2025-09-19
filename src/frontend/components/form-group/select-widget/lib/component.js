@@ -461,7 +461,7 @@ class SelectWidgetComponent extends Component {
         // Add space at beginning to keep format consistent with that in template
         const detailsButton =
             ' <div class="details">' +
-            '<button type="button" class="btn btn-small btn-default btn-js-more-info" data-record-id="' + value_id +
+            '<button type="button" class="btn btn-sm btn-primary btn-js-more-info" data-record-id="' + value_id +
             '" aria-describedby="lbl-' + valueId +
             '" data-target="' + this.el.data('details-modal') + // TODO: get id of modal
             '" data-toggle="modal">' +

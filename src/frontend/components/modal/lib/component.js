@@ -423,11 +423,11 @@ class ModalComponent extends Component {
         if (valid) {
             this.frame.buttons.next.removeAttr('disabled');
             this.frame.buttons.next.removeClass('btn-disabled');
-            this.frame.buttons.next.addClass('btn-default');
+            this.frame.buttons.next.addClass('btn-primary');
         } else {
             this.frame.buttons.next.attr('disabled', 'disabled');
             this.frame.buttons.next.addClass('btn-disabled');
-            this.frame.buttons.next.removeClass('btn-default');
+            this.frame.buttons.next.removeClass('btn-primary');
         }
     }
 

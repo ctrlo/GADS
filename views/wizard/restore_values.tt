@@ -8,7 +8,7 @@
           <div class="modal-body modal-autosave">
             <p>[% description | html %]</p>
           </div>
-          
+
           [%-
             INCLUDE wizard/sub/modal_footer.tt
               left_buttons = [{
@@ -24,7 +24,7 @@
                 label = "Delete"
               },{
                 type  = "submit"
-                class = "btn-default btn-js-restore-values"
+                class = "btn-primary btn-js-restore-values"
                 name  = "restore"
                 value = "restore"
                 label = "Restore"

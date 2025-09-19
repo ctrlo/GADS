@@ -12,7 +12,7 @@ export default function Footer({ addWidget, widgetTypes, currentDashboard, readO
         <div className='ld-footer-container'>
             {noDownload ||
                 <Dropdown>
-                    <Dropdown.Toggle variant="default" id="dropdown-download">
+                    <Dropdown.Toggle className='btn-primary' variant="default" id="dropdown-download">
                         Download
                     </Dropdown.Toggle>
 
@@ -23,7 +23,7 @@ export default function Footer({ addWidget, widgetTypes, currentDashboard, readO
 
             {readOnly ||
                 <Dropdown>
-                    <Dropdown.Toggle variant="default" id="dropdown-add-widget">
+                    <Dropdown.Toggle className='btn-primary' variant="default" id="dropdown-add-widget">
                         Add Widget
                     </Dropdown.Toggle>
 

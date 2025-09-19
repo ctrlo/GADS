@@ -7,7 +7,7 @@
       aside_buttons = [{
        type   = "link"
        target = url.page _ "/" _ layout.identifier _ "/graph/0"
-       class  = "btn btn-add"
+       class  = "btn btn-add btn-primary"
        label  = "Add a graph"
      }];
   %]
@@ -136,10 +136,10 @@
             class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
             buttons = [{
               type  = "button",
-              class = "btn btn-default",
+              class = "btn btn-primary",
               name  = "graphsubmit",
               value = "submit",
-              class = "btn btn-default",
+              class = "btn btn-primary",
               label = "Save"
             }]
           }];

@@ -1,10 +1,10 @@
 
 [% BLOCK _permissions_for_group %]
     [% MACRO permission_input(name, label, group, nested) BLOCK %]
-        <div class="form-group">
-            <input data-permission-class="[% name.replace('_','-') %]" type="checkbox" id="permission_[% name %]_[% group.id %]" 
+        <div class="form-group mb-4">
+            <input data-permission-class="[% name.replace('_','-') %]" type="checkbox" id="permission_[% name %]_[% group.id %]"
                 name="permission_[% name %]_[% group.id %]" [% column.group_has(group.id, name) ? 'checked' : '' %]>
-            <label for="permission_[% name %]_[% group.id %]">[% label | html %]</label>
+            <label class="form-label" for="permission_[% name %]_[% group.id %]">[% label | html %]</label>
             [% nested %]
         </div>
     [% END %]
@@ -55,8 +55,8 @@
     [% IF groups.all.size %]
         <div class="permission-rule">
             <div class="row">
-                <div class="form-group col-md-3">
-                    <label for="select-permission-group">
+                <div class="form-group mb-4 col-md-3">
+                    <label class="form-label" for="select-permission-group">
                         Group:
                     </label>
                     <select id="select-permission-group" class="form-control">
@@ -71,8 +71,8 @@
 
             [% PROCESS _permissions_for_group group = undef %]
 
-            <button id="add-permission-rule" type="button" class="btn btn-default add-permission">Add rule</button>
-            <button id="cancel-permission-rule" type="button" class="btn btn-default cancel-permission">Cancel</button>
+            <button id="add-permission-rule" type="button" class="btn btn-primary add-permission">Add rule</button>
+            <button id="cancel-permission-rule" type="button" class="btn btn-primary cancel-permission">Cancel</button>
         </div>
     </li>
 
@@ -107,14 +107,14 @@
                     [% group_id = group.id %]
                     [% col_permissions = column.permissions.$group_id %]
                     [% NEXT UNLESS col_permissions %]
-                    
+
                     [% permission_classes = '' %]
-                    
+
                     [% FOREACH permission IN col_permissions %]
                         [% short = permission.short %]
                         [% permission_classes = permission_classes _ ' ' _ 'permission-' _ short.replace('_','-') %]
                     [% END %]
- 
+
                 <li data-group-id="[% group_id %]" class="permission [% permission_classes %]">
                     <div class="summary">
                         <h4 class="group-name">[% group.name %]</h4>
@@ -123,7 +123,7 @@
                             [% short = permission.short %]
                             [% abbr = permission_mapping.$short %]
                             [% short_class = short.replace('_','-') %]
-                            <span tabindex="0" class="abbreviation abbreviation-[% short_class %]" 
+                            <span tabindex="0" class="abbreviation abbreviation-[% short_class %]"
                                 role="tooltip" aria-describedby="[% group_id %]_permission_[% short %]">
                                 [% abbr %]
                             </span>
@@ -145,7 +145,7 @@
 
 
     [% IF groups.all.size %]
-        <button id="configure-permissions" type="button" class="btn btn-default">Add permissions</button>
+        <button id="configure-permissions" type="button" class="btn btn-primary">Add permissions</button>
         <section id="permission-configuration" hidden>
             [% PROCESS _permission_configuration %]
         </section>

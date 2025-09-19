@@ -37,7 +37,7 @@
       }, {
         type       = "link"
         label      = file.name
-        link_class = "btn btn-download btn-small"
+        link_class = "btn btn-download btn-sm"
         link       = "/file/{file_id}"
       }]
     });
@@ -50,7 +50,7 @@
     aside_buttons = [{
       type    = "modal_button"
       modalId = "uploadFile"
-      class   = "btn btn-default"
+      class   = "btn btn-primary btn-upload"
       label   = "Upload a file"
     }];
 %]

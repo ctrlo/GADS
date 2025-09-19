@@ -1,5 +1,5 @@
 import 'jstree';
-import 'datatables.net-bs4';
+import 'datatables.net-bs5';
 import '@lol768/jquery-querybuilder-no-eval';
 
 declare global {

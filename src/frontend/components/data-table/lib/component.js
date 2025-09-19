@@ -2,10 +2,10 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 
 import { Component, initializeRegisteredComponents } from 'component';
-import 'datatables.net-bs4';
-import 'datatables.net-buttons-bs4';
-import 'datatables.net-responsive-bs4';
-import 'datatables.net-rowreorder-bs4';
+import 'datatables.net-bs5';
+import 'datatables.net-buttons-bs5';
+import 'datatables.net-responsive-bs5';
+import 'datatables.net-rowreorder-bs5';
 import './DataTablesPlugins';
 import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets';
 import { moreLess } from 'components/more-less/lib/more-less';
@@ -31,6 +31,11 @@ class DataTableComponent extends Component {
         this.base_url = this.el.data('href') ? this.el.data('href') : undefined;
         this.isFullScreen = false;
         this.initTable();
+        $(window).on('resize', () => {
+            if(this.el.DataTable().responsive) {
+                this.el.DataTable().responsive.recalc();
+            }
+        });
     }
 
     /**
@@ -328,11 +333,11 @@ class DataTableComponent extends Component {
           class='btn btn-search dropdown-toggle'
           id='search-toggle-${index}'
           type='button'
-          data-toggle='dropdown'
+          data-bs-toggle='dropdown'
           aria-expanded='false'
           data-boundary='viewport'
           data-reference='parent'
-          data-target="[data-ddl='ddl_${index}']"
+          data-bs-target="[data-ddl='ddl_${index}']"
           data-focus="[data-ddl='ddl_${index}']"
         >
           <span>Search in ${title}</span>
@@ -342,7 +347,7 @@ class DataTableComponent extends Component {
             <div class='input'>
             </div>
           </label>
-          <button type='button' class='btn btn-link btn-small data-table__clear hidden'>
+          <button type='button' class='btn btn-link btn-sm data-table__clear hidden'>
             <span>Clear filter</span>
           </button>
         </div>
@@ -591,15 +596,14 @@ class DataTableComponent extends Component {
                 });
                 thisHTML += '</div>';
                 strHTML += (
-                    `<div class="position-relative">
-            <button class="btn btn-small btn-inverted btn-info trigger" aria-expanded="false" type="button">
-              ${this.encodeHTMLEntities(value.text)}
-              <span class="invisible">contact details</span>
-            </button>
-            <div class="person contact-details expandable popover card card--secundary">
-              ${thisHTML}
-            </div>
-          </div>`
+                    `<div class="popover-container">
+                        <div class="popover-content" id="${data.id}-popover">
+                            ${thisHTML}
+                        </div>
+                        <button class="btn btn-primary btn-sm btn-inverted btn-info" type="button" aria-describedby="${data.id}-popover" data-bs-toggle="popover">
+                            ${this.encodeHTMLEntities(value.text)}
+                        </button>
+                    </div>`
                 );
             }
         });
@@ -789,7 +793,7 @@ class DataTableComponent extends Component {
 
     /**
      * Get the configuration object for the DataTable
-     * @import { Config } from 'datatables.net-bs4';
+     * @import { Config } from 'datatables.net-bs5';
      * @param {Parital<Config>} overrides Any values to override in the configuration
      * @returns {Config} The configuration object for the DataTable
      */
@@ -958,7 +962,7 @@ class DataTableComponent extends Component {
 
     /**
      * Bind click handlers after the DataTable has been drawn
-     * @import { Config } from 'datatables.net-bs4';
+     * @import { Config } from 'datatables.net-bs5';
      * @param {Config} conf The configuration object for the DataTable
      */
     bindClickHandlersAfterDraw(conf) {

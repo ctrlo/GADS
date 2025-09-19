@@ -217,7 +217,7 @@ class DocumentComponent {
                         <label for="file-${fileId}">Include File. Current file name:</label>
                         <a id="current-${fileId}" class="link link--plain"
                             href="/file/${fileId}">${fileName}</a>
-                        <button data-field-id="${fileId}" class="rename btn btn-plain btn-small btn-sm py-0"
+                        <button data-field-id="${fileId}" class="rename btn btn-plain btn-sm py-0"
                             title="Rename file" type="button"></button>
                     </div>
                 </div>

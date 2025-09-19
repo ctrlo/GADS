@@ -64,7 +64,7 @@
     back_button   = { url = url.page _ "/user_overview/" }
     aside_buttons = [{
       type  = "form"
-      class = "btn btn-default"
+      class = "btn btn-primary"
       name  = "submit"
       value = "submit"
       label = "Start export"
@@ -78,7 +78,7 @@
         [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
         <button
           type="submit"
-          class="btn btn-delete btn-small btn-icon-close"
+          class="btn btn-delete btn-sm btn-icon-close"
           name="clear"
           value="clear"
         >

@@ -5,8 +5,8 @@ describe('button tests', () => {
     it('should throw on absence of id', () => {
         const button = document.createElement('button');
         button.setAttribute('data-title', 'title');
-        button.setAttribute('data-target', 'target');
-        button.setAttribute('data-toggle', 'toggle');
+        button.setAttribute('data-bs-target', 'target');
+        button.setAttribute('data-bs-toggle', 'toggle');
         document.body.appendChild(button);
         const $button = $(button);
         createDeleteButton($button);
@@ -17,7 +17,7 @@ describe('button tests', () => {
         const button = document.createElement('button');
         button.setAttribute('data-title', 'title');
         button.setAttribute('data-id', 'id');
-        button.setAttribute('data-toggle', 'toggle');
+        button.setAttribute('data-bs-toggle', 'toggle');
         document.body.appendChild(button);
         const $button = $(button);
         createDeleteButton($button);
@@ -28,7 +28,7 @@ describe('button tests', () => {
         const button = document.createElement('button');
         button.setAttribute('data-title', 'title');
         button.setAttribute('data-id', 'id');
-        button.setAttribute('data-target', 'target');
+        button.setAttribute('data-bs-target', 'target');
         document.body.appendChild(button);
         const $button = $(button);
         createDeleteButton($button);
@@ -39,8 +39,8 @@ describe('button tests', () => {
         const button = document.createElement('button');
         button.setAttribute('data-title', 'title');
         button.setAttribute('data-id', 'id');
-        button.setAttribute('data-target', 'target');
-        button.setAttribute('data-toggle', 'toggle');
+        button.setAttribute('data-bs-target', 'target');
+        button.setAttribute('data-bs-toggle', 'toggle');
         document.body.appendChild(button);
         const modal = document.createElement('div');
         modal.classList.add('modal--deletetarget');
@@ -59,8 +59,8 @@ describe('button tests', () => {
         const button = document.createElement('button');
         button.setAttribute('data-title', 'title');
         button.setAttribute('data-id', 'id');
-        button.setAttribute('data-target', 'target');
-        button.setAttribute('data-toggle', 'toggle');
+        button.setAttribute('data-bs-target', 'target');
+        button.setAttribute('data-bs-toggle', 'toggle');
         document.body.appendChild(button);
         const modal = document.createElement('div');
         modal.classList.add('modal--deletetarget');

@@ -3,7 +3,7 @@
     [%
       INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
       INCLUDE fields/hidden.tt name="click_to_edit" value=0;
-    
+
       IF topic.id;
         INCLUDE fields/hidden.tt name="id" value=topic.id;
       END;
@@ -18,8 +18,13 @@
       <div class="content-block__main-content">
         <div class="row">
           <div class="col">
-            <div class="card card--primary mb-3">
-              <div class="card__content">
+            <div class="card card-primary mb-3">
+              <div class="card-header">
+                <h3 class="card-title">
+                  Topic Details
+                </h3>
+              </div>
+              <div class="card__content card-body">
                 [%
                   INCLUDE fields/input.tt
                     id               = "name"
@@ -72,7 +77,7 @@
         <div class="content-block__footer-container">
           [%
             right_buttons = [];
-          
+
             IF topic.id;
               right_buttons.push({
                 type      = "modal_button",
@@ -83,16 +88,16 @@
                 label     = "Delete topic"
               });
             END;
-          
+
             right_buttons.push({
               type  = "button",
-              class = "btn btn-default"
+              class = "btn btn-primary"
               id    = "submit"
               name  = "submit"
               value = "submit"
               label = "Save"
             });
-          
+
             INCLUDE navigation/button_bar.tt
               row_class = "row"
               columns   = [{

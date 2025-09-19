@@ -65,7 +65,7 @@
     },{
       type   = "link"
       target = url.page _ "/" _ layout.identifier _ "/import/data/"
-      class  = "btn btn-default"
+      class  = "btn btn-primary"
       label  = "Import data"
     }];
 %]

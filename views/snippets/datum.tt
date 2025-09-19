@@ -13,7 +13,7 @@
   [% curcommon_row_counter = 0 %]
     [% IF curval.links.first.presentation.columns.size %]
       <table class="table table-curcommon table-striped">
-        <caption class="sr-only">Table to show values in [% curval.column_name %]</caption>
+        <caption class="visually-hidden">Table to show values in [% curval.column_name %]</caption>
         [% FOR link IN curval.links %]
                 <tr role="button" tabindex="0" class="record-popup [% curcommon_row_counter % 2 == 0 ? 'even' : 'odd' %]" data-record-id="[% link.id %]"
                     [% IF link.version_id %]data-version-id="[% link.version_id %]"[% END %]>
@@ -25,7 +25,7 @@
                             [% render_datum(col_inner) %]
                         </td>
                     [% END %]
-                </tr> 
+                </tr>
           [% curcommon_row_counter = curcommon_row_counter + 1%]
         [% END %]
       </table>
@@ -33,9 +33,9 @@
     [% IF (curval.has_more) OR col.show_view_all %]
         <p><em>(showing
         [% IF col.limit_rows AND curval.links.size >= col.limit_rows %]
-            maximum [% col.limit_rows %] 
+            maximum [% col.limit_rows %]
         [% ELSE %]
-            [% curval.links.size %] 
+            [% curval.links.size %]
         [% END %]
             row[%IF curval.links.size != 1%]s[%END%].</em>
             <a href="/[% curval.parent_layout_identifier %]/data?curval_record_id=[% curval.record_id %]&curval_layout_id=[% curval.column_id %]" target="_blank">view all</a>)</p>
@@ -88,7 +88,7 @@
       INCLUDE fields/sub/popover.tt
         popover_id = 'popover_' _ POPOVER_COUNTER
         popover_class = 'popover-container--text'
-        popover_button_class = 'btn btn-small btn-inverted btn-info'
+        popover_button_class = 'btn btn-sm btn-inverted btn-info'
         popover_button_text = person.text
         popover_button_title = person.text
         popover_no_bottom = 1
