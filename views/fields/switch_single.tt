@@ -2,7 +2,7 @@
   fieldset_class = is_required AND ! fieldset_class.match('fieldset--required') ? fieldset_class _ ' fieldset--required' : fieldset_class;
 %]
 [% IF ! hide_group %]
-<div class="form-group">
+<div class="form-group mb-4">
 [% END %]
   <fieldset class="fieldset [% fieldset_class %]" data-name="[% fieldset_name %]">
     <div class="fieldset__legend">
@@ -14,9 +14,9 @@
       [% help_text | html %]
     </p>
     [% END %]
-    <div class="switch [% switch_class %]">
-      <input class="switch__input" type="checkbox" id="[% id %]" name="[% name %]" value="[% value %]" [%- IF checked -%]checked="checked"[%- END -%]>
-      <label class="switch__label" for="[% id %]">
+    <div class="form-check form-switch [% switch_class %]">
+      <input class="form-check-input" type="checkbox" id="[% id %]" name="[% name %]" value="[% value %]" [%- IF checked -%]checked="checked"[%- END -%]>
+      <label class="form-check-label" for="[% id %]">
         [% INCLUDE fields/sub/filter.tt value=placeholder; %]
       </label>
     </div>

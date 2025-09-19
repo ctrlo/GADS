@@ -1,17 +1,8 @@
-<div class="popover-container [%- popover_class %]">
-  <button
-    class="popover__btn [%- popover_button_class %]"
-    type="button"
-    title="[% (popover_button_title || 'Information popover') | html %]"
-    aria-describedby="[% popover_id %]-popover"
-  >
-    <div class="arrow"></div>
-    [% popover_button_text | html %]
-  </button>
-  <div class="popover [%- popover_no_bottom ? '' : 'bs-popover-bottom' %]" role="tooltip" id="[% popover_id %]-popover">
-    <div class="popover-body">
-      [%- IF popover_title -%]<h4>[% popover_title %]</h4>[%- END -%]
-      [% popover_body %]
-    </div>
+<div class="popover-container [% popover_class %]">
+  <div class="popover-content" id="[% popover_id %]-popover">
+    [% popover_body %]
   </div>
+  <button class="btn btn-popover [% popover_button_class %]" type="button" [% IF popover_title; %]title="[% popover_title %]" [% END; %]aria-describedby="[% popover_id %]-popover" data-bs-toggle="popover">
+    <span>[% popover_button_text || 'popover' | html %]</span>
+  </button>
 </div>

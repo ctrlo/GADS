@@ -44,11 +44,11 @@ export default function EditModal({ editModalOpen, closeModal, editError, loadin
         contentLabel="Edit Modal"
         ariaHideApp = {!test}
     >
-        <div className='modal-header'>
+        <div className='modal-header d-flex justify-content-between align-items-center'>
             <div className='modal-header__content'>
                 <h3 className='modal-title'>Edit widget</h3>
             </div>
-            <button className='close' onClick={closeModal}><span aria-hidden='true' className='hidden'>Close</span></button>
+            <button className='btn close' onClick={closeModal}><span aria-hidden='true' className='hidden'>Close</span></button>
         </div>
         <div className="modal-body">
             {editError
@@ -61,7 +61,7 @@ export default function EditModal({ editModalOpen, closeModal, editError, loadin
                 <button className="btn btn-cancel" onClick={deleteActiveWidget}>Delete</button>
             </div>
             <div className='modal-footer__right'>
-                <button className="btn btn-default" onClick={saveActiveWidget}>Save</button>
+                <button className="btn btn-primary" onClick={saveActiveWidget}>Save</button>
             </div>
         </div>
     </Modal>)

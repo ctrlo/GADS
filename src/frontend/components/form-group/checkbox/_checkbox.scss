@@ -14,7 +14,7 @@
 }
 
 .checkbox--hide-label {
-  input[type=checkbox]:checked + label::after {
+  input[type="checkbox"]:checked + label::after {
     left: 5px;
   }
 
