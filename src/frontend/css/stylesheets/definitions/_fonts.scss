@@ -45,15 +45,34 @@ $fonts-path: "../../fonts" !default;
     url('#{$fonts-path}/linkspace-font/linkspace-font.svg?9780675#linkspace-font') format('svg');
 }
 
-%icon-font {
+@font-face {
+    font-family: bootstrap-icons;
+    font-style: normal;
+    font-weight: $font-weight-normal;
+    src: url('#{$fonts-path}/bootstrap-icons/bootstrap-icons.woff?24e3eb84d0bcaf83d77f904c78ac1f47') format('woff'),
+         url('#{$fonts-path}/bootstrap-icons/bootstrap-icons.woff2?24e3eb84d0bcaf83d77f904c78ac1f47') format('woff2');
+}
+
+%icon-base {
   // From https://github.com/FortAwesome/Font-Awesome/blob/master/scss/_core.scss
   display: inline-block;
   /* stylelint-disable-next-line font-family-no-missing-generic-family-keyword */
-  font: normal normal normal 14px/1 'linkspace-font'; // shortening font declaration
   font-size: inherit; // can't have font-size inherit on line above, so need to override
   text-rendering: auto; // optimizelegibility throws things off #1094
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+%icon-font {
+  @extend %icon-base;
+  /* stylelint-disable-next-line font-family-no-missing-generic-family-keyword */
+  font: normal normal normal 14px/1 linkspace-font; // shortening font declaration
+}
+
+%bootstrap-icons {
+  @extend %icon-base;
+  /* stylelint-disable-next-line font-family-no-missing-generic-family-keyword */
+  font: normal normal normal 14px/1 bootstrap-icons;
 }
 
 @mixin font-style-menu {

@@ -1,0 +1,42 @@
+.btn-popover {
+    @include button-variant($transparent, $transparent, $primary, $hover-color: darken($primary, 10%));
+    padding: 0;
+    margin: 0 $padding-small-vertical;
+    align-content: center;
+    border: 0;
+
+    &::before {
+        transition: font-size 0.2s ease-in-out;
+        @extend %icon-font;
+        content: "\E810";
+        @include font-size(0.9rem);
+    }
+
+    &:hover::before {
+        font-size: 1rem;
+    }
+
+    &:focus::before {
+        border-radius: 50%;
+        box-shadow: 0 0 0 0.2rem rgba($secondary, 0.2);
+    }
+
+    &.btn-info::after {
+        content: none;
+    }
+}
+
+.popover-container:not(.popover-container--text) .btn-popover span {
+    @include visually-hidden;
+}
+
+.popover-body {
+    max-height: 25rem;
+    overflow: auto;
+    background-color: $white;
+    border-radius: $border-radius;
+}
+
+.popover {
+    max-width: 50%;
+}

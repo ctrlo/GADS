@@ -1,0 +1,56 @@
+.icon::before {
+    @extend %icon-font;
+    margin-right: 0.5rem;
+    font-size: 1.25rem;
+}
+
+.icon-user::before {
+    content: "\E81A";
+}
+
+.icon-organisation::before {
+    content: "\E827";
+}
+
+.icon-dept::before {
+    content: "\E820";
+}
+
+.icon-team::before {
+    content: "\E80E"
+}
+
+.icon-email::before {
+    content: "\E81C";
+}
+
+.icon-settings::before {
+    content: "\E814";
+}
+
+.icon-unlocked::before {
+    content: "\E819";
+}
+
+.icon-table::before {
+    content: "\E817";
+}
+
+.icon-help::before {
+    @extend .mx-2;
+    @extend .my-0;
+    content: "?";
+    border: solid 1px $brand-secundary;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    // These may look like random values, but I wanted a circle.
+    padding: 0.17rem 0.4rem;
+}
+
+.icon-chevron-right {
+    content: "\E805";
+}
+
+.icon-reorder::before {
+    content: "\E829";
+}

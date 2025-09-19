@@ -5,7 +5,7 @@
 
   <div class="content-block__aside col-lg-6">
     [% IF layout.show_add_record AND layout.user_can('write_new') %]
-      <a href="[% url.page %]/[% layout.identifier %]/record/" class="btn btn-add">
+      <a href="[% url.page %]/[% layout.identifier %]/record/" class="btn btn-add btn-primary">
         [% IF user.has_draft(layout.instance_id) %]
           Continue draft record
         [% ELSE %]
@@ -43,7 +43,7 @@
           next     => "Next page",
           previous => "Previous page"
         },
-        search            => "Search in table:",
+        search            => "<span class=\"visually-hidden\">Search in table:</span>",
         searchPlaceholder => "Search in this table",
       };
       table_page_length  = 50;

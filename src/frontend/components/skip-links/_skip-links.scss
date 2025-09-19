@@ -6,6 +6,7 @@
   margin: 0 0 0 $padding-large-horizontal;
   padding: 0;
   list-style-type: none;
+  overflow: hidden; // Odd bug where visually-hidden is causing overflow issues with this element
 
   a {
     @include visually-hidden;

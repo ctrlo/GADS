@@ -18,8 +18,8 @@
                 Allow users to edit the following details of their account
               </legend>
             </div>
-            
-            <div class="form-group ">
+
+            <div class="form-group mb-4">
               <div class="list list--vertical list--checkboxes">
                 <ul class="list__items">
                   [% FOREACH field in instance.user_fields %]
@@ -58,7 +58,7 @@
               type  = "button",
               name  = "update",
               value = "update",
-              class = "btn btn-default",
+              class = "btn btn-primary",
               label = "Save"
             }]
           }];

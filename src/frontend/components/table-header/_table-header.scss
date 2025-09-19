@@ -1,39 +1,17 @@
 .table-header {
   position: relative;
   margin-bottom: 2px; // To reserve room for the bottom border of 2px
-
-  &::after {
-    content: '';
-    position: absolute;
-    right: 0;
-    bottom: -2px;
-    left: 0;
-    height: 2px;
-    margin-right: -$grid-offset-mobile;
-    background: $brand-primary;
-  }
 }
 
 .table-header-container {
   position: relative;
   width: 100%;
   padding: 1rem 0 0 $grid-offset-mobile;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: -1 * $grid-offset-mobile;
-    bottom: 0;
-    left: 0;
-    background-color: $white;
-  }
 }
 
 .table-header-top {
   position: relative;
-  flex-direction: row;
-  flex-wrap: nowrap;
+  flex-flow: row nowrap;
   gap: $padding-base-horizontal;
   padding-bottom: 1.5rem;
 }
