@@ -70,6 +70,7 @@ jobs:
         uses: 'actions/checkout@v4'
       - name: 'Install Non-CPAN dependencies'
         run: |
+          sudo apt-get update
           sudo apt-get install cpanminus liblua5.3-dev
           # Avoid "Install CPAN dependencies" needing to compile so much
           sudo apt-get install libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl
@@ -135,6 +136,7 @@ jobs:
         uses: 'actions/checkout@v4'
       - name: 'Install Non-CPAN dependencies'
         run: |
+          sudo apt-get update
           sudo apt-get install cpanminus liblua5.3-dev gcc g++ libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl
           sudo apt-get install libdbix-class-schema-loader-perl libmagic-dev postgresql-client libpng-dev libssl-dev libpq-dev
           sudo apt-get install libjson-perl libsession-token-perl libnet-oauth2-authorizationserver-perl libtext-csv-encoded-perl
