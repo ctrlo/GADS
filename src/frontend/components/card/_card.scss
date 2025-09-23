@@ -83,6 +83,16 @@
 
 .card-header__toggle {
     flex-grow: 1;
+
+    .card__title {
+        @extend .text-primary;
+
+        .card__subtitle {
+            font-weight: normal;
+            margin-left: $padding-base-horizontal;
+            @extend .text-secondary;
+        }
+    }
 }
 
 .card__header-right {

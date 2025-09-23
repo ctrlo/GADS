@@ -1,6 +1,6 @@
 import { Component } from 'component';
-import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min';
-import 'bootstrap-select/dist/js/bootstrap-select';
+import 'jQuery-QueryBuilder';
+import 'bootstrap-select';
 import { refreshSelects } from 'components/form-group/common/bootstrap-select';
 
 /**

@@ -29,7 +29,7 @@
   input_class = is_required AND ! input_class.match('input--required') ? input_class _ ' input--required' : input_class;
 -%]
 [% IF ! hide_group %]
-<div class="form-group mb-4">
+<div class="form-group">
 [% END %]
   <div class="input [% input_class %]"
   [% IF data %]

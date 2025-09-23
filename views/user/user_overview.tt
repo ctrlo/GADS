@@ -4,8 +4,8 @@
   table_layout = {
     topStart => "search",
     topEnd   => "pageLength",
-    main     => "paging",
-    bottomStart => "info",
+    bottomStart => "paging",
+    bottomEnd => "info",
   }
   table_language = {
     emptyTable => "There is no data available in this table",

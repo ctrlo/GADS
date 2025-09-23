@@ -11,6 +11,8 @@
         z-index: 1;
 
         th {
+            padding: 1rem;
+
             background-color: #fff;
             border-bottom: 1px solid $gray;
             text-transform: uppercase;
@@ -26,6 +28,13 @@
             &.dt__header--inivisible span {
                 @include visually-hidden;
             }
+        }
+    }
+
+    tbody {
+        td {
+            padding: 1rem;
+            color: $black;
         }
     }
 
@@ -49,6 +58,22 @@
 
         & > tbody {
             & > tr:nth-of-type(2n) {
+                & > * {
+                    box-shadow: none !important;
+                }
+            }
+        }
+    }
+
+    &.table-hover {
+        --bs-table-hover-bg: $table-hover-bg;
+
+        & > tbody {
+            & > tr:hover {
+                background-color: $table-hover-bg;
+            }
+
+            & > tr:hover {
                 & > * {
                     box-shadow: none !important;
                 }
@@ -544,12 +569,6 @@ thead, tbody, tfoot, tr, td, th {
     border: none;
 }
 
-.dt-empty-footer {
-    .dt-layout-row:has(.dt-start) {
-        display: none;
-    }
-}
-
 .dt-layout-row {
     margin-bottom: $padding-base-vertical;
 
@@ -569,4 +588,13 @@ thead, tbody, tfoot, tr, td, th {
 
 .align-tables {
     padding-top: 2.8rem;
+}
+
+/* This is because bootstrap _loves_ to add a box-shadow to the table rows */
+.data-table > tbody > tr {
+    background-color: $white;
+    box-shadow: none;
+    & > td {
+        box-shadow: none;
+    }
 }

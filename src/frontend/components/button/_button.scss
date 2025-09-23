@@ -1,7 +1,7 @@
 .btn-primary,
 .btn-sm {
     &.btn-inverted {
-        @include button-variant($white, $primary, $primary);
+        @include button-variant($white, $primary, $primary, $white, darken($primary, 20%), darken($primary, 20%), $white, darken($primary, 20%), darken($primary, 20%));
     }
 }
 
