@@ -68,14 +68,19 @@ jobs:
     steps:
       - name: 'Check out the GADS code'
         uses: 'actions/checkout@v4'
-      - name: 'Install dependencies'
+      - name: 'Install Non-CPAN dependencies'
         run: |
-          chmod +x ./.github/workflows/install.sh
-          ./.github/workflows/install.sh
-      - name: 'Install Integration Test Dependencies'
+          sudo apt-get install cpanminus liblua5.3-dev
+          # Avoid "Install CPAN dependencies" needing to compile so much
+          sudo apt-get install libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl
+      - name: 'Build cpanfile'
         run: |
-          chmod +x ./.github/workflows/install_integration.sh
-          ./.github/workflows/install_integration.sh
+          perl bin/output_cpanfile > cpanfile
+          ( cd webdriver && perl ../bin/output_cpanfile ) >> cpanfile
+      - name: 'Install CPAN dependencies'
+        uses: 'perl-actions/install-with-cpanm@v1'
+        with:
+          cpanfile: 'cpanfile'
       - name: 'Set up credentials for psql'
         # See https://wiki.postgresql.org/wiki/Pgpass
         run: |
@@ -89,7 +94,7 @@ jobs:
         env:
           DANCER_CONFDIR: 'webdriver'
           PGDATABASE: 'postgres'
-          PGHOST: 'localhost' # to connect to the container
+          PGHOST: 'localhost'
           PGUSER: 'postgres'
         run: |
           ./bin/setup_database
@@ -98,7 +103,7 @@ jobs:
         run: '${{ matrix.browser.command }}'
       - name: 'Run the Webdriver tests'
         run: prove -lmrsv webdriver/t
-  
+
   cypress_tests:
     name: 'Cypress Tests for ${{ matrix.browser.name }}'
     runs-on: '${{ matrix.browser.os }}'
@@ -110,7 +115,7 @@ jobs:
         browser:
           - name: 'chrome'
             os: 'ubuntu-22.04'
-          
+
     services:
       postgres:
         image: postgres
@@ -173,14 +178,13 @@ jobs:
           perl bin/app.pl &
       - name: 'Run the Cypress tests'
         run: yarn cypress run --browser ${{ matrix.browser.name }}
-  
-  # This does not need testing in a container
+
   js_tests:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [20.x, 22.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
@@ -190,6 +194,5 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - run: npx update-browserslist-db@latest
       - run: yarn
       - run: yarn jest --passWithNoTests
