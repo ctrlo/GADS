@@ -5,6 +5,9 @@ on:
       - master
       - dev
       - hotfix
+    paths-ignore:
+      - '*.md'
+      - VERSION
   pull_request:
     branches:
       - master
@@ -19,24 +22,17 @@ jobs:
     name: 'Unit Tests'
     runs-on: 'ubuntu-22.04'
     timeout-minutes: 30
+    container: debian:bookworm
 
     steps:
       - name: 'Check out the GADS repository'
         uses: 'actions/checkout@v4'
-      - name: 'Install Non-CPAN dependencies'
+      - name: 'Install dependencies'
         run: |
-          sudo apt-get install cpanminus liblua5.3-dev
-          # Avoid "Install CPAN dependencies" needing to compile so much
-          sudo apt-get install libdancer2-perl libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl libtest-tempdir-tiny-perl
-      - name: 'Build cpanfile'
-        run: perl bin/output_cpanfile > cpanfile
-      - name: 'Install CPAN dependencies'
-        uses: 'perl-actions/install-with-cpanm@v1'
-        with:
-          cpanfile: 'cpanfile'
+          chmod +x ./.github/workflows/install.sh
+          ./.github/workflows/install.sh
       - name: 'Run the unit tests'
-        run: |
-          prove -lrs -j4 t
+        run: prove -lrs -j4 t
 
   webdriver_tests:
     name: 'Webdriver Tests for ${{ matrix.browser.name }}'
@@ -73,6 +69,7 @@ jobs:
         uses: 'actions/checkout@v4'
       - name: 'Install Non-CPAN dependencies'
         run: |
+          sudo apt-get update
           sudo apt-get install cpanminus liblua5.3-dev
           # Avoid "Install CPAN dependencies" needing to compile so much
           sudo apt-get install libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl libdbix-class-schema-loader-perl
@@ -106,7 +103,7 @@ jobs:
         run: '${{ matrix.browser.command }}'
       - name: 'Run the Webdriver tests'
         run: prove -lmrsv webdriver/t
-  
+
   cypress_tests:
     name: 'Cypress Tests for ${{ matrix.browser.name }}'
     runs-on: '${{ matrix.browser.os }}'
@@ -118,7 +115,7 @@ jobs:
         browser:
           - name: 'chrome'
             os: 'ubuntu-22.04'
-          
+
     services:
       postgres:
         image: postgres
@@ -138,6 +135,7 @@ jobs:
         uses: 'actions/checkout@v4'
       - name: 'Install Non-CPAN dependencies'
         run: |
+          sudo apt-get update
           sudo apt-get install cpanminus liblua5.3-dev gcc g++ libdatetime-format-sqlite-perl libtest-most-perl libdatetime-set-perl
           sudo apt-get install libdbix-class-schema-loader-perl libmagic-dev postgresql-client libpng-dev libssl-dev libpq-dev
           sudo apt-get install libjson-perl libsession-token-perl libnet-oauth2-authorizationserver-perl libtext-csv-encoded-perl
@@ -181,13 +179,13 @@ jobs:
           perl bin/app.pl &
       - name: 'Run the Cypress tests'
         run: yarn cypress run --browser ${{ matrix.browser.name }}
-              
+
   js_tests:
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [20.x, 22.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
@@ -197,6 +195,5 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      - run: npx update-browserslist-db@latest
       - run: yarn
       - run: yarn jest --passWithNoTests
