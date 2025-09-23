@@ -40,6 +40,7 @@ use GADS::Datum::Rag;
 use GADS::Datum::Serial;
 use GADS::Datum::String;
 use GADS::Datum::Tree;
+use GADS::Hooks;
 use GADS::Layout;
 use Log::Report 'linkspace';
 use JSON qw(encode_json);
@@ -55,6 +56,8 @@ use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 use namespace::clean;
 
 with 'GADS::Role::Presentation::Record';
+
+my $hooks = GADS::Hooks->instance;
 
 # When clear() is called the layout is also cleared. This property can be used
 # to seed the layout to an existing value when it is rebuilt
@@ -1978,6 +1981,7 @@ sub write
 
     $self->_need_rec($need_rec);
     $self->_need_app($need_app);
+    $hooks->run_hook('record.write.before_write_values', $self, $self->layout);
     $self->write_values(%options, submission_token => $submission_token) unless $options{no_write_values};
 
     # Finally delete any related cached filter values, meaning that any later
