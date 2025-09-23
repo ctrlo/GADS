@@ -146,7 +146,7 @@
                 value   = user.id
                 label   = "Reject request"
               }, {
-                class = "btn-default btn-disabled btn-js-next"
+                class = "btn-primary btn-disabled btn-js-next"
                 label = "Next"
               }];
           -%]
@@ -236,7 +236,7 @@
                 value   = user.id
                 label   = "Reject request"
               }, {
-                class = "btn-default btn-js-next"
+                class = "btn-primary btn-js-next"
                 label = "Next"
               }];
           -%]
@@ -287,7 +287,7 @@
                 value   = user.id
                 label   = "Reject request"
               }, {
-                class = "btn-default btn-js-save"
+                class = "btn-primary btn-js-save"
                 label = "Create account"
               }];
           -%]

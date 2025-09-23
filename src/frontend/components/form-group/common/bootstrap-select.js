@@ -1,12 +1,10 @@
-// TODAYS ISSUE - SELECTS ARE NOT RENDERING AS REQUIRED
-
 /**
  * Set up event listeners for query builder rule filters and operators to initialise the bootstrap-select component.
  * @param {JQuery} el The jQuery element to attach the event listeners to.
  */
 export const refreshSelects = (el)  => {
     const ruleFilterSelects = [];
-//  const operatorSelects = [];
+    const operatorSelects = [];
 
     el.on('afterCreateRuleFilters.queryBuilder', (e, rule) => {
         const ruleFilterSelect = $(rule.$el.find(`select[name=${rule.id}_filter]`));
@@ -20,38 +18,38 @@ export const refreshSelects = (el)  => {
         ruleFilterSelect.selectpicker();
     });
 
-//     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-//     el.on('afterCreateRuleOperators.queryBuilder', (e, rule, operators) => {
-//         const operatorSelect = $(rule.$el.find(`select[name=${rule.id}_operator]`));
-//         if (!operatorSelect || !operatorSelect[0]) {
-//             console.error('No operator select found');
-//             return;
-//         }
-//         if (!operatorSelects.includes(operatorSelect[0])) operatorSelects.push(operatorSelect[0]);
-//         if (operatorSelect.data('live-search')) return;
-//         operatorSelect.data('live-search', 'true');
-//         operatorSelect.selectpicker();
-//     });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    el.on('afterCreateRuleOperators.queryBuilder', (e, rule, operators) => {
+        const operatorSelect = $(rule.$el.find(`select[name=${rule.id}_operator]`));
+        if (!operatorSelect || !operatorSelect[0]) {
+            console.error('No operator select found');
+            return;
+        }
+        if (!operatorSelects.includes(operatorSelect[0])) operatorSelects.push(operatorSelect[0]);
+        if (operatorSelect.data('live-search')) return;
+        operatorSelect.data('live-search', 'true');
+        operatorSelect.selectpicker();
+    });
 
-//     el.on('afterSetRules.queryBuilder', () => {
-//         for (const ruleFilterSelect of ruleFilterSelects) {
-//             if (!ruleFilterSelect) {
-//                 continue;
-//             }
-//             $(ruleFilterSelect).selectpicker('refresh');
-//         }
-//         for (const operatorSelect of operatorSelects) {
-//             if (!operatorSelect) continue;
-//             $(operatorSelect).selectpicker('refresh');
-//         }
-//     });
+    el.on('afterSetRules.queryBuilder', () => {
+        for (const ruleFilterSelect of ruleFilterSelects) {
+            if (!ruleFilterSelect) {
+                continue;
+            }
+            $(ruleFilterSelect).selectpicker('refresh');
+        }
+        for (const operatorSelect of operatorSelects) {
+            if (!operatorSelect) continue;
+            $(operatorSelect).selectpicker('refresh');
+        }
+    });
 
-//     el.on('afterSetRuleOperator.queryBuilder', () => {
-//         for (const operatorSelect of operatorSelects) {
-//             if (!operatorSelect) {
-//                 continue;
-//             }
-//             $(operatorSelect).selectpicker('refresh');
-//         }
-//     });
+    el.on('afterSetRuleOperator.queryBuilder', () => {
+        for (const operatorSelect of operatorSelects) {
+            if (!operatorSelect) {
+                continue;
+            }
+            $(operatorSelect).selectpicker('refresh');
+        }
+    });
 };
