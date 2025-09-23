@@ -18,4 +18,4 @@ apt-get install -y libmoox-types-mooselike-datetime-perl libdatetime-format-date
 apt-get install -y libfile-slurp-perl libfile-mimeinfo-perl liblist-compare-perl libnet-oauth2-authorizationserver-perl libfontconfig1
 apt-get install -y libctrlo-pdf-perl libpdf-builder-perl fonts-liberation libdate-holidays-gb-perl libcgi-deurl-xs-perl libfile-bom-perl
 apt-get install -y libdatetime-format-iso8601-perl liblog-log4perl-perl libwww-mechanize-chrome-perl chromium libfile-libmagic-perl libnet-saml2-perl
-apt-get install -y liburl-encode-perl libtext-markdown-perl
+apt-get install -y liburl-encode-perl libtext-markdown-perl libtest-tempdir-tiny-perl
