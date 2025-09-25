@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
-
 import { Component, initializeRegisteredComponents } from 'component';
 import 'datatables.net-bs5';
 import 'datatables.net-responsive-bs5';
@@ -22,7 +21,9 @@ class DataTableComponent extends Component {
      */
     constructor(element) {
         super(element);
+        // For fullscreen we need a clone of the table element
         this.table = element.cloneNode(true);
+        this.count = 0;
         this.el = $(this.element);
         this.hasCheckboxes = this.el.hasClass('table-selectable');
         this.hasClearState = this.el.hasClass('table-clear-state');
@@ -277,16 +278,15 @@ class DataTableComponent extends Component {
     addSortButton(dataTable, column, headerContent) {
         const $header = $(column.header());
         const $button = $(`
-      <button class="data-table__sort" type="button">
-        <span>${headerContent}</span>
-        <span class="btn btn-sort">
-          <span>Sort</span>
-        </span>
-      </button>`
-        );
+            <span class="data-table__sort">
+                <span>${headerContent}</span>
+                <span class="btn btn-sort">
+                    <span>Sort</span>
+                </span>
+            </span>
+        `);
 
         $header
-            .off()
             .find('.data-table__header-wrapper')
             .html($button);
 
@@ -363,11 +363,11 @@ class DataTableComponent extends Component {
         $searchInput.appendTo($('.input', $searchElement));
         if (col.typeahead_use_id) {
             $searchInput.after('<input type="hidden" class="search">');
-            if(searchValue) {
-                const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1', {method: 'POST', data: {csrf_token: $('body').data('csrf')}});
+            if (searchValue) {
+                const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1', { method: 'POST', data: { csrf_token: $('body').data('csrf') } });
                 const data = await response.json();
                 if (!data.error) {
-                    if(data.records.length != 0) {
+                    if (data.records.length != 0) {
                         $searchInput.val(data.records[0].label);
                         $('input.search', $searchElement).val(data.records[0].id)
                             .trigger('change');
@@ -391,11 +391,11 @@ class DataTableComponent extends Component {
                         .withDefaultMapper()
                         .withName(columnId.replace(/\s+/g, '') + 'Search')
                         .withCallback((data) => {
-                            if(col.typeahead_use_id) {
+                            if (col.typeahead_use_id) {
                                 $searchInput.val(data.name);
-                                $('input.search',$searchElement).val(data.id)
+                                $('input.search', $searchElement).val(data.id)
                                     .trigger('change');
-                            }else{
+                            } else {
                                 $('input', $searchElement).addClass('search')
                                     .val(data.name)
                                     .trigger('change');
@@ -568,10 +568,10 @@ class DataTableComponent extends Component {
                 thisHTML +=  '</div>';
                 strHTML += (
                     `<div class="popover-container">
-                        <div class="popover-content" id="${data.id}-popover">
+                        <div class="popover-content" id="${data.id || data.column_id}-popover">
                             ${thisHTML}
                         </div>
-                        <button class="btn btn-primary btn-sm btn-inverted btn-info" type="button" aria-describedby="${data.id}-popover" data-bs-toggle="popover">
+                        <button class="btn btn-primary btn-sm btn-inverted btn-info" type="button" aria-describedby="${data.id || data.column_id}-popover" data-bs-toggle="popover">
                             ${this.encodeHTMLEntities(value.text)}
                         </button>
                     </div>`
@@ -757,12 +757,11 @@ class DataTableComponent extends Component {
 
     /**
      * Get the configuration object for the DataTable
-     * @import { Config } from 'datatables.net-bs5';
-     * @param {Parital<Config>} overrides Any values to override in the configuration
-     * @returns {Config} The configuration object for the DataTable
+     * @param {Readonly<Parital<import('datatables.net-bs5').Config>>=} overrides Any values to override in the configuration
+     * @returns {import('datatables.net-bs5').Config} The configuration object for the DataTable
      */
     getConf(overrides = undefined) {
-        const confData = this.el.data('config');
+        const confData = (this.el).data('config');
         let conf = {};
 
         if (typeof confData === 'string') {
@@ -788,7 +787,7 @@ class DataTableComponent extends Component {
         const self = this;
 
         conf['initComplete'] = (settings, json) => {
-            const tableElement = this.el;
+            const tableElement = conf.el || this.el;
             const dataTable = tableElement.DataTable();
 
             this.json = json;
@@ -798,23 +797,34 @@ class DataTableComponent extends Component {
                     const column = this;
                     const $header = $(column.header());
 
+                    $header.on('click', (ev) => {
+                        if(ev.stopPropagation) {
+                            ev.stopPropagation();
+                            ev.preventDefault();
+                        } else {
+                            ev.cancelBubble = true;
+                        }
+                    });
+
                     const headerContent = $header.html();
-                    $header.html(`<div class='data-table__header-wrapper position-relative ${column.search() ? 'filter' : ''}' data-ddl='ddl_${index}'>${headerContent}</div>`);
+                    if(!headerContent.includes('data-table__header-wrapper')){
+                        $header.html(`<div class='data-table__header-wrapper position-relative ${column.search() ? 'filter' : ''}' data-ddl='ddl_${index}'>${headerContent}</div>`);
 
-                    // Add sort button to column header
-                    if ($header.hasClass('dt-orderable-asc') || $header.hasClass('dt-orderable-desc')) {
-                        self.addSortButton(dataTable, column, headerContent);
-                    }
-
-                    // Add button to column headers (only serverside tables)
-                    if ((conf.serverSide) && (tableElement.hasClass('table-search'))) {
-                        const id = settings.oAjaxData.columns[index].name;
-
-                        if (self.searchParams.has(id)) {
-                            column.search(self.searchParams.get(id)).draw();
+                        // Add sort button to column header
+                        if ($header.hasClass('dt-orderable-asc') || $header.hasClass('dt-orderable-desc')) {
+                            self.addSortButton(dataTable, column, headerContent);
                         }
 
-                        self.addSearchDropdown(column, id, index);
+                        // Add button to column headers (only serverside tables)
+                        if ((conf.serverSide) && (tableElement.hasClass('table-search'))) {
+                            const id = settings.oAjaxData.columns[index].name;
+
+                            if (self.searchParams.has(id)) {
+                                column.search(self.searchParams.get(id)).draw();
+                            }
+
+                            self.addSearchDropdown(column, id, index);
+                        }
                     }
                     return true;
                 });
@@ -827,6 +837,8 @@ class DataTableComponent extends Component {
                     }
                 }
 
+                initializeRegisteredComponents(tableElement[0]);
+
                 this.initializingTable = false;
             }
         };
@@ -834,7 +846,7 @@ class DataTableComponent extends Component {
         conf['footerCallback'] = function() {
             const api = this.api();
             // Add aggregate values to table if configured
-            const agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate;
+            const agg = api.ajax?.json()?.aggregate;
             if (agg) {
                 const cols = api.settings()[0].oAjaxData.columns;
                 api.columns().every( function () {

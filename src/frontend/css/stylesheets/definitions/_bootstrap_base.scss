@@ -5,6 +5,8 @@
 $font-size-base: 16px;
 $box-shadow: 0 0 7px rgba($black, 40%);
 
+$multiplier: 1.6;
+
 // Links
 $link-decoration: none;
 
@@ -85,6 +87,8 @@ $input-focus-bg: $white;
 $input-bg: $white;
 
 // Navs
+$nav-link-font-size: $font-size-base * 1.125;
+$nav-link-font-weight: 600;
 $nav-tabs-border-color: $secondary;
 $nav-tabs-link-hover-border-color: $secondary;
 $nav-tabs-link-active-border-color: $secondary;
@@ -105,7 +109,7 @@ $form-check-input-checked-bg-color: $primary;
 
 // Headers
 $h1-font-size: 1.5625rem;
-$h2-font-size: 1rem;
+$h2-font-size: 1.125rem;
 $h3-font-size: 1rem;
 $h4-font-size: 1rem;
 

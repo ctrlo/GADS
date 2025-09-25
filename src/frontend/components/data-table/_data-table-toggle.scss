@@ -1,14 +1,20 @@
 .dataTables_scrollBody:has(.table-toggle) {
-  @include media-breakpoint-down(md) {
-    /* stylelint-disable-next-line declaration-no-important */
-    height: auto !important;
-  }
+    @include media-breakpoint-down(md) {
+        /* stylelint-disable-next-line declaration-no-important */
+        height: auto !important;
+    }
 }
 
 .table-toggle tr[data-field-is-toggled="false"] {
-  display: none;
+    display: none;
 }
 
-.table-toggle tbody tr:nth-child(odd of [data-field-is-toggled="true"]) {
-  background-color: $gray-light;
+.table-toggle {
+    tr:nth-child(odd of [data-field-is-toggled="true"]) {
+        background-color: #f9f9f9;
+
+        td {
+            background-color: transparent;
+        }
+    }
 }

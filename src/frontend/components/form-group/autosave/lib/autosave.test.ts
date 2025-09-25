@@ -4,7 +4,7 @@ import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 
 class TestAutosave extends AutosaveBase {
     initAutosave(): void {
-        console.log('initAutosave');
+        console.debug('initAutosave');
     }
 }
 

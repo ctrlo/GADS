@@ -1,48 +1,69 @@
 .table-header {
-  position: relative;
-  margin-bottom: 2px; // To reserve room for the bottom border of 2px
+    position: relative;
+    margin-bottom: 2px; // To reserve room for the bottom border of 2px
+
+    &:not(:has(.table-nav-tabs))::after {
+        content: "";
+        position: absolute;
+        bottom: 0px;
+        right: 0;
+        left: 0;
+        height: 2px;
+        background-color: $secondary;
+        margin-right: -$grid-offset; // Adjust for the grid offset
+    }
 }
 
 .table-header-container {
-  position: relative;
-  width: 100%;
-  padding: 1rem 0 0 $grid-offset-mobile;
-}
+    position: relative;
+    width: 100%;
+    padding: 1rem 0 0 $grid-offset-mobile;
+
+    &:not(:has(.table-nav-tabs))::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: -$grid-offset;
+            background-color: $white; // Match the background color of the header
+        }
+    }
 
 .table-header-top {
-  position: relative;
-  flex-flow: row nowrap;
-  gap: $padding-base-horizontal;
-  padding-bottom: 1.5rem;
+    position: relative;
+    flex-flow: row nowrap;
+    gap: $padding-base-horizontal;
+    padding-bottom: 1.5rem;
 }
 
 .table-header-bottom {
-  position: relative;
-
-  .list--tabs {
     position: relative;
-    z-index: 1;
-    margin-bottom: -2px;
-  }
+
+    .list--tabs {
+        position: relative;
+        z-index: 1;
+        margin-bottom: -2px;
+    }
 }
 
 .table-header__title {
-  margin: $padding-base-vertical $padding-base-horizontal 0 0;
-  color: $text-color;
+    margin: $padding-base-vertical $padding-base-horizontal 0 0;
+    color: $text-color;
 }
 
 @include media-breakpoint-up(lg) {
-  .table-header {
-    &::after {
-      margin-right: -$grid-offset;
+    .table-header {
+        &::after {
+            margin-right: -$grid-offset;
+        }
     }
-  }
 
-  .table-header-container {
-    padding: 1rem 0 0 $grid-offset;
+    .table-header-container {
+        padding: 1rem 0 0 $grid-offset;
 
-    &::before {
-      right: -1 * $grid-offset;
+        &::before {
+            right: -1 * $grid-offset;
+        }
     }
-  }
 }

@@ -1,0 +1,17 @@
+.breadcrumb-item {
+    a {
+        color: $secondary;
+        text-decoration: underline;
+        transition: $transition-default;
+
+        &:hover {
+            color: $primary;
+            text-decoration: none;
+        }
+    }
+
+    &.active {
+        color: $secondary;
+        text-decoration: none;
+    }
+}

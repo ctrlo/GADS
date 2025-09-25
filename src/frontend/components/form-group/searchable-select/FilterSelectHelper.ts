@@ -1,34 +1,29 @@
-/**
- * Set up event listeners for query builder rule filters and operators to initialise the bootstrap-select component.
- * @param {JQuery} el The jQuery element to attach the event listeners to.
- */
-export const refreshSelects = (el)  => {
+import './JQuerySearchableSelect';
+
+export const refreshSelects = (el: JQuery<HTMLElement>) => {
     const ruleFilterSelects = [];
     const operatorSelects = [];
 
-    el.on('afterCreateRuleFilters.queryBuilder', (e, rule) => {
+    el.on('afterCreateRuleFilters.queryBuilder', (e: JQuery.TriggeredEvent, rule: any) => {
         const ruleFilterSelect = $(rule.$el.find(`select[name=${rule.id}_filter]`));
-        if(ruleFilterSelect.hasClass('form-select')) ruleFilterSelect.removeClass('form-select');
         if (!ruleFilterSelects.includes(ruleFilterSelect[0])) ruleFilterSelects.push(ruleFilterSelect[0]);
         if (!ruleFilterSelect || !ruleFilterSelect[0]) {
             console.error('No select found');
             return;
         }
-        ruleFilterSelect.data('live-search', 'true');
-        ruleFilterSelect.selectpicker();
+        if (ruleFilterSelect.data('searchableSelect')) return;
+        ruleFilterSelect.searchableSelect();
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    el.on('afterCreateRuleOperators.queryBuilder', (e, rule, operators) => {
+    el.on('afterCreateRuleOperators.queryBuilder', (e: JQuery.TriggeredEvent, rule: any) => {
         const operatorSelect = $(rule.$el.find(`select[name=${rule.id}_operator]`));
         if (!operatorSelect || !operatorSelect[0]) {
             console.error('No operator select found');
             return;
         }
         if (!operatorSelects.includes(operatorSelect[0])) operatorSelects.push(operatorSelect[0]);
-        if (operatorSelect.data('live-search')) return;
-        operatorSelect.data('live-search', 'true');
-        operatorSelect.selectpicker();
+        if (operatorSelect.data('searchableSelect')) return;
+        operatorSelect.searchableSelect();
     });
 
     el.on('afterSetRules.queryBuilder', () => {
@@ -36,11 +31,13 @@ export const refreshSelects = (el)  => {
             if (!ruleFilterSelect) {
                 continue;
             }
-            $(ruleFilterSelect).selectpicker('refresh');
+            $(ruleFilterSelect).getSearchableSelect()
+                .refresh();
         }
         for (const operatorSelect of operatorSelects) {
             if (!operatorSelect) continue;
-            $(operatorSelect).selectpicker('refresh');
+            $(operatorSelect).getSearchableSelect()
+                .refresh();
         }
     });
 
@@ -49,7 +46,8 @@ export const refreshSelects = (el)  => {
             if (!operatorSelect) {
                 continue;
             }
-            $(operatorSelect).selectpicker('refresh');
+            $(operatorSelect).getSearchableSelect()
+                .refresh();
         }
     });
 };
