@@ -59,3 +59,7 @@
   content: "\E822";
   color: $black;
 }
+
+.alert-warning {
+    --bs-alert-bg: #{$brand-warning};
+}

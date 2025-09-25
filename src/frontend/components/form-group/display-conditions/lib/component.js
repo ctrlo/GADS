@@ -1,7 +1,5 @@
 import { Component } from 'component';
 import 'jQuery-QueryBuilder/dist/js/query-builder.standalone';
-import 'bootstrap-select/dist/js/bootstrap-select';
-import { refreshSelects } from 'components/form-group/common/bootstrap-select';
 
 /**
  * Component for managing display conditions in form groups.
@@ -24,8 +22,6 @@ class DisplayConditionsComponent extends Component {
         const builderData = this.el.data();
         const filters = JSON.parse(atob(builderData.filters));
         if (!filters.length) return;
-
-        refreshSelects(this.el);
 
         this.el.queryBuilder({
             filters: filters,

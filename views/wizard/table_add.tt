@@ -266,7 +266,7 @@
               label   = "Back"
             }]
             right_buttons = [{
-              class   = "btn-inverted btn-js-save"
+              class   = "btn btn-primary btn-inverted btn-js-save"
               label   = "Save table"
             }, {
               class   = "btn-js-next btn-primary"
@@ -304,7 +304,7 @@
               label   = "Back"
             }]
             right_buttons = [{
-              class   = "btn-inverted btn-js-skip"
+              class   = "btn btn-primary btn-inverted btn-js-skip"
               label   = "Skip creating topics"
             }, {
               class   = "btn-js-next btn-primary"
@@ -374,7 +374,7 @@
               label   = "Back"
             }]
             right_buttons = [{
-              class   = "btn-invisible btn-inverted btn-js-add-next"
+              class   = "btn-invisible btn btn-primary btn-inverted btn-js-add-next"
               label   = "Add another and next"
             }, {
               class   = "btn-js-next btn-disabled"
@@ -460,7 +460,7 @@
               label   = "Back"
             }]
             right_buttons = [{
-              class   = "btn-inverted btn-js-skip"
+              class   = "btn btn-primary btn-inverted btn-js-skip"
               label   = "Skip creating fields"
             }, {
               class   = "btn-js-next btn-primary"
@@ -554,7 +554,7 @@
               label   = "Back"
             }]
             right_buttons = [{
-              class   = "btn-inverted btn-js-skip"
+              class   = "btn btn-primary btn-inverted btn-js-skip"
               label   = "Skip creating fields"
             }, {
               class   = "btn-js-next btn-disabled"

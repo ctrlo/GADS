@@ -21,6 +21,7 @@
 @import "alert/alert";
 @import "attention/attention";
 @import "bootstrap-popover/bootstrap-popover";
+@import "breadcrumbs/breadcrumbs";
 @import "button/button";
 @import "calculator/calculator";
 
@@ -70,7 +71,8 @@
         "form-group/select-widget/select-widget",
         "form-group/switch/switch",
         "form-group/textarea/textarea",
-        "form-group/input-group/input-group";
+        "form-group/input-group/input-group",
+        "form-group/searchable-select/searchable-select";
 
 @import "graph/graph";
 @import "icons/icons";
