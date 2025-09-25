@@ -419,7 +419,7 @@ get '/' => require_login sub {
         dashboards_json                     => schema->resultset('Dashboard')->dashboards_json(%params),
         page                                => 'index',
         'content_block_main_custom_classes' => 'pt-0',
-        'content_block_custom_classes'      => 'pl-0'
+        'content_block_custom_classes'      => 'ps-0'
     };
 
     if (my $download = param('download'))
@@ -1761,7 +1761,7 @@ put '/api/file/:id' => require_login sub {
     }
     else
     {
-        my $file = schema->resultset('Fileval')->find_with_permission($id, logged_in_user, 
+        my $file = schema->resultset('Fileval')->find_with_permission($id, logged_in_user,
             rename_existing => 1)
                 or error __x"File ID {id} cannot be found", id => $id;
 
@@ -2146,7 +2146,7 @@ prefix '/:layout_name' => sub {
             dashboards_json => schema->resultset('Dashboard')->dashboards_json(%params),
             page            => 'table_index',
             header_type     => "table_tabs",
-            content_block_custom_classes => "pl-0",
+            content_block_custom_classes => "ps-0",
             content_block_main_custom_classes => "pt-0",
             header_back_url => "${base_url}table",
             layout_obj      => $layout,
@@ -2318,7 +2318,7 @@ prefix '/:layout_name' => sub {
     any ['get', 'post'] => '/data' => require_login sub {
 
         my $layout = var('layout') or pass;
-        
+
         my $user   = logged_in_user;
 
         my @additional_filters;
@@ -3122,10 +3122,10 @@ prefix '/:layout_name' => sub {
             }
         }
 
-        return template "historic_purge/initial" => { 
-            columns_view => \@columns, 
-            count => $records->count, 
-            columns_selected => $columns_selected 
+        return template "historic_purge/initial" => {
+            columns_view => \@columns,
+            count => $records->count,
+            columns_selected => $columns_selected
         };
     };
 

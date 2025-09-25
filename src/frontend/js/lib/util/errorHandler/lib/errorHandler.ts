@@ -63,7 +63,6 @@ export class ErrorHandler {
                 this.errorContainer.append(errorElement);
             });
         } else {
-            console.log('No errors to display');
             this.errorContainer.hide();
         }
     }
