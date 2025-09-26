@@ -1,21 +1,27 @@
 import { Tooltip } from 'bootstrap';
-import { logging } from 'logging';
+import { SearchableSelectOptions } from './options';
 
 /**
  * SearchableSelect class provides a searchable dropdown interface for a standard HTML select element.
  */
 export class SearchableSelect {
     dropdown: HTMLDivElement = null;
-    button: HTMLButtonElement = null;
+    button: HTMLElement = null;
     target: HTMLElement;
+    element: HTMLSelectElement;
+    classList: string[];
+    placeholder: string;
 
     /**
      * Create a SearchableSelect instance.
      * @param target The target HTMLElement where the dropdown will be appended.
      * @param element The HTMLSelectElement that will be transformed into a searchable dropdown.
      */
-    constructor(private element: HTMLSelectElement, target?:HTMLElement) {
+    constructor({ element, target, classList, placeholder }: SearchableSelectOptions) {
+        this.element = element;
         this.target = target || element.parentElement || document.body;
+        this.classList = classList || [];
+        this.placeholder = placeholder || 'Select an option';
         this.init();
     }
 
@@ -37,9 +43,9 @@ export class SearchableSelect {
      * @private
      */
     private createDropdown(options: HTMLOptionElement[]) {
-        const id = SearchableSelect.getLastCreatedDropdownId();
+        const id = SearchableSelect.LastCreatedDropdownId;
         this.dropdown = document.createElement('div');
-        this.dropdown.className = 'dropdown';
+        this.dropdown.className = 'dropdown btn-searchable-select';
         this.dropdown.id = id;
         this.createButton(this.dropdown);
         this.createOptions(options, this.dropdown);
@@ -90,6 +96,7 @@ export class SearchableSelect {
                 e.preventDefault();
                 this.element.value = option.value;
                 this.refresh();
+                this.element.dispatchEvent(new Event('change', { bubbles: true }));
             });
             li.appendChild(a);
             ul.appendChild(li);
@@ -101,47 +108,46 @@ export class SearchableSelect {
      * @param dropdown The HTMLDivElement that represents the dropdown container.
      */
     private createButton(dropdown: HTMLDivElement) {
-        this.button = document.createElement('button');
-        this.button.className = 'btn btn-secondary dropdown-toggle w-100';
-        this.button.type = 'button';
-        this.button.setAttribute(SearchableSelect.getBootstrapVersion() >= 5 ? 'data-bs-toggle' : 'data-toggle', 'dropdown');
-        this.button.setAttribute('aria-expanded', 'false');
-        this.button.textContent = 'Select an option';
-        dropdown.appendChild(this.button);
+        const button = document.createElement('button');
+        button.classList.add('btn', 'dropdown-toggle', 'btn-searchable-select', ...this.classList);
+        button.type = 'button';
+        button.setAttribute(SearchableSelect.BootstrapVersion >= 5 ? 'data-bs-toggle' : 'data-toggle', 'dropdown');
+        button.setAttribute('aria-expanded', 'false');
+        const span = document.createElement('span');
+        span.textContent = 'Select an option';
+        button.appendChild(span);
+        this.button = span;
+        dropdown.appendChild(button);
     }
 
     /**
      * Creates a unique ID for the dropdown based on existing dropdowns in the document.
      * @returns A unique ID for the dropdown, incrementing from the last created dropdown ID.
      */
-    static getLastCreatedDropdownId(): string {
+    static get LastCreatedDropdownId(): string {
         const dropdowns = document.querySelectorAll('.dropdown');
         if (dropdowns.length === 0) {
             return 'dropdown-1';
         }
-        console.log(dropdowns.length);
         const filteredDropdowns = Array.from(dropdowns).filter((dropdown) => {
             return dropdown.id.startsWith('dropdown-');
         });
-        console.log(filteredDropdowns.length);
         if (filteredDropdowns.length === 0) {
             return 'dropdown-1';
         }
         const lastID = filteredDropdowns.map((dropdown) => {
             const match = dropdown.id.match(/dropdown-(\d+)/);
             const r = match ? parseInt(match[1], 10) : 0;
-            logging.info(`Found dropdown ID: ${dropdown.id}, parsed ID: ${r}`);
             return r;
         }).reduce((max, id) => Math.max(max, id), 0);
-        logging.info(`Last dropdown ID found: ${lastID}`);
-        return `dropdown-${lastID+1}`;
+        return `dropdown-${lastID + 1}`;
     }
 
     /**
      * Gets the major version of Bootstrap being used.
      * @returns The major version of Bootstrap being used, based on the Tooltip.VERSION.
      */
-    static getBootstrapVersion(): number {
+    static get BootstrapVersion(): number {
         return parseInt(Tooltip.VERSION.split('.')[0]);
     }
 
@@ -150,6 +156,13 @@ export class SearchableSelect {
      */
     refresh() {
         this.button.textContent = this.element.options[this.element.selectedIndex]?.text || 'Select an option';
-        this.element.dispatchEvent(new Event('change'));
+        $(this.dropdown).find('.dropdown-item')
+            .each((index, item) => {
+                if (item.textContent === this.button.textContent) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
     }
 }

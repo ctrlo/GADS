@@ -1,6 +1,6 @@
 /* eslint-disable */
-import {describe, it, expect, beforeEach, afterEach} from "@jest/globals";
-import {SearchableSelect} from "./SearchableSelect";
+import { describe, it, expect, beforeEach, afterEach } from "@jest/globals";
+import { SearchableSelect } from "./SearchableSelect";
 
 describe("SearchableSelect", () => {
     beforeEach(() => {
@@ -19,12 +19,12 @@ describe("SearchableSelect", () => {
             <div class="dropdown" id="dropdown-1"></div>
             <div class="dropdown" id="dropdown-4"></div>
         `;
-        const lastId = SearchableSelect.getLastCreatedDropdownId();
+        const lastId = SearchableSelect.LastCreatedDropdownId;
         expect(lastId).toBe("dropdown-5");
     });
 
     it("should return dropdown-1 when no dropdowns exist", () => {
-        const lastId = SearchableSelect.getLastCreatedDropdownId();
+        const lastId = SearchableSelect.LastCreatedDropdownId;
         expect(lastId).toBe("dropdown-1");
     });
 
@@ -33,12 +33,12 @@ describe("SearchableSelect", () => {
             <div class="dropdown" id="other-1"></div>
             <div class="dropdown" id="other-2"></div>
         `;
-        const lastId = SearchableSelect.getLastCreatedDropdownId();
+        const lastId = SearchableSelect.LastCreatedDropdownId;
         expect(lastId).toBe("dropdown-1");
     });
 
     it("should get the version of Bootstrap", () => {
-        const version = SearchableSelect.getBootstrapVersion();
+        const version = SearchableSelect.BootstrapVersion;
         expect(version).toBeGreaterThan(0);
     });
 
@@ -51,7 +51,7 @@ describe("SearchableSelect", () => {
         `;
         document.body.appendChild(selectElement);
 
-        const searchableSelect = new SearchableSelect(selectElement);
+        const searchableSelect = new SearchableSelect({ element: selectElement });
         expect(searchableSelect).toBeInstanceOf(SearchableSelect);
     })
 });

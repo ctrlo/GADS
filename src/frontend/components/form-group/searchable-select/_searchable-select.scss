@@ -1,0 +1,27 @@
+.btn-searchable-select.dropdown-toggle {
+    @include button-variant($gray-100, $gray-100, $secondary);
+    margin-top: .75rem;
+    margin-bottom: 1rem;
+    min-width: 100%;
+    max-width: 100%;
+    text-align: center;
+    white-space: nowrap;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    & span {
+        flex-grow: 1;
+    }
+}
+
+.btn-searchable-select {
+    .dropdown-menu.show {
+        border-color: $gray-200;
+    }
+}
+
+.rule-container {
+    display: flex;
+    align-items: center;
+}

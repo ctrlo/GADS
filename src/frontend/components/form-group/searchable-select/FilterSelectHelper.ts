@@ -1,10 +1,10 @@
 import './JQuerySearchableSelect';
 
-export const refreshSelects = (el: any) => {
+export const refreshSelects = (el: JQuery<HTMLElement>) => {
     const ruleFilterSelects = [];
     const operatorSelects = [];
 
-    el.on('afterCreateRuleFilters.queryBuilder', (e, rule) => {
+    el.on('afterCreateRuleFilters.queryBuilder', (e: JQuery.TriggeredEvent, rule: any) => {
         const ruleFilterSelect = $(rule.$el.find(`select[name=${rule.id}_filter]`));
         if (!ruleFilterSelects.includes(ruleFilterSelect[0])) ruleFilterSelects.push(ruleFilterSelect[0]);
         if (!ruleFilterSelect || !ruleFilterSelect[0]) {
@@ -16,7 +16,7 @@ export const refreshSelects = (el: any) => {
     });
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    el.on('afterCreateRuleOperators.queryBuilder', (e, rule, operators) => {
+    el.on('afterCreateRuleOperators.queryBuilder', (e: JQuery.TriggeredEvent, rule: any) => {
         const operatorSelect = $(rule.$el.find(`select[name=${rule.id}_operator]`));
         if (!operatorSelect || !operatorSelect[0]) {
             console.error('No operator select found');
