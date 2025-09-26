@@ -4,7 +4,9 @@ import AutosaveModal from './lib/modal';
 import gadsStorage from 'util/gadsStorage';
 
 export default (scope) => {
-    if (gadsStorage.enabled) {
+    // Ensure the autosave functionality is only initialized on record pages.
+    // This is to deactivate autosave on other pages that may use the form-edit class
+    if (location.pathname.match(/record/) && gadsStorage.enabled) {
         try {
             initializeComponent(scope, '.linkspace-field', AutosaveComponent);
             initializeComponent(scope, '#restoreValuesModal', AutosaveModal);
