@@ -116,41 +116,32 @@ class AutosaveModal extends AutosaveBase {
     // Do we need to run an autorecover?
     const item = await this.storage.getItem(this.table_key);
 
-    if (item) {
-      const alert = new InfoAlert("There are unsaved values from the last time you edited this record. Would you like to restore them?");
-      /**
-       * @type {HTMLDivElement} The rendered HTML element for the alert
-       */
-      const alertElement = alert.render();
+    // If there is no item, or there are already alerts, do not show the alert
+    if ($('.alert-danger').length || $('.alert-warning').length || !item) return;
+    const alert = new InfoAlert("There are unsaved values from the last time you edited this record. Would you like to restore them?");
+    const alertElement = alert.render();
 
-      alertElement.classList.add('alert-restore');
+    alertElement.classList.add('alert-restore');
 
-      const restoreButton = new RenderableButton("Restore", () => {
-        $modal.modal('show');
-        alert.hide();
-      }, 'btn-primary', 'btn-inverted', 'btn-alert-restore');
-      /**
-       * @type {HTMLButtonElement} The rendered HTML element for the restore button
-       */
-      const restoreButtonElement = restoreButton.render();
+    const restoreButton = new RenderableButton("Restore", () => {
+      $modal.modal('show');
+      alert.hide();
+    }, 'btn-primary', 'btn-inverted', 'btn-alert-restore');
+    const restoreButtonElement = restoreButton.render();
 
-      const cancelButton = new RenderableButton("Cancel", () => {
-        alert.hide();
-      }, 'btn-secondary', 'btn-inverted', 'btn-alert-restore-cancel');
-      /**
-       * @type {HTMLButtonElement} The rendered HTML element for the cancel button
-       */
-      const cancelButtonElement = cancelButton.render();
+    const cancelButton = new RenderableButton("Cancel", () => {
+      alert.hide();
+    }, 'btn-secondary', 'btn-inverted', 'btn-alert-restore-cancel');
+    const cancelButtonElement = cancelButton.render();
 
-      const buttonDiv = document.createElement('div');
-      buttonDiv.className = 'button-group d-flex justify-content-end';
-      buttonDiv.appendChild(restoreButtonElement);
-      buttonDiv.appendChild(cancelButtonElement);
+    const buttonDiv = document.createElement('div');
+    buttonDiv.className = 'button-group d-flex justify-content-end';
+    buttonDiv.appendChild(restoreButtonElement);
+    buttonDiv.appendChild(cancelButtonElement);
 
-      alertElement.appendChild(buttonDiv);
+    alertElement.appendChild(buttonDiv);
 
-      $('.content-block').prepend(alertElement);
-    }
+    $('.content-block').prepend(alertElement);
   }
 }
 
