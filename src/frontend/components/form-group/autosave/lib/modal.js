@@ -1,6 +1,8 @@
 import { setFieldValues } from "set-field-values";
 import AutosaveBase from './autosaveBase';
 import { fromJson } from "util/common";
+import { InfoAlert } from "components/alert/lib/infoAlert";
+import { RenderableButton } from "components/button/lib/RenderableButton";
 
 /**
  * A modal that allows the user to restore autosaved values.
@@ -36,7 +38,7 @@ class AutosaveModal extends AutosaveBase {
       $body.html("<p>Restoring values...</p><p><strong>Please be aware that linked records may take a moment to finish restoring.<strong><p>").append($list);
       // Convert the fields to promise functions (using the fields) that are run in parallel
       // This is only done because various parts of the codebase use the fields in different ways dependent on types (i.e. curval)
-      Promise.all($form.find('.linkspace-field').map(async (_, field) => {
+      await Promise.all($form.find('.linkspace-field').map(async (_, field) => {
         const $field = $(field);
         // This was originally a bunch of promises, but as the code is async, we can await things here
         try {
@@ -115,8 +117,39 @@ class AutosaveModal extends AutosaveBase {
     const item = await this.storage.getItem(this.table_key);
 
     if (item) {
-      $modal.modal('show');
-      $modal.find('.btn-js-delete-values').attr('disabled', 'disabled').hide();
+      const alert = new InfoAlert("There is some content to restore, do you wish to restore it?");
+      /**
+       * @type {HTMLDivElement} The rendered HTML element for the alert
+       */
+      const alertElement = alert.render();
+
+      alertElement.classList.add('alert-restore');
+
+      const restoreButton = new RenderableButton("Restore", () => {
+        $modal.modal('show');
+        alert.hide();
+      }, 'btn-primary', 'btn-inverted', 'btn-alert-restore');
+      /**
+       * @type {HTMLButtonElement} The rendered HTML element for the restore button
+       */
+      const restoreButtonElement = restoreButton.render();
+
+      const cancelButton = new RenderableButton("Cancel", () => {
+        alert.hide();
+      }, 'btn-secondary', 'btn-inverted', 'btn-alert-restore-cancel');
+      /**
+       * @type {HTMLButtonElement} The rendered HTML element for the cancel button
+       */
+      const cancelButtonElement = cancelButton.render();
+
+      const buttonDiv = document.createElement('div');
+      buttonDiv.className = 'button-group d-flex justify-content-end';
+      buttonDiv.appendChild(restoreButtonElement);
+      buttonDiv.appendChild(cancelButtonElement);
+
+      alertElement.appendChild(buttonDiv);
+
+      $('.content-block').prepend(alertElement);
     }
   }
 }

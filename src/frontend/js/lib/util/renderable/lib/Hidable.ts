@@ -15,8 +15,6 @@ export abstract class Hidable<T extends HTMLElement= HTMLElement> {
      */
     hide(): void {
         if(!this.element) return;
-        this.element.style.display = 'none';
-        this.element.style.visibility = 'hidden';
-        this.element.ariaHidden = 'true';
+        this.element.remove();
     }
 }
