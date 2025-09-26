@@ -2721,80 +2721,126 @@ sub for_code
 }
 
 sub pdf
-{   my $self = shift;
+{   my ($self, $site) = @_;
 
-    my $dateformat = GADS::Config->instance->dateformat;
-    my $now = DateTime->now;
-    $now->set_time_zone('Europe/London');
-    my $now_formatted = $now->format_cldr($dateformat)." at ".$now->hms;
-    my $updated = $self->edited_time->as_string;
+    my $config  = GADS::Config->instance;
+    my $header  = $config && $config->gads && $config->gads->{header};
+    my $marking = $site->read_security_marking;
+    my $logo    = $site->create_temp_logo;
+    
+    my $pdf;
+    my $topmargin = 0;
 
-    my $config = GADS::Config->instance;
-    my $header = $config && $config->gads && $config->gads->{header};
-    my $pdf = CtrlO::PDF->new(
-        header => $header,
-        footer => "Downloaded by ".$self->user->value." on $now_formatted",
-    );
+    if ($logo)
+    {
+        $pdf = CtrlO::PDF->new(
+            header => $marking,
+            footer => $marking,
+            logo   => $logo,
+        );
+
+        # Adjust the top margin to allow for the logo - 30px allows the table (below the logo) to not encroach on the logo when rendered
+        # This is used rather than overcomplicating and using image size to centre the header, and then having to "drop" the table down to avoid the logo
+        $topmargin = -30;
+    }
+    else
+    {
+        $pdf = CtrlO::PDF->new(
+            header => $marking,
+            footer => $marking,
+        );
+    }
 
     $pdf->add_page;
-    $pdf->heading('Record '.$self->current_id);
-    $pdf->heading('Last updated by '.$self->edited_user->as_string." on $updated", size => 12);
-
-    my $data =[
-        ['Field', 'Value'],
-    ];
-    my $max_fields;
-    foreach my $col ($self->layout->all_user_read)
-    {
-        my $datum = $self->get_field_value($col);
-        next if $datum->dependent_not_shown;
-        if ($col->is_curcommon)
-        {
-            my $first = 1;
-            foreach my $line (@{$datum->values})
-            {
-                my $field_count;
-                my @l = ($first ? $col->name : '');
-                foreach my $v (@{$line->{values}})
-                {
-                    push @l, $v;
-                    $field_count++;
-                }
-                push @$data, \@l;
-                $first = 0;
-                $max_fields = $field_count if !$max_fields || $max_fields < $field_count;
-            }
-        }
-        else {
-            push @$data, [
-                $col->name,
-                $datum->as_string,
-            ],
-        }
-    }
+    $pdf->heading("Default Report", topmargin => $topmargin);
 
     my $hdr_props = {
-        repeat     => 1,
-        justify    => 'center',
-        font_size  => 8,
+        repeat    => 0,
+        justify   => 'center',
+        font_size => 12,
+        bg_color  => '#007c88',
+        fg_color  => '#ffffff',
     };
 
-    my $cell_props = [];
-    foreach my $d (@$data)
+    my $result  = [$self->layout->all_user_read];
+
+    my @cols   = $self->presentation_map_columns(columns => $result);
+    my @topics = $self->get_topics(\@cols);
+
+    my $i = 0;
+    foreach my $topic (@topics)
     {
-        my $has = @$d;
-        # $max_fields does not include field name
-        my $gap = $max_fields - $has + 1;
-        push @$d, undef for (1..$gap);
-        push @$cell_props, [
-            (undef) x ($has - 1),
-            {colspan => $gap + 1}
-        ];
+        my $topic_name = $topic->{topic} ? $topic->{topic}->name : 'Other';
+        my $fields     = [ [$topic_name] ];
+
+        my $width = 0;
+        foreach my $col (@{ $topic->{columns} })
+        {
+            if ($col->{data}->{selected_values})
+            {
+                my $first = 1;
+                foreach my $c (@{ $col->{data}->{selected_values} })
+                {
+                    my $values = $c->{values};
+                    $width =
+                        $width < (scalar(@$values) + 1)
+                        ? scalar(@$values) + 1
+                        : $width;
+                    push @$fields, [ $first ? $col->{name} : '', @$values ];
+                    $first = 0;
+                }
+            }
+            else
+            {
+                if ($col->{data}->{value})
+                {
+                    push @$fields,
+                        [ $col->{name}, $col->{data}->{value} || "" ];
+                }
+                else
+                {
+                    push @$fields, [ $col->{name}, $col->{data}->{grade} ];
+                }
+                $width = 2 if $width < 2;
+            }
+        }
+
+        my $cell_props = [];
+        foreach my $d (@$fields)
+        {
+            my $has = @$d;
+
+            # $max_fields does not include field name
+            my $gap = $width - $has + 1;
+            push @$d, undef for (1 .. $gap);
+            push @$cell_props,
+                [ (undef) x ($has - 1), { colspan => $gap + 1 }, ];
+        }
+
+        $pdf->table(
+            data         => $fields,
+            header_props => $hdr_props,
+            border_c     => '#007C88',
+            h_border_w   => 1,
+            cell_props   => $cell_props,
+            size         => '4cm *',
+        );
     }
 
-    $pdf->table(
-        data       => $data,
-        cell_props => $cell_props,
+    my $now    = DateTime->now;
+    my $format = GADS::Config->instance->dateformat;
+    $pdf->text(
+        'Last edited by '
+            . $self->edited_user->as_string . ' on '
+            . $self->edited_time->as_string,
+        size => 10
+    );
+    $pdf->text(
+        'Report generated by '
+            . $self->user->value . ' on '
+            . $now->format_cldr($format) . ' at '
+            . $now->hms,
+        size => 10
     );
 
     $pdf;

@@ -3,6 +3,8 @@ package GADS::Schema::ResultSet::Report;
 use strict;
 use warnings;
 
+use GADS::Schema::Result::Report;
+
 use Log::Report 'linkspace';
 
 use parent 'DBIx::Class::ResultSet';
