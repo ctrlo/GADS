@@ -117,7 +117,7 @@ class AutosaveModal extends AutosaveBase {
     const item = await this.storage.getItem(this.table_key);
 
     if (item) {
-      const alert = new InfoAlert("There is some content to restore, do you wish to restore it?");
+      const alert = new InfoAlert("There are unsaved values from the last time you edited this record. Would you like to restore them?");
       /**
        * @type {HTMLDivElement} The rendered HTML element for the alert
        */
