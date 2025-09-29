@@ -117,7 +117,7 @@ class AutosaveModal extends AutosaveBase {
     const item = await this.storage.getItem(this.table_key);
 
     // If there is no item, or there are already alerts, do not show the alert
-    if ($('.alert-danger').length || $('.alert-warning').length || !item) return;
+    if ($('.alert-danger').text() || $('.alert-warning').text() || !item) return;
     const alert = new InfoAlert("There are unsaved values from the last time you edited this record. Would you like to restore them?");
     const alertElement = alert.render();
 
