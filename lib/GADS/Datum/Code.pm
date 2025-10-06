@@ -24,7 +24,7 @@ use String::CamelCase qw(camelize);
 use Tree::DAG_Node;
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/ArrayRef/;
 use namespace::clean;
 
 extends 'GADS::Datum';
@@ -135,6 +135,8 @@ sub _write_unique
             $schema->storage->svp_release("sp_uq_calc");
         }
         elsif ($@) {
+            $schema->storage->svp_rollback("sp_uq_calc");
+            $schema->storage->svp_release("sp_uq_calc");
             $@->reportAll;
         }
         else {

@@ -162,12 +162,13 @@ class FilterComponent extends Component {
       }
 
       // This is required to ensure that the correct query is sent each time
-      const buildQuery = () => {return {q:$ruleInputText.val(), oi:filterConfig.instanceId}}
+      const buildQuery = () => {return {q:$ruleInputText.val(), oi:filterConfig.instanceId, csrf_token: $('body').data('csrf')}}
 
       const builder = new TypeaheadBuilder();
       builder
         .withInput($ruleInputText)
         .withAjaxSource(self.getURL(builderConfig.layoutId, filterConfig.urlSuffix))
+        .withMethod('POST')
         .withDataBuilder(buildQuery)
         .withDefaultMapper()
         .withName('rule')
@@ -219,12 +220,7 @@ class FilterComponent extends Component {
     ...(col.type === 'rag'
       ? this.ragProperties
       : col.hasFilterTypeahead
-      ? this.typeaheadProperties(
-          col.urlSuffix,
-          builderConfig.layoutId,
-          col.instanceId,
-          col.useIdInFilter
-        )
+      ? this.typeaheadProperties
       : {})
   })
 }
@@ -245,30 +241,32 @@ class FilterComponent extends Component {
     return operators
   }
 
-  typeaheadProperties = () => ({
-    input: (container, input_name) => {
-      return (
-        `<div class='tt__container'>
-          <input class='form-control typeahead_text' type='text' name='${input_name}_text'/>
-          <input class='form-control typeahead_hidden' type='hidden' name='${input_name}'/>
-        </div>`
-      )
-    },
-    valueSetter: (rule, value) => {
-      rule.$el.find('.typeahead_hidden').val(value)
-      const typeahead = rule.$el.find('.typeahead_text')
-      typeahead.typeahead('val',rule.data.text)
-      typeahead.val(rule.data.text)
-    },
-    validation: {
-      callback: () => {return true}
+  get typeaheadProperties() {
+    return {
+      input: (container, input_name) => {
+        return (
+          `<div class='tt__container'>
+            <input class='form-control typeahead_text' type='text' name='${input_name}_text'/>
+            <input class='form-control typeahead_hidden' type='hidden' name='${input_name}'/>
+          </div>`
+        )
+      },
+      valueSetter: (rule, value) => {
+        rule.$el.find('.typeahead_hidden').val(value)
+        const typeahead = rule.$el.find('.typeahead_text')
+        typeahead.typeahead('val',rule.data.text)
+        typeahead.val(rule.data.text)
+      },
+      validation: {
+        callback: () => {return true}
+      }
     }
-  })
+  }
 
   getRecords = (layoutId, urlSuffix, instanceId, query) => {
     return (
       $.ajax({
-        type: 'GET',
+        type: 'POST',
         url: this.getURL(layoutId, urlSuffix),
         data: { q: query, oi: instanceId },
         dataType: 'json',

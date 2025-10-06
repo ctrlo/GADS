@@ -25,15 +25,20 @@
                             [% render_datum(col_inner) %]
                         </td>
                     [% END %]
-                </tr>
+                </tr> 
           [% curcommon_row_counter = curcommon_row_counter + 1%]
         [% END %]
       </table>
     [% END %]
-    [% IF col.limit_rows AND curval.links.size >= col.limit_rows %]
-        <p><em>(showing maximum [% col.limit_rows %] rows.
-            <a href="/[% curval.parent_layout_identifier %]/data?curval_record_id=[% curval.record_id %]&curval_layout_id=[% curval.column_id %]" target="_blank">view all</a>)</em>
-        </p>
+    [% IF (curval.has_more) OR col.show_view_all %]
+        <p><em>(showing
+        [% IF col.limit_rows AND curval.links.size >= col.limit_rows %]
+            maximum [% col.limit_rows %] 
+        [% ELSE %]
+            [% curval.links.size %] 
+        [% END %]
+            row[%IF curval.links.size != 1%]s[%END%].</em>
+            <a href="/[% curval.parent_layout_identifier %]/data?curval_record_id=[% curval.record_id %]&curval_layout_id=[% curval.column_id %]" target="_blank">view all</a>)</p>
     [% END %]
 [% END %]
 

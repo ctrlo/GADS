@@ -1,13 +1,17 @@
 import { XmlHttpRequestLike } from "../js/lib/util/upload/UploadControl";
+import {TextEncoder, TextDecoder} from "util";
+
+Object.assign(global, {TextEncoder, TextDecoder});
 
 declare global {
     interface Window {
         $: JQueryStatic;
+        jQuery: JQueryStatic;
         alert: (message?: any)=>void;
     }
 }
 
-window.$ = require("jquery");
+window.$ = window.jQuery = require("jquery"); // eslint-disable-line @typescript-eslint/no-require-imports
 window.alert = jest.fn();
 
 export function mockJQueryAjax() {
@@ -52,6 +56,9 @@ export class MockXhr implements XmlHttpRequestLike {
     readyState: number = 4;
     status: number = 200;
     responseText: string = JSON.stringify({error: 0});
+    upload = {
+        onprogress: jest.fn()
+    }
 }
 
 export interface ElementLike {
@@ -70,4 +77,32 @@ export class DefaultElementLike implements ElementLike {
     css: (attr: string, value: string) => void = jest.fn();
     removeClass: (className: string) => void = jest.fn();
     removeAttr: (attr: string) => void = jest.fn();
+}
+
+export function setupCrypto() {
+    const crypto = {
+        subtle: {
+            importKey: jest.fn(),
+            exportKey: jest.fn(),
+            encrypt: jest.fn(),
+            decrypt: jest.fn().mockReturnValue(new TextEncoder().encode("value")), // We mock the return on this one purely to make sure we're calling as expected
+            deriveKey: jest.fn(),
+        },
+        getRandomValues: jest.fn().mockReturnValue(new Uint8Array(12)),
+    };
+    Object.defineProperty(window, "crypto", {
+        value: crypto
+    });
+}
+
+export async function setupNoMockCrypto() {
+    const crypto = await import("crypto");
+    Object.defineProperty(window, "crypto", {
+        value: crypto
+    });
+}
+
+export function killNoMockCrypto() {
+    // @ts-expect-error This is a unit test, so this is not readonly
+    delete window.crypto;
 }

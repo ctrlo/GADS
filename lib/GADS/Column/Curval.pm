@@ -23,14 +23,47 @@ use GADS::Records;
 use Log::Report 'linkspace';
 
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Bool Str ArrayRef/;
 
 extends 'GADS::Column::Curcommon';
 
 with 'GADS::Role::Curcommon::CurvalMulti';
 
 has '+option_names' => (
-    default => sub { [qw/override_permissions value_selector show_add delete_not_used limit_rows/] },
+    default => sub {
+        [{
+            name              => 'override_permissions',
+            user_configurable => 1,
+        }, {
+            name              => 'value_selector',
+            user_configurable => 1,
+        }, {
+            name              =>'show_add',
+            user_configurable => 1,
+        }, {
+            name              => 'delete_not_used',
+            user_configurable => 1,
+        }, {
+            name              => 'limit_rows',
+            user_configurable => 1,
+        }, {
+            name              => 'show_view_all',
+            user_configurable => 1,
+        }]
+    },
+);
+
+has show_view_all => (
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    coerce  => sub { $_[0] ? 1 : 0 },
+    builder => sub {
+        my $self = shift;
+        return 0 unless $self->has_options;
+        $self->options->{show_view_all};
+    },
+    trigger => sub { $_[0]->reset_options },
 );
 
 has value_selector => (

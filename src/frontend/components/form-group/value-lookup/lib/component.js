@@ -60,7 +60,12 @@ class ValueLookupComponent extends Component {
         } else {
           for (const [name, value] of Object.entries(data.result)) {
             var $f = $('.linkspace-field[data-name-short="'+name+'"]')
-            setFieldValues($f, value)
+            if(!$f || $f.length == 0) continue;
+            try {
+              setFieldValues($f, value)
+            } catch (e) {
+              console.error("Error setting field values", e)
+            }
           }
           removeStatusMessage($field)
         }

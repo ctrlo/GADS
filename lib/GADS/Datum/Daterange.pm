@@ -24,7 +24,7 @@ use DateTime::Span;
 use GADS::SchemaInstance;
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/ArrayRef/;
 
 extends 'GADS::Datum';
 

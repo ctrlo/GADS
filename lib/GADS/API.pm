@@ -332,7 +332,7 @@ post '/api/token' => sub {
     # RFC6749 says try auth header first, then fall back to body params
     if (my $auth = request->header('authorization'))
     {
-        if (my ($encoded) = split 'Basic ', $auth)
+        if (my ($encoded) = $auth =~ /^Basic (.+)/)
         {
             if (my $decoded = decode_base64 $encoded)
             {
@@ -420,9 +420,11 @@ post '/api/token' => sub {
 
 prefix '/:layout_name' => sub {
 
-    get '/api/field/values/:id' => require_login sub {
 
-        my $user   = logged_in_user;
+    post '/api/field/values/:id' => sub {
+
+        my $user   = logged_in_user
+            or error __"User session has timed out - please log in and try again";
         my $layout = var('layout') or pass;
         my $col_id = route_parameters->get('id');
         my $submission_token = query_parameters->get('submission-token')
@@ -445,10 +447,23 @@ prefix '/:layout_name' => sub {
                 $datum->set_value(\@vals);
             }
             $record->write(
-                dry_run           => 1,
-                missing_not_fatal => 1,
-                submitted_fields  => $curval->subvals_input_required,
-                submission_token  => $submission_token,
+                dry_run            => 1,
+                missing_not_fatal  => 1,
+                # XXX It is possible that the record initiating this function
+                # already has a value in a read-only field. This field, despite
+                # being read-only, should still affect the filtered drop-down.
+                # However, because this temporary record is new, it won't allow
+                # the value to be written. Ideally we would load the existing
+                # record at this point, but this would take too long with the
+                # current code. Therefore, allow the read-only value to be
+                # written to. This technically enables the user to submit a
+                # different value and therefore produce a different shortlist,
+                # so longer-term the submitted values from a filtered-curval
+                # should be validated (which should happen anyway, as they
+                # could technically be forced)
+                force_readonly_new => 1,
+                submitted_fields   => $curval->subvals_input_required,
+                submission_token   => $submission_token,
             );
         } # Missing values are reporting as non-fatal errors, and would therefore
           # not be caught by the try block and would be reported as normal (including
@@ -744,7 +759,7 @@ sub _post_add_user_account
         department_id         => $body->{department_id},
         team_id               => $body->{team_id},
         account_request       => 0,
-        account_request_notes => $body->{notes},
+        account_request_notes => $body->{notes} || $body->{account_request_notes},
         view_limits           => $body->{view_limits},
         groups                => $body->{groups},
     );
@@ -1572,6 +1587,17 @@ any ['get', 'post'] => '/api/users' => require_any_role [qw/useradmin superadmin
 
     content_type 'application/json; charset=UTF-8';
     return encode_json $return;
+};
+
+get '/api/get_key' => require_login sub {
+    my $user = logged_in_user;
+
+    my $key = $user->encryption_key;
+
+    return to_json {
+        error => 0,
+        key   => $key
+    }
 };
 
 sub _success

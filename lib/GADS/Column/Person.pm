@@ -21,13 +21,13 @@ package GADS::Column::Person;
 use Log::Report 'linkspace';
 use GADS::Users;
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Bool/;
 
 extends 'GADS::Column';
 
 with 'GADS::Role::Presentation::Column::Person';
 
-our @person_properties = qw/id email username firstname surname freetext1 freetext2 organisation department_id team_id title value/;
+our @person_properties = qw/id email username firstname surname freetext1 freetext2 organisation department_id team_id title value deleted/;
 
 has set_filter => (
     is      => 'rw',
@@ -73,7 +73,21 @@ has '+fixedvals' => (
 );
 
 has '+option_names' => (
-    default => sub { [qw/default_to_login notify_on_selection notify_on_selection_message notify_on_selection_subject/] },
+    default => sub {
+        [{
+            name              => 'default_to_login',
+            user_configurable => 1,
+        }, {
+            name              => 'notify_on_selection',
+            user_configurable => 1,
+        }, {
+            name              => 'notify_on_selection_subject',
+            user_configurable => 1,
+        }, {
+            name              => 'notify_on_selection_message',
+            user_configurable =>1,
+        }]
+    },
 );
 
 has '+can_multivalue' => (

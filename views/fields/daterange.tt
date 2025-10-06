@@ -19,8 +19,8 @@
           label_checkbox_name = ""
           help_text    = from.help_text
           popover_body = from.popover_body
-          placeholder  = from.placeholder || config.dateformat
-          dateformat   = from.placeholder || config.dateformat
+          placeholder  = from.placeholder || config.dateformat_datepicker
+          dateformat   = from.placeholder || config.dateformat_datepicker
           value        = from.value
           filter       = from.filter || "html"
           is_required  = from.is_required ? 1 : 0
@@ -43,8 +43,8 @@
           label_checkbox_name = ""
           help_text    = from.help_text
           popover_body = from.popover_body
-          placeholder  = to.placeholder || config.dateformat
-          dateformat   = to.placeholder || config.dateformat
+          placeholder  = to.placeholder || config.dateformat_datepicker
+          dateformat   = to.placeholder || config.dateformat_datepicker
           value        = to.value
           filter       = to.filter || "html"
           is_required  = to.is_required ? 1 : 0
