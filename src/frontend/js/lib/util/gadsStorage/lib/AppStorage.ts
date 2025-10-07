@@ -1,12 +1,16 @@
-import { GadsStorage } from "./GadsStorage";
-import { NullStorage } from "./NullStorage";
+import { GadsStorage } from './GadsStorage';
+import { NullStorage } from './NullStorage';
 
 /**
  * Interface for a storage object that can be used to store data in the browser.
  */
 export abstract class AppStorage {
+    /**
+     * Create an instance of the AppStorage class.
+     * @returns {AppStorage} An instance of the AppStorage class, which is either a GadsStorage or NullStorage instance.
+     */
     static CreateStorageInstance(): AppStorage {
-        return crypto.subtle && typeof crypto.subtle != "undefined" ? new GadsStorage(): new NullStorage();
+        return crypto.subtle && typeof crypto.subtle != 'undefined' ? new GadsStorage() : new NullStorage();
     }
     /**
      * Store a value in the browsers' storage
