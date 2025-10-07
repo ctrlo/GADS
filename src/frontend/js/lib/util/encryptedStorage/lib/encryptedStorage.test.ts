@@ -1,4 +1,5 @@
-import { setupCrypto } from '../../../../../testing/globals.definitions';
+/* eslint-disable jsdoc/require-jsdoc */
+import { setupCrypto } from 'testing/globals.definitions';
 import { EncryptedStorage } from './encryptedStorage';
 
 class TestStorage implements Storage {
@@ -43,9 +44,11 @@ describe('EncryptedStorage', () => {
     let encryptedStorageMock: EncryptedStorage;
 
     beforeAll(() => {
-        // @ts-expect-error This is a unit test, so this is not readonly
-        window.crypto && window.crypto.subtle && delete window.crypto.subtle; // We want to make sure the mock implementation of crypto is used
-    })
+        if (window.crypto && window.crypto.subtle) {
+            // @ts-expect-error This is a unit test, so this is not readonly
+            delete window.crypto.subtle; // We want to make sure the mock implementation of crypto is used}
+        }
+    });
 
     beforeEach(() => {
         setupCrypto();
@@ -54,8 +57,10 @@ describe('EncryptedStorage', () => {
     });
 
     afterEach(() => {
-        // @ts-expect-error This is a unit test, so this is not readonly
-        window.crypto && window.crypto.subtle && delete window.crypto.subtle; // We want to also clear the mock implementation of crypto
+        if (window.crypto && window.crypto.subtle) {
+            // @ts-expect-error This is a unit test, so this is not readonly
+            delete window.crypto.subtle; // We want to also clear the mock implementation of crypto
+        }
     });
 
     it('should set and get an item', async () => {
