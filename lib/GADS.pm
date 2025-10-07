@@ -1948,8 +1948,10 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
 
     if (defined param('pdf') && !$record->layout->no_download_pdf)
     {
-        my $pdf = $record->pdf->content;
-        return send_file(\$pdf, content_type => 'application/pdf', filename => "Record-".$record->current_id.".pdf" );
+        my $site = var 'site'
+            or error __"No site configured";
+        my $pdf = $record->pdf($site)->content;
+        return send_file( \$pdf, content_type => 'application/pdf', );
     }
 
     if (query_parameters->get('report'))
