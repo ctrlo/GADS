@@ -20,7 +20,7 @@ export { };
             target: this.parent()[0],
             classList: [],
             placeholder: 'Select an option',
-            element: this[0] as HTMLSelectElement,
+            element: this[0] as HTMLSelectElement
         }, options);
         this.each(function () {
             const element = this as HTMLSelectElement;

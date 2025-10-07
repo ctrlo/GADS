@@ -92,6 +92,7 @@ export class SearchableSelect {
             a.classList.add('dropdown-item', 'searchable-select-option');
             a.href = '#';
             a.textContent = option.text;
+            a.role = 'option';
             a.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.element.value = option.value;
