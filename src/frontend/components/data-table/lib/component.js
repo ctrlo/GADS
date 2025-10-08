@@ -10,8 +10,6 @@ import './DataTablesPlugins';
 import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets';
 import { moreLess } from 'components/more-less/lib/more-less';
 import { bindToggleTableClickHandlers } from './toggle-table';
-/* eslint-disable */
-import { Config } from 'datatables.net-bs5';
 
 const isUndefined = (value) => typeof value === 'undefined' || value === null;
 
