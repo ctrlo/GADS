@@ -530,3 +530,12 @@
   @extend %icon-font;
   content: "\E80b";
 }
+
+button.close {
+    background: $transparent;
+    border: none;
+
+    &:hover {
+        color: lighten($brand-primary, 0.1);
+    }
+}

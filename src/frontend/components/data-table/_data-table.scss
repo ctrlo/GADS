@@ -56,9 +56,9 @@
     &.table-striped {
         --bs-table-border-color: $transparent;
 
-        & > tbody {
-            & > tr:nth-of-type(2n) {
-                & > * {
+        &>tbody {
+            &>tr:nth-of-type(2n) {
+                &>* {
                     box-shadow: none !important;
                 }
             }
@@ -68,13 +68,13 @@
     &.table-hover {
         --bs-table-hover-bg: $table-hover-bg;
 
-        & > tbody {
-            & > tr:hover {
+        &>tbody {
+            &>tr:hover {
                 background-color: $table-hover-bg;
             }
 
-            & > tr:hover {
-                & > * {
+            &>tr:hover {
+                &>* {
                     box-shadow: none !important;
                 }
             }
@@ -488,6 +488,7 @@ button.btn-add {
             .btn-search {
                 opacity: 1;
                 color: var(--bs-secondary, $brand-secundary);
+
                 &::before {
                     color: var(--bs-secondary, $brand-secundary);
                 }
@@ -565,7 +566,12 @@ button.btn-add {
     }
 }
 
-thead, tbody, tfoot, tr, td, th {
+thead,
+tbody,
+tfoot,
+tr,
+td,
+th {
     border: none;
 }
 
@@ -591,10 +597,20 @@ thead, tbody, tfoot, tr, td, th {
 }
 
 /* This is because bootstrap _loves_ to add a box-shadow to the table rows */
-.data-table > tbody > tr {
+.data-table>tbody>tr {
     background-color: $white;
     box-shadow: none;
-    & > td {
+
+    &>td {
         box-shadow: none;
     }
+}
+
+.table-hover>tbody>tr>* {
+    transition: all 0.2s ease-in;
+}
+
+.table-hover>tbody>tr:hover>* {
+    background-color: #9f9f9f;
+    box-shadow: none;
 }

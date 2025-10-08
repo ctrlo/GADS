@@ -195,7 +195,7 @@ a.card--settings {
     margin-right: 0;
     margin-bottom: 0;
 
-    span {
+    span:not(.btn__title) {
         @extend .visually-hidden;
     }
 }

@@ -526,7 +526,7 @@
                                 %]
 
                                 <button
-                                  class="btn btn-primary btn-sm btn-remove btn-js-toggle-all-fields m-0"
+                                  class="btn btn-primary btn-remove btn-js-toggle-all-fields m-0"
                                   data-toggle-source="#table-view-fields-selected"
                                   data-toggle-destination="#table-view-fields-available">
                                     Remove all fields
@@ -573,7 +573,7 @@
                                   rows = fields_available
                                 %]
                                 <button
-                                  class="btn btn-primary btn-sm btn-add btn-js-toggle-all-fields m-0"
+                                  class="btn btn-primary btn-add btn-js-toggle-all-fields m-0"
                                   data-toggle-source="#table-view-fields-available"
                                   data-toggle-destination="#table-view-fields-selected">
                                     Select all fields

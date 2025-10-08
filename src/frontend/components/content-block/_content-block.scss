@@ -4,14 +4,22 @@
 }
 
 .content-block__navigation {
+  --bs-nav-link-font-size: $font-size-base;
   display: flex;
   position: relative;
   flex-wrap: wrap;
   gap: $padding-base-horizontal;
   align-items: center;
-  justify-content: space-between;
   margin-bottom: 1px; // To reserve room for the bottom border of 2px
   padding: $padding-base-vertical 0 $padding-base-vertical;
+
+  &:not(.nav-pills) {
+    justify-content: space-between;
+  }
+
+  &.nav-pills {
+    justify-content: start;
+  }
 
   &::after {
     content: '';

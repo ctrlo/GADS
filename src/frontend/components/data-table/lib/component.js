@@ -10,6 +10,10 @@ import './DataTablesPlugins';
 import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets';
 import { moreLess } from 'components/more-less/lib/more-less';
 import { bindToggleTableClickHandlers } from './toggle-table';
+/* eslint-disable */
+import { Config } from 'datatables.net-bs5';
+
+const isUndefined = (value) => typeof value === 'undefined' || value === null;
 
 const MORE_LESS_TRESHOLD = 50;
 
@@ -779,22 +783,18 @@ class DataTableComponent extends Component {
         if(!layout) return;
         if(!layout.topEnd) return;
         if(Array.isArray(layout.topEnd) && layout.topEnd.includes('fs')) {
-            console.log('Fullscreen mode enabled for DataTable');
             layout.topEnd = layout.topEnd.filter((item) => item !== 'fs');
-            layout.topEnd.push({fullscreen: {checked: this.fullScreen, onToggle: (ev) => this.toggleFullScreenMode(ev)}});
+            layout.topEnd.push({fullscreen: {checked: this.fullScreen, onToggle: (ev)=>this.toggleFullScreenMode(ev.target)}});
         } else if (layout.topEnd === 'fs') {
             layout.topEnd = undefined;
-            console.log('Fullscreen mode enabled for DataTable');
-            layout.topEnd = {fullscreen: {checked: this.fullScreen, onToggle: (ev) => this.toggleFullScreenMode(ev)}};
-        } else {
-            console.log('No fullscreen mode enabled for DataTable');
+            layout.topEnd = {fullscreen: {checked: this.fullScreen, onToggle: (ev)=>this.toggleFullScreenMode(ev.target)}};
         }
     }
 
     /**
      * Get the configuration object for the DataTable
      * @import { Config } from 'datatables.net-bs5';
-     * @param {Parital<Config>} overrides Any values to override in the configuration
+     * @param {Readonly<Parital<Config>>=} overrides Any values to override in the configuration
      * @returns {Config} The configuration object for the DataTable
      */
     getConf(overrides = undefined) {
@@ -807,7 +807,13 @@ class DataTableComponent extends Component {
             conf = confData;
         }
 
-        Object.assign(conf, overrides);
+        for(const key in overrides) {
+            if(isUndefined( overrides[key]) || overrides[key] === null) {
+                delete overrides[key];
+            }else {
+                conf[key] = overrides[key];
+            }
+        }
 
         this.setupFullscreen(conf.layout);
 
@@ -904,7 +910,7 @@ class DataTableComponent extends Component {
 
     /**
      * Toggle full screen mode for the DataTable
-     * @param {HTMLButtonElement} buttonElement The button element that was clicked to toggle full screen mode
+     * @param {HTMLInputElement} buttonElement The button element that was clicked to toggle full screen mode
      */
     toggleFullScreenMode(buttonElement) {
         /*
@@ -928,7 +934,7 @@ class DataTableComponent extends Component {
             newModal.append(table);
             document.body.appendChild(newModal);
             if (currentTable && !($.fn.dataTable.isDataTable(currentTable))) {
-                currentTable.DataTable(this.getConf({ responsive: false, reinitialize: true }));
+                currentTable.DataTable(this.getConf({ responsive: undefined, reinitialize: true }));
             }
 
             $(document).on('keyup', (ev) => {
@@ -956,8 +962,11 @@ class DataTableComponent extends Component {
 
         // Toggle the full screen button
         this.isFullScreen = !this.isFullScreen;
-        $('#full-screen-btn').removeClass(this.isFullScreen ? 'btn-toggle-off' : 'btn-toggle');
-        $('#full-screen-btn').addClass(this.isFullScreen ? 'btn-toggle' : 'btn-toggle-off');
+        if(this.isFullScreen) {
+            $('#fullscreen-button').attr('checked', 'checked');
+        } else {
+            $('#fullscreen-button').removeAttr('checked');
+        }
     }
 
     /**

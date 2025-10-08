@@ -1,5 +1,6 @@
 .btn-popover {
     @include button-variant($transparent, $transparent, $primary, $hover-color: darken($primary, 10%));
+
     padding: 0;
     margin: 0 $padding-small-vertical;
     align-content: center;
@@ -39,4 +40,32 @@
 
 .popover {
     max-width: 50%;
+}
+
+.list__value {
+    .btn-popover {
+        background: $transparent;
+        color: $primary;
+        border: solid 1px $primary;
+        padding: 7px 20px;
+
+        &::before {
+            content: none;
+        }
+
+        &::after {
+            content: "\E810";
+            transition: all 0.2s ease-in-out;
+        }
+
+        &:hover {
+            border-color: $secondary;
+            color: $secondary;
+
+            &::after {
+                color: $secondary;
+                transform: scale(1.2);
+            }
+        }
+    }
 }

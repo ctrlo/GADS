@@ -1,5 +1,3 @@
-$multiplier: 1.6;
-
 .table-nav-tabs {
     border-bottom: solid 2px #{$secondary};
     margin-left: -$multiplier * $grid-offset-mobile;
@@ -21,7 +19,7 @@ $multiplier: 1.6;
         .nav-link {
             &:not(.active) {
                 --bs-nav-link-color: #{$secondary};
-                border-color: rgba($secondary, 0.1);
+                border-color: rgba($secondary, 0.3);
             }
             &.active {
                 --bs-nav-link-color: #{$primary};
