@@ -1,4 +1,3 @@
-/* eslint-disable @stylistic/indent */
 /* eslint-disable @typescript-eslint/no-this-alias */
 
 import { Component, initializeRegisteredComponents } from 'component';
@@ -11,8 +10,6 @@ import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/
 import { moreLess } from 'components/more-less/lib/more-less';
 import { bindToggleTableClickHandlers } from './toggle-table';
 
-const isUndefined = (value) => typeof value === 'undefined' || value === null;
-
 const MORE_LESS_TRESHOLD = 50;
 
 /**
@@ -20,21 +17,30 @@ const MORE_LESS_TRESHOLD = 50;
  */
 class DataTableComponent extends Component {
     /**
+     * @type {boolean}
+     * Indicates if the DataTable is in fullscreen mode
+     * @default false
+     */
+    get isFullscreen() {
+        return $('#fullscreen-frame').length > 0;
+    }
+
+    /**
      * Creates a new DataTable component
      * @param {HTMLElement} element The element to attach the DataTable functionality to
      */
     constructor(element) {
         super(element);
+        this.count = 0;
         this.el = $(this.element);
         this.hasCheckboxes = this.el.hasClass('table-selectable');
         this.hasClearState = this.el.hasClass('table-clear-state');
         this.forceButtons = this.el.hasClass('table-force-buttons');
         this.searchParams = new URLSearchParams(window.location.search);
         this.base_url = this.el.data('href') ? this.el.data('href') : undefined;
-        this.isFullScreen = false;
         this.initTable();
         $(window).on('resize', () => {
-            if(this.el.DataTable().responsive) {
+            if (this.el.DataTable().responsive) {
                 this.el.DataTable().responsive.recalc();
             }
         });
@@ -354,7 +360,7 @@ class DataTableComponent extends Component {
           </button>
         </div>
       </div>`
-    );
+        );
 
         /* Construct search box for filtering. If the filter has a typeahead and if
          * it uses an ID rather than text, then add a second (hidden) input field
@@ -365,11 +371,11 @@ class DataTableComponent extends Component {
         $searchInput.appendTo($('.input', $searchElement));
         if (col.typeahead_use_id) {
             $searchInput.after('<input type="hidden" class="search">');
-            if(searchValue) {
-                const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1', {method: 'POST', data: {csrf_token: $('body').data('csrf')}});
+            if (searchValue) {
+                const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1', { method: 'POST', data: { csrf_token: $('body').data('csrf') } });
                 const data = await response.json();
                 if (!data.error) {
-                    if(data.records.length != 0) {
+                    if (data.records.length != 0) {
                         $searchInput.val(data.records[0].label);
                         $('input.search', $searchElement).val(data.records[0].id)
                             .trigger('change');
@@ -386,22 +392,22 @@ class DataTableComponent extends Component {
 
         if (col && col.typeahead) {
             import(/*webpackChunkName: "typeahead" */ 'util/typeahead')
-                .then(({default: TypeaheadBuilder})=>{
+                .then(({ default: TypeaheadBuilder }) => {
                     const builder = new TypeaheadBuilder();
                     builder
                         .withAjaxSource(this.getApiEndpoint(columnId))
                         .withMethod('POST')
-                        .withData({csrf_token: $('body').data('csrf')})
+                        .withData({ csrf_token: $('body').data('csrf') })
                         .withInput($('input', $header))
                         .withAppendQuery()
                         .withDefaultMapper()
                         .withName(columnId.replace(/\s+/g, '') + 'Search')
                         .withCallback((data) => {
-                            if(col.typeahead_use_id) {
+                            if (col.typeahead_use_id) {
                                 $searchInput.val(data.name);
-                                $('input.search',$searchElement).val(data.id)
+                                $('input.search', $searchElement).val(data.id)
                                     .trigger('change');
-                            }else{
+                            } else {
                                 $('input', $searchElement).addClass('search')
                                     .val(data.name)
                                     .trigger('change');
@@ -778,14 +784,14 @@ class DataTableComponent extends Component {
      * @param {Config['layout']} layout The layout configuration for the DataTable
      */
     setupFullscreen(layout) {
-        if(!layout) return;
-        if(!layout.topEnd) return;
-        if(Array.isArray(layout.topEnd) && layout.topEnd.includes('fs')) {
+        if (!layout) return;
+        if (!layout.topEnd) return;
+        if (Array.isArray(layout.topEnd) && layout.topEnd.includes('fs')) {
             layout.topEnd = layout.topEnd.filter((item) => item !== 'fs');
-            layout.topEnd.push({fullscreen: {checked: this.fullScreen, onToggle: (ev)=>this.toggleFullScreenMode(ev.target)}});
+            layout.topEnd.push({ fullscreen: { checked: this.fullScreen, onToggle: (ev) => this.toggleFullScreenMode(ev) } });
         } else if (layout.topEnd === 'fs') {
             layout.topEnd = undefined;
-            layout.topEnd = {fullscreen: {checked: this.fullScreen, onToggle: (ev)=>this.toggleFullScreenMode(ev.target)}};
+            layout.topEnd = { fullscreen: { checked: this.fullScreen, onToggle: (ev) => this.toggleFullScreenMode(ev) } };
         }
     }
 
@@ -805,13 +811,7 @@ class DataTableComponent extends Component {
             conf = confData;
         }
 
-        for(const key in overrides) {
-            if(isUndefined( overrides[key]) || overrides[key] === null) {
-                delete overrides[key];
-            }else {
-                conf[key] = overrides[key];
-            }
-        }
+        Object.assign(conf, overrides);
 
         this.setupFullscreen(conf.layout);
 
@@ -874,7 +874,7 @@ class DataTableComponent extends Component {
         conf['footerCallback'] = function () {
             const api = this.api();
             // Add aggregate values to table if configured
-            const agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate;
+            const agg = api.ajax?.json()?.aggregate;
             if (agg) {
                 const cols = api.settings()[0].oAjaxData.columns;
                 api.columns().every(function () {
@@ -908,63 +908,45 @@ class DataTableComponent extends Component {
 
     /**
      * Toggle full screen mode for the DataTable
-     * @param {HTMLInputElement} buttonElement The button element that was clicked to toggle full screen mode
      */
-    toggleFullScreenMode(buttonElement) {
-        /*
-            For some reason, the current code that is present doesn't enable/disable the button as expected; it will disable the button, but will not re-enable the button.
-            I have tried manually changing the DOM, as well as the methods already present in the code, and I currently believe there is a bug within the DataTables button
-            code that is meaning that this won't change (although I am open to the fact that I am being a little slow and missing something glaringly obvious).
-        */
-        const table = document.querySelector('table.data-table');
-        const currentTable = $(table);
-        if (currentTable && $.fn.dataTable.isDataTable(currentTable)) {
-            currentTable.DataTable().destroy();
-        }
-        if (!this.isFullScreen) {
-            // Create new modal
-            const newModal = document.createElement('div');
-            newModal.id = 'table-modal';
-            newModal.classList.add('table-modal');
-            newModal.classList.add('data-table__container--scrollable');
+    toggleFullScreenMode() {
+        const table = $('.data-table');
 
-            // Move data table into new modal
-            newModal.append(table);
-            document.body.appendChild(newModal);
-            if (currentTable && !($.fn.dataTable.isDataTable(currentTable))) {
-                currentTable.DataTable(this.getConf({ responsive: undefined, reinitialize: true }));
-            }
+        if ($.fn.dataTable.isDataTable(table[0])) table.DataTable().destroy();
 
-            $(document).on('keyup', (ev) => {
-                if (ev.key === 'Escape') {
-                    this.toggleFullScreenMode(buttonElement);
-                }
-            });
-        } else {
-            // Move data table back to original page
-            const mainContent = document.querySelector('.content-block__main-content');
-            if (!mainContent) {
-                console.warn('Failed to close full screen; missing main content');
-                return;
-            }
+        if (!this.isFullscreen) {
+            const frame = document.createElement('div');
+            frame.className = 'p-3';
+            frame.id = 'fullscreen-frame';
+            frame.style.position = 'fixed';
+            frame.style.top = '0';
+            frame.style.left = '0';
+            frame.style.width = '100%';
+            frame.style.height = '100%';
+            frame.style.overflow = 'auto';
+            frame.style.backgroundColor = 'white';
+            frame.style.zIndex = '1020';
 
-            mainContent.appendChild(table);
-            if (currentTable && !($.fn.dataTable.isDataTable(currentTable))) {
-                currentTable.DataTable(this.getConf({ reinitialize: true }));
-            }
-            // Remove the modal
-            document.querySelector('#table-modal').remove();
+            const duplicate = table.clone();
+            frame.appendChild(duplicate[0]);
+            table.remove();
 
-            $(document).off('keyup');
+            document.body.appendChild(frame);
+
+            $('.data-table').DataTable(this.getConf({ destroy: true, responsive: false }));
+        } else if(this.isFullscreen) {
+            const frame = $('#fullscreen-frame');
+            const table = $('.data-table');
+
+            const duplicate = table.clone();
+            document.getElementsByClassName('content-block__main-content')?.[0]?.appendChild(duplicate[0]);
+
+            frame.remove();
+
+            $('.data-table').DataTable(this.getConf({ destroy: true }));
         }
 
-        // Toggle the full screen button
-        this.isFullScreen = !this.isFullScreen;
-        if(this.isFullScreen) {
-            $('#fullscreen-button').attr('checked', 'checked');
-        } else {
-            $('#fullscreen-button').removeAttr('checked');
-        }
+        this.setupFullscreen();
     }
 
     /**
@@ -983,10 +965,22 @@ class DataTableComponent extends Component {
                 .each((i, el) => {
                     const data = rows[i] ? rows[i] : undefined;
                     if (data) {
-                    // URL will be record link for standard view, or filtered URL for
-                    // grouped view (in which case _count parameter will be present not _id)
-                        const url = data['_id'] ? `${this.base_url}/${data['_id']}` : `?${data['_count']['url']}`;
-
+                        // URL will be record link for standard view, or filtered URL for
+                        // grouped view (in which case _count parameter will be present not _id)
+                        let url = undefined;
+                        try {
+                            url = data['_id'] ? `${this.base_url}/${data['_id']}` : `?${data['_count']['url']}`;
+                        } catch (e) {
+                            // Hacking more than a geriatric coal-miner with a 40 a day habit
+                            if (data[0] && data[0].match(/<a href="([^"]+)">/)) {
+                                // If the data is a string with an anchor tag, extract the URL
+                                url = data[0].match(/<a href="([^"]+)">/)[1];
+                            } else {
+                                console.error('Error constructing URL for row:', data, e);
+                                return;
+                            }
+                        }
+                        if (!url) return;
                         $(el).find('td:not(".dtr-control")')
                             .on('click', (ev) => {
                                 // Only for table cells that are not part of a record-popup table row
