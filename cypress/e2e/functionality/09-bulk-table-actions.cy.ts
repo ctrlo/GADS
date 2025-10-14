@@ -12,7 +12,7 @@ describe("Bulk record and table action tests", () => {
 
     // Set required table permissions
     cy.log("setup table permissions");
-    const permissionObject = {};
+    const permissionObject:Record<string, boolean> = {};
     ["Bulk import records", "Purge deleted records", "Delete records", "Bulk delete records"].forEach((permissionName) => {
       permissionObject[permissionName] = true;
     });

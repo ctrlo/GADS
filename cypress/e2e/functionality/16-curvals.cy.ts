@@ -1,6 +1,5 @@
-import { LUA } from "../../../src/frontend/js/lib/util/formatters/lua";
 import { LayoutBuilder } from "../../support/builders/layout/LayoutBuilder";
-import { ICodeLayoutBuilder, ICurvalLayoutBuilder, IDropdownLayoutBuilder, ILayoutBuilder } from "../../support/builders/layout/interfaces";
+import { ICurvalLayoutBuilder } from "../../support/builders/layout/interfaces";
 import { goodPassword, goodUser } from "../../support/constants";
 
 describe("Ceate/edit curvals", () => {
