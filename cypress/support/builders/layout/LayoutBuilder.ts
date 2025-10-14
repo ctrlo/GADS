@@ -178,14 +178,16 @@ class DropdownLayoutBuilder extends LayoutBuilderBase implements IDropdownLayout
             .contains("Field settings for dropdown list")
             .click();
         // Enter the options
-        for(let i; i<this.options.values.length-1; i++) {
+        for(let i=0; i<this.options.length-1; i++) {
             cy.get("input[name='enumval']")
+                .last()
                 .type(this.options[i]);
             cy.get("button")
                 .contains("Add a value")
                 .click();
         }
         cy.get("input[name='enumval']")
+            .last()
             .type(this.options[this.options.length-1]);
     }
 }
@@ -222,9 +224,9 @@ class CurvalLayoutBuilder extends LayoutBuilderBase implements ICurvalLayoutBuil
         cy.get("label")
             .contains(this.field)
             .click();
-        cy.get("button.btn-xs[data-delete='rule']")
-            .eq(1)
-            .click();
-        //Someone owes me a drink!
+        //cy.get("button.btn-xs[data-delete='rule']")
+            //.eq(1)
+            //.click();
+        //Someone owes me a drink! 
     }
 }
