@@ -1,12 +1,4 @@
-import { LayoutBuilder } from "../../support/builders/layout/LayoutBuilder";
-import {
-  ICodeLayoutBuilder,
-  ICurvalLayoutBuilder,
-  IDropdownLayoutBuilder,
-  ILayoutBuilder
-} from "../../support/builders/layout/interfaces";
 import { goodPassword, goodUser } from "../../support/constants";
-
 
 // List of pages to test
 const pagesToTest = [

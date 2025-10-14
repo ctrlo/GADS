@@ -1,7 +1,4 @@
-import { LUA } from "../../../src/frontend/js/lib/util/formatters/lua";
 import { goodPassword, goodUser } from "../../support/constants";
-import { LayoutBuilder } from "../../support/builders/layout/LayoutBuilder";
-import { ICodeLayoutBuilder, ICurvalLayoutBuilder, IDropdownLayoutBuilder, ILayoutBuilder } from "../../support/builders/layout/interfaces";
 
 
 describe('Test for report builder', () => {

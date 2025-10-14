@@ -1,15 +1,6 @@
-import { LUA } from "../../../src/frontend/js/lib/util/formatters/lua";
-import { LayoutBuilder } from "../../support/builders/layout/LayoutBuilder";
-import {
-  ICodeLayoutBuilder,
-  ICurvalLayoutBuilder,
-  IDropdownLayoutBuilder,
-  ILayoutBuilder,
-} from "../../support/builders/layout/interfaces";
 import { goodPassword, goodUser } from "../../support/constants";
 
 describe("Layout creation tests", () => {
-  const refShortName = "tr";
   const table_shortname = "table1";
 
   before(() => {
