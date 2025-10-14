@@ -10,6 +10,10 @@
   margin-left: $padding-large-horizontal;
 }
 
+.card > * > .form-group {
+    padding-bottom: 0;
+}
+
 .form-control[aria-invalid],
 .radio-group__input[aria-invalid] + .radio-group__label::before {
   border-color: $brand-danger;
@@ -42,4 +46,8 @@
   .tt-suggestion:hover {
     background-color: #E5E5E5;
   }
+}
+
+.form-group {
+    margin-bottom: 2rem;
 }

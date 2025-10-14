@@ -21,7 +21,7 @@
 
 .more-less {
   position: relative;
-  
+
   .table-curcommon .link {
     display: table-row;
   }
@@ -53,4 +53,12 @@
       background-color: $transparent;
     }
   }
+}
+
+.table-curcommon {
+    // I have found that sometimes setting 100% width can make elements overflow (or be a bit odd in their display).
+    max-width: 98%;
+    --bs-table-background: $white;
+    // This is a workaround for the inset shadow that appears on the table when using Bootstrap 5.
+    --bs-table-bg-state: transparent;
 }

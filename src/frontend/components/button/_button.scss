@@ -134,7 +134,7 @@
 }
 
 .btn-disabled {
-  @include button-variant($white, $gray, $gray, $hover-color: $white);
+  @include button-variant($gray, $gray, $white, $hover-color: $white);
 
   &:hover {
     cursor: not-allowed;
@@ -363,7 +363,7 @@
 
 .btn-filter {
   &::before {
-    content: "\E80c";
+    content: "\E813";
   }
 }
 

@@ -285,16 +285,15 @@ class DataTableComponent extends Component {
     addSortButton(dataTable, column, headerContent) {
         const $header = $(column.header());
         const $button = $(`
-      <button class="data-table__sort" type="button">
-        <span>${headerContent}</span>
-        <span class="btn btn-sort">
-          <span>Sort</span>
-        </span>
-      </button>`
-        );
+            <span class="data-table__sort">
+                <span>${headerContent}</span>
+                <span class="btn btn-sort">
+                    <span>Sort</span>
+                </span>
+            </span>
+        `);
 
         $header
-            .off()
             .find('.data-table__header-wrapper')
             .html($button);
 
@@ -837,6 +836,15 @@ class DataTableComponent extends Component {
                 dataTable.columns().every(function (index) {
                     const column = this;
                     const $header = $(column.header());
+
+                    $header.on('click', (ev) => {
+                        if(ev.stopPropagation) {
+                            ev.stopPropagation();
+                            ev.preventDefault();
+                        } else {
+                            ev.cancelBubble = true;
+                        }
+                    });
 
                     const headerContent = $header.html();
                     $header.html(`<div class='data-table__header-wrapper position-relative ${column.search() ? 'filter' : ''}' data-ddl='ddl_${index}'>${headerContent}</div>`);

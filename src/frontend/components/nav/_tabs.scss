@@ -13,16 +13,30 @@
         &:not(:first-of-type) {
             margin-left: -1px;
         }
+
         &:not(:last-of-type) {
             margin-right: -1px;
         }
+
         .nav-link {
+            --bs-nav-link-color: #{$secondary};
+            --bs-nav-link-hover-color: #{$secondary};
+
+            span {
+                border-bottom: solid 2px transparent;
+            }
+
+            &:hover {
+                span {
+                    border-bottom: solid 2px #{$secondary};
+                }
+            }
+
             &:not(.active) {
-                --bs-nav-link-color: #{$secondary};
                 border-color: rgba($secondary, 0.3);
             }
+
             &.active {
-                --bs-nav-link-color: #{$primary};
                 border-bottom-color: transparent;
             }
         }

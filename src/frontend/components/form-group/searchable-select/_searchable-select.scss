@@ -25,3 +25,17 @@
     display: flex;
     align-items: center;
 }
+
+.searchable-select-options {
+    max-height: 300px;
+    overflow-y: auto;
+
+    .searchable-select-search {
+        @extend .sticky-top;
+        @extend .p-3;
+        @extend .bg-light;
+        @extend .border-bottom;
+        border-color: $gray-200;
+        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+}

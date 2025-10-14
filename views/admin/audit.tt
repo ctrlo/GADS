@@ -9,6 +9,13 @@
   table_caption = "Table for audit log";
   table_class = "table-force-buttons";
 
+  table_layout = {
+    topStart = undef,
+    topEnd = "fs",
+    bottomStart = undef,
+    bottomEnd = undef
+  };
+
   table_columns = [{
     name = "ID"
     orderable = 1

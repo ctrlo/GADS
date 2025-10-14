@@ -93,17 +93,17 @@
     aside_buttons = ! user.permission.useradmin ? [] : [{
       type    = "modal_button"
       modalId = "emailUsersModal"
-      class   = "btn btn-email"
+      class   = "btn btn-email py-0 me-2"
       label   = "Email users"
     }, {
       type   = "link"
       target = url.page _ "/user_upload/"
-      class  = "btn btn-import"
+      class  = "btn btn-import py-0"
       label  = "Import users"
     }, {
       type   = "link"
       target = url.page _ "/user_export/"
-      class  = "btn btn-export"
+      class  = "btn btn-export py-0"
       label  = "Export users"
     }, {
       type    = "modal_button"

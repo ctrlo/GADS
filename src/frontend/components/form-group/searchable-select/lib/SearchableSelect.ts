@@ -62,9 +62,9 @@ export class SearchableSelect {
      */
     private createOptions(options: HTMLOptionElement[], dropdown: HTMLDivElement) {
         const ul = document.createElement('ul');
-        ul.className = 'dropdown-menu';
+        ul.className = 'dropdown-menu searchable-select-options pt-0';
         const searchLi = document.createElement('li');
-        searchLi.classList.add('searchable-select-search', 'dropdown-item');
+        searchLi.classList.add('searchable-select-search');
         const searchInput = document.createElement('input');
         searchInput.type = 'text';
         searchInput.className = 'form-control';

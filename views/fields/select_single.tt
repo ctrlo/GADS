@@ -3,7 +3,7 @@
   select_widget_class = is_required ? ' select-widget--required' : '';
 %]
 [% IF ! hide_group %]
-<div class="form-group mb-4 [% formgroup_class %]">
+<div class="form-group [% formgroup_class %]">
 [% END %]
   <fieldset class="fieldset [% fieldset_class %]">
     [% INCLUDE fields/sub/label_fieldset.tt; %]

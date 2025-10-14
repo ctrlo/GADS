@@ -454,6 +454,10 @@ button.btn-add {
             }
         }
     }
+
+    &:has(.dt-start:empty + .dt-end:empty) {
+        display: none;
+    }
 }
 
 .dt-layout-cell:has(table.data-table) {
@@ -611,6 +615,6 @@ th {
 }
 
 .table-hover>tbody>tr:hover>* {
-    background-color: #9f9f9f;
+    background-color: rgba(var(--dt-row-hover), 0.075);
     box-shadow: none;
 }

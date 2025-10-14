@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component';
-import 'summernote/dist/summernote-bs4';
+import 'summernote/dist/summernote-bs5';
 import { logging } from 'logging';
 
 /**
