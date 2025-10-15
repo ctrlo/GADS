@@ -11,7 +11,7 @@ function createToggleButton(id:string, label:string, checked: boolean, onToggle:
     const element = $(`
     <div class="dt-toggle-button">
         <div class="custom-control form-check form-switch">
-            <input class="custom-control-input form-check-input" type="checkbox" role="switch" id="${id}" ${checked ? 'checked' : ''}>
+            <input class="custom-control-input form-check-input" type="checkbox" role="switch" id="${id}" ${checked ? 'checked="checked"' : ''}>
             <label class="custom-control-label form-check-label" for="${id}">${label}</label>
         </div>
     </div>`);

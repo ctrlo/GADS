@@ -17,15 +17,6 @@ const MORE_LESS_TRESHOLD = 50;
  */
 class DataTableComponent extends Component {
     /**
-     * @type {boolean}
-     * Indicates if the DataTable is in fullscreen mode
-     * @default false
-     */
-    get isFullscreen() {
-        return $('#fullscreen-frame').length > 0;
-    }
-
-    /**
      * Creates a new DataTable component
      * @param {HTMLElement} element The element to attach the DataTable functionality to
      */
@@ -787,10 +778,10 @@ class DataTableComponent extends Component {
         if (!layout.topEnd) return;
         if (Array.isArray(layout.topEnd) && layout.topEnd.includes('fs')) {
             layout.topEnd = layout.topEnd.filter((item) => item !== 'fs');
-            layout.topEnd.push({ fullscreen: { checked: this.fullScreen, onToggle: (ev) => this.toggleFullScreenMode(ev) } });
+            layout.topEnd.push({ fullscreen: { checked: this.fullscreen, onToggle: (ev) => this.toggleFullScreenMode(ev) } });
         } else if (layout.topEnd === 'fs') {
             layout.topEnd = undefined;
-            layout.topEnd = { fullscreen: { checked: this.fullScreen, onToggle: (ev) => this.toggleFullScreenMode(ev) } };
+            layout.topEnd = { fullscreen: { checked: this.fullscreen, onToggle: (ev) => this.toggleFullScreenMode(ev) } };
         }
     }
 
@@ -922,7 +913,11 @@ class DataTableComponent extends Component {
 
         if ($.fn.dataTable.isDataTable(table[0])) table.DataTable().destroy();
 
-        if (!this.isFullscreen) {
+        let conf;
+
+        if (!this.fullscreen) {
+            this.fullscreen = true;
+
             const frame = document.createElement('div');
             frame.className = 'p-3';
             frame.id = 'fullscreen-frame';
@@ -934,27 +929,27 @@ class DataTableComponent extends Component {
             frame.style.overflow = 'auto';
             frame.style.backgroundColor = 'white';
             frame.style.zIndex = '1020';
+            frame.style.overflow = 'auto';
 
-            const duplicate = table.clone();
-            frame.appendChild(duplicate[0]);
-            table.remove();
+            table.appendTo(frame);
 
             document.body.appendChild(frame);
 
-            $('.data-table').DataTable(this.getConf({ destroy: true, responsive: false }));
-        } else if(this.isFullscreen) {
+            conf = this.getConf({ responsive: false, reinitialize: true });
+            $('.data-table').DataTable(conf);
+        } else if(this.fullscreen) {
+            this.fullscreen = false;
+
             const frame = $('#fullscreen-frame');
             const table = $('.data-table');
 
-            const duplicate = table.clone();
-            document.getElementsByClassName('content-block__main-content')?.[0]?.appendChild(duplicate[0]);
+            table.appendTo('.content-block__main-content');
 
             frame.remove();
 
-            $('.data-table').DataTable(this.getConf({ destroy: true }));
+            conf = this.getConf({ responsive: true, reinitialize: true });
+            $('.data-table').DataTable(this.getConf());
         }
-
-        this.setupFullscreen();
     }
 
     /**
