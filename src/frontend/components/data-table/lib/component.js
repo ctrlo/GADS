@@ -595,10 +595,10 @@ class DataTableComponent extends Component {
                 thisHTML += '</div>';
                 strHTML += (
                     `<div class="popover-container">
-                        <div class="popover-content" id="${data.id}-popover">
+                        <div class="popover-content" id="${data.id || data.column_id}-popover">
                             ${thisHTML}
                         </div>
-                        <button class="btn btn-primary btn-sm btn-inverted btn-info" type="button" aria-describedby="${data.id}-popover" data-bs-toggle="popover">
+                        <button class="btn btn-primary btn-sm btn-inverted btn-info" type="button" aria-describedby="${data.id || data.column_id}-popover" data-bs-toggle="popover">
                             ${this.encodeHTMLEntities(value.text)}
                         </button>
                     </div>`
@@ -868,6 +868,8 @@ class DataTableComponent extends Component {
 
                 this.initializingTable = false;
             }
+
+            if(dataTable.responsive) dataTable.columns.adjust().responsive.recalc();
         };
 
         conf['footerCallback'] = function () {

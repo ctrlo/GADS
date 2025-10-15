@@ -6,8 +6,9 @@ export default function createMoreInfoButton(element: HTMLElement | JQuery<HTMLE
     $(element).on('click', (ev) => {
         const $button = $(ev.target).closest('.btn');
         const record_id = $button.data('record-id');
-        const modal_id = $button.data('target');
+        const modal_id = $button.data('bs-target');
         const $modal = $(document).find(modal_id);
+        if(!$modal || !$modal.length) throw new Error('Modal not found: ' + modal_id);
 
         $modal.find('.modal-title').text(`Record ID: ${record_id}`);
         $modal.find('.modal-body').text('Loading...');
