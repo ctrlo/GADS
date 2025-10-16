@@ -68,7 +68,7 @@ abstract class LayoutBuilderBase implements ILayoutBuilder {
             .type(this.name);
         this.setType();
         if (this.shortName) {
-            cy.get("button")
+            cy.get("span")
                 .contains("Advanced settings")
                 .click();
             cy.get("input[name='name_short']")
@@ -101,7 +101,7 @@ abstract class LayoutBuilderBase implements ILayoutBuilder {
     }
 
     protected setPermissions(): void {
-        cy.get("button")
+        cy.get("span")
             .contains("Permissions")
             .click();
         cy.getDataTable()
@@ -135,14 +135,14 @@ class CodeLayoutBuilder extends LayoutBuilderBase implements ICodeLayoutBuilder 
     buildSpecific() {
         // Expand the code editor
         if (this.layoutType === "RAG") {
-            cy.get("button")
+            cy.get("span")
                 .contains("Field settings for RAG")
                 .click();
             // Enter the code
             cy.get("textarea[name='code_rag']")
                 .type(this.code);
         } else if (this.layoutType === "CALC") {
-            cy.get("button")
+            cy.get("span")
                 .contains("Field settings for calculated value")
                 .click();
             cy.get("textarea[name='code_calc']")
@@ -174,18 +174,20 @@ class DropdownLayoutBuilder extends LayoutBuilderBase implements IDropdownLayout
 
     buildSpecific() {
         // Expand the options
-        cy.get("button")
+        cy.get("span")
             .contains("Field settings for dropdown list")
             .click();
         // Enter the options
-        for(let i; i<this.options.values.length-1; i++) {
+        for(let i=0; i<this.options.length-1; i++) {
             cy.get("input[name='enumval']")
+                .last()
                 .type(this.options[i]);
             cy.get("button")
                 .contains("Add a value")
                 .click();
         }
         cy.get("input[name='enumval']")
+            .last()
             .type(this.options[this.options.length-1]);
     }
 }
@@ -210,7 +212,7 @@ class CurvalLayoutBuilder extends LayoutBuilderBase implements ICurvalLayoutBuil
 
     buildSpecific() {
         // Expand Field settings
-        cy.get("button")
+        cy.get("span")
             .contains("Field settings for fields from another table")
             .click();
         // Enter the options
@@ -222,7 +224,7 @@ class CurvalLayoutBuilder extends LayoutBuilderBase implements ICurvalLayoutBuil
         cy.get("label")
             .contains(this.field)
             .click();
-        cy.get("button.btn-xs[data-delete='rule']")
+        cy.get("button.btn-sm[data-delete='rule']")
             .eq(1)
             .click();
         //Someone owes me a drink!

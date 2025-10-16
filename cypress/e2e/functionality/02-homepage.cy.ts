@@ -83,7 +83,7 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
         .should("be.visible");
       cy.get("[aria-label='Edit Modal']")
         .find(".modal-footer__right")
-        .find("button.btn-default").click();
+        .find("button.btn-primary").click();
       cy.get(".ld-widget").should("have.length", 1);
       cy.get(".ld-widget").find("div").contains("This is a new notice widget - click edit to update the contents");
     });
@@ -98,7 +98,7 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
         .type("With a new title");
       cy.get("[aria-label='Edit Modal']")
         .find(".modal-footer__right")
-        .find("button.btn-default").click();
+        .find("button.btn-primary").click();
       cy.get(".ld-widget").find("h4").contains("With a new title");
     });
 
@@ -113,7 +113,7 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
         .type(bigLipsum);
       cy.get("[aria-label='Edit Modal']")
         .find(".modal-footer__right")
-        .find("button.btn-default").click();
+        .find("button.btn-primary").click();
     });
 
     it("Should delete a shared dashboard widget", () => {
@@ -158,7 +158,7 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
         .should("be.visible");
       cy.get("[aria-label='Edit Modal']")
         .find(".modal-footer__right")
-        .find("button.btn-default").click();
+        .find("button.btn-primary").click();
       cy.get(".ld-widget").should("have.length", 2);
       cy.get(".ld-widget").eq(1).find("div").contains("This is a new notice widget - click edit to update the contents");
     });
@@ -174,7 +174,7 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
         .type("With a new title");
       cy.get("[aria-label='Edit Modal']")
         .find(".modal-footer__right")
-        .find("button.btn-default").click();
+        .find("button.btn-primary").click();
       cy.get(".ld-widget").eq(1).find("h4").contains("With a new title");
     });
 
@@ -190,7 +190,7 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
         .type(bigLipsum);
       cy.get("[aria-label='Edit Modal']")
         .find(".modal-footer__right")
-        .find("button.btn-default").click();
+        .find("button.btn-primary").click();
     });
 
     it("Should delete a personal dashboard widget", () => {
