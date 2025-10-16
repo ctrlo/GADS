@@ -22,6 +22,8 @@ class DataTableComponent extends Component {
      */
     constructor(element) {
         super(element);
+        // For fullscreen we need a clone of the table element
+        this.table = element.cloneNode(true);
         this.count = 0;
         this.el = $(this.element);
         this.hasCheckboxes = this.el.hasClass('table-selectable');
@@ -787,12 +789,11 @@ class DataTableComponent extends Component {
 
     /**
      * Get the configuration object for the DataTable
-     * @import { Config } from 'datatables.net-bs5';
-     * @param {Readonly<Parital<Config>>=} overrides Any values to override in the configuration
-     * @returns {Config} The configuration object for the DataTable
+     * @param {Readonly<Parital<import('datatables.net-bs5').Config>>=} overrides Any values to override in the configuration
+     * @returns {import('datatables.net-bs5').Config} The configuration object for the DataTable
      */
     getConf(overrides = undefined) {
-        const confData = this.el.data('config');
+        const confData = (this.el).data('config');
         let conf = {};
 
         if (typeof confData === 'string') {
@@ -818,7 +819,7 @@ class DataTableComponent extends Component {
         const self = this;
 
         conf['initComplete'] = (settings, json) => {
-            const tableElement = this.el;
+            const tableElement = conf.el || this.el;
             const dataTable = tableElement.DataTable();
 
             this.json = json;
@@ -838,22 +839,24 @@ class DataTableComponent extends Component {
                     });
 
                     const headerContent = $header.html();
-                    $header.html(`<div class='data-table__header-wrapper position-relative ${column.search() ? 'filter' : ''}' data-ddl='ddl_${index}'>${headerContent}</div>`);
+                    if(!headerContent.includes('data-table__header-wrapper')){
+                        $header.html(`<div class='data-table__header-wrapper position-relative ${column.search() ? 'filter' : ''}' data-ddl='ddl_${index}'>${headerContent}</div>`);
 
-                    // Add sort button to column header
-                    if ($header.hasClass('dt-orderable-asc') || $header.hasClass('dt-orderable-desc')) {
-                        self.addSortButton(dataTable, column, headerContent);
-                    }
-
-                    // Add button to column headers (only serverside tables)
-                    if ((conf.serverSide) && (tableElement.hasClass('table-search'))) {
-                        const id = settings.oAjaxData.columns[index].name;
-
-                        if (self.searchParams.has(id)) {
-                            column.search(self.searchParams.get(id)).draw();
+                        // Add sort button to column header
+                        if ($header.hasClass('dt-orderable-asc') || $header.hasClass('dt-orderable-desc')) {
+                            self.addSortButton(dataTable, column, headerContent);
                         }
 
-                        self.addSearchDropdown(column, id, index);
+                        // Add button to column headers (only serverside tables)
+                        if ((conf.serverSide) && (tableElement.hasClass('table-search'))) {
+                            const id = settings.oAjaxData.columns[index].name;
+
+                            if (self.searchParams.has(id)) {
+                                column.search(self.searchParams.get(id)).draw();
+                            }
+
+                            self.addSearchDropdown(column, id, index);
+                        }
                     }
                     return true;
                 });
@@ -866,10 +869,10 @@ class DataTableComponent extends Component {
                     }
                 }
 
+                initializeRegisteredComponents(tableElement[0]);
+
                 this.initializingTable = false;
             }
-
-            if(dataTable.responsive) dataTable.columns.adjust().responsive.recalc();
         };
 
         conf['footerCallback'] = function () {
@@ -909,13 +912,13 @@ class DataTableComponent extends Component {
 
     /**
      * Toggle full screen mode for the DataTable
+     * @todo This is quite nasty, I didn't want to use the shadow DOM for this, but it may be better to in the future
      */
-    toggleFullScreenMode() {
-        const table = $('.data-table');
-
-        if ($.fn.dataTable.isDataTable(table[0])) table.DataTable().destroy();
-
+    toggleFullScreenMode(ev) {
         let conf;
+
+        if($.fn.DataTable.isDataTable(this.el))
+            this.el.DataTable().destroy();
 
         if (!this.fullscreen) {
             this.fullscreen = true;
@@ -930,27 +933,27 @@ class DataTableComponent extends Component {
             frame.style.height = '100%';
             frame.style.overflow = 'auto';
             frame.style.backgroundColor = 'white';
-            frame.style.zIndex = '1020';
+            frame.style.zIndex = '1021';
             frame.style.overflow = 'auto';
 
-            table.appendTo(frame);
+            const newTable = this.table.cloneNode(true);
+            const $table = $(newTable);
+
+            $table.appendTo(frame);
 
             document.body.appendChild(frame);
 
-            conf = this.getConf({ responsive: false, reinitialize: true });
-            $('.data-table').DataTable(conf);
+            conf = this.getConf({ responsive: false, reinitialize: true, el: $table });
+            $table.DataTable(conf);
+
+            ev.stopPropagation();
+            ev.preventDefault();
         } else if(this.fullscreen) {
             this.fullscreen = false;
 
-            const frame = $('#fullscreen-frame');
-            const table = $('.data-table');
+            $('#fullscreen-frame').remove();
 
-            table.appendTo('.content-block__main-content');
-
-            frame.remove();
-
-            conf = this.getConf({ responsive: true, reinitialize: true });
-            $('.data-table').DataTable(this.getConf());
+            this.el.DataTable(this.getConf({reinitialize: true}));
         }
     }
 

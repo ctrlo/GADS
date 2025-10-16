@@ -4,7 +4,7 @@ import AutosaveBase from './autosaveBase';
 
 class TestAutosave extends AutosaveBase {
     initAutosave(): void {
-        console.log('initAutosave');
+        console.debug('initAutosave');
     }
 }
 

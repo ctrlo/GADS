@@ -72,3 +72,7 @@
     // This is a workaround for the inset shadow that appears on the table when using Bootstrap 5.
     --bs-table-bg-state: transparent;
 }
+
+.popover.expanded:not(:has(*)) {
+    padding: $padding-small-horizontal $padding-small-vertical;
+}

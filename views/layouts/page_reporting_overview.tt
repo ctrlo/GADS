@@ -27,14 +27,14 @@
       <div class="col">
         <form method="post">
           [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
-          [% INCLUDE 'fields/input.tt' 
+          [% INCLUDE 'fields/input.tt'
               value = security_marking
               label = "Security Marking"
               placeholder = "Enter Security Marking"
               type = "text"
               filter = "html"
               name = "security_marking" %]
-          <button type="submit" class="btn btn-success" name="submit" value="submit">Save</button>
+          <button type="submit" class="btn btn-primary" name="submit" value="submit">Save</button>
         </form>
       </div>
     </div>
