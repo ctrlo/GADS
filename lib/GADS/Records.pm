@@ -41,6 +41,8 @@ use Moo;
 use MooX::Types::MooseLike::Base qw(Maybe Str ArrayRef HashRef Bool Int);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 
+use Devel::StackTrace;
+
 with 'GADS::RecordsJoin', 'GADS::Role::Presentation::Records', 'GADS::Helper::ConditionBuilder';
 
 # Preferably this is passed in to prevent extra

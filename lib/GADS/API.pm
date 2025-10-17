@@ -1092,7 +1092,7 @@ sub _get_records {
     my $sheetname = param 'sheet';
     my $user      = logged_in_user;
     my $layout    = var('instances')->layout_by_shortname($sheetname); # borks on not found
-    my $view      = current_view($user, $layout);
+    my $view      = query_parameters->get('curval_record_id') ? undef : current_view($user, $layout);
 
     # Allow parameters to be passed by URL query or in the body. Flatten into
     # one parameters object
