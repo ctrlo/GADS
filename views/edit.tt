@@ -57,7 +57,7 @@
             [% IF record.child_record_ids.size %]
             <div class="card card--header">
               <h3 class="card__header">
-                <span>Child records</span>
+                <span>Attached records</span>
               </h3>
     
               <div class="card__body row">
