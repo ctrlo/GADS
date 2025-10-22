@@ -6,6 +6,7 @@ import { initializeRegisteredComponents } from 'component'
 import { validateRadioGroup, validateCheckboxGroup } from 'validation'
 import { fromJson } from 'util/common'
 import StorageProvider from 'util/storageProvider'
+import SubmitRecordButton from '../../../../../components/button/lib/submit-record-button.ts'
 
 class CurvalModalComponent extends ModalComponent {
 
@@ -267,7 +268,9 @@ class CurvalModalComponent extends ModalComponent {
       .parents(".modal-content")
       .get(0)
       .scrollIntoView()
-    form.find("button[type=submit]").prop("disabled", false)
+    const $submitBtn = form.find('button[type=submit]');
+    const submitBtnObj = new SubmitRecordButton($submitBtn);
+    submitBtnObj.setDisabled(false);
   }
 
   setupModal() {
