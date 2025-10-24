@@ -31,6 +31,8 @@ use Dancer2::Plugin::Auth::Extensible;
 use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::LogReport 'linkspace';
 
+use GADS::Chronology;
+
 # Special error handler for JSON requests (as used in API)
 fatal_handler sub {
     my ($dsl, $msg, $reason) = @_;
@@ -559,6 +561,26 @@ post '/api/table_request' => require_login sub {
 # AJAX record browse
 any ['get', 'post'] => '/api/:sheet/records' => require_login sub {
     _get_records();
+};
+
+get '/api/chronology/:id' => require_login sub {
+    my $id = route_parameters->get('id');
+    my $user = logged_in_user;
+
+    my $page = query_parameters->get('page') || 1;
+
+    print STDERR "$page\n";
+
+    my $chronology = GADS::Chronology->new(
+        user => $user,
+        schema => schema,
+        id => $id,
+    );
+
+    content_type 'application/json; charset=UTF-8';
+    return $chronology->as_json({
+        page => $page,
+    });
 };
 
 post '/api/settings/logo' => require_login sub {
