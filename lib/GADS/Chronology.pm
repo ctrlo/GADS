@@ -4,7 +4,7 @@ use Moo;
 
 use MooX::Types::MooseLike::Base qw(ArrayRef Int);
 
-use Dancer2::Plugin::LogReport 'linkspace';
+use Log::Report 'linkspace';
 
 use JSON qw(encode_json);
 
@@ -25,9 +25,9 @@ has _current => (
 sub _build__current {
     my $self = shift;
     my $id   = $self->id
-      or die "No ID provided";
+      or error __"No ID provided";
     my $current = $self->schema->resultset('Current')->find($id)
-      or die "Current record ID not found";
+      or error __"Current record ID not found";
     return $current;
 }
 
@@ -47,7 +47,7 @@ sub as_json {
     my $page = $options{page} || 1;
 
     my $current = $self->_current
-      or die "No current record found for ID " . $self->id;
+      or error __x"No current record found for ID {id}", id => $self->id;
 
     my @result;
     my @records = map { $_->{id} } $current->records->search(
@@ -121,7 +121,7 @@ sub _compare {
     my ( $self, $a, $b ) = @_;
     my $diff = {};
     my %seen;
-    die "Input and output are of differing types"
+    error __"Input and output are of differing types"
       unless ref $a eq 'HASH' && ref $b eq 'HASH';
     for my $key ( keys %$a ) {
         next if $seen{$key};
