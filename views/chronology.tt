@@ -8,6 +8,38 @@
 
 <div class="content-block__main">
   <div class="content-block__main-content">
-    <div class="chronology" data-chronology-id="[% chronology_id %]"></div>
+    <div class="chronology" data-chronology-id="[% chronology_id %]">
+      <div class="spinner-border" role="status" id="chronology-loading">
+        <span class="visually-hidden sr-only">Loading&hellip;</span>
+      </div>
+    </div>
   </div>
+
+  <footer class="content-block__footer">
+        <div class="content-block__footer-container">
+          [%
+            left_buttons = [];
+            right_buttons = [];
+            
+            right_buttons.push({
+              type  = "button",
+              class = "btn btn-inverted",
+              id    = "load-more-button",
+              name  = "load-more-button",
+              value = "load-more-button",
+              label = "Load more"
+            });
+          
+            INCLUDE navigation/button_bar.tt
+              row_class = "row"
+              columns   = [{
+                class   = "col-md-4 mb-3 mb-md-0",
+                buttons = left_buttons
+              }, {
+                class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
+                buttons = right_buttons
+              }];
+          %]
+        </div>
+      </footer>
 </div>

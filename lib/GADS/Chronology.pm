@@ -50,7 +50,7 @@ sub as_json {
       or error __x"No current record found for ID {id}", id => $self->id;
 
     my @result;
-    my @records = map { $_->{id} } $current->records->search(
+    my $rs = $current->records->search(
         {},
         {
             columns      => [qw/me.id/],
@@ -59,7 +59,11 @@ sub as_json {
             rows         => 10,
             result_class => 'DBIx::Class::ResultClass::HashRefInflator',
         }
-    )->all;
+    );
+
+    # my $last_page = $rs->pager->last_page;
+
+    my @records = map {$_->{id}} $rs->all;
 
     my $old;
 
@@ -99,12 +103,15 @@ sub as_json {
         my $new_values = $old ? $self->_compare( $old, $out ) : $out;
         $chronology_definition->{data}           = $new_values;
         $chronology_definition->{action}->{type} = $old ? 'update' : 'create';
-        $chronology_definition->{page}           = $page;
         push @result, $chronology_definition;
         $old = $out;
     }
 
-    encode_json \@result;
+    encode_json +{
+        'page' => $page,
+        'last_page' => 1,
+        'result' => \@result,
+    };
 }
 
 sub _strip {
