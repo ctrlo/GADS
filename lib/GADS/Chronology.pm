@@ -42,9 +42,9 @@ has user => (
 );
 
 sub as_json {
-    my ( $self, %options ) = shift;
+    my ( $self, %options ) = @_;
 
-    my $page = $options{page} || 1;
+    my $page = $options{page} // 1;
 
     my $current = $self->_current
       or error __x"No current record found for ID {id}", id => $self->id;
@@ -61,11 +61,13 @@ sub as_json {
         }
     );
 
-    # my $last_page = $rs->pager->last_page;
+    my $last_page = $rs->pager->last_page;
+
+    return if $last_page < $page;
 
     my @records = map {$_->{id}} $rs->all;
 
-    my $old;
+    my $old = $page > 1 ? $self->_get_last_record($page -1) : undef;
 
     for my $record (@records) {
         my $out                   = +{};
@@ -109,9 +111,64 @@ sub as_json {
 
     encode_json +{
         'page' => $page,
-        'last_page' => 1,
+        'last_page' => $last_page,
         'result' => \@result,
     };
+}
+
+sub _get_last_record {
+    my ($self, $page) = @_;
+
+    my $current = $self->_current
+      or error __x"No current record found for ID {id}", id => $self->id;
+
+    my @last_page = $current->records->search(
+        {},
+        {
+            columns      => [qw/me.id/],
+            order_by     => { -desc => 'me.created' },
+            page         => $page,
+            rows         => 10,
+            result_class => 'DBIx::Class::ResultClass::HashRefInflator',
+        }
+    )->all;
+
+    my $id = $last_page[scalar(@last_page) - 1]->{id}
+      if scalar @last_page;
+
+    return unless $id;
+
+    my $record_object = GADS::Record->new(
+        user   => $self->user,
+        schema => $self->schema,
+    );
+
+    my $record = $record_object->find_record_id($id)
+      or error __x"Record with ID {id} not found", id => $id;
+    
+    my $r_presentation = $record->presentation;
+    my $out = +{};
+
+    for my $col ( @{ $r_presentation->{columns} }) {
+        next if $col->{readonly};
+        my $name = $col->{name};
+        if ( $col->{type} =~ /^curval$/i ) {
+            my $links = $col->{data}->{links};
+            for my $link (@$links) {
+                for my $l ( @{ $link->{presentation}->{columns} } ) {
+                    $out->{$name}->{ $l->{name} } = $l->{data}->{value};
+                }
+            }
+        }
+        else {
+            my $value = $col->{data}->{value};
+            $out->{$name} = $value;
+        }
+    }
+
+    $self->_strip($out);
+
+    $out;
 }
 
 sub _strip {

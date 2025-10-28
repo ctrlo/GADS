@@ -578,9 +578,9 @@ get '/api/chronology/:id' => require_login sub {
     );
 
     content_type 'application/json; charset=UTF-8';
-    return $chronology->as_json({
+    return $chronology->as_json(
         page => $page,
-    });
+    );
 };
 
 post '/api/settings/logo' => require_login sub {

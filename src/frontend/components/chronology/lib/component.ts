@@ -2,6 +2,7 @@ import { Component } from "component";
 import { ChronologyListRenderer } from "./chronology";
 import { logging } from "logging";
 import { ChronologyResult } from "./chronology/lib/interfaces";
+import { ChronologyLoadPageEvent } from "./chronology/lib/events";
 
 /**
  * ChronologyComponent is a component that fetches and displays a chronology by its ID.
@@ -41,6 +42,16 @@ export default class ChronologyComponent extends Component {
         } else {
             logging.error("Chronology ID is not provided or invalid.");
         }
+        this.$el.on('chronology:loadpage', (event: ChronologyLoadPageEvent) => {
+            event.preventDefault();
+            const page = event.page;
+            if (page) {
+                $("#chronology-loading").show();
+                this.fetchChronology(id, page);
+            } else {
+                logging.error("No page number provided in the event.");
+            }
+        });
     }
 
     /**
@@ -61,6 +72,11 @@ export default class ChronologyComponent extends Component {
                 if (page >= last_page) {
                     $("#load-more-button").remove();
                 }
+                const $event = $.Event('chronology:pageupdated', {
+                    page: page,
+                    total: last_page,
+                });
+                this.$el.trigger($event);
             }).catch(error => {
                 logging.error("Error fetching chronology:", error);
                 this.$el.append("<p>Error loading chronology data.</p>");
