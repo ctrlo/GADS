@@ -1,6 +1,6 @@
 import { Renderable } from "util/renderable";
-import { Chronology, ChronologyAction } from "./interfaces";
-import { ChronologyCreateAction, ChronologyUpdateAction } from "./types";
+import { Chronology, ChronologyAction, ChronologyCreate, ChronologyUpdate } from "./interfaces";
+import { ChronologyUpdateAction } from "./types";
 
 /**
  * ChronologyRenderer is an abstract class that defines the structure for rendering chronology entries.
@@ -10,14 +10,16 @@ import { ChronologyCreateAction, ChronologyUpdateAction } from "./types";
 export abstract class ChronologyRenderer implements Renderable<HTMLDivElement> {
     static createRenderer(chronology: Chronology): Renderable<HTMLDivElement> {
         if (chronology.action.type === "update") {
-            return new UpdateChronologyRenderer(chronology as Chronology & { action: ChronologyAction & { type: "update"; }; } & { data: ChronologyUpdateAction; });
+            return new UpdateChronologyRenderer(chronology as ChronologyUpdate);
         } else if (chronology.action.type === "create") {
-            return new CreateChronologyRenderer(chronology as Chronology & { action: ChronologyAction & { type: "create"; }; } & { data: ChronologyCreateAction; });
+            return new CreateChronologyRenderer(chronology as ChronologyCreate);
         }
         throw new Error("Unknown chronology action type");
     }
 
-    abstract render(): HTMLDivElement;
+    render(): HTMLDivElement {
+        return this.createCard();
+    }
 
     /**
      * Creates the title for the chronology card.
@@ -42,7 +44,7 @@ export abstract class ChronologyRenderer implements Renderable<HTMLDivElement> {
      */
     protected createCard(): HTMLDivElement {
         const card = document.createElement("div");
-        card.classList.add("card", "card-primary", "mb-3");
+        card.classList.add("card", "card-secondary", "mb-3");
         const cardHeader = document.createElement("div");
         cardHeader.classList.add("card-header");
         cardHeader.appendChild(this.createCardTitle());
@@ -96,16 +98,6 @@ class CreateChronologyRenderer extends ChronologyRenderer {
      */
     constructor(private chronology: Chronology) {
         super();
-    }
-
-    /**
-     * Create a card element to display the chronology entry.
-     * @returns {HTMLDivElement} The card element with the chronology content
-     * @override
-     * @protected
-     */
-    render(): HTMLDivElement {
-        return this.createCard();
     }
 
     /**
@@ -170,16 +162,6 @@ class UpdateChronologyRenderer extends ChronologyRenderer {
      */
     constructor(private chronology: Chronology & { action: ChronologyAction & { type: "update" } } & { data: ChronologyUpdateAction }) {
         super();
-    }
-
-    /**
-     * Render a card element to display the chronology entry.
-     * @returns {HTMLDivElement} The card element with the chronology content
-     * @override
-     * @protected
-     */
-    render(): HTMLDivElement {
-        return this.createCard();
     }
 
     /**

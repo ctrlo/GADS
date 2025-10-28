@@ -20,7 +20,8 @@
 export interface Renderable<T extends HTMLElement = HTMLElement> {
     /**
      * Synchronous render method that returns an HTML element or a jQuery-wrapped element.
-     * @returns {T} The rendered HTML element or jQuery-wrapped element.
+     * @template T - The type of the HTML element to be rendered, defaulting to HTMLElement.
+     * @returns {T extends HTMLElement = HTMLElement} The rendered HTML element or jQuery-wrapped element.
      */
     render(): T;
 }

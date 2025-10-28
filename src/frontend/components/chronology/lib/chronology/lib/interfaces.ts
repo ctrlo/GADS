@@ -35,6 +35,16 @@ export interface Chronology {
     action: ChronologyAction;
 }
 
+export interface ChronologyUpdate extends Chronology {
+    action: ChronologyAction & { type: "update"; };
+    data: ChronologyUpdateAction;
+}
+
+export interface ChronologyCreate extends Chronology {
+    action: ChronologyAction & { type: "create"; };
+    data: ChronologyCreateAction;
+}
+
 export interface ChronologyResult {
     /**
      * The current page number of the chronology results.
