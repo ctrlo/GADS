@@ -69,9 +69,6 @@ export default class ChronologyComponent extends Component {
                 return { page: data.page, last_page: data.last_page };
             }).then(({ page, last_page }) => {
                 $("#chronology-loading").hide();
-                if (page >= last_page) {
-                    $("#load-more-button").remove();
-                }
                 const $event = $.Event('chronology:pageupdated', {
                     page: page,
                     total: last_page,

@@ -34,6 +34,7 @@ export default class ChronologyButton extends Component {
             this.updateButtonState();
         });
         this.$el.on('click', (event: JQuery.ClickEvent) => {
+            this.$el.hide();
             event.preventDefault();
             const $event = $.Event('chronology:loadpage', {
                 page: this.$currentPage + 1,
@@ -48,6 +49,7 @@ export default class ChronologyButton extends Component {
     private updateButtonState(): void {
         if (this.$currentPage >= this.$totalPages) {
             const $el = this.$el;
+            $el.show();
             $el.attr('disabled', 'disabled');
             $el.attr('aria-disabled', 'true');
             $el.addClass('disabled');
