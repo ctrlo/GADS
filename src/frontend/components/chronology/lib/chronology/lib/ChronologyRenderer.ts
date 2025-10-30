@@ -1,6 +1,9 @@
 import { Renderable } from "util/renderable";
 import { Chronology, ChronologyAction, ChronologyCreate, ChronologyUpdate } from "./interfaces";
 import { ChronologyUpdateAction } from "./types";
+import { RenderMoreLess } from "../../../../more-less/lib/MoreLessRenderer";
+
+const MORE_LESS_THRESHOLD = 50;
 
 /**
  * ChronologyRenderer is an abstract class that defines the structure for rendering chronology entries.
@@ -136,9 +139,16 @@ class CreateChronologyRenderer extends ChronologyRenderer {
             valueSpan.classList.add("list__value");
 
             if (typeof value === "object" && value !== null) {
-                valueSpan.appendChild(this.createTableContent(value));
+                valueSpan.appendChild(RenderMoreLess(this.createTableContent(value), key));
             } else {
-                valueSpan.textContent = String(value);
+                const v = String(value);
+                if (v.length > MORE_LESS_THRESHOLD) {
+                    const d = document.createElement("div");
+                    d.textContent = v;
+                    valueSpan.appendChild(RenderMoreLess(d, key));
+                } else {
+                    valueSpan.textContent = v;
+                }
             }
 
             li.appendChild(keySpan);

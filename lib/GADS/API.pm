@@ -569,8 +569,6 @@ get '/api/chronology/:id' => require_login sub {
 
     my $page = query_parameters->get('page') || 1;
 
-    print STDERR "$page\n";
-
     my $chronology = GADS::Chronology->new(
         user => $user,
         schema => schema,

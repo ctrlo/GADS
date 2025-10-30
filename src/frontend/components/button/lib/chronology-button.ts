@@ -20,6 +20,7 @@ export default class ChronologyButton extends Component {
     constructor(element: HTMLElement) {
         super(element);
         this.$el = $(element);
+        this.$el.hide();
         this.$target = $('.chronology');
         this.init();
     }
@@ -36,8 +37,10 @@ export default class ChronologyButton extends Component {
         this.$el.on('click', (event: JQuery.ClickEvent) => {
             this.$el.hide();
             event.preventDefault();
+            const nextPage: number = Number(this.$currentPage) + 1; // Number was being odd and behaving like a string for some reason (i.e. 1+1 was "11")
+            console.log(`Loading page ${nextPage}`);
             const $event = $.Event('chronology:loadpage', {
-                page: this.$currentPage + 1,
+                page: nextPage
             })
             this.$target.trigger($event);
         });
@@ -47,9 +50,9 @@ export default class ChronologyButton extends Component {
      * Update the button state based on the current page and total pages.
      */
     private updateButtonState(): void {
+        const $el = this.$el;
+        $el.show();
         if (this.$currentPage >= this.$totalPages) {
-            const $el = this.$el;
-            $el.show();
             $el.attr('disabled', 'disabled');
             $el.attr('aria-disabled', 'true');
             $el.addClass('disabled');
