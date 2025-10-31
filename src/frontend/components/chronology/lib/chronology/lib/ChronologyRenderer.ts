@@ -2,31 +2,9 @@ import { Renderable } from "util/renderable";
 import { Chronology, ChronologyAction, ChronologyCreate, ChronologyUpdate } from "./interfaces";
 import { ChronologyUpdateAction } from "./types";
 import { RenderMoreLess } from "../../../../more-less/lib/MoreLessRenderer";
+import { stringifyValue } from "util/common";
 
 const MORE_LESS_THRESHOLD = 50;
-
-const isNotNull = (value: unknown): value is NonNullable<unknown> => value !== null && value !== undefined;
-const isString = (value: unknown): value is string => isNotNull(value) && (typeof value === "string" || value instanceof String);
-const isObject = (value: unknown): value is Record<string, unknown> => isNotNull(value) && typeof value === "object" && !Array.isArray(value);
-const isArray = (value: unknown): value is Array<unknown> => isNotNull(value) && Array.isArray(value);
-const isNumber = (value: unknown): value is number => isNotNull(value) && (typeof value === "number" || value instanceof Number);
-const hasMethod = (value: unknown, methodName: string): value is { [key: string]: unknown } & { [method: string]: (...args: any[]) => any } =>
-    isObject(value) && methodName in value && typeof value[methodName] === "function";
-
-const stringifyValue = (value: unknown): string => {
-    if (isString(value)) {
-        return value;
-    } else if (isNumber(value)) {
-        return value.toString();
-    } else if (isObject(value)) {
-        return JSON.stringify(value); // This should not happen - for these values we should render a table which should be picked up in the renderer
-    } else if (isArray(value)) {
-        return value.map(stringifyValue).join(", "); // This should not happen - for these values we should render a table which should be picked up in the renderer
-    } else if (hasMethod(value, "toString")) {
-        return value.toString();
-    }
-    return String(value);
-};
 
 /**
  * ChronologyRenderer is an abstract class that defines the structure for rendering chronology entries.

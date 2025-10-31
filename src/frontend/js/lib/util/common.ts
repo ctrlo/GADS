@@ -1,3 +1,7 @@
+import { isNumber, isObject, isString } from "vis-util";
+import { isArray } from "./typechecks/lib/array";
+import { hasMethod } from "./typechecks/lib/object";
+
 export const hideElement = (element: HTMLElement | JQuery<HTMLElement>) => {
     const $el = $(element);
     if ($el.hasClass('hidden')) return;
@@ -26,4 +30,19 @@ export const fromJson = (json: String | object) => {
     } catch (e) {
         return {};
     }
+}
+
+export const stringifyValue = (value: unknown): string => {
+    if (isString(value)) {
+        return value;
+    } else if (isNumber(value)) {
+        return value.toString();
+    } else if (isArray(value)) {
+        return value.map(stringifyValue).join(", ");
+    } else if (hasMethod(value, "toString") && value.toString !== Object.prototype.toString) { // Need to make sure toString is not the default one
+        return value.toString();
+    } else if (isObject(value)) {
+        return JSON.stringify(value);
+    }
+    return String(value);
 }
