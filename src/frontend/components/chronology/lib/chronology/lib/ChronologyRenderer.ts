@@ -88,13 +88,13 @@ export abstract class ChronologyRenderer implements Renderable<HTMLDivElement> {
      */
     protected createTableContent(data: { [key: string]: string | null; }): HTMLTableElement {
         const table = document.createElement("table");
-        table.classList.add("table", "table-bordered", "table-striped");
+        table.classList.add("table", "table-bordered", "table-striped", "mb-0");
         const tbody = document.createElement("tbody");
 
         const dataRow = document.createElement("tr");
-        for (const [key,value] of Object.entries(data)) {
+        for (const [key, value] of Object.entries(data)) {
             const td = document.createElement("td");
-            td.title=key
+            td.title = key
             td.textContent = value !== null ? stringifyValue(value) : "N/A";
             dataRow.appendChild(td);
         }
