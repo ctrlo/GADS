@@ -7,7 +7,7 @@ describe('ExpandableCardComponent', () => {
 <div class="content-block">
   <div id="target" class="card card--expandable">
     <div class="card__header">
-      <button class="card__header-left" type="button" data-toggle="collapse" data-target="#topic" aria-expanded="false"
+      <button class="card__header-left" type="button" data-bs-toggle="collapse" data-target="#topic" aria-expanded="false"
         aria-controls="topic">
         <span class="card__title">Other</span>
       </button>
@@ -18,7 +18,7 @@ describe('ExpandableCardComponent', () => {
         <button type="button" class="btn btn-view btn-js-view">
           <span class="btn__title">View</span>
         </button>
-        <button class="card__toggle" type="button" data-toggle="collapse" data-target="#topic" aria-expanded="true"
+        <button class="card__toggle" type="button" data-bs-toggle="collapse" data-target="#topic" aria-expanded="true"
           aria-controls="topic">
           <span>Toggle collapsible</span>
         </button>

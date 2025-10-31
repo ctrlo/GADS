@@ -1885,28 +1885,10 @@ get '/record_body/:id' => require_login sub {
 
 get '/chronology/:id?' => require_login sub {
 
-    my $user   = logged_in_user;
-    my $id     = route_parameters->get('id');
-    my $record = GADS::Record->new(
-        user   => $user,
-        schema => schema,
-    );
-    $record->find_chronology_id($id);
-
-    my $layout      = $record->layout;
-    my $base_url    = request->base;
-    my $table_short = $layout->identifier;
-    my $record_id   = $record->current_id;
-
+    my $id = route_parameters->get('id');
 
     template 'chronology' => {
-        record                       => $record,
-        page                         => 'chronology',
-        content_block_custom_classes => 'content-block--record',
-        header_type                  => "table_tabs",
-        header_back_url              => "${base_url}${table_short}/record/${record_id}",
-        layout                       => $layout,
-        layout_obj                   => $layout,
+        chronology_id => $id,
     };
 };
 

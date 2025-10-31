@@ -1,3 +1,5 @@
+import { isString, isNumber, isArray, hasMethod, isObject } from './typechecks';
+
 /**
  * Hides an element by adding the 'hidden' class and aria-hidden attribute.,
  * @param { HTMLElement | JQuery<HTMLElement> } element HTMLElement or jQuery element to hide
@@ -39,4 +41,21 @@ export const fromJson = (json: string | object) => {
     } catch {
         return {};
     }
+};
+
+
+
+export const stringifyValue = (value: unknown): string => {
+    if (isString(value)) {
+        return value;
+    } else if (isNumber(value)) {
+        return value.toString();
+    } else if (isArray(value)) {
+        return value.map(stringifyValue).join(', ');
+    } else if (hasMethod(value, 'toString') && value.toString !== Object.prototype.toString) { // Need to make sure toString is not the default one
+        return value.toString();
+    } else if (isObject(value)) {
+        return JSON.stringify(value);
+    }
+    return String(value);
 };

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { hideElement, showElement } from 'util/common';
 
 /**

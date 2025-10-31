@@ -1,5 +1,5 @@
 import 'testing/globals.definitions';
-import { fromJson, hideElement, showElement } from './common';
+import { fromJson, hideElement, showElement, stringifyValue } from './common';
 
 describe('common functions', () => {
     describe('CSS and ARIA - skipped as they are incorrect', () => {
@@ -77,14 +77,60 @@ describe('common functions', () => {
 
         it('returns an empty object for null', () => {
             const json = null;
+            // @ts-expect-error Allow null to be passed
             const parsed = fromJson(json);
             expect(parsed).toEqual({});
         });
 
         it('returns an empty object for undefined', () => {
             const json = undefined;
+            // @ts-expect-error Allow undefined to be passed
             const parsed = fromJson(json);
             expect(parsed).toEqual({});
+        });
+    });
+
+    describe('String tests', ()=>{
+        it('stringifies a string', () => {
+            const value = 'test';
+            const result = stringifyValue(value);
+            expect(result).toEqual('test');
+        });
+
+        it('stringifies a number', () => {
+            const value = 123;
+            const result = stringifyValue(value);
+            expect(result).toEqual('123');
+        });
+
+        it('stringifies an object', () => {
+            const value = { foo: 'bar' };
+            const result = stringifyValue(value);
+            expect(result).toEqual(JSON.stringify(value));
+        });
+
+        it('stringifies an array', () => {
+            const value = [1, 2, 3];
+            const result = stringifyValue(value);
+            expect(result).toEqual('1, 2, 3');
+        });
+
+        it('stringifies a value with toString method', () => {
+            const value = { toString: () => 'custom string' };
+            const result = stringifyValue(value);
+            expect(result).toEqual('custom string');
+        });
+
+        it('stringifies a boolean', () => {
+            const value = true;
+            const result = stringifyValue(value);
+            expect(result).toEqual('true');
+        });
+
+        it('does not stringify null', () => {
+            const value = null;
+            const result = stringifyValue(value);
+            expect(result).toEqual('null');
         });
     });
 });

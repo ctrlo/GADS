@@ -31,6 +31,8 @@ use Dancer2::Plugin::Auth::Extensible;
 use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::LogReport 'linkspace';
 
+use GADS::Chronology;
+
 # Special error handler for JSON requests (as used in API)
 fatal_handler sub {
     my ($dsl, $msg, $reason) = @_;
@@ -561,6 +563,24 @@ any ['get', 'post'] => '/api/:sheet/records' => require_login sub {
     _get_records();
 };
 
+get '/api/chronology/:id' => require_login sub {
+    my $id = route_parameters->get('id');
+    my $user = logged_in_user;
+
+    my $page = query_parameters->get('page') || 1;
+
+    my $chronology = GADS::Chronology->new(
+        user => $user,
+        schema => schema,
+        id => $id,
+    );
+
+    content_type 'application/json; charset=UTF-8';
+    return $chronology->as_json(
+        page => $page,
+    );
+};
+
 post '/api/settings/logo' => require_login sub {
     my $site = var 'site';
 
@@ -570,7 +590,7 @@ post '/api/settings/logo' => require_login sub {
     my $filecheck = GADS::Filecheck->instance;
     error __x"Files of mimetype {mimetype} are not allowed", mimetype => $filecheck->get_filetype($file)
         unless $filecheck->is_image($file);
-    
+
     $site->update({ site_logo => $file->content });
 
     content_type 'application/json';
@@ -666,7 +686,7 @@ sub _put_dashboard_widget_edit {
     my $widget = _get_widget_write(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user);
 
     my $body = from_json(request->body);
-    
+
     $widget->title($body->{'title'});
     $widget->static(query_parameters->get('static') ? 1 : 0)
         if $widget->dashboard->is_shared;

@@ -8,39 +8,41 @@
 
 <div class="content-block__main">
   <div class="content-block__main-content">
-    [%
-      FOREACH version IN record.chronology;
-        initial         = loop.first ? 1 : 0;
-        action_datetime = version.datetime.as_string;
-        action_type     = initial ? 'created' : 'updated';
-        action_by       = version.editor.id ? " by " _ version.editor.as_string : '';
-
-    %]
-    <div class="card card-secondary">
-      <div class="card-header">
-        <h2 class="card__header">
-          <span> [%  action_datetime _ " - " _ " record " _ action_type _ action_by | html %] </span>
-        </h2>
-      </div>
-
-      <div class="card-body">
-        <div class="card__content">
-          <div class="list list--vertical list--key-value list--no-borders">
-            <ul class="list__items">
-              [%
-                FOREACH field IN version.changed;
-                  label_changed_to = field.type == "curval" OR initial ? '' : 'changed to ';
-              %]
-              <li class="list__item ">
-                <span class="list__key"> [% field.name | html %] </span>
-                <span class="list__value"> [% label_changed_to; render_datum(field); %]  </span>
-              </li>
-              [% END %]
-            </ul>
-          </div>
+    <div class="chronology" data-chronology-id="[% chronology_id %]"></div>
+    <div id="chronology-loading">
+      <div class="loading-container p-3 d-flex flex-row align-items-center">
+        <div class="spinner-border" role="status">
         </div>
+        <div class="ml-2">Loading&hellip;</div>
       </div>
     </div>
-    [% END %]
   </div>
+
+  <footer class="content-block__footer">
+        <div class="content-block__footer-container">
+          [%
+            left_buttons = [];
+            right_buttons = [];
+            
+            right_buttons.push({
+              type  = "button",
+              class = "btn btn-primary btn-js-chronology",
+              id    = "load-more-button",
+              name  = "load-more-button",
+              value = "load-more-button",
+              label = "Load more"
+            });
+          
+            INCLUDE navigation/button_bar.tt
+              row_class = "row"
+              columns   = [{
+                class   = "col-md-4 mb-3 mb-md-0",
+                buttons = left_buttons
+              }, {
+                class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
+                buttons = right_buttons
+              }];
+          %]
+        </div>
+      </footer>
 </div>

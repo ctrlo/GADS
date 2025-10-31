@@ -464,7 +464,7 @@ class SelectWidgetComponent extends Component {
             '<button type="button" class="btn btn-sm btn-primary btn-js-more-info" data-record-id="' + value_id +
             '" aria-describedby="lbl-' + valueId +
             '" data-target="' + this.el.data('details-modal') + // TODO: get id of modal
-            '" data-toggle="modal">' +
+            '" data-bs-toggle="modal">' +
             'Details' +
             '</button>' +
             '</div>';

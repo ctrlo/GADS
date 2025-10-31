@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /**
  * Logging utility for debugging and information output.
  */

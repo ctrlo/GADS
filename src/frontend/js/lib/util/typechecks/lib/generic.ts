@@ -1,1 +1,1 @@
-export const isDefined = <T> (value: unknown): value is T => value !== undefined && value !== null;
+export const isDefined = <T> (value: unknown): value is NonNullable<T> => value !== undefined && value !== null;

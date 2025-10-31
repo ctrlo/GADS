@@ -111,6 +111,12 @@ class ButtonComponent extends Component {
                     createCancelButton(el);
                 });
         });
+        map.set('btn-js-chronology', (el) => {
+            import(/* webpackChunkName: "chronology-button" */ './chronology-button')
+                .then(({default: ChronologyButton}) => {
+                    new ChronologyButton(el[0] as HTMLElement);
+                });
+        });
         ButtonComponent.staticButtonsMap = map;
     }
 
