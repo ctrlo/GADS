@@ -1,8 +1,10 @@
 import { Renderable } from "util/renderable";
-import { Chronology, ChronologyAction, ChronologyCreate, ChronologyUpdate } from "./interfaces";
+import { Chronology, ChronologyAction, ChronologyCreate, ChronologyUpdate, Person } from "./interfaces";
 import { ChronologyUpdateAction } from "./types";
 import { RenderMoreLess } from "../../../../more-less/lib/MoreLessRenderer";
 import { stringifyValue } from "util/common";
+import { PersonRenderer } from "./PersonRenderer";
+import { isDefined } from "util/typechecks";
 
 const MORE_LESS_THRESHOLD = 50;
 
@@ -131,8 +133,15 @@ class CreateChronologyRenderer extends ChronologyRenderer {
             const valueSpan = document.createElement("span");
             valueSpan.classList.add("list__value");
 
-            if (typeof value === "object" && value !== null) {
-                valueSpan.appendChild(RenderMoreLess(this.createTableContent(value), key));
+            if (typeof value === "object" && isDefined(value)) {
+                const personData = "type" in value && value.type === "person" && value as unknown as Person; // We have to do some fun type checking here
+                if (personData) {
+                    console.log("Rendering person", personData);
+                    const personRenderer = new PersonRenderer(personData);
+                    valueSpan.appendChild(personRenderer.render());
+                } else {
+                    valueSpan.appendChild(RenderMoreLess(this.createTableContent(value), key));
+                }
             } else {
                 const v = stringifyValue(value);
                 if ((v?.length || 0) > MORE_LESS_THRESHOLD) {

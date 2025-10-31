@@ -59,3 +59,14 @@ export interface ChronologyResult {
      */
     result: Chronology[];
 }
+
+export interface TypedObject {
+    type: string;
+}
+
+export interface Person extends TypedObject {
+    type: "person";
+    id: number;
+    text: string;
+    details: { [key: string]: string }[];
+}

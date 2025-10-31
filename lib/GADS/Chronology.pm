@@ -6,7 +6,7 @@ use MooX::Types::MooseLike::Base qw(ArrayRef Int);
 
 use Log::Report 'linkspace';
 
-use JSON qw(encode_json);
+use JSON qw(to_json);
 
 use feature qw/say/;
 
@@ -17,7 +17,9 @@ has id => (
     required => 1,
     isa      => Int,
     trigger  => sub {
-        shift->_clear_current;
+        my $self = shift;
+        $self->_clear_current; # Probably not needed, but ensures we clear the current record when ID changes
+        $self->_clear_last_record; # As above for the last record
     },
 );
 
@@ -29,9 +31,9 @@ has _current => (
 sub _build__current {
     my $self = shift;
     my $id   = $self->id
-      or error __"No ID provided";
+      or error __ "No ID provided";
     my $current = $self->schema->resultset('Current')->find($id)
-      or error __"Current record ID not found";
+      or error __ "Current record ID not found";
     return $current;
 }
 
@@ -56,7 +58,7 @@ sub as_json {
     my $page = $options{page} // 1;
 
     my $current = $self->_current
-      or error __x"No current record found for ID {id}", id => $self->id;
+      or error __x "No current record found for ID {id}", id => $self->id;
 
     my @result;
     my $rs = $current->records->search(
@@ -74,7 +76,7 @@ sub as_json {
 
     return if $last_page < $page;
 
-    my @records = map {$_->{id}} $rs->all;
+    my @records = map { $_->{id} } $rs->all;
 
     my $old = $self->_last_record;
 
@@ -89,19 +91,41 @@ sub as_json {
         next unless $r;
         my $r_presentation = $r->presentation;
         for my $col ( @{ $r_presentation->{columns} } ) {
-            if($col -> {name} =~ /^last edited/i) {
+            if ( $col->{name} =~ /^last edited/i ) {
                 $chronology_definition->{action}->{datetime} = $col->{data}->{value}
-                  if $col->{name} eq 'Last edited time';
-                $chronology_definition->{action}->{user} = $col->{data}->{value}
-                  if $col->{name} eq 'Last edited by';
+                    if $col->{name} eq 'Last edited time';
+                if ($col->{name} eq 'Last edited by') {
+                    for my $detail ( @{ $col->{data}->{details} } ) {
+                        for my $k ( keys %$detail ) {
+                            $chronology_definition->{action}->{user}->{$k} = $detail->{$k};
+                        }
+                        $chronology_definition->{action}->{user}->{type} = 'person';
+                    }
+                }
                 next;
             }
             my $name = $col->{name};
+            if ( $col->{type} eq 'person' ) {
+                for my $detail ( @{ $col->{data}->{details} } ) {
+                    for my $k ( keys %$detail ) {
+                        $out->{$name}->{$k} = $detail->{$k};
+                    }
+                    $out->{$name}->{type} = 'person';
+                }
+                next;
+            }
             if ( $col->{type} =~ /^curval$/i ) {
                 my $links = $col->{data}->{links};
                 for my $link (@$links) {
                     for my $l ( @{ $link->{presentation}->{columns} } ) {
-                        $out->{$name}->{ $l->{name} } = $l->{data}->{value};
+                        $out->{$name}->{ $l->{name} } = $l->{data}->{value} unless $l->{type} eq 'person';
+                        if ( $l->{type} eq 'person' ) {
+                            for my $detail ( @{ $l->{data}->{details} } ) {
+                                for my $k ( keys %$detail ) {
+                                    $out->{$name}->{ $l->{name} }->{$k} = $detail->{$k};
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -112,19 +136,21 @@ sub as_json {
         }
         $self->_strip($out);
         my $new_values = $old ? $self->_compare( $old, $out ) : $out;
-        $chronology_definition->{data}           = $new_values;
+        $chronology_definition->{data} = $new_values;
         $chronology_definition->{action}->{type} = $old ? 'update' : 'create';
         push @result, $chronology_definition;
         $old = $out;
     }
 
-    $self->_set__last_record( $old );
+    $self->_set__last_record($old);
 
-    encode_json +{
-        'page' => $page,
+    my $json_result = +{
+        'page'      => $page,
         'last_page' => $last_page,
-        'result' => \@result,
+        'result'    => \@result,
     };
+
+    to_json( $json_result );
 }
 
 sub _strip {
@@ -133,7 +159,8 @@ sub _strip {
     for my $key ( keys %$data ) {
         $self->_strip( $data->{$key} ) if ref $data->{$key} eq 'HASH';
         delete $data->{$key}
-          unless $data->{$key} || ( ref $data->{$key} eq 'HASH' && scalar keys %{ $data->{$key} } );
+          unless $data->{$key}
+          || ( ref $data->{$key} eq 'HASH' && scalar keys %{ $data->{$key} } );
     }
 }
 
@@ -141,7 +168,7 @@ sub _compare {
     my ( $self, $a, $b ) = @_;
     my $diff = {};
     my %seen;
-    error __"Input and output are of differing types"
+    error __ "Input and output are of differing types"
       unless ref $a eq 'HASH' && ref $b eq 'HASH';
     for my $key ( keys %$a ) {
         next if $seen{$key};
