@@ -1,6 +1,6 @@
-import "../../../testing/globals.definitions";
-import {validateRequiredFields} from 'validation';
-import CreateReportButtonComponent from "./create-report-button";
+import { validateRequiredFields } from 'validation';
+import CreateReportButtonComponent from './create-report-button';
+import { describe, it, expect } from '@jest/globals';
 
 describe('create-report-button', () => {
     it('does not submit form if no checkboxes are checked', () => {
@@ -54,7 +54,7 @@ describe('create-report-button', () => {
       </form>
     `;
 
-        let $submit = $('#submit');
+        const $submit = $('#submit');
         new CreateReportButtonComponent($submit);
         const submitSpy = jest.fn((ev) => {
             ev.preventDefault();

@@ -1,7 +1,6 @@
 [%
   # prepare table config
   table_class            = 'table-striped table-hover table-lines';
-  table_dom              = 't';
   table_language         = {
     emptyTable => "No fields have been created yet."
   };
@@ -10,7 +9,7 @@
   table_length_menu      = 'basic';
   table_caption          = "Table to show fields";
   table_order            = [0, "asc"]; # Needed for sortable rows to work (drag/drop)
-  
+
   table_buttons = [];
 
   table_columns = [{
@@ -98,7 +97,7 @@
         link_class = "link link--plain"
       });
     END;
-    
+
     row.fields.push({
       type       = col.internal ? "text" : "link",
       label      = col.name_short,
@@ -124,12 +123,14 @@
   [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
   <div class="content-block__main">
     <div class="content-block__main-content">
-      <div class="card card--primary mb-3">
-        <h4 class="card__title">
-          <span> Edit your fields </span>
-        </h4>
-        
-        <div class="card__body row">
+      <div class="card card-plain mb-3">
+        <div class="card-header">
+          <h4 class="card__title">
+            <span> Edit your fields </span>
+          </h4>
+        </div>
+
+        <div class="card-body">
           <div class="card__content">
             <div class="row mb-4">
               <div class="col">
@@ -145,7 +146,7 @@
         </div>
       </div>
     </div>
-    
+
     <footer class="content-block__footer">
       <div class="content-block__footer-container">
         [%
@@ -159,14 +160,14 @@
               buttons = [{
                 type   = "link",
                 target = url.page _ "/" _ layout_obj.identifier _ "/layout/0",
-                class  = "btn btn-inverted btn-add",
+                class  = "btn btn-inverted btn-primary btn-add",
                 label  = "Add a field"
               }, {
                 type  = "button",
                 id    = "submit_saceorder",
                 name  = "saveposition",
                 value = "submit",
-                class = "btn btn-default",
+                class = "btn btn-primary",
                 label = "Save order"
               }]
             }];

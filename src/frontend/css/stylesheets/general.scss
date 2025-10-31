@@ -1,10 +1,12 @@
 @import "definitions/variables";
 
+@import "definitions/bootstrap_base";
+
 // Bootstrap 4.6
 @import "~bootstrap/scss/bootstrap",
-        "~datatables.net-bs4/css/dataTables.bootstrap4.min.css",
-        "~datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css",
-        "~datatables.net-rowreorder-bs4/css/rowReorder.bootstrap4.min.css";
+        "~datatables.net-bs5/css/dataTables.bootstrap5.min.css",
+        "~datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css",
+        "~datatables.net-rowreorder-bs5/css/rowReorder.bootstrap5.min.css";
 
 @import "definitions/fonts", "definitions/mixins";
 
@@ -18,12 +20,13 @@
 // Components
 @import "alert/alert";
 @import "attention/attention";
+@import "bootstrap-popover/bootstrap-popover";
 @import "breadcrumbs/breadcrumbs";
 @import "button/button";
 @import "calculator/calculator";
 
 // card
-@import "card/card", "card/card-expandable";
+@import "card/card";
 
 @import "collapsible/collapsible-dropdown";
 
@@ -68,10 +71,13 @@
         "form-group/select-widget/select-widget",
         "form-group/switch/switch",
         "form-group/textarea/textarea",
-        "form-group/input-group/input-group";
+        "form-group/input-group/input-group",
+        "form-group/searchable-select/searchable-select";
 
 @import "graph/graph";
+@import "icons/icons";
 @import "link/link";
+@import "nav/nav";
 @import "list/list";
 @import "login/login";
 
@@ -80,7 +86,6 @@
 
 @import "more-less/more-less";
 @import "page-header/page-header";
-@import "popover/popover";
 
 // rag
 @import "rag-legend/rag/rag", "rag-legend/rag-legend";

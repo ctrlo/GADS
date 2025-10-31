@@ -25,7 +25,7 @@
     }
   }
 
-  input[type=radio]:checked + label {
+  input[type="radio"]:checked + label {
     background-color: $brand-secundary;
     color: $white;
 

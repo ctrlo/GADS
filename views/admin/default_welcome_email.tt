@@ -10,15 +10,15 @@
   <div class="content-block__main-content">
     <form role="form" method="post">
       [% INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
-      
+
       <fieldset class="fieldset">
         <div class="fieldset__legend fieldset__legend--hidden">
           <legend>
             Default welcome email
           </legend>
-        
+
         </div>
-        
+
         <div class="row">
           <div class="col-lg-5">
             [%
@@ -33,7 +33,7 @@
             %]
           </div>
         </div>
-        
+
         <div class="row">
           <div class="col-lg-5">
             [%
@@ -48,7 +48,7 @@
             %]
           </div>
         </div>
-        
+
         <div class="row">
           <div class="col-lg-5">
             [%
@@ -79,7 +79,7 @@
                 type  = "button",
                 name  = "update",
                 value = "update",
-                class = "btn btn-default",
+                class = "btn btn-primary",
                 label = "Save"
               }]
             }];

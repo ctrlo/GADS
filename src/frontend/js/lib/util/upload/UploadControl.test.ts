@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { describe, it, expect } from '@jest/globals';
 import { Uploader, XmlHttpRequestLike } from './UploadControl';
-import { initGlobals, MockXhr } from '../../../../testing/globals.definitions';
+import { initGlobals, MockXhr } from 'testing/globals.definitions';
 
 describe('UploadControl', () => {
     let mockXhr: XmlHttpRequestLike | null;
@@ -11,12 +10,12 @@ describe('UploadControl', () => {
         initGlobals();
 
         mockXhr = new MockXhr();
-        oldXMLHttpRequest = <any>window.XMLHttpRequest; // eslint-disable-line @typescript-eslint/no-explicit-any
-        window.XMLHttpRequest = <any>(jest.fn(() => mockXhr)); // eslint-disable-line @typescript-eslint/no-explicit-any
+        oldXMLHttpRequest = <any>window.XMLHttpRequest;
+        window.XMLHttpRequest = <any>(jest.fn(() => mockXhr));
     });
 
     afterEach(() => {
-        window.XMLHttpRequest = <any>oldXMLHttpRequest; // eslint-disable-line @typescript-eslint/no-explicit-any
+        window.XMLHttpRequest = <any>oldXMLHttpRequest;
         mockXhr = null;
     });
 
@@ -60,6 +59,7 @@ describe('UploadControl', () => {
     });
 
     it('should use a progress callback', async () => {
+        expect.assertions(2);
         const localMock = mockXhr!;
         const url = 'http://localhost';
         const method = 'POST';
@@ -73,9 +73,11 @@ describe('UploadControl', () => {
         const ev: ProgressEvent = {
             loaded: 1,
             total: 2,
-        } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+            lengthComputable: true
+        } as any;
         setTimeout(() => {
-            localMock.onprogress && localMock.onprogress(ev);
+            if (localMock.upload?.onprogress)
+                localMock.upload?.onprogress?.(ev);
         }, 500);
         setTimeout(localMock.onreadystatechange!, 1500);
         await promise;

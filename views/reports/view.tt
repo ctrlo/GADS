@@ -1,5 +1,4 @@
 [%
-  table_dom = "t";
   table_show_all_records = "true";
   table_width = 85;
   table_class = "table-striped";
@@ -49,20 +48,14 @@
   <div class="content-block__main">
     <div class="row">
       <div class="col mb-3">
-        <div class="card">
-          <div class="card--header">
-            <div class="row">
-              <div class="col">
-                <h3 class="card__title">
-                  <span>Reports</span>
-                </h3>
-              </div>
-              <div class="col d-md-flex justify-content-md-end align-items-center">
-                <a href = [% url.page _ "/" _ layout_obj.identifier _ "/report/add" %] class="btn btn-add">Create Report</a>
-              </div>
-            </div>
+        <div class="card card-plain">
+          <div class="card-header d-flex align-items-baseline justify-content-between">
+            <h3 class="card__title">
+              <span>Reports</span>
+            </h3>
+            <a href = [% url.page _ "/" _ layout_obj.identifier _ "/report/add" %] class="btn btn-add btn-primary">Create Report</a>
           </div>
-          <div class="card__body">
+          <div class="card-body">
             <div class="card__content">
               <div class="row">
                 <div class="col">
@@ -76,13 +69,13 @@
     </div>
     <div class="row mb-3">
       <div class="col">
-        <div class="card">
-          <div class="card--header">
+        <div class="card card-plain">
+          <div class="card-header">
             <h3 class="card__title">
               <span>Settings</span>
             </h3>
           </div>
-          <div class="card__body">
+          <div class="card-body">
             <div class="card__content">
               <fieldset>
                 [% INCLUDE 'fields/input.tt'
@@ -103,7 +96,9 @@
       <div class="content-block__footer-container">
         <div class="row">
           <div class="col-md-4 mb-3 mb-md-0"></div>
-          <div class="col-md-8 d-md-flex justify-content-md-end align-items-center"><button type="submit" class="btn-primary btn" id="submit" name="submit" value="submit">Save</button></div>
+          <div class="col-md-8 d-md-flex justify-content-md-end align-items-center">
+            <button type="submit" class="btn-primary btn" id="submit" name="submit" value="submit">Save</button>
+          </div>
         </div>
       </div>
     </footer>

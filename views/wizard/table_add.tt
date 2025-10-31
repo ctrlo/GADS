@@ -8,12 +8,12 @@
 >
   <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
     <div class="modal-content">
-      <div class="modal-header">
+      <div class="modal-header d-flex jusify-content-between">
         <div class="modal-header__content">
           <h3 class="modal-title" id="newTableModalLabel">
             Table setup
           </h3>
-          
+
           <ol class="modal__steps">
             <li class="modal__step modal__step--active" data-step="1">
               <span>
@@ -32,11 +32,11 @@
             </li>
           </ol>
         </div>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <button type="button" class="btn close visually-hidden" data-bs-dismiss="modal" aria-label="Close">
           <span aria-hidden="true" class="hidden">Close</span>
         </button>
       </div>
-      
+
       <div class="modal-frame" data-config='{"step":1,"frame":1,"item":"table","count":null}'>
         <div class="modal-body">
           <div class="container-fluid">
@@ -46,7 +46,7 @@
                 </div>
               </div>
             </div>
-            
+
             <div class="row mb-4">
               <div class="col">
                 <h4>New table</h4>
@@ -54,13 +54,13 @@
                   define the general properties of your table.</p>
               </div>
             </div>
-            
-            
-            <div class="form-group ">
-              
+
+
+            <div class="form-group mb-4 ">
+
               <div class="row">
                 <div class="col-lg-7">
-                  
+
                   [%
                     INCLUDE fields/input.tt
                       id = "name"
@@ -101,12 +101,13 @@
             </div>
           </div>
         </div>
-        
+
         [%
           INCLUDE wizard/sub/modal_footer.tt
             left_buttons = [{
               class   = "btn-cancel"
               label   = "Cancel"
+              dismiss = "modal"
             }]
             right_buttons = [{
               class   = "btn-js-next btn-disabled"
@@ -114,10 +115,10 @@
             }];
         %]
       </div>
-      
+
       <div class="modal-frame" data-config='{"step":1,"frame":2,"item":"table permissions","count":null}'>
         <div class="modal-body">
-          
+
           <div class="container-fluid">
             <div class="row mb-4">
               <div class="col">
@@ -125,28 +126,24 @@
                 <p>Here you can set the table actions available to each user group.</p>
               </div>
             </div>
-            
+
             [% FOREACH group IN groups %]
             <div class="row mb-3 permission-group" data-group-id="[% group.id %]">
               <div class="col">
                 <div class="card card--expandable">
-                  <div class="card__header">
-                    <button class="card__header-left" type="button" data-toggle="collapse" data-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
+                  <div class="card-header" role="button" aria-type="button" data-bs-target="#group_permissions_[% group.id %]" data-bs-toggle="collapse" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
                       <span class="card__title">
                         Group
                         <span class="card__subtitle">
                           [% group.name | html %]
                         </span>
                       </span>
-                    </button>
-                    <div class="card__header-right">
-                      <button class="card__toggle" type="button" data-toggle="collapse" data-target="#group_permissions_[% group.id %]" aria-expanded="false" aria-controls="group_permissions_[% group.id %]">
+                      <span class="card__header-right card__toggle">
                         <span>Toggle collapsible</span>
-                      </button>
-                    </div>
+                      </span>
                   </div>
                   <div class="collapse" id="group_permissions_[% group.id %]">
-                    <div class="card__content">
+                    <div class="card-body card__content">
                       <div class="row mb-3">
                         <div class="col">
                           [%
@@ -200,7 +197,7 @@
                           %]
                         </div>
                       </div>
-                      
+
                       <div class="row mb-3">
                         <div class="col">
                           [%
@@ -229,7 +226,7 @@
                           %]
                         </div>
                       </div>
-                      
+
                       <div class="row mb-3">
                         <div class="col">
                           [%
@@ -261,7 +258,7 @@
             [% END %]
           </div>
         </div>
-        
+
         [%
           INCLUDE wizard/sub/modal_footer.tt
             left_buttons = [{
@@ -269,15 +266,15 @@
               label   = "Back"
             }]
             right_buttons = [{
-              class   = "btn-inverted btn-js-save"
+              class   = "btn btn-primary btn-inverted btn-js-save"
               label   = "Save table"
             }, {
-              class   = "btn-js-next btn-default"
+              class   = "btn-js-next btn-primary"
               label   = "Next"
             }];
         %]
       </div>
-      
+
       <div class="modal-frame" data-config='{"step":2,"frame":3,"item":null,"count":null,"skip":6}'>
         <div class="modal-body">
           <div class="container-fluid">
@@ -299,7 +296,7 @@
             </div>
           </div>
         </div>
-        
+
         [%
           INCLUDE wizard/sub/modal_footer.tt
             left_buttons = [{
@@ -307,18 +304,18 @@
               label   = "Back"
             }]
             right_buttons = [{
-              class   = "btn-inverted btn-js-skip"
+              class   = "btn btn-primary btn-inverted btn-js-skip"
               label   = "Skip creating topics"
             }, {
-              class   = "btn-js-next btn-default"
+              class   = "btn-js-next btn-primary"
               label   = "Next"
             }];
         %]
       </div>
-      
+
       <div class="modal-frame" data-config='{"step":2,"frame":4,"item":"topic","count":null}'>
         <div class="modal-body">
-          
+
           <div class="container-fluid">
             <div class="row">
               <div class="col">
@@ -369,7 +366,7 @@
             </div>
           </div>
         </div>
-        
+
         [%
           INCLUDE wizard/sub/modal_footer.tt
             left_buttons = [{
@@ -377,7 +374,7 @@
               label   = "Back"
             }]
             right_buttons = [{
-              class   = "btn-invisible btn-inverted btn-js-add-next"
+              class   = "btn-invisible btn btn-primary btn-inverted btn-js-add-next"
               label   = "Add another and next"
             }, {
               class   = "btn-js-next btn-disabled"
@@ -385,7 +382,7 @@
             }];
         %]
       </div>
-      
+
       <div class="modal-frame" data-config='{"step":2,"frame":5,"item":"topic overview","count":null}'>
         <div class="modal-body">
           <div class="container-fluid">
@@ -397,11 +394,10 @@
                   collapsed and hide them from view.</p>
                 <p>You can create topics in this window or skip this step and create them later. Topics are applied to
                   fields in the edit field screens.</p>
-                
                 <table class="data-table table "
-                       data-config='{"data":null,"dom":"t","order":[],"language":{},"responsive":false,"scrollX":false,"rowReorder":false,"pageLength":10,"lengthMenu":[10,25,50,100],"autoWidth":false,"columns":[{"name":"Topic","orderable":false}]}'
+                       data-config='{"data":null,"order":[],"language":{},"responsive":false,"scrollX":false,"rowReorder":false,"pageLength":10,"lengthMenu":[10,25,50,100],"autoWidth":false,"columns":[{"name":"Topic","orderable":false}]}'
                        width="100%" id=topics>
-                  <caption class="sr-only">Table for topics</caption>
+                  <caption class="visually-hidden">Table for topics</caption>
                   <thead>
                     <tr>
                       <th>
@@ -422,7 +418,7 @@
             </div>
           </div>
         </div>
-        
+
         [%
           INCLUDE wizard/sub/modal_footer.tt
             left_buttons = [{
@@ -430,12 +426,12 @@
               label   = "Back"
             }]
             right_buttons = [{
-              class   = "btn-js-next btn-default"
+              class   = "btn-js-next btn-primary"
               label   = "Next"
             }];
         %]
       </div>
-      
+
       <div class="modal-frame" data-config='{"step":3,"frame":6,"item":null,"count":null,"skip":10}'>
         <div class="modal-body">
           <div class="container-fluid">
@@ -456,7 +452,7 @@
             </div>
           </div>
         </div>
-        
+
         [%
           INCLUDE wizard/sub/modal_footer.tt
             left_buttons = [{
@@ -464,15 +460,15 @@
               label   = "Back"
             }]
             right_buttons = [{
-              class   = "btn-inverted btn-js-skip"
+              class   = "btn btn-primary btn-inverted btn-js-skip"
               label   = "Skip creating fields"
             }, {
-              class   = "btn-js-next btn-default"
+              class   = "btn-js-next btn-primary"
               label   = "Next"
             }];
         %]
       </div>
-      
+
       <div class="modal-frame" data-config='{"step":3,"frame":7,"item":"field","count":null,"skip":10}'>
         <div class="modal-body">
           <div class="container-fluid">
@@ -535,7 +531,7 @@
                     # {id = "calc", name = "Calculated value"},
                     {id = "curval", name = "Field(s) for records from another table"}
                   ];
-                
+
                   INCLUDE fields/select.tt
                     id           = "field_type"
                     name         = "field_type"
@@ -550,7 +546,7 @@
             </div>
           </div>
         </div>
-        
+
         [%
           INCLUDE wizard/sub/modal_footer.tt
             left_buttons = [{
@@ -558,7 +554,7 @@
               label   = "Back"
             }]
             right_buttons = [{
-              class   = "btn-inverted btn-js-skip"
+              class   = "btn btn-primary btn-inverted btn-js-skip"
               label   = "Skip creating fields"
             }, {
               class   = "btn-js-next btn-disabled"
@@ -566,8 +562,8 @@
             }];
         %]
       </div>
-      
-      
+
+
       <div class="modal-frame" data-config='{"step":3,"frame":8,"item":"field type settings","count":null}'>
         <div class="modal-body">
           <div class="container-fluid">
@@ -577,9 +573,9 @@
                 <p>Depending on your field type, here you can create settings for your field type.</p>
               </div>
             </div>
-            
+
             <div class="select-reveal select-reveal--field_type">
-              
+
               <div class="select-reveal__instance" id="field_type_string">
                 <div class="row">
                   <div class="col">
@@ -605,7 +601,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="select-reveal__instance" id="field_type_intgr">
                 <div class="row">
                   <div class="col">
@@ -615,8 +611,8 @@
                           Show pop-up calculator:
                         </legend>
                       </div>
-  
-                      <div class="form-group">
+
+                      <div class="form-group mb-4">
                         [%
                           INCLUDE fields/sub/checkbox.tt
                             id          = "show_calculator"
@@ -630,7 +626,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="select-reveal__instance" id="field_type_date">
                 <div class="row">
                   <div class="col">
@@ -641,7 +637,7 @@
                         </legend>
                       </div>
 
-                      <div class="form-group mb-2">
+                      <div class="form-group mb-4 mb-2">
                         [%
                           INCLUDE fields/sub/checkbox.tt
                             id      = "show_datepicker_date"
@@ -662,7 +658,7 @@
                         </legend>
                       </div>
 
-                      <div class="form-group">
+                      <div class="form-group mb-4">
                         [%
                           INCLUDE fields/sub/checkbox.tt
                             id          = "default_today"
@@ -676,7 +672,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="select-reveal__instance" id="field_type_daterange">
                 <div class="row">
                   <div class="col">
@@ -687,7 +683,7 @@
                         </legend>
                       </div>
 
-                      <div class="form-group">
+                      <div class="form-group mb-4">
                         [%
                           INCLUDE fields/sub/checkbox.tt
                             id      = "show_datepicker_date-range"
@@ -700,7 +696,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="select-reveal__instance" id="field_type_enum">
                 <div class="orderable-sortable">
                   [%
@@ -719,7 +715,7 @@
 
                   <div class="sortable">
                     <div class="sortable__label">
-                      <label>
+                      <label class="form-label">
                         Add dropdown values
                       </label>
                     </div>
@@ -728,7 +724,7 @@
                         <span class="sortable__handle">
                           <span>Drag handle</span>
                         </span>
-  
+
                         [%
                           INCLUDE fields/input.tt
                             id          = "enumval_1"
@@ -739,7 +735,7 @@
                             type        = "text"
                             hide_group  = 1;
                         %]
-                        
+
                         <button
                           type="button"
                           class="btn btn-icon-close"
@@ -751,20 +747,20 @@
 
                     <button
                       type="button"
-                      class="btn btn-default"
+                      class="btn btn-primary"
                     >
                       <span class="btn__title">Add a value</span>
                     </button>
                   </div>
                 </div>
               </div>
-              
+
               <div class="select-reveal__instance" id="field_type_tree">
                 <div class="row">
                   <div class="col">
                     <p>Each value in the tree is referred to as a node.</p>
 
-                    <div class="form-group">
+                    <div class="form-group mb-4">
                       [%
                         INCLUDE fields/sub/checkbox.tt
                           id      = "end_node_only"
@@ -786,7 +782,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="select-reveal__instance" id="field_type_file">
                 <div class="row">
                   <div class="col">
@@ -801,18 +797,18 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="select-reveal__instance" id="field_type_person">
                 <div class="row">
                   <div class="col">
-                    <div class="form-group">
+                    <div class="form-group mb-4">
                       [%
                         INCLUDE fields/sub/checkbox.tt
                           id      = "default_to_login"
                           name    = "default_to_login"
                           label   = "Default new values to current logged-in user"
                           value   = 1;
-                      
+
                         INCLUDE fields/sub/checkbox.tt
                           id          = "notify_on_selection"
                           name        = "notify_on_selection"
@@ -853,7 +849,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="select-reveal__instance" id="field_type_rag">
                 <p class="mb-3">Use a RAG field to automatically generate red, amber or green indicators based on the values of other fields. You set the conditions for the RAG status using the Lua programming language.</p>
                 <div class="row">
@@ -880,7 +876,7 @@
                         </legend>
                       </div>
 
-                      <div class="form-group">
+                      <div class="form-group mb-4">
                       [%
                         INCLUDE fields/sub/checkbox.tt
                           id      = "no_alerts_calc_rag"
@@ -909,7 +905,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="select-reveal__instance" id="field_type_calc">
                 <p class="mb-3">A calculated value field automatically generates values based on the values of other fields. You define your calculation using the Lua programming language.</p>
                 <div class="row">
@@ -969,7 +965,7 @@
                         </legend>
                       </div>
 
-                      <div class="form-group">
+                      <div class="form-group mb-4">
                       [%
                         INCLUDE fields/sub/checkbox.tt
                           id      = "no_alerts_calc"
@@ -998,7 +994,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="select-reveal__instance" id="field_type_curval">
                 [% IF NOT instance_layouts.size; %]
                 <div class="row">
@@ -1036,7 +1032,7 @@
 
                       </div>
 
-                      <div class="form-group ">
+                      <div class="form-group mb-4 ">
                         [%
                           INCLUDE fields/sub/checkbox.tt
                             id      = "show_add"
@@ -1058,7 +1054,7 @@
                         </legend>
                       </div>
 
-                      <div class="form-group ">
+                      <div class="form-group mb-4 ">
                         [%
                           INCLUDE fields/sub/checkbox.tt
                             id      = "delete_not_used"
@@ -1080,7 +1076,7 @@
                         </legend>
                       </div>
 
-                      <div class="form-group ">
+                      <div class="form-group mb-4 ">
                         [%
                           INCLUDE fields/sub/checkbox.tt
                             id      = "override_permissions"
@@ -1114,7 +1110,7 @@
                       FOREACH instance_layout IN instance_layouts;
                         refers_items.push({id = instance_layout.instance_id, name = instance_layout.name});
                       END;
-                    
+
                       INCLUDE fields/select.tt
                         id           = "refers_to_instance_id"
                         name         = "refers_to_instance_id"
@@ -1135,14 +1131,14 @@
                       <div class="col">
                         [%
                           curval_field_ids_items = [];
-                        
+
                           FOREACH c IN instance_layout.all;
                             NEXT IF c.type == "curval";
                             c.is_checked = 0;
                             c.field_id = "curval_field_ids_" _ instance_layout.instance_id _ "-" _ c.id;
                             curval_field_ids_items.push(c);
                           END;
-                        
+
                           INCLUDE fields/checkbox_list.tt
                             list_class = "list--vertical list--checkboxes"
                             name = "curval_field_ids"
@@ -1161,7 +1157,7 @@
                             </legend>
                           </div>
 
-                          <div class="form-group">
+                          <div class="form-group mb-4">
                             [%
                               PROCESS builder.tt
                                 builder_id = instance_layout.instance_id
@@ -1181,11 +1177,11 @@
                 <input id="filter" type="hidden" name="filter" value="">
                 [% END %]
               </div>
-              
+
             </div>
           </div>
         </div>
-        
+
         [%
           INCLUDE wizard/sub/modal_footer.tt
             left_buttons = [{
@@ -1193,13 +1189,13 @@
               label   = "Back"
             }]
             right_buttons = [{
-              class   = "btn-js-next btn-default"
+              class   = "btn-js-next btn-primary"
               label   = "Next"
             }];
         %]
       </div>
-      
-      
+
+
       <div class="modal-frame" data-config='{"step":3,"frame":9,"item":"custom field permissions","count":null}'>
         <div class="modal-body">
           <div class="container-fluid">
@@ -1209,7 +1205,7 @@
                 <p>In this window you can customise the permissions for this field.</p>
               </div>
             </div>
-            
+
             [% IF ! groups.size %]
               <p>
                 No groups have been created yet. <a href="[% url.page %]/group_add/">Create a group</a>
@@ -1219,7 +1215,6 @@
                 # prepare table config
                 table_id           = 'custom_field_permissions_table';
                 table_class        = 'table-lines table-no-margin';
-                table_dom          = '<"row row--header"<"col"f><"col-lg-auto dataTables_length_wrapper"l>><"row row--main"<"col-sm-12"tr>><"row row--footer"<"col-sm-12 col-lg-6"p><"col-sm-12 col-lg-6 dataTables_info_wrapper"i>>';
                 table_language     = {
                   emptyTable => "There are no groups available",
                   lengthMenu => "Rows per page _MENU_",
@@ -1227,14 +1222,14 @@
                     next     => "Next",
                     previous => "Previous"
                   },
-                  search            => "<span class=\"sr-only\">Search in groups:</span>",
+                  search            => "<span class=\"visually-hidden\">Search in groups:</span>",
                   searchPlaceholder => "Search group"
                 }
                 table_page_length  = 5;
                 table_length_menu  = 'detail';
                 table_unresponsive = 1;
                 table_caption      = "Table to edit table permissions";
-              
+
                 table_columns = [{
                   name      = "Group"
                   orderable = 1
@@ -1268,7 +1263,7 @@
                 #   orderable = 0
                 # }
                 ];
-                
+
                 table_buttons = [];
                 rows = [];
 
@@ -1396,17 +1391,17 @@
                     # }
                     ]
                   };
-            
+
                   rows.push(row);
                 END;
 
                 INCLUDE tables/basic_table.tt;
               END;
             %]
-          
+
           </div>
         </div>
-        
+
         [%
           INCLUDE wizard/sub/modal_footer.tt
             left_buttons = [{
@@ -1414,16 +1409,16 @@
               label   = "Back"
             }]
             right_buttons = [{
-              class   = "btn-js-next btn-default"
+              class   = "btn-js-next btn-primary"
               label   = "Next"
             }];
         %]
       </div>
-      
-      
+
+
       <div class="modal-frame" data-config='{"step":3,"frame":10,"item":null,"count":null}'>
         <div class="modal-body">
-          
+
           <div class="container-fluid">
             <div class="row">
               <div class="col">
@@ -1445,32 +1440,31 @@
                 [%
                   table_id           = 'fields';
                   table_class        = 'table-lines';
-                  table_dom          = '<"row row--header"<"col"f><"col-lg-auto dataTables_length_wrapper"l>><"row row--main"<"col-sm-12"tr>><"row row--footer"<"col-sm-12 col-lg-6"p><"col-sm-12 col-lg-6 dataTables_info_wrapper"i>>';
                   table_language     = {
                     lengthMenu => "Rows per page _MENU_",
                     paginate   => {
                       next     => "Next",
                       previous => "Previous"
                     },
-                    search            => "<span class=\"sr-only\">Search in fields:</span>",
+                    search            => "<span class=\"visually-hidden\">Search in fields:</span>",
                     searchPlaceholder => "Search field"
                   }
                   table_page_length  = 5;
                   table_length_menu  = 'detail';
                   table_unresponsive = 0;
                   table_caption      = "Table to show fields";
-                
+
                   table_columns = [{
                     name      = "Fields"
                     orderable = 1
                   }];
-                
+
                   table_buttons = [];
                   rows = [];
-                
+
                   INCLUDE tables/basic_table.tt;
                 %]
-                
+
                 <button
                   type="button"
                   class="btn btn-primary btn-js-create-field"
@@ -1483,7 +1477,7 @@
             </div>
           </div>
         </div>
-        
+
         [%
           INCLUDE wizard/sub/modal_footer.tt
             left_buttons = [{
@@ -1491,12 +1485,12 @@
               label   = "Back"
             }]
             right_buttons = [{
-              class   = "btn-js-save btn-default"
+              class   = "btn-js-save btn-primary"
               label   = "Save"
             }];
         %]
       </div>
-    
+
     </div>
   </div>
 </div>

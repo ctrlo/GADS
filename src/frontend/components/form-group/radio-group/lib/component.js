@@ -1,15 +1,22 @@
-import { Component } from 'component'
-import { initValidationOnField } from 'validation'
+import { Component } from 'component';
+import { initValidationOnField } from 'validation';
 
+/**
+ * Component for radio group form elements.
+ */
 class RadioGroupComponent extends Component {
-    constructor(element)  {
-      super(element)
-      this.el = $(this.element)
+    /**
+     * Create a new RadioGroupComponent.
+     * @param {HTMLElement} element The HTML element for the radio group.
+     */
+    constructor(element) {
+        super(element);
+        this.el = $(this.element);
 
-      if (this.el.hasClass("radio-group--required")) {
-        initValidationOnField(this.el)
-      }
+        if (this.el.hasClass('radio-group--required')) {
+            initValidationOnField(this.el);
+        }
     }
 }
 
-export default RadioGroupComponent
+export default RadioGroupComponent;

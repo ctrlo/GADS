@@ -1,8 +1,11 @@
-import StorageProvider from "util/storageProvider";
-import { addAction } from "./handler";
-import loadActions from "./actionsLoader";
+import StorageProvider from 'util/storageProvider';
+import { addAction } from './handler';
+import loadActions from './actionsLoader';
 
-// Exported to be used in tests - return values are to be used in tests
+/**
+ * Action handler to clear the autorecover data for a record.
+ * @returns {Promise<boolean>} Returns a promise that resolves to true if the action was successful, false otherwise.
+ */
 export const clearAutorecoverAction = async () => {
     // Load the body as a jQuery object
     const $body = $('body');
@@ -25,9 +28,9 @@ export const clearAutorecoverAction = async () => {
     // Clear the storage provider
     await storage.clear();
     return true;
-}
+};
 
 /**
  * Action handler for when a record is created or updated - only runs outside of a test environment
  */
-if(!window.test) addAction(clearAutorecoverAction);
+if (!window.test) addAction(clearAutorecoverAction);

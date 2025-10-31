@@ -1,4 +1,4 @@
-<header class="row no-gutters purge--header">
+<header class="row g-0 purge--header">
   <div class="table-header__meta">
     [% INCLUDE navigation/breadcrumbs.tt %]
     <h1 class="table-header__title">Purge Records</h1>
@@ -19,7 +19,6 @@
         [%
           # prepare table config
           table_class            = 'table-striped table-selectable';
-          table_dom              = 't';
           table_language         = {
             emptyTable => "There are no deleted records in this table.",
           };
@@ -104,7 +103,7 @@
               }, {
                 type  = "modal_button",
                 modalId = "restore",
-                class = "btn btn-default",
+                class = "btn btn-primary",
                 label = "Undelete"
               }]
             }];

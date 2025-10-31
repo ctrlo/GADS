@@ -9,8 +9,8 @@
       <div class="content-block__main-content">
         <div class="row">
           <div class='col-md-6 col-lg-8 mb-4 mb-lg-0'>
-            <div class="card card--secundary">
-              <div class="card__body row">
+            <div class="card card-secundary">
+              <div class="card-body">
                 <div class="card__content">
 
                   <!-- Name of the view -->
@@ -107,22 +107,23 @@
                   [% END %]
 
                   <!-- Filter section -->
-                  <div class="row mb-3">
+                  <div class="row my-3">
                     <div class="col">
-                      <div class="card card--expandable">
-                        <div class="card__header">
-                          <button class="card__header-left" type="button" data-toggle="collapse" data-target="#filter_1" aria-expanded="false" aria-controls="filter_1">
-                            <span class="card__title">
+                      <div class="card card-primary card-inverse card--expandable">
+                        <div class="card-header">
+                            <div class="card-header__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#filter_1" aria-expanded="false" aria-controls="filter_1" role="button">
+                            <span>
                               Filter
                             </span>
-                          </button>
+                            </div>
                           <div class="card__header-right">
-                            <button class="card__toggle" type="button" data-toggle="collapse" data-target="#filter_1" aria-expanded="false" aria-controls="filter_1">
+                            <button class="btn card__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#filter_1" aria-expanded="false" aria-controls="filter_1">
                               <span>Toggle collapsible</span>
                             </button>
                           </div>
                         </div>
                         <div class="collapse" id="filter_1">
+                        <div class="card-body">
                           <div class="card__content">
                             <div class="row mb-3">
                               <div class="col">
@@ -168,28 +169,28 @@
                       </div>
                     </div>
                   </div>
+                  </div>
 
                   <!-- Sort/Group section -->
                   <div class="row mb-3">
                     <div class="col">
-                      <div class="card card--expandable">
-                        <div class="card__header">
-                          <button class="card__header-left" type="button" data-toggle="collapse" data-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1">
-                            <span class="card__title">
-                              Sort/Group
-                            </span>
-                          </button>
+                      <div class="card card-primary card-inverse card--expandable">
+                        <div class="card-header">
+                            <div class="card-header__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1" role="button">
+                            <span>Sort/Group</span>
+                            </div>
                           <div class="card__header-right">
-                            <button class="card__toggle" type="button" data-toggle="collapse" data-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1">
+                            <button class="btn card__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#sort_group_1" aria-expanded="false" aria-controls="sort_group_1">
                               <span>Toggle collapsible</span>
                             </button>
                           </div>
                         </div>
                         <div class="collapse" id="sort_group_1">
+                            <div class="card-body">
                           <div class="card__content">
                             <div class="row mb-3">
                               <div class="col">
-                                <div class="form-group help-view"
+                                <div class="form-group help-view mb-4"
                                   data-help-title = "Filters and Grouping"
                                   data-help-text = 'Filters and Groups allow you to construct sophisticated filters by defining specific conditions (rules) and combining them into logical groupings (groups) to precisely control which records are displayed\n#### Rules\nThese are three part statements comprised of a data field, an operator and a value.\n- ***Field*** - a drop down selector for all of the fields on your table.\n- ***Operator*** - symbols or key words to determine how the field and value interact.\n- ***Value*** - the value that is being searched for in the selected field.\n#### Groups\nThese are combinations of rules that result in a "**TRUE**" or "**FALSE**" outcome and can be combined with other rules or groups.'
                                   data-help-target = "help__card">
@@ -378,6 +379,7 @@
                                     </div>
                                   </fieldset>
                                 </div>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -389,20 +391,21 @@
                   <!-- Fields section -->
                   <div class="row mb-3">
                     <div class="col">
-                      <div class="card card--expandable">
-                        <div class="card__header">
-                          <button class="card__header-left" type="button" data-toggle="collapse" data-target="#fields_1" aria-expanded="false" aria-controls="fields_1">
-                            <span class="card__title">
+                      <div class="card card-primary card-inverse card--expandable">
+                        <div class="card-header">
+                            <div class="card-header__toggle collapsed" data-bs-toggle="collapse" data-bs-target="#fields_1" aria-expanded="false" aria-controls="fields_1" role="button">
+                            <span>
                               Fields
                             </span>
-                          </button>
+                            </div>
                           <div class="card__header-right">
-                            <button class="card__toggle" type="button" data-toggle="collapse" data-target="#fields_1" aria-expanded="false" aria-controls="fields_1">
+                            <button class="btn card__toggle" type="button" data-bs-toggle="collapse" data-bs-target="#fields_1" aria-expanded="false" aria-controls="fields_1">
                               <span>Toggle collapsible</span>
                             </button>
                           </div>
                         </div>
                         <div class="collapse" id="fields_1">
+                          <div class="card-body">
                           <div class="card__content">
                             <div class="row">
                               <div class="col-sm-12">
@@ -492,14 +495,13 @@
                               %]
 
                               <!-- Selected fields -->
-                              <div class="col-sm-12 col-lg-6">
+                              <div class="col-sm-12 col-lg-6 align-tables">
                                 [%
                                   INCLUDE tables/basic_table.tt
 
                                   # Table configuration
                                   table_id = "table-view-fields-selected"
                                   table_class = 'table--bordered table-hover table-toggle table-toggle--remove'
-                                  table_dom = '<"row row--fiv-header"><"row row--main"<"col-sm-12"tr>>'
                                   table_buttons = [{
                                     button_class = "btn"
                                   }]
@@ -524,7 +526,7 @@
                                 %]
 
                                 <button
-                                  class="btn btn-default btn-small btn-remove btn-js-toggle-all-fields"
+                                  class="btn btn-primary btn-remove btn-js-toggle-all-fields m-0"
                                   data-toggle-source="#table-view-fields-selected"
                                   data-toggle-destination="#table-view-fields-available">
                                     Remove all fields
@@ -539,7 +541,13 @@
                                   # Table configuration
                                   table_id = "table-view-fields-available"
                                   table_class = 'table--bordered table-hover table-toggle table-toggle--add table-search'
-                                  table_dom = '<"row row--header"<"col"' _ (session.rewind ? '' : 'f') _ '>><"row row--main"<"col-sm-12"tr>>'
+                                  table_layout = {
+                                    topStart = undef,
+                                    topEnd = undef,
+                                    bottomStart = undef,
+                                    bottomEnd = undef,
+                                    top = "search"
+                                  }
                                   table_buttons = [{
                                     button_class = "btn"
                                   }]
@@ -553,7 +561,7 @@
                                   table_info = 0
                                   table_language = {
                                     emptyTable => "No available fields",
-                                    search => "<span class=\"sr-only\">Search available fields:</span>",
+                                    search => "<span class=\"visually-hidden\">Search available fields:</span>",
                                     searchPlaceholder => "Search available fields"
                                   }
                                   table_ordering = 0
@@ -565,13 +573,13 @@
                                   rows = fields_available
                                 %]
                                 <button
-                                  class="btn btn-default btn-small btn-add btn-js-toggle-all-fields"
+                                  class="btn btn-primary btn-add btn-js-toggle-all-fields m-0"
                                   data-toggle-source="#table-view-fields-available"
                                   data-toggle-destination="#table-view-fields-selected">
                                     Select all fields
                                 </button>
                               </div>
-
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -584,11 +592,14 @@
 
           </div>
           <div class='col-md-6 col-lg-4'>
-            <div class="card card--secundary card--help">
-              <h4 class="card__title">
-                <span> View help </span>
-              </h4>
+            <div class="card card-secundary card--help">
+              <div class="card-header">
+                <h4 class="card__title">
+                    <span> View help </span>
+                </h4>
+              </div>
 
+              <div class="card-body">
               <div class="card__body row">
                 <div id="help__card" class="card__content">
                   <dl>
@@ -616,6 +627,7 @@
             </div>
           </div>
         </div>
+        </div>
       </div>
 
       <footer class="content-block__footer">
@@ -636,7 +648,7 @@
 
             right_buttons.push({
               type  = "button",
-              class = "btn btn-default btn-js-save-view"
+              class = "btn btn-primary btn-js-save-view"
               id    = "saveview"
               name  = "update"
               value = "update"

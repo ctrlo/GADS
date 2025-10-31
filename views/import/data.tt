@@ -48,11 +48,11 @@
         <div class="col col-lg-6">
           [%
             update_unique_items = [{id="", name=""}];
-          
+
             FOR column IN layout.all("only_unique", 1, "include_internal", 1);
               update_unique_items.push({id=column.id, name=column.name});
             END;
-          
+
             INCLUDE fields/select.tt
               id          = "update_unique"
               name        = "update_unique"
@@ -68,11 +68,11 @@
         <div class="col col-lg-6">
           [%
             skip_existing_unique_items = [{id="", name=""}];
-          
+
             FOR column IN layout.all("only_unique", 1, "include_internal", 1);
               skip_existing_unique_items.push({id=column.id, name=column.name});
             END;
-          
+
             INCLUDE fields/select.tt
               id          = "skip_existing_unique"
               name        = "skip_existing_unique"
@@ -85,7 +85,7 @@
         </div>
       </div>
     </div>
-    
+
     <footer class="content-block__footer">
       <div class="content-block__footer-container">
         [%
@@ -103,7 +103,7 @@
               class   = "col-md-8 d-md-flex justify-content-md-end align-items-center",
               buttons = [{
                 type  = "button",
-                class = "btn btn-default",
+                class = "btn btn-primary",
                 name  = "submit",
                 value = "submit",
                 label = "Submit"

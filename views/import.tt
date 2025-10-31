@@ -1,6 +1,5 @@
 [%
   # prepare files table config
-  table_dom = "t";
   table_class = "table-striped";
   table_language = {
     emptyTable => "No imports to show"
@@ -66,7 +65,7 @@
     },{
       type   = "link"
       target = url.page _ "/" _ layout.identifier _ "/import/data/"
-      class  = "btn btn-default"
+      class  = "btn btn-primary"
       label  = "Import data"
     }];
 %]

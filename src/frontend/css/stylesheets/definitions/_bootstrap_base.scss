@@ -1,0 +1,117 @@
+@import "./variables";
+@import "~bootstrap/scss/functions";
+@import "~bootstrap/scss/variables", "~bootstrap/scss/variables-dark";
+
+$font-size-base: 16px;
+$box-shadow: 0 0 7px rgba($black, 40%);
+
+$multiplier: 1.6;
+
+// Links
+$link-decoration: none;
+
+// Transitions
+$transition-default: 0.2s all ease;
+
+// Alerts
+$alert-margin-bottom: $padding-large-vertical;
+$alert-padding-x: $padding-base-horizontal;
+$alert-padding-y: $padding-base-horizontal;
+
+// Colors
+$primary: $brand-secundary;
+$secondary: $brand-primary;
+$success: $brand-success;
+$info: $brand-secundary;
+$warning: $brand-warning;
+$danger: $brand-danger;
+$light: $gray-light;
+$dark: $gray-extra-dark;
+
+$secundary: $brand-secundary;
+
+$custom-colors: (
+    "primary": $primary,
+    "secondary": $secondary,
+    "success": $success,
+    "info": $info,
+    "warning": $warning,
+    "danger": $danger,
+    "light": $light,
+    "dark": $dark,
+    "secundary": $secundary
+);
+
+$theme-colors: map-merge($theme-colors, $custom-colors);
+
+// Breadcrumbs
+$breadcrumb-font-size: $font-size-sm;
+$breadcrumb-divider: ">";
+$breadcrumb-bg: $transparent;
+
+// Buttons
+$btn-padding-x: 30px;
+$btn-padding-y: 10px;
+$btn-line-height: $headings-line-height;
+$btn-border-radius: 23px;
+$btn-padding-sm-x: 20px;
+$btn-padding-sm-y: 7px;
+$btn-font-size-sm: $font-size-sm;
+$btn-font-size: $font-size-base;
+$btn-border-radius-sm: $btn-border-radius;
+
+// Cards
+$card-cap-bg: $white;
+$card-cap-color: $brand-primary;
+$card-cap-border-color: $white;
+$card-bg: $white;
+$card-cap-padding-y: $card-cap-padding-x;
+
+// List groups
+$list-group-bg: $white;
+
+// Tables
+$table-caption-color: $primary;
+$table-bg: $white;
+$table-color: $secondary;
+$table-striped-color: $secondary;
+
+// Dropdowns
+$dropdown-bg: $white;
+
+// Forms
+$input-border-color: $gray-300;
+$input-focus-border-color: $primary;
+$input-focus-bg: $white;
+$input-bg: $white;
+
+// Navs
+$nav-link-font-size: $font-size-base * 1.125;
+$nav-link-font-weight: 600;
+$nav-tabs-border-color: $secondary;
+$nav-tabs-link-hover-border-color: $secondary;
+$nav-tabs-link-active-border-color: $secondary;
+$nav-tabs-link-active-color: $secondary;
+$nav-tabs-link-color: $secondary;
+$nav-tabs-border-width: 2px;
+$nav-tabs-link-hover-border-color: $gray-500;
+
+$border-color-translucent: rgba($primary, 0.5);
+
+// Popovers
+$popover-header-bg: $secondary;
+$popover-header-color: $white;
+
+// Switches
+$form-switch-checked-color: $brand-primary;
+$form-check-input-checked-bg-color: $primary;
+
+// Headers
+$h1-font-size: 1.5625rem;
+$h2-font-size: 1.125rem;
+$h3-font-size: 1rem;
+$h4-font-size: 1rem;
+
+@import "~bootstrap/scss/maps";
+@import "~bootstrap/scss/mixins";
+@import "~bootstrap/scss/root";

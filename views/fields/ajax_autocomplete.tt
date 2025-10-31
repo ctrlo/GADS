@@ -21,13 +21,13 @@
   input_class = is_required AND ! input_class.match('input--required') ? input_class _ ' input--required' : input_class;
 -%]
 [% IF ! hide_group %]
-<div class="form-group ">
+<div class="form-group mb-4">
 [% END %]
   <div class="input  input--autocomplete typeahead__container [% input_class %]">
     [% INCLUDE fields/sub/label_input.tt; %]
     <div class="input__field">
       <input type="hidden" id="[% id %]" name="[% name %]" value="[% value %]">
-      
+
       <input
         type="text"
         class="form-control [% custom_classes %]"
@@ -39,10 +39,10 @@
         tabindex="[% tabindex %]"[% END %][% IF help_text %]
         aria-describedby="[% id %]-help"[% END %]
       >
-    
+
     </div>
   </div>
-  
+
   [% INCLUDE snippets/subfield.tt %]
 [% IF ! hide_group %]
 </div>

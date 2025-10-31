@@ -65,7 +65,7 @@ describe("settings tests", () => {
                 .find("tr")
                 .contains("No titles available");
             cy.mainHeader()
-                .find(".btn-default")
+                .find(".btn-primary")
                 .should("exist")
                 .click();
             cy.location("pathname").should("include", "/title_add");
@@ -93,7 +93,7 @@ describe("settings tests", () => {
                 .find("tr")
                 .contains("No titles available");
             cy.mainHeader()
-                .find(".btn-default")
+                .find(".btn-primary")
                 .should("exist")
                 .click();
             cy.location("pathname").should("include", "/title_add");
@@ -191,7 +191,7 @@ describe("settings tests", () => {
                 .find("tr")
                 .contains("No organisations available");
             cy.mainHeader()
-                .find(".btn-default")
+                .find(".btn-primary")
                 .should("exist")
                 .click();
             cy.location("pathname").should("include", "/organisation_add");
@@ -219,7 +219,7 @@ describe("settings tests", () => {
                 .find("tr")
                 .contains("No organisations available");
             cy.mainHeader()
-                .find(".btn-default")
+                .find(".btn-primary")
                 .should("exist")
                 .click();
             cy.location("pathname").should("include", "/organisation_add");

@@ -1,7 +1,6 @@
 [%
   # prepare table config
   table_class    = 'table-striped table-lines';
-  table_dom      = 't';
   table_language = {emptyTable => "No topics have been created yet."};
 
   table_caption = "Table for topics";
@@ -42,19 +41,21 @@
 
 <div class="content-block__main">
   <div class="content-block__main-content">
-    <div class="card card--primary mb-3">
-      <h4 class="card__title">
-        <span> Edit your topics </span>
-      </h4>
-      
-      <div class="card__body row">
+    <div class="card card-plain mb-3">
+      <div class="card-header">
+        <h4 class="card__title">
+            <span> Edit your topics </span>
+        </h4>
+      </div>
+
+      <div class="card-body">
         <div class="card__content">
           [% INCLUDE tables/basic_table.tt; %]
         </div>
       </div>
     </div>
   </div>
-  
+
   <footer class="content-block__footer">
     <div class="content-block__footer-container">
       [%
@@ -68,7 +69,7 @@
             buttons = [{
               type   = "link",
               target = url.page _ "/" _ layout_obj.identifier _ "/topic/0",
-              class  = "btn btn-inverted btn-add",
+              class  = "btn btn-inverted btn-primary btn-add",
               label  = "Add a topic"
             }]
           }];

@@ -88,6 +88,7 @@
   END;
 
   # Add column for screen overflow expand/collapse column
+  UNLESS no_toggle;
   config_columns.push({
     name      = "Toggle child row",
     orderable = 0,
@@ -98,6 +99,7 @@
     type  = "header"
     label = "Toggle child row"
   });
+  END;
 
   rowCounter = 1;
 
@@ -148,13 +150,14 @@
       END;
     END;
 
+    UNLESS no_toggle;
     # add empty field for screen overflow expand/collapse column
     row.fields.push({type = "text"});
     rowCounter   = rowCounter + 1;
+    END;
   END;
 
   table_config = {
-    dom        = ( table_dom || '' ),
     order      = ( table_order && table_order.size ? table_order : [] ),
     ordering   = ( table_ordering.defined ? table_ordering : 1 ), # Defines if you can sort records (enabled by default)
     language   = ( table_language && table_language.size ? table_language : { emptyTable => "There is no data available in this table" } ),
@@ -164,6 +167,12 @@
     paging     = ( table_paging.defined ? table_paging : 1 ) # Defines whether to show pagination (enabled by default)
     scrollY    = ( table_scroll_y.defined ? table_scroll_y : '' ) # Defines a fixed table height (disabled by default)
     info       = ( table_info.defined ? table_info : 1 ) # Defines whether to show table info ("showing x to y of z entries")
+    layout     = table_layout.defined ? table_layout : {
+      topStart    = undef,
+      topEnd      = undef,
+      bottomStart = undef,
+      bottomEnd   = undef,
+    },
   };
 
   IF table_ajax;
@@ -189,16 +198,10 @@
     table_config.pageLength = table_page_length;
   END;
 
-  IF table_length_menu == 'basic';
-    table_config.lengthMenu = [10,25,50,100,200];
-  ELSIF table_length_menu == 'detail';
-    table_config.lengthMenu = [[5,10,25,50,-1],[5,10,25,50,"All"]];
-  END;
-
 %]
 
 <table
-  class="data-table table [% table_class %]"
+  class="data-table [% UNLESS table_id == 'default_field_permissions_table' %] table[% END %] [% table_class %]"
   [% IF table_id %]id="[% table_id %]"[% END %]
   [% IF table_ajax AND table_ajax_target %]data-href="[% table_ajax_target %]"[% END %]
   [% IF table_destination %]data-destination="[% table_destination %]"[% END %]
@@ -206,7 +209,7 @@
   data-config='[% b64_filter(table_config) %]'
 >
   [% IF table_caption %]
-    <caption class="sr-only">[% table_caption | html %]</caption>
+    <caption class="visually-hidden">[% table_caption | html %]</caption>
   [% END %]
   <thead>
     [% INCLUDE tables/basic_row.tt row=header_row %]

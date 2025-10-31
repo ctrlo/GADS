@@ -2,14 +2,12 @@
   [% INCLUDE fields/hidden.tt name="submit" value="submit";
      INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token; %]
   <div class="content-block__main">
-    <div class="card">
-      <div class="card--header">
-        <h3 class"card__header">
-          <span>Edit Report</span>
-        </h3>
+    <div class="card card-default mb-3">
+      <div class="card-header">
+        <h3 class="card__title">Edit Report</h3>
       </div>
 
-      <div class="card__body row">
+      <div class="card-body">
         <div class="card__content">
           <div class="col-12">
             [%
@@ -104,7 +102,7 @@
             class           = "col-md-8 d-md-flex justify-content-md-end align-items-center",
             buttons         = [{
                 type        = "button",
-                class       = "btn btn-inverted btn-js-report",
+                class       = "btn btn-primary btn-inverted btn-js-report",
                 label       = "Save Report",
                 button_type = "submit"
           }]

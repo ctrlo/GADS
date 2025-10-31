@@ -1,6 +1,5 @@
 [%
   # prepare files table config
-  table_dom = "t";
   table_show_all_records = 1;
 
   table_caption = "Table to show files";
@@ -38,12 +37,12 @@
       }, {
         type       = "link"
         label      = file.name
-        link_class = "btn btn-download btn-small"
+        link_class = "btn btn-download btn-sm"
         link       = "/file/{file_id}"
       }]
     });
   END;
-  
+
   # add standardized page header
   INCLUDE layouts/page_header.tt
     title         = "Files"
@@ -51,7 +50,7 @@
     aside_buttons = [{
       type    = "modal_button"
       modalId = "uploadFile"
-      class   = "btn btn-default"
+      class   = "btn btn-primary btn-upload"
       label   = "Upload a file"
     }];
 %]

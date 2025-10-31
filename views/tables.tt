@@ -2,7 +2,6 @@
   PROCESS help.tt;
 
   # prepare table config
-  table_dom = "t";
   table_class = "table-striped";
   table_width = 85;
   table_show_all_records = 1;
@@ -58,7 +57,7 @@
     aside_buttons = ! user.permission.superadmin ? [] : [{
       type    = "modal_button"
       modalId = "newTableModal"
-      class   = "btn btn-add"
+      class   = "btn btn-primary btn-add"
       label   = "New table"
     }];
 -%]

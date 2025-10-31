@@ -1,12 +1,11 @@
 <form role="form" method="post">
-    <h3>Purge field values from records in the current view</h3>
+    <h1 class="h3">Purge field values from records in the current view</h1>
     <p>Select fields to purge within this view.</p>
     <p class="text-danger">WARNING: This is a destructive action and cannot be undone. This will remove all field values from all current and historical versions of the records, and chronology in the selected fields from the current view.</p>
     <input type="hidden" name="csrf_token" value="[% csrf_token %]">
     [%
     # prepare table config
     table_class            = 'table-striped table-selectable';
-    table_dom              = 't';
     table_language         = {
         emptyTable => "There are no records in this view.",
     };

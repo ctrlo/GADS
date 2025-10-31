@@ -3,11 +3,18 @@
   # PROCESS snippets/datum.tt
 
   # prepare files table config
-  table_dom = 'Bt';
   table_show_all_records = 1;
+  table_unresponsive = 1;
 
   table_caption = "Table for audit log";
   table_class = "table-force-buttons";
+
+  table_layout = {
+    topStart = undef,
+    topEnd = "fs",
+    bottomStart = undef,
+    bottomEnd = undef
+  };
 
   table_columns = [{
     name = "ID"
@@ -75,12 +82,12 @@
               <button
                 type="button"
                 class="btn btn-filter"
-                data-toggle="modal" data-target=#filterAuditLogs
+                data-bs-toggle="modal" data-bs-target=#filterAuditLogs
               >
                 <span class="btn__title">Filter</span>
               </button>
             </li>
-            
+
             <li class="list__item">
               <a href="/settings/audit?download" class="btn btn-export">
                 <span class="btn__title">Download</span>
@@ -90,7 +97,7 @@
         </div>
       </div>
     </div>
-    
+
     [% INCLUDE tables/basic_table.tt; %]
   </div>
 </div>

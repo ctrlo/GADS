@@ -2,10 +2,10 @@
 @import '~bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css';
 
 // Datatables styling for bootstrap 4
-@import '~datatables.net-bs4/css/dataTables.bootstrap4.css';
+@import '~datatables.net-bs5/css/dataTables.bootstrap5.css';
 
 // QueryBuilder
-@import '~@lol768/jquery-querybuilder-no-eval/dist/css/query-builder.default.min.css';
+@import 'jQuery-QueryBuilder/dist/css/query-builder.default.css';
 
 // JStree
 @import '~jstree/dist/themes/default/style.min.css';
@@ -22,4 +22,3 @@
 // tippy
 @import '~tippy.js/dist/tippy.css';
 @import '~tippy.js/themes/light.css';
-@import '~bootstrap-select/dist/css/bootstrap-select.css';
