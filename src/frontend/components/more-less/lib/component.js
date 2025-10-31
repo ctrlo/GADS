@@ -131,14 +131,14 @@ class MoreLessComponent extends Component {
     $ml.addClass('clipped')
 
     const $expandable = $('<div/>', {
-      class: 'expandable popover column-content card card--secundary',
+      class: 'expandable popover column-content card card-secondary',
       html: content
     })
 
     const toggleLabel = 'Show ' + column + ' ⇒'
 
     const $expandToggle = $('<button/>', {
-      class: 'btn btn-small btn-inverted trigger',
+      class: 'btn btn-sm btn-primary btn-inverted trigger',
       text: toggleLabel,
       type: 'button',
       'aria-expanded': false,

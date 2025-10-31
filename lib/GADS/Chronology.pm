@@ -63,7 +63,7 @@ sub as_json {
         {},
         {
             columns      => [qw/me.id/],
-            order_by     => { -desc => 'me.created' },
+            order_by     => { -asc => 'me.created' },
             page         => $page,
             rows         => 10,
             result_class => 'DBIx::Class::ResultClass::HashRefInflator',

@@ -1,4 +1,4 @@
-import { Component } from "component";
+import { Component, initializeRegisteredComponents } from "component";
 import { ChronologyListRenderer } from "./chronology";
 import { logging } from "logging";
 import { ChronologyResult } from "./chronology/lib/interfaces";
@@ -75,8 +75,11 @@ export default class ChronologyComponent extends Component {
                 });
                 this.$el.trigger($event);
             }).catch(error => {
+                console.error(error);
                 logging.error("Error fetching chronology:", error);
                 this.$el.append("<p>Error loading chronology data.</p>");
+            }).finally(()=>{
+                initializeRegisteredComponents(document.body);
             });
     }
 }

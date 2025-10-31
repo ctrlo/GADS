@@ -5,6 +5,29 @@ import { RenderMoreLess } from "../../../../more-less/lib/MoreLessRenderer";
 
 const MORE_LESS_THRESHOLD = 50;
 
+const isNotNull = (value: unknown): value is NonNullable<unknown> => value !== null && value !== undefined;
+const isString = (value: unknown): value is string => isNotNull(value) && (typeof value === "string" || value instanceof String);
+const isObject = (value: unknown): value is Record<string, unknown> => isNotNull(value) && typeof value === "object" && !Array.isArray(value);
+const isArray = (value: unknown): value is Array<unknown> => isNotNull(value) && Array.isArray(value);
+const isNumber = (value: unknown): value is number => isNotNull(value) && (typeof value === "number" || value instanceof Number);
+const hasMethod = (value: unknown, methodName: string): value is { [key: string]: unknown } & { [method: string]: (...args: any[]) => any } =>
+    isObject(value) && methodName in value && typeof value[methodName] === "function";
+
+const stringifyValue = (value: unknown): string => {
+    if (isString(value)) {
+        return value;
+    } else if (isNumber(value)) {
+        return value.toString();
+    } else if (isObject(value)) {
+        return JSON.stringify(value); // This should not happen - for these values we should render a table which should be picked up in the renderer
+    } else if (isArray(value)) {
+        return value.map(stringifyValue).join(", "); // This should not happen - for these values we should render a table which should be picked up in the renderer
+    } else if (hasMethod(value, "toString")) {
+        return value.toString();
+    }
+    return String(value);
+};
+
 /**
  * ChronologyRenderer is an abstract class that defines the structure for rendering chronology entries.
  * @implements {Renderable<HTMLDivElement>}
@@ -61,30 +84,22 @@ export abstract class ChronologyRenderer implements Renderable<HTMLDivElement> {
      * Render a table element containing the object keys as headers, and the values as fields.
      * @param { Record<string, string|null> } data The data for which to create the table
      * @returns { HTMLTableElement } A table element containing the object keys as headers, and the values as fields
+     * @protected
      */
     protected createTableContent(data: { [key: string]: string | null; }): HTMLTableElement {
         const table = document.createElement("table");
         table.classList.add("table", "table-bordered", "table-striped");
-        const thead = document.createElement("thead");
         const tbody = document.createElement("tbody");
 
-        const headerRow = document.createElement("tr");
-        for (const key of Object.keys(data)) {
-            const th = document.createElement("th");
-            th.textContent = key;
-            headerRow.appendChild(th);
-        }
-        thead.appendChild(headerRow);
-
         const dataRow = document.createElement("tr");
-        for (const value of Object.values(data)) {
+        for (const [key,value] of Object.entries(data)) {
             const td = document.createElement("td");
-            td.textContent = value !== null ? String(value) : "N/A";
+            td.title=key
+            td.textContent = value !== null ? stringifyValue(value) : "N/A";
             dataRow.appendChild(td);
         }
         tbody.appendChild(dataRow);
 
-        table.appendChild(thead);
         table.appendChild(tbody);
         return table;
     }
@@ -141,11 +156,9 @@ class CreateChronologyRenderer extends ChronologyRenderer {
             if (typeof value === "object" && value !== null) {
                 valueSpan.appendChild(RenderMoreLess(this.createTableContent(value), key));
             } else {
-                const v = String(value);
-                if (v.length > MORE_LESS_THRESHOLD) {
-                    const d = document.createElement("div");
-                    d.textContent = v;
-                    valueSpan.appendChild(RenderMoreLess(d, key));
+                const v = stringifyValue(value);
+                if ((v?.length || 0) > MORE_LESS_THRESHOLD) {
+                    valueSpan.appendChild(RenderMoreLess(document.createTextNode(v), key));
                 } else {
                     valueSpan.textContent = v;
                 }
@@ -212,11 +225,11 @@ class UpdateChronologyRenderer extends ChronologyRenderer {
             const newContent = value.new;
             const oldContent = value.old;
             if (newContent && !oldContent) {
-                valueSpan.textContent = `added with value ${newContent}`;
+                valueSpan.textContent = (newContent?.length || 0) > MORE_LESS_THRESHOLD ? RenderMoreLess(document.createTextNode(`added with value ${stringifyValue(newContent)}`), key) : `added with value ${stringifyValue(newContent)}`;
             } else if (oldContent && !newContent) {
                 valueSpan.textContent = `removed`;
             } else {
-                valueSpan.textContent = `changed to ${newContent}`;
+                valueSpan.textContent = (newContent?.length || 0) > MORE_LESS_THRESHOLD ? RenderMoreLess(document.createTextNode(`changed to ${stringifyValue(newContent)}`), key) : `changed to ${stringifyValue(newContent)}`;;
             }
 
             li.appendChild(keySpan);
