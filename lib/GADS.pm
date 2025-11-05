@@ -175,6 +175,7 @@ hook before => sub {
         my $site_id = $site->id;
         trace __x"Site ID is {id}", id => $site_id;
         schema->site_id($site_id);
+        schema->resultset('Authentication')->create_default_provider;
     }
     else {
         my $site = schema->resultset('Site')->next;
@@ -591,6 +592,15 @@ sub _successful_login
         failcount => 0,
         lastfail  => undef,
     });
+
+    unless($user->provider) {
+        my $provider = schema->resultset('Authentication')->find(
+            1, # Default to first provider
+        );
+        $user->find_or_create_related('provider', {
+            id => $provider->id,
+        });
+    }
 
     # Load previous settings
     my $session_settings;
