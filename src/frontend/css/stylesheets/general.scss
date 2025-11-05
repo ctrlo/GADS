@@ -1,5 +1,7 @@
 @import "definitions/variables";
 
+$primary: $brand-primary;
+
 // Bootstrap 4.6
 @import "~bootstrap/scss/bootstrap",
         "~datatables.net-bs4/css/dataTables.bootstrap4.min.css",

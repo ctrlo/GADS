@@ -57,7 +57,8 @@ sub create_provider
 
     my $guard = $self->result_source->schema->txn_scope_guard;
 
-    my $site = $self->result_source->schema->resultset('Site')->next;
+    # This should already be set by `resultset` sub in GADS::Schema so shouldn't be needed here
+    my $site = $self->result_source->schema->resultset('Site')->next; # I don't think this will work for Multi?
 
     error __"A name must be specified for the provider"
         if !$params{name};
@@ -94,6 +95,31 @@ sub create_provider
     $guard->commit;
 
     return $provider;
+}
+
+sub create_default_provider {
+    my $self = shift;
+
+    my $schema = $self->result_source->schema;
+
+    $schema->storage->ensure_connected;
+    my $txn = $self->result_source->schema->txn_scope_guard;
+    $schema->storage->svp_begin ('create_default_provider');
+    my $exists = $self->search({
+        type => 0,
+        name => 'builtin',
+    })->count;
+    if ($exists) {
+        $schema->storage->svp_release ('create_default_provider');
+        return;
+    }
+    my $provider = $self->create({
+        type    => 0,
+        name    => 'builtin',
+        enabled => 1,
+    });
+    $schema->storage->svp_release ('create_default_provider');
+    $txn->commit;
 }
 
 1;
