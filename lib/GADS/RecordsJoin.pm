@@ -22,7 +22,7 @@ use Data::Compare;
 use Data::Dumper;
 use Log::Report 'linkspace';
 use Moo::Role;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base qw(ArrayRef);
 
 my $debug = 0;
 

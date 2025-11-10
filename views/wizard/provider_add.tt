@@ -74,7 +74,7 @@
 
               <div class="row mb-4">
                 <div class="col">
-                  <p class="js-add-provider">In this window you can add an authentication provider in the system.</p>
+                  <p class="js-add-provider lead text-primary">In this window you can add an authentication provider in the system.</p>
                 </div>
               </div>
 
@@ -148,7 +148,7 @@
             <div class="container-fluid">
               <div class="row mb-4">
                 <div class="col">
-                  <p>Specify the attributes for the provider: "<span class="js-provider">PROVIDER</span>"</p>
+                  <p class="lead text-primary">Specify the attributes for the provider: "<span class="js-provider">PROVIDER</span>"</p>
                 </div>
               </div>
 
@@ -225,56 +225,32 @@
               </div>
               <div class="row mb-4">
                 <div class="col">
-                  <p>Private keys and certificates for: "<span class="js-provider">PROVIDER</span>"</p>
+                  <p class="lead text-primary">Private keys and certificates for: "<span class="js-provider">PROVIDER</span>"</p>
                 </div>
               </div>
 
               [%- field_counter = 0 -%]
-              <div class="row mt-4">
                 [%- FOREACH field in thirdFrameFields -%]
-                  [%- IF field_counter > 0 AND field_counter % 2 == 0 -%]
-              </div>
-              <div class="row mt-4">
-                  [%- END -%]
-                  [%- coll_end_class = field_counter % 2 == 1 ? ' align-self-end' : ''; -%]
-                <div class="col-lg-6[%- coll_end_class -%]">
+                <div class="row mt-4 align-items-baseline">
+                  <div class="col">
                   [%-
-                    IF field.type == "freetext";
-                      INCLUDE fields/input.tt
-                        id = field.name
-                        name = field.name
-                        label = field.description
-                        placeholder = field.placeholder
-                        type = field_type
-                        filter = "html"
-                        sub_field = sub_field
-                        sub_params = sub_params;
-
-                    ELSIF field.type == "dropdown";
-                      INCLUDE fields/select_single.tt
-                        id = field.name
-                        name = field.name
-                        label = field.description
-                        placeholder = field.placeholder
-                        items = values.${field.name}
-                        sub_field = sub_field
-                        sub_params = sub_params;
-
-                    ELSIF field.type == "textarea";
-                      INCLUDE fields/textarea.tt
+                    IF field.type == "file";
+                      INCLUDE fields/sub/label_input.tt
+                        label = field.description;
+                    -%]
+                  </div>
+                  <div class="col">
+                    [%-
+                      INCLUDE fields/file.tt
                         id=field.name
                         name=field.name
-                        label=field.description
-                        placeholder=field.placeholder
-                        filter="html"
-                        sub_field=sub_field
-                        sub_params=sub_params;
+                        label="Add File..."
+                        placeholder=field.placeholder;
                     END;
                   -%]
+                  </div>
                 </div>
-                [%- field_counter = field_counter + 1; -%]
               [%- END -%]
-              </div>
             </div> <!-- container end -->
           </div> <!-- modal body end -->
 

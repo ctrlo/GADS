@@ -175,6 +175,7 @@ hook before => sub {
         my $site_id = $site->id;
         trace __x"Site ID is {id}", id => $site_id;
         schema->site_id($site_id);
+        schema->resultset('Authentication')->create_default_provider;
     }
     else {
         my $site = schema->resultset('Site')->next;
@@ -219,12 +220,16 @@ hook before => sub {
         $token ||= query_parameters->get('csrf-token') || body_parameters->get('csrf_token');
         error __x"csrf-token missing for uri {uri}", uri => request->uri
             if !$token;
-        error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
-            if $token ne session('csrf_token');
+        # This is to ensure the API endpoint returns the correct error on timeout, rather than the below error
+        if(logged_in_user || request->path eq '/login')
+        {
+            error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
+                if $token ne session('csrf_token');
 
-        # If it's a potential login, change the token
-        _update_csrf_token()
-            if request->path eq '/login';
+            # If it's a potential login, change the token
+            _update_csrf_token()
+                if request->path eq '/login';
+        }
     }
 
     if ($user)
@@ -245,6 +250,9 @@ hook before => sub {
     # instance_id until the request is processed (log these later)
     _audit_log()
         unless request->path =~ m!^/(record|record_body)/!;
+
+    response_header "X-Frame-Options" => "DENY" # Prevent clickjacking
+        unless request->uri eq '/aup_text'; # Except AUP, which will be in an iframe
 
     # The following use logged_in_user so as not to apply for API requests
     if (logged_in_user)
@@ -274,10 +282,6 @@ hook before => sub {
                 below to set a new password." }, 'myaccount')
                     unless request->uri eq '/myaccount' || request->uri eq '/logout';
         }
-
-        response_header "X-Frame-Options" => "DENY" # Prevent clickjacking
-            unless request->uri eq '/aup_text' # Except AUP, which will be in an iframe
-                || request->path eq '/file'; # Or iframe posts for file uploads (hidden iframe used for IE8)
 
         # CSP
         response_header "Content-Security-Policy" => "script-src 'self';";
@@ -347,6 +351,9 @@ hook before_template => sub {
 
     # Base 64 encoder for use in templates
     $tokens->{b64_filter} = sub { encode_base64(encode_json shift, '') };
+
+    $tokens->{actions} = session 'actions';
+    session->delete('actions');
 
     # This line used to be pre-request. However, occasionally errors have been
     # experienced with pages not submitting CSRF tokens. I think these may have
@@ -585,6 +592,15 @@ sub _successful_login
         failcount => 0,
         lastfail  => undef,
     });
+
+    unless($user->provider) {
+        my $provider = schema->resultset('Authentication')->find(
+            1, # Default to first provider
+        );
+        $user->find_or_create_related('provider', {
+            id => $provider->id,
+        });
+    }
 
     # Load previous settings
     my $session_settings;
@@ -1669,8 +1685,9 @@ any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin super
                 if logged_in_user->id == $delete_id;
 
         my $usero = rset('User')->find($delete_id);
+        my $email_reject_text = param('reject_reason');
 
-        if (process( sub { $usero->retire(send_reject_email => 1) }))
+        if (process( sub { $usero->retire(send_reject_email => 1, email_reject_text => $email_reject_text) }))
         {
             $audit->login_change("User ID $delete_id deleted");
             return forwardHome(
@@ -1851,7 +1868,7 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
             view_limits           => [body_parameters->get_all('view_limits')],
             groups                => [body_parameters->get_all('groups')],
         );
-        $values{permissions} = [body_parameters->get_all('permission')]
+        $values{permissions} = [body_parameters->get_all('permissions')]
             if logged_in_user->permission->{superadmin};
 
         if (process sub {
@@ -1936,9 +1953,9 @@ post '/file/:id?' => require_login sub {
     # File upload through the "manage files" interface
     if (my $upload = upload('file'))
     {
-        my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
+        my $mimetype = $filecheck->check_upload($upload); # Borks on invalid file type
         my $file;
-        if (process( sub { $file = rset('Fileval')->create({
+        if (process( sub { $file = rset('Fileval')->create_with_file({
             name           => $upload->filename,
             mimetype       => $mimetype,
             content        => $upload->content,
@@ -1961,7 +1978,7 @@ post '/file/:id?' => require_login sub {
     my $fileval = $id =~ /^[0-9]+$/ && schema->resultset('Fileval')->find($id)
         or error __x"File ID {id} cannot be found", id => $id;
 
-    if (process( sub { $fileval->delete }))
+    if (process( sub { $fileval->remove_file }))
     {
         return forwardHome( { success => "File has been deleted successsfully" }, 'file/' );
     }
@@ -1997,7 +2014,7 @@ put '/api/file/:id' => require_login sub {
             rename_existing => 1)
                 or error __x"File ID {id} cannot be found", id => $id;
 
-        my $newFile = rset('Fileval')->create({
+        my $newFile = rset('Fileval')->create_with_file({
             name           => $newname,
             mimetype       => $file->single_mimetype,
             content        => $file->single_content,
@@ -2025,7 +2042,7 @@ post '/api/file/?' => require_login sub {
 
         my $fileval = schema->resultset('Fileval')->find($delete_id);
 
-        $fileval->delete;
+        $fileval->remove_file();
 
         return forwardHome(
             { success => "The file has been deleted successfully" }, 'file/' );
@@ -2033,7 +2050,17 @@ post '/api/file/?' => require_login sub {
 
     if (my $upload = upload('file'))
     {
-        my $mimetype = $filecheck->check_file($upload, check_name => 0); # Borks on invalid file type
+        my $user = logged_in_user;
+        my $column_id = body_parameters->get('column_id')
+            or error __"Missing column ID";
+
+        my $column = GADS::Layout->new(
+            schema => schema,
+            user   => $user,
+            config => config
+        )->column($column_id);
+
+        my $mimetype = $filecheck->check_upload($upload, check_name => 0, extra_types => $column->override_types); # Borks on invalid file type
         my $filename = $upload->filename;
 
         # Remove any invalid characters from the new name - this will possibly be changed to an error going forward
@@ -2043,7 +2070,7 @@ post '/api/file/?' => require_login sub {
         $filename =~ s/[^a-zA-Z0-9\._\-\(\) ]//g;
 
         my $file;
-        if (process( sub { $file = rset('Fileval')->create({
+        if (process( sub { $file = rset('Fileval')->create_with_file({
             name           => $filename,
             mimetype       => $mimetype,
             content        => $upload->content,
@@ -2538,7 +2565,7 @@ prefix '/:layout_name' => sub {
     any ['get', 'post'] => '/data' => require_login sub {
 
         my $layout = var('layout') or pass;
-
+        
         my $user   = logged_in_user;
 
         my @additional_filters;
@@ -2599,7 +2626,7 @@ prefix '/:layout_name' => sub {
             else {
                 my $input = param('rewind_date');
                 $input   .= ' ' . (param('rewind_time') ? param('rewind_time') : '23:59:59');
-                my $dt    = GADS::DateTime::parse_datetime($input)
+                my $dt    = GADS::DateTime::parse_datetime(undef, $input)
                     or error __x"Invalid date or time: {datetime}", datetime => $input;
                 session rewind => $dt;
             }
@@ -2979,46 +3006,10 @@ prefix '/:layout_name' => sub {
                };
             }
 
-            my $pages = $records->pages;
-
-            my $subset = {
-                rows  => session('rows'),
-                pages => $pages,
-                page  => $page,
-            };
-            if ($pages > 50)
-            {
-                my @pnumbers = (1..5);
-                if ($page-5 > 6)
-                {
-                    push @pnumbers, '...';
-                    my $max = $page + 5 > $pages ? $pages : $page + 5;
-                    push @pnumbers, ($page-5..$max);
-                }
-                else {
-                    push @pnumbers, (6..15);
-                }
-                if ($pages-5 > $page+5)
-                {
-                    push @pnumbers, '...';
-                    push @pnumbers, ($pages-4..$pages);
-                }
-                elsif ($pnumbers[-1] < $pages)
-                {
-                    push @pnumbers, ($pnumbers[-1]+1..$pages);
-                }
-                $subset->{pnumbers} = [@pnumbers];
-            }
-            else {
-                $subset->{pnumbers} = [1..$pages];
-            }
-
             my @columns = @{$records->columns_render};
             $params->{user_can_edit}        = $layout->user_can('write_existing');
-            $params->{sort}                 = $records->sort_first;
-            $params->{subset}               = $subset;
+            $params->{sort}                 = $records->sort;
             $params->{aggregate}            = $records->aggregate_presentation;
-            $params->{count}                = $records->count;
             $params->{columns}              = [ map $_->presentation(
                 group            => $records->is_group,
                 group_col_ids    => $records->group_col_ids,
@@ -3141,8 +3132,9 @@ prefix '/:layout_name' => sub {
                 header_back_url => "${base_url}table",
                 reports         => $reports,
                 breadcrumbs     => [
-                    Crumb( $base_url . "table/", "Tables" ),
-                    Crumb( "",                   "Table: " . $layout->name )
+                    Crumb($base_url."table/", "Tables"),
+                    Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                    Crumb("", "Reports")
                 ],
                 security_marking => $security_marking,
             };
@@ -3200,8 +3192,10 @@ prefix '/:layout_name' => sub {
                 fields          => $records,
                 groups          => $groups,
                 breadcrumbs     => [
-                    Crumb( $base_url . "table/", "Tables" ),
-                    Crumb( "",                   "Table: " . $layout->name )
+                    Crumb($base_url."table/", "Tables"),
+                    Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                    Crumb($base_url . $layout->identifier . '/report', "Reports"),
+                    Crumb("", "Add Report"),
                 ],
             };
 
@@ -3270,8 +3264,10 @@ prefix '/:layout_name' => sub {
                 viewtype        => 'edit',
                 groups          => $groups,
                 breadcrumbs     => [
-                    Crumb( $base_url . "table/", "Tables" ),
-                    Crumb( "",                   "Table: " . $layout->name )
+                    Crumb($base_url."table/", "Tables"),
+                    Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                    Crumb($base_url . $layout->identifier . '/report', "Reports"),
+                    Crumb("", "Edit Report"),
                 ],
             };
 
@@ -3424,9 +3420,16 @@ prefix '/:layout_name' => sub {
             view_limit_extra_id => undef, # Override any value that may be set
         );
 
+        my $base_url = request->base;
+
         my $params = {
             page    => 'purge',
             records => $records->presentation(purge => 1),
+            breadcrumbs     => [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("", "Purge records")
+            ],
         };
 
         template 'purge' => $params;
@@ -3978,7 +3981,7 @@ prefix '/:layout_name' => sub {
                 $column->type(param 'type')
                     unless param('id'); # Can't change type as it would require DBIC resultsets to be removed and re-added
                 $column->$_(param $_)
-                    foreach @{$column->option_names};
+                    foreach @{$column->user_options};
                 $column->display_fields(param 'display_fields');
                 # Set the layout in the GADS::Filter object, in case the write
                 # doesn't success, in which case the filter will need to be
@@ -4698,8 +4701,9 @@ prefix '/:layout_name' => sub {
         to_json [ rset('User')->match($query) ];
     };
 
-    # I don't know where else this is used, so I am going to revert it to it's original setup and leave it alone for now!
-    get '/match/layout/:layout_id' => require_login sub {
+    # This has been changed to `POST` because the select-filter requires all requests to be post (for security)
+    # All calls to this endpoint should now be using `POST` going forward
+    post '/match/layout/:layout_id' => require_login sub {
 
         my $layout = var('layout') or pass;
         my $query = param('q');
@@ -4938,6 +4942,7 @@ sub _process_edit
     );
     $params{layout} = var('layout') if var('layout'); # Used when creating a new record
 
+    my $actions;
     my $layout;
 
     if (my $delete_id = param 'delete')
@@ -4995,8 +5000,8 @@ sub _process_edit
             my $newv;
             if ($modal)
             {
-                next unless defined query_parameters->get($col->field);
-                $newv = [query_parameters->get_all($col->field)];
+                next unless defined body_parameters->get($col->field);
+                $newv = [body_parameters->get_all($col->field)];
             }
             else {
                 next unless defined body_parameters->get($col->field);
@@ -5024,7 +5029,8 @@ sub _process_edit
         {
             # The "source" parameter is user input, make sure still valid
             my $source_curval = $layout->column(param('source'), permission => 'read');
-            try { $record->write(dry_run => 1, parent_curval => $source_curval) };
+            my %options = (dry_run => 1, parent_curval => $source_curval);
+            try { $record->write(%options) };
             if (my $e = $@->wasFatal)
             {
                 push @validation_errors, $e->reason eq 'PANIC' ? 'An unexpected error occurred' : $e->message;
@@ -5063,6 +5069,9 @@ sub _process_edit
                 my $forward = (!$id && $layout->forward_record_after_create) || param('submit') eq 'submit-and-remain'
                     ? 'record/'.$record->current_id
                     : $layout->identifier.'/data';
+                $actions->{clear_saved_values} = $id ? $id: 0;
+                session 'actions' => $actions;
+
                 return forwardHome(
                     { success => 'Submission has been completed successfully for record ID '.$record->current_id }, $forward );
             }
@@ -5147,6 +5156,9 @@ sub _process_edit
     {
         $params->{content_block_custom_classes} = 'content-block--footer';
     }
+
+    $params->{clone_from} = $clone_from
+        if $clone_from;
 
     $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids
         if $modal;

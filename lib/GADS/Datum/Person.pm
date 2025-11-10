@@ -23,11 +23,12 @@ use HTML::Entities;
 use HTML::FromText qw(text2html);
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/ArrayRef/;
 use namespace::clean;
 
 extends 'GADS::Datum';
 
+with 'GADS::DateTime';
 with 'GADS::Role::Presentation::Datum::Person';
 
 after set_value => sub {
@@ -169,6 +170,7 @@ has value_hash => (
                     team_id       => $value->{team_id},
                     title         => $value->{title},
                     value         => $value->{value},
+                    deleted       => $value->{deleted},
                 };
             }
             elsif ($value) {
@@ -377,6 +379,7 @@ sub _build_for_code
             team         => $_->{team},
             title        => $_->{title},
             text         => $_->{value},
+            deleted      => $_->{deleted} && $self->parse_datetime($_->{deleted}, source => 'db')->epoch,
         }
     } @{$self->value_hash};
 
@@ -384,4 +387,3 @@ sub _build_for_code
 }
 
 1;
-

@@ -24,7 +24,7 @@ use String::CamelCase qw(camelize);
 use Tree::DAG_Node;
 
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Bool HashRef ArrayRef/;
 
 extends 'GADS::Column';
 
@@ -33,6 +33,11 @@ with 'GADS::Role::Presentation::Column::Tree';
 sub DESTROY
 {   my $self = shift;
     $self->_root->delete_tree if $self->_has_tree && $self->_root;
+}
+
+sub values_for_timeline
+{   my $self=shift;
+    return map $_->{value}, @{$self->enumvals};
 }
 
 sub value_field_as_index

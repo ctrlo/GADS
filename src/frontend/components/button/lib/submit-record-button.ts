@@ -13,7 +13,7 @@ export default class SubmitRecordButton {
      * @param el {JQuery<HTMLElement>} Element to create as a button
      */
     constructor(private el: JQuery<HTMLElement>) {
-        this.el.on("click", (ev: JQuery.ClickEvent) => {
+        this.el.on("click", async (ev: JQuery.ClickEvent) => {
             const $button = $(ev.target).closest('button');
             const $form = $button.closest("form");
             const $requiredHiddenRecordDependentFields = $form.find(".form-group[data-has-dependency='1'][style*='display: none'] *[aria-required]");

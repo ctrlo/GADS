@@ -156,7 +156,7 @@ class RenameButton {
      * Rename blur event
      * @param {number} id The id of the field
      * @param {JQuery<HTMLButtonElement>} button The button that was clicked
-     * @param {JQuery.BlurEvent} ev The blur event
+     * @param {JQuery.BlurEvent} e The blur event
      */
     private triggerRename(id: number, button: JQuery<HTMLButtonElement>, e: JQuery.Event) {
         const previousValue = $(`#current-${id}`).text();
@@ -187,12 +187,14 @@ class RenameButton {
     }
 }
 
-(function ($) {
-    $.fn.renameButton = function () {
-        return this.each(function (_: unknown, el: HTMLButtonElement) {
-            new RenameButton(el);
-        });
-    };
-})(jQuery);
+if(typeof jQuery !== 'undefined') {
+    (function ($) {
+        $.fn.renameButton = function () {
+            return this.each(function (_: unknown, el: HTMLButtonElement) {
+                new RenameButton(el);
+            });
+        };
+    })(jQuery);
+}
 
 export { RenameEvent };

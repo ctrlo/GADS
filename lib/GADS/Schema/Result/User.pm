@@ -16,6 +16,8 @@ use GADS::Config;
 use GADS::Email;
 use HTML::Entities qw/encode_entities/;
 use Log::Report;
+use MIME::Base64 qw/encode_base64url/;
+use Digest::SHA  qw/hmac_sha256 sha256/;
 use Moo;
 
 extends 'DBIx::Class::Core';
@@ -307,7 +309,7 @@ __PACKAGE__->add_columns(
   "debug_login",
   { data_type => "smallint", default_value => 0, is_nullable => 1 },
   "provider",
-  { data_type => "integer", default_value => 1, is_foreign_key => 1, is_nullable => 1 },
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -1045,6 +1047,24 @@ sub permissions
     }
 }
 
+sub _map_fields 
+{   my ($self, $text) = @_;
+    my @fields = ('firstname', 'surname', 'email', 'title', 'organisation', 'department', 'team');
+  
+    if ($text) 
+    {
+        foreach my $field (@fields) 
+        {
+            my $value = $self->$field || '';
+            $text =~ s/\{$field\}/$value/g;
+        }
+        my $notes = $self->account_request_notes || '';
+        $text =~ s/\{notes\}/$notes/g;
+    }
+
+    return $text;
+}
+
 sub retire
 {   my ($self, %options) = @_;
 
@@ -1054,14 +1074,19 @@ sub retire
     # Properly delete if account request - no record needed
     if ($self->account_request)
     {
+        if ($options{send_reject_email})
+        {
+            my $email_body = $options{email_reject_text} || $site->email_reject_text || "Your account request has been rejected";
+            $email_body = $self->_map_fields($email_body);
+
+            my $email = GADS::Email->instance;
+            $email->send({
+                subject => $site->email_reject_subject || "Account request rejected",
+                emails  => [$self->email],
+                text    => $email_body,
+            });
+        }
         $self->delete;
-        return unless $options{send_reject_email};
-        my $email = GADS::Email->instance;
-        $email->send({
-            subject => $site->email_reject_subject || "Account request rejected",
-            emails  => [$self->email],
-            text    => $site->email_reject_text || "Your account request has been rejected",
-        });
 
         return;
     }
@@ -1284,8 +1309,8 @@ sub validate
             my $search = { $f => $self->$f };
             $search->{id} = { '!=' => $self->id }
                 if $self->id;
-            $self->result_source->resultset->active->search($search)->next
-                and error __x"{username} already exists as an active user", username => $self->$f;
+            $self->result_source->schema->resultset('User')->active->search($search)->next
+             and error __x"{username} already exists as an active user", username => $self->$f;
         }
     }
 }
@@ -1312,6 +1337,25 @@ sub export_hash
         groups                => [map $_->id, $self->groups],
         permissions           => [map $_->permission->name, $self->user_permissions],
     };
+}
+
+has encryption_key => (
+    is      => 'lazy',
+);
+
+sub _build_encryption_key {
+    my $self = shift;
+    
+    my $header_json  = '{"typ":"JWT","alg":"HS256"}';
+    # This is a string because encode_json created the JSON string in an arbitrary order and we need the same key _every time_!
+    my $payload_json = '{"sub":"' . $self->id . '","user":"' . $self->username . '"}';
+    my $header_b64   = encode_base64url($header_json);
+    my $payload_b64  = encode_base64url($payload_json);
+    my $input        = "$header_b64.$payload_b64";
+    my $secret       = sha256($self->password);
+    my $sig          = encode_base64url(hmac_sha256($input, $secret));
+    
+    return encode_base64url(sha256("$input.$sig"));
 }
 
 1;

@@ -338,19 +338,19 @@ sub provider_fields
         {
           name          => 'cacert',
           description   => 'Identity provider Signing/Encryption Certificate',
-          type          => 'textarea',
+          type          => 'file',
           placeholder   => '',
         },
         {
           name          => 'sp_key',
           description   => 'LinkSpace Encryption/Signing Key',
-          type          => 'textarea',
+          type          => 'file',
           placeholder   => '',
         },
         {
           name          => 'sp_cert',
           description   => 'LinkSpace Encryption/Signing Certificate',
-          type          => 'textarea',
+          type          => 'file',
           placeholder   => '',
         },
         {

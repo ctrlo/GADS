@@ -364,7 +364,7 @@
                                   select_class = "select--select"
                                   filter       = "html"
                                   hide_group   = 0
-                                  items        = y_axis_items;
+                                  items        = group_by_items;
                               %]
                             </div>
                           </div>

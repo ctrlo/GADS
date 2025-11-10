@@ -125,7 +125,7 @@ class DataTableComponent extends Component {
 
   fillModalData(row) {
     const fields = $(this.modal).find('input, textarea')
-    const btnReject = $(this.modal).find('.btn-js-reject-request')
+    const btnReject = $(this.modal).find('.btn-js-reject-request-send')
     const id = parseInt($(row).find(`td[data-id]`).data('id'), 10)
 
     if (id) $(this.modal).data('config').id = id
@@ -244,7 +244,7 @@ class DataTableComponent extends Component {
   }
 
   // Self reference included due to scoping
-  addSearchDropdown(column, id, index) {
+  async addSearchDropdown(column, id, index) {
     const $header = $(column.header())
     const title = $header.text().trim()
     const searchValue = column.search()
@@ -289,42 +289,48 @@ class DataTableComponent extends Component {
      * insertion into the visible input */
     const $searchInput = $(`<input class='form-control form-control-sm' type='text' placeholder='Search' value='${searchValue}'/>`)
     $searchInput.appendTo($('.input', $searchElement))
-    if (col.typeahead_use_id && searchValue) {
+    if (col.typeahead_use_id) {
       $searchInput.after(`<input type="hidden" class="search">`)
-      $.ajax({
-        type: 'GET',
-        url: this.getApiEndpoint(columnId) + searchValue + '&use_id=1',
-        dataType: 'json'
-      }).done(function(data) {
+      if(searchValue) {
+        const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1', {method: 'POST', data: {csrf_token: $('body').data('csrf')}})
+        const data = await response.json()
         if (!data.error) {
-          $searchInput.val(data.records[0].label)
+          if(data.records.length != 0) {
+            $searchInput.val(data.records[0].label)
+            $('input.search', $searchElement).val(data.records[0].id).trigger('change')
+          }
         }
-      })
+      }
     } else {
       $('input', $searchElement).addClass('search')
     }
-
 
     $header.find('.data-table__header-wrapper').prepend($searchElement)
 
     this.toggleFilter(column)
 
     if (col && col.typeahead) {
-      import(/* webpackChunkName: "typeaheadbuilder" */ 'util/typeahead')
-        .then(({ default: TypeaheadBuilder }) => {
+      import(/*webpackChunkName: "typeahead" */ "util/typeahead")
+        .then(({default: TypeaheadBuilder})=>{
           const builder = new TypeaheadBuilder();
           builder
             .withAjaxSource(this.getApiEndpoint(columnId))
+            .withMethod('POST')
+            .withData({csrf_token: $('body').data('csrf')})
             .withInput($('input', $header))
             .withAppendQuery()
             .withDefaultMapper()
             .withName(columnId.replace(/\s+/g, '') + 'Search')
             .withCallback((data) => {
-              $('input', $header).val(data.name);
-              $('input', $header).trigger('change');
+              if(col.typeahead_use_id) {
+                $searchInput.val(data.name);
+                $('input.search',$searchElement).val(data.id).trigger('change');
+              }else{
+                $('input', $searchElement).addClass('search').val(data.name).trigger('change');
+              }
             })
             .build();
-        });
+      });
     }
 
     // Apply the search
