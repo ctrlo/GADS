@@ -168,10 +168,16 @@ sub initiate
     unlink $cacert_fh->filename;
     
     my $sso_url;
+    my $binding;
     foreach ('redirect', 'post') {
+        $binding = $_;
         $sso_url = $idp->sso_url($idp->binding($_));
-        next if defined $sso_url;
+        # FIXME: we should probably allow the admin to choose
+        # which to use but right now we are defaulting to redirect
+        # which should be fine.
+        last if defined $sso_url;
     }
+
     my %name_ids = (
         emailAddress               => NAMEID_EMAIL,
         unspecified                => NAMEID_UNSPECIFIED,
@@ -189,7 +195,7 @@ sub initiate
 
     my $authnreq = Net::SAML2::Protocol::AuthnRequest->new(
         issuer      => $self->authentication->sso_xml,
-        destination => $sso_url,
+        destination => $idp->sso_url($idp->binding($binding)),
         $nameid ? (nameidpolicy_format => $nameid) : (), # don't send nameidpolicy_format if $nameid is undefined
         assertion_url => $self->authentication->sso_url,
     );
@@ -205,17 +211,43 @@ sub initiate
         $key_fh->close;
     }
 
+    my $cert_fh;
+    if ($binding eq 'post' and defined $self->authentication->sp_cert and $self->authentication->sp_cert ne ''){
+        my $sp_cert = $self->authentication->sp_cert;
+        $cert_fh = File::Temp->new;
+        print $cert_fh $sp_cert;
+        $cert_fh->close;
+    }
+
     # FIXME: Requires a key in the database
-    my $redirect = Net::SAML2::Binding::Redirect->new(
+    # This is setup to allow a POST request but needs a template
+    # with the POST parameters as a automatic post
+    # FIXME: overide the post and hope for the best as we need to
+    # implement the auto post template referenced at the end of this
+    # function for POST support Change 2nd Redirect to POST if supported
+
+    my $saml2_binding = 'Net::SAML2::Binding::' . ($binding eq 'redirect' ? 'Redirect' : 'Redirect');
+    my $method = $saml2_binding->new(
         $key_fh ? (key => $key_fh->filename) : (),
-        url      => $sso_url,
+        url      => $idp->sso_url($idp->binding($binding)),
         param    => 'SAMLRequest',
         $key_fh ? (insecure => 0) : (insecure => 1),
         sig_hash => 'sha256', # Hard coded - may want allow as an option
+        $binding eq 'post' ? (cert  => $cert_fh->filename,) : (),
     );
 
-    my $url = $redirect->get_redirect_uri($x);
-    $self->redirect("$url");
+    # FIXME rempve next line if we support POST in the future after the
+    # template is done below
+    $binding = 'redirect' if $binding eq 'post';
+    if ($binding eq 'redirect') {
+        my $url = $method->get_redirect_uri($x);
+        $self->redirect("$url");
+    } else {
+        # FIXME At this point we would need to send the user a page
+        # that would automatically post the SAMLRequest as $signed_xml
+        # and the RelayState if in use.
+        my $signed_xml = $method->sign_xml($x);
+    }
 };
 
 sub metadata
