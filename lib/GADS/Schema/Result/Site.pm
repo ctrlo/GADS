@@ -334,7 +334,7 @@ sub provider_fields
         {
           name          => 'xml',
           description   => 'Identity Provider Metadata XML',
-          type          => 'textarea',
+          type          => 'file',
           placeholder   => '',
         },
         {

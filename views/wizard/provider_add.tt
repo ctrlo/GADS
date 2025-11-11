@@ -11,7 +11,7 @@
       firstFrameFields.push(field);
     ELSIF field.name == "entity_id" OR field.name == "saml2_firstname" OR
       field.name == "saml2_surname" OR field.name == "saml2_groupname" OR
-      field.name == "xml" OR field.name == "saml2_relaystate" OR field.name == "saml2_nameid";
+      field.name == "saml2_relaystate" OR field.name == "saml2_nameid";
       secondFrameFields.push(field);
     ELSE;
       thirdFrameFields.push(field);
@@ -225,7 +225,7 @@
               </div>
               <div class="row mb-4">
                 <div class="col">
-                  <p class="lead text-primary">Private keys and certificates for: "<span class="js-provider">PROVIDER</span>"</p>
+                  <p class="lead text-primary">Private keys, certificates and metadata for: "<span class="js-provider">PROVIDER</span>"</p>
                 </div>
               </div>
 
