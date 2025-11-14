@@ -1,0 +1,63 @@
+YARN := yarn
+NPX := npx
+PACKAGE_FILES := bin environments lib public share views config.yml-example
+YARNARGS := --frozen-lockfile
+WEBPACK := webpack --progress
+WEBPACKCMD := $(YARN) $(WEBPACK)
+DPKG := dpkg-deb
+DPKGARGS := --build
+PKGNAME := $(DISTVNAME).deb
+CTRLFILE := $(DISTVNAME)/DEBIAN/control
+SITE_JS := ./public/js/site.js
+CD := cd
+
+.PHONY: yarn yarn_build build_web deb_mkdirs deb_copy deb_control deb_package deb_clean deb_build
+
+yarn:
+	$(YARN) $(YARNARGS)
+	$(NPX) update-browserslist-db@latest
+
+yarn_build: yarn
+
+build_web:: yarn_build
+
+$(CTRLFILE): deb_control
+
+deb_mkdirs:
+	$(MKPATH) -p $(DISTVNAME)/srv/GADS
+	$(MKPATH) -p $(DISTVNAME)/DEBIAN
+
+deb_copy: deb_mkdirs
+	$(CP) -r $(PACKAGE_FILES) $(DISTVNAME)/srv/GADS
+
+deb_control_init: deb_copy
+	rm -f $(DISTVNAME)/DEBIAN/control
+	$(ECHO) "Package: GADS" > $(CTRLFILE)
+	$(ECHO) "Version: $(VERSION)" >> $(CTRLFILE)
+	$(ECHO) "Section: database" >> $(CTRLFILE)
+	$(ECHO) "Priority: optional" >> $(CTRLFILE)
+	$(ECHO) "Architecture: amd64" >> $(CTRLFILE)
+
+include Makefile.deps
+
+deb_control_post: deb_control_deps
+	$(ECHO) 'Recommends: postgresql (>= 0)' >> $(CTRLFILE)
+	$(ECHO) "Maintainer: CtrlO Ltd <info@ctrlo.com>" >> $(CTRLFILE)
+	$(ECHO) "Description: Globally Accessible Data Store (GADS) is a web application for storing and sharing data across an organisation." >> $(CTRLFILE)
+	$(ECHO) " It provides a simple interface for creating and managing data, as well as powerful features for sharing and collaborating on data with others." >> $(CTRLFILE)
+	$(ECHO) " GADS is built using the Dancer2 web framework and is designed to be easy to use and extendable." >> $(CTRLFILE)
+	$(ECHO) "Vcs-Git: https://github.com/ctrlo/GADS.git" >> $(CTRLFILE)
+
+deb_control: deb_control_post
+
+deb_package: deb_control
+	$(CD) $(DISTVNAME)
+	$(DPKG) $(DPKGARGS) $(DISTVNAME) $(PKGNAME)
+
+deb_clean: deb_package
+	$(RM_RF) $(DISTVNAME)
+
+deb_build: deb_clean
+
+$(SITE_JS): yarn_build
+	NODE_ENV=production $(WEBPACKCMD)
