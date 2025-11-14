@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
+use File::Find;
 
 # Normalize version strings like 6.30_02 to 6.3002,
 # so that we can do numerical comparisons on it.
@@ -56,8 +57,6 @@ our %prereq_pm = (
     'Session::Token'                            => 0,
     'Starman'                                   => 0,
     'String::CamelCase'                         => 0,
-    'Test::MockTime'                            => 0,
-    'Test::More'                                => '1.302112',
     'Text::Autoformat'                          => 0,
     'Text::CSV::Encoded'                        => 0,
     'Text::Markdown'                            => 0,
@@ -69,7 +68,32 @@ our %prereq_pm = (
     'YAML'                                      => 0,
 );
 
+our %test_pm = (
+  'Test::MockTime'                            => 0,
+  'Test::More'                                => '1.302112',
+);
+
 return 1 if caller();
+
+sub pre_build {
+  die "yarn is not installed. Please install yarn to build this project.\n" if(!`which yarn`);
+
+  print `yarn`;
+  print `yarn build --no-watch`;
+}
+
+sub post_build {
+  print `make manifest`;
+  open(my $fs, ">>MANIFEST");
+  find sub {
+    my $item = $File::Find::name;
+    return unless $item =~ /\.sql$/gi;
+    print $fs $item . "\n";
+  }, ("share");
+  close $fs;
+}
+
+pre_build();
 
 WriteMakefile(
     NAME                => 'GADS',
@@ -81,6 +105,9 @@ WriteMakefile(
       : ()),
     PL_FILES            => {},
     PREREQ_PM           => \%prereq_pm,
+    TEST_REQUIRES       => \%test_pm,
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'GADS-*' },
 );
+
+post_build();
