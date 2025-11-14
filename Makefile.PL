@@ -69,6 +69,10 @@ our %prereq_pm = (
     'YAML'                                      => 0,
 );
 
+our %test_pm = (
+    'Test::Tempdir::Tiny' => 0
+);
+
 return 1 if caller();
 
 WriteMakefile(
@@ -81,6 +85,7 @@ WriteMakefile(
       : ()),
     PL_FILES            => {},
     PREREQ_PM           => \%prereq_pm,
+    TEST_REQUIRES       => \%test_pm,
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'GADS-*' },
 );
