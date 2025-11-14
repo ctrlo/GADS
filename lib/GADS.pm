@@ -116,7 +116,7 @@ tie %{schema->storage->dbh->{CachedKids}}, 'Tie::Cache', 100;
 # required for that)
 GADS::DB->setup(schema);
 
-our $VERSION = '0.1';
+our $VERSION = '2.8.0';
 
 # set serializer => 'JSON';
 set behind_proxy => config->{behind_proxy}; # XXX Why doesn't this work in config file

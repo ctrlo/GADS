@@ -56,8 +56,6 @@ our %prereq_pm = (
     'Session::Token'                            => 0,
     'Starman'                                   => 0,
     'String::CamelCase'                         => 0,
-    'Test::MockTime'                            => 0,
-    'Test::More'                                => '1.302112',
     'Text::Autoformat'                          => 0,
     'Text::CSV::Encoded'                        => 0,
     'Text::Markdown'                            => 0,
@@ -67,6 +65,11 @@ our %prereq_pm = (
     'WWW::Form::UrlEncoded::XS'                 => 0,
     'WWW::Mechanize::Chrome'                    => 0,
     'YAML'                                      => 0,
+);
+
+our %test_pm = (
+  'Test::MockTime'                            => 0,
+  'Test::More'                                => '1.302112',
 );
 
 return 1 if caller();
@@ -81,6 +84,7 @@ WriteMakefile(
       : ()),
     PL_FILES            => {},
     PREREQ_PM           => \%prereq_pm,
+    TEST_REQUIRES       => \%test_pm,
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'GADS-*' },
 );
