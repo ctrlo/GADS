@@ -4,6 +4,7 @@ import 'bootstrap';
 import 'components/graph/lib/chart';
 import 'util/filedrag';
 import 'util/actionsHandler';
+import 'util/scriptErrorHandler';
 
 // Components
 import AddTableModalComponent from 'components/modal/modals/new-table';
@@ -44,6 +45,7 @@ import SelectAllComponent from "components/select-all";
 import HelpView from "components/help-view";
 import PeopleFilterComponent from "components/form-group/people-filter";
 import handleActions from "util/actionsHandler";
+import { create } from "handlebars";
 
 // Register them
 registerComponent(AddTableModalComponent);

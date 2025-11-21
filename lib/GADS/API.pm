@@ -31,6 +31,8 @@ use Dancer2::Plugin::Auth::Extensible;
 use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::LogReport 'linkspace';
 
+use Data::Dump qw/pp/;
+
 # Special error handler for JSON requests (as used in API)
 fatal_handler sub {
     my ($dsl, $msg, $reason) = @_;
@@ -1461,6 +1463,21 @@ get '/api/get_key' => require_login sub {
     }
 };
 
+post '/api/script_error' => require_login sub {
+    my $user = logged_in_user;
+    my $body = _decode_json_body();
+
+    my $logger = GADS::Audit->new(
+        user    => $user,
+        schema  => schema,
+    );
+
+    $logger->script_error(%$body);
+
+    content_type 'application/json; charset=UTF-8';
+    return success "Script error logged successfully";
+};
+
 sub _success
 {   my $msg = shift;
     send_as JSON => {
@@ -1476,7 +1493,7 @@ sub _decode_json_body
         if request->content_type ne 'application/json';
 
     my $body = try { decode_json request->body }
-        or error __"Failed to decode JSON";
+        or error __"Failed to decode JSON" . " - " . $@;
     $body;
 }
 
