@@ -49,3 +49,9 @@ jest.config.js
 Dockerfile
 Dockerfile.dev
 .eslintignore
+.vscode
+.yarnclean
+config.yml
+
+_Inline
+

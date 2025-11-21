@@ -2,6 +2,12 @@ use strict;
 use warnings;
 use ExtUtils::MakeMaker;
 
+if(!`which yarn`) {
+    die "yarn is not installed. Please install yarn to build this project.\n";
+}
+print `yarn`;
+print `yarn build --no-watch`;
+
 # Normalize version strings like 6.30_02 to 6.3002,
 # so that we can do numerical comparisons on it.
 my $eumm_version = $ExtUtils::MakeMaker::VERSION;
