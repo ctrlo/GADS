@@ -2,9 +2,15 @@
   <div class="content-block__navigation-left">
     <div class="list list--horizontal">
       <ul class="list__items">
+      [% IF hide_view_menu %]
+        <li class="list__item text-primary font-weight-bold">
+            <p>Curval View</p>
+        </li>
+      [% ELSE %]
         <li class="list__item ">
           [% INCLUDE navigation/dropdown_select_view.tt %]
         </li>
+      [% END %]
         
         <li class="list__item ">
           [%
