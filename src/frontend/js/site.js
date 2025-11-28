@@ -4,6 +4,7 @@ import 'bootstrap';
 import 'components/graph/lib/chart';
 import 'util/filedrag';
 import 'util/actionsHandler';
+import 'util/scriptErrorHandler';
 
 // Components
 import AddTableModalComponent from 'components/modal/modals/new-table';

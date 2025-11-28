@@ -70,7 +70,26 @@ has filtering => (
     builder => sub { +{} },
 );
 
-sub audit_types{ [qw/user_action login_change login_success logout login_failure/] };
+sub audit_types{ [qw/user_action login_change login_success logout login_failure script_error/] };
+
+sub script_error
+{
+    my ($self, %options) = @_;
+
+    my $description = $options{description} || 'Script error';
+    my $method      = $options{method} || 'unknown';
+    my $url         = $options{url} || 'unknown';
+
+    $self->schema->resultset('Audit')->create({
+        user_id     => $self->user_id,
+        description => $description,
+        type        => 'script_error',
+        method      => $method,
+        url         => $url,
+        datetime    => DateTime->now,
+        instance_id => $options{instance_id},
+    });
+}
 
 sub user_action
 {   my ($self, %options) = @_;
