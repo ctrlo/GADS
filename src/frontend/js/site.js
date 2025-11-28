@@ -45,7 +45,6 @@ import SelectAllComponent from "components/select-all";
 import HelpView from "components/help-view";
 import PeopleFilterComponent from "components/form-group/people-filter";
 import handleActions from "util/actionsHandler";
-import { create } from "handlebars";
 
 // Register them
 registerComponent(AddTableModalComponent);
