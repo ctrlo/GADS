@@ -31,8 +31,6 @@ use Dancer2::Plugin::Auth::Extensible;
 use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::LogReport 'linkspace';
 
-use Data::Dump qw/pp/;
-
 # Special error handler for JSON requests (as used in API)
 fatal_handler sub {
     my ($dsl, $msg, $reason) = @_;

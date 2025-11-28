@@ -25,8 +25,6 @@ use Log::Report 'linkspace';
 use Moo;
 use MooX::Types::MooseLike::Base qw/ArrayRef HashRef/;
 
-use Data::Dump qw/pp/;
-
 has schema => (
     is       => 'rw',
     required => 1,
