@@ -14,7 +14,7 @@ const positionDisclosure = function (offsetTop, offsetLeft, triggerHeight) {
     this.get(0).getBoundingClientRect
     ) {
         const windowOffset =
-      document.body.clientWidth -
+            document.body.clientWidth -
       this.get(0).getBoundingClientRect().right;
         if (windowOffset < 0) {
             this.css({

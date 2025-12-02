@@ -402,7 +402,7 @@ class CurvalModalComponent extends ModalComponent {
                                 self.curvalModalValidationSucceeded($form, data.values);
                             } else {
                                 const errorMessage =
-                data.error === 1 ? data.message : 'Oops! Something went wrong.';
+                                    data.error === 1 ? data.message : 'Oops! Something went wrong.';
                                 self.curvalModalValidationFailed($form, errorMessage);
                             }
                         }

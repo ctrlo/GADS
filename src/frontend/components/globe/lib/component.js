@@ -59,7 +59,7 @@ class GlobeComponent extends Component {
                     .join('&');
 
                 let url =
-          '/' +
+                    '/' +
           params.layout_identifier +
           '/data?viewtype=table&view=' +
           params.view_id +

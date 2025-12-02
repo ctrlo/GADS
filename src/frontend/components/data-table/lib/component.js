@@ -566,7 +566,7 @@ class DataTableComponent extends Component {
 
         if (data.limit_rows && data.values.length >= data.limit_rows) {
             strHTML +=
-        `<p><em>(showing maximum ${data.limit_rows} rows.
+                `<p><em>(showing maximum ${data.limit_rows} rows.
           <a href="/${data.parent_layout_identifier}/data?curval_record_id=${data.curval_record_id}&curval_layout_id=${data.column_id }">view all</a>)</em>
         </p>`;
         }
