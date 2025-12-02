@@ -4,7 +4,6 @@ import { describe, it, expect, beforeAll, beforeEach, afterEach } from '@jest/gl
 /* @ts-ignore */
 import { setupCrypto } from 'testing/globals.definitions';
 import { EncryptedStorage } from './encryptedStorage';
-import { describe, it, expect, beforeAll, beforeEach, afterEach } from '@jest/globals';
 
 // Mock implementation of the Storage interface for testing purposes
 class TestStorage implements Storage {
