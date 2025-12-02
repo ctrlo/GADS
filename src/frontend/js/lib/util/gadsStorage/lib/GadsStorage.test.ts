@@ -1,5 +1,7 @@
+/* eslint-disable */
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from "@jest/globals";
 import { GadsStorage } from "./GadsStorage";
+/* @ts-ignore */
 import { killNoMockCrypto, setupCrypto, setupNoMockCrypto } from "testing/globals.definitions";
 
 if (!process.versions.node.startsWith("18")) {

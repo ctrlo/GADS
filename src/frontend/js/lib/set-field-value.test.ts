@@ -1,8 +1,14 @@
+/* eslint-disable */
 import "components/button/lib/rename-button";
+/* @ts-ignore */
 import inputComponent from "components/form-group/input";
+/* @ts-ignore */
 import buttonComponent from "components/button";
+/* @ts-ignore */
 import multipleSelectComponent from "components/form-group/multiple-select";
+/* @ts-ignore */
 import selectWidgetComponent from "components/form-group/select-widget";
+/* @ts-ignore */
 import textAreaComponent from "components/form-group/textarea";
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { setFieldValues } from "./set-field-values";
@@ -17,7 +23,9 @@ declare global {
 
 // Mocking jQuery functions
 (($) => {
+    /* @ts-ignore */
     $.fn.renameButton = jest.fn().mockReturnThis();
+    /* @ts-ignore */
     $.fn.filedrag = jest.fn().mockReturnThis();
 })(jQuery);
 
