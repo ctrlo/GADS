@@ -338,6 +338,10 @@ sub write
     length $self->name < 128
         or error __"View name must be less than 128 characters";
 
+    # Names consisting of just whitespace characters cause issues when displaying a view
+    $self->name !~ /^\s*$/
+        or error __"View name must not contain whitespace characters";
+        
     my $global   = !$self->layout->user ? 1 : $self->global;
 
     $self->clear_writable; # Force rebuild based on any updated values
