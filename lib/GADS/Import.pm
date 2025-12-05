@@ -26,7 +26,7 @@ use Log::Report 'linkspace';
 use Scope::Guard qw(guard);
 use Text::CSV;
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Bool ArrayRef HashRef Int Bool/;
 
 has schema => (
     is       => 'ro',

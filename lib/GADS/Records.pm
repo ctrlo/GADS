@@ -38,7 +38,7 @@ use Scalar::Util qw(looks_like_number);
 use Text::CSV::Encoded;
 use Tree::DAG_Node;
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base qw(Maybe Str ArrayRef HashRef Bool Int);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 
 with 'GADS::RecordsJoin', 'GADS::Role::Presentation::Records', 'GADS::Helper::ConditionBuilder';
@@ -472,7 +472,7 @@ sub search_query
     push @search, { "$current.instance_id" => $self->layout->instance_id };
     push @search, $self->common_search($current);
     push @search, $self->record_later_search(%options, linked => $linked, search => 1)
-        unless $options{chronology};
+        unless $options{chronology} || $options{no_record_later};
     push @search, {
         "$record_single.created" => { '<=' => $self->rewind_formatted },
     } if $self->rewind;
@@ -570,7 +570,7 @@ sub linked_hash
         };
     }
     else {
-        return {};
+        return ();
     }
 }
 
@@ -1274,7 +1274,7 @@ sub _build_standard_results
             set_record_created      => $rec->{record_created_date},
         );
         $record->set_record_created_user($rec->{record_created_user})
-            if exists $rec->{record_creted_user};
+            if exists $rec->{record_created_user};
         push @all, $record;
         push @created_ids, $rec->{record_created_user};
         push @record_ids, $rec->{id};
@@ -1287,6 +1287,17 @@ sub _build_standard_results
         records      => \@all,
         already_seen => $self->already_seen,
     );
+
+    # Fetch and add created users (unable to retrieve during initial query)
+    my $created_column = $self->layout->column_by_name_short('_created_user');
+    my $created_users  = $created_column->fetch_multivalues(\@created_ids);
+    foreach my $rec (@all)
+    {
+        my $original = $rec->set_record_created_user
+            or next;
+        my $user     = $created_users->{$original};
+        $rec->set_record_created_user($user);
+    }
 
     \@all;
 }
@@ -1397,13 +1408,16 @@ sub fetch_multivalues
                     # we don't do this.
                     my %colsd;
 
+                    my $limit_rows = !$col->is_curcommon || $params{chronology} ? 0 : $col->limit_rows;
                     foreach my $val ($col->fetch_multivalues(
                             \@retrieve_ids,
                             is_draft     => $params{is_draft},
                             rewind       => $self->rewind, # Would be better in a context object
                             already_seen => $already_seen,
+                            limit_rows   => $limit_rows,
                     ))
                     {
+                        $val->{has_more} = 0 if !$limit_rows;
                         my $field = "field$val->{layout_id}";
                         next if $cols_done->{$parent_field_this}->{$val->{layout_id}};
                         $multi->{$parent_field_this}->{$val->{record_id}}->{$field} ||= [];
@@ -1544,23 +1558,36 @@ sub _build_count
 
     return $self->_search_all_fields->{count} if $self->search;
 
-    my $search_query = $self->search_query(search => 1, linked => 1);
-    my @joins        = $self->jpfetch(search => 1, linked => 0);
-    my @linked       = $self->linked_hash(search => 1, linked => 1);
+    # Try and make the count fast, only counting the current table itself if
+    # possible. We can look at only the current table if there is no filtering
+    # and if there is no other need to look at the records join (approval,
+    # rewind etc)
+    my ($search_query, $select);
+    if ($self->rewind || $self->_query_params(search => 1) || $self->_approval_query)
+    {
+        $search_query = $self->search_query(search => 1, linked => 1);
+        my @joins        = $self->jpfetch(search => 1, linked => 0);
+        my @linked       = $self->linked_hash(search => 1, linked => 1);
+        $select = {
+            join     => [
+                [@linked],
+                {
+                    'record_single' => [
+                        'record_later',
+                        @joins
+                    ],
+                },
+            ],
+            distinct => 1, # Otherwise multiple records returned for multivalue fields
+        };
+    }
+    else {
+        # record joins not needed, remove with fresh call
+        $search_query = $self->search_query(search => 1, linked => 1, no_record_later => 1);
+    }
+
     local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
         if $self->rewind;
-    my $select = {
-        join     => [
-            [@linked],
-            {
-                'record_single' => [
-                    'record_later',
-                    @joins
-                ],
-            },
-        ],
-        distinct => 1, # Otherwise multiple records returned for multivalue fields
-    };
 
     $self->schema->resultset('Current')->search(
         [-and => $search_query], $select

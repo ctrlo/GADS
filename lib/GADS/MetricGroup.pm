@@ -22,7 +22,7 @@ use Data::Compare qw/Compare/;
 use GADS::Metric;
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Int Str Maybe/;
 
 has schema => (
     is       => 'ro',

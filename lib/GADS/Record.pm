@@ -40,6 +40,7 @@ use GADS::Datum::Rag;
 use GADS::Datum::Serial;
 use GADS::Datum::String;
 use GADS::Datum::Tree;
+use GADS::Hooks;
 use GADS::Layout;
 use Log::Report 'linkspace';
 use JSON qw(encode_json);
@@ -50,11 +51,13 @@ use Session::Token;
 use URI::Escape;
 
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base qw(Maybe Bool Int ArrayRef HashRef);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 use namespace::clean;
 
 with 'GADS::Role::Presentation::Record';
+
+my $hooks = GADS::Hooks->instance;
 
 # When clear() is called the layout is also cleared. This property can be used
 # to seed the layout to an existing value when it is rebuilt
@@ -454,15 +457,18 @@ has created_user => (
     builder => sub {
         my $self = shift;
 
-        # Not yet defined for new record
-        return undef if $self->new_entry;
-
         my $column = $self->layout->column_by_name_short('_created_user');
 
+        # Default to current user drafting record if new record
+        return $self->_person($self->user->id, $column)
+            if $self->new_entry;
+
+        my $value = $self->set_record_created_user || $self->record->{record_created_user};
+
         # Has it been retrieved as part of sql query?
-        if ($self->record && exists $self->record->{record_created_user})
+        if ($value)
         {
-            return $self->_person($self->record->{record_created_user}, $column);
+            return $self->_person($value, $column);
         }
 
         my $user = $self->first_record_rs->createdby;
@@ -510,15 +516,16 @@ has edited_user => (
     builder => sub {
         my $self = shift;
 
-        # Not yet defined for new record
-        return undef if $self->new_entry;
-
         my $column = $self->layout->column_by_name_short('_version_user');
+
+        # Default to current user drafting record if new record
+        return $self->_person($self->user->id, $column)
+            if $self->new_entry;
 
         # Has it been retrieved as part of sql query?
         if ($self->record && exists $self->record->{createdby})
         {
-            return $self->_person($self->record->{createdby}, $column);
+            return $self->_person($self->record->{$column->field}, $column);
         }
 
         my $user = $self->record_rs->createdby;
@@ -1047,6 +1054,7 @@ sub _find
                 records      => [$record],
                 is_draft     => $find{draftuser_id},
                 already_seen => $records->already_seen,
+                chronology   => 1,
             );
             my @changed;
             foreach my $column (@{$record->columns_render})
@@ -1516,6 +1524,7 @@ sub _build_selector_id
 # new version. This allows updates that aren't recorded in the history, and
 # allows the correcting of previous versions that have since been changed.
 # - force_mandatory: allow blank mandatory values
+# - force_readonly_new: allow read-only values in new records to be written to
 # - no_change_unless_blank: bork on updates to existing values unless blank
 # - dry_run: do not actually perform any writes, test only
 # - no_alerts: do not send any alerts for changed values
@@ -1689,7 +1698,7 @@ sub write
         elsif ($self->new_entry)
         {
             error __x"You do not have permission to add data to field {name}", name => $column->name
-                if !$datum->blank && !$column->user_can('write_new');
+                if !$datum->blank && !$column->user_can('write_new') && !$options{force_readonly_new};
         }
         elsif ($datum->changed && !$column->user_can('write_existing'))
         {
@@ -1972,6 +1981,7 @@ sub write
 
     $self->_need_rec($need_rec);
     $self->_need_app($need_app);
+    $hooks->run_hook('record.write.before_write_values', $self, $self->layout);
     $self->write_values(%options, submission_token => $submission_token) unless $options{no_write_values};
 
     # Finally delete any related cached filter values, meaning that any later
@@ -2309,9 +2319,6 @@ sub set_blank_dependents
 
     foreach my $column (@{$options{columns}})
     {
-        # Don't attempt any blanking if the user is editing an existing record
-        # and they do not have access to the field
-        next if !$self->new_entry && !$column->user_can('write_existing');
         my $datum = $self->get_field_value($column);
         $datum->set_value('')
             if $datum->dependent_not_shown(submission_token => $options{submission_token})

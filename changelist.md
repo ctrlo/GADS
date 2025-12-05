@@ -1,5 +1,247 @@
 # GADS Changelist
 
+--------
+
+**Version**: 2.7.3
+**Released**: 07-08-2025
+
+-------
+
+## Fixes
+
+- Fix typeahead curval fields
+
+--------
+
+**Version**: 2.7.2
+**Released**: 06-08-2025
+
+-------
+
+## Fixes
+
+- Fix curval values being incorrectly removed on record save
+
+--------
+
+**Version**: 2.7.1
+**Released**: 06-08-2025
+
+-------
+
+## Fixes
+
+- Fix csrf error when editing curvals in a record
+
+--------
+
+**Version**: 2.7.0
+**Released**: 01-08-2025
+
+-------
+
+## Features
+
+- Clearer feedback is now provided when a session times out
+- Added customisation of file types allowed at layout level
+- Updated to allow saving of files to server filesystem, allowing for larger file sizes to be uploaded
+
+## Fixes
+
+- Added loading div to Timeline
+- Modified get request where a large amount of data was being sent in the request to now use post
+
+-------
+
+**Version**: 2.6.7
+**Released**: 03-07-2025
+
+- Fix basic authentication in API
+
+-------
+
+**Version**: 2.6.6
+**Released**: 12-05-2025
+
+-------
+
+## Fixes
+
+- Centre loading spinner in table view
+
+-------
+
+**Version**: 2.6.5
+**Released**: 06-05-2025
+
+-------
+
+## Fixes
+
+- Rolled back error causing filter typeaheads not to render correctly
+
+-------
+
+**Version**: 2.6.4
+**Released**: 14-04-2025
+
+-------
+
+## Fixes
+
+- Ignore invalid values when using API to populate fields
+
+-------
+
+**Version**: 2.6.3
+**Released**: 08-04-2025
+
+-------
+
+## Fixes
+
+- Fix panics using deleted people in calcs
+
+-------
+
+**Version**: 2.6.2
+**Released**: 07-04-2025
+
+-------
+
+## Fixes
+
+- Fix email users functionality not working
+
+-------
+
+**Version**: 2.6.1
+**Released**: 03-04-2025
+
+-------
+
+## Fixes
+
+- Fix download menu option not displaying
+
+-------
+
+**Version**: 2.6.0
+**Released**: 24-03-2025
+
+-------
+
+## New features
+
+- Added autorecover functionality
+- Added option to add a reason for account rejection
+- Added mandatory fields to account requests
+- View All can be turned on for all curvals as an option without having to set a limit
+- User deleted date can now be used in calc fields
+
+## Fixes
+
+- Webdriver test fix to triage current issue
+- Removed deprecated buffer code
+- Moved loading graphic on tables back to top
+- User notes now persist when approving user account requests
+- Fix for issue deselecting multi-value trees
+- Added `values_for_timeline` sub that was missing from trees in timelines
+- Various changes for WCAG compliance
+- Made fields madatory when requesting accounts
+- Added fix for adding users with multi-tenant systems
+- Added fix for bug where people fields weren't populating correctly
+- Added fix for timeline not allowing navigation away and causing timeout
+- Added rollback in unique fields when an unexpected exception occurs
+- Added fix for values in curval filter not appearing to be saved when using variables
+- Moved `x-frame-options` header out of user_logged_in check
+- Changes to `webpack.config.js` for efficiency and correctness
+- Speed fixes for frontend calcs
+
+-------
+
+**Version**: 2.5.13
+**Released**: 03-03-2025
+
+-------
+
+## Fixes
+
+- Improve performance of calc fields
+
+-------
+
+**Version**: 2.5.12
+**Released**: 14-01-2025
+
+-------
+
+## Fixes
+
+- Improve performance of all-record table count
+
+-------
+
+**Version**: 2.5.11
+**Released**: 26-11-2024
+
+-------
+
+## Fixes
+
+- Updated fix for filter on curval column in table
+- Fix permissions being blanked when editing user
+
+-------
+
+**Version**: 2.5.10
+**Released**: 25-11-2024
+
+-------
+
+## Fixes
+
+- Fix exceptions when using person field typeahead
+- View all always visible on curvals
+- Added and updated breadcrumbs
+- Fixed sorting for multiple columns
+- Fix user permission save not working in wizard
+- Fix problem saving display conditions
+- Fix filter on curval column in table
+
+-------
+
+**Version**: 2.5.9
+**Released**: 30-10-2024
+
+-------
+
+## Fixes
+
+- Allow read-only fields to be used in filtered curvals
+
+-------
+
+**Version**: 2.5.8
+**Released**: 28-10-2024
+
+-------
+
+## Fixes
+
+- Fixed unable to clone records containing curvals with user metadata
+
+-------
+
+**Version**: 2.5.7
+**Released**: 21-10-2024
+
+-------
+
+## Fixes
+
+- Fixed regression in performance for CSV downloads
+
 -------
 
 **Version**: 2.5.6

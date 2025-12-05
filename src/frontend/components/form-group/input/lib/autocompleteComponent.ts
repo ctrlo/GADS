@@ -27,6 +27,7 @@ class AutocompleteComponent {
     }
 
     getURL(): string {
+        //@ts-expect-error "Testing code used by Digitpaint."
         const devEndpoint = window.siteConfig?.urls?.autocompleteApi;
         const layoutIdentifier = $('body').data('layout-identifier');
 

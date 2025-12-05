@@ -1,3 +1,10 @@
+<header class="row no-gutters purge--header">
+  <div class="table-header__meta">
+    [% INCLUDE navigation/breadcrumbs.tt %]
+    <h1 class="table-header__title">Purge Records</h1>
+  </div>
+</header>
+<div class="purge--content">
 <h2>Manage deleted [% layout.record_name_plural | html %]</h2>
 <p>
     This page contains all records that have been deleted in the table &quot;[%
@@ -107,3 +114,4 @@
 [% ELSE %]
     <div role="alert" class="alert alert-info">There are no deleted records in this table</div>
 [% END %]
+</div>

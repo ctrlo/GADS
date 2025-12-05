@@ -21,7 +21,7 @@ package GADS::Column::Daterange;
 use DateTime;
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Bool/;
 
 extends 'GADS::Column';
 
@@ -45,7 +45,12 @@ has '+has_multivalue_plus' => (
 );
 
 has '+option_names' => (
-    default => sub { [qw/show_datepicker/] },
+    default => sub {
+        [{
+            name              =>'show_datepicker',
+            user_configurable => 1,
+        }]
+    },
 );
 
 sub _build_retrieve_fields

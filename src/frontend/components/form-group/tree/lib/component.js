@@ -1,9 +1,9 @@
 import { Component } from 'component'
-import  'jstree'
+import 'jstree'
 import { initValidationOnField, validateTree } from 'validation'
 
 class TreeComponent extends Component {
-  constructor(element)  {
+  constructor(element) {
     super(element)
     this.el = $(this.element)
     this.isConfTree = this.el.hasClass('tree--config')
@@ -22,7 +22,7 @@ class TreeComponent extends Component {
 
       this.initTree()
     }
-  } 
+  }
 
   initTree() {
     const idsAsParams = this.$treeContainer.data('ids-as-params')
@@ -47,30 +47,33 @@ class TreeComponent extends Component {
       this.$treeContainer.on('changed.jstree', (e, data) => this.handleChange(e, data))
     }
 
-    //Deselect Fix - 26.04.24 - DR
-    //Unless you have a click event, the select_node event doesn't trigger when you click on the same node - I don't know why this is, 
-    //all I know is, it gave me a headache! Either way, it appears to work now, so I'm happy!!
-    let node;
+    // The below fix is to prevent the tree from erroring when it is a multivalue and a value is deselected
+    if (!this.multiValue) {
+      //Deselect Fix - 26.04.24 - DR
+      //Unless you have a click event, the select_node event doesn't trigger when you click on the same node - I don't know why this is, 
+      //all I know is, it gave me a headache! Either way, it appears to work now, so I'm happy!!
+      let node;
 
-    this.$treeContainer.on('click', '.jstree-clicked', () => {
-      if (!node) throw 'Not a node!';
-      this.$treeContainer.jstree(true).deselect_node(node);
-    });
+      this.$treeContainer.on('click', '.jstree-clicked', () => {
+        if (!node) throw 'Not a node!';
+        this.$treeContainer.jstree(true).deselect_node(node);
+      });
 
-    this.$treeContainer.on('select_node.jstree', (e, data) => {
-      if (node && data.node.id == node.id) {
-        this.$treeContainer.jstree(true).deselect_node(data.node);
-        node = null;
-      } else {
-        node = data.node;
-        this.handleSelect(e, data)
-      }
-    })
-    //Endfix
-    
+      this.$treeContainer.on('select_node.jstree', (e, data) => {
+        if (node && data.node.id == node.id) {
+          this.$treeContainer.jstree(true).deselect_node(data.node);
+          node = null;
+        } else {
+          node = data.node;
+          this.handleSelect(e, data)
+        }
+      })
+      //Endfix
+    }
+
     this.$treeContainer.on('ready.jstree', () => {
-        initValidationOnField(this.el)
-        this.initialized = true
+      initValidationOnField(this.el)
+      this.initialized = true
     })
     this.$treeContainer.on('changed.jstree', () => validateTree(this.el))
 
@@ -87,14 +90,14 @@ class TreeComponent extends Component {
 
     return (
       {
-        url: function() {
+        url: function () {
           if (devEndpoint) {
             return devEndpoint
           } else {
             return `/${layout_identifier}/tree${new Date().getTime()}/${id}?${idsAsParams}`
           }
         },
-        data: function(node) {
+        data: function (node) {
           return { id: node.id }
         },
         dataType: 'json'
@@ -118,7 +121,7 @@ class TreeComponent extends Component {
     // remove all existing hidden value fields
     this.$treeContainer.nextAll('.selected-tree-value').remove()
     const selectedElms = this.$treeContainer.jstree('get_selected', true)
-    
+
     $.each(selectedElms, (_, selectedElm) => {
       // store the selected values in hidden fields as children of the element.
       // Keep them in the same order as the tree (although we don't specify the
@@ -148,12 +151,12 @@ class TreeComponent extends Component {
     const $btnRename = this.el.find('.btn-js-tree-rename')
     const $btnDelete = this.el.find('.btn-js-tree-delete')
 
-    $btnExpand.on('click', () => {$treeContainer.jstree('open_all')})
-    $btnCollapse.on('click', () => {$treeContainer.jstree('close_all')})
-    $btnReload.on('click', () => {$treeContainer.jstree('refresh')})
-    $btnAdd.on('click', () => {this.handleAdd()})
-    $btnRename.on('click', () => {this.handleRename()})
-    $btnDelete.on('click', () => {this.handleDelete()})
+    $btnExpand.on('click', () => { $treeContainer.jstree('open_all') })
+    $btnCollapse.on('click', () => { $treeContainer.jstree('close_all') })
+    $btnReload.on('click', () => { $treeContainer.jstree('refresh') })
+    $btnAdd.on('click', () => { this.handleAdd() })
+    $btnRename.on('click', () => { this.handleRename() })
+    $btnDelete.on('click', () => { this.handleDelete() })
   }
 
   handleAdd() {

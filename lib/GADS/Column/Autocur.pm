@@ -23,14 +23,20 @@ use GADS::Records;
 use Log::Report 'linkspace';
 
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column::Curcommon';
 
 with 'GADS::Role::Curcommon::RelatedField';
 
 has '+option_names' => (
-    default => sub { [qw/override_permissions limit_rows/] },
+    default => sub { [{
+            name              => 'override_permissions',
+            user_configurable => 1,
+        }, {
+            name              => 'limit_rows',
+            user_configurable => 1,
+        }]
+    },
 );
 
 has '+multivalue' => (

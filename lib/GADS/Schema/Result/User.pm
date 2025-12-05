@@ -16,6 +16,8 @@ use GADS::Config;
 use GADS::Email;
 use HTML::Entities qw/encode_entities/;
 use Log::Report;
+use MIME::Base64 qw/encode_base64url/;
+use Digest::SHA  qw/hmac_sha256 sha256/;
 use Moo;
 
 extends 'DBIx::Class::Core';
@@ -213,6 +215,12 @@ __PACKAGE__->table("user");
   default_value: 0
   is_nullable: 1
 
+=head2 provider
+
+  data_type: 'integer'
+  is_foreign_key: 1
+  is_nullable: 1
+
 =cut
 
 __PACKAGE__->add_columns(
@@ -300,6 +308,8 @@ __PACKAGE__->add_columns(
   },
   "debug_login",
   { data_type => "smallint", default_value => 0, is_nullable => 1 },
+  "provider",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
 );
 
 =head1 PRIMARY KEY
@@ -603,6 +613,26 @@ __PACKAGE__->belongs_to(
   },
 );
 
+=head2 provider
+
+Type: belongs_to
+
+Related object: L<GADS::Schema::Result::Authentication>
+
+=cut
+
+__PACKAGE__->belongs_to(
+  "provider",
+  "GADS::Schema::Result::Authentication",
+  { "id" => "provider" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
 =head2 user_graphs
 
 Type: has_many
@@ -859,6 +889,7 @@ sub update_user
     delete $params{department_id} if !$params{department_id} && !$site->user_field_is_editable('department_id');
     delete $params{team_id} if !$params{team_id} && !$site->user_field_is_editable('team_id');
     delete $params{title} if !$params{title} && !$site->user_field_is_editable('title');
+    delete $params{provider} if !$params{provider} && !$site->user_field_is_editable('provider');
 
     my $values = {
         account_request_notes => $params{account_request_notes},
@@ -915,8 +946,10 @@ sub update_user
 
       if ($params{permissions} && ref $params{permissions} eq 'ARRAY')
       {
-          error __"You do not have permission to set global user permissions"
-              if !$current_user->permission->{superadmin};
+          # FIXME: SAML should be able to set groups
+          # error __"You do not have permission to set global user permissions"
+          #    if !$current_user->permission->{superadmin};
+          #
           $self->permissions(@{$params{permissions}});
           # Clear and rebuild permissions, in case of form submission failure. We
           # need to rebuild now, otherwise the transaction may have rolled-back
@@ -1014,6 +1047,24 @@ sub permissions
     }
 }
 
+sub _map_fields 
+{   my ($self, $text) = @_;
+    my @fields = ('firstname', 'surname', 'email', 'title', 'organisation', 'department', 'team');
+  
+    if ($text) 
+    {
+        foreach my $field (@fields) 
+        {
+            my $value = $self->$field || '';
+            $text =~ s/\{$field\}/$value/g;
+        }
+        my $notes = $self->account_request_notes || '';
+        $text =~ s/\{notes\}/$notes/g;
+    }
+
+    return $text;
+}
+
 sub retire
 {   my ($self, %options) = @_;
 
@@ -1023,14 +1074,19 @@ sub retire
     # Properly delete if account request - no record needed
     if ($self->account_request)
     {
+        if ($options{send_reject_email})
+        {
+            my $email_body = $options{email_reject_text} || $site->email_reject_text || "Your account request has been rejected";
+            $email_body = $self->_map_fields($email_body);
+
+            my $email = GADS::Email->instance;
+            $email->send({
+                subject => $site->email_reject_subject || "Account request rejected",
+                emails  => [$self->email],
+                text    => $email_body,
+            });
+        }
         $self->delete;
-        return unless $options{send_reject_email};
-        my $email = GADS::Email->instance;
-        $email->send({
-            subject => $site->email_reject_subject || "Account request rejected",
-            emails  => [$self->email],
-            text    => $site->email_reject_text || "Your account request has been rejected",
-        });
 
         return;
     }
@@ -1091,7 +1147,12 @@ sub has_draft
 
 sub update_attributes
 {   my ($self, $attributes) = @_;
-    my $authentication = $self->result_source->schema->resultset('Authentication')->saml2_provider;
+    my $authentication = $self->provider;
+    my $site = $self->result_source->schema->resultset('Site')->next;
+
+    # Automatically update the firstname and surname if the
+    # SAML provider has the proper attributes set
+    # How do we know if this provider is used for this user???
     if (my $at = $authentication->saml2_firstname)
     {
         $self->update({ firstname => $attributes->{$at}->[0] });
@@ -1099,6 +1160,53 @@ sub update_attributes
     if (my $at = $authentication->saml2_surname)
     {
         $self->update({ surname => $attributes->{$at}->[0] });
+    }
+
+    # Automatically update the groups and permissions for the user from the SAML2 attributes
+    if (my $at = $authentication->saml2_groupname)
+    {
+        #FIXME - Move this to the UI and allow users to map
+        my %permission_map = (
+                'GADS-SuperAdmin' => 'superadmin',
+                'GADS-UserAdmin'  => 'useradmin',
+                'GADS-Audit'      => 'audit',
+                );
+
+        my @permissions;
+        for my $permission (@{$attributes->{$at}}) {
+            # FIXME: hard coded permission?
+            push @permissions, $permission_map{$permission} if defined $permission_map{$permission} and $permission =~ /^GADS-/;
+        }
+        if (@permissions)
+        {
+            # FIXME: SAML should be able to set groups
+            # error __"You do not have permission to set global user permissions"
+            #    if !$self->permission->{superadmin};
+            $self->permissions(@permissions);
+            # Clear and rebuild permissions, in case of form submission failure. We
+            # need to rebuild now, otherwise the transaction may have rolled-back
+            # to the old version by the time it is built in the template
+            $self->clear_permission;
+            $self->permission;
+        }
+
+        my $schema = $self->result_source->schema;
+
+        my @groups;
+        # Automatically update the groups for the user from the SAML2 attributes
+        for my $group (@{$attributes->{$at}}) {
+            next if defined $permission_map{$group};
+            #FIXME: There is likely a much better way to do this
+            my @groups1 = $schema->resultset('Group')->search({name => $group}, {order_by => 'me.name'})->first;
+            next if ! defined $groups1[0];
+            push @groups, $groups1[0]->id if $groups1[0]->name eq $group;
+        }
+        if (@groups)
+        {
+            $self->groups($self, \@groups);
+            $self->clear_has_group;
+            $self->has_group;
+        }
     }
     my $value = _user_value({firstname => $self->firstname, surname => $self->surname});
     $self->update({ value => $value });
@@ -1174,6 +1282,11 @@ sub for_data_table
         name   => $site->register_freetext1_name,
         values => [$self->freetext1],
     } if $site->register_freetext1_name;
+    $return->{Authentication} = {
+        type   => 'string',
+        name   => 'Authentication Provider',
+        values => [$self->provider && $self->provider->name],
+    } if $site->register_show_provider;
 
     $return;
 }
@@ -1196,8 +1309,8 @@ sub validate
             my $search = { $f => $self->$f };
             $search->{id} = { '!=' => $self->id }
                 if $self->id;
-            $self->result_source->resultset->active->search($search)->next
-                and error __x"{username} already exists as an active user", username => $self->$f;
+            $self->result_source->schema->resultset('User')->active->search($search)->next
+             and error __x"{username} already exists as an active user", username => $self->$f;
         }
     }
 }
@@ -1224,6 +1337,25 @@ sub export_hash
         groups                => [map $_->id, $self->groups],
         permissions           => [map $_->permission->name, $self->user_permissions],
     };
+}
+
+has encryption_key => (
+    is      => 'lazy',
+);
+
+sub _build_encryption_key {
+    my $self = shift;
+    
+    my $header_json  = '{"typ":"JWT","alg":"HS256"}';
+    # This is a string because encode_json created the JSON string in an arbitrary order and we need the same key _every time_!
+    my $payload_json = '{"sub":"' . $self->id . '","user":"' . $self->username . '"}';
+    my $header_b64   = encode_base64url($header_json);
+    my $payload_b64  = encode_base64url($payload_json);
+    my $input        = "$header_b64.$payload_b64";
+    my $secret       = sha256($self->password);
+    my $sig          = encode_base64url(hmac_sha256($input, $secret));
+    
+    return encode_base64url(sha256("$input.$sig"));
 }
 
 1;

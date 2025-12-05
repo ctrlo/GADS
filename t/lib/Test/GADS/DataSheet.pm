@@ -5,12 +5,36 @@ use warnings;
 
 use JSON qw(encode_json);
 use Log::Report;
+use GADS::Config;
+use GADS::Column::Autocur;
+use GADS::Column::Curcommon;
+use GADS::Column::Curval;
+use GADS::Column::Date;
+use GADS::Column::Daterange;
+use GADS::Column::Enum;
+use GADS::Column::File;
+use GADS::Column::Intgr;
+use GADS::Column::Person;
+use GADS::Column::Rag;
+use GADS::Column::String;
 use GADS::Group;
 use GADS::Layout;
 use GADS::Record;
 use GADS::Schema;
 use Moo;
 use MooX::Types::MooseLike::Base qw(:all);
+
+use Test::TempDir::Tiny;
+
+my $tempdir = tempdir("uploads");
+
+my $config = {
+    gads => {
+        uploads => $tempdir
+    }
+};
+
+GADS::Config->instance(config => $config);
 
 sub clear_not_data
 {   my ($self, %options) = @_;

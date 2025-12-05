@@ -20,7 +20,7 @@ package GADS::Datum::Tree;
 
 use Log::Report;
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/ArrayRef/;
 
 extends 'GADS::Datum';
 

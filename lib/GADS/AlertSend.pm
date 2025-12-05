@@ -28,7 +28,7 @@ use Log::Report 'linkspace';
 use Scalar::Util qw(looks_like_number);
 
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base qw(ArrayRef Bool);
 use namespace::clean;
 
 has layout => (

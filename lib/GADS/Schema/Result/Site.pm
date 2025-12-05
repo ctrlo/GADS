@@ -87,6 +87,8 @@ __PACKAGE__->add_columns(
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "register_show_title",
   { data_type => "smallint", default_value => 1, is_nullable => 0 },
+  "register_show_provider",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "hide_account_request",
   { data_type => "smallint", default_value => 0, is_nullable => 0 },
   "remember_user_location",
@@ -179,6 +181,13 @@ __PACKAGE__->has_many(
   { cascade_copy => 0, cascade_delete => 0 },
 );
 
+__PACKAGE__->has_many(
+  "providers",
+  "GADS::Schema::Result::Authentication",
+  { "foreign.site_id" => "self.id" },
+  { cascade_copy => 0, cascade_delete => 0 },
+);
+
 sub has_main_homepage
 {   my $self = shift;
     return 1 if $self->homepage_text && $self->homepage_text !~ /^\s*$/;
@@ -261,6 +270,105 @@ sub user_field_by_description
     $field;
 }
 
+sub provider_fields
+{   my $self = shift;
+
+    my @fields = (
+        {
+            name        => 'name',
+            description => 'Provider Name',
+            type        => 'freetext',
+            placeholder => 'Provider Name',
+            is_required => 1,
+        },
+        {
+            name        => 'type',
+            description => 'Type',
+            type        => 'radio',
+            is_required => 1,
+        },
+        {
+          name          => 'enabled',
+          description   => 'Enabled',
+          type          => 'radio',
+          placeholder   => '',
+        },
+        {
+          name          => 'sso_xml',
+          description   => 'Entity ID',
+          type          => 'freetext',
+          placeholder   => 'Entity ID',
+        },
+        {
+          name          => 'sso_url',
+          description   => 'Reply URL / SSO URL / ACS URL',
+          type          => 'freetext',
+          placeholder   => '',
+        },
+        {
+          name          => 'saml2_firstname',
+          description   => 'User attribute for first name (optional)',
+          type          => 'freetext',
+          placeholder   => 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname',
+        },
+        {
+          name          => 'saml2_surname',
+          description   => 'User attribute for surname (optional)',
+          type          => 'freetext',
+          placeholder   => 'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname',
+        },
+        {
+          name          => 'saml2_groupname',
+          description   => 'Attribute for groupname (optional)',
+          type          => 'freetext',
+          placeholder   => 'http://schemas.xmlsoap.org/claims/Group',
+        },
+        {
+          name        => 'saml2_nameid',
+          description => 'SAML NameID format',
+          type        => 'dropdown',
+          is_required => 1,
+        },
+        {
+          name          => 'xml',
+          description   => 'Identity Provider Metadata XML',
+          type          => 'file',
+          placeholder   => '',
+        },
+        {
+          name          => 'cacert',
+          description   => 'Identity provider Signing/Encryption Certificate',
+          type          => 'file',
+          placeholder   => '',
+        },
+        {
+          name          => 'sp_key',
+          description   => 'LinkSpace Encryption/Signing Key',
+          type          => 'file',
+          placeholder   => '',
+        },
+        {
+          name          => 'sp_cert',
+          description   => 'LinkSpace Encryption/Signing Certificate',
+          type          => 'file',
+          placeholder   => '',
+        },
+        {
+          name          => 'saml2_relaystate',
+          description   => 'RelayState',
+          type          => 'freetext',
+          placeholder   => '',
+        },
+    );
+
+    my $user_editable = decode_json($self->user_editable_fields || '{}');
+
+    $_->{editable} = $user_editable->{$_->{name}} // 1 # Default to editable
+        foreach @fields;
+
+    return @fields;
+}
+
 sub user_fields
 {   my $self = shift;
 
@@ -308,6 +416,12 @@ sub user_fields
         table       => 'organisation',
         field       => 'name',
     } if $self->register_show_organisation;
+    push @fields, {
+        name        => 'provider',
+        description => 'Authentication Provider',
+        type        => 'dropdown',
+        placeholder => 'Select provider',
+    } if $self->register_show_provider;
     push @fields, {
         name        => 'department_id',
         description => $self->department_name,

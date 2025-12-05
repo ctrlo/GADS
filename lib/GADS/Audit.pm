@@ -57,11 +57,11 @@ has filtering => (
         );
         if ($value->{from} && ref $value->{from} ne 'DateTime')
         {
-            $value->{from} = GADS::DateTime::parse_datetime($value->{from});
+            $value->{from} = GADS::DateTime::parse_datetime(undef, $value->{from});
         }
         if ($value->{to} && ref $value->{to} ne 'DateTime')
         {
-            $value->{to} = GADS::DateTime::parse_datetime($value->{to});
+            $value->{to} = GADS::DateTime::parse_datetime(undef, $value->{to});
         }
         $value->{from} ||= DateTime->now->subtract(hours => 24);
         $value->{to}   ||= DateTime->now;
@@ -70,8 +70,22 @@ has filtering => (
     builder => sub { +{} },
 );
 
-sub audit_types{ [qw/user_action login_change login_success logout login_failure/] };
+sub audit_types{ [qw/user_action login_change login_success logout login_failure auth_provider_change/] };
 
+sub auth_provider_change
+{   my ($self, %options) = @_;
+
+    my $layout = $options{layout};
+    $self->schema->resultset('Audit')->create({
+        user_id     => $self->user_id,
+        description => $options{description},
+        type        => 'auth_provider_change',
+        method      => $options{method},
+        url         => $options{url},
+        datetime    => DateTime->now,
+        instance_id => $layout && $layout->instance_id,
+    });
+}
 sub user_action
 {   my ($self, %options) = @_;
 

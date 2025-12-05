@@ -21,7 +21,6 @@ package GADS::Column::Rag;
 use Log::Report 'linkspace';
 
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
 
 extends 'GADS::Column::Code';
 

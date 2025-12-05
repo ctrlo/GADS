@@ -67,6 +67,8 @@ sub presentation {
     # The name used in the URL to access the parent table
     $base->{parent_layout_identifier} = $self->column->layout_parent->identifier,
 
+    $base->{has_more} = $self->has_more;
+
     return $base;
 }
 

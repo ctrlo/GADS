@@ -21,7 +21,7 @@ package GADS::Datum::String;
 use HTML::FromText;
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/ArrayRef/;
 
 extends 'GADS::Datum';
 

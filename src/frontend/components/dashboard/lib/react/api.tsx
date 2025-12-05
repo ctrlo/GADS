@@ -6,6 +6,7 @@ export default class ApiClient {
   constructor(baseUrl = "") {
     this.baseUrl = baseUrl;
     this.headers = {};
+    // @ts-expect-error "isDev is not valid"
     this.isDev = window.siteConfig && window.siteConfig.isDev
   }
 

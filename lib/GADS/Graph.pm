@@ -23,7 +23,7 @@ use GADS::DateTime;
 use GADS::Graphs;
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw(:all);
+use MooX::Types::MooseLike::Base qw(Bool);
 
 has schema => (
     is       => 'rw',
@@ -173,7 +173,9 @@ has trend => (
 );
 
 my $coerce_datetime = sub {
-    GADS::DateTime::parse_datetime(shift);
+    # Normally $self is passed in, but that is not available in coerce and not
+    # needed for parsing in this context (value not from DB)
+    GADS::DateTime::parse_datetime(undef, shift);
 };
 
 has from => (

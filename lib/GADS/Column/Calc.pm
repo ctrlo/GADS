@@ -21,7 +21,7 @@ package GADS::Column::Calc;
 use Log::Report 'linkspace';
 
 use Moo;
-use MooX::Types::MooseLike::Base qw/:all/;
+use MooX::Types::MooseLike::Base qw/Int Maybe/;
 use Scalar::Util qw(looks_like_number);
 
 extends 'GADS::Column::Code';
@@ -33,7 +33,11 @@ has '+type' => (
 );
 
 has '+option_names' => (
-    default => sub { [qw/show_in_edit/] },
+    default => sub {[{
+            name              => 'show_in_edit',
+            user_configurable => 1,
+        }]
+    },
 );
 
 has show_in_edit => (

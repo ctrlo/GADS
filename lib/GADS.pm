@@ -26,6 +26,7 @@ use File::Temp qw/ tempfile /;
 use GADS::Alert;
 use GADS::Approval;
 use GADS::Audit;
+use GADS::Authentication;
 use GADS::Layout;
 use GADS::Column;
 use GADS::Column::Autocur;
@@ -153,6 +154,13 @@ sub _update_csrf_token
 {   session csrf_token => Session::Token->new(length => 32)->get;
 }
 
+sub get_and_clear_session_value {
+    my $id = shift;
+    my $value = session $id;
+    session $id => undef;
+    return $value;
+}
+
 hook before => sub {
     schema->site_id(undef);
 
@@ -167,6 +175,7 @@ hook before => sub {
         my $site_id = $site->id;
         trace __x"Site ID is {id}", id => $site_id;
         schema->site_id($site_id);
+        schema->resultset('Authentication')->create_default_provider;
     }
     else {
         my $site = schema->resultset('Site')->next;
@@ -211,12 +220,16 @@ hook before => sub {
         $token ||= query_parameters->get('csrf-token') || body_parameters->get('csrf_token');
         error __x"csrf-token missing for uri {uri}", uri => request->uri
             if !$token;
-        error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
-            if $token ne session('csrf_token');
+        # This is to ensure the API endpoint returns the correct error on timeout, rather than the below error
+        if(logged_in_user || request->path eq '/login')
+        {
+            error __x"The CSRF token is invalid or has expired. Please try reloading the page and making the request again."
+                if $token ne session('csrf_token');
 
-        # If it's a potential login, change the token
-        _update_csrf_token()
-            if request->path eq '/login';
+            # If it's a potential login, change the token
+            _update_csrf_token()
+                if request->path eq '/login';
+        }
     }
 
     if ($user)
@@ -237,6 +250,9 @@ hook before => sub {
     # instance_id until the request is processed (log these later)
     _audit_log()
         unless request->path =~ m!^/(record|record_body)/!;
+
+    response_header "X-Frame-Options" => "DENY" # Prevent clickjacking
+        unless request->uri eq '/aup_text'; # Except AUP, which will be in an iframe
 
     # The following use logged_in_user so as not to apply for API requests
     if (logged_in_user)
@@ -266,10 +282,6 @@ hook before => sub {
                 below to set a new password." }, 'myaccount')
                     unless request->uri eq '/myaccount' || request->uri eq '/logout';
         }
-
-        response_header "X-Frame-Options" => "DENY" # Prevent clickjacking
-            unless request->uri eq '/aup_text' # Except AUP, which will be in an iframe
-                || request->path eq '/file'; # Or iframe posts for file uploads (hidden iframe used for IE8)
 
         # CSP
         response_header "Content-Security-Policy" => "script-src 'self';";
@@ -339,6 +351,9 @@ hook before_template => sub {
 
     # Base 64 encoder for use in templates
     $tokens->{b64_filter} = sub { encode_base64(encode_json shift, '') };
+
+    $tokens->{actions} = session 'actions';
+    session->delete('actions');
 
     # This line used to be pre-request. However, occasionally errors have been
     # experienced with pages not submitting CSRF tokens. I think these may have
@@ -475,26 +490,65 @@ get '/saml' => sub {
     redirect '/';
 };
 
-post '/saml' => sub {
+post '/saml' => \&saml_post;
+
+post '/:unique_id/saml' => \&saml_post;
+
+sub saml_post {
+
+    my $unique_id = route_parameters->get('unique_id');
+    my $relaystate = body_parameters->get('RelayState');
+
+    my $authentication = schema->resultset('Authentication')->find({saml2_unique_id => $unique_id})
+        or warn "Error finding authentication provider from unique_id" if defined $unique_id;
+
+    $authentication = schema->resultset('Authentication')->find(session 'authentication_id')
+        or error "Error finding authentication provider" if !defined $authentication;
+
+    error __"Invalid unique_id in POST request" if $authentication->saml2_unique_id ne $unique_id;
+
+    my $request_id;
+    # If the relaystates match this should be an IdP initiated login
+    # otherwise get the AuthnReq request id from the session
+    if ($authentication->saml2_relaystate ne $relaystate) {
+        $request_id = get_and_clear_session_value('request_id');
+    }
 
     my $saml = GADS::SAML->new(
-        request_id => session('request_id'),
+        authentication => $authentication,
+        request_id => $request_id,
         base_url   => request->base,
     );
+
     my $callback = $saml->callback(
         saml_response => body_parameters->get('SAMLResponse'),
+        defined $authentication->cacert ?
+        (cacert       => $authentication->cacert) : (),
+        defined $authentication->sp_key ?
+        (sp_key       => $authentication->sp_key) : (),
+	defined $relaystate ? (relaystate => $relaystate) : (),
     );
 
-    my $authentication = schema->resultset('Authentication')->find(session 'authentication_id')
-        or error "Error finding authentication provider";
+    my $username;
+    if (! defined ($username = $callback->{nameid})) {
+        error __"Missing nameid in SAML response";
+        my $msg = $authentication->saml_provider_match_error;
+        return forwardHome({ danger => __x($msg, username => $username) }, 'saml_login' )
+    }
 
-    my $username = $callback->{nameid};
     my $user = schema->resultset('User')->active->search({ username => $username })->next;
+
+    # FIXME: Here we could create the user if the relaystate matches a provider
+    if (!defined $user or ($user->provider->id ne $authentication->id)) {
+        my $msg = $authentication->saml_provider_match_error;
+	$user = undef;
+        return forwardHome({ danger => __x($msg, username => $username) }, 'saml_login' )
+    }
 
     if (!$user)
     {
         my $msg = $authentication->user_not_found_error;
-        return forwardHome({ danger => __x($msg, username => $username) }, 'login?password=1' );
+        return forwardHome({ danger => __x($msg, username => $username) }, 'saml_login' );
     }
 
     $user->update_attributes($callback->{attributes});
@@ -539,6 +593,15 @@ sub _successful_login
         lastfail  => undef,
     });
 
+    unless($user->provider) {
+        my $provider = schema->resultset('Authentication')->find(
+            1, # Default to first provider
+        );
+        $user->find_or_create_related('provider', {
+            id => $provider->id,
+        });
+    }
+
     # Load previous settings
     my $session_settings;
     try { $session_settings = decode_json $user->session_settings };
@@ -559,6 +622,32 @@ sub _successful_login
     }
 }
 
+any ['get', 'post'] => '/saml_login' => sub {
+
+    my $audit = GADS::Audit->new(schema => schema);
+    my $user  = logged_in_user;
+
+    # Don't allow login page to be displayed when logged-in, to prevent
+    # user thinking they are logged out when they are not
+    return forwardHome() if $user;
+
+    my $users = GADS::Users->new(schema => schema, config => config);
+    my $output  = template 'login_saml' => {
+        username        => cookie('remember_me'),
+	titles          => $users->titles,
+	organisations   => $users->organisations,
+	departments     => $users->departments,
+	teams           => $users->teams,
+	providers       => $users->providers,
+        register_text   => var('site')->register_text,
+        page            => 'login',
+        body_class      => 'p-0',
+        container_class => 'login container-fluid',
+        main_class      => 'login__main row',
+    };
+    $output;
+};
+
 any ['get', 'post'] => '/login' => sub {
 
     my $audit = GADS::Audit->new(schema => schema);
@@ -568,13 +657,24 @@ any ['get', 'post'] => '/login' => sub {
     # user thinking they are logged out when they are not
     return forwardHome() if $user;
 
-    # Get authentication provider
-    my $enabled = schema->resultset('Authentication')->enabled;
+    my $enabled;
+    if ((my $saml_user = param('username')) && !query_parameters->get('password')) {
+        my $users = GADS::Users->new(schema => schema, config => config);
+        my $user_search = $users->user_rs->search({
+            username  => $saml_user,
+        });
+	my $user = $user_search->next;
+        $enabled = schema->resultset('Authentication')->by_id($user->provider->id) if defined $user;
+    }
+    else {
+        # Get authentication provider
+        $enabled = schema->resultset('Authentication')->enabled;
+    }
 
-    if ($enabled->count == 1 && !query_parameters->get('password'))
+    if (defined $enabled && $enabled->count ge 1 && !query_parameters->get('password'))
     {
         my $auth = $enabled->next;
-        if ($auth->type eq 'saml2')
+        if ($auth->type == 1)
         {
             my $saml = GADS::SAML->new(
                 authentication => $auth,
@@ -662,6 +762,7 @@ any ['get', 'post'] => '/login' => sub {
         organisations   => $users->organisations,
         departments     => $users->departments,
         teams           => $users->teams,
+        providers       => $users->providers,
         register_text   => var('site')->register_text,
         page            => 'login',
         body_class      => 'p-0',
@@ -731,6 +832,7 @@ any ['get', 'post'] => '/register' => sub {
         organisations   => $users->organisations,
         departments     => $users->departments,
         teams           => $users->teams,
+        providers       => $users->providers,
         register_text   => var('site')->register_text,
         page            => 'register',
         body_class      => 'p-0',
@@ -770,6 +872,8 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
         my %update;
         foreach my $field (var('site')->user_fields)
         {
+            # FIXME The user should not be able to change their own authentication provider
+            next if $field->{name} eq 'provider' && not logged_in_user->permission->{superadmin};
             next if !$field->{editable};
             $update{$field->{name}} = param($field->{name}) || undef;
         }
@@ -790,6 +894,7 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
             organisation  => $users->organisations,
             department_id => $users->departments,
             team_id       => $users->teams,
+            provider      => $users->providers,
         },
     };
 };
@@ -1504,6 +1609,29 @@ any ['get', 'post'] => '/user_export/?' => require_any_role [qw/useradmin supera
     };
 };
 
+any ['get', 'post'] => '/authentication_providers/' => require_any_role [qw/useradmin superadmin/] => sub {
+
+    my @name_ids = (
+            { label_plain => 'emailAddress',               value => 'emailAddress' },
+            { label_plain => 'unspecified',                value => 'unspecified' },
+            { label_plain => 'X509SubjectName',            value => 'X509SubjectName' },
+            { label_plain => 'WindowsDomainQualifiedName', value => 'WindowsDomainQualifiedName' },
+            { label_plain => 'entity',                     value => 'entity' },
+            { label_plain => 'transient',                  value => 'transient' },
+            { label_plain => 'persistent',                 value => 'persistent' },
+    );
+
+    my $auth = GADS::Authentication->new(schema => schema);
+    template 'authentication/providers' => {
+            providers       => $auth,
+            permissions     => "permisission", #$auth->permissions,
+            values   => {
+                saml2_nameid  => \@name_ids,
+            },
+            page            => 'system_settings',
+    };
+};
+
 any ['get', 'post'] => '/user_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
     my $userso          = GADS::Users->new(schema => schema);
 
@@ -1538,6 +1666,7 @@ any ['get', 'post'] => '/user_overview/' => require_any_role [qw/useradmin super
             organisation  => $userso->organisations,
             department_id => $userso->departments,
             team_id       => $userso->teams,
+            provider      => $userso->providers,
         },
         permissions     => $userso->permissions,
         page            => 'user',
@@ -1556,8 +1685,9 @@ any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin super
                 if logged_in_user->id == $delete_id;
 
         my $usero = rset('User')->find($delete_id);
+        my $email_reject_text = param('reject_reason');
 
-        if (process( sub { $usero->retire(send_reject_email => 1) }))
+        if (process( sub { $usero->retire(send_reject_email => 1, email_reject_text => $email_reject_text) }))
         {
             $audit->login_change("User ID $delete_id deleted");
             return forwardHome(
@@ -1577,6 +1707,131 @@ any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin super
         permissions     => $userso->permissions,
         page            => 'user'
     };
+};
+
+any ['get'] => '/metadata/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $id     = route_parameters->get('id');
+
+    my $provider = rset('Authentication')->providers->search({id => $id})->next
+        or error __x"Authentication provider id {id} not found", id => $id;
+
+    if (defined $provider)
+    {
+	if ($provider->type == 1)
+	{
+	    my $saml = GADS::SAML->new(
+	        authentication => $provider,
+	        base_url       => request->base,
+	    );
+                response_header 'Content-Disposition' => "attachment; filename=\"saml.xml\"";
+                return send_file(\$saml->metadata, content_type => 'application/xml');
+	}
+    }
+};
+
+any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $user   = logged_in_user;
+    my $userso = GADS::Users->new(schema => schema);
+    my $auth   = GADS::Authentication->new(schema => schema);
+    my $id     = route_parameters->get('id');
+    my $audit  = GADS::Audit->new(schema => schema, user => $user);
+
+    if (!$id) {
+        error __x"Authentication proovider not available";
+    }
+
+    my $editProvider = rset('Authentication')->providers->search({id => $id})->next
+        or error __x"Authentication provider id {id} not found", id => $id;
+
+    # FIXME: Is this true in the case of a provider
+    # The submit button will still be triggered on a REPLACE_THIS creation,
+    # if the user has pressed enter, in which case ignore it
+    if (param('submit'))
+    {
+        my %values = (
+            name                  => param('name'),
+            type                  => param('type'),
+            saml2_firstname       => param('saml2_firstname'),
+            saml2_surname         => param('saml2_surname'),
+            xml                   => param('xml'),
+            cacert                => param('cacert'),
+	    # updating sp_cert or sp_key independantly will cause issues
+            (defined param('sp_cert') and defined param('sp_key')) ? (
+            sp_cert       => param('sp_cert'),
+            sp_key        => param('sp_key'),
+            ) : (),
+            saml2_relaystate      => param('saml2_relaystate'),
+            saml2_groupname       => param('saml2_groupname'),
+            saml2_nameid          => param('saml2_nameid'),
+            enabled               => param('enabled'),
+        );
+        # FIXME: Remove permissions below
+        $values{permissions} = [body_parameters->get_all('permission')]
+            if logged_in_user->permission->{superadmin};
+        # FIXME: Remove above
+
+        if (process sub {
+            # FIXME: permissions note
+            # Don't use DBIC update directly, so that permissions etc are updated properly
+            $editProvider->update_provider(current_user => logged_in_user, %values);
+        })
+        {
+            return forwardHome(
+                { success => "Authentication Provider has been updated successfully" }, 'authentication_providers/' );
+        }
+    }
+    elsif (my $delete_id = param('delete'))
+    {
+        return forwardHome(
+            { danger => "You do not have permission to delete an authentication provider" } )
+            if !logged_in_user->permission->{superadmin};
+        my $usero = rset('Authentication')->find($delete_id);
+        return forwardHome(
+            { danger => "Cannot delete the built in authentication provider" } )
+            if $usero->type == 0;
+
+        # FIXME: Should change this so cannot delete enabled provider for current user
+        return forwardHome(
+            { danger => "Cannot delete an enabled authentication provider" } )
+            if $usero->enabled;
+	# FIXME: Will panic here if a user is still associated with this provider
+	# timlegge - fix
+        if (process( sub { $usero->retire(current_user => logged_in_user) }))
+        {
+            #FIXME: fix audit
+            $audit->login_change("Authentication Provider ID $delete_id deleted");
+            return forwardHome(
+                { success => "Authentication Provider has been updated successfully" }, 'authentication_providers/' );
+        }
+    }
+
+    my @types = (
+            { 'label_plain' => 'saml2', value => 'saml2' },
+            { 'label_plain' => 'builtin', value => 'builtin'},
+    );
+
+    my @name_ids = (
+            { label_plain => 'emailAddress',               value => 'emailAddress' },
+            { label_plain => 'unspecified',                value => 'unspecified' },
+            { label_plain => 'X509SubjectName',            value => 'X509SubjectName' },
+            { label_plain => 'WindowsDomainQualifiedName', value => 'WindowsDomainQualifiedName' },
+            { label_plain => 'entity',                     value => 'entity' },
+            { label_plain => 'transient',                  value => 'transient' },
+            { label_plain => 'persistent',                 value => 'persistent' },
+    );
+
+    # FIXME need to revise what is passed to the template
+    my $output = template 'authentication/provider_edit' => {
+        editprovider => $editProvider,
+        groups   => GADS::Groups->new(schema => schema)->all,
+        values   => {
+            type	  => \@types,
+            saml2_nameid  => \@name_ids,
+        },
+        permissions => $userso->permissions,
+        page        => 'admin',
+    };
+    $output;
 };
 
 any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/] => sub {
@@ -1609,10 +1864,11 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
             team_id               => param('team_id') || undef,
             account_request       => param('account_request'),
             account_request_notes => param('account_request_notes'),
+            provider              => param('provider') || 1,
             view_limits           => [body_parameters->get_all('view_limits')],
             groups                => [body_parameters->get_all('groups')],
         );
-        $values{permissions} = [body_parameters->get_all('permission')]
+        $values{permissions} = [body_parameters->get_all('permissions')]
             if logged_in_user->permission->{superadmin};
 
         if (process sub {
@@ -1646,6 +1902,7 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
             organisation  => $userso->organisations,
             department_id => $userso->departments,
             team_id       => $userso->teams,
+            provider      => $userso->providers,
         },
         permissions => $userso->permissions,
         page        => 'user',
@@ -1696,9 +1953,9 @@ post '/file/:id?' => require_login sub {
     # File upload through the "manage files" interface
     if (my $upload = upload('file'))
     {
-        my $mimetype = $filecheck->check_file($upload); # Borks on invalid file type
+        my $mimetype = $filecheck->check_upload($upload); # Borks on invalid file type
         my $file;
-        if (process( sub { $file = rset('Fileval')->create({
+        if (process( sub { $file = rset('Fileval')->create_with_file({
             name           => $upload->filename,
             mimetype       => $mimetype,
             content        => $upload->content,
@@ -1721,7 +1978,7 @@ post '/file/:id?' => require_login sub {
     my $fileval = $id =~ /^[0-9]+$/ && schema->resultset('Fileval')->find($id)
         or error __x"File ID {id} cannot be found", id => $id;
 
-    if (process( sub { $fileval->delete }))
+    if (process( sub { $fileval->remove_file }))
     {
         return forwardHome( { success => "File has been deleted successsfully" }, 'file/' );
     }
@@ -1757,7 +2014,7 @@ put '/api/file/:id' => require_login sub {
             rename_existing => 1)
                 or error __x"File ID {id} cannot be found", id => $id;
 
-        my $newFile = rset('Fileval')->create({
+        my $newFile = rset('Fileval')->create_with_file({
             name           => $newname,
             mimetype       => $file->single_mimetype,
             content        => $file->single_content,
@@ -1785,7 +2042,7 @@ post '/api/file/?' => require_login sub {
 
         my $fileval = schema->resultset('Fileval')->find($delete_id);
 
-        $fileval->delete;
+        $fileval->remove_file();
 
         return forwardHome(
             { success => "The file has been deleted successfully" }, 'file/' );
@@ -1793,7 +2050,17 @@ post '/api/file/?' => require_login sub {
 
     if (my $upload = upload('file'))
     {
-        my $mimetype = $filecheck->check_file($upload, check_name => 0); # Borks on invalid file type
+        my $user = logged_in_user;
+        my $column_id = body_parameters->get('column_id')
+            or error __"Missing column ID";
+
+        my $column = GADS::Layout->new(
+            schema => schema,
+            user   => $user,
+            config => config
+        )->column($column_id);
+
+        my $mimetype = $filecheck->check_upload($upload, check_name => 0, extra_types => $column->override_types); # Borks on invalid file type
         my $filename = $upload->filename;
 
         # Remove any invalid characters from the new name - this will possibly be changed to an error going forward
@@ -1803,7 +2070,7 @@ post '/api/file/?' => require_login sub {
         $filename =~ s/[^a-zA-Z0-9\._\-\(\) ]//g;
 
         my $file;
-        if (process( sub { $file = rset('Fileval')->create({
+        if (process( sub { $file = rset('Fileval')->create_with_file({
             name           => $filename,
             mimetype       => $mimetype,
             content        => $upload->content,
@@ -2298,7 +2565,7 @@ prefix '/:layout_name' => sub {
     any ['get', 'post'] => '/data' => require_login sub {
 
         my $layout = var('layout') or pass;
-
+        
         my $user   = logged_in_user;
 
         my @additional_filters;
@@ -2359,7 +2626,7 @@ prefix '/:layout_name' => sub {
             else {
                 my $input = param('rewind_date');
                 $input   .= ' ' . (param('rewind_time') ? param('rewind_time') : '23:59:59');
-                my $dt    = GADS::DateTime::parse_datetime($input)
+                my $dt    = GADS::DateTime::parse_datetime(undef, $input)
                     or error __x"Invalid date or time: {datetime}", datetime => $input;
                 session rewind => $dt;
             }
@@ -2739,46 +3006,10 @@ prefix '/:layout_name' => sub {
                };
             }
 
-            my $pages = $records->pages;
-
-            my $subset = {
-                rows  => session('rows'),
-                pages => $pages,
-                page  => $page,
-            };
-            if ($pages > 50)
-            {
-                my @pnumbers = (1..5);
-                if ($page-5 > 6)
-                {
-                    push @pnumbers, '...';
-                    my $max = $page + 5 > $pages ? $pages : $page + 5;
-                    push @pnumbers, ($page-5..$max);
-                }
-                else {
-                    push @pnumbers, (6..15);
-                }
-                if ($pages-5 > $page+5)
-                {
-                    push @pnumbers, '...';
-                    push @pnumbers, ($pages-4..$pages);
-                }
-                elsif ($pnumbers[-1] < $pages)
-                {
-                    push @pnumbers, ($pnumbers[-1]+1..$pages);
-                }
-                $subset->{pnumbers} = [@pnumbers];
-            }
-            else {
-                $subset->{pnumbers} = [1..$pages];
-            }
-
             my @columns = @{$records->columns_render};
             $params->{user_can_edit}        = $layout->user_can('write_existing');
-            $params->{sort}                 = $records->sort_first;
-            $params->{subset}               = $subset;
+            $params->{sort}                 = $records->sort;
             $params->{aggregate}            = $records->aggregate_presentation;
-            $params->{count}                = $records->count;
             $params->{columns}              = [ map $_->presentation(
                 group            => $records->is_group,
                 group_col_ids    => $records->group_col_ids,
@@ -2901,8 +3132,9 @@ prefix '/:layout_name' => sub {
                 header_back_url => "${base_url}table",
                 reports         => $reports,
                 breadcrumbs     => [
-                    Crumb( $base_url . "table/", "Tables" ),
-                    Crumb( "",                   "Table: " . $layout->name )
+                    Crumb($base_url."table/", "Tables"),
+                    Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                    Crumb("", "Reports")
                 ],
                 security_marking => $security_marking,
             };
@@ -2960,8 +3192,10 @@ prefix '/:layout_name' => sub {
                 fields          => $records,
                 groups          => $groups,
                 breadcrumbs     => [
-                    Crumb( $base_url . "table/", "Tables" ),
-                    Crumb( "",                   "Table: " . $layout->name )
+                    Crumb($base_url."table/", "Tables"),
+                    Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                    Crumb($base_url . $layout->identifier . '/report', "Reports"),
+                    Crumb("", "Add Report"),
                 ],
             };
 
@@ -3030,8 +3264,10 @@ prefix '/:layout_name' => sub {
                 viewtype        => 'edit',
                 groups          => $groups,
                 breadcrumbs     => [
-                    Crumb( $base_url . "table/", "Tables" ),
-                    Crumb( "",                   "Table: " . $layout->name )
+                    Crumb($base_url."table/", "Tables"),
+                    Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                    Crumb($base_url . $layout->identifier . '/report', "Reports"),
+                    Crumb("", "Edit Report"),
                 ],
             };
 
@@ -3184,9 +3420,16 @@ prefix '/:layout_name' => sub {
             view_limit_extra_id => undef, # Override any value that may be set
         );
 
+        my $base_url = request->base;
+
         my $params = {
             page    => 'purge',
             records => $records->presentation(purge => 1),
+            breadcrumbs     => [
+                Crumb($base_url."table/", "Tables"),
+                Crumb("$base_url" . $layout->identifier . '/data', "Table: " . $layout->name),
+                Crumb("", "Purge records")
+            ],
         };
 
         template 'purge' => $params;
@@ -3738,7 +3981,7 @@ prefix '/:layout_name' => sub {
                 $column->type(param 'type')
                     unless param('id'); # Can't change type as it would require DBIC resultsets to be removed and re-added
                 $column->$_(param $_)
-                    foreach @{$column->option_names};
+                    foreach @{$column->user_options};
                 $column->display_fields(param 'display_fields');
                 # Set the layout in the GADS::Filter object, in case the write
                 # doesn't success, in which case the filter will need to be
@@ -4458,8 +4701,9 @@ prefix '/:layout_name' => sub {
         to_json [ rset('User')->match($query) ];
     };
 
-    # I don't know where else this is used, so I am going to revert it to it's original setup and leave it alone for now!
-    get '/match/layout/:layout_id' => require_login sub {
+    # This has been changed to `POST` because the select-filter requires all requests to be post (for security)
+    # All calls to this endpoint should now be using `POST` going forward
+    post '/match/layout/:layout_id' => require_login sub {
 
         my $layout = var('layout') or pass;
         my $query = param('q');
@@ -4698,6 +4942,7 @@ sub _process_edit
     );
     $params{layout} = var('layout') if var('layout'); # Used when creating a new record
 
+    my $actions;
     my $layout;
 
     if (my $delete_id = param 'delete')
@@ -4755,8 +5000,8 @@ sub _process_edit
             my $newv;
             if ($modal)
             {
-                next unless defined query_parameters->get($col->field);
-                $newv = [query_parameters->get_all($col->field)];
+                next unless defined body_parameters->get($col->field);
+                $newv = [body_parameters->get_all($col->field)];
             }
             else {
                 next unless defined body_parameters->get($col->field);
@@ -4784,7 +5029,8 @@ sub _process_edit
         {
             # The "source" parameter is user input, make sure still valid
             my $source_curval = $layout->column(param('source'), permission => 'read');
-            try { $record->write(dry_run => 1, parent_curval => $source_curval) };
+            my %options = (dry_run => 1, parent_curval => $source_curval);
+            try { $record->write(%options) };
             if (my $e = $@->wasFatal)
             {
                 push @validation_errors, $e->reason eq 'PANIC' ? 'An unexpected error occurred' : $e->message;
@@ -4823,6 +5069,9 @@ sub _process_edit
                 my $forward = (!$id && $layout->forward_record_after_create) || param('submit') eq 'submit-and-remain'
                     ? 'record/'.$record->current_id
                     : $layout->identifier.'/data';
+                $actions->{clear_saved_values} = $id ? $id: 0;
+                session 'actions' => $actions;
+
                 return forwardHome(
                     { success => 'Submission has been completed successfully for record ID '.$record->current_id }, $forward );
             }
@@ -4907,6 +5156,9 @@ sub _process_edit
     {
         $params->{content_block_custom_classes} = 'content-block--footer';
     }
+
+    $params->{clone_from} = $clone_from
+        if $clone_from;
 
     $params->{modal_field_ids} = encode_json $layout->column($modal)->curval_field_ids
         if $modal;
