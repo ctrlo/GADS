@@ -340,7 +340,7 @@ sub write
 
     # Names consisting of just whitespace characters cause issues when displaying a view
     $self->name !~ /^\s*$/
-        or error __"View name must not contain whitespace characters";
+        or error __"View name must not contain only whitespace characters";
         
     my $global   = !$self->layout->user ? 1 : $self->global;
 
