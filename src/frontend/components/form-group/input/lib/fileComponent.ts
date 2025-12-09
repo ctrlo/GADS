@@ -14,7 +14,7 @@ class FileComponent {
 
     constructor(el: HTMLElement | JQuery<HTMLElement>) {
         this.el = el instanceof HTMLElement ? $(el) : el;
-        this.fileInput = this.el.find('.form-control-file') as JQuery<HTMLInputElement>;
+        this.fileInput = this.el.find<HTMLInputElement>('.form-control-file');
         this.fileName = this.el.find('.file__name');
         this.fileDelete = this.el.find('.file__delete');
         this.inputFileLabel = this.el.find('.input__file-label');
@@ -64,6 +64,7 @@ class FileComponent {
     };
 
     changeFile = (ev: JQuery.ChangeEvent<HTMLInputElement>) => {
+        if(!ev.target.files || ev.target.files.length === 0) return;
         const [file] = ev.target.files!;
         const { name: fileName } = file;
 

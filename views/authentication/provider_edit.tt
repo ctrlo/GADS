@@ -1,0 +1,189 @@
+[%-
+  # add standardized page header
+  INCLUDE layouts/page_header.tt
+    title       = "Edit provider: " _ editprovider.name
+    description = "In this window you can edit an authentication provider in the system."
+    back_button = { url = url.page _ "/authentication_providers/" };
+-%]
+[%
+  IF editprovider.type == 1 
+%]
+  <a href='[% url.page %]/metadata/[% editprovider.id %]' class='link link--plain link--active'><span>Download Metadata</span></a>
+[% END %]
+<div class="content-block__main">
+  <form method="post" action="">
+  [%
+    IF editprovider.type == 1 
+  %]
+    <fieldset class="fieldset">
+      <legend class="fieldset__legend fieldset__legend--hidden">My details</legend>
+      [%-
+        INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
+        INCLUDE fields/hidden.tt name="page" value=page;
+        INCLUDE fields/hidden.tt name="username" value=user.username filter="html_entity";
+        INCLUDE fields/hidden.tt name="id" value=editprovider.id;
+        INCLUDE fields/hidden.tt name="unique_saml_id" value=editprovider.get_saml2_unique_id;
+
+        field_counter = 0;
+
+        IF site.provider_fields.size > 0;
+      -%]
+      <div class="row">
+        [% END %]
+        [% FOREACH field IN site.provider_fields %]
+          [% IF field_counter > 0 AND field_counter % 2 == 0 %]
+      </div>
+      <div class="row">
+          [% END %]
+        <div class="col-lg-5">
+          [%
+            IF field.type == "freetext" AND (field.name != 'sso_url' AND field.name != 'sso_xml');
+              INCLUDE fields/input.tt
+                id = field.name
+                name = field.name
+                value = editprovider.${field.name}
+                label = field.description
+                placeholder = field.placeholder
+                type = "text"
+                filter = "html"
+                sub_field = ""
+                sub_params = {};
+
+            ELSIF field.type == "freetext" AND (field.name == 'sso_url' OR field.name == 'sso_xml');
+              INCLUDE fields/input.tt
+                id = field.name
+                name = field.name
+                value = editprovider.${field.name}
+                label = field.description
+                placeholder = field.placeholder
+                type = "text"
+                is_readonly = 1
+                sub_field = ""
+                sub_params = {};
+
+            ELSIF field.type == "dropdown";
+              INCLUDE fields/select_single.tt
+                id = field.name
+                name = field.name
+                value = editprovider.get_column(field.name)
+                label = field.description
+                placeholder = field.placeholder
+                items = values.${field.name}
+                sub_field = ""
+                sub_params = {};
+
+            ELSIF field.type == "textarea" and field.name != 'sp_key';
+              INCLUDE fields/textarea.tt
+                id = field.name
+                name = field.name
+                value = editprovider.${field.name}
+                label = field.description
+                rows = 10
+                placeholder = field.placeholder
+                filter = "html"
+                sub_field = ""
+                sub_params = {};
+            ELSIF field.type == "radio" and field.name == 'type';
+              INCLUDE fields/radio.tt
+                id    = field.name
+                name  = field.name
+                label = field.description
+                value = editprovider.${field.name}
+                items = [
+                  {id = "1", name = "SAML2"},
+                  {id = "0", name = "Built In"}
+                ];
+            ELSIF field.type == "radio" and field.name == 'enabled';
+              INCLUDE fields/radio.tt
+                id    = field.name
+                name  = field.name
+                label = field.description
+                value = editprovider.${field.name}
+                items = [
+                  {id = "1", name = "Enable Authentication Provider"},
+                  {id = "0", name = "Disable Authentication Provider"}
+                ];
+            ELSIF field.type == "dropdown";
+              INCLUDE fields/select.tt
+                id = field.name
+                name = field.name
+                label = field.description
+                placeholder = field.placeholder
+                items = values.${field.name}
+                filter = "html"
+                sub_field = sub_field
+                sub_params = sub_params;
+
+            END;
+          %]
+        </div>
+        [%
+            field_counter = field_counter + 1;
+          END;
+        %]
+      [% IF site.provider_fields.size > 0 %]
+      </div>
+      [% END %]
+
+    </fieldset>
+[% ELSE %]
+  <p>The built in authentication provider cannot be edited.</p>
+[% END %]
+
+[%
+  IF editprovider.type != 0;
+%]
+    [%
+      INCLUDE navigation/button_bar.tt
+        row_class = "row mt-5"
+        columns = [{
+          class = "col-sm-auto mb-3 mb-sm-0",
+          buttons = [{
+            type = "link",
+            class = "btn btn-cancel",
+            target = url.page _ "/authentication_providers/",
+            label = "Cancel"
+          }]
+        }, {
+          class = "col-sm-auto",
+          buttons = [{
+            type      = "modal_button",
+            modalId   = "deleteModal",
+            dataTitle = editprovider.name,
+            dataId    = editprovider.id,
+            class     = "btn btn-danger btn-js-delete",
+            label     = "Delete provider"
+          }, {
+            type  = "button",
+            name  = "submit",
+            value = "submit",
+            class = "btn btn-default btn-js-save",
+            label = "Save changes"
+          }]
+        }];
+    %]
+[% ELSE %]
+    [%
+      INCLUDE navigation/button_bar.tt
+        row_class = "row mt-5"
+        columns = [{
+          class = "col-sm-auto mb-3 mb-sm-0",
+          buttons = [{
+            type = "link",
+            class = "btn btn-cancel",
+            target = url.page _ "/authentication_providers/",
+            label = "Cancel"
+          }]
+        },
+      ];
+    %]
+[% END %]
+  </form>
+</div>
+
+[%
+  INCLUDE wizard/delete.tt
+    modalId     = "deleteModal"
+    label       = "Delete " _ editprovider.name
+    description = "Are you sure you want to delete this provider? You cannot undo this step.";
+%]

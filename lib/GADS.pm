@@ -26,6 +26,7 @@ use File::Temp qw/ tempfile /;
 use GADS::Alert;
 use GADS::Approval;
 use GADS::Audit;
+use GADS::Authentication;
 use GADS::Layout;
 use GADS::Column;
 use GADS::Column::Autocur;
@@ -153,6 +154,13 @@ sub _update_csrf_token
 {   session csrf_token => Session::Token->new(length => 32)->get;
 }
 
+sub get_and_clear_session_value {
+    my $id = shift;
+    my $value = session $id;
+    session $id => undef;
+    return $value;
+}
+
 hook before => sub {
     schema->site_id(undef);
 
@@ -167,6 +175,7 @@ hook before => sub {
         my $site_id = $site->id;
         trace __x"Site ID is {id}", id => $site_id;
         schema->site_id($site_id);
+        schema->resultset('Authentication')->create_default_provider;
     }
     else {
         my $site = schema->resultset('Site')->next;
@@ -481,26 +490,65 @@ get '/saml' => sub {
     redirect '/';
 };
 
-post '/saml' => sub {
+post '/saml' => \&saml_post;
+
+post '/:unique_id/saml' => \&saml_post;
+
+sub saml_post {
+
+    my $unique_id = route_parameters->get('unique_id');
+    my $relaystate = body_parameters->get('RelayState');
+
+    my $authentication = schema->resultset('Authentication')->find({saml2_unique_id => $unique_id})
+        or warn "Error finding authentication provider from unique_id" if defined $unique_id;
+
+    $authentication = schema->resultset('Authentication')->find(session 'authentication_id')
+        or error "Error finding authentication provider" if !defined $authentication;
+
+    error __"Invalid unique_id in POST request" if $authentication->saml2_unique_id ne $unique_id;
+
+    my $request_id;
+    # If the relaystates match this should be an IdP initiated login
+    # otherwise get the AuthnReq request id from the session
+    if ($authentication->saml2_relaystate ne $relaystate) {
+        $request_id = get_and_clear_session_value('request_id');
+    }
 
     my $saml = GADS::SAML->new(
-        request_id => session('request_id'),
+        authentication => $authentication,
+        request_id => $request_id,
         base_url   => request->base,
     );
+
     my $callback = $saml->callback(
         saml_response => body_parameters->get('SAMLResponse'),
+        defined $authentication->cacert ?
+        (cacert       => $authentication->cacert) : (),
+        defined $authentication->sp_key ?
+        (sp_key       => $authentication->sp_key) : (),
+	defined $relaystate ? (relaystate => $relaystate) : (),
     );
 
-    my $authentication = schema->resultset('Authentication')->find(session 'authentication_id')
-        or error "Error finding authentication provider";
+    my $username;
+    if (! defined ($username = $callback->{nameid})) {
+        error __"Missing nameid in SAML response";
+        my $msg = $authentication->saml_provider_match_error;
+        return forwardHome({ danger => __x($msg, username => $username) }, 'saml_login' )
+    }
 
-    my $username = $callback->{nameid};
     my $user = schema->resultset('User')->active->search({ username => $username })->next;
+
+    # FIXME: Here we could create the user if the relaystate matches a provider
+    if (!defined $user or ($user->provider->id ne $authentication->id)) {
+        my $msg = $authentication->saml_provider_match_error;
+	$user = undef;
+        return forwardHome({ danger => __x($msg, username => $username) }, 'saml_login' )
+    }
 
     if (!$user)
     {
         my $msg = $authentication->user_not_found_error;
-        return forwardHome({ danger => __x($msg, username => $username) }, 'login?password=1' );
+        return forwardHome({ danger => __x($msg, username => $username) }, 'saml_login' );
     }
 
     $user->update_attributes($callback->{attributes});
@@ -545,6 +593,15 @@ sub _successful_login
         lastfail  => undef,
     });
 
+    unless($user->provider) {
+        my $provider = schema->resultset('Authentication')->find(
+            1, # Default to first provider
+        );
+        $user->find_or_create_related('provider', {
+            id => $provider->id,
+        });
+    }
+
     # Load previous settings
     my $session_settings;
     try { $session_settings = decode_json $user->session_settings };
@@ -565,6 +622,32 @@ sub _successful_login
     }
 }
 
+any ['get', 'post'] => '/saml_login' => sub {
+
+    my $audit = GADS::Audit->new(schema => schema);
+    my $user  = logged_in_user;
+
+    # Don't allow login page to be displayed when logged-in, to prevent
+    # user thinking they are logged out when they are not
+    return forwardHome() if $user;
+
+    my $users = GADS::Users->new(schema => schema, config => config);
+    my $output  = template 'login_saml' => {
+        username        => cookie('remember_me'),
+	titles          => $users->titles,
+	organisations   => $users->organisations,
+	departments     => $users->departments,
+	teams           => $users->teams,
+	providers       => $users->providers,
+        register_text   => var('site')->register_text,
+        page            => 'login',
+        body_class      => 'p-0',
+        container_class => 'login container-fluid',
+        main_class      => 'login__main row',
+    };
+    $output;
+};
+
 any ['get', 'post'] => '/login' => sub {
 
     my $audit = GADS::Audit->new(schema => schema);
@@ -574,13 +657,24 @@ any ['get', 'post'] => '/login' => sub {
     # user thinking they are logged out when they are not
     return forwardHome() if $user;
 
-    # Get authentication provider
-    my $enabled = schema->resultset('Authentication')->enabled;
+    my $enabled;
+    if ((my $saml_user = param('username')) && !query_parameters->get('password')) {
+        my $users = GADS::Users->new(schema => schema, config => config);
+        my $user_search = $users->user_rs->search({
+            username  => $saml_user,
+        });
+	my $user = $user_search->next;
+        $enabled = schema->resultset('Authentication')->by_id($user->provider->id) if defined $user;
+    }
+    else {
+        # Get authentication provider
+        $enabled = schema->resultset('Authentication')->enabled;
+    }
 
-    if ($enabled->count == 1 && !query_parameters->get('password'))
+    if (defined $enabled && $enabled->count ge 1 && !query_parameters->get('password'))
     {
         my $auth = $enabled->next;
-        if ($auth->type eq 'saml2')
+        if ($auth->type == 1)
         {
             my $saml = GADS::SAML->new(
                 authentication => $auth,
@@ -668,6 +762,7 @@ any ['get', 'post'] => '/login' => sub {
         organisations   => $users->organisations,
         departments     => $users->departments,
         teams           => $users->teams,
+        providers       => $users->providers,
         register_text   => var('site')->register_text,
         page            => 'login',
         body_class      => 'p-0',
@@ -737,6 +832,7 @@ any ['get', 'post'] => '/register' => sub {
         organisations   => $users->organisations,
         departments     => $users->departments,
         teams           => $users->teams,
+        providers       => $users->providers,
         register_text   => var('site')->register_text,
         page            => 'register',
         body_class      => 'p-0',
@@ -776,6 +872,8 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
         my %update;
         foreach my $field (var('site')->user_fields)
         {
+            # FIXME The user should not be able to change their own authentication provider
+            next if $field->{name} eq 'provider' && not logged_in_user->permission->{superadmin};
             next if !$field->{editable};
             $update{$field->{name}} = param($field->{name}) || undef;
         }
@@ -796,6 +894,7 @@ any ['get', 'post'] => '/myaccount/?' => require_login sub {
             organisation  => $users->organisations,
             department_id => $users->departments,
             team_id       => $users->teams,
+            provider      => $users->providers,
         },
     };
 };
@@ -1510,6 +1609,29 @@ any ['get', 'post'] => '/user_export/?' => require_any_role [qw/useradmin supera
     };
 };
 
+any ['get', 'post'] => '/authentication_providers/' => require_any_role [qw/useradmin superadmin/] => sub {
+
+    my @name_ids = (
+            { label_plain => 'emailAddress',               value => 'emailAddress' },
+            { label_plain => 'unspecified',                value => 'unspecified' },
+            { label_plain => 'X509SubjectName',            value => 'X509SubjectName' },
+            { label_plain => 'WindowsDomainQualifiedName', value => 'WindowsDomainQualifiedName' },
+            { label_plain => 'entity',                     value => 'entity' },
+            { label_plain => 'transient',                  value => 'transient' },
+            { label_plain => 'persistent',                 value => 'persistent' },
+    );
+
+    my $auth = GADS::Authentication->new(schema => schema);
+    template 'authentication/providers' => {
+            providers       => $auth,
+            permissions     => "permisission", #$auth->permissions,
+            values   => {
+                saml2_nameid  => \@name_ids,
+            },
+            page            => 'system_settings',
+    };
+};
+
 any ['get', 'post'] => '/user_overview/' => require_any_role [qw/useradmin superadmin/] => sub {
     my $userso          = GADS::Users->new(schema => schema);
 
@@ -1544,6 +1666,7 @@ any ['get', 'post'] => '/user_overview/' => require_any_role [qw/useradmin super
             organisation  => $userso->organisations,
             department_id => $userso->departments,
             team_id       => $userso->teams,
+            provider      => $userso->providers,
         },
         permissions     => $userso->permissions,
         page            => 'user',
@@ -1586,6 +1709,131 @@ any ['get', 'post'] => '/user_requests/' => require_any_role [qw/useradmin super
     };
 };
 
+any ['get'] => '/metadata/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $id     = route_parameters->get('id');
+
+    my $provider = rset('Authentication')->providers->search({id => $id})->next
+        or error __x"Authentication provider id {id} not found", id => $id;
+
+    if (defined $provider)
+    {
+	if ($provider->type == 1)
+	{
+	    my $saml = GADS::SAML->new(
+	        authentication => $provider,
+	        base_url       => request->base,
+	    );
+                response_header 'Content-Disposition' => "attachment; filename=\"saml.xml\"";
+                return send_file(\$saml->metadata, content_type => 'application/xml');
+	}
+    }
+};
+
+any ['get', 'post'] => '/authentication_providers/:id' => require_any_role [qw/useradmin superadmin/] => sub {
+    my $user   = logged_in_user;
+    my $userso = GADS::Users->new(schema => schema);
+    my $auth   = GADS::Authentication->new(schema => schema);
+    my $id     = route_parameters->get('id');
+    my $audit  = GADS::Audit->new(schema => schema, user => $user);
+
+    if (!$id) {
+        error __x"Authentication proovider not available";
+    }
+
+    my $editProvider = rset('Authentication')->providers->search({id => $id})->next
+        or error __x"Authentication provider id {id} not found", id => $id;
+
+    # FIXME: Is this true in the case of a provider
+    # The submit button will still be triggered on a REPLACE_THIS creation,
+    # if the user has pressed enter, in which case ignore it
+    if (param('submit'))
+    {
+        my %values = (
+            name                  => param('name'),
+            type                  => param('type'),
+            saml2_firstname       => param('saml2_firstname'),
+            saml2_surname         => param('saml2_surname'),
+            xml                   => param('xml'),
+            cacert                => param('cacert'),
+	    # updating sp_cert or sp_key independantly will cause issues
+            (defined param('sp_cert') and defined param('sp_key')) ? (
+            sp_cert       => param('sp_cert'),
+            sp_key        => param('sp_key'),
+            ) : (),
+            saml2_relaystate      => param('saml2_relaystate'),
+            saml2_groupname       => param('saml2_groupname'),
+            saml2_nameid          => param('saml2_nameid'),
+            enabled               => param('enabled'),
+        );
+        # FIXME: Remove permissions below
+        $values{permissions} = [body_parameters->get_all('permission')]
+            if logged_in_user->permission->{superadmin};
+        # FIXME: Remove above
+
+        if (process sub {
+            # FIXME: permissions note
+            # Don't use DBIC update directly, so that permissions etc are updated properly
+            $editProvider->update_provider(current_user => logged_in_user, %values);
+        })
+        {
+            return forwardHome(
+                { success => "Authentication Provider has been updated successfully" }, 'authentication_providers/' );
+        }
+    }
+    elsif (my $delete_id = param('delete'))
+    {
+        return forwardHome(
+            { danger => "You do not have permission to delete an authentication provider" } )
+            if !logged_in_user->permission->{superadmin};
+        my $usero = rset('Authentication')->find($delete_id);
+        return forwardHome(
+            { danger => "Cannot delete the built in authentication provider" } )
+            if $usero->type == 0;
+
+        # FIXME: Should change this so cannot delete enabled provider for current user
+        return forwardHome(
+            { danger => "Cannot delete an enabled authentication provider" } )
+            if $usero->enabled;
+	# FIXME: Will panic here if a user is still associated with this provider
+	# timlegge - fix
+        if (process( sub { $usero->retire(current_user => logged_in_user) }))
+        {
+            #FIXME: fix audit
+            $audit->login_change("Authentication Provider ID $delete_id deleted");
+            return forwardHome(
+                { success => "Authentication Provider has been updated successfully" }, 'authentication_providers/' );
+        }
+    }
+
+    my @types = (
+            { 'label_plain' => 'saml2', value => 'saml2' },
+            { 'label_plain' => 'builtin', value => 'builtin'},
+    );
+
+    my @name_ids = (
+            { label_plain => 'emailAddress',               value => 'emailAddress' },
+            { label_plain => 'unspecified',                value => 'unspecified' },
+            { label_plain => 'X509SubjectName',            value => 'X509SubjectName' },
+            { label_plain => 'WindowsDomainQualifiedName', value => 'WindowsDomainQualifiedName' },
+            { label_plain => 'entity',                     value => 'entity' },
+            { label_plain => 'transient',                  value => 'transient' },
+            { label_plain => 'persistent',                 value => 'persistent' },
+    );
+
+    # FIXME need to revise what is passed to the template
+    my $output = template 'authentication/provider_edit' => {
+        editprovider => $editProvider,
+        groups   => GADS::Groups->new(schema => schema)->all,
+        values   => {
+            type	  => \@types,
+            saml2_nameid  => \@name_ids,
+        },
+        permissions => $userso->permissions,
+        page        => 'admin',
+    };
+    $output;
+};
+
 any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/] => sub {
     my $user   = logged_in_user;
     my $userso = GADS::Users->new(schema => schema);
@@ -1616,6 +1864,7 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
             team_id               => param('team_id') || undef,
             account_request       => param('account_request'),
             account_request_notes => param('account_request_notes'),
+            provider              => param('provider') || 1,
             view_limits           => [body_parameters->get_all('view_limits')],
             groups                => [body_parameters->get_all('groups')],
         );
@@ -1653,6 +1902,7 @@ any ['get', 'post'] => '/user/:id' => require_any_role [qw/useradmin superadmin/
             organisation  => $userso->organisations,
             department_id => $userso->departments,
             team_id       => $userso->teams,
+            provider      => $userso->providers,
         },
         permissions => $userso->permissions,
         page        => 'user',

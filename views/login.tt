@@ -56,6 +56,9 @@
   </div>
 </form>
 
+<div class="login__subtext">
+  <a href="[% url.page %]/saml_login">Login via SAML</a>
+</div>
 [% UNLESS site.hide_account_request %]
 <div class="login__subtext">
   <a href="[% url.page %]/register">Request an account</a>

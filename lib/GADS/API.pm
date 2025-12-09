@@ -556,6 +556,10 @@ post '/api/table_request' => require_login sub {
     _post_table_request();
 };
 
+post '/api/authentication_providers/?:id?' => require_login sub {
+    _post_add_authentication_providers();
+};
+
 # AJAX record browse
 any ['get', 'post'] => '/api/:sheet/records' => require_login sub {
     _get_records();
@@ -750,6 +754,7 @@ sub _post_add_user_account
         freetext1             => $body->{freetext1},
         freetext2             => $body->{freetext2},
         title                 => $body->{title},
+        provider              => $body->{provider} || 1,
         organisation          => $body->{organisation},
         department_id         => $body->{department_id},
         team_id               => $body->{team_id},
@@ -767,6 +772,51 @@ sub _post_add_user_account
         : schema->resultset('User')->create_user(%values, current_user => $logged_in_user, request_base => request->base);
 
     my $msg = __x"User {type} successfully", type => $id ? 'updated' : 'created';
+    return _success("$msg");
+}
+
+sub _post_add_authentication_providers
+{   
+    my $body = _decode_json_body();
+
+    my $logged_in_user = logged_in_user;
+
+    my $id = route_parameters->get('id');
+    my $update_provider;
+    if ($id)
+    {
+        $update_provider = schema->resultset('Authentication')->find($id)
+            or error __x"Authentication id {id} not found", id => $id;
+    }
+
+    error __"Unauthorised access"
+        unless $logged_in_user->permission->{superadmin} || $logged_in_user->permission->{useradmin};
+
+    my %values = (
+        name                  => $body->{name},
+        type                  => $body->{type},
+        saml2_firstname       => $body->{saml2_firstname},
+        saml2_surname         => $body->{saml2_surname},
+        xml                   => $body->{xml},
+        cacert                => $body->{cacert},
+        sp_cert               => $body->{sp_cert},
+        sp_key                => $body->{sp_key},
+        saml2_relaystate      => $body->{saml2_relaystate},
+        saml2_groupname       => $body->{saml2_groupname},
+        saml2_unique_id       => $body->{saml2_unique_id},
+        saml2_nameid          => $body->{saml2_nameid},
+        enabled               => $body->{enabled},
+    );
+
+    # FIXME remove permissions?
+    $values{permissions} = $body->{permissions}
+        if $logged_in_user->permission->{superadmin};
+
+    # Any exceptions/errors generated here will be automatically sent back as JSON error
+    $id ? $update_provider->update_provider(%values, current_user => $logged_in_user)
+        : schema->resultset('Authentication')->create_provider(%values, current_user => $logged_in_user, request_base => request->base);
+
+    my $msg = __x"Authentication Provider {type} successfully", type => $id ? 'updated' : 'created';
     return _success("$msg");
 }
 
@@ -1342,6 +1392,95 @@ sub _error
     status $code;
     error __x $msg;
 }
+
+any ['get', 'post'] => '/api/providers' => require_any_role [qw/useradmin superadmin/] => sub {
+
+    # Allow parameters to be passed by URL query or in the body. Flatten into
+    # one parameters object
+    my $params = Hash::MultiValue->new(query_parameters->flatten, body_parameters->flatten);
+
+    my $site = var 'site';
+    if ($params->get('cols'))
+    {
+        # Get columns to be shown in the users table summary
+        my @cols = qw/site_id type name xml saml2_firstname saml2_surname cacert sp_cert sp_key enabled error_messages/;
+        my @return = map { { name => $_, data => $_ } } @cols;
+        content_type 'application/json; charset=UTF-8';
+        return encode_json \@return;
+    }
+
+    my $start  = $params->get('start') || 0;
+    my $length = $params->get('length') || 10;
+
+    my $auth      = GADS::Authentication->new(schema => schema)->authentication_summary_rs;
+
+    my $total     = $auth->count;
+    my $col_order = $params->get('order[0][column]');
+    my $sort_by   = defined $col_order && $params->get("columns[${col_order}][name]");
+    my $dir       = $params->get('order[0][dir]');
+    my $search    = $params->get('search[value]');
+
+    # FIXME possibly need to revise this
+    if (my $sort_field = $site->user_field_by_description($sort_by))
+    {
+        $sort_by = $sort_field->{name} eq 'site_id'
+            ? 'me.site_id'
+            : $sort_field->{name} eq 'type'
+            ? 'me.type'
+            : $sort_field->{name} eq 'name'
+            ? 'me.name'
+            : $sort_field->{name} eq 'enabled'
+            ? 'me.enabled'
+            : $sort_field->{name} eq 'error_messages'
+            ? 'me.error_messages'
+            : 'me.id';
+    }
+    elsif ($sort_by && $sort_by eq 'ID')
+    {
+        $sort_by = 'me.id';
+    }
+    else {
+        $sort_by = 'me.name';
+    }
+
+    my @sr;
+    foreach my $s (split /\s+/, $search)
+    {
+        $s or next;
+        $s =~ s/\_/\\\_/g; # Escape special like char
+        push @sr, [
+            'me.id'              => $s =~ /^[0-9]+$/ ? $s : undef,
+            # FIXME should some of these be case sensitive in database
+            'me.site_id'         => { -like => "%$s%" },
+            'me.type'            => { -like => "%$s%" },
+            'me.name'            => { -like => "%$s%" },
+            'me.saml2_firstname' => { -like => "%$s%" },
+            'me.saml2_surname'   => { -like => "%$s%" },
+            'me.enabled'         => { -like => "%$s%" },
+        ];
+    }
+
+    $auth = $auth->search({
+        -and => \@sr,
+    },{
+        order_by => { $dir && $dir eq 'asc' ? -asc : -desc => $sort_by },
+    });
+    my $filtered_count = $auth->count;
+    my $auth_render = $auth->search({},{
+        offset   => $start,
+        rows     => $length,
+    });
+
+    my $return = {
+        draw            => $params->get('draw'),
+        recordsTotal    => $total,
+        recordsFiltered => $filtered_count,
+        data            => [map $_->for_data_table(site => $site), $auth_render->all],
+    };
+
+    content_type 'application/json; charset=UTF-8';
+    return encode_json $return;
+};
 
 any ['get', 'post'] => '/api/users' => require_any_role [qw/useradmin superadmin/] => sub {
     # Allow parameters to be passed by URL query or in the body. Flatten into

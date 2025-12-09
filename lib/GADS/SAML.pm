@@ -4,17 +4,22 @@ use Log::Report 'linkspace';
 
 use Moo;
 
+use Net::SAML2 0.67;
 use Net::SAML2::Binding::POST;
 use Net::SAML2::Binding::Redirect;
 use Net::SAML2::IdP;
+use Net::SAML2::SP;
 use Net::SAML2::Protocol::Assertion;
 use Net::SAML2::Protocol::AuthnRequest;
+use URN::OASIS::SAML2 qw(:bindings :urn :nameid);
+
 use MIME::Base64;
 
 use IO::Compress::RawDeflate qw/rawdeflate/;
 use URI;
 use URI::QueryParam;
 use URL::Encode qw/url_encode/;
+use File::Temp qw/ tempfile /;
 
 has request_id => (
     is => 'rw',
@@ -38,6 +43,30 @@ has sso_xml => (
     is => 'lazy',
 );
 
+has sp_key => (
+    is => 'lazy',
+);
+
+sub _build_sp_key
+{   my $self = shift;
+    my $key_fh = File::Temp->new;
+    print $key_fh $self->authentication->sp_key;
+    $key_fh->close;
+    $key_fh;
+}
+
+has sp_cert => (
+    is => 'lazy',
+);
+
+sub _build_sp_cert
+{   my $self = shift;
+    my $cert_fh = File::Temp->new;
+    print $cert_fh $self->authentication->sp_cert;
+    $cert_fh->close;
+    $cert_fh;
+}
+
 sub _build_sso_xml
 {   my $self = shift;
     $self->base_url.'saml/xml';
@@ -46,22 +75,67 @@ sub _build_sso_xml
 sub callback
 {   my ($self, %params) = @_;
 
-    my $post = Net::SAML2::Binding::POST->new;
+    my $cacert_fh;
+    my $relaystate = $params{relaystate} if defined $params{relaystate};
+
+    # Save CA cert locally if configured
+    if (my $cacert = $params{cacert})
+    {
+        $cacert_fh = File::Temp->new;
+        print $cacert_fh $cacert;
+        $cacert_fh->close
+    }
+
+    my $post = Net::SAML2::Binding::POST->new(
+            $cacert_fh ? (cacert => $cacert_fh->filename) : (),
+    );
+
     my $saml_response = $params{saml_response};
 
-    if (my $return = $post->handle_response($saml_response))
+    my $return;
+    eval {
+	$return = $post->handle_response($saml_response);
+    };
+    if ($@) {
+        my $msg = "Error validating SAML response";
+        $msg = "Could not verify CA Certificate" if ($@ =~ "Could not verify CA certificate");
+	warn $@;
+        GADS::forwardHome({ danger => __x($msg)}, 'saml_login' );
+    }
+
+    if ($return)
     {
+        my $key_fh;
+        if (defined $params{sp_key}) {
+            $key_fh = File::Temp->new;
+            print $key_fh $params{sp_key};
+            $key_fh->close;
+        }
+
         my $assertion = Net::SAML2::Protocol::Assertion->new_from_xml(
-            xml => decode_base64($saml_response)
+                xml => decode_base64($saml_response),
+                $key_fh ? (key_file => $key_fh->filename) : (),
+                $cacert_fh ? (cacert => $cacert_fh->filename) : (),
         );
-        error __x"Invalid SSO assertion received. Expected request ID {request_id}",
-            request_id => $self->request_id
-                if !$assertion->valid($self->sso_xml, $self->request_id);
+
+        if (!$assertion->valid($self->authentication->sso_xml, $self->request_id)) {
+            my $auth = $self->authentication;
+
+            my $msg = $auth->saml_assertion_invalid_error;
+            GADS::forwardHome(
+                { danger => __x($msg,
+                                saml_request_id => $self->request_id,
+                                status          => $assertion->response_status,
+                                substatus       => $assertion->response_substatus,
+                            ) }, 'saml_login' );
+        }
         return {
             nameid     => $assertion->nameid,
             attributes => $assertion->attributes,
         }
     }
+    unlink $cacert_fh->filename;
+
 };
 
 has redirect => (
@@ -75,28 +149,173 @@ has authentication => (
 sub initiate
 {   my ($self, %params) = @_;
 
+    my $cacert_fh;
+    if (my $cacert = $self->authentication->cacert)
+    {
+         $cacert_fh = File::Temp->new;
+         print $cacert_fh $cacert;
+         $cacert_fh->close;
+    }
+
+    error __"Missing Provider Metadata. Please upload to Authentication Settings"
+        if !$self->authentication->xml;
+
     my $idp = Net::SAML2::IdP->new_from_xml(
         xml => $self->authentication->xml,
+        $cacert_fh ? (cacert => $cacert_fh->filename) : (),
     );
 
-    my $sso_url = $idp->sso_url('urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect');
+    unlink $cacert_fh->filename;
+    
+    my $sso_url;
+    my $binding;
+    foreach ('redirect', 'post') {
+        $binding = $_;
+        $sso_url = $idp->sso_url($idp->binding($_));
+        # FIXME: we should probably allow the admin to choose
+        # which to use but right now we are defaulting to redirect
+        # which should be fine.
+        last if defined $sso_url;
+    }
+
+    my %name_ids = (
+        emailAddress               => NAMEID_EMAIL,
+        unspecified                => NAMEID_UNSPECIFIED,
+        X509SubjectName            => NAMEID_X509_SUBJECT_NAME,
+        WindowsDomainQualifiedName => NAMEID_WINDOWS_DOMAIN_QUALIFIED_NAME,
+        entity                     => NAMEID_FORMAT_ENTITY,
+        transient                  => NAMEID_TRANSIENT,
+        persistent                 => NAMEID_PERSISTENT,
+    );
+    # saml2_nameid can be undefined, blank or a value. Undefined will result in
+    # the previous behaviour of requesting the email address. Blank will not
+    # send the format request ($nameid will be undefined)
+    my $nameid = defined $self->authentication->saml2_nameid
+        ? $name_ids{$self->authentication->saml2_nameid} : NAMEID_EMAIL;
 
     my $authnreq = Net::SAML2::Protocol::AuthnRequest->new(
-        issuer      => $self->sso_xml,
-        destination => $sso_url,
+        issuer      => $self->authentication->sso_xml,
+        destination => $idp->sso_url($idp->binding($binding)),
+        $nameid ? (nameidpolicy_format => $nameid) : (), # don't send nameidpolicy_format if $nameid is undefined
+        assertion_url => $self->authentication->sso_url,
     );
 
     $self->request_id($authnreq->id);
     my $x = $authnreq->as_xml;
 
-    my $redirect = Net::SAML2::Binding::Redirect->new(
-          url      => $sso_url,
-          param    => 'SAMLRequest',
-          insecure => 1,
+    my $key_fh;
+    if (defined $self->authentication->sp_key and $self->authentication->sp_key ne ''){
+        my $sp_key = $self->authentication->sp_key;
+        $key_fh = File::Temp->new;
+        print $key_fh $sp_key;
+        $key_fh->close;
+    }
+
+    my $cert_fh;
+    if ($binding eq 'post' and defined $self->authentication->sp_cert and $self->authentication->sp_cert ne ''){
+        my $sp_cert = $self->authentication->sp_cert;
+        $cert_fh = File::Temp->new;
+        print $cert_fh $sp_cert;
+        $cert_fh->close;
+    }
+
+    # FIXME: Requires a key in the database
+    # This is setup to allow a POST request but needs a template
+    # with the POST parameters as a automatic post
+    # FIXME: overide the post and hope for the best as we need to
+    # implement the auto post template referenced at the end of this
+    # function for POST support Change 2nd Redirect to POST if supported
+
+    my $saml2_binding = 'Net::SAML2::Binding::' . ($binding eq 'redirect' ? 'Redirect' : 'Redirect');
+    my $method = $saml2_binding->new(
+        $key_fh ? (key => $key_fh->filename) : (),
+        url      => $idp->sso_url($idp->binding($binding)),
+        param    => 'SAMLRequest',
+        $key_fh ? (insecure => 0) : (insecure => 1),
+        sig_hash => 'sha256', # Hard coded - may want allow as an option
+        $binding eq 'post' ? (cert  => $cert_fh->filename,) : (),
     );
 
-    my $url = $redirect->get_redirect_uri($x);
-    $self->redirect("$url");
+    # FIXME rempve next line if we support POST in the future after the
+    # template is done below
+    $binding = 'redirect' if $binding eq 'post';
+    if ($binding eq 'redirect') {
+        my $url = $method->get_redirect_uri($x);
+        $self->redirect("$url");
+    } else {
+        # FIXME At this point we would need to send the user a page
+        # that would automatically post the SAMLRequest as $signed_xml
+        # and the RelayState if in use.
+        my $signed_xml = $method->sign_xml($x);
+    }
 };
+
+sub metadata
+{   my $self = shift;
+    my $sign = shift;
+
+    my $sp = $self->_sp;
+
+    $sp->{sign_metadata} = $sign;
+    # Appears to be a Net::SAML2 bug.  I would likely wrap this in a version check
+    my $version = $Net::SAML2::VERSION;
+    my $metadata;
+    if ($version gt "0.69" ) {
+        $metadata = $sp->metadata;
+    } else {
+        $metadata = $sign ? '' : '<?xml version="1.0"?>' . "\n";
+        $metadata .= $sp->metadata;
+    }
+
+    return $metadata->stringify();
+}
+
+sub _sp
+{   my $self = shift;
+    my $host = $self->{base_url}->host;
+    my $url  = "$self->{base_url}";
+    $url =~ s/\/$//;
+
+    my $key_fh = $self->sp_key;
+    my $cert_fh = $self->sp_cert;
+
+    my $sp = Net::SAML2::SP->new(
+        id             => $self->authentication->sso_xml,
+        url            => $url,
+        $cert_fh ? (cert => $cert_fh->filename) : (),
+        encryption_key => $cert_fh->filename,
+        $key_fh ? (key => $key_fh->filename) : (),
+        #cacert         => "XXX",
+        single_logout_service => [
+        {
+            Binding   => BINDING_HTTP_REDIRECT,
+            Location  => $self->authentication->sso_url,
+            isDefault => 'true',
+            index     => 1,
+        },
+        {
+            Binding   => BINDING_HTTP_POST,
+            Location  => $self->authentication->sso_url,
+            isDefault => 'false',
+            index     => 2,
+        }],
+        assertion_consumer_service => [
+        {
+            Binding   => BINDING_HTTP_POST,
+            Location  => $self->authentication->sso_url,
+            isDefault => 'true',
+            # optionally
+            index     => 1,
+        }],
+        error_url => "$url/support",
+
+        org_name         => $host,
+        org_display_name => $host,
+        org_contact      => "admin\@$host",
+        authnreq_signed  => 1,
+    );
+
+    $sp;
+}
 
 1;
