@@ -42,7 +42,8 @@
             "guid": [
                 "js/lib/guid"
             ],
-        }
+        },
+        "types": ["node", "jest"]
     },
     "include": [
         "src/frontend/**/*"
@@ -52,6 +53,6 @@
         "dist",
         "src/**/*.test.ts",
         "src/**/*.definitions.ts",
-        "src/frontend/testing"
+        "src/frontend/testing/**/*.ts"
     ]
 }
