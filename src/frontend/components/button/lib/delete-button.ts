@@ -25,7 +25,6 @@ export default function createDeleteButton(element: JQuery<HTMLElement>) {
             element.on('click', function (e: JQuery.ClickEvent) {
                 e.stopPropagation();
             });
-            /* @ts-expect-error Global function for testing */
             if (window.test) throw e;
         }
 

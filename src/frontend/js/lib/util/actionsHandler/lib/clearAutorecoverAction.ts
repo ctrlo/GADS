@@ -33,5 +33,4 @@ export const clearAutorecoverAction = async () => {
 /**
  * Action handler for when a record is created or updated - only runs outside of a test environment
  */
-/* @ts-expect-error global function for testing */
 if (!window.test) addAction(clearAutorecoverAction);
