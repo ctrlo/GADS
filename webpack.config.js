@@ -9,13 +9,6 @@ const CopyWebpackPlugin = require('copy-webpack-plugin')
 const { execSync } = require('child_process')
 
 const plugins = [
-  {
-    apply: (compiler) => {
-      compiler.hooks.done.tap('DonePlugin', () => {
-        execSync('git checkout public/js/fengari-web.js', { stdio: 'inherit' });
-      });
-    }
-  },
     new ProvidePlugin({
         $: 'jquery',
         jQuery: 'jquery',
