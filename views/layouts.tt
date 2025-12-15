@@ -41,7 +41,7 @@
 
   rows = [];
 
-  FOREACH col IN layout.all;
+  FOREACH col IN layout_obj.all;
     typeLabel = 'Text';
 
     IF col.type == "intgr";
