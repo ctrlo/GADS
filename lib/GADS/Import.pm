@@ -267,8 +267,10 @@ sub _build_fields
     my @fields;
     my $column_id = $self->layout->column_id;
 
+    my $col_count     = 0;
     foreach my $field (@$fields_in)
     {
+        $col_count++;
         if (
             (
                 ($self->update_unique && $self->update_unique == $column_id->id) ||
@@ -298,6 +300,8 @@ sub _build_fields
             $search->{name} = $field if !$self->short_names;
             $search->{name_short} = $field if $self->short_names;
             my $f_rs = $self->schema->resultset('Layout')->search($search);
+            error __x"Empty field name in import headings (Column {column})", column => $col_count
+                if !$field;
             error __x"Layout has more than one field named {name}", name => $field
                 if $f_rs->count > 1;
             error __x"Field '{name}' in import headings not found in table", name => $field
