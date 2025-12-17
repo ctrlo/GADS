@@ -267,7 +267,7 @@ sub _build_fields
     my @fields;
     my $column_id = $self->layout->column_id;
 
-    my $col_count     = 0;
+    my $col_count = 0;
     foreach my $field (@$fields_in)
     {
         $col_count++;
