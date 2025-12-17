@@ -301,7 +301,7 @@ sub _build_fields
             $search->{name_short} = $field if $self->short_names;
             my $f_rs = $self->schema->resultset('Layout')->search($search);
             error __x"Empty field name in import headings (Column {column})", column => $col_count
-                if !$field;
+                unless $field =~ /^\s*$/;
             error __x"Layout has more than one field named {name}", name => $field
                 if $f_rs->count > 1;
             error __x"Field '{name}' in import headings not found in table", name => $field
