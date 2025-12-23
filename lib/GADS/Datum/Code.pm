@@ -162,6 +162,8 @@ sub write_cache
     my $formatter = $self->schema->storage->datetime_parser;
 
     my @values = sort @{$self->value} if defined $self->value->[0];
+    # If the length is greater than 250 characters do not insert it to the cache table
+    return if grep { $_ > 250 } map { length($_) } @values;
 
     # We are generally already in a transaction at this point, but
     # start another one just in case
