@@ -190,6 +190,8 @@ class FilterComponent extends Component {
       } catch (error) {
         logging.log('Incorrect data object passed to queryBuilder')
       }
+    } else {
+      $builderEl.queryBuilder('setRules', {rules:[]});// Ensure that no blank rules by default, otherwise view cannot be submitted
     }
   }
 
