@@ -1,12 +1,6 @@
 use utf8;
 package GADS::Schema::Result::Fileval;
 
-=head1 NAME
-
-GADS::Schema::Result::Fileval
-
-=cut
-
 use strict;
 use warnings;
 
@@ -21,43 +15,9 @@ extends 'DBIx::Class::Core';
 
 sub BUILDARGS { $_[2] || {} }
 
-=head1 COMPONENTS LOADED
-
-=over 4
-
-=item * L<DBIx::Class::InflateColumn::DateTime>
-
-=back
-
-=cut
-
 __PACKAGE__->load_components("InflateColumn::DateTime");
 
-=head1 TABLE: C<fileval>
-
-=cut
-
 __PACKAGE__->table("fileval");
-
-=head1 ACCESSORS
-
-=head2 id
-
-  data_type: 'bigint'
-  is_auto_increment: 1
-  is_nullable: 0
-
-=head2 name
-
-  data_type: 'text'
-  is_nullable: 1
-
-=head2 mimetype
-
-  data_type: 'text'
-  is_nullable: 1
-
-=cut
 
 __PACKAGE__->add_columns(
   "id",
@@ -72,27 +32,7 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
 );
 
-=head1 PRIMARY KEY
-
-=over 4
-
-=item * L</id>
-
-=back
-
-=cut
-
 __PACKAGE__->set_primary_key("id");
-
-=head1 RELATIONS
-
-=head2 files
-
-Type: has_many
-
-Related object: L<GADS::Schema::Result::File>
-
-=cut
 
 __PACKAGE__->has_many(
   "files",
