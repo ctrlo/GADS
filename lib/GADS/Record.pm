@@ -55,6 +55,7 @@ use MooX::Types::MooseLike::Base qw(Maybe Bool Int ArrayRef HashRef);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 use namespace::clean;
 
+with 'GADS::DateTime';
 with 'GADS::Role::Presentation::Record';
 
 my $hooks = GADS::Hooks->instance;
@@ -635,7 +636,7 @@ sub _build_deleted
         return $self->schema->resultset('Record')->find($self->record_id)->deleted;
     }
     $self->set_deleted or return undef;
-    $self->schema->storage->datetime_parser->parse_datetime(
+    $self->dt_parser->parse_datetime(
         $self->set_deleted
     );
 }
@@ -836,7 +837,6 @@ sub _find
         layout                  => $self->layout,
         schema                  => $self->schema,
         columns                 => $self->columns,
-        rewind                  => $self->rewind,
         is_deleted              => $find{deleted},
         is_draft                => $find{draftuser_id} || $find{include_draft},
         no_view_limits          => !!$find{draftuser_id},
@@ -844,6 +844,13 @@ sub _find
         include_children        => 1,
         ignore_view_limit_extra => 1,
     );
+    # Build automatically unless override required for chronology
+    $params{cvo_values} = 0
+        if $find{chronology};
+    # Only pass in if defined, otherwise it causes current_version_only to be
+    # cleared
+    $params{rewind} = $self->rewind
+        if $self->rewind;
     my $records = GADS::Records->new(%params);
 
     $self->columns_retrieved_do($records->columns_retrieved_do);
@@ -854,13 +861,20 @@ sub _find
     my $record = {}; my $limit = 10; my $page = 1; my $first_run = 1; my $current_id; my @record_ids;
     while (1)
     {
+        my %common = (
+            prefetch             => 1,
+            limit                => $limit,
+            page                 => $page,
+            current_version_only => $records->cvo_values,
+            rewind               => $records->rewind_values
+        );
         # No linked here so that we get the ones needed in accordance with this loop (could be either)
-        my @prefetches = $records->jpfetch(prefetch => 1, search => 1, limit => $limit, page => $page); # Still need search in case of view limit
+        my @prefetches = $records->jpfetch(search => 1, %common); # Still need search in case of view limit
         last if !@prefetches && !$first_run;
         my %options = $find{current_id} || $find{draftuser_id} ? () : (root_table => 'record', no_current => 1);
-        my $search = $records->search_query(prefetch => 1, linked => 1, limit => $limit, page => $page, chronology => $find{chronology}, %options);
+        my $search = $records->search_query(linked => 1, chronology => $find{chronology}, rewind => $records->rewind_values, %common, %options);
          # Still need search in case of view limit
-        @prefetches = $records->jpfetch(prefetch => 1, search => 1, linked => 0, limit => $limit, page => $page, %options);
+        @prefetches = $records->jpfetch(search => 1, linked => 0, %common, %options);
 
         my $root_table;
         if (my $record_id = $find{record_id})
@@ -869,7 +883,7 @@ sub _find
                 {
                     'current' => [
                         'deletedby',
-                        $records->linked_hash(prefetch => 1, limit => $limit, page => $page),
+                        $records->linked_hash(%common),
                     ],
                 },
             ); # Add info about related current record
@@ -897,14 +911,15 @@ sub _find
                 panic "Unexpected find parameters";
             }
             @prefetches = (
-                $records->linked_hash(prefetch => 1, limit => $limit, page => $page),
+                $records->linked_hash(%common),
                 'deletedby',
                 'currents',
                 {
-                    'record_single' => [
+                    $records->cvo_values ? ('current_version' => [@prefetches])
+                    : ('record_single' => [
                         'record_later',
                         @prefetches,
-                    ],
+                    ]),
                 },
             );
             $root_table = 'Current';
@@ -913,17 +928,17 @@ sub _find
             panic "record_id or current_id needs to be passed to _find";
         }
 
-        local $GADS::Schema::Result::Record::REWIND = $records->rewind_formatted
+        local $GADS::Schema::Result::Record::REWIND = $self->dt_parser->format_datetime($records->rewind)
             if $records->rewind;
 
         # Don't specify linked for fetching columns, we will get whataver is needed linked or not linked
-        my @columns_fetch = $records->columns_fetch(search => 1, limit => $limit, page => $page, %options); # Still need search in case of view limit
-        my $has_linked = $records->has_linked(prefetch => 1, limit => $limit, page => $page, %options);
-        my $base = $find{record_id} ? 'me' : $records->record_name(prefetch => 1, search => 1, limit => $limit, page => $page);
+        my @columns_fetch = $records->columns_fetch(search => 1, %common, %options); # Still need search in case of view limit
+        my $has_linked = $records->has_linked(%common, %options);
+        my $base = $find{record_id} ? 'me' : $records->record_name(search => 1, %common, current_version_only => $records->cvo_values);
         push @columns_fetch, {id => "$base.id"};
         push @columns_fetch, $find{record_id} ? {deleted => "current.deleted"} : {deleted => "me.deleted"};
         push @columns_fetch, $find{record_id} ? {linked_id => "current.linked_id"} : {linked_id => "me.linked_id"};
-        push @columns_fetch, {linked_record_id => "record_single.id"}
+        push @columns_fetch, {linked_record_id => $records->cvo_values ? "current_version.id" : "record_single.id"}
             if $has_linked;
         push @columns_fetch, $find{record_id} ? {draftuser_id => "current.draftuser_id"} : {draftuser_id => "me.draftuser_id"};
         push @columns_fetch, {current_id => "$base.current_id"};
@@ -1238,7 +1253,7 @@ sub versions
         'current_id' => $self->current_id,
         approval     => 0,
     };
-    $search->{'me.created'} = { '<' => $self->schema->storage->datetime_parser->format_datetime($self->rewind) }
+    $search->{'me.created'} = { '<' => $self->dt_parser->format_datetime($self->rewind) }
         if $self->rewind;
     my @records = $self->schema->resultset('Record')->search($search,{
         prefetch => 'createdby',
@@ -1397,7 +1412,7 @@ sub initialise_field
             column           => $column,
             schema           => $record->schema,
             layout           => $record->layout,
-            datetime_parser  => $record->schema->storage->datetime_parser,
+            datetime_parser  => $record->dt_parser,
         );
     }
 }
@@ -1884,12 +1899,14 @@ sub write
         return;
     }
 
+    my $current;
+
     # New record?
     if ($self->new_entry)
     {
         $self->delete_user_drafts unless $options{no_draft_delete}; # Delete any drafts first, for both draft save and full save
         my $instance_id = $self->layout->instance_id;
-        my $current = $self->schema->resultset('Current')->create({
+        $current = $self->schema->resultset('Current')->create({
             parent_id    => $self->parent_id,
             linked_id    => $self->linked_id,
             instance_id  => $instance_id,
@@ -1923,6 +1940,9 @@ sub write
 
         $self->current_id($current->id);
     }
+    else {
+        $current = $self->schema->resultset('Current')->find($self->current_id);
+    }
 
     if ($need_rec && !$options{update_only})
     {
@@ -1933,6 +1953,9 @@ sub write
         })->id;
         $self->record_id_old($self->record_id) if $self->record_id;
         $self->record_id($id);
+        $current->update({
+            current_version_id => $id,
+        });
     }
     elsif ($self->layout->forget_history)
     {
@@ -2618,8 +2641,25 @@ sub purge
 {   my $self = shift;
     error __"You do not have permission to purge records"
         unless !$self->user || $self->user_can_purge;
+    my $guard = $self->schema->txn_scope_guard;
     $self->_purge_record_values($self->record_id);
-    $self->schema->resultset('Record')->find($self->record_id)->delete;
+    my $record_rs = $self->schema->resultset('Record')->find($self->record_id);
+    my $current_rs = $record_rs->current;
+    if ($record_rs->id == $current_rs->current_version_id)
+    {
+        error __"Unable to delete this version as there are none others"
+            if $current_rs->records < 2;
+        # Find previous version to save to current record
+        my $previous_version = $current_rs->records->search({
+            'me.id' => { '!=' => $record_rs->id },
+        },{
+            rows     => 1,
+            order_by => { -desc => ['me.created', 'me.id'] },
+        })->next;
+        $current_rs->update({ current_version_id => $previous_version->id });
+    }
+    $record_rs->delete;
+    $guard->commit;
 }
 
 sub restore
@@ -2888,9 +2928,11 @@ sub purge_current
     }
     $self->schema->resultset('Record') ->search({ current_id => $id })->update({ record_id => undef });
     $self->schema->resultset('AlertCache')->search({ current_id => $id })->delete;
+    my $current = $self->schema->resultset('Current')->find($id);
+    $current->update({ current_version_id => undef });
     $self->schema->resultset('Record')->search({ current_id => $id })->delete;
     $self->schema->resultset('AlertSend')->search({ current_id => $id })->delete;
-    $self->schema->resultset('Current')->find($id)->delete;
+    $current->delete;
     $guard->commit;
 
     my $user_id = $self->user && $self->user->id;

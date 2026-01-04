@@ -2762,7 +2762,6 @@ prefix '/:layout_name' => sub {
             $params->{aggregate}            = $records->aggregate_presentation;
             $params->{columns}              = [ map $_->presentation(
                 group            => $records->is_group,
-                group_col_ids    => $records->group_col_ids,
                 sort             => $records->sort_first,
                 filters          => \@additional_filters,
                 query_parameters => query_parameters,

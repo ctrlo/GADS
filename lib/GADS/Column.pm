@@ -70,6 +70,21 @@ has instance_id => (
     isa => Int,
 );
 
+# If this is a field belonging to a curval and if so what that parent curval is
+has parent_id => (
+    is => 'ro',
+);
+
+has parent => (
+    is => 'lazy',
+);
+
+sub _build_parent
+{   my $self = shift;
+    return if !$self->parent_id;
+    $self->layout->column($self->parent_id);
+}
+
 has from_id => (
     is      => 'rw',
     trigger => sub {
@@ -102,6 +117,12 @@ has id => (
     is  => 'rw',
     isa => Int,
 );
+
+sub full_id
+{   my $self = shift;
+    return $self->id if !$self->parent_id;
+    $self->parent_id."_".$self->id;
+}
 
 has internal => (
     is      => 'ro',
@@ -864,6 +885,16 @@ sub _build_instance_id
     $self->layout->instance_id;
 }
 
+sub clone
+{   my ($self, %params) = @_;
+    ref($self)->new(
+        schema     => $self->schema,
+        layout     => $self->layout,
+        set_values => $self->set_values,
+        %params,
+    );
+}
+
 sub build_values
 {   my ($self, $original) = @_;
 
@@ -924,19 +955,6 @@ sub tjoin
 sub filter_value_to_text
 {   my ($self, $value) = @_;
     return $value;
-}
-
-# Overridden where required
-sub sort_columns
-{   my $self = shift;
-    ($self);
-}
-
-# Whether the sort columns when added should be added with a parent, and
-# if so what is the paremt
-sub sort_parent
-{   my $self = shift;
-    return undef; # default no, undef in case used in arrays
 }
 
 # Overridden in child classes. This function is used

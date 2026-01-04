@@ -479,6 +479,7 @@ has multivalue_columns => (
             daterange => 1,
             string    => 1,
             calc      => 1,
+            integer   => 1,
         };
     },
 );
@@ -615,6 +616,7 @@ sub __build_columns
         $integer->type('intgr');
         $integer->name("integer$count");
         $integer->name_short("L${instance_id}integer$count");
+        $integer->multivalue(1) if $self->multivalue && $self->multivalue_columns->{integer};
         $integer->set_permissions({$self->group->id => $permissions})
             if $self->group;
         try { $integer->write };

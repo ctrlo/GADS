@@ -80,13 +80,16 @@ foreach my $multivalue (0..1)
         },
     ];
 
-    my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, user_permission_override => 0);
+    my $curval_sheet = Test::GADS::DataSheet->new(instance_id => 2, user_permission_override => 0, multivalue => $multivalue);
     $curval_sheet->create_records;
     my $schema = $curval_sheet->schema;
 
+    my $calc_code = $multivalue
+        ? "function evaluate (L1integer1) \n return L1integer1[1] * 2 \n end"
+        : "function evaluate (L1integer1) \n return L1integer1 * 2 \n end";
     my $sheet   = Test::GADS::DataSheet->new(
         data             => $data,
-        calc_code        => "function evaluate (L1integer1) \n return L1integer1 * 2 \n end",
+        calc_code        => $calc_code,
         schema           => $schema,
         curval           => 2,
         curval_field_ids => [$curval_sheet->columns->{string1}->id],
@@ -131,8 +134,9 @@ foreach my $multivalue (0..1)
     );
     $view->set_groups([$string1->id]);
     # Also add a sort, to check that doesn't result in unwanted multi-value
-    # field joins
-    $view->set_sorts({fields => [$enum1->id], types => ['asc']});
+    # field joins (needs to be a sort that has an actual value, not a unique
+    # count)
+    $view->set_sorts({fields => [$integer1->id], types => ['asc']});
     $view->write;
 
     my $records = GADS::Records->new(
@@ -162,9 +166,10 @@ foreach my $multivalue (0..1)
 
     # Remove grouped column from view and check still gets added as required
     $view->columns([$integer1->id]);
+    $view->set_sorts({fields => [$string1->id], types => ['asc']});
     $view->write;
 
-    @expected = (@$expected);
+    @expected = sort { $a->{string1} cmp $b->{string1} } @$expected;
     $records->clear;
     $records = GADS::Records->new(
         view   => $view,
@@ -195,6 +200,7 @@ foreach my $multivalue (0..1)
             user        => $sheet->user,
         );
         $view->set_groups([$col->id]);
+        $view->set_sorts({fields => [$col->id], types => ['asc']});
         $view->write;
 
         $records = GADS::Records->new(
@@ -204,6 +210,7 @@ foreach my $multivalue (0..1)
             schema => $schema,
         );
 
+        # We expect the first value in ascending order of that column
         my $expected = {
             string1    => 'foo1',
             integer1   => 25,
@@ -212,7 +219,7 @@ foreach my $multivalue (0..1)
             date1      => '2008-10-10',
             rag1       => 'b_red',
             calc1      => 50,
-            curval1    => 'Foo',
+            curval1    => 'Bar',
             daterange1 => '2000-01-02 to 2001-03-03',
             person1    => 'User1, User1',
         };
@@ -296,6 +303,7 @@ foreach my $multivalue (0..1)
         schema      => $schema,
         user        => $sheet->user,
     );
+    $view->set_sorts({fields => [$columns->{curval1}->id."_".$curval_sheet->columns->{string1}->id], types => ['desc']});
     $view->set_groups([$columns->{curval1}->id."_".$curval_sheet->columns->{string1}->id]);
     $view->write;
 
@@ -305,7 +313,38 @@ foreach my $multivalue (0..1)
         user   => $sheet->user,
         schema => $schema,
     );
+    @results = @{$records->results};
+    is(@results, 2, "Correct number of rows for group by curval subfield");
+    is($results[0]->fields->{$integer1->id}, '75', "Group by curval subfield first result correct");
+    is($results[1]->fields->{$integer1->id}, '130', "Group by curval subfield second result correct");
 
+    # Try also sorting directly on the Records object
+    # First with invalid subfield without parent - should error
+    $records = GADS::Records->new(
+        sort   => {
+            type => 'desc',
+            id   => $curval_sheet->columns->{string1}->id,
+        },
+        view   => $view,
+        layout => $layout,
+        user   => $sheet->user,
+        schema => $schema,
+    );
+    try { $records->results };
+    like($@, qr/from different table without parent/, "Error when using subfield without parent");
+
+    # Then with correct parent
+    $records = GADS::Records->new(
+        sort   => {
+            type      => 'desc',
+            id        => $curval_sheet->columns->{string1}->id,
+            parent_id => $columns->{curval1}->id,
+        },
+        view   => $view,
+        layout => $layout,
+        user   => $sheet->user,
+        schema => $schema,
+    );
     @results = @{$records->results};
     is(@results, 2, "Correct number of rows for group by curval subfield");
     is($results[0]->fields->{$integer1->id}, '75', "Group by curval subfield first result correct");
@@ -400,6 +439,7 @@ foreach my $multivalue (0..1)
         user        => $sheet->user,
     );
     $view->set_groups([$string1->id]);
+    $view->set_sorts({fields => [$string1->id], types => ['asc']});
     $view->write;
 
     my $records = GADS::Records->new(
@@ -499,7 +539,7 @@ foreach my $multivalue (0..1)
     my $sheet   = Test::GADS::DataSheet->new(
         data         => $data,
         multivalue   => 1,
-        calc_code    => "function evaluate (L1integer1, L1integer2) \n return (L1integer1 / L1integer2) * 100 \n end",
+        calc_code    => "function evaluate (L1integer1, L1integer2) \n return (L1integer1[1] / L1integer2[1]) * 100 \n end",
         column_count => { integer => 2 },
     );
     my $schema  = $sheet->schema;
@@ -528,6 +568,7 @@ foreach my $multivalue (0..1)
         user        => $sheet->user,
     );
     $view->set_groups([$string1->id]);
+    $view->set_sorts({fields => [$string1->id], types => ['asc']});
     $view->write;
 
     my $records = GADS::Records->new(

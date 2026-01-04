@@ -87,12 +87,15 @@ sub _build_refers_from_value_field
 }
 
 sub make_join
-{   my ($self, @joins) = @_;
+{   my ($self, $options, @joins) = @_;
+    my $join_current_version = $options->{join_current_version};
     +{
         $self->field => {
             record => {
                 current => {
-                    record_single => ['record_later', @joins],
+                    $join_current_version
+                        ? (current_version => [@joins])
+                        : (record_single => ['record_later', @joins])
                 }
             }
         }

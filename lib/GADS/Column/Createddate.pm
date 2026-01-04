@@ -45,7 +45,7 @@ has '+userinput' => (
     default => 0,
 );
 
-sub tjoin {};
+sub tjoin { undef };
 
 sub has_time { 1 };
 

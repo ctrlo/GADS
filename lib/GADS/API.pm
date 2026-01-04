@@ -1183,7 +1183,7 @@ sub _get_records {
         # Check user has access
         error __"Invalid column ID for sort"
             unless $col_order && $col_order->user_can('read');
-        my $sort = { type => $params->get('order[0][dir]'), id => $col_order->id };
+        my $sort = { type => $params->get('order[0][dir]'), id => $col_order->id, parent_id => $col_order->parent_id };
 
         $records->clear_sorts;
         $records->sort($sort);
@@ -1203,11 +1203,10 @@ sub _get_records {
         {
             # Construct filter URL which will show all of this group of records
             my @filters;
-            foreach my $group_col_id (@{$records->group_col_ids})
+            foreach my $group_col (@{$records->group_cols})
             {
-                my $group_col = $layout->column($group_col_id);
                 my $filter_value = $rec->get_field_value($group_col)->filter_value || '';
-                push @filters, "$group_col_id=".uri_escape_utf8($filter_value);
+                push @filters, $group_col->id."=".uri_escape_utf8($filter_value);
             }
             my $desc = $rec->id_count == 1 ? 'record' : 'records';
             $data->{_count} = {
@@ -1220,7 +1219,7 @@ sub _get_records {
         else {
             $data->{_id} = $rec->current_id;
         };
-        $data->{$_->id} = $rec->get_field_value($_)->for_table
+        $data->{$_->full_id} = $rec->get_field_value($_)->for_table
             foreach @{$records->columns_render};
 
         push @{$return->{data}}, $data;

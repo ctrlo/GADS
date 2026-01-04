@@ -42,6 +42,7 @@ use MooX::Types::MooseLike::Base qw(Maybe Str ArrayRef HashRef Bool Int);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 
 with 'GADS::RecordsJoin', 'GADS::Role::Presentation::Records', 'GADS::Helper::ConditionBuilder';
+with 'GADS::DateTime';
 
 # Preferably this is passed in to prevent extra
 # DB reads, but loads it if it isn't
@@ -361,30 +362,68 @@ has page => (
     is => 'rw',
 );
 
-# Whether to take results from some previous point in time
+# Whether to take values and search from some previous point in time
 has rewind => (
-    is  => 'rw',
-    isa => Maybe[DateAndTime],
+    is      => 'rw',
+    isa     => Maybe[DateAndTime],
+    trigger => sub {
+        my $self = shift;
+        $self->clear_current_version_only;
+        $self->clear_rewind_values;
+        $self->clear_rewind_recordset;
+    },
 );
 
-sub rewind_formatted
-{   my $self = shift;
-    $self->rewind or return;
-    $self->schema->storage->datetime_parser->format_datetime($self->rewind);
-}
+# Whether to take values from some previous point in time
+has rewind_values => (
+    is      => 'rw',
+    isa     => Maybe[DateAndTime],
+    lazy    => 1,
+    trigger => sub { shift->clear_current_version_only },
+    clearer => 1,
+    builder => sub { shift->rewind },
+);
+
+# Whether to take resultset of records from some previous point in time
+has rewind_recordset => (
+    is      => 'rw',
+    isa     => Maybe[DateAndTime],
+    lazy    => 1,
+    trigger => sub { shift->clear_current_version_only },
+    clearer => 1,
+    builder => sub { shift->rewind },
+);
 
 has include_approval => (
     is      => 'rw',
     default => 0,
 );
 
-# Internal parameter to set the exact current IDs that will be retrieved,
-# without running any search queries. Used when downloading chunked data, when
-# all the current IDs have already been retrieved
-has _set_current_ids => (
-    is  => 'rw',
-    isa => Maybe[ArrayRef],
+has cvo_values => (
+    is      => 'lazy',
+    clearer => 1,
 );
+
+sub clear_current_version_only
+{   my $self = shift;
+    $self->clear_cvo_values;
+    $self->clear_cvo_recordset;
+}
+
+sub _build_cvo_values
+{   my $self = shift;
+    $self->rewind_values || $self->record_earlier || $self->previous_values ? 0 : 1;
+}
+
+has cvo_recordset => (
+    is      => 'lazy',
+    clearer => 1,
+);
+
+sub _build_cvo_recordset
+{   my $self = shift;
+    $self->rewind_recordset || $self->record_earlier || $self->previous_values ? 0 : 1;
+}
 
 # A parameter that can be used externally to restrict to a set of current IDs.
 # This will also have the search parameters applied, which could include
@@ -396,17 +435,24 @@ has limit_current_ids => (
 
 # Current ID results, or limit to specific current IDs
 has current_ids => (
-    is        => 'lazy',
+    is        => 'rwp',
     isa       => Maybe[ArrayRef], # If undef will be ignored
+    lazy      => 1,
+    builder   => 1,
     clearer   => 1,
     predicate => 1,
 );
 
 sub _build_current_ids
 {   my $self = shift;
-    local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
-        if $self->rewind;
-    $self->_set_current_ids || [$self->_current_ids_rs->all];
+    local $GADS::Schema::Result::Record::REWIND = $self->dt_parser->format_datetime($self->rewind_recordset)
+        if $self->rewind_recordset;
+    my $params;
+    $params->{rows} = $self->rows if $self->rows;
+    $params->{page} = $self->page if $self->page;
+    $params->{rows} ||= $self->max_results
+        if $self->max_results;
+    [$self->_current_rs->search({},$params)->get_column('me.id')->all];
 }
 
 # Common search parameters used across different queries
@@ -464,7 +510,6 @@ sub search_query
     my @search        = $self->_query_params(%options);
     my $root_table    = $options{root_table} || 'current';
     my $current       = $options{alias} ? $options{alias} : $root_table eq 'current' ? 'me' : 'current';
-    my $record_single = $self->record_name(%options);
     push @search, $self->_approval_query(%options);
     # Current IDs from quick search if used
     push @search, { "$current.id"          => $self->_search_all_fields->{cids} } if $self->search;
@@ -473,9 +518,8 @@ sub search_query
     push @search, $self->common_search($current);
     push @search, $self->record_later_search(%options, linked => $linked, search => 1)
         unless $options{chronology} || $options{no_record_later};
-    push @search, {
-        "$record_single.created" => { '<=' => $self->rewind_formatted },
-    } if $self->rewind;
+    push @search, {$self->record_single_rewind(%options)}
+        if $options{rewind};
     [@search];
 }
 
@@ -558,15 +602,16 @@ sub linked_hash
     {
         my $alt = $options{alt} ? "_alternative" : "";
         my @tables = $self->jpfetch(%options, linked => 1);
+        my $version_join = $self->rewind_recordset ? {
+            "record_single$alt" => [
+                "record_later$alt",
+                @tables,
+            ]
+        } : {
+            current_version => \@tables,
+        };
         return {
-            linked => [
-                {
-                    "record_single$alt" => [
-                        "record_later$alt",
-                        @tables,
-                    ]
-                },
-            ],
+            linked => $version_join,
         };
     }
     else {
@@ -609,10 +654,9 @@ sub search_view
             my @searches = ({
                 'me.instance_id'          => $self->layout->instance_id,
             });
-            push @searches, $self->record_later_search(linked => 1, search => 1);
             # Perform search construct twice, to ensure all value joins are consistent numbers
-            $self->_search_construct($decoded, ignore_perms => 1, user => $user);
-            push @searches, $self->_search_construct($decoded, ignore_perms => 1, user => $user);
+            $self->_search_construct($decoded, ignore_perms => 1, user => $user, current_version_only => 1);
+            push @searches, $self->_search_construct($decoded, ignore_perms => 1, user => $user, current_version_only => 1);
             my $i = 0; my @ids;
             while ($i < @$current_ids)
             {
@@ -628,12 +672,9 @@ sub search_view
                 $search->{'me.id'} = [@{$current_ids}[$i..$max]];
                 push @ids, $self->schema->resultset('Current')->search($search, {
                     join => [
-                        [$self->linked_hash(search => 1)],
+                        [$self->linked_hash(search => 1, current_version_only => 1)],
                         {
-                            'record_single' => [
-                                $self->jpfetch(search => 1),
-                                'record_later',
-                            ],
+                            'current_version' => [$self->jpfetch(search => 1)],
                         },
                     ],
                 })->get_column('id')->all;
@@ -803,32 +844,73 @@ sub _build__search_all_fields
         # Need to get correct "value" number for search, in case it's been incremented through view_limits
         my $s           = $field->{sub} ? $self->value_next_join(search => 1).".$value_field" : "$plural.$value_field";
 
-        my $joins       = $field->{type} eq 'current_id' # Include joins for limited views
-                        ? {
-                              'record_single' => [
-                                  'record_later',
-                                  $self->jpfetch(search => 1),
-                              ]
-                          }
-                        : $field->{sub}
-                        ? {
-                              'record_single' => [
-                                  'record_later',
-                                  $self->jpfetch(search => 1),
-                                  {
-                                      $plural => ['value', 'layout']
-                                  },
-                              ]
-                          } 
-                        : {
-                              'record_single' => [
-                                  'record_later',
-                                  $self->jpfetch(search => 1),
-                                  {
-                                      $plural => 'layout'
-                                  },
-                              ]
-                          };
+        my $joins;
+        if ($field->{type} eq 'current_id') # Include joins for limited views
+        {
+            if ($self->cvo_recordset)
+            {
+                $joins = {
+                    'current_version' => [$self->jpfetch(search => 1)],
+                };
+            }
+            else {
+                $joins = {
+                    'record_single' => [
+                        'record_later',
+                        $self->jpfetch(search => 1),
+                    ]
+                };
+            }
+        }
+        elsif ($field->{sub})
+        {
+            if ($self->cvo_recordset)
+            {
+                $joins = {
+                    'current_version' => [
+                        $self->jpfetch(search => 1),
+                        {
+                            $plural => ['value', 'layout']
+                        },
+                    ]
+                };
+            }
+            else {
+                $joins = {
+                    'record_single' => [
+                        'record_later',
+                        $self->jpfetch(search => 1),
+                        {
+                            $plural => ['value', 'layout']
+                        },
+                    ]
+                };
+            }
+        }
+        else {
+            if ($self->cvo_recordset)
+            {
+                $joins = {
+                    'current_version' => [
+                        $self->jpfetch(search => 1),
+                        {
+                            $plural => 'layout'
+                        },
+                    ]
+                };
+            }
+            else {
+                $joins = {
+                    'record_single' => [
+                        'record_later',
+                        $self->jpfetch(search => 1),
+                        {
+                            $plural => 'layout'
+                        },
+                    ]
+                };
+            }
+        }
 
         my @search = @basic_search;
         push @search,
@@ -843,7 +925,7 @@ sub _build__search_all_fields
         }
         else {
             push @search, { 'layout.id' => \@columns_can_view };
-            push @search, $self->record_later_search(search => 1);
+            push @search, $self->record_later_search(search => 1, current_version_only => $self->cvo_recordset);
         }
         my @currents = $self->schema->resultset('Current')->search({ -and => \@search},{
             join => $joins,
@@ -962,55 +1044,69 @@ sub _me_created_value
     })->get_column('createdby.value')->as_query;
 }
 
-# Produce a standard set of results without grouping
 sub _current_ids_rs
+{   my $self = shift;
+    $self->_current_rs->get_column('me.id');
+}
+
+sub _current_rs
 {   my ($self, %options) = @_;
 
-    my %limit = (
-        limit => $options{limit},
-        page  => $options{limit},
+    my %common = (
+        search               => 1,
+        sort                 => 1,
+        limit                => $options{limit},
+        page                 => $options{limit},
+        current_version_only => $self->cvo_recordset,
     );
+
     # Build the search query first, to ensure that all join numbers are correct
-    my $search_query    = $self->search_query(search => 1, sort => 1, linked => 1, %limit); # Need to call first to build joins
-    my @prefetches      = $self->jpfetch(prefetch => 1, linked => 0, %limit);
-    my @linked_prefetch = $self->linked_hash(prefetch => 1, %limit);
+    my $search_query    = $self->search_query(linked => 1, rewind => $self->rewind_recordset, %common); # Need to call first to build joins
+    my @prefetches      = $self->jpfetch(prefetch => 1, linked => 0, %common);
+    my @linked_prefetch = $self->linked_hash(prefetch => 1, %common);
 
     # Run 2 queries. First to get the current IDs of the matching records, then
     # the second to get the actual data for the records. Although this means
     # 2 separate DB queries, it prevents queries with large SELECT and WHERE
     # clauses, which can be very slow (with Pg at least).
+    my $version_join = $self->cvo_recordset
+        ? {
+            current_version => [
+                $self->jpfetch(linked => 0, %common),
+            ]
+        } : {
+            'record_single' => [ # The (assumed) single record for the required version of current
+                $self->record_earlier ? 'record_earlier' : 'record_later',  # The record after the single record (undef when single is latest)
+                $self->jpfetch(linked => 0, %common),
+            ],
+        };
     my $select = {
         join     => [
-            [$self->linked_hash(search => 1, sort => 1, %limit)],
-            {
-                'record_single' => [ # The (assumed) single record for the required version of current
-                    $self->record_earlier ? 'record_earlier' : 'record_later',  # The record after the single record (undef when single is latest)
-                    $self->jpfetch(search => 1, sort => 1, linked => 0, %limit),
-                ],
-            },
+            [$self->linked_hash(%common)],
+            $version_join,
         ],
-        order_by  => $self->order_by(search => 1, with_min => 1, %limit),
+        order_by  => $self->order_by(with_min => 1, %common),
         distinct  => 1, # Otherwise multiple records returned for multivalue fields
         select => [
             'me.id',
         ],
         '+select' => [
-            $self->has_created_time(search => 1, sort => 1, %limit) ? {
+            $self->has_created_time(%common) ? {
                 ""  => $self->_me_created_date,
                 -as => 'record_created_date',
             } : (),
-            $self->has_created_user(search => 1, sort => 1, %limit) ? {
+            $self->has_created_user(%common) ? {
                 ""  => $self->_me_created_user,
                 -as => 'record_created_user',
             } : (),
-            $self->has_created_user(search => 1, sort => 1, %limit) ? {
+            $self->has_created_user(%common) ? {
                 ""  => $self->_me_created_value,
                 -as => 'record_created_value',
             } : (),
         ],
         '+as' => [
-            $self->has_created_time(search => 1, sort => 1, %limit) ? 'record_created_date' : (),
-            $self->has_created_user(search => 1, sort => 1, %limit) ? (
+            $self->has_created_time(%common) ? 'record_created_date' : (),
+            $self->has_created_user(%common) ? (
                 'record_created_user',
                 'record_created_value',
             ) : (),
@@ -1023,65 +1119,40 @@ sub _current_ids_rs
     $page = $self->pages
         if $page && $page > 1 && $page > $self->pages; # Building page count is expensive, avoid if not needed
 
-    if (!$self->is_group && !$options{aggregate})
-    {
-        $select->{rows} = $self->rows if $self->rows;
-        $select->{page} = $page if $page;
-        $select->{rows} ||= $self->max_results
-            if $self->max_results;
-    }
-
     # Get the current IDs
     # Only take the latest record_single (no later ones)
     $self->schema->resultset('Current')->search(
         [-and => $search_query], $select
-    )->get_column('me.id');
+    );
 }
-
-sub generate_cid_query
-{   my $self = shift;
-    $self->_cid_search_query;
-}
-
-has _cid_search_query_cache => (
-    is      => 'rw',
-    clearer => 1,
-);
 
 # Produce a search query that filters by all the required current IDs. This
 # needs to include the list of current IDs itself, plus a filter to ensure only
 # the required version of a record is retrieved. Assumes that REWIND has
 # already been set by the calling function.
-sub _cid_search_query
+sub _resultset_search
 {   my ($self, %options) = @_;
-    my $search = $self->_cid_search_query_cache;
-    if (!$search)
-    {
-        $search = { map { %$_ } $self->record_later_search(prefetch => 1, sort => 1, linked => 1, group => 1, retain_join_order => 1, %options) };
 
-        # If this is a group query then we will not be limiting by number of
-        # records (but will be reducing number of results by group), and therefore
-        # it's best to pass the current IDs required as a SQL query (otherwise we
-        # could be passing in 1000s of ID values). If we're doing the opposite,
-        # then we would be creating some very big queries with the sub-query, and
-        # therefore performance (Pg at least) has been shown to be better if we run
-        # the ID subquery first and only pass the IDs in to the main query
-        if ($self->is_group || $options{aggregate})
-        {
-            $search->{'me.id'} = { -in => $self->_current_ids_rs(%options)->as_query };
-        }
-        else {
-            $search->{'me.id'} = $self->current_ids;
-        }
-    }
+    my %search = map { %$_ } $self->record_later_search(%options);
 
-    my $record_single = $self->record_name(linked => 0);
-    $search->{"$record_single.created"} = { '<=' => $self->rewind_formatted }
-        if $self->rewind;
-    my $approval_query = $self->_approval_query(%options);
-    $search = { %$search, %$approval_query } if $approval_query;
-    $self->_cid_search_query_cache($search);
-    $search;
+    # If this is a group query then we will not be limiting by number of
+    # records (but will be reducing number of results by group), and therefore
+    # it's best to pass the current IDs required as a SQL query (otherwise we
+    # could be passing in 1000s of ID values). If we're doing the opposite,
+    # then we would be creating some very big queries with the sub-query, and
+    # therefore performance (Pg at least) has been shown to be better if we run
+    # the ID subquery first and only pass the IDs in to the main query
+    $search{'me.id'} = $options{is_group}
+        ? { -in => $self->_current_ids_rs->as_query }
+        : $self->current_ids;
+
+    # Rewind clause added only if needed
+    %search = (%search, $self->record_single_rewind(%options, rewind => $self->rewind_values));
+
+    # Need to add an approval clause?
+    %search = (%search, %{$self->_approval_query(%options) || {}});
+
+    \%search;
 }
 
 has already_seen => (
@@ -1102,48 +1173,57 @@ sub _build_results
 
 sub _build_standard_results
 {   my $self = shift;
-    local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
-        if $self->rewind;
+    local $GADS::Schema::Result::Record::REWIND = $self->dt_parser->format_datetime($self->rewind_values)
+        if $self->rewind_values;
 
     # XXX A lot of this code is duplicated in GADS::Record
 
     # Need to call first to build all joins
-    my $search_query = $self->search_query(search => 1, sort => 1, linked => 1);
+    my $search_query = $self->search_query(search => 1, sort => 1, linked => 1, rewind => $self->rewind_values);
 
     my $records = {}; my $limit = 10; my $page = 1; my $first_run = 1;
     my @retrieved_order;
     while (1)
     {
+        my %common = (
+            prefetch             => 1,
+            sort                 => 1,
+            limit                => $limit,
+            page                 => $page,
+            current_version_only => $self->cvo_values,
+        );
         # No linked here so that we get the ones needed in accordance with this loop (could be either)
-        my @prefetches = $self->jpfetch(prefetch => 1, sort => 1, limit => $limit, page => $page);
+        my @prefetches = $self->jpfetch(%common);
         last if !@prefetches && !$first_run;
         # We need to use the retain_join_order as we are only using joins, not
         # joins as well as prefetches. With the commit that this comment is
         # going in with, it looks like this may always be the case now.
         # Therefore, retain_join_order may now be redundent and could possibly
         # be made the default and removed in a future commit.
-        @prefetches = $self->jpfetch(prefetch => 1, sort => 1, linked => 0, limit => $limit, page => $page, retain_join_order => 1);
+        @prefetches = $self->jpfetch(%common, linked => 0, retain_join_order => 1);
 
         @prefetches = (
-            $self->linked_hash(prefetch => 1, sort => 1, limit => $limit, page => $page, retain_join_order => 1),
+            $self->linked_hash(%common, retain_join_order => 1),
             'deletedby',
             'currents',
             {
-                'record_single' => [
+                $self->cvo_values
+                ? ('current_version' => [@prefetches])
+                : ('record_single' => [
                     'record_later',
                     @prefetches,
-                ],
+                ])
             },
         );
 
         # Don't specify linked for fetching columns, we will get whataver is needed linked or not linked
-        my @columns_fetch = $self->columns_fetch(sort => 1, limit => $limit, page => $page, retain_join_order => 1);
-        my $has_linked = $self->has_linked(prefetch => 1, sort => 1, limit => $limit, page => $page);
-        my $base = $self->record_name(prefetch => 1, sort => 1, limit => $limit, page => $page);
+        my @columns_fetch = $self->columns_fetch(%common, retain_join_order => 1);
+        my $has_linked = $self->has_linked(%common);
+        my $base = $self->record_name(%common);
         push @columns_fetch, {id => "$base.id"};
         push @columns_fetch, {deleted => "me.deleted"};
         push @columns_fetch, {linked_id => "me.linked_id"};
-        push @columns_fetch, {linked_record_id => "record_single.id"}
+        push @columns_fetch, {linked_record_id => $self->cvo_values ? "current_version.id" : "record_single.id"}
             if $has_linked;
         push @columns_fetch, {draftuser_id => "me.draftuser_id"};
         push @columns_fetch, {current_id => "$base.current_id"};
@@ -1153,33 +1233,32 @@ sub _build_standard_results
         push @columns_fetch, {parent_id => "me.parent_id"};
         push @columns_fetch, "deletedby.$_" foreach @GADS::Column::Person::person_properties;
 
-        $self->_clear_cid_search_query_cache;
-        my $result = $self->schema->resultset('Current')->search($self->_cid_search_query(prefetch => 1, sort => 1, limit => $limit, page => $page),
+        my $result = $self->schema->resultset('Current')->search($self->_resultset_search(%common),
             {
                 join      => [@prefetches],
                 columns   => \@columns_fetch,
                 '+select' => [
-                    $self->has_created_time(prefetch => 1, sort => 1, limit => $limit, page => $page) ? {
+                    $self->has_created_time(%common) ? {
                         ""  => $self->_me_created_date,
                         -as => 'record_created_date',
                     } : (),
-                    $self->has_created_user(prefetch => 1, sort => 1, limit => $limit, page => $page) ? {
+                    $self->has_created_user(%common) ? {
                         ""  => $self->_me_created_user,
                         -as => 'record_created_user',
                     } : (),
-                    $self->has_created_user(prefetch => 1, sort => 1, limit => $limit, page => $page) ? {
+                    $self->has_created_user(%common) ? {
                         ""  => $self->_me_created_value,
                         -as => 'record_created_value',
                     } : (),
                 ],
                 '+as' => [
-                    $self->has_created_time(prefetch => 1, sort => 1, limit => $limit, page => $page) ? 'record_created_date' : (),
-                    $self->has_created_user(prefetch => 1, sort => 1, limit => $limit, page => $page) ? (
+                    $self->has_created_time(%common) ? 'record_created_date' : (),
+                    $self->has_created_user(%common) ? (
                         'record_created_user',
                         'record_created_value',
                     ) : (),
                 ],
-                order_by  => $self->order_by(prefetch => 1, limit => $limit, page => $page, retain_join_order => 1),
+                order_by  => $self->order_by(%common, retain_join_order => 1),
             },
         );
 
@@ -1256,7 +1335,6 @@ sub _build_standard_results
         my $record = GADS::Record->new(
             schema                  => $self->schema,
             record                  => $rec,
-            rewind                  => $self->rewind,
             serial                  => $rec->{serial},
             child_records           => \@children,
             parent_id               => $rec->{parent_id},
@@ -1369,18 +1447,19 @@ sub fetch_multivalues
                                 # IDs. We retrieve them now. This should really
                                 # be abstracted to a function elsewhere - it is
                                 # too low level.
-                                local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
-                                    if $self->rewind;
+                                local $GADS::Schema::Result::Record::REWIND = $self->dt_parser->format_datetime($self->rewind_values)
+                                    if $self->rewind_values;
                                 my $search = {
                                     'me.id'           => \@value_ids,
-                                    'record_later.id' => undef,
                                 };
-                                $search->{'record_single.created'} = { '<=' => $self->rewind_formatted }
-                                    if $self->rewind;
+                                $search->{'record_later.id'} = undef
+                                    if !$self->cvo_values;
+                                $search->{'record_single.created'} = { '<=' => $self->dt_parser->format_datetime($self->rewind_values) }
+                                    if $self->rewind_values;
                                 my @curs = $self->schema->resultset('Current')->search($search,{
-                                    select => ['me.id', 'record_single.id'],
+                                    select => ['me.id', $self->cvo_values ? 'me.current_version_id' : 'record_single.id'],
                                     as     => ['current_id', 'record_id'],
-                                    join   => {
+                                    join   => $self->cvo_values ? 'current_version' : {
                                         record_single => 'record_later',
                                     },
                                 })->all;
@@ -1412,7 +1491,7 @@ sub fetch_multivalues
                     foreach my $val ($col->fetch_multivalues(
                             \@retrieve_ids,
                             is_draft     => $params{is_draft},
-                            rewind       => $self->rewind, # Would be better in a context object
+                            rewind       => $self->rewind_values,
                             already_seen => $already_seen,
                             limit_rows   => $limit_rows,
                     ))
@@ -1532,10 +1611,8 @@ sub single
 
             # Set those IDs for the next chunk retrieved from the DB
             $self->_set_current_ids($cid_fetch);
-            $self->clear_current_ids;
             $self->clear_results;
             $self->delete_already_seen;
-            $self->_clear_cid_search_query_cache;
 
             $next_id = 0;
         }
@@ -1563,19 +1640,19 @@ sub _build_count
     # and if there is no other need to look at the records join (approval,
     # rewind etc)
     my ($search_query, $select);
-    if ($self->rewind || $self->_query_params(search => 1) || $self->_approval_query)
+    if ($self->rewind_recordset || $self->_query_params(search => 1) || $self->_approval_query)
     {
-        $search_query = $self->search_query(search => 1, linked => 1);
-        my @joins        = $self->jpfetch(search => 1, linked => 0);
-        my @linked       = $self->linked_hash(search => 1, linked => 1);
+        $search_query = $self->search_query(search => 1, linked => 1, current_version_only => $self->cvo_values, rewind => $self->rewind_values);
+        my @joins     = $self->jpfetch(search => 1, linked => 0, current_version_only => $self->cvo_values);
+        my @linked    = $self->linked_hash(search => 1, linked => 1, current_version_only => $self->cvo_values);
         $select = {
             join     => [
                 [@linked],
                 {
-                    'record_single' => [
+                    $self->cvo_values ? ('current_version' => \@joins) : ('record_single' => [
                         'record_later',
                         @joins
-                    ],
+                    ]),
                 },
             ],
             distinct => 1, # Otherwise multiple records returned for multivalue fields
@@ -1583,11 +1660,11 @@ sub _build_count
     }
     else {
         # record joins not needed, remove with fresh call
-        $search_query = $self->search_query(search => 1, linked => 1, no_record_later => 1);
+        $search_query = $self->search_query(search => 1, linked => 1, no_record_later => 1, current_version_only => $self->cvo_values, rewind => $self->rewind_values);
     }
 
-    local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
-        if $self->rewind;
+    local $GADS::Schema::Result::Record::REWIND = $self->dt_parser->format_datetime($self->rewind_recordset)
+        if $self->rewind_recordset;
 
     $self->schema->resultset('Current')->search(
         [-and => $search_query], $select
@@ -1614,9 +1691,9 @@ sub exists
         $search_query = $cache->{search_query};
     }
     else {
-        $search_query = $self->search_query(search => 1, linked => 1);
-        @joins        = $self->jpfetch(search => 1, linked => 0);
-        @linked       = $self->linked_hash(search => 1, linked => 1);
+        $search_query = $self->search_query(search => 1, linked => 1, current_version_only => $self->cvo_values, rewind => $self->rewind_values);
+        @joins        = $self->jpfetch(search => 1, linked => 0, current_version_only => $self->cvo_values);
+        @linked       = $self->linked_hash(search => 1, linked => 1, current_version_only => $self->cvo_values);
         $self->_exists_cache({
             joins        => \@joins,
             linked       => \@linked,
@@ -1648,10 +1725,10 @@ sub exists
         join     => [
             [@linked],
             {
-                'record_single' => [
+                $self->cvo_values ? ('current_version' => \@joins): ('record_single' => [
                     'record_later',
                     @joins
-                ],
+                ])
             },
         ],
         rows => 1,
@@ -1662,27 +1739,32 @@ sub exists
     )->get_column('me.id')->next;
 }
 
+# Whether this set of records has any child records within it
 sub _build_has_children
 {   my $self = shift;
 
-    my @search_query = @{$self->search_query(search => 1, linked => 1)};
+    # Use is_group to ensure that WHERE clause consists of query instead of
+    # full list of current IDs
+    my $search_query = $self->_resultset_search(search => 1, linked => 1, is_group => 1, current_version_only => $self->cvo_values);
     my $linked = $self->linked_hash(search => 1);
     my $select = {
         join     => [
             $linked,
             {
-                'record_single' => [
-                    'record_later',
-                    $self->jpfetch(search => 1),
-                ],
+                $self->cvo_values
+                    ? ('current_version' => [$self->jpfetch(search => 1, current_version_only => $self->cvo_values)])
+                    : ('record_single' => [
+                        'record_later',
+                        $self->jpfetch(search => 1, current_version_only => $self->cvo_values),
+                    ])
             },
         ],
         rows => 1,
     };
 
-    push @search_query, { 'me.parent_id' => { '!=' => undef }};
+    $search_query->{'me.parent_id'} = { '!=' => undef };
     my @child = $self->schema->resultset('Current')->search(
-        [-and => [@search_query]], $select
+        $search_query, $select
     )->all;
     @child ? 1 : 0;
 }
@@ -1704,10 +1786,13 @@ sub _build_columns_retrieved_do
         }
     }
 
+    my %view_group_cols = map { $_->layout_id => $_->parent_id } $self->view ? @{$self->view->groups} : ();
     foreach my $c (@columns)
     {
         # We're viewing this, so prefetch all the values
-        $self->add_prefetch($c, include_multivalue => $self->separate_records_for_multicol);
+        my $parent_id = $view_group_cols{$c->id};
+        my $parent    = $parent_id && $self->layout->column($parent_id);
+        $self->add_prefetch($c, parent => $parent, include_multivalue => $self->separate_records_for_multicol);
         $self->add_linked_prefetch($c->link_parent) if $c->link_parent;
     }
 
@@ -1730,16 +1815,19 @@ has separate_records_for_multicol => (
     is => 'rw',
 );
 
-has group_col_ids => (
+has group_cols => (
     is      => 'lazy',
     isa     => ArrayRef,
     clearer => 1,
 );
 
-sub _build_group_col_ids
+sub _build_group_cols
 {   my $self = shift;
     return [] if !$self->view;
-    [map $_->layout_id, @{$self->view->groups}];
+    [map {
+        my $col = $self->layout->column($_->layout_id);
+        $col->clone(parent_id => $_->parent_id)
+    } @{$self->view->groups}];
 }
 
 has has_group_col_id => (
@@ -1751,7 +1839,7 @@ has has_group_col_id => (
 sub _build_has_group_col_id
 {   my $self = shift;
     +{
-        map { $_ => 1 } @{$self->group_col_ids}
+        map { $_->id => 1 } @{$self->group_cols}
     };
 }
 
@@ -1806,7 +1894,7 @@ sub _build_columns_render
         # the order selected
         @cols = grep !$self->has_group_col_id->{$_->id}, @cols
             if $self->is_group;
-        unshift @cols, grep $_->user_can('read'), map $self->layout->column($_), @{$self->group_col_ids}
+        unshift @cols, grep $_->user_can('read'), @{$self->group_cols}
             if $self->is_group;
     }
 
@@ -1836,10 +1924,7 @@ sub clear_records
     $self->clear_aggregate_results;
     $self->_set__next_single_id(0);
     $self->_single_page(0);
-    $self->_set_current_ids(undef);
     $self->_clear_all_cids_store;
-    $self->_clear_cid_search_query_cache
-        unless $options{retain_current_ids};
 }
 
 sub clear
@@ -1858,7 +1943,8 @@ sub clear
     $self->clear_is_group;
     $self->clear_additional_filters;
     $self->clear_has_group_col_id;
-    $self->clear_group_col_ids;
+    $self->clear_group_cols;
+    $self->clear_current_version_only;
     $self->clear_records(%options);
 }
 
@@ -2047,10 +2133,18 @@ sub _sort_builder
     {
         foreach my $s (@{$self->sort})
         {
+            my $col = $self->layout->column($s->{id})
+                or next;
+            my $col_parent = $self->layout->column($s->{parent_id});
+            !$s->{parent_id} || $col_parent
+                or next;
+            error __x"Column {id} requested for sort from different table without parent", id => $col->id
+                if $col->instance_id != $self->layout->instance_id && !$col_parent;
             push @sorts, {
-                id   => $s->{id} || $column_id->id, # Default ID
-                type => $s->{type} || 'asc',
-            } if $self->layout->column($s->{id});
+                id        => $col->id,
+                parent_id => $col_parent && $col_parent->id,
+                type      => $s->{type} || 'asc',
+            };
         }
     }
     if (!@sorts && $self->view && @{$self->view->sorts}) {
@@ -2086,6 +2180,8 @@ sub order_by
         ? @{$self->_sorts_limit}
         : @{$self->_sorts};
 
+    my $group_cols = delete $options{group_cols};
+
     my @order_by; my %has_time;
     foreach my $s (@sorts)
     {
@@ -2099,8 +2195,26 @@ sub order_by
             my $column = $self->layout->column($s->{id}, permission => 'read')
                 or next;
             my $column_parent = $self->layout->column($s->{parent_id});
-            my @cols_main = $column->sort_columns;
-            my @cols_link = $column->link_parent ? $column->link_parent->sort_columns : ();
+            my @cols_main;
+            if ($column->is_curcommon)
+            {
+                @cols_main = @{$column->curval_fields};
+                $column_parent = $column;
+            }
+            else {
+                @cols_main = ($column);
+            }
+            my @cols_link;
+            if (my $link_parent = $column->link_parent)
+            {
+                if ($link_parent->is_curcommon)
+                {
+                    @cols_link = @{$link_parent->curval_fields};
+                }
+                else {
+                    @cols_link = ($link_parent);
+                }
+            }
             foreach my $col_sort (@cols_main)
             {
                 if ($column_parent)
@@ -2109,11 +2223,9 @@ sub order_by
                     $self->add_join($col_sort, sort => 1, parent => $column_parent);
                 }
                 else {
-                    $self->add_join($column->sort_parent, sort => 1)
-                        if $column->sort_parent;
-                    $self->add_join($col_sort, sort => 1, parent => $column->sort_parent);
+                    $self->add_join($col_sort, sort => 1);
                 }
-                my $s_table = $self->table_name($col_sort, sort => 1, %options, parent => $column_parent || $column->sort_parent);
+                my $s_table = $self->table_name($col_sort, sort => 1, %options, parent => $column_parent);
                 my $sort_name;
                 if ($column->name_short && $column->name_short eq '_created_user')
                 {
@@ -2137,9 +2249,21 @@ sub order_by
                 else {
                     $sort_name = "$s_table.".$col_sort->sort_field;
                 }
-                push @order_by, {
-                    $type => $sort_name,
-                };
+                my $query;
+                if ($options{group})
+                {
+                    # Assume that if the column is appearing in the group_by
+                    # that it will already have been added as a grouped column
+                    # and therefore there is no need to add the is_grouped flag
+                    # here. This relies on calling this order_by function after
+                    # the grouped columns have been added.
+                    my $agg = $self->add_aggregate($col_sort, 'max', parent => $column_parent, group_cols => $group_cols, sort => 1, %options);
+                    $query = { $type => $agg->{as} };
+                }
+                else {
+                    $query = { $type => $sort_name };
+                }
+                push @order_by, $query;
                 $has_time{$sort_name} = 1 if $col_sort->has_time;
             }
         }
@@ -2157,8 +2281,8 @@ sub order_by
             # is made even though it doesn't match (in SQLite anyway). E.g. "<
             # 2019-04-05 00:00" will match a date field of "2019-04-05"
             my $date = $has_time{$field}
-                ? $self->schema->storage->datetime_parser->format_datetime($self->from || $self->to)
-                : $self->schema->storage->datetime_parser->format_date($self->from || $self->to);
+                ? $self->dt_parser->format_datetime($self->from || $self->to)
+                : $self->dt_parser->format_date($self->from || $self->to);
             my $quoted = $self->quote($field);
             if ($field eq 'record_created_date')
             {
@@ -2289,7 +2413,7 @@ sub rule_to_condition
         if ($filter->{value} =~ /CURDATE/) # XXX repeated below, quick fix
         {
             my $vdt = GADS::View->parse_date_filter($filter->{value});
-            my $dtf = $self->schema->storage->datetime_parser;
+            my $dtf = $self->dt_parser;
             $value = $dtf->format_date($vdt);
         }
         else {
@@ -2427,8 +2551,7 @@ sub rule_to_condition
             if ($_ && $_ =~ /CURDATE/)
             {
                 my $vdt = GADS::View->parse_date_filter($_);
-                my $dtf = $self->schema->storage->datetime_parser;
-                $_ = $dtf->format_date($vdt);
+                $_ = $self->dt_parser->format_date($vdt);
             }
             elsif ($transform_date || ($column->return_type eq 'date' && $_))
             {
@@ -2538,6 +2661,7 @@ sub _resolve
     my $multivalue = $options{parent} ? $options{parent}->multivalue : $column->multivalue;
     my $reverse         = $options{reverse};
     my $previous_values = $options{previous_values};
+    my $me_table = $options{alias} || 'me';
     if ($condition->{type} eq 'changed_after')
     {
         local $GADS::Helper::Changed::CHANGED_PARAMS = {
@@ -2566,10 +2690,16 @@ sub _resolve
         })->get_column('id')->as_query;
 
         return (
-            'me.id' => [{ -in => $sub1 } , { -in => $sub2}]
+            "$me_table.id" => [{ -in => $sub1 } , { -in => $sub2}]
         );
     }
-    elsif ($multivalue && $condition->{type} eq 'not_equal' && !$previous_values)
+    elsif ($multivalue && $condition->{type} eq 'not_equal' && !$previous_values
+        # If this set of records is a search across all versions
+        # ($records->previous_values is true) then perform a normal join of all
+        # these conditions, so that only a match is made when they are all true
+        # for a particular version
+        && !$self->previous_values
+    )
     {
         # Create a non-negative match of all the IDs that we don't want to
         # match. Use a Records object so that all the normal requirements are
@@ -2588,7 +2718,7 @@ sub _resolve
             ),
         );
         return (
-            'me.id' => {
+            "$me_table.id" => {
                 # We want everything that is *not* those records
                 -not_in => $records->_current_ids_rs->as_query,
             }
@@ -2618,14 +2748,14 @@ sub _resolve
         if ($reverse)
         {
             return (
-                'me.id' => {
+                "$me_table.id" => {
                     -not_in => $records->_current_ids_rs->as_query,
                 }
             );
         }
         else {
             return (
-                'me.id' => {
+                "$me_table.id" => {
                     -in => $records->_current_ids_rs->as_query,
                 }
             );
@@ -2654,7 +2784,7 @@ sub _resolve
             ),
         );
         return (
-            'me.id' => {
+            "$me_table.id" => {
                 -in => $records->_current_ids_rs->as_query,
             }
         );
@@ -2677,8 +2807,8 @@ sub _date_for_db
 {   my ($self, $column, $value) = @_;
     my $dt = $column->parse_date($value);
     $column->has_time
-        ? $self->schema->storage->datetime_parser->format_datetime($dt)
-        : $self->schema->storage->datetime_parser->format_date($dt);
+        ? $self->dt_parser->format_datetime($dt)
+        : $self->dt_parser->format_date($dt);
 }
 
 has _csv => (
@@ -2959,7 +3089,7 @@ sub _max_date { shift->_min_max_date('max', @_) };
 
 sub _min_max_date
 {   my ($self, $action, $date1, $date2) = @_;
-    my $dt_parser = $self->schema->storage->datetime_parser;
+    my $dt_parser = $self->dt_parser;
     my $d1 = $date1 && $dt_parser->parse_date($date1);
     my $d2 = $date2 && $dt_parser->parse_date($date2);
     return $d1 if !$d2;
@@ -3055,7 +3185,7 @@ sub _build_aggregate_results
 
     return undef if ! @columns;
 
-    $self->_clear_cid_search_query_cache; # Clear any list of record IDs from previous results() call
+    $self->clear_current_ids; # Clear any list of record IDs from previous results() call
     my $results = $self->_build_group_results(columns => \@columns, is_group => 1, aggregate => 1);
 
     panic "Unexpected number of aggregate results"
@@ -3075,6 +3205,11 @@ sub _build_group_results
     my @select_fields;
     my @cols;
     my $view = $self->view;
+
+    # During building grouped results an aggregate field can be added via
+    # sorting or as a selected column. This needs to be cleared each time, as
+    # group results can require different aggregate functions
+    $self->clear_aggregate_fields;
 
     my $is_table_group = !$self->isa('GADS::RecordsGraph') && !$self->isa('GADS::RecordsGlobe');
 
@@ -3100,8 +3235,13 @@ sub _build_group_results
     }
 
     my @parents;
-    my %group_cols;
-    %group_cols = map { $_->layout_id => 1 } @{$view->groups}
+    my @group_cols;
+    @group_cols = map {
+        +{
+            column => $self->layout->column($_->layout_id),
+            parent => $_->parent_id && $self->layout->column($_->parent_id),
+        }
+    } @{$view->groups}
         if $is_table_group && $view && !$options{aggregate};
 
     foreach my $col (@cols)
@@ -3115,8 +3255,8 @@ sub _build_group_results
         # sub-fields will be added, which for a multivalue curval will mean
         # many unnecessary sub-queries below. We may want to add these later if
         # making it possible to manually group by a curval sub-field
-        $group_cols{$col->{id}} = 1
-            if $col->{group} && !$col->{parent};
+        push @group_cols, { column => $column }
+            if $col->{group} && !$col->{parent} && ! grep $_->{column}->id == $column->id, @group_cols;
 
         # If it's got a parent curval, then add that too
         if ($col->{parent_id})
@@ -3148,7 +3288,6 @@ sub _build_group_results
     }
 
     # Combine and flatten columns
-    unshift @cols, @parents;
     my @newcols;
     foreach my $col (@cols)
     {
@@ -3164,7 +3303,7 @@ sub _build_group_results
     @cols = @newcols;
 
     # Add all columns first so that join numbers are correct
-    foreach my $col (@cols)
+    foreach my $col (@parents, @cols)
     {
         my $column = $col->{column};
         next if $column->internal;
@@ -3192,8 +3331,13 @@ sub _build_group_results
         }
     }
 
-    my $as_index = $self->group_values_as_index;
     my $drcol    = !!$self->dr_column;
+
+    # Need to set before any subqueries are built
+    local $GADS::Schema::Result::Record::REWIND = $self->dt_parser->format_datetime($self->rewind_values)
+        if $self->rewind_values;
+
+    my %sort_mapping;
 
     foreach my $col (@cols)
     {
@@ -3203,147 +3347,7 @@ sub _build_group_results
 
         next if $options{aggregate} && $column->aggregate && $column->aggregate eq 'recalc';
 
-        my $select;
-        my $as = $column->field;
-        $as = $as.'_count' if $op eq 'count';
-        $as = $as.'_sum' if $op eq 'sum';
-        $as = $as.'_distinct' if $op eq 'distinct' && !$col->{group};
-
-        # The select statement to get this column's value varies depending on
-        # what we want to retrieve. If we're selecting a field with multiple
-        # values, then we have to run this as a separate subquery, otherwise if
-        # there are more than one multiple-value retrieval then that aggregates
-        # will be counting multiple times for each set of multiple values (due
-        # to the multiple joins)
-
-        # Field is either multivalue or its parent is
-        if (($column->multivalue || ($parent && $parent->multivalue)) && !$col->{group} && !$col->{drcol})
-        {
-            # Assume curval if it's a parent - we need to search the curval
-            # table for all the curvals that are part of the records retrieved.
-            # XXX add search query?
-            if ($parent)
-            {
-                my $f_rs = $self->schema->resultset('Curval')->search({
-                    'mecurval.record_id' => {
-                        -ident => 'record_single.id'  # Match against main query's records
-                    },
-                    'mecurval.layout_id' => $parent->id,
-                    'record_later.id'    => undef,
-                },
-                {
-                    alias => 'mecurval', # Can't use default "me" as already used in main query
-                    join => {
-                        'value' => {
-                            'record_single_alternative' => [
-                                'record_later',
-                                $column->tjoin,
-                            ],
-                        },
-                    },
-                });
-                if ($column->numeric && $op eq 'sum')
-                {
-                    $select = $f_rs->get_column((ref $column->tjoin eq 'HASH' ? 'value_2' :  $column->field).".".$column->value_field)->sum_rs->as_query;
-                }
-                elsif (!$is_table_group)
-                {
-                    $select = $f_rs->get_column((ref $column->tjoin eq 'HASH' ? 'value_2' :  $column->field).".".$column->value_field)->max_rs->as_query;
-                }
-                else {
-                    # At the moment we do not expect a distinct count to be
-                    # necessary for a field from within a curval. We might want
-                    # to add this functionality in the future, in which case it
-                    # will look something like the next else block
-                    panic __x"Unexpected count distinct for curval sub-field {name} ({id})",
-                        name => $column->name, id => $column->id;
-                }
-            }
-            # Otherwise a standard subquery select for that type of field
-            else {
-                # Also need to add the main search query, otherwise if we take
-                # all the field's values for each record, then we won't be
-                # filtering the non-matched ones in the case of multivalue
-                # fields.
-                # Need to include "group" as an option to the subquery, to
-                # ensure that the grouping column is added to match to the main
-                # query's group column. This does not apply if doing an overall
-                # aggregate though, as there is only a need to retrieve the
-                # overall results, not for each matching grouped row. If the
-                # "group" option is included unnecessarily, then this can cause
-                # joins of multiple-value fields which can include too many
-                # results in the aggregate.
-                my $include_group = %group_cols ? 1 : 0;
-                my $searchq = $self->search_query(search => 1, extra_column => $column, linked => 0, group => $include_group, alt => 1, alias => 'mefield');
-                foreach my $group_id (keys %group_cols)
-                {
-                    my $group_col = $self->layout->column($group_id);
-                    push @$searchq, {
-                        $self->fqvalue($group_col, as_index => $as_index, search => 1, linked => 0, group => 1, alt => 1, extra_column => $group_col, drcol => $drcol) => {
-                            -ident => $self->fqvalue($group_col, as_index => $as_index, search => 1, linked => 0, group => 1, extra_column => $group_col, drcol => $drcol)
-                        },
-                    };
-                }
-                $select = $self->schema->resultset('Current')->search(
-                    [-and => $searchq ],
-                    {
-                        alias => 'mefield',
-                        join  => [
-                            [$self->linked_hash(search => 1, group => $include_group, alt => 1, extra_column => $column)],
-                            {
-                                'record_single_alternative' => [ # The (assumed) single record for the required version of current
-                                    'record_later_alternative',  # The record after the single record (undef when single is latest)
-                                    $self->jpfetch(search => 1, linked => 0, group => $include_group, extra_column => $column, alt => 1),
-                                ],
-                            },
-                        ],
-                        select => {
-                            count => { distinct => $self->fqvalue($column, as_index => $as_index, search => 1, linked => 0, group => 1, alt => 1, extra_column => $column, drcol => $drcol) },
-                            -as   => 'sub_query_as',
-                        },
-                    },
-                );
-                my $col_fq = $self->fqvalue($column, as_index => $as_index, search => 1, linked => 0, group => 1, alt => 1, extra_column => $column, drcol => $drcol);
-                if ($column->numeric && $op eq 'sum')
-                {
-                    $select = $select->get_column($col_fq)->sum_rs->as_query;
-                    $op = 'max';
-                }
-                elsif ($self->isa('GADS::RecordsGraph') || $self->isa('GADS::RecordsGlobe'))
-                {
-                    $select = $select->get_column($col_fq)->max_rs->as_query;
-                }
-                else {
-                    $select = $select->get_column('sub_query_as')->as_query;
-                    $op = 'max';
-                }
-            }
-        }
-        # Standard single-value field - select directly, no need for a subquery
-        else {
-            $select = $self->fqvalue($column, as_index => $as_index, prefetch => 1, group => 1, search => 0, linked => 0, parent => $parent, retain_join_order => 1, drcol => $drcol);
-        }
-
-        if ($op eq 'distinct')
-        {
-            $select = {
-                count => { distinct => $select },
-                -as   => $as,
-            };
-            push @select_fields, $select;
-        }
-        else {
-            push @select_fields, {
-                $op => $select,
-                -as => $as,
-            };
-        }
-
-        # Also add linked column if required
-        push @select_fields, {
-            $op => $self->fqvalue($column->link_parent, as_index => $as_index, prefetch => 1, search => 0, linked => 1, parent => $parent, retain_join_order => 1, drcol => $drcol),
-            -as => $as."_link",
-        } if $column->link_parent;
+        $self->add_aggregate($column, $op, search => 0, parent => $parent, group_cols => \@group_cols, is_grouped => $col->{group} || $col->{drcol});
     }
 
     push @select_fields, {
@@ -3368,7 +3372,7 @@ sub _build_group_results
             { min => "$field.$from_field", -as => 'start_date'},
             { max => "$field.$to_field", -as => 'end_date'},
         ];
-        my $search = $self->search_query(search => 1, prefetch => 1, linked => 0);
+        my $search = $self->search_query(search => 1, prefetch => 1, linked => 0, current_version_only => $self->cvo_values, rewind => $self->rewind_values);
         # Include linked field if applicable
         if ($field_link)
         {
@@ -3378,24 +3382,27 @@ sub _build_group_results
             );
         }
 
-        local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
-            if $self->rewind;
+        # Get min and max dates of range
         my ($result) = $self->schema->resultset('Current')->search(
             [-and => $search], {
                 select => $select,
                 join   => [
-                    $self->linked_hash(search => 1, prefetch => 1),
+                    $self->linked_hash(search => 1, prefetch => 1, current_version_only => $self->cvo_values),
                     {
-                        'record_single' => [
+                        $self->cvo_values
+                        ? ('current_version' => [
+                            $self->jpfetch(search => 1, prefetch => 1, linked => 0, current_version_only => $self->cvo_values)
+                        ])
+                        : ('record_single' => [
                             'record_later',
-                            $self->jpfetch(search => 1, prefetch => 1, linked => 0),
-                        ],
+                            $self->jpfetch(search => 1, prefetch => 1, linked => 0, current_version_only => $self->cvo_values),
+                        ])
                     },
                 ],
             },
         )->all;
 
-        my $dt_parser = $self->schema->storage->datetime_parser;
+        my $dt_parser = $self->dt_parser;
         # Find min/max dates from above, including linked field if required
         my $daterange_from = $self->from ? $self->from->clone : $self->_min_date(
             $result->get_column('start_date'),
@@ -3517,32 +3524,46 @@ sub _build_group_results
         }
     };
 
-    my $q = $self->search_query(prefetch => 1, search => 1, retain_join_order => 1, group => 1, sort => 0, drcol => $drcol); # Called first to generate joins
+    my $q = $self->search_query(prefetch => 1, search => 1, retain_join_order => 1, group => 1, sort => 1, drcol => $drcol); # Called first to generate joins
 
     # Ensure that no joins are added here that are multi-value fields,
     # otherwise they will generate multiple rows for a single records, which
     # will cause multiple aggregates and double-counting of other fields. The
     # prefetch joins should only have been added above, and if they are
-    # multi-value fields should be added as independent sub-queries
+    # multi-value fields should be added as independent sub-queries.
+    # The "multivalue" parameter below removes any multi-value columns.
+    my %common = (
+        group                => 1,
+        prefetch             => 1,
+        # Search not needed as performed with subquery
+        search               => 0,
+        sort                 => 1,
+        drcol                => $drcol,
+        current_version_only => $self->cvo_values,
+    );
+
+    my @jp_fetch = $self->jpfetch(%common, multivalue => 0, linked => 0, retain_join_order => 1, aggregate => $options{aggregate});
+    my $order_by = $self->order_by(%common, group_cols => \@group_cols, retain_join_order => 1);
+    push @select_fields, map $_->{select}, @{$self->aggregate_fields};
     my $select = {
         select => [@select_fields],
         join     => [
-            $self->linked_hash(group => 1, prefetch => 1, search => 0, retain_join_order => 1, sort => 0, aggregate => $options{aggregate}, drcol => $drcol),
+            $self->linked_hash(%common, retain_join_order => 1, aggregate => $options{aggregate}),
             {
-                'record_single' => [
-                    'record_later',
-                    $self->jpfetch(group => 1, prefetch => 1, search => 0, linked => 0, retain_join_order => 1, sort => 0, aggregate => $options{aggregate}, drcol => $drcol),
-                ],
+                $self->cvo_values
+                ? ('current_version' => \@jp_fetch)
+                : ('record_single' => [
+                    'record_later', @jp_fetch,
+                ])
             },
         ],
         group_by => [@g],
+        order_by => $order_by,
     };
 
-    local $GADS::Schema::Result::Record::REWIND = $self->rewind_formatted
-        if $self->rewind;
-
     my $result = $self->schema->resultset('Current')->search(
-        $self->_cid_search_query(sort => 0, aggregate => $options{aggregate}), $select
+        # Outer search query so needs to match values being retrieved
+        $self->_resultset_search(sort => 0, is_group => 1, prefetch => 1, current_version_only => $self->cvo_values), $select
     );
 
     return [$result->all]
@@ -3563,7 +3584,7 @@ sub _build_group_results
             # will then force the sum. At the moment the only aggregate is sum,
             # but that may change in the future
             is_group                => $options{is_group} || $self->is_group,
-            group_cols              => \%group_cols,
+            group_cols              => {map { $_->{column}->id => 1 } @group_cols},
             user                    => $self->user,
             layout                  => $self->layout,
             columns_retrieved_no    => $self->columns_retrieved_no,

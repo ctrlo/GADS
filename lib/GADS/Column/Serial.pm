@@ -57,7 +57,7 @@ has '+value_field' => (
     default => 'serial',
 );
 
-sub tjoin {}
+sub tjoin { undef }
 
 sub validate_search
 {   my ($self, $value) = @_;
