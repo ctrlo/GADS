@@ -5,6 +5,13 @@ import { goodPassword, goodUser } from "../../support/constants";
 
 describe("Layout creation tests", () => {
     const refShortName = "tr";
+    
+    before(() => {
+    cy.log("login").login(goodUser, goodPassword);
+    cy.log("update user groups").addUserToDefaultGroup("test@example.com", "check");
+    cy.logout();
+    });
+
 
     beforeEach(() => {
         cy.login(goodUser, goodPassword);
