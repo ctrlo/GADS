@@ -28,6 +28,7 @@ use URI::Escape qw/uri_escape_utf8/;
 
 use Dancer2 appname => 'GADS';
 use Dancer2::Plugin::Auth::Extensible;
+use Dancer2::Plugin::CryptPassphrase;
 use Dancer2::Plugin::DBIC;
 use Dancer2::Plugin::LogReport 'linkspace';
 
@@ -56,8 +57,19 @@ my $verify_user_password_sub = sub {
         username => $args{username},
     })->next;
 
-    $user && Crypt::SaltedHash->validate($user->password, $args{password})
-        and return ($client->id, undef, undef, $user->id);
+    if ($user) {
+        my $stored = $user->password;
+
+        if (crypt_passphrase->verify_password($args{password}, $stored)) {
+            return ($client->id, undef, undef, $user->id);
+        }
+        if (Crypt::SaltedHash->validate($stored, $args{password})) {
+            my $new_hash = crypt_passphrase->hash_password($args{password});
+            $user->update({ password => $new_hash });
+
+            return ($client->id, undef, undef, $user->id);
+        }
+    }
 
     return (0, 'access_denied');
 };
