@@ -10,22 +10,22 @@ use GADS::Config;
 use CtrlO::PDF;
 
 has site => (
-    is => 'ro',
+    is       => 'ro',
     required => 1,
 );
 
 has layouts => (
-    is => 'ro',
+    is       => 'ro',
     required => 1,
 );
 
 has record => (
-    is => 'ro',
+    is       => 'ro',
     required => 1
 );
 
 has user => (
-    is => 'ro',
+    is       => 'ro',
     required => 1,
 );
 

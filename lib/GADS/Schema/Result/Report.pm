@@ -215,11 +215,11 @@ sub create_pdf
     my $result  = [ grep $include{ $_->id }, @{ $record->columns_render } ];
 
     my $generator = GADS::PDFGenerator->new(
-        site => $self->instance->site,
-        instance => $self->instance,
-        layouts => $result,
-        record => $record,
-        user => $user,
+        site             => $self->instance->site,
+        instance         => $self->instance,
+        layouts          => $result,
+        record           => $record,
+        user             => $user,
         security_marking => $self->_read_security_marking
     );
 

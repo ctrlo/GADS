@@ -2723,14 +2723,14 @@ sub for_code
 sub pdf
 {   my ($self, $site) = @_;
 
-    my $result  = [$self->layout->all_user_read];
+    my $result = [$self->layout->all_user_read];
 
     my $generator = GADS::PDFGenerator->new(
-        site => $site,
-        layouts => $result,
-        record => $self,
-        user => $self->user,
-        security_marking => $self->layout->security_marking
+        site              => $site,
+        layouts           => $result,
+        record            => $self,
+        user              => $self->user,
+        security_marking  => $self->layout->security_marking
     );
 
     my $pdf = $generator->build(title => "Record-" . $self->current_id . ".pdf");
