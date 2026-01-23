@@ -433,7 +433,14 @@ sub _jpfetch_add
             # Remove multivalues to prevent huge amount of rows being fetched.
             # These will be fetched later as individual columns.
             # Keep any for a sort - these still need to be used when fetching rows.
-            @children = grep { $_->{search} || $_->{sort} || $_->{column}->fetch_with_record || $options->{include_multivalue} || $_->{group} || $_->{drcol} } @children
+            @children = grep {
+                $_->{search}
+                || $_->{sort}
+                || $_->{column}->fetch_with_record
+                || $options->{include_multivalue}
+                || $_->{group}
+                || $_->{drcol}
+            } @children
                 if $options->{prefetch};
             my $options = {
                 join_current_version => $current_version_only,
@@ -447,7 +454,10 @@ sub _jpfetch_add
             };
         }
         else {
-            return { %$join, join => $join->{column}->tjoin(join_current_version => $current_version_only) };
+            return {
+                %$join,
+                join => $join->{column}->tjoin(join_current_version => $current_version_only)
+            };
         }
     }
     else {
@@ -598,15 +608,15 @@ sub table_name
         {
             return $self->record_name(%options);
         }
-        my $tn = $column->sprefix;
-        $tn .= "_alternative" if $options{alt};
-        return $tn;
+        my $internal_table_name = $column->sprefix;
+        $internal_table_name .= "_alternative" if $options{alt};
+        return $internal_table_name;
     }
-    my $jn = $self->_join_number($column, %options);
-    my $index = $jn > 1 ? "_$jn" : '';
-    my $tn = $column->sprefix;
-    $tn .= "_alternative" if $options{alt};
-    $tn . $index;
+    my $join_number = $self->_join_number($column, %options);
+    my $index = $join_number > 1 ? "_$join_number" : '';
+    my $table_name = $column->sprefix;
+    $table_name .= "_alternative" if $options{alt};
+    $table_name . $index;
 }
 
 sub _join_number
@@ -632,40 +642,40 @@ sub _join_number
             if $debug;
     }
 
-    foreach my $j (@store)
+    foreach my $join (@store)
     {
-        trace "Checking join ".$j->{column}->id
+        trace "Checking join ".$join->{column}->id
             if $debug;
-        my $n = _find($column, $j, $stash, %options);
-        trace __x"return from find request is: {n}", n => $n
+        my $join_number = _find($column, $join, $stash, %options);
+        trace __x"return from find request is: {n}", n => $join_number
             if $debug;
-        return $n if $n;
-        if ($j->{children})
+        return $join_number if $join_number;
+        if ($join->{children})
         {
             trace "This join has other joins, checking..."
                 if $debug;
-            foreach my $j2 (@{$j->{children}})
+            foreach my $join2 (@{$join->{children}})
             {
-                if ($j2->{children})
+                if ($join2->{children})
                 {
                     trace "This join has other joins, checking..."
                         if $debug;
-                    foreach my $j3 (@{$j2->{children}}) # Replace with recursive function?
+                    foreach my $join3 (@{$join2->{children}}) # Replace with recursive function?
                     {
-                        trace "Looking at join ".$j3->{column}->id
+                        trace "Looking at join ".$join3->{column}->id
                             if $debug;
-                        $n = _find($column, $j3, $stash, %options);
-                        trace __x"return from find request is: {n}", n => $n
+                        $join_number = _find($column, $join3, $stash, %options);
+                        trace __x"return from find request is: {n}", n => $join_number
                             if $debug;
-                        return $n if $n;
+                        return $join_number if $join_number;
                     }
                 }
-                trace "Looking at join ".$j2->{column}->id
+                trace "Looking at join ".$join2->{column}->id
                     if $debug;
-                $n = _find($column, $j2, $stash, %options);
-                trace __x"return from find request is: {n}", n => $n
+                $join_number = _find($column, $join2, $stash, %options);
+                trace __x"return from find request is: {n}", n => $join_number
                     if $debug;
-                return $n if $n;
+                return $join_number if $join_number;
             }
         }
     }
@@ -689,11 +699,8 @@ sub _find
     trace "Checking against join ".$jp->{column}->id
         if $debug;
 
-    my $is_cc = $jp->{column}->type eq 'curval' || $jp->{column}->type eq 'filval';
     my $join = $jp->{column}->is_curcommon
         ? $jp->{column}->sprefix
-        #: $is_cc
-        #? { $jp->{column}->sprefix => 'value' }
         : $jp->{column}->tjoin(join_current_version => $options{current_version_only});
     if (ref $join eq 'HASH')
     {
@@ -814,7 +821,10 @@ sub add_aggregate
 
     my ($existing) = grep {
         $_->{column}->id == $column->id
-        && ((!$_->{parent} && !$parent) || ($_->{parent} && $parent && $_->{parent}->id == $parent->id))
+        && (
+            (!$_->{parent} && !$parent)
+            || ($_->{parent} && $parent && $_->{parent}->id == $parent->id)
+        )
         && $_->{operator} ne $operator
     } @{$self->aggregate_fields};
 
@@ -875,11 +885,19 @@ sub add_aggregate
             });
             if ($column->numeric && $operator eq 'sum')
             {
-                $select = $f_rs->get_column((ref $column->tjoin(join_current_version => $self->cvo_values) eq 'HASH' ? 'value_2' :  $column->field).".".$column->value_field)->sum_rs->as_query;
+                $select = $f_rs->get_column(
+                    (ref $column->tjoin(join_current_version => $self->cvo_values) eq 'HASH'
+                        ? 'value_2'
+                        :  $column->field)
+                    .".".$column->value_field)->sum_rs->as_query;
             }
             elsif ($operator eq 'sum' || $operator eq 'max') # Default to max for sum of non-numeric columns
             {
-                my $fn = (ref $column->tjoin(join_current_version => $self->cvo_values) eq 'HASH' ? 'value_2' :  $column->field).".".$column->value_field;
+                my $fn = (
+                    ref $column->tjoin(join_current_version => $self->cvo_values) eq 'HASH'
+                        ? 'value_2'
+                        :  $column->field
+                ).".".$column->value_field;
                 $select = $f_rs->get_column($fn)->max_rs->as_query;
             }
             elsif ($operator eq 'distinct') {
@@ -909,12 +927,42 @@ sub add_aggregate
             # joins of multiple-value fields which can include too many
             # results in the aggregate.
             my $has_grouped = @group_cols;
-            my $searchq = $self->search_query(%options, search => 1, extra_column => $column, linked => 0, group => $has_grouped, alt => 1, alias => 'mefield', current_version_only => $self->cvo_values, rewind => $self->rewind_values);
+            my $searchq = $self->search_query(%options,
+                search               => 1,
+                extra_column         => $column,
+                linked               => 0,
+                group                => $has_grouped,
+                alt                  => 1,
+                alias                => 'mefield',
+                current_version_only => $self->cvo_values,
+                rewind               => $self->rewind_values,
+            );
             foreach my $group (@group_cols)
             {
                 push @$searchq, {
-                    $self->fqvalue($group->{column}, %options, search => 1, as_index => $as_index, linked => 0, group => 1, alt => 1, extra_column => $group->{column}, parent => $group->{parent}, drcol => $drcol, current_version_only => $self->cvo_values) => {
-                        -ident => $self->fqvalue($group->{column}, %options, search => 1, parent => $group->{parent}, as_index => $as_index, linked => 0, group => 1, extra_column => $group->{column}, drcol => $drcol, current_version_only => $self->cvo_values)
+                    $self->fqvalue($group->{column},
+                        %options,
+                        search               => 1,
+                        as_index             => $as_index,
+                        linked               => 0,
+                        group                => 1,
+                        alt                  => 1,
+                        extra_column         => $group->{column},
+                        parent               => $group->{parent},
+                        drcol                => $drcol,
+                        current_version_only => $self->cvo_values
+                    ) => {
+                        -ident => $self->fqvalue($group->{column},
+                            %options,
+                            search               => 1,
+                            parent               => $group->{parent},
+                            as_index             => $as_index,
+                            linked               => 0,
+                            group                => 1,
+                            extra_column         => $group->{column},
+                            drcol                => $drcol,
+                            current_version_only => $self->cvo_values,
+                        )
                     },
                 };
             }
@@ -923,25 +971,65 @@ sub add_aggregate
                 {
                     alias => 'mefield',
                     join  => [
-                        [$self->linked_hash(%options, search => 1, group => $has_grouped, alt => 1, extra_column => $column, current_version_only => $self->cvo_values)],
+                        [$self->linked_hash(%options,
+                                search               => 1,
+                                group                => $has_grouped,
+                                alt                  => 1,
+                                extra_column         => $column,
+                                current_version_only => $self->cvo_values,
+                            )],
                         {
                             $self->cvo_values
                             ? ('current_version_alternative' => [
-                                $self->jpfetch(%options, search => 1, linked => 0, group => $has_grouped, extra_column => $column, alt => 1, current_version_only => 1)
+                                $self->jpfetch(%options,
+                                    search               => 1,
+                                    linked               => 0,
+                                    group                => $has_grouped,
+                                    extra_column         => $column,
+                                    alt                  => 1,
+                                    current_version_only => 1,
+                                )
                             ])
                             : ('record_single_alternative' => [ # The (assumed) single record for the required version of current
                                 'record_later_alternative',  # The record after the single record (undef when single is latest)
-                                $self->jpfetch(%options, search => 1, linked => 0, group => $has_grouped, extra_column => $column, alt => 1, current_version_only => 0),
+                                $self->jpfetch(%options,
+                                    search               => 1,
+                                    linked               => 0,
+                                    group                => $has_grouped,
+                                    extra_column         => $column,
+                                    alt                  => 1,
+                                    current_version_only => 0,
+                                ),
                             ])
                         },
                     ],
                     select => {
-                        count => { distinct => $self->fqvalue($column, %options, search => 1, as_index => $as_index, linked => 0, group => 1, alt => 1, extra_column => $column, drcol => $drcol, current_version_only => $self->cvo_values) },
+                        count => { distinct => $self->fqvalue($column,
+                            %options,
+                            search               => 1,
+                            as_index             => $as_index,
+                            linked               => 0,
+                            group                => 1,
+                            alt                  => 1,
+                            extra_column         => $column,
+                            drcol                => $drcol,
+                            current_version_only => $self->cvo_values,
+                        )},
                         -as   => 'sub_query_as',
                     },
                 },
             );
-            my $col_fq = $self->fqvalue($column, %options, search => 1, as_index => $as_index, linked => 0, group => 1, alt => 1, extra_column => $column, drcol => $drcol, current_version_only => $self->cvo_values);
+            my $col_fq = $self->fqvalue($column,
+                %options,
+                search               => 1,
+                as_index             => $as_index,
+                linked               => 0,
+                group                => 1,
+                alt                  => 1,
+                extra_column         => $column,
+                drcol                => $drcol,
+                current_version_only => $self->cvo_values,
+            );
             if ($column->numeric && $operator eq 'sum')
             {
                 $select = $select->get_column($col_fq)->sum_rs->as_query;
@@ -953,7 +1041,7 @@ sub add_aggregate
             {
                 $select = $select->get_column($col_fq)->max_rs->as_query;
             }
-            elsif ($operator eq 'distinct' || $operator eq 'count')
+            elsif ($operator eq 'distinct')
             {
                 $select = $select->get_column('sub_query_as')->as_query;
                 $operator = 'max';
@@ -965,7 +1053,17 @@ sub add_aggregate
     }
     # Standard single-value field - select directly, no need for a subquery
     else {
-        $select = $self->fqvalue($column, %options, as_index => $as_index, prefetch => 1, group => 1, linked => 0, parent => $parent, retain_join_order => 1, drcol => $drcol, current_version_only => $self->cvo_values);
+        $select = $self->fqvalue($column,
+            %options,
+            as_index             => $as_index,
+            prefetch             => 1,
+            group                => 1,
+            linked               => 0,
+            parent               => $parent,
+            retain_join_order    => 1,
+            drcol                => $drcol,
+            current_version_only => $self->cvo_values,
+        );
     }
 
     my $overall_select = $operator eq 'distinct'
@@ -989,8 +1087,12 @@ sub add_aggregate
     push @{$self->aggregate_fields}, $aggfield;
 
     # Also add linked column if required
-    $self->add_aggregate($column->link_parent, $operator, is_linked => $column, parent => $parent, group_cols => \@group_cols, is_grouped => $is_grouped)
-        if $column->link_parent;
+    $self->add_aggregate($column->link_parent, $operator,
+        is_linked  => $column,
+        parent     => $parent,
+        group_cols => \@group_cols,
+        is_grouped => $is_grouped
+    ) if $column->link_parent;
 
     $aggfield;
 }

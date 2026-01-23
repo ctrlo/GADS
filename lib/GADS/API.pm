@@ -1183,7 +1183,11 @@ sub _get_records {
         # Check user has access
         error __"Invalid column ID for sort"
             unless $col_order && $col_order->user_can('read');
-        my $sort = { type => $params->get('order[0][dir]'), id => $col_order->id, parent_id => $col_order->parent_id };
+        my $sort = {
+            type      => $params->get('order[0][dir]'),
+            id        => $col_order->id,
+            parent_id => $col_order->parent_id,
+        };
 
         $records->clear_sorts;
         $records->sort($sort);
