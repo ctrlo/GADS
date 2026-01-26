@@ -2721,83 +2721,21 @@ sub for_code
 }
 
 sub pdf
-{   my $self = shift;
+{   my ($self, $site) = @_;
 
-    my $dateformat = GADS::Config->instance->dateformat;
-    my $now = DateTime->now;
-    $now->set_time_zone('Europe/London');
-    my $now_formatted = $now->format_cldr($dateformat)." at ".$now->hms;
-    my $updated = $self->edited_time->as_string;
+    my $result = [$self->layout->all_user_read];
 
-    my $config = GADS::Config->instance;
-    my $header = $config && $config->gads && $config->gads->{header};
-    my $pdf = CtrlO::PDF->new(
-        header => $header,
-        footer => "Downloaded by ".$self->user->value." on $now_formatted",
+    my $generator = GADS::PDFGenerator->new(
+        site              => $site,
+        layouts           => $result,
+        record            => $self,
+        user              => $self->user,
+        security_marking  => $self->layout->security_marking
     );
 
-    $pdf->add_page;
-    $pdf->heading('Record '.$self->current_id);
-    $pdf->heading('Last updated by '.$self->edited_user->as_string." on $updated", size => 12);
+    my $pdf = $generator->build(title => "Record " . $self->current_id);
 
-    my $data =[
-        ['Field', 'Value'],
-    ];
-    my $max_fields;
-    foreach my $col ($self->layout->all_user_read)
-    {
-        my $datum = $self->get_field_value($col);
-        next if $datum->dependent_not_shown;
-        if ($col->is_curcommon)
-        {
-            my $first = 1;
-            foreach my $line (@{$datum->values})
-            {
-                my $field_count;
-                my @l = ($first ? $col->name : '');
-                foreach my $v (@{$line->{values}})
-                {
-                    push @l, $v;
-                    $field_count++;
-                }
-                push @$data, \@l;
-                $first = 0;
-                $max_fields = $field_count if !$max_fields || $max_fields < $field_count;
-            }
-        }
-        else {
-            push @$data, [
-                $col->name,
-                $datum->as_string,
-            ],
-        }
-    }
-
-    my $hdr_props = {
-        repeat     => 1,
-        justify    => 'center',
-        font_size  => 8,
-    };
-
-    my $cell_props = [];
-    foreach my $d (@$data)
-    {
-        my $has = @$d;
-        # $max_fields does not include field name
-        my $gap = $max_fields - $has + 1;
-        push @$d, undef for (1..$gap);
-        push @$cell_props, [
-            (undef) x ($has - 1),
-            {colspan => $gap + 1}
-        ];
-    }
-
-    $pdf->table(
-        data       => $data,
-        cell_props => $cell_props,
-    );
-
-    $pdf;
+    return $pdf;
 }
 
 sub get_report
