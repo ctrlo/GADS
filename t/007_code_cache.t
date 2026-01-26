@@ -181,4 +181,29 @@ is_deeply([map $_->value_int, $urs->all], $expected, "Correct values for cached 
     is_deeply([map $_->value_text, $urs->all], $expected, "Correct values for cached table after change to int");
 }
 
+{
+    my $long_string = "Y3EucBXt2aTYnHNb2hXJTrgAg0QqRieA1kxNo1ud2TbcyxrXMXqu".
+        "/m83YtthBWYXiEdocydX69XqB/6IK+6NqGDZJgofxgjVxGJmP1HONBT651Yj/".
+        "47mRf4+coC3gqvzh6vQ1nCeZyWeVKVuoiiG5INOuwanGJESPDgJrvichI00Czskjah5Ju6/".
+        "tHOez+6p3hciNXUYuq76g6KFkTn4tbWegJd2Hh/bNVYqTX5yDW0MIQQQSoe2i+NLA5xi";
+
+    $record->clear;
+
+    $calc1->code("function evaluate (L1string1) \n return L1string1 \n end");
+    $calc1->return_type('string');
+    $calc1->write;
+
+    $record->find_current_id(2);
+
+    $record->fields->{$string1->id}->set_value($long_string);
+    $record->write(no_alerts => 1);
+
+    is $record->fields->{$string1->id}->as_string, $long_string, "String value set correctly on long string input";
+    is $record->fields->{$calc1->id}->as_string, $long_string, "Calc value set correctly on long string input";
+
+    my $has_cache = grep {$_ eq $long_string} map { $_->value_text } $urs->all;
+
+    ok(!$has_cache, "Value not in cache");
+}
+
 done_testing();

@@ -122,6 +122,8 @@ sub _write_unique
     my $schema = $self->schema;
     if (my $table = $self->column->table_unique)
     {
+        # Return and don't write the cache if the value is over 250 characters
+        return if (grep { length($_) > 250 } values %values);
         $schema->storage->svp_begin("sp_uq_calc");
         try {
             $schema->resultset($table)->create({
@@ -162,8 +164,6 @@ sub write_cache
     my $formatter = $self->schema->storage->datetime_parser;
 
     my @values = sort @{$self->value} if defined $self->value->[0];
-    # If the length is greater than 250 characters do not insert it to the cache table
-    return if grep { $_ > 250 } map { length($_) } @values;
 
     # We are generally already in a transaction at this point, but
     # start another one just in case
