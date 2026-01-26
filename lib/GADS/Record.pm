@@ -2733,7 +2733,7 @@ sub pdf
         security_marking  => $self->layout->security_marking
     );
 
-    my $pdf = $generator->build(title => "Record-" . $self->current_id . ".pdf");
+    my $pdf = $generator->build(title => "Record " . $self->current_id);
 
     return $pdf;
 }
