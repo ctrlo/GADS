@@ -201,6 +201,9 @@ is_deeply([map $_->value_int, $urs->all], $expected, "Correct values for cached 
     is $record->fields->{$string1->id}->as_string, $long_string, "String value set correctly on long string input";
     is $record->fields->{$calc1->id}->as_string, $long_string, "Calc value set correctly on long string input";
 
+    # For some reason, this is not removing (all of) the old cached values - this shows the values as `Bar8` still being there
+    # diag "Cached values: " . join(", ", map { $_->value_text } $urs->all);
+
     my $has_cache = grep {$_ eq $long_string} map { $_->value_text } $urs->all;
 
     ok(!$has_cache, "Value not in cache");
