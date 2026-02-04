@@ -17,15 +17,6 @@ class Logging {
             location.hostname.endsWith('.peek.digitpaint.nl');
     }
 
-    log(...message) {
-        if (this.allowLogging) {
-            console.log(...message)
-        } else {
-            const msg = this.formatMessage('log', ...message)
-            uploadMessage(msg)
-        }
-    }
-
     /**
      * Logs a message to the console or uploads it to the server based on the environment.
      * @param  {...any} message - The message to log
@@ -99,7 +90,6 @@ class Logging {
         return output;
     }
 }
-
 
 /**
  * Singleton instance of the Logging class for use throughout the application.
