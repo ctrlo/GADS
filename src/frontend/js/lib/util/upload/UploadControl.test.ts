@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { Uploader, XmlHttpRequestLike } from './UploadControl';
-import { initGlobals, MockXhr } from '../../../../testing/globals.definitions';
+import { initGlobals, MockXhr } from 'testing/globals.definitions';
 
 describe('UploadControl', () => {
     let mockXhr: XmlHttpRequestLike | null;
