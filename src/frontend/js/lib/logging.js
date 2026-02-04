@@ -91,7 +91,6 @@ class Logging {
     }
 }
 
-
 /**
  * Singleton instance of the Logging class for use throughout the application.
  * @type {Logging}
