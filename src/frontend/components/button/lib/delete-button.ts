@@ -18,15 +18,16 @@ export default function createDeleteButton(element: JQuery<HTMLElement>) {
 
         try {
             if (!id || !target || !toggle) {
-                throw 'Delete button should have data attributes id, toggle and target!'
+                throw new Error('Delete button should have data attributes id, toggle and target!')
             } else if ($deleteModal.length === 0) {
                 throw `There is no modal with id: ${target}`
             }
         } catch (e) {
             logging.error(e)
-            this.el.on('click', function (e: JQuery.ClickEvent) {
+            element.on('click', function (e: JQuery.ClickEvent) {
                 e.stopPropagation()
             });
+            if(window.test) throw e;
         }
 
         $deleteModal.find('.modal-title').text(modalTitle)

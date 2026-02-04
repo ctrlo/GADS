@@ -1,8 +1,9 @@
-import "../../../../../testing/globals.definitions";
+import { describe, it, expect, jest } from '@jest/globals';
 import FileDrag from './filedrag';
 
+// Test class implementation to expose private methods for testing
 class FileDragTest extends FileDrag {
-    constructor(element, onDrop?: (files: FileList | File) => void) {
+    constructor(element: HTMLElement, onDrop: (files: File, index?: number, length?: number) => void = ()=>{}) {
         super(element, { debug: true }, onDrop);
     }
 
@@ -100,7 +101,7 @@ describe('FileDrag class tests', () => {
 
     it('triggers the event as expected when a file is dropped', () => {
         const child = createBaseDOM();
-        const dropFunction = jest.fn((files) => {
+        const dropFunction = jest.fn((files: File) => {
             const myFile = files;
             expect(myFile).toBeDefined();
             expect(myFile.name).toBe('test.txt');
