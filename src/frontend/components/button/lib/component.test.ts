@@ -1,19 +1,19 @@
-import "../../../testing/globals.definitions";
+import { describe, it, expect } from "@jest/globals"
 import ButtonComponent from './component';
 
 describe("Button Component", () => {
     const buttonDefinitions = [
-        {name: "report", class: "btn-js-report"},
-        {name: "more info", class: "btn-js-more-info"},
-        {name: "delete", class: "btn-js-delete"},
-        {name: "submit field", class: "btn-js-submit-field"},
-        {name: "add all fields", class: "btn-js-toggle-all-fields"},
-        {name: "submit draft record", class: "btn-js-submit-draft-record"},
-        {name: "submit record", class: "btn-js-submit-record"},
-        {name: "save view", class: "btn-js-save-view"},
-        {name: "show blank", class: "btn-js-show-blank"},
-        {name: "curval remove", class: "btn-js-curval-remove"},
-        {name: "remove unload", class: "btn-js-remove-unload"}
+        { name: "report", class: "btn-js-report" },
+        { name: "more info", class: "btn-js-more-info" },
+        { name: "delete", class: "btn-js-delete" },
+        { name: "submit field", class: "btn-js-submit-field" },
+        { name: "add all fields", class: "btn-js-toggle-all-fields" },
+        { name: "submit draft record", class: "btn-js-submit-draft-record" },
+        { name: "submit record", class: "btn-js-submit-record" },
+        { name: "save view", class: "btn-js-save-view" },
+        { name: "show blank", class: "btn-js-show-blank" },
+        { name: "curval remove", class: "btn-js-curval-remove" },
+        { name: "remove unload", class: "btn-js-remove-unload" }
     ];
 
     it("should not create a button with an invalid type", () => {
@@ -30,7 +30,7 @@ describe("Button Component", () => {
         expect(button.linkedClasses).toStrictEqual([]);
     });
 
-    for(const buttonDefinition of buttonDefinitions) {
+    for (const buttonDefinition of buttonDefinitions) {
         it(`Should create a ${buttonDefinition.name} button`, () => {
             const buttonElement = document.createElement('button');
             buttonElement.classList.add(buttonDefinition.class);
