@@ -17,15 +17,6 @@ class Logging {
             location.hostname.endsWith('.peek.digitpaint.nl');
     }
 
-    log(...message) {
-        if (this.allowLogging) {
-            console.log(...message)
-        } else {
-            const msg = this.formatMessage('log', ...message)
-            uploadMessage(msg)
-        }
-    }
-
     /**
      * Logs a message to the console or uploads it to the server based on the environment.
      * @param  {...any} message - The message to log
@@ -34,8 +25,8 @@ class Logging {
         if (this.allowLogging) {
             console.log(...message);
         } else {
-            const message = this.formatMessage('log', ...message);
-            uploadMessage(message);
+            const msg = this.formatMessage('log', ...message);
+            uploadMessage(msg);
         }
     }
 
@@ -47,8 +38,8 @@ class Logging {
         if (this.allowLogging) {
             console.info(...message);
         } else {
-            const message = this.formatMessage('info', ...message);
-            uploadMessage(message);
+            const msg = this.formatMessage('info', ...message);
+            uploadMessage(msg);
         }
     }
 
@@ -60,8 +51,8 @@ class Logging {
         if (this.allowLogging) {
             console.warn(...message);
         } else {
-            const message = this.formatMessage('warn', ...message);
-            uploadMessage(message);
+            const msg = this.formatMessage('warn', ...message);
+            uploadMessage(msg);
         }
     }
 
@@ -73,8 +64,8 @@ class Logging {
         if (this.allowLogging) {
             console.error(...message);
         } else {
-            const message = this.formatMessage('error', ...message);
-            uploadMessage(message);
+            const msg = this.formatMessage('error', ...message);
+            uploadMessage(msg);
         }
     }
 
@@ -98,7 +89,6 @@ class Logging {
         return output;
     }
 }
-
 
 /**
  * Singleton instance of the Logging class for use throughout the application.
