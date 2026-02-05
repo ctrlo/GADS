@@ -19,6 +19,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "y_axis",
   { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
+  "y_axis_link",
+  { data_type => "integer", is_foreign_key => 1, is_nullable => 1 },
   "y_axis_stack",
   { data_type => "varchar", is_nullable => 1, size => 45 },
   "y_axis_label",
@@ -130,6 +132,18 @@ __PACKAGE__->belongs_to(
   "y_axis",
   "GADS::Schema::Result::Layout",
   { id => "y_axis" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+__PACKAGE__->belongs_to(
+  "y_axis_link",
+  "GADS::Schema::Result::Layout",
+  { id => "y_axis_link" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",

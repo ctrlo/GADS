@@ -89,4 +89,20 @@ is($records->count, 4, "Correct number of records to begin");
 is(@{$records->results}, 4, "Correct number of records to begin");
 is($records->results->[0]->current_id, 2, "Correct first record");
 
+# Check record retrieved from GADS::Records
+my $live_version = $records->results->[3];
+is($live_version->current_id, 1, "Live version in correct location of sort");
+is($live_version->fields->{$string1->id}->as_string, 'Foo5', "Correct written data");
+is($live_version->fields->{$date1->id}->as_string, '2004-01-01', "Unapproved data still previous version");
+
+# Check record retrieved from GADS::Record
+$live_version = GADS::Record->new(
+    user    => $sheet->user,
+    layout  => $layout,
+    schema  => $schema,
+);
+$live_version->find_current_id(1);
+is($live_version->fields->{$string1->id}->as_string, 'Foo5', "Correct written data");
+is($live_version->fields->{$date1->id}->as_string, '2004-01-01', "Unapproved data still previous version");
+
 done_testing();

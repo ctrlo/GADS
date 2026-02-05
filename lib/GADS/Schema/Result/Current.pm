@@ -18,6 +18,8 @@ __PACKAGE__->add_columns(
   { data_type => "bigint", is_auto_increment => 1, is_nullable => 0 },
   "serial",
   { data_type => "bigint", is_nullable => 1 },
+  "current_version_id",
+  { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "parent_id",
   { data_type => "bigint", is_foreign_key => 1, is_nullable => 1 },
   "instance_id",
@@ -52,6 +54,31 @@ __PACKAGE__->has_many(
   "GADS::Schema::Result::AlertSend",
   { "foreign.current_id" => "self.id" },
   { cascade_copy => 0, cascade_delete => 0 },
+);
+
+__PACKAGE__->belongs_to(
+  "current_version",
+  "GADS::Schema::Result::Record",
+  { id => "current_version_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
+);
+
+# See comments below regarding record_single_alternative
+__PACKAGE__->belongs_to(
+  "current_version_alternative",
+  "GADS::Schema::Result::Record",
+  { id => "current_version_id" },
+  {
+    is_deferrable => 1,
+    join_type     => "LEFT",
+    on_delete     => "NO ACTION",
+    on_update     => "NO ACTION",
+  },
 );
 
 __PACKAGE__->has_many(

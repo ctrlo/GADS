@@ -68,7 +68,7 @@
         END;
     
         table_columns.push({
-          name = col.id,
+          name = col.full_id,
           title = col.name,
           type = col.type,
           orderable = 1,

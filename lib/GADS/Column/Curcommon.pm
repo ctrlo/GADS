@@ -119,7 +119,14 @@ has '+use_id_in_filter' => (
 
 sub tjoin
 {   my ($self, %options) = @_;
-    $self->make_join(map { $_->tjoin(already_seen => $options{already_seen}) } grep { !$_->internal } @{$self->curval_fields_retrieve(%options)});
+    $self->make_join(
+        { join_current_version => $options{join_current_version} },
+        map {
+            $_->tjoin(already_seen => $options{already_seen})
+        } grep {
+            !$_->internal
+        } @{$self->curval_fields_retrieve(%options)}
+    );
 }
 
 sub _build_fetch_with_record
@@ -225,16 +232,6 @@ sub curval_fields_retrieve
 sub curval_fields_all
 {   my $self = shift;
     [ map { $self->layout_parent->column($_, permission => 'read') } @{$self->curval_field_ids_all} ];
-}
-
-sub sort_columns
-{   my $self = shift;
-    map { $_->sort_columns } @{$self->curval_fields};
-}
-
-sub sort_parent
-{   my $self = shift;
-    $self; # This field is the parent for sort columns
 }
 
 # Does this column reference the field?
