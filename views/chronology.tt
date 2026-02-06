@@ -1,44 +1,15 @@
 [%
-  PROCESS snippets/datum.tt;
-  PROCESS snippets/record_readmore.tt;
-
   # add standardized page header
   INCLUDE layouts/page_header.tt title = "Chronology of edits for record " _ record.current_id;
 %]
 
 <div class="content-block__main">
   <div class="content-block__main-content">
-    [%
-      FOREACH version IN record.chronology;
-        initial         = loop.first ? 1 : 0;
-        action_datetime = version.datetime.as_string;
-        action_type     = initial ? 'created' : 'updated';
-        action_by       = version.editor.id ? " by " _ version.editor.as_string : '';
-    
-    %]
-    <div class="card card--header">
-      <h3 class="card__header">
-        <span> [%  action_datetime _ " - " _ " record " _ action_type _ action_by | html %] </span>
-      </h3>
-    
-      <div class="card__body row">
-        <div class="card__content">
-          <div class="list list--vertical list--key-value list--no-borders">
-            <ul class="list__items">
-              [%
-                FOREACH field IN version.changed;
-                  label_changed_to = field.type == "curval" OR initial ? '' : 'changed to ';
-              %]
-              <li class="list__item ">
-                <span class="list__key"> [% field.name | html %] </span>
-                <span class="list__value"> [% label_changed_to; render_datum(field); %]  </span>
-              </li>
-              [% END %]
-            </ul>
-          </div>
-        </div>
-      </div>
+    <div class="chronology"></div>
+    <div class="chronology_spinner">
+      <div class="spinner-border text-primary" role="status"></div>
+      <div class="h1 font-weight-bolder ml-2 mb-0 text-secondary">Loading...</div>
     </div>
-    [% END %]
+    <button class="btn btn-default btn-js-load-chronology" data-record-id="[% record.current_id %]">Load more</button>
   </div>
 </div>

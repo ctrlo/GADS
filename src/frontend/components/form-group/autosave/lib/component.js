@@ -11,7 +11,7 @@ class AutosaveComponent extends AutosaveBase {
    */
   async initAutosave() {
     const $field = $(this.element);
-    const self = this;
+    const self = this; // eslint-disable-line @typescript-eslint/no-this-alias
     if ($field.data('is-readonly')) return;
 
     // For each field, when it changes save the value to the local storage
