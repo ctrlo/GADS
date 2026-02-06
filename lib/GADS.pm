@@ -2675,13 +2675,17 @@ prefix '/:layout_name' => sub {
 
             if (query_parameters->get('curval_record_id'))
             {
+                my $curval = schema->resultset('Layout')->find(query_parameters->get('curval_layout_id'));
                 $params->{curval_layout_id} = query_parameters->get('curval_layout_id');
                 $params->{curval_record_id} = query_parameters->get('curval_record_id');
+                $params->{parent_record_id} = query_parameters->get('parent_record_id');
+                $params->{parent_field_name} = $curval->name;
+                $params->{hide_view_menu} = 1;
             }
 
             my $records = GADS::Records->new(%params);
 
-            $records->view($view);
+            $records->view(query_parameters->get('curval_record_id') ? undef : $view);
             $records->rows($rows);
             $records->page($page);
             $records->sort(session 'sort');
