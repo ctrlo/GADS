@@ -4,7 +4,7 @@
       <ul class="list__items">
       [% IF hide_view_menu %]
         <li class="list__item text-primary font-weight-bold">
-            <p>Records from field "[% parent_field_name %]" on record [% parent_record_id %]</p>
+            <p>Records from field "[% parent_field_name | html %]" on record [% parent_record_id | html %]</p>
         </li>
       [% ELSE %]
         <li class="list__item ">
