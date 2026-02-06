@@ -4,7 +4,7 @@
       <ul class="list__items">
       [% IF hide_view_menu %]
         <li class="list__item text-primary font-weight-bold">
-            <p>Linked Child Records</p>
+            <p>Records for curval ([% curval_layout_id %]) on record [% current %]</p>
         </li>
       [% ELSE %]
         <li class="list__item ">

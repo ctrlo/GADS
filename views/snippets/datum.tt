@@ -37,8 +37,8 @@
         [% ELSE %]
             [% curval.links.size %] 
         [% END %]
-            row[%IF curval.links.size != 1%]s[%END%].</em>
-            <a href="/[% curval.parent_layout_identifier %]/data?curval_record_id=[% curval.record_id %]&curval_layout_id=[% curval.column_id %]" target="_blank">view all</a>)</p>
+            row[%IF curval.links.size != 1%]s[%END%].</em>|
+            <a href="/[% curval.parent_layout_identifier %]/data?curval_record_id=[% curval.record_id %]&curval_layout_id=[% curval.column_id %]&current=[% cur_id %]" target="_blank">view all</a>)</p>
     [% END %]
 [% END %]
 

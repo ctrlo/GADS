@@ -2678,6 +2678,7 @@ prefix '/:layout_name' => sub {
                 $params->{curval_layout_id} = query_parameters->get('curval_layout_id');
                 $params->{curval_record_id} = query_parameters->get('curval_record_id');
                 $params->{hide_view_menu} = 1;
+                $params->{current} = query_parameters->get('current') // 0;            
             }
 
             my $records = GADS::Records->new(%params);
