@@ -9,6 +9,8 @@ declare global {
                 treeApi: string;
             }
         }
+        // Fix the undefined function while we're here
+        UpdateFilter?: (filterEl:JQuery<HTMLElement>, ev:JQuery.ClickEvent) => void;
     }
     interface JQuery<TElement = HTMLElement> {
         queryBuilder(operation: string): JQuery<TElement>;
@@ -34,7 +36,7 @@ export default class SubmitFieldButton {
 
             const $displayConditionsBuilderEl = $('#displayConditionsBuilder');
             //Bit of typecasting here, purely because the queryBuilder plugin doesn't have types
-            const res = $displayConditionsBuilderEl.length && $displayConditionsBuilderEl.queryBuilder('getRules');
+            const res = $displayConditionsBuilderEl.length && $displayConditionsBuilderEl.queryBuilder('getRules', {allow_invalid: true});
             const peopleConditionsFieldEl = $('.people-filter');
             const $peopleConditionsFieldRes = peopleConditionsFieldEl.length && $('#field_type').val() == 'person' && peopleConditionsFieldEl.queryBuilder('getRules');
             const $displayConditionsField = $('#displayConditions');
@@ -95,9 +97,7 @@ export default class SubmitFieldButton {
                 });
             }
 
-            // @ts-expect-error - This is a global function
             if (bUpdateFilter && window.UpdateFilter) {
-                // @ts-expect-error - This is a global function
                 window.UpdateFilter($filterEl, ev);
             }
 
@@ -105,8 +105,27 @@ export default class SubmitFieldButton {
                 window.UpdatePeopleFilter(peopleConditionsFieldEl, ev);
             }
 
-            if (bUpdateDisplayConditions) {
+            if (bUpdateDisplayConditions && res && res.valid) {
                 $displayConditionsField.val(JSON.stringify(res, null, 2));
+            } else if (res) {
+                /*
+                 * This is to fix and mitigate empty rules - for some reason this is behaving differently and a regressive bug has been
+                 * re-introduced where empty rules are being allowed, and this causes the display conditions to be lost.
+                 * I would try to find the original cause, but I think this is actually a "better" solution as it fixes the issue
+                 * and allows for better handling of invalid rules, thereby removing the possibility of losing data.
+                 */
+                const {rules} = res;
+                console.log("Original rules:", rules);
+                const fixedRules = rules.filter((rule) => !Object.values(rule).some((value) => !value));
+                console.log("Fixed rules:", fixedRules);
+                res.rules = fixedRules;
+                $displayConditionsBuilderEl.queryBuilder('setRules', res);
+                if(!$displayConditionsBuilderEl.queryBuilder('validate')) {
+                    alert("The display conditions are invalid. Please fix them before submitting the form.");
+                    ev.preventDefault();
+                } else {
+                    $displayConditionsField.val(JSON.stringify(res, null, 2));
+                }
             }
 
             /* By default, if the permissions datatable is paginated, then the
