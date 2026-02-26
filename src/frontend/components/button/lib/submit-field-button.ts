@@ -11,8 +11,6 @@ declare global {
                 treeApi: string;
             }
         }
-        // Fix the undefined function while we're here
-        UpdateFilter?: (filterEl:JQuery<HTMLElement>, ev:JQuery.ClickEvent) => void;
     }
     interface JQuery<TElement = HTMLElement> {
         queryBuilder(operation: string): JQuery<TElement>;
@@ -102,7 +100,9 @@ export default class SubmitFieldButton {
                 });
             }
 
+            // @ts-expect-error - This is a global function
             if (bUpdateFilter && window.UpdateFilter) {
+                // @ts-expect-error - This is a global function
                 window.UpdateFilter($filterEl, ev);
             }
 
