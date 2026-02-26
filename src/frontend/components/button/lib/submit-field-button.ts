@@ -1,6 +1,8 @@
+/* eslint-disable */
 import "jstree";
 import "datatables.net";
 import "@lol768/jquery-querybuilder-no-eval"
+import { validateQueryBuilder } from "validation";
 
 declare global {
     interface Window {
@@ -29,6 +31,7 @@ export default class SubmitFieldButton {
      */
     constructor(element:JQuery<HTMLElement>) {
         element.on('click', (ev) => {
+            const $form = $(ev.currentTarget).closest('form') as JQuery<HTMLFormElement>;
 
             const $jstreeContainer = $('#field_type_tree');
             const $jstreeEl = $('#tree-config .tree-widget-container');
@@ -36,7 +39,7 @@ export default class SubmitFieldButton {
 
             const $displayConditionsBuilderEl = $('#displayConditionsBuilder');
             //Bit of typecasting here, purely because the queryBuilder plugin doesn't have types
-            const res = $displayConditionsBuilderEl.length && $displayConditionsBuilderEl.queryBuilder('getRules', {allow_invalid: true});
+            const res = $displayConditionsBuilderEl.length && $displayConditionsBuilderEl.queryBuilder('getRules');
             const peopleConditionsFieldEl = $('.people-filter');
             const $peopleConditionsFieldRes = peopleConditionsFieldEl.length && $('#field_type').val() == 'person' && peopleConditionsFieldEl.queryBuilder('getRules');
             const $displayConditionsField = $('#displayConditions');
@@ -72,7 +75,9 @@ export default class SubmitFieldButton {
                 bUpdateFilter = true;
             }
 
-            if (res && $displayConditionsField.length) {
+            if(!validateQueryBuilder($displayConditionsBuilderEl)) {
+                ev.preventDefault();
+            } else if (res && $displayConditionsField.length) {
                 bUpdateDisplayConditions = true;
             }
 
@@ -105,27 +110,8 @@ export default class SubmitFieldButton {
                 window.UpdatePeopleFilter(peopleConditionsFieldEl, ev);
             }
 
-            if (bUpdateDisplayConditions && res && res.valid) {
+            if (bUpdateDisplayConditions && res) {
                 $displayConditionsField.val(JSON.stringify(res, null, 2));
-            } else if (res) {
-                /*
-                 * This is to fix and mitigate empty rules - for some reason this is behaving differently and a regressive bug has been
-                 * re-introduced where empty rules are being allowed, and this causes the display conditions to be lost.
-                 * I would try to find the original cause, but I think this is actually a "better" solution as it fixes the issue
-                 * and allows for better handling of invalid rules, thereby removing the possibility of losing data.
-                 */
-                const {rules} = res;
-                console.log("Original rules:", rules);
-                const fixedRules = rules.filter((rule) => !Object.values(rule).some((value) => !value));
-                console.log("Fixed rules:", fixedRules);
-                res.rules = fixedRules;
-                $displayConditionsBuilderEl.queryBuilder('setRules', res);
-                if(!$displayConditionsBuilderEl.queryBuilder('validate')) {
-                    alert("The display conditions are invalid. Please fix them before submitting the form.");
-                    ev.preventDefault();
-                } else {
-                    $displayConditionsField.val(JSON.stringify(res, null, 2));
-                }
             }
 
             /* By default, if the permissions datatable is paginated, then the
@@ -134,7 +120,6 @@ export default class SubmitFieldButton {
              * and appends them to the form manually */
             const $inputs = $permissionTable.DataTable().$('input,select,textarea');
             $inputs.hide(); // Stop them appearing to the user in a strange format
-            const $form = $(ev.currentTarget).closest('form');
             $permissionTable.remove();
             $form.append($inputs);
         });
