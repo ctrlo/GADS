@@ -1,4 +1,25 @@
 # GADS Changelist
+--------
+**Version**: 2.8.0
+**Released**: 27-09-2026
+
+## Features
+
+- Default PDF Reports now use the newer Report functionality
+
+## Fixes
+
+- Autorecover is no longer as invasive and has been replaced with an alert with clearer wording
+- View all links now open a default view that shows all relevant values
+- There is clearer demarcation between multiple values in text fields
+- When creating a view, the name can no longer consist of only whitespace characters
+
+--------
+
+**Version**: 2.7.4
+**Released**: 08-09-2025
+
+- Permission fix for hidden fields
 
 --------
 
