@@ -2,9 +2,15 @@
   <div class="content-block__navigation-left">
     <div class="list list--horizontal">
       <ul class="list__items">
+      [% IF hide_view_menu %]
+        <li class="list__item text-primary font-weight-bold">
+            <p>Records from field "[% parent_field_name | html %]" on record [% parent_record_id | html %]</p>
+        </li>
+      [% ELSE %]
         <li class="list__item ">
           [% INCLUDE navigation/dropdown_select_view.tt %]
         </li>
+      [% END %]
         
         <li class="list__item ">
           [%
@@ -49,14 +55,18 @@
         INCLUDE navigation/dropdown_view_limits.tt;
       END;
 
-      INCLUDE navigation/dropdown_manage_views.tt;
+      UNLESS hide_view_menu;
+        INCLUDE navigation/dropdown_manage_views.tt;
+      END;
 
       IF viewtype == "graph";
         INCLUDE navigation/dropdown_manage_graphs.tt;
       END;
     
-      INCLUDE navigation/dropdown_actions.tt;
-    
+      UNLESS hide_view_menu;
+        INCLUDE navigation/dropdown_actions.tt;
+      END;
+
       IF page == "data_timeline" AND ! layout.no_download_pdf;
         INCLUDE navigation/dropdown_download_timeline.tt;
       END;

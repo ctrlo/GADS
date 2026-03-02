@@ -42,13 +42,16 @@ has '+table' => (
 
 # Same as Column::Curval
 sub make_join
-{   my ($self, @joins) = @_;
+{   my ($self, $options, @joins) = @_;
+    my $join_current_version = $options->{join_current_version};
     return $self->field
         if !@joins;
     +{
         $self->field => {
             value => {
-                record_single => ['record_later', @joins],
+                $join_current_version
+                    ? (current_version => [@joins])
+                    : (record_single => ['record_later', @joins])
             }
         }
     };

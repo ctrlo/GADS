@@ -1948,8 +1948,10 @@ any qr{/(record|history|purge|purgehistory)/([0-9]+)} => require_login sub {
 
     if (defined param('pdf') && !$record->layout->no_download_pdf)
     {
-        my $pdf = $record->pdf->content;
-        return send_file(\$pdf, content_type => 'application/pdf', filename => "Record-".$record->current_id.".pdf" );
+        my $site = var 'site'
+            or error __"No site configured";
+        my $pdf = $record->pdf($site)->content;
+        return send_file( \$pdf, content_type => 'application/pdf', filename => "Record-".$record->current_id.".pdf");
     }
 
     if (query_parameters->get('report'))
@@ -2673,13 +2675,17 @@ prefix '/:layout_name' => sub {
 
             if (query_parameters->get('curval_record_id'))
             {
+                my $curval = schema->resultset('Layout')->find(query_parameters->get('curval_layout_id'));
                 $params->{curval_layout_id} = query_parameters->get('curval_layout_id');
                 $params->{curval_record_id} = query_parameters->get('curval_record_id');
+                $params->{parent_record_id} = query_parameters->get('parent_record_id');
+                $params->{parent_field_name} = $curval->name;
+                $params->{hide_view_menu} = 1;
             }
 
             my $records = GADS::Records->new(%params);
 
-            $records->view($view);
+            $records->view(query_parameters->get('curval_record_id') ? undef : $view);
             $records->rows($rows);
             $records->page($page);
             $records->sort(session 'sort');
@@ -2762,7 +2768,6 @@ prefix '/:layout_name' => sub {
             $params->{aggregate}            = $records->aggregate_presentation;
             $params->{columns}              = [ map $_->presentation(
                 group            => $records->is_group,
-                group_col_ids    => $records->group_col_ids,
                 sort             => $records->sort_first,
                 filters          => \@additional_filters,
                 query_parameters => query_parameters,

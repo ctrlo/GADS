@@ -29,6 +29,7 @@ sub presentation {
 
     my $return = {
         id                  => $self->id,
+        full_id             => $self->full_id,
         type                => $self->type,
         name                => $self->name,
         name_short          => $self->name_short,

@@ -50,7 +50,7 @@ has _graph => (
         my $graph = $self->schema->resultset('Graph')->find({
             'me.id' => $self->id
         },{
-            prefetch => [qw/x_axis x_axis_link y_axis group_by/],
+            prefetch => [qw/x_axis x_axis_link y_axis y_axis_link group_by/],
         });
         $graph
             or error __x"Requested graph ID {id} not found", id => $self->id;
@@ -66,6 +66,7 @@ has set_values => (
         $self->x_axis_link($original->{x_axis_link});
         $self->x_axis_grouping($original->{x_axis_grouping});
         $self->y_axis($original->{y_axis});
+        $self->y_axis_link($original->{y_axis_link});
         $self->y_axis_stack($original->{y_axis_stack});
         $self->description($original->{description});
         $self->stackseries($original->{stackseries});
@@ -238,11 +239,36 @@ has as_percent => (
     builder => sub { $_[0]->_graph && $_[0]->_graph->as_percent },
 );
 
+sub set_y_axis
+{   my ($self, $value) = @_;
+    if ($value =~ /^([0-9]+)_([0-9]+)$/)
+    {
+        $self->y_axis($2);
+        $self->y_axis_link($1);
+        return;
+    }
+    $self->y_axis_link(undef);
+    $self->y_axis($value);
+}
+
 has y_axis => (
     is      => 'rw',
     lazy    => 1,
     builder => sub { $_[0]->_graph && $_[0]->_graph->y_axis && $_[0]->_graph->y_axis->id },
 );
+
+has y_axis_link => (
+    is      => 'rw',
+    lazy    => 1,
+    builder => sub { $_[0]->_graph && $_[0]->_graph->y_axis_link && $_[0]->_graph->y_axis_link->id },
+);
+
+sub y_axis_full
+{   my $self = shift;
+    return $self->y_axis_link."_".$self->y_axis
+        if $self->y_axis_link;
+    return $self->y_axis;
+}
 
 has y_axis_label => (
     is      => 'rw',
@@ -338,8 +364,15 @@ sub write
 
     if ($newgraph->{y_axis} = $self->y_axis)
     {
-        $self->layout->column_this_instance($self->y_axis)
-            or error __x"Invalid Y-axis {y_axis}", y_axis => $self->y_axis;
+        if ($self->y_axis_link)
+        {
+            $self->layout->column_this_instance($self->y_axis_link)
+                or error __x"Invalid Y-axis parent {y_axis_link}", y_axis_link => $self->y_axis_link;
+        }
+        else {
+            $self->layout->column_this_instance($self->y_axis)
+                or error __x"Invalid Y-axis {y_axis}", y_axis => $self->y_axis;
+        }
     }
 
     $newgraph->{y_axis_stack}    = $self->y_axis_stack or error __"A valid value is required for Y-axis stacking";
@@ -348,6 +381,7 @@ sub write
 
     $newgraph->{y_axis_stack} eq 'sum' && !$newgraph->{y_axis}
         and error __"Please select a Y-axis";
+    $newgraph->{y_axis_link}     = $self->y_axis_link;
 
     $newgraph->{y_axis_label}    = $self->y_axis_label;
 
@@ -447,6 +481,10 @@ sub import_hash
         old => $self->y_axis_stack, new => $values->{y_axis_stack}, name => $self->title
             if $options{report_only} && $self->y_axis_stack ne $values->{y_axis_stack};
     $self->y_axis_stack($values->{y_axis_stack});
+    notice __x"Updating y_axis_link from {old} to {new} for graph {name}",
+        old => $self->y_axis_link, new => $values->{y_axis_link}, name => $self->title
+            if $options{report_only} && $self->y_axis_link != $values->{y_axis_link};
+    $self->y_axis_link($values->{y_axis_link});
     notice __x"Updating y_axis_label from {old} to {new} for graph {name}",
         old => $self->y_axis_label, new => $values->{y_axis_label}, name => $self->title
             if $options{report_only} && $self->y_axis_label ne $values->{y_axis_label};
@@ -521,6 +559,7 @@ sub export_hash
         title           => $self->title,
         description     => $self->description,
         y_axis          => $self->y_axis,
+        y_axis_link     => $self->y_axis_link,
         y_axis_stack    => $self->y_axis_stack,
         y_axis_label    => $self->y_axis_label,
         x_axis          => $self->x_axis,

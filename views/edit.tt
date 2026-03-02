@@ -349,10 +349,7 @@
 
 [%
   IF editable AND NOT edit_modal;
-    modal_description = "There are unsaved values from the last time you edited
-    " _ layout.record_name_with_article _ ". Would you like to restore the
-    values into this " _ layout.record_name _ "? The values will not be saved
-    until you submit this " _ layout.record_name _ ".";
+    modal_description = "Would you like to restore values to the following fields? The values will not be saved until you submit this " _ layout.record_name _ ".";
 
     INCLUDE wizard/restore_values.tt
       modalId     = "restoreValuesModal"

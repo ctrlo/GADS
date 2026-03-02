@@ -227,5 +227,10 @@ sub _parse_db
     $db_parser->parse_datetime($value);
 }
 
+sub dt_parser
+{   my $self = shift;
+    $self->schema->storage->datetime_parser;
+}
+
 1;
 

@@ -102,3 +102,16 @@ table.table-bordered {
     margin: 0 auto;
   }
 }
+
+.hft-lines {
+  @extend .mb-2;
+
+  &:not(:last-of-type) {
+    @extend .pb-2;
+    @extend .border-bottom
+  }
+}
+
+.text-primary {
+  color: $brand-secundary !important;
+}

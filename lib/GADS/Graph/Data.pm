@@ -339,6 +339,11 @@ sub y_axis_col
     $self->records->layout->column($self->y_axis);
 }
 
+sub y_axis_link_col
+{   my $self = shift;
+    $self->records->layout->column($self->y_axis_link);
+}
+
 sub trend_range_amount
 {   my $self = shift;
     return undef if !$self->x_axis_range;
@@ -403,8 +408,9 @@ sub _build_data
 
     $records->view($self->view);
     push @columns, +{
-        id       => $self->y_axis,
-        operator => $self->y_axis_stack,
+        id        => $self->y_axis,
+        operator  => $self->y_axis_stack,
+        parent_id => $self->y_axis_link, # What the parent curval is, if we're picking a field from within a curval
     } if $self->y_axis;
 
     $records->columns(\@columns);
@@ -473,23 +479,18 @@ sub _build_data
     my ($results, $series_keys, $datemin, $datemax);
     if ($self->trend)
     {
-        # Force current IDs as of today (without rewind set) to be calculated
-        # first, otherwise the current IDs as at the start of the period will
-        # be used
-        $records->generate_cid_query;
-
         my $search = $records->search; # Retain quick search across historical queries
 
         foreach my $x (@x)
         {
-            $records->clear(retain_current_ids => 1); # Retain record IDs across results
+            $records->clear;
             $records->search($search);
 
             # The period to retrieve ($x) will be at the beginning of the
             # period. Move to the end of the period, by adding on one unit
             # (e.g. month) and then moving into the previous day by a second
             my $rewind = $x->clone->add($self->x_axis_grouping_calculated.'s' => 1)->subtract(seconds => 1);
-            $records->rewind($rewind);
+            $records->rewind_values($rewind);
             my $this_results; my $this_series_keys;
             ($this_results, $this_series_keys, $datemin, $datemax) = $self->_records_to_results($records,
                 x_daterange => $x_daterange,
