@@ -21,10 +21,8 @@ window.onerror = function (message: string, source: any, lineno: number, colno: 
     }
 
     const description = createErrorString(message, source, lineno, colno, error)
-    console.error("Script error occurred:", description);
-    const method = 'N/A';
 
-    uploadMessage(description, method)
+    uploadMessage(description)
         .catch(err => {
             console.error("Failed to upload script error:", err);
         });

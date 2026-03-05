@@ -1467,10 +1467,11 @@ get '/api/get_key' => require_login sub {
 post '/api/script_error' => require_login sub {
     my $body = _decode_json_body();
 
-    info "SCRIPT ERROR: " . $body->{url} . " - " . $body->{description};
+    info __x "SCRIPT ERROR: {url} - {description}",
+        url => $body->{url}, description => $body->{description};
 
     content_type 'application/json; charset=UTF-8';
-    return success "Script error logged successfully";
+    return "Script error logged successfully";
 };
 
 sub _success
