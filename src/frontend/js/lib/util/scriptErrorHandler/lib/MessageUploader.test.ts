@@ -17,7 +17,6 @@ describe('MessageUploader', () => {
         expect(uploader.upload).toHaveBeenCalledTimes(1);
         expect(uploader.upload).toHaveBeenCalledWith({
             description: JSON.stringify(messages),
-            method: 'N/A',
             url: 'http://localhost/'
         });
     });
