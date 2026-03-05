@@ -1465,25 +1465,12 @@ get '/api/get_key' => require_login sub {
 };
 
 post '/api/script_error' => require_login sub {
-    my $config = GADS::Config->instance;
-    if($config->has_log_level('SCRIPT')) {
-        my $user = logged_in_user;
-        my $body = _decode_json_body();
+    my $body = _decode_json_body();
 
-        my $logger = GADS::Audit->new(
-            user    => $user,
-            schema  => schema,
-        );
+    info "SCRIPT ERROR: " . $body->{url} . " - " . $body->{description};
 
-        $logger->script_error(%$body);
-
-        content_type 'application/json; charset=UTF-8';
-        return success "Script error logged successfully";
-    }
-    else {
-        status 403;
-        error __"Logging of script errors is not enabled";
-    }
+    content_type 'application/json; charset=UTF-8';
+    return success "Script error logged successfully";
 };
 
 sub _success
@@ -1501,7 +1488,7 @@ sub _decode_json_body
         if request->content_type ne 'application/json';
 
     my $body = try { decode_json request->body }
-        or error __"Failed to decode JSON" . " - " . $@;
+        or error __"Failed to decode JSON";
     $body;
 }
 

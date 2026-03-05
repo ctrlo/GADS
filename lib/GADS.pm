@@ -346,9 +346,6 @@ hook before_template => sub {
     $tokens->{actions} = session 'actions';
     session->delete('actions');
 
-    my $config = GADS::Config->instance;
-    $tokens->{script_debug} = $config->has_log_level('SCRIPT');
-
     # This line used to be pre-request. However, occasionally errors have been
     # experienced with pages not submitting CSRF tokens. I think these may have
     # been race conditions where the session had been destroyed between the

@@ -24,8 +24,6 @@ use Moo;
 
 with 'MooX::Singleton';
 
-sub TO_JSON { shift->gads }
-
 has config => (
     is       => 'rw',
     required => 1,
@@ -129,13 +127,5 @@ sub _build_uploads {
         unless -d $upload_path && -w _;
     $upload_path;
 };
-
-sub has_log_level {
-    my ($self, $level) = @_;
-
-    my $levels =  $self->config->{plugins}->{LogReport}->{session_messages} || [];
-
-    return grep { $_ eq $level } @$levels;
-}
 
 1;
