@@ -118,6 +118,7 @@ for ( map { schema->resultset('Record')->find( $_->record_id ) } @{ $records->re
     )->next;
     $current->update( { current_version_id => $replacement->id } );
 }
+$txn->commit;
 print $log localtime() . " ENDING ROLLBACK\n";
 info scalar( @{ $records->results } ) . " results";
 
