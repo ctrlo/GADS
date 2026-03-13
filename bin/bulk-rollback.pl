@@ -45,8 +45,7 @@ else {
     $rset_view = schema->resultset('View')->find($view_id);
 }
 
-say "Unable to find view with "
-  . ( $view_id ? "id $view_id" : "name $view_name" )
+say "Unable to find view with " . ( $view_id ? "id $view_id" : "name $view_name" )
   unless $rset_view;
 exit 1 unless $rset_view;
 
@@ -87,8 +86,7 @@ unlink 'rollback.log' if -e 'rollback.log';
 open my $log, '>', 'rollback.log' or die "Could not open log file: $!";
 
 print $log localtime() . " STARTING ROLLBACK\n";
-for ( map { schema->resultset('Record')->find( $_->record_id ) }
-    @{ $records->results } )
+for ( map { schema->resultset('Record')->find( $_->record_id ) } @{ $records->results } )
 {
     my $id         = $_->id;
     my $current_id = $_->current_id;
