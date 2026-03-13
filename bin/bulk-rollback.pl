@@ -29,9 +29,8 @@ GetOptions(
 );
 
 # We only want one of view_id or view_name, not both or neither
-say "Usage $0 (--view_id=<id>|--view_name=<name>)"
+error "Usage $0 (--view_id=<id>|--view_name=<name>)"
   if ( !$view_id && !$view_name ) || ( $view_id && $view_name );
-exit 1 if ( !$view_id && !$view_name ) || ( $view_id && $view_name );
 
 GADS::Config->instance( config => config );
 
@@ -45,9 +44,8 @@ else {
     $rset_view = schema->resultset('View')->find($view_id);
 }
 
-say "Unable to find view with " . ( $view_id ? "id $view_id" : "name $view_name" )
+error __x"Unable to find view with {view}", view => ( $view_id ? "id $view_id" : "name $view_name" )
   unless $rset_view;
-exit 1 unless $rset_view;
 
 my $user = schema->resultset('User')->find( { id => $rset_view->user_id } )
   or die "User not found";
@@ -93,7 +91,7 @@ for ( map { schema->resultset('Record')->find( $_->record_id ) } @{ $records->re
     my $created    = $_->created;
     my $createdby  = $_->createdby->email;
     print $log "Record ID $id (current id: $current_id) created at $created by $createdby\n";
-    say "Record ID $id (current id: $current_id) created at $created by $createdby";
+    info "Record ID $id (current id: $current_id) created at $created by $createdby";
     $_->calcvals->delete;
     $_->curvals->delete;
     $_->dateranges->delete;
@@ -121,7 +119,7 @@ for ( map { schema->resultset('Record')->find( $_->record_id ) } @{ $records->re
     $current->update( { current_version_id => $replacement->id } );
 }
 print $log localtime() . " ENDING ROLLBACK\n";
-say scalar( @{ $records->results } ) . " results";
+info scalar( @{ $records->results } ) . " results";
 
 close $log;
 
