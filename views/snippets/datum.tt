@@ -53,14 +53,18 @@
 [% END %]
 
 [% MACRO render_file_datum(file, full_content) BLOCK %]
-    [% FOREACH file IN file.files %]
-        <a href="/file/[% file.id %]">
-            [% IF full_content  AND file.mimetype.match('^image/') %]
-                <img class="autosize" src="/file/[% file.id %]">
-            [% ELSE %]
-                [% file.name | html %]<br>
-            [% END %]
-        </a>
+    [% IF file.purged %]
+        <p><em>File has been purged.</em></p>
+    [% ELSE %]
+      [% FOREACH file IN file.files %]
+          <a href="/file/[% file.id %]">
+              [% IF full_content  AND file.mimetype.match('^image/') %]
+                  <img class="autosize" src="/file/[% file.id %]">
+              [% ELSE %]
+                  [% file.name | html %]<br>
+              [% END %]
+          </a>
+      [% END %]
     [% END %]
 [% END %]
 

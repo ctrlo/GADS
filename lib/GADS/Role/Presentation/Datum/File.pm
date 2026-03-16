@@ -7,7 +7,9 @@ sub presentation {
 
     my $base = $self->presentation_base;
 
+    $base->{purged} = $self->is_purged;
     $base->{files} = $self->files;
+    $base->{purged} = $self->is_purged;
 
     return $base;
 }

@@ -2,6 +2,7 @@
     <h3>Purge field values from records in the current view</h3>
     <p>Select fields to purge within this view.</p>
     <p class="text-danger">WARNING: This is a destructive action and cannot be undone. This will remove all field values from all current and historical versions of the records, and chronology in the selected fields from the current view.</p>
+    <p class="text-danger">Once this action is performed, the record will no longer be editable.</p>
     <input type="hidden" name="csrf_token" value="[% csrf_token %]">
     [%
     # prepare table config
