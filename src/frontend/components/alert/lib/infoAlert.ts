@@ -1,13 +1,12 @@
 import { AlertBase } from './alertBase';
 
 /**
- * An info alert component that extends the AlertBase class.
+ * InfoAlert class represents an informational alert in the application.
  */
 export class InfoAlert extends AlertBase {
     /**
      * Create an instance of InfoAlert.
      * This class extends AlertBase to provide a specific implementation for info alerts.
-     * It uses the AlertType.INFO to set the alert type.
      * @class
      * @public
      * @memberof alert.lib

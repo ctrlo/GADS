@@ -1,16 +1,15 @@
 import { Renderable } from 'util/renderable';
 
 /**
- * A simple button component that can be rendered to the DOM.
- * It accepts text, an onClick handler, and optional CSS classes.
+ * A simple button component that can be rendered to the DOM. It takes a text, an onClick handler, and an optional list of CSS classes.
  */
 export class RenderableButton implements Renderable<HTMLButtonElement> {
     classList: string[] = [];
 
     /**
-     * Create a new RenderableButton.
-     * @param text The button text
-     * @param onClick The click event to fire when the button is clicked
+     * Creates a new RenderableButton instance.
+     * @param text The text to display in the button
+     * @param onClick The onclick listener for when the button is clicked
      * @param classList Any classes to add to the button
      */
     constructor(private readonly text: string, private readonly onClick: (ev: MouseEvent)=>void, ...classList: string[]) {
@@ -18,8 +17,8 @@ export class RenderableButton implements Renderable<HTMLButtonElement> {
     }
 
     /**
-     * Render the button to the DOM.
-     * @returns A button to add to the DOM
+     * Renders the button to an HTMLButtonElement.
+     * @returns A button element to attach to the DOM
      */
     render(): HTMLButtonElement {
         const button = document.createElement('button');

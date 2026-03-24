@@ -1,7 +1,7 @@
 import { AlertBase } from './alertBase';
 
 /**
- * A danger alert component that extends the AlertBase class.
+ * Class representing a danger alert.
  */
 export class DangerAlert extends AlertBase {
     /**
