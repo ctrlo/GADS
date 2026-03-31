@@ -1464,6 +1464,15 @@ get '/api/get_key' => require_login sub {
     }
 };
 
+post '/api/script_error' => require_login sub {
+    my $body = _decode_json_body();
+
+    info __x "SCRIPT ERROR: {url} - {description}",
+        url => $body->{url}, description => $body->{description};
+
+    _success("Script error logged successfully");
+};
+
 sub _success
 {   my $msg = shift;
     send_as JSON => {
