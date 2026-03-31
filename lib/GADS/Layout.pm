@@ -1462,10 +1462,7 @@ has global_view_summary => (
 sub _build_global_view_summary
 {   my $self = shift;
     my @views = $self->schema->resultset('View')->search({
-        -or => [
-            global   => 1,
-            is_admin => 1,
-        ],
+        is_admin    => 1,
         instance_id => $self->instance_id,
     },{
         order_by => 'me.name',
