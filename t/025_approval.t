@@ -89,6 +89,19 @@ is($records->count, 4, "Correct number of records to begin");
 is(@{$records->results}, 4, "Correct number of records to begin");
 is($records->results->[0]->current_id, 2, "Correct first record");
 
+# Check that downloaded records are also as expected
+my @expected = (
+    "2,Foo4,2001-01-01\n",
+    "3,Foo3,2002-01-01\n",
+    "4,Foo2,2003-01-01\n",
+    "1,Foo5,2004-01-01\n",
+);
+
+while (my $line = $records->csv_line)
+{
+    is($line, shift @expected, "Downloaded line correct");
+}
+
 # Check record retrieved from GADS::Records
 my $live_version = $records->results->[3];
 is($live_version->current_id, 1, "Live version in correct location of sort");

@@ -1787,7 +1787,7 @@ sub _build_has_children
     # full list of current IDs
     my $search_query = $self->_resultset_search(
         search               => 1,
-        linked               => 1,
+        linked               => $self->has_linked(search => 1) ? 1 : 0,
         is_group             => 1,
         current_version_only => $self->cvo_values,
     );
