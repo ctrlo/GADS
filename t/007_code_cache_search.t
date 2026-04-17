@@ -13,8 +13,6 @@ use GADS::View;
 use lib 't/lib';
 use Test::GADS::DataSheet;
 
-use Data::Dump qw(pp);
-
 my $long_string = "Y3EucBXt2aTYnHNb2hXJTrgAg0QqRieA1kxNo1ud2TbcyxrXMXqu"
                 . "/m83YtthBWYXiEdocydX69XqB/6IK+6NqGDZJgofxgjVxGJmP1HONBT651Yj/"
                 . "47mRf4+coC3gqvzh6vQ1nCeZyWeVKVuoiiG5INOuwanGJESPDgJrvichI00Czskjah5Ju6/"

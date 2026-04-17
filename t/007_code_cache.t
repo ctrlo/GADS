@@ -181,6 +181,9 @@ is_deeply([map $_->value_int, $urs->all], $expected, "Correct values for cached 
     is_deeply([map $_->value_text, $urs->all], $expected, "Correct values for cached table after change to int");
 }
 
+# Test input of long string values which exceed the length limit for caching.
+# This test checks that the long value is set correctly on the record, and that the cache is updated to remove the
+# old value and not add the new value due to length
 {
     my $long_string = "Y3EucBXt2aTYnHNb2hXJTrgAg0QqRieA1kxNo1ud2TbcyxrXMXqu".
         "/m83YtthBWYXiEdocydX69XqB/6IK+6NqGDZJgofxgjVxGJmP1HONBT651Yj/".
