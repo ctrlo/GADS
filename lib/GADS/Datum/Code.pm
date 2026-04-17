@@ -122,6 +122,8 @@ sub _write_unique
     my $schema = $self->schema;
     if (my $table = $self->column->table_unique)
     {
+        # Return and don't write the cache if the value is over 250 characters
+        return if (grep { length($_) > 250 } values %values);
         $schema->storage->svp_begin("sp_uq_calc");
         try {
             $schema->resultset($table)->create({
