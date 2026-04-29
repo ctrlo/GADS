@@ -43,7 +43,10 @@ export default class SubmitFieldButton {
             const $displayConditionsField = $('#displayConditions');
 
             const $instanceIDField = $('#refers_to_instance_id');
-            const $filterEl = $instanceIDField.length && $(`[data-builder-id='${$instanceIDField.val()}']`);
+            let $filterEl: JQuery<HTMLElement> | undefined = undefined;
+            if($instanceIDField.length) {
+                $filterEl =  $(`[data-builder-id='${$instanceIDField.val()}']`);
+            }
 
             const $permissionTable = $('#default_field_permissions_table');
 
@@ -69,7 +72,7 @@ export default class SubmitFieldButton {
                 bUpdateTree = true;
             }
 
-            if ($instanceIDField.length && !$instanceIDField.prop('disabled') && $filterEl.length) {
+            if ($instanceIDField.length && !$instanceIDField.prop('disabled') && $filterEl && $filterEl.length) {
                 bUpdateFilter = true;
             }
 
@@ -95,7 +98,7 @@ export default class SubmitFieldButton {
                     url: this.getURL(data),
                     data: { data: mytext, csrf_token: data.csrfToken }
                 }).done(() => {
-                     
+
                     alert('Tree has been updated');
                 });
             }

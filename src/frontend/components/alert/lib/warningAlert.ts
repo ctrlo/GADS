@@ -1,4 +1,4 @@
-import { AlertBase } from "./alertBase";
+import { AlertBase } from './alertBase';
 
 export class WarningAlert extends AlertBase {
     /**
@@ -12,6 +12,6 @@ export class WarningAlert extends AlertBase {
      * @param {string} message - The message to be displayed in the info alert.
      */
     constructor(message: string) {
-        super(message, "warning");
+        super(message, 'warning');
     }
 }

@@ -27,8 +27,8 @@ class DisplayConditionsComponent extends Component {
                 { type: 'not_contains', accept_values: true, apply_to: ['string'] }
             ],
             allow_empty: true
-        }).queryBuilder('setRules', builderData.filterBase 
-            ? JSON.parse(atob(builderData.filterBase)) 
+        }).queryBuilder('setRules', builderData.filterBase
+            ? JSON.parse(atob(builderData.filterBase))
             : {rules:[]});
     }
 }

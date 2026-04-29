@@ -1,12 +1,12 @@
-import { uploadMessage } from "util/scriptErrorHandler";
+import { uploadMessage } from 'util/scriptErrorHandler';
 
 class Logging {
     constructor() {
         this.allowLogging =
-                window.test ||
-                location.hostname === 'localhost' ||
-                location.hostname === '127.0.0.1' ||
-                location.hostname.endsWith('.peek.digitpaint.nl');
+            window.test ||
+            location.hostname === 'localhost' ||
+            location.hostname === '127.0.0.1' ||
+            location.hostname.endsWith('.peek.digitpaint.nl');
     }
 
     log(...message) {

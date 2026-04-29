@@ -1,4 +1,4 @@
-import { Uploader } from "util/upload/UploadControl";
+import { Uploader } from 'util/upload/UploadControl';
 
 export const uploadMessage = async (message: string) => {
     const body = {
@@ -24,7 +24,7 @@ export class MessageUploader {
         try {
             return await this.uploader.upload(body);
         } catch (err) {
-            console.error("Failed to upload message:", err);
+            console.error('Failed to upload message:', err);
         }
     }
 }
