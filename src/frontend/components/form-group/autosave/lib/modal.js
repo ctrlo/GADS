@@ -1,4 +1,4 @@
-import { setFieldValues } from "set-field-values";
+import { setFieldValues } from 'set-field-values';
 import AutosaveBase from './autosaveBase';
 import { fromJson } from "util/common";
 import { InfoAlert } from "components/alert/lib/infoAlert";
@@ -8,30 +8,32 @@ import { RenderableButton } from "components/button/lib/RenderableButton";
  * A modal that allows the user to restore autosaved values.
  */
 class AutosaveModal extends AutosaveBase {
-  /**
+    /**
    * @inheritdoc
    */
-  async initAutosave() {
-    const $modal = $(this.element);
-    const $form = $('.form-edit');
+    async initAutosave() {
+        const $modal = $(this.element);
+        const $form = $('.form-edit');
 
-    $modal.find('.btn-js-restore-values').on('click', async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+        $modal.find('.btn-js-restore-values').on('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
 
-      // Hide all the buttons (we don't want any interaction to close the modal or the restore process fails)
-      $modal.find(".modal-footer").find("button").hide();
+            // Hide all the buttons (we don't want any interaction to close the modal or the restore process fails)
+            $modal.find('.modal-footer').find('button')
+                .hide();
 
-      // This need awaiting or it returns before the value is fully set meaning if the recovery is "fast" it will not clear
-      await this.storage.setItem('recovering', true);
-      // Count the curvals so we don't return too early
-      let curvalCount = 0;
-      // Only count changed curvals - as each in the array has it's own event, we count the number of changes, not the number of fields
-      await Promise.all($form.find('.linkspace-field[data-column-type="curval"]').map(async (_, field) => {
-        await this.storage.getItem(this.columnKey($(field))) && (curvalCount += fromJson(await this.storage.getItem(this.columnKey($(field)))).length);
-      }));
+            // This need awaiting or it returns before the value is fully set meaning if the recovery is "fast" it will not clear
+            await this.storage.setItem('recovering', true);
+            // Count the curvals so we don't return too early
+            let curvalCount = 0;
+            // Only count changed curvals - as each in the array has it's own event, we count the number of changes, not the number of fields
+            await Promise.all($form.find('.linkspace-field[data-column-type="curval"]').map(async (_, field) => {
+                if(await this.storage.getItem(this.columnKey($(field))))
+                    (curvalCount += fromJson(await this.storage.getItem(this.columnKey($(field)))).length);
+            }));
 
-      let errored = false;
+            let errored = false;
 
       let $list = $("<ul></ul>");
       const $body = $modal.find(".modal-body");
@@ -115,8 +117,8 @@ class AutosaveModal extends AutosaveBase {
       });
     });
 
-    // Do we need to run an autorecover?
-    const item = await this.storage.getItem(this.table_key);
+        // Do we need to run an autorecover?
+        const item = await this.storage.getItem(this.table_key);
 
     // If there is no item, or there are already alerts, do not show the alert
     if ($('.alert-danger').text() || $('.alert-warning').text() || !item) return;

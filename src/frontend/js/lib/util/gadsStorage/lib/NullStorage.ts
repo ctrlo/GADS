@@ -1,4 +1,4 @@
-import { AppStorage } from "./AppStorage";
+import { AppStorage } from './AppStorage';
 
 /**
  * A storage implementation that does nothing. This is for when the browser does not support encryption.

@@ -13,7 +13,6 @@ import textAreaComponent from "components/form-group/textarea";
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { setFieldValues } from "./set-field-values";
 
-// Mocking jQuery plugins
 declare global {
     interface JQuery<TElement = HTMLElement> {
         renameButton: (options?: any) => JQuery<TElement>;
@@ -21,7 +20,6 @@ declare global {
     }
 }
 
-// Mocking jQuery functions
 (($) => {
     /* @ts-ignore */
     $.fn.renameButton = jest.fn().mockReturnThis();
@@ -29,7 +27,6 @@ declare global {
     $.fn.filedrag = jest.fn().mockReturnThis();
 })(jQuery);
 
-// DOM elements for testing
 const stringDom = `
 <div class="form-group linkspace-field" data-column-id="19" data-column-type="string" data-value-selector=""
     data-show-add="" data-modal-field-ids="" data-curval-instance-name="" data-name="text" data-name-short=""
@@ -783,7 +780,7 @@ describe('setFieldValue', () => {
             selectWidgetComponent(dom);
             document.body.appendChild(dom);
             const field = $(dom);
-            const values = [{ "year": 2024, "month": 11, "day": 12, "hour": 0, "minute": 0, "second": 0, "epoch": 1731369600 }];
+            const values = [{ 'year': 2024, 'month': 11, 'day': 12, 'hour': 0, 'minute': 0, 'second': 0, 'epoch': 1731369600 }];
             setFieldValues(field, values);
             const input = field.find<HTMLInputElement>('input');
             expect(input.val()).toBe(`${values[0].year}-${values[0].month}-${values[0].day}`);
@@ -838,7 +835,7 @@ describe('setFieldValue', () => {
             const inputs = field.find<HTMLInputElement>('input[type="checkbox"]');
             let i = 0;
             inputs.each((_, input) => {
-                expect(Number.parseInt($(input).val() ?? "")).toBe(values[i++].id);
+                expect(Number.parseInt($(input).val() ?? '')).toBe(values[i++].id);
             });
         });
 
@@ -849,7 +846,7 @@ describe('setFieldValue', () => {
             multipleSelectComponent(dom);
             selectWidgetComponent(dom);
             document.body.appendChild(dom);
-            const field = $("#fileDom");
+            const field = $('#fileDom');
             const values = [{ id: 1, filename: 'test' }, { id: 2, filename: 'test1' }];
             setFieldValues(field, values);
             const inputs = field.find('input[type="checkbox"]');
