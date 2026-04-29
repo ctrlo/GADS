@@ -1,7 +1,7 @@
-import { Component } from 'component'
-import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min'
-import 'bootstrap-select/dist/js/bootstrap-select'
-import { refreshSelects } from 'components/form-group/common/bootstrap-select'
+import { Component } from 'component';
+import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min';
+import 'bootstrap-select/dist/js/bootstrap-select';
+import { refreshSelects } from 'components/form-group/common/bootstrap-select';
 
 class DisplayConditionsComponent extends Component {
   constructor(element)  {
@@ -27,10 +27,10 @@ class DisplayConditionsComponent extends Component {
         { type: 'not_contains', accept_values: true, apply_to: ['string'] }
       ],
       allow_empty: true
-    }).queryBuilder('setRules', builderData.filterBase 
-      ? JSON.parse(atob(builderData.filterBase)) 
+    }).queryBuilder('setRules', builderData.filterBase
+      ? JSON.parse(atob(builderData.filterBase))
       : {rules:[]});
   }
 }
 
-export default DisplayConditionsComponent
+export default DisplayConditionsComponent;

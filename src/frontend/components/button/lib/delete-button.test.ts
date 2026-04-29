@@ -1,4 +1,4 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from '@jest/globals';
 import createDeleteButton from './delete-button';
 
 describe('button tests', () => {
@@ -9,8 +9,8 @@ describe('button tests', () => {
         button.setAttribute('data-toggle', 'toggle');
         document.body.appendChild(button);
         const $button = $(button);
-        createDeleteButton($button)
-        expect(() => { $button.trigger('click') }).toThrow('Delete button should have data attributes id, toggle and target!');
+        createDeleteButton($button);
+        expect(() => { $button.trigger('click'); }).toThrow('Delete button should have data attributes id, toggle and target!');
     });
 
     it('should throw on absence of target', () => {
@@ -21,7 +21,7 @@ describe('button tests', () => {
         document.body.appendChild(button);
         const $button = $(button);
         createDeleteButton($button);
-        expect(() => { $button.trigger('click') }).toThrow('Delete button should have data attributes id, toggle and target!');
+        expect(() => { $button.trigger('click'); }).toThrow('Delete button should have data attributes id, toggle and target!');
     });
 
     it('should throw on absence of toggle', () => {
@@ -32,7 +32,7 @@ describe('button tests', () => {
         document.body.appendChild(button);
         const $button = $(button);
         createDeleteButton($button);
-        expect(() => { $button.trigger('click') }).toThrow('Delete button should have data attributes id, toggle and target!');
+        expect(() => { $button.trigger('click'); }).toThrow('Delete button should have data attributes id, toggle and target!');
     });
 
     it('should set the title of the modal', () => {
@@ -51,7 +51,8 @@ describe('button tests', () => {
         const $button = $(button);
         createDeleteButton($button);
         $button.trigger('click');
-        expect($(modal).find('.modal-title').text()).toBe('Delete - title');
+        expect($(modal).find('.modal-title')
+            .text()).toBe('Delete - title');
     });
 
     it('should set the id of the delete button', () => {
@@ -73,6 +74,7 @@ describe('button tests', () => {
         const $button = $(button);
         createDeleteButton($button);
         $button.trigger('click');
-        expect($(modal).find('button[type=submit]').val()).toBe('id');
-    })
+        expect($(modal).find('button[type=submit]')
+            .val()).toBe('id');
+    });
 });

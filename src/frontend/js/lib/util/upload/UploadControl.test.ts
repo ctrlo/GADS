@@ -1,6 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+import { describe, it, expect } from '@jest/globals';
 import { Uploader, XmlHttpRequestLike } from './UploadControl';
+/* @ts-ignore */
 import { initGlobals, MockXhr } from 'testing/globals.definitions';
 
 describe('UploadControl', () => {
@@ -11,12 +12,12 @@ describe('UploadControl', () => {
         initGlobals();
 
         mockXhr = new MockXhr();
-        oldXMLHttpRequest = <any>window.XMLHttpRequest; // eslint-disable-line @typescript-eslint/no-explicit-any
-        window.XMLHttpRequest = <any>(jest.fn(() => mockXhr)); // eslint-disable-line @typescript-eslint/no-explicit-any
+        oldXMLHttpRequest = <any>window.XMLHttpRequest;
+        window.XMLHttpRequest = <any>(jest.fn(() => mockXhr));
     });
 
     afterEach(() => {
-        window.XMLHttpRequest = <any>oldXMLHttpRequest; // eslint-disable-line @typescript-eslint/no-explicit-any
+        window.XMLHttpRequest = <any>oldXMLHttpRequest;
         mockXhr = null;
     });
 
@@ -60,6 +61,7 @@ describe('UploadControl', () => {
     });
 
     it('should use a progress callback', async () => {
+        expect.assertions(2);
         const localMock = mockXhr!;
         const url = 'http://localhost';
         const method = 'POST';
@@ -70,12 +72,11 @@ describe('UploadControl', () => {
             expect(total).toBe(2);
         });
         const promise = uploader.upload(data);
-        const ev: ProgressEvent = {
-            loaded: 1,
-            total: 2,
-        } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+        // This is only a mock, so we don't need to faff with typings too much, as long as it gives the data that's used
+        const ev: ProgressEvent = <any>(new $.Event('progress', { loaded: 1, total: 2, lengthComputable: true }));
         setTimeout(() => {
-            localMock.onprogress && localMock.onprogress(ev);
+            if (localMock.upload?.onprogress)
+                localMock.upload.onprogress(ev);
         }, 500);
         setTimeout(localMock.onreadystatechange!, 1500);
         await promise;

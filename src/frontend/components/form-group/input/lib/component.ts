@@ -1,11 +1,11 @@
-import { Component } from "component";
-import passwordComponent from "./passwordComponent";
-import logoComponent from "./logoComponent";
-import documentComponent from "./documentComponent";
-import fileComponent from "./fileComponent";
-import dateComponent from "./dateComponent";
-import autocompleteComponent from "./autocompleteComponent";
-import { initValidationOnField } from "validation";
+import { Component } from 'component';
+import passwordComponent from './passwordComponent';
+import logoComponent from './logoComponent';
+import documentComponent from './documentComponent';
+import fileComponent from './fileComponent';
+import dateComponent from './dateComponent';
+import autocompleteComponent from './autocompleteComponent';
+import { initValidationOnField } from 'validation';
 
 type ComponentInitializer = (element: JQuery<HTMLElement> | HTMLElement) => void;
 

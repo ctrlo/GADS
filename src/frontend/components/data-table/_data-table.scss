@@ -351,11 +351,9 @@ div.dataTables_wrapper div.dataTables_filter input.form-control {
   }
 }
 
-.dataTables_processing,
-.dt-processing {
-  position: fixed;
-  top: 50%;
-  left: 50%;
+div.dataTables_wrapper div.dataTables_processing,
+div.td-container div.dt-processing {
+  top: 10rem;
 }
 
 table.table-purge {

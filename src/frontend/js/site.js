@@ -1,4 +1,4 @@
-import "regenerator-runtime/runtime.js";
+import 'regenerator-runtime/runtime.js';
 import { initializeRegisteredComponents, registerComponent } from 'component';
 import 'bootstrap';
 import 'components/graph/lib/chart';
@@ -44,8 +44,8 @@ import ButtonComponent from "components/button";
 import SelectAllComponent from "components/select-all";
 import HelpView from "components/help-view";
 import PeopleFilterComponent from "components/form-group/people-filter";
-import handleActions from "util/actionsHandler";
 import FieldLengthComponent from "components/form-group/field-length";
+import handleActions from "util/actionsHandler";
 
 // Register them
 registerComponent(AddTableModalComponent);

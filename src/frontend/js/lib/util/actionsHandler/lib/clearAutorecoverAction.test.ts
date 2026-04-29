@@ -1,6 +1,6 @@
-import { describe, it, expect } from "@jest/globals"
+import { describe, it, expect } from '@jest/globals';
 import { clearAutorecoverAction } from './clearAutorecoverAction';
-import StorageProvider from "../../storageProvider/lib/storageProvider";
+import StorageProvider from '../../storageProvider/lib/storageProvider';
 
 describe('clearAutorecoverAction', () => {
     it('Should not action if layout-identifier is undefined', async () => {
