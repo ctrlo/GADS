@@ -98,5 +98,4 @@ class Logging {
  * @default
  */
 const logging = new Logging();
-
 export { logging };
