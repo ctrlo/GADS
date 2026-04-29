@@ -50,7 +50,6 @@ class DocumentComponent {
             const dragOptions = { allowMultiple: true };
             dropTarget.filedrag(dragOptions).on('fileDrop', ({ file }: FileDropEvent) => {
                 this.handler.clearErrors();
-                logging.info('File dropped', file);
                 this.handleAjaxUpload(url, csrf_token, file, columnId);
             });
         } else {
