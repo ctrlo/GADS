@@ -4,7 +4,6 @@ import Datatable from 'datatables.net-bs4';
 
 describe('helper', () => {
     beforeEach(() => {
-        // create the DOM structure for the tests
         document.body.innerHTML = `
         <table id="target" class="table table-striped">
             <thead>
@@ -26,12 +25,12 @@ describe('helper', () => {
                 </tr>
             </tbody>
         </table>
-        `
+        `;
     });
 
     afterEach(() => {
         document.body.innerHTML = '';
-    })
+    });
 
     it('should add a row to a datatable', () => {
         const target = document.getElementById('target');

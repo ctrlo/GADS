@@ -27,7 +27,7 @@ export default class SubmitFieldButton {
      * Create a submit field button
      * @param element The submit button element
      */
-    constructor(element:JQuery<HTMLElement>) {
+    constructor(element: JQuery<HTMLElement>) {
         element.on('click', (ev) => {
             const $form = $(ev.currentTarget).closest('form') as JQuery<HTMLFormElement>;
 
@@ -43,7 +43,10 @@ export default class SubmitFieldButton {
             const $displayConditionsField = $('#displayConditions');
 
             const $instanceIDField = $('#refers_to_instance_id');
-            const $filterEl = $instanceIDField.length && $(`[data-builder-id='${$instanceIDField.val()}']`);
+            let $filterEl: JQuery<HTMLElement> | undefined = undefined;
+            if($instanceIDField.length) {
+                $filterEl =  $(`[data-builder-id='${$instanceIDField.val()}']`);
+            }
 
             const $permissionTable = $('#default_field_permissions_table');
 
@@ -52,13 +55,13 @@ export default class SubmitFieldButton {
             let bUpdateDisplayConditions = false;
             let bUpdatePeopleFilter = false;
 
-            const $showInEdit = $("#show_in_edit")
+            const $showInEdit = $('#show_in_edit');
             if (($calcCode.length && $calcCode.is(':visible')) && !$showInEdit.val()) {
                 if (!this.errored) {
-                    const error = document.createElement("div");
-                    error.classList.add("form-text", "form-text--error");
-                    error.innerHTML = "Please select the calculation field visibility before submitting the form";
-                    $showInEdit.closest(".form-group").append(error);
+                    const error = document.createElement('div');
+                    error.classList.add('form-text', 'form-text--error');
+                    error.innerHTML = 'Please select the calculation field visibility before submitting the form';
+                    $showInEdit.closest('.form-group').append(error);
                     error.scrollIntoView();
                     this.errored = true;
                 }
@@ -69,7 +72,7 @@ export default class SubmitFieldButton {
                 bUpdateTree = true;
             }
 
-            if ($instanceIDField.length && !$instanceIDField.prop('disabled') && $filterEl.length) {
+            if ($instanceIDField.length && !$instanceIDField.prop('disabled') && $filterEl && $filterEl.length) {
                 bUpdateFilter = true;
             }
 
@@ -79,13 +82,13 @@ export default class SubmitFieldButton {
                 bUpdateDisplayConditions = true;
             }
 
-            if(peopleConditionsFieldEl.length && $peopleConditionsFieldRes) {
+            if (peopleConditionsFieldEl.length && $peopleConditionsFieldRes) {
                 bUpdatePeopleFilter = true;
             }
 
             if (bUpdateTree) {
                 //Bit of typecasting here, purely because the jstree plugin doesn't have types
-                const v = $jstreeEl.jstree(true).get_json('#', {flat: false});
+                const v = $jstreeEl.jstree(true).get_json('#', { flat: false });
                 const mytext = JSON.stringify(v);
                 const data = $jstreeEl.data();
 
@@ -93,10 +96,10 @@ export default class SubmitFieldButton {
                     async: false,
                     type: 'POST',
                     url: this.getURL(data),
-                    data: {data: mytext, csrf_token: data.csrfToken}
+                    data: { data: mytext, csrf_token: data.csrfToken }
                 }).done(() => {
-                    // eslint-disable-next-line no-alert
-                    alert('Tree has been updated')
+
+                    alert('Tree has been updated');
                 });
             }
 
@@ -106,7 +109,7 @@ export default class SubmitFieldButton {
                 window.UpdateFilter($filterEl, ev);
             }
 
-            if(bUpdatePeopleFilter && window.UpdatePeopleFilter) {
+            if (bUpdatePeopleFilter && window.UpdatePeopleFilter) {
                 window.UpdatePeopleFilter(peopleConditionsFieldEl, ev);
             }
 
@@ -130,11 +133,12 @@ export default class SubmitFieldButton {
      * @param data The data for the tree
      * @returns The URL for the tree API
      */
-    private getURL(data:JQuery.PlainObject):string {
-        if (window.test) return "";
+    private getURL(data: JQuery.PlainObject): string {
+        /* @ts-expect-error - This is a global variable injected at runtime */
+        if (window.test) return '';
 
         const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi;
 
-        return devEndpoint ? devEndpoint : `/${data.layoutIdentifier}/tree/${data.columnId}`
+        return devEndpoint ? devEndpoint : `/${data.layoutIdentifier}/tree/${data.columnId}`;
     }
 }
