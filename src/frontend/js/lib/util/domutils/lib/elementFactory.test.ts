@@ -1,5 +1,5 @@
-import { createElement } from "./elementFactory";
-import { describe, it, expect } from "@jest/globals"
+import { createElement } from './elementFactory';
+import { describe, it, expect } from '@jest/globals';
 
 describe('Element factory tests', () => {
     it('Should create a basic DIV element', () => {
@@ -10,7 +10,7 @@ describe('Element factory tests', () => {
 
     it('Should create a DIV element with an ID', () => {
         const el = document.createElement('div');
-        el.id = "testElement";
+        el.id = 'testElement';
         const expected = $(el);
         const result = createElement('div', { id: 'testElement' });
         expect(result).toEqual(expected);
@@ -18,7 +18,7 @@ describe('Element factory tests', () => {
 
     it('Should create a DIV element with a Class', () => {
         const el = document.createElement('div');
-        el.classList.add("testClass");
+        el.classList.add('testClass');
         const expected = $(el);
         const result = createElement('div', { classList: ['testClass'] });
         expect(result).toEqual(expected);
@@ -26,7 +26,7 @@ describe('Element factory tests', () => {
 
     it('Should create a DIV element with multiple Classes', () => {
         const el = document.createElement('div');
-        el.classList.add("testClass", "testClass2");
+        el.classList.add('testClass', 'testClass2');
         const expected = $(el);
         const result = createElement('div', { classList: ['testClass', 'testClass2'] });
         expect(result).toEqual(expected);

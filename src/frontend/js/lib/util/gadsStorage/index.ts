@@ -1,4 +1,4 @@
-import { AppStorage } from "./lib/AppStorage";
+import { AppStorage } from './lib/AppStorage';
 
 const gadsStorage = AppStorage.CreateStorageInstance();
 

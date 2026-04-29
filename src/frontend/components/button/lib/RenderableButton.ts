@@ -1,4 +1,4 @@
-import { Renderable } from "util/renderable";
+import { Renderable } from 'util/renderable';
 
 export class RenderableButton implements Renderable<HTMLButtonElement> {
     classList: string[] = [];
@@ -12,7 +12,7 @@ export class RenderableButton implements Renderable<HTMLButtonElement> {
         button.textContent = this.text;
         button.addEventListener('click', this.onClick);
         button.classList.add(...this.classList, 'btn');
-        const btnType = this.classList.find(b=>b.startsWith('btn-')) ? '' : 'btn-default'
+        const btnType = this.classList.find(b=>b.startsWith('btn-')) ? '' : 'btn-default';
         if(btnType) {
             button.classList.add(btnType);
         }
