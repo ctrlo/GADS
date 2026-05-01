@@ -1,47 +1,57 @@
-import { uploadMessage } from "util/scriptErrorHandler";
+import { MessageUploader } from "util/scriptErrorHandler/lib/MessageUploader";
+import { Uploader } from "util/upload/UploadControl";
 
-class Logging {
-  constructor() {
+// Exported for testing
+export class Logging {
+  /**
+   * Create a new Logging instance.
+   * @param {boolean} overrideAllowLogging True to force allowing of logging - used for testing
+   */
+  constructor(overrideAllowLogging = false, uploader = new MessageUploader(new Uploader('/api/script_error', 'POST'))) {
+    this.uploader = uploader;
     this.allowLogging =
       window.test ||
       location.hostname === 'localhost' ||
       location.hostname === '127.0.0.1' ||
-      location.hostname.endsWith('.peek.digitpaint.nl')
+      location.hostname.endsWith('.peek.digitpaint.nl');
+    if(overrideAllowLogging !== undefined) {
+      this.allowLogging = overrideAllowLogging;
+    }
   }
 
   log(...message) {
     if (this.allowLogging) {
-      console.log(message)
+      console.log(...message)
     } else {
       const msg = this.formatMessage('log', ...message)
-      uploadMessage(msg)
+      this.uploader(msg)
     }
   }
 
   info(...message) {
     if (this.allowLogging) {
-      console.info(message)
+      console.info(...message)
     } else {
       const msg = this.formatMessage('info', ...message)
-      uploadMessage(msg)
+      this.uploader(msg)
     }
   }
 
   warn(...message) {
     if (this.allowLogging) {
-      console.warn(message)
+      console.warn(...message)
     } else {
       const msg = this.formatMessage('warn', ...message)
-      uploadMessage(msg)
+      this.uploader(msg)
     }
   }
 
   error(...message) {
     if (this.allowLogging) {
-      console.error(message)
+      console.error(...message)
     } else {
       const msg = this.formatMessage('error', ...message)
-      uploadMessage(msg)
+      this.uploader(msg)
     }
   }
 
@@ -61,5 +71,5 @@ class Logging {
   }
 }
 
-const logging = new Logging
+const logging = new Logging();
 export { logging }
