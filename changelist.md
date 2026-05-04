@@ -1,5 +1,30 @@
 # GADS Changelist
 --------
+**Version**: 2.8.2
+**Released**: 01-05-2026
+
+# Fixes
+
+- Stop saving of Calculated values to cache when length is over 250 characters
+- Add appropriate error when blank headings are used in CSV import
+
+# QoL Fixes
+
+- Prevent automatic replies from system emails by default
+
+--------
+**Version**: 2.8.1
+**Released**: 03-04-2026
+
+## Features
+
+- Frontend errors now log to audit log
+
+## Fixes
+
+- Fix error preventing download of records when (legacy) approval records exist
+
+--------
 **Version**: 2.8.0
 **Released**: 27-09-2026
 
