@@ -501,14 +501,14 @@ sub _get_rows
     $return = [grep !$deleted{$_->current_id}, @$return];
     if (@$return != @ids)
     {
-        my %found = map { $_ => 1 } @$return;
+        my %found = map { $_->current_id => 1 } @$return;
         my @not_found = grep !$found{$_}, @ids;
         if (@not_found)
         {
             # If a curval field has had its related table changed then there
             # may be IDs from the old table
-            error __x"Could not find these requested Curval IDs in the linked table: {ids}",
-                ids => "@not_found";
+            error __x"Could not find these requested Curval IDs for field ID {field_id}: {ids}",
+                field_id => $self->id, ids => "@not_found";
         }
         else {
             error __x"Invalid Curval ID list {ids}", ids => "@ids";
