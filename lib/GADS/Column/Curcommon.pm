@@ -467,6 +467,14 @@ sub ids_to_values
 sub _get_rows
 {   my ($self, $ids, %options) = @_;
     @$ids or return;
+    # Sanity check for duplicates
+    my %want;
+    foreach (@$ids) {
+        error __x"Duplicate value requested for field ID {field_id}: {id}",
+            field_id => $self->id, id => $_
+                if $want{$_};
+        $want{$_} = 1;
+    };
     my $return;
     if ($self->has_values_index) # Do not build unnecessarily (expensive)
     {
