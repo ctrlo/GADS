@@ -19,3 +19,4 @@ apt-get install -y libfile-slurp-perl libfile-mimeinfo-perl liblist-compare-perl
 apt-get install -y libctrlo-pdf-perl libpdf-builder-perl fonts-liberation libdate-holidays-gb-perl libcgi-deurl-xs-perl libfile-bom-perl
 apt-get install -y libdatetime-format-iso8601-perl liblog-log4perl-perl libwww-mechanize-chrome-perl chromium libfile-libmagic-perl libnet-saml2-perl
 apt-get install -y liburl-encode-perl libtext-markdown-perl libtest-tempdir-tiny-perl libtest-mocktime-perl libauth-yubikey-webclient-perl
+apt-get install -y libauth-yubikey-webclient-perl libauthen-oath-perl libconvert-base32-perl libimager-qrcode-perl libimager-perl
