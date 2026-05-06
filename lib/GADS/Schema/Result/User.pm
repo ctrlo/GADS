@@ -4,15 +4,25 @@ package GADS::Schema::Result::User;
 use strict;
 use warnings;
 
+use Auth::Yubikey_WebClient;
+use Authen::OATH;
+use Convert::Base32 qw/encode_base32 decode_base32/;
+use Cpanel::JSON::XS;
 use DateTime;
+use Digest::SHA  qw/hmac_sha256 sha256/;
 use GADS::Audit;
 use GADS::Config;
 use GADS::Email;
 use HTML::Entities qw/encode_entities/;
+use HTTP::Request::Common;
+use Imager::Color;
+use Imager::QRCode;
 use Log::Report;
-use MIME::Base64 qw/encode_base64url/;
-use Digest::SHA  qw/hmac_sha256 sha256/;
+use LWP::UserAgent;
+use MIME::Base64 qw/encode_base64url decode_base64 encode_base64/;
 use Moo;
+use Session::Token;
+use URI::Escape qw/uri_escape/;
 
 extends 'DBIx::Class::Core';
 
@@ -107,6 +117,31 @@ __PACKAGE__->add_columns(
   },
   "debug_login",
   { data_type => "smallint", default_value => 0, is_nullable => 1 },
+  # All the following for MFA
+  "mfa_type",
+  { data_type => "char", is_nullable => 1, size => 3 },
+  "mobile",
+  { data_type => "text", is_nullable => 1 },
+  "mobile_verified",
+  { data_type => "smallint", default_value => 0, is_nullable => 0 },
+  "mfa_secret",
+  { data_type => "text", is_nullable => 1 },
+  "mfa_sms_token",
+  { data_type => "text", is_nullable => 1 },
+  "mfa_sms_created",
+  {data_type => "datetime", datetime_undef_if_invalid => 1, is_nullable => 1 },
+  "mfa_token_previous",
+  { data_type => "text", is_nullable => 1 },
+  "mfa_token_previous_type",
+  { data_type => "char", is_nullable => 1, size => 3 },
+  "mfa_token_previous_used",
+  {data_type => "datetime", datetime_undef_if_invalid => 1, is_nullable => 1 },
+  "mfa_token_previous_key",
+  { data_type => "text", is_nullable => 1 },
+  "mfa_lastfail",
+  {data_type => "datetime", datetime_undef_if_invalid => 1, is_nullable => 1 },
+  "mfa_failcount",
+  { data_type => "integer", default_value => 0, is_nullable => 0 },
 );
 
 __PACKAGE__->set_primary_key("id");
@@ -858,6 +893,13 @@ sub validate
              and error __x"{username} already exists as an active user", username => $self->$f;
         }
     }
+
+    !$self->mobile || validate_mobile($self->mobile)
+        or error __x"The mobile number {number} is invalid. Please enter as international format (e.g. +1444555666)",
+            number => $self->mobile;
+
+    !$self->mfa_type || $self->mfa_type =~ /^(otp|yub|sms)$/
+        or error __x"Invalid MFA type: {type}", type => $self->mfa_type;
 }
 
 sub export_hash
@@ -901,6 +943,213 @@ sub _build_encryption_key {
     my $sig          = encode_base64url(hmac_sha256($input, $secret));
     
     return encode_base64url(sha256("$input.$sig"));
+}
+
+# All the following for MFA
+
+# Forced site MFA if applicable, otherwise user's chosen MFA. If forced type is
+# "any" then return the user's chosen MFA, which may be undefined at this
+# point.
+sub mfa_type_effective
+{   my $self = shift;
+    my $force = $self->site->force_mfa;
+    return $force if $force && $force ne 'any';
+    return $self->mfa_type;
+}
+
+sub need_mfa
+{   my $self = shift;
+    # mfa_type_effective may return false even if MFA is forced (in the case of
+    # it being "any"
+    !! $self->site->force_mfa || $self->mfa_type_effective;
+}
+
+sub seed_key
+{   my $self = shift;
+    my $len_secret_bytes = 26;
+    open my $RNG, '<', '/dev/urandom'
+        or panic "Cannot open /dev/urandom for reading";
+    sysread $RNG, my $secret_bytes, $len_secret_bytes
+        or panic "Cannot read $len_secret_bytes from /dev/urandom";
+    close $RNG
+        or panic "Cannot close /dev/urandom";
+    encode_base32($secret_bytes);
+}
+
+sub key_qr_base64
+{   my ($self, $key) = @_;
+    my $qrcode = Imager::QRCode->new(
+        size          => 10,
+        margin        => 2,
+        version       => 1,
+        level         => 'M',
+        casesensitive => 1,
+        lightcolor    => Imager::Color->new(255, 255, 255),
+        darkcolor     => Imager::Color->new(0, 0, 0),
+    );
+    my $issuer = "LinkSpace";
+    $issuer .= " – ".$self->site->name
+        if $self->site->name;
+    my $uri = "otpauth://totp/".uri_escape($self->username)."?secret=".uri_escape($key || $self->mfa_secret)."&issuer=$issuer";
+    my $img = $qrcode->plot($uri);
+    my $string;
+    open my $fh, ">", \$string;
+    $img->write(fh => $fh, type => 'png')
+        or panic "Failed to write QR image";
+    encode_base64 $string;
+}
+
+sub get_yubikey
+{   my ($self, $otp) = @_;
+    $otp or return undef;
+    my $yubi_config = GADS::Config->instance->yubi_config;
+    my $id = $yubi_config->{id};
+    my $api = $yubi_config->{key};
+    my $nonce = Session::Token->new(length => 32)->get;
+    my $yubi_id = substr $otp, 0, 12;
+    my $result = Auth::Yubikey_WebClient::yubikey_webclient($otp, $id, $api, $nonce);
+    return $result eq 'OK' ? $yubi_id : undef;
+}
+
+sub check_token
+{   my ($self, $token, $secret) = @_;
+    if ($self->mfa_type_effective eq 'sms')
+    {
+        return 0 if !$self->mfa_sms_token; # Safety check in case both blank
+        return 0 if $self->mfa_sms_created < DateTime->now->subtract(minutes => 15);
+        return $token eq $self->mfa_sms_token;
+    }
+    elsif ($self->mfa_type_effective eq 'yub')
+    {
+        return 0 if !$self->mfa_secret;
+        $self->get_yubikey($token) eq $self->mfa_secret;
+    }
+    elsif ($self->mfa_type_effective eq 'otp')
+    {
+        my $oath = Authen::OATH->new;
+        my $otp = $oath->totp(decode_base32 ($self->mfa_secret || $secret));
+        return $otp eq $token;
+    }
+    else {
+        panic __x"Unknown MFA type {type}", type => $self->mfa_type_effective;
+    }
+}
+
+# Whether the user has recently verified MFA
+sub recent_mfa
+{   my ($self, $key_from_cookie) = @_;
+    return 0 unless $key_from_cookie
+        && $self->mfa_token_previous_used
+        && ("$key_from_cookie" eq $self->mfa_token_previous_key)
+        && $self->mfa_type_effective eq $self->mfa_token_previous_type;
+    return 1 if $self->mfa_token_previous_used > DateTime->now->subtract(days => 7);
+    return 0;
+}
+
+sub send_mfa_sms
+{   my $self = shift;
+
+    my $code = Session::Token->new(alphabet => [0..9], length => 6)->get;
+    $self->update({ mfa_sms_token => $code, mfa_sms_created => DateTime->now });
+    # Force utf-8 in SMS message - needed to route Chinese SMS via correct
+    # route (advised by Twilio)
+    my $message = __x"“{code}” is your LinkSpace access code", code => $code;
+
+    send_sms($self->mobile, $message);
+}
+
+sub need_mfa_setup
+{   my $self = shift;
+    return 1 if !$self->mfa_type_effective; # User not chosen MFA type
+    return 0 if ($self->mfa_type_effective eq 'otp' && $self->mfa_secret)
+        || ($self->mfa_type_effective eq 'yub' && $self->mfa_secret)
+        || ($self->mfa_type_effective eq 'sms' && $self->mobile && $self->mobile_verified);
+    return 1;
+}
+
+sub need_mobile_verification
+{   my $self = shift;
+    # Need to use validate_mobile() here, otherwise this object may be used
+    # when it has an invalid mobile number (following an unsuccessful
+    # submission and validate error)
+    if ($self->mobile && validate_mobile($self->mobile) && !$self->mobile_verified)
+    {
+        $self->send_mfa_sms;
+        return 1;
+    }
+    return 0;
+}
+
+sub verify_mobile
+{   my ($self, $token) = @_;
+    if ($token eq $self->mfa_sms_token)
+    {
+        $self->update({ mobile_verified => 1 });
+        return 1;
+    }
+    else {
+        $self->update({ mobile => undef });
+        return 0;
+    }
+}
+
+sub reset_mfa
+{   my $self = shift;
+    $self->update({
+        mobile                  => undef,
+        mfa_secret              => undef,
+        mfa_sms_token           => undef,
+        mfa_sms_created         => undef,
+        mfa_token_previous      => undef,
+        mfa_token_previous_type => undef,
+        mfa_token_previous_used => undef,
+        mfa_token_previous_key  => undef,
+        mfa_failcount           => 0,
+    });
+}
+
+sub validate_mobile
+{   my $mobile = shift;
+    $mobile =~ /^\+[0-9]{4,}$/;
+}
+
+sub send_sms
+{   my ($to, $body) = @_;
+
+    my $sms_config = GADS::Config->instance->sms_config;
+
+    my $ua = LWP::UserAgent->new;
+    $ua->timeout(10);
+
+    my $json = Cpanel::JSON::XS->new->utf8->encode({
+        from     => $sms_config->{from},
+        to       => $to,
+        body     => "$body",
+        encoding => 'UNICODE',
+    });
+
+    my $request = POST $sms_config->{url}, 'Content-Type' => 'application/json', Content => $json;
+
+    $request->authorization_basic($sms_config->{username}, $sms_config->{password});
+
+    my $response = $ua->request($request);
+
+    my $return = try { decode_json $response->decoded_content };
+
+    $return
+        or panic "Failed to send SMS message - unknown response";
+
+    # Assume that hash return means failed sending (success should return array
+    # for each message status, see below)
+    panic __x"Failed to send SMS message: {title} ({err})",
+        title => $return->{title}, err => $return->{detail}
+            if ref $return eq 'HASH';
+
+    # See https://www.bulksms.com/developer/json/v1/#tag/Message%2Fpaths%2F~1messages%2Fpost
+    # (type should be ACCEPTED on submission and will subsequently change)
+    # Status of the first message
+    $return->[0]->{status}->{type} eq 'ACCEPTED'
+        or panic __"Failed to send SMS message - unknown reason";
 }
 
 1;

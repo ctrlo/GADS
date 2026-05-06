@@ -77,6 +77,47 @@ has url => (
     },
 );
 
+has sms_config => (
+    is => 'lazy',
+);
+
+sub _build_sms_config
+{   my $self = shift;
+    my $sms_config = ref $self->gads eq 'HASH' && $self->gads->{sms}
+        or panic "SMS not configured";
+    my $url = "https://api.bulksms.com/v1/messages";
+    my $username = $sms_config->{username}
+        or panic "SMS username not defined";
+    my $password = $sms_config->{password}
+        or panic "SMS password not defined";
+    my $from = $sms_config->{from}
+        or panic "SMS sender configuration not defined";
+    {
+        url      => $url,
+        username => $username,
+        password => $password,
+        from     => $from,
+    }
+}
+
+has yubi_config => (
+    is => 'lazy',
+);
+
+sub _build_yubi_config
+{   my $self = shift;
+    my $yubi_config = ref $self->gads eq 'HASH' && $self->gads->{yubi}
+        or panic "Yubikey MFA is not configured";
+    my $id = $yubi_config->{id}
+        or panic "Yubikey API ID is not defined";
+    my $key = $yubi_config->{key}
+        or panic "Yubikey API ID is not defined";
+    {
+        id  => $id,
+        key => $key,
+    }
+}
+
 has dateformat => (
     is      => 'ro',
     lazy    => 1,
