@@ -182,7 +182,7 @@ sub _mfa_token_success
         mfa_token_previous_used => DateTime->now,
         mfa_token_previous_key  => $key,
     });
-    cookie MFATOKEN => $key, expires => '7d';#, secure => 1, http_only => 1;
+    cookie MFATOKEN => $key, expires => '7d', secure => 1, http_only => 1;
     return redirect '/';
 }
 
