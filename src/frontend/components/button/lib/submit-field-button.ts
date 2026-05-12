@@ -98,7 +98,6 @@ export default class SubmitFieldButton {
                     url: this.getURL(data),
                     data: { data: mytext, csrf_token: data.csrfToken }
                 }).done(() => {
-
                     alert('Tree has been updated');
                 });
             }
