@@ -1,4 +1,4 @@
-import { DangerAlert } from "components/alert/lib/dangerAlert";
+import { DangerAlert } from 'components/alert/lib/dangerAlert';
 
 // Bind events to a field to trigger validation
 const initValidationOnField = (field) => {
@@ -312,18 +312,18 @@ const validateTree = (field) => {
 };
 
 const validateQueryBuilder = (field) => {
-  if(!(field && field.length)) return;
-  const result = field.queryBuilder('validate');
-  if(!result) {
-    if($('.display-conditions-error').length) return false;
-    const danger = new DangerAlert('There are errors in the conditions you have set, please fix these before submitting the form');
-    const banner = danger.render();
-    banner.classList.add('mb-3', 'mt-0', 'display-conditions-error');
-    field.closest('.card__content').prepend(banner);
-    return false;
-  }
-  return true;
-}
+    if(!(field && field.length)) return;
+    const result = field.queryBuilder('validate');
+    if(!result) {
+        if($('.display-conditions-error').length) return false;
+        const danger = new DangerAlert('There are errors in the conditions you have set, please fix these before submitting the form');
+        const banner = danger.render();
+        banner.classList.add('mb-3', 'mt-0', 'display-conditions-error');
+        field.closest('.card__content').prepend(banner);
+        return false;
+    }
+    return true;
+};
 
 // Expand the card with a certain field and scroll it into view
 const expandCardValidate = (field) => {

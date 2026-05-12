@@ -1,4 +1,4 @@
-import { AlertBase } from "./alertBase";
+import { AlertBase } from './alertBase';
 
 export class DangerAlert extends AlertBase {
     /**

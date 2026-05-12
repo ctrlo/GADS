@@ -3,7 +3,6 @@ import 'util/filedrag';
 import { upload } from 'util/upload/UploadControl';
 import { validateCheckboxGroup } from 'validation';
 import { formdataMapper } from 'util/mapper/formdataMapper';
-import { logging } from 'logging';
 import { RenameEvent } from 'components/button/lib/rename-button';
 import { FileDropEvent } from 'util/filedrag';
 import ErrorHandler from 'util/errorHandler';
