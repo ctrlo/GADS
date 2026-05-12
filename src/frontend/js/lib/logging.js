@@ -1,22 +1,15 @@
-import { MessageUploader } from "util/scriptErrorHandler/lib/MessageUploader";
-import { Uploader } from "util/upload/UploadControl";
+import { uploadMessage } from "util/scriptErrorHandler/lib/MessageUploader";
 
-// Exported for testing
-export class Logging {
+class Logging {
   /**
    * Create a new Logging instance.
-   * @param {boolean} overrideAllowLogging True to force allowing of logging - used for testing
    */
-  constructor(overrideAllowLogging = false, uploader = new MessageUploader(new Uploader('/api/script_error', 'POST'))) {
-    this.uploader = uploader;
+  constructor() {
     this.allowLogging =
       window.test ||
       location.hostname === 'localhost' ||
       location.hostname === '127.0.0.1' ||
       location.hostname.endsWith('.peek.digitpaint.nl');
-    if(overrideAllowLogging !== undefined) {
-      this.allowLogging = overrideAllowLogging;
-    }
   }
 
   log(...message) {
@@ -24,7 +17,7 @@ export class Logging {
       console.log(...message)
     } else {
       const msg = this.formatMessage('log', ...message)
-      this.uploader(msg)
+      uploadMessage(msg)
     }
   }
 
@@ -33,7 +26,7 @@ export class Logging {
       console.info(...message)
     } else {
       const msg = this.formatMessage('info', ...message)
-      this.uploader(msg)
+      uploadMessage(msg)
     }
   }
 
@@ -42,7 +35,7 @@ export class Logging {
       console.warn(...message)
     } else {
       const msg = this.formatMessage('warn', ...message)
-      this.uploader(msg)
+      uploadMessage(msg)
     }
   }
 
@@ -51,7 +44,7 @@ export class Logging {
       console.error(...message)
     } else {
       const msg = this.formatMessage('error', ...message)
-      this.uploader(msg)
+      uploadMessage(msg)
     }
   }
 
