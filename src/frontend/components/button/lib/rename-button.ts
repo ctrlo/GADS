@@ -39,13 +39,14 @@ declare global {
  */
 class RenameButton {
     private readonly dataClass = 'rename-button';
-    private value: string;
+    private value!: string;
 
     /**
      * Attach event to button
      * @param {HTMLButtonElement} button Button to attach the event to
      */
     constructor(button: HTMLButtonElement) {
+        if(!button) return;
         const $button = $(button);
         if ($button.data(this.dataClass) === 'true') return;
         const data = $button.data('fieldId');
@@ -126,8 +127,8 @@ class RenameButton {
         $(`#rename-confirm-${id}`)
             .removeClass('hidden')
             .attr('aria-hidden', null)
-            .on('click', (e) => {
-                this.triggerRename(id, ev.target, e)
+            .on('click', () => {
+                this.triggerRename(id, ev.target)
             });
         $(`#rename-cancel-${id}`)
             .removeClass('hidden')
@@ -158,7 +159,7 @@ class RenameButton {
      * @param {JQuery<HTMLButtonElement>} button The button that was clicked
      * @param {JQuery.BlurEvent} e The blur event
      */
-    private triggerRename(id: number, button: JQuery<HTMLButtonElement>, e: JQuery.Event) {
+    private triggerRename(id: number, button: JQuery<HTMLButtonElement>) {
         const previousValue = $(`#current-${id}`).text();
         const extension = '.' + previousValue.split('.').pop();
         const newName = this.value.endsWith(extension) ? this.value : this.value + extension;
@@ -190,8 +191,8 @@ class RenameButton {
 if(typeof jQuery !== 'undefined') {
     (function ($) {
         $.fn.renameButton = function () {
-            return this.each(function (_: unknown, el: HTMLButtonElement) {
-                new RenameButton(el);
+            return this.each((_, el) => {
+                new RenameButton(el as HTMLButtonElement);
             });
         };
     })(jQuery);

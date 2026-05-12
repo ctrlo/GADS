@@ -70,6 +70,7 @@ class DocumentComponent {
                 if(JSON.parse(e as string)?.message)
                     e = JSON.parse(e as string).message;
                 this.handler.addError(e);
+                logging.error("Failed to upload file:", e);
             });
         });
     }
@@ -126,6 +127,7 @@ class DocumentComponent {
                     .hide();
             });
         } catch (e) {
+            logging.error("Failed to upload file:", e);
             this.showException(e instanceof Error || "message" in e ? e.message : e as string ?? e.toString());
         }
     }
@@ -191,6 +193,7 @@ class DocumentComponent {
             this.showException(e);
             const current = $(`#current-${fileId}`);
             current.text(oldName);
+            logging.error("Failed to rename file:", e);
         }
     }
 
