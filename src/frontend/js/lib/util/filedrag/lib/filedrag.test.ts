@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-jsdoc */
 import { describe, it, expect, jest } from '@jest/globals';
 import FileDrag from './filedrag';
 

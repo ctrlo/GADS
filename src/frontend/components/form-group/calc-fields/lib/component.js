@@ -1,17 +1,31 @@
 import { Component } from 'component';
 import { getFieldValues } from 'get-field-values';
 
+/**
+ * Component to handle calculation fields that depend on other fields.
+ */
 class CalcFieldsComponent extends Component {
+    /**
+     * Create a new instance of the CalcFieldsComponent.
+     * @param {HTMLElement} element The HTML element that this component is attached to.
+     */
     constructor(element) {
         super(element);
         this.initCalcFields();
     }
 
+    /**
+     * Initializes the calculation fields component.
+     */
     initCalcFields() {
         const field = this.getFieldCalc();
         this.setupCalcField(field);
     }
 
+    /**
+     * Get the calculation field data.
+     * @returns {object} An object containing the field, code, parameters, and dependencies for the calculation field.
+     */
     getFieldCalc() {
 
         const dependency = $(this.element).data('calc-depends-on');
@@ -29,6 +43,10 @@ class CalcFieldsComponent extends Component {
 
     }
 
+    /**
+     * Setup the calculation field by attaching change events to its dependencies.
+     * @param {object} field The field object containing the code and dependencies for the calculation field.
+     */
     setupCalcField(field) {
         let { code } = field;
         const { depends_on, params } = field;

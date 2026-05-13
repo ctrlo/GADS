@@ -5,8 +5,14 @@ import { moreLess } from './more-less';
 
 const MAX_HEIGHT = 50;
 
+/**
+ * MoreLessComponent is a class that manages the more/less functionality
+ */
 class MoreLessComponent extends Component {
-
+    /**
+     * Creates an instance of MoreLessComponent.
+     * @param {HTMLElement} element The element to attach the component to.
+     */
     constructor(element) {
         super(element);
         this.el = $(this.element);
@@ -14,6 +20,11 @@ class MoreLessComponent extends Component {
         this.initMoreLess();
     }
 
+    /**
+     * Generates a UUID.
+     * @returns {string} A UUID string.
+     * @deprecated Please use crypto.randomUUID() instead.
+     */
     uuid() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
             const r = (Math.random() * 16) | 0,
@@ -22,7 +33,11 @@ class MoreLessComponent extends Component {
         });
     }
 
-    // Traverse up through the tree and find the parent element that is hidden
+    /**
+     * Find the first parent element that is hidden
+     * @param {JQuery<HTMLElement>} $elem The jQuery element to check for hidden parents.
+     * @returns {JQuery<HTMLElement>|undefined} The first hidden parent element or undefined if no hidden parent is found.
+     */
     parentHidden($elem) {
     // Test parent first in case we have reached the root of the DOM, in which
     // case .css() will throw an error on the element
@@ -36,9 +51,13 @@ class MoreLessComponent extends Component {
         return this.parentHidden($parent);
     }
 
-    // We previously used a plugin for this
-    // (https://github.com/dreamerslab/jquery.actual) but its performance was slow
-    // when a page had many more-less divs
+    /**
+     * Get the actual height of an element.
+     * @param {JQuery<HTMLElement>} $elem The jQuery element to measure.
+     * @returns {number} The actual height of the element.
+     * @description We previously used a plugin for this but its performance was slow when a page had many more-less divs
+     * @see https://github.com/dreamerslab/jquery.actual
+     */
     getActualHeight($elem) {
         if ($elem.attr('data-actual-height')) {
             // cached heights from previous runs
@@ -97,11 +116,17 @@ class MoreLessComponent extends Component {
         return $elem.attr('data-actual-height');
     }
 
+    /**
+     * Reinitializes the more/less functionality.
+     */
     reInitMoreLess() {
         this.clearMoreLess();
         this.initMoreLess();
     }
 
+    /**
+     * Clears the more/less state from the element.
+     */
     clearMoreLess() {
         const $ml = $(this.el);
 
@@ -114,6 +139,9 @@ class MoreLessComponent extends Component {
         }
     }
 
+    /**
+     * Initializes the more/less functionality on the element.
+     */
     initMoreLess() {
         const $ml = $(this.el);
         const column = $ml.data('column');

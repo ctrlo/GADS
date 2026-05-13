@@ -1,11 +1,11 @@
 // We import Bootstrap because there is an error that throws if we don't (this.collapse is not a function).
 /* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component';
-import { logging } from 'logging';
 import { fromJson } from 'util/common';
+import { logging } from 'logging';
 import { initValidationOnField } from 'validation';
 
-/*
+/**
  * A SelectWidget is a custom disclosure widget
  * with multi or single options selectable.
  * SelectWidgets can depend on each other;
@@ -13,6 +13,10 @@ import { initValidationOnField } from 'validation';
  * Widget "B" might not be displayed.
  */
 class SelectWidgetComponent extends Component {
+    /**
+     * Create a new SelectWidgetComponent.
+     * @param {HTMLElement} element - The HTML element that this component is attached to.
+     */
     constructor(element) {
         super(element);
         this.el = $(this.element);
@@ -44,6 +48,9 @@ class SelectWidgetComponent extends Component {
         }
     }
 
+    /**
+     * Initializes the SelectWidget component.
+     */
     initSelectWidget() {
         this.updateState();
         if (this.$widget.is('[readonly]')) return;
@@ -98,6 +105,9 @@ class SelectWidgetComponent extends Component {
         });
     }
 
+    /**
+     * Handles the click event on the widget.
+     */
     handleWidgetClick() {
         if (this.$trigger.attr('aria-expanded') === 'true') {
             this.collapse(this.$widget, this.$trigger, this.$target);
@@ -106,6 +116,9 @@ class SelectWidgetComponent extends Component {
         }
     }
 
+    /**
+     * Handles clicks outside the widget to collapse it.
+     */
     handleDocumentClick(e) {
         const clickedOutside = !this.el.is(e.target) && this.el.has(e.target).length === 0;
         if (clickedOutside) {
@@ -113,6 +126,9 @@ class SelectWidgetComponent extends Component {
         }
     }
 
+    /**
+     * Handles keyup events on the search input.
+     */
     handleKeyUp(e) {
         const searchValue = $(e.target)
             .val()
@@ -168,6 +184,9 @@ class SelectWidgetComponent extends Component {
         }
     }
 
+    /**
+     * Handles keydown events on the search input.
+     */
     handleKeyDown(e) {
         const key = e.which || e.keyCode;
 
@@ -213,11 +232,17 @@ class SelectWidgetComponent extends Component {
         }
     }
 
+    /**
+     * Handles the focus event on the search input to expand the widget.
+     */
     expandWidgetHandler(e) {
         e.stopPropagation();
         this.expand(this.$widget, this.$trigger, this.$target);
     }
 
+    /**
+     * Collapses the select widget.
+     */
     collapse($widget, $trigger) {
         this.$selectWidget.removeClass('select-widget--open');
         $trigger.attr('aria-expanded', false);
@@ -233,12 +258,18 @@ class SelectWidgetComponent extends Component {
         }, 50);
     }
 
+    /**
+     * Updates the state of the select widget based on the current items.
+     */
     updateState() {
         const $visible = this.$current.children('[data-list-item]:not([hidden])');
 
         this.$current.toggleClass('empty', $visible.length === 0);
     }
 
+    /**
+     * Checks if the widget should be closed based on focus changes.
+     */
     possibleCloseWidget(e) {
         const newlyFocussedElement = e.relatedTarget || document.activeElement;
 
@@ -252,6 +283,11 @@ class SelectWidgetComponent extends Component {
         }
     }
 
+    /**
+     * Connects the multi-select items to their associated checkboxes.
+     * @returns {(...*)=>*} A function that connects the multi-select items.
+     * @todo Remove deprecated key codes and ensure compatibility with modern browsers.
+     */
     connectMulti() {
         const self = this;
         return function () {
@@ -307,6 +343,10 @@ class SelectWidgetComponent extends Component {
         };
     }
 
+    /**
+     * Connects the single-select items to their associated checkboxes.
+     * @todo Remove deprecated key codes and ensure compatibility with modern browsers.
+     */
     connectSingle() {
         const self = this;
 
@@ -354,6 +394,9 @@ class SelectWidgetComponent extends Component {
         });
     }
 
+    /**
+     * Connects the select widget items to their associated checkboxes.
+     */
     connect() {
         if (this.multi) {
             this.$currentItems.each(this.connectMulti());
@@ -362,6 +405,16 @@ class SelectWidgetComponent extends Component {
         }
     }
 
+    /**
+     * Creates a list item for the currently selected value.
+     * @param {boolean} multi - Whether the widget is multi-select.
+     * @param {string} field - The field name for the select widget.
+     * @param {string|null} value_id - The ID of the selected value.
+     * @param {string} value_text - The text of the selected value.
+     * @param {string} value_html - The HTML representation of the selected value.
+     * @param {boolean} checked - Whether the item is checked.
+     * @returns {jQuery} - The jQuery object representing the list item.
+     */
     currentLi(multi, field, value_id, value_text, value_html, checked) {
         if (multi && !value_id) {
             return $('<li class="none-selected">blank</li>');
@@ -388,6 +441,16 @@ class SelectWidgetComponent extends Component {
         return $li;
     }
 
+    /**
+     * Creates a list item for the available options.
+     * @param {boolean} multi - Whether the widget is multi-select.
+     * @param {string} field - The field name for the select widget.
+     * @param {string|null} value_id - The ID of the available value.
+     * @param {string} value_text - The text of the available value.
+     * @param {string} label - The label for the available value.
+     * @param {boolean} checked - Whether the item is checked.
+     * @returns {jQuery|null} - The jQuery object representing the list item, or null if no value_id is provided in multi-select mode.
+     */
     availableLi(multi, field, value_id, value_text, label, checked) {
         if (this.multi && !value_id) {
             return null;
@@ -448,6 +511,11 @@ class SelectWidgetComponent extends Component {
     }
 
     //Some odd scoping issues here - but it works
+    /**
+     * Updates the JSON data for the select widget.
+     * @param {string} url - The URL to fetch the JSON data from.
+     * @param {boolean} typeahead - Whether the update is for a typeahead search
+     */
     updateJson(url, typeahead) {
         const formData = { 'csrf_token': $('body').data('csrf') };
         this.loadCounter++;
@@ -565,6 +633,9 @@ class SelectWidgetComponent extends Component {
             });
     }
 
+    /**
+     * Fetches options for the select widget based on linked fields.
+     */
     fetchOptions() {
         const filterEndpoint = this.$selectWidget.data('filter-endpoint');
         const filterFields = this.$selectWidget.data('filter-fields');
@@ -617,6 +688,12 @@ class SelectWidgetComponent extends Component {
         this.lastFetchParams = fetchParams;
     }
 
+    /**
+     * Expands the select widget to show available options.
+     * @param {jQuery} $widget - The jQuery object representing the widget.
+     * @param {jQuery} $trigger - The jQuery object representing the trigger element.
+     * @param {jQuery} $target - The jQuery object representing the target element
+     */
     expand($widget, $trigger, $target) {
         if ($trigger.attr('aria-expanded') === 'true') {
             return;

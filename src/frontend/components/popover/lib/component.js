@@ -1,6 +1,13 @@
 import { Component } from 'component';
 
+/**
+ * PopoverComponent class to manage the behavior of a popover.
+ */
 class PopoverComponent extends Component {
+    /**
+     * Creates an instance of PopoverComponent.
+     * @param {HTMLElement} element The parent HTML element for the popover.
+     */
     constructor(element) {
         super(element);
         this.el = $(this.element);
@@ -12,6 +19,10 @@ class PopoverComponent extends Component {
         this.initPopover(this.button);
     }
 
+    /**
+     * Initializes the popover by setting up event listeners for click and keydown events.
+     * @param {HTMLElement} button The button that triggers the popover.
+     */
     initPopover(button) {
         if (!button) {
             return;
@@ -27,6 +38,10 @@ class PopoverComponent extends Component {
         });
     }
 
+    /**
+     * Handles the click event on the popover button.
+     * @param {JQuery.ClickEvent} ev The click event object.
+     */
     handleClick(ev) {
         this.togglePopover();
         ev.stopPropagation();
@@ -35,13 +50,16 @@ class PopoverComponent extends Component {
     // (disabled for now because it caused errors)
     // $(document).on('click', (ev) => {
     //   if (!$(ev.target).hasClass('popover__btn')
-    //       && $(ev.target).parents('.popover-container').length === 0) { 
+    //       && $(ev.target).parents('.popover-container').length === 0) {
     //       this.togglePopover()
     //       $(document).off('click')
     //   }
     // })
     }
 
+    /**
+     * Toggle visibility of the popover and its arrow.
+     */
     togglePopover() {
 
         if (this.popover.hasClass(this.strShowClassName)) {

@@ -1,3 +1,7 @@
+import { describe, it, expect, beforeEach } from '@jest/globals';
+/* eslint-disable jsdoc/require-jsdoc */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* @ts-ignore */
 import { initGlobals } from 'testing/globals.definitions';
 import SubmitFieldButtonComponent from './submit-field-button';
 

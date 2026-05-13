@@ -1,16 +1,14 @@
 import { setFieldValues } from 'set-field-values';
 import AutosaveBase from './autosaveBase';
-import { fromJson } from "util/common";
-import { InfoAlert } from "components/alert/lib/infoAlert";
-import { RenderableButton } from "components/button/lib/RenderableButton";
+import { fromJson } from 'util/common';
+import { InfoAlert } from 'components/alert/lib/infoAlert';
+import { RenderableButton } from 'components/button/lib/RenderableButton';
 
 /**
  * A modal that allows the user to restore autosaved values.
  */
 class AutosaveModal extends AutosaveBase {
-    /**
-   * @inheritdoc
-   */
+    /** @inheritdoc */
     async initAutosave() {
         const $modal = $(this.element);
         const $form = $('.form-edit');
@@ -35,135 +33,135 @@ class AutosaveModal extends AutosaveBase {
 
             let errored = false;
 
-      let $list = $("<ul></ul>");
-      const $body = $modal.find(".modal-body");
-      $body
-        .html("<p>Restoring values...</p><p><strong>Please be aware that linked records may take a moment to finish restoring.<strong><p>")
-        .append($list);
-      // Convert the fields to promise functions (using the fields) that are run in parallel
-      // This is only done because various parts of the codebase use the fields in different ways dependent on types (i.e. curval)
-      await Promise.all($form.find('.linkspace-field').map(async (_, field) => {
-        const $field = $(field);
-        // This was originally a bunch of promises, but as the code is async, we can await things here
-        try {
-          const json = await this.storage.getItem(this.columnKey($field))
-          let values = json ? JSON.parse(json) : undefined;
-          // If the value can't be parsed, ignore it
-          if (!values) return;
-          // If we are in view mode and we need to switch to edit mode, do that
-          const $editButton = $field.closest('.card--topic').find('.btn-js-edit');
-          if ($editButton && $editButton.length) $editButton.trigger('click');
-          if (Array.isArray(values)) {
-            const name = $field.data("name");
-            const type = $field.data("column-type");
-            if (type === "curval") {
-              // Curvals need to work event-driven - this is because the modal doesn't always load fully,
-              // meaning the setvalue doesn't work correctly for dropdowns (mainly)
-              $field.off("validationFailed");
-              $field.off("validationPassed");
-              $field.on("validationFailed", (e) => {
-                // Decrement the curval count
-                curvalCount--;
-                const $li = $(`<li class="li-error">Error restoring ${name}, please check these values before submission<ul><li class="warning">${e.message}</li></ul></li>`);
-                $list.append($li);
-                // If we've done all fields, turn off the recovery flag
-                if (!curvalCount) {
-                  // Hide the restore button and show the close button
-                  $modal.find(".modal-footer").find(".btn-cancel").text("Close").show();
-                  this.storage.removeItem('recovering');
+            let $list = $('<ul></ul>');
+            const $body = $modal.find('.modal-body');
+            $body
+                .html('<p>Restoring values...</p><p><strong>Please be aware that linked records may take a moment to finish restoring.<strong><p>')
+                .append($list);
+            // Convert the fields to promise functions (using the fields) that are run in parallel
+            // This is only done because various parts of the codebase use the fields in different ways dependent on types (i.e. curval)
+            await Promise.all($form.find('.linkspace-field').map(async (_, field) => {
+                const $field = $(field);
+                // This was originally a bunch of promises, but as the code is async, we can await things here
+                try {
+                    const json = await this.storage.getItem(this.columnKey($field));
+                    let values = json ? JSON.parse(json) : undefined;
+                    // If the value can't be parsed, ignore it
+                    if (!values) return;
+                    // If we are in view mode and we need to switch to edit mode, do that
+                    const $editButton = $field.closest('.card--topic').find('.btn-js-edit');
+                    if ($editButton && $editButton.length) $editButton.trigger('click');
+                    if (Array.isArray(values)) {
+                        const name = $field.data('name');
+                        const type = $field.data('column-type');
+                        if (type === 'curval') {
+                            // Curvals need to work event-driven - this is because the modal doesn't always load fully,
+                            // meaning the setvalue doesn't work correctly for dropdowns (mainly)
+                            $field.off('validationFailed');
+                            $field.off('validationPassed');
+                            $field.on('validationFailed', (e) => {
+                                // Decrement the curval count
+                                curvalCount--;
+                                const $li = $(`<li class="li-error">Error restoring ${name}, please check these values before submission<ul><li class="warning">${e.message}</li></ul></li>`);
+                                $list.append($li);
+                                // If we've done all fields, turn off the recovery flag
+                                if (!curvalCount) {
+                                    // Hide the restore button and show the close button
+                                    $modal.find('.modal-footer').find('.btn-cancel').text('Close').show();
+                                    this.storage.removeItem('recovering');
+                                }
+                            });
+                            $field.on('validationPassed', () => {
+                                // Decrement the curval count
+                                curvalCount--;
+                                const $li = $(`<li class="li-success">Restored ${name}</li>`);
+                                $list.append($li);
+                                // If we've done all fields, turn off the recovery flag
+                                if (!curvalCount) {
+                                    // Hide the restore button and show the close button
+                                    $modal.find('.modal-footer').find('.btn-cancel').text('Close').show();
+                                    this.storage.removeItem('recovering');
+                                }
+                            });
+                        }
+                        setFieldValues($field, values);
+                        if (type !== 'curval') {
+                            const $li = $(`<li class="li-success">Restored ${name}</li>`);
+                            $list.append($li);
+                        }
+                        $field.addClass('field--changed');
+                    }
+                } catch (e) {
+                    // Catch anything within the mapped promises
+                    const name = $field.data('name');
+                    const $li = $(`<li class="li-error">Failed to restore ${name}<ul><li class="warning">${e.message}</li></ul></li>`);
+                    console.error(e);
+                    $list.append($li);
+                    errored = true;
                 }
-              });
-              $field.on("validationPassed", () => {
-                // Decrement the curval count
-                curvalCount--;
-                const $li = $(`<li class="li-success">Restored ${name}</li>`);
-                $list.append($li);
-                // If we've done all fields, turn off the recovery flag
-                if (!curvalCount) {
-                  // Hide the restore button and show the close button
-                  $modal.find(".modal-footer").find(".btn-cancel").text("Close").show();
-                  this.storage.removeItem('recovering');
+            })).then(() => {
+                // If there are errors, show an appropriate message, otherwise show a success message
+                $body.append(`<p>${errored ? 'Values restored with errors.' : 'All values restored.'} Please check that all field values are as expected.</p>`);
+            }).catch(e => {
+                // If there are any errors that can't be handled in the mapped promises, show a critical error message
+                $body.append(`<div class="alert alert-danger"><h4>Critical error restoring values</h4><p>${e}</p></div>`);
+            }).finally(() => {
+                // Only allow to close once recovery is finished
+                if (!curvalCount || errored) {
+                    // Show the close button
+                    $modal.find('.modal-footer').find('.btn-cancel').text('Close').show();
+                    this.storage.removeItem('recovering');
                 }
-              });
-            }
-            setFieldValues($field, values);
-            if (type !== "curval") {
-              const $li = $(`<li class="li-success">Restored ${name}</li>`);
-              $list.append($li);
-            }
-            $field.addClass("field--changed");
-          }
-        } catch (e) {
-          // Catch anything within the mapped promises
-          const name = $field.data("name");
-          const $li = $(`<li class="li-error">Failed to restore ${name}<ul><li class="warning">${e.message}</li></ul></li>`);
-          console.error(e);
-          $list.append($li);
-          errored = true;
-        }
-      })).then(() => {
-        // If there are errors, show an appropriate message, otherwise show a success message
-        $body.append(`<p>${errored ? "Values restored with errors." : "All values restored."} Please check that all field values are as expected.</p>`);
-      }).catch(e => {
-        // If there are any errors that can't be handled in the mapped promises, show a critical error message
-        $body.append(`<div class="alert alert-danger"><h4>Critical error restoring values</h4><p>${e}</p></div>`);
-      }).finally(() => {
-        // Only allow to close once recovery is finished
-        if (!curvalCount || errored) {
-          // Show the close button
-          $modal.find(".modal-footer").find(".btn-cancel").text("Close").show();
-          this.storage.removeItem('recovering');
-        }
-      });
-    });
+            });
+        });
 
         // Do we need to run an autorecover?
         const item = await this.storage.getItem(this.table_key);
 
-    // If there is no item, or there are already alerts, do not show the alert
-    if ($('.alert-danger').text() || $('.alert-warning').text() || !item) return;
-    const alert = new InfoAlert("There are unsaved values from the last time you edited this record. Would you like to preview the changes?");
-    const alertElement = alert.render();
+        // If there is no item, or there are already alerts, do not show the alert
+        if ($('.alert-danger').text() || $('.alert-warning').text() || !item) return;
+        const alert = new InfoAlert('There are unsaved values from the last time you edited this record. Would you like to preview the changes?');
+        const alertElement = alert.render();
 
-    alertElement.classList.add('alert-restore');
+        alertElement.classList.add('alert-restore');
 
-    const restoreButton = new RenderableButton("Preview", () => {
-      const $display = $modal.find(".modal-autosave")
-      const list = $("<li></li>");
-      // Get a list of the field values to restore
-      Promise.all($form.find('.linkspace-field').map(async (_, field)=>{
-        const $field = $(field);
-        const key = this.columnKey($field);
-        const value = await this.storage.getItem(key)
-        if(!value) return;
-        const fieldName = $field.data('name');
-        const li = $(`<li>${fieldName}</li>`)
-        list.append(li);
-      })).then(()=> {
-        // Append the list to the modal display
-        $display.append(list)
-      }).then(()=>{
-        // Show the modal
-        $modal.modal('show');
-        alert.hide();
-      });
-    }, 'btn-primary', 'btn-inverted', 'btn-alert-restore');
-    const restoreButtonElement = restoreButton.render();
+        const restoreButton = new RenderableButton('Preview', () => {
+            const $display = $modal.find('.modal-autosave');
+            const list = $('<li></li>');
+            // Get a list of the field values to restore
+            Promise.all($form.find('.linkspace-field').map(async (_, field)=>{
+                const $field = $(field);
+                const key = this.columnKey($field);
+                const value = await this.storage.getItem(key);
+                if(!value) return;
+                const fieldName = $field.data('name');
+                const li = $(`<li>${fieldName}</li>`);
+                list.append(li);
+            })).then(()=> {
+                // Append the list to the modal display
+                $display.append(list);
+            }).then(()=>{
+                // Show the modal
+                $modal.modal('show');
+                alert.hide();
+            });
+        }, 'btn-primary', 'btn-inverted', 'btn-alert-restore');
+        const restoreButtonElement = restoreButton.render();
 
-    const cancelButton = new RenderableButton("Cancel", () => {
-      alert.hide();
-    }, 'btn-secondary', 'btn-inverted', 'btn-alert-restore-cancel');
-    const cancelButtonElement = cancelButton.render();
+        const cancelButton = new RenderableButton('Cancel', () => {
+            alert.hide();
+        }, 'btn-secondary', 'btn-inverted', 'btn-alert-restore-cancel');
+        const cancelButtonElement = cancelButton.render();
 
-    const buttonDiv = document.createElement('div');
-    buttonDiv.className = 'button-group d-flex justify-content-end';
-    buttonDiv.appendChild(restoreButtonElement);
-    buttonDiv.appendChild(cancelButtonElement);
+        const buttonDiv = document.createElement('div');
+        buttonDiv.className = 'button-group d-flex justify-content-end';
+        buttonDiv.appendChild(restoreButtonElement);
+        buttonDiv.appendChild(cancelButtonElement);
 
-    alertElement.appendChild(buttonDiv);
+        alertElement.appendChild(buttonDiv);
 
-    $('.content-block').prepend(alertElement);
-  }
+        $('.content-block').prepend(alertElement);
+    }
 }
 
 export default AutosaveModal;

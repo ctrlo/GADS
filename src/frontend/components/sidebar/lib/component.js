@@ -7,7 +7,14 @@ const KEY_NAV_STATE = 'main-menu::state';
 const NAV_STATE_EXPANDED = 'expanded';
 const NAV_STATE_COLLAPSED = 'collapsed';
 
+/**
+ * SidebarComponent class to manage the sidebar behavior.
+ */
 class SidebarComponent extends Component {
+    /**
+     * Creates an instance of SidebarComponent.
+     * @param {HTMLElement} element The HTML element representing the sidebar.
+     */
     constructor(element) {
         super(element);
         this.el = $(this.element);
@@ -19,6 +26,9 @@ class SidebarComponent extends Component {
         this.el.removeClass('hidden');
     }
 
+    /**
+     * Initializes the sidebar by setting up the toggle button and handling the initial state.
+     */
     initSidebar() {
         const sidebarToggle = this.el.find('.sidebar__toggle');
         sidebarObservable.addSubscriber(this);
@@ -40,6 +50,9 @@ class SidebarComponent extends Component {
         sidebarToggle.click(() => { this.handleClick(); });
     }
 
+    /**
+     * Handles the window resize event to adjust the sidebar state based on resolution.
+     */
     handleResize() {
         if (this.isMobileResolution()) {
             if (!this.isMobile) {
@@ -54,6 +67,9 @@ class SidebarComponent extends Component {
         }
     }
 
+    /**
+     * Handles the click event on the sidebar toggle button.
+     */
     handleClick() {
         if (this.el.hasClass(COLLAPSED_CLASS)) {
             this.expandSidebar();
@@ -63,6 +79,9 @@ class SidebarComponent extends Component {
         sidebarObservable.sideBarChange();
     }
 
+    /**
+     * Collapses the sidebar by adding the collapsed class and updating the main content area.
+     */
     collapseSidebar() {
         this.el.addClass(COLLAPSED_CLASS);
         $(this.toggle).attr('aria-expanded', 'false');
@@ -75,6 +94,9 @@ class SidebarComponent extends Component {
         }
     }
 
+    /**
+     * Expands the sidebar by removing the collapsed class and updating the main content area.
+     */
     expandSidebar() {
         this.el.removeClass(COLLAPSED_CLASS);
         $(this.toggle).attr('aria-expanded', 'true');
@@ -87,6 +109,10 @@ class SidebarComponent extends Component {
         }
     }
 
+    /**
+     * Checks if the current resolution is mobile.
+     * @returns {boolean} True if the resolution is mobile, false otherwise.
+     */
     isMobileResolution() {
         return window.matchMedia('(max-width: 991px)').matches;
     }

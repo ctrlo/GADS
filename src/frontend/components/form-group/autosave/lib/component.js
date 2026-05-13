@@ -3,7 +3,6 @@ import AutosaveBase from './autosaveBase';
 
 /**
  * Autosave component
- * @inherits AutosaveBase
  */
 class AutosaveComponent extends AutosaveBase {
     /**

@@ -1,5 +1,9 @@
 import  'bootstrap-datepicker';
 
+/**
+ * Initializes a date field as a datepicker.
+ * @param {JQuery} field The field to initialize as a datepicker.
+ */
 const initDateField = (field) => {
     field.datepicker({
         'format': field.data('dateformat-datepicker'),

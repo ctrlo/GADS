@@ -1,6 +1,6 @@
 /**
  * Toggles (switches) all fields from the source toggle table to the destination toggle table
- * @param element {JQuery<HTMLElement>} - The button element
+ * @param {JQuery<HTMLElement>} element The button element
  */
 export default function createToggleAllFieldsButton(element: JQuery<HTMLElement>) {
     element.on('click', (ev) => {

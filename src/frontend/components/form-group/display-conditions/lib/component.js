@@ -3,13 +3,23 @@ import '@lol768/jquery-querybuilder-no-eval/dist/js/query-builder.standalone.min
 import 'bootstrap-select/dist/js/bootstrap-select';
 import { refreshSelects } from 'components/form-group/common/bootstrap-select';
 
+/**
+ * Component for managing display conditions in form groups.
+ */
 class DisplayConditionsComponent extends Component {
+    /**
+     * Create a new DisplayConditionsComponent.
+     * @param {HTMLElement} element The HTML element for the component.
+     */
     constructor(element) {
         super(element);
         this.el = $(this.element);
         this.initDisplayConditions();
     }
 
+    /**
+     * Initialize the display conditions for the form group.
+     */
     initDisplayConditions() {
         const builderData = this.el.data();
         const filters = JSON.parse(atob(builderData.filters));
@@ -27,8 +37,8 @@ class DisplayConditionsComponent extends Component {
                 { type: 'not_contains', accept_values: true, apply_to: ['string'] }
             ],
             allow_empty: true
-        }).queryBuilder('setRules', builderData.filterBase 
-            ? JSON.parse(atob(builderData.filterBase)) 
+        }).queryBuilder('setRules', builderData.filterBase
+            ? JSON.parse(atob(builderData.filterBase))
             : {rules:[]});
     }
 }

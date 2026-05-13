@@ -1,23 +1,37 @@
-import { uploadMessage } from "util/scriptErrorHandler";
+import { uploadMessage } from 'util/scriptErrorHandler';
 
+/**
+ * Class to manage logging in the application.
+ * It will log to the console if the application is running in a development environment,
+ * and will upload the logs to the server if it's running in production.
+ */
 class Logging {
+    /**
+     * Initializes the logging class and determines if logging is allowed based on the environment.
+     */
     constructor() {
         this.allowLogging =
-                window.test ||
-                location.hostname === 'localhost' ||
-                location.hostname === '127.0.0.1' ||
-                location.hostname.endsWith('.peek.digitpaint.nl');
+            window.test ||
+            location.hostname === 'localhost' ||
+            location.hostname === '127.0.0.1' ||
+            location.hostname.endsWith('.peek.digitpaint.nl');
     }
 
+    /**
+     * Logs a message to the console or uploads it to the server based on the environment.
+     */
     log(...message) {
         if (this.allowLogging) {
-            console.log(...message);
+            console.log(message);
         } else {
             const message = this.formatMessage('log', ...message);
             uploadMessage(message);
         }
     }
 
+    /**
+     * Logs an informational message to the console or uploads it to the server based on the environment.
+     */
     info(...message) {
         if (this.allowLogging) {
             console.info(message);
@@ -27,6 +41,9 @@ class Logging {
         }
     }
 
+    /**
+     * Logs a warning message to the console or uploads it to the server based on the environment.
+     */
     warn(...message) {
         if (this.allowLogging) {
             console.warn(message);
@@ -36,6 +53,9 @@ class Logging {
         }
     }
 
+    /**
+     * Logs an error message to the console or uploads it to the server based on the environment.
+     */
     error(...message) {
         if (this.allowLogging) {
             console.error(message);
@@ -45,6 +65,9 @@ class Logging {
         }
     }
 
+    /**
+     * Formats a message by prefixing it with the log type and converting any objects to JSON strings.
+     */
     formatMessage(type, ...message) {
         let output = type + ': ';
         for (let i = 0; i < message.length; i++) {
