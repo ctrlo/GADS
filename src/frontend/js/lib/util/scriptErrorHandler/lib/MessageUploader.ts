@@ -16,25 +16,24 @@ export const uploadMessage = async (message: string) => {
 /**
  * Class to upload messages to the server. It takes an instance of Uploader to handle the actual upload process.
  */
-export class MessageUploader {
+class MessageUploader {
     private static _instance: MessageUploader;
-
-    /**
-     * Get the singleton instance of MessageUploader. If it doesn't exist, create a new instance with a new Uploader.
-     * @returns The singleton instance of MessageUploader
-     */
-    static get instance(): MessageUploader {
-        if (!this._instance) {
-            this._instance = new MessageUploader(new Uploader('/api/script_error', 'POST'));
-        }
-        return this._instance;
-    }
 
     /**
      * Create an instance of MessageUploader.
      * @param uploader The uploader to use when uploading messages
      */
     constructor(private uploader: Uploader) {
+    }
+
+    /**
+     * Get the singleton instance of MessageUploader. If it doesn't exist, create a new instance with a new Uploader.
+     */
+    static get instance(): MessageUploader {
+        if (!this._instance) {
+            this._instance = new MessageUploader(new Uploader('/api/script_error', 'POST'));
+        }
+        return this._instance;
     }
 
     /**
