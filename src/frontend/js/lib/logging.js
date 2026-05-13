@@ -4,14 +4,14 @@ class Logging {
     constructor() {
         this.allowLogging =
             window.test ||
-      location.hostname === 'localhost' ||
-      location.hostname === '127.0.0.1' ||
-      location.hostname.endsWith('.peek.digitpaint.nl');
+            location.hostname === 'localhost' ||
+            location.hostname === '127.0.0.1' ||
+            location.hostname.endsWith('.peek.digitpaint.nl');
     }
 
     log(...message) {
         if (this.allowLogging) {
-            console.log(message);
+            console.log(...message);
         } else {
             const message = this.formatMessage('log', ...message);
             uploadMessage(message);
@@ -20,7 +20,7 @@ class Logging {
 
     info(...message) {
         if (this.allowLogging) {
-            console.info(message);
+            console.info(...message);
         } else {
             const message = this.formatMessage('info', ...message);
             uploadMessage(message);
@@ -29,7 +29,7 @@ class Logging {
 
     warn(...message) {
         if (this.allowLogging) {
-            console.warn(message);
+            console.warn(...message);
         } else {
             const message = this.formatMessage('warn', ...message);
             uploadMessage(message);
@@ -38,7 +38,7 @@ class Logging {
 
     error(...message) {
         if (this.allowLogging) {
-            console.error(message);
+            console.error(...message);
         } else {
             const message = this.formatMessage('error', ...message);
             uploadMessage(message);
@@ -60,5 +60,5 @@ class Logging {
     }
 }
 
-const logging = new Logging;
+const logging = new Logging();
 export { logging };
