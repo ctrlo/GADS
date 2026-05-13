@@ -13,22 +13,23 @@ type StringMap = { [key: string]: string };
  */
 class StorageProvider {
     /**
-     * Get the underlying storage provider
+     * Get the storage provider instance
+     * @returns {Storage | AppStorage} The storage provider instance
      */
     get provider() { return this.storage; }
 
     /**
      * Create a new StorageProvider instance
-     * @param instance The instance identifier for this storage instance
-     * @param storage The storage provider to use (defaults to a gadsStorage instance)
+     * @param {string} instance The instance name for the storage
+     * @param {Storage | AppStorage} storage The storage to use, defaults to gadsStorage
      */
     constructor(private readonly instance: string, private readonly storage: Storage | AppStorage = gadsStorage) {
     }
 
     /**
-     * Set an item within the storage provider
-     * @param key The key to use for the stored item
-     * @param value The value to use for the stored item
+     * Set an item in the storage
+     * @param {string} key The key to set the item for
+     * @param {string} value The value to set for the key
      */
     async setItem(key: string, value: string) {
         let item = await this.storage.getItem(this.instance);

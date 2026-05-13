@@ -23,7 +23,7 @@ class Logging {
      */
     log(...message) {
         if (this.allowLogging) {
-            console.log(...message);
+            console.log(message);
         } else {
             const msg = this.formatMessage('log', ...message);
             uploadMessage(msg);
