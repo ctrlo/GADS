@@ -2,7 +2,6 @@ import StorageProvider from 'util/storageProvider';
 
 /**
  * Clear all saved form values for the current record
- * @param $form The form to clear the data for
  */
 export async function clearSavedFormValues() {
     const ls = storage();
@@ -13,33 +12,33 @@ export async function clearSavedFormValues() {
 
 /**
  * Get the layout identifier from the body data
- * @returns The layout identifier
+ * @returns { number } The layout identifier
  */
-export function layoutId() {
+export function layoutId(): number {
     return $('body').data('layout-identifier');
 }
 
 /**
  * Get the record identifier from the body data
- * @returns The record identifier
+ * @returns { number } The record identifier
  */
-export function recordId() {
+export function recordId(): number {
     return $('body').find('.form-edit')
         .data('current-id') || 0;
 }
 
 /**
  * Get the key for the table used for saving form values
- * @returns The key for the table
+ * @returns {string} The key for the table
  */
-export function table_key() {
+export function table_key(): string {
     return `linkspace-record-change-${layoutId()}-${recordId()}`;
 }
 
 /**
  * Get the storage object - this originally was used in debugging to allow for the storage object to be mocked
- * @returns The storage object
+ * @returns { StorageProvider } The storage object
  */
-export function storage() {
+export function storage(): StorageProvider {
     return new StorageProvider(table_key());
 }

@@ -15,7 +15,14 @@ import ReactDOM from 'react-dom';
 import App from './react/app';
 import ApiClient from './react/api';
 
+/**
+ * DashboardComponent class that initializes the dashboard and renders the App component.
+ */
 class DashboardComponent extends Component {
+    /**
+     * Create a DashboardComponent instance.
+     * @param {HTMLElement} element The HTML element that this component will be attached to.
+     */
     constructor(element) {
         super(element);
         this.el = $(this.element);
@@ -30,6 +37,9 @@ class DashboardComponent extends Component {
         this.initDashboard();
     }
 
+    /**
+     * Initialize the dashboard by rendering the App component with widgets and configurations.
+     */
     initDashboard() {
         this.element.className = '';
         const widgetsEls = Array.prototype.slice.call(document.querySelectorAll('#ld-app > div'));

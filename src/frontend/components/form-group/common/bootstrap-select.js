@@ -1,3 +1,7 @@
+/**
+ * Set up event listeners for query builder rule filters and operators to initialise the bootstrap-select component.
+ * @param {JQuery} el The jQuery element to attach the event listeners to.
+ */
 export const refreshSelects = (el) => {
     const ruleFilterSelects = [];
     const operatorSelects = [];

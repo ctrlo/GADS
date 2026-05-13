@@ -1,5 +1,8 @@
 import { AlertBase } from './alertBase';
 
+/**
+ * Class representing a danger alert.
+ */
 export class DangerAlert extends AlertBase {
     /**
      * Create an instance of InfoAlert.

@@ -1,8 +1,7 @@
-/* eslint-disable */
-import "jstree";
-import "datatables.net";
-import "@lol768/jquery-querybuilder-no-eval"
-import { validateQueryBuilder } from "validation";
+import 'jstree';
+import 'datatables.net';
+import '@lol768/jquery-querybuilder-no-eval';
+import { validateQueryBuilder } from 'validation';
 
 declare global {
     interface Window {
@@ -25,7 +24,7 @@ export default class SubmitFieldButton {
 
     /**
      * Create a submit field button
-     * @param element The submit button element
+     * @param {JQuery<HTMLElement>} element The submit button element
      */
     constructor(element: JQuery<HTMLElement>) {
         element.on('click', (ev) => {
@@ -43,7 +42,10 @@ export default class SubmitFieldButton {
             const $displayConditionsField = $('#displayConditions');
 
             const $instanceIDField = $('#refers_to_instance_id');
-            const $filterEl = $instanceIDField.length && $(`[data-builder-id='${$instanceIDField.val()}']`);
+            let $filterEl: JQuery<HTMLElement> | undefined = undefined;
+            if($instanceIDField.length) {
+                $filterEl =  $(`[data-builder-id='${$instanceIDField.val()}']`);
+            }
 
             const $permissionTable = $('#default_field_permissions_table');
 
@@ -69,7 +71,7 @@ export default class SubmitFieldButton {
                 bUpdateTree = true;
             }
 
-            if ($instanceIDField.length && !$instanceIDField.prop('disabled') && $filterEl.length) {
+            if ($instanceIDField.length && !$instanceIDField.prop('disabled') && $filterEl && $filterEl.length) {
                 bUpdateFilter = true;
             }
 
@@ -127,8 +129,8 @@ export default class SubmitFieldButton {
 
     /**
      * Get the URL for the tree API
-     * @param data The data for the tree
-     * @returns The URL for the tree API
+     * @param {JQuery.PlainObject} data The data for the tree
+     * @returns {string} The URL for the tree API
      */
     private getURL(data: JQuery.PlainObject): string {
         if (window.test) return '';

@@ -1,11 +1,14 @@
+/* eslint-disable jsdoc/require-jsdoc */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* @ts-ignore */
 import { setupCrypto } from 'testing/globals.definitions';
 import { EncryptedStorage } from './encryptedStorage';
 
 class TestStorage implements Storage {
     private map = new Map<string, string>();
 
-    [name: string]: any;  
-    length: number;
+    [name: string]: any;
+    length: number = 0;
 
     clear(): void {
         this.map.clear();

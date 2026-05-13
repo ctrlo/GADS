@@ -19,7 +19,7 @@ describe('Collapsible', () => {
             <div class="attention">Please make a secure note of this content now, as it will not be displayed again.</div>
             </div>
         </div>
-  `;
+        `;
     });
 
     afterEach(() => {

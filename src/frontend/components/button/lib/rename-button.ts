@@ -170,6 +170,11 @@ class RenameButton {
         this.hideRenameControls(id, button);
     }
 
+    /**
+     * Hides the rename controls
+     * @param {number} id The id of the field
+     * @param {JQuery<HTMLButtonElement>} button The button that was clicked
+     */
     private hideRenameControls(id: number, button: JQuery<HTMLButtonElement>) {
         $(`#current-${id}`).removeClass('hidden')
             .attr('aria-hidden', 'false');

@@ -9,7 +9,14 @@ import '../../../js/lib/jqplot/jqplot.canvasAxisLabelRenderer';
 import '../../../js/lib/jqplot/jqplot.canvasAxisTickRenderer';
 import '../../../js/lib/jqplot/jqplot.highlighter';
 
+/**
+ * Graph component that handles rendering of various types of graphs
+ */
 class GraphComponent extends Component {
+    /**
+     * Create a new GraphComponent.
+     * @param {HTMLElement} element The element to attach the component to.
+     */
     constructor(element) {
         super(element);
         this.graphContainer = $(this.element).find('.graph__container');
@@ -19,6 +26,9 @@ class GraphComponent extends Component {
         }
     }
 
+    /**
+     * Initialize the graph component.
+     */
     initGraph() {
         $.jqplot.config.enablePlugins = true;
         const data = this.graphContainer.data();
@@ -35,6 +45,11 @@ class GraphComponent extends Component {
         this.do_plot(plotData, options_in);
     }
 
+    /**
+     * Get the URL to fetch graph data based on the graph type.
+     * @param {object} data The data object containing graph information.
+     * @returns {string} The URL to fetch graph data.
+     */
     getURL(data) {
         let devEndpoint;
 
@@ -52,6 +67,12 @@ class GraphComponent extends Component {
         }
     }
 
+    /**
+     * Fetch graph data from the server using AJAX. This request is synchronous.
+     * @param {string} url The URL to fetch data from.
+     * @returns {object|null} The JSON data received from the server, or null if the request fails.
+     * @todo Would it not be better to use async/await here?
+     */
     ajaxDataRenderer(url) {
         let ret = null;
 
@@ -66,6 +87,11 @@ class GraphComponent extends Component {
         return ret;
     }
 
+    /**
+     * Plot the graph using the provided data and options.
+     * @param {object} plotData The data to plot on the graph.
+     * @param {object} options_in The options for the graph, including type, axis names, and legend visibility.
+     */
     do_plot(plotData, options_in) {
         const ticks = plotData.xlabels;
         let plotOptions = {};
@@ -131,6 +157,10 @@ class GraphComponent extends Component {
         $(`[data-chart-id=${options_in.id}]`).jqplot(plotData.points, plotOptions);
     }
 
+    /**
+     * Create default series options for different graph types.
+     * @returns {object} Default series options for different graph types.
+     */
     makeSeriesDefaults = () => ({
         bar: {
             renderer: $.jqplot.BarRenderer,

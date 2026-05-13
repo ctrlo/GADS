@@ -1,6 +1,9 @@
 import { Hidable, Renderable } from 'util/renderable';
 import { AlertType } from './types';
 
+/**
+ * Base class for alert components that can be rendered to the DOM and hidden when necessary.
+ */
 export abstract class AlertBase extends Hidable implements Renderable<HTMLDivElement> {
     /**
      * Create an instance of AlertBase.

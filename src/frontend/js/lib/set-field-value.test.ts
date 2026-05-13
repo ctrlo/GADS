@@ -1,17 +1,17 @@
-/* eslint-disable */
-import "components/button/lib/rename-button";
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+import 'components/button/lib/rename-button';
 /* @ts-ignore */
-import inputComponent from "components/form-group/input";
+import inputComponent from 'components/form-group/input';
 /* @ts-ignore */
-import buttonComponent from "components/button";
+import buttonComponent from 'components/button';
 /* @ts-ignore */
-import multipleSelectComponent from "components/form-group/multiple-select";
+import multipleSelectComponent from 'components/form-group/multiple-select';
 /* @ts-ignore */
-import selectWidgetComponent from "components/form-group/select-widget";
+import selectWidgetComponent from 'components/form-group/select-widget';
 /* @ts-ignore */
-import textAreaComponent from "components/form-group/textarea";
+import textAreaComponent from 'components/form-group/textarea';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { setFieldValues } from "./set-field-values";
+import { setFieldValues } from './set-field-values';
 
 declare global {
     interface JQuery<TElement = HTMLElement> {
