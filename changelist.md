@@ -1,5 +1,17 @@
 # GADS Changelist
 --------
+**Version**: 2.8.3
+**Released**: 13-05-2026
+
+# Fixes
+
+- Fix for error in JS logging
+- Fix error in drag and drop
+- Better error for when duplicate curval ID's are present
+
+# QoL Fixes
+
+--------
 **Version**: 2.8.2
 **Released**: 01-05-2026
 
