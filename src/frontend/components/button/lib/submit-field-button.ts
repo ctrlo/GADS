@@ -1,6 +1,8 @@
-import 'jstree';
-import 'datatables.net';
-import '@lol768/jquery-querybuilder-no-eval';
+/* eslint-disable */
+import "jstree";
+import "datatables.net";
+import "@lol768/jquery-querybuilder-no-eval";
+import { validateQueryBuilder } from "validation";
 
 declare global {
     interface Window {
@@ -27,6 +29,7 @@ export default class SubmitFieldButton {
      */
     constructor(element: JQuery<HTMLElement>) {
         element.on('click', (ev) => {
+            const $form = $(ev.currentTarget).closest('form') as JQuery<HTMLFormElement>;
 
             const $jstreeContainer = $('#field_type_tree');
             const $jstreeEl = $('#tree-config .tree-widget-container');
@@ -70,7 +73,9 @@ export default class SubmitFieldButton {
                 bUpdateFilter = true;
             }
 
-            if (res && $displayConditionsField.length) {
+            if(!validateQueryBuilder($displayConditionsBuilderEl)) {
+                ev.preventDefault();
+            } else if (res && $displayConditionsField.length) {
                 bUpdateDisplayConditions = true;
             }
 
@@ -105,7 +110,7 @@ export default class SubmitFieldButton {
                 window.UpdatePeopleFilter(peopleConditionsFieldEl, ev);
             }
 
-            if (bUpdateDisplayConditions) {
+            if (bUpdateDisplayConditions && res) {
                 $displayConditionsField.val(JSON.stringify(res, null, 2));
             }
 
@@ -115,7 +120,6 @@ export default class SubmitFieldButton {
              * and appends them to the form manually */
             const $inputs = $permissionTable.DataTable().$('input,select,textarea');
             $inputs.hide(); // Stop them appearing to the user in a strange format
-            const $form = $(ev.currentTarget).closest('form');
             $permissionTable.remove();
             $form.append($inputs);
         });

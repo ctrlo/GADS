@@ -1,4 +1,50 @@
 # GADS Changelist
+--------
+**Version**: 2.8.2
+**Released**: 01-05-2026
+
+# Fixes
+
+- Stop saving of Calculated values to cache when length is over 250 characters
+- Add appropriate error when blank headings are used in CSV import
+
+# QoL Fixes
+
+- Prevent automatic replies from system emails by default
+
+--------
+**Version**: 2.8.1
+**Released**: 03-04-2026
+
+## Features
+
+- Frontend errors now log to audit log
+
+## Fixes
+
+- Fix error preventing download of records when (legacy) approval records exist
+
+--------
+**Version**: 2.8.0
+**Released**: 27-09-2026
+
+## Features
+
+- Default PDF Reports now use the newer Report functionality
+
+## Fixes
+
+- Autorecover is no longer as invasive and has been replaced with an alert with clearer wording
+- View all links now open a default view that shows all relevant values
+- There is clearer demarcation between multiple values in text fields
+- When creating a view, the name can no longer consist of only whitespace characters
+
+--------
+
+**Version**: 2.7.4
+**Released**: 08-09-2025
+
+- Permission fix for hidden fields
 
 --------
 

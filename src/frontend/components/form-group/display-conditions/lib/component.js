@@ -25,13 +25,11 @@ class DisplayConditionsComponent extends Component {
                 { type: 'contains', accept_values: true, apply_to: ['string'] },
                 { type: 'not_equal', accept_values: true, apply_to: ['string'] },
                 { type: 'not_contains', accept_values: true, apply_to: ['string'] }
-            ]
-        });
-
-        if (builderData.filterBase) {
-            const data = JSON.parse(atob(builderData.filterBase));
-            this.el.queryBuilder('setRules', data);
-        }
+            ],
+            allow_empty: true
+        }).queryBuilder('setRules', builderData.filterBase 
+            ? JSON.parse(atob(builderData.filterBase)) 
+            : {rules:[]});
     }
 }
 
