@@ -74,7 +74,7 @@ class DocumentComponent {
      * Initialize the document component by setting up event listeners and drag-and-drop functionality.
      * @throws {Error} If the file upload element cannot be found.
      */
-    async init() {
+    init() {
         const url = this.el.data('fileupload-url');
 
         const tokenField = this.el.closest('form').find('input[name="csrf_token"]');
@@ -120,7 +120,7 @@ class DocumentComponent {
      * @param {number} total The total number of bytes to be loaded.
      */
     showProgress(file: string, loaded: number, total: number) {
-        let uploadProgression = (loaded / total) * 100;
+        let uploadProgression = Math.round((loaded / total) * 100);
         if (uploadProgression == Infinity) {
             // This will occur when there is an error uploading the file or the file is empty
             uploadProgression = 100;
