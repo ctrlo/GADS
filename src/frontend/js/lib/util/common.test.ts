@@ -77,12 +77,14 @@ describe('common functions', () => {
 
         it('returns an empty object for null', () => {
             const json = null;
+            // @ts-expect-error This is a test for null input
             const parsed = fromJson(json);
             expect(parsed).toEqual({});
         });
 
         it('returns an empty object for undefined', () => {
             const json = undefined;
+            // @ts-expect-error This is a test for undefined input
             const parsed = fromJson(json);
             expect(parsed).toEqual({});
         });

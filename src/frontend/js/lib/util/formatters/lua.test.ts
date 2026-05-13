@@ -1,4 +1,4 @@
-/// <reference types="jest" />
+import { describe, it, expect } from '@jest/globals';
 import { LUA } from './lua';
 
 describe('LUA tests', () => {

@@ -22,8 +22,8 @@ class DocumentComponent {
     readonly type = 'document';
     readonly el: JQuery<HTMLElement>;
     readonly fileInput: JQuery<HTMLInputElement>;
-    errors: (string|Error)[];
-    handler: ErrorHandler;
+    errors!: (string|Error)[];
+    handler!: ErrorHandler;
 
     constructor(el: JQuery<HTMLElement> | HTMLElement) {
         this.el = $(el);

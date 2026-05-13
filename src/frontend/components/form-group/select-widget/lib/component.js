@@ -1,5 +1,6 @@
 // We import Bootstrap because there is an error that throws if we don't (this.collapse is not a function).
 /* eslint-disable @typescript-eslint/no-this-alias */
+import 'bootstrap';
 import { Component } from 'component';
 import { logging } from 'logging';
 import { fromJson } from 'util/common';
