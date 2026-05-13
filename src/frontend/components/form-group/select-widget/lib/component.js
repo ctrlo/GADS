@@ -600,8 +600,7 @@ class SelectWidgetComponent extends Component {
                 });
 
             } else {
-                const errorMessage =
-                    data.error === 1 ? data.message : 'Oops! Something went wrong.';
+                const errorMessage = data.message;
                 const errorLi = $(
                     '<li class="answer answer--blank alert alert-danger d-flex flex-row justify-content-start"><span class="control"><label>' +
                     errorMessage +
