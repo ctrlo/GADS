@@ -145,21 +145,6 @@ class ModalComponent extends Component {
                 $(field).removeData('original-value');
                 $field.trigger('change');
             }
-            if ($field.attr('type') === 'radio') {
-                // Simple removal of checked property will suffice
-                $field.prop('checked', false);
-            } else if ($field.attr('type') === 'checkbox') {
-                // Need to trigger click event to ensure widget is updated
-                if ($field.is(':checked')) $field.trigger('click');
-            } else {
-                if ($field.data('restore-value')) {
-                    $field.val($field.data('restore-value'));
-                } else {
-                    $field.val('');
-                }
-                $(field).removeData('original-value');
-                $field.trigger('change');
-            }
 
             if ($field.is(':invalid')) {
                 $field.attr('aria-invalid', false);
@@ -193,9 +178,6 @@ class ModalComponent extends Component {
     getFrameNumber(frame) {
         const config = $(frame).data('config');
 
-        if (!config.frame || isNaN(config.frame)) {
-            return;
-        }
         if (!config.frame || isNaN(config.frame)) {
             return;
         }
@@ -486,8 +468,7 @@ class ModalComponent extends Component {
         const self = this;
         const url = this.el.data('config').url;
         const id = this.el.data('config').id;
-        const csrf = $('body').data('csrf')
-            .toString();
+        const csrf = $('body').data('csrf').toString();
         dataObj['csrf_token'] = csrf || '';
         const dataStr = JSON.stringify(dataObj);
         const strURL = id ? `${url}/${id}` : url;
