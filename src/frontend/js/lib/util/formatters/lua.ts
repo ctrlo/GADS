@@ -10,9 +10,9 @@ type stringLike = { toString(): string };
 
 /**
  * This is currently to purely mark where we expect LUA code to be present
- * @param strings Template to transform into LUA code
- * @param values The values to insert into the LUA code
- * @returns A string of LUA code
+ * @param {TemplateStringsArray} strings Template to transform into LUA code
+ * @param {(stringLike | string | number | LUACode)[]} values The values to insert into the LUA code
+ * @returns {LUACode} A string of LUA code
  */
 function LUA(strings: TemplateStringsArray, ...values: (stringLike | string | number | LUACode)[]): LUACode {
     let str = '';

@@ -1,5 +1,9 @@
-import { Uploader } from "util/upload/UploadControl";
+import { Uploader } from 'util/upload/UploadControl';
 
+/**
+ * Upload a message to the server. It creates an instance of MessageUploader with a new Uploader and calls the uploadMessage method.
+ * @param message The message content to upload
+ */
 export const uploadMessage = async (message: string) => {
     const body = {
         description: message,
@@ -32,7 +36,7 @@ class MessageUploader {
         try {
             return await this.uploader.upload(body);
         } catch (err) {
-            console.error("Failed to upload message:", err);
+            console.error('Failed to upload message:', err);
         }
     }
 }

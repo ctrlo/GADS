@@ -2,20 +2,31 @@ import { Component } from 'component';
 import { getFieldValues } from 'get-field-values';
 import { setFieldValues } from 'set-field-values';
 
-/* Used to lookup a value at an external endpoint
- * and prefill other fields from the response */
-
+/**
+ * Component to lookup a value at an external endpoint and prefill other fields from the response
+ */
 class ValueLookupComponent extends Component {
+    /**
+     * Create a new ValueLookupComponent
+     * @param {HTMLElement} element The HTML element that this component is attached to
+     */
     constructor(element) {
         super(element);
         this.initLookupComponent();
     }
 
+    /**
+     * Initializes the value lookup component by setting up the endpoint and fields
+     */
     initLookupComponent() {
         const field = this.getLookupEndpoint();
         this.setupValueLookup(field);
     }
 
+    /**
+     * Get the lookup endpoint and fields from the component's data attributes
+     * @returns {object} An object containing the field element, endpoint URL, and fields to lookup
+     */
     getLookupEndpoint() {
         const lookup_endpoint = $(this.element).data('lookup-endpoint');
         const lookup_fields = $(this.element).data('lookup-fields');
@@ -26,6 +37,10 @@ class ValueLookupComponent extends Component {
         };
     }
 
+    /**
+     * Set up the value lookup functionality
+     * @param {object} field The field object containing the endpoint and fields to lookup
+     */
     setupValueLookup(field) {
         const endpoint = field.endpoint;
         const $field = field.field;
@@ -82,6 +97,14 @@ class ValueLookupComponent extends Component {
     }
 }
 
+/**
+ * Add a status message to the field
+ * @param {JQuery<HTMLElement>} $field The field element to add the status message to
+ * @param {string} message The message to display
+ * @param {boolean} spinner The flag to show a spinner
+ * @param {boolean} is_error Is the message an error message
+ * @todo Why is this not a method of the component?
+ */
 const addStatusMessage = ($field, message, spinner, is_error) => {
     let $notice = $field.find('.lookup-status');
     let $text = $notice.find('.status-text');
@@ -101,6 +124,10 @@ const addStatusMessage = ($field, message, spinner, is_error) => {
     $notice.removeClass('d-none');
 };
 
+/**
+ * Remove the status message from the field
+ * @param {JQuery<HTMLElement>} $field The field element to remove the status message from
+ */
 const removeStatusMessage = ($field) => {
     $field.find('.lookup-status').addClass('d-none');
 };

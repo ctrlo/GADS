@@ -1,17 +1,31 @@
 import { Component } from 'component';
 import { getFieldValues } from 'get-field-values';
 
+/**
+ * Component to handle dependent fields in forms.
+ */
 class DependentFieldsComponent extends Component {
+    /**
+     * Create a new instance of the DependentFieldsComponent.
+     * @param {HTMLElement} element The HTML element that this component is attached to.
+     */
     constructor(element) {
         super(element);
         this.initDependentFields();
     }
 
+    /**
+     * Initialize the dependent fields by retrieving the field dependencies
+     */
     initDependentFields() {
         const field = this.getFieldDependency();
         this.setupDependentField(field);
     }
 
+    /**
+     * Get the field dependency from the element's data attribute.
+     * @returns {object} An object containing the field, condition, and rules for dependencies.
+     */
     getFieldDependency() {
         const dependency = $(this.element).data('dependency');
         const decoded = JSON.parse(atob(dependency));
@@ -46,16 +60,11 @@ class DependentFieldsComponent extends Component {
         };
     }
 
-    /***
-     *
-     * Handle the dependency connections between fields
-     * via regular expression checks on field values
-     *
-     * FIXME: It would be an improvement to abstract the
-     * different field types in GADS behind a common interface
-     * as opposed to using dom-attributes.
-     *
-    */
+    /**
+     * Handle the dependency connections between fields via regular expression checks on field values
+     * @todo It would be an improvement to abstract the different field types in GADS behind a common interface as opposed to using dom-attributes.
+     * @param {object} field The field object containing the condition and rules for dependencies.
+     */
     setupDependentField(field) {
         const condition = field.condition;
         const rules = field.rules;

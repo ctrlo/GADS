@@ -1,7 +1,9 @@
-/// <reference types="jest" />
+/* eslint-disable jsdoc/require-jsdoc */
+import { describe, it, expect } from '@jest/globals';
 import { LUA } from './lua';
 
 describe('LUA tests', () => {
+    // Mock object to test string conversion
     class TestObject {
         toString() {
             return 'test';

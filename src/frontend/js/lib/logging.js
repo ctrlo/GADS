@@ -1,67 +1,87 @@
-import { uploadMessage } from "util/scriptErrorHandler";
+import { uploadMessage } from 'util/scriptErrorHandler';
 
+/**
+ * Class to manage logging in the application.
+ * It will log to the console if the application is running in a development environment,
+ * and will upload the logs to the server if it's running in production.
+ */
 class Logging {
-  /**
-   * Create a new Logging instance.
-   */
-  constructor() {
-    this.allowLogging =
-      window.test ||
-      location.hostname === 'localhost' ||
-      location.hostname === '127.0.0.1' ||
-      location.hostname.endsWith('.peek.digitpaint.nl');
-  }
-
-  log(...message) {
-    if (this.allowLogging) {
-      console.log(...message)
-    } else {
-      const msg = this.formatMessage('log', ...message)
-      uploadMessage(msg)
+    /**
+     * Initializes the logging class and determines if logging is allowed based on the environment.
+     */
+    constructor() {
+        this.allowLogging =
+            window.test ||
+            location.hostname === 'localhost' ||
+            location.hostname === '127.0.0.1' ||
+            location.hostname.endsWith('.peek.digitpaint.nl');
     }
-  }
 
-  info(...message) {
-    if (this.allowLogging) {
-      console.info(...message)
-    } else {
-      const msg = this.formatMessage('info', ...message)
-      uploadMessage(msg)
+    /**
+     * Logs a message to the console or uploads it to the server based on the environment.
+     */
+    log(...message) {
+        if (this.allowLogging) {
+            console.log(...message)
+        } else {
+            const msg = this.formatMessage('log', ...message)
+            uploadMessage(msg)
+        }
     }
-  }
 
-  warn(...message) {
-    if (this.allowLogging) {
-      console.warn(...message)
-    } else {
-      const msg = this.formatMessage('warn', ...message)
-      uploadMessage(msg)
+    /**
+     * Logs an informational message to the console or uploads it to the server based on the environment.
+     */
+    info(...message) {
+        if (this.allowLogging) {
+            console.info(...message)
+        } else {
+            const msg = this.formatMessage('info', ...message)
+            uploadMessage(msg)
+        }
     }
-  }
 
-  error(...message) {
-    if (this.allowLogging) {
-      console.error(...message)
-    } else {
-      const msg = this.formatMessage('error', ...message)
-      uploadMessage(msg)
+    /**
+     * Logs a warning message to the console or uploads it to the server based on the environment.
+     */
+    warn(...message) {
+        if (this.allowLogging) {
+            console.warn(...message)
+        } else {
+            const msg = this.formatMessage('warn', ...message)
+            uploadMessage(msg)
+        }
     }
-  }
 
-  formatMessage(type, ...message) {
-    let output = type + ': ';
-    for (let i = 0; i < message.length; i++) {
-      if(!message[i]) continue;
-      if (typeof message[i] === 'object') {
-        output += JSON.stringify(message[i]);
-      } else {
-        // This is wrapped so that anything that's not an object is converted to a string
-        output += `${message[i]}`;
-      }
-      if (i < message.length - 1) output += ' ';
+    /**
+     * Logs an error message to the console or uploads it to the server based on the environment.
+     */
+    error(...message) {
+        if (this.allowLogging) {
+            console.error(...message)
+        } else {
+            const msg = this.formatMessage('error', ...message)
+            uploadMessage(msg)
+        }
     }
-    return output;
-  }
+
+    /**
+     * Formats a message by prefixing it with the log type and converting any objects to JSON strings.
+     */
+    formatMessage(type, ...message) {
+        let output = type + ': ';
+        for (let i = 0; i < message.length; i++) {
+            if (!message[i]) continue;
+            if (typeof message[i] === 'object') {
+                output += JSON.stringify(message[i]);
+            } else {
+                // This is wrapped so that anything that's not an object is converted to a string
+                output += `${message[i]}`;
+            }
+            if (i < message.length - 1) output += ' ';
+        }
+        return output;
+    }
 }
 
 const logging = new Logging();

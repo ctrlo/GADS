@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-jsdoc */
 import HelpView from './component';
 import { describe, it, expect } from '@jest/globals';
 
