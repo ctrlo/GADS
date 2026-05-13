@@ -1,4 +1,4 @@
-import { uploadMessage } from "util/scriptErrorHandler/lib/MessageUploader";
+import { uploadMessage } from "util/scriptErrorHandler";
 
 class Logging {
   /**
