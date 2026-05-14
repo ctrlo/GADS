@@ -56,16 +56,16 @@ class SelectWidgetComponent extends Component {
         if (this.$widget.is('[readonly]')) return;
         this.connect();
 
-        this.$widget.unbind('click');
+        this.$widget.off('click');
         this.$widget.on('click', () => { this.handleWidgetClick(); });
 
-        this.$search.unbind('blur');
+        this.$search.off('blur');
         this.$search.on('blur', (e) => { this.possibleCloseWidget(e); });
 
-        this.$availableItems.unbind('blur');
+        this.$availableItems.off('blur');
         this.$availableItems.on('blur', (e) => { this.possibleCloseWidget(e); });
 
-        this.$moreInfoButtons.unbind('blur');
+        this.$moreInfoButtons.off('blur');
         this.$moreInfoButtons.on('blur', (e) => { this.possibleCloseWidget(e); });
 
         $(document).on('click', (e) => { this.handleDocumentClick(e); });

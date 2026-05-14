@@ -18,7 +18,7 @@ class Logging {
     }
 
     /**
-     * Logs a message to the console if logging is allowed.
+     * Logs a message to the console or uploads it to the server based on the environment.
      * @param  {...any} message - The message to log
      */
     log(...message) {
@@ -31,7 +31,7 @@ class Logging {
     }
 
     /**
-     * Logs an info message to the console if logging is allowed.
+     * Logs an info message to the console or uploads it to the server based on the environment.
      * @param  {...any} message - The message to log as an info
      */
     info(...message) {
@@ -44,7 +44,7 @@ class Logging {
     }
 
     /**
-     * Logs a warning message to the console if logging is allowed.
+     * Logs a warning message to the console or uploads it to the server based on the environment.
      * @param  {...any} message - The message to log as a warning
      */
     warn(...message) {
@@ -57,7 +57,7 @@ class Logging {
     }
 
     /**
-     * Logs an error message to the console if logging is allowed.
+     * Logs an error message to the console or uploads it to the server based on the environment.
      * @param  {...any} message - The message to log as an error
      */
     error(...message) {
@@ -71,6 +71,9 @@ class Logging {
 
     /**
      * Formats a message by prefixing it with the log type and converting any objects to JSON strings.
+     * @param {string} type - The type of the log message (e.g., 'log', 'info', 'warn', 'error')
+     * @param  {...any} message - The message to format
+     * @returns {string} The formatted message
      */
     formatMessage(type, ...message) {
         let output = type + ': ';
