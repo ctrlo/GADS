@@ -81,7 +81,11 @@ sub presentation {
     my @presentation_columns = $self->presentation_map_columns(%options, columns => \@columns);
     my @topics= $self->get_topics(\@presentation_columns);
 
-    my $has_purged = !!(grep { defined $_->{data}->{purged} && $_->{data}->{purged} } map { @{$_->{columns}} } @topics);
+    my $has_purged = !!(grep {
+        defined $_->{data}->{purged} && $_->{data}->{purged}
+    } map {
+        @{$_->{columns}}
+    } @topics);
 
     my $version_datetime_col = $self->layout->column_by_name_short('_version_datetime');
     my $created_user_col     = $self->layout->column_by_name_short('_created_user');
