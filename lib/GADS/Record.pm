@@ -56,8 +56,6 @@ use MooX::Types::MooseLike::Base qw(Maybe Bool Int ArrayRef HashRef);
 use MooX::Types::MooseLike::DateTime qw/DateAndTime/;
 use namespace::clean;
 
-use JSON qw/to_json/;
-
 with 'GADS::DateTime';
 with 'GADS::Role::Presentation::Record';
 
@@ -1100,6 +1098,7 @@ sub _find
     if ($find{chronology})
     {
         my @chronology; my $last_record;
+        # First entry - this is the record as it currently stands
         if ($find{chronology_page} == 1) {
             $self->clear_get_last_chronology_record;
             my $record = $record_objects[0];
@@ -1136,6 +1135,7 @@ sub _find
         } else {
             unshift @record_objects, $self->get_last_chronology_record if $self->get_last_chronology_record;
         }
+        # Show all changes from the original - ignore the last one as this will become the $last_record for comparison
         foreach my $i (0 .. $#record_objects-1)
         {
             $record = $record_objects[$i+1];
@@ -1210,6 +1210,7 @@ sub _find
             } if @changed; # There may have been changes, but not ones the user has access to
             $last_record = $record;
         }
+        # If we're on the last page, return the record state as it was created
         if($last_page) {
             my $record = $record_objects[-1];
             $self->_get_record_for_chronology($record, $records, %find);

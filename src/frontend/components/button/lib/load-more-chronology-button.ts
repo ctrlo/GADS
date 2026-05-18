@@ -10,9 +10,13 @@ export class LoadMoreChronologyButton {
 
     constructor(private $el: JQuery<HTMLElement>) {
         logging.log("Initializing LoadMoreChronologyButton for element:", $el);
+        // Where to put the chronology entries
         this.$target = $('.chronology');
+        // Loading spinner
         this.$spinner = $(".chronology_spinner");
+        // Error handler - attached to the chronology container
         this.errorHandler = new ErrorHandler(this.$target[0]);
+        // Initialize the button
         this.init();
     }
 
