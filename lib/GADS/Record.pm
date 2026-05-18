@@ -1111,7 +1111,6 @@ sub _find
                 if($column->type eq 'curval') {
                     my %new_ids = map { $_->{id} => $_ } @{$datum->values};
                     my @values;
-                    error "Values not empty" if @values;
                     foreach my $id (keys %new_ids)
                     {
                         my $new_value = $new_ids{$id};

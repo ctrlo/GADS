@@ -585,9 +585,9 @@ post '/api/settings/logo' => require_login sub {
 };
 
 get '/api/chronology/:id' => require_login sub {
-    my $user = logged_in_user;
+    my $user       = logged_in_user;
     my $current_id = route_parameters->get('id');
-    my $page = query_parameters->get('page') // 1;
+    my $page       = query_parameters->get('page') // 1;
 
     my $record = GADS::Record->new(
         user   => $user,

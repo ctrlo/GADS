@@ -1,5 +1,4 @@
 import { initializeRegisteredComponents } from "component";
-import { logging } from "logging";
 import ErrorHandler from "util/errorHandler";
 
 export class LoadMoreChronologyButton {
@@ -9,7 +8,6 @@ export class LoadMoreChronologyButton {
     private errorHandler: ErrorHandler;
 
     constructor(private $el: JQuery<HTMLElement>) {
-        logging.log("Initializing LoadMoreChronologyButton for element:", $el);
         // Where to put the chronology entries
         this.$target = $('.chronology');
         // Loading spinner
