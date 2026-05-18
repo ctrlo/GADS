@@ -19,6 +19,7 @@ class Logging {
 
     /**
      * Logs a message to the console or uploads it to the server based on the environment.
+     * @param  {...any} message - The message to log
      */
     log(...message) {
         if (this.allowLogging) {
@@ -30,7 +31,8 @@ class Logging {
     }
 
     /**
-     * Logs an informational message to the console or uploads it to the server based on the environment.
+     * Logs an info message to the console or uploads it to the server based on the environment.
+     * @param  {...any} message - The message to log as an info
      */
     info(...message) {
         if (this.allowLogging) {
@@ -43,6 +45,7 @@ class Logging {
 
     /**
      * Logs a warning message to the console or uploads it to the server based on the environment.
+     * @param  {...any} message - The message to log as a warning
      */
     warn(...message) {
         if (this.allowLogging) {
@@ -55,6 +58,7 @@ class Logging {
 
     /**
      * Logs an error message to the console or uploads it to the server based on the environment.
+     * @param  {...any} message - The message to log as an error
      */
     error(...message) {
         if (this.allowLogging) {
@@ -67,6 +71,9 @@ class Logging {
 
     /**
      * Formats a message by prefixing it with the log type and converting any objects to JSON strings.
+     * @param {string} type - The type of the log message (e.g., 'log', 'info', 'warn', 'error')
+     * @param  {...any} message - The message to format
+     * @returns {string} The formatted message
      */
     formatMessage(type, ...message) {
         let output = type + ': ';
@@ -83,5 +90,12 @@ class Logging {
     }
 }
 
-const logging = new Logging;
+/**
+ * Singleton instance of the Logging class for use throughout the application.
+ * @type {Logging}
+ * @constant
+ * @default
+ */
+const logging = new Logging();
+
 export { logging };

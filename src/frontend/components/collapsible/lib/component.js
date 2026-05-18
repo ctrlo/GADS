@@ -1,7 +1,7 @@
 import { Component } from 'component';
 
 /**
- *
+ * CollapsibleComponent class that initializes the collapsible component and handles the toggle functionality for collapsing and expanding content.
  */
 class CollapsibleComponent extends Component {
     /**

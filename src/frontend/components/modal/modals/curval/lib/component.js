@@ -22,7 +22,7 @@ class CurvalModalComponent extends ModalComponent {
      * Create a new instance of the Curval Modal Component
      * @param {HTMLElement} element The element to attach the component to
      */
-    constructor(element) {
+    constructor(element)  {
         super(element);
         this.context = undefined; // Populated on modal show
         if (!this.wasInitialized) this.initCurvalModal();
@@ -393,7 +393,11 @@ class CurvalModalComponent extends ModalComponent {
     }
 
     /**
-     * Get the URL for the modal, including query parameters for the layout and draft status.
+     * Get the URL for the curval modal.
+     * @param {number|null} current_id - The current record ID, or null for new records.
+     * @param {string} instance_name - The name of the instance.
+     * @param {string} layout_id - The layout ID for the curval.
+     * @returns {string} The URL for the curval modal.
      */
     getURL(current_id, instance_name, layout_id) {
 
@@ -453,7 +457,7 @@ class CurvalModalComponent extends ModalComponent {
                     'json'
                 )
                     .fail(function(jqXHR, textstatus, errorthrown) {
-                        const errorMessage = `Oops! Something went wrong: ${textstatus}: ${errorthrown}`;
+                        const errorMessage = jqXHR.responseJSON?.message ?? `Oops! Something went wrong: ${textstatus}: ${errorthrown}`;
                         self.curvalModalValidationFailed($form, errorMessage);
                     })
                     .always(function() {

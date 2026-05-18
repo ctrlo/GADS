@@ -23,4 +23,4 @@ function MarkDown(strings: TemplateStringsArray, ...values: (stringLike | string
     return marked(str).trim();
 }
 
-export { MarkdownCode, MarkDown };
+export { MarkDown };

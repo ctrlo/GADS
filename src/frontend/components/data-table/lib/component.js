@@ -358,11 +358,11 @@ class DataTableComponent extends Component {
         $searchInput.appendTo($('.input', $searchElement));
         if (col.typeahead_use_id) {
             $searchInput.after('<input type="hidden" class="search">');
-            if(searchValue) {
-                const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1', {method: 'POST', data: {csrf_token: $('body').data('csrf')}});
+            if (searchValue) {
+                const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1', { method: 'POST', data: { csrf_token: $('body').data('csrf') } });
                 const data = await response.json();
                 if (!data.error) {
-                    if(data.records.length != 0) {
+                    if (data.records.length != 0) {
                         $searchInput.val(data.records[0].label);
                         $('input.search', $searchElement).val(data.records[0].id)
                             .trigger('change');
@@ -379,22 +379,22 @@ class DataTableComponent extends Component {
 
         if (col && col.typeahead) {
             import(/*webpackChunkName: "typeahead" */ 'util/typeahead')
-                .then(({default: TypeaheadBuilder})=>{
+                .then(({ default: TypeaheadBuilder }) => {
                     const builder = new TypeaheadBuilder();
                     builder
                         .withAjaxSource(this.getApiEndpoint(columnId))
                         .withMethod('POST')
-                        .withData({csrf_token: $('body').data('csrf')})
+                        .withData({ csrf_token: $('body').data('csrf') })
                         .withInput($('input', $header))
                         .withAppendQuery()
                         .withDefaultMapper()
                         .withName(columnId.replace(/\s+/g, '') + 'Search')
                         .withCallback((data) => {
-                            if(col.typeahead_use_id) {
+                            if (col.typeahead_use_id) {
                                 $searchInput.val(data.name);
-                                $('input.search',$searchElement).val(data.id)
+                                $('input.search', $searchElement).val(data.id)
                                     .trigger('change');
-                            }else{
+                            } else {
                                 $('input', $searchElement).addClass('search')
                                     .val(data.name)
                                     .trigger('change');
@@ -687,7 +687,7 @@ class DataTableComponent extends Component {
 
         if (data.limit_rows && data.values.length >= data.limit_rows) {
             strHTML += `<p><em>(showing maximum ${data.limit_rows} rows.
-                            <a href="/${data.parent_layout_identifier}/data?curval_record_id=${data.curval_record_id}&curval_layout_id=${data.column_id }">view all</a>)</em>
+                            <a href="/${data.parent_layout_identifier}/data?curval_record_id=${data.curval_record_id}&curval_layout_id=${data.column_id}">view all</a>)</em>
                         </p>`;
         }
 
@@ -876,7 +876,7 @@ class DataTableComponent extends Component {
         */
         const table = document.querySelector('table.data-table');
         const currentTable = $(table);
-        if(currentTable && $.fn.dataTable.isDataTable(currentTable)) {
+        if (currentTable && $.fn.dataTable.isDataTable(currentTable)) {
             currentTable.DataTable().destroy();
         }
         if (!this.isFullScreen) {
@@ -918,8 +918,8 @@ class DataTableComponent extends Component {
 
         // Toggle the full screen button
         this.isFullScreen = !this.isFullScreen;
-        $('#full-screen-btn').removeClass(this.isFullScreen ? 'btn-toggle-off': 'btn-toggle');
-        $('#full-screen-btn').addClass(this.isFullScreen ? 'btn-toggle': 'btn-toggle-off');
+        $('#full-screen-btn').removeClass(this.isFullScreen ? 'btn-toggle-off' : 'btn-toggle');
+        $('#full-screen-btn').addClass(this.isFullScreen ? 'btn-toggle' : 'btn-toggle-off');
     }
 
     /**
@@ -938,8 +938,8 @@ class DataTableComponent extends Component {
                 .each((i, el) => {
                     const data = rows[i] ? rows[i] : undefined;
                     if (data) {
-                    // URL will be record link for standard view, or filtered URL for
-                    // grouped view (in which case _count parameter will be present not _id)
+                        // URL will be record link for standard view, or filtered URL for
+                        // grouped view (in which case _count parameter will be present not _id)
                         const url = data['_id'] ? `${this.base_url}/${data['_id']}` : `?${data['_count']['url']}`;
 
                         $(el).find('td:not(".dtr-control")')

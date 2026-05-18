@@ -1,5 +1,5 @@
 import 'jstree';
-import 'datatables.net';
+import 'datatables.net-bs4';
 import '@lol768/jquery-querybuilder-no-eval';
 import { validateQueryBuilder } from 'validation';
 
@@ -97,7 +97,6 @@ export default class SubmitFieldButton {
                     url: this.getURL(data),
                     data: { data: mytext, csrf_token: data.csrfToken }
                 }).done(() => {
-
                     alert('Tree has been updated');
                 });
             }

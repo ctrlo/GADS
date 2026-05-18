@@ -109,4 +109,4 @@ class Uploader {
     }
 }
 
-export { upload, Uploader, ProgressFunction, XmlHttpRequestLike };
+export { upload, Uploader, XmlHttpRequestLike };
