@@ -26,10 +26,4 @@ export const fromJson = (json: String | object) => {
     } catch (e) {
         return {};
     }
-}
-
-export const fixOverflow = <T extends HTMLElement = HTMLElement> (element: T) => {
-    if(element.scrollWidth > element.clientWidth && element.textContent) {
-        element.title = element.textContent;
-    }
-}
+};

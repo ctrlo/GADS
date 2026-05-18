@@ -102,7 +102,7 @@ class RenameButton {
     /**
      * Perform click event
      * @param {number} id The id of the field
-     * @param {JQuery.ClickEvent} ev The event object 
+     * @param {JQuery.ClickEvent} ev The event object
      */
     private renameClick(id: number, ev: JQuery.ClickEvent) {
         ev.preventDefault();
@@ -158,7 +158,7 @@ class RenameButton {
      * @param {JQuery<HTMLButtonElement>} button The button that was clicked
      * @param {JQuery.BlurEvent} e The blur event
      */
-    private triggerRename(id: number, button: JQuery<HTMLButtonElement>, e: JQuery.Event) { // eslint-disable-line @typescript-eslint/no-unused-vars
+    private triggerRename(id: number, button: JQuery<HTMLButtonElement>, e: JQuery.Event) {
         const previousValue = $(`#current-${id}`).text();
         const extension = '.' + previousValue.split('.').pop();
         const newName = this.value.endsWith(extension) ? this.value : this.value + extension;
