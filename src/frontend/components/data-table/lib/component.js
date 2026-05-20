@@ -806,15 +806,11 @@ class DataTableComponent extends Component {
         if(!layout) return;
         if(!layout.topEnd) return;
         if(Array.isArray(layout.topEnd) && layout.topEnd.includes('fs')) {
-            console.log('Fullscreen mode enabled for DataTable');
             layout.topEnd = layout.topEnd.filter((item) => item !== 'fs');
             layout.topEnd.push({fullscreen: {checked: this.fullScreen, onToggle: (ev) => this.toggleFullScreenMode(ev)}});
         } else if (layout.topEnd === 'fs') {
             layout.topEnd = undefined;
-            console.log('Fullscreen mode enabled for DataTable');
             layout.topEnd = {fullscreen: {checked: this.fullScreen, onToggle: (ev) => this.toggleFullScreenMode(ev)}};
-        } else {
-            console.log('No fullscreen mode enabled for DataTable');
         }
     }
 
