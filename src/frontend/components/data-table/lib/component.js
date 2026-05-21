@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 
 import { Component, initializeRegisteredComponents } from 'component';
-import 'datatables.net';
 import 'datatables.net-bs4';
 import 'datatables.net-buttons-bs4';
 import 'datatables.net-responsive-bs4';
