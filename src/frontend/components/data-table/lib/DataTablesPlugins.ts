@@ -1,4 +1,4 @@
-import DataTable from 'datatables.net-bs4';
+import DataTable from 'datatables.net';
 
 /**
  * Create a toggle button

@@ -1,4 +1,5 @@
 import 'jstree';
+import 'datatables.net';
 import 'datatables.net-bs4';
 import 'jQuery-QueryBuilder/dist/js/query-builder.standalone';
 import { validateQueryBuilder } from 'validation';
