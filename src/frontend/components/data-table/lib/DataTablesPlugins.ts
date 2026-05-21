@@ -27,5 +27,8 @@ function createToggleButton(id:string, label:string, checked: boolean, onToggle:
 
 // I feel using the "proper" toggle from bootstrap is better than the custom one and adding extra "fluff" to the datatables code in my opinion
 DataTable.feature.register('fullscreen', function (settings, opts) {
-    return createToggleButton('fullscreen-button', 'Fullscreen', opts.checked, opts.onToggle);
+    const options = Object.assign({
+        checked: false
+    }, opts);
+    return createToggleButton('fullscreen-button', 'Fullscreen', options.checked, options.onToggle);
 });
