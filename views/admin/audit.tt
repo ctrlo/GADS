@@ -5,10 +5,10 @@
   # prepare files table config
   table_layout = {
     topStart = undef,
-    topEnd   = "fs",
+    topEnd   = "fullscreen",
     bottomStart = undef,
     bottomEnd = undef
-  }; # TODO: Add switch
+  };
   table_show_all_records = 1;
 
   table_caption = "Table for audit log";
