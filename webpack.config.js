@@ -97,6 +97,7 @@ module.exports = (env) => {
                 implementation: sass,
                 sassOptions: {
                   includePaths: ['src/frontend/components'],
+                  quietDeps: true, // Suppresses warnings from dependencies, such as bootstrap, which we do not control and cannot easily fix. This keeps the build output clean and focused on issues we can address.
                 },
               },
             },
