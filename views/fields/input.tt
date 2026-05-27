@@ -64,6 +64,7 @@
         readonly[% END %][% IF is_required %]
         required
         aria-required="true"[% END %]
+        [% IF max_length %] data-max="[% max_length %]"[% END %]
       >
     </div>
   </div>
