@@ -45,6 +45,7 @@ import SelectAllComponent from "components/select-all";
 import HelpView from "components/help-view";
 import PeopleFilterComponent from "components/form-group/people-filter";
 import handleActions from "util/actionsHandler";
+import FieldLengthComponent from "components/form-group/field-length";
 
 // Register them
 registerComponent(AddTableModalComponent);
@@ -84,6 +85,7 @@ registerComponent(SelectAllComponent);
 registerComponent(HelpView);
 registerComponent(PeopleFilterComponent);
 registerComponent(AutosaveComponent);
+registerComponent(FieldLengthComponent);
 
 // Initialize all components at some point
 initializeRegisteredComponents(document.body);
