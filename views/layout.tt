@@ -1433,7 +1433,12 @@
                       # prepare table config
                       table_id           = 'default_field_permissions_table';
                       table_class        = 'table-lines table-no-margin';
-                      table_dom          = '<"row row--header"<"col"f><"col-lg-auto dataTables_length_wrapper"l>><"row row--main"<"col-sm-12"tr>><"row row--footer"<"col-sm-12 col-lg-6"p><"col-sm-12 col-lg-6 dataTables_info_wrapper"i>>';
+                      table_layout       = {
+                        topStart => "search",
+                        topEnd   => "pageLength",
+                        bottomStart => "paging",
+                        bottomEnd   => "info"
+                      }
                       table_language     = {
                         emptyTable => "There are no groups available",
                         lengthMenu => "Rows per page _MENU_",
