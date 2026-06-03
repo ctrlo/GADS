@@ -34,6 +34,7 @@ export default function EditModal({ editModalOpen, closeModal, editError, loadin
         Modal.setAppElement('#ld-app');
     }, []);
 
+    /* @ts-expect-error Global function for testing */
     const test = window.test;
 
     return (<Modal

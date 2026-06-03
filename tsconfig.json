@@ -10,6 +10,7 @@
         "moduleResolution": "node",
         "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
+        "types": ["node"],
         "paths": {
             "js/*": [
                 "js/*"
@@ -50,6 +51,7 @@
         "node_modules",
         "dist",
         "src/**/*.test.ts",
-        "src/**/*.definitions.ts"
+        "src/**/*.definitions.ts",
+        "src/frontend/testing"
     ]
 }
