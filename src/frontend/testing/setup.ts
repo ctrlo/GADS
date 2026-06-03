@@ -10,5 +10,5 @@ declare global {
     }
 }
 
-window.$ = window.jQuery = require('jquery');
+window.$ = window.jQuery = require("jquery"); // eslint-disable-line @typescript-eslint/no-require-imports
 window.alert = jest.fn();
