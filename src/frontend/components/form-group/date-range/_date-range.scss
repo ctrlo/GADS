@@ -1,3 +1,13 @@
+div[data-column-type="daterange"] {
+  &:has(input[required]) {
+    legend {
+      &::after {
+        content: "*";
+      }
+    }
+  }
+}
+
 .input-daterange {
   .input .form-control {
     margin-top: 0;
