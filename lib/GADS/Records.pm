@@ -621,7 +621,7 @@ sub linked_hash
 
 # A function to see if any views have a particular record within
 sub search_view
-{   my ($self, $current_ids, $view) = @_;
+{   my ($self, $current_ids, $view, $user) = @_;
 
     return unless $view && @$current_ids;
 
@@ -634,79 +634,70 @@ sub search_view
     $self->columns([]);
 
     my @foundin;
-    # Treat each view with CURUSER as a separate view for each user
-    # that has it set as an alert
-    my @users = $view->has_curuser
-       ? $self->schema->resultset('User')->search({
-        view_id => $view->id
-    }, {
-        join => 'alerts',
-    })->all : (undef);
 
-    foreach my $user (@users)
+    my $filter  = $view->filter;
+    my $view_id = $view->id;
+    trace qq(About to decode filter for view ID $view_id);
+    my $decoded = $filter->as_hash;
+    if (keys %$decoded)
     {
-        my $filter  = $view->filter;
-        my $view_id = $view->id;
-        trace qq(About to decode filter for view ID $view_id);
-        my $decoded = $filter->as_hash;
-        if (keys %$decoded)
+        my @searches = ({
+            'me.instance_id'          => $self->layout->instance_id,
+        });
+        # Perform search construct twice, to ensure all value joins are consistent numbers
+        $self->_search_construct($decoded,
+            ignore_perms         => 1,
+            user                 => $user,
+            current_version_only => 1,
+        );
+        push @searches, $self->_search_construct($decoded,
+            ignore_perms         => 1,
+            user                 => $user,
+            current_version_only => 1,
+        );
+        push @searches, $self->_view_limits_search(current_version_only => 1);
+        my $i = 0; my @ids;
+        while ($i < @$current_ids)
         {
-            my @searches = ({
-                'me.instance_id'          => $self->layout->instance_id,
-            });
-            # Perform search construct twice, to ensure all value joins are consistent numbers
-            $self->_search_construct($decoded,
-                ignore_perms         => 1,
-                user                 => $user,
-                current_version_only => 1,
-            );
-            push @searches, $self->_search_construct($decoded,
-                ignore_perms         => 1,
-                user                 => $user,
-                current_version_only => 1,
-            );
-            my $i = 0; my @ids;
-            while ($i < @$current_ids)
-            {
-                # See comment above about searching for all current_ids
-                my $search = { -and => \@searches };
-                # At this point we used to see if the number of records in the
-                # view was equal to the number of current_ids, to try and skip
-                # the multiple loops if possile. However, it turned out that
-                # count() is expensive (especially if only one current_id), so
-                # this has been removed
-                my $max = $i + 499;
-                $max = @$current_ids-1 if $max >= @$current_ids;
-                $search->{'me.id'} = [@{$current_ids}[$i..$max]];
-                push @ids, $self->schema->resultset('Current')->search($search, {
-                    join => [
-                        [$self->linked_hash(search => 1, current_version_only => 1)],
-                        {
-                            'current_version' => [$self->jpfetch(search => 1)],
-                        },
-                    ],
-                })->get_column('id')->all;
-                last unless $search->{'me.id'};
-                $i += 500;
-            }
-            foreach my $id (@ids)
-            {
-                push @foundin, {
-                    view    => $view,
-                    id      => $id,
-                    user_id => $user && $user->id,
-                };
-            }
+            # See comment above about searching for all current_ids
+            my $search = { -and => \@searches };
+            # At this point we used to see if the number of records in the
+            # view was equal to the number of current_ids, to try and skip
+            # the multiple loops if possile. However, it turned out that
+            # count() is expensive (especially if only one current_id), so
+            # this has been removed
+            my $max = $i + 499;
+            $max = @$current_ids-1 if $max >= @$current_ids;
+            $search->{'me.id'} = [@{$current_ids}[$i..$max]];
+            push @ids, $self->schema->resultset('Current')->search($search, {
+                join => [
+                    [$self->linked_hash(search => 1, current_version_only => 1)],
+                    {
+                        'current_version' => [$self->jpfetch(search => 1)],
+                    },
+                ],
+            })->get_column('id')->all;
+            last unless $search->{'me.id'};
+            $i += 500;
         }
-        else {
-            # No filter, definitely in view
+        foreach my $id (@ids)
+        {
             push @foundin, {
                 view    => $view,
+                id      => $id,
                 user_id => $user && $user->id,
-                id      => $_,
-            } foreach @$current_ids;
+            };
         }
     }
+    else {
+        # No filter, definitely in view
+        push @foundin, {
+            view    => $view,
+            user_id => $user && $user->id,
+            id      => $_,
+        } foreach @$current_ids;
+    }
+
     @foundin;
 }
 

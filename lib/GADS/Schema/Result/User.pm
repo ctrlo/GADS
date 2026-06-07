@@ -376,6 +376,16 @@ sub _build_view_limits_with_blank
     return [undef];
 }
 
+# Whether this user has a view limit on a particular table
+sub has_view_limit
+{   my ($self, $instance_id) = @_;
+    !! $self->view_limits->search({
+        'view.instance_id' => $instance_id,
+    }, {
+        join => 'view',
+    })->next;
+}
+
 sub set_view_limits
 {   my ($self, $view_ids) = @_;
 

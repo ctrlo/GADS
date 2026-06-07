@@ -95,7 +95,7 @@ my $view = GADS::View->new(
     instance_id => $layout->instance_id,
     layout      => $layout,
     schema      => $schema,
-    columns => [$columns->{string1}->id],
+    columns     => [$columns->{string1}->id],
 );
 $view->write;
 
@@ -122,6 +122,65 @@ $record->fields->{$columns->{date1}->id}->set_value("2014-10-10");
 $record->write;
 
 is($schema->resultset('AlertCache')->count, 3, "Correct alert cache");
+is($schema->resultset('AlertSend')->count, 1, "Correct alert send");
+
+# Now test that the user with a limited view does not receive alerts for
+# records not in the limited view
+# Remove previous alert
+$alert->frequency('');
+$alert->write;
+is($schema->resultset('AlertCache')->count, 0, "Alert cache removed");
+is($schema->resultset('AlertSend')->count, 0, "Alert send removed");
+$view = GADS::View->new(
+    name        => 'Limited user view with alerts',
+    # Same filter as before, but will result in fewer records (due to view
+    # limit)
+    filter      => encode_json($rules),
+    instance_id => $layout->instance_id,
+    layout      => $layout,
+    schema      => $schema,
+    columns     => [$columns->{string1}->id],
+);
+$view->write;
+
+$alert = GADS::Alert->new(
+    user      => $sheet->user_normal1,
+    layout    => $layout,
+    schema    => $schema,
+    frequency => 24,
+    view_id   => $view->id,
+);
+$alert->write;
+
+is($schema->resultset('AlertCache')->count, 1, "Correct alert cache for view limit user");
+is($schema->resultset('AlertSend')->count, 0, "Correct alert send");
+
+# Create a record that will not appear to the view limit user
+$record = GADS::Record->new(
+    user   => $user,
+    layout => $layout,
+    schema => $schema,
+);
+$record->initialise;
+$record->fields->{$columns->{string1}->id}->set_value("Foo3");
+$record->fields->{$columns->{date1}->id}->set_value("2014-10-10");
+$record->write;
+
+is($schema->resultset('AlertCache')->count, 1, "Correct alert cache");
+is($schema->resultset('AlertSend')->count, 0, "Correct alert send");
+
+# And now a record that will appear
+$record = GADS::Record->new(
+    user   => $user,
+    layout => $layout,
+    schema => $schema,
+);
+$record->initialise;
+$record->fields->{$columns->{string1}->id}->set_value("Foo");
+$record->fields->{$columns->{date1}->id}->set_value("2014-10-10");
+$record->write;
+
+is($schema->resultset('AlertCache')->count, 2, "Correct alert cache");
 is($schema->resultset('AlertSend')->count, 1, "Correct alert send");
 
 done_testing();
