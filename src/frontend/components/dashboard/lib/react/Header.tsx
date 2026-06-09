@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { JSX } from 'react';
 
 /**
  * Create a Header component that displays a navigation header for dashboards.
