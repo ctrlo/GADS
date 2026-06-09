@@ -1,6 +1,6 @@
 import 'jstree';
 import 'datatables.net-bs4';
-import '@lol768/jquery-querybuilder-no-eval';
+import 'jQuery-QueryBuilder/dist/js/query-builder.standalone';
 import { validateQueryBuilder } from 'validation';
 
 declare global {
@@ -35,7 +35,6 @@ export default class SubmitFieldButton {
             const $calcCode = $('#calcfield_card_header');
 
             const $displayConditionsBuilderEl = $('#displayConditionsBuilder');
-            //Bit of typecasting here, purely because the queryBuilder plugin doesn't have types
             const res = $displayConditionsBuilderEl.length && $displayConditionsBuilderEl.queryBuilder('getRules');
             const peopleConditionsFieldEl = $('.people-filter');
             const $peopleConditionsFieldRes = peopleConditionsFieldEl.length && $('#field_type').val() == 'person' && peopleConditionsFieldEl.queryBuilder('getRules');
