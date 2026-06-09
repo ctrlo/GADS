@@ -615,7 +615,7 @@ class DataTableComponent extends Component {
      * @returns {string} The rendered HTML string for the RAG (Red-Amber-Green) status
      */
     renderRag(data) {
-        let strRagType = '';
+        let strRagType;
         const arrRagTypes = {
             a_grey: 'undefined',
             b_red: 'danger',
