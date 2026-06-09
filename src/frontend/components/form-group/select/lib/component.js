@@ -182,7 +182,7 @@ class SelectComponent extends Component {
      */
     revealInstance($option) {
         const arrSelectRevealInstances = $(`.select-reveal--${this.input.attr('id')} > .select-reveal__instance`);
-        let instanceID = '';
+        let instanceID;
 
         if ($option.data('reveal_id') !== undefined) {
             instanceID = `#${this.input.attr('id')}_${$option.data('reveal_id')}`;
