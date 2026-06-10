@@ -1,14 +1,15 @@
 import { TextEncoder, TextDecoder } from "util";
+import $ from "jquery";
 
 Object.assign(global, { TextEncoder, TextDecoder });
 
 declare global {
     interface Window {
-        $: JQueryStatic;
-        jQuery: JQueryStatic;
+        $: any;
+        jQuery: any;
         alert: (message?: any) => void;
     }
 }
 
-window.$ = window.jQuery = require("jquery"); // eslint-disable-line @typescript-eslint/no-require-imports
+window["$"] = window["jQuery"] = $;
 window.alert = jest.fn();
