@@ -1,5 +1,5 @@
 import { Component } from 'component';
-import '@lol768/jquery-querybuilder-no-eval';
+import 'jQuery-QueryBuilder/dist/js/query-builder.standalone';
 
 declare global {
     // Global interface for the window object to include the UpdatePeopleFilter method.

@@ -1,4 +1,5 @@
 [%
+  table_layout = undef
   table_show_all_records = "true";
   table_width = 85;
   table_class = "table-striped";

@@ -62,7 +62,7 @@ module.exports = (env) => {
                 {
                     test: /\.tsx?$/,
                     exclude: [/node_modules/, /\.test\.tsx?$/, /test/, /definitions/],
-                    use: ['babel-loader', 'ts-loader']
+                    use: ['ts-loader']
                 },
                 {
                     test: /\.(gif|jpg|png|svg|eot|ttf|woff|woff2)$/,

@@ -2,7 +2,7 @@ import React from 'react';
 import serialize from 'form-serialize';
 
 import Modal from 'react-modal';
-import RGL, { WidthProvider } from 'react-grid-layout';
+import ReactGridLayout from 'react-grid-layout';
 
 import Header from './Header';
 import Widget from './Widget';
@@ -16,8 +16,6 @@ declare global {
         siteConfig: any
     }
 }
-
-const ReactGridLayout = WidthProvider(RGL);
 
 const modalStyle = {
     content: {
