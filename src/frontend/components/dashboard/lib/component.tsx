@@ -7,15 +7,15 @@ import ApiClient from './react/api';
 import { ReactGridLayoutProps } from 'react-grid-layout';
 
 /**
- * DashboardComponent class to initialize and render the dashboard
+ * DashboardComponent class that initializes the dashboard and renders the App component.
  */
 export default class DashboardComponent extends Component {
     el: JQuery<HTMLElement>;
     gridConfig: ReactGridLayoutProps;
 
     /**
-     * Create a new instance of DashboardComponent
-     * @param {HTMLElement} element The HTML element to attach the dashboard component to
+     * Create a DashboardComponent instance.
+     * @param {HTMLElement} element The HTML element that this component will be attached to.
      */
     constructor(element: HTMLElement) {
         super(element);
@@ -32,7 +32,7 @@ export default class DashboardComponent extends Component {
     }
 
     /**
-     * Initialize the dashboard by rendering the App component
+     * Initialize the dashboard by rendering the App component with widgets and configurations.
      */
     initDashboard() {
         this.element.className = '';
