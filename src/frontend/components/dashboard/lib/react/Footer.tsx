@@ -5,6 +5,7 @@ import { Dropdown } from 'react-bootstrap';
 /**
  * Footer component for the dashboard
  * @param {FooterProps} props The properties for the footer component
+ * @see {@link FooterProps}
  * @returns {React.JSX.Element} The rendered footer component
  */
 export default function Footer({ addWidget, widgetTypes, currentDashboard, readOnly, noDownload }: FooterProps): React.JSX.Element {

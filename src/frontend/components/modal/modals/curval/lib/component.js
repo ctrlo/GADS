@@ -155,7 +155,7 @@ class CurvalModalComponent extends ModalComponent {
             // guids in the autosave
             let is_new_row;
             if (!guid && !current_id) {
-                guid = crypto.randomUUID(); // I wonder if we should use UUID module? Crypto is (exceptionally rarely) not available
+                guid = crypto.randomUUID();
                 is_new_row = true;
             }
             const hidden_input = $('<input>').attr({

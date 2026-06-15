@@ -43,7 +43,7 @@ class DataTableComponent extends Component {
      * Initializes the DataTable component
      */
     initTable() {
-        if(this.hasClearState) {
+        if (this.hasClearState) {
             this.clearTableStateForPage();
 
             const url = new URL(window.location.href);
@@ -55,7 +55,7 @@ class DataTableComponent extends Component {
         }
 
         const conf = this.getConf();
-        const {columns} = conf;
+        const { columns } = conf;
         this.columns = columns;
         this.el.DataTable(conf);
         this.initializingTable = true;
@@ -68,7 +68,7 @@ class DataTableComponent extends Component {
         if (this.el.hasClass('table-account-requests')) {
             this.modal = $.find('#userModal');
             this.initClickableTable();
-            this.el.on('draw.dt', ()=> {
+            this.el.on('draw.dt', () => {
                 this.initClickableTable();
             });
         }
@@ -97,7 +97,7 @@ class DataTableComponent extends Component {
      */
     clearTableStateForPage() {
         for (let i = 0; i < localStorage.length; i++) {
-            const storageKey = localStorage.key( i );
+            const storageKey = localStorage.key(i);
 
             if (!storageKey.startsWith('DataTables')) {
                 continue;
@@ -109,7 +109,7 @@ class DataTableComponent extends Component {
                 continue;
             }
 
-            if(window.location.href.indexOf('/' + keySegments.slice(1).join('/')) !== -1) {
+            if (window.location.href.indexOf('/' + keySegments.slice(1).join('/')) !== -1) {
                 localStorage.removeItem(storageKey);
             }
         }
@@ -200,9 +200,9 @@ class DataTableComponent extends Component {
     getCheckboxElement(id, label) {
         return (
             '<div class=\'checkbox\'>' +
-        `<input id='dt_checkbox_${id}' type='checkbox' />` +
-        `<label for='dt_checkbox_${id}'><span>${label}</span></label>` +
-      '</div>'
+                `<input id='dt_checkbox_${id}' type='checkbox' />` +
+                `<label for='dt_checkbox_${id}'><span>${label}</span></label>` +
+            '</div>'
         );
     }
 
@@ -225,10 +225,10 @@ class DataTableComponent extends Component {
         });
 
         // Check if the 'select all' checkbox is checked and all checkboxes need to be checked
-        $selectAllElm.find('input').on( 'click', (ev) => {
+        $selectAllElm.find('input').on('click', (ev) => {
             const checkbox = $(ev.target);
 
-            if ($(checkbox).is( ':checked' )) {
+            if ($(checkbox).is(':checked')) {
                 this.checkAllCheckboxes($checkBoxes, true);
             } else {
                 this.checkAllCheckboxes($checkBoxes, false);
@@ -243,7 +243,7 @@ class DataTableComponent extends Component {
      */
     checkAllCheckboxes($checkBoxes, bCheckAll) {
         if (bCheckAll) {
-            $checkBoxes.prop( 'checked', true );
+            $checkBoxes.prop('checked', true);
         } else {
             $checkBoxes.prop('checked', false);
         }
@@ -291,7 +291,7 @@ class DataTableComponent extends Component {
             .find('.data-table__header-wrapper')
             .html($button);
 
-        dataTable.order.listener($button, column.index() );
+        dataTable.order.listener($button, column.index());
     }
 
     /**
@@ -322,9 +322,9 @@ class DataTableComponent extends Component {
         const title = $header.text().trim();
         const searchValue = column.search();
         const self = this;
-        const {context} = column;
-        const {oAjaxData} = context[0];
-        const {columns} = oAjaxData;
+        const { context } = column;
+        const { oAjaxData } = context[0];
+        const { columns } = oAjaxData;
         const columnId = columns[column.index()].name;
         const col = this.columns[column.index()];
 
@@ -368,7 +368,7 @@ class DataTableComponent extends Component {
                 const response = await fetch(this.getApiEndpoint(columnId) + searchValue + '&use_id=1', { method: 'POST', data: { csrf_token: $('body').data('csrf') } });
                 const data = await response.json();
                 if (!data.error) {
-                    if(data.records.length != 0) {
+                    if (data.records.length != 0) {
                         $searchInput.val(data.records[0].label);
                         $('input.search', $searchElement).val(data.records[0].id)
                             .trigger('change');
@@ -385,7 +385,7 @@ class DataTableComponent extends Component {
 
         if (col && col.typeahead) {
             import(/*webpackChunkName: "typeahead" */ 'util/typeahead')
-                .then(({default: TypeaheadBuilder})=>{
+                .then(({ default: TypeaheadBuilder }) => {
                     const builder = new TypeaheadBuilder();
                     builder
                         .withAjaxSource(this.getApiEndpoint(columnId))
@@ -396,42 +396,11 @@ class DataTableComponent extends Component {
                         .withDefaultMapper()
                         .withName(columnId.replace(/\s+/g, '') + 'Search')
                         .withCallback((data) => {
-                            if(col.typeahead_use_id) {
+                            if (col.typeahead_use_id) {
                                 $searchInput.val(data.name);
-                                $('input.search',$searchElement).val(data.id)
+                                $('input.search', $searchElement).val(data.id)
                                     .trigger('change');
-                            }else{
-                                $('input', $searchElement).addClass('search')
-                                    .val(data.name)
-                                    .trigger('change');
-                            }
-                        })
-                        .build();
-                });
-        }
-
-        $header.find('.data-table__header-wrapper').prepend($searchElement);
-
-        this.toggleFilter(column);
-
-        if (col && col.typeahead) {
-            import(/*webpackChunkName: "typeahead" */ 'util/typeahead')
-                .then(({default: TypeaheadBuilder})=>{
-                    const builder = new TypeaheadBuilder();
-                    builder
-                        .withAjaxSource(this.getApiEndpoint(columnId))
-                        .withMethod('POST')
-                        .withData({csrf_token: $('body').data('csrf')})
-                        .withInput($('input', $header))
-                        .withAppendQuery()
-                        .withDefaultMapper()
-                        .withName(columnId.replace(/\s+/g, '') + 'Search')
-                        .withCallback((data) => {
-                            if(col.typeahead_use_id) {
-                                $searchInput.val(data.name);
-                                $('input.search',$searchElement).val(data.id)
-                                    .trigger('change');
-                            }else{
+                            } else {
                                 $('input', $searchElement).addClass('search')
                                     .val(data.name)
                                     .trigger('change');
@@ -453,7 +422,7 @@ class DataTableComponent extends Component {
             self.toggleFilter(column);
 
             // Update or add the filter to the searchParams
-            if(self.searchParams.has(id)) {
+            if (self.searchParams.has(id)) {
                 self.searchParams.set(id, this.value);
             } else {
                 self.searchParams.append(id, this.value);
@@ -531,8 +500,8 @@ class DataTableComponent extends Component {
         if (strHTML.toString().length > MORE_LESS_TRESHOLD) {
             return (
                 `<div class="more-less" data-column="${strColumnName}">
-          ${strHTML}
-        </div>`
+                    ${strHTML}
+                </div>`
             );
         }
         return strHTML;
@@ -597,7 +566,7 @@ class DataTableComponent extends Component {
                         thisHTML += `<p>${this.encodeHTMLEntities(detail.definition)}: ${strDecodedValue}</p>`;
                     }
                 });
-                thisHTML +=  '</div>';
+                thisHTML += '</div>';
                 strHTML += (
                     `<div class="position-relative">
             <button class="btn btn-small btn-inverted btn-info trigger" aria-expanded="false" type="button">
@@ -779,18 +748,12 @@ class DataTableComponent extends Component {
      * @param {Config['layout']} layout The layout configuration for the DataTable
      */
     setupFullscreen(layout) {
-        if(!layout) return;
-        if(!layout.topEnd) return;
-        if(Array.isArray(layout.topEnd) && layout.topEnd.includes('fs')) {
-            console.log('Fullscreen mode enabled for DataTable');
-            layout.topEnd = layout.topEnd.filter((item) => item !== 'fs');
-            layout.topEnd.push({fullscreen: {checked: this.fullScreen, onToggle: (ev) => this.toggleFullScreenMode(ev)}});
-        } else if (layout.topEnd === 'fs') {
-            layout.topEnd = undefined;
-            console.log('Fullscreen mode enabled for DataTable');
-            layout.topEnd = {fullscreen: {checked: this.fullScreen, onToggle: (ev) => this.toggleFullScreenMode(ev)}};
-        } else {
-            console.log('No fullscreen mode enabled for DataTable');
+        if (!layout) return;
+        if (!layout.topEnd) return;
+        if (Array.isArray(layout.topEnd) && layout.topEnd.includes('fullscreen')) {
+            layout.topEnd = [...layout.topEnd.filter((item) => item !== 'fullscreen'), { fullscreen: { checked: this.fullscreen, onToggle: (ev) => this.toggleFullScreenMode(ev) } }];
+        } else if (layout.topEnd === 'fullscreen') {
+            layout.topEnd = { fullscreen: { checked: this.fullscreen, onToggle: (ev) => this.toggleFullScreenMode(ev) } };
         }
     }
 
@@ -833,7 +796,7 @@ class DataTableComponent extends Component {
             this.json = json;
 
             if (this.initializingTable || conf.reinitialize) {
-                dataTable.columns().every(function(index) {
+                dataTable.columns().every(function (index) {
                     const column = this;
                     const $header = $(column.header());
 
@@ -870,15 +833,15 @@ class DataTableComponent extends Component {
             }
         };
 
-        conf['footerCallback'] = function() {
+        conf['footerCallback'] = function () {
             const api = this.api();
             // Add aggregate values to table if configured
             const agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate;
             if (agg) {
                 const cols = api.settings()[0].oAjaxData.columns;
-                api.columns().every( function () {
+                api.columns().every(function () {
                     const idx = this.index();
-                    const {name} = cols[idx];
+                    const { name } = cols[idx];
                     if (agg[name]) {
                         $(this.footer()).html(
                             self.renderDataType(agg[name])
@@ -959,7 +922,7 @@ class DataTableComponent extends Component {
      */
     bindClickHandlersAfterDraw(conf) {
         const tableElement = this.el;
-        const rows = tableElement.DataTable().rows( {page:'current'} )
+        const rows = tableElement.DataTable().rows({ page: 'current' })
             .data();
 
         if (rows && this.base_url) {
