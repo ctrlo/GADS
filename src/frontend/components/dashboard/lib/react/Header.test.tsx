@@ -7,22 +7,22 @@ import Header from './Header';
 import { HeaderProps } from './types';
 
 describe('Header', () => {
-    it('Creates a header', () => {
+    it('should render the header', () => {
         const headerProps: HeaderProps = {
             hMargin: 0,
             dashboards: [
                 {
                     name: 'Dashboard 1',
-                    url: 'http://localhost:3000/dashboard/1'
+                    url: 'http://localhost:3000/dashboard1'
                 },
                 {
                     name: 'Dashboard 2',
-                    url: 'http://localhost:3000/dashboard/2'
+                    url: 'http://localhost:3000/dashboard2'
                 }
             ],
             currentDashboard: {
                 name: 'Dashboard 1',
-                url: 'http://localhost:3000/dashboard/1'
+                url: 'http://localhost:3000/dashboard1'
             },
             includeH1: true
         };
