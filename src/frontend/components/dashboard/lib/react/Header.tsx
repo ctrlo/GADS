@@ -6,6 +6,7 @@ import { Nav } from 'react-bootstrap';
 /**
  * Render the header for the dashboard
  * @param {HeaderProps} param0 Header component properties
+ * @see {@link HeaderProps}
  * @returns {React.JSX.Element} The rendered header component
  */
 export default function Header ({ hMargin, dashboards, currentDashboard, includeH1 }: HeaderProps): React.JSX.Element {
