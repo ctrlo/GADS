@@ -13,16 +13,16 @@ describe('Header', () => {
             dashboards: [
                 {
                     name: 'Dashboard 1',
-                    url: 'http://localhost:3000/dashboard/1'
+                    url: 'http://localhost:3000/dashboard1'
                 },
                 {
                     name: 'Dashboard 2',
-                    url: 'http://localhost:3000/dashboard/2'
+                    url: 'http://localhost:3000/dashboard2'
                 }
             ],
             currentDashboard: {
                 name: 'Dashboard 1',
-                url: 'http://localhost:3000/dashboard/1'
+                url: 'http://localhost:3000/dashboard1'
             },
             includeH1: true
         };
