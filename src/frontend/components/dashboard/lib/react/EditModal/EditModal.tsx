@@ -7,7 +7,6 @@ import { AppModalProps } from '../types';
  * Edit modal component
  * @param {AppModalProps} props - The modal props
  * @returns {React.JSX.Element} The rendered modal component
- * @todo: A lot of state here - I think I will revisit this later
  */
 export default function EditModal({ editModalOpen, closeModal, editError, loadingEditHtml, editHtml, formRef, deleteActiveWidget, saveActiveWidget }:AppModalProps): React.JSX.Element {
     const modalStyle: Styles = {
