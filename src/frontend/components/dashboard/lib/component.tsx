@@ -1,29 +1,23 @@
 import { Component } from 'component';
-import 'react-app-polyfill/stable';
-
-import 'core-js/es/array/is-array';
-import 'core-js/es/map';
-import 'core-js/es/set';
-import 'core-js/es/object/define-property';
-import 'core-js/es/object/keys';
-import 'core-js/es/object/set-prototype-of';
-
-import './react/polyfills/classlist';
 
 import React from 'react';
-import ReactDOM from 'react-dom';
-import App from './react/app';
+import ReactDOM from 'react-dom/client';
+import App from './react/App';
 import ApiClient from './react/api';
+import { ReactGridLayoutProps } from 'react-grid-layout';
 
 /**
  * DashboardComponent class that initializes the dashboard and renders the App component.
  */
-class DashboardComponent extends Component {
+export default class DashboardComponent extends Component {
+    el: JQuery<HTMLElement>;
+    gridConfig: ReactGridLayoutProps;
+
     /**
      * Create a DashboardComponent instance.
      * @param {HTMLElement} element The HTML element that this component will be attached to.
      */
-    constructor(element) {
+    constructor(element: HTMLElement) {
         super(element);
         this.el = $(this.element);
 
@@ -43,13 +37,15 @@ class DashboardComponent extends Component {
     initDashboard() {
         this.element.className = '';
         const widgetsEls = Array.prototype.slice.call(document.querySelectorAll('#ld-app > div'));
-        const widgets = widgetsEls.map(el => ({
+        const widgets = widgetsEls.map((el: HTMLElement) => ({
             html: el.innerHTML,
             config: JSON.parse(el.getAttribute('data-grid'))
         }));
         const api = new ApiClient(this.element.getAttribute('data-dashboard-endpoint') || '');
 
-        ReactDOM.render(
+        const root = ReactDOM.createRoot(this.element);
+
+        root.render(
             <App
                 widgets={widgets}
                 dashboardId={this.element.getAttribute('data-dashboard-id')}
@@ -61,10 +57,7 @@ class DashboardComponent extends Component {
                 api={api}
                 widgetTypes={JSON.parse(this.element.getAttribute('data-widget-types') || '[]')}
                 dashboards={JSON.parse(this.element.getAttribute('data-dashboards') || '[]')}
-                gridConfig={this.gridConfig} />,
-            this.element
+                gridConfig={this.gridConfig} />
         );
     }
 }
-
-export default DashboardComponent;

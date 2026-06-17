@@ -1,7 +1,7 @@
 /* eslint-disable jsdoc/require-jsdoc */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-/* @ts-ignore */
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from '@jest/globals';
+/* @ts-ignore */
 import { setupCrypto } from 'testing/globals.definitions';
 import { EncryptedStorage } from './encryptedStorage';
 

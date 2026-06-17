@@ -200,8 +200,8 @@ class DataTableComponent extends Component {
     getCheckboxElement(id, label) {
         return (
             '<div class=\'checkbox\'>' +
-            `<input id='dt_checkbox_${id}' type='checkbox' />` +
-            `<label for='dt_checkbox_${id}'><span>${label}</span></label>` +
+                `<input id='dt_checkbox_${id}' type='checkbox' />` +
+                `<label for='dt_checkbox_${id}'><span>${label}</span></label>` +
             '</div>'
         );
     }
@@ -500,8 +500,8 @@ class DataTableComponent extends Component {
         if (strHTML.toString().length > MORE_LESS_TRESHOLD) {
             return (
                 `<div class="more-less" data-column="${strColumnName}">
-          ${strHTML}
-        </div>`
+                    ${strHTML}
+                </div>`
             );
         }
         return strHTML;

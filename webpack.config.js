@@ -40,7 +40,7 @@ const plugins = [
             path.resolve(__dirname, 'webpack'),
         ],
     })
-]
+];
 
 module.exports = (env) => {
     return {

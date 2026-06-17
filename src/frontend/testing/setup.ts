@@ -1,4 +1,5 @@
 import { TextEncoder, TextDecoder } from "util";
+import $ from "jquery";
 
 Object.assign(global, { TextEncoder, TextDecoder });
 
@@ -10,5 +11,5 @@ declare global {
     }
 }
 
-window.$ = window.jQuery = require('jquery');
+window.$ = window.jQuery = $;
 window.alert = jest.fn();

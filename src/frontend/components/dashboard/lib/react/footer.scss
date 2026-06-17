@@ -6,6 +6,9 @@
   bottom: $padding-large-vertical;
   flex-direction: column;
   justify-content: end;
+  .dropdown:not(:last-of-type) {
+    margin-right: $padding-base-horizontal
+  }
 }
 
 @include media-breakpoint-up(md) {

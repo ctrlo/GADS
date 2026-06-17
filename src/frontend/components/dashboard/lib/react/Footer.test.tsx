@@ -4,12 +4,13 @@ import '@testing-library/dom';
 import { describe, it, expect, jest } from '@jest/globals';
 
 import Footer from './Footer';
+import { FooterProps } from './types';
 
 import 'testing/extensions';
 
 describe('Footer', () => {
     it('Creates a footer', () => {
-        const footerProps = {
+        const footerProps: FooterProps = {
             addWidget: jest.fn(),
             currentDashboard: {
                 name: 'Dashboard 1',
@@ -33,7 +34,7 @@ describe('Footer', () => {
     });
 
     it('Creates a footer without download', () => {
-        const footerProps = {
+        const footerProps: FooterProps = {
             addWidget: jest.fn(),
             currentDashboard: {
                 name: 'Dashboard 1',
@@ -51,7 +52,7 @@ describe('Footer', () => {
     });
 
     it('Creates a footer with read only', () => {
-        const footerProps = {
+        const footerProps: FooterProps = {
             addWidget: jest.fn(),
             currentDashboard: {
                 name: 'Dashboard 1',
@@ -69,7 +70,7 @@ describe('Footer', () => {
     });
 
     it('Creates a footer with no download and read only', () => {
-        const footerProps = {
+        const footerProps: FooterProps = {
             addWidget: jest.fn(),
             currentDashboard: {
                 name: 'Dashboard 1',
@@ -89,7 +90,7 @@ describe('Footer', () => {
 
     it('Clicks the create modal button with expected parameters', () => {
         const addWidget = jest.fn();
-        const footerProps = {
+        const footerProps: FooterProps = {
             addWidget,
             currentDashboard: {
                 name: 'Dashboard 1',

@@ -118,6 +118,7 @@ class SelectWidgetComponent extends Component {
 
     /**
      * Handles clicks outside the widget to collapse it.
+     * @param {JQuery.ClickEvent} e The click event triggered on the document.
      */
     handleDocumentClick(e) {
         const clickedOutside = !this.el.is(e.target) && this.el.has(e.target).length === 0;
@@ -269,6 +270,7 @@ class SelectWidgetComponent extends Component {
 
     /**
      * Checks if the widget should be closed based on focus changes.
+     * @param {JQuery.TriggeredEvent} e The event triggered when the widget might need to be closed.
      */
     possibleCloseWidget(e) {
         const newlyFocussedElement = e.relatedTarget || document.activeElement;

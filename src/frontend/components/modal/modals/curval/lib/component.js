@@ -246,7 +246,7 @@ class CurvalModalComponent extends ModalComponent {
         const identifier = current_id || guid;
         // "existing" is the existing values for this curval
         // Pull out the current record if it exists
-        let existing_row = existing.filter((item) => item.identifier == identifier)[0] || {identifier: identifier};
+        let existing_row = existing.filter((item) => item.identifier == identifier)[0] || {identifier};
         // And then remove it from the array so that we can re-add it in a moment
         existing = existing.filter((item) => Number.isInteger(item) || item.identifier != identifier);
         // Retrieve all the changes from the modal record form

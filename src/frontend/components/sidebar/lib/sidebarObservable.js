@@ -18,6 +18,14 @@ class SidebarObservable {
     }
 
     /**
+     * Adds a subscriber function to the observers list.
+     * @param {()=>void} handleSideBarChange The function to be called when the sidebar changes.
+     */
+    addSubscriberFunction(handleSideBarChange) {
+        this.observers.push({ handleSideBarChange });
+    }
+
+    /**
      * Trigger sidebar change event for all subscribers.
      */
     sideBarChange() {
