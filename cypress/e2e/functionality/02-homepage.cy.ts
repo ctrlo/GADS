@@ -55,6 +55,7 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
 
   context("Shared Dashboard", () => {
     it('Should cancel creation of a shared dashboard widget', () => {
+      cy.wait(1000);
       cy.get(".ld-footer-container")
         .find("button")
         .eq(1)
@@ -69,6 +70,7 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
     });
 
     it("Should create a shared dashboard widget", () => {
+      cy.wait(1000);
       cy.get(".ld-footer-container")
         .find("button")
         .eq(1)
@@ -129,6 +131,7 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
   context("Personal Dashboard", () => {
     it('Should cancel creation of a personal dashboard widget', () => {
       cy.get("a.nav-link").eq(1).click();
+      cy.wait(1000);
       cy.get(".ld-footer-container")
         .find("button")
         .eq(1)
@@ -144,6 +147,7 @@ Mauris tempus, mi nec sodales semper, metus neque blandit sem, non scelerisque n
 
     it("Should create a personal dashboard widget", () => {
       cy.get("a.nav-link").eq(1).click();
+      cy.wait(1000);
       cy.get(".ld-footer-container")
         .find("button")
         .eq(1)
