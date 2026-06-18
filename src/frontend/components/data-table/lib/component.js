@@ -43,7 +43,7 @@ class DataTableComponent extends Component {
      * Initializes the DataTable component
      */
     initTable() {
-        if(this.hasClearState) {
+        if (this.hasClearState) {
             this.clearTableStateForPage();
 
             const url = new URL(window.location.href);
@@ -55,7 +55,7 @@ class DataTableComponent extends Component {
         }
 
         const conf = this.getConf();
-        const {columns} = conf;
+        const { columns } = conf;
         this.columns = columns;
         this.el.DataTable(conf);
         this.initializingTable = true;
@@ -68,7 +68,7 @@ class DataTableComponent extends Component {
         if (this.el.hasClass('table-account-requests')) {
             this.modal = $.find('#userModal');
             this.initClickableTable();
-            this.el.on('draw.dt', ()=> {
+            this.el.on('draw.dt', () => {
                 this.initClickableTable();
             });
         }
@@ -97,7 +97,7 @@ class DataTableComponent extends Component {
      */
     clearTableStateForPage() {
         for (let i = 0; i < localStorage.length; i++) {
-            const storageKey = localStorage.key( i );
+            const storageKey = localStorage.key(i);
 
             if (!storageKey.startsWith('DataTables')) {
                 continue;
@@ -109,7 +109,7 @@ class DataTableComponent extends Component {
                 continue;
             }
 
-            if(window.location.href.indexOf('/' + keySegments.slice(1).join('/')) !== -1) {
+            if (window.location.href.indexOf('/' + keySegments.slice(1).join('/')) !== -1) {
                 localStorage.removeItem(storageKey);
             }
         }
@@ -225,10 +225,10 @@ class DataTableComponent extends Component {
         });
 
         // Check if the 'select all' checkbox is checked and all checkboxes need to be checked
-        $selectAllElm.find('input').on( 'click', (ev) => {
+        $selectAllElm.find('input').on('click', (ev) => {
             const checkbox = $(ev.target);
 
-            if ($(checkbox).is( ':checked' )) {
+            if ($(checkbox).is(':checked')) {
                 this.checkAllCheckboxes($checkBoxes, true);
             } else {
                 this.checkAllCheckboxes($checkBoxes, false);
@@ -243,7 +243,7 @@ class DataTableComponent extends Component {
      */
     checkAllCheckboxes($checkBoxes, bCheckAll) {
         if (bCheckAll) {
-            $checkBoxes.prop( 'checked', true );
+            $checkBoxes.prop('checked', true);
         } else {
             $checkBoxes.prop('checked', false);
         }
@@ -290,7 +290,7 @@ class DataTableComponent extends Component {
             .find('.data-table__header-wrapper')
             .html($button);
 
-        dataTable.order.listener($button, column.index() );
+        dataTable.order.listener($button, column.index());
     }
 
     /**
@@ -321,9 +321,9 @@ class DataTableComponent extends Component {
         const title = $header.text().trim();
         const searchValue = column.search();
         const self = this;
-        const {context} = column;
-        const {oAjaxData} = context[0];
-        const {columns} = oAjaxData;
+        const { context } = column;
+        const { oAjaxData } = context[0];
+        const { columns } = oAjaxData;
         const columnId = columns[column.index()].name;
         const col = this.columns[column.index()];
 
@@ -421,7 +421,7 @@ class DataTableComponent extends Component {
             self.toggleFilter(column);
 
             // Update or add the filter to the searchParams
-            if(self.searchParams.has(id)) {
+            if (self.searchParams.has(id)) {
                 self.searchParams.set(id, this.value);
             } else {
                 self.searchParams.append(id, this.value);
@@ -793,7 +793,7 @@ class DataTableComponent extends Component {
             this.json = json;
 
             if (this.initializingTable || conf.reinitialize) {
-                dataTable.columns().every(function(index) {
+                dataTable.columns().every(function (index) {
                     const column = this;
                     const $header = $(column.header());
 
@@ -849,9 +849,9 @@ class DataTableComponent extends Component {
             const agg = api.ajax?.json()?.aggregate;
             if (agg) {
                 const cols = api.settings()[0].oAjaxData.columns;
-                api.columns().every( function () {
+                api.columns().every(function () {
                     const idx = this.index();
-                    const {name} = cols[idx];
+                    const { name } = cols[idx];
                     if (agg[name]) {
                         $(this.footer()).html(
                             self.renderDataType(agg[name])
@@ -927,7 +927,7 @@ class DataTableComponent extends Component {
      */
     bindClickHandlersAfterDraw(conf) {
         const tableElement = this.el;
-        const rows = tableElement.DataTable().rows( {page:'current'} )
+        const rows = tableElement.DataTable().rows({ page: 'current' })
             .data();
 
         if (rows && this.base_url) {

@@ -53,7 +53,7 @@ const toggleDisclosure = function (e, $trigger, state, permanent) {
         const offsetParent = $trigger.offsetParent();
         if (offsetParent) {
             const offsetParentOffset = offsetParent.offset();
-            top = top - offsetParentOffset.top; // For some reason this displays the popover too high unless we subtract 2rem
+            top = top - offsetParentOffset.top;
             left = left - offsetParentOffset.left;
         }
         positionDisclosure.call($disclosure, top, left, $trigger.outerHeight() + 6);

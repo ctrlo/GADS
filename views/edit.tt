@@ -317,7 +317,7 @@
 </div>
 
 [% IF view_modal %]
-<div class="modal-footer modal-footer_sticky mt-1 pb-0 pe-0 ps-0">
+<div class="modal-footer modal-footer_sticky mt-1 pb-0 px-0">
   <div class="modal-footer__left"></div>
   <div class="modal-footer__right">
     <a class="btn btn-primary my-3" href="[% url.page %]/record/[% record.current_id %]" target="_blank">Open full record</a>

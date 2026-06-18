@@ -25,10 +25,10 @@ describe('Footer', () => {
         render(<Footer {...footerProps} />);
 
         expect(screen.getByText('Download')).toBeInstanceOf(HTMLButtonElement);
-        act(()=>screen.getByText('Download').click());
-        // @ts-expect-error extension method
+        act(() => screen.getByText('Download').click());
+        // @ts-expect-error Extension function
         expect(screen.getByText('As PDF')).toHaveAttribute('href', 'http://localhost:3000/dashboard/1/download');
-        act(()=>screen.getByText('Add Widget').click());
+        act(() => screen.getByText('Add Widget').click());
         expect(screen.getByText('type1')).toBeInstanceOf(HTMLAnchorElement);
         expect(screen.getByText('type2')).toBeInstanceOf(HTMLAnchorElement);
     });
@@ -88,7 +88,7 @@ describe('Footer', () => {
         expect(screen.queryByText('Add Widget')).toBeNull();
     });
 
-    it('Clicks the create modal button with expected parameters', ()=>{
+    it('Clicks the create modal button with expected parameters', () => {
         const addWidget = jest.fn();
         const footerProps: FooterProps = {
             addWidget,
@@ -104,16 +104,16 @@ describe('Footer', () => {
 
         render(<Footer {...footerProps} />);
 
-        act(()=>screen.getByText('Add Widget').click());
+        act(() => screen.getByText('Add Widget').click());
         const type1WidgetButton = screen.getByText('type1');
-        act(()=>type1WidgetButton.click());
+        act(() => type1WidgetButton.click());
 
         expect(addWidget).toHaveBeenCalledTimes(1);
         expect(addWidget).toHaveBeenCalledWith('type1');
         addWidget.mockClear();
 
         const addWidgetButton2 = screen.getByText('type2');
-        act(()=>addWidgetButton2.click());
+        act(() => addWidgetButton2.click());
 
         expect(addWidget).toHaveBeenCalledTimes(1);
         expect(addWidget).toHaveBeenCalledWith('type2');
