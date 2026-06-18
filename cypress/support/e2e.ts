@@ -18,3 +18,7 @@ import './commands'
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
+
+cy.on('window:confirm', () => {
+    return true; // Automatically confirm the confirmation dialog
+});
