@@ -1,4 +1,5 @@
 import { Component } from 'component';
+import { refreshSelects } from 'components/form-group/searchable-select/FilterSelectHelper';
 import 'jQuery-QueryBuilder/dist/js/query-builder.standalone';
 
 /**
@@ -22,6 +23,8 @@ class DisplayConditionsComponent extends Component {
         const builderData = this.el.data();
         const filters = JSON.parse(atob(builderData.filters));
         if (!filters.length) return;
+
+        refreshSelects(this.el);
 
         this.el.queryBuilder({
             filters: filters,
