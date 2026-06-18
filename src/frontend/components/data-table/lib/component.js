@@ -867,11 +867,6 @@ class DataTableComponent extends Component {
             //Re-initialize more-less components after initialisation is complete
             moreLess.reinitialize();
 
-            // (Re)enable wide-table toggle button each time. It is disabled during
-            // any drawing to prevent it being clicked multiple times during a draw
-            this.el.DataTable().button(0)
-                .enable();
-
             this.bindClickHandlersAfterDraw(conf);
         };
 
