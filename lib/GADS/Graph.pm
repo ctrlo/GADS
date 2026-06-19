@@ -411,7 +411,7 @@ sub write
     error __"Dates and grouping must be entered for a custom range"
         if $x_axis_col && $x_axis_col->return_type =~ /date/
             && $newgraph->{x_axis_range} && $newgraph->{x_axis_range} eq 'custom'
-            && (!$newgraph->{from} || !$newgraph->{to} || !$newgraph->{x_axis_grouping});
+            && (!$newgraph->{x_axis_grouping});
 
     error __"A single field must be selected for the x-axis when using the historic trend option"
         if !$newgraph->{x_axis} && $self->trend;
