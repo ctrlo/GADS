@@ -149,6 +149,7 @@ sub _write_unique
 
 sub _delete_unique
 {   my ($self, %values) = @_;
+    %values = map { $_ => $values{$_} } grep $values{$_}, keys %values;
     if (my $table = $self->column->table_unique)
     {
         $self->schema->resultset($table)->search({
@@ -164,6 +165,8 @@ sub write_cache
     my $formatter = $self->schema->storage->datetime_parser;
 
     my @values = sort @{$self->value} if defined $self->value->[0];
+
+    print STDERR "$_\n" for @values;
 
     # We are generally already in a transaction at this point, but
     # start another one just in case
@@ -204,7 +207,7 @@ sub write_cache
         {
             foreach my $oldval (@{$old->value})
             {
-                my $sv = $oldval && $self->column->value_field eq 'value_date'
+                my $sv = $oldval && ($self->column->value_field eq 'value_date' || $self->column->value_field eq 'value_datetime')
                     ? $formatter->format_date($oldval)
                     : $oldval;
                 # Ignore values from this record itself as it hasn't been
@@ -250,7 +253,7 @@ sub write_cache
                 my $old_value = $row->$vfield;
                 $row->update({ %blank, %to_write });
                 # Delete unique cache, unless exists in another
-                my $sv = $old_value && $self->column->value_field eq 'value_date'
+                my $sv = $old_value && ($self->column->value_field eq 'value_date' || $self->column->value_field eq 'value_datetime')
                     ? $formatter->format_date($old_value)
                     : $old_value;
                 $self->_delete_unique(%old)
