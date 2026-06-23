@@ -1,4 +1,4 @@
-import { Markdown } from 'util/formatters/markdown';
+import { MarkDown } from 'util/formatters/markdown';
 import { Component } from 'component';
 
 /**
@@ -22,7 +22,7 @@ class MarkdownComponent extends Component {
     renderMarkdown(md) {
         const mdEncoded = $('<span>').text(md)
             .html();
-        return Markdown`${mdEncoded}`;
+        return MarkDown`${mdEncoded}`;
     }
 
     /**
