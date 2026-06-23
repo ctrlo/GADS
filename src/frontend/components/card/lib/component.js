@@ -108,6 +108,7 @@ class ExpandableCardComponent extends Component {
     }
 
     confirmOnPageExit = function (ev) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         ev = ev || window.event;
         const message = 'Please note that any changes will be lost.';
         if (ev) {
