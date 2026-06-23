@@ -71,7 +71,6 @@ class GraphComponent extends Component {
      * Fetch graph data from the server using AJAX. This request is synchronous.
      * @param {string} url The URL to fetch data from.
      * @returns {object|null} The JSON data received from the server, or null if the request fails.
-     * @todo Would it not be better to use async/await here?
      */
     ajaxDataRenderer(url) {
         let ret = null;

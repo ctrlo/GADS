@@ -103,7 +103,6 @@ class ValueLookupComponent extends Component {
  * @param {string} message The message to display
  * @param {boolean} spinner The flag to show a spinner
  * @param {boolean} is_error Is the message an error message
- * @todo Why is this not a method of the component?
  */
 const addStatusMessage = ($field, message, spinner, is_error) => {
     let $notice = $field.find('.lookup-status');

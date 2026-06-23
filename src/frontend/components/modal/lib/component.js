@@ -268,7 +268,6 @@ class ModalComponent extends Component {
 
     /**
      * Add event listeners to the buttons and required fields of the current frame
-     * @todo Fix deprecation
      */
     bindEventHandlers() {
         this.frame.buttons.next.on('click', () => { modal.next(this.frame.object); });
@@ -320,7 +319,6 @@ class ModalComponent extends Component {
      * Check if a field is valid
      * @param {HTMLElement | JQuery<HTMLElement>} field The field to validate.
      * @returns {boolean} true if the field is valid, false otherwise.
-     * @todo This can be simplified by just inverting the if statement
      */
     isValidField(field) {
         if (($(field).is(':invalid')) || ($(field).val() == '')) {
@@ -409,7 +407,6 @@ class ModalComponent extends Component {
     /**
      * Unbind event handlers from all elements of this frame
      * @param {JQuery<HTMLElement>} frame The frame to unbind event handlers from.
-     * @todo Fix deprecation
      */
     unbindEventHandlers(frame) {
         frame.find('.modal-footer .btn').off();
