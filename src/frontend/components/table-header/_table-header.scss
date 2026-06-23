@@ -5,7 +5,7 @@
     &:not(:has(.table-nav-tabs))::after {
         content: "";
         position: absolute;
-        bottom: 0px;
+        bottom: 0;
         right: 0;
         left: 0;
         height: 2px;
