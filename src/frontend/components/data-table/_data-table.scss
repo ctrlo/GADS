@@ -7,13 +7,13 @@
     }
 
     thead {
-        background-color: #fff;
+        background-color: $white;
         z-index: 1;
 
         th {
             padding: 1rem;
 
-            background-color: #fff;
+            background-color: $white;
             border-bottom: 1px solid $gray;
             text-transform: uppercase;
             vertical-align: top;

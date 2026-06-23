@@ -29,14 +29,14 @@
 }
 
 .tt-menu {
-  background-color: #F9F9F9;
+  background-color: $gray-light;
   border: solid 2px #E5E5E5;
   width: 210px;
   margin-left: 1px;
 
   .tt-suggestion {
-    background-color: #F9F9F9;
-    color: #40374A;
+    background-color: $gray-light;
+    color: $gray-extra-dark;
     border-bottom: 1px solid #E5E5E5;
     padding: 0.5rem 1rem;
     font-weight: normal;
