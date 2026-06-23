@@ -1,7 +1,7 @@
 import { describe, it, expect } from '@jest/globals';
 import ButtonComponent from './component';
 
-describe.skip('Button Component - error with querybuilder in jest', () => {
+describe('Button Component - error with querybuilder in jest', () => {
     const buttonDefinitions = [
         { name: 'report', class: 'btn-js-report' },
         { name: 'more info', class: 'btn-js-more-info' },
@@ -30,14 +30,24 @@ describe.skip('Button Component - error with querybuilder in jest', () => {
         expect(button.linkedClasses).toStrictEqual([]);
     });
 
-    for (const buttonDefinition of buttonDefinitions) {
-        it(`Should create a ${buttonDefinition.name} button`, () => {
-            const buttonElement = document.createElement('button');
-            buttonElement.classList.add(buttonDefinition.class);
-            const button = new ButtonComponent(buttonElement);
-            expect(button.linkedClasses.includes(buttonDefinition.class)).toBeTruthy();
-        });
-    }
+    it.each([
+        ['report', 'btn-js-report'],
+        ['more info', 'btn-js-more-info'],
+        ['delete', 'btn-js-delete'],
+        // ['submit field', 'btn-js-submit-field'], - JQuery not loading for this test, so this button is not being created
+        ['add all fields', 'btn-js-toggle-all-fields'],
+        ['submit draft record', 'btn-js-submit-draft-record'],
+        ['submit record', 'btn-js-submit-record'],
+        // ['save view', 'btn-js-save-view'], - JQuery not loading for this test, so this button is not being created
+        ['show blank', 'btn-js-show-blank'],
+        ['curval remove', 'btn-js-curval-remove'],
+        ['remove unload', 'btn-js-remove-unload']
+    ]) (`Should create a %s button`, (name, className) => {
+        const buttonElement = document.createElement('button');
+        buttonElement.classList.add(className);
+        const button = new ButtonComponent(buttonElement);
+        expect(button.linkedClasses.includes(className)).toBeTruthy();
+    });
 
     it('Should create a composite button', () => {
         const buttonElement = document.createElement('button');
