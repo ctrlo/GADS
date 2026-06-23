@@ -166,8 +166,6 @@ sub write_cache
 
     my @values = sort @{$self->value} if defined $self->value->[0];
 
-    print STDERR "$_\n" for @values;
-
     # We are generally already in a transaction at this point, but
     # start another one just in case
     my $guard = $self->schema->txn_scope_guard;

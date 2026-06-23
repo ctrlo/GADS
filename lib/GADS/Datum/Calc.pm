@@ -72,7 +72,6 @@ sub _convert_date
         try { $ret = DateTime->from_epoch(epoch => $val) };
         if (my $exception = $@->wasFatal)
         {
-            print STDERR "Failed to convert epoch value $val to date: $exception\n";
             warning "$@";
         }
         else {
@@ -84,8 +83,6 @@ sub _convert_date
 sub values { $_[0]->value }
 sub convert_value
 {   my ($self, $in) = @_;
-
-    print STDERR "$_ => $in->{$_}\n" for keys %$in;
 
     my $column = $self->column;
 
