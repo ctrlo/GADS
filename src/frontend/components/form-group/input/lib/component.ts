@@ -21,7 +21,6 @@ class InputComponent extends Component {
     /**
      * Map of component class names to their respective initializers.
      * This allows for dynamic initialization of components based on the class of the element.
-     * @todo This could be changed to a Record<string, ComponentInitializer> for better type safety.
      * @type { {[key: string]: ComponentInitializer} }
      * @private
      * @static

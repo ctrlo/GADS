@@ -35,7 +35,6 @@ class SelectComponent extends Component {
      * @type {SelectComponent} self
      * @description Reference to the current instance for static methods
      * @static
-     * @todo Why is this needed?
      */
     static self = this;
 
