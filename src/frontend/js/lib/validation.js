@@ -52,6 +52,7 @@ const initValidationOnField = (field) => {
         if (!field.hasClass('multi')) {
             const $inputSearch = field.find('.form-control-search');
             const $radioButtons = field.find('input[required]');
+            /** @type {NodeJS.Timeout} */
             let inputBlurTimer;
 
             $radioButtons.on('blur change', () => {

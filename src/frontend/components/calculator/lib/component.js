@@ -114,7 +114,7 @@ class CalculatorComponent extends Component {
                         $(button_elem).find('.radio-group__input')
                             .prop('checked', true);
                         calculator_operation = btn.operation;
-                        calculator_elem.find(':text').focus();
+                        calculator_elem.find(':text').trigger('focus');
                     });
 
                 for (const j in btn.keypress) {

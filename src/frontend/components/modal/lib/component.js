@@ -271,14 +271,14 @@ class ModalComponent extends Component {
      * @todo Fix deprecation
      */
     bindEventHandlers() {
-        this.frame.buttons.next.click(() => { modal.next(this.frame.object); });
-        this.frame.buttons.back.click(() => { modal.back(this.frame.object); });
-        this.frame.buttons.skip.click(() => { if(this.frame.skip) modal.skip(this.frame.skip); });
-        this.frame.buttons.addNext.click(() => { modal.add(this.frame.object); });
-        this.frame.buttons.save.click(() => { modal.save(); });
-        this.frame.requiredFields.bind('keyup.modalEvent', (ev) => { this.handleKeyup(ev); });
-        this.frame.requiredFields.bind('keydown.modalEvent', () => { this.handleKeydown(); });
-        this.frame.requiredFields.bind('blur.modalEvent', (ev) => { this.handleBlur(ev); });
+        this.frame.buttons.next.on('click', () => { modal.next(this.frame.object); });
+        this.frame.buttons.back.on('click', () => { modal.back(this.frame.object); });
+        this.frame.buttons.skip.on('click', () => { if(this.frame.skip) modal.skip(this.frame.skip); });
+        this.frame.buttons.addNext.on('click', () => { modal.add(this.frame.object); });
+        this.frame.buttons.save.on('click', () => { modal.save(); });
+        this.frame.requiredFields.on('keyup.modalEvent', (ev) => { this.handleKeyup(ev); });
+        this.frame.requiredFields.on('keydown.modalEvent', () => { this.handleKeydown(); });
+        this.frame.requiredFields.on('blur.modalEvent', (ev) => { this.handleBlur(ev); });
     }
 
     /**
@@ -412,8 +412,8 @@ class ModalComponent extends Component {
      * @todo Fix deprecation
      */
     unbindEventHandlers(frame) {
-        frame.find('.modal-footer .btn').unbind();
-        frame.find('input[required]').unbind('.modalEvent');
+        frame.find('.modal-footer .btn').off();
+        frame.find('input[required]').off('.modalEvent');
     }
 
     /**
@@ -591,7 +591,7 @@ class ModalComponent extends Component {
         }
 
         // Remove binded events and subscribers
-        this.el.unbind('hide.bs.modal hidden.bs.modal');
+        this.el.off('hide.bs.modal hidden.bs.modal');
         modal.unsubscribe(this);
     }
 }
