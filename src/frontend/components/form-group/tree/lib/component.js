@@ -54,7 +54,7 @@ class TreeComponent extends Component {
         }
 
         if (!this.isConfTree) {
-            this.$treeContainer.on('changed.jstree', (e, data) => this.handleChange(e, data));
+            this.$treeContainer.on('changed.jstree', (e, data) => this.handleChange(data));
         }
 
         // The below fix is to prevent the tree from erroring when it is a multivalue and a value is deselected
@@ -74,7 +74,7 @@ class TreeComponent extends Component {
                     node = null;
                 } else {
                     node = data.node;
-                    this.handleSelect(e, data);
+                    this.handleSelect(data);
                 }
             });
             //Endfix
@@ -124,9 +124,8 @@ class TreeComponent extends Component {
      * Handle the selection of a node in the jstree.
      * @param {JQuery.TriggeredEvent} e The event triggered by the jstree.
      * @param {object} data The data object containing the node information.
-     * @todo This method can have the event parameter removed, as it is not used.
      */
-    handleSelect(e, data) {
+    handleSelect(data) {
         if (data.node.children.length == 0) {
             return;
         }
@@ -142,9 +141,8 @@ class TreeComponent extends Component {
      * Handle change to the jstree selection.
      * @param {JQuery.TriggeredEvent} e The event triggered by the jstree.
      * @param {object} data The data object containing the selected nodes.
-     * @todo This method can have the event parameter removed, as it is not used.
      */
-    handleChange(e, data) {
+    handleChange(data) {
     // remove all existing hidden value fields
         this.$treeContainer.nextAll('.selected-tree-value').remove();
         const selectedElms = this.$treeContainer.jstree('get_selected', true);

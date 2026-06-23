@@ -4,7 +4,6 @@ import { fromJson } from 'util/common';
 
 /**
  * Type to represent a map of strings
- * @todo This could be replaced with a record<string, string> type
  */
 type StringMap = { [key: string]: string };
 

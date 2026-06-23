@@ -48,7 +48,6 @@ async function upload<T = unknown>(url: string | URL, data?: FormData | object, 
 
 /**
  * Helper class to upload form data to a server endpoint
- * @todo The API class could be used within the Dashboard component rather than this class
  */
 class Uploader {
     private onProgressCallback?: ProgressFunction;

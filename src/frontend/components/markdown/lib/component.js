@@ -18,7 +18,6 @@ class MarkdownComponent extends Component {
      * Render markdown text to HTML.
      * @param {string} md The markdown text to render.
      * @returns {string} The rendered HTML.
-     * @todo Use Markdown templates rather than this method.
      */
     renderMarkdown(md) {
         const mdEncoded = $('<span>').text(md)
