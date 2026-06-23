@@ -11,7 +11,7 @@
 
 .table-toggle {
     tr:nth-child(odd of [data-field-is-toggled="true"]) {
-        background-color: #f9f9f9;
+        background-color: $gray-light;
 
         td {
             background-color: transparent;
