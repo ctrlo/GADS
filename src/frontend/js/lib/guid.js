@@ -23,4 +23,5 @@ const guid = function () {
     );
 };
 
+/* eslint-disable-next-line @typescript-eslint/no-deprecated */
 export { guid };
