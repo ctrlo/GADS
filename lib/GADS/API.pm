@@ -60,18 +60,17 @@ my $verify_user_password_sub = sub {
     if ($user) {
         my $stored = $user->password;
 
-        if (crypt_passphrase->verify_password($args{password}, $stored)) {
-            return ($client->id, undef, undef, $user->id);
+        if (!crypt_passphrase->verify_password($args{password}, $stored)) {
+            return (0, 'access_denied');
         }
-        if (Crypt::SaltedHash->validate($stored, $args{password})) {
+        if (crypt_passphrase->needs_rehash($stored)) {
             my $new_hash = crypt_passphrase->hash_password($args{password});
             $user->update({ password => $new_hash });
 
-            return ($client->id, undef, undef, $user->id);
         }
     }
-
-    return (0, 'access_denied');
+    
+    return ($client->id, undef, undef, $user->id);
 };
 
 my $store_access_token_sub = sub {
