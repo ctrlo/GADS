@@ -62,6 +62,16 @@ after set_value => sub {
                 }
             }
         }
+        if(my $maxlen = $self->column->max_length) {
+            foreach my $val (@values)
+            {
+                my $msg = __x "Value \"{value}\" for {field} exceeds maximum length of {maxlen} characters", value => $val, field => $self->column->name, maxlen => $maxlen;
+                if (defined $val && defined $maxlen && length($val) > $maxlen)
+                {
+                    $changed ? error($msg) : warning($msg);
+                }
+            }
+        }
     }
     if ($changed)
     {
