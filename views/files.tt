@@ -44,7 +44,7 @@
     });
   END;
   %]
-<div class="d-flex justify-content-end align-items-end">
+<div class="d-flex justify-content-between align-items-end">
 [%
   # add standardized page header
   INCLUDE layouts/page_header.tt
