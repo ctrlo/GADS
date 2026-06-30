@@ -115,7 +115,8 @@ sub convert_value
         }
         elsif ($column->return_type eq "datetime")
         {
-            push @return, $self->_convert_date($val);
+            $val = $self->_convert_date($val);
+            push @return, $val || undef;
         }
         elsif ($column->return_type eq "daterange") # Currently always has time element
         {
