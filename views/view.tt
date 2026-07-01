@@ -540,14 +540,11 @@
                                   table_id = "table-view-fields-available"
                                   table_class = 'table--bordered table-hover table-toggle table-toggle--add table-search'
                                   table_layout = {
-                                    topStart => session.rewind ? undef : "search",
-                                    topEnd   => ["pageLength", "fullscreen"],
-                                    bottomStart => "paging",
-                                    bottomEnd => "info"
+                                    topStart => "search",
+                                    topEnd   => undef,
+                                    bottomStart => undef,
+                                    bottomEnd => undef
                                   }
-                                  table_buttons = [{
-                                    button_class = "btn"
-                                  }]
                                   table_caption = "Table to select fields in view"
                                   table_columns = [{
                                     name = "Available fields",
