@@ -41,7 +41,7 @@ class CalculatorComponent extends Component {
 
             calculator_elem.append(
                 '<form class="form-inline">' +
-        '    <div class="form-group"><div class="radio-group radio-group--buttons" data-toggle="buttons"></div></div>' +
+        '    <div class="form-group"><div class="radio-group radio-group--buttons" data-bs-toggle="buttons"></div></div>' +
         '    <div class="form-group"><div class="input"><input type="text" placeholder="Number" class="form-control"></input></div></div>' +
         '    <div class="form-group">' +
         '        <input type="submit" value="Calculate" class="btn btn-primary"></input>' +
