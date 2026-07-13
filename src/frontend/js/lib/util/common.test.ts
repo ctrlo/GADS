@@ -3,7 +3,7 @@ import { fromJson, hideElement, showElement } from './common';
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 
 describe('common functions', () => {
-    describe('CSS and ARIA - skipped as they are incorrect', () => {
+    describe('CSS and ARIA', () => {
         let el: JQuery<HTMLElement>;
 
         beforeEach(() => {
@@ -15,9 +15,9 @@ describe('common functions', () => {
         });
 
         it('hides an element', () => {
-            const hasClass = jest.spyOn(el, 'hasClass');
-            const addClass = jest.spyOn(el, 'addClass');
-            const attr = jest.spyOn(el, 'attr');
+            const hasClass = $.fn.hasClass = jest.fn().mockReturnValue(false);
+            const addClass = $.fn.addClass = jest.fn();
+            const attr = $.fn.attr = jest.fn();
             hideElement(el);
             expect(hasClass).toHaveBeenCalledWith('hidden');
             expect(addClass).toHaveBeenCalledWith('hidden');
@@ -26,9 +26,9 @@ describe('common functions', () => {
 
         it('does not hide a hidden element', () => {
             el.addClass('hidden');
-            const hasClass = jest.spyOn(el, 'hasClass');
-            const addClass = jest.spyOn(el, 'addClass');
-            const attr = jest.spyOn(el, 'attr');
+            const hasClass = $.fn.hasClass = jest.fn().mockReturnValue(true);
+            const addClass = $.fn.addClass = jest.fn();
+            const attr = $.fn.attr = jest.fn();
             hideElement(el);
             expect(hasClass).toHaveBeenCalledWith('hidden');
             expect(addClass).not.toHaveBeenCalled();
@@ -37,9 +37,9 @@ describe('common functions', () => {
 
         it('shows a hidden element', () => {
             el.addClass('hidden');
-            const hasClass = jest.spyOn(el, 'hasClass');
-            const removeClass = jest.spyOn(el, 'removeClass');
-            const removeAttr = jest.spyOn(el, 'removeAttr');
+            const hasClass = $.fn.hasClass = jest.fn().mockReturnValue(true);
+            const removeClass = $.fn.removeClass = jest.fn();
+            const removeAttr = $.fn.removeAttr = jest.fn();
             showElement(el);
             expect(hasClass).toHaveBeenCalledWith('hidden');
             expect(removeClass).toHaveBeenCalledWith('hidden');
@@ -47,9 +47,9 @@ describe('common functions', () => {
         });
 
         it('does not show a visible element', () => {
-            const hasClass = jest.spyOn(el, 'hasClass');
-            const removeClass = jest.spyOn(el, 'removeClass');
-            const removeAttr = jest.spyOn(el, 'removeAttr');
+            const hasClass = $.fn.hasClass = jest.fn().mockReturnValue(false);
+            const removeClass = $.fn.removeClass = jest.fn();
+            const removeAttr = $.fn.removeAttr = jest.fn();
             showElement(el);
             expect(hasClass).toHaveBeenCalledWith('hidden');
             expect(removeClass).not.toHaveBeenCalled();
