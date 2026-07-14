@@ -6,7 +6,7 @@
 <div class="content-block__main">
   <div class="content-block__main-content">
     <div class="chronology"></div>
-    <div class="chronology_spinner">
+    <div class="chronology_spinner my-3">
       <div class="spinner-border text-primary" role="status"></div>
       <div class="h1 font-weight-bolder ml-2 mb-0 text-secondary">Loading...</div>
     </div>
