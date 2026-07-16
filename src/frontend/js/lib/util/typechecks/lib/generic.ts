@@ -1,1 +1,0 @@
-export const isDefined = <T> (value: unknown): value is T => value !== undefined && value !== null;
