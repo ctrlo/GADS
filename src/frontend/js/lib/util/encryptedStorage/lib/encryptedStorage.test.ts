@@ -70,29 +70,26 @@ describe('EncryptedStorage', () => {
         const key = 'key';
         const value = 'value';
         const encryptionKey = 'encryptionKey';
-        await encryptedStorageMock.setItem(key, value, encryptionKey);
-        const result = await encryptedStorageMock.getItem(key, encryptionKey);
-        expect(result).toBe(value);
+        await expect(encryptedStorageMock.setItem(key, value, encryptionKey)).resolves.not.toThrow();
+        await expect(encryptedStorageMock.getItem(key, encryptionKey)).resolves.toBe(value);
     });
 
     it('should remove an item', async () => {
         const key = 'key';
         const value = 'value';
         const encryptionKey = 'encryptionKey';
-        await encryptedStorageMock.setItem(key, value, encryptionKey);
+        await expect(encryptedStorageMock.setItem(key, value, encryptionKey)).resolves.not.toThrow();
         encryptedStorageMock.removeItem(key);
-        const result = await encryptedStorageMock.getItem(key, encryptionKey);
-        expect(result).toBe(null);
+        await expect(encryptedStorageMock.getItem(key, encryptionKey)).resolves.toBe(null);
     });
 
     it('should clear all items', async () => {
         const key = 'key';
         const value = 'value';
         const encryptionKey = 'encryptionKey';
-        await encryptedStorageMock.setItem(key, value, encryptionKey);
+        await expect(encryptedStorageMock.setItem(key, value, encryptionKey)).resolves.not.toThrow();
         encryptedStorageMock.clear();
-        const result = await encryptedStorageMock.getItem(key, encryptionKey);
-        expect(result).toBe(null);
+        await expect(encryptedStorageMock.getItem(key, encryptionKey)).resolves.toBe(null);
         expect(encryptedStorageMock.length).toBe(0);
     });
 
@@ -102,7 +99,7 @@ describe('EncryptedStorage', () => {
         const key = 'key';
         const value = 'value';
         const encryptionKey = 'encryptionKey';
-        await encryptedStorageMock.setItem(key, value, encryptionKey);
+        await expect(encryptedStorageMock.setItem(key, value, encryptionKey)).resolves.not.toThrow();
         expect(encryptedStorageMock.length).toBe(1);
     });
 });

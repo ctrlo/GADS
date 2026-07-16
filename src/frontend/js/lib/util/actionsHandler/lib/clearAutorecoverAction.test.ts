@@ -22,7 +22,7 @@ describe('clearAutorecoverAction', () => {
         $('body').data('layout-identifier', 'test');
         $('body').data('actions', btoa(JSON.stringify({ clear_saved_values: 1 })));
         const storage = new StorageProvider('linkspace-record-change-test-1');
-        await storage.setItem('key', 'value');
+        await expect(storage.setItem('key', 'value')).resolves.not.toThrow();
         await expect(clearAutorecoverAction()).resolves.toBe(true);
         await expect(storage.getItem('key')).resolves.toBe(undefined);
     });
