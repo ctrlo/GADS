@@ -7,7 +7,6 @@ describe('loadActions', () => {
     });
 
     it('should return undefined if action_json is undefined', async () => {
-        // Skipped as this is not as easy to test as I'd expect
         const $body = $('body');
         $body.data('actions', '');
         await expect(loadActions()).resolves.toBe(undefined);
