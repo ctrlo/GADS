@@ -41,10 +41,10 @@ has max_length => (
     lazy    => 1,
     builder => sub {
         my $self = shift;
-        $self->has_options ? $self->options->{max_length}  // undef : undef; # explicitly return undef if no options, to avoid confusion with 0
+        $self->has_options ? $self->options->{max_length} : undef; # explicitly return undef if no options, to avoid confusion with 0
     },
     trigger => sub { $_[0]->reset_options },
-    coerce  => sub { defined $_[0] && $_[0] ne "" && $_[0] =~ /^\d+$/i ? int($_[0]) : undef },
+    coerce  => sub { length($_[0]) && $_[0] =~ /^\d+$/i ? $_[0] : undef },
 );
 
 has textbox => (
