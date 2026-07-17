@@ -43,18 +43,31 @@
       }]
     });
   END;
-  
+  %]
+<div class="d-flex justify-content-between align-items-end">
+[%
   # add standardized page header
   INCLUDE layouts/page_header.tt
     title         = "Files"
-    description   = "Below are all the files that have been uploaded for use on the dashboard or to share data with Ctrl O for support purposes, such as data imports or screen shots."
-    aside_buttons = [{
+    description   = "
+    <p>Below are all the files that have been uploaded for use on the dashboard or to share data with Ctrl O for support purposes, such as data imports or screen shots.</p>
+    <p><strong>Files uploaded to this file store can be accessed by all users of this system, irrespective of their permissions.</strong></p>
+    <p>It is provided as a repository for:
+      <ul>
+        <li>files that are linked on dashboards</li>
+        <li>securely sharing screenshots with Ctrl O for support purposes</li>
+        <li>retaining reference documents that do not have any secure storage requirements</li>
+      </ul>
+    </p>
+    ";
+  INCLUDE snippets/button_list.tt buttons = [{
       type    = "modal_button"
       modalId = "uploadFile"
       class   = "btn btn-default"
       label   = "Upload a file"
     }];
 %]
+</div>
 
 <div class="content-block__main">
   [% INCLUDE tables/basic_table.tt; %]
