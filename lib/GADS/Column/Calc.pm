@@ -222,7 +222,7 @@ sub validate_search
 
 sub validate
 {   my ($self, $value) = @_;
-    if ($self->return_type eq 'date')
+    if ($self->return_type eq 'date' || $self->return_type eq 'datetime')
     {
         return $self->parse_date($value);
     }
