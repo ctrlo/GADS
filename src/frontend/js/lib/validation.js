@@ -169,10 +169,10 @@ const validateRequiredFieldsetCheckboxes = (fieldset) => {
   return isValid;
 };
 
-const addErrorMessage = (field, name, id) => {
+const addErrorMessage = (field, name, id, raw = false) => {
   const $errorDiv = $('<div class="error">')
   let $span = $(`<span id="${id}-err" class="form-text form-text--error" aria-live="off"></span>`)
-  $span.text(`${name} is a required field.`)
+  $span.text(raw ? name : `${name} is a required field.`)
   $errorDiv.html($span)
   field.append($errorDiv)
 }
@@ -192,6 +192,19 @@ const validateInput = (field) => {
   const strID = $inputEl.attr('id') || ''
 
   removeErrorMessage($(field))
+
+  const maxEl = field.find('[data-max]');
+  if(maxEl && maxEl.length) {
+    const maxLen = maxEl.data('max');
+    const fieldLen = maxEl.val().length;
+    if(fieldLen > maxLen) {
+      maxEl.attr('aria-invalid', true)
+      addErrorMessage(field, `${strFieldName} must be ${maxLen} characters or less`, strID, true);
+      field.addClass('invalid');
+      field.closest('.fieldset--required').addClass('fieldset--invalid');
+      return false;
+    }
+  }
 
   if (($inputEl.val() === '') && (!isHiddenDependentField(field))) {
     $inputEl.attr('aria-invalid', true)
