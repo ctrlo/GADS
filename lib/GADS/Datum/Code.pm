@@ -319,7 +319,7 @@ sub _build_value
                 : $_
         } @{$self->init_value};
         @values = map {
-            $column->return_type eq 'date'
+            $column->return_type eq 'date' || $column->return_type eq 'datetime'
                ?  $self->_parse_date($_)
                : $column->return_type eq 'daterange'
                ? $self->parse_daterange($_, source => 'db')

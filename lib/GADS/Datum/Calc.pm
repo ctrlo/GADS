@@ -59,8 +59,14 @@ sub as_string
 }
 
 sub _parse_date
-{   $_[1] or return;
-    $_[0]->schema->storage->datetime_parser->parse_date($_[1]);
+{   my ($self, $val) = @_;
+    $val or return;
+    if($val =~ / /) {
+        return $self->schema->storage->datetime_parser->parse_datetime($val);
+    }
+    else {
+        return $self->schema->storage->datetime_parser->parse_date($val);
+    }
 }
 
 sub _convert_date
