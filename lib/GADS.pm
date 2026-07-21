@@ -272,7 +272,7 @@ hook before => sub {
             # Redirect to user details page if password expired
             forwardHome({ danger => "Your password has expired. Please use the Change password button
                 below to set a new password." }, 'myaccount')
-                    unless request->uri eq '/myaccount' || request->uri eq '/logout';
+                    unless request->uri eq '/myaccount' || request->uri eq '/logout' || request->uri eq '/mfa';
         }
 
         # CSP
