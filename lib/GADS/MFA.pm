@@ -12,9 +12,19 @@ hook before => sub {
 
     if (my $user = logged_in_user())
     {
+        my $mfa_cookie = cookie 'MFATOKEN';
         # MFA needed before access?
         redirect '/mfa' if request->uri !~ m!^/(mfa|logout)$!
-            && $user->need_mfa && !$user->recent_mfa(cookie 'MFATOKEN');
+            && $user->need_mfa && !$user->recent_mfa($mfa_cookie);
+        # Prevent user being suddenly forced to enter MFA whilst logged in and
+        # using the application. This continuously refreshes the recent MFA
+        # cookie, as long it hasn't already expired (as per check above). This
+        # means that whilst logged-in the user will not need to refresh it, as
+        # it will always be recent. However, if they logout and remain
+        # logged-out after the "recent" expiry, they will be forced to
+        # re-enter.
+        _refresh_recent_mfa_cookie($mfa_cookie->value)
+            if $mfa_cookie;
     }
 
 };
@@ -182,8 +192,13 @@ sub _mfa_token_success
         mfa_token_previous_used => DateTime->now,
         mfa_token_previous_key  => $key,
     });
-    cookie MFATOKEN => $key, expires => '7d', secure => 1, http_only => 1;
+    _refresh_recent_mfa_cookie($key);
     return redirect '/';
+}
+
+sub _refresh_recent_mfa_cookie
+{   my $key = shift;
+    cookie MFATOKEN => $key, expires => '7d', secure => 1, http_only => 1;
 }
 
 1;
