@@ -25,8 +25,8 @@ class Logging {
         if (this.allowLogging) {
             console.log(...message);
         } else {
-            const message = this.formatMessage('log', ...message);
-            uploadMessage(message);
+            const msg = this.formatMessage('log', ...message);
+            uploadMessage(msg);
         }
     }
 
@@ -38,8 +38,8 @@ class Logging {
         if (this.allowLogging) {
             console.info(...message);
         } else {
-            const message = this.formatMessage('info', ...message);
-            uploadMessage(message);
+            const msg = this.formatMessage('info', ...message);
+            uploadMessage(msg);
         }
     }
 
@@ -51,8 +51,8 @@ class Logging {
         if (this.allowLogging) {
             console.warn(...message);
         } else {
-            const message = this.formatMessage('warn', ...message);
-            uploadMessage(message);
+            const msg = this.formatMessage('warn', ...message);
+            uploadMessage(msg);
         }
     }
 
@@ -64,8 +64,8 @@ class Logging {
         if (this.allowLogging) {
             console.error(...message);
         } else {
-            const message = this.formatMessage('error', ...message);
-            uploadMessage(message);
+            const msg = this.formatMessage('error', ...message);
+            uploadMessage(msg);
         }
     }
 

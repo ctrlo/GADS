@@ -67,6 +67,7 @@
     "@types/typeahead.js": "^0.11.6",
     "autoprefixer": "^10.5.0",
     "babel-loader": "^10.1.1",
+    "buffer": "^6.0.3",
     "clean-webpack-plugin": "^4.0.0",
     "copy-webpack-plugin": "^14.0.0",
     "core-js": "^3.49.0",
