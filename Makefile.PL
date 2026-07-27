@@ -123,10 +123,10 @@ sub get_prereq {
     for my $module (@keys) {
         next if $module eq 'Starman'; # Skip and add later as this isn't a Perl module and we want it to be the last entry in the list
         my $localModule = defined $aliases{$module} ? $aliases{$module} : $module;
+        next if $localModule eq ''; # Skip this module as it is already covered by another module
         $localModule =~ s/::/-/g;
         $localModule =~ tr/A-Z/a-z/;
         $localModule = "lib$localModule-perl";
-        next if $localModule eq ''; # Skip this module as it is already covered by another module
         $result .= $first ? 
             # Is this the first entry? if so, just append to the result
             "$localModule (>= $prereq_pm{$module}),' >> GADS-\$(VERSION)/DEBIAN/control" : 
