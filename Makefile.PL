@@ -116,6 +116,8 @@ WriteMakefile(
     clean               => { FILES => 'GADS-* GADS_*' },
 );
 
+package MY;
+
 sub get_prereq {
     my $first = 1;
     my $result = "\t\@echo 'Depends: ";
@@ -138,63 +140,14 @@ sub get_prereq {
 }
 
 # Add to the makefile (at the end)
-sub MY::postamble {
-    # Makefile is verbatim, you cannot indent the below string to make it "easier to read"
-    # Don't forget - Makefile doesn't like space indentation, use tabs all the way here!
-    my $result = <<'END_MAKEFILE';
-
-check_yarn:
-	@echo "Checking for yarn"
-	@yarn --version || (echo "yarn is not installed. Please install it from https://yarnpkg.com/getting-started/install" && exit 1)
-
-yarn: check_yarn
-	@echo "Installing node modules"
-	@yarn --frozen-lockfile
-	@npx update-browserslist-db@latest
-
-yarn_build: yarn
-	@echo "Building Bundles"
-	@NODE_ENV=production yarn webpack
-	@git checkout ./public/js/fengari-web.js
-
-build_web: yarn_build
-
-deb_mkdirs:
-	@echo "Creating Directories"
-	@mkdir -p GADS-$(VERSION)/srv/GADS
-	@mkdir -p GADS-$(VERSION)/DEBIAN
-
-deb_copy: deb_mkdirs
-	@echo "Copying files"
-	@cp -r bin environments lib public share views config.yml-example GADS-$(VERSION)/srv/GADS
-
-deb_control: deb_copy
-	@rm -f GADS-$(VERSION)/DEBIAN/control
-	@echo "Creating package manifest"
-	@echo "Package: GADS" > GADS-$(VERSION)/DEBIAN/control
-	@echo "Version: $(VERSION)" >> GADS-$(VERSION)/DEBIAN/control
-	@echo "Section: database" >> GADS-$(VERSION)/DEBIAN/control
-	@echo "Priority: optional" >> GADS-$(VERSION)/DEBIAN/control
-	@echo "Architecture: amd64" >> GADS-$(VERSION)/DEBIAN/control
-%prereq%
-	@echo 'Recommends: postgresql (>= 0)' >> GADS-$(VERSION)/DEBIAN/control
-	@echo "Maintainer: CtrlO Ltd <info@ctrlo.com>" >> GADS-$(VERSION)/DEBIAN/control
-	@echo "Description: Globally Accessible Data Store (GADS) is a web application for storing and sharing data across an organisation." >> GADS-$(VERSION)/DEBIAN/control
-	@echo " It provides a simple interface for creating and managing data, as well as powerful features for sharing and collaborating on data with others." >> GADS-$(VERSION)/DEBIAN/control
-	@echo " GADS is built using the Dancer2 web framework and is designed to be easy to use and extendable." >> GADS-$(VERSION)/DEBIAN/control
-	@echo "Vcs-Git: https://github.com/ctrlo/GADS.git" >> GADS-$(VERSION)/DEBIAN/control
-
-deb_package: deb_control
-	@echo "Creating package for GADS-$(VERSION)"
-	@cd GADS-$(VERSION)
-	@dpkg-deb --build ./GADS-$(VERSION) ./GADS_$(VERSION).deb
-
-deb_clean: deb_package
-	@echo "Cleaning up..."
-	@rm -rf GADS-$(VERSION)
-
-deb_build: build_web deb_clean
-END_MAKEFILE
+sub postamble {
+    
+    my $result = '';
+    open my $fh, '<Makefile.extra' or die "Could not open Makefile.extra: $!";
+    while (my $line = <$fh>) {
+        $result .= $line;
+    }
+    close $fh;
 
     # Get the pre-requisites as defined in this file as a string for building the package
     my $prereq = get_prereq();
@@ -202,3 +155,9 @@ END_MAKEFILE
     $result =~ s/%prereq%/$prereq/g;
     return $result;
 }
+
+sub top_targets {
+    my $targets = shift->SUPER::top_targets(@_);
+    $targets =~ s/(pure_all\s+::)/$1 deb_build/;
+    return $targets
+};
