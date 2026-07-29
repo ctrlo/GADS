@@ -2,7 +2,10 @@
   <div class="popover-content" id="[% popover_id %]-popover">
     [% popover_body %]
   </div>
-  <button class="btn btn-popover [% popover_button_class %]" type="button" [% IF popover_title; %]title="[% popover_title %]" [% END; %]aria-describedby="[% popover_id %]-popover" data-bs-toggle="popover">
-    <span>[% popover_button_text || 'popover' | html %]</span>
+  <button class="btn btn-popover [% popover_button_class %]" type="button"
+    [% IF popover_title; %]title="[% popover_title %]" [% END; %]
+    aria-describedby="[% popover_id %]-popover"
+    data-bs-toggle="popover">
+        <span>[% popover_button_text || 'popover' | html %]</span>
   </button>
 </div>

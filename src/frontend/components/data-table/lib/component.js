@@ -278,7 +278,7 @@ class DataTableComponent extends Component {
     addSortButton(dataTable, column, headerContent) {
         const $header = $(column.header());
         const $button = $(`
-            <span class="data-table__sort">
+            <span role="button" class="data-table__sort">
                 <span>${headerContent}</span>
                 <span class="btn btn-sort">
                     <span>Sort</span>
@@ -571,7 +571,7 @@ class DataTableComponent extends Component {
                         <div class="popover-content" id="${data.id || data.column_id}-popover">
                             ${thisHTML}
                         </div>
-                        <button class="btn btn-primary btn-sm btn-inverted btn-info" type="button" aria-describedby="${data.id || data.column_id}-popover" data-bs-toggle="popover">
+                        <button class="btn btn-primary btn-sm btn-inverted btn-info" type="button" aria-describedby="${data.id || data.column_id}-popover" data-bs-toggle="popover" aria-expanded="false" data-bs-trigger="focus" data-bs-html="true" data-bs-placement="top" data-bs-content="#${data.id || data.column_id}-popover">
                             ${this.encodeHTMLEntities(value.text)}
                         </button>
                     </div>`
