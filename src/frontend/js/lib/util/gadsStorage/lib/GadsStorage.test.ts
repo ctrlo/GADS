@@ -92,8 +92,7 @@ describe('GadsStorage', () => {
             const storage = new GadsStorage();
             const values = JSON.stringify(myValues);
             await storage.setItem('myValues', values);
-            const result = await storage.getItem('myValues');
-            expect(JSON.parse(result)).toEqual(myValues);
+            await expect(storage.getItem('myValues')).resolves.toEqual(values);
         }
         killNoMockCrypto();
     });
