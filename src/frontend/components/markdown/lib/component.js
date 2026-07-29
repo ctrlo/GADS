@@ -1,4 +1,4 @@
-import { marked } from 'marked';
+import { MarkDown } from 'util/formatters/markdown';
 import { Component } from 'component';
 
 /**
@@ -18,29 +18,26 @@ class MarkdownComponent extends Component {
      * Render markdown text to HTML.
      * @param {string} md The markdown text to render.
      * @returns {string} The rendered HTML.
-     * @todo Use Markdown templates rather than this method.
      */
     renderMarkdown(md) {
         const mdEncoded = $('<span>').text(md)
             .html();
-        return marked(mdEncoded);
+        return MarkDown`${mdEncoded}`;
     }
 
     /**
      * Initialize the markdown editor.
      */
     initMarkdownEditor() {
-        marked.use({ breaks: true });
-
         const $textArea = $(this.element).find('.js-markdown-input');
         const $preview = $(this.element).find('.js-markdown-preview');
-        $().on('ready', () => {
+        $(document).on('ready', () => {
             if ($textArea.val() !== '') {
                 const htmlText = this.renderMarkdown($textArea.val());
                 $preview.html(htmlText);
             }
         });
-        $textArea.keyup(() => {
+        $textArea.on('keyup', () => {
             const markdownText = $textArea.val();
             if (!markdownText || markdownText === '') {
                 $preview.html('<p class="text-info">Nothing to preview!</p>');

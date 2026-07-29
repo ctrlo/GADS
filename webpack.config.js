@@ -98,6 +98,7 @@ module.exports = (env) => {
                                 sassOptions: {
                                     implementation: sass,
                                     loadPaths: ['src/frontend/components'],
+                                    quietDeps: true,
                                 }
                             },
                         },

@@ -41,10 +41,10 @@ class CalculatorComponent extends Component {
 
             calculator_elem.append(
                 '<form class="form-inline">' +
-        '    <div class="form-group"><div class="radio-group radio-group--buttons" data-toggle="buttons"></div></div>' +
+        '    <div class="form-group"><div class="radio-group radio-group--buttons" data-bs-toggle="buttons"></div></div>' +
         '    <div class="form-group"><div class="input"><input type="text" placeholder="Number" class="form-control"></input></div></div>' +
         '    <div class="form-group">' +
-        '        <input type="submit" value="Calculate" class="btn btn-default"></input>' +
+        '        <input type="submit" value="Calculate" class="btn btn-primary"></input>' +
         '    </div>' +
         '</form>'
             );
@@ -114,7 +114,7 @@ class CalculatorComponent extends Component {
                         $(button_elem).find('.radio-group__input')
                             .prop('checked', true);
                         calculator_operation = btn.operation;
-                        calculator_elem.find(':text').focus();
+                        calculator_elem.find(':text').trigger('focus');
                     });
 
                 for (const j in btn.keypress) {

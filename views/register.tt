@@ -1,11 +1,11 @@
 <form class="login__form" method="post" autocomplete="off">
   [% PROCESS snippets/message_center.tt %]
-  
+
   <div class="login__head">
     <h2 class="login__title">
       Request account
     </h2>
-    
+
     <div class="login__intro">
       Complete fields below to request an account.
     </div>
@@ -13,7 +13,7 @@
     <p>[% register_text | html %]</p>
     [% END %]
   </div>
-  
+
   <div class="login__fields">
     <fieldset class="fieldset">
       <legend class="fieldset__legend fieldset__legend--hidden">
@@ -21,21 +21,21 @@
       </legend>
       [%
         INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
-      
+
         INCLUDE fields/input.tt
           id = "firstname"
           name = "firstname"
           label = "Forename"
           placeholder = "Forename"
           type = "text";
-        
+
         INCLUDE fields/input.tt
           id = "surname"
           name = "surname"
           label = "Surname"
           placeholder = "Surname"
           type = "text";
-        
+
         INCLUDE fields/input.tt
           id = "email"
           name = "email"
@@ -44,7 +44,7 @@
           type = "email"
           help_text = site.register_email_help
           is_required = 1;
-        
+
         IF site.register_show_title;
           INCLUDE fields/select_single.tt
             id = "title"
@@ -54,7 +54,7 @@
             help_text = site.register_title_help
             items = titles;
         END;
-        
+
         IF site.register_freetext1_name;
           INCLUDE fields/input.tt
             id = "freetext1"
@@ -65,7 +65,7 @@
             help_text = site.register_freetext1_help
             filter = "html";
         END;
-        
+
         IF site.register_freetext2_name;
           INCLUDE fields/input.tt
             id = "freetext2"
@@ -76,7 +76,7 @@
             help_text = site.register_freetext2_help
             filter = "html";
         END;
-        
+
         IF site.register_show_organisation;
           INCLUDE fields/select_single.tt
             id = "organisation"
@@ -87,7 +87,7 @@
             items = organisations
             is_required = site.register_organisation_mandatory;
         END;
-        
+
         IF site.register_show_department;
           INCLUDE fields/select_single.tt
             id = "department_id"
@@ -99,7 +99,7 @@
             filter = "html"
             is_required = site.register_department_mandatory;
         END;
-        
+
         IF site.register_show_team;
           INCLUDE fields/select_single.tt
             id = "team_id"
@@ -111,7 +111,7 @@
             filter = "html"
             is_required = site.register_team_mandatory;
         END;
-        
+
         INCLUDE fields/textarea.tt
           id = "account_request_notes"
           name = "account_request_notes"
@@ -123,16 +123,16 @@
       %]
     </fieldset>
   </div>
-  
+
   <div class="login__btns">
-    
+
     <a href="[% url.page %]/" class="btn btn-cancel">
       <span>Cancel</span>
     </a>
-    
-    <button type="submit" name="register" value="1" class="btn btn-default">
+
+    <button type="submit" name="register" value="1" class="btn btn-primary">
       <span>Submit</span>
     </button>
-  
+
   </div>
 </form>

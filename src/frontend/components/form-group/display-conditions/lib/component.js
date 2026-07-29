@@ -1,7 +1,6 @@
 import { Component } from 'component';
+import { refreshSelects } from 'components/form-group/searchable-select/FilterSelectHelper';
 import 'jQuery-QueryBuilder/dist/js/query-builder.standalone';
-import 'bootstrap-select/dist/js/bootstrap-select';
-import { refreshSelects } from 'components/form-group/common/bootstrap-select';
 
 /**
  * Component for managing display conditions in form groups.

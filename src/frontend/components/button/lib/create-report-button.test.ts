@@ -16,7 +16,7 @@ describe('create-report-button', () => {
           <input id="2" type="checkbox">
           <input id="3" type="checkbox">
           <input id="4" type="checkbox">
-          <input id="1" type="checkbox">
+          <input id="5" type="checkbox">
           <input id="6" type="checkbox">
           <input id="7" type="checkbox">
         </fieldset>

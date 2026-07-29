@@ -27,7 +27,7 @@
     "imports",
     "import",
     "import/row",
-    "chronology",
+    # "chronology", # Removed as this can be confusing when viewing the chronology of a record
   ];
   edit_table_active_pages = manage_table_active_pages.merge(manage_topics_active_pages, manage_fields_active_pages, manage_permissions_active_pages);
   table_dashboard_active_pages = ["table_index"];

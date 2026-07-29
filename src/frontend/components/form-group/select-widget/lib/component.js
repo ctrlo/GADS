@@ -1,4 +1,3 @@
-// We import Bootstrap because there is an error that throws if we don't (this.collapse is not a function).
 /* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component';
 import { fromJson } from 'util/common';
@@ -70,13 +69,13 @@ class SelectWidgetComponent extends Component {
 
         $(document).on('click', (e) => { this.handleDocumentClick(e); });
 
-        $(document).keyup(function (e) {
-            if (e.keyCode == 27) {
+        $(document).on('keyup', (e) => {
+            if (e.key === 'Escape') {
                 this.collapse(this.$widget, this.$trigger, this.$target);
             }
         });
 
-        this.$widget.delegate('.select-widget-value__delete', 'click', function (e) {
+        this.$widget.on('click', '.select-widget-value__delete', function (e) {
             e.preventDefault();
             e.stopPropagation();
 
@@ -89,16 +88,16 @@ class SelectWidgetComponent extends Component {
             $(checkbox).trigger('change');
         });
 
-        this.$search.unbind('focus', this.expandWidgetHandler);
+        this.$search.off('focus', this.expandWidgetHandler);
         this.$search.on('focus', (e) => { this.expandWidgetHandler(e); });
 
-        this.$search.unbind('keydown');
+        this.$search.off('keydown');
         this.$search.on('keydown', (e) => { this.handleKeyDown(e); });
 
-        this.$search.unbind('keyup');
+        this.$search.off('keyup');
         this.$search.on('keyup', (e) => { this.handleKeyUp(e); });
 
-        this.$search.unbind('click');
+        this.$search.off('click');
         this.$search.on('click', (e) => {
             // Prevent bubbling the click event to the $widget (which expands/collapses the widget on click).
             e.stopPropagation();
@@ -189,34 +188,34 @@ class SelectWidgetComponent extends Component {
      * Handles keydown events on the search input.
      */
     handleKeyDown(e) {
-        const key = e.which || e.keyCode;
+        const key = e.key;
 
         // If still in search text after previous search and select, ensure that
         // widget expands again to show results
         this.expand(this.$widget, this.$trigger, this.$target);
 
         switch (key) {
-            case 38: // UP
-            case 40: // DOWN
+            case 'ArrowUp': // UP
+            case 'ArrowDown': // DOWN
             {
                 const items = this.$available.find('.answer:not([hidden]) input');
                 let nextItem;
 
                 e.preventDefault();
 
-                if (key === 38) {
+                if (key === 'ArrowUp') {
                     nextItem = items[items.length - 1];
                 } else {
                     nextItem = items[0];
                 }
 
                 if (nextItem) {
-                    $(nextItem).focus();
+                    $(nextItem).trigger('focus');
                 }
 
                 break;
             }
-            case 13: // ENTER
+            case 'Enter': // ENTER
             {
                 e.preventDefault();
 
@@ -270,7 +269,6 @@ class SelectWidgetComponent extends Component {
 
     /**
      * Checks if the widget should be closed based on focus changes.
-     * @param {JQuery.TriggeredEvent} e The event triggered when the widget might need to be closed.
      */
     possibleCloseWidget(e) {
         const newlyFocussedElement = e.relatedTarget || document.activeElement;
@@ -308,18 +306,18 @@ class SelectWidgetComponent extends Component {
 
             $associated.off('keydown');
             $associated.on('keydown', function (e) {
-                const key = e.which || e.keyCode;
+                const key = e.key;
 
                 switch (key) {
-                    case 38: // UP
-                    case 40: // DOWN
+                    case 'ArrowUp': // UP
+                    case 'ArrowDown': // DOWN
                     {
                         const currentIndex = self.$answers.index($associated.closest('.answer'));
                         let nextItem;
 
                         e.preventDefault();
 
-                        if (key === 38) {
+                        if (key === 'ArrowUp') {
                             nextItem = self.$answers[currentIndex - 1];
                         } else {
                             nextItem = self.$answers[currentIndex + 1];
@@ -328,12 +326,12 @@ class SelectWidgetComponent extends Component {
                         if (nextItem) {
                             $(nextItem)
                                 .find('input')
-                                .focus();
+                                .trigger('focus');
                         }
 
                         break;
                     }
-                    case 13:
+                    case 'Enter':
                     {
                         e.preventDefault();
                         $(this).trigger('click');
@@ -378,7 +376,7 @@ class SelectWidgetComponent extends Component {
             $associated.parent().off('keypress');
             $associated.parent().on('keypress', (e) => {
                 // KeyCode Enter or Spacebar
-                if (e.keyCode === 13 || e.keyCode === 32) {
+                if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     $(e.target).parent()
                         .trigger('click');
@@ -462,10 +460,10 @@ class SelectWidgetComponent extends Component {
         // Add space at beginning to keep format consistent with that in template
         const detailsButton =
             ' <div class="details">' +
-            '<button type="button" class="btn btn-small btn-default btn-js-more-info" data-record-id="' + value_id +
+            '<button type="button" class="btn btn-sm btn-primary btn-js-more-info" data-record-id="' + value_id +
             '" aria-describedby="lbl-' + valueId +
-            '" data-target="' + this.el.data('details-modal') + // TODO: get id of modal
-            '" data-toggle="modal">' +
+            '" data-bs-target="' + this.el.data('details-modal') + // TODO: get id of modal
+            '" data-bs-toggle="modal">' +
             'Details' +
             '</button>' +
             '</div>';
@@ -608,29 +606,27 @@ class SelectWidgetComponent extends Component {
                 );
                 this.$available.append(errorLi);
             }
-        })
-            .fail(function (jqXHR, textStatus, textError) {
-                const errorMessage = jqXHR.responseJSON.message;
-                logging.error(
-                    'Failed to make request to ' +
-                    url +
-                    ': ' +
-                    textStatus +
-                    ': ' +
-                    textError
-                );
-                const errorLi = $(
-                    '<li class="answer answer--blank alert alert-danger"><span class="control"><label>' +
-                    errorMessage +
-                    '</label></span></li>'
-                );
-                self.$available.append(errorLi);
-            })
-            .always(function () {
-                if (hideSpinner) {
-                    self.$available.find('.spinner').attr('hidden', '');
-                }
-            });
+        }).fail(function (jqXHR, textStatus, textError) {
+            const errorMessage = jqXHR.responseJSON?.message ?? 'Oops! Something went wrong';
+            logging.error(
+                'Failed to make request to ' +
+                url +
+                ': ' +
+                textStatus +
+                ': ' +
+                textError
+            );
+            const errorLi = $(
+                '<li class="answer answer--blank alert alert-danger"><span class="control"><label>' +
+                errorMessage +
+                '</label></span></li>'
+            );
+            self.$available.append(errorLi);
+        }).always(function () {
+            if (hideSpinner) {
+                self.$available.find('.spinner').attr('hidden', '');
+            }
+        });
     }
 
     /**
@@ -726,7 +722,7 @@ class SelectWidgetComponent extends Component {
         $target.removeAttr('hidden');
 
         if (this.$search.get(0) !== document.activeElement) {
-            this.$search.focus();
+            this.$search.trigger('focus');
         }
     }
 }

@@ -214,7 +214,7 @@ class DocumentComponent {
                         <label for="file-${fileId}">Include File. Current file name:</label>
                         <a id="current-${fileId}" class="link link--plain"
                             href="/file/${fileId}">${fileName}</a>
-                        <button data-field-id="${fileId}" class="rename btn btn-plain btn-small btn-sm py-0"
+                        <button data-field-id="${fileId}" class="rename btn btn-plain btn-sm py-0"
                             title="Rename file" type="button"></button>
                     </div>
                 </div>
@@ -270,8 +270,8 @@ class DocumentComponent {
      * Show any errors client-side.
      * @param e The error to be shown, can be a string or an Error object.
      */
-    showException(e: any) {
-        this.handler.addError(e instanceof Error ? e.message : typeof e == 'object' && 'message' in e ? e.message : e.toString());
+    showException(e: string | Error) {
+        this.handler.addError(e);
     }
 }
 
@@ -280,7 +280,7 @@ class DocumentComponent {
  * @param {JQuery<HTMLElement> | HTMLElement} el The element to attach the document component to
  * @returns {DocumentComponent} The initialized document component
  */
-export default function documentComponent(el: JQuery<HTMLElement> | HTMLElement) {
+export default function documentComponent(el: JQuery<HTMLElement> | HTMLElement): DocumentComponent {
     const component = new DocumentComponent(el);
     component.init();
     return component;

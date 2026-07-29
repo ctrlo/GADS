@@ -47,7 +47,12 @@ class FileComponent {
         this.fileDelete.on('click', this.deleteFile);
     }
 
-    // As some of these, if not all, are event handlers, scoping can get a bit wiggy; using arrow functions to keep the scope of `this` to the class
+    /**
+     * Handle the file upload process.
+     * @param {File} file The file to be uploaded.
+     * @param {number} index The index of the file in the upload queue.
+     * @param {number} length The total number of files in the upload queue.
+     */
     handleFormUpload = (file: File, index:number, length: number) => {
         if (!file) throw new Error('No file provided');
 

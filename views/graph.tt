@@ -2,7 +2,7 @@
   <form role="form" method="post" class="">
     [%
       INCLUDE fields/hidden.tt name="csrf_token" value=csrf_token;
-      
+
       IF graph.id;
         INCLUDE fields/hidden.tt name="id" value=graph.id;
       END;
@@ -13,18 +13,20 @@
           Add a graph
         </legend>
       </div>
-      
+
       <div class="content-block__main-content">
         <div class="row">
           <div class='col-md-6 col-lg-8 mb-4 mb-lg-0'>
             <div class="row mb-3">
               <div class="col">
-                <div class="card card--secundary">
+                <div class="card card-secundary">
+                <div class="card-header">
                   <h4 class="card__title">
                     <span> General </span>
                   </h4>
-                  
-                  <div class="card__body row">
+                </div>
+
+                  <div class="card-body">
                     <div class="card__content">
                       <div class="row">
                         <div class='col'>
@@ -73,7 +75,7 @@
                           %]
                         </div>
                       </div>
-  
+
                       [% IF layout.user_can("layout") OR layout.user_can("view_group") %]
                       <div class="row">
                         <div class="col">
@@ -93,11 +95,11 @@
                           <div class="checkbox-reveal" id="is_shared-reveal">
                             [%
                               group_id_items = layout.user_can("layout") ? [{id="", name="All users"}] : [];
-                            
+
                               FOREACH group IN user.groups_viewable;
                                 group_id_items.push({id=group.id, name=group.name});
                               END;
-                            
+
                               INCLUDE fields/select.tt
                                 id          = "group_id"
                                 name        = "group_id"
@@ -112,26 +114,28 @@
                       </div>
                       [% END %]
                     </div>
-                  
+
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <div class="row mb-3">
               <div class="col">
-                <div class="card card--secundary">
+                <div class="card card-secundary">
+                <div class="card-header">
                   <h4 class="card__title">
                     <span> X-axis </span>
                   </h4>
-                  
-                  <div class="card__body row">
+                  </div>
+
+                  <div class="card-body">
                     <div class="card__content">
                       <div class="row">
                         <div class="col">
                           [%
                             set_x_axis_items = [{id="", name="<All fields in view>"}];
-                          
+
                             FOREACH column IN layout.columns_for_filter;
                               set_x_axis_items.push({
                                 id = column.filter_id,
@@ -139,7 +143,7 @@
                                 is_date = column.return_type == "date" OR column.return_type == "daterange" ? 1 : 0
                               });
                             END;
-                          
+
                             INCLUDE fields/select.tt
                               id          = "set_x_axis"
                               name        = "set_x_axis"
@@ -151,7 +155,7 @@
                           %]
                         </div>
                       </div>
-                      
+
                       <div class="row">
                         <div class="col">
                           [%
@@ -170,8 +174,8 @@
                           %]
                         </div>
                       </div>
-                      
-                      
+
+
                       <div class="select-reveal select-reveal--trend">
                         <div class="select-reveal__instance" id="trend_aggregate">
                           <div class="row">
@@ -202,7 +206,7 @@
                                 %]
                             </div>
                           </div>
-                          
+
                           <div class="select-reveal select-reveal--x_axis_range">
                             <div class="select-reveal__instance" id="x_axis_range_custom">
                               <div class="row">
@@ -229,7 +233,7 @@
                                   %]
                                 </div>
                               </div>
-                              
+
                               <div class="row">
                                 <div class="col">
                                   [%
@@ -251,10 +255,10 @@
                                   %]
                                 </div>
                               </div>
-                            
+
                             </div>
                           </div>
-                          
+
                         </div>
                       </div>
                     </div>
@@ -262,15 +266,17 @@
                 </div>
               </div>
             </div>
-            
+
             <div class="row mb-3">
               <div class="col">
-                <div class="card card--secundary">
+                <div class="card card-secundary">
+                <div class="card-header">
                   <h4 class="card__title">
                     <span> Y-axis </span>
                   </h4>
-                  
-                  <div class="card__body row">
+                  </div>
+
+                  <div class="card-body row">
                     <div class="card__content">
                       <div class="row">
                         <div class="col">
@@ -290,15 +296,15 @@
                           %]
                         </div>
                       </div>
-                      
+
                       <div class="select-reveal select-reveal--y_axis_stack">
                         <div class="select-reveal__instance" id="y_axis_stack_sum">
-                          
+
                           <div class="row">
                             <div class="col">
                               [%
                                 y_axis_items = [];
-                                
+
                                 FOREACH column IN layout.all;
                                   NEXT UNLESS column.numeric;
                                   y_axis_items.push({
@@ -306,7 +312,7 @@
                                     name = column.name
                                   });
                                 END;
-                                
+
                                 INCLUDE fields/select.tt
                                   id           = "y_axis"
                                   name         = "y_axis"
@@ -322,8 +328,8 @@
                           </div>
                         </div>
                       </div>
-                      
-                      
+
+
                       <div class="row">
                         <div class="col">
                           [%
@@ -338,21 +344,21 @@
                           %]
                         </div>
                       </div>
-                      
+
                       <div class="select-reveal select-reveal--trend">
                         <div class="select-reveal__instance" id="trend_">
                           <div class="row">
                             <div class="col">
                               [%
                                 group_by_items = [{id = "", name = ""}];
-                                
+
                                 FOREACH column IN layout.all;
                                   group_by_items.push({
                                     id = column.id
                                     name = column.name
                                   });
                                 END;
-                                
+
                                 # TODO : source code has conflicting logic, either graph.group_by.id or graph.group_by
                                 # is correct to be compared to column.id
                                 INCLUDE fields/select.tt
@@ -364,21 +370,21 @@
                                   select_class = "select--select"
                                   filter       = "html"
                                   hide_group   = 0
-                                  items        = group_by_items;
+                                  items        = y_axis_items;
                               %]
                             </div>
                           </div>
                         </div>
                       </div>
-                      
-                      
+
+
                       <div class="row">
                         <div class="col">
                           [%
                             link_label = layout.user_can('layout')
                               ? "Plot against <a href='" _ url.page _ "/" _ layout.identifier _ "/metrics'>metrics</a> (optional)"
                               : "Plot against metrics (optional)";
-                          
+
                             INCLUDE fields/select.tt
                               id           = "metric_group_id"
                               name         = "metric_group_id"
@@ -392,7 +398,7 @@
                           %]
                         </div>
                       </div>
-                      
+
                       <div class="row">
                         <div class="col">
                           [%
@@ -402,7 +408,7 @@
                               label = "Stack data within same series"
                               value = "1"
                               checked = graph.stackseries ? 1 : 0;
-                          
+
                             INCLUDE fields/sub/checkbox.tt
                               id = "as_percent"
                               name = "as_percent"
@@ -412,22 +418,24 @@
                           %]
                         </div>
                       </div>
-                      
+
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            
+
           </div>
-          
+
           <div class='col-md-6 col-lg-4'>
-            <div class="card card--secundary card--help">
+            <div class="card card-secundary card--help">
+            <div class="card-header">
               <h4 class="card__title">
                 <span> Graph help </span>
               </h4>
-              
-              <div class="card__body row">
+              </div>
+
+              <div class="card-body row">
                 <div class="card__content">
                   <dl>
                     <dt>X-axis</dt>
@@ -451,15 +459,15 @@
               </div>
             </div>
           </div>
-          
+
         </div>
       </div>
-      
+
       <footer class="content-block__footer">
         <div class="content-block__footer-container">
           [%
             footer_right_buttons = [];
-          
+
             IF graph.id;
               footer_right_buttons.push({
                 type      = "modal_button",
@@ -470,16 +478,16 @@
                 label     = "Delete graph"
               });
             END;
-          
+
             footer_right_buttons.push({
               type  = "button",
-              class = "btn btn-default",
+              class = "btn btn-primary",
               name  = "submit",
               value = "submit",
-              class = "btn btn-default",
+              class = "btn btn-primary",
               label = "Save"
             });
-          
+
             INCLUDE navigation/button_bar.tt
               row_class = "row"
               columns   = [{
@@ -497,9 +505,9 @@
           %]
         </div>
       </footer>
-      
+
     </fieldset>
-  
+
   </form>
 </div>
 [%

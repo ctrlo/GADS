@@ -1,4 +1,4 @@
-<button type="button" class="btn btn-link" data-toggle="modal" data-target="#[% modalId %]">
+<button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#[% modalId %]">
   <span class="btn__title">
     [% INCLUDE fields/sub/filter.tt value=label; %]
   </span>

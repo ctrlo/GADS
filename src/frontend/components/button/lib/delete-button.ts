@@ -9,8 +9,8 @@ export default function createDeleteButton(element: JQuery<HTMLElement>) {
         const $button = $(ev.target).closest('button');
         const title = $button.attr('data-title');
         const id = $button.attr('data-id');
-        const target = $button.attr('data-target');
-        const toggle = $button.attr('data-toggle');
+        const target = $button.attr('data-bs-target');
+        const toggle = $button.attr('data-bs-toggle');
         const modalTitle = title ? `Delete - ${title}` : 'Delete';
         const $deleteModal = $(document).find(`.modal--delete${target}`);
 
@@ -25,7 +25,6 @@ export default function createDeleteButton(element: JQuery<HTMLElement>) {
             element.on('click', function (e: JQuery.ClickEvent) {
                 e.stopPropagation();
             });
-            /* @ts-expect-error Global function for testing */
             if (window.test) throw e;
         }
 

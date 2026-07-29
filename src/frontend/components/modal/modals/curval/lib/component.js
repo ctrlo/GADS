@@ -133,7 +133,7 @@ class CurvalModalComponent extends ModalComponent {
             const instance_name = $field.data('curval-instance-name');
             const editButton = $(
                 `<td>
-          <button type="button" class="btn btn-small btn-link btn-js-curval-modal" data-toggle="modal" data-target="#curvalModal" data-layout-id="${col_id}"
+          <button type="button" class="btn btn-sm btn-link btn-js-curval-modal" data-bs-toggle="modal" data-bs-target="#curvalModal" data-layout-id="${col_id}"
                 data-instance-name="${instance_name}" ${current_id ? `data-current-id="${current_id}"`:''}>
             <span class="btn__title">Edit</span>
           </button>
@@ -143,7 +143,7 @@ class CurvalModalComponent extends ModalComponent {
 
             const removeButton = $(
                 `<td>
-          <button type="button" class="btn btn-small btn-delete btn-js-curval-remove">
+          <button type="button" class="btn btn-sm btn-delete btn-js-curval-remove">
             <span class="btn__title">Remove</span>
           </button>
         </td>`,
@@ -221,7 +221,7 @@ class CurvalModalComponent extends ModalComponent {
           </div>
         </div>
         <div class="details">
-          <button type="button" class="btn btn-small btn-danger btn-js-curval-remove">
+          <button type="button" class="btn btn-sm btn-danger btn-js-curval-remove">
             <span class="btn__title">Remove</span>
           </button>
         </div>
@@ -366,8 +366,7 @@ class CurvalModalComponent extends ModalComponent {
             fetch(this.getURL(current_id, instance_name, layout_id), {
                 method: 'POST',
                 body: form_data
-            })
-                .then((response)=>response.text())
+            }).then((response)=>response.text())
                 .then((text) => $m.find('.modal-body').html(text))
                 .then(() => {
                     if (mode === 'edit') {

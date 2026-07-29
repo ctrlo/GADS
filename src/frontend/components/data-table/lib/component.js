@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
-
 import { Component, initializeRegisteredComponents } from 'component';
-import 'datatables.net-bs4';
-import 'datatables.net-buttons-bs4';
-import 'datatables.net-responsive-bs4';
-import 'datatables.net-rowreorder-bs4';
+import 'datatables.net-bs5';
+import 'datatables.net-responsive-bs5';
+import 'datatables.net-rowreorder-bs5';
 import './DataTablesPlugins';
 import { setupDisclosureWidgets, onDisclosureClick } from 'components/more-less/lib/disclosure-widgets';
 import { moreLess } from 'components/more-less/lib/more-less';
@@ -23,7 +21,9 @@ class DataTableComponent extends Component {
      */
     constructor(element) {
         super(element);
+        // For fullscreen we need a clone of the table element
         this.table = element.cloneNode(true);
+        this.count = 0;
         this.el = $(this.element);
         this.hasCheckboxes = this.el.hasClass('table-selectable');
         this.hasClearState = this.el.hasClass('table-clear-state');
@@ -278,16 +278,15 @@ class DataTableComponent extends Component {
     addSortButton(dataTable, column, headerContent) {
         const $header = $(column.header());
         const $button = $(`
-      <button class="data-table__sort" type="button">
-        <span>${headerContent}</span>
-        <span class="btn btn-sort">
-          <span>Sort</span>
-        </span>
-      </button>`
-        );
+            <span role="button" class="data-table__sort">
+                <span>${headerContent}</span>
+                <span class="btn btn-sort">
+                    <span>Sort</span>
+                </span>
+            </span>
+        `);
 
         $header
-            .off()
             .find('.data-table__header-wrapper')
             .html($button);
 
@@ -334,11 +333,11 @@ class DataTableComponent extends Component {
                 class='btn btn-search dropdown-toggle'
                 id='search-toggle-${index}'
                 type='button'
-                data-toggle='dropdown'
+                data-bs-toggle='dropdown'
                 aria-expanded='false'
                 data-boundary='viewport'
                 data-reference='parent'
-                data-target="[data-ddl='ddl_${index}']"
+                data-bs-target="[data-ddl='ddl_${index}']"
                 data-focus="[data-ddl='ddl_${index}']"
                 >
                 <span>Search in ${title}</span>
@@ -379,10 +378,6 @@ class DataTableComponent extends Component {
             $('input', $searchElement).addClass('search');
         }
 
-        $header.find('.data-table__header-wrapper').prepend($searchElement);
-
-        this.toggleFilter(column);
-
         if (col && col.typeahead) {
             import(/*webpackChunkName: "typeahead" */ 'util/typeahead')
                 .then(({ default: TypeaheadBuilder }) => {
@@ -409,6 +404,10 @@ class DataTableComponent extends Component {
                         .build();
                 });
         }
+
+        $header.find('.data-table__header-wrapper').prepend($searchElement);
+
+        this.toggleFilter(column);
 
         // Apply the search
         $('input.search', $header).on('change', function (ev) {
@@ -566,17 +565,17 @@ class DataTableComponent extends Component {
                         thisHTML += `<p>${this.encodeHTMLEntities(detail.definition)}: ${strDecodedValue}</p>`;
                     }
                 });
-                thisHTML += '</div>';
+                thisHTML +=  '</div>';
                 strHTML += (
-                    `<div class="position-relative">
-            <button class="btn btn-small btn-inverted btn-info trigger" aria-expanded="false" type="button">
-              ${this.encodeHTMLEntities(value.text)}
-              <span class="invisible">contact details</span>
-            </button>
-            <div class="person contact-details expandable popover card card--secundary">
-              ${thisHTML}
-            </div>
-          </div>`
+                    `<div class="popover-container">
+                        <div class="popover-content" id="${data.id || data.column_id}-popover">
+                            ${thisHTML}
+                        </div>
+                        <button class="btn btn-primary btn-sm btn-inverted btn-info" type="button" aria-describedby="${data.id || data.column_id}-popover" data-bs-toggle="popover" aria-expanded="false" data-bs-trigger="focus" data-bs-html="true" data-bs-placement="top" data-bs-content="#${data.id || data.column_id}-popover">
+                            ${this.encodeHTMLEntities(value.text)}
+                            <span class="visually-hidden">contact details</span>
+                        </button>
+                    </div>`
                 );
             }
         });
@@ -759,12 +758,11 @@ class DataTableComponent extends Component {
 
     /**
      * Get the configuration object for the DataTable
-     * @import { Config } from 'datatables.net-bs4';
-     * @param {Parital<Config>} overrides Any values to override in the configuration
-     * @returns {Config} The configuration object for the DataTable
+     * @param {Readonly<Parital<import('datatables.net-bs5').Config>>=} overrides Any values to override in the configuration
+     * @returns {import('datatables.net-bs5').Config} The configuration object for the DataTable
      */
     getConf(overrides = undefined) {
-        const confData = this.el.data('config');
+        const confData = (this.el).data('config');
         let conf = {};
 
         if (typeof confData === 'string') {
@@ -790,7 +788,7 @@ class DataTableComponent extends Component {
         const self = this;
 
         conf['initComplete'] = (settings, json) => {
-            const tableElement = this.el;
+            const tableElement = conf.el || this.el;
             const dataTable = tableElement.DataTable();
 
             this.json = json;
@@ -800,23 +798,34 @@ class DataTableComponent extends Component {
                     const column = this;
                     const $header = $(column.header());
 
+                    $header.on('click', (ev) => {
+                        if(ev.stopPropagation) {
+                            ev.stopPropagation();
+                            ev.preventDefault();
+                        } else {
+                            ev.cancelBubble = true;
+                        }
+                    });
+
                     const headerContent = $header.html();
-                    $header.html(`<div class='data-table__header-wrapper position-relative ${column.search() ? 'filter' : ''}' data-ddl='ddl_${index}'>${headerContent}</div>`);
+                    if(!headerContent.includes('data-table__header-wrapper')){
+                        $header.html(`<div class='data-table__header-wrapper position-relative ${column.search() ? 'filter' : ''}' data-ddl='ddl_${index}'>${headerContent}</div>`);
 
-                    // Add sort button to column header
-                    if ($header.hasClass('dt-orderable-asc') || $header.hasClass('dt-orderable-desc')) {
-                        self.addSortButton(dataTable, column, headerContent);
-                    }
-
-                    // Add button to column headers (only serverside tables)
-                    if ((conf.serverSide) && (tableElement.hasClass('table-search'))) {
-                        const id = settings.oAjaxData.columns[index].name;
-
-                        if (self.searchParams.has(id)) {
-                            column.search(self.searchParams.get(id)).draw();
+                        // Add sort button to column header
+                        if ($header.hasClass('dt-orderable-asc') || $header.hasClass('dt-orderable-desc')) {
+                            self.addSortButton(dataTable, column, headerContent);
                         }
 
-                        self.addSearchDropdown(column, id, index);
+                        // Add button to column headers (only serverside tables)
+                        if ((conf.serverSide) && (tableElement.hasClass('table-search'))) {
+                            const id = settings.oAjaxData.columns[index].name;
+
+                            if (self.searchParams.has(id)) {
+                                column.search(self.searchParams.get(id)).draw();
+                            }
+
+                            self.addSearchDropdown(column, id, index);
+                        }
                     }
                     return true;
                 });
@@ -829,14 +838,16 @@ class DataTableComponent extends Component {
                     }
                 }
 
+                initializeRegisteredComponents(tableElement[0]);
+
                 this.initializingTable = false;
             }
         };
 
-        conf['footerCallback'] = function () {
+        conf['footerCallback'] = function() {
             const api = this.api();
             // Add aggregate values to table if configured
-            const agg = api.ajax && api.ajax.json() && api.ajax.json().aggregate;
+            const agg = api.ajax?.json()?.aggregate;
             if (agg) {
                 const cols = api.settings()[0].oAjaxData.columns;
                 api.columns().every(function () {
@@ -856,11 +867,6 @@ class DataTableComponent extends Component {
 
             //Re-initialize more-less components after initialisation is complete
             moreLess.reinitialize();
-
-            // (Re)enable wide-table toggle button each time. It is disabled during
-            // any drawing to prevent it being clicked multiple times during a draw
-            this.el.DataTable().button(0)
-                .enable();
 
             this.bindClickHandlersAfterDraw(conf);
         };
@@ -917,7 +923,7 @@ class DataTableComponent extends Component {
 
     /**
      * Bind click handlers after the DataTable has been drawn
-     * @import { Config } from 'datatables.net-bs4';
+     * @import { Config } from 'datatables.net-bs5';
      * @param {Config} conf The configuration object for the DataTable
      */
     bindClickHandlersAfterDraw(conf) {

@@ -10,6 +10,7 @@
     bottomEnd = undef
   };
   table_show_all_records = 1;
+  table_unresponsive = 1;
 
   table_caption = "Table for audit log";
   table_class = "table-force-buttons";
@@ -80,7 +81,7 @@
               <button
                 type="button"
                 class="btn btn-filter"
-                data-toggle="modal" data-target=#filterAuditLogs
+                data-bs-toggle="modal" data-bs-target=#filterAuditLogs
               >
                 <span class="btn__title">Filter</span>
               </button>

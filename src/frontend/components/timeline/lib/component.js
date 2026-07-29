@@ -333,7 +333,7 @@ class TimelineComponent extends Component {
           }
         }
       }
-    })
+    });
   }
 
   /**

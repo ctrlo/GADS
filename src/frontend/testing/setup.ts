@@ -1,3 +1,4 @@
+import { jest } from "@jest/globals";
 import { TextEncoder, TextDecoder } from "util";
 import $ from "jquery";
 

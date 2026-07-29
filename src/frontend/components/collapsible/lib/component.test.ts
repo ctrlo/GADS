@@ -3,11 +3,10 @@ import Collapsible from './component';
 
 describe('Collapsible', () => {
     beforeEach(() => {
-        // Set up the HTML structure for the collapsible component
         document.body.innerHTML = `
         <div id="target" class="collapsible">
             <div class="form-group">
-            <button type="button" class="btn btn-default btn-block btn-collapsible" data-toggle="collapse" aria-expanded=false data-target=#content aria-controls=#content>
+            <button type="button" class="btn btn-primary btn-block btn-collapsible" data-bs-toggle="collapse" aria-expanded=false data-bs-target=#content aria-controls=#content>
                 <span class="btn__title btn__title--collapsed">Reveal</span>
                 <span class="btn__title btn__title--expanded">Hide</span>
             </button>

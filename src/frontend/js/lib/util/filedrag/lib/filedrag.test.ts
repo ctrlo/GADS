@@ -2,9 +2,9 @@
 import { describe, it, expect, jest } from '@jest/globals';
 import FileDrag from './filedrag';
 
-class FileDragTest extends FileDrag {
-    constructor(element: HTMLElement, onDrop: (files: File, index?: number, length?: number) => void = ()=>{}) {
-        super(element, { debug: true }, onDrop);
+class FileDragTest extends FileDrag<HTMLElement> {
+    constructor(element: HTMLElement, onDrop?: (files: FileList | File) => void) {
+        super(element, { debug: true }, onDrop ?? (() => { }));
     }
 
     setDragging(dragging: boolean) {
@@ -49,7 +49,6 @@ describe('FileDrag class tests', () => {
     });
 
     it('hides the correct element when dragging starts', () => {
-        //Who said testing was boring? This is fun!
         const child = createBaseDOM();
         const fileDrag = new FileDragTest(child);
         const parent = child.parentElement;

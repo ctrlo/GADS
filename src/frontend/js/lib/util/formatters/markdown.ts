@@ -1,4 +1,4 @@
-import { marked } from 'marked';
+import { marked } from 'marked'; // Do not go above v15.x.x for now as this is the last version that supports synchronous rendering.
 
 type MarkdownCode = string;
 

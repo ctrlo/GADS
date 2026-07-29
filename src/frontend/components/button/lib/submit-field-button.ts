@@ -1,5 +1,5 @@
 import 'jstree';
-import 'datatables.net-bs4';
+import 'datatables.net-bs5';
 import 'jQuery-QueryBuilder/dist/js/query-builder.standalone';
 import { validateQueryBuilder } from 'validation';
 
@@ -131,7 +131,6 @@ export default class SubmitFieldButton {
      * @returns {string} The URL for the tree API
      */
     private getURL(data: JQuery.PlainObject): string {
-        /* @ts-expect-error Global function for testing */
         if (window.test) return '';
 
         const devEndpoint = window.siteConfig && window.siteConfig.urls.treeApi;

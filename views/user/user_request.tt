@@ -2,10 +2,10 @@
   # prepare table config
   table_class = 'table-striped table-hover table-account-requests';
   table_layout = {
-    topStart = "search",
-    topEnd   = "pageLength",
-    main     = "paging",
-    bottomStart = "info",
+    topStart    = "search",
+    topEnd      = "pageLength",
+    bottomStart = "paging",
+    bottomEnd   = "info",
   }
   table_language = {
     emptyTable => "There are currently no account requests",
@@ -14,7 +14,7 @@
       next     => "Next page",
       previous => "Previous page"
     },
-    search            => "<span class=\"sr-only\">Search account requests:</span>",
+    search            => "<span class=\"visually-hidden\">Search account requests:</span>",
     searchPlaceholder => "Search through your users"
   }
   table_caption = "Table to show account requests";
@@ -215,7 +215,7 @@
     aside_buttons = ! user.permission.useradmin ? [] : [{
       type    = "modal_button"
       modalId = "userModal"
-      class   = "btn btn-add"
+      class   = "btn btn-add btn-primary"
       label   = "Add a user"
     }];
 %]

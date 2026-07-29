@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-this-alias */
 import { Component } from 'component';
 import 'jQuery-QueryBuilder/dist/js/query-builder.standalone';
-import 'bootstrap-select/dist/js/bootstrap-select';
+import { refreshSelects } from 'components/form-group/searchable-select/FilterSelectHelper';
 import { logging } from 'logging';
 import TypeaheadBuilder from 'util/typeahead';
-import { refreshSelects } from 'components/form-group/common/bootstrap-select';
 
 /**
  * FilterComponent class for managing filter functionality in a query builder.
