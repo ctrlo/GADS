@@ -83,7 +83,8 @@ our %prereq_pm = (
 );
 
 our %test_pm = (
-    'Test::TempDir::Tiny' => 0
+    'Test::TempDir::Tiny' => 0,
+    'DBD::SQLite'         => 0,
 );
 
 our %aliases = (
@@ -156,8 +157,8 @@ sub postamble {
     return $result;
 }
 
-sub top_targets {
-    my $targets = shift->SUPER::top_targets(@_);
-    $targets =~ s/(pure_all\s+::)/$1 deb_build/;
-    return $targets
-};
+#sub top_targets {
+#    my $targets = shift->SUPER::top_targets(@_);
+#    $targets =~ s/(pure_all\s+::)/$1 deb_build/;
+#    return $targets
+#};
