@@ -3,7 +3,7 @@
     [% popover_body %]
   </div>
   <button class="btn btn-popover [% popover_button_class %]" type="button"
-    [% IF popover_title; %]title="[% popover_title %]" [% END; %]
+    [% IF popover_title; %]title="[% popover_title | html %]" [% END; %]
     aria-describedby="[% popover_id %]-popover"
     data-bs-toggle="popover">
         <span>[% popover_button_text || 'popover' | html %]</span>
