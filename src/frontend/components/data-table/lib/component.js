@@ -573,6 +573,7 @@ class DataTableComponent extends Component {
                         </div>
                         <button class="btn btn-primary btn-sm btn-inverted btn-info" type="button" aria-describedby="${data.id || data.column_id}-popover" data-bs-toggle="popover" aria-expanded="false" data-bs-trigger="focus" data-bs-html="true" data-bs-placement="top" data-bs-content="#${data.id || data.column_id}-popover">
                             ${this.encodeHTMLEntities(value.text)}
+                            <span class="visually-hidden">contact details</span>
                         </button>
                     </div>`
                 );
