@@ -540,7 +540,7 @@
                                   table_id = "table-view-fields-available"
                                   table_class = 'table--bordered table-hover table-toggle table-toggle--add table-search'
                                   table_layout = {
-                                    topStart => "search",
+                                    topStart => session.rewind ? undef : "search",
                                     topEnd   => undef,
                                     bottomStart => undef,
                                     bottomEnd => undef
