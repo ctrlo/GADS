@@ -2837,12 +2837,12 @@ at-least-node@^1.0.0:
   integrity sha512-+q/t7Ekv1EDY2l6Gda6LLiX14rU9TV20Wa3ofeQmwPFZbOMo9DXrLbOjFaaclkXKWidIaopwAObQDqwWtGUjqg==
 
 autoprefixer@^10.5.0:
-  version "10.5.2"
-  resolved "https://registry.yarnpkg.com/autoprefixer/-/autoprefixer-10.5.2.tgz#5d7dcaab1c294038fe51e0fa3738d28e559caac0"
-  integrity sha512-rD5t5DwOjJdmSORcTq64j8MawTC+tbQ+HHqjR4NDumamy/ambn1UJrlKL+KdwujWxMkFjPM3pPHOEA9tl4767Q==
+  version "10.5.4"
+  resolved "https://registry.yarnpkg.com/autoprefixer/-/autoprefixer-10.5.4.tgz#3b7dd848b4155514a95ad1f6ce598844bea09697"
+  integrity sha512-MaU0U/za7N3r6brxD4YB/l4NSrFzLPlANv6wEuQVaIPlD3L4W9rFcQPbL/EilY9BHhHvhfcz3gInDLrEtWT4EA==
   dependencies:
-    browserslist "^4.28.4"
-    caniuse-lite "^1.0.30001799"
+    browserslist "^4.28.6"
+    caniuse-lite "^1.0.30001806"
     fraction.js "^5.3.4"
     picocolors "^1.1.1"
     postcss-value-parser "^4.2.0"
@@ -2975,10 +2975,15 @@ base64-js@^1.3.1:
   resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.5.1.tgz#1b1b440160a5bf7ad40b650f095963481903930a"
   integrity sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==
 
-baseline-browser-mapping@^2.10.38, baseline-browser-mapping@^2.10.42:
+baseline-browser-mapping@^2.10.42:
   version "2.10.43"
   resolved "https://registry.yarnpkg.com/baseline-browser-mapping/-/baseline-browser-mapping-2.10.43.tgz#7b5d11590ce5acdbe4859443e3c940e81ce8c02d"
   integrity sha512-AjYpR78kDWAY3Efj+cDTFH9t9SCoL7OoTp1BOb0mQV7S+6CiLwnWM3FyxhJtdPufDFKzmCSFoUncKjWgJEZTCQ==
+
+baseline-browser-mapping@^2.10.44:
+  version "2.11.6"
+  resolved "https://registry.yarnpkg.com/baseline-browser-mapping/-/baseline-browser-mapping-2.11.6.tgz#56934c812026ae4fcdb039fc790a94b9a7d81d63"
+  integrity sha512-69D/imtToCsIcAl8WBS2YaRwA4jO/j0HhU+hELqMEu9f54MoUtI6+XH5mrKU8rEFNEk/Ui1I2MK4/JkWacclGw==
 
 baseline-browser-mapping@^2.9.0:
   version "2.9.14"
@@ -3070,15 +3075,15 @@ browserslist@^4.28.1:
     node-releases "^2.0.51"
     update-browserslist-db "^1.2.3"
 
-browserslist@^4.28.4:
-  version "4.28.4"
-  resolved "https://registry.yarnpkg.com/browserslist/-/browserslist-4.28.4.tgz#dd8b8167a32845ff5f8cd6ce13f5abba16cd04c9"
-  integrity sha512-MTc8i/x9jBQd1iMw2CFGS+rwMa07eYjLR0CCTLDACl9xhxy+nIs3KeML/biicXtk9JrZ6dnnTatmc7ErPXIxqw==
+browserslist@^4.28.6:
+  version "4.28.7"
+  resolved "https://registry.yarnpkg.com/browserslist/-/browserslist-4.28.7.tgz#409046517fccd2e51cdc20f077454b7141184028"
+  integrity sha512-JxV13hNrFxqjOc8alRbq9dK1MM79NEXYpma2B2J4wAtpWS5zIEIKqWPGCl7N4o7Uc7B7itylh7SuDujATRyyTw==
   dependencies:
-    baseline-browser-mapping "^2.10.38"
-    caniuse-lite "^1.0.30001799"
-    electron-to-chromium "^1.5.376"
-    node-releases "^2.0.48"
+    baseline-browser-mapping "^2.10.44"
+    caniuse-lite "^1.0.30001806"
+    electron-to-chromium "^1.5.393"
+    node-releases "^2.0.51"
     update-browserslist-db "^1.2.3"
 
 bser@2.1.1:
@@ -3166,7 +3171,7 @@ camelcase@^6.3.0:
   resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-6.3.0.tgz#5685b95eb209ac9c0c177467778c9c84df58ba9a"
   integrity sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==
 
-caniuse-lite@^1.0.30001759, caniuse-lite@^1.0.30001799, caniuse-lite@^1.0.30001803:
+caniuse-lite@^1.0.30001759, caniuse-lite@^1.0.30001803, caniuse-lite@^1.0.30001806:
   version "1.0.30001806"
   resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001806.tgz"
   integrity sha512-72Cuvd95zbSYPKq6Fhg8eDJRlzgWDf7/mtoZv6Qe/DYNCEBdNxoA3+rZAU2ZhGCpZlns3EssFavaZomckT5Uuw==
@@ -3767,10 +3772,15 @@ electron-to-chromium@^1.5.263:
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.267.tgz#5d84f2df8cdb6bfe7e873706bb21bd4bfb574dc7"
   integrity sha512-0Drusm6MVRXSOJpGbaSVgcQsuB4hEkMpHXaVstcPmhu5LIedxs1xNK/nIxmQIU/RPC0+1/o0AVZfBTkTNJOdUw==
 
-electron-to-chromium@^1.5.376, electron-to-chromium@^1.5.389:
+electron-to-chromium@^1.5.389:
   version "1.5.389"
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.389.tgz#538be9ebec78026d4daba6be321ab854dfac2a8f"
   integrity sha512-cEto7aeOqBfU1D+c5py5pE+ooscKE75JifxLBdFUZsqAxRS6y7kebtxAZvICszSl05gPjYHDTjY+lXpyGvpJbg==
+
+electron-to-chromium@^1.5.393:
+  version "1.5.398"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.398.tgz#9d4d979344ac762840293e3eacbebed34228aa16"
+  integrity sha512-AsvhAxopJGh6museTDMIjn6JpDYOfgu4RLlygomt87MUwBUqTfd/1EiPtx10/LZE8xpTvkP2E9Gafq7lkLtodQ==
 
 emittery@^0.13.1:
   version "0.13.1"
@@ -4653,7 +4663,7 @@ has-property-descriptors@^1.0.0, has-property-descriptors@^1.0.2:
   dependencies:
     es-define-property "^1.0.0"
 
-has-proto@^1.2.0:
+has-proto@^1.0.1, has-proto@^1.2.0:
   version "1.2.0"
   resolved "https://registry.npmjs.org/has-proto/-/has-proto-1.2.0.tgz"
   integrity sha512-KIL7eQPfHQRC8+XluaIw7BHUwwqL19bQn4hzNgdr+1wXoU0KKj6rufu47lhY7KbJR2C6T6+PfyN0Ea7wkSS+qQ==
@@ -6084,7 +6094,7 @@ ms@^2.1.1, ms@^2.1.3:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.3.tgz#574c8138ce1d2b5861f0b44579dbadd60c6615b2"
   integrity sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==
 
-nanoid@^3.3.12:
+nanoid@^3.3.12, nanoid@^3.3.16:
   version "3.3.16"
   resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.16.tgz#a04d8ec4b1f10009d2d533947aefe4293737816c"
   integrity sha512-bzlKTyNJ7+LdGIIwy8ijFpIqEQIvafahV7eYykJ8Cvh42EdJeODoJ6gUJXpQJvej1BddH8OqTXZNE/KfbWAu8Q==
@@ -6119,7 +6129,7 @@ node-releases@^2.0.27:
   resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-2.0.27.tgz#eedca519205cf20f650f61d56b070db111231e4e"
   integrity sha512-nmh3lCkYZ3grZvqcCH+fjmQ7X+H0OeZgP40OierEaAptX4XofMh5kwNbWh7lBduUzCcV/8kZ+NDLCwm2iorIlA==
 
-node-releases@^2.0.48, node-releases@^2.0.51:
+node-releases@^2.0.51:
   version "2.0.51"
   resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-2.0.51.tgz#cdc08433577f5b32ad01694481726e22eeb54aef"
   integrity sha512-wRNIrw4DmVLKQlbgOMdkMx27Wrpzes2hh5Jtbi2bjPd+4wJstWIqP5A+lscnqbm0xxmT5Bpg8Lec5ItEBwx6BQ==
@@ -6511,11 +6521,11 @@ postcss@^8.4.40:
     source-map-js "^1.2.1"
 
 postcss@^8.5.15:
-  version "8.5.19"
-  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.5.19.tgz#45ad5cfde499408e20147348237551381a922037"
-  integrity sha512-Mz8SaolMd8nB+G13WkORcxQKHZ/NE4xXevtkJHVuG+guo9/wYKlIMTKAqGdEmYOXR2ijPjTYNHssizdaVSUNdQ==
+  version "8.5.25"
+  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.5.25.tgz#5012a598eaaa897f21bbe8553be3cb7bd2bd78cb"
+  integrity sha512-DTPx3RWSSnWyzLxQnlH0rJP+EW5ekl16ZU4/psbIhA0e53kJfdgaN5vKM+xP7yJtXVu+nfdVFmlgFDEKAe4Pyw==
   dependencies:
-    nanoid "^3.3.12"
+    nanoid "^3.3.16"
     picocolors "^1.1.1"
     source-map-js "^1.2.1"
 
@@ -6614,11 +6624,6 @@ qs@^6.15.2:
   dependencies:
     side-channel "^1.1.0"
 
-queue-microtask@^1.2.2:
-  version "1.2.3"
-  resolved "https://registry.yarnpkg.com/queue-microtask/-/queue-microtask-1.2.3.tgz#4929228bbc724dfac43e0efb058caf7b6cfb6243"
-  integrity sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==
-
 react-bootstrap@^2.10.10:
   version "2.10.10"
   resolved "https://registry.npmjs.org/react-bootstrap/-/react-bootstrap-2.10.10.tgz"
@@ -6639,32 +6644,24 @@ react-bootstrap@^2.10.10:
     warning "^4.0.3"
 
 react-dom@^19.2.7:
-  version "19.2.7"
-  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-19.2.7.tgz#0450dc9ae9ddbff76ef196401cd8b8c7fb466ccc"
-  integrity sha512-t0BRVXvbiE/o20Hfw669rLbMCDWtYZLvmJigy2f0MxsXF+71pxhR3xOkspmsO8h3ZlNzyibAmtCa3l4lYKk6gQ==
+  version "19.2.8"
+  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-19.2.8.tgz#3b46b9eeda877cdff2cf13d2770fff4ae36c2ec2"
+  integrity sha512-rVprimfGBG3DR+Tq0IQG2DT5PxKth1WIGDmj5yPmlzr4YBe7uyE+Du4oVqTDXZSHGGGXRtTJEGSSePyQCMBglQ==
   dependencies:
     scheduler "^0.27.0"
 
-react-draggable@^4.0.3:
-  version "4.6.0"
-  resolved "https://registry.yarnpkg.com/react-draggable/-/react-draggable-4.6.0.tgz#bae07fc729afe1a80c6cedd4775cc0d6856a0e0b"
-  integrity sha512-g4vqY53xhmPrBnZvGP+1YQV0eYnB3o0VLzoi6q2IpwnQrxIZ34tYRKpVtsWIXPg4D/pvLn+oYCW5gOK2cWIrgA==
-  dependencies:
-    clsx "^2.1.1"
-    prop-types "^15.8.1"
-
-react-draggable@^4.4.6:
-  version "4.5.0"
-  resolved "https://registry.yarnpkg.com/react-draggable/-/react-draggable-4.5.0.tgz#0b274ccb6965fcf97ed38fcf7e3cc223bc48cdf5"
-  integrity sha512-VC+HBLEZ0XJxnOxVAZsdRi8rD04Iz3SiiKOoYzamjylUcju/hP9np/aZdLHf/7WOD268WMoNJMvYfB5yAK45cw==
+react-draggable@^4.4.6, react-draggable@^4.5.0:
+  version "4.7.1"
+  resolved "https://registry.yarnpkg.com/react-draggable/-/react-draggable-4.7.1.tgz#e502c3cfe0cc97d691e12aaa377a975fce097d71"
+  integrity sha512-wa3tzfFnYt3yaZLuyU58fl1TNunfWfBekDgWhZA1+gb2jnp42wZ0ymuopR6M5kqDYmm4hKmzGlcKWjZf3Zb6RQ==
   dependencies:
     clsx "^2.1.1"
     prop-types "^15.8.1"
 
 react-grid-layout@^1.0.0:
-  version "1.5.3"
-  resolved "https://registry.yarnpkg.com/react-grid-layout/-/react-grid-layout-1.5.3.tgz#802de040616c443b0162d73cecde792cb5beeaa2"
-  integrity sha512-KaG6IbjD6fYhagUtIvOzhftXG+ViKZjCjADe86X1KHl7C/dsBN2z0mi14nbvZKTkp0RKiil9RPcJBgq3LnoA8g==
+  version "1.5.4"
+  resolved "https://registry.yarnpkg.com/react-grid-layout/-/react-grid-layout-1.5.4.tgz#1a87880be13e6ba4cb0c455e044acdb247d5d87f"
+  integrity sha512-AyScMfqhgRfie9ECXddQeaYmTuNlomDj9SIryF/+vtiwXS6IsxX3cI6CCWbSRXqbAePHW397nPxvnekO5gViPg==
   dependencies:
     clsx "^2.1.1"
     fast-equals "^4.0.3"
@@ -6714,12 +6711,12 @@ react-modal@^3.16.3:
     warning "^4.0.3"
 
 react-resizable@^3.0.5:
-  version "3.0.5"
-  resolved "https://registry.yarnpkg.com/react-resizable/-/react-resizable-3.0.5.tgz#362721f2efbd094976f1780ae13f1ad7739786c1"
-  integrity sha512-vKpeHhI5OZvYn82kXOs1bC8aOXktGU5AmKAgaZS4F5JPburCtbmDPqE7Pzp+1kN4+Wb81LlF33VpGwWwtXem+w==
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/react-resizable/-/react-resizable-3.2.0.tgz#09a6f77fcc4d59ca810098f58e46f39376cacef5"
+  integrity sha512-3NKQ0SLZV7rs3LQHeXlOzDSRQfFrkX6TVet77/Qk03zqiZyee37b7N8/gwDJAA8UUjRz7PdWCCy49hcso45SMQ==
   dependencies:
     prop-types "15.x"
-    react-draggable "^4.0.3"
+    react-draggable "^4.5.0"
 
 react-transition-group@^4.4.5:
   version "4.4.5"
@@ -6732,9 +6729,9 @@ react-transition-group@^4.4.5:
     prop-types "^15.6.2"
 
 react@^19.2.7:
-  version "19.2.7"
-  resolved "https://registry.yarnpkg.com/react/-/react-19.2.7.tgz#1f47a1bfc06f8ec885752c6f4af14369a9f8260b"
-  integrity sha512-HNe9WslTbXmFK8o8cmwgAeJFSBvt1bPdHCVKtaaV+WlAN36mpT4hcRpwbf3fY56ar2oIXzsBpOAiIRHAdY0OlQ==
+  version "19.2.8"
+  resolved "https://registry.yarnpkg.com/react/-/react-19.2.8.tgz#a80663dbb58d69c6fe3fd291d3cb324e8a7dff2d"
+  integrity sha512-PWaYA1L/q9u2u7xYQi+Y3L3Yfnie7XyLeaJICV1MGD6LprsBxcAqGjYyr0eY3p+QdsA+x/Irkt4Qif8D63+Sbw==
 
 readdirp@^5.0.0:
   version "5.0.0"
@@ -7830,9 +7827,9 @@ vis-data@^8.0.4:
   integrity sha512-TsN0sMHqIRpdfg6TNPtfdINpkgxtnQP6JNWCaiSwvou5seXqKiP5eERkaBg+Y56wyJ4FZTeOEs/dEmWEPrpltQ==
 
 vis-timeline@^8.5.1:
-  version "8.5.1"
-  resolved "https://registry.yarnpkg.com/vis-timeline/-/vis-timeline-8.5.1.tgz#89be32c65c2a58294dec0a82b368d1c6a4ab9754"
-  integrity sha512-6pqx4Zl/xHCEy5nXRaz9xCOx1HtZWkxSIt1oHJmDZy/UxT09kwq1eA4eKRAzhHey3PN1Ee3DsxuxHm7yI2G2mQ==
+  version "8.5.2"
+  resolved "https://registry.yarnpkg.com/vis-timeline/-/vis-timeline-8.5.2.tgz#674a7247f398008d6d0d7f3ca675cba7ad64e40d"
+  integrity sha512-XFB0hQFIx+uYtdwBwL98OuZ6lrZz84Sk4074IDAugOL3XiXkCc0FVXOEiFscH6lvF0B7euFizLDrU9+wTXLIFg==
 
 vis-util@^6.0.0:
   version "6.0.0"
@@ -7873,9 +7870,9 @@ webidl-conversions@^7.0.0:
   integrity sha512-VwddBukDzu71offAQR975unBIGqfKZpM+8ZX6ySk8nYhVoo5CYaZyzt3YBvYtRtO+aoGlqxPg/B87NGVZ/fu6g==
 
 webpack-cli@^7.0.3:
-  version "7.2.1"
-  resolved "https://registry.yarnpkg.com/webpack-cli/-/webpack-cli-7.2.1.tgz#180a5b2232ca582f909eccf32c6fb3a56647d294"
-  integrity sha512-YwSGbcZdfz12DM8JIseVPr3oBb09IgVCVc4vY3oDvZnI/mALTGPAP1QiqOi4/bBLSJrRHaqDIXeHcNA0+G38aw==
+  version "7.2.2"
+  resolved "https://registry.yarnpkg.com/webpack-cli/-/webpack-cli-7.2.2.tgz#94ff4f8a28aa087c8127c821e26a6fd0a50323e5"
+  integrity sha512-lD0pALneslq8FfV+rwvm1BMW0AFAJrHHhNupAGN4asYjMvqrtRsenU4iKpiBo09gS4ntMxKGUxl9jhTEzVt0oA==
   dependencies:
     "@discoveryjs/json-ext" "^1.1.0"
     commander "^14.0.3"
