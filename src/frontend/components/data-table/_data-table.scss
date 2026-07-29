@@ -511,8 +511,7 @@ button.btn-add {
 
             &::before {
                 color: var(--bs-secondary, $brand-secundary);
-                @extend %bootstrap-icons;
-                content: "\F283"; // Sort icon
+                content: url("../../fonts/bootstrap-icons/sort.svg"); // Sort icon
                 transform: none;
             }
         }
@@ -554,7 +553,7 @@ button.btn-add {
     .data-table__header-wrapper {
         .btn-sort {
             &::before {
-                content: "\F282"; // Sort descending icon
+                content: url("../../fonts/bootstrap-icons/sort-desc.svg"); // Sort descending icon
             }
         }
     }
@@ -564,7 +563,7 @@ button.btn-add {
     .data-table__header-wrapper {
         .btn-sort {
             &::before {
-                content: "\F286"; // Sort ascending icon
+                content: url("../../fonts/bootstrap-icons/sort-asc.svg"); // Sort ascending icon
             }
         }
     }
