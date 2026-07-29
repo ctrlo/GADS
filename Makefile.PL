@@ -156,9 +156,3 @@ sub postamble {
     $result =~ s/%prereq%/$prereq/g;
     return $result;
 }
-
-#sub top_targets {
-#    my $targets = shift->SUPER::top_targets(@_);
-#    $targets =~ s/(pure_all\s+::)/$1 deb_build/;
-#    return $targets
-#};
