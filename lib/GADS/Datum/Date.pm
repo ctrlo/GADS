@@ -27,7 +27,7 @@ use MooX::Types::MooseLike::Base qw/ArrayRef/;
 use namespace::clean;
 
 extends 'GADS::Datum';
-with 'GADS::DateTime';
+with 'GADS::DateTime', 'GADS::Role::Presentation::Datum::Date';
 
 has schema => (
     is      => 'ro',
