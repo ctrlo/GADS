@@ -28,7 +28,6 @@ use GADS::Datum::Autocur;
 use GADS::Datum::Calc;
 use GADS::Datum::Count;
 use GADS::Datum::Curval;
-use GADS::Datum::Date;
 use GADS::Datum::Daterange;
 use GADS::Datum::Enum;
 use GADS::Datum::File;

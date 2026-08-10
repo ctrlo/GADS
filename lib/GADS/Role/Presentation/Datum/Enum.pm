@@ -9,7 +9,6 @@ sub presentation {
 
     $base->{id_hash} = $self->id_hash;
     $base->{deleted_values} = $self->deleted_values;
-    $base->{purged} = $self->is_purged;
 
     return $base;
 }

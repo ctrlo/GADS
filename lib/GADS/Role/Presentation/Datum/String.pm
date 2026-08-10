@@ -20,7 +20,6 @@ sub presentation {
 
     $base->{raw}  = $raw;
     $base->{html} = $html;
-    $base->{purged} = $self->is_purged;
 
     return $base;
 }

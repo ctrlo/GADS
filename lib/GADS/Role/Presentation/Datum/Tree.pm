@@ -9,7 +9,6 @@ sub presentation {
 
     $base->{ids} = $self->ids;
     $base->{ids_as_params} = $self->ids_as_params;
-    $base->{purged} = $self->is_purged;
 
     return $base;
 }
