@@ -72,5 +72,6 @@ sub sqlt_deploy_hook {
 }
 
 sub _build_valuefield { ('value_text','value_numeric','value_int','value_date','value_date_from','value_date_to'); }
+sub _build_value_fields { ['value_text','value_numeric','value_int','value_date','value_date_from','value_date_to'] }
 
 1;

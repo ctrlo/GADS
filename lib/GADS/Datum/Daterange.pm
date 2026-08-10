@@ -21,7 +21,6 @@ package GADS::Datum::Daterange;
 use DateTime;
 use DateTime::Format::DateManip;
 use DateTime::Span;
-use GADS::SchemaInstance;
 use Log::Report 'linkspace';
 use Moo;
 use MooX::Types::MooseLike::Base qw/ArrayRef/;
@@ -29,14 +28,6 @@ use MooX::Types::MooseLike::Base qw/ArrayRef/;
 extends 'GADS::Datum';
 
 with 'GADS::DateTime';
-
-has schema => (
-    is      => 'ro',
-    lazy    => 1,
-    builder => sub {
-        GADS::SchemaInstance->instance;
-    },
-);
 
 # Set datum value with value from user
 after set_value => sub {

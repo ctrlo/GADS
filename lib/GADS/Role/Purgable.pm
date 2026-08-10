@@ -3,6 +3,8 @@ package GADS::Role::Purgable;
 use strict;
 use warnings;
 
+use Log::Report;
+
 use MooX::Types::MooseLike::Base qw(ArrayRef);
 
 use Moo::Role;
@@ -10,7 +12,9 @@ use Moo::Role;
 has value_fields => (
     is      => 'lazy',
     isa     => ArrayRef,
-    builder => sub { ['value']; }
+    builder => sub {
+        ['value'];
+    }
 );
 
 sub is_purged {
