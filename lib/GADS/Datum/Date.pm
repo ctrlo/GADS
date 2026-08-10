@@ -26,7 +26,7 @@ use MooX::Types::MooseLike::Base qw/ArrayRef/;
 use namespace::clean;
 
 extends 'GADS::Datum';
-with 'GADS::DateTime', 'GADS::Role::Presentation::Datum::Date';
+with 'GADS::DateTime';
 
 after set_value => sub {
     my ($self, $all, %options) = @_;
