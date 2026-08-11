@@ -2,11 +2,8 @@
 
 @import "definitions/bootstrap_base";
 
-// Bootstrap 4.6
-@import "~bootstrap/scss/bootstrap",
-        "~datatables.net-bs5/css/dataTables.bootstrap5.min.css",
-        "~datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css",
-        "~datatables.net-rowreorder-bs5/css/rowReorder.bootstrap5.min.css";
+// Bootstrap 5
+@import "~bootstrap/scss/bootstrap";
 
 @import "definitions/fonts", "definitions/mixins";
 

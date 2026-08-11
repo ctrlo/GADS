@@ -269,6 +269,7 @@ table.dataTable thead .sorting_disabled {
     display: flex;
     position: relative;
     align-items: flex-start;
+    text-align: start;
 }
 
 // Pagination
@@ -425,7 +426,7 @@ button.btn-add {
     @extend .m-0;
 }
 
-.dt-layout-row {
+.dt-layout-row, .row:has(.dt-layout-start) {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -437,7 +438,7 @@ button.btn-add {
         padding: 0;
     }
 
-    .dt-start {
+    .dt-layout-start {
         flex-grow: 1;
 
         label {
@@ -455,7 +456,7 @@ button.btn-add {
         }
     }
 
-    &:has(.dt-start:empty + .dt-end:empty) {
+    &:has(.dt-layout-start:empty + .dt-layout-end:empty) {
         display: none;
     }
 }
@@ -467,9 +468,9 @@ button.btn-add {
 .dt-orderable-asc,
 .dt-orderable-desc {
     .data-table__header-wrapper {
-        text-align: center;
-        align-items: center;
-        justify-content: center;
+        // text-align: center;
+        // align-items: center;
+        // justify-content: center;
 
         .dt-column-title {
             white-space: nowrap;
@@ -616,4 +617,17 @@ th {
 .table-hover>tbody>tr:hover>* {
     background-color: rgba(var(--dt-row-hover), 0.075);
     box-shadow: none;
+}
+
+table.dataTable {
+    &.table-search {
+        &>tbody>tr>td {
+            padding-left: 2rem;
+        }
+    }
+
+    // Override default alignment to left for all columns
+    td[class*="dt-type-"] {
+        text-align: left;
+    }
 }

@@ -86,12 +86,12 @@ describe('GadsStorage', () => {
 
     it('Should do multiple read/writes to the same value without erroring', async () => {
         await setupNoMockCrypto();
-        expect.assertions(10);
+        expect.assertions(20);
         const myValues = [{ id: 1, value: 'value1', array: [1] }];
         for (let i = 0; i < 10; i++) {
             const storage = new GadsStorage();
             const values = JSON.stringify(myValues);
-            await storage.setItem('myValues', values);
+            await expect(storage.setItem('myValues', values)).resolves.not.toThrow();
             await expect(storage.getItem('myValues')).resolves.toEqual(values);
         }
         killNoMockCrypto();

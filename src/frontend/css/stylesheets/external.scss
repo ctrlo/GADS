@@ -1,8 +1,11 @@
 // Bootstrap datepicker
 @import '~bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css';
 
-// Datatables styling for bootstrap 4
-@import '~datatables.net-bs5/css/dataTables.bootstrap5.css';
+// Datatables styling for bootstrap 5
+@import '~datatables.net-bs5/css/dataTables.bootstrap5.css',
+        "~datatables.net-bs5/css/dataTables.bootstrap5.min.css",
+        "~datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css",
+        "~datatables.net-rowreorder-bs5/css/rowReorder.bootstrap5.min.css";
 
 // QueryBuilder
 @import 'jQuery-QueryBuilder/dist/css/query-builder.default.css';
