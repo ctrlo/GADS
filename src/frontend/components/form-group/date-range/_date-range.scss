@@ -6,6 +6,13 @@ div[data-column-type="daterange"] {
       }
     }
   }
+  &:has(div.invalid) {
+    legend {
+      & {
+        color: $danger;
+      }
+    }
+  }
 }
 
 .input-daterange {
