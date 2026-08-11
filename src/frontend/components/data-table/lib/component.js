@@ -55,6 +55,7 @@ class DataTableComponent extends Component {
         }
 
         const conf = this.getConf();
+
         const { columns } = conf;
         this.columns = columns;
         this.el.DataTable(conf);
@@ -90,6 +91,15 @@ class DataTableComponent extends Component {
                 });
             }
         });
+
+        if(conf.responsive) {
+            // Render the child component when the responsive row is shown
+            this.el.on('responsive-display.dt', (e, datatable, row, showHide) => {
+                if(!showHide) return;
+                const child = row.child()?.[0];
+                initializeRegisteredComponents(child);
+            });
+        }
     }
 
     /**
@@ -200,8 +210,8 @@ class DataTableComponent extends Component {
     getCheckboxElement(id, label) {
         return (
             '<div class=\'checkbox\'>' +
-                `<input id='dt_checkbox_${id}' type='checkbox' />` +
-                `<label for='dt_checkbox_${id}'><span>${label}</span></label>` +
+            `<input id='dt_checkbox_${id}' type='checkbox' />` +
+            `<label for='dt_checkbox_${id}'><span>${label}</span></label>` +
             '</div>'
         );
     }
@@ -565,7 +575,7 @@ class DataTableComponent extends Component {
                         thisHTML += `<p>${this.encodeHTMLEntities(detail.definition)}: ${strDecodedValue}</p>`;
                     }
                 });
-                thisHTML +=  '</div>';
+                thisHTML += '</div>';
                 strHTML += (
                     `<div class="popover-container">
                         <div class="popover-content" id="${data.id || data.column_id}-popover">
@@ -799,7 +809,7 @@ class DataTableComponent extends Component {
                     const $header = $(column.header());
 
                     $header.on('click', (ev) => {
-                        if(ev.stopPropagation) {
+                        if (ev.stopPropagation) {
                             ev.stopPropagation();
                             ev.preventDefault();
                         } else {
@@ -808,7 +818,7 @@ class DataTableComponent extends Component {
                     });
 
                     const headerContent = $header.html();
-                    if(!headerContent.includes('data-table__header-wrapper')){
+                    if (!headerContent.includes('data-table__header-wrapper')) {
                         $header.html(`<div class='data-table__header-wrapper position-relative ${column.search() ? 'filter' : ''}' data-ddl='ddl_${index}'>${headerContent}</div>`);
 
                         // Add sort button to column header
@@ -844,7 +854,7 @@ class DataTableComponent extends Component {
             }
         };
 
-        conf['footerCallback'] = function() {
+        conf['footerCallback'] = function () {
             const api = this.api();
             // Add aggregate values to table if configured
             const agg = api.ajax?.json()?.aggregate;
