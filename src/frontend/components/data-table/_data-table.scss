@@ -426,38 +426,21 @@ button.btn-add {
     @extend .m-0;
 }
 
-.dt-layout-row, .row:has(.dt-layout-start) {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    margin-bottom: $padding-base-vertical;
+.dt-layout-start:has(.dt-search) {
+    flex-grow: 1;
 
-    &.dt-layout-row--no-padding {
-        padding: 0;
-    }
-
-    .dt-layout-start {
-        flex-grow: 1;
-
-        label {
-            display: none;
-        }
-
-        .dt-search {
-            @extend .pe-2;
-            width: 100%;
-
-            input[type="search"] {
-                width: 100%;
-                @extend .m-0;
-            }
-        }
-    }
-
-    &:has(.dt-layout-start:empty + .dt-layout-end:empty) {
+    label {
         display: none;
+    }
+
+    .dt-search {
+        @extend .pe-2;
+        width: 100%;
+
+        input[type="search"] {
+            width: 100%;
+            @extend .m-0;
+        }
     }
 }
 
@@ -468,10 +451,6 @@ button.btn-add {
 .dt-orderable-asc,
 .dt-orderable-desc {
     .data-table__header-wrapper {
-        // text-align: center;
-        // align-items: center;
-        // justify-content: center;
-
         .dt-column-title {
             white-space: nowrap;
         }
