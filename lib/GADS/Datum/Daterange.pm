@@ -138,7 +138,7 @@ sub _as_string
 sub for_table
 {   my $self = shift;
     my $return = $self->for_table_template;
-    $return->{values} = $self->text_all;
+    $return->{values} = $self->is_purged ? ["[purged]"] : $self->text_all;
     $return;
 }
 

@@ -466,7 +466,7 @@
             NEXT IF !is_history AND col_panel.data.dependent_not_shown;
             NEXT IF view_modal AND col.type == "autocur";
         %]
-        <li class="list__item[% IF col_panel.data.blank AND NOT layout.no_hide_blank %] list__item--blank[% END %] list-group-item">
+        <li class="list__item[% IF col_panel.data.blank AND NOT layout.no_hide_blank AND NOT col_panel.data.purged %] list__item--blank[% END %] list-group-item">
           <span class="list__key">[% col_panel.name | html_entity %]</span>
           <span class="list__value">[% render_datum(col_panel, 'full') %]</span>
         </li>

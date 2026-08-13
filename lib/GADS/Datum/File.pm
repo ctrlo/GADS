@@ -271,7 +271,7 @@ around 'clone' => sub {
 sub for_table
 {   my $self = shift;
     my $return = $self->for_table_template;
-    $return->{values} = $self->files;
+    $return->{values} = $self->is_purged ? ["[purged]"] : $self->files;
     $return;
 }
 
