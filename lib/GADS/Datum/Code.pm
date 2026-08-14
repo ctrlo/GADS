@@ -276,6 +276,12 @@ sub write_cache
 sub re_evaluate
 {   my ($self, %options) = @_;
     return if $options{no_errors} && $self->column->return_type eq 'error';
+    if ($self->is_purged) {
+        info __x"Not running code for purged field {field} in record {record_id}",
+            field     => $self->column->name,
+            record_id => $self->record_id;
+        return;
+    }
     my $old = $self->value;
     my $original = $self->clone;
     # If this is a new value, don't re-evaluate, otherwise we'll just get

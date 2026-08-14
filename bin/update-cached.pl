@@ -28,7 +28,7 @@ use GADS::Layout;
 use GADS::View;
 use Dancer2;
 use Dancer2::Plugin::DBIC;
-use Dancer2::Plugin::LogReport mode => 'VERBOSE';
+use Dancer2::Plugin::LogReport mode => 'DEBUG';
 use Getopt::Long;
 use Tie::Cache;
 
@@ -115,10 +115,12 @@ foreach my $site (schema->resultset('Site')->all)
             {
                 my $datum = $record->fields->{$column->id};
                 $datum->re_evaluate(no_errors => 1);
-                $datum->write_value;
-                $changed{$column->id} ||= [];
-                push @{$changed{$column->id}}, $record->current_id
-                    if $datum->changed;
+                if($datum->changed) {
+                    $datum->write_value;
+                    $changed{$column->id} ||= [];
+                    push @{$changed{$column->id}}, $record->current_id
+                        if $datum->changed;
+                }
             }
             $layout->clear_cached_records;
         }
