@@ -13,7 +13,7 @@ use Log::Report syntax => 'LONG';
 my ($action, $file);
 
 GetOptions(
-    'action=s'   => \$action,
+    'action=s' => \$action,
     'file=s'   => \$file
 ) or exit;
 
@@ -32,11 +32,11 @@ else {
 
 sub Import_permissions {
 
-    -f $file or report ERROR => "File '$file' does not exist";
+    -f $file or report ERROR => "File '{file}' does not exist", file => $file;
 
     my $csv = Text::CSV->new({ binary => 1 })
-    or report ERROR => "Cannot use CSV: ".Text::CSV->error_diag ();
-    open my $fh, "<:encoding(utf8)", $file or report FAULT => "$file";
+        or report ERROR => "Cannot use CSV: ".Text::CSV->error_diag ();
+    open my $fh, "<:encoding(utf8)", $file or report FAULT => "Unable to open file {file}", file => $file;
     my $guard = schema->txn_scope_guard;
     
     my $headers = $csv->getline($fh);
@@ -47,7 +47,7 @@ sub Import_permissions {
 
     while (my $row = $csv->getline_hr($fh)) {
 	    
-        my $RowCount = $csv->record_number;
+    my $RowCount = $csv->record_number;
 	my $layout_id = $row->{layout_id}; 
 	my $group_id = $row->{group_id};
 	my $permission = $row->{permission};
