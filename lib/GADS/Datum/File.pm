@@ -70,7 +70,7 @@ after set_value => sub {
             my $old_content = $old_value ? $old_value->content : undef;
             my $old_name    = $old_value ? $old_value->name : undef;
             if (defined $old_content && defined $old_name) {
-                if(my $fl = $self->schema->resultset('Fileval')->search({
+                if (my $fl = $self->schema->resultset('Fileval')->search({
                     id      => $values[0],
                     name    => $old_name
                 })->next) {

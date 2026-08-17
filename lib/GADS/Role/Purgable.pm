@@ -3,8 +3,6 @@ package GADS::Role::Purgable;
 use strict;
 use warnings;
 
-use Log::Report;
-
 use MooX::Types::MooseLike::Base qw(ArrayRef);
 
 use Moo::Role;

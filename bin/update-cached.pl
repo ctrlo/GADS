@@ -28,7 +28,7 @@ use GADS::Layout;
 use GADS::View;
 use Dancer2;
 use Dancer2::Plugin::DBIC;
-use Dancer2::Plugin::LogReport mode => 'DEBUG';
+use Dancer2::Plugin::LogReport mode => 'VERBOSE';
 use Getopt::Long;
 use Tie::Cache;
 
