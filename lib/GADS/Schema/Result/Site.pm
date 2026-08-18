@@ -105,6 +105,8 @@ __PACKAGE__->add_columns(
   { data_type => "text", is_nullable => 1 },
   "site_logo",
   { data_type => "longblob", is_nullable => 1 },
+  "force_mfa",
+  { data_type => "char", is_nullable => 1, size => 3 },
 );
 
 __PACKAGE__->set_primary_key("id");

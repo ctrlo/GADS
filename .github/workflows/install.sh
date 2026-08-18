@@ -25,6 +25,7 @@ apt-get install -y libdatetime-format-cldr-perl libtree-dagnode-perl libalgorith
                    libfile-slurp-perl libfile-mimeinfo-perl liblist-compare-perl libnet-oauth2-authorizationserver-perl libfontconfig1 \
                    libctrlo-pdf-perl libpdf-builder-perl fonts-liberation libdate-holidays-gb-perl libcgi-deurl-xs-perl libfile-bom-perl \
                    libdatetime-format-iso8601-perl liblog-log4perl-perl libwww-mechanize-chrome-perl chromium libfile-libmagic-perl \
-                   libnet-saml2-perl liburl-encode-perl libtext-markdown-perl
+                   libnet-saml2-perl liburl-encode-perl libtext-markdown-perl libauth-yubikey-webclient-perl libauth-yubikey-webclient-perl \
+                   libauthen-oath-perl libconvert-base32-perl libimager-qrcode-perl libimager-perl
 # test dependencies
 apt-get install -y libtest-mocktime-perl libtest-tempdir-tiny-perl libdbd-sqlite3-perl libdatetime-format-sqlite-perl libtest-compile-perl
