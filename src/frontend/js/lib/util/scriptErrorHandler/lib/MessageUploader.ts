@@ -5,13 +5,21 @@ export const uploadMessage = async (message: string) => {
         description: message,
         url: window.location.href
     };
-    const uploader = new Uploader('/api/script_error', 'POST');
-    const messageUploader = new MessageUploader(uploader);
+    const messageUploader = MessageUploader.instance;
     return await messageUploader.uploadMessage(body.description);
 };
 
-export class MessageUploader {
+class MessageUploader {
+    private static _instance: MessageUploader;
+
     constructor(private uploader: Uploader) {
+    }
+
+    static get instance(): MessageUploader {
+        if (!this._instance) {
+            this._instance = new MessageUploader(new Uploader('/api/script_error', 'POST'));
+        }
+        return this._instance;
     }
 
     async uploadMessage(description: string): Promise<void> {

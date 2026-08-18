@@ -1,53 +1,57 @@
 import { uploadMessage } from "util/scriptErrorHandler";
 
 class Logging {
+  /**
+   * Create a new Logging instance.
+   */
   constructor() {
     this.allowLogging =
       window.test ||
       location.hostname === 'localhost' ||
       location.hostname === '127.0.0.1' ||
-      location.hostname.endsWith('.peek.digitpaint.nl')
+      location.hostname.endsWith('.peek.digitpaint.nl');
   }
 
   log(...message) {
     if (this.allowLogging) {
-      console.log(message)
+      console.log(...message)
     } else {
-      const message = this.formatMessage('log', ...message)
-      uploadMessage(message)
+      const msg = this.formatMessage('log', ...message)
+      uploadMessage(msg)
     }
   }
 
   info(...message) {
     if (this.allowLogging) {
-      console.info(message)
+      console.info(...message)
     } else {
-      const message = this.formatMessage('info', ...message)
-      uploadMessage(message)
+      const msg = this.formatMessage('info', ...message)
+      uploadMessage(msg)
     }
   }
 
   warn(...message) {
     if (this.allowLogging) {
-      console.warn(message)
+      console.warn(...message)
     } else {
-      const message = this.formatMessage('warn', ...message)
-      uploadMessage(message)
+      const msg = this.formatMessage('warn', ...message)
+      uploadMessage(msg)
     }
   }
 
   error(...message) {
     if (this.allowLogging) {
-      console.error(message)
+      console.error(...message)
     } else {
-      const message = this.formatMessage('error', ...message)
-      uploadMessage(message)
+      const msg = this.formatMessage('error', ...message)
+      uploadMessage(msg)
     }
   }
 
   formatMessage(type, ...message) {
     let output = type + ': ';
     for (let i = 0; i < message.length; i++) {
+      if(!message[i]) continue;
       if (typeof message[i] === 'object') {
         output += JSON.stringify(message[i]);
       } else {
@@ -60,5 +64,5 @@ class Logging {
   }
 }
 
-const logging = new Logging
+const logging = new Logging();
 export { logging }
