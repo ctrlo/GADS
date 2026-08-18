@@ -198,7 +198,7 @@ sub _mfa_token_success
 
 sub _refresh_recent_mfa_cookie
 {   my $key = shift;
-    cookie MFATOKEN => $key, expires => '7d', secure => 1, http_only => 1;
+    cookie MFATOKEN => $key, expires => '2d', secure => 1, http_only => 1;
 }
 
 1;
