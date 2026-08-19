@@ -766,7 +766,7 @@ sub _post_add_user_account
     $id ? $update_user->update_user(%values, current_user => $logged_in_user)
         : schema->resultset('User')->create_user(%values, current_user => $logged_in_user, request_base => request->base);
 
-    my $msg = __x"User {type} successfully", type => $id ? 'updated' : 'created';
+    my $msg = __x"User {type} successfully by {current_user}", type => $id ? 'updated' : 'created', current_user => $logged_in_user->email;
     return _success("$msg");
 }
 
@@ -1362,7 +1362,7 @@ any ['get', 'post'] => '/api/users' => require_any_role [qw/useradmin superadmin
         push @cols, 'department' if $site->register_show_department;
         push @cols, 'team' if $site->register_show_team;
         push @cols, 'freetext1' if $site->register_freetext1_name;
-        push @cols, qw/created lastlogin/;
+        push @cols, qw/created lastlogin created_by/;
         my @return = map { { name => $_, data => $_ } } @cols;
         content_type 'application/json; charset=UTF-8';
         return encode_json \@return;
@@ -1399,6 +1399,10 @@ any ['get', 'post'] => '/api/users' => require_any_role [qw/useradmin superadmin
     elsif ($sort_by && $sort_by eq 'Created')
     {
         $sort_by = 'me.created';
+    }
+    elsif ($sort_by && $sort_by eq 'Created by')
+    {
+        $sort_by = 'me.created_by';
     }
     elsif ($sort_by && $sort_by eq 'ID')
     {

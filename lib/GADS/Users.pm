@@ -312,7 +312,7 @@ sub _produce_csv
     my $site = $self->schema->resultset('Site')->find($self->schema->site_id);
 
     # Column names
-    my @columns = qw/ID Surname Forename Email Lastlogin Created/;
+    my @columns = qw/ID Surname Forename Email Lastlogin Created Createdby/;
     push @columns, 'Title' if $site->register_show_title;
     push @columns, 'Organisation' if $site->register_show_organisation;
     push @columns, $site->department_name if $site->register_show_department;
@@ -358,6 +358,10 @@ sub _produce_csv
         {
             max => 'created',
             -as => 'created_max',
+        },
+        {   
+            max => 'created_by',
+            -as => 'created_by_max',
         },
         {
             max => 'title.name',
@@ -468,6 +472,7 @@ sub _produce_csv
             $user->get_column('email_max'),
             $user->get_column('lastlogin_max'),
             $user->get_column('created_max'),
+            $user->get_column('created_by_max'),
         );
         push @csv, $user->get_column('title_max') if $site->register_show_title;
         push @csv, $user->get_column('organisation_max') if $site->register_show_organisation;

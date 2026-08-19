@@ -115,6 +115,8 @@ __PACKAGE__->add_columns(
     datetime_undef_if_invalid => 1,
     is_nullable => 1,
   },
+  "created_by",
+  { data_type => "text", is_nullable => 1 },
   "debug_login",
   { data_type => "smallint", default_value => 0, is_nullable => 1 },
   # All the following for MFA
@@ -836,6 +838,11 @@ sub for_data_table
             name   => 'Created',
             values => [$self->created ? $self->created->ymd : 'Unknown'],
         },
+        'Created by' => {
+            type   => 'string',
+            name   => 'Created By',
+            values => [$self->created_by ? $self->created_by : 'Unknown'],
+        },
         'Last login' => {
             type   => 'string',
             name   => 'Last login (GMT)',
@@ -921,6 +928,7 @@ sub export_hash
         account_request       => $self->account_request,
         account_request_notes => $self->account_request_notes,
         created               => $self->created && $self->created->datetime,
+        created_by            => $self->created_by,
         groups                => [map $_->id, $self->groups],
         permissions           => [map $_->permission->name, $self->user_permissions],
     };

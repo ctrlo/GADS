@@ -40,8 +40,8 @@ sub summary
     $self->active->search_rs({},{
         columns => [
             'me.id', 'me.surname', 'me.firstname', 'title.name', 'me.email',
-            'organisation.name', 'department.name', 'team.name', 'me.created',
-            'me.freetext1', 'me.freetext2',
+            'organisation.name', 'department.name', 'team.name', 'me.created', 
+            'me.created_by', 'me.freetext1', 'me.freetext2',
             'me.lastlogin', 'me.value',
         ],
         join     => [
@@ -118,14 +118,15 @@ sub create_user
         username              => $params{email},
         resetpw               => $code,
         created               => DateTime->now,
+        created_by            => $params{current_user}->email,
         account_request_notes => $params{notes},
     });
 
     my $audit = GADS::Audit->new(schema => $self->result_source->schema, user => $params{current_user});
 
     $audit->login_change(
-        __x"User created, id: {id}, username: {username}",
-            id => $user->id, username => $params{username}
+        __x"User created by {current_user}, id: {id}, username: {username}",
+            current_user => $params{current_user}->email, id => $user->id, username => $params{username}
     );
 
     $user->update_user(%params);
@@ -358,6 +359,7 @@ sub import_hash
             account_request       => $user->{account_request},
             account_request_notes => $user->{account_request_notes},
             created               => $user->{created} && DateTime::Format::ISO8601->parse_datetime($user->{created}),
+            created_by            => $user->{created_by},
         });
     }
 
