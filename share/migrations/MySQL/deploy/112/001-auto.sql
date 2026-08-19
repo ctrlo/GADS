@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::MySQL
--- Created on Wed Aug 19 16:02:17 2026
+-- Created on Wed Aug 19 16:25:49 2026
 --
 ;
 SET foreign_key_checks=0;
@@ -1102,6 +1102,7 @@ CREATE TABLE `user` (
   `limit_to_view` bigint NULL,
   `stylesheet` text NULL,
   `created` datetime NULL,
+  `created_by` text NULL,
   `debug_login` smallint NULL DEFAULT 0,
   `mfa_type` char(3) NULL,
   `mobile` text NULL,

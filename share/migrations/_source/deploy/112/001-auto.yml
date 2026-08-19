@@ -8240,6 +8240,16 @@ schema:
           order: 29
           size:
             - 0
+        created_by:
+          data_type: text
+          default_value: ~
+          is_nullable: 1
+          is_primary_key: 0
+          is_unique: 0
+          name: created_by
+          order: 30
+          size:
+            - 0
         debug_login:
           data_type: smallint
           default_value: 0
@@ -8247,7 +8257,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: debug_login
-          order: 30
+          order: 31
           size:
             - 0
         deleted:
@@ -8388,7 +8398,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: mfa_failcount
-          order: 42
+          order: 43
           size:
             - 0
         mfa_lastfail:
@@ -8398,7 +8408,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: mfa_lastfail
-          order: 41
+          order: 42
           size:
             - 0
         mfa_secret:
@@ -8408,7 +8418,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: mfa_secret
-          order: 34
+          order: 35
           size:
             - 0
         mfa_sms_created:
@@ -8418,7 +8428,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: mfa_sms_created
-          order: 36
+          order: 37
           size:
             - 0
         mfa_sms_token:
@@ -8428,7 +8438,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: mfa_sms_token
-          order: 35
+          order: 36
           size:
             - 0
         mfa_token_previous:
@@ -8438,7 +8448,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: mfa_token_previous
-          order: 37
+          order: 38
           size:
             - 0
         mfa_token_previous_key:
@@ -8448,7 +8458,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: mfa_token_previous_key
-          order: 40
+          order: 41
           size:
             - 0
         mfa_token_previous_type:
@@ -8458,7 +8468,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: mfa_token_previous_type
-          order: 38
+          order: 39
           size:
             - 3
         mfa_token_previous_used:
@@ -8468,7 +8478,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: mfa_token_previous_used
-          order: 39
+          order: 40
           size:
             - 0
         mfa_type:
@@ -8478,7 +8488,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: mfa_type
-          order: 31
+          order: 32
           size:
             - 3
         mobile:
@@ -8488,7 +8498,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: mobile
-          order: 32
+          order: 33
           size:
             - 0
         mobile_verified:
@@ -8498,7 +8508,7 @@ schema:
           is_primary_key: 0
           is_unique: 0
           name: mobile_verified
-          order: 33
+          order: 34
           size:
             - 0
         organisation:

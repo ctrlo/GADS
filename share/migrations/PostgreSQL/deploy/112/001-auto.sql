@@ -1,6 +1,6 @@
 --
 -- Created by SQL::Translator::Producer::PostgreSQL
--- Created on Wed Aug 19 16:02:17 2026
+-- Created on Wed Aug 19 16:25:50 2026
 --
 ;
 --
@@ -125,7 +125,7 @@ CREATE INDEX "calc_idx_layout_id" on "calc" ("layout_id");
 CREATE TABLE "calc_unique" (
   "id" bigserial NOT NULL,
   "layout_id" integer NOT NULL,
-  "value_text" citext,
+  "value_text" text,
   "value_int" bigint,
   "value_date" date,
   "value_numeric" numeric(20,5),
@@ -1084,6 +1084,7 @@ CREATE TABLE "user" (
   "limit_to_view" bigint,
   "stylesheet" text,
   "created" timestamp,
+  "created_by" citext,
   "debug_login" smallint DEFAULT 0,
   "mfa_type" character(3),
   "mobile" text,
