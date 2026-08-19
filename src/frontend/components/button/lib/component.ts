@@ -111,6 +111,12 @@ class ButtonComponent extends Component {
                     createCancelButton(el);
                 });
         });
+        map.set('btn-js-load-chronology', (el) => {
+            import(/* webpackChunkName: "load-more-chronology-button" */ './load-more-chronology-button')
+                .then(({default: createLoadMoreChronologyButton}) => {
+                    createLoadMoreChronologyButton(el);
+                });
+        });
         ButtonComponent.staticButtonsMap = map;
     }
 

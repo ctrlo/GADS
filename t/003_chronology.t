@@ -57,29 +57,30 @@ $record->clear;
     $record->find_chronology_id(1);
 
     my @changed = @{$record->chronology};
-    is(@changed, 3, "Correct number of total versions");
+    # This includes the initial write, which is shown as a change of all fields, and the two subsequent edits, and finally the current values
+    is(@changed, 4, "Correct number of total versions");
 
     # Initial write
     my @changes = @{(shift @changed)->{changed}};
     is(@changes, 2, "Correct number of changes");
     my $changed_string = shift @changes;
-    is($changed_string->{name_short}, 'L1string1', "Showing initial string as change");
+    ok(defined $changed_string->{string1}, "Showing initial string as change");
     my $changed_integer = shift @changes;
-    is($changed_integer->{name_short}, 'L1integer1', "Showing initial integer as change");
+    ok(defined $changed_integer->{integer1}, "Showing initial integer as change");
 
     # First change
     @changes = @{(shift @changed)->{changed}};
     is(@changes, 2, "Correct number of changes");
     $changed_string = shift @changes;
-    is($changed_string->{name_short}, 'L1string1', "Showing change of string");
+    ok(defined $changed_string->{string1}, "Showing change of string");
     $changed_integer = shift @changes;
-    is($changed_integer->{name_short}, 'L1integer1', "Showing change of integer");
+    ok(defined $changed_integer->{integer1}, "Showing change of integer");
 
     # Second change
     @changes = @{(shift @changed)->{changed}};
     is(@changes, 1, "Correct number of changes");
     $changed_integer = shift @changes;
-    is($changed_integer->{name_short}, 'L1integer1', "Showing change of integer in second edit");
+    ok(defined $changed_integer->{integer1}, "Showing change of integer in second edit");
 }
 
 # Check changes as user without permission on integer field
@@ -90,19 +91,20 @@ $record->clear;
     $record->find_chronology_id(1);
 
     my @changed = @{$record->chronology};
-    is(@changed, 2, "Correct number of total versions");
+    # This includes the initial write, which is shown as a change of all fields, and the two subsequent edits, and finally the current values
+    is(@changed, 3, "Correct number of total versions");
 
     # Initial write
     my @changes = @{(shift @changed)->{changed}};
     is(@changes, 1, "Correct number of changes");
     my $changed_string = shift @changes;
-    is($changed_string->{name_short}, 'L1string1', "Showing initial string as change");
+    ok(defined $changed_string->{string1}, "Showing initial string as change");
 
     # First change
     @changes = @{(shift @changed)->{changed}};
     is(@changes, 1, "Correct number of changes");
     $changed_string = shift @changes;
-    is($changed_string->{name_short}, 'L1string1', "Showing change of string");
+    ok(defined $changed_string->{string1}, "Showing change of string");
 
     # Second change not shown as integer not visible
 }

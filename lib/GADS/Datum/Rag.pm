@@ -122,6 +122,7 @@ sub grade { shift->as_grade }
 sub as_grade
 {
     my $self = shift;
+    return "invalid" unless defined $self->_value_single;
     return $mapping{ $self->_value_single };
 }
 
