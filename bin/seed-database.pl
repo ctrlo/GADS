@@ -87,9 +87,11 @@ my $site = rset('Site')->create({
 
 say qq(Creating initial username "$initial_username"...);
 my $user = rset('User')->create({
-    username => $initial_username,
-    email    => $initial_username,
-    site_id  => $site->id,
+    username   => $initial_username,
+    email      => $initial_username,
+    site_id    => $site->id,
+    created    => DateTime->now,
+    created_by => $initial_username,
 });
 
 say "Adding all permissions to initial username...";
