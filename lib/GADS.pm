@@ -3499,8 +3499,8 @@ prefix '/:layout_name' => sub {
             my $params = params;
             my $columns = ref param('column') ? param('column') : [ param('column') // () ]; # Ensure array
             $view->columns($columns);
-            $view->global(param('global') ? 1 : 0);
-            $view->is_admin(param('is_admin') ? 1 : 0);
+            $view->global(param('viewType') == 2 ? 1 : 0);
+            $view->is_admin(param('viewType') == 3 ? 1 : 0);
             $view->group_id(param 'group_id');
             $view->name  (param 'name');
             $view->filter->as_json(param 'filter');

@@ -49,28 +49,21 @@
                           </div>
                         </div>
                         <div class="row">
-                          <div class="col-lg-3">
-                            [%
-                              INCLUDE fields/sub/checkbox.tt
-                                id          = "global"
-                                name        = "global"
-                                label       = "Shared view"
-                                value       = 1
-                                checked     = view_edit.global ? 1 : 0
-                                input_class = "mb-lg-0 checkbox--reveal";
-                            %]
-                          </div>
-
-                          <div class="col-lg-9">
-                            [%
-                              INCLUDE fields/sub/checkbox.tt
-                                id          = "is_admin"
-                                name        = "is_admin"
-                                label       = "Administration view (only visible to table administrators)"
-                                value       = 1
-                                checked     = view_edit.is_admin ? 1 : 0
-                                input_class = "mb-lg-0";
-                            %]
+                          <div class="col-12 my-3">
+                              <div class="d-lg-flex flex-row justify-content-between d-md-block radio-group radio-group-toggle">
+                                <div class="ml-md-2 ml-sm-3 radio-group__option">
+                                    <input class="radio-group__input" type="radio" id="viewType1" name="viewType" value="1" [% UNLESS view_edit.global || view_edit.is_admin %]checked[% END %] />
+                                    <label for="viewType1" class="radio-group__label">Personal View</label>
+                                </div>
+                                <div class="ml-md-2 ml-sm-3 radio-group__option">
+                                    <input class="radio-group__input" type="radio" id="viewType2" name="viewType" value="2" [% IF view_edit.global && !view_edit.is_admin %]checked[% END %] />
+                                    <label for="viewType2" class="radio-group__label">Shared View</label>
+                                </div>
+                                <div class="ml-md-2 ml-sm-3 radio-group__option">
+                                    <input class="radio-group__input" type="radio" id="viewType3" name="viewType" value="3" [% IF view_edit.is_admin %]checked[% END %] />
+                                    <label for="viewType3" class="radio-group__label">Admin View (only visible to table administrators)</label>
+                                </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -79,7 +72,7 @@
                   <div class="row">
                     <div class="col">
 
-                      <div class="checkbox-reveal" id="global-reveal">
+                      <div class="radio-reveal" id="radio-reveal" data-radio-target="viewType" data-radio-value="2">
                         [%
                           group_id_items = layout.user_can("layout") ? [{id="", name="<All users>"}] : [];
 
