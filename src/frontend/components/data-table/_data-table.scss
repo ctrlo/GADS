@@ -18,6 +18,7 @@
             text-transform: uppercase;
             vertical-align: top;
             box-shadow: none;
+            vertical-align: middle;
 
             &[class*="sorting_asc"],
             &[class*="sorting_desc"] {
@@ -35,6 +36,7 @@
         td {
             padding: 1rem;
             color: $gray-extra-dark;
+            vertical-align: middle;
         }
     }
 
