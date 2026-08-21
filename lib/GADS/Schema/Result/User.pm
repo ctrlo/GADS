@@ -638,7 +638,7 @@ sub update_user
           or error __x"The email address \"{email}\" is invalid", email => $params{email};
 
       my $msg = __x"User updated: ID {id}, username: {username}",
-          id => $self->id, username => $params{username};
+          id => $self->id, username => $params{username} ? $params{username} : $params{email};
       $msg .= __x", groups: {groups}", groups => join ', ', @{$params{groups}}
           if $params{groups};
       $msg .= __x", permissions: {permissions}", permissions => join ', ', @{$params{permissions}}

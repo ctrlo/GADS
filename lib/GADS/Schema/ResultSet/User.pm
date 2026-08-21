@@ -126,7 +126,7 @@ sub create_user
 
     $audit->login_change(
         __x"User created by {current_user}, id: {id}, username: {username}",
-            current_user => $params{current_user}->email, id => $user->id, username => $params{username}
+            current_user => $params{current_user}->email, id => $user->id, username => $params{username} ? $params{username} : $params{email}
     );
 
     $user->update_user(%params);
