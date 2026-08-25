@@ -1810,7 +1810,7 @@ post '/api/file/?' => require_login sub {
             config => config
         )->column($column_id);
 
-        my $mimetype = $filecheck->check_upload($upload, check_name => 0, extra_types => $column->override_types); # Borks on invalid file type
+        my $mimetype = $filecheck->check_upload($upload, check_name => 0, extra_types => $column->override_types, col_filesize => $column->filesize); # Borks on invalid file type
         my $filename = $upload->filename;
 
         # Remove any invalid characters from the new name - this will possibly be changed to an error going forward
@@ -3746,11 +3746,7 @@ prefix '/:layout_name' => sub {
                 $column->notes(body_parameters->get('notes'));
 
                 my $no_alerts;
-                if ($column->type eq "file")
-                {
-                    $column->filesize(param('filesize') || undef) if $column->type eq "file";
-                }
-                elsif ($column->type eq "rag")
+                if ($column->type eq "rag")
                 {
                     $column->code(param 'code_rag');
                     $no_alerts = param('no_alerts_rag');
