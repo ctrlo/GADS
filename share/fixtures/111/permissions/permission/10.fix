@@ -1,7 +1,0 @@
-$HASH1 = {
-           description
-                  => 'User can access audit data',
-           id     => 10,
-           name   => 'audit',
-           order  => 11
-         };
