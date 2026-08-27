@@ -1,0 +1,7 @@
+$HASH1 = {
+           description
+                  => 'Super-administrator',
+           id     => 12,
+           name   => 'superadmin',
+           order  => undef
+         };
