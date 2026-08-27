@@ -1025,7 +1025,8 @@
           popover_body = col.helptext_html
           filter       = "html"
           is_required  = field_is_required
-          is_readonly  = readonly;
+          is_readonly  = readonly
+          max_length   = col.max_length;
       ELSE;
         INCLUDE fields/textarea.tt
           id           = col.id
@@ -1039,7 +1040,8 @@
           is_required  = field_is_required
           is_readonly  = readonly
           hide_group   = 1
-          rows         = 10;
+          rows         = 10
+          max_length   = col.max_length;
         END;
     ELSE;
       field_input_type  = "text";
@@ -1079,7 +1081,8 @@
           filter       = "html"
           is_required  = field_is_required
           is_readonly  = readonly
-          type         = field_input_type;
+          type         = field_input_type
+          max_length   = col.max_length;
       ELSE;
         INCLUDE fields/input.tt
           id           = col.id
@@ -1096,7 +1099,8 @@
           is_required  = field_is_required
           is_readonly  = readonly
           hide_group   = 1
-          type         = field_input_type;
+          type         = field_input_type
+          max_length   = col.max_length;
       END;
   
       

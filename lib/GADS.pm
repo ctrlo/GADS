@@ -90,6 +90,7 @@ use Dancer2::Plugin::Auth::Extensible::Provider::DBIC 0.623;
 use Dancer2::Plugin::LogReport 'linkspace';
 
 use GADS::API; # API routes
+use GADS::MFA;
 
 # YAML needs to save and load blessed objects for the sessio serializer (for
 # the notification messages). Since YAML 1.25 this is disabled by default, so
@@ -264,14 +265,14 @@ hook before => sub {
         if (config->{gads}->{user_status} && !session('status_accepted'))
         {
             # Redirect to user status page if required and not seen this session
-            redirect '/user_status' unless request->uri =~ m!^/(user_status|aup)!;
+            redirect '/user_status' unless request->uri =~ m!^/(user_status|aup|mfa)!;
         }
         elsif (logged_in_user_password_expired && !session('is_sso'))
         {
             # Redirect to user details page if password expired
             forwardHome({ danger => "Your password has expired. Please use the Change password button
                 below to set a new password." }, 'myaccount')
-                    unless request->uri eq '/myaccount' || request->uri eq '/logout';
+                    unless request->uri eq '/myaccount' || request->uri eq '/logout' || request->uri eq '/mfa';
         }
 
         # CSP

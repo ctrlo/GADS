@@ -78,4 +78,9 @@ my $tree1 = $columns->{'tree1'};
 try { $record->fields->{$tree1->id}->set_value(999) };
 like( $@, qr/not a valid tree node/, "Failed to write invalid tree" );
 
+$string1->force_regex(undef);
+$string1->max_length(10);
+try { $record->fields->{$string1->id}->set_value("foobarbazquux") } hide => 'ALL';
+ok( $@, "Failed to write string value exceeding max_length" );
+
 done_testing();

@@ -1105,7 +1105,10 @@ sub _find
                                 # Changed?
                                 my $new_value = delete $new_ids{$id};
                                 next if $old_value->{value} eq $new_value->{value};
-                                $new_value->{status} = "Changed";
+                                my $record = $new_value->{record};
+                                my $status = __x"Updated on {created} by {created_by}. Changed",
+                                    created => $record->edited_time, created_by => $record->edited_user;
+                                $new_value->{status} = $status->toString;
                                 $new_value->{version_id} = $new_value->{record}->record_id;
                                 push @values, $new_value;
                             }

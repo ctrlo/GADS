@@ -20,11 +20,32 @@ package GADS::Column::String;
 
 use Log::Report 'linkspace';
 use Moo;
-use MooX::Types::MooseLike::Base qw/Bool Str Maybe/;
+use MooX::Types::MooseLike::Base qw/Bool Str Int Maybe/;
 
 extends 'GADS::Column';
 
 with 'GADS::Role::Presentation::Column::String';
+
+has '+option_names' => (
+    default => sub { 
+        [+{
+            name              => 'max_length',
+            user_configurable => 1,
+        }]
+    }
+);
+
+has max_length => (
+    is      => 'rw',
+    isa     => Maybe[Int],
+    lazy    => 1,
+    builder => sub {
+        my $self = shift;
+        $self->has_options ? $self->options->{max_length} : undef; # explicitly return undef if no options, to avoid confusion with 0
+    },
+    trigger => sub { $_[0]->reset_options },
+    coerce  => sub { length($_[0]) && $_[0] =~ /^\d+$/i ? $_[0] : undef },
+);
 
 has textbox => (
     is      => 'rw',
