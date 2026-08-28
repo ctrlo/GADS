@@ -18,6 +18,7 @@
             text-transform: uppercase;
             vertical-align: top;
             box-shadow: none;
+            vertical-align: middle;
 
             &[class*="sorting_asc"],
             &[class*="sorting_desc"] {
@@ -35,6 +36,7 @@
         td {
             padding: 1rem;
             color: $gray-extra-dark;
+            vertical-align: middle;
         }
     }
 
@@ -269,6 +271,7 @@ table.dataTable thead .sorting_disabled {
     display: flex;
     position: relative;
     align-items: flex-start;
+    text-align: start;
 }
 
 // Pagination
@@ -425,38 +428,21 @@ button.btn-add {
     @extend .m-0;
 }
 
-.dt-layout-row {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    margin-bottom: $padding-base-vertical;
+.dt-layout-start:has(.dt-search) {
+    flex-grow: 1;
 
-    &.dt-layout-row--no-padding {
-        padding: 0;
-    }
-
-    .dt-start {
-        flex-grow: 1;
-
-        label {
-            display: none;
-        }
-
-        .dt-search {
-            @extend .pe-2;
-            width: 100%;
-
-            input[type="search"] {
-                width: 100%;
-                @extend .m-0;
-            }
-        }
-    }
-
-    &:has(.dt-start:empty + .dt-end:empty) {
+    label {
         display: none;
+    }
+
+    .dt-search {
+        @extend .pe-2;
+        width: 100%;
+
+        input[type="search"] {
+            width: 100%;
+            @extend .m-0;
+        }
     }
 }
 
@@ -467,10 +453,6 @@ button.btn-add {
 .dt-orderable-asc,
 .dt-orderable-desc {
     .data-table__header-wrapper {
-        text-align: center;
-        align-items: center;
-        justify-content: center;
-
         .dt-column-title {
             white-space: nowrap;
         }
@@ -616,4 +598,17 @@ th {
 .table-hover>tbody>tr:hover>* {
     background-color: rgba(var(--dt-row-hover), 0.075);
     box-shadow: none;
+}
+
+table.dataTable {
+    &.table-search {
+        &>tbody>tr>td {
+            padding-left: 2rem;
+        }
+    }
+
+    // Override default alignment to left for all columns
+    td[class*="dt-type-"] {
+        text-align: left;
+    }
 }

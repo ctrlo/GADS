@@ -181,7 +181,7 @@
     @extend %icon-font;
 
     content: "\E80a";
-    margin-right: 0.75rem;
+    margin-right: 0.25rem;
     color: $brand-secundary;
     background: $transparent;
     transition: all 0.2s ease;
@@ -195,6 +195,10 @@
     color: $brand-secundary;
     text-decoration: none;
     background: $transparent;
+  }
+
+  & span {
+    font-weight: $btn-font-weight !important; // Have to use important here otherwise the card title will override this style.
   }
 }
 
