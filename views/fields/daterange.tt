@@ -7,7 +7,7 @@
 <div class="form-group">
 [% END %]
   <fieldset class="fieldset"[% IF fieldset_name %] data-name="[% fieldset_name %]"[% END %][% fieldset_style %]>
-    [% INCLUDE fields/sub/label_fieldset.tt; %]
+    [% IF label; INCLUDE fields/sub/label_fieldset.tt; END; %]
     <div class="input-group input-daterange [% input_class %]"[% daterange_style %]>
       [%
         INCLUDE fields/input.tt
