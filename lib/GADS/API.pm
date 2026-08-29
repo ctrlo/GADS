@@ -570,7 +570,7 @@ post '/api/settings/logo' => require_login sub {
     my $filecheck = GADS::Filecheck->instance;
     error __x"Files of mimetype {mimetype} are not allowed", mimetype => $filecheck->get_filetype($file)
         unless $filecheck->is_image($file);
-    
+
     $site->update({ site_logo => $file->content });
 
     content_type 'application/json';
@@ -582,6 +582,32 @@ post '/api/settings/logo' => require_login sub {
             url   => '/settings/logo'
         }
     );
+};
+
+get '/api/chronology/:id' => require_login sub {
+    my $user       = logged_in_user;
+    my $current_id = route_parameters->get('id');
+    my $page       = query_parameters->get('page') // 1;
+
+    my $record = GADS::Record->new(
+        user   => $user,
+        schema => schema,
+    );
+
+    $record->find_chronology_id($current_id, page => $page);
+
+    my $layout      = $record->layout;
+    my $base_url    = request->base;
+    my $last_page   = $record->last_chronology_page;
+
+    return template 'chronology/chronology.tt' => {
+        record     => $record,
+        layout_obj => $layout,
+        page       => $page,
+        last_page  => $last_page == $page ? 1 : 0,
+    }, {
+        layout => undef, # Do not render page header, footer etc
+    };
 };
 
 sub _post_dashboard_widget {
@@ -666,7 +692,7 @@ sub _put_dashboard_widget_edit {
     my $widget = _get_widget_write(route_parameters->get('id'), route_parameters->get('dashboard_id'), $layout, $user);
 
     my $body = from_json(request->body);
-    
+
     $widget->title($body->{'title'});
     $widget->static(query_parameters->get('static') ? 1 : 0)
         if $widget->dashboard->is_shared;

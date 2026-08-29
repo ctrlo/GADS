@@ -102,7 +102,7 @@ class RenameButton {
     /**
      * Perform click event
      * @param {number} id The id of the field
-     * @param {JQuery.ClickEvent} ev The event object 
+     * @param {JQuery.ClickEvent} ev The event object
      */
     private renameClick(id: number, ev: JQuery.ClickEvent) {
         ev.preventDefault();
